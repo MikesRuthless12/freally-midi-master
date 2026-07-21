@@ -1,0 +1,22 @@
+# Normalise to LF in the repository. CI runs on ubuntu, windows and macos
+# runners; without this, files checked out with CRLF break shell scripts on the
+# Linux legs and produce phantom diffs in `cargo fmt --check`.
+* text=auto eol=lf
+
+# Windows-only scripts must keep CRLF to run correctly.
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Binary assets — never touch these.
+*.png binary
+*.ico binary
+*.icns binary
+*.svg text
+*.woff2 binary
+*.wav binary
+*.mid binary
+
+# Lockfiles are generated; collapse them in review diffs.
+Cargo.lock linguist-generated=true
+package-lock.json linguist-generated=true
