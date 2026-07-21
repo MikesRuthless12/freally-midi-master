@@ -28,7 +28,7 @@ export function resolveTheme(preference: ThemePreference): ResolvedTheme {
 
 export function loadThemePreference(): ThemePreference {
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const stored = window.localStorage.getItem(STORAGE_KEY);
     if (isThemePreference(stored)) return stored;
   } catch {
     // Private-mode or storage-disabled webviews throw on access; fall through.
@@ -51,7 +51,7 @@ export function applyThemePreference(preference: ThemePreference): ResolvedTheme
   }
 
   try {
-    localStorage.setItem(STORAGE_KEY, preference);
+    window.localStorage.setItem(STORAGE_KEY, preference);
   } catch {
     // Persisting is best-effort; the in-memory choice still applies.
   }

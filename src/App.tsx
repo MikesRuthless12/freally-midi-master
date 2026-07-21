@@ -1,16 +1,20 @@
 import { useEffect, useState } from "react";
-import reactLogo from "./assets/react.svg";
-import { invoke } from "@tauri-apps/api/core";
 import {
   BugReportOverlay,
   bugReportHasPendingCrash,
 } from "./components/BugReport/BugReport";
-import "./App.css";
+import { CenterStage } from "./components/layout/CenterStage";
+import { LeftRail } from "./components/layout/LeftRail";
+import { RightRail } from "./components/layout/RightRail";
+import { TransportBar } from "./components/layout/TransportBar";
+import { useUi, WIDE_BREAKPOINT } from "./state/ui";
+import "./components/layout/layout.css";
 
 function App() {
-  const [greetMsg, setGreetMsg] = useState("");
-  const [name, setName] = useState("");
   const [bugReportOpen, setBugReportOpen] = useState(false);
+  const rightRailOpen = useUi((s) => s.rightRailOpen);
+  const setWide = useUi((s) => s.setWide);
+  const toggleRightRail = useUi((s) => s.toggleRightRail);
 
   // A crash left a report behind: the relaunched app opens it on its own, which
   // is the whole point of the crash loop. A pending crash takes the dialog slot
@@ -25,52 +29,38 @@ function App() {
       });
   }, []);
 
-  async function greet() {
-    // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
-    setGreetMsg(await invoke("greet", { name }));
-  }
+  // The right rail follows the breakpoint, but only when it is actually
+  // crossed — so a manual K toggle is not undone by an unrelated resize.
+  useEffect(() => {
+    const mq = window.matchMedia(`(min-width: ${WIDE_BREAKPOINT}px)`);
+    const onChange = (e: MediaQueryListEvent) => setWide(e.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, [setWide]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "k" && e.key !== "K") return;
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      // Never steal the key from a text field.
+      const el = e.target as HTMLElement | null;
+      if (el?.matches?.("input, textarea, select, [contenteditable]")) return;
+      e.preventDefault();
+      toggleRightRail();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [toggleRightRail]);
 
   return (
-    <main className="container">
-      <h1>Welcome to Tauri + React</h1>
-
-      <div className="row">
-        <a href="https://vite.dev" target="_blank">
-          <img src="/vite.svg" className="logo vite" alt="Vite logo" />
-        </a>
-        <a href="https://tauri.app" target="_blank">
-          <img src="/tauri.svg" className="logo tauri" alt="Tauri logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <p>Click on the Tauri, Vite, and React logos to learn more.</p>
-
-      <form
-        className="row"
-        onSubmit={(e) => {
-          e.preventDefault();
-          greet();
-        }}
-      >
-        <input
-          id="greet-input"
-          onChange={(e) => setName(e.currentTarget.value)}
-          placeholder="Enter a name..."
-        />
-        <button type="submit">Greet</button>
-      </form>
-      <p>{greetMsg}</p>
-
-      <div className="row">
-        <button type="button" onClick={() => setBugReportOpen(true)}>
-          Report a bug
-        </button>
-      </div>
+    <div className="studio" data-right-rail={rightRailOpen ? "open" : "closed"}>
+      <LeftRail />
+      <CenterStage />
+      {rightRailOpen && <RightRail />}
+      <TransportBar onReportBug={() => setBugReportOpen(true)} />
 
       {bugReportOpen && <BugReportOverlay onClose={() => setBugReportOpen(false)} />}
-    </main>
+    </div>
   );
 }
 
