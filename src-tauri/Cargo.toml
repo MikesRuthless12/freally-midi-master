@@ -1,0 +1,38 @@
+[package]
+name = "freally-midi-master"
+description = "Artist-accurate MIDI generation, offline and AI-free."
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[lib]
+# The `_lib` suffix may seem redundant but it is necessary
+# to make the lib name unique and wouldn't conflict with the bin name.
+# This seems to be only an issue on Windows, see https://github.com/rust-lang/cargo/issues/8519
+name = "freally_midi_master_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-opener = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# Bug reporter (`src/bugreport.rs`) — see HAVOC-STANDARD-bug-report-and-updater.md.
+chrono = "0.4"          # crash stamp in local time (with UTC offset) + UTC
+directories = "5"       # the OS data dir for crash files; the home path to scrub
+# The post-crash "stopped unexpectedly" box. Native on every OS: MessageBoxW on
+# Windows, NSAlert on macOS, GTK3 on Linux. Pinned to `gtk3` with no default
+# features: cargo unions features across the graph and rfd's build script aborts
+# outright if both `gtk3` and `xdg-portal` end up enabled, and rfd's defaults
+# pull a second ashpd/wayland stack in behind it.
+rfd = { version = "0.16", default-features = false, features = ["gtk3"] }
+# Poll the crashed pid out of the process table before relaunching.
+sysinfo = { version = "0.33", default-features = false, features = ["system"] }
+

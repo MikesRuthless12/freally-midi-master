@@ -1,0 +1,18 @@
+[workspace]
+members = ["engine", "src-tauri"]
+resolver = "2"
+
+# The post-crash notice offers to restart, so it may only fire when a panic is
+# guaranteed to have killed the process. `bugreport::install_panic_hook` gates
+# the notice on `cfg!(panic = "abort")`; without this the shipped build unwinds,
+# the gate reads false, and the crash loop is dead code in exactly the profile
+# users run.
+[profile.release]
+panic = "abort"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["Havoc Software"]
+license = "LicenseRef-AllRightsReserved"
+repository = "https://github.com/MikesRuthless12/freally-midi-master"

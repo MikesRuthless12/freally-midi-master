@@ -1,0 +1,66 @@
+Freally MIDI Master — Proprietary License (Source-Available)
+Copyright (c) 2026 Mike Weaver <mythodikalone@gmail.com>, trading as Havoc Software
+(the "Owner"). All Rights Reserved.
+
+This software and its source code (the "Software") are the exclusive property of the
+Owner. The source is published publicly for transparency, evaluation, and community
+contribution, but the Software is proprietary and is NOT open source. Publishing the
+source grants no ownership and no reuse rights beyond the limited permissions below.
+
+LIMITED PERMISSIONS — you MAY:
+
+  a. View and read the public source code of the Software.
+  b. Clone or download the repository and BUILD and RUN the Software locally for
+     your own personal, non-commercial evaluation and testing.
+  c. Download and run pre-built binaries of the Software, where the Owner makes
+     them available, free of charge for personal and commercial purposes.
+  d. Modify your local copy of the source SOLELY to prepare a contribution — a bug
+     fix, a feature, or a style-dataset addition — that you submit back to the
+     Owner's official repository as a pull request. This permission covers the
+     local modification and the act of submitting it, and nothing else: it grants
+     no right to publish, distribute, or run a modified build beyond your own
+     machine, and it lapses if the contribution is withdrawn or rejected.
+
+This permission to VIEW, BUILD, RUN, and CONTRIBUTE grants no rights to the source
+code beyond reading, local execution, and the contribution flow in (d), and transfers
+no ownership or intellectual-property rights.
+
+CONTRIBUTIONS. By submitting a contribution you represent that it is your own
+original work, that you have the right to submit it, and that it contains no MIDI,
+audio, code, or data copied from any commercial recording, sample pack, or
+third-party work. You grant the Owner a perpetual, worldwide, irrevocable,
+royalty-free, sublicensable license to use, reproduce, modify, and distribute your
+contribution as part of the Software under this license or any future license the
+Owner adopts. You retain your own copyright in your contribution. See CONTRIBUTING.md.
+
+RESERVED RIGHTS — except where a separate written agreement signed by the Owner
+states otherwise, or where permission (d) above expressly applies, you may NOT:
+
+  1. copy, reproduce, or redistribute the Software or its source code, in whole or
+     in part, beyond the local personal use permitted above;
+  2. modify, adapt, translate, or create derivative works of the Software;
+  3. publish, sublicense, sell, rent, lease, host as a service, or otherwise
+     transfer or commercially exploit the Software or any copy of it;
+  4. incorporate any portion of the Software's source code into another project;
+  5. reverse engineer, decompile, or disassemble any compiled form of the Software,
+     except to the extent this restriction is prohibited by law;
+  6. remove or alter any proprietary or attribution notices in the Software.
+
+OUTPUT. MIDI, audio, and project files that you generate with the Software are
+yours. The Owner claims no ownership of, and asserts no license over, the patterns,
+songs, or renders you create with it, and you may use them for any lawful purpose
+including commercial release. See EULA.md § 3 and docs/legal/disclaimer.md.
+
+THIRD-PARTY COMPONENTS. The Software incorporates third-party components that are
+licensed separately under their own terms (see THIRD-PARTY-NOTICES.md). Those
+components remain governed by their respective licenses, and nothing in this license
+restricts any rights you may have under them.
+
+NO WARRANTY. The Software is provided "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL THE OWNER BE LIABLE
+FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT,
+OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE, INCLUDING ANY LOSS OF DATA OR LOSS OF WORK.
+
+For licensing inquiries, contact: mythodikalone@gmail.com

@@ -1,0 +1,13 @@
+[package]
+name = "engine"
+description = "Pure procedural music-generation engine for Freally MIDI Master. No Tauri types, no network, no AI/ML."
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[dependencies]

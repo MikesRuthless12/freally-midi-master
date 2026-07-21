@@ -1,0 +1,58 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-ssr
+*.local
+
+# Rust — the Cargo workspace target dir lives at the repo root
+/target
+
+# ── Secrets — NEVER publish ───────────────────────────────────────────────
+# The update-signing private key lives in ~/.tauri, outside this tree. These
+# patterns are a backstop in case a key is ever copied in here by accident.
+*.key
+*.pem
+*.p12
+*.pfx
+*password*.txt
+.env
+.env.*
+!.env.example
+
+# ── Internal planning documents — NEVER publish ───────────────────────────
+# The repo is public (source-available). Product strategy, the PLAID planning
+# artifacts and the proprietary style research stay in the working tree only.
+# Public docs added by later tasks (docs/legal/, docs/runbooks/, docs/daw-matrix.md)
+# are deliberately NOT covered by these paths and remain tracked.
+/vision.json
+/scripts/validate-vision.js
+/docs/gtm.md
+/docs/prd.md
+/docs/product-roadmap.md
+/docs/product-vision.md
+/docs/style-research.md
+
+# House-convention planning files (same names as the sibling Freally repos)
+*[Bb]uild-[Pp]rompts-[Gg]uide*
+*BUILD-PROMPTS-GUIDE*
+*[Hh]andoff*
+Rolling-Session.md
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
