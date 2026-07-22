@@ -193,16 +193,30 @@ function captureWindow() {
     }
 
     const [x, y, w, h, screenW, screenH] = answer.split(',').map(Number);
-    if (x < 0 || y < 0 || x + w > screenW || y + h > screenH) {
-      return {
-        status: 1,
-        stderr:
-          `could not read a CGWindowID (${found.stderr || 'no output'}), and the window ` +
-          `(${w}x${h} at ${x},${y}) does not fit the ${screenW}x${screenH} display, so a ` +
-          'region capture would be clipped.',
-      };
+    const visibleW = Math.min(w, screenW - x);
+    const visibleH = Math.min(h, screenH - y);
+
+    if (visibleW < w || visibleH < h) {
+      // Clipped, and there is no way around it on this runner: the window is
+      // 1440x900 with a 1280 minimum, the display is 1024x768, and the window
+      // server will not go below minWidth. The window-buffer capture that would
+      // solve it needs a CGWindowID, and CGWindowListCopyWindowInfo returns
+      // nothing to osascript here — GitHub's macOS image does not grant it the
+      // Screen Recording permission that `screencapture` itself has.
+      //
+      // So: take the visible region and SAY it is partial. A clipped shot still
+      // proves the app launches and renders on macOS, which is what this job is
+      // for. What it must never do is look like a full-window capture — that is
+      // how the desktop-photo bug survived. Live-To-Do § 0.1 covers the rest of
+      // the macOS layout by hand.
+      console.log(
+        `::warning::macOS capture is PARTIAL: the window is ${w}x${h} but the display is ` +
+          `${screenW}x${screenH}, so ${w - visibleW}px of width and ${h - visibleH}px of ` +
+          'height are off-screen and not in the image.',
+      );
     }
-    return sh('screencapture', ['-x', '-R', `${x},${y},${w},${h}`, output]);
+
+    return sh('screencapture', ['-x', '-R', `${x},${y},${visibleW},${visibleH}`, output]);
   }
 
   // Windows: PrintWindow, which asks the window to render ITSELF into a bitmap.
