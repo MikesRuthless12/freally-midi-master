@@ -115,16 +115,47 @@ function captureWindow() {
   }
 
   if (process.platform === 'darwin') {
-    // Fit the window to the display, THEN grab its rect.
+    // Capture by window id — the macOS equivalent of PrintWindow.
     //
-    // `screencapture -R` takes a screen region, not a window, so anything
-    // hanging off the edge of the display is simply not in the file. The runner
-    // desktop is 1024x768 and the app's window is larger, so the capture used to
-    // lose the left rail and the bottom transport bar and include the Dock
-    // instead — a picture that cannot show whether those parts still render.
-    // Moving and clamping first means the whole window is on screen to be
-    // photographed. The rect is read back afterwards rather than assumed,
-    // because the window server may clamp differently than asked.
+    // `screencapture -R` takes a screen REGION, so anything hanging off the
+    // display edge is simply absent from the file. The runner desktop is
+    // 1024x768 and tauri.conf.json sets minWidth 1280, which the window server
+    // will not go below — so no amount of moving or resizing makes the window
+    // fit, and the region grab silently lost the right rail and the transport
+    // bar. `-l <CGWindowID>` reads the window's own buffer instead and does not
+    // care where it sits or how big the screen is.
+    //
+    // The id comes from CoreGraphics via JXA, because nothing in the shell
+    // exposes a CGWindowID: System Events' `id of window` is a different
+    // number space entirely.
+    const lookup = `
+      ObjC.import('CoreGraphics');
+      const windows = $.CGWindowListCopyWindowInfo(
+        $.kCGWindowListOptionOnScreenOnly | $.kCGWindowListExcludeDesktopElements,
+        $.kCGNullWindowID,
+      );
+      const count = windows.count;
+      for (let i = 0; i < count; i++) {
+        const w = windows.objectAtIndex(i);
+        const owner = ObjC.unwrap(w.objectForKey('kCGWindowOwnerName')) || '';
+        const bounds = w.objectForKey('kCGWindowBounds');
+        const width = bounds ? ObjC.unwrap(bounds.objectForKey('Width')) : 0;
+        if (owner.toLowerCase().indexOf('freally') !== -1 && width > 200) {
+          ObjC.unwrap(w.objectForKey('kCGWindowNumber'));
+        }
+      }
+    `;
+    const found = sh('osascript', ['-l', 'JavaScript', '-e', lookup]);
+    const id = (found.stdout ?? '').trim();
+
+    if (/^\d+$/.test(id)) {
+      // `-o` drops the drop-shadow so the image is the window and nothing else.
+      return sh('screencapture', ['-x', '-o', '-l', id, output]);
+    }
+
+    // No id: fall back to the region grab, but refuse if it would clip. A
+    // picture with the right rail cut off is not evidence that the right rail
+    // renders — that is the failure this whole file exists to prevent.
     const script = `
       tell application "Finder" to set screen to bounds of window of desktop
       set screenW to item 3 of screen
@@ -135,13 +166,7 @@ function captureWindow() {
         set p to item 1 of procs
         if (count of windows of p) = 0 then return "none"
         set w to window 1 of p
-        -- Below the menu bar, above the Dock, never wider than the screen.
         set position of w to {0, 25}
-        set {ww, hh} to size of w
-        if ww > screenW then set ww to screenW
-        if hh > (screenH - 105) then set hh to screenH - 105
-        set size of w to {ww, hh}
-        delay 1
         set {x, y} to position of w
         set {ww, hh} to size of w
         return (x as text) & "," & (y as text) & "," & (ww as text) & "," & (hh as text) & "," & (screenW as text) & "," & (screenH as text)
@@ -149,23 +174,20 @@ function captureWindow() {
     const bounds = sh('osascript', ['-e', script]);
     const answer = (bounds.stdout ?? '').trim();
     if (!answer || answer === 'none') {
-      return { status: 1, stderr: `could not find the app window: ${bounds.stderr || answer}` };
+      return {
+        status: 1,
+        stderr: `no window id (${found.stderr || 'no output'}) and no window bounds either`,
+      };
     }
 
-    // The resize above is a REQUEST. tauri.conf.json sets minWidth 1280, and
-    // the window server will not go below it — so on a 1024-wide runner the
-    // window stays wider than the display and `screencapture -R` silently
-    // returns a clipped image. That is the failure this whole file exists to
-    // prevent: evidence that looks like proof and is not. Say so and stop,
-    // rather than uploading a picture with the right rail cut off.
     const [x, y, w, h, screenW, screenH] = answer.split(',').map(Number);
     if (x < 0 || y < 0 || x + w > screenW || y + h > screenH) {
       return {
         status: 1,
         stderr:
-          `the window (${w}x${h} at ${x},${y}) does not fit the ${screenW}x${screenH} display, ` +
-          'so the capture would be clipped. The window server refuses to go below ' +
-          'minWidth/minHeight in tauri.conf.json; lower them, or capture by window id.',
+          `could not read a CGWindowID (${found.stderr || 'no output'}), and the window ` +
+          `(${w}x${h} at ${x},${y}) does not fit the ${screenW}x${screenH} display, so a ` +
+          'region capture would be clipped.',
       };
     }
     return sh('screencapture', ['-x', '-R', `${x},${y},${w},${h}`, output]);
