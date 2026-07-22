@@ -14,6 +14,7 @@ pub mod drag;
 
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::sync::atomic::{AtomicU64, Ordering};
 
 use serde::Serialize;
 
@@ -72,19 +73,64 @@ pub fn write_session_file(stem: &str, extension: &str, bytes: &[u8]) -> std::io:
 
 /// Write via a temp file and rename, so a crash mid-write cannot leave a
 /// half-written `.mid` that a DAW will happily try to open.
+///
+/// The temp name is unique per writer. A fixed `.part` suffix looks fine until
+/// two writers target the same file: the first one's rename consumes the temp
+/// file out from under the second, which then fails with ENOENT. That is not
+/// hypothetical — it turned up as a macOS CI failure the moment two tests
+/// exported the same spike file concurrently, and the app will eventually
+/// export from more than one place at once.
 pub fn write_atomic(path: &Path, bytes: &[u8]) -> std::io::Result<()> {
-    let tmp = path.with_extension("part");
+    static COUNTER: AtomicU64 = AtomicU64::new(0);
+    let unique = format!(
+        "{}.{}.{}.part",
+        path.file_name().unwrap_or_default().to_string_lossy(),
+        std::process::id(),
+        COUNTER.fetch_add(1, Ordering::Relaxed)
+    );
+    let tmp = path.with_file_name(unique);
+
     fs::write(&tmp, bytes)?;
     // Windows will not rename onto an existing file.
     if path.exists() {
-        fs::remove_file(path)?;
+        let _ = fs::remove_file(path);
     }
-    fs::rename(&tmp, path)
+    match fs::rename(&tmp, path) {
+        Ok(()) => Ok(()),
+        Err(e) => {
+            // Never leave our temp file behind if the rename lost a race.
+            let _ = fs::remove_file(&tmp);
+            Err(e)
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn concurrent_writers_to_one_path_do_not_trip_over_each_other() {
+        // A fixed `.part` name made this fail: the first writer's rename
+        // consumed the temp file the second was still using.
+        let dir = session_dir().unwrap();
+        let path = dir.join("concurrent-test.mid");
+
+        std::thread::scope(|scope| {
+            for i in 0..8 {
+                let path = path.clone();
+                scope.spawn(move || {
+                    write_atomic(&path, format!("payload {i}").as_bytes())
+                        .unwrap_or_else(|e| panic!("writer {i} failed: {e}"));
+                });
+            }
+        });
+
+        // Whichever won, the file must exist and hold one complete payload.
+        let content = fs::read_to_string(&path).unwrap();
+        assert!(content.starts_with("payload "), "got {content:?}");
+        let _ = fs::remove_file(&path);
+    }
 
     #[test]
     fn path_separators_cannot_survive_a_stem() {
@@ -121,9 +167,19 @@ mod tests {
         let path = dir.join("atomic-test.mid");
         write_atomic(&path, b"MThd-ish").unwrap();
         assert_eq!(fs::read(&path).unwrap(), b"MThd-ish");
+
+        // No temp file for THIS path may survive, whatever it was called.
+        // Scoped to our own filename: other tests share this directory and may
+        // legitimately have a `.part` file in flight while we look.
+        let leftovers: Vec<String> = fs::read_dir(&dir)
+            .unwrap()
+            .filter_map(Result::ok)
+            .map(|e| e.file_name().to_string_lossy().into_owned())
+            .filter(|name| name.starts_with("atomic-test.mid.") && name.ends_with(".part"))
+            .collect();
         assert!(
-            !path.with_extension("part").exists(),
-            "the temp file must be gone"
+            leftovers.is_empty(),
+            "temp files left behind: {leftovers:?}"
         );
 
         // Overwriting an existing file must work — Windows rename does not

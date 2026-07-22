@@ -199,7 +199,9 @@ try {
   }
 
   console.log('app is up; letting the window paint…');
-  await sleep(12_000);
+  // Linux CI runs WebKitGTK on the software rasteriser, which is markedly
+  // slower to first paint than the GPU path Windows and macOS get.
+  await sleep(process.platform === 'linux' ? 25_000 : 12_000);
 
   const shot = captureWindow();
   if (shot.status !== 0) {
