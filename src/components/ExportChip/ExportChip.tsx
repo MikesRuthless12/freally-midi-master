@@ -73,9 +73,10 @@ export function ExportChip() {
         setStatus({ kind: 'idle' });
         return;
       }
+      // No folder argument: Rust remembers what the picker returned, so the
+      // destination cannot be aimed by anything running in the WebView.
       const written = await invoke<ExportResult>('export_to_folder', {
         source: file.path,
-        folder,
       });
       setStatus({ kind: 'ok', message: `Exported to ${written.path}` });
     } catch (err) {

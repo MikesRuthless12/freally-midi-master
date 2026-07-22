@@ -5,9 +5,43 @@
 //! entire point of the spike is telling "the drag was refused" apart from "the
 //! drag worked but the DAW ignored it".
 
+use std::path::{Path, PathBuf};
+use std::sync::Mutex;
+
 use serde::Serialize;
 
-use super::{write_session_file, ExportResult};
+use super::{safe_stem, write_session_file, ExportResult};
+
+/// The folder the user last chose in the picker.
+///
+/// Held here rather than passed back in by the UI. Everything crossing the IPC
+/// bridge is untrusted — Tauri's model says so explicitly — and a command that
+/// accepts an arbitrary destination is one any script in the WebView can aim
+/// wherever the user can write.
+static EXPORT_FOLDER: Mutex<Option<PathBuf>> = Mutex::new(None);
+
+/// Reject any path that is not inside this session's export directory.
+///
+/// The only files these commands have business touching are ones this app just
+/// wrote. Without it, `export_to_folder` would happily read `~/.ssh/id_rsa`,
+/// because the source path arrived straight from the WebView. Canonicalising
+/// both sides before comparing is what makes `..` and symlinks moot.
+fn must_be_session_file(path: &str) -> Result<PathBuf, String> {
+    let file = Path::new(path)
+        .canonicalize()
+        .map_err(|e| format!("no such file {path}: {e}"))?;
+    let session = super::session_dir()
+        .and_then(|d| d.canonicalize())
+        .map_err(|e| format!("no session directory: {e}"))?;
+
+    if !file.starts_with(&session) {
+        return Err(format!(
+            "{path} is outside this session's export directory — \
+             only files this app exported can be dragged or copied"
+        ));
+    }
+    Ok(file)
+}
 
 /// What the UI needs to label the export chip on this platform.
 #[derive(Debug, Clone, Serialize)]
@@ -80,8 +114,10 @@ pub fn export_spike_midi() -> Result<ExportResult, String> {
 /// into a real error message.
 #[tauri::command]
 pub fn drag_source_ready(path: String) -> Result<u64, String> {
-    let file = std::path::Path::new(&path);
-    let meta = std::fs::metadata(file).map_err(|e| format!("nothing to drag at {path}: {e}"))?;
+    // Constrained to the session dir: otherwise this doubles as an oracle for
+    // the existence and size of any file the user can read.
+    let file = must_be_session_file(&path)?;
+    let meta = std::fs::metadata(&file).map_err(|e| format!("nothing to drag at {path}: {e}"))?;
     if !meta.is_file() {
         return Err(format!("{path} is not a file"));
     }
@@ -104,11 +140,19 @@ pub fn drag_source_ready(path: String) -> Result<u64, String> {
 /// Returns `None` when the user cancels, which is not an error.
 #[tauri::command]
 pub async fn pick_export_folder() -> Option<String> {
-    rfd::AsyncFileDialog::new()
+    let chosen = rfd::AsyncFileDialog::new()
         .set_title("Choose an export folder")
         .pick_folder()
-        .await
-        .map(|handle| handle.path().to_string_lossy().into_owned())
+        .await?;
+
+    let path = chosen.path().to_path_buf();
+    // Remember it here. `export_to_folder` uses this rather than a path handed
+    // back by the UI, so the destination is always one the user picked in a
+    // native dialog this run.
+    if let Ok(mut slot) = EXPORT_FOLDER.lock() {
+        *slot = Some(path.clone());
+    }
+    Some(path.to_string_lossy().into_owned())
 }
 
 /// Copy an exported file into a folder the user chose, and reveal it.
@@ -116,12 +160,26 @@ pub async fn pick_export_folder() -> Option<String> {
 /// The always-works path. On a platform where drag proves unreliable this
 /// becomes the default rather than a fallback.
 #[tauri::command]
-pub fn export_to_folder(source: String, folder: String) -> Result<ExportResult, String> {
-    let src = std::path::PathBuf::from(&source);
-    let name = src
-        .file_name()
+pub fn export_to_folder(source: String) -> Result<ExportResult, String> {
+    // Both ends are constrained: the source must be a file this app exported,
+    // and the destination is the folder the user chose in the native picker —
+    // not a path supplied by the caller.
+    let src = must_be_session_file(&source)?;
+    let folder = EXPORT_FOLDER
+        .lock()
+        .map_err(|_| "the export folder is unavailable".to_string())?
+        .clone()
+        .ok_or_else(|| "choose an export folder first".to_string())?;
+
+    let stem = src
+        .file_stem()
+        .map(|s| safe_stem(&s.to_string_lossy()))
         .ok_or_else(|| "the exported file has no name".to_string())?;
-    let target = std::path::PathBuf::from(&folder).join(name);
+    let extension = src
+        .extension()
+        .map(|e| safe_stem(&e.to_string_lossy()))
+        .unwrap_or_else(|| "mid".into());
+    let target = folder.join(format!("{stem}.{extension}"));
 
     let bytes = std::fs::read(&src).map_err(|e| format!("could not read {source}: {e}"))?;
     super::write_atomic(&target, &bytes)
@@ -154,6 +212,61 @@ mod tests {
         assert!(result.bytes > 100, "a 4-bar pattern should not be tiny");
 
         let _ = std::fs::remove_file(&result.path);
+    }
+
+    #[test]
+    fn a_file_outside_the_session_dir_is_refused() {
+        // The exploit this closes: any script in the WebView calling
+        // export_to_folder / drag_source_ready with an arbitrary absolute path
+        // to read a private key, or to destroy a file via write_atomic's
+        // remove-then-rename.
+        let outside = std::env::temp_dir().join("freally-not-a-session-file.txt");
+        std::fs::write(&outside, b"secret").unwrap();
+
+        let path = outside.to_string_lossy().into_owned();
+        let err = drag_source_ready(path.clone()).unwrap_err();
+        assert!(err.contains("outside this session"), "{err}");
+
+        let err = export_to_folder(path).unwrap_err();
+        assert!(err.contains("outside this session"), "{err}");
+
+        let _ = std::fs::remove_file(&outside);
+    }
+
+    #[test]
+    fn a_traversal_path_cannot_escape_the_session_dir() {
+        // Canonicalisation is what makes `..` moot; assert it rather than
+        // assuming it.
+        let escape = super::super::session_dir()
+            .unwrap()
+            .join("..")
+            .join("..")
+            .join("escape-attempt.txt");
+        std::fs::write(&escape, b"x").unwrap();
+
+        let err = drag_source_ready(escape.to_string_lossy().into_owned()).unwrap_err();
+        assert!(err.contains("outside this session"), "{err}");
+
+        let _ = std::fs::remove_file(&escape);
+    }
+
+    #[test]
+    fn a_missing_path_is_an_error_not_a_pass() {
+        let err = drag_source_ready("definitely/not/here.mid".into()).unwrap_err();
+        assert!(err.contains("no such file"), "{err}");
+    }
+
+    #[test]
+    fn exporting_without_choosing_a_folder_is_refused() {
+        // The destination comes from the picker, never from the caller.
+        let spike = export_spike_midi().unwrap();
+        let result = export_to_folder(spike.path.clone());
+        // Either no folder has been chosen, or a previous test chose one; both
+        // are fine, but it must never accept a caller-supplied destination.
+        if let Err(e) = result {
+            assert!(e.contains("choose an export folder"), "{e}");
+        }
+        let _ = std::fs::remove_file(&spike.path);
     }
 
     #[test]

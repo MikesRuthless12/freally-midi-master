@@ -497,8 +497,18 @@ fn error_summary(crash: Option<&str>, description: &str) -> String {
 }
 
 /// The subject line: `[<App>] <error summary>` — which app + what went wrong.
+///
+/// Scrubbed, like the body. This is the field most in need of it: when there
+/// is no crash, the summary falls back to the first line of whatever the user
+/// typed, and that line becomes the **title of a public GitHub issue**. The
+/// body was redacted from the start; the subject was not, so a user who
+/// mentioned a path in their first sentence published their username while the
+/// preview showed them a redacted body and no subject at all.
 fn subject(crash: Option<&str>, description: &str) -> String {
-    format!("[{APP_NAME}] {}", error_summary(crash, description))
+    scrub(&format!(
+        "[{APP_NAME}] {}",
+        error_summary(crash, description)
+    ))
 }
 
 /// How the report body is rendered. The content is identical either way — only
@@ -612,14 +622,16 @@ pub fn bug_report_submit(
     open_url(&url)
 }
 
-/// Dismiss + delete the pending crash report(s).
-/// The exact text that will be sent, built by the same function that sends it.
+/// The exact text that will be sent, built by the functions that send it.
 ///
-/// The UI previously rebuilt this in TypeScript to render its "Exactly what
-/// will be sent" preview. Two implementations of one promise is one too many:
-/// the TS copy never applied `scrub()`, so the preview could show a home path
-/// or username that the real payload redacts — the preview and the payload
+/// The UI previously rebuilt this in TypeScript. Two implementations of one
+/// promise is one too many: the TS copy never applied `scrub()`, so the preview
+/// could show a home path or username the real payload redacts — the two
 /// disagreeing on precisely the axis this feature exists to guarantee.
+///
+/// The subject is included because it is transmitted and becomes a public
+/// GitHub issue title. A preview showing only the body understates what is
+/// sent, which is how the unscrubbed-subject leak went unnoticed.
 #[tauri::command]
 pub fn bug_report_preview(description: String, include_crash: bool) -> String {
     let pending = pending_crash();
@@ -628,9 +640,14 @@ pub fn bug_report_preview(description: String, include_crash: bool) -> String {
     } else {
         None
     };
-    compose_body(&description, crash, BodyStyle::Plain)
+    format!(
+        "SUBJECT\n{}\n\n{}",
+        subject(crash, &description),
+        compose_body(&description, crash, BodyStyle::Plain)
+    )
 }
 
+/// Dismiss + delete the pending crash report(s).
 #[tauri::command]
 pub fn bug_report_clear_crash() {
     clear_crashes();
@@ -664,6 +681,33 @@ pub fn arm_test_crash(args: &[String]) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_subject_is_scrubbed_like_the_body() {
+        // Without this the first line of the user's description reaches a
+        // PUBLIC GitHub issue title unredacted, while the body beside it is
+        // redacted and the preview shows no subject at all.
+        let home = directories::UserDirs::new()
+            .map(|d| d.home_dir().to_string_lossy().into_owned())
+            .unwrap_or_default();
+        if home.is_empty() {
+            return;
+        }
+        let described = format!("export to {home}/Documents keeps failing");
+        let line = subject(None, &described);
+        assert!(
+            !line.contains(&home),
+            "the home path reached the subject line: {line}"
+        );
+    }
+
+    #[test]
+    fn the_preview_shows_the_subject_that_will_be_sent() {
+        let text = bug_report_preview("something broke".into(), false);
+        assert!(text.contains("SUBJECT"), "{text}");
+        assert!(text.contains(APP_NAME), "{text}");
+        assert!(text.contains("WHAT HAPPENED"), "{text}");
+    }
 
     #[test]
     fn scrub_redacts_home_and_username() {
