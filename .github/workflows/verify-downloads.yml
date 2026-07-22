@@ -12,8 +12,12 @@ on:
         description: 'Release tag to verify'
         required: true
 
+# `write`, reluctantly, and only so the job can SEE a draft: GitHub shows draft
+# releases exclusively to tokens with push access. The job itself only reads —
+# it downloads assets and checks them. Verifying before publishing is worth the
+# scope; verifying after is verifying the wrong thing.
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   verify:
@@ -38,7 +42,10 @@ jobs:
           set -euo pipefail
           mkdir -p assets && cd assets
 
-          release=$(gh api "repos/$GITHUB_REPOSITORY/releases" --paginate             --jq "map(select(.tag_name == \"$TAG\")) | first")
+          # `--jq` runs per page, so a `map(...) | first` would emit one result
+          # PER PAGE — nulls for the pages without a match. Select and take the
+          # first line instead, which is correct however many pages there are.
+          release=$(gh api "repos/$GITHUB_REPOSITORY/releases" --paginate             --jq ".[] | select(.tag_name == \"$TAG\")" | head -1)
           if [ -z "$release" ] || [ "$release" = "null" ]; then
             echo "::error::no release (draft or published) tagged $TAG"
             exit 1
