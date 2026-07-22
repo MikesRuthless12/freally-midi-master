@@ -96,15 +96,38 @@ pub fn write_atomic(path: &Path, bytes: &[u8]) -> std::io::Result<()> {
     let tmp = path.with_file_name(unique);
 
     fs::write(&tmp, bytes)?;
-    match fs::rename(&tmp, path) {
-        Ok(()) => Ok(()),
-        Err(e) => {
-            // Never leave our temp file behind if the rename lost a race.
-            let _ = fs::remove_file(&tmp);
-            Err(e)
+
+    // Windows refuses a replace with ERROR_ACCESS_DENIED or a sharing violation
+    // whenever anything else holds a handle on the destination for a moment —
+    // another writer mid-replace, the search indexer, an antivirus scanner. It
+    // is a timing artefact rather than a permissions problem: the identical call
+    // succeeds milliseconds later. POSIX rename has no such window, so this loop
+    // is a no-op there.
+    //
+    // Found by the concurrency test above, on Windows CI, against the fix that
+    // introduced it — eight threads replacing one path is exactly the contention
+    // that provokes it.
+    let mut attempt = 0;
+    loop {
+        match fs::rename(&tmp, path) {
+            Ok(()) => return Ok(()),
+            Err(e) => {
+                attempt += 1;
+                if attempt >= RENAME_ATTEMPTS {
+                    // Never leave our temp file behind if the rename lost a race.
+                    let _ = fs::remove_file(&tmp);
+                    return Err(e);
+                }
+                std::thread::sleep(RENAME_BACKOFF);
+            }
         }
     }
 }
+
+/// Up to ~100 ms of retrying, which is far longer than any real contention
+/// window and still imperceptible to a user waiting on an export.
+const RENAME_ATTEMPTS: u32 = 20;
+const RENAME_BACKOFF: std::time::Duration = std::time::Duration::from_millis(5);
 
 #[cfg(test)]
 mod tests {
@@ -112,17 +135,27 @@ mod tests {
 
     #[test]
     fn concurrent_writers_to_one_path_do_not_trip_over_each_other() {
-        // A fixed `.part` name made this fail: the first writer's rename
-        // consumed the temp file the second was still using.
+        // Two separate bugs have lived here, so the contention is deliberately
+        // heavier than anything the app does:
+        //
+        //  1. A fixed `.part` name — the first writer's rename consumed the temp
+        //     file the second was still using (ENOENT, first seen on macOS CI).
+        //  2. No retry around the rename — Windows refuses a replace with
+        //     ERROR_ACCESS_DENIED while another writer holds the destination
+        //     (seen on Windows CI, against the fix for the first bug).
+        //
+        // 16 writers × 8 replaces each provokes both within a second.
         let dir = session_dir().unwrap();
         let path = dir.join("concurrent-test.mid");
 
         std::thread::scope(|scope| {
-            for i in 0..8 {
+            for i in 0..16 {
                 let path = path.clone();
                 scope.spawn(move || {
-                    write_atomic(&path, format!("payload {i}").as_bytes())
-                        .unwrap_or_else(|e| panic!("writer {i} failed: {e}"));
+                    for round in 0..8 {
+                        write_atomic(&path, format!("payload {i}").as_bytes())
+                            .unwrap_or_else(|e| panic!("writer {i} round {round} failed: {e}"));
+                    }
                 });
             }
         });

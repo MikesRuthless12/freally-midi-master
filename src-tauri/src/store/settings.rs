@@ -87,27 +87,15 @@ impl Settings {
         let text =
             serde_json::to_string_pretty(self).map_err(|e| SettingsError::Io(e.to_string()))?;
 
-        // Temp + rename, so an interrupted write cannot truncate the real file.
-        //
-        // Nothing is deleted first. `fs::rename` replaces the destination on
-        // every platform this ships to — including Windows, where std uses
-        // SetFileInformationByHandle with ReplaceIfExists — so a pre-emptive
-        // `remove_file` buys nothing and costs the atomicity this comment
-        // claims: between the delete and the rename there is a window where
-        // settings.json simply does not exist, and any failure inside it (a
-        // rename refused by an antivirus handle, a full disk, a kill) loses
-        // every preference silently, because `load` treats a missing file as
-        // "use the defaults".
-        let tmp = path.with_extension("json.part");
-        fs::write(&tmp, format!("{text}\n")).map_err(|e| SettingsError::Io(e.to_string()))?;
-        match fs::rename(&tmp, &path) {
-            Ok(()) => Ok(()),
-            Err(e) => {
-                // Never leave our temp file behind.
-                let _ = fs::remove_file(&tmp);
-                Err(SettingsError::Io(e.to_string()))
-            }
-        }
+        // One shared implementation, because "temp file plus rename" has more
+        // edge cases than it looks like: a unique temp name so concurrent
+        // writers cannot consume each other's, no pre-emptive delete (which
+        // would leave a window with no settings.json at all, and `load` reads a
+        // missing file as "use the defaults"), and a retry for the replace,
+        // which Windows transiently refuses whenever anything holds a handle on
+        // the destination. A second copy of that here would drift from it.
+        crate::export::write_atomic(&path, format!("{text}\n").as_bytes())
+            .map_err(|e| SettingsError::Io(e.to_string()))
     }
 }
 
@@ -213,8 +201,19 @@ mod tests {
         assert!(path.exists(), "the file vanished during an overwrite");
         assert_eq!(Settings::load().theme, ThemePreference::Dark);
 
-        // And no temp file survives a successful write.
-        assert!(!path.with_extension("json.part").exists());
+        // And no temp file for settings.json survives a successful write,
+        // whatever `write_atomic` chose to call it.
+        let dir = path.parent().unwrap();
+        let leftovers: Vec<String> = fs::read_dir(dir)
+            .unwrap()
+            .filter_map(Result::ok)
+            .map(|e| e.file_name().to_string_lossy().into_owned())
+            .filter(|name| name.starts_with("settings.json.") && name.ends_with(".part"))
+            .collect();
+        assert!(
+            leftovers.is_empty(),
+            "temp files left behind: {leftovers:?}"
+        );
 
         match restore {
             Some(bytes) => fs::write(&path, bytes).unwrap(),
