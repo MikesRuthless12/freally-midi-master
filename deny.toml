@@ -1,0 +1,114 @@
+# cargo-deny — supply-chain policy (PRD § 2 Security, § 7 NFR Security).
+#
+# The product is proprietary and source-available, ships unsigned installers,
+# and makes hard public claims about containing no AI and doing no networking.
+# This file is what keeps a transitive dependency from quietly falsifying any
+# of that.
+
+[graph]
+# The three platforms that actually ship. Checking all of them means a
+# Linux-only dependency cannot slip past a Windows-only run.
+targets = [
+    "x86_64-pc-windows-msvc",
+    "x86_64-unknown-linux-gnu",
+    "x86_64-apple-darwin",
+    "aarch64-apple-darwin",
+]
+all-features = false
+
+[advisories]
+version = 2
+yanked = "deny"
+
+# Every entry here is an *unmaintained* advisory, not a vulnerability — checked
+# 2026-07-21: `cargo deny check advisories` reports zero `error[vulnerability]`.
+# All of them arrive transitively through Tauri and none is something this
+# project can drop or upgrade on its own. Re-check when Tauri bumps its Linux
+# stack; the goal state is an empty list.
+#
+# A real vulnerability must never be added here — fix or replace the dependency.
+ignore = [
+    # gtk-rs GTK3 bindings, unmaintained upstream. Tauri v2's Linux webview
+    # requires them; there is no GTK4 path yet.
+    "RUSTSEC-2024-0411",
+    "RUSTSEC-2024-0412",
+    "RUSTSEC-2024-0413",
+    "RUSTSEC-2024-0414",
+    "RUSTSEC-2024-0415",
+    "RUSTSEC-2024-0416",
+    "RUSTSEC-2024-0417",
+    "RUSTSEC-2024-0418",
+    "RUSTSEC-2024-0419",
+    "RUSTSEC-2024-0420",
+    "RUSTSEC-2025-0075",
+    "RUSTSEC-2025-0080",
+    "RUSTSEC-2025-0081",
+    "RUSTSEC-2025-0098",
+    "RUSTSEC-2025-0100",
+    # proc-macro-error, unmaintained; a build-time-only transitive dependency.
+    "RUSTSEC-2024-0370",
+]
+
+[licenses]
+version = 2
+# Permissive licences only. Strong copyleft (GPL/AGPL) is incompatible with a
+# proprietary source-available product and must never appear.
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Zlib",
+    "CC0-1.0",
+    "Unicode-3.0",
+    "Unicode-DFS-2016",
+    "BSL-1.0",
+    "MPL-2.0",
+    "OpenSSL",
+    "NCSA",
+    "CDLA-Permissive-2.0",
+    "MIT-0",
+]
+confidence-threshold = 0.9
+
+# This workspace's own crates are `publish = false` and carry the proprietary
+# LicenseRef-AllRightsReserved, which is not an SPDX identifier and never will
+# be. Checking our own licence against an allowlist of third-party licences is
+# meaningless — the policy exists to police dependencies.
+private = { ignore = true }
+
+# MPL-2.0 is file-level copyleft: linking is fine, and we ship those files
+# unmodified. If one ever needs modifying, that change must be published.
+
+[bans]
+multiple-versions = "warn"
+wildcards = "deny"
+# Nothing may depend on the engine except through its public API — a build
+# script reaching into it would break the "engine is pure" invariant.
+highlight = "all"
+
+# Belt and braces alongside scripts/check-denylist.mjs. That script reasons
+# about the build graph; this refuses the crates outright.
+deny = [
+    { name = "onnxruntime" },
+    { name = "ort" },
+    { name = "tract-onnx" },
+    { name = "tch" },
+    { name = "torch-sys" },
+    { name = "candle-core" },
+    { name = "candle-nn" },
+    { name = "burn-core" },
+    { name = "rust-bert" },
+    { name = "llm-chain" },
+    { name = "llama-cpp-sys" },
+    { name = "tensorflow" },
+    { name = "openai-api-rs" },
+    { name = "async-openai" },
+]
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]

@@ -1,0 +1,146 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+# A new push supersedes an in-flight run on the same ref.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  CARGO_TERM_COLOR: always
+  # Fail on warnings everywhere, not just where we remembered to ask.
+  RUSTFLAGS: -D warnings
+
+jobs:
+  quality:
+    name: quality (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      # One platform failing must not hide the state of the other two.
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      # Tauri's Linux runtime plus ALSA for the audio engine. Without these the
+      # Linux leg fails at link time rather than at test time, which is a much
+      # more confusing failure to read.
+      - name: Install Linux system dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libgtk-3-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libasound2-dev \
+            patchelf
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          # Otherwise the three OS legs fight over one cache key.
+          key: ${{ matrix.os }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # ---- Rust ----------------------------------------------------------
+      - name: cargo fmt
+        run: cargo fmt --all --check
+
+      - name: cargo clippy
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: cargo test
+        run: cargo test --workspace
+
+      # ts-rs writes src/lib/ipc-types.ts during `cargo test`. The file is
+      # committed so a fresh clone can typecheck without running cargo, which
+      # means it can drift. If the regenerated file differs from the committed
+      # one, the IPC contract and the UI's view of it have diverged.
+      - name: TypeScript bindings are up to date
+        run: git diff --exit-code -- src/lib/ipc-types.ts
+
+      # ---- Frontend ------------------------------------------------------
+      - name: typecheck
+        run: npm run typecheck
+
+      - name: lint
+        run: npm run lint
+
+      - name: format check
+        run: npm run format:check
+
+      - name: unit tests
+        run: npm run test
+
+      - name: frontend build
+        run: npm run build
+
+      # ---- Dataset -------------------------------------------------------
+      # A malformed community model must fail here, not in a user's session.
+      - name: validate dataset
+        run: npm run dataset:validate
+
+  supply-chain:
+    name: supply chain
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: dtolnay/rust-toolchain@stable
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: supply-chain
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cargo-deny,cargo-audit
+
+      # Vulnerabilities only. The "unmaintained" advisories are owned by
+      # deny.toml, which records each one with a dated justification —
+      # `--deny warnings` here would duplicate that policy and disagree with it.
+      - name: cargo audit
+        run: cargo audit
+
+      - name: cargo deny
+        run: cargo deny check
+
+      - name: npm audit
+        run: npm audit --audit-level=high
+
+      # The invariant the whole product rests on: no AI, and nothing that can
+      # reach the network from the shipped binary.
+      - name: AI and network denylist
+        run: node scripts/check-denylist.mjs

@@ -102,9 +102,7 @@ describe('Studio shell', () => {
     stubMatchMedia(1300);
     useUi.setState({ rightRailOpen: false });
     const { container } = render(<App />);
-    expect(container.querySelector('.studio')?.getAttribute('data-right-rail')).toBe(
-      'closed',
-    );
+    expect(container.querySelector('.studio')?.getAttribute('data-right-rail')).toBe('closed');
     expect(container.querySelector('.rail--right')).toBeNull();
     // The transport must survive the collapsed layout too.
     expect(screen.getByRole('button', { name: 'Play' })).toBeDefined();
@@ -136,9 +134,9 @@ describe('Studio shell', () => {
     // Collapsed content is unmounted, not merely hidden.
     expect(screen.queryByText(/No kit yet/)).toBeNull();
     // Collapsing one panel must not disturb its neighbours.
-    expect(
-      screen.getByRole('button', { name: /Session/i }).getAttribute('aria-expanded'),
-    ).toBe('true');
+    expect(screen.getByRole('button', { name: /Session/i }).getAttribute('aria-expanded')).toBe(
+      'true',
+    );
   });
 
   it('persists collapsed panels across a remount', () => {
@@ -152,9 +150,9 @@ describe('Studio shell', () => {
     useUi.setState({ sections: { genres: false, roster: true, kit: true, session: true } });
     render(<App />);
 
-    expect(
-      screen.getByRole('button', { name: /Genres/i }).getAttribute('aria-expanded'),
-    ).toBe('false');
+    expect(screen.getByRole('button', { name: /Genres/i }).getAttribute('aria-expanded')).toBe(
+      'false',
+    );
   });
 
   it('lists every panel in the View menu', () => {

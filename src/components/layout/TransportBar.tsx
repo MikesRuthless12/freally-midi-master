@@ -1,4 +1,14 @@
-import { Bug, Monitor, Moon, PanelRight, Play, Repeat, Square, Sun, Upload } from 'lucide-react';
+import {
+  Bug,
+  Monitor,
+  Moon,
+  PanelRight,
+  Play,
+  Repeat,
+  Square,
+  Sun,
+  Upload,
+} from 'lucide-react';
 import { useUi } from '../../state/ui';
 import { ViewMenu } from './ViewMenu';
 import type { ThemePreference } from '../../state/theme';

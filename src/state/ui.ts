@@ -1,19 +1,8 @@
 import { create } from 'zustand';
-import {
-  applyThemePreference,
-  loadThemePreference,
-  type ThemePreference,
-} from './theme';
+import { applyThemePreference, loadThemePreference, type ThemePreference } from './theme';
 
 /** The six generators. Order matches the tab strip in PRD § 8. */
-export const GENERATOR_TABS = [
-  'drums',
-  'melody',
-  'counter',
-  'bass',
-  'chords',
-  'song',
-] as const;
+export const GENERATOR_TABS = ['drums', 'melody', 'counter', 'bass', 'chords', 'song'] as const;
 
 export type GeneratorTab = (typeof GENERATOR_TABS)[number];
 
@@ -82,8 +71,7 @@ type UiState = {
   setTheme: (theme: ThemePreference) => void;
 };
 
-const startsWide =
-  typeof window === 'undefined' ? true : window.innerWidth >= WIDE_BREAKPOINT;
+const startsWide = typeof window === 'undefined' ? true : window.innerWidth >= WIDE_BREAKPOINT;
 
 export const useUi = create<UiState>((set) => ({
   activeTab: 'drums',

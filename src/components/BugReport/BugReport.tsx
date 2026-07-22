@@ -1,33 +1,14 @@
-import { useEffect, useMemo, useState } from "react";
-import { invoke } from "@tauri-apps/api/core";
+import { useEffect, useMemo, useState } from 'react';
 
-import "./BugReport.css";
+import {
+  bugReportClearCrash,
+  bugReportContext,
+  bugReportSubmit,
+  type BugReportContext,
+  type BugReportTarget as Target,
+} from './ipc';
 
-/** Mirrors `BugReportContextDto` in `src-tauri/src/bugreport.rs`. */
-export type BugReportContext = {
-  appVersion: string;
-  os: string;
-  arch: string;
-  diagnostics: string;
-  /** The scrubbed crash text from the previous run, if the app crashed. */
-  pendingCrash: string | null;
-};
-
-type Target = "github" | "gmail" | "email";
-
-export const bugReportContext = () => invoke<BugReportContext>("bug_report_context");
-
-/**
- * Is a crash report waiting to be read? Cheap enough to ask on mount, and the
- * question anything else competing for the launch dialog slot must ask first —
- * a pending crash report outranks every other prompt.
- */
-export const bugReportHasPendingCrash = () => invoke<boolean>("bug_report_has_pending_crash");
-
-const bugReportSubmit = (target: Target, description: string, includeCrash: boolean) =>
-  invoke<void>("bug_report_submit", { target, description, includeCrash });
-
-const bugReportClearCrash = () => invoke<void>("bug_report_clear_crash");
+import './BugReport.css';
 
 /**
  * Report a bug — opt-in and anonymous. Shows the user the EXACT report (app/OS
@@ -39,7 +20,7 @@ const bugReportClearCrash = () => invoke<void>("bug_report_clear_crash");
  */
 export function BugReportOverlay({ onClose }: { onClose: () => void }) {
   const [ctx, setCtx] = useState<BugReportContext | null>(null);
-  const [description, setDescription] = useState("");
+  const [description, setDescription] = useState('');
   const [includeCrash, setIncludeCrash] = useState(true);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -56,19 +37,19 @@ export function BugReportOverlay({ onClose }: { onClose: () => void }) {
   // target sends the same content as Markdown (`###` headings, fenced
   // diagnostics); only the syntax differs, never the information.
   const preview = useMemo(() => {
-    if (!ctx) return "";
+    if (!ctx) return '';
     const parts = [
-      "WHAT HAPPENED",
-      description.trim() || "(no description provided)",
-      "",
-      "ANONYMOUS DIAGNOSTICS (no personal data)",
-      "From: Freally MIDI Master",
+      'WHAT HAPPENED',
+      description.trim() || '(no description provided)',
+      '',
+      'ANONYMOUS DIAGNOSTICS (no personal data)',
+      'From: Freally MIDI Master',
       ctx.diagnostics.trimEnd(),
     ];
     if (includeCrash && ctx.pendingCrash) {
-      parts.push("", "--- crash excerpt ---", ctx.pendingCrash.trimEnd());
+      parts.push('', '--- crash excerpt ---', ctx.pendingCrash.trimEnd());
     }
-    return parts.join("\n");
+    return parts.join('\n');
   }, [ctx, description, includeCrash]);
 
   const submit = (target: Target) => {
@@ -85,7 +66,7 @@ export function BugReportOverlay({ onClose }: { onClose: () => void }) {
         setCopied(true);
         window.setTimeout(() => setCopied(false), 1500);
       })
-      .catch(() => setError("Could not copy the report to the clipboard."));
+      .catch(() => setError('Could not copy the report to the clipboard.'));
   };
 
   const dismissCrash = () => {
@@ -105,20 +86,26 @@ export function BugReportOverlay({ onClose }: { onClose: () => void }) {
       >
         <header className="bugreport-header">
           <h2>Report a bug</h2>
-          <button type="button" className="bugreport-close" onClick={onClose} aria-label="Close">
+          <button
+            type="button"
+            className="bugreport-close"
+            onClick={onClose}
+            aria-label="Close"
+          >
             ×
           </button>
         </header>
 
         <p className="bugreport-intro">
-          Reports are anonymous and never sent automatically. Read the exact text below, then choose
-          how to send it — a GitHub issue, a Gmail draft, or your own mail client. You click Send.
+          Reports are anonymous and never sent automatically. Read the exact text below, then
+          choose how to send it — a GitHub issue, a Gmail draft, or your own mail client. You
+          click Send.
         </p>
 
         {ctx?.pendingCrash && (
           <p className="bugreport-crash-notice">
-            Freally MIDI Master closed unexpectedly last time. The crash details below were saved on
-            this machine only.
+            Freally MIDI Master closed unexpectedly last time. The crash details below were
+            saved on this machine only.
           </p>
         )}
 
@@ -147,13 +134,13 @@ export function BugReportOverlay({ onClose }: { onClose: () => void }) {
         <pre className="bugreport-preview">{preview}</pre>
 
         <div className="bugreport-actions">
-          <button type="button" className="bugreport-primary" onClick={() => submit("github")}>
+          <button type="button" className="bugreport-primary" onClick={() => submit('github')}>
             Open GitHub issue
           </button>
           <button
             type="button"
             className="bugreport-primary"
-            onClick={() => submit("gmail")}
+            onClick={() => submit('gmail')}
             title="Opens Gmail's compose window in your browser, pre-filled."
           >
             Compose in Gmail
@@ -161,13 +148,13 @@ export function BugReportOverlay({ onClose }: { onClose: () => void }) {
           <button
             type="button"
             className="bugreport-primary"
-            onClick={() => submit("email")}
+            onClick={() => submit('email')}
             title="Opens your operating system's default mail client, pre-filled."
           >
             Send email
           </button>
           <button type="button" onClick={copy}>
-            {copied ? "Copied" : "Copy report"}
+            {copied ? 'Copied' : 'Copy report'}
           </button>
           {ctx?.pendingCrash && (
             <button type="button" className="bugreport-danger" onClick={dismissCrash}>

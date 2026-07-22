@@ -1,0 +1,15 @@
+dist
+target
+node_modules
+src/lib/ipc-types.ts
+src-tauri/gen
+package-lock.json
+Cargo.lock
+
+# Prose is authored, not generated. Legal documents in particular should not be
+# reflowed by a formatter — the wording and emphasis are deliberate.
+*.md
+docs/
+
+# Hand-formatted style models; the grouping carries meaning.
+data/

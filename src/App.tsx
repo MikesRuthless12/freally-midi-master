@@ -1,14 +1,12 @@
-import { useEffect, useState } from "react";
-import {
-  BugReportOverlay,
-  bugReportHasPendingCrash,
-} from "./components/BugReport/BugReport";
-import { CenterStage } from "./components/layout/CenterStage";
-import { LeftRail } from "./components/layout/LeftRail";
-import { RightRail } from "./components/layout/RightRail";
-import { TransportBar } from "./components/layout/TransportBar";
-import { useUi, WIDE_BREAKPOINT } from "./state/ui";
-import "./components/layout/layout.css";
+import { useEffect, useState } from 'react';
+import { BugReportOverlay } from './components/BugReport/BugReport';
+import { bugReportHasPendingCrash } from './components/BugReport/ipc';
+import { CenterStage } from './components/layout/CenterStage';
+import { LeftRail } from './components/layout/LeftRail';
+import { RightRail } from './components/layout/RightRail';
+import { TransportBar } from './components/layout/TransportBar';
+import { useUi, WIDE_BREAKPOINT } from './state/ui';
+import './components/layout/layout.css';
 
 function App() {
   const [bugReportOpen, setBugReportOpen] = useState(false);
@@ -34,26 +32,26 @@ function App() {
   useEffect(() => {
     const mq = window.matchMedia(`(min-width: ${WIDE_BREAKPOINT}px)`);
     const onChange = (e: MediaQueryListEvent) => setWide(e.matches);
-    mq.addEventListener("change", onChange);
-    return () => mq.removeEventListener("change", onChange);
+    mq.addEventListener('change', onChange);
+    return () => mq.removeEventListener('change', onChange);
   }, [setWide]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key !== "k" && e.key !== "K") return;
+      if (e.key !== 'k' && e.key !== 'K') return;
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       // Never steal the key from a text field.
       const el = e.target as HTMLElement | null;
-      if (el?.matches?.("input, textarea, select, [contenteditable]")) return;
+      if (el?.matches?.('input, textarea, select, [contenteditable]')) return;
       e.preventDefault();
       toggleRightRail();
     };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
   }, [toggleRightRail]);
 
   return (
-    <div className="studio" data-right-rail={rightRailOpen ? "open" : "closed"}>
+    <div className="studio" data-right-rail={rightRailOpen ? 'open' : 'closed'}>
       <LeftRail />
       <CenterStage />
       {rightRailOpen && <RightRail />}

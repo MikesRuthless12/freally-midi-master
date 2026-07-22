@@ -1,6 +1,6 @@
-import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
-import tailwindcss from "@tailwindcss/vite";
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import tailwindcss from '@tailwindcss/vite';
 
 // @ts-expect-error process is a nodejs global
 const host = process.env.TAURI_DEV_HOST;
@@ -20,7 +20,7 @@ export default defineConfig(async () => ({
     host: host || false,
     hmr: host
       ? {
-          protocol: "ws",
+          protocol: 'ws',
           host,
           port: 1421,
         }
@@ -29,7 +29,7 @@ export default defineConfig(async () => ({
       // 3. tell Vite to ignore watching `src-tauri` and the Cargo workspace
       //    target dir (it lives at the repo root, and watching the locked
       //    build artifacts makes chokidar throw EBUSY on Windows)
-      ignored: ["**/src-tauri/**", "**/target/**"],
+      ignored: ['**/src-tauri/**', '**/target/**'],
     },
   },
 }));
