@@ -12,6 +12,15 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+Nothing yet.
+
+## [0.1.0] - 2026-07-22
+
+First tagged build: the Phase 0 foundation. The Studio shell, the pure
+generation engine, the style-model dataset and the full CI spine are in place;
+the generators themselves arrive in Phase 1, so the transport and Generate are
+deliberately disabled rather than pretending to work.
+
 ### Added
 
 - Tauri v2 + React + TypeScript shell on a Cargo workspace, with the pure
@@ -29,5 +38,33 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   without a click.
 - Three-OS CI, supply-chain gates, and the AI/network dependency denylist.
 - Playwright E2E against `vite dev` with IPC mocked at a single seam.
+- Borderless window with its own minimise / maximise / close controls, a centred
+  title, and drag-to-resize on all eight edges.
+- Settings and About, reachable from the title bar, with a system-tray option
+  (minimise-to-tray and close-to-tray, both off by default).
+- Bug reporter and the Havoc-standard updater.
+- **Eighteen languages** — English plus Arabic, Chinese (Simplified), Dutch,
+  French, German, Hindi, Indonesian, Italian, Japanese, Korean, Polish,
+  Portuguese (Brazil), Russian, Spanish, Turkish, Ukrainian and Vietnamese.
+  Switching is instant, persists, and Arabic mirrors the whole layout.
+- **Noto throughout**, bundled: 546 faces covering CJK, Arabic, Hebrew, the
+  Indic scripts, Thai, Khmer, Georgian, Armenian, Ethiopic and more, so no
+  language falls back to whatever the machine happens to have. Nothing is
+  fetched at runtime — the app still makes no network request except the
+  update check.
+- CI captures the running app on all three OSes, and the Settings modal in every
+  language, as downloadable artifacts. The macOS capture is partial and the job
+  says so (see Live-To-Do).
 
-[Unreleased]: https://github.com/MikesRuthless12/freally-midi-master/commits/main
+### Known limitations
+
+- The generators, playback and audio export are not implemented yet; their
+  controls are disabled rather than inert.
+- Native drag-out is built but **unverified against real DAWs** — that is the
+  Phase 0 decision gate and it needs a human.
+- The tray menu (Show / Quit) is not translated.
+- Installers are unsigned: expect SmartScreen on Windows and Gatekeeper on
+  macOS. See the release notes for the per-platform steps.
+
+[Unreleased]: https://github.com/MikesRuthless12/freally-midi-master/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/MikesRuthless12/freally-midi-master/releases/tag/v0.1.0
