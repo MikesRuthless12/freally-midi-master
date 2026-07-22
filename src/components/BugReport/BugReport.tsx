@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 
 import {
   bugReportClearCrash,
   bugReportContext,
+  bugReportPreview,
   bugReportSubmit,
   type BugReportContext,
   type BugReportTarget as Target,
@@ -33,23 +34,23 @@ export function BugReportOverlay({ onClose }: { onClose: () => void }) {
 
   useEffect(load, []);
 
-  // Mirrors `compose_body(.., BodyStyle::Plain)` in `bugreport.rs`. The GitHub
-  // target sends the same content as Markdown (`###` headings, fenced
-  // diagnostics); only the syntax differs, never the information.
-  const preview = useMemo(() => {
-    if (!ctx) return '';
-    const parts = [
-      'WHAT HAPPENED',
-      description.trim() || '(no description provided)',
-      '',
-      'ANONYMOUS DIAGNOSTICS (no personal data)',
-      'From: Freally MIDI Master',
-      ctx.diagnostics.trimEnd(),
-    ];
-    if (includeCrash && ctx.pendingCrash) {
-      parts.push('', '--- crash excerpt ---', ctx.pendingCrash.trimEnd());
-    }
-    return parts.join('\n');
+  // Built by the same Rust function that sends it, so "exactly what will be
+  // sent" is structural rather than two implementations promising to agree.
+  // The TypeScript copy this replaces never applied `scrub()`, so the preview
+  // could show a home path or username the real payload redacts — the two
+  // disagreeing on precisely the axis this feature exists to guarantee.
+  const [preview, setPreview] = useState('');
+  useEffect(() => {
+    if (!ctx) return;
+    let cancelled = false;
+    bugReportPreview(description, includeCrash && !!ctx.pendingCrash)
+      .then((text) => {
+        if (!cancelled) setPreview(text);
+      })
+      .catch((err) => setError(String(err)));
+    return () => {
+      cancelled = true;
+    };
   }, [ctx, description, includeCrash]);
 
   const submit = (target: Target) => {
@@ -86,12 +87,7 @@ export function BugReportOverlay({ onClose }: { onClose: () => void }) {
       >
         <header className="bugreport-header">
           <h2>Report a bug</h2>
-          <button
-            type="button"
-            className="bugreport-close"
-            onClick={onClose}
-            aria-label="Close"
-          >
+          <button type="button" className="btn-ghost" onClick={onClose} aria-label="Close">
             ×
           </button>
         </header>
@@ -134,12 +130,12 @@ export function BugReportOverlay({ onClose }: { onClose: () => void }) {
         <pre className="bugreport-preview">{preview}</pre>
 
         <div className="bugreport-actions">
-          <button type="button" className="bugreport-primary" onClick={() => submit('github')}>
+          <button type="button" className="btn-generate" onClick={() => submit('github')}>
             Open GitHub issue
           </button>
           <button
             type="button"
-            className="bugreport-primary"
+            className="btn-generate"
             onClick={() => submit('gmail')}
             title="Opens Gmail's compose window in your browser, pre-filled."
           >
@@ -147,17 +143,17 @@ export function BugReportOverlay({ onClose }: { onClose: () => void }) {
           </button>
           <button
             type="button"
-            className="bugreport-primary"
+            className="btn-generate"
             onClick={() => submit('email')}
             title="Opens your operating system's default mail client, pre-filled."
           >
             Send email
           </button>
-          <button type="button" onClick={copy}>
+          <button type="button" className="btn-ghost" onClick={copy}>
             {copied ? 'Copied' : 'Copy report'}
           </button>
           {ctx?.pendingCrash && (
-            <button type="button" className="bugreport-danger" onClick={dismissCrash}>
+            <button type="button" className="btn-ghost" onClick={dismissCrash}>
               Dismiss crash
             </button>
           )}

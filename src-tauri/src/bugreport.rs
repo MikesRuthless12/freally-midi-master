@@ -613,6 +613,24 @@ pub fn bug_report_submit(
 }
 
 /// Dismiss + delete the pending crash report(s).
+/// The exact text that will be sent, built by the same function that sends it.
+///
+/// The UI previously rebuilt this in TypeScript to render its "Exactly what
+/// will be sent" preview. Two implementations of one promise is one too many:
+/// the TS copy never applied `scrub()`, so the preview could show a home path
+/// or username that the real payload redacts — the preview and the payload
+/// disagreeing on precisely the axis this feature exists to guarantee.
+#[tauri::command]
+pub fn bug_report_preview(description: String, include_crash: bool) -> String {
+    let pending = pending_crash();
+    let crash = if include_crash {
+        pending.as_deref()
+    } else {
+        None
+    };
+    compose_body(&description, crash, BodyStyle::Plain)
+}
+
 #[tauri::command]
 pub fn bug_report_clear_crash() {
     clear_crashes();

@@ -21,6 +21,16 @@ export const bugReportContext = () => invoke<BugReportContext>('bug_report_conte
  */
 export const bugReportHasPendingCrash = () => invoke<boolean>('bug_report_has_pending_crash');
 
+/**
+ * The exact text that will be sent, from the Rust function that sends it.
+ *
+ * Rebuilding this in TypeScript was a broken promise: the TS copy skipped the
+ * `scrub()` that redacts the home path and username, so the preview could show
+ * text the payload does not contain.
+ */
+export const bugReportPreview = (description: string, includeCrash: boolean) =>
+  invoke<string>('bug_report_preview', { description, includeCrash });
+
 export const bugReportSubmit = (
   target: BugReportTarget,
   description: string,

@@ -31,6 +31,15 @@ const handlers: Record<string, Handler> = {
     pendingCrash: null,
   }),
 
+  bug_report_preview: (args) => {
+    const a = args as { description?: string } | undefined;
+    return `WHAT HAPPENED
+${a?.description?.trim() || '(no description provided)'}
+
+ANONYMOUS DIAGNOSTICS (no personal data)
+From: Freally MIDI Master`;
+  },
+
   bug_report_submit: () => undefined,
   bug_report_clear_crash: () => undefined,
 

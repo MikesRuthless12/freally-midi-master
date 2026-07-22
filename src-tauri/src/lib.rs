@@ -53,6 +53,7 @@ pub fn run() {
             bugreport::bug_report_has_pending_crash,
             bugreport::bug_report_submit,
             bugreport::bug_report_clear_crash,
+            bugreport::bug_report_preview,
             export::drag::drag_capability,
             export::drag::export_spike_midi,
             export::drag::drag_source_ready,
