@@ -33,6 +33,24 @@ const handlers: Record<string, Handler> = {
 
   bug_report_submit: () => undefined,
   bug_report_clear_crash: () => undefined,
+
+  // Settings, so the panel renders with real defaults in a browser.
+  settings_get: () => ({
+    minimizeToTray: false,
+    closeToTray: false,
+    showTrayIcon: true,
+    theme: 'system',
+  }),
+  settings_set: (args) => (args as { settings: unknown } | undefined)?.settings,
+
+  // Export / drag. Without these the ExportChip's catch-all would swallow a
+  // missing-handler error and render as if everything were fine.
+  drag_capability: () => ({
+    platform: 'mock',
+    dragSupported: false,
+    isWayland: false,
+    note: 'Drag-out needs the desktop app.',
+  }),
 };
 
 export async function mockInvoke<T>(command: string, args?: InvokeArgs): Promise<T> {

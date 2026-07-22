@@ -3,7 +3,11 @@ import { BugReportOverlay } from './components/BugReport/BugReport';
 import { bugReportHasPendingCrash } from './components/BugReport/ipc';
 import { CenterStage } from './components/layout/CenterStage';
 import { LeftRail } from './components/layout/LeftRail';
+import { ResizeHandles } from './components/layout/ResizeHandles';
 import { RightRail } from './components/layout/RightRail';
+import { AboutModal } from './components/Settings/About';
+import { SettingsModal } from './components/Settings/Settings';
+import { TitleBar } from './components/layout/TitleBar';
 import { TransportBar } from './components/layout/TransportBar';
 import { UpdatePrompt } from './components/Updates/Updates';
 import { useUi, WIDE_BREAKPOINT } from './state/ui';
@@ -15,6 +19,8 @@ function App() {
   // before then, or it could beat a pending crash report to the dialog slot.
   const [crashPending, setCrashPending] = useState<boolean | undefined>(undefined);
   const [updateDismissed, setUpdateDismissed] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const [aboutOpen, setAboutOpen] = useState(false);
   const rightRailOpen = useUi((s) => s.rightRailOpen);
   const setWide = useUi((s) => s.setWide);
   const toggleRightRail = useUi((s) => s.toggleRightRail);
@@ -63,6 +69,10 @@ function App() {
 
   return (
     <div className="studio" data-right-rail={rightRailOpen ? 'open' : 'closed'}>
+      <TitleBar
+        onOpenSettings={() => setSettingsOpen(true)}
+        onOpenAbout={() => setAboutOpen(true)}
+      />
       <LeftRail />
       <CenterStage />
       {rightRailOpen && <RightRail />}
@@ -70,6 +80,11 @@ function App() {
 
       {bugReportOpen && <BugReportOverlay onClose={() => setBugReportOpen(false)} />}
       {updateMayShow && <UpdatePrompt onDismiss={() => setUpdateDismissed(true)} />}
+
+      {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
+      {aboutOpen && <AboutModal onClose={() => setAboutOpen(false)} />}
+
+      <ResizeHandles />
     </div>
   );
 }

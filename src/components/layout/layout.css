@@ -4,8 +4,9 @@
 .studio {
   display: grid;
   grid-template-columns: 280px minmax(0, 1fr) 320px;
-  grid-template-rows: minmax(0, 1fr) 56px;
+  grid-template-rows: 34px minmax(0, 1fr) 56px;
   grid-template-areas:
+    'title title title'
     'left center right'
     'transport transport transport';
   height: 100%;
@@ -15,8 +16,161 @@
 .studio[data-right-rail='closed'] {
   grid-template-columns: 280px minmax(0, 1fr);
   grid-template-areas:
+    'title title'
     'left center'
     'transport transport';
+}
+
+/* ── Title bar ──────────────────────────────────────────────────────────────
+ * The window is borderless, so this is the whole title bar. Dragging is
+ * delegated to Tauri via data-tauri-drag-region, which keeps the OS snap
+ * gestures a JS implementation would lose.
+ */
+.titlebar {
+  position: relative;
+  grid-area: title;
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-end;
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+  /* Text selection during a window drag looks broken. */
+  user-select: none;
+}
+
+/* The draggable surface: the whole bar, sitting beneath the controls. */
+.titlebar__drag {
+  position: absolute;
+  inset: 0;
+}
+
+/* Centred on the WINDOW, not on the space left beside the controls — so the
+   title does not drift as controls are added or removed. `pointer-events: none`
+   keeps it out of the way of the drag layer underneath it. */
+.titlebar__name {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: var(--font-display);
+  font-size: var(--text-small);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--color-text-2);
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+/* Above the drag layer, so a click on a control is a click, not a drag. */
+.titlebar__controls {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-self: stretch;
+}
+
+.titlebar__button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 46px;
+  border: none;
+  background: none;
+  color: var(--color-text-2);
+  cursor: pointer;
+  transition: background var(--duration-fast) var(--ease-standard);
+}
+
+.titlebar__button:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+/* App actions are slightly narrower than the window controls, which are sized
+   to the OS convention. */
+.titlebar__button--app {
+  width: 34px;
+}
+
+.titlebar__divider {
+  align-self: center;
+  width: 1px;
+  height: 16px;
+  margin: 0 var(--space-1);
+  background: var(--color-border);
+}
+
+/* Close goes red on hover, as every platform expects. */
+.titlebar__button--close:hover {
+  background: var(--color-error);
+  color: #fff;
+}
+
+/* ── Resize grips ───────────────────────────────────────────────────────────
+ * A borderless window has no OS resize border, so these supply the hit area.
+ * Invisible, above everything, and only as thick as they need to be.
+ */
+.resize__grip {
+  position: fixed;
+  z-index: 200;
+}
+
+.resize__grip--n,
+.resize__grip--s {
+  left: 6px;
+  right: 6px;
+  height: 5px;
+  cursor: ns-resize;
+}
+.resize__grip--n {
+  top: 0;
+}
+.resize__grip--s {
+  bottom: 0;
+}
+
+.resize__grip--e,
+.resize__grip--w {
+  top: 6px;
+  bottom: 6px;
+  width: 5px;
+  cursor: ew-resize;
+}
+.resize__grip--e {
+  right: 0;
+}
+.resize__grip--w {
+  left: 0;
+}
+
+/* Corners sit above the edges so a diagonal drag wins over a straight one. */
+.resize__grip--ne,
+.resize__grip--nw,
+.resize__grip--se,
+.resize__grip--sw {
+  width: 12px;
+  height: 12px;
+  z-index: 201;
+}
+.resize__grip--nw {
+  top: 0;
+  left: 0;
+  cursor: nwse-resize;
+}
+.resize__grip--ne {
+  top: 0;
+  right: 0;
+  cursor: nesw-resize;
+}
+.resize__grip--sw {
+  bottom: 0;
+  left: 0;
+  cursor: nesw-resize;
+}
+.resize__grip--se {
+  bottom: 0;
+  right: 0;
+  cursor: nwse-resize;
 }
 
 /* ── Rails ──────────────────────────────────────────────────────────────── */

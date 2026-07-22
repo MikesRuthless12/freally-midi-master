@@ -1,0 +1,261 @@
+/* Tokens only — both themes work with no branch in here. */
+
+.settings {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6) var(--space-4);
+  background: rgb(0 0 0 / 0.5);
+}
+
+.settings__panel {
+  display: flex;
+  flex-direction: column;
+  width: min(820px, 100%);
+  height: min(560px, 100%);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-float);
+  background: var(--color-surface-2);
+  box-shadow: var(--shadow-float);
+  overflow: hidden;
+}
+
+.settings__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.settings__head h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-h2);
+  color: var(--color-text);
+}
+
+.settings__body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+/* ── Sidebar ────────────────────────────────────────────────────────────── */
+.settings__nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  width: 190px;
+  flex: none;
+  padding: var(--space-3);
+  border-right: 1px solid var(--color-border);
+  overflow-y: auto;
+}
+
+.settings__search {
+  width: 100%;
+  height: 30px;
+  margin-bottom: var(--space-2);
+  padding: 0 var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--font-ui);
+  font-size: var(--text-small);
+}
+
+.settings__search:focus {
+  outline: none;
+  border-color: var(--color-primary);
+}
+
+.settings__tab {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  background: none;
+  color: var(--color-text-2);
+  font-family: var(--font-ui);
+  font-size: var(--text-small);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    background var(--duration-fast) var(--ease-standard),
+    color var(--duration-fast) var(--ease-standard);
+}
+
+.settings__tab:hover {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.settings__tab[aria-selected='true'] {
+  border-color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 15%, transparent);
+  color: var(--color-text);
+}
+
+.settings__none {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  color: var(--color-text-3);
+  font-size: var(--text-small);
+}
+
+/* ── Pane ───────────────────────────────────────────────────────────────── */
+.settings__pane {
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-5);
+  overflow-y: auto;
+}
+
+.settings__section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.settings__section h3 {
+  margin: 0;
+  font-size: var(--text-micro);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-3);
+}
+
+.settings__section h3:not(:first-child) {
+  margin-top: var(--space-4);
+}
+
+.settings__row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-2);
+  border-radius: var(--radius-control);
+  cursor: pointer;
+}
+
+.settings__row:hover {
+  background: var(--color-surface);
+}
+
+.settings__row[data-disabled] {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.settings__row input {
+  margin-top: 2px;
+  accent-color: var(--color-primary);
+}
+
+.settings__rowtext {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.settings__rowlabel {
+  color: var(--color-text);
+  font-size: var(--text-body);
+}
+
+.settings__rowhint {
+  color: var(--color-text-3);
+  font-size: var(--text-small);
+  line-height: 1.4;
+}
+
+.settings__note {
+  margin: 0;
+  color: var(--color-text-3);
+  font-size: var(--text-small);
+  line-height: 1.5;
+}
+
+.settings__choices {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.settings__choice {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text-2);
+  font-family: var(--font-ui);
+  font-size: var(--text-small);
+  cursor: pointer;
+}
+
+.settings__choice[aria-checked='true'] {
+  border-color: var(--color-primary);
+  color: var(--color-text);
+  box-shadow: var(--glow-primary);
+}
+
+.settings__facts {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-2) var(--space-4);
+  margin: 0;
+  font-size: var(--text-small);
+}
+
+.settings__facts dt {
+  color: var(--color-text-3);
+}
+
+.settings__facts dd {
+  margin: 0;
+  color: var(--color-text-2);
+}
+
+.settings__error {
+  margin: 0;
+  padding: var(--space-3) var(--space-5);
+  border-top: 1px solid var(--color-border);
+  color: var(--color-error);
+  font-size: var(--text-small);
+}
+
+/* ── The standalone About overlay ───────────────────────────────────────── */
+.about__panel {
+  width: min(560px, 100%);
+  max-height: 100%;
+  padding: var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-float);
+  background: var(--color-surface-2);
+  box-shadow: var(--shadow-float);
+  overflow-y: auto;
+}
+
+.about__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+.about__head h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-h2);
+  color: var(--color-text);
+}

@@ -118,6 +118,30 @@
   --radius-control: 6px;
   --radius-float: 10px;
 
+  /* ── Light palette, named once ────────────────────────────────────────────
+   * Both light selectors below map onto these. The values were previously
+   * written out twice — once under `prefers-color-scheme`, once under
+   * `[data-theme='light']` — and the contrast test only ever parsed the
+   * second. A one-sided edit would have shipped an out-of-contrast light theme
+   * to everyone who never touched the toggle, with a green test suite.
+   */
+  --light-bg: #fafafc;
+  --light-surface: #ffffff;
+  --light-surface-2: #f1f2f6;
+  --light-border: #d8dbe3;
+  --light-primary: #7e22ce;
+  --light-primary-hot: #9333ea;
+  --light-signal: #0e7490;
+  --light-text: #14161c;
+  --light-text-2: #4b5361;
+  --light-text-3: #5f6673;
+  --light-success: #15803d;
+  --light-warning: #b45309;
+  --light-error: #b91c1c;
+  --light-info: #1d4ed8;
+  --light-shadow-float: 0 8px 24px rgb(15 18 26 / 0.16);
+  --light-glow-primary: 0 0 24px rgb(126 34 206 / 0.28);
+
   --duration-fast: 140ms;
   --duration-generate: 640ms;
   --ease-standard: cubic-bezier(0.2, 0, 0, 1);
@@ -166,52 +190,53 @@
   :root:not([data-theme]) {
     color-scheme: light;
 
-    --color-bg: #fafafc;
-    --color-surface: #ffffff;
-    --color-surface-2: #f1f2f6;
-    --color-border: #d8dbe3;
+    --color-bg: var(--light-bg);
+    --color-surface: var(--light-surface);
+    --color-surface-2: var(--light-surface-2);
+    --color-border: var(--light-border);
 
-    --color-primary: #7e22ce;
-    --color-primary-hot: #9333ea;
-    --color-signal: #0e7490;
+    --color-primary: var(--light-primary);
+    --color-primary-hot: var(--light-primary-hot);
+    --color-signal: var(--light-signal);
 
-    --color-text: #14161c;
-    --color-text-2: #4b5361;
-    --color-text-3: #5f6673;
+    --color-text: var(--light-text);
+    --color-text-2: var(--light-text-2);
+    --color-text-3: var(--light-text-3);
 
-    --color-success: #15803d;
-    --color-warning: #b45309;
-    --color-error: #b91c1c;
-    --color-info: #1d4ed8;
+    --color-success: var(--light-success);
+    --color-warning: var(--light-warning);
+    --color-error: var(--light-error);
+    --color-info: var(--light-info);
 
-    --shadow-float: 0 8px 24px rgb(15 18 26 / 0.16);
-    --glow-primary: 0 0 24px rgb(126 34 206 / 0.28);
+    --shadow-float: var(--light-shadow-float);
+    --glow-primary: var(--light-glow-primary);
   }
 }
 
+/* The explicit choice, which must win over the media query above. */
 :root[data-theme='light'] {
   color-scheme: light;
 
-  --color-bg: #fafafc;
-  --color-surface: #ffffff;
-  --color-surface-2: #f1f2f6;
-  --color-border: #d8dbe3;
+  --color-bg: var(--light-bg);
+  --color-surface: var(--light-surface);
+  --color-surface-2: var(--light-surface-2);
+  --color-border: var(--light-border);
 
-  --color-primary: #7e22ce;
-  --color-primary-hot: #9333ea;
-  --color-signal: #0e7490;
+  --color-primary: var(--light-primary);
+  --color-primary-hot: var(--light-primary-hot);
+  --color-signal: var(--light-signal);
 
-  --color-text: #14161c;
-  --color-text-2: #4b5361;
-  --color-text-3: #5f6673;
+  --color-text: var(--light-text);
+  --color-text-2: var(--light-text-2);
+  --color-text-3: var(--light-text-3);
 
-  --color-success: #15803d;
-  --color-warning: #b45309;
-  --color-error: #b91c1c;
-  --color-info: #1d4ed8;
+  --color-success: var(--light-success);
+  --color-warning: var(--light-warning);
+  --color-error: var(--light-error);
+  --color-info: var(--light-info);
 
-  --shadow-float: 0 8px 24px rgb(15 18 26 / 0.16);
-  --glow-primary: 0 0 24px rgb(126 34 206 / 0.28);
+  --shadow-float: var(--light-shadow-float);
+  --glow-primary: var(--light-glow-primary);
 }
 
 /* ── Base ───────────────────────────────────────────────────────────────── */

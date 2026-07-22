@@ -1,3 +1,12 @@
+/* Tokens only — no literal colours.
+ *
+ * This file previously hardcoded #ffffff/#1f1f1f and carried its own
+ * `@media (prefers-color-scheme: dark)` block. That is a real defect, not a
+ * style preference: the theme toggle writes `data-theme` on <html>, so a user
+ * on a dark OS who chose "Light theme" got a light app with a near-black crash
+ * panel and unreadable text. Tokens follow the toggle; a media query does not.
+ */
+
 .bugreport-backdrop {
   position: fixed;
   inset: 0;
@@ -5,138 +14,119 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem 1rem;
-  background: rgba(0, 0, 0, 0.45);
+  padding: var(--space-6) var(--space-4);
+  background: rgb(0 0 0 / 0.5);
 }
 
 .bugreport-panel {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--space-3);
   width: min(46rem, 100%);
   max-height: 100%;
   overflow-y: auto;
-  padding: 1.25rem;
+  padding: var(--space-5);
   text-align: left;
-  border-radius: 12px;
-  background: #ffffff;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-float);
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  box-shadow: var(--shadow-float);
 }
 
 .bugreport-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: var(--space-4);
 }
 
 .bugreport-header h2 {
   margin: 0;
-  font-size: 1.1rem;
-}
-
-.bugreport-close {
-  padding: 0.1em 0.5em;
-  font-size: 1.2rem;
-  line-height: 1;
-  box-shadow: none;
+  font-family: var(--font-display);
+  font-size: var(--text-h2);
+  color: var(--color-text);
 }
 
 .bugreport-intro,
 .bugreport-crash-notice,
 .bugreport-error {
   margin: 0;
-  font-size: 0.8rem;
+  font-size: var(--text-small);
   line-height: 1.4;
+  color: var(--color-text-2);
 }
 
 .bugreport-crash-notice {
-  padding: 0.5rem 0.65rem;
-  border: 1px solid #e0a400;
-  border-radius: 8px;
-  background: rgba(224, 164, 0, 0.12);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-warning);
+  border-radius: var(--radius-control);
+  background: color-mix(in srgb, var(--color-warning) 12%, transparent);
+  color: var(--color-text);
 }
 
 .bugreport-error {
-  color: #c02626;
+  color: var(--color-error);
 }
 
 .bugreport-field {
   display: flex;
   flex-direction: column;
-  gap: 0.3rem;
-  font-size: 0.8rem;
+  gap: var(--space-1);
+  font-size: var(--text-small);
+  color: var(--color-text-2);
 }
 
 .bugreport-field textarea {
-  padding: 0.5rem;
-  font: inherit;
-  font-size: 0.85rem;
-  color: inherit;
-  border: 1px solid rgba(128, 128, 128, 0.4);
-  border-radius: 8px;
-  background: transparent;
+  padding: var(--space-2);
+  font-family: var(--font-ui);
+  font-size: var(--text-body);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
   resize: vertical;
+}
+
+.bugreport-field textarea:focus {
+  outline: none;
+  border-color: var(--color-primary);
 }
 
 .bugreport-check {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  font-size: 0.8rem;
+  gap: var(--space-2);
+  font-size: var(--text-small);
+  color: var(--color-text-2);
 }
 
 .bugreport-label {
-  font-size: 0.7rem;
-  letter-spacing: 0.06em;
+  font-size: var(--text-micro);
+  font-weight: 600;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
-  opacity: 0.7;
+  color: var(--color-text-3);
 }
 
 .bugreport-preview {
   max-height: 14rem;
   margin: 0;
   overflow: auto;
-  padding: 0.6rem;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 0.72rem;
-  line-height: 1.4;
+  padding: var(--space-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  line-height: 1.5;
   white-space: pre-wrap;
   overflow-wrap: break-word;
-  border: 1px solid rgba(128, 128, 128, 0.4);
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text-2);
 }
 
 .bugreport-actions {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
-}
-
-.bugreport-actions button {
-  padding: 0.45em 0.9em;
-  font-size: 0.85rem;
-}
-
-.bugreport-primary {
-  border-color: #396cd8;
-}
-
-.bugreport-danger:hover {
-  border-color: #c02626;
-}
-
-@media (prefers-color-scheme: dark) {
-  .bugreport-panel {
-    background: #1f1f1f;
-  }
-
-  .bugreport-preview {
-    background: rgba(0, 0, 0, 0.35);
-  }
-
-  .bugreport-error {
-    color: #ff8080;
-  }
+  gap: var(--space-2);
 }

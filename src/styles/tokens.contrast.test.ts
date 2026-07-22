@@ -12,6 +12,15 @@ import { describe, expect, it } from 'vitest';
 
 const css = readFileSync(fileURLToPath(new URL('./tokens.css', import.meta.url)), 'utf8');
 
+/** Every `--light-*` value, so `var(--light-bg)` can be resolved. */
+function lightPalette(): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const [, name, value] of css.matchAll(/(--light-[\w-]+)\s*:\s*([^;]+);/g)) {
+    out[name] = value.trim();
+  }
+  return out;
+}
+
 /** Pull the declarations out of the first rule whose selector contains `needle`. */
 function tokensOf(needle: string): Record<string, string> {
   const start = css.indexOf(needle);
@@ -20,9 +29,14 @@ function tokensOf(needle: string): Record<string, string> {
   const close = css.indexOf('}', open);
   const body = css.slice(open + 1, close);
 
+  const palette = lightPalette();
   const out: Record<string, string> = {};
   for (const [, name, value] of body.matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)) {
-    out[name] = value.trim();
+    const raw = value.trim();
+    // Resolve one level of `var(--light-x)` indirection so the assertions see
+    // real colours rather than a variable reference.
+    const ref = /^var\((--light-[\w-]+)\)$/.exec(raw);
+    out[name] = ref ? (palette[ref[1]] ?? raw) : raw;
   }
   return out;
 }
@@ -53,6 +67,10 @@ function contrast(fg: string, bg: string): number {
 const THEMES = {
   dark: tokensOf(":root,\n:root[data-theme='dark']"),
   light: tokensOf(":root[data-theme='light']"),
+  // The OS-default light path, which is what most users get since 'system' is
+  // the default preference. Previously untested — it was a second copy of the
+  // palette that no assertion ever read.
+  'light (prefers-color-scheme)': tokensOf(':root:not([data-theme])'),
 };
 
 const SURFACES = ['--color-bg', '--color-surface', '--color-surface-2'] as const;
@@ -88,5 +106,11 @@ describe.each(Object.entries(THEMES))('%s theme', (_name, t) => {
 describe('theme parity', () => {
   it('defines exactly the same token names in both themes', () => {
     expect(Object.keys(THEMES.light).sort()).toEqual(Object.keys(THEMES.dark).sort());
+  });
+
+  it('the two light selectors resolve to identical colours', () => {
+    // They are separate CSS rules; if they ever diverge, the OS-default path
+    // and the explicit toggle would render differently.
+    expect(THEMES['light (prefers-color-scheme)']).toEqual(THEMES.light);
   });
 });
