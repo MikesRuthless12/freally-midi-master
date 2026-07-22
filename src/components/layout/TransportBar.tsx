@@ -1,15 +1,6 @@
-import {
-  Bug,
-  Monitor,
-  Moon,
-  PanelRight,
-  Play,
-  Repeat,
-  Square,
-  Sun,
-  Upload,
-} from 'lucide-react';
+import { Bug, Monitor, Moon, PanelRight, Play, Repeat, Square, Sun } from 'lucide-react';
 import { useUi } from '../../state/ui';
+import { ExportChip } from '../ExportChip/ExportChip';
 import { ViewMenu } from './ViewMenu';
 import type { ThemePreference } from '../../state/theme';
 
@@ -70,10 +61,7 @@ export function TransportBar({ onReportBug }: { onReportBug: () => void }) {
         <div className="meter__fill" />
       </div>
 
-      <button type="button" className="btn-ghost" disabled>
-        <Upload size={14} aria-hidden="true" />
-        Drag MIDI
-      </button>
+      <ExportChip />
 
       <ThemeToggle />
 

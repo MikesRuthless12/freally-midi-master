@@ -44,7 +44,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), '..');
  * name never matches its allowlist entry, and a run that is green locally goes
  * red on CI for reasons the output does not explain.
  */
-// eslint-disable-next-line no-control-regex
+
 const ANSI = new RegExp(String.fromCharCode(27) + '\\[[0-9;]*m', 'g');
 
 const AI_RUNTIMES = [
@@ -201,7 +201,7 @@ function linkedCrates() {
           // `hyper_util (*)`, which then misses its allowlist entry.
           // Strip ANSI escapes first: under CARGO_TERM_COLOR=always the marker
           // arrives wrapped in them and the plain "(*)" pattern never matches.
-          // eslint-disable-next-line no-control-regex
+
           .map((l) => l.replace(ANSI, ''))
           .map((l) => l.replace(/\s*\(\*\)$/, '').trim())
           .filter(Boolean),

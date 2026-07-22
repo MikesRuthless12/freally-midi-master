@@ -66,3 +66,6 @@ test-results
 playwright-report
 blob-report
 playwright/.cache
+
+# Manual QA checklist — internal, like the roadmaps
+Live-To-Do.md

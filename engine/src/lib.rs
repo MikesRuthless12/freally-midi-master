@@ -15,6 +15,7 @@
 
 pub mod context;
 pub mod dataset;
+pub mod midi;
 pub mod pattern;
 pub mod rng;
 

@@ -1,0 +1,26 @@
+.exportchip {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.exportchip__status {
+  max-width: 280px;
+  overflow: hidden;
+  font-size: var(--text-micro);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.exportchip__status--ok {
+  color: var(--color-success);
+}
+
+.exportchip__status--error {
+  color: var(--color-error);
+}
+
+.exportchip__status--working {
+  color: var(--color-text-3);
+}

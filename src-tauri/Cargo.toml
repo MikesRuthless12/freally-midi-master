@@ -27,17 +27,31 @@ tauri-plugin-opener = "2"
 # network dependency in the product; see EULA.md § 5.
 tauri-plugin-updater = "2"
 tauri-plugin-process = "2"
+# TASK-013 drag-out spike (CrabNebula).
+tauri-plugin-drag = "2"
+engine = { path = "../engine", version = "0.1.0" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 # Bug reporter (`src/bugreport.rs`) — see HAVOC-STANDARD-bug-report-and-updater.md.
 chrono = "0.4"          # crash stamp in local time (with UTC offset) + UTC
 directories = "5"       # the OS data dir for crash files; the home path to scrub
-# The post-crash "stopped unexpectedly" box. Native on every OS: MessageBoxW on
-# Windows, NSAlert on macOS, GTK3 on Linux. Pinned to `gtk3` with no default
-# features: cargo unions features across the graph and rfd's build script aborts
-# outright if both `gtk3` and `xdg-portal` end up enabled, and rfd's defaults
-# pull a second ashpd/wayland stack in behind it.
-rfd = { version = "0.16", default-features = false, features = ["gtk3"] }
 # Poll the crashed pid out of the process table before relaunching.
 sysinfo = { version = "0.33", default-features = false, features = ["system"] }
+
+# The post-crash "stopped unexpectedly" box. Native on every OS: MessageBoxW on
+# Windows, NSAlert on macOS, GTK3 on Linux. The crash-notice helper runs as a
+# bare process with no Tauri app built, so it cannot use tauri-plugin-dialog and
+# needs rfd directly.
+#
+# Declared per-target rather than once. Cargo unions features across the whole
+# graph, so asking for `gtk3` unconditionally also enabled it on Windows, where
+# tauri-plugin-dialog separately enables `common-controls-v6`. The union pulled
+# glib-sys into the Windows build, which then failed at load time with
+# STATUS_ENTRYPOINT_NOT_FOUND — the lib's own unit tests could not even start.
+# `gtk3` must therefore be requested on Linux and nowhere else.
+[target.'cfg(target_os = "linux")'.dependencies]
+rfd = { version = "0.16", default-features = false, features = ["gtk3"] }
+
+[target.'cfg(not(target_os = "linux"))'.dependencies]
+rfd = { version = "0.16", default-features = false }
 

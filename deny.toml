@@ -70,6 +70,9 @@ allow = [
     "NCSA",
     "CDLA-Permissive-2.0",
     "MIT-0",
+    # Public-domain dedication, no conditions at all. Used by `midly`, the SMF
+    # writer (PRD § 13).
+    "Unlicense",
 ]
 confidence-threshold = 0.9
 
