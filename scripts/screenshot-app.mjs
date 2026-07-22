@@ -115,14 +115,33 @@ function captureWindow() {
   }
 
   if (process.platform === 'darwin') {
-    // Ask the window server for the app's window bounds, then grab that rect.
+    // Fit the window to the display, THEN grab its rect.
+    //
+    // `screencapture -R` takes a screen region, not a window, so anything
+    // hanging off the edge of the display is simply not in the file. The runner
+    // desktop is 1024x768 and the app's window is larger, so the capture used to
+    // lose the left rail and the bottom transport bar and include the Dock
+    // instead — a picture that cannot show whether those parts still render.
+    // Moving and clamping first means the whole window is on screen to be
+    // photographed. The rect is read back afterwards rather than assumed,
+    // because the window server may clamp differently than asked.
     const script = `
+      tell application "Finder" to set screen to bounds of window of desktop
+      set screenW to item 3 of screen
+      set screenH to item 4 of screen
       tell application "System Events"
         set procs to (every process whose name contains "freally")
         if (count of procs) = 0 then return "none"
         set p to item 1 of procs
         if (count of windows of p) = 0 then return "none"
         set w to window 1 of p
+        -- Below the menu bar, above the Dock, never wider than the screen.
+        set position of w to {0, 25}
+        set {ww, hh} to size of w
+        if ww > screenW then set ww to screenW
+        if hh > (screenH - 105) then set hh to screenH - 105
+        set size of w to {ww, hh}
+        delay 1
         set {x, y} to position of w
         set {ww, hh} to size of w
         return (x as text) & "," & (y as text) & "," & (ww as text) & "," & (hh as text)
@@ -135,7 +154,20 @@ function captureWindow() {
     return sh('screencapture', ['-x', '-R', rect, output]);
   }
 
-  // Windows: PrintWindow into a bitmap sized to the window itself.
+  // Windows: PrintWindow, which asks the window to render ITSELF into a bitmap.
+  //
+  // `CopyFromScreen` was here first, and it lies whenever the window is bigger
+  // than the display. The runner's desktop is 1024x768 and the app's window is
+  // wider than that, so the "window" capture was really a screen-region grab
+  // that clipped the right rail and the transport bar off and photographed the
+  // Windows taskbar in their place. Same family as the original bug where the
+  // job photographed the desktop and passed on file size: what came back was
+  // not the thing being asserted about.
+  //
+  // PW_RENDERFULLCONTENT (2) is the flag that makes this work for a
+  // WebView2/Chromium child surface; without it the client area comes back
+  // blank. If it does anyway, fall back to the screen grab — a clipped picture
+  // of the app beats no picture, and the blank-capture guard still applies.
   const ps = `
     $ErrorActionPreference = 'Stop'
     Add-Type -AssemblyName System.Drawing
@@ -146,6 +178,7 @@ function captureWindow() {
         [DllImport("user32.dll")] public static extern bool SetProcessDPIAware();
         [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr h, out RECT r);
         [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr h);
+        [DllImport("user32.dll")] public static extern bool PrintWindow(IntPtr h, IntPtr dc, uint f);
         public struct RECT { public int L, T, R, B; }
       }
 "@
@@ -153,18 +186,41 @@ function captureWindow() {
     $p = Get-Process -Name '${PROCESS_NAME}' -ErrorAction SilentlyContinue |
          Where-Object { $_.MainWindowHandle -ne 0 } | Select-Object -First 1
     if (-not $p) { Write-Error 'no app process with a window'; exit 1 }
-    [Cap]::SetForegroundWindow($p.MainWindowHandle) | Out-Null
+    $handle = $p.MainWindowHandle
+    [Cap]::SetForegroundWindow($handle) | Out-Null
     Start-Sleep -Milliseconds 800
     $r = New-Object Cap+RECT
-    [Cap]::GetWindowRect($p.MainWindowHandle, [ref]$r) | Out-Null
+    [Cap]::GetWindowRect($handle, [ref]$r) | Out-Null
     $w = $r.R - $r.L; $h = $r.B - $r.T
     if ($w -le 0 -or $h -le 0) { Write-Error "bad window rect \${w}x\${h}"; exit 1 }
+
+    # How many distinct colours are in a sparse grid of samples? One or two
+    # means a flat rectangle, which is what a failed PrintWindow returns.
+    function Distinct-Colours($bitmap) {
+      $seen = New-Object System.Collections.Generic.HashSet[int]
+      for ($x = 4; $x -lt $bitmap.Width; $x += [Math]::Max(1, [int]($bitmap.Width / 32))) {
+        for ($y = 4; $y -lt $bitmap.Height; $y += [Math]::Max(1, [int]($bitmap.Height / 32))) {
+          [void]$seen.Add($bitmap.GetPixel($x, $y).ToArgb())
+        }
+      }
+      return $seen.Count
+    }
+
     $bmp = New-Object System.Drawing.Bitmap $w, $h
     $g = [System.Drawing.Graphics]::FromImage($bmp)
-    $g.CopyFromScreen($r.L, $r.T, 0, 0, (New-Object System.Drawing.Size($w, $h)))
+    $dc = $g.GetHdc()
+    $printed = [Cap]::PrintWindow($handle, $dc, 2)
+    $g.ReleaseHdc($dc)
+
+    $how = 'PrintWindow'
+    if (-not $printed -or (Distinct-Colours $bmp) -lt 3) {
+      $g.CopyFromScreen($r.L, $r.T, 0, 0, (New-Object System.Drawing.Size($w, $h)))
+      $how = 'CopyFromScreen (PrintWindow came back blank)'
+    }
+
     $bmp.Save('${output.replace(/\\/g, '\\\\')}', [System.Drawing.Imaging.ImageFormat]::Png)
     $g.Dispose(); $bmp.Dispose()
-    Write-Output "captured \${w}x\${h}"
+    Write-Output "captured \${w}x\${h} via $how"
   `;
   return sh('powershell', ['-NoProfile', '-Command', ps]);
 }
