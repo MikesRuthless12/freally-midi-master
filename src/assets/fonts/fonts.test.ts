@@ -133,6 +133,31 @@ describe('bundled Noto fonts', () => {
     expect(orphans.map((f) => `${f.family}: ${f.file || '(no url)'}`)).toEqual([]);
   });
 
+  it('emits a src descriptor a browser will actually accept', () => {
+    // This file used to check unicode-ranges and file existence and stop there,
+    // so it passed with flying colours over 546 rules that every browser threw
+    // away: the vendoring script emitted
+    // `src: url(...) format('woff2') format('woff2')`, and a duplicated
+    // format() is invalid <font-src> grammar. CSS discards the whole
+    // declaration on an invalid component value, not just the bad part, so the
+    // faces had no source at all and nothing rendered in Noto.
+    //
+    // `e2e/fonts.spec.ts` proves the loading end-to-end in a real engine; this
+    // catches the same fault in milliseconds without one.
+    const bad: string[] = [];
+    for (const sheet of ['fonts.css', 'fonts-scripts.css']) {
+      const css = readFileSync(join(here, sheet), 'utf8');
+      for (const [, block] of css.matchAll(/@font-face\s*\{([^}]*)\}/g)) {
+        const src = /src:([^;]+);/.exec(block)?.[1] ?? '';
+        const formats = (src.match(/format\(/g) ?? []).length;
+        if (formats !== 1 || !/url\('\.\/[^']+\.woff2'\)/.test(src)) {
+          bad.push(`${sheet}: ${src.trim()}`);
+        }
+      }
+    }
+    expect(bad.slice(0, 3)).toEqual([]);
+  });
+
   it.each(Object.entries(LOCALE_SAMPLES))('renders %s without tofu', (_locale, sample) => {
     expect(uncovered(sample)).toEqual([]);
   });

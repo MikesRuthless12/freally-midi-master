@@ -28,7 +28,7 @@ import { useTranslation } from 'react-i18next';
 
 type Available = {
   version: string;
-  notes: string;
+  notes: string | null;
   /** Runs the download+install. Resolves only on platforms that return. */
   install: () => Promise<void>;
 };
@@ -63,7 +63,11 @@ export function UpdatePrompt({
         setUpdate({
           version: found.version,
           // The manifest's notes, which the release job fills from CHANGELOG.md.
-          notes: found.body?.trim() || t('update.noNotes'),
+          // Held raw, not translated here: reading `t` inside this effect
+          // would put it in the dependency array, and the check would then
+          // re-run on every language switch — breaking the one-check-per-launch
+          // rule this file is built around. Translated at render instead.
+          notes: found.body?.trim() || null,
           install: () => found.downloadAndInstall(),
         });
         setPhase('available');
@@ -76,10 +80,7 @@ export function UpdatePrompt({
     return () => {
       cancelled = true;
     };
-    // `t` is read for the no-release-notes fallback. It is stable for a given
-    // language, so this still runs once per launch — but if the user switches
-    // language the note has to be re-read in the new one.
-  }, [t]);
+  }, []);
 
   // The check above still ran, and its result is held until the slot is free.
   if (hidden || phase === 'idle' || !update) return null;
@@ -122,7 +123,12 @@ export function UpdatePrompt({
         <label className="update__label" htmlFor="update-notes">
           {t('update.whatsNew')}
         </label>
-        <textarea id="update-notes" className="update__notes" readOnly value={update.notes} />
+        <textarea
+          id="update-notes"
+          className="update__notes"
+          readOnly
+          value={update.notes ?? t('update.noNotes')}
+        />
 
         {error && (
           <p className="update__error" role="alert">

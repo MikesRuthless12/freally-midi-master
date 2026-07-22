@@ -10,20 +10,24 @@ use store::{settings::ThemePreference, Settings};
 
 /// `--color-bg` in src/styles/tokens.css, for each theme.
 ///
-/// Duplicated from the stylesheet on purpose: this has to be known before any
-/// stylesheet exists. `background_matches_the_design_tokens` in this file reads
-/// tokens.css and fails if the two ever drift.
+/// Duplicated from the stylesheet on purpose: the window needs a colour before
+/// any stylesheet exists. `background_matches_the_design_tokens` reads
+/// tokens.css — and tauri.conf.json — and fails if they ever drift.
 const DARK_BG: Color = Color(0x0b, 0x0c, 0x10, 255);
 const LIGHT_BG: Color = Color(0xfa, 0xfa, 0xfc, 255);
 
-/// Paint the window its own background before the WebView has anything to show.
+/// Correct the window background for a light-theme user.
 ///
-/// Measured on Windows: the window appears ~50 ms after launch and the UI paints
-/// ~800 ms later. Almost all of that gap is WebView2 starting, which is not ours
-/// to speed up — but what fills the gap is. The default is a white rectangle,
-/// which against the dark theme reads as a flash and makes a fast app feel slow.
-/// Painting the real background colour makes the wait look like the window is
-/// simply already there.
+/// Measured on Windows: the window is visible ~44 ms after launch and the UI
+/// paints ~800 ms later. Almost all of that gap is WebView2 starting, which is
+/// not ours to speed up — but what fills it is, and by default it is a white
+/// rectangle that reads as a flash against the dark theme.
+///
+/// The dark value is set in tauri.conf.json rather than here, because `setup`
+/// runs *after* the window is created: doing it only from Rust left the first
+/// frame white, which is how this was found. The config covers the common case
+/// at creation; this then repaints for the minority on light, still long before
+/// anything is drawn.
 fn paint_window_background(app: &tauri::AppHandle) {
     let Some(window) = app.get_webview_window("main") else {
         return;
@@ -35,6 +39,9 @@ fn paint_window_background(app: &tauri::AppHandle) {
         // which treats dark as the default when nothing says otherwise.
         ThemePreference::System => window.theme().map(|t| t == Theme::Dark).unwrap_or(true),
     };
+    // Set both explicitly. Dark is already the config default so that arm is a
+    // no-op today, but stating it here keeps this function the single place the
+    // rule lives — and it still holds if the config value is ever edited.
     let _ = window.set_background_color(Some(if dark { DARK_BG } else { LIGHT_BG }));
 }
 

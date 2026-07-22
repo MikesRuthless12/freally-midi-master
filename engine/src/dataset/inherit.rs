@@ -53,9 +53,25 @@ fn parents_of(model: &Value) -> Vec<String> {
 /// The returned value keeps the child's own `id`, `type` and `name` — those
 /// identify the model and must never be inherited from a parent.
 pub fn resolve(id: &str, registry: &BTreeMap<String, Value>) -> Result<Value, DatasetError> {
-    let mut order = Vec::new();
+    let mut seen = BTreeMap::new();
     let mut visiting = Vec::new();
-    linearize(id, registry, &mut visiting, &mut order)?;
+    let mut next_index = 0;
+    linearize(id, registry, &mut visiting, &mut seen, 0, &mut next_index)?;
+
+    // Deepest first, then by the order they were declared.
+    //
+    // A plain depth-first post-order is not enough. With `extends: [p1, p2]`
+    // where p2 extends `base`, the post-order is [p1, base, p2] — so `base`,
+    // reachable only THROUGH p2, ends up outranking p1's own explicit
+    // declarations. Ordering by depth puts every ancestor below every model
+    // that inherits from it, so a direct parent always beats a grandparent
+    // reached via a sibling, and the left-to-right rule still decides between
+    // two parents at the same depth.
+    let mut order: Vec<&String> = seen.keys().filter(|k| *k != id).collect();
+    order.sort_by_key(|k| {
+        let (depth, index) = seen[*k];
+        (std::cmp::Reverse(depth), index)
+    });
 
     // Merge each ancestor's OWN body, lowest precedence first.
     //
@@ -67,7 +83,7 @@ pub fn resolve(id: &str, registry: &BTreeMap<String, Value>) -> Result<Value, Da
     // model with two parents got `_defaults`' straight timing and generic BPM
     // back, with nothing reported anywhere.
     let mut merged = Value::Object(Map::new());
-    for ancestor in &order {
+    for ancestor in order {
         let model = registry
             .get(ancestor)
             .ok_or_else(|| DatasetError::UnknownParent(ancestor.clone()))?;
@@ -77,6 +93,11 @@ pub fn resolve(id: &str, registry: &BTreeMap<String, Value>) -> Result<Value, Da
     let model = registry
         .get(id)
         .ok_or_else(|| DatasetError::UnknownParent(id.to_owned()))?;
+
+    // The child last, on top of every ancestor. It is merged here rather than
+    // as the tail of `order` because `order` is sorted by depth and the child
+    // is not an ancestor of itself.
+    let mut merged = deep_merge(&merged, model);
 
     // Identity is the child's, never an ancestor's — a merge must not be able
     // to rename a model or change its type.
@@ -111,11 +132,10 @@ fn linearize(
     id: &str,
     registry: &BTreeMap<String, Value>,
     visiting: &mut Vec<String>,
-    order: &mut Vec<String>,
+    seen: &mut BTreeMap<String, (usize, usize)>,
+    depth: usize,
+    next_index: &mut usize,
 ) -> Result<(), DatasetError> {
-    if order.iter().any(|v| v == id) {
-        return Ok(());
-    }
     if visiting.iter().any(|v| v == id) {
         // Report the loop as it was walked, so the author can see which edge to
         // cut rather than just being told one exists.
@@ -129,12 +149,27 @@ fn linearize(
         .get(id)
         .ok_or_else(|| DatasetError::UnknownParent(id.to_owned()))?;
 
+    // Keep the DEEPEST depth and the EARLIEST discovery. Reaching a model again
+    // by a longer path must push it further down the stack, never pull it up.
+    match seen.get_mut(id) {
+        Some(entry) => {
+            if depth <= entry.0 {
+                // Already placed at least this deep; its ancestors are too.
+                return Ok(());
+            }
+            entry.0 = depth;
+        }
+        None => {
+            seen.insert(id.to_owned(), (depth, *next_index));
+            *next_index += 1;
+        }
+    }
+
     visiting.push(id.to_owned());
     for parent in parents_of(model) {
-        linearize(&parent, registry, visiting, order)?;
+        linearize(&parent, registry, visiting, seen, depth + 1, next_index)?;
     }
     visiting.pop();
-    order.push(id.to_owned());
     Ok(())
 }
 
@@ -386,6 +421,36 @@ mod tests {
             ),
         ]);
         assert_eq!(resolve("c", &reg).unwrap()["v"], json!(2));
+    }
+
+    #[test]
+    fn a_grandparent_reached_through_a_sibling_loses_to_a_direct_parent() {
+        // `c` extends [p1, p2]; only p2 extends `base`. A depth-first order
+        // places base between p1 and p2, so base's value overwrote p1's own —
+        // even though p1 is a direct parent and base is not.
+        let reg = registry(vec![
+            (
+                "base",
+                json!({ "id": "base", "type": "genre", "name": "Base", "v": 1 }),
+            ),
+            (
+                "p1",
+                json!({ "id": "p1", "type": "genre", "name": "P1", "v": 2 }),
+            ),
+            (
+                "p2",
+                json!({ "id": "p2", "type": "genre", "name": "P2", "extends": ["base"] }),
+            ),
+            (
+                "c",
+                json!({ "id": "c", "type": "artist", "name": "C", "extends": ["p1", "p2"] }),
+            ),
+        ]);
+        assert_eq!(
+            resolve("c", &reg).unwrap()["v"],
+            json!(2),
+            "p1 declares v explicitly; base is only reachable through p2"
+        );
     }
 
     #[test]

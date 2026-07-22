@@ -323,6 +323,32 @@ pub fn clear_crashes() {
     }
 }
 
+/// Mark the pending crash as handed off, without destroying it.
+///
+/// `pending_crash` only considers `.txt`, so renaming takes the report out of
+/// the auto-open path while leaving the text on disk.
+///
+/// The difference matters. `open_url` returning `Ok` means a browser or mail
+/// client was *launched*, not that anything was filed — the user may hit a
+/// GitHub login wall and close the tab, or have no mail client bound to
+/// `mailto:`. Deleting on that signal threw away the only copy of a crash the
+/// user had not actually reported, and they could not even use "Copy report" to
+/// get it back. Retaining fails safe; deleting does not.
+pub fn mark_crashes_reported() {
+    let Some(dir) = crash_dir() else {
+        return;
+    };
+    let Ok(entries) = std::fs::read_dir(&dir) else {
+        return;
+    };
+    for entry in entries.flatten() {
+        let path = entry.path();
+        if path.extension().and_then(|e| e.to_str()) == Some("txt") {
+            let _ = std::fs::rename(&path, path.with_extension("txt.reported"));
+        }
+    }
+}
+
 /// Percent-encode a query component (RFC 3986 unreserved kept verbatim).
 fn urlencode(s: &str) -> String {
     let mut out = String::with_capacity(s.len() * 3);
@@ -630,8 +656,11 @@ pub fn bug_report_submit(
     //
     // Only when the crash was actually included: a report that deliberately
     // left it out has not reported it, so it stays pending.
+    //
+    // Marked, not deleted — see `mark_crashes_reported`. `open_url` succeeding
+    // only means a handler was launched.
     if include_crash && crash.is_some() {
-        clear_crashes();
+        mark_crashes_reported();
     }
     Ok(())
 }

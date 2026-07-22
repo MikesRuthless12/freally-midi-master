@@ -39,8 +39,14 @@
    * cannot drift from what was actually downloaded). The browser resolves
    * this per character, so Japanese inside an English sentence renders in
    * Noto Sans JP while the Latin around it stays in Noto Sans. */
-  --font-ui: 'Noto Sans', var(--font-noto-fallback);
-  --font-display: 'Noto Sans Display', 'Noto Sans', var(--font-noto-fallback);
+  /* Each role names its Noto face, then the per-script families, then ITS OWN
+   * generic. The generic must come last: a generic family always matches, so
+   * anything after one is unreachable — which is how --font-mono ended up
+   * resolving to a proportional face for anything Noto Sans Mono did not
+   * cover. */
+  --font-ui: 'Noto Sans', var(--font-noto-fallback), system-ui, sans-serif;
+  --font-display:
+    'Noto Sans Display', 'Noto Sans', var(--font-noto-fallback), system-ui, sans-serif;
   --font-mono: 'Noto Sans Mono', var(--font-noto-fallback), ui-monospace, monospace;
 
   --text-display: 2.25rem;

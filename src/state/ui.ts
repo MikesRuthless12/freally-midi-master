@@ -104,11 +104,17 @@ export const useUi = create<UiState>((set) => ({
   setTheme: (theme) => {
     applyThemePreference(theme);
     set({ theme });
+    // Write through to settings.json as well. Persisting only to localStorage
+    // left the file holding a stale value, which the startup reconcile then
+    // treated as authoritative — so a theme picked from the transport toggle
+    // reverted on the next launch.
+    void persistPreference({ theme });
   },
 
   setLanguage: (language) => {
     applyLanguage(language);
     set({ language });
+    void persistPreference({ language });
   },
 }));
 
@@ -128,6 +134,23 @@ export const useUi = create<UiState>((set) => ({
  * `Settings::load` returns defaults for a missing one — so it counts as "no
  * information" rather than as a preference, and the healing runs the other way.
  */
+/**
+ * Merge one preference into settings.json.
+ *
+ * Read-modify-write rather than a blind overwrite: `settings_set` takes the
+ * whole struct, so sending a partial object would reset every field it omits.
+ */
+async function persistPreference(patch: Record<string, unknown>): Promise<void> {
+  if (!isTauri()) return;
+  try {
+    const stored = await invoke<Record<string, unknown>>('settings_get');
+    await invoke('settings_set', { settings: { ...stored, ...patch } });
+  } catch {
+    // No bridge, or the file is unwritable — the in-memory choice still applies
+    // and localStorage still has it for the next launch.
+  }
+}
+
 export async function reconcileWithSettings(): Promise<void> {
   if (!isTauri()) return;
   try {

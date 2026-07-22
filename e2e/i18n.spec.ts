@@ -7,6 +7,20 @@ import { fileURLToPath } from 'node:url';
 import { CATEGORIES } from '../src/components/Settings/categories';
 import { LOCALES } from '../src/i18n/locales';
 
+/**
+ * The Noto family that must actually be loaded for each locale's script.
+ *
+ * Noto Sans itself carries Latin, Greek, Cyrillic, Devanagari and Vietnamese,
+ * so most locales expect it; the rest need their own family from the deferred
+ * sheet. Anything not listed uses Noto Sans.
+ */
+const SCRIPT_FAMILY: Record<string, string> = {
+  ar: 'Noto Sans Arabic',
+  ja: 'Noto Sans JP',
+  ko: 'Noto Sans KR',
+  'zh-CN': 'Noto Sans SC',
+};
+
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 // Read rather than `import ... from './en.json'`: Playwright runs this file as
@@ -112,11 +126,23 @@ test.describe('language switching', () => {
       await expect(page.locator('html')).toHaveAttribute('lang', code);
       await expect(page.locator('html')).toHaveAttribute('dir', code === 'ar' ? 'rtl' : 'ltr');
 
-      // Drawn with a font that can draw it. `font-family` resolves to the whole
-      // stack, so ask the engine what it actually settled on.
+      // Drawn with a font that is genuinely loaded.
+      //
+      // This used to assert that `getComputedStyle().fontFamily` contained
+      // "Noto Sans" — which is the DECLARED STACK, a string that is present
+      // whether or not a single byte of font ever loaded. It reported success
+      // over 546 @font-face rules that the browser had rejected outright. Ask
+      // the font engine instead: it is the only thing that knows.
       const panel = page.locator('.settings__panel');
-      const family = await panel.evaluate((el) => getComputedStyle(el).fontFamily);
-      expect(family, `${english} must render in a bundled Noto face`).toContain('Noto Sans');
+      const expected = SCRIPT_FAMILY[code] ?? 'Noto Sans';
+      const loaded = await page.evaluate(async (family) => {
+        await document.fonts.ready;
+        return [...document.fonts].some((f) => f.family.replace(/['"]/g, '') === family);
+      }, expected);
+      expect(
+        loaded,
+        `${english} needs "${expected}", which is not among the loaded faces`,
+      ).toBe(true);
 
       // Nothing may render as tofu. The replacement character is what a browser
       // substitutes when a codepoint decoded badly, and it is the one failure

@@ -144,14 +144,31 @@ function captureWindow() {
         delay 1
         set {x, y} to position of w
         set {ww, hh} to size of w
-        return (x as text) & "," & (y as text) & "," & (ww as text) & "," & (hh as text)
+        return (x as text) & "," & (y as text) & "," & (ww as text) & "," & (hh as text) & "," & (screenW as text) & "," & (screenH as text)
       end tell`;
     const bounds = sh('osascript', ['-e', script]);
-    const rect = (bounds.stdout ?? '').trim();
-    if (!rect || rect === 'none') {
-      return { status: 1, stderr: `could not find the app window: ${bounds.stderr || rect}` };
+    const answer = (bounds.stdout ?? '').trim();
+    if (!answer || answer === 'none') {
+      return { status: 1, stderr: `could not find the app window: ${bounds.stderr || answer}` };
     }
-    return sh('screencapture', ['-x', '-R', rect, output]);
+
+    // The resize above is a REQUEST. tauri.conf.json sets minWidth 1280, and
+    // the window server will not go below it — so on a 1024-wide runner the
+    // window stays wider than the display and `screencapture -R` silently
+    // returns a clipped image. That is the failure this whole file exists to
+    // prevent: evidence that looks like proof and is not. Say so and stop,
+    // rather than uploading a picture with the right rail cut off.
+    const [x, y, w, h, screenW, screenH] = answer.split(',').map(Number);
+    if (x < 0 || y < 0 || x + w > screenW || y + h > screenH) {
+      return {
+        status: 1,
+        stderr:
+          `the window (${w}x${h} at ${x},${y}) does not fit the ${screenW}x${screenH} display, ` +
+          'so the capture would be clipped. The window server refuses to go below ' +
+          'minWidth/minHeight in tauri.conf.json; lower them, or capture by window id.',
+      };
+    }
+    return sh('screencapture', ['-x', '-R', `${x},${y},${w},${h}`, output]);
   }
 
   // Windows: PrintWindow, which asks the window to render ITSELF into a bitmap.

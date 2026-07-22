@@ -241,20 +241,50 @@ async function main() {
     writeFileSync(join(outDir, filename), bytes);
     perFamily.set(family.name, (perFamily.get(family.name) ?? 0) + bytes.length);
 
+    // Replace ONLY the url() token. Google's CSS already ends the src with
+    // `format('woff2')`, so appending another produced
+    // `url(...) format('woff2') format('woff2')`. A duplicated format() is
+    // invalid <font-src> grammar, and a browser drops the whole `src`
+    // descriptor rather than just the bad component — so all 546 faces were
+    // silently inert. Zero @font-face rules survived CSS parsing and every
+    // language fell through to whatever the OS happened to have, which is the
+    // exact failure this file exists to prevent.
     return (
       `/* ${family.name} — ${subset} */\n` +
-      block.replace(remote[0], `url('./${filename}') format('woff2')`).trim()
+      block.replace(remote[0], `url('./${filename}')`).trim()
     );
   });
 
   // The fallback chain, emitted here so it can never drift from what was
   // actually downloaded. The UI names 'Noto Sans' / 'Noto Sans Display' /
   // 'Noto Sans Mono' first and lands here for anything they do not cover.
-  const fallback = [
-    ...SCRIPT_FAMILIES.map((f) => `'${f.name}'`),
-    'system-ui',
-    'sans-serif',
-  ].join(',\n    ');
+  // Families only — NO generic at the end.
+  //
+  // A generic family (`sans-serif`, `system-ui`, `monospace`) never fails to
+  // match, so everything after one in a font stack is unreachable. Ending this
+  // chain with `system-ui, sans-serif` meant `--font-mono: 'Noto Sans Mono',
+  // var(--chain), ui-monospace, monospace` fell to a PROPORTIONAL face for
+  // every character Noto Sans Mono did not cover — monospaced text silently
+  // stopped being monospaced. Each role in tokens.css appends its own generic.
+  const families = SCRIPT_FAMILIES.map((f) => `'${f.name}'`);
+  const fallback = families.join(',\n    ');
+
+  // Han is unified in Unicode but not in typography: one codepoint has
+  // different correct shapes in Simplified Chinese, Traditional, Japanese and
+  // Korean. CSS matches per character in stack order and ignores `lang`, so a
+  // single fixed order renders Japanese in Chinese glyphs — kana included,
+  // since Noto Sans SC covers those too. `<html lang>` is set on every switch,
+  // so reorder against it.
+  const langOverrides = Object.entries({
+    'zh-CN': "'Noto Sans SC'",
+    ja: "'Noto Sans JP'",
+    ko: "'Noto Sans KR'",
+  })
+    .map(([code, preferred]) => {
+      const reordered = [preferred, ...families.filter((f) => f !== preferred)].join(',\n    ');
+      return `:root[lang='${code}'] {\n  --font-noto-fallback:\n    ${reordered};\n}`;
+    })
+    .join('\n\n');
 
   // Two sheets, and the split is what keeps startup fast.
   //
@@ -265,13 +295,30 @@ async function main() {
   // loads after first paint. Nothing is lost: `--font-noto-fallback` can name a
   // family before its @font-face exists, and the moment the second sheet lands
   // those names start resolving.
+  // Check the grammar of what was just built, BEFORE writing it. The absence
+  // of exactly this let an invalid `src` ship in all 546 rules — the script
+  // reported "ok: 546 faces" for output no browser would accept.
+  for (const block of blocks) {
+    const src = /src:([^;]+);/.exec(block)?.[1] ?? '';
+    const formats = (src.match(/format\(/g) ?? []).length;
+    if (formats !== 1 || !/url\('\.\/[^']+\.woff2'\)/.test(src)) {
+      throw new Error(
+        `invalid src descriptor — ${formats} format() token(s), expected 1:\n${block}`,
+      );
+    }
+  }
+
   const uiCount = uiFaces.length;
   writeFileSync(
     join(outDir, 'fonts.css'),
     `${header}\n${blocks.slice(0, uiCount).join('\n\n')}\n\n` +
       `/* Per-script fallbacks, in the order the browser should try them.\n` +
-      ` * The families below load from fonts-scripts.css after first paint. */\n` +
-      `:root {\n  --font-noto-fallback:\n    ${fallback};\n}\n`,
+      ` * These families load from fonts-scripts.css after first paint.\n` +
+      ` *\n` +
+      ` * No generic family here — a generic always matches, so it would end the\n` +
+      ` * chain and shadow whatever a role appends. tokens.css adds its own.\n` +
+      ` * The :root[lang] blocks put the right Han face first for CJK. */\n` +
+      `:root {\n  --font-noto-fallback:\n    ${fallback};\n}\n\n${langOverrides}\n`,
   );
 
   writeFileSync(

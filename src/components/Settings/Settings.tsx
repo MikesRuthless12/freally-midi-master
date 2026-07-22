@@ -180,7 +180,12 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
   // is a placeholder for the eye only — it can never reach disk.
   const shownSettings = settings ?? DEFAULTS;
   const canPersist = settings !== null;
-  const trayDisabled = !shownSettings.showTrayIcon || !canPersist;
+  // Two distinct reasons the tray sub-options are unavailable, kept apart: the
+  // icon is off (which the note below explains and the user can fix), or
+  // settings could not be read at all (which the note would misexplain, since
+  // the icon toggle above shows as enabled).
+  const trayIconOff = !shownSettings.showTrayIcon;
+  const trayDisabled = trayIconOff || !canPersist;
 
   return (
     <div className="settings" role="dialog" aria-modal="true" aria-labelledby="settings-title">

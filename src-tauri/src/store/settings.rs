@@ -205,7 +205,28 @@ mod tests {
         let Ok(path) = settings_path() else {
             return; // no app-data dir on this runner; nothing to assert
         };
-        let restore = fs::read(&path).ok();
+
+        /// Put the real file back even if an assertion below panics.
+        ///
+        /// This test writes to the developer's actual settings.json — there is
+        /// no way to redirect `settings_path`. Restoring at the end of the body
+        /// only works on the happy path, so the run that *fails* (exactly when
+        /// the regression is back) was the run that left someone's live
+        /// preferences replaced by the test's fixture.
+        struct Restore(std::path::PathBuf, Option<Vec<u8>>);
+        impl Drop for Restore {
+            fn drop(&mut self) {
+                match self.1.take() {
+                    Some(bytes) => {
+                        let _ = fs::write(&self.0, bytes);
+                    }
+                    None => {
+                        let _ = fs::remove_file(&self.0);
+                    }
+                }
+            }
+        }
+        let _restore = Restore(path.clone(), fs::read(&path).ok());
 
         Settings {
             minimize_to_tray: true,
@@ -242,13 +263,6 @@ mod tests {
             leftovers.is_empty(),
             "temp files left behind: {leftovers:?}"
         );
-
-        match restore {
-            Some(bytes) => fs::write(&path, bytes).unwrap(),
-            None => {
-                let _ = fs::remove_file(&path);
-            }
-        }
     }
 
     #[test]
