@@ -1,0 +1,125 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag to build (must already exist)'
+        required: true
+
+permissions:
+  contents: write
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build:
+    name: build (${{ matrix.label }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            label: macos-universal
+            # One universal binary rather than two downloads the user has to
+            # choose between.
+            args: '--target universal-apple-darwin'
+          - os: ubuntu-latest
+            label: linux
+            args: ''
+          - os: windows-latest
+            label: windows
+            args: ''
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+          ref: ${{ github.event.inputs.tag || github.ref }}
+
+      - name: Install Linux system dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libgtk-3-dev \
+            libayatana-appindicator3-dev \
+            librsvg2-dev \
+            libasound2-dev \
+            patchelf
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.os == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: release-${{ matrix.label }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      - uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # Update signing. Without these the updater refuses the manifest, so
+          # a release built without them is one no existing user can install.
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
+        with:
+          tagName: ${{ github.event.inputs.tag || github.ref_name }}
+          releaseName: 'Freally MIDI Master __VERSION__'
+          releaseBody: |
+            Artist-accurate MIDI, offline and AI-free.
+
+            **Installers are unsigned by policy** — this project spends nothing,
+            ever, and code-signing certificates cost money. First run therefore
+            needs one extra step:
+
+            - **Windows** — SmartScreen appears: *More info* → *Run anyway*.
+            - **macOS** — right-click the app → *Open* → *Open*. Opening by
+              double-click alone will be refused.
+            - **Linux** — `chmod +x` the AppImage before running it.
+
+            Checksums are published as `SHA256SUMS` alongside the installers.
+            Every asset on this release is downloaded and verified by CI before
+            the release is announced.
+          releaseDraft: true
+          prerelease: false
+          includeUpdaterJson: true
+          args: ${{ matrix.args }}
+
+  checksums:
+    name: checksums
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      # Never interpolate ${{ }} into a run: block — GitHub splices the value
+      # into the shell source before bash parses it, and a ref name may contain
+      # quotes, semicolons and backticks. Pass it through env: instead.
+      - name: Generate SHA256SUMS
+        env:
+          TAG: ${{ github.event.inputs.tag || github.ref_name }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          mkdir -p dist-assets && cd dist-assets
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern '*' --clobber
+          rm -f SHA256SUMS
+          sha256sum * > SHA256SUMS
+          cat SHA256SUMS
+          gh release upload "$TAG" SHA256SUMS --repo "$GITHUB_REPOSITORY" --clobber

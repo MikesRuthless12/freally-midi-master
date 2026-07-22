@@ -1,0 +1,149 @@
+name: Verify downloads
+
+# DoD gate #11 (PRD § 7.6): every published asset must download, match its
+# checksum, and open. A release whose installer is truncated or corrupt is
+# worse than no release — it burns the one chance a new user gives you.
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to verify'
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: verify assets
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Download every asset
+        env:
+          TAG: ${{ github.event.inputs.tag || github.event.release.tag_name }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          mkdir -p assets && cd assets
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern '*' --clobber
+          echo "Downloaded:"
+          ls -la
+
+      - name: Verify checksums
+        run: |
+          set -euo pipefail
+          cd assets
+          if [ ! -f SHA256SUMS ]; then
+            echo "::error::SHA256SUMS is missing from the release."
+            exit 1
+          fi
+          # Ignore the checksum file's own line if it happens to be present.
+          grep -v ' SHA256SUMS$' SHA256SUMS > to-check.txt || true
+          if [ ! -s to-check.txt ]; then
+            echo "::error::SHA256SUMS lists no assets."
+            exit 1
+          fi
+          sha256sum -c to-check.txt
+
+      - name: Every expected platform is present
+        run: |
+          set -euo pipefail
+          cd assets
+          fail=0
+          # A release missing a platform is a silent regression: the download
+          # page still looks fine, and only that platform's users notice.
+          for pattern in '*.exe' '*.msi' '*.dmg' '*.app.tar.gz' '*.AppImage' '*.deb'; do
+            # shellcheck disable=SC2086
+            if ! compgen -G "$pattern" > /dev/null; then
+              echo "::error::no asset matching $pattern"
+              fail=1
+            fi
+          done
+          exit $fail
+
+      - name: Archives and installers actually open
+        run: |
+          set -euo pipefail
+          cd assets
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq p7zip-full binutils file
+
+          fail=0
+          check() {
+            if "$@" > /dev/null 2>&1; then
+              echo "ok   $2"
+            else
+              echo "::error::$2 did not open — it is corrupt or truncated"
+              fail=1
+            fi
+          }
+
+          for f in *.tar.gz;    do [ -e "$f" ] && check tar -tzf "$f"; done
+          for f in *.deb;       do [ -e "$f" ] && check ar t "$f"; done
+          for f in *.AppImage;  do [ -e "$f" ] && check file -E "$f"; done
+          # NSIS/MSI/DMG are all containers 7z can enumerate.
+          for f in *.exe *.msi *.dmg; do [ -e "$f" ] && check 7z l "$f"; done
+
+          # A zero-length or absurdly small installer passes a checksum quite
+          # happily; the bytes just match the wrong thing.
+          for f in *.exe *.msi *.dmg *.AppImage *.deb *.tar.gz; do
+            [ -e "$f" ] || continue
+            size=$(stat -c%s "$f")
+            if [ "$size" -lt 1000000 ]; then
+              echo "::error::$f is only $size bytes — too small to be a real installer"
+              fail=1
+            fi
+          done
+          exit $fail
+
+      - name: Updater manifest is well formed
+        run: |
+          set -euo pipefail
+          cd assets
+          if [ ! -f latest.json ]; then
+            echo "::error::latest.json is missing — the updater will never see this release."
+            exit 1
+          fi
+          # The version must come from the manifest, and every platform entry
+          # needs both a signature and a url or the updater silently skips it.
+          python3 - <<'PY'
+          import json, sys
+          m = json.load(open('latest.json'))
+          problems = []
+          if not m.get('version'):
+              problems.append('latest.json has no version')
+          platforms = m.get('platforms') or {}
+          if not platforms:
+              problems.append('latest.json lists no platforms')
+          for name, entry in platforms.items():
+              if not entry.get('signature'):
+                  problems.append(f'{name} has no signature')
+              if not entry.get('url'):
+                  problems.append(f'{name} has no url')
+          for p in problems:
+              print(f'::error::{p}')
+          sys.exit(1 if problems else 0)
+          PY
+
+      - name: What to do if this failed
+        if: failure()
+        run: |
+          cat <<'EOF'
+          ::error::Release verification failed.
+
+          Do not announce this release. Per PRD § 7.6 gate 11 the fix is:
+            1. Fix the cause.
+            2. Re-tag (a NEW version — the updater compares version numbers, so
+               re-tagging an existing one reaches nobody).
+            3. Re-release.
+            4. Re-run this workflow until it is green.
+
+          Runbook: docs/runbooks/release.md
+          EOF
+          exit 1
