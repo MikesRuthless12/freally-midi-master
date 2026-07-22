@@ -9,9 +9,12 @@
  *
  * Two things this gets right, both learned the hard way:
  *
- * 1. **Wait for the app, do not sleep.** The first version slept 45s after Vite
- *    was up. On a cold Linux runner cargo was still on crate 306 of 576, so the
- *    app had not launched and the job failed. It now polls for the process.
+ * 1. **Wait for the window, do not sleep and do not watch the process.** The
+ *    first version slept 45s after Vite was up; on a cold Linux runner cargo was
+ *    still on crate 306 of 576. The second polled for the process — but
+ *    `pgrep -f` matches the whole command line, so it matched cargo *building* a
+ *    crate of that name and fired while compilation was a fifth done. The window
+ *    is the actual precondition, so that is what it waits for.
  *
  * 2. **Capture the window, not the screen.** The first version grabbed the
  *    whole desktop, so Windows and macOS "passed" with a picture of the
@@ -50,13 +53,40 @@ function sh(cmd, args) {
   return spawnSync(cmd, args, { encoding: 'utf8' });
 }
 
-/** Is the app process running yet? */
-function appIsRunning() {
-  if (process.platform === 'win32') {
-    const out = sh('tasklist', ['/FI', `IMAGENAME eq ${PROCESS_NAME}.exe`]);
-    return (out.stdout ?? '').toLowerCase().includes(`${PROCESS_NAME}.exe`);
+/**
+ * Has the app opened a window yet?
+ *
+ * Waiting on the *window* rather than the process, because the process is not
+ * the precondition — the window is, and there is a long gap between the two
+ * while the WebView starts.
+ *
+ * It also avoids a trap: `pgrep -f` matches the whole command line, so it
+ * matched `cargo` building a crate called freally-midi-master and reported the
+ * app as up while compilation was still on crate 119 of 576. Windows was
+ * unaffected because tasklist matches the image name exactly, which is why that
+ * leg passed and the other two did not.
+ */
+function appWindowExists() {
+  if (process.platform === 'linux') {
+    const find = sh('xdotool', ['search', '--name', WINDOW_TITLE]);
+    return find.status === 0 && (find.stdout ?? '').trim().length > 0;
   }
-  return sh('pgrep', ['-f', PROCESS_NAME]).status === 0;
+
+  if (process.platform === 'darwin') {
+    const probe = sh('osascript', [
+      '-e',
+      `tell application "System Events" to return (count of (every process whose name contains "${PROCESS_NAME}"))`,
+    ]);
+    return Number.parseInt((probe.stdout ?? '0').trim(), 10) > 0;
+  }
+
+  const ps = sh('powershell', [
+    '-NoProfile',
+    '-Command',
+    `@(Get-Process -Name '${PROCESS_NAME}' -ErrorAction SilentlyContinue |` +
+      ` Where-Object { $_.MainWindowHandle -ne 0 }).Count`,
+  ]);
+  return Number.parseInt((ps.stdout ?? '0').trim(), 10) > 0;
 }
 
 async function waitFor(label, predicate, timeoutMs) {
@@ -158,14 +188,14 @@ app.on('exit', (code) => {
 });
 
 try {
-  console.log('waiting for the app process (cargo may still be building)…');
-  const running = await waitFor('the app process', appIsRunning, APP_TIMEOUT_MS);
+  console.log('waiting for the app window (cargo may still be building)…');
+  const running = await waitFor('the app window', appWindowExists, APP_TIMEOUT_MS);
 
   if (exitedEarly !== null) {
     die(`\`tauri dev\` exited before the app started (code ${exitedEarly})`);
   }
   if (!running) {
-    die(`the app never started within ${APP_TIMEOUT_MS / 60000} minutes`);
+    die(`no app window appeared within ${APP_TIMEOUT_MS / 60000} minutes`);
   }
 
   console.log('app is up; letting the window paint…');
