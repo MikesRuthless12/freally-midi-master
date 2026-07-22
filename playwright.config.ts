@@ -15,7 +15,10 @@ export default defineConfig({
   // A `.only` left in a spec silently narrows CI to one test.
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  // Measured: the language sweep alone runs 23.0s serially and 12.5s at 4
+  // workers, and CI now runs it on three OSes. One worker was a caution that
+  // cost ~31s per run across the matrix; these specs share no state.
+  workers: process.env.CI ? 4 : undefined,
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
 
   use: {

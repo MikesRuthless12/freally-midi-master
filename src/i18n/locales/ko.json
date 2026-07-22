@@ -52,7 +52,12 @@
     "group": "테마",
     "system": "시스템 테마 따르기",
     "dark": "다크 테마",
-    "light": "라이트 테마"
+    "light": "라이트 테마",
+    "short": {
+      "system": "시스템 설정",
+      "dark": "다크",
+      "light": "라이트"
+    }
   },
   "view": {
     "button": "보기",
@@ -92,9 +97,6 @@
     "trayRequired": "위 두 옵션을 사용하려면 트레이 아이콘을 켜세요 — 아이콘이 없으면 창을 되돌릴 방법이 없습니다.",
     "themeHeading": "테마",
     "themeNote": "다크가 기본이자 이 앱의 시그니처입니다. 두 테마 모두 WCAG 2.1 AA 대비를 충족합니다.",
-    "themeSystem": "시스템 설정",
-    "themeDark": "다크",
-    "themeLight": "라이트",
     "languageHeading": "언어",
     "languageNote": "인터페이스 언어입니다. 모든 언어에 필요한 폰트가 함께 들어 있어 따로 내려받을 것이 없습니다.",
     "languageLabel": "인터페이스 언어"

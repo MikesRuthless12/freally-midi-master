@@ -52,7 +52,12 @@
     "group": "Tema",
     "system": "Acompanhar o tema do sistema",
     "dark": "Tema escuro",
-    "light": "Tema claro"
+    "light": "Tema claro",
+    "short": {
+      "system": "Do sistema",
+      "dark": "Escuro",
+      "light": "Claro"
+    }
   },
   "view": {
     "button": "Exibir",
@@ -92,9 +97,6 @@
     "trayRequired": "Ative o ícone da bandeja para usar as duas opções acima — sem ele não haveria como recuperar a janela.",
     "themeHeading": "Tema",
     "themeNote": "O escuro é o padrão e a cara do aplicativo. Os dois temas têm contraste verificado para WCAG 2.1 AA.",
-    "themeSystem": "Do sistema",
-    "themeDark": "Escuro",
-    "themeLight": "Claro",
     "languageHeading": "Idioma",
     "languageNote": "O idioma da interface. Cada idioma já vem com as fontes de que precisa, então nada precisa ser baixado.",
     "languageLabel": "Idioma da interface"

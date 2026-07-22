@@ -52,7 +52,12 @@
     "group": "Giao diện",
     "system": "Theo hệ thống",
     "dark": "Giao diện tối",
-    "light": "Giao diện sáng"
+    "light": "Giao diện sáng",
+    "short": {
+      "system": "Theo hệ thống",
+      "dark": "Tối",
+      "light": "Sáng"
+    }
   },
   "view": {
     "button": "Hiển thị",
@@ -92,9 +97,6 @@
     "trayRequired": "Bật biểu tượng khay để dùng hai tùy chọn trên — không có nó thì không cách nào mở lại cửa sổ.",
     "themeHeading": "Giao diện",
     "themeNote": "Tối là mặc định và là diện mạo đặc trưng của ứng dụng. Cả hai giao diện đều được kiểm tra tương phản theo WCAG 2.1 AA.",
-    "themeSystem": "Theo hệ thống",
-    "themeDark": "Tối",
-    "themeLight": "Sáng",
     "languageHeading": "Ngôn ngữ",
     "languageNote": "Ngôn ngữ giao diện. Mỗi ngôn ngữ đi kèm sẵn phông chữ cần dùng, nên không phải tải thêm gì.",
     "languageLabel": "Ngôn ngữ giao diện"

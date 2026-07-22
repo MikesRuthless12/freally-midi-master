@@ -52,7 +52,12 @@
     "group": "Tema",
     "system": "Ikuti tema sistem",
     "dark": "Tema gelap",
-    "light": "Tema terang"
+    "light": "Tema terang",
+    "short": {
+      "system": "Ikuti sistem",
+      "dark": "Gelap",
+      "light": "Terang"
+    }
   },
   "view": {
     "button": "Tampilan",
@@ -92,9 +97,6 @@
     "trayRequired": "Nyalakan ikon baki untuk memakai dua opsi di atas — tanpa itu tidak ada cara mengembalikan jendela.",
     "themeHeading": "Tema",
     "themeNote": "Gelap adalah bawaan sekaligus tampilan khas aplikasi ini. Kontras kedua tema sudah diuji sesuai WCAG 2.1 AA.",
-    "themeSystem": "Ikuti sistem",
-    "themeDark": "Gelap",
-    "themeLight": "Terang",
     "languageHeading": "Bahasa",
     "languageNote": "Bahasa antarmuka. Setiap bahasa sudah menyertakan font yang diperlukan, jadi tidak ada yang perlu diunduh.",
     "languageLabel": "Bahasa antarmuka"

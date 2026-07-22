@@ -7,13 +7,18 @@
  * `prefers-color-scheme` media query in tokens.css takes over.
  */
 
-export type ThemePreference = 'system' | 'dark' | 'light';
+import { readStored, writeStored } from './storage';
+
+/** The three preferences, as a tuple so the locale gate can iterate them. */
+export const THEME_PREFERENCES = ['system', 'dark', 'light'] as const;
+
+export type ThemePreference = (typeof THEME_PREFERENCES)[number];
 export type ResolvedTheme = 'dark' | 'light';
 
 const STORAGE_KEY = 'freally.theme';
 
 export function isThemePreference(value: unknown): value is ThemePreference {
-  return value === 'system' || value === 'dark' || value === 'light';
+  return (THEME_PREFERENCES as readonly unknown[]).includes(value);
 }
 
 /** The OS-level preference, defaulting to dark when unknown or unavailable. */
@@ -27,13 +32,7 @@ export function resolveTheme(preference: ThemePreference): ResolvedTheme {
 }
 
 export function loadThemePreference(): ThemePreference {
-  try {
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (isThemePreference(stored)) return stored;
-  } catch {
-    // Private-mode or storage-disabled webviews throw on access; fall through.
-  }
-  return 'system';
+  return readStored(STORAGE_KEY, isThemePreference, 'system');
 }
 
 /**
@@ -50,12 +49,7 @@ export function applyThemePreference(preference: ThemePreference): ResolvedTheme
     root.setAttribute('data-theme', preference);
   }
 
-  try {
-    window.localStorage.setItem(STORAGE_KEY, preference);
-  } catch {
-    // Persisting is best-effort; the in-memory choice still applies.
-  }
-
+  writeStored(STORAGE_KEY, preference);
   return resolveTheme(preference);
 }
 

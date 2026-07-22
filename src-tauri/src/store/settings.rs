@@ -25,19 +25,6 @@ impl std::fmt::Display for SettingsError {
     }
 }
 
-/// The UI language, as a BCP-47 tag from the canonical 18.
-///
-/// Stored as a plain string rather than an enum: the set is defined on the
-/// TypeScript side (`src/i18n/locales.ts`), and a Rust enum would be a second
-/// copy that has to be kept in step for no benefit — nothing here branches on
-/// the value, it is only carried to disk and back. An unrecognised tag is
-/// rejected by the frontend on read, which is where the list actually lives.
-pub type Language = String;
-
-fn default_language() -> Language {
-    "en".to_string()
-}
-
 /// Theme preference. Mirrors `ThemePreference` in `src/state/theme.ts`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "lowercase")]
@@ -58,8 +45,21 @@ pub struct Settings {
     /// Show the tray icon at all. Off means the two options above cannot apply.
     pub show_tray_icon: bool,
     pub theme: ThemePreference,
-    #[serde(default = "default_language")]
-    pub language: Language,
+    /// The UI language: a BCP-47 tag from the canonical 18, or **empty when the
+    /// user has never chosen one**.
+    ///
+    /// The empty string is the sentinel, and it matters. Defaulting this to
+    /// `"en"` made a missing settings.json indistinguishable from a deliberate
+    /// choice of English — so a German machine, whose first launch correctly
+    /// picks `de` from the OS, was reset to English on every subsequent launch
+    /// by the startup reconcile. `theme` has the same shape with `system` as
+    /// its sentinel.
+    ///
+    /// A plain string rather than an enum: the set lives in
+    /// `src/i18n/locales.ts` and nothing in Rust branches on the value, so an
+    /// enum here would be a second copy to keep in step for no benefit. The
+    /// frontend rejects an unrecognised tag on read.
+    pub language: String,
 }
 
 impl Default for Settings {
@@ -71,7 +71,8 @@ impl Default for Settings {
             close_to_tray: false,
             show_tray_icon: true,
             theme: ThemePreference::default(),
-            language: default_language(),
+            // Empty, not "en": see the field docs. This is "never chosen".
+            language: String::new(),
         }
     }
 }
@@ -144,7 +145,10 @@ mod tests {
         );
         assert!(s.show_tray_icon);
         assert_eq!(s.theme, ThemePreference::System);
-        assert_eq!(s.language, "en");
+        assert_eq!(
+            s.language, "",
+            "no language chosen yet — not a silent vote for English"
+        );
     }
 
     #[test]
@@ -173,8 +177,9 @@ mod tests {
         assert!(s.show_tray_icon, "a missing field takes its default");
         assert_eq!(s.theme, ThemePreference::System);
         assert_eq!(
-            s.language, "en",
-            "a settings file from before i18n still loads"
+            s.language, "",
+            "a settings file from before i18n reads as 'never chosen', so that \
+             machine's OS language still wins rather than being forced to English"
         );
     }
 

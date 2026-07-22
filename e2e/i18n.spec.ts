@@ -4,6 +4,7 @@ import { mkdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { CATEGORIES } from '../src/components/Settings/categories';
 import { LOCALES } from '../src/i18n/locales';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
@@ -16,14 +17,7 @@ function catalog(code: string) {
     readFileSync(join(root, 'src', 'i18n', 'locales', `${code}.json`), 'utf8'),
   ) as {
     stage: { emptyTitle: string };
-    settings: {
-      title: string;
-      general: string;
-      appearance: string;
-      language: string;
-      about: string;
-      languageHeading: string;
-    };
+    settings: Record<(typeof CATEGORIES)[number] | 'title' | 'languageHeading', string>;
   };
 }
 
@@ -102,14 +96,11 @@ test.describe('language switching', () => {
 
       const t = catalog(code);
       // The modal's own title and every category label, in the new language.
+      // Driven by CATEGORIES, so a fifth category cannot be added and left
+      // untested here while the parity gate goes green on it.
       await expect(page.getByRole('heading', { name: t.settings.title })).toBeVisible();
-      for (const [id, label] of [
-        ['general', t.settings.general],
-        ['appearance', t.settings.appearance],
-        ['language', t.settings.language],
-        ['about', t.settings.about],
-      ] as const) {
-        await expect(page.getByTestId(`settings-tab-${id}`)).toContainText(label);
+      for (const id of CATEGORIES) {
+        await expect(page.getByTestId(`settings-tab-${id}`)).toContainText(t.settings[id]);
       }
       // ...and the open pane's own heading.
       await expect(

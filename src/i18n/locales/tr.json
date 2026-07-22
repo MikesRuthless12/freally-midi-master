@@ -52,7 +52,12 @@
     "group": "Tema",
     "system": "Sistem temasını kullan",
     "dark": "Koyu tema",
-    "light": "Açık tema"
+    "light": "Açık tema",
+    "short": {
+      "system": "Sistemle aynı",
+      "dark": "Koyu",
+      "light": "Açık"
+    }
   },
   "view": {
     "button": "Görünüm",
@@ -92,9 +97,6 @@
     "trayRequired": "Yukarıdaki iki seçeneği kullanmak için tepsi simgesini aç — o olmadan pencereyi geri getirmenin bir yolu kalmaz.",
     "themeHeading": "Tema",
     "themeNote": "Koyu tema varsayılandır ve uygulamanın imzası sayılır. İki temanın da kontrastı WCAG 2.1 AA'ya göre denetlendi.",
-    "themeSystem": "Sistemle aynı",
-    "themeDark": "Koyu",
-    "themeLight": "Açık",
     "languageHeading": "Dil",
     "languageNote": "Arayüz dili. Her dil ihtiyaç duyduğu yazı tipleriyle birlikte gelir, indirilecek hiçbir şey yok.",
     "languageLabel": "Arayüz dili"

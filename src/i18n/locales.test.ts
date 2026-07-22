@@ -14,12 +14,13 @@
  * the single most common way a locale "exists" without being translated.
  */
 
-import { readdirSync, readFileSync } from 'node:fs';
+import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 import { CATEGORIES } from '../components/Settings/categories';
+import { THEME_PREFERENCES } from '../state/theme';
 import { GENERATOR_TABS, SECTIONS } from '../state/ui';
 import { LOCALE_CODES, LOCALES, resolveLocale } from './locales';
 
@@ -47,6 +48,15 @@ function flatten(value: unknown, prefix = ''): Map<string, string> {
 }
 
 const en = flatten(read('en'));
+
+/** Every non-test .ts/.tsx file under src/, for scanning t() calls. */
+function sourceFiles(): string[] {
+  const root = join(dir, '..', '..');
+  return readdirSync(root, { recursive: true, encoding: 'utf8' })
+    .filter((f) => /\.tsx?$/.test(f) && !/\.test\./.test(f))
+    .map((f) => join(root, f))
+    .filter((f) => statSync(f).isFile());
+}
 
 /** `{{version}}` and friends, which must survive translation untouched. */
 function placeholders(text: string): string[] {
@@ -133,13 +143,9 @@ describe('locale catalogs', () => {
     //
     // Only literal, non-interpolated keys can be checked statically; template
     // forms like t(`tabs.${tab}`) are covered by the prefix check below.
-    const source = readdirSync(join(dir, '..', '..'), { recursive: true, encoding: 'utf8' })
-      .filter((f) => /\.tsx?$/.test(f) && !/\.test\./.test(f))
-      .map((f) => join(dir, '..', '..', f));
-
     const missing = new Set<string>();
 
-    for (const file of source) {
+    for (const file of sourceFiles()) {
       let text: string;
       try {
         text = readFileSync(file, 'utf8');
@@ -163,14 +169,38 @@ describe('locale catalogs', () => {
    * green. Asserting against the same constants the components iterate is the
    * only way to catch that: add a tab, forget the string, and this fails.
    */
-  it.each([
+  const TEMPLATED_GROUPS = [
     ['settings', CATEGORIES],
     ['tabs', GENERATOR_TABS],
     ['sections', SECTIONS],
-    ['theme', ['system', 'dark', 'light']],
-  ] as const)('defines a %s entry for every value the UI iterates', (group, values) => {
-    const missing = values.filter((value) => !en.has(`${group}.${value}`));
-    expect(missing).toEqual([]);
+    ['theme', THEME_PREFERENCES],
+    ['theme.short', THEME_PREFERENCES],
+  ] as const;
+
+  it.each(TEMPLATED_GROUPS)(
+    'defines a %s entry for every value the UI iterates',
+    (group, values) => {
+      const missing = values.filter((value) => !en.has(`${group}.${value}`));
+      expect(missing).toEqual([]);
+    },
+  );
+
+  it('registers every templated key prefix the source actually uses', () => {
+    // The registry above is hand-maintained, which makes it exactly the kind of
+    // thing that silently falls behind: a new `t(`foo.${x}`)` group is checked
+    // by nothing until someone remembers to add a row. This finds the prefixes
+    // in the source and demands each one be registered — so forgetting fails
+    // here rather than shipping a key rendered as literal text.
+    const registered = new Set<string>(TEMPLATED_GROUPS.map(([group]) => group));
+    const found = new Set<string>();
+    for (const file of sourceFiles()) {
+      for (const [, prefix] of readFileSync(file, 'utf8').matchAll(
+        /\bt\(\s*`([a-zA-Z0-9_.]+)\.\$\{/g,
+      )) {
+        found.add(prefix);
+      }
+    }
+    expect([...found].filter((p) => !registered.has(p)).sort()).toEqual([]);
   });
 
   describe.each(LOCALE_CODES.filter((c) => c !== 'en'))('%s', (code) => {

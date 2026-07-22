@@ -52,7 +52,12 @@
     "group": "Motyw",
     "system": "Zgodnie z systemem",
     "dark": "Motyw ciemny",
-    "light": "Motyw jasny"
+    "light": "Motyw jasny",
+    "short": {
+      "system": "Jak w systemie",
+      "dark": "Ciemny",
+      "light": "Jasny"
+    }
   },
   "view": {
     "button": "Widok",
@@ -92,9 +97,6 @@
     "trayRequired": "Włącz ikonę w zasobniku, aby korzystać z dwóch opcji powyżej — bez niej nie dałoby się przywrócić okna.",
     "themeHeading": "Motyw",
     "themeNote": "Ciemny to motyw domyślny i znak rozpoznawczy aplikacji. Oba mają kontrast sprawdzony pod kątem WCAG 2.1 AA.",
-    "themeSystem": "Jak w systemie",
-    "themeDark": "Ciemny",
-    "themeLight": "Jasny",
     "languageHeading": "Język",
     "languageNote": "Język interfejsu. Każdy język ma dołączone potrzebne fonty, więc nic nie trzeba pobierać.",
     "languageLabel": "Język interfejsu"

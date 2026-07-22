@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { invoke, isTauri } from '../lib/ipc';
+import { writeStored } from './storage';
 import { applyLanguage, loadLanguagePreference } from '../i18n';
 import { isLocaleCode, type LocaleCode } from '../i18n/locales';
 import {
@@ -48,11 +49,7 @@ function loadSections(): SectionState {
 }
 
 function saveSections(sections: SectionState): void {
-  try {
-    window.localStorage.setItem(SECTIONS_KEY, JSON.stringify(sections));
-  } catch {
-    // Persisting is best-effort; the in-memory choice still applies.
-  }
+  writeStored(SECTIONS_KEY, JSON.stringify(sections));
 }
 
 type UiState = {
@@ -151,8 +148,12 @@ export async function reconcileWithSettings(): Promise<void> {
       }
     }
 
-    // Language works the same way, with one difference: there is no "system"
-    // sentinel, so the file wins outright whenever it names a locale we ship.
+    // Language works the same way, with the empty string as its sentinel.
+    // `isLocaleCode('')` is false, so a file that has never recorded a choice
+    // counts as "no information" and the local pick — which came from the OS
+    // language on first launch — wins and is written back. Treating a missing
+    // file as a vote for English reset every non-English machine on every
+    // launch.
     const languageOnDisk = isLocaleCode(stored?.language) ? stored.language : null;
     const languageLocal = useUi.getState().language;
     if (languageOnDisk && languageOnDisk !== languageLocal) {

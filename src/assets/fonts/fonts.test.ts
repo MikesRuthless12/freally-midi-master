@@ -20,6 +20,8 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
+import { LOCALE_CODES } from '../../i18n/locales';
+
 const here = dirname(fileURLToPath(import.meta.url));
 
 /**
@@ -113,6 +115,13 @@ function uncovered(text: string): string[] {
 }
 
 describe('bundled Noto fonts', () => {
+  it('samples every locale the app can switch to', () => {
+    // Anchored to the canonical set rather than a second copy of it. Without
+    // this, adding a 19th locale leaves its script unsampled and the tofu
+    // check below silently covers one language less than the app offers.
+    expect(Object.keys(LOCALE_SAMPLES).sort()).toEqual([...LOCALE_CODES].sort());
+  });
+
   it('ships a usable number of faces', () => {
     // A parser regression in the vendoring script once produced four faces for
     // Chinese instead of a hundred, which would have shipped as tofu.

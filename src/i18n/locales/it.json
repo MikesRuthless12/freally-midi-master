@@ -52,7 +52,12 @@
     "group": "Tema",
     "system": "Segui il tema di sistema",
     "dark": "Tema scuro",
-    "light": "Tema chiaro"
+    "light": "Tema chiaro",
+    "short": {
+      "system": "Come il sistema",
+      "dark": "Scuro",
+      "light": "Chiaro"
+    }
   },
   "view": {
     "button": "Vista",
@@ -92,9 +97,6 @@
     "trayRequired": "Attiva l’icona nell’area di notifica per usare le due opzioni sopra — senza di essa non ci sarebbe modo di riaprire la finestra.",
     "themeHeading": "Tema",
     "themeNote": "Scuro è il tema predefinito e il look distintivo dell’app. Entrambi i temi sono verificati nel contrasto secondo WCAG 2.1 AA.",
-    "themeSystem": "Come il sistema",
-    "themeDark": "Scuro",
-    "themeLight": "Chiaro",
     "languageHeading": "Lingua",
     "languageNote": "La lingua dell’interfaccia. Ogni lingua include i font di cui ha bisogno, quindi non serve scaricare nulla.",
     "languageLabel": "Lingua dell’interfaccia"

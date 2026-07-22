@@ -52,7 +52,8 @@ From: Freally MIDI Master`;
     closeToTray: false,
     showTrayIcon: true,
     theme: 'system',
-    language: 'en',
+    // Empty = never chosen, matching Settings::default() in Rust.
+    language: '',
   }),
   settings_set: (args) => (args as { settings: unknown } | undefined)?.settings,
 

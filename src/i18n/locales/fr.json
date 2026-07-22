@@ -52,7 +52,12 @@
     "group": "Thème",
     "system": "Suivre le thème du système",
     "dark": "Thème sombre",
-    "light": "Thème clair"
+    "light": "Thème clair",
+    "short": {
+      "system": "Suivre le système",
+      "dark": "Sombre",
+      "light": "Clair"
+    }
   },
   "view": {
     "button": "Affichage",
@@ -92,9 +97,6 @@
     "trayRequired": "Active l’icône de la zone de notification pour utiliser les deux options ci-dessus — sans elle, impossible de récupérer la fenêtre.",
     "themeHeading": "Thème",
     "themeNote": "Le sombre est le thème par défaut et la signature de l’application. Les deux thèmes sont vérifiés en contraste selon WCAG 2.1 AA.",
-    "themeSystem": "Suivre le système",
-    "themeDark": "Sombre",
-    "themeLight": "Clair",
     "languageHeading": "Langue",
     "languageNote": "La langue de l’interface. Chaque langue embarque les polices dont elle a besoin : il n’y a rien à télécharger.",
     "languageLabel": "Langue de l’interface"

@@ -52,7 +52,12 @@
     "group": "Tema",
     "system": "Seguir el tema del sistema",
     "dark": "Tema oscuro",
-    "light": "Tema claro"
+    "light": "Tema claro",
+    "short": {
+      "system": "Seguir al sistema",
+      "dark": "Oscuro",
+      "light": "Claro"
+    }
   },
   "view": {
     "button": "Vista",
@@ -92,9 +97,6 @@
     "trayRequired": "Activa el icono de la bandeja para usar las dos opciones de arriba: sin él no habría forma de recuperar la ventana.",
     "themeHeading": "Tema",
     "themeNote": "El oscuro es el predeterminado y el aspecto característico de la app. El contraste de ambos temas está verificado según WCAG 2.1 AA.",
-    "themeSystem": "Seguir al sistema",
-    "themeDark": "Oscuro",
-    "themeLight": "Claro",
     "languageHeading": "Idioma",
     "languageNote": "El idioma de la interfaz. Cada idioma incluye las fuentes que necesita, así que no hay que descargar nada.",
     "languageLabel": "Idioma de la interfaz"

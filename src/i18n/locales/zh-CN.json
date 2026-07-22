@@ -52,7 +52,12 @@
     "group": "主题",
     "system": "跟随系统主题",
     "dark": "深色主题",
-    "light": "浅色主题"
+    "light": "浅色主题",
+    "short": {
+      "system": "跟随系统",
+      "dark": "深色",
+      "light": "浅色"
+    }
   },
   "view": {
     "button": "视图",
@@ -92,9 +97,6 @@
     "trayRequired": "先打开托盘图标才能使用以上两项 —— 否则将无法把窗口找回来。",
     "themeHeading": "主题",
     "themeNote": "深色是默认主题，也是本应用的标志性外观。两种主题的对比度均按 WCAG 2.1 AA 检验。",
-    "themeSystem": "跟随系统",
-    "themeDark": "深色",
-    "themeLight": "浅色",
     "languageHeading": "语言",
     "languageNote": "界面语言。每种语言都自带所需字体，无需下载任何内容。",
     "languageLabel": "界面语言"

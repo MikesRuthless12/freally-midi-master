@@ -52,7 +52,12 @@
     "group": "Theme",
     "system": "Match system theme",
     "dark": "Dark theme",
-    "light": "Light theme"
+    "light": "Light theme",
+    "short": {
+      "system": "Match system",
+      "dark": "Dark",
+      "light": "Light"
+    }
   },
   "view": {
     "button": "View",
@@ -92,9 +97,6 @@
     "trayRequired": "Turn the tray icon on to use the two options above — without it there would be no way to get the window back.",
     "themeHeading": "Theme",
     "themeNote": "Dark is the default and the app’s signature look. Both themes are contrast-checked to WCAG 2.1 AA.",
-    "themeSystem": "Match system",
-    "themeDark": "Dark",
-    "themeLight": "Light",
     "languageHeading": "Language",
     "languageNote": "The interface language. Every language ships with the fonts it needs, so nothing has to be downloaded.",
     "languageLabel": "Interface language"

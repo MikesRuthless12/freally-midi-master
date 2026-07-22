@@ -52,7 +52,12 @@
     "group": "Thema",
     "system": "Systeemthema volgen",
     "dark": "Donker thema",
-    "light": "Licht thema"
+    "light": "Licht thema",
+    "short": {
+      "system": "Systeem volgen",
+      "dark": "Donker",
+      "light": "Licht"
+    }
   },
   "view": {
     "button": "Weergave",
@@ -92,9 +97,6 @@
     "trayRequired": "Zet het pictogram in het systeemvak aan om de twee opties hierboven te gebruiken — zonder pictogram is er geen manier om het venster terug te halen.",
     "themeHeading": "Thema",
     "themeNote": "Donker is de standaard en het kenmerkende uiterlijk van de app. Beide thema’s zijn op contrast gecontroleerd volgens WCAG 2.1 AA.",
-    "themeSystem": "Systeem volgen",
-    "themeDark": "Donker",
-    "themeLight": "Licht",
     "languageHeading": "Taal",
     "languageNote": "De taal van de interface. Elke taal wordt geleverd met de lettertypen die ze nodig heeft, dus er hoeft niets gedownload te worden.",
     "languageLabel": "Interfacetaal"

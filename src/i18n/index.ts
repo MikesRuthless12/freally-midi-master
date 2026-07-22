@@ -13,6 +13,7 @@
 import i18next from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
+import { readStored, writeStored } from '../state/storage';
 import { isLocaleCode, isRtl, LOCALE_CODES, resolveLocale, type LocaleCode } from './locales';
 
 const STORAGE_KEY = 'freally.language';
@@ -46,13 +47,12 @@ if (missing.length > 0) {
 }
 
 export function loadLanguagePreference(): LocaleCode {
-  try {
-    const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (isLocaleCode(stored)) return stored;
-  } catch {
-    // Private-mode or storage-disabled webviews throw on access.
-  }
-  return resolveLocale(typeof navigator === 'undefined' ? 'en' : navigator.language);
+  // No stored choice yet: follow the OS/browser language rather than defaulting
+  // to English, so a Japanese machine opens in Japanese on first launch.
+  const fromSystem = resolveLocale(
+    typeof navigator === 'undefined' ? 'en' : navigator.language,
+  );
+  return readStored(STORAGE_KEY, isLocaleCode, fromSystem);
 }
 
 /**
@@ -70,11 +70,7 @@ export function applyLanguage(code: LocaleCode): void {
 
   void i18next.changeLanguage(code);
 
-  try {
-    window.localStorage.setItem(STORAGE_KEY, code);
-  } catch {
-    // Persisting is best-effort; the in-memory choice still applies.
-  }
+  writeStored(STORAGE_KEY, code);
 }
 
 /** Call once at startup, before first paint. */

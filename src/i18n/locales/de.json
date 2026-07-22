@@ -52,7 +52,12 @@
     "group": "Design",
     "system": "Systemdesign übernehmen",
     "dark": "Dunkles Design",
-    "light": "Helles Design"
+    "light": "Helles Design",
+    "short": {
+      "system": "System übernehmen",
+      "dark": "Dunkel",
+      "light": "Hell"
+    }
   },
   "view": {
     "button": "Ansicht",
@@ -92,9 +97,6 @@
     "trayRequired": "Schalte das Symbol im Infobereich ein, um die beiden Optionen oben zu nutzen — ohne es gäbe es keinen Weg zurück zum Fenster.",
     "themeHeading": "Design",
     "themeNote": "Dunkel ist die Voreinstellung und das prägende Erscheinungsbild der App. Beide Designs sind auf Kontrast nach WCAG 2.1 AA geprüft.",
-    "themeSystem": "System übernehmen",
-    "themeDark": "Dunkel",
-    "themeLight": "Hell",
     "languageHeading": "Sprache",
     "languageNote": "Die Sprache der Oberfläche. Jede Sprache bringt die nötigen Schriften mit, es muss also nichts heruntergeladen werden.",
     "languageLabel": "Sprache der Oberfläche"
