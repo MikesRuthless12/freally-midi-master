@@ -32,6 +32,23 @@
       "icons/128x128@2x.png",
       "icons/icon.icns",
       "icons/icon.ico"
-    ]
+    ],
+    "createUpdaterArtifacts": true,
+    "windows": {
+      "nsis": {
+        "installerIcon": "icons/icon.ico"
+      }
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDE3OTQyQTk2MjE0ODgyRjkKUldUNWdrZ2hsaXFVRnpiK29RSU1CZXpURkN6VEdOWWZWS1JTdnVJTE5nVzg4ZWppaVZYSmx1ZjEK",
+      "endpoints": [
+        "https://github.com/MikesRuthless12/freally-midi-master/releases/latest/download/latest.json"
+      ],
+      "windows": {
+        "installMode": "basicUi"
+      }
+    }
   }
 }

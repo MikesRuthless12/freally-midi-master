@@ -104,11 +104,19 @@ const TELEMETRY = [
  * Keep this SHORT. Adding a name here is a product decision, not a build fix.
  */
 const ALLOWED = {
-  // TASK-014B — the Havoc-standard update check, documented in EULA.md § 5.
-  // It fetches latest.json from GitHub releases and nothing else; the HTTP
-  // stack arrives transitively under tauri-plugin-updater.
-  // Populate once that plugin lands, e.g.:
-  //   'reqwest': 'transitive dep of tauri-plugin-updater (update check only)',
+  // The Havoc-standard update check (TASK-014B), documented in EULA.md § 5 and
+  // PRD § 13. This is the product's ONE sanctioned network dependency: it
+  // fetches latest.json from GitHub releases to compare version numbers, sends
+  // nothing about the user, and installs nothing without an explicit yes.
+  //
+  // All four arrive transitively under tauri-plugin-updater — verified with
+  // `cargo tree -i`. Nothing in engine/, the audio path or the export path may
+  // reach them, which `engine`'s own dependency list enforces: it has none of
+  // these, and it is a pure library with no Tauri dependency at all.
+  reqwest: 'transitive dep of tauri-plugin-updater — update check only',
+  hyper: 'transitive dep of reqwest under tauri-plugin-updater',
+  hyper_rustls: 'transitive dep of reqwest under tauri-plugin-updater',
+  hyper_util: 'transitive dep of reqwest under tauri-plugin-updater',
 };
 
 /** Exact name, or a `name-suffix` / `name_suffix` variant of it. */
@@ -165,7 +173,10 @@ function linkedCrates() {
       ...new Set(
         out
           .split('\n')
-          .map((l) => l.trim())
+          // cargo tree marks an already-expanded subtree with a trailing
+          // " (*)". Leaving it attached turns `hyper_util` into
+          // `hyper_util (*)`, which then misses its allowlist entry.
+          .map((l) => l.trim().replace(/\s*\(\*\)$/, ''))
           .filter(Boolean),
       ),
     ];

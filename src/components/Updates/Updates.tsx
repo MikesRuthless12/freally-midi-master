@@ -1,0 +1,142 @@
+import { useEffect, useState } from 'react';
+import { Download, X } from 'lucide-react';
+
+import { isTauri } from '../../lib/ipc';
+import './Updates.css';
+
+/**
+ * The Havoc-standard update prompt (Part 2 of the standard).
+ *
+ * Rules this implements, each of which is a bug someone already shipped:
+ *
+ * - One check per launch, plus a manual one. Never a nag.
+ * - Offline, rate-limited, or already current ⇒ **silent**. No toast, no
+ *   "you're up to date!", nothing.
+ * - The version and the real changelog come from the manifest, never from the
+ *   download URL — macOS updater artifacts are named `<App>.app.tar.gz` with no
+ *   version in the filename at all, so URL parsing works on two platforms and
+ *   silently returns nothing on the third.
+ * - Nothing downloads or installs without an explicit yes.
+ * - A pending crash report outranks this dialog; App decides, and simply does
+ *   not mount this component until the crash slot is free.
+ */
+
+type Available = {
+  version: string;
+  notes: string;
+  /** Runs the download+install. Resolves only on platforms that return. */
+  install: () => Promise<void>;
+};
+
+type Phase = 'idle' | 'available' | 'installing' | 'failed';
+
+export function UpdatePrompt({ onDismiss }: { onDismiss: () => void }) {
+  const [update, setUpdate] = useState<Available | null>(null);
+  const [phase, setPhase] = useState<Phase>('idle');
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    // No updater outside Tauri — a browser has nothing to update.
+    if (!isTauri()) return;
+
+    (async () => {
+      try {
+        const { check } = await import('@tauri-apps/plugin-updater');
+        const found = await check();
+        if (cancelled || !found) return; // already current — stay silent
+
+        setUpdate({
+          version: found.version,
+          // The manifest's notes, which the release job fills from CHANGELOG.md.
+          notes: found.body?.trim() || 'No release notes were published for this version.',
+          install: () => found.downloadAndInstall(),
+        });
+        setPhase('available');
+      } catch {
+        // Offline, rate-limited, DNS down, no release yet — all silent.
+        // An update check that complains is worse than one that does nothing.
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (phase === 'idle' || !update) return null;
+
+  const install = async () => {
+    setPhase('installing');
+    setError(null);
+    try {
+      await update.install();
+      // Reached only on macOS and Linux, where the bundle is swapped in place.
+      // On Windows the updater calls exit(0) right after launching the NSIS
+      // installer, so this never returns — that is by design, not a bug.
+      const { relaunch } = await import('@tauri-apps/plugin-process');
+      await relaunch();
+    } catch (e) {
+      setPhase('failed');
+      setError(e instanceof Error ? e.message : String(e));
+    }
+  };
+
+  return (
+    <div className="update" role="dialog" aria-modal="true" aria-labelledby="update-title">
+      <div className="update__panel">
+        <div className="update__head">
+          <h2 id="update-title">
+            <Download size={16} aria-hidden="true" />
+            Version {update.version} is available
+          </h2>
+          <button
+            type="button"
+            className="btn-ghost"
+            aria-label="Close"
+            onClick={onDismiss}
+            disabled={phase === 'installing'}
+          >
+            <X size={14} aria-hidden="true" />
+          </button>
+        </div>
+
+        <label className="update__label" htmlFor="update-notes">
+          What&rsquo;s new
+        </label>
+        <textarea id="update-notes" className="update__notes" readOnly value={update.notes} />
+
+        {error && (
+          <p className="update__error" role="alert">
+            The update could not be installed: {error}
+          </p>
+        )}
+
+        <div className="update__actions">
+          <button
+            type="button"
+            className="btn-ghost"
+            onClick={onDismiss}
+            disabled={phase === 'installing'}
+          >
+            No, not now
+          </button>
+          <button
+            type="button"
+            className="btn-generate"
+            onClick={install}
+            disabled={phase === 'installing'}
+          >
+            {phase === 'installing' ? 'Updating…' : 'Yes, update now'}
+          </button>
+        </div>
+
+        <p className="update__foot">
+          Downloaded from GitHub and signature-verified before installing. Nothing about you or
+          your projects is sent.
+        </p>
+      </div>
+    </div>
+  );
+}

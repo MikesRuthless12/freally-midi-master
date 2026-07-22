@@ -5,11 +5,16 @@ import { CenterStage } from './components/layout/CenterStage';
 import { LeftRail } from './components/layout/LeftRail';
 import { RightRail } from './components/layout/RightRail';
 import { TransportBar } from './components/layout/TransportBar';
+import { UpdatePrompt } from './components/Updates/Updates';
 import { useUi, WIDE_BREAKPOINT } from './state/ui';
 import './components/layout/layout.css';
 
 function App() {
   const [bugReportOpen, setBugReportOpen] = useState(false);
+  // Undefined until the crash check answers. The update prompt must not mount
+  // before then, or it could beat a pending crash report to the dialog slot.
+  const [crashPending, setCrashPending] = useState<boolean | undefined>(undefined);
+  const [updateDismissed, setUpdateDismissed] = useState(false);
   const rightRailOpen = useUi((s) => s.rightRailOpen);
   const setWide = useUi((s) => s.setWide);
   const toggleRightRail = useUi((s) => s.toggleRightRail);
@@ -20,12 +25,18 @@ function App() {
   useEffect(() => {
     bugReportHasPendingCrash()
       .then((pending) => {
+        setCrashPending(pending);
         if (pending) setBugReportOpen(true);
       })
       .catch(() => {
         /* No backend (plain `vite dev`) — nothing to surface. */
+        setCrashPending(false);
       });
   }, []);
+
+  // The Havoc standard: a pending crash report always wins the dialog slot,
+  // and the update waits for the next launch.
+  const updateMayShow = crashPending === false && !bugReportOpen && !updateDismissed;
 
   // The right rail follows the breakpoint, but only when it is actually
   // crossed — so a manual K toggle is not undone by an unrelated resize.
@@ -58,6 +69,7 @@ function App() {
       <TransportBar onReportBug={() => setBugReportOpen(true)} />
 
       {bugReportOpen && <BugReportOverlay onClose={() => setBugReportOpen(false)} />}
+      {updateMayShow && <UpdatePrompt onDismiss={() => setUpdateDismissed(true)} />}
     </div>
   );
 }

@@ -1,0 +1,81 @@
+.update {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgb(0 0 0 / 0.5);
+}
+
+.update__panel {
+  width: min(520px, calc(100vw - var(--space-8)));
+  padding: var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-float);
+  background: var(--color-surface-2);
+  box-shadow: var(--shadow-float);
+}
+
+.update__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.update__head h2 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-h2);
+  color: var(--color-text);
+}
+
+.update__label {
+  display: block;
+  margin-bottom: var(--space-2);
+  font-size: var(--text-micro);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-3);
+}
+
+/* Read-only rather than disabled: the notes must stay selectable and
+   screen-reader accessible. */
+.update__notes {
+  width: 100%;
+  min-height: 140px;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text-2);
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.update__error {
+  margin: var(--space-3) 0 0;
+  color: var(--color-error);
+  font-size: var(--text-small);
+}
+
+.update__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+.update__foot {
+  margin: var(--space-4) 0 0;
+  color: var(--color-text-3);
+  font-size: var(--text-micro);
+}

@@ -69,6 +69,38 @@ jobs:
 
       - run: npm ci
 
+      # The updater shows these notes in-app, and they are the one string a
+      # user cannot see any other way. A hardcoded "see the release notes"
+      # would be worse than useless.
+      #
+      # Matched LITERALLY, not as a regex: `## [0.1.0]` compiled as a pattern
+      # is a character class over `0.1`, with the dots as wildcards — it
+      # silently matches nothing and every release quietly ships a generic note.
+      - name: Extract release notes from CHANGELOG
+        id: notes
+        shell: bash
+        env:
+          TAG: ${{ github.event.inputs.tag || github.ref_name }}
+        run: |
+          set -euo pipefail
+          version="${TAG#v}"
+          notes=$(awk -v want="## [$version]" '
+            index($0, want) == 1 { grab = 1; next }
+            grab && /^## / { exit }
+            grab { print }
+          ' CHANGELOG.md)
+
+          if [ -z "$(printf '%s' "$notes" | tr -d '[:space:]')" ]; then
+            echo "::error::CHANGELOG.md has no '## [$version]' section. Add one before tagging — without it every user sees a generic update note."
+            exit 1
+          fi
+
+          {
+            echo 'body<<CHANGELOG_EOF'
+            printf '%s\n' "$notes"
+            echo 'CHANGELOG_EOF'
+          } >> "$GITHUB_OUTPUT"
+
       - uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -80,7 +112,9 @@ jobs:
           tagName: ${{ github.event.inputs.tag || github.ref_name }}
           releaseName: 'Freally MIDI Master __VERSION__'
           releaseBody: |
-            Artist-accurate MIDI, offline and AI-free.
+            ${{ steps.notes.outputs.body }}
+
+            ---
 
             **Installers are unsigned by policy** — this project spends nothing,
             ever, and code-signing certificates cost money. First run therefore
