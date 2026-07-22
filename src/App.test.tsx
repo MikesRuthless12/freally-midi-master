@@ -3,10 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import App from './App';
 import { useUi, WIDE_BREAKPOINT } from './state/ui';
 
-vi.mock('@tauri-apps/api/core', () => ({
-  // No Rust backend under jsdom; the app must tolerate that.
-  invoke: vi.fn(() => Promise.reject(new Error('no backend'))),
-}));
+// No Rust backend under jsdom, so `src/lib/ipc` routes through `ipc-mock`
+// automatically — the same path Playwright uses. Nothing to stub here.
 
 /** jsdom ships no matchMedia. Drive it off a width we control. */
 function stubMatchMedia(width: number) {

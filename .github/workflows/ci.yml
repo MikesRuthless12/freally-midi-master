@@ -103,6 +103,38 @@ jobs:
       - name: validate dataset
         run: npm run dataset:validate
 
+  e2e:
+    name: e2e
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # Chromium only. These specs drive `vite dev` with IPC mocked at the
+      # `src/lib/ipc` seam, so no Tauri binary is built — the UI is what is
+      # under test, and native behaviour is covered by the cargo tests and the
+      # per-OS smoke checks instead.
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Playwright
+        run: npm run test:e2e
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
+
   supply-chain:
     name: supply chain
     runs-on: ubuntu-latest

@@ -1,4 +1,4 @@
-import { invoke } from '@tauri-apps/api/core';
+import { invoke } from '../../lib/ipc';
 
 /** Mirrors `BugReportContextDto` in `src-tauri/src/bugreport.rs`. */
 export type BugReportContext = {
