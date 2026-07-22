@@ -12,3 +12,13 @@
 //! - no `unsafe` (forbidden crate-wide in `Cargo.toml`);
 //! - all randomness comes from an explicitly seeded RNG, never system entropy,
 //!   so generation is reproducible from a seed.
+
+pub mod context;
+pub mod pattern;
+pub mod rng;
+
+pub use context::{Humanize, SessionContext, Swing, SwingGrid};
+pub use pattern::{
+    Articulation, Lane, LaneTrack, Note, Part, Pattern, PatternRef, Scale, Section, SectionKind,
+    Song, PPQ,
+};
