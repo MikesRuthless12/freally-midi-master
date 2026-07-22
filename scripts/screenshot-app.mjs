@@ -128,25 +128,37 @@ function captureWindow() {
     // The id comes from CoreGraphics via JXA, because nothing in the shell
     // exposes a CGWindowID: System Events' `id of window` is a different
     // number space entirely.
+    // Numeric constants, not `$.kCGWindowListOptionOnScreenOnly` — JXA does not
+    // bridge every CoreGraphics enum, and an undefined one silently becomes 0,
+    // which asks for a different window list and returns nothing. 1 =
+    // OnScreenOnly, 16 = ExcludeDesktopElements, 0 = kCGNullWindowID.
+    //
+    // The last expression is the script's result, so the id is assigned to a
+    // variable and that variable is evaluated at the end; a value produced
+    // inside a loop body is not reliably returned.
     const lookup = `
       ObjC.import('CoreGraphics');
-      const windows = $.CGWindowListCopyWindowInfo(
-        $.kCGWindowListOptionOnScreenOnly | $.kCGWindowListExcludeDesktopElements,
-        $.kCGNullWindowID,
-      );
-      const count = windows.count;
-      for (let i = 0; i < count; i++) {
-        const w = windows.objectAtIndex(i);
-        const owner = ObjC.unwrap(w.objectForKey('kCGWindowOwnerName')) || '';
-        const bounds = w.objectForKey('kCGWindowBounds');
-        const width = bounds ? ObjC.unwrap(bounds.objectForKey('Width')) : 0;
+      var found = '';
+      var windows = $.CGWindowListCopyWindowInfo(1 | 16, 0);
+      var count = windows.count;
+      for (var i = 0; i < count && !found; i++) {
+        var w = windows.objectAtIndex(i);
+        var owner = String(ObjC.unwrap(w.objectForKey('kCGWindowOwnerName')) || '');
+        var bounds = w.objectForKey('kCGWindowBounds');
+        var width = bounds ? Number(ObjC.unwrap(bounds.objectForKey('Width'))) : 0;
         if (owner.toLowerCase().indexOf('freally') !== -1 && width > 200) {
-          ObjC.unwrap(w.objectForKey('kCGWindowNumber'));
+          found = String(ObjC.unwrap(w.objectForKey('kCGWindowNumber')));
         }
       }
+      found;
     `;
     const found = sh('osascript', ['-l', 'JavaScript', '-e', lookup]);
     const id = (found.stdout ?? '').trim();
+    console.log(
+      `  CGWindowID lookup: stdout=${JSON.stringify(id)} stderr=${JSON.stringify(
+        (found.stderr ?? '').trim().slice(0, 200),
+      )}`,
+    );
 
     if (/^\d+$/.test(id)) {
       // `-o` drops the drop-shadow so the image is the window and nothing else.
