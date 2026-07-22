@@ -24,6 +24,12 @@ jobs:
         with:
           persist-credentials: false
 
+      # Downloaded through the API, not `gh release download`, because that
+      # command cannot see a DRAFT release — it answers "release not found".
+      # Verifying only after publishing is the wrong order: PRD § 7.6 gate 11
+      # exists so a broken release is never announced, and by the time it is
+      # published it has been. The API lists drafts, so this works on the
+      # staged release and on a published one alike.
       - name: Download every asset
         env:
           TAG: ${{ github.event.inputs.tag || github.event.release.tag_name }}
@@ -31,7 +37,28 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p assets && cd assets
-          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern '*' --clobber
+
+          release=$(gh api "repos/$GITHUB_REPOSITORY/releases" --paginate             --jq "map(select(.tag_name == \"$TAG\")) | first")
+          if [ -z "$release" ] || [ "$release" = "null" ]; then
+            echo "::error::no release (draft or published) tagged $TAG"
+            exit 1
+          fi
+          echo "draft=$(printf '%s' "$release" | jq -r .draft)"
+
+          count=$(printf '%s' "$release" | jq '.assets | length')
+          if [ "$count" -eq 0 ]; then
+            echo "::error::$TAG has no assets at all"
+            exit 1
+          fi
+
+          printf '%s' "$release" | jq -r '.assets[] | "\(.id)	\(.name)"' |
+            while IFS=$'	' read -r id name; do
+              # `Accept: application/octet-stream` on the asset endpoint returns
+              # the bytes; without it the API returns the asset's JSON metadata,
+              # which would then cheerfully fail its checksum.
+              gh api "repos/$GITHUB_REPOSITORY/releases/assets/$id"                 -H 'Accept: application/octet-stream' > "$name"
+            done
+
           echo "Downloaded:"
           ls -la
 
