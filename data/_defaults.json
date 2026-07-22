@@ -1,0 +1,124 @@
+{
+  "$schema": "./schema/artist-style.schema.json",
+  "id": "_defaults",
+  "type": "genre",
+  "name": "Defaults",
+  "confidence": "high",
+  "notes": "Cross-genre engine constants every model inherits. Values here are the ones research ch. 1–2 reports as genre-independent; anything genre-specific belongs in a genre archetype, not here.",
+  "sources": [
+    "style-research ch.1 Cross-genre engine constants",
+    "style-research ch.2 Cross-genre generator constants",
+    "Magenta Groove MIDI Dataset / E-GMD (CC BY 4.0) — microtiming and velocity statistics"
+  ],
+
+  "session": {
+    "bpm": { "min": 60, "max": 200, "mode": 140 },
+    "halfTime": false,
+    "keys": { "values": ["Cm", "C#m", "Dm", "D#m", "Em", "Fm", "F#m", "Gm", "G#m", "Am", "A#m", "Bm"] },
+    "scales": { "values": ["natural_minor", "major"], "weights": [3, 1] },
+    "swing": { "grid": "16th", "amount": 0.5 },
+    "humanize": {
+      "quantizeStrength": 0.92,
+      "velocityVar": 0.12,
+      "timingJitterMs": { "kick": 1, "snare": 2, "clap": 2, "closedHat": 3, "openHat": 3, "perc": 3, "bass808": 1 }
+    }
+  },
+
+  "drums": {
+    "velocityTiers": { "accent": [100, 127], "main": [76, 89], "ghost": [38, 51] },
+    "fills": { "smallEveryBars": 2, "bigEveryBars": 8, "fillBeforeSection": true },
+    "kick": { "densityPerBar": [2, 4], "anchors": ["1"], "syncopation": 0.3, "lockTo808": 1.0 },
+    "snare": { "placement": "backbeat_24", "ghost": { "prob": 0.2, "pos": ["4&"], "vel": [0.4, 0.6] }, "offGridMs": 0 },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.4,
+      "velocities": { "main": [0.8, 1.0], "ghost": [0.4, 0.6] },
+      "rolls": {
+        "vocab": { "values": ["16", "16T", "32", "32T", "64"], "weights": [4, 2, 3, 1, 1] },
+        "positions": ["phrase_end", "pre_snare", "bar_4"],
+        "freqPerBar": 0.4,
+        "velocityRamp": true
+      },
+      "openHat": { "prob": 0.2, "pos": ["2&", "4&"] },
+      "pitchBendProb": 0.0
+    },
+    "percs": { "lanes": [], "densityPerBar": [0, 2] },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "slideProb": 0.3,
+      "slideIntervals": { "values": ["m3", "P4", "P5", "P8"], "weights": [3, 3, 2, 2] },
+      "slidePositions": ["phrase_end"],
+      "register": [17, 43],
+      "distortion": "none"
+    },
+    "build": {
+      "riserBars": 8,
+      "snareStreamSubdivision": "16",
+      "velocityRampRange": [16, 127]
+    }
+  },
+
+  "chords": {
+    "progressionFamilies": [
+      { "roman": ["i", "VI", "III", "VII"], "weight": 3 },
+      { "roman": ["i", "VII", "VI"], "weight": 2 },
+      { "roman": ["i"], "weight": 2 }
+    ],
+    "chordFrequency": { "i": 14, "VI": 9, "VII": 9, "III": 6, "iv": 5, "v": 3 },
+    "avoid": ["ii_dim"],
+    "borrowed": { "V": 0.1 },
+    "extensions": { "triad": 0.7, "seventh": 0.25, "ninth": 0.05 },
+    "voicing": { "style": "close", "register": [48, 72], "topVoiceStepwise": true },
+    "harmonicRhythm": { "values": ["1_per_bar", "2_bars_per_chord", "vamp"], "weights": [3, 2, 1] }
+  },
+
+  "melody": {
+    "register": [60, 84],
+    "phraseBars": { "values": [1, 2, 4], "weights": [2, 3, 1] },
+    "densityPerBar": [4, 7],
+    "structure": "riff_loop",
+    "intervals": { "step": 0.6, "third": 0.25, "leap": 0.15 },
+    "contour": { "riff": 0.5, "descend": 0.3, "arch": 0.2 },
+    "chordToneBias": 0.65,
+    "halfStepDissonance": 0.05,
+    "endVariation": true,
+    "octaveJumpProb": 0.1,
+    "timbreHint": "keys"
+  },
+
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.5,
+    "fillGapsOnly": true,
+    "styles": { "values": ["octave_echo", "arp", "answer_lick"], "weights": [2, 1, 1] }
+  },
+
+  "bassline": {
+    "followRootsProb": 0.85,
+    "rhythm": "mirror_kick",
+    "register": [24, 43],
+    "glideProb": 0.3,
+    "passingTones": ["P5", "m7"]
+  },
+
+  "arrangement": {
+    "structures": [
+      { "sections": ["intro", "verse", "hook", "verse", "hook", "bridge", "hook", "outro"], "weight": 3 },
+      { "sections": ["intro", "hook", "verse", "hook", "verse", "hook", "outro"], "weight": 2 }
+    ],
+    "sectionBars": { "intro": [4, 8], "verse": 16, "hook": 8, "bridge": [4, 8], "outro": 4 },
+    "sectionRules": {
+      "intro": { "parts": ["melody"], "density": 0.6 },
+      "verse": { "parts": ["drums", "melody", "bass808", "chords"], "density": 0.8 },
+      "hook": { "parts": "all", "density": 1.0, "addLayers": ["countermelody"] },
+      "bridge": { "parts": ["chords", "bass808"], "density": 0.5 },
+      "outro": { "parts": ["melody", "drums"], "density": 0.6, "decay": true }
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": { "prob": 0.6, "beats": 2 },
+      "switchUpProb": 0.15
+    }
+  }
+}

@@ -1,0 +1,167 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/MikesRuthless12/freally-midi-master/data/schema/artist-style.schema.json",
+  "title": "Freally MIDI Master StyleModel",
+  "description": "A style model: numbers and rules describing a musical style. It contains no MIDI, no audio, and no transcription of any recording. See docs/legal/disclaimer.md.",
+  "type": "object",
+  "required": ["id", "type", "name"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "Relative path to this schema, so editors offer completion while authoring."
+    },
+    "id": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$|^_defaults$",
+      "description": "kebab-case, unique across the whole dataset. This is what `extends` refers to — not the filename."
+    },
+    "type": { "enum": ["artist", "genre"] },
+    "name": { "type": "string", "minLength": 1 },
+    "aliases": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Search synonyms, including the spellings used in producer Discord channel names."
+    },
+    "tier": { "enum": ["flagship", "standard", "inherited"] },
+    "extends": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Ordered parents; later entries win over earlier ones, and this model wins over all of them. Genre archetypes extend `_defaults`."
+    },
+    "era": { "type": "string" },
+    "genres": { "type": "array", "items": { "type": "string" } },
+    "confidence": {
+      "enum": ["high", "medium", "low"],
+      "description": "How well-sourced this model's parameters are. Low-confidence models should say why in `notes`."
+    },
+    "sources": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Where the parameters came from. Required in practice for any contributed model."
+    },
+    "notes": { "type": "string" },
+
+    "session": {
+      "type": "object",
+      "properties": {
+        "bpm": { "$ref": "#/$defs/bpm" },
+        "halfTime": { "type": "boolean" },
+        "keys": { "$ref": "#/$defs/strSpec" },
+        "scales": { "$ref": "#/$defs/strSpec" },
+        "swing": {
+          "type": "object",
+          "required": ["grid", "amount"],
+          "properties": {
+            "grid": { "enum": ["8th", "16th"] },
+            "amount": {
+              "type": "number",
+              "minimum": 0.5,
+              "maximum": 0.75,
+              "description": "MPC-style swing: 0.50 straight, 0.58 classic MPC, 0.667 full triplet. Outside 0.50–0.75 is almost always a typo."
+            }
+          },
+          "additionalProperties": false
+        },
+        "humanize": {
+          "type": "object",
+          "properties": {
+            "quantizeStrength": { "$ref": "#/$defs/probability" },
+            "velocityVar": { "$ref": "#/$defs/probability" },
+            "timingJitterMs": {
+              "type": "object",
+              "additionalProperties": { "type": "number", "minimum": 0, "maximum": 50 }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "drums": { "$ref": "#/$defs/partBlock" },
+    "chords": { "$ref": "#/$defs/partBlock" },
+    "melody": { "$ref": "#/$defs/partBlock" },
+    "countermelody": { "$ref": "#/$defs/partBlock" },
+    "bassline": { "$ref": "#/$defs/partBlock" },
+    "arrangement": { "$ref": "#/$defs/partBlock" },
+    "kit": {
+      "type": "object",
+      "properties": { "preview": { "type": "string" } },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false,
+
+  "$defs": {
+    "probability": { "type": "number", "minimum": 0, "maximum": 1 },
+
+    "midiNote": { "type": "integer", "minimum": 0, "maximum": 127 },
+
+    "register": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/midiNote" },
+      "minItems": 2,
+      "maxItems": 2,
+      "description": "[low, high] as MIDI note numbers, C1 = 24."
+    },
+
+    "bpm": {
+      "type": "object",
+      "required": ["min", "max"],
+      "properties": {
+        "min": { "type": "number", "minimum": 20, "maximum": 300 },
+        "max": { "type": "number", "minimum": 20, "maximum": 300 },
+        "mode": {
+          "type": "number",
+          "minimum": 20,
+          "maximum": 300,
+          "description": "The style's centre of gravity, which matters as much as the bounds."
+        }
+      },
+      "additionalProperties": false
+    },
+
+    "numSpec": {
+      "description": "A numeric parameter in any of the three authoring forms: exact, [min,max] range, or weighted choice.",
+      "oneOf": [
+        { "type": "number" },
+        {
+          "type": "array",
+          "items": { "type": "number" },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        {
+          "type": "object",
+          "required": ["values"],
+          "properties": {
+            "values": { "type": "array", "items": { "type": "number" }, "minItems": 1 },
+            "weights": { "type": "array", "items": { "type": "number", "minimum": 0 } }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+
+    "strSpec": {
+      "description": "A categorical parameter: a bare string, or a weighted choice between strings.",
+      "oneOf": [
+        { "type": "string" },
+        {
+          "type": "object",
+          "required": ["values"],
+          "properties": {
+            "values": { "type": "array", "items": { "type": "string" }, "minItems": 1 },
+            "weights": { "type": "array", "items": { "type": "number", "minimum": 0 } }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
+
+    "partBlock": {
+      "description": "A generator's parameter block. Deliberately open: each generator's fields are locked down as that generator lands, and the engine's lints (inverted ranges, mismatched weights, out-of-range registers and probabilities) apply everywhere in the meantime.",
+      "type": "object"
+    }
+  }
+}

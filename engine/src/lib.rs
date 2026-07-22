@@ -14,10 +14,12 @@
 //!   so generation is reproducible from a seed.
 
 pub mod context;
+pub mod dataset;
 pub mod pattern;
 pub mod rng;
 
 pub use context::{Humanize, SessionContext, Swing, SwingGrid};
+pub use dataset::{DatasetError, Registry, StyleModel};
 pub use pattern::{
     Articulation, Lane, LaneTrack, Note, Part, Pattern, PatternRef, Scale, Section, SectionKind,
     Song, PPQ,

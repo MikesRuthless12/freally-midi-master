@@ -1,0 +1,131 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "rage",
+  "type": "genre",
+  "name": "Rage",
+  "aliases": ["opium", "rage beat", "wlr"],
+  "tier": "standard",
+  "extends": ["_defaults"],
+  "era": "2020–present",
+  "genres": ["rap", "rage", "plugg"],
+  "confidence": "high",
+  "sources": [
+    "style-research ch.1 §3 Rage / Opium (WLR-era, F1LTHY / Working On Dying)",
+    "style-research ch.2 §3 Rage / Opium synth writing"
+  ],
+  "notes": "Negative space is the aesthetic. The drums are deliberately minimal and the synth carries the record — hats come in bursts rather than continuous streams, and the generator must resist filling every 16th. Distortion on the 808 is structural, not a mix choice.",
+
+  "session": {
+    "bpm": { "min": 130, "max": 170, "mode": 150 },
+    "halfTime": true,
+    "keys": { "values": ["Fm", "Gm", "F#m", "Am"], "weights": [3, 3, 2, 1] },
+    "scales": { "values": ["natural_minor", "aeolian"], "weights": [3, 1] },
+    "swing": { "grid": "16th", "amount": 0.5 }
+  },
+
+  "drums": {
+    "minimalism": 0.75,
+    "kick": {
+      "densityPerBar": [2, 4],
+      "anchors": ["1"],
+      "syncopation": 0.4,
+      "lockTo808": 1.0,
+      "separateLayerProb": 0.4
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "layered": true,
+      "transient": "hard",
+      "ghost": { "prob": 0.1, "pos": ["4&"], "vel": [0.35, 0.5] },
+      "fullTimeAtHighTempoProb": 0.15,
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": 0.3,
+      "velocities": { "main": [0.8, 1.0], "ghost": [0.4, 0.6] },
+      "rolls": {
+        "vocab": { "values": ["16T", "32", "32T"], "weights": [3, 3, 2] },
+        "positions": ["phrase_end", "pre_downbeat"],
+        "freqPerBar": 0.5,
+        "velocityRamp": true,
+        "burstOnly": true
+      },
+      "openHat": { "prob": 0.35, "pos": ["1_pre", "3_pre"], "perBar": [1, 2] },
+      "pitchBendProb": 0.1
+    },
+    "percs": { "lanes": [], "densityPerBar": [0, 1] },
+    "fills": { "smallEveryBars": 4, "bigEveryBars": 8, "snareRollLadder": true },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "monoCutSelf": true,
+      "slideProb": 0.55,
+      "slideIntervals": { "values": ["P5", "P8", "m2"], "weights": [3, 2, 2] },
+      "slidePositions": ["phrase_end", "bar_2"],
+      "followsLeadRoot": true,
+      "chromaticApproachProb": 0.25,
+      "register": [17, 31],
+      "distortion": "heavy",
+      "clipping": true
+    }
+  },
+
+  "chords": {
+    "progressionFamilies": [
+      { "roman": ["i"], "weight": 5 },
+      { "roman": ["i", "VI"], "weight": 3 },
+      { "roman": ["i", "VII"], "weight": 3 },
+      { "roman": ["i", "VI", "III", "VII"], "weight": 1 }
+    ],
+    "impliedByRiff": true,
+    "extensions": { "triad": 0.85, "seventh": 0.15, "ninth": 0.0 },
+    "voicing": { "style": "open", "register": [48, 72], "topVoiceStepwise": false },
+    "harmonicRhythm": { "values": ["vamp"], "weights": [1] }
+  },
+
+  "melody": {
+    "register": [60, 84],
+    "phraseBars": { "values": [1, 2, 4], "weights": [2, 3, 2] },
+    "densityPerBar": [2, 5],
+    "structure": "riff_loop",
+    "motifPitchCount": [2, 3],
+    "articulation": "staccato",
+    "loopVerbatim": true,
+    "intervals": { "step": 0.5, "third": 0.2, "leap": 0.3 },
+    "contour": { "riff": 0.7, "descend": 0.15, "arch": 0.15 },
+    "chordToneBias": 0.7,
+    "halfStepDissonance": 0.08,
+    "endVariation": false,
+    "octaveJumpProb": 0.35,
+    "straightEighthsProb": 0.5,
+    "emptyBarBias": 0.4,
+    "timbreHint": "supersaw_stab"
+  },
+
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.25,
+    "fillGapsOnly": true,
+    "styles": { "values": ["octave_echo", "bell_echo"], "weights": [3, 2] },
+    "echoOffset": "1/8"
+  },
+
+  "bassline": {
+    "followRootsProb": 0.9,
+    "rhythm": "mirror_kick",
+    "register": [17, 31],
+    "glideProb": 0.6,
+    "passingTones": ["P5", "m2"]
+  },
+
+  "arrangement": {
+    "sectionBars": { "intro": [4, 8], "verse": 16, "hook": 8, "bridge": 4, "outro": 4 },
+    "synthLoopBars": [1, 4],
+    "drumLoopBars": 4,
+    "transitions": { "fillBeforeSection": true, "dropOutBeats": { "prob": 0.7, "beats": 2 }, "switchUpProb": 0.1 }
+  },
+
+  "kit": { "preview": "rage-default" }
+}
