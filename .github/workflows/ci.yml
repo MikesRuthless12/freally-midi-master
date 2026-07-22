@@ -134,6 +134,7 @@ jobs:
             libasound2-dev \
             patchelf \
             xvfb \
+            xdotool \
             imagemagick
 
       - uses: dtolnay/rust-toolchain@stable

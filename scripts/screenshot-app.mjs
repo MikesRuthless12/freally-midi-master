@@ -1,27 +1,43 @@
 #!/usr/bin/env node
 /**
- * Launch the real app and photograph it.
+ * Launch the real app and photograph **its window**.
  *
  * CI runs this on all three OSes so a human can look at three PNGs and see the
  * Studio actually rendering, rather than inferring it from a green tick. It
- * catches the class of failure every other gate misses: the app compiles, the
- * tests pass, and the window comes up blank or half-drawn.
+ * catches the class of failure every other gate misses: the code compiles, the
+ * DOM tests pass against a browser, and the native window comes up blank.
  *
- * Deliberately screenshots the **native window**, not a browser. Playwright
- * already covers the DOM; what is unproven is that the WebView paints it
- * inside a real Tauri window on that platform.
+ * Two things this gets right, both learned the hard way:
+ *
+ * 1. **Wait for the app, do not sleep.** The first version slept 45s after Vite
+ *    was up. On a cold Linux runner cargo was still on crate 306 of 576, so the
+ *    app had not launched and the job failed. It now polls for the process.
+ *
+ * 2. **Capture the window, not the screen.** The first version grabbed the
+ *    whole desktop, so Windows and macOS "passed" with a picture of the
+ *    runner's log console and no app in it at all. A screenshot job that
+ *    photographs the wrong thing is worse than none: it manufactures
+ *    confidence. Capturing by window handle means a pass cannot be faked by a
+ *    desktop wallpaper.
  *
  * Usage: node scripts/screenshot-app.mjs <output.png>
  */
 
 import { spawn, spawnSync } from 'node:child_process';
-import { existsSync, mkdirSync, statSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const output = resolve(process.argv[2] ?? 'app-screenshot.png');
 mkdirSync(dirname(output), { recursive: true });
+
+/** The window title set in tauri.conf.json. */
+const WINDOW_TITLE = 'Freally MIDI Master';
+const PROCESS_NAME = 'freally-midi-master';
+
+/** Cargo can be building for a long time on a cold runner. */
+const APP_TIMEOUT_MS = 15 * 60 * 1000;
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
@@ -30,41 +46,103 @@ function die(message) {
   process.exit(1);
 }
 
-/** Wait until something is listening on the Vite port. */
-async function waitForDevServer(timeoutMs = 240_000) {
+function sh(cmd, args) {
+  return spawnSync(cmd, args, { encoding: 'utf8' });
+}
+
+/** Is the app process running yet? */
+function appIsRunning() {
+  if (process.platform === 'win32') {
+    const out = sh('tasklist', ['/FI', `IMAGENAME eq ${PROCESS_NAME}.exe`]);
+    return (out.stdout ?? '').toLowerCase().includes(`${PROCESS_NAME}.exe`);
+  }
+  return sh('pgrep', ['-f', PROCESS_NAME]).status === 0;
+}
+
+async function waitFor(label, predicate, timeoutMs) {
   const started = Date.now();
+  let lastLog = 0;
   while (Date.now() - started < timeoutMs) {
-    try {
-      const res = await fetch('http://localhost:1420/');
-      if (res.ok) return true;
-    } catch {
-      // not up yet
+    if (predicate()) return true;
+    const elapsed = Math.round((Date.now() - started) / 1000);
+    if (elapsed - lastLog >= 30) {
+      console.log(`  still waiting for ${label}… (${elapsed}s)`);
+      lastLog = elapsed;
     }
-    await sleep(2_000);
+    await sleep(3_000);
   }
   return false;
 }
 
-function capture() {
-  if (process.platform === 'darwin') {
-    // -x suppresses the shutter sound; the runner has a real window server.
-    return spawnSync('screencapture', ['-x', output], { encoding: 'utf8' });
-  }
+/** Capture only the app's window. Returns a spawnSync-ish result. */
+function captureWindow() {
   if (process.platform === 'linux') {
-    // ImageMagick against the Xvfb root window.
-    return spawnSync('import', ['-window', 'root', output], { encoding: 'utf8' });
+    // xdotool finds the window by its title; import grabs that window alone.
+    const find = sh('xdotool', ['search', '--name', WINDOW_TITLE]);
+    const id = (find.stdout ?? '').trim().split('\n').filter(Boolean).pop();
+    if (!id) return { status: 1, stderr: `xdotool found no window titled "${WINDOW_TITLE}"` };
+    return sh('import', ['-window', id, output]);
   }
-  // Windows: capture the virtual screen via .NET.
+
+  if (process.platform === 'darwin') {
+    // Ask the window server for the app's window bounds, then grab that rect.
+    const script = `
+      tell application "System Events"
+        set procs to (every process whose name contains "freally")
+        if (count of procs) = 0 then return "none"
+        set p to item 1 of procs
+        if (count of windows of p) = 0 then return "none"
+        set w to window 1 of p
+        set {x, y} to position of w
+        set {ww, hh} to size of w
+        return (x as text) & "," & (y as text) & "," & (ww as text) & "," & (hh as text)
+      end tell`;
+    const bounds = sh('osascript', ['-e', script]);
+    const rect = (bounds.stdout ?? '').trim();
+    if (!rect || rect === 'none') {
+      return { status: 1, stderr: `could not find the app window: ${bounds.stderr || rect}` };
+    }
+    return sh('screencapture', ['-x', '-R', rect, output]);
+  }
+
+  // Windows: PrintWindow into a bitmap sized to the window itself.
   const ps = `
-    Add-Type -AssemblyName System.Windows.Forms, System.Drawing
-    $b = [System.Windows.Forms.SystemInformation]::VirtualScreen
-    $bmp = New-Object System.Drawing.Bitmap $b.Width, $b.Height
+    $ErrorActionPreference = 'Stop'
+    Add-Type -AssemblyName System.Drawing
+    Add-Type @"
+      using System;
+      using System.Runtime.InteropServices;
+      public class Cap {
+        [DllImport("user32.dll")] public static extern bool SetProcessDPIAware();
+        [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr h, out RECT r);
+        [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr h);
+        public struct RECT { public int L, T, R, B; }
+      }
+"@
+    [Cap]::SetProcessDPIAware() | Out-Null
+    $p = Get-Process -Name '${PROCESS_NAME}' -ErrorAction SilentlyContinue |
+         Where-Object { $_.MainWindowHandle -ne 0 } | Select-Object -First 1
+    if (-not $p) { Write-Error 'no app process with a window'; exit 1 }
+    [Cap]::SetForegroundWindow($p.MainWindowHandle) | Out-Null
+    Start-Sleep -Milliseconds 800
+    $r = New-Object Cap+RECT
+    [Cap]::GetWindowRect($p.MainWindowHandle, [ref]$r) | Out-Null
+    $w = $r.R - $r.L; $h = $r.B - $r.T
+    if ($w -le 0 -or $h -le 0) { Write-Error "bad window rect \${w}x\${h}"; exit 1 }
+    $bmp = New-Object System.Drawing.Bitmap $w, $h
     $g = [System.Drawing.Graphics]::FromImage($bmp)
-    $g.CopyFromScreen($b.Location, [System.Drawing.Point]::Empty, $b.Size)
+    $g.CopyFromScreen($r.L, $r.T, 0, 0, (New-Object System.Drawing.Size($w, $h)))
     $bmp.Save('${output.replace(/\\/g, '\\\\')}', [System.Drawing.Imaging.ImageFormat]::Png)
     $g.Dispose(); $bmp.Dispose()
+    Write-Output "captured \${w}x\${h}"
   `;
-  return spawnSync('powershell', ['-NoProfile', '-Command', ps], { encoding: 'utf8' });
+  return sh('powershell', ['-NoProfile', '-Command', ps]);
+}
+
+/** PNG dimensions, straight out of the IHDR chunk. */
+function pngSize(path) {
+  const b = readFileSync(path);
+  return { width: b.readUInt32BE(16), height: b.readUInt32BE(20) };
 }
 
 const app = spawn('npm', ['run', 'tauri', 'dev'], {
@@ -80,42 +158,44 @@ app.on('exit', (code) => {
 });
 
 try {
-  console.log('waiting for the dev server…');
-  if (!(await waitForDevServer())) {
-    die('the dev server never came up — the app cannot have rendered');
-  }
-  console.log('dev server up; waiting for the window to build and paint…');
-
-  // The Rust side still has to compile and open a window after Vite is ready.
-  // Poll rather than guess, but keep a floor so we never shoot a blank frame.
-  await sleep(45_000);
+  console.log('waiting for the app process (cargo may still be building)…');
+  const running = await waitFor('the app process', appIsRunning, APP_TIMEOUT_MS);
 
   if (exitedEarly !== null) {
-    die(`the app exited before it could be photographed (code ${exitedEarly})`);
+    die(`\`tauri dev\` exited before the app started (code ${exitedEarly})`);
+  }
+  if (!running) {
+    die(`the app never started within ${APP_TIMEOUT_MS / 60000} minutes`);
   }
 
-  const shot = capture();
+  console.log('app is up; letting the window paint…');
+  await sleep(12_000);
+
+  const shot = captureWindow();
   if (shot.status !== 0) {
-    die(`screen capture failed: ${shot.stderr || shot.stdout || 'no output'}`);
+    die(`window capture failed: ${shot.stderr || shot.stdout || 'no output'}`);
   }
   if (!existsSync(output)) {
     die('the capture tool reported success but wrote no file');
   }
 
-  // A capture of a dead session is a few hundred bytes of black. Treating that
-  // as a pass would make this whole job decorative.
   const { size } = statSync(output);
-  if (size < 10_000) {
-    die(`the screenshot is only ${size} bytes — almost certainly a blank screen`);
-  }
+  const { width, height } = pngSize(output);
+  console.log(`captured ${width}x${height}, ${Math.round(size / 1024)} KB`);
 
-  console.log(`captured ${output} (${Math.round(size / 1024)} KB)`);
+  // The window is at least 1280x760 by config. Anything much smaller is not
+  // the app, and a near-empty file is a blank window.
+  if (width < 800 || height < 500) {
+    die(`the capture is ${width}x${height} — too small to be the app window`);
+  }
+  if (size < 10_000) {
+    die(`the capture is only ${size} bytes — the window is probably blank`);
+  }
 } finally {
   app.kill();
-  // Vite and the app are separate processes on some platforms.
   if (process.platform === 'win32') {
-    spawnSync('taskkill', ['/F', '/IM', 'freally-midi-master.exe'], { stdio: 'ignore' });
+    spawnSync('taskkill', ['/F', '/IM', `${PROCESS_NAME}.exe`], { stdio: 'ignore' });
   } else {
-    spawnSync('pkill', ['-f', 'freally-midi-master'], { stdio: 'ignore' });
+    spawnSync('pkill', ['-f', PROCESS_NAME], { stdio: 'ignore' });
   }
 }

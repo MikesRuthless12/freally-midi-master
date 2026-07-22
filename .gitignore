@@ -69,3 +69,6 @@ playwright/.cache
 
 # Manual QA checklist — internal, like the roadmaps
 Live-To-Do.md
+
+# CI screenshot output
+screenshots
