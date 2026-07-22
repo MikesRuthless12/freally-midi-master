@@ -1,0 +1,92 @@
+{
+  "bitDepth": 24,
+  "generatedBy": "kitgen",
+  "id": "trap-default",
+  "license": "CC0-1.0",
+  "name": "Trap Default",
+  "notice": "Every sample here is synthesized from oscillators and filtered noise by tools/kitgen. No recorded material is used, so the kit carries no third-party rights. Regenerate with `cargo run -p kitgen`.",
+  "pads": [
+    {
+      "chokeGroup": null,
+      "file": "kick.wav",
+      "gainDb": 0.0,
+      "id": "kick",
+      "lane": "kick",
+      "padIndex": 0,
+      "pan": 0.0,
+      "pitchSemis": 0
+    },
+    {
+      "chokeGroup": 2,
+      "file": "808.wav",
+      "gainDb": 0.0,
+      "id": "808",
+      "lane": "bass808",
+      "padIndex": 1,
+      "pan": 0.0,
+      "pitchSemis": 0
+    },
+    {
+      "chokeGroup": null,
+      "file": "snare.wav",
+      "gainDb": 0.0,
+      "id": "snare",
+      "lane": "snare",
+      "padIndex": 2,
+      "pan": 0.0,
+      "pitchSemis": 0
+    },
+    {
+      "chokeGroup": null,
+      "file": "clap.wav",
+      "gainDb": 0.0,
+      "id": "clap",
+      "lane": "clap",
+      "padIndex": 3,
+      "pan": 0.0,
+      "pitchSemis": 0
+    },
+    {
+      "chokeGroup": 1,
+      "file": "closed-hat.wav",
+      "gainDb": 0.0,
+      "id": "closed-hat",
+      "lane": "closedHat",
+      "padIndex": 4,
+      "pan": 0.0,
+      "pitchSemis": 0
+    },
+    {
+      "chokeGroup": 1,
+      "file": "open-hat.wav",
+      "gainDb": 0.0,
+      "id": "open-hat",
+      "lane": "openHat",
+      "padIndex": 5,
+      "pan": 0.0,
+      "pitchSemis": 0
+    },
+    {
+      "chokeGroup": null,
+      "file": "rim.wav",
+      "gainDb": 0.0,
+      "id": "rim",
+      "lane": "rim",
+      "padIndex": 6,
+      "pan": 0.0,
+      "pitchSemis": 0
+    },
+    {
+      "chokeGroup": null,
+      "file": "perc.wav",
+      "gainDb": 0.0,
+      "id": "perc",
+      "lane": "perc",
+      "padIndex": 7,
+      "pan": 0.0,
+      "pitchSemis": 0
+    }
+  ],
+  "sampleRate": 44100,
+  "seed": "5787764708023293729"
+}

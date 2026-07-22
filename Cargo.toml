@@ -1,5 +1,5 @@
 [workspace]
-members = ["engine", "src-tauri", "tools/datasetc"]
+members = ["engine", "src-tauri", "tools/datasetc", "tools/kitgen"]
 resolver = "2"
 
 # The post-crash notice offers to restart, so it may only fire when a panic is
