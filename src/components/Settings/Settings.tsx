@@ -332,9 +332,10 @@ export function AboutPane() {
       <h3>Credits</h3>
       <p className="settings__note">
         Timing and velocity statistics derived from the Magenta Groove MIDI Dataset
-        (CC&nbsp;BY&nbsp;4.0). Inter, Space Grotesk and JetBrains Mono under the SIL Open Font
-        License. Lucide icons under ISC. Preview kits are synthesized in-repo and contain no
-        third-party samples.
+        (CC&nbsp;BY&nbsp;4.0). Noto Sans, Noto Sans Display and Noto Sans Mono, with per-script
+        Noto families covering CJK, Arabic, Hebrew, Indic and more, under the SIL Open Font
+        License&nbsp;1.1. Lucide icons under ISC. Preview kits are synthesized in-repo and
+        contain no third-party samples.
       </p>
     </section>
   );

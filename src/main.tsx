@@ -18,3 +18,10 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
     <App />
   </React.StrictMode>,
 );
+
+// The per-script fonts (CJK, Arabic, Indic, …) — ~520 @font-face rules, and
+// ~450 KB of CSS. Deliberately after the first render: blocking the window on
+// them would make an English UI wait to parse Chinese font declarations it will
+// never use. `unicode-range` means nothing is actually downloaded until a
+// character needs it, so this costs a parse and no bytes.
+void import('./assets/fonts/fonts-scripts.css');
