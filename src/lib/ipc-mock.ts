@@ -13,11 +13,14 @@ import type { InvokeArgs } from '@tauri-apps/api/core';
 type Handler = (args?: InvokeArgs) => unknown;
 
 const handlers: Record<string, Handler> = {
+  // Exactly the shape `app_info` returns in src-tauri/src/lib.rs — no more, no
+  // fewer. It used to omit `arch` and invent two fields the command has never
+  // returned, so the About pane rendered "mock / undefined" here and correctly
+  // in the real app: a fixture that disagrees with the DTO tests the fixture.
   app_info: () => ({
     version: '0.0.0-mock',
-    datasetVersion: '0',
     platform: 'mock',
-    reducedMotionDefault: false,
+    arch: 'mock',
   }),
 
   // No crash happened in a browser, so the report overlay stays shut.

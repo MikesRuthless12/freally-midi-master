@@ -19,6 +19,10 @@ import './Updates.css';
  * - Nothing downloads or installs without an explicit yes.
  * - A pending crash report outranks this dialog; App decides, and simply does
  *   not mount this component until the crash slot is free.
+ * - Anything else that wants the slot temporarily — the bug dialog opened by
+ *   hand — passes `hidden` rather than unmounting this component. Unmounting
+ *   cancels the in-flight check and starts a fresh one on remount, which is two
+ *   checks in a launch and, if the network dropped in between, no prompt at all.
  */
 
 type Available = {
@@ -30,7 +34,14 @@ type Available = {
 
 type Phase = 'idle' | 'available' | 'installing' | 'failed';
 
-export function UpdatePrompt({ onDismiss }: { onDismiss: () => void }) {
+export function UpdatePrompt({
+  onDismiss,
+  hidden = false,
+}: {
+  onDismiss: () => void;
+  /** Yield the dialog slot without unmounting — see the header. */
+  hidden?: boolean;
+}) {
   const [update, setUpdate] = useState<Available | null>(null);
   const [phase, setPhase] = useState<Phase>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -65,7 +76,8 @@ export function UpdatePrompt({ onDismiss }: { onDismiss: () => void }) {
     };
   }, []);
 
-  if (phase === 'idle' || !update) return null;
+  // The check above still ran, and its result is held until the slot is free.
+  if (hidden || phase === 'idle' || !update) return null;
 
   const install = async () => {
     setPhase('installing');

@@ -128,9 +128,82 @@ const ALLOWED = {
   hyper_util: 'transitive dep of reqwest under tauri-plugin-updater',
 };
 
-/** Exact name, or a `name-suffix` / `name_suffix` variant of it. */
+/**
+ * Exact name, or a `name-suffix` / `name_suffix` / `name/suffix` variant.
+ *
+ * `/` is in that list because npm scopes use it, and leaving it out made every
+ * scoped entry on the list dead: `@huggingface/inference` is not `@huggingface`
+ * and does not start with `@huggingface-` or `@huggingface_`, so the gate
+ * printed "no AI/ML found" and went green over exactly the packages it names.
+ *
+ * A bare needle also matches inside a scope, so `huggingface` catches
+ * `@huggingface/inference` too — a denylist that only worked when the author
+ * remembered to add both spellings would fail open on the first one missed.
+ */
 function matches(name, needle) {
-  return name === needle || name.startsWith(`${needle}-`) || name.startsWith(`${needle}_`);
+  if (name === needle) return true;
+  for (const separator of ['-', '_', '/']) {
+    if (name.startsWith(`${needle}${separator}`)) return true;
+  }
+  // `@scope/pkg` — test the scope and the bare package name on their own.
+  const scoped = /^@([^/]+)\/(.+)$/.exec(name);
+  if (scoped) {
+    const [, scope, pkg] = scoped;
+    if (!needle.startsWith('@')) {
+      return matches(scope, needle) || matches(pkg, needle);
+    }
+  }
+  return false;
+}
+
+/**
+ * Prove `matches` still works before trusting anything it says.
+ *
+ * A denylist fails silently by design: when the matcher stops matching, the
+ * output is "ok: no AI/ML found", which is indistinguishable from a clean tree.
+ * That is how every scoped entry on the list sat dead — `@huggingface` could
+ * never match `@huggingface/inference`, and the gate reported green.
+ *
+ * The cases live next to the matcher rather than in a test file so they run on
+ * every invocation, local and CI, and cannot drift from the implementation the
+ * way a copy of it in a separate test would.
+ */
+function selfCheck() {
+  const cases = [
+    // [name, needle, shouldMatch]
+    ['onnxruntime', 'onnxruntime', true],
+    ['tract-onnx', 'tract-onnx', true],
+    // A `name-suffix` variant matches; a name that merely *contains* one
+    // does not.
+    ['candle-core', 'candle', true],
+    ['torch-sys', 'torch', true],
+    ['torch_sys', 'torch', true],
+    ['torchless', 'torch', false],
+    // Scoped npm — the case that was dead.
+    ['@huggingface/inference', '@huggingface', true],
+    ['@huggingface/inference', 'huggingface', true],
+    ['@anthropic-ai/sdk', '@anthropic-ai', true],
+    ['@anthropic-ai/sdk', 'anthropic', true],
+    ['@tensorflow/tfjs', '@tensorflow', true],
+    ['@tensorflow/tfjs', 'tensorflow', true],
+    // ...without becoming a substring match.
+    ['@tauri-apps/api', 'ort', false],
+    ['@tauri-apps/plugin-opener', 'openai', false],
+    ['reporter', 'ort', false],
+    ['transport', 'ort', false],
+    ['@scope/reporter', 'ort', false],
+  ];
+
+  const wrong = cases.filter(([name, needle, expected]) => matches(name, needle) !== expected);
+  if (wrong.length > 0) {
+    for (const [name, needle, expected] of wrong) {
+      console.error(
+        `  matches(${JSON.stringify(name)}, ${JSON.stringify(needle)}) ` +
+          `returned ${!expected}, expected ${expected}`,
+      );
+    }
+    fatal('the denylist matcher is broken, so a clean report would mean nothing');
+  }
 }
 
 function findViolations(names, ecosystem, rules, scope) {
@@ -256,6 +329,8 @@ const SHIPPED_RULES = [
   ['HTTP client', HTTP_CLIENTS],
   ['telemetry/analytics SDK', TELEMETRY],
 ];
+
+selfCheck();
 
 const violations = [
   // AI/ML is absolute on BOTH sides — PRD § 7: "lockfiles contain zero ML/AI

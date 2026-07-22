@@ -3,7 +3,7 @@ pub mod export;
 pub mod store;
 pub mod tray;
 
-use tauri::WindowEvent;
+use tauri::{Manager, WindowEvent};
 
 use store::Settings;
 
@@ -21,30 +21,32 @@ pub fn run() {
         // does NOT use tauri-plugin-dialog — see export::drag::pick_export_folder.
         .plugin(tauri_plugin_drag::init())
         .setup(|app| {
-            tray::init(app.handle())?;
+            tray::sync(app.handle())?;
             Ok(())
         })
+        // Both arms below gate on a tray icon that ACTUALLY EXISTS, never on
+        // the setting that asks for one. The setting is a wish; the icon is the
+        // way back. Hiding the window without one leaves a live process with no
+        // window, no taskbar entry and nothing to click — recoverable only from
+        // Task Manager.
         .on_window_event(|window, event| match event {
             // Close-to-tray: hide instead of quitting, but only when asked.
             // Reading the setting at the moment of the event rather than
             // caching it means a change in Settings takes effect immediately.
             WindowEvent::CloseRequested { api, .. } => {
-                let settings = Settings::load();
-                if settings.close_to_tray && settings.show_tray_icon {
+                if Settings::load().close_to_tray && tray::exists(window.app_handle()) {
                     api.prevent_close();
                     let _ = window.hide();
                 }
             }
             // Minimise-to-tray: let the minimise happen, then hide the window
             // so it leaves the taskbar too.
-            WindowEvent::Resized(_) => {
-                let settings = Settings::load();
-                if settings.minimize_to_tray
-                    && settings.show_tray_icon
+            WindowEvent::Resized(_)
+                if Settings::load().minimize_to_tray
                     && window.is_minimized().unwrap_or(false)
-                {
-                    let _ = window.hide();
-                }
+                    && tray::exists(window.app_handle()) =>
+            {
+                let _ = window.hide();
             }
             _ => {}
         })

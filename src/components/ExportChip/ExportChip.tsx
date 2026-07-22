@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FolderOpen, Upload } from 'lucide-react';
 
 import { invoke, isTauri } from '../../lib/ipc';
@@ -22,6 +22,7 @@ type Capability = {
 };
 
 type Status = { kind: 'idle' | 'working' | 'ok' | 'error'; message?: string };
+type StartDrag = typeof import('@crabnebula/tauri-plugin-drag').startDrag;
 
 export function ExportChip() {
   const [capability, setCapability] = useState<Capability | null>(null);
@@ -43,6 +44,38 @@ export function ExportChip() {
     return result;
   };
 
+  /**
+   * The prepared file and the drag plugin, readied *before* the gesture.
+   *
+   * `dragstart` cannot wait: doing the work inside it meant two IPC round-trips
+   * (synthesise a 4-bar pattern, atomic file write, canonicalise, stat) plus a
+   * dynamic import before `startDrag` was even called. By then the user has
+   * usually released the button, so the OS drag begins with nothing held and
+   * the drop never reaches the DAW — indistinguishable from "this platform
+   * cannot drag", which is precisely the distinction the spike exists to make.
+   *
+   * Started on pointer-down, which fires before `dragstart`, so the await inside
+   * the handler is normally already settled.
+   */
+  const readied = useRef<Promise<{ file: ExportResult; startDrag: StartDrag }> | null>(null);
+
+  const ready = () => {
+    readied.current ??= (async () => {
+      const [file, plugin] = await Promise.all([
+        prepare(),
+        import('@crabnebula/tauri-plugin-drag'),
+      ]);
+      return { file, startDrag: plugin.startDrag };
+    })();
+    return readied.current;
+  };
+
+  const onPointerDown = () => {
+    if (!isTauri()) return;
+    // Failures surface in onDragStart, which awaits the same promise.
+    ready().catch(() => {});
+  };
+
   const onDragStart = async (e: React.DragEvent) => {
     e.preventDefault();
     if (!isTauri()) {
@@ -51,11 +84,23 @@ export function ExportChip() {
     }
     try {
       setStatus({ kind: 'working' });
-      const file = await prepare();
-      const { startDrag } = await import('@crabnebula/tauri-plugin-drag');
-      await startDrag({ item: [file.path], icon: '' });
-      setStatus({ kind: 'ok', message: 'Landed. Drag it in.' });
+      const { file, startDrag } = await ready();
+      // The result comes from the OS, not from `startDrag` resolving. Reporting
+      // success as soon as the call returns claims the file landed when all
+      // that happened is that a drag was started — which would have made the
+      // DAW matrix a record of nothing.
+      await startDrag({ item: [file.path], icon: '' }, (payload) => {
+        setStatus(
+          payload?.result === 'Dropped'
+            ? {
+                kind: 'ok',
+                message: 'Dropped. If your DAW ignored it, record that in the matrix.',
+              }
+            : { kind: 'idle' },
+        );
+      });
     } catch (err) {
+      readied.current = null; // let the next attempt rebuild it
       setStatus({ kind: 'error', message: err instanceof Error ? err.message : String(err) });
     }
   };
@@ -95,6 +140,7 @@ export function ExportChip() {
           type="button"
           className="btn-ghost"
           draggable
+          onPointerDown={onPointerDown}
           onDragStart={onDragStart}
           title={capability?.note ?? 'Drag the generated MIDI into your DAW'}
         >

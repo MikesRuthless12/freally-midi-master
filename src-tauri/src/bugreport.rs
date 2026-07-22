@@ -619,7 +619,21 @@ pub fn bug_report_submit(
         ),
         other => return Err(format!("unknown report target: {other}")),
     };
-    open_url(&url)
+    open_url(&url)?;
+
+    // The crash has been handed to the user's issue tracker or mail client, so
+    // it is no longer pending. Leaving it would re-open this dialog on every
+    // future launch with the same already-reported crash — and keep suppressing
+    // the update prompt, which waits for the crash slot to be free. The only
+    // way out was the "Dismiss crash" button, which the user has no reason to
+    // press after reporting.
+    //
+    // Only when the crash was actually included: a report that deliberately
+    // left it out has not reported it, so it stays pending.
+    if include_crash && crash.is_some() {
+        clear_crashes();
+    }
+    Ok(())
 }
 
 /// The exact text that will be sent, built by the functions that send it.

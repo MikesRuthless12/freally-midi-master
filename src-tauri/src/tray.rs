@@ -15,6 +15,7 @@ use crate::store::Settings;
 
 const SHOW: &str = "show";
 const QUIT: &str = "quit";
+const TRAY_ID: &str = "main-tray";
 
 /// Bring the main window back and focus it.
 pub fn show_main_window<R: Runtime>(app: &AppHandle<R>) {
@@ -25,9 +26,29 @@ pub fn show_main_window<R: Runtime>(app: &AppHandle<R>) {
     }
 }
 
-/// Build the tray icon. Returns `Ok(())` when the tray is not wanted.
-pub fn init<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
+/// Is there a tray icon in the notification area **right now**?
+///
+/// This is the question the hide-to-tray handlers must ask. Asking the
+/// *setting* instead is the trap, because the two can disagree for a whole
+/// session: the tray used to be built once at startup while close-to-tray and
+/// minimise-to-tray re-read the setting per event. Turning the tray on
+/// mid-session therefore satisfied the setting check with no icon anywhere, and
+/// the next close hid the window for good — no window, no taskbar entry, no
+/// icon, just a live process to find in Task Manager.
+pub fn exists<R: Runtime>(app: &AppHandle<R>) -> bool {
+    app.tray_by_id(TRAY_ID).is_some()
+}
+
+/// Make the tray match the current setting. Safe to call repeatedly.
+///
+/// Called at startup and again after every settings write, so "show a tray
+/// icon" takes effect the moment it is ticked rather than next launch.
+pub fn sync<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
     if !Settings::load().show_tray_icon {
+        app.remove_tray_by_id(TRAY_ID);
+        return Ok(());
+    }
+    if exists(app) {
         return Ok(());
     }
 
@@ -35,7 +56,7 @@ pub fn init<R: Runtime>(app: &AppHandle<R>) -> tauri::Result<()> {
     let quit = MenuItem::with_id(app, QUIT, "Quit", true, None::<&str>)?;
     let menu = Menu::with_items(app, &[&show, &quit])?;
 
-    TrayIconBuilder::with_id("main-tray")
+    TrayIconBuilder::with_id(TRAY_ID)
         .icon(app.default_window_icon().cloned().ok_or_else(|| {
             tauri::Error::AssetNotFound("no default window icon to use for the tray".into())
         })?)

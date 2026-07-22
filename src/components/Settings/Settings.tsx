@@ -84,7 +84,12 @@ function Toggle({
 export function SettingsModal({ onClose }: { onClose: () => void }) {
   const [active, setActive] = useState<CategoryId>('general');
   const [search, setSearch] = useState('');
-  const [settings, setSettings] = useState<AppSettings>(DEFAULTS);
+  // `null` until the real values are read. Seeding this with DEFAULTS was a
+  // trap: `update` writes the whole object back, so one flipped checkbox
+  // persisted a full mirror of the defaults over whatever was really on disk.
+  // A transiently unreadable settings.json — locked by antivirus, mid-restore —
+  // therefore destroyed every preference the moment the user touched anything.
+  const [settings, setSettings] = useState<AppSettings | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const theme = useUi((s) => s.theme);
@@ -93,9 +98,12 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
   useEffect(() => {
     invoke<AppSettings>('settings_get')
       .then((s) => setSettings({ ...DEFAULTS, ...s }))
-      .catch(() => {
-        // No backend (a plain browser). The panel still renders so the layout
-        // can be seen and tested; the toggles simply have nothing to persist to.
+      .catch((e) => {
+        // Outside Tauri there is no backend at all and nothing is wrong — the
+        // panel still renders so the layout can be seen and tested. Inside it,
+        // a failure here is real and has to be said out loud, because the
+        // controls are about to refuse to save.
+        if (isTauri()) setError(e instanceof Error ? e.message : String(e));
       });
   }, []);
 
@@ -109,6 +117,9 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
 
   /** Persist immediately — no Apply button to forget to press. */
   const update = async (patch: Partial<AppSettings>) => {
+    // Never write without having read: the payload is the whole object, so
+    // writing an unverified one silently replaces the fields not being edited.
+    if (!settings) return;
     const next = { ...settings, ...patch };
     setSettings(next);
     setError(null);
@@ -132,7 +143,12 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
   // keep it in step, which is a second source of truth for the same fact.
   const shown = visible.includes(active) ? active : (visible[0] ?? active);
 
-  const trayDisabled = !settings.showTrayIcon;
+  // What the controls display before the read lands, or outside Tauri where
+  // there is nothing to read. `update` refuses to write in that state, so this
+  // is a placeholder for the eye only — it can never reach disk.
+  const shownSettings = settings ?? DEFAULTS;
+  const canPersist = settings !== null;
+  const trayDisabled = !shownSettings.showTrayIcon || !canPersist;
 
   return (
     <div className="settings" role="dialog" aria-modal="true" aria-labelledby="settings-title">
@@ -197,14 +213,15 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
                 <Toggle
                   label="Show a system tray icon"
                   hint="Adds Freally MIDI Master to the notification area, with Show and Quit."
-                  checked={settings.showTrayIcon}
+                  checked={shownSettings.showTrayIcon}
+                  disabled={!canPersist}
                   onChange={(v) => update({ showTrayIcon: v })}
                 />
 
                 <Toggle
                   label="Minimize to system tray"
                   hint="Minimizing hides the window to the tray instead of the taskbar. Click the tray icon to bring it back."
-                  checked={settings.minimizeToTray}
+                  checked={shownSettings.minimizeToTray}
                   disabled={trayDisabled}
                   onChange={(v) => update({ minimizeToTray: v })}
                 />
@@ -212,7 +229,7 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
                 <Toggle
                   label="Close to system tray"
                   hint="Closing the window keeps the app running in the tray. Quit from the tray menu to exit."
-                  checked={settings.closeToTray}
+                  checked={shownSettings.closeToTray}
                   disabled={trayDisabled}
                   onChange={(v) => update({ closeToTray: v })}
                 />
@@ -223,10 +240,6 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
                     be no way to get the window back.
                   </p>
                 )}
-
-                <p className="settings__note">
-                  A tray icon requires a restart to appear or disappear.
-                </p>
               </section>
             )}
 

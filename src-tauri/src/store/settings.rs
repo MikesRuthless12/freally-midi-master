@@ -88,12 +88,26 @@ impl Settings {
             serde_json::to_string_pretty(self).map_err(|e| SettingsError::Io(e.to_string()))?;
 
         // Temp + rename, so an interrupted write cannot truncate the real file.
+        //
+        // Nothing is deleted first. `fs::rename` replaces the destination on
+        // every platform this ships to — including Windows, where std uses
+        // SetFileInformationByHandle with ReplaceIfExists — so a pre-emptive
+        // `remove_file` buys nothing and costs the atomicity this comment
+        // claims: between the delete and the rename there is a window where
+        // settings.json simply does not exist, and any failure inside it (a
+        // rename refused by an antivirus handle, a full disk, a kill) loses
+        // every preference silently, because `load` treats a missing file as
+        // "use the defaults".
         let tmp = path.with_extension("json.part");
         fs::write(&tmp, format!("{text}\n")).map_err(|e| SettingsError::Io(e.to_string()))?;
-        if path.exists() {
-            fs::remove_file(&path).map_err(|e| SettingsError::Io(e.to_string()))?;
+        match fs::rename(&tmp, &path) {
+            Ok(()) => Ok(()),
+            Err(e) => {
+                // Never leave our temp file behind.
+                let _ = fs::remove_file(&tmp);
+                Err(SettingsError::Io(e.to_string()))
+            }
         }
-        fs::rename(&tmp, &path).map_err(|e| SettingsError::Io(e.to_string()))
     }
 }
 
@@ -103,8 +117,12 @@ pub fn settings_get() -> Settings {
 }
 
 #[tauri::command]
-pub fn settings_set(settings: Settings) -> Result<Settings, String> {
+pub fn settings_set(app: tauri::AppHandle, settings: Settings) -> Result<Settings, String> {
     settings.save().map_err(|e| e.to_string())?;
+    // The tray follows the setting immediately. Leaving it until the next
+    // launch is what allowed "show a tray icon" to be on with no icon anywhere
+    // — and close-to-tray in that state hides the window with no way back.
+    crate::tray::sync(&app).map_err(|e| e.to_string())?;
     Ok(settings)
 }
 
@@ -162,6 +180,48 @@ mod tests {
     fn a_corrupt_file_falls_back_to_defaults_rather_than_panicking() {
         let s: Settings = serde_json::from_str("{ not json").unwrap_or_default();
         assert_eq!(s, Settings::default());
+    }
+
+    #[test]
+    fn saving_over_an_existing_file_never_leaves_it_missing() {
+        // The remove-then-rename this replaces had a window where settings.json
+        // did not exist at all; a failure inside it silently reverted every
+        // preference, because `load` reads a missing file as "use the defaults".
+        let Ok(path) = settings_path() else {
+            return; // no app-data dir on this runner; nothing to assert
+        };
+        let restore = fs::read(&path).ok();
+
+        Settings {
+            minimize_to_tray: true,
+            close_to_tray: false,
+            show_tray_icon: true,
+            theme: ThemePreference::Light,
+        }
+        .save()
+        .unwrap();
+        assert!(path.exists());
+
+        // Overwrite: the file must never stop existing, and the new value must
+        // be what comes back.
+        Settings {
+            theme: ThemePreference::Dark,
+            ..Default::default()
+        }
+        .save()
+        .unwrap();
+        assert!(path.exists(), "the file vanished during an overwrite");
+        assert_eq!(Settings::load().theme, ThemePreference::Dark);
+
+        // And no temp file survives a successful write.
+        assert!(!path.with_extension("json.part").exists());
+
+        match restore {
+            Some(bytes) => fs::write(&path, bytes).unwrap(),
+            None => {
+                let _ = fs::remove_file(&path);
+            }
+        }
     }
 
     #[test]

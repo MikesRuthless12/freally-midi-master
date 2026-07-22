@@ -102,8 +102,19 @@ impl SessionContext {
     /// A tick is a fraction of a *quarter note*, so a bar of 6/8 is three
     /// quarter notes long, not six.
     pub fn ticks_per_bar(&self) -> u32 {
-        let per_beat = PPQ * 4 / u32::from(self.time_sig_den.max(1));
-        per_beat * u32::from(self.time_sig_num)
+        // A zero denominator is malformed, and `.max(1)` is the wrong guard for
+        // it: 1 is a legal denominator meaning whole notes, so it turns the bar
+        // into four 4/4 bars rather than rejecting the value. Fall back to 4,
+        // which is what `pattern_to_smf` already writes for an unrecognised
+        // denominator — the two must agree or the file says one thing and the
+        // tick arithmetic another.
+        let den = if self.time_sig_den == 0 {
+            4
+        } else {
+            u32::from(self.time_sig_den)
+        };
+        let per_beat = PPQ * 4 / den;
+        per_beat * u32::from(self.time_sig_num.max(1))
     }
 
     /// Total ticks for the whole generation.
@@ -154,13 +165,35 @@ mod tests {
     }
 
     #[test]
-    fn a_zero_denominator_cannot_divide_by_zero() {
+    fn a_zero_denominator_falls_back_to_four_four() {
         // Guards against a malformed override reaching the engine.
+        //
+        // Asserted against the 4/4 bar rather than a literal, because the
+        // literal is what hid the bug: this test used to assert `PPQ * 4 * 4`,
+        // which reads like "four beats of four" but is really four bars' worth
+        // of ticks — the value a `.max(1)` guard produced by reinterpreting the
+        // denominator as whole notes.
         let ctx = SessionContext {
             time_sig_den: 0,
             ..Default::default()
         };
-        assert_eq!(ctx.ticks_per_bar(), PPQ * 4 * 4);
+        assert_eq!(
+            ctx.ticks_per_bar(),
+            SessionContext::default().ticks_per_bar()
+        );
+        assert_eq!(ctx.ticks_per_bar(), PPQ * 4, "one bar, not four");
+    }
+
+    #[test]
+    fn a_denominator_of_one_is_still_honoured() {
+        // 1 is a legal denominator (whole notes) and must not be confused with
+        // the malformed 0 above — that conflation is exactly what `.max(1)` did.
+        let ctx = SessionContext {
+            time_sig_num: 1,
+            time_sig_den: 1,
+            ..Default::default()
+        };
+        assert_eq!(ctx.ticks_per_bar(), PPQ * 4);
     }
 
     #[test]

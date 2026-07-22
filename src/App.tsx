@@ -42,7 +42,15 @@ function App() {
 
   // The Havoc standard: a pending crash report always wins the dialog slot,
   // and the update waits for the next launch.
-  const updateMayShow = crashPending === false && !bugReportOpen && !updateDismissed;
+  //
+  // Gated on the crash check ALONE. Adding `!bugReportOpen` here looks like the
+  // same rule but is a different one: it unmounts UpdatePrompt whenever the
+  // user opens the bug dialog by hand, which cancels an in-flight check and
+  // runs a second one on close — breaking the component's "one check per
+  // launch" rule, and losing the prompt entirely if the network dropped in
+  // between (the catch is deliberately silent). `hidden` keeps it out of the
+  // way without remounting it.
+  const updateMayShow = crashPending === false && !updateDismissed;
 
   // The right rail follows the breakpoint, but only when it is actually
   // crossed — so a manual K toggle is not undone by an unrelated resize.
@@ -79,7 +87,9 @@ function App() {
       <TransportBar onReportBug={() => setBugReportOpen(true)} />
 
       {bugReportOpen && <BugReportOverlay onClose={() => setBugReportOpen(false)} />}
-      {updateMayShow && <UpdatePrompt onDismiss={() => setUpdateDismissed(true)} />}
+      {updateMayShow && (
+        <UpdatePrompt hidden={bugReportOpen} onDismiss={() => setUpdateDismissed(true)} />
+      )}
 
       {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
       {aboutOpen && <AboutModal onClose={() => setAboutOpen(false)} />}

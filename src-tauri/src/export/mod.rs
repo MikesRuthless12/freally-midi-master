@@ -80,6 +80,11 @@ pub fn write_session_file(stem: &str, extension: &str, bytes: &[u8]) -> std::io:
 /// hypothetical — it turned up as a macOS CI failure the moment two tests
 /// exported the same spike file concurrently, and the app will eventually
 /// export from more than one place at once.
+///
+/// Nothing is deleted first, either. `fs::rename` replaces the destination on
+/// every platform this ships to — on Windows std uses SetFileInformationByHandle
+/// with ReplaceIfExists — so removing the target beforehand only opens a window
+/// where the user's file is gone and the replacement is not yet in place.
 pub fn write_atomic(path: &Path, bytes: &[u8]) -> std::io::Result<()> {
     static COUNTER: AtomicU64 = AtomicU64::new(0);
     let unique = format!(
@@ -91,10 +96,6 @@ pub fn write_atomic(path: &Path, bytes: &[u8]) -> std::io::Result<()> {
     let tmp = path.with_file_name(unique);
 
     fs::write(&tmp, bytes)?;
-    // Windows will not rename onto an existing file.
-    if path.exists() {
-        let _ = fs::remove_file(path);
-    }
     match fs::rename(&tmp, path) {
         Ok(()) => Ok(()),
         Err(e) => {
@@ -182,9 +183,10 @@ mod tests {
             "temp files left behind: {leftovers:?}"
         );
 
-        // Overwriting an existing file must work — Windows rename does not
-        // clobber by default.
+        // Overwriting an existing file must work, and the file must never stop
+        // existing on the way — no delete-then-rename gap.
         write_atomic(&path, b"second").unwrap();
+        assert!(path.exists());
         assert_eq!(fs::read(&path).unwrap(), b"second");
 
         let _ = fs::remove_file(&path);

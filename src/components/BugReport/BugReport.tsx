@@ -55,9 +55,12 @@ export function BugReportOverlay({ onClose }: { onClose: () => void }) {
 
   const submit = (target: Target) => {
     setError(null);
-    bugReportSubmit(target, description, includeCrash && !!ctx?.pendingCrash).catch((err) =>
-      setError(String(err)),
-    );
+    // Reload afterwards: submitting a report that included the crash clears it
+    // on the Rust side, and the panel must stop offering to include a crash it
+    // no longer holds.
+    bugReportSubmit(target, description, includeCrash && !!ctx?.pendingCrash)
+      .then(load)
+      .catch((err) => setError(String(err)));
   };
 
   const copy = () => {

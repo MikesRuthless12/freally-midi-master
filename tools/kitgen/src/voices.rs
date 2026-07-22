@@ -155,7 +155,15 @@ pub fn clap(seed: u64) -> Vec<f32> {
         let level = 1.0 - burst as f32 * 0.18;
         for i in 0..seconds(0.012) {
             if offset + i < n {
-                out[offset + i] += source[i] * decay(i as f32 / SR, 0.008) * level;
+                // Read at the ABSOLUTE position, so each burst is a different
+                // slice of noise. Reading `source[i]` gave all three bursts the
+                // identical 12 ms slice, which is a signal summed with two
+                // delayed copies of itself — a comb filter, notching at
+                // multiples of ~111 Hz and ~55 Hz. It rang metallic and flanged
+                // instead of sounding like three pairs of hands, and no test
+                // could see it: peak level, determinism and seed-difference all
+                // hold just as well for the correlated version.
+                out[offset + i] += source[offset + i] * decay(i as f32 / SR, 0.008) * level;
             }
         }
     }
@@ -293,6 +301,52 @@ mod tests {
     #[test]
     fn different_seeds_give_different_noise() {
         assert_ne!(clap(1), clap(2));
+    }
+
+    /// Pearson correlation between two equal-length windows.
+    fn correlation(a: &[f32], b: &[f32]) -> f32 {
+        let n = a.len().min(b.len());
+        let (a, b) = (&a[..n], &b[..n]);
+        let mean = |s: &[f32]| s.iter().sum::<f32>() / n as f32;
+        let (ma, mb) = (mean(a), mean(b));
+        let mut num = 0.0;
+        let (mut da, mut db) = (0.0f32, 0.0f32);
+        for i in 0..n {
+            let (x, y) = (a[i] - ma, b[i] - mb);
+            num += x * y;
+            da += x * x;
+            db += y * y;
+        }
+        if da == 0.0 || db == 0.0 {
+            return 0.0;
+        }
+        num / (da.sqrt() * db.sqrt())
+    }
+
+    #[test]
+    fn the_claps_three_bursts_are_not_the_same_noise() {
+        // Each burst must be an independent slice of noise. Indexing the source
+        // by the intra-burst offset made all three byte-identical, which is one
+        // signal summed with two delayed copies of itself — a comb filter, and
+        // audibly a metallic flange rather than three pairs of hands.
+        //
+        // Nothing else here could catch it: peak level, determinism and
+        // seed-difference are all satisfied by the correlated version, and this
+        // clap ships as the preview kit a new user hears first.
+        //
+        // The threshold is calibrated against both versions rather than guessed.
+        // Correlated: 0.40 (burst 2) and 0.33 (burst 3). Independent: 0.09 and
+        // -0.02 — not 0, because burst 1's tail runs under the later windows and
+        // the band-pass correlates neighbouring samples. 0.2 sits in the gap.
+        let out = clap(1);
+        let burst = seconds(0.012);
+        for (label, offset) in [("second", seconds(0.009)), ("third", seconds(0.018))] {
+            let c = correlation(&out[0..burst], &out[offset..offset + burst]);
+            assert!(
+                c.abs() < 0.2,
+                "the {label} burst correlates with the first at {c} —                  they are the same noise delayed, which combs rather than claps"
+            );
+        }
     }
 
     #[test]

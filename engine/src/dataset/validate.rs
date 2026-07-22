@@ -38,8 +38,20 @@ const MIDI_MAX: f64 = 127.0;
 /// note numbers, and range-checking them against 0–127 would be meaningless.
 const REGISTER_KEYS: &[&str] = &["register"];
 
-/// Field names carrying a probability.
-const PROBABILITY_SUFFIXES: &[&str] = &["Prob", "Bias", "Ratio", "Strength", "Var"];
+/// Field names carrying a probability, matched case-insensitively.
+///
+/// Case matters here because the datasets use both spellings: `slideProb` as a
+/// camelCase compound and a bare `prob` inside `{ "ghost": { "prob": 0.2 } }`.
+/// A case-sensitive `ends_with("Prob")` matches the first and misses the
+/// second — so the single most common probability field in the shipped data was
+/// never range-checked at all, and a `prob` of 3.5 passed `datasetc validate`,
+/// CI, and the dataset test suite on its way to the generator.
+const PROBABILITY_SUFFIXES: &[&str] = &["prob", "bias", "ratio", "strength", "var"];
+
+fn is_probability_key(key: &str) -> bool {
+    let lower = key.to_ascii_lowercase();
+    PROBABILITY_SUFFIXES.iter().any(|s| lower.ends_with(s))
+}
 
 /// Structural + semantic checks that the JSON Schema cannot express.
 ///
@@ -92,7 +104,7 @@ fn walk(value: &Value, pointer: String, out: &mut Vec<Finding>) {
                 if REGISTER_KEYS.contains(&k.as_str()) {
                     check_midi(v, &child, out);
                 }
-                if PROBABILITY_SUFFIXES.iter().any(|s| k.ends_with(s)) {
+                if is_probability_key(k) {
                     check_probability(v, &child, out);
                 }
                 walk(v, child, out);
@@ -212,13 +224,31 @@ fn check_midi(value: &Value, pointer: &str, out: &mut Vec<Finding>) {
 }
 
 fn check_probability(value: &Value, pointer: &str, out: &mut Vec<Finding>) {
-    if let Some(v) = value.as_f64() {
+    let mut bad = |v: f64, at: String| {
         if !(0.0..=1.0).contains(&v) {
             out.push(Finding {
-                pointer: pointer.into(),
+                pointer: at,
                 message: format!("probability {v} is outside 0.0–1.0"),
             });
         }
+    };
+    match value {
+        Value::Number(n) => {
+            if let Some(v) = n.as_f64() {
+                bad(v, pointer.into());
+            }
+        }
+        // A probability authored as a range, e.g. `"prob": [0.2, 0.5]`. Both
+        // ends have to be in range; checking only the scalar form left this
+        // spelling unchecked.
+        Value::Array(items) => {
+            for (i, item) in items.iter().enumerate() {
+                if let Some(v) = item.as_f64() {
+                    bad(v, format!("{pointer}/{i}"));
+                }
+            }
+        }
+        _ => {}
     }
 }
 
@@ -294,6 +324,45 @@ mod tests {
         let found = lint(&model);
         assert_eq!(found.len(), 1, "{found:?}");
         assert!(found[0].message.contains("0.0–1.0"));
+    }
+
+    #[test]
+    fn a_bare_prob_field_is_checked_too() {
+        // The spelling the shipped datasets actually use — `_defaults.json` and
+        // trap.json both author `{ "ghost": { "prob": 0.2 } }`. A case-sensitive
+        // `ends_with("Prob")` skipped every one of them.
+        let model = json!({ "drums": { "snare": { "ghost": { "prob": 3.5 } } } });
+        let found = lint(&model);
+        assert_eq!(found.len(), 1, "{found:?}");
+        assert_eq!(found[0].pointer, "/drums/snare/ghost/prob");
+        assert!(found[0].message.contains("0.0–1.0"));
+    }
+
+    #[test]
+    fn a_negative_bare_prob_is_found() {
+        let model = json!({ "hihat": { "openHat": { "prob": -2.0 } } });
+        assert!(!lint(&model).is_empty());
+    }
+
+    #[test]
+    fn a_probability_authored_as_a_range_is_checked_at_both_ends() {
+        let model = json!({ "drums": { "kick": { "swellProb": [0.2, 1.4] } } });
+        let found = lint(&model);
+        assert_eq!(found.len(), 1, "{found:?}");
+        assert_eq!(found[0].pointer, "/drums/kick/swellProb/1");
+    }
+
+    #[test]
+    fn the_shipped_probability_values_still_lint_clean() {
+        // The other half of the case-insensitive change: it must not start
+        // rejecting the values the datasets legitimately carry.
+        let model = json!({
+            "drums": { "snare": { "ghost": { "prob": 0.2 } } },
+            "session": { "humanize": { "quantizeStrength": 0.92, "velocityVar": 0.12 } },
+            "melody": { "chordToneBias": 0.65 },
+            "bass808": { "slideProb": 0.55, "densityRatio": 0.35 }
+        });
+        assert_eq!(lint(&model), vec![]);
     }
 
     #[test]

@@ -19,6 +19,12 @@ use crate::pattern::{Lane, Note, Pattern, PPQ};
 
 /// General MIDI drum note numbers, so a drum pattern is auditionable in any
 /// DAW without a kit loaded.
+///
+/// **Every drum lane must map to a distinct note.** Two lanes sharing one key
+/// on one channel is not a cosmetic clash: their note-ons and note-offs
+/// interleave, so one lane's off silences the other's note and the DAW drops
+/// whichever it cannot pair. Trap models layer a snap against a clap routinely
+/// (`trap.json` lists both), so the two lanes really do coexist.
 fn gm_drum_note(lane: Lane) -> u8 {
     match lane {
         Lane::Kick => 36,      // Bass Drum 1
@@ -27,8 +33,11 @@ fn gm_drum_note(lane: Lane) -> u8 {
         Lane::ClosedHat => 42, // Closed Hi-Hat
         Lane::OpenHat => 46,   // Open Hi-Hat
         Lane::Rim => 37,       // Side Stick
-        Lane::Snap => 39,      // Hand Clap
-        Lane::Perc => 47,      // Low-Mid Tom
+        // Claves, not a second Hand Clap: GM has no finger snap, and 39 is
+        // already the clap. A sharp, dry transient is the closest voice, and
+        // being audibly separate from the clap is the point.
+        Lane::Snap => 75, // Claves
+        Lane::Perc => 47, // Low-Mid Tom
         // Pitched lanes carry their own pitch; this is never consulted.
         Lane::Bass808 | Lane::Melody | Lane::Counter | Lane::Bass | Lane::Chords => 0,
     }
@@ -56,6 +65,30 @@ struct Event {
     velocity: u8,
 }
 
+/// How far a slide's two notes overlap: a 32nd note.
+///
+/// Long enough that no sampler reads a gap and retriggers the envelope, short
+/// enough that the origin pitch is not still sounding well into the
+/// destination.
+const SLIDE_OVERLAP_TICKS: u32 = PPQ / 8;
+
+fn push_note(events: &mut Vec<Event>, channel: u8, key: u8, velocity: u8, on: u32, off: u32) {
+    events.push(Event {
+        tick: on,
+        is_on: true,
+        channel,
+        key,
+        velocity,
+    });
+    events.push(Event {
+        tick: off,
+        is_on: false,
+        channel,
+        key,
+        velocity: 0,
+    });
+}
+
 fn events_for(pattern: &Pattern) -> Vec<Event> {
     let mut events = Vec::new();
 
@@ -69,20 +102,51 @@ fn events_for(pattern: &Pattern) -> Vec<Event> {
             } else {
                 gm_drum_note(lane.lane)
             };
-            events.push(Event {
-                tick: note.start_tick,
-                is_on: true,
-                channel,
-                key,
-                velocity: note.vel.clamp(1, 127),
-            });
-            events.push(Event {
-                tick: note.start_tick + note.len_ticks.max(1),
-                is_on: false,
-                channel,
-                key,
-                velocity: 0,
-            });
+            let len = note.len_ticks.max(1);
+            let velocity = note.vel.clamp(1, 127);
+
+            // Only a pitched lane can slide: a drum lane's key *is* its voice,
+            // so "sliding" one would just be a different drum. A slide onto the
+            // note's own pitch is a no-op, and emitting it would put two notes
+            // on one key — the collision the note-off pairing cannot survive.
+            let destination = note
+                .slide_to_pitch
+                .filter(|d| pitched && *d != key && len >= 4);
+
+            match destination {
+                // Two overlapping notes, per this module's header: the
+                // destination's note-on lands while the origin is still held,
+                // and the origin's note-off follows it. Both stay inside the
+                // note's own span, so a slide never lengthens the pattern.
+                Some(destination) => {
+                    let slide_at = note.start_tick + len / 2;
+                    let overlap = SLIDE_OVERLAP_TICKS.clamp(1, len / 4);
+                    push_note(
+                        &mut events,
+                        channel,
+                        key,
+                        velocity,
+                        note.start_tick,
+                        slide_at + overlap,
+                    );
+                    push_note(
+                        &mut events,
+                        channel,
+                        destination,
+                        velocity,
+                        slide_at,
+                        note.start_tick + len,
+                    );
+                }
+                None => push_note(
+                    &mut events,
+                    channel,
+                    key,
+                    velocity,
+                    note.start_tick,
+                    note.start_tick + len,
+                ),
+            }
         }
     }
 
@@ -419,6 +483,137 @@ mod tests {
             events[1].tick > events[0].tick,
             "the off must come after the on"
         );
+    }
+
+    #[test]
+    fn every_drum_lane_maps_to_a_distinct_gm_note() {
+        // Two lanes on one key + one channel is not a cosmetic clash: their
+        // note-offs pair against the wrong note-ons, so one lane silences the
+        // other. Clap and Snap both sat on 39 and trap models use both.
+        use std::collections::BTreeMap;
+        let drums = [
+            Lane::Kick,
+            Lane::Snare,
+            Lane::Clap,
+            Lane::ClosedHat,
+            Lane::OpenHat,
+            Lane::Rim,
+            Lane::Snap,
+            Lane::Perc,
+        ];
+        let mut by_note: BTreeMap<u8, Vec<Lane>> = BTreeMap::new();
+        for lane in drums {
+            by_note.entry(gm_drum_note(lane)).or_default().push(lane);
+        }
+        let clashes: Vec<_> = by_note.iter().filter(|(_, v)| v.len() > 1).collect();
+        assert!(clashes.is_empty(), "lanes sharing a GM note: {clashes:?}");
+    }
+
+    #[test]
+    fn a_clap_and_a_snap_survive_each_other_in_one_pattern() {
+        // The end-to-end shape of the collision: overlapping hits in the two
+        // lanes must produce four independently pairable events.
+        let mut p = tiny(Lane::Clap, vec![note(0, 480, 0)]);
+        p.lanes.push(LaneTrack {
+            lane: Lane::Snap,
+            notes: vec![note(240, 480, 0)],
+        });
+
+        let events = events_for(&p);
+        let clap = gm_drum_note(Lane::Clap);
+        let snap = gm_drum_note(Lane::Snap);
+        assert_ne!(clap, snap);
+
+        // Each key gets exactly one on and one off, in that order.
+        for key in [clap, snap] {
+            let for_key: Vec<bool> = events
+                .iter()
+                .filter(|e| e.key == key)
+                .map(|e| e.is_on)
+                .collect();
+            assert_eq!(
+                for_key,
+                vec![true, false],
+                "key {key} is not cleanly paired"
+            );
+        }
+    }
+
+    #[test]
+    fn a_slide_is_written_as_two_overlapping_notes() {
+        // The module header promises this encoding and nothing used to emit it:
+        // slide_to_pitch was dropped on the floor, so every 808 glide exported
+        // as a flat retrigger.
+        let slide = Note {
+            start_tick: 0,
+            len_ticks: 960,
+            pitch: 33,
+            vel: 100,
+            slide_to_pitch: Some(40),
+            articulation: None,
+        };
+        let events = events_for(&tiny(Lane::Bass808, vec![slide]));
+
+        let on = |key: u8| {
+            events
+                .iter()
+                .find(|e| e.key == key && e.is_on)
+                .unwrap()
+                .tick
+        };
+        let off = |key: u8| {
+            events
+                .iter()
+                .find(|e| e.key == key && !e.is_on)
+                .unwrap()
+                .tick
+        };
+
+        assert_eq!(events.len(), 4, "origin and destination, on and off each");
+        // The overlap IS the portamento: the destination starts before the
+        // origin ends. A gap here retriggers the envelope and the glide is gone.
+        assert!(
+            on(40) < off(33),
+            "destination must start before the origin ends: on {} vs off {}",
+            on(40),
+            off(33)
+        );
+        assert!(on(33) < on(40), "the origin sounds first");
+        assert!(off(33) < off(40), "the origin releases first");
+        // A slide must not stretch the note beyond its own span.
+        assert_eq!(off(40), 960);
+    }
+
+    #[test]
+    fn a_slide_onto_the_same_pitch_stays_a_single_note() {
+        // Otherwise it emits two notes on one key, which is the collision the
+        // note-off pairing cannot survive.
+        let flat = Note {
+            start_tick: 0,
+            len_ticks: 960,
+            pitch: 33,
+            vel: 100,
+            slide_to_pitch: Some(33),
+            articulation: None,
+        };
+        assert_eq!(events_for(&tiny(Lane::Bass808, vec![flat])).len(), 2);
+    }
+
+    #[test]
+    fn a_drum_lane_ignores_a_slide_target() {
+        // A drum lane's key is its voice, so sliding one would just be a
+        // different drum.
+        let hit = Note {
+            start_tick: 0,
+            len_ticks: 480,
+            pitch: 36,
+            vel: 100,
+            slide_to_pitch: Some(60),
+            articulation: None,
+        };
+        let events = events_for(&tiny(Lane::Kick, vec![hit]));
+        assert_eq!(events.len(), 2);
+        assert!(events.iter().all(|e| e.key == gm_drum_note(Lane::Kick)));
     }
 
     #[test]

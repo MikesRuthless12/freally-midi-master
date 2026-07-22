@@ -6,7 +6,7 @@
 //! `dark-plugg` overrides `rage`, and the model itself overrides both. Genre
 //! archetypes extend `_defaults`, so every model bottoms out at one place.
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::BTreeMap;
 
 use serde_json::{Map, Value};
 
@@ -53,40 +53,30 @@ fn parents_of(model: &Value) -> Vec<String> {
 /// The returned value keeps the child's own `id`, `type` and `name` — those
 /// identify the model and must never be inherited from a parent.
 pub fn resolve(id: &str, registry: &BTreeMap<String, Value>) -> Result<Value, DatasetError> {
+    let mut order = Vec::new();
     let mut visiting = Vec::new();
-    let mut done = BTreeSet::new();
-    resolve_inner(id, registry, &mut visiting, &mut done)
-}
+    linearize(id, registry, &mut visiting, &mut order)?;
 
-fn resolve_inner(
-    id: &str,
-    registry: &BTreeMap<String, Value>,
-    visiting: &mut Vec<String>,
-    done: &mut BTreeSet<String>,
-) -> Result<Value, DatasetError> {
-    if visiting.iter().any(|v| v == id) {
-        // Report the loop as it was walked, so the author can see which edge to
-        // cut rather than just being told one exists.
-        let mut chain = visiting.clone();
-        chain.push(id.to_owned());
-        let start = chain.iter().position(|v| v == id).unwrap_or(0);
-        return Err(DatasetError::Cycle(chain[start..].join(" -> ")));
+    // Merge each ancestor's OWN body, lowest precedence first.
+    //
+    // Merging fully *resolved* parents instead is the subtle way to get this
+    // wrong, and it was: with `"extends": ["p1", "p2"]` where both descend from
+    // `_defaults`, resolved-p2 carries `_defaults`' values for everything p2
+    // never mentions — so merging it over resolved-p1 let p2's *inherited
+    // defaults* silently overwrite p1's *explicit* declarations. An artist
+    // model with two parents got `_defaults`' straight timing and generic BPM
+    // back, with nothing reported anywhere.
+    let mut merged = Value::Object(Map::new());
+    for ancestor in &order {
+        let model = registry
+            .get(ancestor)
+            .ok_or_else(|| DatasetError::UnknownParent(ancestor.clone()))?;
+        merged = deep_merge(&merged, model);
     }
 
     let model = registry
         .get(id)
         .ok_or_else(|| DatasetError::UnknownParent(id.to_owned()))?;
-
-    visiting.push(id.to_owned());
-    let mut acc = Value::Object(Map::new());
-    for parent in parents_of(model) {
-        let resolved = resolve_inner(&parent, registry, visiting, done)?;
-        acc = deep_merge(&acc, &resolved);
-    }
-    visiting.pop();
-    done.insert(id.to_owned());
-
-    let mut merged = deep_merge(&acc, model);
 
     // Identity is the child's, never an ancestor's — a merge must not be able
     // to rename a model or change its type.
@@ -107,6 +97,45 @@ fn resolve_inner(
     }
 
     Ok(merged)
+}
+
+/// Append `id` and everything it inherits from to `order`, lowest precedence
+/// first: every model lands after all of its own parents, and parents land
+/// left to right.
+///
+/// The first placement is the one kept. A model reached twice through a diamond
+/// therefore sits at its *deepest* position, below both of the paths that
+/// reached it — which is what makes a shared ancestor lose to the parents that
+/// extend it, rather than winning by arriving last.
+fn linearize(
+    id: &str,
+    registry: &BTreeMap<String, Value>,
+    visiting: &mut Vec<String>,
+    order: &mut Vec<String>,
+) -> Result<(), DatasetError> {
+    if order.iter().any(|v| v == id) {
+        return Ok(());
+    }
+    if visiting.iter().any(|v| v == id) {
+        // Report the loop as it was walked, so the author can see which edge to
+        // cut rather than just being told one exists.
+        let mut chain = visiting.clone();
+        chain.push(id.to_owned());
+        let start = chain.iter().position(|v| v == id).unwrap_or(0);
+        return Err(DatasetError::Cycle(chain[start..].join(" -> ")));
+    }
+
+    let model = registry
+        .get(id)
+        .ok_or_else(|| DatasetError::UnknownParent(id.to_owned()))?;
+
+    visiting.push(id.to_owned());
+    for parent in parents_of(model) {
+        linearize(&parent, registry, visiting, order)?;
+    }
+    visiting.pop();
+    order.push(id.to_owned());
+    Ok(())
 }
 
 #[cfg(test)]
@@ -281,6 +310,82 @@ mod tests {
             ),
         ]);
         assert!(matches!(resolve("a", &reg), Err(DatasetError::Cycle(_))));
+    }
+
+    #[test]
+    fn a_parents_explicit_value_beats_a_siblings_inherited_default() {
+        // The shape every artist model has: two parents that both extend
+        // `_defaults`. p1 explicitly overrides swing; p2 says nothing about it.
+        // p2 must NOT drag `_defaults`' 0.5 back over p1's explicit 0.62 just
+        // by being listed second — an inherited default is not a declaration.
+        let reg = registry(vec![
+            (
+                "_defaults",
+                json!({ "id": "_defaults", "type": "genre", "name": "D",
+                        "session": { "swing": { "amount": 0.5 } } }),
+            ),
+            (
+                "p1",
+                json!({ "id": "p1", "type": "genre", "name": "P1", "extends": ["_defaults"],
+                        "session": { "swing": { "amount": 0.62 } } }),
+            ),
+            (
+                "p2",
+                json!({ "id": "p2", "type": "genre", "name": "P2", "extends": ["_defaults"] }),
+            ),
+            (
+                "artist",
+                json!({ "id": "artist", "type": "artist", "name": "A", "extends": ["p1", "p2"] }),
+            ),
+        ]);
+        let out = resolve("artist", &reg).unwrap();
+        assert_eq!(out["session"]["swing"]["amount"], json!(0.62));
+    }
+
+    #[test]
+    fn between_two_explicit_parents_the_later_still_wins() {
+        // The rule the module documents: precedence runs left to right. Only
+        // *inherited* values lose to declaration order, never declared ones.
+        let reg = registry(vec![
+            (
+                "_defaults",
+                json!({ "id": "_defaults", "type": "genre", "name": "D", "v": 1 }),
+            ),
+            (
+                "p1",
+                json!({ "id": "p1", "type": "genre", "name": "P1", "extends": ["_defaults"], "v": 2 }),
+            ),
+            (
+                "p2",
+                json!({ "id": "p2", "type": "genre", "name": "P2", "extends": ["_defaults"], "v": 3 }),
+            ),
+            (
+                "c",
+                json!({ "id": "c", "type": "artist", "name": "C", "extends": ["p1", "p2"] }),
+            ),
+        ]);
+        assert_eq!(resolve("c", &reg).unwrap()["v"], json!(3));
+    }
+
+    #[test]
+    fn a_subclass_parent_outranks_its_own_superclass() {
+        // `c` lists p2 first, but p2 extends p1 — a model must never be beaten
+        // by something it inherits from, whatever order the child names them.
+        let reg = registry(vec![
+            (
+                "p1",
+                json!({ "id": "p1", "type": "genre", "name": "P1", "v": 1 }),
+            ),
+            (
+                "p2",
+                json!({ "id": "p2", "type": "genre", "name": "P2", "extends": ["p1"], "v": 2 }),
+            ),
+            (
+                "c",
+                json!({ "id": "c", "type": "artist", "name": "C", "extends": ["p2", "p1"] }),
+            ),
+        ]);
+        assert_eq!(resolve("c", &reg).unwrap()["v"], json!(2));
     }
 
     #[test]
