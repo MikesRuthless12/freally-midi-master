@@ -67,16 +67,23 @@ Architectural rules that PRs must respect:
 
 ## Before you open a PR
 
+Run the whole CI suite locally first:
+
 ```bash
-cargo fmt --all
-cargo clippy --workspace --all-targets -- -D warnings
-cargo test --workspace
-npm run typecheck && npm run lint && npm run test
+npm run ci:local          # every gate CI runs, in CI's environment
+npm run ci:local -- --fast  # skip the slow ones while iterating
 ```
 
-CI runs all of the above on Windows, macOS, and Linux, plus a dependency denylist that
-fails the build if an AI/ML package or an unsanctioned HTTP client appears in a
-lockfile. Keep the diff small and focused; don't reformat files you didn't change.
+This runs the same commands **with the same environment variables** CI sets. That
+matters more than it sounds: a denylist check once passed locally and failed on CI
+purely because CI sets `CARGO_TERM_COLOR=always`, which changed a crate name and
+stopped it matching an allowlist entry. Running the same commands under a different
+environment is not a rehearsal.
+
+It cannot catch everything — a Linux-only link error still only appears on Linux —
+but it catches everything that is merely a difference of shell.
+
+Keep the diff small and focused; don't reformat files you didn't change.
 
 ## Reporting bugs
 

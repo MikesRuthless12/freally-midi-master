@@ -38,6 +38,15 @@ import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
+/**
+ * SGR escape sequences. CI sets CARGO_TERM_COLOR=always, which wraps cargo
+ * tree's "(*)" repeat marker in colour codes; without stripping them a crate
+ * name never matches its allowlist entry, and a run that is green locally goes
+ * red on CI for reasons the output does not explain.
+ */
+// eslint-disable-next-line no-control-regex
+const ANSI = new RegExp(String.fromCharCode(27) + '\\[[0-9;]*m', 'g');
+
 const AI_RUNTIMES = [
   'onnxruntime',
   'onnx',
@@ -161,7 +170,21 @@ function linkedCrates() {
   try {
     const out = execFileSync(
       'cargo',
-      ['tree', '--workspace', '--edges', 'normal', '--prefix', 'none', '--format', '{lib}'],
+      [
+        'tree',
+        '--workspace',
+        '--edges',
+        'normal',
+        '--prefix',
+        'none',
+        '--format',
+        '{lib}',
+        // CI sets CARGO_TERM_COLOR=always, which wraps the "(*)" repeat marker
+        // in escape codes. Ask for plain output, and strip escapes below too —
+        // this exact thing already turned a green local run into a red CI one.
+        '--color',
+        'never',
+      ],
       {
         cwd: root,
         encoding: 'utf8',
@@ -176,7 +199,11 @@ function linkedCrates() {
           // cargo tree marks an already-expanded subtree with a trailing
           // " (*)". Leaving it attached turns `hyper_util` into
           // `hyper_util (*)`, which then misses its allowlist entry.
-          .map((l) => l.trim().replace(/\s*\(\*\)$/, ''))
+          // Strip ANSI escapes first: under CARGO_TERM_COLOR=always the marker
+          // arrives wrapped in them and the plain "(*)" pattern never matches.
+          // eslint-disable-next-line no-control-regex
+          .map((l) => l.replace(ANSI, ''))
+          .map((l) => l.replace(/\s*\(\*\)$/, '').trim())
           .filter(Boolean),
       ),
     ];
