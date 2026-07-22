@@ -1,7 +1,21 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Info, Monitor, Moon, Palette, Settings2, Sun, X } from 'lucide-react';
+import {
+  Check,
+  Info,
+  Languages,
+  Monitor,
+  Moon,
+  Palette,
+  Settings2,
+  Sun,
+  X,
+} from 'lucide-react';
+
+import { useTranslation } from 'react-i18next';
 
 import { invoke, isTauri } from '../../lib/ipc';
+import { LOCALES, type LocaleCode } from '../../i18n/locales';
+import { CATEGORIES, type CategoryId } from './categories';
 import { useUi } from '../../state/ui';
 import type { ThemePreference } from '../../state/theme';
 import './Settings.css';
@@ -15,18 +29,10 @@ import './Settings.css';
  * one that omits it.
  */
 
-const CATEGORIES = ['general', 'appearance', 'about'] as const;
-type CategoryId = (typeof CATEGORIES)[number];
-
-const CATEGORY_LABELS: Record<CategoryId, string> = {
-  general: 'General',
-  appearance: 'Appearance',
-  about: 'About',
-};
-
 const CATEGORY_ICONS: Record<CategoryId, typeof Settings2> = {
   general: Settings2,
   appearance: Palette,
+  language: Languages,
   about: Info,
 };
 
@@ -36,6 +42,7 @@ type AppSettings = {
   closeToTray: boolean;
   showTrayIcon: boolean;
   theme: ThemePreference;
+  language: LocaleCode;
 };
 
 const DEFAULTS: AppSettings = {
@@ -43,12 +50,22 @@ const DEFAULTS: AppSettings = {
   closeToTray: false,
   showTrayIcon: true,
   theme: 'system',
+  language: 'en',
 };
 
-/** Search terms per category, so the filter matches content and not just titles. */
+/**
+ * Search terms per category, so the filter matches content and not just titles.
+ *
+ * Deliberately English-only, and additive to the translated label the filter
+ * also checks. Someone running a Japanese UI who searches "tray" — because that
+ * is the word in every tutorial they have read — should still find the setting.
+ * The language pane lists every endonym so a lost user can search for their own
+ * language in their own script.
+ */
 const CATEGORY_TERMS: Record<CategoryId, string> = {
   general: 'general tray system minimize minimise close taskbar notification area',
   appearance: 'appearance theme dark light system colour color',
+  language: `language locale translation ${LOCALES.map((l) => `${l.english} ${l.native}`).join(' ')}`,
   about: 'about version licence license disclaimer credits artist names privacy',
 };
 
@@ -82,6 +99,7 @@ function Toggle({
 }
 
 export function SettingsModal({ onClose }: { onClose: () => void }) {
+  const { t } = useTranslation();
   const [active, setActive] = useState<CategoryId>('general');
   const [search, setSearch] = useState('');
   // `null` until the real values are read. Seeding this with DEFAULTS was a
@@ -94,6 +112,8 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
 
   const theme = useUi((s) => s.theme);
   const setTheme = useUi((s) => s.setTheme);
+  const language = useUi((s) => s.language);
+  const setLanguage = useUi((s) => s.setLanguage);
 
   useEffect(() => {
     invoke<AppSettings>('settings_get')
@@ -134,9 +154,11 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
     const q = search.trim().toLowerCase();
     if (!q) return [...CATEGORIES];
     return CATEGORIES.filter(
-      (c) => CATEGORY_LABELS[c].toLowerCase().includes(q) || CATEGORY_TERMS[c].includes(q),
+      (c) =>
+        t(`settings.${c}`).toLowerCase().includes(q) ||
+        CATEGORY_TERMS[c].toLowerCase().includes(q),
     );
-  }, [search]);
+  }, [search, t]);
 
   // Derived, not synced: if the search filters the selected category away, the
   // first visible one is shown. Storing that in state would need an effect to
@@ -154,8 +176,14 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
     <div className="settings" role="dialog" aria-modal="true" aria-labelledby="settings-title">
       <div className="settings__panel">
         <div className="settings__head">
-          <h2 id="settings-title">Settings</h2>
-          <button type="button" className="btn-ghost" aria-label="Close" onClick={onClose}>
+          <h2 id="settings-title">{t('settings.title')}</h2>
+          <button
+            type="button"
+            className="btn-ghost"
+            data-testid="settings-close"
+            aria-label={t('common.close')}
+            onClick={onClose}
+          >
             <X size={14} aria-hidden="true" />
           </button>
         </div>
@@ -165,18 +193,18 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
             className="settings__nav"
             role="tablist"
             aria-orientation="vertical"
-            aria-label="Settings categories"
+            aria-label={t('settings.categories')}
           >
             <input
               type="search"
               className="settings__search"
               value={search}
               onChange={(e) => setSearch(e.currentTarget.value)}
-              placeholder="Search settings…"
-              aria-label="Search settings"
+              placeholder={t('settings.searchPlaceholder')}
+              aria-label={t('settings.searchLabel')}
             />
             {visible.length === 0 ? (
-              <p className="settings__none">Nothing matches “{search}”.</p>
+              <p className="settings__none">{t('settings.noMatch', { query: search })}</p>
             ) : (
               visible.map((id) => {
                 const Icon = CATEGORY_ICONS[id];
@@ -186,6 +214,7 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
                     type="button"
                     role="tab"
                     id={`settings-tab-${id}`}
+                    data-testid={`settings-tab-${id}`}
                     aria-selected={shown === id}
                     aria-controls="settings-pane"
                     tabIndex={shown === id ? 0 : -1}
@@ -193,7 +222,7 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
                     onClick={() => setActive(id)}
                   >
                     <Icon size={14} aria-hidden="true" />
-                    {CATEGORY_LABELS[id]}
+                    {t(`settings.${id}`)}
                   </button>
                 );
               })
@@ -208,56 +237,52 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
           >
             {shown === 'general' && (
               <section className="settings__section">
-                <h3>System tray</h3>
+                <h3>{t('settings.trayHeading')}</h3>
 
                 <Toggle
-                  label="Show a system tray icon"
-                  hint="Adds Freally MIDI Master to the notification area, with Show and Quit."
+                  label={t('settings.showTrayIcon')}
+                  hint={t('settings.showTrayIconHint')}
                   checked={shownSettings.showTrayIcon}
                   disabled={!canPersist}
                   onChange={(v) => update({ showTrayIcon: v })}
                 />
 
                 <Toggle
-                  label="Minimize to system tray"
-                  hint="Minimizing hides the window to the tray instead of the taskbar. Click the tray icon to bring it back."
+                  label={t('settings.minimizeToTray')}
+                  hint={t('settings.minimizeToTrayHint')}
                   checked={shownSettings.minimizeToTray}
                   disabled={trayDisabled}
                   onChange={(v) => update({ minimizeToTray: v })}
                 />
 
                 <Toggle
-                  label="Close to system tray"
-                  hint="Closing the window keeps the app running in the tray. Quit from the tray menu to exit."
+                  label={t('settings.closeToTray')}
+                  hint={t('settings.closeToTrayHint')}
                   checked={shownSettings.closeToTray}
                   disabled={trayDisabled}
                   onChange={(v) => update({ closeToTray: v })}
                 />
 
-                {trayDisabled && (
-                  <p className="settings__note">
-                    Turn the tray icon on to use the two options above — without it there would
-                    be no way to get the window back.
-                  </p>
-                )}
+                {trayDisabled && <p className="settings__note">{t('settings.trayRequired')}</p>}
               </section>
             )}
 
             {shown === 'appearance' && (
               <section className="settings__section">
-                <h3>Theme</h3>
-                <p className="settings__note">
-                  Dark is the default and the app&rsquo;s signature look. Both themes are
-                  contrast-checked to WCAG&nbsp;2.1&nbsp;AA.
-                </p>
-                <div className="settings__choices" role="radiogroup" aria-label="Theme">
+                <h3>{t('settings.themeHeading')}</h3>
+                <p className="settings__note">{t('settings.themeNote')}</p>
+                <div
+                  className="settings__choices"
+                  role="radiogroup"
+                  aria-label={t('settings.themeHeading')}
+                >
                   {(
                     [
-                      { value: 'system', label: 'Match system', Icon: Monitor },
-                      { value: 'dark', label: 'Dark', Icon: Moon },
-                      { value: 'light', label: 'Light', Icon: Sun },
+                      { value: 'system', key: 'themeSystem', Icon: Monitor },
+                      { value: 'dark', key: 'themeDark', Icon: Moon },
+                      { value: 'light', key: 'themeLight', Icon: Sun },
                     ] as const
-                  ).map(({ value, label, Icon }) => (
+                  ).map(({ value, key, Icon }) => (
                     <button
                       key={value}
                       type="button"
@@ -270,7 +295,44 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
                       }}
                     >
                       <Icon size={16} aria-hidden="true" />
-                      {label}
+                      {t(`settings.${key}`)}
+                    </button>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {shown === 'language' && (
+              <section className="settings__section">
+                <h3>{t('settings.languageHeading')}</h3>
+                <p className="settings__note">{t('settings.languageNote')}</p>
+
+                <div
+                  className="settings__languages"
+                  role="radiogroup"
+                  aria-label={t('settings.languageLabel')}
+                >
+                  {LOCALES.map(({ code, native }) => (
+                    <button
+                      key={code}
+                      type="button"
+                      role="radio"
+                      aria-checked={language === code}
+                      className="settings__language"
+                      data-testid={`language-${code}`}
+                      lang={code}
+                      onClick={() => {
+                        // Applied immediately, and persisted alongside it. A
+                        // language picker that needs a restart is one people
+                        // assume is broken.
+                        setLanguage(code);
+                        void update({ language: code });
+                      }}
+                    >
+                      <span className="settings__langcheck">
+                        {language === code && <Check size={12} aria-hidden="true" />}
+                      </span>
+                      {native}
                     </button>
                   ))}
                 </div>

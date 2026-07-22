@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 import { invoke, isTauri } from '../lib/ipc';
+import { applyLanguage, loadLanguagePreference } from '../i18n';
+import { isLocaleCode, type LocaleCode } from '../i18n/locales';
 import {
   applyThemePreference,
   isThemePreference,
@@ -19,13 +21,6 @@ export const WIDE_BREAKPOINT = 1440;
  *  is driven by the viewport breakpoint and the K shortcut. */
 export const SECTIONS = ['genres', 'roster', 'kit', 'session'] as const;
 export type SectionId = (typeof SECTIONS)[number];
-
-export const SECTION_LABELS: Record<SectionId, string> = {
-  genres: 'Genres',
-  roster: 'Roster',
-  kit: 'Kit',
-  session: 'Session',
-};
 
 export type SectionState = Record<SectionId, boolean>;
 
@@ -67,6 +62,7 @@ type UiState = {
   rightRailOpen: boolean;
   sections: SectionState;
   theme: ThemePreference;
+  language: LocaleCode;
 
   setActiveTab: (tab: GeneratorTab) => void;
   toggleRightRail: () => void;
@@ -75,6 +71,7 @@ type UiState = {
   toggleSection: (id: SectionId) => void;
   setAllSections: (open: boolean) => void;
   setTheme: (theme: ThemePreference) => void;
+  setLanguage: (language: LocaleCode) => void;
 };
 
 const startsWide = typeof window === 'undefined' ? true : window.innerWidth >= WIDE_BREAKPOINT;
@@ -84,6 +81,7 @@ export const useUi = create<UiState>((set) => ({
   rightRailOpen: startsWide,
   sections: loadSections(),
   theme: loadThemePreference(),
+  language: loadLanguagePreference(),
 
   setActiveTab: (activeTab) => set({ activeTab }),
   toggleRightRail: () => set((s) => ({ rightRailOpen: !s.rightRailOpen })),
@@ -110,6 +108,11 @@ export const useUi = create<UiState>((set) => ({
     applyThemePreference(theme);
     set({ theme });
   },
+
+  setLanguage: (language) => {
+    applyLanguage(language);
+    set({ language });
+  },
 }));
 
 /**
@@ -128,22 +131,38 @@ export const useUi = create<UiState>((set) => ({
  * `Settings::load` returns defaults for a missing one — so it counts as "no
  * information" rather than as a preference, and the healing runs the other way.
  */
-export async function reconcileThemeWithSettings(): Promise<void> {
+export async function reconcileWithSettings(): Promise<void> {
   if (!isTauri()) return;
   try {
-    const stored = await invoke<{ theme?: unknown }>('settings_get');
-    const onDisk = isThemePreference(stored?.theme) ? stored.theme : 'system';
-    const local = useUi.getState().theme;
-    if (onDisk === local) return;
+    const stored = await invoke<{ theme?: unknown; language?: unknown }>('settings_get');
+    const patch: Record<string, unknown> = {};
 
-    if (onDisk !== 'system') {
-      // The file has a real choice and we did not — adopt it, which also
-      // rewrites localStorage so the next launch paints it immediately.
-      useUi.getState().setTheme(onDisk);
-    } else if (local !== 'system') {
-      // We have a real choice the file has never been told about: someone who
-      // chose a theme before this reconcile existed, or a file that was reset.
-      await invoke('settings_set', { settings: { ...(stored ?? {}), theme: local } }).catch(
+    const themeOnDisk = isThemePreference(stored?.theme) ? stored.theme : 'system';
+    const themeLocal = useUi.getState().theme;
+    if (themeOnDisk !== themeLocal) {
+      if (themeOnDisk !== 'system') {
+        // The file has a real choice and we did not — adopt it, which also
+        // rewrites localStorage so the next launch paints it immediately.
+        useUi.getState().setTheme(themeOnDisk);
+      } else if (themeLocal !== 'system') {
+        // We have a real choice the file has never been told about: someone who
+        // chose a theme before this reconcile existed, or a file that was reset.
+        patch.theme = themeLocal;
+      }
+    }
+
+    // Language works the same way, with one difference: there is no "system"
+    // sentinel, so the file wins outright whenever it names a locale we ship.
+    const languageOnDisk = isLocaleCode(stored?.language) ? stored.language : null;
+    const languageLocal = useUi.getState().language;
+    if (languageOnDisk && languageOnDisk !== languageLocal) {
+      useUi.getState().setLanguage(languageOnDisk);
+    } else if (!languageOnDisk) {
+      patch.language = languageLocal;
+    }
+
+    if (Object.keys(patch).length > 0) {
+      await invoke('settings_set', { settings: { ...(stored ?? {}), ...patch } }).catch(
         () => {},
       );
     }

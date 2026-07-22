@@ -3,15 +3,17 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import './styles/tokens.css';
 import { initTheme } from './state/theme';
-import { reconcileThemeWithSettings } from './state/ui';
+import { initI18n } from './i18n';
+import { reconcileWithSettings } from './state/ui';
 
-// Before first paint, so the window never flashes the wrong theme. This reads
-// localStorage because it must be synchronous.
+// Before first paint, so the window never flashes the wrong theme or the wrong
+// language. Both read localStorage because they must be synchronous.
 initTheme();
+initI18n();
 
 // Then settle up with settings.json, the durable store, once the bridge is up.
 // localStorage can be cleared out from under us; the file cannot.
-void reconcileThemeWithSettings();
+void reconcileWithSettings();
 
 ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
   <React.StrictMode>

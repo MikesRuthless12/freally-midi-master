@@ -25,6 +25,19 @@ impl std::fmt::Display for SettingsError {
     }
 }
 
+/// The UI language, as a BCP-47 tag from the canonical 18.
+///
+/// Stored as a plain string rather than an enum: the set is defined on the
+/// TypeScript side (`src/i18n/locales.ts`), and a Rust enum would be a second
+/// copy that has to be kept in step for no benefit — nothing here branches on
+/// the value, it is only carried to disk and back. An unrecognised tag is
+/// rejected by the frontend on read, which is where the list actually lives.
+pub type Language = String;
+
+fn default_language() -> Language {
+    "en".to_string()
+}
+
 /// Theme preference. Mirrors `ThemePreference` in `src/state/theme.ts`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "lowercase")]
@@ -45,6 +58,8 @@ pub struct Settings {
     /// Show the tray icon at all. Off means the two options above cannot apply.
     pub show_tray_icon: bool,
     pub theme: ThemePreference,
+    #[serde(default = "default_language")]
+    pub language: Language,
 }
 
 impl Default for Settings {
@@ -56,6 +71,7 @@ impl Default for Settings {
             close_to_tray: false,
             show_tray_icon: true,
             theme: ThemePreference::default(),
+            language: default_language(),
         }
     }
 }
@@ -128,6 +144,7 @@ mod tests {
         );
         assert!(s.show_tray_icon);
         assert_eq!(s.theme, ThemePreference::System);
+        assert_eq!(s.language, "en");
     }
 
     #[test]
@@ -137,6 +154,7 @@ mod tests {
             close_to_tray: true,
             show_tray_icon: true,
             theme: ThemePreference::Dark,
+            language: "ja".to_string(),
         };
         let json = serde_json::to_string(&s).unwrap();
         assert!(
@@ -154,6 +172,10 @@ mod tests {
         assert!(s.minimize_to_tray);
         assert!(s.show_tray_icon, "a missing field takes its default");
         assert_eq!(s.theme, ThemePreference::System);
+        assert_eq!(
+            s.language, "en",
+            "a settings file from before i18n still loads"
+        );
     }
 
     #[test]
@@ -185,6 +207,7 @@ mod tests {
             close_to_tray: false,
             show_tray_icon: true,
             theme: ThemePreference::Light,
+            language: "fr".to_string(),
         }
         .save()
         .unwrap();

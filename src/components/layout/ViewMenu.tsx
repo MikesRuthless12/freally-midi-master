@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Check, Eye } from 'lucide-react';
-import { SECTIONS, SECTION_LABELS, useUi } from '../../state/ui';
+import { SECTIONS, useUi } from '../../state/ui';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Discoverability for the collapsible panels. The chevrons on each section are
@@ -8,6 +9,7 @@ import { SECTIONS, SECTION_LABELS, useUi } from '../../state/ui';
  * collapsed and forgotten can always be found again.
  */
 export function ViewMenu() {
+  const { t } = useTranslation();
   const sections = useUi((s) => s.sections);
   const toggleSection = useUi((s) => s.toggleSection);
   const setAllSections = useUi((s) => s.setAllSections);
@@ -45,11 +47,11 @@ export function ViewMenu() {
         onClick={() => setOpen((v) => !v)}
       >
         <Eye size={14} aria-hidden="true" />
-        View
+        {t('view.button')}
       </button>
 
       {open && (
-        <div className="viewmenu__pop" role="menu" aria-label="Panels">
+        <div className="viewmenu__pop" role="menu" aria-label={t('view.panels')}>
           <button
             type="button"
             role="menuitemcheckbox"
@@ -58,7 +60,7 @@ export function ViewMenu() {
             onClick={toggleRightRail}
           >
             <span className="viewmenu__check">{rightRailOpen && <Check size={12} />}</span>
-            Right rail
+            {t('view.rightRail')}
             <kbd className="viewmenu__kbd">K</kbd>
           </button>
 
@@ -74,7 +76,7 @@ export function ViewMenu() {
               onClick={() => toggleSection(id)}
             >
               <span className="viewmenu__check">{sections[id] && <Check size={12} />}</span>
-              {SECTION_LABELS[id]}
+              {t(`sections.${id}`)}
             </button>
           ))}
 
@@ -90,7 +92,7 @@ export function ViewMenu() {
             }}
           >
             <span className="viewmenu__check" />
-            {allOpen ? 'Hide all panels' : 'Show all panels'}
+            {allOpen ? t('view.hideAll') : t('view.showAll')}
           </button>
         </div>
       )}

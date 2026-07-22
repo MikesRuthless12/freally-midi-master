@@ -176,7 +176,15 @@ jobs:
 
   e2e:
     name: e2e
-    runs-on: ubuntu-latest
+    # All three, because the language sweep captures a screenshot of the
+    # Settings modal per locale and font rendering is the one thing that
+    # genuinely differs per OS: each platform has its own text shaper, and a
+    # script that lays out correctly on Linux can still break on Windows.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -192,17 +200,38 @@ jobs:
       # Chromium only. These specs drive `vite dev` with IPC mocked at the
       # `src/lib/ipc` seam, so no Tauri binary is built — the UI is what is
       # under test, and native behaviour is covered by the cargo tests and the
-      # per-OS smoke checks instead.
+      # per-OS app screenshots instead.
       - name: Install Playwright browser
         run: npx playwright install --with-deps chromium
 
       - name: Playwright
         run: npm run test:e2e
 
+      # One image per language, per OS: 17 locales x 3 platforms. This is the
+      # evidence that the UI genuinely renders in every language it offers —
+      # a green tick cannot show whether Arabic mirrored or Hindi drew its
+      # conjuncts, and a human can see both in two seconds.
+      - name: Check the language screenshots exist
+        shell: bash
+        run: |
+          count=$(ls screenshots/i18n/*.png 2>/dev/null | wc -l)
+          echo "captured $count language screenshots"
+          if [ "$count" -lt 17 ]; then
+            echo "::error::expected 17 language screenshots, found $count"
+            exit 1
+          fi
+
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
-          name: playwright-report
+          name: language-screenshots-${{ matrix.os }}
+          path: screenshots/i18n/
+          retention-days: 14
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: playwright-report-${{ matrix.os }}
           path: playwright-report/
           retention-days: 7
 

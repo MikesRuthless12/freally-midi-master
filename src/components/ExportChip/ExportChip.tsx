@@ -3,6 +3,7 @@ import { FolderOpen, Upload } from 'lucide-react';
 
 import { invoke, isTauri } from '../../lib/ipc';
 import './ExportChip.css';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Drag a generated `.mid` into the DAW, or export it to a folder.
@@ -25,6 +26,7 @@ type Status = { kind: 'idle' | 'working' | 'ok' | 'error'; message?: string };
 type StartDrag = typeof import('@crabnebula/tauri-plugin-drag').startDrag;
 
 export function ExportChip() {
+  const { t } = useTranslation();
   const [capability, setCapability] = useState<Capability | null>(null);
   const [status, setStatus] = useState<Status>({ kind: 'idle' });
 
@@ -79,7 +81,7 @@ export function ExportChip() {
   const onDragStart = async (e: React.DragEvent) => {
     e.preventDefault();
     if (!isTauri()) {
-      setStatus({ kind: 'error', message: 'Drag only works in the desktop app.' });
+      setStatus({ kind: 'error', message: t('export.dragDesktopOnly') });
       return;
     }
     try {
@@ -94,7 +96,7 @@ export function ExportChip() {
           payload?.result === 'Dropped'
             ? {
                 kind: 'ok',
-                message: 'Dropped. If your DAW ignored it, record that in the matrix.',
+                message: t('export.dropped'),
               }
             : { kind: 'idle' },
         );
@@ -107,7 +109,7 @@ export function ExportChip() {
 
   const onExport = async () => {
     if (!isTauri()) {
-      setStatus({ kind: 'error', message: 'Export only works in the desktop app.' });
+      setStatus({ kind: 'error', message: t('export.exportDesktopOnly') });
       return;
     }
     try {
@@ -123,7 +125,7 @@ export function ExportChip() {
       const written = await invoke<ExportResult>('export_to_folder', {
         source: file.path,
       });
-      setStatus({ kind: 'ok', message: `Exported to ${written.path}` });
+      setStatus({ kind: 'ok', message: t('export.exportedTo', { path: written.path }) });
     } catch (err) {
       setStatus({ kind: 'error', message: err instanceof Error ? err.message : String(err) });
     }
@@ -142,10 +144,10 @@ export function ExportChip() {
           draggable
           onPointerDown={onPointerDown}
           onDragStart={onDragStart}
-          title={capability?.note ?? 'Drag the generated MIDI into your DAW'}
+          title={capability?.note ?? t('export.dragTitle')}
         >
           <Upload size={14} aria-hidden="true" />
-          Drag MIDI
+          {t('export.drag')}
         </button>
       )}
 
@@ -153,10 +155,10 @@ export function ExportChip() {
         type="button"
         className="btn-ghost"
         onClick={onExport}
-        title="Write the MIDI to a folder and reveal it"
+        title={t('export.exportTitle')}
       >
         <FolderOpen size={14} aria-hidden="true" />
-        Export
+        {t('export.export')}
       </button>
 
       {status.kind !== 'idle' && status.message && (

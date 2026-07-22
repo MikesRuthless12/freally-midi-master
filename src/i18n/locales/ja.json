@@ -1,0 +1,145 @@
+{
+  "titlebar": {
+    "settings": "設定",
+    "about": "情報",
+    "minimize": "最小化",
+    "maximize": "最大化",
+    "restore": "元に戻す",
+    "close": "閉じる"
+  },
+  "tabs": {
+    "group": "ジェネレーター",
+    "drums": "ドラム",
+    "melody": "メロディ",
+    "counter": "カウンター",
+    "bass": "ベース",
+    "chords": "コード",
+    "song": "ソング"
+  },
+  "stage": {
+    "emptyTitle": "アーティストを検索。ビートを作ろう。",
+    "emptyBody": "リストからアーティストを選び、生成を押す。",
+    "seed": "シード",
+    "bars": "小節",
+    "generate": "生成"
+  },
+  "rails": {
+    "searchPlaceholder": "アーティストを検索…",
+    "searchLabel": "アーティストを検索",
+    "noDataset": "データセットは未読み込みです。",
+    "noKit": "キットがありません。ワンショットをこのパネルのどこにでもドロップ。"
+  },
+  "sections": {
+    "genres": "ジャンル",
+    "roster": "アーティスト",
+    "kit": "キット",
+    "session": "セッション"
+  },
+  "readouts": {
+    "bpm": "BPM",
+    "key": "キー",
+    "swing": "スウィング"
+  },
+  "transport": {
+    "play": "再生",
+    "stop": "停止",
+    "loop": "ループ",
+    "masterLevel": "マスターレベル: 無音",
+    "toggleRightRail": "右パネルの表示切替 (K)",
+    "reportBug": "バグを報告"
+  },
+  "theme": {
+    "group": "テーマ",
+    "system": "システムのテーマに合わせる",
+    "dark": "ダークテーマ",
+    "light": "ライトテーマ"
+  },
+  "view": {
+    "button": "表示",
+    "panels": "パネル",
+    "rightRail": "右パネル",
+    "showAll": "すべてのパネルを表示",
+    "hideAll": "すべてのパネルを非表示"
+  },
+  "export": {
+    "drag": "MIDIをドラッグ",
+    "dragTitle": "生成したMIDIをDAWにドラッグ",
+    "export": "書き出し",
+    "exportTitle": "MIDIをフォルダーに書き出して場所を開く",
+    "dragDesktopOnly": "ドラッグはデスクトップアプリでのみ使えます。",
+    "exportDesktopOnly": "書き出しはデスクトップアプリでのみ使えます。",
+    "dropped": "ドロップしました。DAW側で無視された場合はマトリクスに記録してください。",
+    "exportedTo": "{{path}} に書き出しました"
+  },
+  "settings": {
+    "title": "設定",
+    "searchPlaceholder": "設定を検索…",
+    "searchLabel": "設定を検索",
+    "categories": "設定カテゴリー",
+    "noMatch": "「{{query}}」に一致するものはありません。",
+    "saveFailed": "設定を保存できませんでした: {{error}}",
+    "general": "一般",
+    "appearance": "外観",
+    "language": "言語",
+    "about": "情報",
+    "trayHeading": "通知領域",
+    "showTrayIcon": "通知領域にアイコンを表示",
+    "showTrayIconHint": "Freally MIDI Master を通知領域に追加し、「表示」と「終了」を用意します。",
+    "minimizeToTray": "通知領域に最小化",
+    "minimizeToTrayHint": "最小化するとウィンドウはタスクバーではなく通知領域に隠れます。アイコンをクリックすると戻ります。",
+    "closeToTray": "閉じても通知領域に常駐",
+    "closeToTrayHint": "ウィンドウを閉じてもアプリは通知領域で動き続けます。終わるにはメニューから「終了」を選びます。",
+    "trayRequired": "上の2つを使うには通知領域のアイコンをオンにしてください — オフのままではウィンドウを戻す手段がありません。",
+    "themeHeading": "テーマ",
+    "themeNote": "ダークが既定で、このアプリらしい見た目です。どちらのテーマも WCAG 2.1 AA のコントラスト基準で検証済みです。",
+    "themeSystem": "システムに合わせる",
+    "themeDark": "ダーク",
+    "themeLight": "ライト",
+    "languageHeading": "言語",
+    "languageNote": "インターフェースの言語です。各言語に必要なフォントを同梱しているため、ダウンロードは不要です。",
+    "languageLabel": "インターフェースの言語"
+  },
+  "about": {
+    "title": "情報",
+    "tagline": "アーティストの作風に忠実なMIDIを、ルールベースのエンジンで生成。AIなし、アカウントなし、テレメトリなし。",
+    "version": "バージョン",
+    "platform": "プラットフォーム",
+    "licence": "ライセンス",
+    "licenceValue": "プロプライエタリ、ソース公開。全著作権を留保します。",
+    "artistNamesHeading": "アーティスト名",
+    "artistNamesBody": "アーティスト名やプロデューサー名は音楽的なスタイルを指す記述的な参照であり、それ以上の意味はありません。提携・推奨・著作関係を示唆するものでも主張するものでもありません。すべてのパターンは手作業で書かれたスタイルパラメーターからプロシージャルに生成され、いかなる録音物からもMIDI・音声・データを複製していません。",
+    "creditsHeading": "クレジット",
+    "creditsBody": "タイミングとベロシティの統計は Magenta Groove MIDI Dataset (CC BY 4.0) に基づいています。Noto Sans、Noto Sans Display、Noto Sans Mono、および CJK・アラビア文字・ヘブライ文字・インド系文字などをカバーする文字体系別の Noto ファミリーは SIL Open Font License 1.1 のもとで使用しています。Lucide のアイコンは ISC のもとで使用しています。プレビュー用キットはリポジトリ内で合成したもので、サードパーティのサンプルは含みません。"
+  },
+  "bugReport": {
+    "title": "バグを報告",
+    "intro": "レポートは匿名で、自動送信されることはありません。下の本文をそのまま確認してから、送信方法を選んでください — GitHub のイシュー、Gmail の下書き、お使いのメールソフトのいずれかです。送信は自分で押します。",
+    "crashNotice": "前回、Freally MIDI Master が予期せず終了しました。下のクラッシュ情報はこの端末にのみ保存されています。",
+    "describeLabel": "問題が起きたとき、何をしていましたか？",
+    "describePlaceholder": "任意ですが、大いに役立ちます。",
+    "includeCrash": "クラッシュ情報を含める",
+    "previewLabel": "送信される内容そのもの",
+    "openGithub": "GitHub でイシューを開く",
+    "composeGmail": "Gmail で作成",
+    "composeGmailTitle": "ブラウザーで Gmail の作成画面を開きます。内容は入力済みです。",
+    "sendEmail": "メールで送信",
+    "sendEmailTitle": "OS の既定のメールソフトを開きます。内容は入力済みです。",
+    "copy": "レポートをコピー",
+    "copied": "コピーしました",
+    "dismissCrash": "クラッシュ情報を閉じる",
+    "copyFailed": "レポートをクリップボードにコピーできませんでした。"
+  },
+  "update": {
+    "available": "バージョン {{version}} が利用できます",
+    "whatsNew": "変更点",
+    "noNotes": "このバージョンのリリースノートは公開されていません。",
+    "installFailed": "アップデートをインストールできませんでした: {{error}}",
+    "later": "いいえ、今はしない",
+    "install": "はい、今すぐ更新",
+    "installing": "更新中…",
+    "footer": "GitHub からダウンロードし、インストール前に署名を検証します。あなたやプロジェクトに関する情報は一切送信されません。"
+  },
+  "common": {
+    "close": "閉じる"
+  }
+}

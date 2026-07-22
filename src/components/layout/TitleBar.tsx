@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { Copy, Info, Minus, Settings, Square, X } from 'lucide-react';
 
 import { isTauri } from '../../lib/ipc';
+import { useTranslation } from 'react-i18next';
 
 /**
  * The app's own title bar, since the window is borderless (`decorations: false`).
@@ -28,6 +29,7 @@ export function TitleBar({
   onOpenSettings: () => void;
   onOpenAbout: () => void;
 }) {
+  const { t } = useTranslation();
   const [maximized, setMaximized] = useState(false);
   const native = isTauri();
 
@@ -99,8 +101,9 @@ export function TitleBar({
         <button
           type="button"
           className="titlebar__button titlebar__button--app"
-          aria-label="Settings"
-          title="Settings"
+          data-testid="open-settings"
+          aria-label={t('titlebar.settings')}
+          title={t('titlebar.settings')}
           onClick={onOpenSettings}
         >
           <Settings size={14} aria-hidden="true" />
@@ -109,8 +112,8 @@ export function TitleBar({
         <button
           type="button"
           className="titlebar__button titlebar__button--app"
-          aria-label="About"
-          title="About"
+          aria-label={t('titlebar.about')}
+          title={t('titlebar.about')}
           onClick={onOpenAbout}
         >
           <Info size={14} aria-hidden="true" />
@@ -121,8 +124,8 @@ export function TitleBar({
         <button
           type="button"
           className="titlebar__button"
-          aria-label="Minimize"
-          title="Minimize"
+          aria-label={t('titlebar.minimize')}
+          title={t('titlebar.minimize')}
           onClick={minimize}
         >
           <Minus size={14} aria-hidden="true" />
@@ -131,8 +134,8 @@ export function TitleBar({
         <button
           type="button"
           className="titlebar__button"
-          aria-label={maximized ? 'Restore' : 'Maximize'}
-          title={maximized ? 'Restore' : 'Maximize'}
+          aria-label={maximized ? t('titlebar.restore') : t('titlebar.maximize')}
+          title={maximized ? t('titlebar.restore') : t('titlebar.maximize')}
           onClick={toggleMaximize}
         >
           {maximized ? (
@@ -145,8 +148,8 @@ export function TitleBar({
         <button
           type="button"
           className="titlebar__button titlebar__button--close"
-          aria-label="Close"
-          title="Close"
+          aria-label={t('titlebar.close')}
+          title={t('titlebar.close')}
           onClick={close}
         >
           <X size={14} aria-hidden="true" />

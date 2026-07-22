@@ -259,3 +259,47 @@
   font-size: var(--text-h2);
   color: var(--color-text);
 }
+
+/* ── Language picker ──────────────────────────────────────────────────────
+ * A plain vertical list rather than a <select>: eighteen native names in
+ * eighteen scripts need to be readable at a glance, and a native dropdown
+ * renders them in the OS's font rather than the bundled Noto — which is the
+ * one place tofu would still be possible.
+ */
+.settings__languages {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.settings__language {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.settings__language:hover {
+  background: var(--color-surface-2);
+}
+
+.settings__language[aria-checked='true'] {
+  border-color: var(--color-accent);
+  background: var(--color-surface-2);
+}
+
+.settings__langcheck {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  flex: 0 0 14px;
+  color: var(--color-accent);
+}

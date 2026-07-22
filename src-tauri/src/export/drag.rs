@@ -258,15 +258,21 @@ mod tests {
 
     #[test]
     fn exporting_without_choosing_a_folder_is_refused() {
+        // Its own file, not the shared spike name. Calling `export_spike_midi`
+        // here raced `the_spike_file_is_a_real_midi_file`: both write
+        // freally-drag-spike.mid into the one session directory, and whichever
+        // finished first deleted it out from under the other, which then failed
+        // canonicalising a path that had existed a moment earlier.
+        let source = write_session_file("export-without-folder", "mid", b"MThd-ish").unwrap();
+
         // The destination comes from the picker, never from the caller.
-        let spike = export_spike_midi().unwrap();
-        let result = export_to_folder(spike.path.clone());
+        let result = export_to_folder(source.to_string_lossy().into_owned());
         // Either no folder has been chosen, or a previous test chose one; both
         // are fine, but it must never accept a caller-supplied destination.
         if let Err(e) = result {
             assert!(e.contains("choose an export folder"), "{e}");
         }
-        let _ = std::fs::remove_file(&spike.path);
+        let _ = std::fs::remove_file(&source);
     }
 
     #[test]

@@ -1,0 +1,145 @@
+{
+  "titlebar": {
+    "settings": "Pengaturan",
+    "about": "Tentang",
+    "minimize": "Minimalkan",
+    "maximize": "Maksimalkan",
+    "restore": "Pulihkan",
+    "close": "Tutup"
+  },
+  "tabs": {
+    "group": "Generator",
+    "drums": "Drum",
+    "melody": "Melodi",
+    "counter": "Kontra",
+    "bass": "Bass",
+    "chords": "Akor",
+    "song": "Lagu"
+  },
+  "stage": {
+    "emptyTitle": "Cari artis. Gas.",
+    "emptyBody": "Pilih satu artis dari daftar, lalu tekan Buat.",
+    "seed": "seed",
+    "bars": "bar",
+    "generate": "Buat"
+  },
+  "rails": {
+    "searchPlaceholder": "Cari artis…",
+    "searchLabel": "Cari artis",
+    "noDataset": "Belum ada dataset yang dimuat.",
+    "noKit": "Belum ada kit. Jatuhkan one-shot di mana saja pada panel ini."
+  },
+  "sections": {
+    "genres": "Genre",
+    "roster": "Artis",
+    "kit": "Kit",
+    "session": "Sesi"
+  },
+  "readouts": {
+    "bpm": "BPM",
+    "key": "Nada Dasar",
+    "swing": "Swing"
+  },
+  "transport": {
+    "play": "Putar",
+    "stop": "Berhenti",
+    "loop": "Loop",
+    "masterLevel": "Level master: senyap",
+    "toggleRightRail": "Alihkan panel kanan (K)",
+    "reportBug": "Laporkan bug"
+  },
+  "theme": {
+    "group": "Tema",
+    "system": "Ikuti tema sistem",
+    "dark": "Tema gelap",
+    "light": "Tema terang"
+  },
+  "view": {
+    "button": "Tampilan",
+    "panels": "Panel",
+    "rightRail": "Panel kanan",
+    "showAll": "Tampilkan semua panel",
+    "hideAll": "Sembunyikan semua panel"
+  },
+  "export": {
+    "drag": "Seret MIDI",
+    "dragTitle": "Seret MIDI yang dihasilkan ke DAW Anda",
+    "export": "Ekspor",
+    "exportTitle": "Simpan MIDI ke folder lalu buka lokasinya",
+    "dragDesktopOnly": "Seret hanya berfungsi di aplikasi desktop.",
+    "exportDesktopOnly": "Ekspor hanya berfungsi di aplikasi desktop.",
+    "dropped": "Sudah dilepas. Jika DAW Anda mengabaikannya, catat di matriks.",
+    "exportedTo": "Diekspor ke {{path}}"
+  },
+  "settings": {
+    "title": "Pengaturan",
+    "searchPlaceholder": "Cari pengaturan…",
+    "searchLabel": "Cari pengaturan",
+    "categories": "Kategori pengaturan",
+    "noMatch": "Tidak ada yang cocok dengan “{{query}}”.",
+    "saveFailed": "Tidak bisa menyimpan pengaturan Anda: {{error}}",
+    "general": "Umum",
+    "appearance": "Penampilan",
+    "language": "Bahasa",
+    "about": "Tentang",
+    "trayHeading": "Baki sistem",
+    "showTrayIcon": "Tampilkan ikon di baki sistem",
+    "showTrayIconHint": "Menambahkan Freally MIDI Master ke area notifikasi, lengkap dengan Tampilkan dan Keluar.",
+    "minimizeToTray": "Minimalkan ke baki sistem",
+    "minimizeToTrayHint": "Meminimalkan akan menyembunyikan jendela ke baki, bukan ke taskbar. Klik ikon baki untuk memunculkannya lagi.",
+    "closeToTray": "Tutup ke baki sistem",
+    "closeToTrayHint": "Menutup jendela membuat aplikasi tetap berjalan di baki. Pilih Keluar dari menu baki untuk berhenti.",
+    "trayRequired": "Nyalakan ikon baki untuk memakai dua opsi di atas — tanpa itu tidak ada cara mengembalikan jendela.",
+    "themeHeading": "Tema",
+    "themeNote": "Gelap adalah bawaan sekaligus tampilan khas aplikasi ini. Kontras kedua tema sudah diuji sesuai WCAG 2.1 AA.",
+    "themeSystem": "Ikuti sistem",
+    "themeDark": "Gelap",
+    "themeLight": "Terang",
+    "languageHeading": "Bahasa",
+    "languageNote": "Bahasa antarmuka. Setiap bahasa sudah menyertakan font yang diperlukan, jadi tidak ada yang perlu diunduh.",
+    "languageLabel": "Bahasa antarmuka"
+  },
+  "about": {
+    "title": "Tentang",
+    "tagline": "MIDI yang setia pada gaya artis, dihasilkan mesin berbasis aturan. Tanpa AI, tanpa akun, tanpa telemetri.",
+    "version": "Versi",
+    "platform": "Platform",
+    "licence": "Lisensi",
+    "licenceValue": "Proprietari, kode sumber tersedia. Hak cipta dilindungi undang-undang.",
+    "artistNamesHeading": "Nama artis",
+    "artistNamesBody": "Nama artis dan produser hanyalah rujukan deskriptif pada sebuah gaya musik, tidak lebih. Tidak ada afiliasi, dukungan, atau kepengarangan yang tersirat maupun diklaim. Setiap pola dibangkitkan secara prosedural dari parameter gaya yang ditulis tangan — tidak ada MIDI, audio, atau data yang disalin dari rekaman mana pun.",
+    "creditsHeading": "Kredit",
+    "creditsBody": "Statistik timing dan velocity diturunkan dari Magenta Groove MIDI Dataset (CC BY 4.0). Noto Sans, Noto Sans Display dan Noto Sans Mono, beserta keluarga Noto per-aksara yang mencakup CJK, Arab, Ibrani, India dan lainnya, di bawah SIL Open Font License 1.1. Ikon Lucide di bawah ISC. Kit pratinjau disintesis di dalam repositori dan tidak memuat sampel pihak ketiga."
+  },
+  "bugReport": {
+    "title": "Laporkan bug",
+    "intro": "Laporan bersifat anonim dan tidak pernah dikirim otomatis. Baca dulu teks persis di bawah ini, lalu pilih cara mengirimnya — isu GitHub, draf Gmail, atau klien email Anda sendiri. Anda yang menekan Kirim.",
+    "crashNotice": "Terakhir kali Freally MIDI Master tertutup tak terduga. Detail crash di bawah hanya tersimpan di komputer ini.",
+    "describeLabel": "Apa yang sedang Anda lakukan saat masalahnya muncul?",
+    "describePlaceholder": "Opsional, tapi sangat membantu.",
+    "includeCrash": "Sertakan detail crash",
+    "previewLabel": "Persis yang akan dikirim",
+    "openGithub": "Buka isu GitHub",
+    "composeGmail": "Tulis di Gmail",
+    "composeGmailTitle": "Membuka jendela tulis Gmail di peramban Anda, sudah terisi.",
+    "sendEmail": "Kirim email",
+    "sendEmailTitle": "Membuka klien email bawaan sistem operasi Anda, sudah terisi.",
+    "copy": "Salin laporan",
+    "copied": "Tersalin",
+    "dismissCrash": "Abaikan crash",
+    "copyFailed": "Tidak bisa menyalin laporan ke papan klip."
+  },
+  "update": {
+    "available": "Versi {{version}} sudah tersedia",
+    "whatsNew": "Yang baru",
+    "noNotes": "Tidak ada catatan rilis yang diterbitkan untuk versi ini.",
+    "installFailed": "Pembaruan tidak bisa dipasang: {{error}}",
+    "later": "Tidak, nanti saja",
+    "install": "Ya, perbarui sekarang",
+    "installing": "Memperbarui…",
+    "footer": "Diunduh dari GitHub dan diverifikasi tanda tangannya sebelum dipasang. Tidak ada data tentang Anda atau proyek Anda yang dikirim."
+  },
+  "common": {
+    "close": "Tutup"
+  }
+}

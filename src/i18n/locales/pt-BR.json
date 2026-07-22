@@ -1,0 +1,145 @@
+{
+  "titlebar": {
+    "settings": "Configurações",
+    "about": "Sobre",
+    "minimize": "Minimizar",
+    "maximize": "Maximizar",
+    "restore": "Restaurar",
+    "close": "Fechar"
+  },
+  "tabs": {
+    "group": "Gerador",
+    "drums": "Bateria",
+    "melody": "Melodia",
+    "counter": "Contra",
+    "bass": "Baixo",
+    "chords": "Acordes",
+    "song": "Música"
+  },
+  "stage": {
+    "emptyTitle": "Busque um artista. Manda ver.",
+    "emptyBody": "Escolha alguém da lista e clique em Gerar.",
+    "seed": "semente",
+    "bars": "compassos",
+    "generate": "Gerar"
+  },
+  "rails": {
+    "searchPlaceholder": "Buscar um artista…",
+    "searchLabel": "Buscar um artista",
+    "noDataset": "Nenhum conjunto de dados carregado ainda.",
+    "noKit": "Nenhum kit ainda. Solte seus one-shots em qualquer lugar deste painel."
+  },
+  "sections": {
+    "genres": "Gêneros",
+    "roster": "Artistas",
+    "kit": "Kit",
+    "session": "Sessão"
+  },
+  "readouts": {
+    "bpm": "BPM",
+    "key": "Tom",
+    "swing": "Swing"
+  },
+  "transport": {
+    "play": "Tocar",
+    "stop": "Parar",
+    "loop": "Loop",
+    "masterLevel": "Nível master: silencioso",
+    "toggleRightRail": "Alternar painel direito (K)",
+    "reportBug": "Relatar um erro"
+  },
+  "theme": {
+    "group": "Tema",
+    "system": "Acompanhar o tema do sistema",
+    "dark": "Tema escuro",
+    "light": "Tema claro"
+  },
+  "view": {
+    "button": "Exibir",
+    "panels": "Painéis",
+    "rightRail": "Painel direito",
+    "showAll": "Mostrar todos os painéis",
+    "hideAll": "Ocultar todos os painéis"
+  },
+  "export": {
+    "drag": "Arrastar MIDI",
+    "dragTitle": "Arraste o MIDI gerado para a sua DAW",
+    "export": "Exportar",
+    "exportTitle": "Salvar o MIDI em uma pasta e abrir o local",
+    "dragDesktopOnly": "Arrastar só funciona no aplicativo de desktop.",
+    "exportDesktopOnly": "Exportar só funciona no aplicativo de desktop.",
+    "dropped": "Soltou. Se a sua DAW ignorou, registre isso na matriz.",
+    "exportedTo": "Exportado para {{path}}"
+  },
+  "settings": {
+    "title": "Configurações",
+    "searchPlaceholder": "Buscar nas configurações…",
+    "searchLabel": "Buscar nas configurações",
+    "categories": "Categorias de configurações",
+    "noMatch": "Nada corresponde a “{{query}}”.",
+    "saveFailed": "Não foi possível salvar suas configurações: {{error}}",
+    "general": "Geral",
+    "appearance": "Aparência",
+    "language": "Idioma",
+    "about": "Sobre",
+    "trayHeading": "Bandeja do sistema",
+    "showTrayIcon": "Mostrar ícone na bandeja do sistema",
+    "showTrayIconHint": "Adiciona o Freally MIDI Master à área de notificação, com Mostrar e Sair.",
+    "minimizeToTray": "Minimizar para a bandeja",
+    "minimizeToTrayHint": "Minimizar esconde a janela na bandeja em vez da barra de tarefas. Clique no ícone da bandeja para trazê-la de volta.",
+    "closeToTray": "Fechar para a bandeja",
+    "closeToTrayHint": "Fechar a janela mantém o aplicativo rodando na bandeja. Use Sair no menu da bandeja para encerrar.",
+    "trayRequired": "Ative o ícone da bandeja para usar as duas opções acima — sem ele não haveria como recuperar a janela.",
+    "themeHeading": "Tema",
+    "themeNote": "O escuro é o padrão e a cara do aplicativo. Os dois temas têm contraste verificado para WCAG 2.1 AA.",
+    "themeSystem": "Do sistema",
+    "themeDark": "Escuro",
+    "themeLight": "Claro",
+    "languageHeading": "Idioma",
+    "languageNote": "O idioma da interface. Cada idioma já vem com as fontes de que precisa, então nada precisa ser baixado.",
+    "languageLabel": "Idioma da interface"
+  },
+  "about": {
+    "title": "Sobre",
+    "tagline": "MIDI fiel ao artista, gerado por um motor baseado em regras. Sem IA, sem contas, sem telemetria.",
+    "version": "Versão",
+    "platform": "Plataforma",
+    "licence": "Licença",
+    "licenceValue": "Proprietária, com código disponível. Todos os direitos reservados.",
+    "artistNamesHeading": "Nomes de artistas",
+    "artistNamesBody": "Nomes de artistas e produtores são referências descritivas a um estilo musical, nada além disso. Nenhuma afiliação, endosso ou autoria é sugerida ou reivindicada. Todo padrão é gerado proceduralmente a partir de parâmetros de estilo escritos à mão — nenhum MIDI, áudio ou dado é copiado de qualquer gravação.",
+    "creditsHeading": "Créditos",
+    "creditsBody": "Estatísticas de tempo e velocity derivadas do Magenta Groove MIDI Dataset (CC BY 4.0). Noto Sans, Noto Sans Display e Noto Sans Mono, com famílias Noto por escrita cobrindo CJK, árabe, hebraico, índicas e outras, sob a SIL Open Font License 1.1. Ícones Lucide sob ISC. Os kits de prévia são sintetizados no próprio repositório e não contêm amostras de terceiros."
+  },
+  "bugReport": {
+    "title": "Relatar um erro",
+    "intro": "Os relatos são anônimos e nunca são enviados automaticamente. Leia o texto exato abaixo e escolha como enviá-lo — uma issue no GitHub, um rascunho no Gmail ou seu próprio cliente de e-mail. Quem clica em Enviar é você.",
+    "crashNotice": "O Freally MIDI Master fechou inesperadamente da última vez. Os detalhes da falha abaixo foram salvos somente neste computador.",
+    "describeLabel": "O que você estava fazendo quando deu errado?",
+    "describePlaceholder": "Opcional, mas ajuda muito.",
+    "includeCrash": "Incluir os detalhes da falha",
+    "previewLabel": "Exatamente o que será enviado",
+    "openGithub": "Abrir issue no GitHub",
+    "composeGmail": "Escrever no Gmail",
+    "composeGmailTitle": "Abre a janela de escrita do Gmail no seu navegador, já preenchida.",
+    "sendEmail": "Enviar e-mail",
+    "sendEmailTitle": "Abre o cliente de e-mail padrão do seu sistema, já preenchido.",
+    "copy": "Copiar relato",
+    "copied": "Copiado",
+    "dismissCrash": "Dispensar falha",
+    "copyFailed": "Não foi possível copiar o relato para a área de transferência."
+  },
+  "update": {
+    "available": "A versão {{version}} está disponível",
+    "whatsNew": "Novidades",
+    "noNotes": "Nenhuma nota de versão foi publicada para esta versão.",
+    "installFailed": "Não foi possível instalar a atualização: {{error}}",
+    "later": "Não, agora não",
+    "install": "Sim, atualizar agora",
+    "installing": "Atualizando…",
+    "footer": "Baixado do GitHub e verificado por assinatura antes da instalação. Nada sobre você ou seus projetos é enviado."
+  },
+  "common": {
+    "close": "Fechar"
+  }
+}

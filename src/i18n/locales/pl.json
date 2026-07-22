@@ -1,0 +1,145 @@
+{
+  "titlebar": {
+    "settings": "Ustawienia",
+    "about": "O programie",
+    "minimize": "Minimalizuj",
+    "maximize": "Maksymalizuj",
+    "restore": "Przywróć",
+    "close": "Zamknij"
+  },
+  "tabs": {
+    "group": "Generator",
+    "drums": "Perkusja",
+    "melody": "Melodia",
+    "counter": "Kontra",
+    "bass": "Bas",
+    "chords": "Akordy",
+    "song": "Utwór"
+  },
+  "stage": {
+    "emptyTitle": "Wyszukaj artystę. Kręć bit.",
+    "emptyBody": "Wybierz kogoś z listy, a potem kliknij Generuj.",
+    "seed": "ziarno",
+    "bars": "takty",
+    "generate": "Generuj"
+  },
+  "rails": {
+    "searchPlaceholder": "Szukaj artysty…",
+    "searchLabel": "Szukaj artysty",
+    "noDataset": "Nie wczytano jeszcze żadnego zbioru danych.",
+    "noKit": "Nie ma jeszcze zestawu. Upuść swoje one-shoty w dowolnym miejscu tego panelu."
+  },
+  "sections": {
+    "genres": "Gatunki",
+    "roster": "Artyści",
+    "kit": "Zestaw",
+    "session": "Sesja"
+  },
+  "readouts": {
+    "bpm": "BPM",
+    "key": "Tonacja",
+    "swing": "Swing"
+  },
+  "transport": {
+    "play": "Odtwórz",
+    "stop": "Zatrzymaj",
+    "loop": "Pętla",
+    "masterLevel": "Poziom master: cisza",
+    "toggleRightRail": "Przełącz prawy panel (K)",
+    "reportBug": "Zgłoś błąd"
+  },
+  "theme": {
+    "group": "Motyw",
+    "system": "Zgodnie z systemem",
+    "dark": "Motyw ciemny",
+    "light": "Motyw jasny"
+  },
+  "view": {
+    "button": "Widok",
+    "panels": "Panele",
+    "rightRail": "Prawy panel",
+    "showAll": "Pokaż wszystkie panele",
+    "hideAll": "Ukryj wszystkie panele"
+  },
+  "export": {
+    "drag": "Przeciągnij MIDI",
+    "dragTitle": "Przeciągnij wygenerowane MIDI do swojego DAW",
+    "export": "Eksportuj",
+    "exportTitle": "Zapisz MIDI do folderu i pokaż plik",
+    "dragDesktopOnly": "Przeciąganie działa tylko w aplikacji desktopowej.",
+    "exportDesktopOnly": "Eksport działa tylko w aplikacji desktopowej.",
+    "dropped": "Upuszczono. Jeśli DAW to zignorował, odnotuj to w matrycy.",
+    "exportedTo": "Wyeksportowano do {{path}}"
+  },
+  "settings": {
+    "title": "Ustawienia",
+    "searchPlaceholder": "Szukaj w ustawieniach…",
+    "searchLabel": "Szukaj w ustawieniach",
+    "categories": "Kategorie ustawień",
+    "noMatch": "Nic nie pasuje do „{{query}}”.",
+    "saveFailed": "Nie udało się zapisać ustawień: {{error}}",
+    "general": "Ogólne",
+    "appearance": "Wygląd",
+    "language": "Język",
+    "about": "O programie",
+    "trayHeading": "Zasobnik systemowy",
+    "showTrayIcon": "Pokaż ikonę w zasobniku systemowym",
+    "showTrayIconHint": "Dodaje Freally MIDI Master do obszaru powiadomień, z opcjami Pokaż i Zakończ.",
+    "minimizeToTray": "Minimalizuj do zasobnika",
+    "minimizeToTrayHint": "Minimalizowanie chowa okno do zasobnika zamiast na pasek zadań. Kliknij ikonę w zasobniku, aby je przywrócić.",
+    "closeToTray": "Zamykaj do zasobnika",
+    "closeToTrayHint": "Zamknięcie okna nie kończy aplikacji — działa dalej w zasobniku. Aby wyjść, wybierz Zakończ z menu zasobnika.",
+    "trayRequired": "Włącz ikonę w zasobniku, aby korzystać z dwóch opcji powyżej — bez niej nie dałoby się przywrócić okna.",
+    "themeHeading": "Motyw",
+    "themeNote": "Ciemny to motyw domyślny i znak rozpoznawczy aplikacji. Oba mają kontrast sprawdzony pod kątem WCAG 2.1 AA.",
+    "themeSystem": "Jak w systemie",
+    "themeDark": "Ciemny",
+    "themeLight": "Jasny",
+    "languageHeading": "Język",
+    "languageNote": "Język interfejsu. Każdy język ma dołączone potrzebne fonty, więc nic nie trzeba pobierać.",
+    "languageLabel": "Język interfejsu"
+  },
+  "about": {
+    "title": "O programie",
+    "tagline": "MIDI wierne stylowi artysty, tworzone przez silnik regułowy. Bez AI, bez kont, bez telemetrii.",
+    "version": "Wersja",
+    "platform": "Platforma",
+    "licence": "Licencja",
+    "licenceValue": "Licencja własnościowa, kod dostępny. Wszelkie prawa zastrzeżone.",
+    "artistNamesHeading": "Nazwiska artystów",
+    "artistNamesBody": "Nazwiska artystów i producentów to wyłącznie opisowe odniesienia do stylu muzycznego, nic więcej. Nie sugerujemy ani nie twierdzimy, że istnieje jakakolwiek współpraca, poparcie czy współautorstwo. Każdy wzorzec powstaje proceduralnie z ręcznie napisanych parametrów stylu — żadne MIDI, audio ani dane nie są kopiowane z jakiegokolwiek nagrania.",
+    "creditsHeading": "Podziękowania",
+    "creditsBody": "Statystyki czasu i velocity pochodzą z Magenta Groove MIDI Dataset (CC BY 4.0). Noto Sans, Noto Sans Display i Noto Sans Mono, wraz z rodzinami Noto dla poszczególnych pism — CJK, arabskiego, hebrajskiego, indyjskich i innych — na licencji SIL Open Font License 1.1. Ikony Lucide na licencji ISC. Zestawy podglądowe są syntezowane w repozytorium i nie zawierają próbek innych firm."
+  },
+  "bugReport": {
+    "title": "Zgłoś błąd",
+    "intro": "Zgłoszenia są anonimowe i nigdy nie wysyłają się same. Przeczytaj dokładną treść poniżej, a potem wybierz sposób wysyłki — zgłoszenie na GitHub, wersję roboczą w Gmail albo własny klient poczty. To ty klikasz Wyślij.",
+    "crashNotice": "Freally MIDI Master zamknął się nieoczekiwanie przy ostatnim uruchomieniu. Poniższe szczegóły awarii zapisano tylko na tym komputerze.",
+    "describeLabel": "Co się działo, kiedy coś poszło nie tak?",
+    "describePlaceholder": "Opcjonalne, ale bardzo pomaga.",
+    "includeCrash": "Dołącz szczegóły awarii",
+    "previewLabel": "Dokładnie to zostanie wysłane",
+    "openGithub": "Otwórz zgłoszenie na GitHub",
+    "composeGmail": "Napisz w Gmail",
+    "composeGmailTitle": "Otwiera w przeglądarce okno tworzenia wiadomości Gmail z wypełnioną treścią.",
+    "sendEmail": "Wyślij e-mail",
+    "sendEmailTitle": "Otwiera domyślny klient poczty w systemie z wypełnioną treścią.",
+    "copy": "Kopiuj zgłoszenie",
+    "copied": "Skopiowano",
+    "dismissCrash": "Odrzuć awarię",
+    "copyFailed": "Nie udało się skopiować zgłoszenia do schowka."
+  },
+  "update": {
+    "available": "Dostępna jest wersja {{version}}",
+    "whatsNew": "Co nowego",
+    "noNotes": "Dla tej wersji nie opublikowano informacji o zmianach.",
+    "installFailed": "Nie udało się zainstalować aktualizacji: {{error}}",
+    "later": "Nie, nie teraz",
+    "install": "Tak, aktualizuj teraz",
+    "installing": "Aktualizowanie…",
+    "footer": "Pobrane z GitHub i zweryfikowane podpisem przed instalacją. Żadne dane o tobie ani twoich projektach nie są wysyłane."
+  },
+  "common": {
+    "close": "Zamknij"
+  }
+}

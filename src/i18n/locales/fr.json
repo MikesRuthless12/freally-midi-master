@@ -1,0 +1,145 @@
+{
+  "titlebar": {
+    "settings": "Paramètres",
+    "about": "À propos",
+    "minimize": "Réduire",
+    "maximize": "Agrandir",
+    "restore": "Restaurer",
+    "close": "Fermer"
+  },
+  "tabs": {
+    "group": "Générateur",
+    "drums": "Batterie",
+    "melody": "Mélodie",
+    "counter": "Contrechant",
+    "bass": "Basse",
+    "chords": "Accords",
+    "song": "Morceau"
+  },
+  "stage": {
+    "emptyTitle": "Cherche un artiste. Envoie.",
+    "emptyBody": "Choisis un artiste dans la liste, puis lance Générer.",
+    "seed": "graine",
+    "bars": "mesures",
+    "generate": "Générer"
+  },
+  "rails": {
+    "searchPlaceholder": "Rechercher un artiste…",
+    "searchLabel": "Rechercher un artiste",
+    "noDataset": "Aucun jeu de données chargé.",
+    "noKit": "Aucun kit pour l’instant. Dépose tes one-shots n’importe où sur ce panneau."
+  },
+  "sections": {
+    "genres": "Genres",
+    "roster": "Artistes",
+    "kit": "Kit",
+    "session": "Session"
+  },
+  "readouts": {
+    "bpm": "BPM",
+    "key": "Tonalité",
+    "swing": "Swing"
+  },
+  "transport": {
+    "play": "Lecture",
+    "stop": "Arrêt",
+    "loop": "Boucle",
+    "masterLevel": "Niveau master : silencieux",
+    "toggleRightRail": "Afficher/masquer le panneau droit (K)",
+    "reportBug": "Signaler un bug"
+  },
+  "theme": {
+    "group": "Thème",
+    "system": "Suivre le thème du système",
+    "dark": "Thème sombre",
+    "light": "Thème clair"
+  },
+  "view": {
+    "button": "Affichage",
+    "panels": "Panneaux",
+    "rightRail": "Panneau droit",
+    "showAll": "Afficher tous les panneaux",
+    "hideAll": "Masquer tous les panneaux"
+  },
+  "export": {
+    "drag": "Glisser le MIDI",
+    "dragTitle": "Glisser le MIDI généré dans ton DAW",
+    "export": "Exporter",
+    "exportTitle": "Écrire le MIDI dans un dossier et l’afficher",
+    "dragDesktopOnly": "Le glisser-déposer ne fonctionne que dans l’application de bureau.",
+    "exportDesktopOnly": "L’export ne fonctionne que dans l’application de bureau.",
+    "dropped": "Déposé. Si ton DAW l’a ignoré, note-le dans la matrice.",
+    "exportedTo": "Exporté vers {{path}}"
+  },
+  "settings": {
+    "title": "Paramètres",
+    "searchPlaceholder": "Rechercher un paramètre…",
+    "searchLabel": "Rechercher un paramètre",
+    "categories": "Catégories de paramètres",
+    "noMatch": "Aucun résultat pour « {{query}} ».",
+    "saveFailed": "Impossible d’enregistrer tes paramètres : {{error}}",
+    "general": "Général",
+    "appearance": "Apparence",
+    "language": "Langue",
+    "about": "À propos",
+    "trayHeading": "Zone de notification",
+    "showTrayIcon": "Afficher une icône dans la zone de notification",
+    "showTrayIconHint": "Ajoute Freally MIDI Master à la zone de notification, avec Afficher et Quitter.",
+    "minimizeToTray": "Réduire dans la zone de notification",
+    "minimizeToTrayHint": "Réduire masque la fenêtre dans la zone de notification au lieu de la barre des tâches. Clique sur l’icône pour la faire revenir.",
+    "closeToTray": "Fermer dans la zone de notification",
+    "closeToTrayHint": "Fermer la fenêtre laisse l’application active dans la zone de notification. Quitte depuis le menu de l’icône pour la fermer.",
+    "trayRequired": "Active l’icône de la zone de notification pour utiliser les deux options ci-dessus — sans elle, impossible de récupérer la fenêtre.",
+    "themeHeading": "Thème",
+    "themeNote": "Le sombre est le thème par défaut et la signature de l’application. Les deux thèmes sont vérifiés en contraste selon WCAG 2.1 AA.",
+    "themeSystem": "Suivre le système",
+    "themeDark": "Sombre",
+    "themeLight": "Clair",
+    "languageHeading": "Langue",
+    "languageNote": "La langue de l’interface. Chaque langue embarque les polices dont elle a besoin : il n’y a rien à télécharger.",
+    "languageLabel": "Langue de l’interface"
+  },
+  "about": {
+    "title": "À propos",
+    "tagline": "Du MIDI fidèle à l’artiste, généré par un moteur à base de règles. Pas d’IA, pas de comptes, pas de télémétrie.",
+    "version": "Version",
+    "platform": "Plateforme",
+    "licence": "Licence",
+    "licenceValue": "Propriétaire, code source consultable. Tous droits réservés.",
+    "artistNamesHeading": "Noms d’artistes",
+    "artistNamesBody": "Les noms d’artistes et de producteurs sont des références descriptives à un style musical, rien de plus. Aucune affiliation, approbation ou paternité n’est sous-entendue ni revendiquée. Chaque motif est généré de façon procédurale à partir de paramètres de style écrits à la main — aucun MIDI, audio ou donnée n’est copié d’un enregistrement.",
+    "creditsHeading": "Crédits",
+    "creditsBody": "Statistiques de timing et de vélocité dérivées du Magenta Groove MIDI Dataset (CC BY 4.0). Noto Sans, Noto Sans Display et Noto Sans Mono, avec des familles Noto par écriture couvrant le chinois, le japonais, le coréen, l’arabe, l’hébreu, les écritures indiennes et bien d’autres, sous SIL Open Font License 1.1. Icônes Lucide sous ISC. Les kits de prévisualisation sont synthétisés dans le dépôt et ne contiennent aucun échantillon tiers."
+  },
+  "bugReport": {
+    "title": "Signaler un bug",
+    "intro": "Les rapports sont anonymes et ne sont jamais envoyés automatiquement. Lis le texte exact ci-dessous, puis choisis comment l’envoyer : un ticket GitHub, un brouillon Gmail ou ton propre client mail. C’est toi qui cliques sur Envoyer.",
+    "crashNotice": "Freally MIDI Master s’est fermé de façon inattendue la dernière fois. Les détails du crash ci-dessous ont été enregistrés uniquement sur cette machine.",
+    "describeLabel": "Que faisais-tu quand ça a planté ?",
+    "describePlaceholder": "Facultatif, mais ça aide beaucoup.",
+    "includeCrash": "Inclure les détails du crash",
+    "previewLabel": "Exactement ce qui sera envoyé",
+    "openGithub": "Ouvrir un ticket GitHub",
+    "composeGmail": "Rédiger dans Gmail",
+    "composeGmailTitle": "Ouvre la fenêtre de rédaction Gmail dans ton navigateur, pré-remplie.",
+    "sendEmail": "Envoyer un e-mail",
+    "sendEmailTitle": "Ouvre le client mail par défaut de ton système, pré-rempli.",
+    "copy": "Copier le rapport",
+    "copied": "Copié",
+    "dismissCrash": "Ignorer le crash",
+    "copyFailed": "Impossible de copier le rapport dans le presse-papiers."
+  },
+  "update": {
+    "available": "La version {{version}} est disponible",
+    "whatsNew": "Nouveautés",
+    "noNotes": "Aucune note de version n’a été publiée pour cette version.",
+    "installFailed": "La mise à jour n’a pas pu être installée : {{error}}",
+    "later": "Non, pas maintenant",
+    "install": "Oui, mettre à jour",
+    "installing": "Mise à jour…",
+    "footer": "Téléchargée depuis GitHub et vérifiée par signature avant installation. Rien sur toi ni sur tes projets n’est envoyé."
+  },
+  "common": {
+    "close": "Fermer"
+  }
+}

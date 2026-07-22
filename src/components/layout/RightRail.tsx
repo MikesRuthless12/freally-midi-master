@@ -1,10 +1,13 @@
 import { Section } from './Section';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Right rail: kit over session readouts. The rail as a whole collapses below
  * 1440px and toggles with K; each panel inside also collapses on its own.
  */
 export function RightRail() {
+  const { t } = useTranslation();
+
   return (
     <aside className="rail rail--right">
       <Section id="kit" grow>
@@ -15,19 +18,19 @@ export function RightRail() {
             </button>
           ))}
         </div>
-        <div className="kit-drop">No kit yet. Drop your one-shots anywhere on this panel.</div>
+        <div className="kit-drop">{t('rails.noKit')}</div>
       </Section>
 
       <Section id="session">
         <div className="readouts">
           <span className="chip chip--mono">
-            BPM <strong>—</strong>
+            {t('readouts.bpm')} <strong>—</strong>
           </span>
           <span className="chip chip--mono">
-            Key <strong>—</strong>
+            {t('readouts.key')} <strong>—</strong>
           </span>
           <span className="chip chip--mono">
-            Swing <strong>—</strong>
+            {t('readouts.swing')} <strong>—</strong>
           </span>
         </div>
       </Section>

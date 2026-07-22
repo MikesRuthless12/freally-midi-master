@@ -1,0 +1,145 @@
+{
+  "titlebar": {
+    "settings": "Cài đặt",
+    "about": "Giới thiệu",
+    "minimize": "Thu nhỏ",
+    "maximize": "Phóng to",
+    "restore": "Khôi phục",
+    "close": "Đóng"
+  },
+  "tabs": {
+    "group": "Trình tạo",
+    "drums": "Trống",
+    "melody": "Giai điệu",
+    "counter": "Bè đối",
+    "bass": "Bè trầm",
+    "chords": "Hợp âm",
+    "song": "Bài hát"
+  },
+  "stage": {
+    "emptyTitle": "Tìm nghệ sĩ. Chiến beat thôi.",
+    "emptyBody": "Chọn một nghệ sĩ trong danh sách, rồi bấm Tạo.",
+    "seed": "mã seed",
+    "bars": "ô nhịp",
+    "generate": "Tạo"
+  },
+  "rails": {
+    "searchPlaceholder": "Tìm nghệ sĩ…",
+    "searchLabel": "Tìm nghệ sĩ",
+    "noDataset": "Chưa nạp bộ dữ liệu nào.",
+    "noKit": "Chưa có bộ trống. Thả các one-shot của bạn vào bất kỳ đâu trên bảng này."
+  },
+  "sections": {
+    "genres": "Thể loại",
+    "roster": "Nghệ sĩ",
+    "kit": "Bộ trống",
+    "session": "Phiên"
+  },
+  "readouts": {
+    "bpm": "BPM",
+    "key": "Tông",
+    "swing": "Độ swing"
+  },
+  "transport": {
+    "play": "Phát",
+    "stop": "Dừng",
+    "loop": "Lặp",
+    "masterLevel": "Mức master: im lặng",
+    "toggleRightRail": "Bật/tắt thanh phải (K)",
+    "reportBug": "Báo lỗi"
+  },
+  "theme": {
+    "group": "Giao diện",
+    "system": "Theo hệ thống",
+    "dark": "Giao diện tối",
+    "light": "Giao diện sáng"
+  },
+  "view": {
+    "button": "Hiển thị",
+    "panels": "Bảng",
+    "rightRail": "Thanh phải",
+    "showAll": "Hiện tất cả bảng",
+    "hideAll": "Ẩn tất cả bảng"
+  },
+  "export": {
+    "drag": "Kéo MIDI",
+    "dragTitle": "Kéo MIDI vừa tạo vào DAW của bạn",
+    "export": "Xuất",
+    "exportTitle": "Ghi MIDI ra thư mục và mở thư mục đó",
+    "dragDesktopOnly": "Kéo thả chỉ hoạt động trong ứng dụng máy tính.",
+    "exportDesktopOnly": "Xuất chỉ hoạt động trong ứng dụng máy tính.",
+    "dropped": "Đã thả. Nếu DAW của bạn bỏ qua, hãy ghi lại vào bảng tương thích.",
+    "exportedTo": "Đã xuất tới {{path}}"
+  },
+  "settings": {
+    "title": "Cài đặt",
+    "searchPlaceholder": "Tìm trong cài đặt…",
+    "searchLabel": "Tìm trong cài đặt",
+    "categories": "Nhóm cài đặt",
+    "noMatch": "Không có gì khớp với “{{query}}”.",
+    "saveFailed": "Không thể lưu cài đặt của bạn: {{error}}",
+    "general": "Chung",
+    "appearance": "Diện mạo",
+    "language": "Ngôn ngữ",
+    "about": "Giới thiệu",
+    "trayHeading": "Khay hệ thống",
+    "showTrayIcon": "Hiện biểu tượng ở khay hệ thống",
+    "showTrayIconHint": "Thêm Freally MIDI Master vào khu vực thông báo, kèm Hiện và Thoát.",
+    "minimizeToTray": "Thu nhỏ vào khay hệ thống",
+    "minimizeToTrayHint": "Thu nhỏ sẽ ẩn cửa sổ vào khay thay vì thanh tác vụ. Bấm biểu tượng khay để mở lại.",
+    "closeToTray": "Đóng vào khay hệ thống",
+    "closeToTrayHint": "Đóng cửa sổ vẫn giữ ứng dụng chạy trong khay. Thoát từ menu khay để kết thúc.",
+    "trayRequired": "Bật biểu tượng khay để dùng hai tùy chọn trên — không có nó thì không cách nào mở lại cửa sổ.",
+    "themeHeading": "Giao diện",
+    "themeNote": "Tối là mặc định và là diện mạo đặc trưng của ứng dụng. Cả hai giao diện đều được kiểm tra tương phản theo WCAG 2.1 AA.",
+    "themeSystem": "Theo hệ thống",
+    "themeDark": "Tối",
+    "themeLight": "Sáng",
+    "languageHeading": "Ngôn ngữ",
+    "languageNote": "Ngôn ngữ giao diện. Mỗi ngôn ngữ đi kèm sẵn phông chữ cần dùng, nên không phải tải thêm gì.",
+    "languageLabel": "Ngôn ngữ giao diện"
+  },
+  "about": {
+    "title": "Giới thiệu",
+    "tagline": "MIDI đúng chất từng nghệ sĩ, do một bộ máy dựa trên quy tắc tạo ra. Không AI, không tài khoản, không thu thập dữ liệu.",
+    "version": "Phiên bản",
+    "platform": "Nền tảng",
+    "licence": "Giấy phép",
+    "licenceValue": "Độc quyền, có công khai mã nguồn. Bảo lưu mọi quyền.",
+    "artistNamesHeading": "Tên nghệ sĩ",
+    "artistNamesBody": "Tên nghệ sĩ và nhà sản xuất chỉ là cách mô tả một phong cách âm nhạc, không hơn. Không ngụ ý hay tuyên bố bất kỳ sự liên kết, chứng thực hay quyền tác giả nào. Mọi mẫu đều được sinh theo thủ tục từ các tham số phong cách do con người soạn thủ công — không sao chép MIDI, âm thanh hay dữ liệu từ bất kỳ bản thu nào.",
+    "creditsHeading": "Ghi công",
+    "creditsBody": "Thống kê về thời điểm và lực đánh nốt lấy từ Magenta Groove MIDI Dataset (CC BY 4.0). Noto Sans, Noto Sans Display và Noto Sans Mono, cùng các họ Noto riêng cho từng hệ chữ gồm Trung – Nhật – Hàn, Ả Rập, Do Thái, Ấn Độ và nhiều hệ khác, theo SIL Open Font License 1.1. Biểu tượng Lucide theo ISC. Bộ trống nghe thử được tổng hợp ngay trong kho mã và không chứa mẫu âm thanh của bên thứ ba."
+  },
+  "bugReport": {
+    "title": "Báo lỗi",
+    "intro": "Báo cáo là ẩn danh và không bao giờ tự động gửi đi. Hãy đọc đúng nội dung bên dưới, rồi chọn cách gửi — một báo lỗi trên GitHub, một thư nháp Gmail, hoặc trình thư của riêng bạn. Bạn là người bấm Gửi.",
+    "crashNotice": "Freally MIDI Master đã đóng đột ngột ở lần chạy trước. Chi tiết sự cố bên dưới chỉ được lưu trên máy này.",
+    "describeLabel": "Bạn đang làm gì khi sự cố xảy ra?",
+    "describePlaceholder": "Không bắt buộc, nhưng giúp ích rất nhiều.",
+    "includeCrash": "Kèm chi tiết sự cố",
+    "previewLabel": "Chính xác những gì sẽ được gửi",
+    "openGithub": "Mở báo lỗi trên GitHub",
+    "composeGmail": "Soạn trong Gmail",
+    "composeGmailTitle": "Mở cửa sổ soạn thư Gmail trong trình duyệt, đã điền sẵn.",
+    "sendEmail": "Gửi email",
+    "sendEmailTitle": "Mở trình thư mặc định của hệ điều hành, đã điền sẵn.",
+    "copy": "Sao chép báo cáo",
+    "copied": "Đã sao chép",
+    "dismissCrash": "Bỏ qua sự cố",
+    "copyFailed": "Không thể sao chép báo cáo vào bộ nhớ tạm."
+  },
+  "update": {
+    "available": "Đã có phiên bản {{version}}",
+    "whatsNew": "Có gì mới",
+    "noNotes": "Phiên bản này không công bố ghi chú phát hành.",
+    "installFailed": "Không thể cài bản cập nhật: {{error}}",
+    "later": "Không, để sau",
+    "install": "Có, cập nhật ngay",
+    "installing": "Đang cập nhật…",
+    "footer": "Tải từ GitHub và xác minh chữ ký trước khi cài. Không gửi đi bất kỳ thông tin nào về bạn hay dự án của bạn."
+  },
+  "common": {
+    "close": "Đóng"
+  }
+}

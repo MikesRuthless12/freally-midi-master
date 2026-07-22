@@ -1,3 +1,5 @@
+import { initI18n } from './i18n';
+
 /**
  * Node 26 defines its own `localStorage` global that is unavailable unless the
  * runtime is started with `--localstorage-file`, and it shadows the one jsdom
@@ -44,4 +46,16 @@ if (typeof window !== 'undefined') {
     configurable: true,
     writable: true,
   });
+}
+
+/**
+ * Initialise i18n once for the whole suite.
+ *
+ * Without it `t('rails.searchLabel')` returns the raw key, so every component
+ * test asserts against "rails.searchLabel" instead of real text — which would
+ * pass just as well if the catalog were empty. Tests should see what a user
+ * sees, so they run against the real English catalog.
+ */
+if (typeof window !== 'undefined') {
+  initI18n();
 }

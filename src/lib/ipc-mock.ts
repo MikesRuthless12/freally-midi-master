@@ -52,6 +52,7 @@ From: Freally MIDI Master`;
     closeToTray: false,
     showTrayIcon: true,
     theme: 'system',
+    language: 'en',
   }),
   settings_set: (args) => (args as { settings: unknown } | undefined)?.settings,
 

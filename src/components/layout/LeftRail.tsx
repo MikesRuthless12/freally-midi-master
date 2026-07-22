@@ -1,5 +1,6 @@
 import { Search } from 'lucide-react';
 import { Section } from './Section';
+import { useTranslation } from 'react-i18next';
 
 /** Genre chips are a browse filter only — artists are the unit of generation. */
 const GENRES = ['Trap', 'Drill', 'Plugg', 'Rage', 'R&B', 'DnB', 'Country', 'Pop'];
@@ -10,6 +11,8 @@ const GENRES = ['Trap', 'Drill', 'Plugg', 'Rage', 'R&B', 'DnB', 'Country', 'Pop'
  * styled that way, so keyboard and screen-reader users are told.
  */
 export function LeftRail() {
+  const { t } = useTranslation();
+
   return (
     <aside className="rail rail--left">
       <div className="rail__section">
@@ -19,8 +22,8 @@ export function LeftRail() {
             <input
               className="search__input"
               type="search"
-              placeholder="Search an artist…"
-              aria-label="Search an artist"
+              placeholder={t('rails.searchPlaceholder')}
+              aria-label={t('rails.searchLabel')}
               disabled
             />
           </div>
@@ -38,7 +41,7 @@ export function LeftRail() {
       </Section>
 
       <Section id="roster" grow>
-        <p className="rail__hint">No dataset loaded yet.</p>
+        <p className="rail__hint">{t('rails.noDataset')}</p>
       </Section>
     </aside>
   );

@@ -1,0 +1,145 @@
+{
+  "titlebar": {
+    "settings": "설정",
+    "about": "정보",
+    "minimize": "최소화",
+    "maximize": "최대화",
+    "restore": "이전 크기로",
+    "close": "닫기"
+  },
+  "tabs": {
+    "group": "제너레이터",
+    "drums": "드럼",
+    "melody": "멜로디",
+    "counter": "카운터",
+    "bass": "베이스",
+    "chords": "코드",
+    "song": "곡"
+  },
+  "stage": {
+    "emptyTitle": "아티스트 검색하고, 비트 찍으세요.",
+    "emptyBody": "로스터에서 아티스트를 고르고 생성을 누르세요.",
+    "seed": "시드",
+    "bars": "마디",
+    "generate": "생성"
+  },
+  "rails": {
+    "searchPlaceholder": "아티스트 검색…",
+    "searchLabel": "아티스트 검색",
+    "noDataset": "불러온 데이터셋이 없습니다.",
+    "noKit": "아직 킷이 없습니다. 원샷 샘플을 이 패널 아무 곳에나 놓으세요."
+  },
+  "sections": {
+    "genres": "장르",
+    "roster": "로스터",
+    "kit": "킷",
+    "session": "세션"
+  },
+  "readouts": {
+    "bpm": "BPM",
+    "key": "키",
+    "swing": "스윙"
+  },
+  "transport": {
+    "play": "재생",
+    "stop": "정지",
+    "loop": "루프",
+    "masterLevel": "마스터 레벨: 무음",
+    "toggleRightRail": "오른쪽 레일 전환 (K)",
+    "reportBug": "버그 신고"
+  },
+  "theme": {
+    "group": "테마",
+    "system": "시스템 테마 따르기",
+    "dark": "다크 테마",
+    "light": "라이트 테마"
+  },
+  "view": {
+    "button": "보기",
+    "panels": "패널",
+    "rightRail": "오른쪽 레일",
+    "showAll": "모든 패널 표시",
+    "hideAll": "모든 패널 숨기기"
+  },
+  "export": {
+    "drag": "MIDI 드래그",
+    "dragTitle": "생성된 MIDI를 DAW로 드래그",
+    "export": "내보내기",
+    "exportTitle": "MIDI를 폴더에 저장하고 위치 열기",
+    "dragDesktopOnly": "드래그는 데스크톱 앱에서만 됩니다.",
+    "exportDesktopOnly": "내보내기는 데스크톱 앱에서만 됩니다.",
+    "dropped": "드롭 완료. DAW가 받지 않았다면 매트릭스에 기록하세요.",
+    "exportedTo": "{{path}}에 내보냈습니다"
+  },
+  "settings": {
+    "title": "설정",
+    "searchPlaceholder": "설정 검색…",
+    "searchLabel": "설정 검색",
+    "categories": "설정 카테고리",
+    "noMatch": "“{{query}}”에 해당하는 항목이 없습니다.",
+    "saveFailed": "설정을 저장하지 못했습니다: {{error}}",
+    "general": "일반",
+    "appearance": "모양",
+    "language": "언어",
+    "about": "정보",
+    "trayHeading": "시스템 트레이",
+    "showTrayIcon": "시스템 트레이 아이콘 표시",
+    "showTrayIconHint": "Freally MIDI Master를 알림 영역에 추가하고 표시·종료 메뉴를 제공합니다.",
+    "minimizeToTray": "최소화 시 트레이로",
+    "minimizeToTrayHint": "최소화하면 작업 표시줄 대신 트레이로 창을 숨깁니다. 트레이 아이콘을 클릭하면 다시 나타납니다.",
+    "closeToTray": "닫을 때 트레이로",
+    "closeToTrayHint": "창을 닫아도 앱은 트레이에서 계속 실행됩니다. 트레이 메뉴에서 종료를 선택하면 완전히 끝납니다.",
+    "trayRequired": "위 두 옵션을 사용하려면 트레이 아이콘을 켜세요 — 아이콘이 없으면 창을 되돌릴 방법이 없습니다.",
+    "themeHeading": "테마",
+    "themeNote": "다크가 기본이자 이 앱의 시그니처입니다. 두 테마 모두 WCAG 2.1 AA 대비를 충족합니다.",
+    "themeSystem": "시스템 설정",
+    "themeDark": "다크",
+    "themeLight": "라이트",
+    "languageHeading": "언어",
+    "languageNote": "인터페이스 언어입니다. 모든 언어에 필요한 폰트가 함께 들어 있어 따로 내려받을 것이 없습니다.",
+    "languageLabel": "인터페이스 언어"
+  },
+  "about": {
+    "title": "정보",
+    "tagline": "규칙 기반 엔진이 만드는 아티스트 그대로의 MIDI. AI도, 계정도, 텔레메트리도 없습니다.",
+    "version": "버전",
+    "platform": "플랫폼",
+    "licence": "라이선스",
+    "licenceValue": "독점 라이선스, 소스 공개. 모든 권리 보유.",
+    "artistNamesHeading": "아티스트 이름",
+    "artistNamesBody": "아티스트와 프로듀서 이름은 음악 스타일을 가리키는 설명일 뿐, 그 이상이 아닙니다. 어떠한 제휴, 보증, 저작 관계도 암시하거나 주장하지 않습니다. 모든 패턴은 직접 작성한 스타일 파라미터로 절차적으로 생성되며, 어떤 녹음물의 MIDI·오디오·데이터도 복제하지 않습니다.",
+    "creditsHeading": "크레딧",
+    "creditsBody": "타이밍과 벨로시티 통계는 Magenta Groove MIDI Dataset(CC BY 4.0)에서 도출했습니다. Noto Sans, Noto Sans Display, Noto Sans Mono와 CJK·아랍어·히브리어·인도계 문자 등을 지원하는 문자별 Noto 서체는 SIL Open Font License 1.1을 따릅니다. Lucide 아이콘은 ISC를 따릅니다. 프리뷰 킷은 저장소 안에서 합성했으며 서드파티 샘플을 포함하지 않습니다."
+  },
+  "bugReport": {
+    "title": "버그 신고",
+    "intro": "신고는 익명이며 자동으로 전송되지 않습니다. 아래 내용을 그대로 확인한 뒤 보낼 방법을 고르세요 — GitHub 이슈, Gmail 임시보관 메일, 또는 사용 중인 메일 앱. 보내기는 직접 누릅니다.",
+    "crashNotice": "Freally MIDI Master가 지난번에 예기치 않게 종료되었습니다. 아래 충돌 정보는 이 컴퓨터에만 저장되었습니다.",
+    "describeLabel": "문제가 생겼을 때 무엇을 하고 있었나요?",
+    "describePlaceholder": "선택 사항이지만 큰 도움이 됩니다.",
+    "includeCrash": "충돌 정보 포함",
+    "previewLabel": "전송될 내용 전체",
+    "openGithub": "GitHub 이슈 열기",
+    "composeGmail": "Gmail로 작성",
+    "composeGmailTitle": "브라우저에서 Gmail 작성 창을 내용이 채워진 상태로 엽니다.",
+    "sendEmail": "이메일 보내기",
+    "sendEmailTitle": "운영체제 기본 메일 앱을 내용이 채워진 상태로 엽니다.",
+    "copy": "신고 내용 복사",
+    "copied": "복사됨",
+    "dismissCrash": "충돌 알림 닫기",
+    "copyFailed": "신고 내용을 클립보드에 복사하지 못했습니다."
+  },
+  "update": {
+    "available": "{{version}} 버전을 사용할 수 있습니다",
+    "whatsNew": "새로운 기능",
+    "noNotes": "이 버전에는 공개된 릴리스 노트가 없습니다.",
+    "installFailed": "업데이트를 설치하지 못했습니다: {{error}}",
+    "later": "아니요, 나중에",
+    "install": "네, 지금 업데이트",
+    "installing": "업데이트 중…",
+    "footer": "GitHub에서 내려받아 서명을 확인한 뒤 설치합니다. 사용자나 프로젝트에 관한 정보는 전송되지 않습니다."
+  },
+  "common": {
+    "close": "닫기"
+  }
+}

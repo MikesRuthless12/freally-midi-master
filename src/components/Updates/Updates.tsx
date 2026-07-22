@@ -3,6 +3,7 @@ import { Download, X } from 'lucide-react';
 
 import { isTauri } from '../../lib/ipc';
 import './Updates.css';
+import { useTranslation } from 'react-i18next';
 
 /**
  * The Havoc-standard update prompt (Part 2 of the standard).
@@ -42,6 +43,7 @@ export function UpdatePrompt({
   /** Yield the dialog slot without unmounting — see the header. */
   hidden?: boolean;
 }) {
+  const { t } = useTranslation();
   const [update, setUpdate] = useState<Available | null>(null);
   const [phase, setPhase] = useState<Phase>('idle');
   const [error, setError] = useState<string | null>(null);
@@ -61,7 +63,7 @@ export function UpdatePrompt({
         setUpdate({
           version: found.version,
           // The manifest's notes, which the release job fills from CHANGELOG.md.
-          notes: found.body?.trim() || 'No release notes were published for this version.',
+          notes: found.body?.trim() || t('update.noNotes'),
           install: () => found.downloadAndInstall(),
         });
         setPhase('available');
@@ -74,7 +76,10 @@ export function UpdatePrompt({
     return () => {
       cancelled = true;
     };
-  }, []);
+    // `t` is read for the no-release-notes fallback. It is stable for a given
+    // language, so this still runs once per launch — but if the user switches
+    // language the note has to be re-read in the new one.
+  }, [t]);
 
   // The check above still ran, and its result is held until the slot is free.
   if (hidden || phase === 'idle' || !update) return null;
@@ -101,12 +106,12 @@ export function UpdatePrompt({
         <div className="update__head">
           <h2 id="update-title">
             <Download size={16} aria-hidden="true" />
-            Version {update.version} is available
+            {t('update.available', { version: update.version })}
           </h2>
           <button
             type="button"
             className="btn-ghost"
-            aria-label="Close"
+            aria-label={t('common.close')}
             onClick={onDismiss}
             disabled={phase === 'installing'}
           >
@@ -115,13 +120,13 @@ export function UpdatePrompt({
         </div>
 
         <label className="update__label" htmlFor="update-notes">
-          What&rsquo;s new
+          {t('update.whatsNew')}
         </label>
         <textarea id="update-notes" className="update__notes" readOnly value={update.notes} />
 
         {error && (
           <p className="update__error" role="alert">
-            The update could not be installed: {error}
+            {t('update.installFailed', { error })}
           </p>
         )}
 
@@ -132,7 +137,7 @@ export function UpdatePrompt({
             onClick={onDismiss}
             disabled={phase === 'installing'}
           >
-            No, not now
+            {t('update.later')}
           </button>
           <button
             type="button"
@@ -140,14 +145,11 @@ export function UpdatePrompt({
             onClick={install}
             disabled={phase === 'installing'}
           >
-            {phase === 'installing' ? 'Updating…' : 'Yes, update now'}
+            {phase === 'installing' ? t('update.installing') : t('update.install')}
           </button>
         </div>
 
-        <p className="update__foot">
-          Downloaded from GitHub and signature-verified before installing. Nothing about you or
-          your projects is sent.
-        </p>
+        <p className="update__foot">{t('update.footer')}</p>
       </div>
     </div>
   );

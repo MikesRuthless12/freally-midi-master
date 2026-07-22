@@ -10,6 +10,7 @@ import {
 } from './ipc';
 
 import './BugReport.css';
+import { useTranslation } from 'react-i18next';
 
 /**
  * Report a bug — opt-in and anonymous. Shows the user the EXACT report (app/OS
@@ -20,6 +21,7 @@ import './BugReport.css';
  * transmitted until the user clicks Send in their own client.
  */
 export function BugReportOverlay({ onClose }: { onClose: () => void }) {
+  const { t } = useTranslation();
   const [ctx, setCtx] = useState<BugReportContext | null>(null);
   const [description, setDescription] = useState('');
   const [includeCrash, setIncludeCrash] = useState(true);
@@ -70,7 +72,7 @@ export function BugReportOverlay({ onClose }: { onClose: () => void }) {
         setCopied(true);
         window.setTimeout(() => setCopied(false), 1500);
       })
-      .catch(() => setError('Could not copy the report to the clipboard.'));
+      .catch(() => setError(t('bugReport.copyFailed')));
   };
 
   const dismissCrash = () => {
@@ -85,36 +87,34 @@ export function BugReportOverlay({ onClose }: { onClose: () => void }) {
         className="bugreport-panel"
         role="dialog"
         aria-modal="true"
-        aria-label="Report a bug"
+        aria-label={t('bugReport.title')}
         onClick={(event) => event.stopPropagation()}
       >
         <header className="bugreport-header">
-          <h2>Report a bug</h2>
-          <button type="button" className="btn-ghost" onClick={onClose} aria-label="Close">
+          <h2>{t('bugReport.title')}</h2>
+          <button
+            type="button"
+            className="btn-ghost"
+            onClick={onClose}
+            aria-label={t('common.close')}
+          >
             ×
           </button>
         </header>
 
-        <p className="bugreport-intro">
-          Reports are anonymous and never sent automatically. Read the exact text below, then
-          choose how to send it — a GitHub issue, a Gmail draft, or your own mail client. You
-          click Send.
-        </p>
+        <p className="bugreport-intro">{t('bugReport.intro')}</p>
 
         {ctx?.pendingCrash && (
-          <p className="bugreport-crash-notice">
-            Freally MIDI Master closed unexpectedly last time. The crash details below were
-            saved on this machine only.
-          </p>
+          <p className="bugreport-crash-notice">{t('bugReport.crashNotice')}</p>
         )}
 
         <label className="bugreport-field">
-          What were you doing when it went wrong?
+          {t('bugReport.describeLabel')}
           <textarea
             value={description}
             onChange={(event) => setDescription(event.target.value)}
             rows={3}
-            placeholder="Optional, but it helps a lot."
+            placeholder={t('bugReport.describePlaceholder')}
           />
         </label>
 
@@ -125,39 +125,39 @@ export function BugReportOverlay({ onClose }: { onClose: () => void }) {
               checked={includeCrash}
               onChange={(event) => setIncludeCrash(event.target.checked)}
             />
-            Include the crash details
+            {t('bugReport.includeCrash')}
           </label>
         )}
 
-        <span className="bugreport-label">Exactly what will be sent</span>
+        <span className="bugreport-label">{t('bugReport.previewLabel')}</span>
         <pre className="bugreport-preview">{preview}</pre>
 
         <div className="bugreport-actions">
           <button type="button" className="btn-generate" onClick={() => submit('github')}>
-            Open GitHub issue
+            {t('bugReport.openGithub')}
           </button>
           <button
             type="button"
             className="btn-generate"
             onClick={() => submit('gmail')}
-            title="Opens Gmail's compose window in your browser, pre-filled."
+            title={t('bugReport.composeGmailTitle')}
           >
-            Compose in Gmail
+            {t('bugReport.composeGmail')}
           </button>
           <button
             type="button"
             className="btn-generate"
             onClick={() => submit('email')}
-            title="Opens your operating system's default mail client, pre-filled."
+            title={t('bugReport.sendEmailTitle')}
           >
-            Send email
+            {t('bugReport.sendEmail')}
           </button>
           <button type="button" className="btn-ghost" onClick={copy}>
-            {copied ? 'Copied' : 'Copy report'}
+            {copied ? t('bugReport.copied') : t('bugReport.copy')}
           </button>
           {ctx?.pendingCrash && (
             <button type="button" className="btn-ghost" onClick={dismissCrash}>
-              Dismiss crash
+              {t('bugReport.dismissCrash')}
             </button>
           )}
         </div>
