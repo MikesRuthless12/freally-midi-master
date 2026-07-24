@@ -1,0 +1,79 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "chicago-drill",
+  "type": "genre",
+  "name": "Chicago Drill",
+  "aliases": ["chi drill", "drill", "bop-adjacent drill"],
+  "tier": "standard",
+  "extends": ["_defaults"],
+  "era": "2012–present",
+  "genres": ["rap", "drill"],
+  "confidence": "high",
+  "sources": ["style-research ch.1 §2 Drill (Chicago)"],
+  "notes": "The original drill: straighter and sparser than the UK strain. Hats run 1/16 with the occasional 1/32 burst rather than triplet groupings, the snare on 3 is layered and aggressive, and the 808 mostly holds one pitch — the slides that define UK drill are the exception here, not the marker.",
+
+  "session": {
+    "bpm": { "min": 120, "max": 145, "mode": 130 },
+    "halfTime": true,
+    "keys": { "values": ["Cm", "Gm", "Dm", "Fm"], "weights": [3, 3, 2, 2] },
+    "scales": { "values": ["natural_minor", "harmonic_minor", "phrygian"], "weights": [4, 3, 2] },
+    "swing": { "grid": "16th", "amount": 0.5 },
+    "humanize": {
+      "quantizeStrength": 0.9,
+      "velocityVar": 0.12,
+      "timingJitterMs": { "kick": 1, "snare": 2, "clap": 2, "closedHat": 3, "bass808": 1 }
+    }
+  },
+
+  "drums": {
+    "kick": {
+      "densityPerBar": [3, 5],
+      "anchors": ["1"],
+      "syncopation": 0.5,
+      "tresilloBias": 0.4,
+      "offbeat8thShare": 0.25,
+      "avoidPreSnareGap": "8th",
+      "lockTo808": 0.9
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "layered": true,
+      "transient": "hard",
+      "layerClapOffsetMs": [2, 5],
+      "ghost": { "prob": 0.2, "pos": ["4&"], "vel": [0.4, 0.5] },
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.5,
+      "velocities": { "main": [0.85, 1.0], "ghost": [0.4, 0.6] },
+      "rolls": {
+        "vocab": { "values": ["16", "32"], "weights": [3, 2] },
+        "positions": ["phrase_end", "bar_4"],
+        "freqPerBar": 0.4,
+        "velocityRamp": true
+      },
+      "openHat": { "prob": 0.25, "pos": ["2&", "4&"], "perBar": [1, 1] },
+      "pitchBendProb": 0.05
+    },
+    "percs": { "lanes": ["rim"], "densityPerBar": [0, 2] },
+    "fills": { "smallEveryBars": 4, "bigEveryBars": 8, "snareRollLadder": true },
+    "snareRoll": {
+      "ladder": ["8", "16", "32"],
+      "velocityRampRange": [24, 127],
+      "grouping": "strong_weak_weak_weak",
+      "buildAndStopProb": 0.2
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "monoCutSelf": true,
+      "slideProb": 0.15,
+      "slideIntervals": { "values": ["P5", "P8"], "weights": [2, 1] },
+      "slidePositions": ["phrase_end"],
+      "register": [24, 34],
+      "distortion": "medium"
+    }
+  }
+}

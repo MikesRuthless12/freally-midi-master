@@ -15,6 +15,36 @@ copied into the product. See `docs/legal/disclaimer.md`.*
   humanizer's constants. Licensed CC BY 4.0.
   https://magenta.withgoogle.com/datasets/groove
 
+## Published technique research
+
+The drum grammars in `data/genres/` — kick placement, snare and ghost-note
+conventions, hat subdivisions, roll vocabularies, swing settings and 808
+behaviour — are encoded from documented production practice. These are the
+publications behind those numbers. **Rules and statistics only; nothing musical
+is copied from any of them.**
+
+- **Roger Linn on swing and groove** — Attack Magazine. The MPC swing scale
+  (50% straight, 54, 58, 62, 66% triplet) that the humanizer implements.
+  https://www.attackmagazine.com/features/interview/roger-linn-swing-groove-magic-mpc-timing/
+- **Attack Magazine** — Beat Dissected (west-coast hip-hop), *10 Snare Rolls for
+  the Drop*.
+- **MusicRadar** — mixed-resolution trap hi-hat programming, the six jungle/DnB
+  grooves, snare-roll build-ups, realistic banjo programming.
+- **audeobox** — MPC drum programming, trap and drill walkthroughs.
+- **EDMProd** — the drums guide (fill conventions), liquid DnB, phonk.
+- **Splice** — Memphis rap; **BVKER** — phonk.
+- **BRL Theory** — J Dilla's microtiming analyses, from which the "drunk"
+  quantize-strength and swing-drift figures come.
+- **Drumeo** — a drummer's guide to country, for the train beat and two-beat
+  patterns.
+- **ujam**, **MusicTech**, **MasterClass**, **LANDR**, **emastered**,
+  **Native Instruments**, **Melodigging**, **Amped Studio**, **Soundation**,
+  **kickdrum.io**, **Noisegate**, **POW MAG**, **Gearspace** — genre-specific
+  technique articles cited per model in each file's `sources` field.
+
+Every model in `data/genres/` names its own sources; `datasetc stats` reports
+any model that cites none.
+
 ## Fonts
 
 Bundled as subset `woff2` files; full license texts vendored alongside them in
@@ -35,6 +65,7 @@ by this project's own `tools/kitgen` and contain no third-party samples.
 
 ## Third-party code
 
-Rust crates and npm packages, with their licenses, are listed in
-`THIRD-PARTY-NOTICES.md`. The dependency license allowlist is enforced in CI by
-`cargo deny`.
+Rust crates and npm packages are pinned in `Cargo.lock` and
+`package-lock.json`. The dependency licence allowlist is enforced in CI by
+`cargo deny`, which fails the build on any licence outside it — see
+`deny.toml`.

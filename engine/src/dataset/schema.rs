@@ -16,6 +16,7 @@ use std::collections::BTreeMap;
 use rand::Rng;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use ts_rs::TS;
 
 use crate::dataset::DatasetError;
 
@@ -210,14 +211,16 @@ impl BpmSpec {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[ts(export, export_to = "../../src/lib/ipc-types.ts")]
 #[serde(rename_all = "lowercase")]
 pub enum ModelType {
     Artist,
     Genre,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[ts(export, export_to = "../../src/lib/ipc-types.ts")]
 #[serde(rename_all = "lowercase")]
 pub enum Tier {
     Flagship,

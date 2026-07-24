@@ -14,8 +14,14 @@ Windows · macOS · Linux
 
 ---
 
-> **Status: in development.** Phase 0 (foundation & CI) is underway. There is no
-> installable release yet. Watch the repo for the first tagged build.
+> **Status: in development.** [v0.1.0](https://github.com/MikesRuthless12/freally-midi-master/releases/tag/v0.1.0)
+> is the first tagged build — the foundation, the shell and the CI spine, with
+> the generators deliberately disabled rather than pretending to work.
+>
+> Phase 1 is under way: the drum engine now generates kicks, snares, hats, the
+> roll vocabulary, the 808 line and fills across fifteen genre archetypes, and
+> reproduces byte-identically from a seed. It is not wired to the UI yet, so
+> the installable app still cannot generate — that lands with the next release.
 
 ## What it is
 

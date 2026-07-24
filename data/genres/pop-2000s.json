@@ -1,0 +1,68 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "pop-2000s",
+  "type": "genre",
+  "name": "Pop (2000s)",
+  "aliases": ["mainstream pop", "max martin", "radio pop"],
+  "tier": "standard",
+  "extends": ["_defaults"],
+  "era": "1999–2012",
+  "genres": ["pop"],
+  "confidence": "high",
+  "sources": ["style-research ch.1 §12 Mainstream pop (2000s Max Martin era → 2020s)"],
+  "notes": "Verse kick sparse and syncopated — 1 and the and-of-2 — against a hard 2-and-4 backbone, with claps stacked on the snare and the whole thing quantized tight. Straight, never swung: the pocket is the grid, and the interest comes from the layering and the arrangement rather than the feel.",
+
+  "session": {
+    "bpm": { "min": 100, "max": 125, "mode": 116 },
+    "halfTime": false,
+    "keys": { "values": ["C", "G", "Am", "F", "Em"], "weights": [3, 3, 3, 2, 2] },
+    "scales": { "values": ["major", "natural_minor", "mixolydian"], "weights": [5, 3, 2] },
+    "swing": { "grid": "16th", "amount": 0.5 },
+    "humanize": {
+      "quantizeStrength": 0.96,
+      "velocityVar": 0.1,
+      "timingJitterMs": { "kick": 1, "snare": 1, "clap": 2, "closedHat": 2, "perc": 2 }
+    }
+  },
+
+  "drums": {
+    "kick": {
+      "densityPerBar": [2, 4],
+      "anchors": ["1"],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.35,
+      "tresilloBias": 0.1,
+      "fourOnFloorInChorus": true,
+      "lockTo808": 0.0
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "layerClapOffsetMs": [1, 4],
+      "stack": ["clap"],
+      "ghost": { "prob": 0.15, "pos": ["4a"], "vel": [0.25, 0.4] },
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.5,
+      "velocities": { "main": [0.75, 0.95], "ghost": [0.4, 0.6] },
+      "rolls": {
+        "vocab": { "values": ["16", "32"], "weights": [3, 1] },
+        "positions": ["phrase_end", "bar_4"],
+        "freqPerBar": 0.25,
+        "velocityRamp": true
+      },
+      "openHat": { "prob": 0.35, "pos": ["2&", "4&"], "perBar": [1, 1] },
+      "pitchBendProb": 0.0
+    },
+    "percs": { "lanes": ["snap", "perc"], "densityPerBar": [1, 2] },
+    "fills": { "smallEveryBars": 4, "bigEveryBars": 8, "snareRollLadder": true },
+    "snareRoll": {
+      "ladder": ["8", "16"],
+      "velocityRampRange": [40, 120],
+      "grouping": "strong_weak_weak_weak"
+    },
+    "bass808": null
+  }
+}

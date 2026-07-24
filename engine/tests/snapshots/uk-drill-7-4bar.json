@@ -1,0 +1,578 @@
+{
+  "id": "uk-drill-7",
+  "part": "drums",
+  "artistId": "uk-drill",
+  "seed": "7",
+  "bars": 4,
+  "bpm": 140.0,
+  "timeSigNum": 4,
+  "timeSigDen": 4,
+  "keyRoot": 0,
+  "scale": "natural_minor",
+  "lanes": [
+    {
+      "lane": "kick",
+      "notes": [
+        {
+          "startTick": 0,
+          "lenTicks": 259,
+          "pitch": 36,
+          "vel": 93
+        },
+        {
+          "startTick": 1440,
+          "lenTicks": 259,
+          "pitch": 36,
+          "vel": 99
+        },
+        {
+          "startTick": 2880,
+          "lenTicks": 259,
+          "pitch": 36,
+          "vel": 84
+        },
+        {
+          "startTick": 4320,
+          "lenTicks": 259,
+          "pitch": 36,
+          "vel": 91
+        },
+        {
+          "startTick": 5760,
+          "lenTicks": 259,
+          "pitch": 36,
+          "vel": 100
+        },
+        {
+          "startTick": 7679,
+          "lenTicks": 259,
+          "pitch": 36,
+          "vel": 69
+        },
+        {
+          "startTick": 9120,
+          "lenTicks": 259,
+          "pitch": 36,
+          "vel": 77
+        },
+        {
+          "startTick": 10559,
+          "lenTicks": 259,
+          "pitch": 36,
+          "vel": 80
+        },
+        {
+          "startTick": 12000,
+          "lenTicks": 259,
+          "pitch": 36,
+          "vel": 79
+        },
+        {
+          "startTick": 13439,
+          "lenTicks": 259,
+          "pitch": 36,
+          "vel": 77
+        }
+      ]
+    },
+    {
+      "lane": "snare",
+      "notes": [
+        {
+          "startTick": 1930,
+          "lenTicks": 257,
+          "pitch": 38,
+          "vel": 83
+        },
+        {
+          "startTick": 3372,
+          "lenTicks": 257,
+          "pitch": 38,
+          "vel": 58,
+          "articulation": "ghost"
+        },
+        {
+          "startTick": 5771,
+          "lenTicks": 257,
+          "pitch": 38,
+          "vel": 71
+        },
+        {
+          "startTick": 6720,
+          "lenTicks": 259,
+          "pitch": 38,
+          "vel": 56,
+          "articulation": "roll"
+        },
+        {
+          "startTick": 6978,
+          "lenTicks": 221,
+          "pitch": 38,
+          "vel": 56,
+          "articulation": "roll"
+        },
+        {
+          "startTick": 7200,
+          "lenTicks": 259,
+          "pitch": 38,
+          "vel": 66,
+          "articulation": "roll"
+        },
+        {
+          "startTick": 7212,
+          "lenTicks": 257,
+          "pitch": 38,
+          "vel": 62,
+          "articulation": "ghost"
+        },
+        {
+          "startTick": 7458,
+          "lenTicks": 221,
+          "pitch": 38,
+          "vel": 97,
+          "articulation": "roll"
+        },
+        {
+          "startTick": 9610,
+          "lenTicks": 257,
+          "pitch": 38,
+          "vel": 68
+        },
+        {
+          "startTick": 13452,
+          "lenTicks": 257,
+          "pitch": 38,
+          "vel": 94
+        },
+        {
+          "startTick": 14400,
+          "lenTicks": 259,
+          "pitch": 38,
+          "vel": 59,
+          "articulation": "roll"
+        },
+        {
+          "startTick": 14660,
+          "lenTicks": 221,
+          "pitch": 38,
+          "vel": 67,
+          "articulation": "roll"
+        },
+        {
+          "startTick": 14881,
+          "lenTicks": 259,
+          "pitch": 38,
+          "vel": 63,
+          "articulation": "roll"
+        },
+        {
+          "startTick": 14892,
+          "lenTicks": 257,
+          "pitch": 38,
+          "vel": 56,
+          "articulation": "ghost"
+        },
+        {
+          "startTick": 15140,
+          "lenTicks": 221,
+          "pitch": 38,
+          "vel": 88,
+          "articulation": "roll"
+        }
+      ]
+    },
+    {
+      "lane": "closedHat",
+      "notes": [
+        {
+          "startTick": 0,
+          "lenTicks": 259,
+          "pitch": 42,
+          "vel": 120
+        },
+        {
+          "startTick": 479,
+          "lenTicks": 259,
+          "pitch": 42,
+          "vel": 116
+        },
+        {
+          "startTick": 739,
+          "lenTicks": 221,
+          "pitch": 42,
+          "vel": 52,
+          "articulation": "ghost"
+        },
+        {
+          "startTick": 960,
+          "lenTicks": 259,
+          "pitch": 42,
+          "vel": 127
+        },
+        {
+          "startTick": 1440,
+          "lenTicks": 259,
+          "pitch": 42,
+          "vel": 127
+        },
+        {
+          "startTick": 1921,
+          "lenTicks": 259,
+          "pitch": 42,
+          "vel": 117
+        },
+        {
+          "startTick": 2178,
+          "lenTicks": 221,
+          "pitch": 42,
+          "vel": 62,
+          "articulation": "ghost"
+        },
+        {
+          "startTick": 2401,
+          "lenTicks": 259,
+          "pitch": 42,
+          "vel": 111
+        },
+        {
+          "startTick": 2660,
+          "lenTicks": 221,
+          "pitch": 42,
+          "vel": 78,
+          "articulation": "ghost"
+        },
+        {
+          "startTick": 2879,
+          "lenTicks": 259,
+          "pitch": 42,
+          "vel": 126
+        },
+        {
+          "startTick": 3138,
+          "lenTicks": 221,
+          "pitch": 42,
+          "vel": 55,
+          "articulation": "ghost"
+        },
+        {
+          "startTick": 3359,
+          "lenTicks": 259,
+          "pitch": 42,
+          "vel": 118
+        },
+        {
+          "startTick": 3839,
+          "lenTicks": 259,
+          "pitch": 42,
+          "vel": 103
+        },
+        {
+          "startTick": 4100,
+          "lenTicks": 221,
+          "pitch": 42,
+          "vel": 58,
+          "articulation": "ghost"
+        },
+        {
+          "startTick": 4580,
+          "lenTicks": 221,
+          "pitch": 42,
+          "vel": 56,
+          "articulation": "ghost"
+        },
+        {
+          "startTick": 4799,
+          "lenTicks": 130,
+          "pitch": 42,
+          "vel": 61,
+          "articulation": "roll"
+        },
+        {
+          "startTick": 4929,
+          "lenTicks": 129,
+          "pitch": 42,
+          "vel": 94,
+          "articulation": "roll"
+        },
+        {
+          "startTick": 5059,
+          "lenTicks": 111,
+          "pitch": 42,
+          "vel": 127,
+          "articulation": "roll"
+        },
+        {
+          "startTick": 5760,
+          "lenTicks": 259,
+          "pitch": 42,
+          "vel": 127
+        },
+        {
+          "startTick": 6018,
+          "lenTicks": 221,
+          "pitch": 42,
+          "vel": 59,
+          "articulation": "ghost"
+        },
+        {
+          "startTick": 6241,
+          "lenTicks": 259,
+          "pitch": 42,
+          "vel": 111
+        },
+        {
+          "startTick": 6498,
+          "lenTicks": 221,
+          "pitch": 42,
+          "vel": 63,
+          "articulation": "ghost"
+        },
+        {
+          "startTick": 6720,
+          "lenTicks": 259,
+          "pitch": 42,
+          "vel": 123
+        },
+        {
+          "startTick": 7200,
+          "lenTicks": 259,
+          "pitch": 42,
+          "vel": 110
+        },
+        {
+          "startTick": 7460,
+          "lenTicks": 221,
+          "pitch": 42,
+          "vel": 47,
+          "articulation": "ghost"
+        },
+        {
+          "startTick": 7680,
+          "lenTicks": 259,
+          "pitch": 42,
+          "vel": 122
+        },
+        {
+          "startTick": 7939,
+          "lenTicks": 221,
+          "pitch": 42,
+          "vel": 75,
+          "articulation": "ghost"
+        },
+        {
+          "startTick": 8161,
+          "lenTicks": 259,
+          "pitch": 42,
+          "vel": 124
+        },
+        {
+          "startTick": 8419,
+          "lenTicks": 221,
+          "pitch": 42,
+          "vel": 57,
+          "articulation": "ghost"
+        },
+        {
+          "startTick": 8640,
+          "lenTicks": 130,
+          "pitch": 42,
+          "vel": 61,
+          "articulation": "roll"
+        },
+        {
+          "startTick": 8769,
+          "lenTicks": 129,
+          "pitch": 42,
+          "vel": 105,
+          "articulation": "roll"
+        },
+        {
+          "startTick": 8900,
+          "lenTicks": 111,
+          "pitch": 42,
+          "vel": 109,
+          "articulation": "roll"
+        },
+        {
+          "startTick": 9600,
+          "lenTicks": 259,
+          "pitch": 42,
+          "vel": 103
+        },
+        {
+          "startTick": 10080,
+          "lenTicks": 259,
+          "pitch": 42,
+          "vel": 127
+        },
+        {
+          "startTick": 10338,
+          "lenTicks": 221,
+          "pitch": 42,
+          "vel": 59,
+          "articulation": "ghost"
+        },
+        {
+          "startTick": 10560,
+          "lenTicks": 259,
+          "pitch": 42,
+          "vel": 127
+        },
+        {
+          "startTick": 10820,
+          "lenTicks": 221,
+          "pitch": 42,
+          "vel": 84,
+          "articulation": "ghost"
+        },
+        {
+          "startTick": 11040,
+          "lenTicks": 259,
+          "pitch": 42,
+          "vel": 121
+        },
+        {
+          "startTick": 11300,
+          "lenTicks": 221,
+          "pitch": 42,
+          "vel": 53,
+          "articulation": "ghost"
+        },
+        {
+          "startTick": 11521,
+          "lenTicks": 259,
+          "pitch": 42,
+          "vel": 120
+        },
+        {
+          "startTick": 12259,
+          "lenTicks": 221,
+          "pitch": 42,
+          "vel": 61,
+          "articulation": "ghost"
+        },
+        {
+          "startTick": 12479,
+          "lenTicks": 130,
+          "pitch": 42,
+          "vel": 122,
+          "articulation": "roll"
+        },
+        {
+          "startTick": 12610,
+          "lenTicks": 129,
+          "pitch": 42,
+          "vel": 106,
+          "articulation": "roll"
+        },
+        {
+          "startTick": 12740,
+          "lenTicks": 111,
+          "pitch": 42,
+          "vel": 67,
+          "articulation": "roll"
+        },
+        {
+          "startTick": 13439,
+          "lenTicks": 259,
+          "pitch": 42,
+          "vel": 127
+        },
+        {
+          "startTick": 13700,
+          "lenTicks": 221,
+          "pitch": 42,
+          "vel": 63,
+          "articulation": "ghost"
+        },
+        {
+          "startTick": 13920,
+          "lenTicks": 259,
+          "pitch": 42,
+          "vel": 114
+        },
+        {
+          "startTick": 14179,
+          "lenTicks": 221,
+          "pitch": 42,
+          "vel": 62,
+          "articulation": "ghost"
+        },
+        {
+          "startTick": 14400,
+          "lenTicks": 259,
+          "pitch": 42,
+          "vel": 125
+        },
+        {
+          "startTick": 14659,
+          "lenTicks": 221,
+          "pitch": 42,
+          "vel": 67,
+          "articulation": "ghost"
+        },
+        {
+          "startTick": 14879,
+          "lenTicks": 259,
+          "pitch": 42,
+          "vel": 127
+        },
+        {
+          "startTick": 15139,
+          "lenTicks": 221,
+          "pitch": 42,
+          "vel": 61,
+          "articulation": "ghost"
+        }
+      ]
+    },
+    {
+      "lane": "openHat",
+      "notes": [
+        {
+          "startTick": 5280,
+          "lenTicks": 259,
+          "pitch": 46,
+          "vel": 104,
+          "articulation": "accent"
+        }
+      ]
+    },
+    {
+      "lane": "bass808",
+      "notes": [
+        {
+          "startTick": 1440,
+          "lenTicks": 491,
+          "pitch": 24,
+          "vel": 96,
+          "articulation": "legato"
+        },
+        {
+          "startTick": 4320,
+          "lenTicks": 1451,
+          "pitch": 24,
+          "vel": 106,
+          "slideToPitch": 34,
+          "articulation": "legato"
+        },
+        {
+          "startTick": 7680,
+          "lenTicks": 1440,
+          "pitch": 34,
+          "vel": 112,
+          "articulation": "legato"
+        },
+        {
+          "startTick": 9120,
+          "lenTicks": 491,
+          "pitch": 24,
+          "vel": 96,
+          "slideToPitch": 26,
+          "articulation": "legato"
+        }
+      ]
+    }
+  ],
+  "ppq": 960
+}

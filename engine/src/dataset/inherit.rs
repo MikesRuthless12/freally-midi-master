@@ -18,18 +18,30 @@ use crate::dataset::DatasetError;
 /// listing two progression families means exactly those two, not those two
 /// appended to its parent's five. Appending would make it impossible for a
 /// model to narrow what it inherits, which is most of what artist models do.
-pub fn deep_merge(base: &Value, over: &Value) -> Value {
+///
+/// `base` is consumed rather than borrowed. Cloning it instead cost a full deep
+/// copy of the accumulated model at every step of every chain — with 1,000
+/// models over three ancestors that was over half of the whole startup load
+/// (FR-001's 300 ms budget). Only what `over` contributes is cloned now, which
+/// is the part genuinely being copied out of the registry.
+pub fn deep_merge(base: Value, over: &Value) -> Value {
     match (base, over) {
-        (Value::Object(b), Value::Object(o)) => {
-            let mut out: Map<String, Value> = b.clone();
+        (Value::Object(mut b), Value::Object(o)) => {
             for (k, v_over) in o {
-                let merged = match b.get(k) {
-                    Some(v_base) => deep_merge(v_base, v_over),
-                    None => v_over.clone(),
-                };
-                out.insert(k.clone(), merged);
+                match b.get_mut(k) {
+                    // Take the existing value out of its slot and put the merge
+                    // back in the same place, rather than remove-then-insert:
+                    // with `preserve_order` that would move the key to the end.
+                    Some(slot) => {
+                        let taken = std::mem::replace(slot, Value::Null);
+                        *slot = deep_merge(taken, v_over);
+                    }
+                    None => {
+                        b.insert(k.clone(), v_over.clone());
+                    }
+                }
             }
-            Value::Object(out)
+            Value::Object(b)
         }
         // Anything else: the overriding value wins whole.
         _ => over.clone(),
@@ -87,7 +99,7 @@ pub fn resolve(id: &str, registry: &BTreeMap<String, Value>) -> Result<Value, Da
         let model = registry
             .get(ancestor)
             .ok_or_else(|| DatasetError::UnknownParent(ancestor.clone()))?;
-        merged = deep_merge(&merged, model);
+        merged = deep_merge(merged, model);
     }
 
     let model = registry
@@ -97,7 +109,7 @@ pub fn resolve(id: &str, registry: &BTreeMap<String, Value>) -> Result<Value, Da
     // The child last, on top of every ancestor. It is merged here rather than
     // as the tail of `order` because `order` is sorted by depth and the child
     // is not an ancestor of itself.
-    let mut merged = deep_merge(&merged, model);
+    let mut merged = deep_merge(merged, model);
 
     // Identity is the child's, never an ancestor's — a merge must not be able
     // to rename a model or change its type.
@@ -190,7 +202,7 @@ mod tests {
         let base = json!({ "session": { "bpm": { "min": 130 }, "halfTime": true } });
         let over = json!({ "session": { "bpm": { "min": 140 } } });
         assert_eq!(
-            deep_merge(&base, &over),
+            deep_merge(base, &over),
             json!({ "session": { "bpm": { "min": 140 }, "halfTime": true } })
         );
     }
@@ -201,7 +213,7 @@ mod tests {
         // would make narrowing impossible.
         let base = json!({ "genres": ["trap", "drill", "rage"] });
         let over = json!({ "genres": ["rage"] });
-        assert_eq!(deep_merge(&base, &over), json!({ "genres": ["rage"] }));
+        assert_eq!(deep_merge(base, &over), json!({ "genres": ["rage"] }));
     }
 
     #[test]
@@ -209,7 +221,7 @@ mod tests {
         let base = json!({ "drums": { "percs": { "lanes": ["rim"] } } });
         let over = json!({ "drums": { "percs": null } });
         assert_eq!(
-            deep_merge(&base, &over),
+            deep_merge(base, &over),
             json!({ "drums": { "percs": null } })
         );
     }

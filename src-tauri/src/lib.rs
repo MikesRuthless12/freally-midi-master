@@ -1,4 +1,5 @@
 pub mod bugreport;
+pub mod dataset;
 pub mod export;
 pub mod store;
 pub mod tray;
@@ -60,6 +61,11 @@ pub fn run() {
         .plugin(tauri_plugin_drag::init())
         .setup(|app| {
             paint_window_background(app.handle());
+            // Before the UI can ask for it. The whole dataset resolves in well
+            // under the time WebView2 takes to start (FR-001 budgets 300 ms for
+            // 1,000 models; the engine bench measures 219 ms), so this costs
+            // nothing visible and saves the first search from waiting on IO.
+            app.manage(dataset::load(app.handle()));
             tray::sync(app.handle())?;
             Ok(())
         })
@@ -95,6 +101,8 @@ pub fn run() {
             bugreport::bug_report_submit,
             bugreport::bug_report_clear_crash,
             bugreport::bug_report_preview,
+            dataset::roster_summary,
+            dataset::resolve_model,
             export::drag::drag_capability,
             export::drag::export_spike_midi,
             export::drag::drag_source_ready,

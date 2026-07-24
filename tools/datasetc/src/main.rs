@@ -16,7 +16,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use engine::dataset::{registry_from, validate, Registry};
+use engine::dataset::{files, registry_from, validate, Registry};
 use serde_json::Value;
 
 const USAGE: &str = "\
@@ -71,47 +71,22 @@ fn main() -> ExitCode {
     }
 }
 
-/// Every `*.json` model under `dir`, excluding the schema directory itself.
-fn collect_models(dir: &Path) -> Result<Vec<(PathBuf, String)>, String> {
-    if !dir.is_dir() {
-        return Err(format!("{} is not a directory", dir.display()));
-    }
-
-    let mut out = Vec::new();
-    let mut stack = vec![dir.to_path_buf()];
-
-    while let Some(current) = stack.pop() {
-        let entries = fs::read_dir(&current).map_err(|e| format!("{}: {e}", current.display()))?;
-        for entry in entries.filter_map(Result::ok) {
-            let path = entry.path();
-            if path.is_dir() {
-                // The schema is not a model, and kits are not models either.
-                let name = path
-                    .file_name()
-                    .unwrap_or_default()
-                    .to_string_lossy()
-                    .to_string();
-                if name != "schema" && name != "kits" {
-                    stack.push(path);
-                }
-            } else if path.extension().is_some_and(|e| e == "json") {
-                let text =
-                    fs::read_to_string(&path).map_err(|e| format!("{}: {e}", path.display()))?;
-                out.push((path, text));
-            }
-        }
-    }
-
-    out.sort_by(|a, b| a.0.cmp(&b.0));
-    Ok(out)
-}
-
+/// Every `*.json` model under `dir`.
+///
+/// The scan itself lives in the engine, next to the loader, so this CLI and the
+/// app cannot disagree about which files are models — a green run here would
+/// otherwise say nothing about the set the app loads at startup. What differs is
+/// the policy: an unreadable file is a problem the app skips and a failure here.
 fn load(dir: &Path) -> Result<(Registry, Vec<(PathBuf, String)>), String> {
-    let files = collect_models(dir)?;
-    if files.is_empty() {
+    let scan = files::scan(dir).map_err(|e| e.to_string())?;
+
+    if let Some(problem) = scan.problems.first() {
+        return Err(format!("{}: {}", problem.source, problem.message));
+    }
+    if scan.files.is_empty() {
         return Err(format!("no model files found under {}", dir.display()));
     }
-    Ok((registry_from(files.clone()), files))
+    Ok((registry_from(scan.files.clone()), scan.files))
 }
 
 /// Report parse-time rejections. Returns false if there were any.

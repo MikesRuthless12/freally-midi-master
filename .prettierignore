@@ -19,3 +19,8 @@ data/
 # every re-vendor and tell us nothing; the shape is asserted by fonts.test.ts.
 src/assets/fonts/fonts.css
 src/assets/fonts/fonts-scripts.css
+
+# Golden snapshots are compared byte for byte. Formatting them would rewrite
+# the thing under test — the engine would then have to match Prettier's output
+# rather than its own.
+engine/tests/snapshots/

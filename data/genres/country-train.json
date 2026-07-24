@@ -1,0 +1,61 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "country-train",
+  "type": "genre",
+  "name": "Country (Train Beat)",
+  "aliases": ["train beat", "country", "nashville"],
+  "tier": "standard",
+  "extends": ["_defaults"],
+  "era": "1950s–present",
+  "genres": ["country"],
+  "confidence": "high",
+  "sources": ["style-research ch.1 §11 Modern country / country-pop"],
+  "notes": "The train beat: a continuous 16th-note snare stream with the accents on 2 and 4 and the kick walking quarters underneath. Nashville has programmed or hybrid drums since about 2013 — tight but human, so the quantize is light rather than absent. A real kit, so no 808.",
+
+  "session": {
+    "bpm": { "min": 90, "max": 125, "mode": 105 },
+    "halfTime": false,
+    "keys": { "values": ["G", "D", "A", "E", "C"], "weights": [3, 3, 2, 2, 2] },
+    "scales": { "values": ["major", "mixolydian", "major_pentatonic"], "weights": [5, 2, 2] },
+    "swing": { "grid": "16th", "amount": 0.52 },
+    "humanize": {
+      "quantizeStrength": 0.82,
+      "velocityVar": 0.16,
+      "timingJitterMs": { "kick": 4, "snare": 4, "closedHat": 4, "openHat": 4, "perc": 5 }
+    }
+  },
+
+  "drums": {
+    "kick": {
+      "densityPerBar": 4,
+      "anchors": ["1", "2", "3", "4"],
+      "syncopation": 0.0,
+      "tresilloBias": 0.0,
+      "offbeat8thShare": 0.0,
+      "lockTo808": 0.0
+    },
+    "snare": {
+      "placement": "train_16ths",
+      "crossStickVerses": true,
+      "ghost": { "prob": 0.0, "pos": [], "vel": [0.2, 0.35] },
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.2,
+      "velocities": { "main": [0.6, 0.8], "ghost": [0.3, 0.5] },
+      "rolls": {
+        "vocab": { "values": ["16", "32"], "weights": [4, 1] },
+        "positions": ["phrase_end"],
+        "freqPerBar": 0.15,
+        "velocityRamp": true
+      },
+      "openHat": { "prob": 0.2, "pos": ["4&"], "perBar": [1, 1] },
+      "pitchBendProb": 0.0
+    },
+    "percs": { "lanes": ["perc"], "densityPerBar": [1, 2], "tambourine": true },
+    "fills": { "smallEveryBars": 8, "bigEveryBars": 8, "snareRollLadder": false },
+    "bass808": null
+  }
+}

@@ -25,7 +25,7 @@ use crate::pattern::{Lane, Note, Pattern, PPQ};
 /// interleave, so one lane's off silences the other's note and the DAW drops
 /// whichever it cannot pair. Trap models layer a snap against a clap routinely
 /// (`trap.json` lists both), so the two lanes really do coexist.
-fn gm_drum_note(lane: Lane) -> u8 {
+pub fn gm_drum_note(lane: Lane) -> u8 {
     match lane {
         Lane::Kick => 36,      // Bass Drum 1
         Lane::Snare => 38,     // Acoustic Snare

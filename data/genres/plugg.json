@@ -1,0 +1,78 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "plugg",
+  "type": "genre",
+  "name": "Plugg",
+  "aliases": ["pluggy", "mexikodro type"],
+  "tier": "standard",
+  "extends": ["_defaults"],
+  "era": "2015–present",
+  "genres": ["rap", "plugg"],
+  "confidence": "high",
+  "sources": ["style-research ch.1 §4 Plugg / Pluggnb"],
+  "notes": "Soft, rounded, dreamy drums out of the Zaytoven lineage. The open hats carry the pattern — 8th-note open-hat chains with roll inserts — while the closed hats are near absent, and the kick skips beats on purpose to leave air. The 808 is the 'Light 808': short, staccato and bouncy, not a sustain.",
+
+  "session": {
+    "bpm": { "min": 120, "max": 150, "mode": 135 },
+    "halfTime": true,
+    "keys": { "values": ["F#m", "C#m", "Bm", "Em"], "weights": [3, 3, 2, 2] },
+    "scales": { "values": ["natural_minor", "minor_pentatonic", "dorian"], "weights": [4, 2, 2] },
+    "swing": { "grid": "16th", "amount": 0.55 },
+    "humanize": {
+      "quantizeStrength": 0.85,
+      "velocityVar": 0.14,
+      "timingJitterMs": { "kick": 2, "snare": 3, "clap": 3, "closedHat": 4, "openHat": 4, "bass808": 2 }
+    }
+  },
+
+  "drums": {
+    "kick": {
+      "densityPerBar": [2, 4],
+      "anchors": ["1"],
+      "syncopation": 0.55,
+      "tresilloBias": 0.3,
+      "beatSkipProb": 0.35,
+      "avoidPreSnareGap": "8th",
+      "lockTo808": 1.0
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "lowPassedClap": true,
+      "layerClapOffsetMs": [4, 9],
+      "ghost": { "prob": 0.3, "pos": ["4&"], "vel": [0.35, 0.5] },
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.25,
+      "velocities": { "main": [0.7, 0.9], "ghost": [0.35, 0.55] },
+      "rolls": {
+        "vocab": { "values": ["16", "32"], "weights": [3, 2] },
+        "positions": ["phrase_end", "bar_4"],
+        "freqPerBar": 0.5,
+        "velocityRamp": true
+      },
+      "openHat": { "prob": 0.85, "pos": ["1&", "2&", "3&", "4&"], "perBar": [2, 4] },
+      "openHatChains": true,
+      "pitchBendProb": 0.1
+    },
+    "percs": { "lanes": ["snap"], "densityPerBar": [1, 2] },
+    "fills": { "smallEveryBars": 4, "bigEveryBars": 8, "snareRollLadder": true },
+    "snareRoll": {
+      "ladder": ["16", "32"],
+      "velocityRampRange": [30, 110],
+      "grouping": "even"
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "staccato",
+      "monoCutSelf": true,
+      "slideProb": 0.12,
+      "slideIntervals": { "values": ["P5", "P8"], "weights": [2, 1] },
+      "slidePositions": ["phrase_end"],
+      "register": [24, 36],
+      "distortion": "none"
+    }
+  }
+}
