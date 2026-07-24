@@ -1,0 +1,62 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "boom-bap",
+  "type": "genre",
+  "name": "Boom Bap",
+  "aliases": ["90s hip hop", "boombap"],
+  "tier": "standard",
+  "extends": ["_defaults"],
+  "era": "1990s–present",
+  "genres": ["rap", "boom bap"],
+  "confidence": "high",
+  "sources": ["style-research ch.1 §8 Boom bap → 2000s hybrid", "style-research ch.1 Cross-genre engine constants (MPC swing scale)"],
+  "notes": "Kick on 1 and the and-of-3, snare hard on 2 and 4 always, hats swung at the classic 58% MPC setting with ghost snares filling the e and a slots. There is no 808 here — this is a sampled kit and a break, and a sub under it would be a different record.",
+
+  "session": {
+    "bpm": { "min": 85, "max": 100, "mode": 92 },
+    "halfTime": false,
+    "keys": { "values": ["Cm", "Fm", "Gm", "Dm"], "weights": [3, 2, 2, 2] },
+    "scales": { "values": ["natural_minor", "dorian", "minor_pentatonic", "blues"], "weights": [4, 3, 2, 2] },
+    "swing": { "grid": "16th", "amount": 0.58 },
+    "humanize": {
+      "quantizeStrength": 0.78,
+      "velocityVar": 0.18,
+      "timingJitterMs": { "kick": 4, "snare": 5, "closedHat": 5, "openHat": 5, "rim": 5, "perc": 6 }
+    }
+  },
+
+  "drums": {
+    "kick": {
+      "densityPerBar": [2, 4],
+      "anchors": ["1"],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.45,
+      "tresilloBias": 0.15,
+      "subLayerVelocity": [0.5, 0.6],
+      "lockTo808": 0.0
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "rimshotLayer": true,
+      "ghost": { "prob": 0.35, "pos": ["1a", "2e", "3a", "4e"], "vel": [0.2, 0.4] },
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.5,
+      "velocities": { "main": [0.75, 0.95], "ghost": [0.15, 0.45] },
+      "rolls": {
+        "vocab": { "values": ["16", "16T"], "weights": [3, 1] },
+        "positions": ["phrase_end", "bar_4"],
+        "freqPerBar": 0.25,
+        "velocityRamp": true
+      },
+      "openHat": { "prob": 0.4, "pos": ["1&", "3&"], "perBar": [1, 2] },
+      "pitchBendProb": 0.0
+    },
+    "percs": { "lanes": ["rim", "perc"], "densityPerBar": [0, 2] },
+    "fills": { "smallEveryBars": 4, "bigEveryBars": 8, "snareRollLadder": false },
+    "bass808": null
+  }
+}

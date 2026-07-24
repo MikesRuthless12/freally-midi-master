@@ -15,12 +15,18 @@
 
 pub mod context;
 pub mod dataset;
+pub mod generators;
+pub mod humanize;
 pub mod midi;
 pub mod pattern;
 pub mod rng;
+pub mod theory;
 
 pub use context::{Humanize, SessionContext, Swing, SwingGrid};
 pub use dataset::{DatasetError, Registry, StyleModel};
+pub use humanize::{
+    VelocityTiers, SWING_MPC, SWING_SHUFFLE, SWING_STRAIGHT, SWING_SUBTLE, SWING_TRIPLET,
+};
 pub use pattern::{
     Articulation, Lane, LaneTrack, Note, Part, Pattern, PatternRef, Scale, Section, SectionKind,
     Song, PPQ,

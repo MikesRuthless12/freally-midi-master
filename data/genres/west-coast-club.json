@@ -1,0 +1,73 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "west-coast-club",
+  "type": "genre",
+  "name": "West Coast Club",
+  "aliases": ["mustard", "ratchet", "west coast"],
+  "tier": "standard",
+  "extends": ["_defaults"],
+  "era": "2012–present",
+  "genres": ["rap", "west coast", "club"],
+  "confidence": "high",
+  "sources": ["style-research ch.1 §6 West Coast / Mustard-style club rap"],
+  "notes": "Sparse and bouncy at around 100 BPM. Kick on 1 and 3 with a syncopation or two, a full-time clap-and-snap backbeat, closed 8ths between open-hat accents that mirror the kick — and 16th clap rolls as the turnaround, which is the named Mustard-era device rather than a snare fill.",
+
+  "session": {
+    "bpm": { "min": 95, "max": 108, "mode": 100 },
+    "halfTime": false,
+    "keys": { "values": ["Bm", "F#m", "Em", "Am"], "weights": [3, 2, 2, 2] },
+    "scales": { "values": ["natural_minor", "minor_pentatonic", "dorian"], "weights": [4, 3, 2] },
+    "swing": { "grid": "16th", "amount": 0.52 },
+    "humanize": {
+      "quantizeStrength": 0.8,
+      "velocityVar": 0.16,
+      "timingJitterMs": { "kick": 5, "snare": 3, "clap": 3, "snap": 4, "closedHat": 4, "openHat": 4 }
+    }
+  },
+
+  "drums": {
+    "kick": {
+      "densityPerBar": [2, 4],
+      "anchors": ["1", "3"],
+      "syncopation": 0.4,
+      "tresilloBias": 0.2,
+      "offbeat8thShare": 0.3,
+      "lockTo808": 0.5,
+      "sloppyOffsetMs": [3, 9]
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "layerClapOffsetMs": [2, 6],
+      "stack": ["clap", "snap"],
+      "ghost": { "prob": 0.15, "pos": ["4a"], "vel": [0.35, 0.5] },
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.3,
+      "velocities": { "main": [0.8, 1.0], "ghost": [0.45, 0.65] },
+      "rolls": {
+        "vocab": { "values": ["16", "32"], "weights": [3, 1] },
+        "positions": ["phrase_end"],
+        "freqPerBar": 0.2,
+        "velocityRamp": true
+      },
+      "openHat": { "prob": 0.55, "pos": ["1&", "2&", "3&", "4&"], "perBar": [1, 2] },
+      "mirrorsKick": true,
+      "pitchBendProb": 0.0
+    },
+    "percs": { "lanes": ["snap", "perc"], "densityPerBar": [1, 3], "tambourineMirrorsClap": true },
+    "fills": { "smallEveryBars": 2, "bigEveryBars": 8, "snareRollLadder": false, "lane": "clap" },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "staccato",
+      "monoCutSelf": true,
+      "slideProb": 0.05,
+      "slideIntervals": { "values": ["P5", "P8"], "weights": [1, 1] },
+      "slidePositions": ["phrase_end"],
+      "register": [28, 43],
+      "distortion": "none"
+    }
+  }
+}

@@ -1,0 +1,62 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "liquid-dnb",
+  "type": "genre",
+  "name": "Liquid Drum & Bass",
+  "aliases": ["liquid dnb", "liquid funk", "dnb"],
+  "tier": "standard",
+  "extends": ["_defaults"],
+  "era": "2000s–present",
+  "genres": ["dnb", "electronic"],
+  "confidence": "high",
+  "sources": ["style-research ch.1 §10 Drum & Bass (liquid / jump-up / neuro / 2-step pop)"],
+  "notes": "The two-step core at 174: snares locked to 2 and 4, kick on 1, and the second kick on the and-of-3 — the classic step, as opposed to neuro's 2a. Ghost snares sit six to twelve dB under the mains around 2a and 3e, and the closed hats fill every 8th gap.",
+
+  "session": {
+    "bpm": { "min": 165, "max": 178, "mode": 174 },
+    "halfTime": false,
+    "keys": { "values": ["Am", "Em", "Dm", "F#m"], "weights": [3, 3, 2, 2] },
+    "scales": { "values": ["natural_minor", "dorian", "minor_pentatonic"], "weights": [4, 3, 2] },
+    "swing": { "grid": "16th", "amount": 0.53 },
+    "humanize": {
+      "quantizeStrength": 0.9,
+      "velocityVar": 0.14,
+      "timingJitterMs": { "kick": 2, "snare": 2, "closedHat": 4, "openHat": 4, "perc": 4 }
+    }
+  },
+
+  "drums": {
+    "kick": {
+      "densityPerBar": [2, 3],
+      "anchors": ["1"],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.35,
+      "tresilloBias": 0.1,
+      "lockTo808": 0.0
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "lockedBackbeat": true,
+      "ghost": { "prob": 0.5, "pos": ["2a", "3e"], "vel": [0.25, 0.45] },
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.75,
+      "velocities": { "main": [0.7, 0.9], "ghost": [0.35, 0.55] },
+      "rolls": {
+        "vocab": { "values": ["16", "32"], "weights": [3, 1] },
+        "positions": ["phrase_end", "bar_4"],
+        "freqPerBar": 0.3,
+        "velocityRamp": true
+      },
+      "openHat": { "prob": 0.35, "pos": ["1&", "3&"], "perBar": [1, 2] },
+      "pitchBendProb": 0.0
+    },
+    "percs": { "lanes": ["perc", "snap"], "densityPerBar": [1, 3] },
+    "fills": { "smallEveryBars": 4, "bigEveryBars": 8, "snareRollLadder": false },
+    "build": { "riserBars": 8, "snareStreamSubdivision": "16", "velocityRampRange": [16, 127] },
+    "bass808": null
+  }
+}

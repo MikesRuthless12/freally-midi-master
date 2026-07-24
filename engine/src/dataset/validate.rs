@@ -253,8 +253,11 @@ fn check_probability(value: &Value, pointer: &str, out: &mut Vec<Finding>) {
 }
 
 /// Parse a model into its typed form, surfacing serde's own path in the error.
-pub fn parse(value: &Value) -> Result<StyleModel, DatasetError> {
-    serde_json::from_value(value.clone()).map_err(|e| DatasetError::Shape(e.to_string()))
+///
+/// Takes the value by move: it is the last thing done with a resolved model, and
+/// cloning it first was a deep copy of every model on every load.
+pub fn parse(value: Value) -> Result<StyleModel, DatasetError> {
+    serde_json::from_value(value).map_err(|e| DatasetError::Shape(e.to_string()))
 }
 
 #[cfg(test)]
@@ -398,13 +401,13 @@ mod tests {
 
     #[test]
     fn a_model_missing_a_required_field_fails_to_parse() {
-        let err = parse(&json!({ "type": "genre", "name": "No id" }));
+        let err = parse(json!({ "type": "genre", "name": "No id" }));
         assert!(matches!(err, Err(DatasetError::Shape(_))));
     }
 
     #[test]
     fn a_valid_model_parses_into_its_typed_form() {
-        let model = parse(&json!({
+        let model = parse(json!({
             "id": "trap", "type": "genre", "name": "Trap",
             "session": { "bpm": { "min": 130, "max": 170, "mode": 140 } },
             "drums": { "kick": { "syncopation": 0.5 } }

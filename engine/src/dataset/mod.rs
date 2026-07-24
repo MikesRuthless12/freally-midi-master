@@ -5,6 +5,7 @@
 //! archetype and an artist share one shape without every field being optional
 //! twice over.
 
+pub mod files;
 pub mod inherit;
 pub mod schema;
 pub mod validate;
@@ -13,7 +14,9 @@ use std::collections::BTreeMap;
 use std::fmt;
 use std::path::{Path, PathBuf};
 
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use ts_rs::TS;
 
 pub use schema::{
     BpmSpec, Confidence, HumanizeSpec, ModelType, NumSpec, SessionSpec, StrSpec, StyleModel,
@@ -132,7 +135,7 @@ impl Registry {
                 }
             )));
         }
-        validate::parse(&merged)
+        validate::parse(merged)
     }
 
     /// Resolve every model, collecting failures instead of stopping at the
@@ -176,6 +179,143 @@ pub fn registry_from(entries: impl IntoIterator<Item = (PathBuf, String)>) -> Re
         }
     }
     registry
+}
+
+/// One entry in the searchable roster (PRD § 3 Indexes, § 4 `roster_summary`).
+///
+/// Everything here except identity is read from the model's **own** file rather
+/// than from its resolved form. Inheritance is for musical parameters: merging
+/// metadata would hand every artist their genre archetype's aliases, so typing
+/// one alias would surface every artist that happens to extend it. `id`, `name`
+/// and `type` come from the resolved model, which `inherit` already guarantees
+/// are the model's own.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export, export_to = "../../src/lib/ipc-types.ts")]
+#[serde(rename_all = "camelCase")]
+pub struct RosterEntry {
+    pub id: String,
+    pub name: String,
+    pub aliases: Vec<String>,
+    #[serde(rename = "type")]
+    pub model_type: ModelType,
+    pub tier: Option<Tier>,
+    pub genres: Vec<String>,
+    pub era: Option<String>,
+}
+
+/// A model the app could not use, in the form the UI reports it (FR-001).
+///
+/// A list rather than a count, because a badge saying "3" tells a user nothing
+/// they can act on — the file and the reason do.
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize, TS)]
+#[ts(export, export_to = "../../src/lib/ipc-types.ts")]
+#[serde(rename_all = "camelCase")]
+pub struct DatasetProblem {
+    /// The file it came from, or the model id when the failure was in the merge.
+    pub source: String,
+    pub message: String,
+}
+
+/// What `roster_summary` returns (PRD § 4).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[ts(export, export_to = "../../src/lib/ipc-types.ts")]
+#[serde(rename_all = "camelCase")]
+pub struct RosterSummary {
+    pub dataset_version: String,
+    pub entries: Vec<RosterEntry>,
+    pub problems: Vec<DatasetProblem>,
+}
+
+/// A completed startup load: the roster the UI lists, the resolved models the
+/// generators read, and everything that was skipped on the way in.
+#[derive(Debug, Clone)]
+pub struct LoadedDataset {
+    pub summary: RosterSummary,
+    pub models: BTreeMap<String, StyleModel>,
+}
+
+/// Ids beginning with `_` are internal bases — `_defaults` is the root every
+/// model inherits from, not something a user can generate from. They resolve
+/// and are addressable by `resolve_model`; they are simply not offered.
+fn is_internal(id: &str) -> bool {
+    id.starts_with('_')
+}
+
+fn string_list(value: Option<&Value>) -> Vec<String> {
+    value
+        .and_then(Value::as_array)
+        .map(|a| {
+            a.iter()
+                .filter_map(Value::as_str)
+                .map(str::to_owned)
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+/// The roster row for a model that has already resolved cleanly.
+fn roster_entry(model: &StyleModel, own: &Value) -> RosterEntry {
+    RosterEntry {
+        id: model.id.clone(),
+        name: model.name.clone(),
+        model_type: model.model_type,
+        aliases: string_list(own.get("aliases")),
+        // The whole model parsed as a `StyleModel` to get here, so a `tier` that
+        // is present is a valid one.
+        tier: own
+            .get("tier")
+            .and_then(|v| serde_json::from_value(v.clone()).ok()),
+        genres: string_list(own.get("genres")),
+        era: own.get("era").and_then(Value::as_str).map(str::to_owned),
+    }
+}
+
+/// Load a whole dataset: parse, resolve, and build the roster.
+///
+/// Nothing here fails. A model that will not parse, resolve or lint is skipped
+/// and recorded as a problem, because one bad file must not cost the user the
+/// other nine hundred (FR-001) — `datasetc` is what makes that same file fail
+/// CI, before it ever ships.
+///
+/// `dataset_version` is the caller's to supply: only the app knows where the
+/// models came from.
+pub fn load(
+    dataset_version: impl Into<String>,
+    files: impl IntoIterator<Item = (PathBuf, String)>,
+) -> LoadedDataset {
+    let registry = registry_from(files);
+    let (models, errors) = registry.resolve_all();
+
+    let mut problems: Vec<DatasetProblem> = registry
+        .rejected()
+        .iter()
+        .map(|r| DatasetProblem {
+            source: r.path.display().to_string(),
+            message: r.error.to_string(),
+        })
+        .chain(errors.into_iter().map(|(id, error)| DatasetProblem {
+            source: id,
+            message: error.to_string(),
+        }))
+        .collect();
+    // Rejections come in file order and resolution failures in id order; sorting
+    // the union keeps the badge list stable between launches.
+    problems.sort();
+
+    let entries = models
+        .iter()
+        .filter(|(id, _)| !is_internal(id))
+        .filter_map(|(id, model)| Some(roster_entry(model, registry.raw(id)?)))
+        .collect();
+
+    LoadedDataset {
+        summary: RosterSummary {
+            dataset_version: dataset_version.into(),
+            entries,
+            problems,
+        },
+        models,
+    }
 }
 
 #[cfg(test)]
@@ -265,6 +405,119 @@ mod tests {
         let (ok, errors) = reg.resolve_all();
         assert_eq!(ok.len(), 1, "only b is clean");
         assert_eq!(errors.len(), 2);
+    }
+
+    #[test]
+    fn the_roster_lists_every_usable_model_and_hides_the_internal_bases() {
+        let loaded = load(
+            "0.1.0",
+            vec![
+                entry(
+                    "_defaults.json",
+                    r#"{"id":"_defaults","type":"genre","name":"Defaults"}"#,
+                ),
+                entry(
+                    "trap.json",
+                    r#"{"id":"trap","type":"genre","name":"Trap","extends":["_defaults"]}"#,
+                ),
+            ],
+        );
+
+        let ids: Vec<&str> = loaded
+            .summary
+            .entries
+            .iter()
+            .map(|e| e.id.as_str())
+            .collect();
+        assert_eq!(ids, ["trap"], "_defaults is a base, not a choice");
+        // It still resolves, so anything asking for it by id gets it.
+        assert!(loaded.models.contains_key("_defaults"));
+        assert_eq!(loaded.summary.dataset_version, "0.1.0");
+    }
+
+    #[test]
+    fn roster_metadata_is_the_models_own_and_never_its_parents() {
+        // The bug this prevents: an artist inheriting their genre's aliases, so
+        // searching one alias returns every artist who extends that genre.
+        let loaded = load(
+            "0.1.0",
+            vec![
+                entry(
+                    "trap.json",
+                    r#"{"id":"trap","type":"genre","name":"Trap","aliases":["trap music"],
+                        "genres":["trap"],"era":"2010s","tier":"standard"}"#,
+                ),
+                entry(
+                    "artist.json",
+                    r#"{"id":"osamason","type":"artist","name":"OsamaSon","extends":["trap"],
+                        "aliases":["osama"],"tier":"flagship"}"#,
+                ),
+            ],
+        );
+
+        let artist = loaded
+            .summary
+            .entries
+            .iter()
+            .find(|e| e.id == "osamason")
+            .expect("the artist should be in the roster");
+
+        assert_eq!(artist.aliases, ["osama"]);
+        assert_eq!(artist.model_type, ModelType::Artist);
+        assert_eq!(artist.tier, Some(Tier::Flagship));
+        assert_eq!(artist.era, None, "era is a claim, not an inheritance");
+        assert!(artist.genres.is_empty());
+
+        // The resolved model, by contrast, does inherit — that is what it is
+        // for, and it is why the roster cannot be built from it.
+        assert_eq!(loaded.models["osamason"].genres, ["trap"]);
+        assert_eq!(loaded.models["osamason"].aliases, ["osama"]);
+    }
+
+    #[test]
+    fn a_broken_model_is_a_problem_and_the_rest_still_load() {
+        let loaded = load(
+            "0.1.0",
+            vec![
+                entry("good.json", r#"{"id":"good","type":"genre","name":"Good"}"#),
+                entry("torn.json", "{ not json"),
+                entry(
+                    "cyclic.json",
+                    r#"{"id":"cyclic","type":"genre","name":"C","extends":["nope"]}"#,
+                ),
+            ],
+        );
+
+        assert_eq!(loaded.summary.entries.len(), 1);
+        assert_eq!(loaded.summary.entries[0].id, "good");
+        assert_eq!(loaded.summary.problems.len(), 2);
+
+        // A parse failure can only name the file; a merge failure names the
+        // model, because by then the file it came from is behind us.
+        let sources: Vec<&str> = loaded
+            .summary
+            .problems
+            .iter()
+            .map(|p| p.source.as_str())
+            .collect();
+        assert!(sources.contains(&"torn.json"), "{sources:?}");
+        assert!(sources.contains(&"cyclic"), "{sources:?}");
+    }
+
+    #[test]
+    fn problems_are_ordered_so_the_badge_does_not_reshuffle() {
+        let files = vec![
+            entry("z.json", "{{{"),
+            entry("a.json", "{{{"),
+            entry("m.json", "{{{"),
+        ];
+        let sources: Vec<String> = load("0.1.0", files)
+            .summary
+            .problems
+            .into_iter()
+            .map(|p| p.source)
+            .collect();
+        assert_eq!(sources, ["a.json", "m.json", "z.json"]);
     }
 
     #[test]

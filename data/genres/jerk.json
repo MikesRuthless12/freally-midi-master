@@ -1,0 +1,81 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "jerk",
+  "type": "genre",
+  "name": "Jerk",
+  "aliases": ["nu-jerk", "sped up club rap", "jerk rap"],
+  "tier": "standard",
+  "extends": ["_defaults"],
+  "era": "2023–present",
+  "genres": ["rap", "jerk", "club"],
+  "confidence": "medium",
+  "sources": ["style-research ch.1 §5 Jerk / sped-up club rap (2023+ nu-jerk)"],
+  "notes": "The NYC internet microgenre, not 2009 LA jerkin'. The marker is the snare: staggered and clustered, displaced off-grid around where the backbeat should be, with stop-start gaps. Kicks borrow Jersey-club 3-3-2 groupings. Alone among these genres it wants its timing randomised rather than tightened — the 'off' quantization is the aesthetic.",
+
+  "session": {
+    "bpm": { "min": 145, "max": 170, "mode": 155 },
+    "halfTime": false,
+    "keys": { "values": ["Cm", "F#m", "Gm", "Am"], "weights": [2, 3, 2, 2] },
+    "scales": { "values": ["natural_minor", "minor_pentatonic", "phrygian"], "weights": [4, 2, 2] },
+    "swing": { "grid": "16th", "amount": 0.53 },
+    "humanize": {
+      "quantizeStrength": 0.55,
+      "velocityVar": 0.22,
+      "timingJitterMs": { "kick": 4, "snare": 14, "clap": 14, "closedHat": 8, "snap": 10, "bass808": 3 }
+    }
+  },
+
+  "drums": {
+    "kick": {
+      "densityPerBar": [3, 6],
+      "anchors": ["1"],
+      "syncopation": 0.7,
+      "tresilloBias": 0.8,
+      "offbeat8thShare": 0.35,
+      "lockTo808": 0.85,
+      "walkingRunProb": 0.3
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "clusterProb": 0.55,
+      "clusterHits": [2, 4],
+      "layerClapOffsetMs": [6, 14],
+      "ghost": { "prob": 0.45, "pos": ["2e", "4e"], "vel": [0.35, 0.55] },
+      "offGridMs": [4, 12]
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": 0.35,
+      "velocities": { "main": [0.7, 0.95], "ghost": [0.35, 0.55] },
+      "rolls": {
+        "vocab": { "values": ["16", "32"], "weights": [2, 3] },
+        "positions": ["phrase_end", "pre_downbeat"],
+        "freqPerBar": 0.6,
+        "velocityRamp": true,
+        "burstOnly": true
+      },
+      "openHat": { "prob": 0.25, "pos": ["2&", "4&"], "perBar": [1, 1] },
+      "pitchBendProb": 0.1
+    },
+    "percs": { "lanes": ["rim", "snap"], "densityPerBar": [1, 3] },
+    "fills": { "smallEveryBars": 2, "bigEveryBars": 8, "snareRollLadder": true },
+    "snareRoll": {
+      "ladder": ["16", "32"],
+      "velocityRampRange": [40, 120],
+      "grouping": "even",
+      "buildAndStopProb": 0.4
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "monoCutSelf": true,
+      "slideProb": 0.35,
+      "slideIntervals": { "values": ["P8", "P5", "m3"], "weights": [3, 2, 2] },
+      "slidePositions": ["phrase_end", "bar_2"],
+      "register": [24, 36],
+      "distortion": "heavy",
+      "clipping": true
+    }
+  }
+}

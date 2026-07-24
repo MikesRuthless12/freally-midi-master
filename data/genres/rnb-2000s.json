@@ -1,0 +1,63 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "rnb-2000s",
+  "type": "genre",
+  "name": "R&B (2000s)",
+  "aliases": ["rnb", "r&b", "2000s rnb", "timbaland era"],
+  "tier": "standard",
+  "extends": ["_defaults"],
+  "era": "1998–2010",
+  "genres": ["rnb"],
+  "confidence": "high",
+  "sources": ["style-research ch.1 §9 R&B / Neo-soul (2000s Timbaland era → 2020s)"],
+  "notes": "Kick on 1 and the and-of-2, with an and-of-4 added every other bar; snare on 2 and 4 with ghosts on the e and a slots. Hats run 16ths with the downbeats up around 85% and the offbeats between 40 and 60. Swung and deliberately under-quantized — the Timbaland rule is not to tighten it.",
+
+  "session": {
+    "bpm": { "min": 72, "max": 95, "mode": 85 },
+    "halfTime": false,
+    "keys": { "values": ["Ebm", "Bbm", "Fm", "Cm", "Gm"], "weights": [2, 2, 3, 3, 2] },
+    "scales": { "values": ["natural_minor", "dorian", "major", "minor_pentatonic"], "weights": [4, 3, 2, 2] },
+    "swing": { "grid": "16th", "amount": 0.62 },
+    "humanize": {
+      "quantizeStrength": 0.7,
+      "velocityVar": 0.18,
+      "timingJitterMs": { "kick": 5, "snare": 6, "clap": 5, "closedHat": 6, "openHat": 6, "perc": 7 }
+    }
+  },
+
+  "drums": {
+    "kick": {
+      "densityPerBar": [2, 4],
+      "anchors": ["1"],
+      "secondaryAnchor": "2&",
+      "andOf4EveryOtherBar": 0.6,
+      "syncopation": 0.5,
+      "tresilloBias": 0.2,
+      "velocityRange": [0.7, 0.85],
+      "lockTo808": 0.0
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "rimshotBelowBpm": 80,
+      "ghost": { "prob": 0.35, "pos": ["2e", "2a", "4e", "4a"], "vel": [0.2, 0.4] },
+      "offGridMs": [1, 4]
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.6,
+      "velocities": { "main": [0.8, 0.9], "ghost": [0.4, 0.6] },
+      "rolls": {
+        "vocab": { "values": ["16", "32"], "weights": [3, 1] },
+        "positions": ["phrase_end", "bar_4"],
+        "freqPerBar": 0.3,
+        "velocityRamp": true
+      },
+      "openHat": { "prob": 0.45, "pos": ["2&", "4&"], "perBar": [1, 2] },
+      "pitchBendProb": 0.0
+    },
+    "percs": { "lanes": ["rim", "snap", "perc"], "densityPerBar": [1, 3] },
+    "fills": { "smallEveryBars": 4, "bigEveryBars": 8, "snareRollLadder": false },
+    "bass808": null
+  }
+}

@@ -1,0 +1,85 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "phonk",
+  "type": "genre",
+  "name": "Phonk",
+  "aliases": ["drift phonk", "memphis phonk"],
+  "tier": "standard",
+  "extends": ["_defaults"],
+  "era": "2017–present",
+  "genres": ["rap", "phonk"],
+  "confidence": "high",
+  "sources": ["style-research ch.1 §7 Memphis / Phonk"],
+  "notes": "Modern drift phonk over the Memphis lineage. The kick is denser than trap — four to six a bar including offbeats — and the 808 doubles every one of them; octave glides are the signature and heavy distortion is mandatory. Full-time backbeat, straight 1/8 hats, and kick-roll builds into the drops. The research calls muting the 808 under the snare optional here and doubling every kick flat, so the mute is off: the sidechain to the kick is what carves the space.",
+
+  "session": {
+    "bpm": { "min": 120, "max": 150, "mode": 140 },
+    "halfTime": false,
+    "keys": { "values": ["Cm", "Gm", "Dm", "Am"], "weights": [3, 2, 2, 2] },
+    "scales": { "values": ["phrygian_dominant", "harmonic_minor", "natural_minor"], "weights": [3, 3, 3] },
+    "swing": { "grid": "16th", "amount": 0.5 },
+    "humanize": {
+      "quantizeStrength": 0.95,
+      "velocityVar": 0.1,
+      "timingJitterMs": { "kick": 1, "snare": 2, "clap": 2, "closedHat": 2, "bass808": 1 }
+    }
+  },
+
+  "drums": {
+    "kick": {
+      "densityPerBar": [4, 6],
+      "anchors": ["1"],
+      "syncopation": 0.55,
+      "tresilloBias": 0.35,
+      "offbeat8thShare": 0.3,
+      "lockTo808": 1.0
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "layered": true,
+      "layerClapOffsetMs": [2, 6],
+      "reverb": "large",
+      "ghost": { "prob": 0.2, "pos": ["2a", "4a"], "vel": [0.35, 0.5] },
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.45,
+      "velocities": { "main": [0.8, 1.0], "ghost": [0.4, 0.6] },
+      "gatingProb": 0.3,
+      "rolls": {
+        "vocab": { "values": ["16", "16T", "32"], "weights": [3, 3, 2] },
+        "positions": ["phrase_end", "bar_4"],
+        "freqPerBar": 0.45,
+        "velocityRamp": true
+      },
+      "openHat": { "prob": 0.25, "pos": ["2&", "4&"], "perBar": [1, 1] },
+      "pitchBendProb": 0.05
+    },
+    "percs": { "lanes": ["rim"], "densityPerBar": [0, 2] },
+    "fills": { "smallEveryBars": 4, "bigEveryBars": 8, "snareRollLadder": true },
+    "snareRoll": {
+      "ladder": ["8", "16", "32"],
+      "velocityRampRange": [16, 127],
+      "grouping": "strong_weak_weak_weak",
+      "buildAndStopProb": 0.35,
+      "dualLayerProb": 0.2
+    },
+    "build": { "riserBars": 8, "snareStreamSubdivision": "16", "velocityRampRange": [16, 127] },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "monoCutSelf": true,
+      "portamentoMs": [90, 110],
+      "slideProb": 0.5,
+      "slideIntervals": { "values": ["P8", "P5", "m2"], "weights": [5, 2, 1] },
+      "slidePositions": ["phrase_end", "bar_2", "bar_4"],
+      "muteUnderSnare": false,
+      "register": [17, 29],
+      "distortion": "heavy",
+      "distortionWet": [0.3, 0.6],
+      "sidechainToKick": true
+    }
+  }
+}

@@ -7,6 +7,18 @@
 export type Articulation = "ghost" | "accent" | "legato" | "staccato" | "roll";
 
 /**
+ * A model the app could not use, in the form the UI reports it (FR-001).
+ *
+ * A list rather than a count, because a badge saying "3" tells a user nothing
+ * they can act on — the file and the reason do.
+ */
+export type DatasetProblem = { 
+/**
+ * The file it came from, or the model id when the failure was in the merge.
+ */
+source: string, message: string, };
+
+/**
  * How far generated notes are pulled off the grid, and how much velocities
  * vary. Jitter is per lane because a hat and a kick do not breathe alike.
  */
@@ -30,6 +42,8 @@ timingJitterMs?: { [key in Lane]?: number }, };
 export type Lane = "kick" | "snare" | "clap" | "closedHat" | "openHat" | "rim" | "snap" | "perc" | "bass808" | "melody" | "counter" | "bass" | "chords";
 
 export type LaneTrack = { lane: Lane, notes: Array<Note>, };
+
+export type ModelType = "artist" | "genre";
 
 /**
  * A single note event. Ticks are absolute from the start of the pattern.
@@ -69,6 +83,23 @@ artistId: string, seed: string, bars: number, bpm: number, timeSigNum: number, t
 keyRoot: number, scale: Scale, lanes: Array<LaneTrack>, ppq: number, };
 
 export type PatternRef = { patternId: string, };
+
+/**
+ * One entry in the searchable roster (PRD § 3 Indexes, § 4 `roster_summary`).
+ *
+ * Everything here except identity is read from the model's **own** file rather
+ * than from its resolved form. Inheritance is for musical parameters: merging
+ * metadata would hand every artist their genre archetype's aliases, so typing
+ * one alias would surface every artist that happens to extend it. `id`, `name`
+ * and `type` come from the resolved model, which `inherit` already guarantees
+ * are the model's own.
+ */
+export type RosterEntry = { id: string, name: string, aliases: Array<string>, type: ModelType, tier: Tier | null, genres: Array<string>, era: string | null, };
+
+/**
+ * What `roster_summary` returns (PRD § 4).
+ */
+export type RosterSummary = { datasetVersion: string, entries: Array<RosterEntry>, problems: Array<DatasetProblem>, };
 
 export type Scale = "natural_minor" | "harmonic_minor" | "phrygian" | "phrygian_dominant" | "dorian" | "major" | "mixolydian" | "lydian" | "aeolian" | "minor_pentatonic" | "major_pentatonic" | "blues";
 
@@ -110,3 +141,5 @@ export type Swing = { grid: SwingGrid, amount: number, };
  * The grid swing is applied against.
  */
 export type SwingGrid = "eighth" | "sixteenth";
+
+export type Tier = "flagship" | "standard" | "inherited";

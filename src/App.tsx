@@ -10,6 +10,7 @@ import { SettingsModal } from './components/Settings/Settings';
 import { TitleBar } from './components/layout/TitleBar';
 import { TransportBar } from './components/layout/TransportBar';
 import { UpdatePrompt } from './components/Updates/Updates';
+import { loadRoster } from './lib/roster';
 import { useUi, WIDE_BREAKPOINT } from './state/ui';
 import './components/layout/layout.css';
 
@@ -38,6 +39,16 @@ function App() {
         /* No backend (plain `vite dev`) — nothing to surface. */
         setCrashPending(false);
       });
+  }, []);
+
+  // The roster, once per launch. Nothing renders from it yet — the rail and the
+  // search bar are TASK-028 — but the load is what proves the dataset shipped,
+  // and it puts the model count in the console where a build with a missing
+  // `data/` resource is visible rather than merely quiet.
+  useEffect(() => {
+    loadRoster().catch((e: unknown) => {
+      console.error('dataset: the roster could not be loaded', e);
+    });
   }, []);
 
   // The Havoc standard: a pending crash report always wins the dialog slot,

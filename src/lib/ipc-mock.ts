@@ -57,6 +57,43 @@ From: Freally MIDI Master`;
   }),
   settings_set: (args) => (args as { settings: unknown } | undefined)?.settings,
 
+  // The roster, as the real command returns it: two genres and one artist over
+  // one of them, which is enough shape for search and the tier badges without
+  // pretending to be the shipped dataset.
+  roster_summary: () => ({
+    datasetVersion: '0.0.0-mock',
+    entries: [
+      {
+        id: 'trap',
+        name: 'Trap',
+        aliases: [],
+        type: 'genre',
+        tier: null,
+        genres: ['trap'],
+        era: '2010s',
+      },
+      {
+        id: 'uk-drill',
+        name: 'UK Drill',
+        aliases: ['drill'],
+        type: 'genre',
+        tier: null,
+        genres: ['drill'],
+        era: '2018-',
+      },
+      {
+        id: 'mock-artist',
+        name: 'Mock Artist',
+        aliases: ['mock'],
+        type: 'artist',
+        tier: 'flagship',
+        genres: ['trap'],
+        era: null,
+      },
+    ],
+    problems: [],
+  }),
+
   // Export / drag. Without these the ExportChip's catch-all would swallow a
   // missing-handler error and render as if everything were fine.
   drag_capability: () => ({
