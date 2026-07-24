@@ -268,20 +268,28 @@ pub fn hat_rolls(
         return;
     }
 
-    let vocab: Vec<u32> = strings(rolls, "vocab")
+    // The vocabulary, expanded so its *proportions* carry the authored
+    // weights — the same trick `bass808` uses for `slideIntervals`.
+    //
+    // This was one line and one bug: reading only the plain-array form left
+    // `vocab` empty for **every shipped model** (they all author the weighted
+    // `{values, weights}` form), so the fallback sampled the spec *once* and
+    // produced a one-entry list. Every roll in a pattern then came out at the
+    // same subdivision, and the per-roll `random_range(0..vocab.len())` below
+    // was a draw that could not affect anything. The committed goldens show
+    // it plainly: four hat rolls in `trap-2024-8bar`, all 16th triplets,
+    // against a five-entry vocabulary. A "first-class roll vocabulary" was one
+    // note value per pattern.
+    let mut vocab: Vec<u32> = strings(rolls, "vocab")
         .iter()
         .filter_map(|v| grid::note_value_ticks(v))
         .collect();
-    // `vocab` may also be authored as a weighted spec; the values are what
-    // matter here and the weights are handled by sampling the spec itself.
-    let vocab = if vocab.is_empty() {
-        string_spec(rolls, "vocab", rng)
-            .and_then(|value| grid::note_value_ticks(&value))
-            .map(|ticks| vec![ticks])
-            .unwrap_or_default()
-    } else {
-        vocab
-    };
+    if vocab.is_empty() {
+        vocab = (0..24)
+            .filter_map(|_| string_spec(rolls, "vocab", rng))
+            .filter_map(|value| grid::note_value_ticks(&value))
+            .collect();
+    }
     if vocab.is_empty() {
         return;
     }
@@ -415,19 +423,34 @@ pub fn snare_ladder(
     // The silence is the gesture — it is what makes the drop land.
     let stop_chance = number(block, "buildAndStopProb", 0.0, rng).clamp(0.0, 1.0);
     if rng.random_bool(stop_chance) {
-        let cut = start_tick + length - grid::ticks_per_beat(ctx);
-        notes.retain(|n| n.start_tick < cut);
+        // Saturating, and only when there is more than a beat to cut from: the
+        // subtraction underflowed for any window shorter than a beat, and in a
+        // one-beat window the cut landed on the start and deleted the whole
+        // gesture. Silence where a build should be is not a build.
+        let beat = grid::ticks_per_beat(ctx);
+        if length > beat {
+            let cut = start_tick + length - beat;
+            notes.retain(|n| n.start_tick < cut);
+        }
     }
 
     // The dual-layer roll: a second snare marking the quarters over the top,
     // which is what stops a long roll turning into a texture.
+    //
+    // Its quarters land on ladder notes — both start at `start_tick` — and two
+    // notes on one key at one tick is the collision the SMF note-off pairing
+    // cannot survive. The accent yields to the note already there; on a single
+    // lane the two would be one hit anyway.
     let dual_chance = number(block, "dualLayerProb", 0.0, rng).clamp(0.0, 1.0);
     if rng.random_bool(dual_chance) {
         let beat = grid::ticks_per_beat(ctx);
+        let taken: Vec<u32> = notes.iter().map(|n| n.start_tick).collect();
         notes.extend(
             Roll::new(lane, start_tick, start_tick + length, beat)
                 .ramp(from.max(1), to.max(1))
-                .render(rng),
+                .render(rng)
+                .into_iter()
+                .filter(|n| !taken.contains(&n.start_tick)),
         );
     }
 
@@ -731,8 +754,23 @@ mod tests {
         let dual = json!({ "ladder": ["16"], "dualLayerProb": 1.0 });
 
         let single = snare_ladder(Some(&plain), &context, Lane::Snare, 0, 3840, &mut rng()).len();
-        let layered = snare_ladder(Some(&dual), &context, Lane::Snare, 0, 3840, &mut rng()).len();
-        assert_eq!(layered, single + 4, "one accent per quarter");
+        let layered = snare_ladder(Some(&dual), &context, Lane::Snare, 0, 3840, &mut rng());
+
+        // The accents that land on a note the ladder already wrote are
+        // dropped — two notes on one key at one tick is a collision the SMF
+        // note-off pairing cannot survive. With a 16th ladder every quarter is
+        // already occupied, so the layer adds nothing but must not double
+        // anything either.
+        assert_eq!(
+            layered.len(),
+            single,
+            "an accent on an occupied tick is dropped"
+        );
+        let mut ticks: Vec<u32> = layered.iter().map(|n| n.start_tick).collect();
+        let before = ticks.len();
+        ticks.sort_unstable();
+        ticks.dedup();
+        assert_eq!(ticks.len(), before, "the dual layer doubled a tick");
     }
 
     #[test]

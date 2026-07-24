@@ -80,7 +80,22 @@ impl SnarePlacement {
     }
 
     /// The snare hits in one bar, as `(tick within the bar, articulation)`.
+    ///
+    /// A placement names beats by number, and not every meter has all of them:
+    /// a 2-and-4 backbeat in 3/4 has no beat 4. Hits that fall outside the bar
+    /// are dropped rather than written, which is the same rule
+    /// [`grid::position_ticks`] applies to authored positions — without it the
+    /// "beat 4" of a 3/4 bar landed on the downbeat of the next one, and in the
+    /// final bar it escaped the pattern altogether.
     fn hits(self, bar: u32, ctx: &SessionContext) -> Vec<(u32, Option<Articulation>)> {
+        let bar_ticks = ctx.ticks_per_bar();
+        let mut hits = self.hits_unbounded(bar, ctx);
+        hits.retain(|(tick, _)| *tick < bar_ticks);
+        hits
+    }
+
+    /// The placement's beats, before the meter is taken into account.
+    fn hits_unbounded(self, bar: u32, ctx: &SessionContext) -> Vec<(u32, Option<Articulation>)> {
         let beat = grid::ticks_per_beat(ctx);
         match self {
             Self::Halftime3 => vec![(beat * 2, None)],
@@ -638,7 +653,23 @@ fn fills(kit: &mut DrumKit, drums: Option<&Value>, ctx: &SessionContext, rng: &m
                 .grouped(rolls::Grouping::StrongWeakWeakWeak)
                 .render(rng)
         };
-        kit.extend(lane, notes);
+
+        // The ghosts `clear_for_fill` keeps live on the same 16th grid the
+        // fill is written on — `"4&"` is 3360, and every non-backbeat 16th of
+        // a train beat is one — so the roll landed on the exact tick a ghost
+        // already occupied. Two note-ons on one key at one tick is the
+        // collision `midi::pattern_to_smf` already calls "the one the note-off
+        // pairing cannot survive": the second off is orphaned and the hit
+        // doubles. Eleven of the fifteen genres produced these.
+        //
+        // The fill yields, because the ghost is the thing being played over.
+        let taken: Vec<u32> = kit.notes(lane).iter().map(|n| n.start_tick).collect();
+        kit.extend(
+            lane,
+            notes
+                .into_iter()
+                .filter(|note| !taken.contains(&note.start_tick)),
+        );
     }
 }
 
@@ -803,17 +834,24 @@ fn bass808(
             if let Some(semitones) = theory::interval_semitones(name) {
                 let direction = if rng.random_bool(down_glide) { -1 } else { 1 };
                 let target = i16::from(pitch) + i16::from(semitones) * direction;
-                // A slide may reach an octave above the note it starts from.
+                // A slide may reach an octave above the *root* — never above
+                // wherever the line has already climbed to.
                 //
-                // `register` says where the *line* sits, not how far a gesture
-                // may travel. Two genres proved it: UK drill authors `[24, 28]`
-                // — four semitones — where folding a fifth back in is
-                // impossible, and phonk's octave glide, its signature, folded
-                // straight back onto its own root and was discarded as a
-                // no-op. Measuring the headroom from the starting note rather
-                // than from the register's floor is what makes an octave glide
-                // an octave.
-                let ceiling = high.max(pitch.saturating_add(12));
+                // `register` says where the line sits, not how far a gesture
+                // may travel: UK drill authors `[24, 28]`, four semitones, and
+                // folding a fifth back into that is impossible, so an octave of
+                // headroom is real. But measuring it from the *running* pitch
+                // let a counter-riff ratchet — each slide raised the note and
+                // the ceiling together, so `fold_into_register` could never
+                // bring it back down and uk-drill walked 24 → 31 → 38 → 50 →
+                // 60 → 70. MIDI 70 is three and a half octaves above the
+                // authored ceiling: a lead, not an 808. 28% of its notes ended
+                // up there.
+                //
+                // Anchored to the root, the fold always has somewhere to land.
+                // For a bassline this changes nothing — its pitch *is* the root
+                // on every note.
+                let ceiling = high.max(root.saturating_add(12));
                 slide_to = theory::fold_into_register(target, low, ceiling)
                     // A slide onto the pitch it is already on is not a slide;
                     // the writer would collapse it back to one note anyway.

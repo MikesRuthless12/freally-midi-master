@@ -155,22 +155,24 @@
       "notes": [
         {
           "startTick": 6719,
-          "lenTicks": 259,
+          "lenTicks": 173,
           "pitch": 42,
-          "vel": 122
+          "vel": 65,
+          "articulation": "roll"
         },
         {
-          "startTick": 6978,
-          "lenTicks": 221,
+          "startTick": 6892,
+          "lenTicks": 160,
           "pitch": 42,
-          "vel": 56,
-          "articulation": "ghost"
+          "vel": 96,
+          "articulation": "roll"
         },
         {
-          "startTick": 7200,
-          "lenTicks": 259,
+          "startTick": 7053,
+          "lenTicks": 147,
           "pitch": 42,
-          "vel": 94
+          "vel": 116,
+          "articulation": "roll"
         },
         {
           "startTick": 8640,
@@ -218,43 +220,64 @@
           "articulation": "ghost"
         },
         {
-          "startTick": 12479,
-          "lenTicks": 259,
+          "startTick": 10559,
+          "lenTicks": 130,
           "pitch": 42,
-          "vel": 119
+          "vel": 66,
+          "articulation": "roll"
         },
         {
-          "startTick": 12738,
+          "startTick": 10689,
+          "lenTicks": 129,
+          "pitch": 42,
+          "vel": 92,
+          "articulation": "roll"
+        },
+        {
+          "startTick": 10818,
+          "lenTicks": 111,
+          "pitch": 42,
+          "vel": 109,
+          "articulation": "roll"
+        },
+        {
+          "startTick": 12481,
+          "lenTicks": 259,
+          "pitch": 42,
+          "vel": 112
+        },
+        {
+          "startTick": 12740,
           "lenTicks": 221,
           "pitch": 42,
-          "vel": 50,
+          "vel": 47,
           "articulation": "ghost"
         },
         {
           "startTick": 12959,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 89
+          "vel": 100
         },
         {
-          "startTick": 14401,
-          "lenTicks": 86,
+          "startTick": 14399,
+          "lenTicks": 173,
           "pitch": 42,
-          "vel": 62,
+          "vel": 125,
           "articulation": "roll"
         },
         {
-          "startTick": 14487,
-          "lenTicks": 87,
+          "startTick": 14573,
+          "lenTicks": 160,
           "pitch": 42,
-          "vel": 85,
+          "vel": 97,
           "articulation": "roll"
         },
         {
-          "startTick": 14572,
-          "lenTicks": 86,
+          "startTick": 14733,
+          "lenTicks": 147,
           "pitch": 42,
-          "vel": 122,
+          "vel": 71,
           "articulation": "roll"
         }
       ]

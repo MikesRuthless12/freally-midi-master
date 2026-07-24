@@ -71,7 +71,7 @@
       "longDownGlideProb": 0.4,
       "muteUnderSnare": true,
       "melodicallyIndependent": true,
-      "register": [24, 31],
+      "register": [24, 36],
       "distortion": "medium"
     }
   }

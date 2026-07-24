@@ -49,77 +49,83 @@ fn hats(lanes: &[LaneTrack]) -> Vec<Note> {
 ///
 /// Read off the output rather than the model: the gap between consecutive notes
 /// of a roll *is* its subdivision, so this measures what a listener would hear.
+///
+/// Grouped into runs, taking the **minimum** gap in each. A roll with a hole
+/// cut in it — trap authors `insertGaps` — leaves two notes twice the
+/// subdivision apart, and counting that gap as a subdivision of its own
+/// reported an 8th-note triplet the model never authored.
 fn roll_subdivisions(notes: &[Note]) -> BTreeSet<u32> {
     let rolls: Vec<&Note> = notes
         .iter()
         .filter(|n| n.articulation == Some(Articulation::Roll))
         .collect();
 
+    let beat = grid::ticks_per_beat(&SessionContext::default());
     let mut found = BTreeSet::new();
+    let mut run: Option<u32> = None;
+
     for pair in rolls.windows(2) {
         let gap = pair[1].start_tick.saturating_sub(pair[0].start_tick);
-        // Only gaps inside one roll count; the distance from the end of one
-        // roll to the start of the next is not a subdivision.
-        if gap > 0 && gap <= grid::SIXTEENTH {
-            found.insert(gap);
+        // A gap of a beat or more is the space between two separate rolls,
+        // not a subdivision inside one.
+        if gap == 0 || gap >= beat {
+            found.extend(run.take());
+            continue;
         }
+        run = Some(run.map_or(gap, |smallest: u32| smallest.min(gap)));
     }
+    found.extend(run);
     found
 }
 
 #[test]
-fn every_shipped_genre_reaches_at_least_two_roll_types() {
-    // FR-003: the roll vocabulary is a deliverable. A genre that only ever
-    // plays 16ths has a roll parameter, not a roll vocabulary.
+fn every_roll_is_written_at_a_subdivision_its_model_authored() {
+    // The claim that is both true and able to fail. The original — "a roll is
+    // finer than a 16th" — restated the helper's own filter, so writing every
+    // roll four times coarser than authored left it green.
+    //
+    // Comparing against the densest moment of the surrounding stream was too
+    // strict in the other direction: `_defaults` fills 16ths into an 8th base,
+    // so two stream notes can already sit a 16th apart. What must hold is that
+    // the engine only ever writes a subdivision the model asked for.
     let mut checked = 0;
 
     for (id, model) in shipped() {
-        let has_rolls = model
+        let Some(rolls) = model
             .blocks
             .get("drums")
             .and_then(|d| d.pointer("/hihat/rolls"))
-            .is_some();
-        if !has_rolls {
+        else {
             continue;
-        }
-        checked += 1;
+        };
 
-        let mut found = BTreeSet::new();
-        for seed in 0..SEEDS {
-            found.extend(roll_subdivisions(&hats(&generate(&model, &ctx(4), seed))));
-        }
+        let authored: BTreeSet<u32> = rolls
+            .get("vocab")
+            .and_then(|v| v.get("values").or(Some(v)))
+            .and_then(Value::as_array)
+            .map(|values| {
+                values
+                    .iter()
+                    .filter_map(Value::as_str)
+                    .filter_map(grid::note_value_ticks)
+                    .collect()
+            })
+            .unwrap_or_default();
+        assert!(!authored.is_empty(), "{id}: an empty roll vocabulary");
 
-        assert!(
-            found.len() >= 2,
-            "{id} only ever rolled at {found:?} — the vocabulary is one note value"
-        );
-    }
-
-    assert!(checked > 0, "no model declared rolls — nothing was checked");
-}
-
-#[test]
-fn rolls_are_finer_than_the_stream_they_interrupt() {
-    // A "roll" at the same resolution as the part around it is not a roll.
-    for (id, model) in shipped() {
-        if model
-            .blocks
-            .get("drums")
-            .and_then(|d| d.pointer("/hihat/rolls"))
-            .is_none()
-        {
-            continue;
-        }
         for seed in 0..SEEDS {
             let notes = hats(&generate(&model, &ctx(4), seed));
             for subdivision in roll_subdivisions(&notes) {
                 assert!(
-                    subdivision <= grid::SIXTEENTH,
-                    "{id} seed {seed}: a {subdivision}-tick 'roll' is not finer than a 16th"
+                    authored.contains(&subdivision),
+                    "{id} seed {seed}: rolled at {subdivision} ticks, which is not in {authored:?}"
                 );
+                checked += 1;
             }
         }
     }
+
+    assert!(checked > 0, "no roll subdivision was checked");
 }
 
 #[test]
@@ -149,9 +155,11 @@ fn roll_notes_are_marked_so_the_grid_and_the_sampler_can_see_them() {
 fn a_roll_never_doubles_the_stream_it_replaced() {
     // The window belongs to the roll. If the base hats survived underneath,
     // every roll would trigger two samples on the same tick.
+    let mut checked = 0;
     for (id, model) in shipped() {
         for seed in 0..SEEDS {
             let notes = hats(&generate(&model, &ctx(4), seed));
+            checked += notes.len();
             let mut seen = BTreeSet::new();
             for note in &notes {
                 assert!(
@@ -162,15 +170,18 @@ fn a_roll_never_doubles_the_stream_it_replaced() {
             }
         }
     }
+    assert!(checked > 0, "no hat notes were examined at all");
 }
 
 #[test]
 fn rolls_stay_inside_the_pattern() {
     let context = ctx(4);
     let total = context.total_ticks();
+    let mut checked = 0;
     for (id, model) in shipped() {
         for seed in 0..SEEDS {
             for note in hats(&generate(&model, &context, seed)) {
+                checked += 1;
                 assert!(
                     note.start_tick < total,
                     "{id} seed {seed}: a roll ran past the pattern at {}",
@@ -179,6 +190,7 @@ fn rolls_stay_inside_the_pattern() {
             }
         }
     }
+    assert!(checked > 0, "no hat notes were examined at all");
 }
 
 #[test]

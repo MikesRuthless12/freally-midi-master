@@ -316,15 +316,17 @@ fn the_pitch_bent_layer_only_appears_when_the_model_asks_for_it() {
         );
     }
 
-    let bent_notes: usize = (0..SEEDS)
-        .map(|seed| {
+    // Per seed, not summed: at `pitchBendProb: 1.0` the bend is certain, and a
+    // total over 100 seeds was satisfied by a 3% chance — the stated certainty
+    // could be reduced thirtyfold and still pass.
+    for seed in 0..SEEDS {
+        assert!(
             notes(&generate(&bent, &ctx(2), seed), Lane::ClosedHat)
                 .iter()
-                .filter(|n| n.pitch != gm_closed_hat)
-                .count()
-        })
-        .sum();
-    assert!(bent_notes > 0, "a certain bend never happened");
+                .any(|n| n.pitch != gm_closed_hat),
+            "seed {seed}: a certain bend did not happen"
+        );
+    }
 }
 
 #[test]
@@ -340,9 +342,22 @@ fn the_swell_rises_across_the_loop() {
     }));
     let hats = notes(&generate(&m, &ctx(4), 3), Lane::ClosedHat);
 
-    let first = hats.first().unwrap().vel;
-    let last = hats.last().unwrap().vel;
+    let velocities: Vec<u8> = hats.iter().map(|n| n.vel).collect();
+    let first = *velocities.first().unwrap();
+    let last = *velocities.last().unwrap();
     assert!(last > first, "the swell should rise: {first} -> {last}");
+
+    // ...rising the whole way, not flat until the last note. Nothing
+    // constrained the middle before, so a swell that did nothing for 95% of
+    // the loop and then stepped passed as a gradual rise.
+    for pair in velocities.windows(2) {
+        assert!(pair[1] >= pair[0], "the swell dipped: {velocities:?}");
+    }
+    let midpoint = velocities[velocities.len() / 2];
+    assert!(
+        midpoint > first && midpoint < last,
+        "the swell is a step, not a rise: {velocities:?}"
+    );
 }
 
 #[test]
@@ -389,6 +404,13 @@ fn every_shipped_genre_produces_hats_that_stay_inside_the_pattern() {
 
         for seed in 0..SEEDS {
             let lanes = generate(&model, &context, seed);
+            // A model that declares a hat block must produce hats. Without
+            // this, deleting the hi-hat lane outright left the test named
+            // "produces hats" green — it only ever asserted *inside* the loop.
+            assert!(
+                !notes(&lanes, Lane::ClosedHat).is_empty(),
+                "{id} seed {seed}: declares a hihat block and produced no hats"
+            );
             for want in [Lane::ClosedHat, Lane::OpenHat] {
                 for note in notes(&lanes, want) {
                     assert!(

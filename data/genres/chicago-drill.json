@@ -44,7 +44,7 @@
       "offGridMs": 0
     },
     "hihat": {
-      "base": "16th",
+      "base": "8th",
       "continuous": true,
       "fillDensity": 0.5,
       "velocities": { "main": [0.85, 1.0], "ghost": [0.4, 0.6] },

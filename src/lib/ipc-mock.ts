@@ -9,6 +9,7 @@
  */
 
 import type { InvokeArgs } from '@tauri-apps/api/core';
+import type { RosterSummary } from './ipc-types';
 
 type Handler = (args?: InvokeArgs) => unknown;
 
@@ -60,7 +61,11 @@ From: Freally MIDI Master`;
   // The roster, as the real command returns it: two genres and one artist over
   // one of them, which is enough shape for search and the tier badges without
   // pretending to be the shipped dataset.
-  roster_summary: () => ({
+  // Typed against the generated DTO on purpose: `tsc` then fails if the Rust
+  // struct gains or renames a field and this fixture does not follow. An
+  // untyped mock that disagrees with the real command tests the fixture — this
+  // repo has shipped that bug before (see `app_info` above).
+  roster_summary: (): RosterSummary => ({
     datasetVersion: '0.0.0-mock',
     entries: [
       {
@@ -68,7 +73,7 @@ From: Freally MIDI Master`;
         name: 'Trap',
         aliases: [],
         type: 'genre',
-        tier: null,
+        tier: 'standard',
         genres: ['trap'],
         era: '2010s',
       },
@@ -77,7 +82,7 @@ From: Freally MIDI Master`;
         name: 'UK Drill',
         aliases: ['drill'],
         type: 'genre',
-        tier: null,
+        tier: 'standard',
         genres: ['drill'],
         era: '2018-',
       },

@@ -10,7 +10,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use engine::context::{Humanize, SessionContext, Swing, SwingGrid};
-use engine::humanize::{humanize, ramp, swing_tick, VelocityTiers};
+use engine::humanize::{humanize, ramp, swing_tick, Band, VelocityTiers};
 use engine::pattern::{Articulation, Lane, LaneTrack, Note, PPQ};
 use engine::rng;
 use serde_json::Value;
@@ -219,9 +219,13 @@ fn the_shipped_velocity_tiers_keep_ghosts_ghosts() {
             tiers.ghost,
             tiers.main
         );
+        // Strict, like the ghost/main line above. The old bound allowed
+        // `accent.lo + 12`, which tolerated an eleven-unit overlap in which a
+        // "main" hit is louder than an "accent" — a genre could invert its own
+        // dynamics and stay green.
         assert!(
-            tiers.main.hi <= tiers.accent.lo + 12,
-            "{id}: main band {:?} swallows accents {:?}",
+            tiers.main.hi < tiers.accent.lo,
+            "{id}: main band {:?} overlaps accents {:?}",
             tiers.main,
             tiers.accent
         );
@@ -424,11 +428,24 @@ fn the_defaults_file_is_the_source_of_the_engines_tier_constants() {
     // work with no dataset at all — but they are not allowed to disagree.
     let text = fs::read_to_string(data_dir().join("_defaults.json")).unwrap();
     let defaults: Value = serde_json::from_str(&text).unwrap();
-    let authored = VelocityTiers::from_json(defaults.get("drums"));
 
-    assert_eq!(
-        authored,
-        VelocityTiers::default(),
-        "data/_defaults.json and VelocityTiers::default() have drifted"
-    );
+    // Read the file *here* rather than through `VelocityTiers::from_json`,
+    // which falls back to the very constants under test when it cannot find a
+    // band — so "the file agrees with the engine" was satisfied by the file
+    // being unreadable. Renaming the key the reader looks for left this green.
+    let tiers = &defaults["drums"]["velocityTiers"];
+    let band = |name: &str| {
+        let pair = tiers[name]
+            .as_array()
+            .unwrap_or_else(|| panic!("_defaults.json must state a `{name}` velocity tier"));
+        Band {
+            lo: pair[0].as_u64().expect("a low bound") as u8,
+            hi: pair[1].as_u64().expect("a high bound") as u8,
+        }
+    };
+
+    let expected = VelocityTiers::default();
+    assert_eq!(band("accent"), expected.accent, "accent tier drifted");
+    assert_eq!(band("main"), expected.main, "main tier drifted");
+    assert_eq!(band("ghost"), expected.ghost, "ghost tier drifted");
 }

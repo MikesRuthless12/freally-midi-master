@@ -303,6 +303,20 @@ fn trap_leaves_the_eighth_before_its_snare_empty() {
             })
             .unwrap_or_default();
 
+        // Measure the fixture before measuring against it: if `snares` came
+        // back empty the loop below ran zero assertions and the rule went
+        // unchecked. Mislabelling every main snare left this green.
+        //
+        // Per bar rather than a fixed count — trap's full-time variant plays
+        // two a bar and a fill can take one, so the number varies while "every
+        // bar has a snare the kick must leave room for" does not.
+        for bar in 0..4u32 {
+            assert!(
+                snares.iter().any(|(b, _)| *b == bar),
+                "seed {seed}, bar {bar}: no snare to measure the gap against"
+            );
+        }
+
         for (bar, tick) in positions(&lanes, Lane::Kick, &context) {
             for (snare_bar, snare) in &snares {
                 if *snare_bar != bar {

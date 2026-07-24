@@ -59,7 +59,12 @@ pub fn position_ticks(text: &str, ctx: &SessionContext) -> Option<u32> {
         _ => return None,
     };
 
-    Some((beat - 1) * ticks_per_beat(ctx) + sixteenths * SIXTEENTH)
+    let ticks = (beat - 1) * ticks_per_beat(ctx) + sixteenths * SIXTEENTH;
+    // A beat is not always four 16ths long: in 6/8 it is two, so `"6&"` lands
+    // on the *next* bar's downbeat and `"6a"` past it. Rejected for the same
+    // reason a beat the meter does not have is — a position outside the bar is
+    // a rule that has stopped applying, not a note.
+    (ticks < ctx.ticks_per_bar()).then_some(ticks)
 }
 
 /// Parse a note value — `"8th"`, `"16"`, `"16T"`, `"32nd"`, `"64"` — into ticks.

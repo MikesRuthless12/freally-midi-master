@@ -65,8 +65,14 @@ impl Band {
         // Ordered rather than trusted. An inverted range is already a dataset
         // lint failure, so this only ever fires on a hand-built band.
         Band {
-            lo: lo.min(hi).max(1),
-            hi: hi.max(lo).min(127),
+            // Both ends clamped. `hi` was, `lo` was not, so an authored
+            // `[130, 140]` produced `lo: 130, hi: 127`, `pick` saw
+            // `lo >= hi` and returned 130 — an illegal MIDI velocity that
+            // survived into the pattern and the golden snapshots. The writer
+            // clamps on export, so the `.mid` was legal while the Pattern the
+            // UI reads was not.
+            lo: lo.min(hi).clamp(1, 127),
+            hi: hi.max(lo).clamp(1, 127),
         }
     }
 

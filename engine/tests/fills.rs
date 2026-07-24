@@ -306,6 +306,14 @@ fn every_shipped_genre_fills_at_the_cycle_it_authors() {
             // The last bar always fills — `fillBeforeSection` defaults on.
             if position % small == 0 || position == 8 {
                 assert!(*count > 0, "{id}: bar {position} should fill: {counts:?}");
+            } else {
+                // The negative half, without which the authored cycle is not
+                // tested at all: filling *every* bar also satisfied "fills at
+                // least on the cycle".
+                assert_eq!(
+                    *count, 0,
+                    "{id}: bar {position} is off the {small}-bar cycle and should be plain: {counts:?}"
+                );
             }
         }
     }

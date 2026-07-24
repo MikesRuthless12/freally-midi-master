@@ -182,12 +182,16 @@ fn a_slide_names_a_target_inside_the_register() {
                 "seed {seed}: {target} escaped [17, {ceiling}]"
             );
             assert_ne!(target, note.pitch, "a slide onto its own pitch is not one");
-            // The interval is one the model listed, allowing for the octave
-            // fold that keeps it in the register.
-            let distance = (i16::from(target) - i16::from(note.pitch)).rem_euclid(12);
+
+            // The *signed* interval, against exactly what the fixture
+            // authored — up, or folded an octave down to stay in range.
+            // Comparing residues mod 12 accepted five of the twelve semitone
+            // classes, including a P4 and a m7 the model never asked for, so
+            // rewriting P5 as a fourth in the interval table left this green.
+            let raw = i16::from(target) - i16::from(note.pitch);
             assert!(
-                [0, 2, 7, 5, 10].contains(&distance),
-                "seed {seed}: {distance} semitones is not P5, P8 or M2 folded"
+                [7, 12, 2, -5, -12, -10].contains(&raw),
+                "seed {seed}: {raw} semitones is not P5, P8 or M2, up or folded down"
             );
         }
     }
@@ -206,7 +210,7 @@ fn a_counter_riff_stays_where_it_slid_and_a_bassline_goes_home() {
         })
     };
 
-    let mut riff_moved = false;
+    let mut riff_seeds_that_moved = 0;
     for seed in 0..SEEDS {
         let riff = notes(
             &generate(&model(block("counter_riff")), &ctx(4), seed),
@@ -224,11 +228,25 @@ fn a_counter_riff_stays_where_it_slid_and_a_bassline_goes_home() {
             "seed {seed}: a bassline wandered: {roots:?}"
         );
 
+        // ...and a counter-riff, sliding on every eligible note, must land
+        // somewhere else and *stay* there: the note after a slide carries the
+        // pitch it slid to. One moved note on one seed used to be enough.
+        for pair in riff.windows(2) {
+            if let Some(target) = pair[0].slide_to_pitch {
+                assert_eq!(
+                    pair[1].pitch, target,
+                    "seed {seed}: the riff slid to {target} and went home anyway"
+                );
+            }
+        }
         if riff.iter().any(|n| n.pitch != riff[0].pitch) {
-            riff_moved = true;
+            riff_seeds_that_moved += 1;
         }
     }
-    assert!(riff_moved, "a counter-riff never left the root");
+    assert!(
+        riff_seeds_that_moved > SEEDS / 2,
+        "a counter-riff should leave the root on most seeds, got {riff_seeds_that_moved}"
+    );
 }
 
 #[test]

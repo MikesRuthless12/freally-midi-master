@@ -44,10 +44,25 @@ pub fn scan(dir: &Path) -> Result<Scan, DatasetError> {
     let mut stack = vec![dir.to_path_buf()];
 
     while let Some(current) = stack.pop() {
-        let entries = fs::read_dir(&current).map_err(|e| DatasetError::Io {
-            path: current.display().to_string(),
-            message: e.to_string(),
-        })?;
+        let entries = match fs::read_dir(&current) {
+            Ok(entries) => entries,
+            // Only the root is fatal. A locked *sub*directory used to discard
+            // the whole roster — fifteen genres lost to one unreadable folder
+            // that may not even hold models — which is the opposite of FR-001.
+            Err(e) if current == dir => {
+                return Err(DatasetError::Io {
+                    path: current.display().to_string(),
+                    message: e.to_string(),
+                })
+            }
+            Err(e) => {
+                problems.push(DatasetProblem {
+                    source: current.display().to_string(),
+                    message: e.to_string(),
+                });
+                continue;
+            }
+        };
 
         for entry in entries.filter_map(Result::ok) {
             let path = entry.path();
@@ -81,7 +96,18 @@ pub fn load_dir(
     dir: &Path,
 ) -> Result<LoadedDataset, DatasetError> {
     let scan = scan(dir)?;
+    // A directory that exists but holds no models is not a healthy empty
+    // roster. `datasetc` calls it fatal; the app used to return success with
+    // nothing in it and nothing wrong — exactly the state `Dataset::unavailable`
+    // exists to prevent, reached by the one path that did not go through it.
+    let empty = scan.files.is_empty();
     let mut loaded = load(dataset_version, scan.files);
+    if empty {
+        loaded.summary.problems.push(DatasetProblem {
+            source: dir.display().to_string(),
+            message: "no model files found".into(),
+        });
+    }
     // An unreadable file is the same kind of news as an invalid one, so it goes
     // in the same list rather than being dropped on the floor.
     loaded.summary.problems.extend(scan.problems);

@@ -178,11 +178,13 @@ mod tests {
             .as_object()
             .expect("bundle.resources must map source paths to targets");
 
-        let (source, target) = resources
+        // The `find` above is the assertion — it panics with that message if no
+        // entry maps to `data`. Re-asserting `target == "data"` afterwards
+        // restated the predicate and could not fail.
+        let (source, _) = resources
             .iter()
             .find(|(_, target)| target.as_str() == Some("data"))
             .expect("`data` must be bundled as a resource, or the app ships no models");
-        assert_eq!(target, "data", "the app resolves the resource by that name");
 
         // And the source has to be a real directory of models, not a path that
         // merely looks right.

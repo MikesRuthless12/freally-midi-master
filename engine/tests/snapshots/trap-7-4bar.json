@@ -188,17 +188,10 @@
           "articulation": "ghost"
         },
         {
-          "startTick": 14881,
-          "lenTicks": 259,
-          "pitch": 38,
-          "vel": 82,
-          "articulation": "roll"
-        },
-        {
           "startTick": 15140,
           "lenTicks": 221,
           "pitch": 38,
-          "vel": 74,
+          "vel": 96,
           "articulation": "roll"
         }
       ]
@@ -262,538 +255,386 @@
           "articulation": "ghost"
         },
         {
-          "startTick": 1025,
-          "lenTicks": 65,
+          "startTick": 1133,
+          "lenTicks": 160,
           "pitch": 42,
           "vel": 67,
           "articulation": "roll"
         },
         {
-          "startTick": 1091,
-          "lenTicks": 64,
+          "startTick": 1294,
+          "lenTicks": 147,
           "pitch": 42,
-          "vel": 67,
+          "vel": 83,
           "articulation": "roll"
         },
         {
-          "startTick": 1153,
-          "lenTicks": 65,
+          "startTick": 1612,
+          "lenTicks": 160,
           "pitch": 42,
-          "vel": 79,
+          "vel": 114,
           "articulation": "roll"
         },
         {
-          "startTick": 1220,
-          "lenTicks": 55,
+          "startTick": 1774,
+          "lenTicks": 147,
           "pitch": 42,
-          "vel": 72,
+          "vel": 117,
           "articulation": "roll"
         },
         {
-          "startTick": 1275,
-          "lenTicks": 56,
-          "pitch": 42,
-          "vel": 87,
-          "articulation": "roll"
-        },
-        {
-          "startTick": 1384,
-          "lenTicks": 55,
-          "pitch": 42,
-          "vel": 96,
-          "articulation": "roll"
-        },
-        {
-          "startTick": 1439,
-          "lenTicks": 65,
-          "pitch": 42,
-          "vel": 97,
-          "articulation": "roll"
-        },
-        {
-          "startTick": 1504,
-          "lenTicks": 65,
-          "pitch": 42,
-          "vel": 94,
-          "articulation": "roll"
-        },
-        {
-          "startTick": 1569,
-          "lenTicks": 64,
-          "pitch": 42,
-          "vel": 87,
-          "articulation": "roll"
-        },
-        {
-          "startTick": 1635,
-          "lenTicks": 65,
-          "pitch": 42,
-          "vel": 105,
-          "articulation": "roll"
-        },
-        {
-          "startTick": 1700,
-          "lenTicks": 55,
-          "pitch": 42,
-          "vel": 100,
-          "articulation": "roll"
-        },
-        {
-          "startTick": 1753,
-          "lenTicks": 56,
-          "pitch": 42,
-          "vel": 113,
-          "articulation": "roll"
-        },
-        {
-          "startTick": 1809,
-          "lenTicks": 55,
-          "pitch": 42,
-          "vel": 120,
-          "articulation": "roll"
-        },
-        {
-          "startTick": 1865,
-          "lenTicks": 55,
-          "pitch": 42,
-          "vel": 127,
-          "articulation": "roll"
-        },
-        {
-          "startTick": 1920,
+          "startTick": 1921,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 127
+          "vel": 125
         },
         {
           "startTick": 2178,
+          "lenTicks": 221,
+          "pitch": 42,
+          "vel": 60,
+          "articulation": "ghost"
+        },
+        {
+          "startTick": 2399,
+          "lenTicks": 259,
+          "pitch": 42,
+          "vel": 107
+        },
+        {
+          "startTick": 2658,
+          "lenTicks": 221,
+          "pitch": 42,
+          "vel": 55,
+          "articulation": "ghost"
+        },
+        {
+          "startTick": 2879,
+          "lenTicks": 259,
+          "pitch": 42,
+          "vel": 87
+        },
+        {
+          "startTick": 3140,
           "lenTicks": 221,
           "pitch": 42,
           "vel": 63,
           "articulation": "ghost"
         },
         {
-          "startTick": 2401,
+          "startTick": 3361,
           "lenTicks": 259,
           "pitch": 42,
           "vel": 98
         },
         {
-          "startTick": 2658,
+          "startTick": 3618,
           "lenTicks": 221,
           "pitch": 42,
-          "vel": 53,
+          "vel": 55,
           "articulation": "ghost"
         },
         {
-          "startTick": 2880,
+          "startTick": 3839,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 108
+          "vel": 123
         },
         {
-          "startTick": 3139,
+          "startTick": 4099,
           "lenTicks": 221,
           "pitch": 42,
-          "vel": 57,
-          "articulation": "ghost"
-        },
-        {
-          "startTick": 3361,
-          "lenTicks": 259,
-          "pitch": 42,
-          "vel": 94
-        },
-        {
-          "startTick": 3619,
-          "lenTicks": 221,
-          "pitch": 42,
-          "vel": 59,
-          "articulation": "ghost"
-        },
-        {
-          "startTick": 3840,
-          "lenTicks": 259,
-          "pitch": 42,
-          "vel": 125
-        },
-        {
-          "startTick": 4100,
-          "lenTicks": 221,
-          "pitch": 42,
-          "vel": 54,
+          "vel": 55,
           "articulation": "ghost"
         },
         {
           "startTick": 4320,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 97
+          "vel": 117
         },
         {
-          "startTick": 4579,
+          "startTick": 4578,
           "lenTicks": 221,
           "pitch": 42,
-          "vel": 64,
+          "vel": 77,
           "articulation": "ghost"
-        },
-        {
-          "startTick": 4799,
-          "lenTicks": 259,
-          "pitch": 42,
-          "vel": 127
         },
         {
           "startTick": 5060,
           "lenTicks": 221,
           "pitch": 42,
-          "vel": 50,
-          "articulation": "ghost"
+          "vel": 60,
+          "articulation": "roll"
         },
         {
-          "startTick": 5280,
+          "startTick": 5279,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 108
+          "vel": 89,
+          "articulation": "roll"
         },
         {
           "startTick": 5539,
           "lenTicks": 221,
           "pitch": 42,
-          "vel": 72,
-          "articulation": "ghost"
+          "vel": 127,
+          "articulation": "roll"
         },
         {
-          "startTick": 5759,
+          "startTick": 5760,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 95
+          "vel": 91
         },
         {
-          "startTick": 6019,
+          "startTick": 6020,
           "lenTicks": 221,
           "pitch": 42,
-          "vel": 58,
+          "vel": 44,
           "articulation": "ghost"
         },
         {
-          "startTick": 6241,
+          "startTick": 6240,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 127
+          "vel": 117
         },
         {
           "startTick": 6499,
-          "lenTicks": 221,
-          "pitch": 42,
-          "vel": 61,
-          "articulation": "ghost"
-        },
-        {
-          "startTick": 6721,
-          "lenTicks": 259,
-          "pitch": 42,
-          "vel": 114
-        },
-        {
-          "startTick": 6980,
-          "lenTicks": 221,
-          "pitch": 42,
-          "vel": 76,
-          "articulation": "ghost"
-        },
-        {
-          "startTick": 7200,
-          "lenTicks": 259,
-          "pitch": 42,
-          "vel": 101
-        },
-        {
-          "startTick": 7458,
           "lenTicks": 221,
           "pitch": 42,
           "vel": 59,
           "articulation": "ghost"
         },
         {
-          "startTick": 7680,
+          "startTick": 6721,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 127
+          "vel": 109
         },
         {
-          "startTick": 7940,
-          "lenTicks": 221,
-          "pitch": 42,
-          "vel": 56,
-          "articulation": "ghost"
-        },
-        {
-          "startTick": 8159,
-          "lenTicks": 259,
-          "pitch": 42,
-          "vel": 127
-        },
-        {
-          "startTick": 8420,
+          "startTick": 6979,
           "lenTicks": 221,
           "pitch": 42,
           "vel": 68,
           "articulation": "ghost"
         },
         {
-          "startTick": 8640,
+          "startTick": 7200,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 109
+          "vel": 100
         },
         {
-          "startTick": 8899,
+          "startTick": 7458,
           "lenTicks": 221,
           "pitch": 42,
-          "vel": 47,
+          "vel": 69,
           "articulation": "ghost"
         },
         {
-          "startTick": 9120,
+          "startTick": 7681,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 112
+          "vel": 98
         },
         {
-          "startTick": 9379,
-          "lenTicks": 221,
-          "pitch": 42,
-          "vel": 76,
-          "articulation": "ghost"
-        },
-        {
-          "startTick": 9599,
-          "lenTicks": 259,
-          "pitch": 42,
-          "vel": 112
-        },
-        {
-          "startTick": 9859,
-          "lenTicks": 221,
-          "pitch": 42,
-          "vel": 65,
-          "articulation": "ghost"
-        },
-        {
-          "startTick": 10080,
-          "lenTicks": 259,
-          "pitch": 42,
-          "vel": 93
-        },
-        {
-          "startTick": 10339,
-          "lenTicks": 221,
-          "pitch": 42,
-          "vel": 50,
-          "articulation": "ghost"
-        },
-        {
-          "startTick": 10561,
-          "lenTicks": 259,
-          "pitch": 42,
-          "vel": 109
-        },
-        {
-          "startTick": 10818,
-          "lenTicks": 221,
-          "pitch": 42,
-          "vel": 66,
-          "articulation": "ghost"
-        },
-        {
-          "startTick": 11040,
-          "lenTicks": 259,
-          "pitch": 42,
-          "vel": 91
-        },
-        {
-          "startTick": 11300,
-          "lenTicks": 221,
-          "pitch": 42,
-          "vel": 70,
-          "articulation": "ghost"
-        },
-        {
-          "startTick": 11520,
-          "lenTicks": 259,
-          "pitch": 42,
-          "vel": 107
-        },
-        {
-          "startTick": 11780,
-          "lenTicks": 221,
-          "pitch": 42,
-          "vel": 68,
-          "articulation": "ghost"
-        },
-        {
-          "startTick": 11999,
-          "lenTicks": 259,
-          "pitch": 42,
-          "vel": 124
-        },
-        {
-          "startTick": 12259,
-          "lenTicks": 221,
-          "pitch": 42,
-          "vel": 65,
-          "articulation": "ghost"
-        },
-        {
-          "startTick": 12481,
-          "lenTicks": 259,
-          "pitch": 42,
-          "vel": 88
-        },
-        {
-          "startTick": 12739,
-          "lenTicks": 221,
-          "pitch": 42,
-          "vel": 61,
-          "articulation": "ghost"
-        },
-        {
-          "startTick": 12960,
-          "lenTicks": 259,
-          "pitch": 42,
-          "vel": 116
-        },
-        {
-          "startTick": 13219,
-          "lenTicks": 221,
-          "pitch": 42,
-          "vel": 64,
-          "articulation": "ghost"
-        },
-        {
-          "startTick": 13441,
-          "lenTicks": 259,
-          "pitch": 42,
-          "vel": 127
-        },
-        {
-          "startTick": 13698,
-          "lenTicks": 221,
-          "pitch": 42,
-          "vel": 71,
-          "articulation": "ghost"
-        },
-        {
-          "startTick": 13920,
-          "lenTicks": 259,
-          "pitch": 42,
-          "vel": 115
-        },
-        {
-          "startTick": 14179,
+          "startTick": 7939,
           "lenTicks": 221,
           "pitch": 42,
           "vel": 46,
           "articulation": "ghost"
         },
         {
-          "startTick": 14465,
-          "lenTicks": 65,
+          "startTick": 8160,
+          "lenTicks": 259,
           "pitch": 42,
-          "vel": 62,
-          "articulation": "roll"
+          "vel": 127
         },
         {
-          "startTick": 14531,
-          "lenTicks": 64,
+          "startTick": 8418,
+          "lenTicks": 221,
           "pitch": 42,
-          "vel": 61,
-          "articulation": "roll"
+          "vel": 64,
+          "articulation": "ghost"
         },
         {
-          "startTick": 14595,
-          "lenTicks": 65,
+          "startTick": 8899,
+          "lenTicks": 221,
           "pitch": 42,
           "vel": 71,
           "articulation": "roll"
         },
         {
-          "startTick": 14659,
-          "lenTicks": 55,
-          "pitch": 42,
-          "vel": 87,
-          "articulation": "roll"
-        },
-        {
-          "startTick": 14713,
-          "lenTicks": 56,
-          "pitch": 42,
-          "vel": 87,
-          "articulation": "roll"
-        },
-        {
-          "startTick": 14770,
-          "lenTicks": 55,
-          "pitch": 42,
-          "vel": 77,
-          "articulation": "roll"
-        },
-        {
-          "startTick": 14826,
-          "lenTicks": 55,
-          "pitch": 42,
-          "vel": 79,
-          "articulation": "roll"
-        },
-        {
-          "startTick": 14880,
-          "lenTicks": 65,
-          "pitch": 42,
-          "vel": 110,
-          "articulation": "roll"
-        },
-        {
-          "startTick": 14945,
-          "lenTicks": 65,
-          "pitch": 42,
-          "vel": 109,
-          "articulation": "roll"
-        },
-        {
-          "startTick": 15011,
-          "lenTicks": 64,
-          "pitch": 42,
-          "vel": 97,
-          "articulation": "roll"
-        },
-        {
-          "startTick": 15073,
-          "lenTicks": 65,
-          "pitch": 42,
-          "vel": 100,
-          "articulation": "roll"
-        },
-        {
-          "startTick": 15138,
-          "lenTicks": 55,
+          "startTick": 9121,
+          "lenTicks": 259,
           "pitch": 42,
           "vel": 107,
           "articulation": "roll"
         },
         {
-          "startTick": 15250,
-          "lenTicks": 55,
-          "pitch": 42,
-          "vel": 120,
-          "articulation": "roll"
-        },
-        {
-          "startTick": 15304,
-          "lenTicks": 55,
+          "startTick": 9379,
+          "lenTicks": 221,
           "pitch": 42,
           "vel": 127,
           "articulation": "roll"
+        },
+        {
+          "startTick": 9601,
+          "lenTicks": 259,
+          "pitch": 42,
+          "vel": 109
+        },
+        {
+          "startTick": 9860,
+          "lenTicks": 221,
+          "pitch": 42,
+          "vel": 73,
+          "articulation": "ghost"
+        },
+        {
+          "startTick": 10080,
+          "lenTicks": 259,
+          "pitch": 42,
+          "vel": 102
+        },
+        {
+          "startTick": 10338,
+          "lenTicks": 221,
+          "pitch": 42,
+          "vel": 53,
+          "articulation": "ghost"
+        },
+        {
+          "startTick": 10560,
+          "lenTicks": 259,
+          "pitch": 42,
+          "vel": 122
+        },
+        {
+          "startTick": 10820,
+          "lenTicks": 221,
+          "pitch": 42,
+          "vel": 79,
+          "articulation": "ghost"
+        },
+        {
+          "startTick": 11039,
+          "lenTicks": 259,
+          "pitch": 42,
+          "vel": 117
+        },
+        {
+          "startTick": 11300,
+          "lenTicks": 221,
+          "pitch": 42,
+          "vel": 67,
+          "articulation": "ghost"
+        },
+        {
+          "startTick": 11520,
+          "lenTicks": 259,
+          "pitch": 42,
+          "vel": 101
+        },
+        {
+          "startTick": 11779,
+          "lenTicks": 221,
+          "pitch": 42,
+          "vel": 64,
+          "articulation": "ghost"
+        },
+        {
+          "startTick": 12000,
+          "lenTicks": 259,
+          "pitch": 42,
+          "vel": 127
+        },
+        {
+          "startTick": 12259,
+          "lenTicks": 221,
+          "pitch": 42,
+          "vel": 66,
+          "articulation": "ghost"
+        },
+        {
+          "startTick": 12479,
+          "lenTicks": 259,
+          "pitch": 42,
+          "vel": 109
+        },
+        {
+          "startTick": 12739,
+          "lenTicks": 221,
+          "pitch": 42,
+          "vel": 65,
+          "articulation": "ghost"
+        },
+        {
+          "startTick": 12960,
+          "lenTicks": 259,
+          "pitch": 42,
+          "vel": 103
+        },
+        {
+          "startTick": 13219,
+          "lenTicks": 221,
+          "pitch": 42,
+          "vel": 54,
+          "articulation": "ghost"
+        },
+        {
+          "startTick": 13441,
+          "lenTicks": 259,
+          "pitch": 42,
+          "vel": 126
+        },
+        {
+          "startTick": 13698,
+          "lenTicks": 221,
+          "pitch": 42,
+          "vel": 66,
+          "articulation": "ghost"
+        },
+        {
+          "startTick": 13920,
+          "lenTicks": 259,
+          "pitch": 42,
+          "vel": 110
+        },
+        {
+          "startTick": 14180,
+          "lenTicks": 221,
+          "pitch": 42,
+          "vel": 55,
+          "articulation": "ghost"
+        },
+        {
+          "startTick": 14400,
+          "lenTicks": 259,
+          "pitch": 42,
+          "vel": 112
+        },
+        {
+          "startTick": 14660,
+          "lenTicks": 221,
+          "pitch": 42,
+          "vel": 61,
+          "articulation": "ghost"
+        },
+        {
+          "startTick": 14879,
+          "lenTicks": 259,
+          "pitch": 42,
+          "vel": 102
+        },
+        {
+          "startTick": 15139,
+          "lenTicks": 221,
+          "pitch": 42,
+          "vel": 73,
+          "articulation": "ghost"
         }
       ]
     },
