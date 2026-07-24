@@ -56,6 +56,10 @@ const GATES = [
   { name: 'dataset validate', cmd: 'npm', args: ['run', '-s', 'dataset:validate'] },
   { name: 'denylist', cmd: 'node', args: ['scripts/check-denylist.mjs'] },
   { name: 'e2e', cmd: 'npm', args: ['run', '-s', 'test:e2e'], slow: true },
+  // Runs in CI's supply-chain job but was missing here, so a newly published
+  // npm advisory failed CI on a tree where every local gate had just passed.
+  // A gate that CI runs and this does not is a gate this file is lying about.
+  { name: 'npm audit', cmd: 'npm', args: ['audit', '--audit-level=high'], slow: true },
   { name: 'cargo audit', cmd: 'cargo', args: ['audit'], slow: true, optional: true },
   { name: 'cargo deny', cmd: 'cargo', args: ['deny', 'check'], slow: true, optional: true },
 ];
