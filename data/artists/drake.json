@@ -1,0 +1,164 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "drake",
+  "type": "artist",
+  "name": "Drake",
+  "aliases": [
+    "drizzy",
+    "champagne papi",
+    "ovo",
+    "aubrey"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "trap"
+  ],
+  "era": "2009-present",
+  "genres": [
+    "rap",
+    "trap",
+    "rnb"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research ch.3 Drake (flagship)"
+  ],
+  "notes": "The Tay Keith / Boi-1da trap mode of a multi-mode catalogue - knock-forward drums, a hard snare on 3, moderate hats. The OVO ballad, dancehall and club modes are separate lanes and are not what this model generates.",
+  "session": {
+    "bpm": {
+      "min": 130,
+      "max": 150,
+      "mode": 140
+    },
+    "halfTime": true,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        4,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.52
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3",
+      "syncopation": 0.45,
+      "tresilloBias": 0.25,
+      "avoidPreSnareGap": "8th",
+      "lockTo808": 0.9,
+      "andOf4EveryOtherBar": 0.4
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "layered": true,
+      "layerClapOffsetMs": [
+        2,
+        6
+      ],
+      "ghost": {
+        "prob": 0.3,
+        "pos": [
+          "4&"
+        ],
+        "vel": [
+          0.35,
+          0.5
+        ]
+      },
+      "offGridMs": [
+        0,
+        2
+      ]
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.5,
+      "velocities": {
+        "main": [
+          0.8,
+          1.0
+        ],
+        "ghost": [
+          0.4,
+          0.6
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "32",
+            "16T"
+          ],
+          "weights": [
+            4,
+            3,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.55,
+        "velocityRamp": true
+      },
+      "openHat": {
+        "prob": 0.3,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      },
+      "pitchBendProb": 0.1
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "monoCutSelf": true,
+      "slideProb": 0.4,
+      "slideIntervals": {
+        "values": [
+          "P5",
+          "P8",
+          "M2"
+        ],
+        "weights": [
+          3,
+          2,
+          2
+        ]
+      },
+      "slidePositions": [
+        "phrase_end",
+        "bar_4"
+      ],
+      "register": [
+        17,
+        31
+      ],
+      "distortion": "medium"
+    }
+  }
+}

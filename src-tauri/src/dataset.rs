@@ -53,7 +53,7 @@ impl Dataset {
     }
 
     /// One resolved model, inheritance already applied.
-    fn model(&self, id: &str) -> Result<StyleModel, String> {
+    pub fn model(&self, id: &str) -> Result<StyleModel, String> {
         self.0
             .models
             .get(id)

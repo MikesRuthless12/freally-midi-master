@@ -21,13 +21,23 @@
     "emptyBody": "Kies iemand uit de lijst en druk op Genereren.",
     "seed": "seed",
     "bars": "maten",
-    "generate": "Genereren"
+    "generate": "Genereren",
+    "barsLabel": "Patroonlengte in maten",
+    "copySeed": "Seed kopiëren",
+    "seedCopied": "Seed gekopieerd.",
+    "seedLabel": "Seed — plak er een voor dezelfde beat",
+    "seedAuto": "willekeurig",
+    "generating": "Genereren…",
+    "laterPhase": "Deze generator komt in een latere fase.",
+    "readyBody": "{{name}} staat klaar. Klik op Genereren."
   },
   "rails": {
     "searchPlaceholder": "Zoek een artiest…",
     "searchLabel": "Zoek een artiest",
     "noDataset": "Nog geen dataset geladen.",
-    "noKit": "Nog geen kit. Sleep je one-shots ergens op dit paneel."
+    "noKit": "Nog geen kit. Sleep je one-shots ergens op dit paneel.",
+    "noMatch": "Niets komt overeen met ‘{{query}}’.",
+    "results": "Zoekresultaten"
   },
   "sections": {
     "genres": "Genres",
@@ -46,7 +56,9 @@
     "loop": "Loop",
     "masterLevel": "Masterniveau: stil",
     "toggleRightRail": "Rechterbalk tonen of verbergen (K)",
-    "reportBug": "Bug melden"
+    "reportBug": "Bug melden",
+    "loopAlways": "Afspelen loopt in deze fase altijd door.",
+    "unavailable": "Afspelen is niet beschikbaar: {{reason}}"
   },
   "theme": {
     "group": "Thema",
@@ -73,8 +85,9 @@
     "exportTitle": "Schrijf de MIDI naar een map en toon hem daar",
     "dragDesktopOnly": "Slepen werkt alleen in de desktop-app.",
     "exportDesktopOnly": "Exporteren werkt alleen in de desktop-app.",
-    "dropped": "Gedropt. Heeft je DAW hem genegeerd, noteer dat dan in de matrix.",
-    "exportedTo": "Geëxporteerd naar {{path}}"
+    "dropped": "Geland.",
+    "exportedTo": "Geëxporteerd naar {{path}}",
+    "nothingToExport": "Genereer eerst een beat."
   },
   "settings": {
     "title": "Instellingen",
@@ -99,7 +112,13 @@
     "themeNote": "Donker is de standaard en het kenmerkende uiterlijk van de app. Beide thema’s zijn op contrast gecontroleerd volgens WCAG 2.1 AA.",
     "languageHeading": "Taal",
     "languageNote": "De taal van de interface. Elke taal wordt geleverd met de lettertypen die ze nodig heeft, dus er hoeft niets gedownload te worden.",
-    "languageLabel": "Interfacetaal"
+    "languageLabel": "Interfacetaal",
+    "datasetHeading": "Stijlendataset",
+    "datasetOk": "{{count}} stijlen geladen. Er is niets overgeslagen.",
+    "datasetSkipped": "{{count}} stijlen konden niet worden geladen en zijn overgeslagen:",
+    "motionHeading": "Beweging",
+    "reduceMotion": "Beweging beperken",
+    "reduceMotionHint": "Vervangt de generatie-sweep door een korte fade. Je systeeminstelling doet dit al — gebruik dit als het systeem die instelling niet heeft, of als de rest wel mag bewegen."
   },
   "about": {
     "title": "Over",
@@ -143,5 +162,30 @@
   },
   "common": {
     "close": "Sluiten"
+  },
+  "grid": {
+    "label": "Gegenereerd patroon",
+    "summary": "{{bars}} maten · {{steps}} stappen · {{notes}} noten"
+  },
+  "roster": {
+    "artists": "Artiesten",
+    "flagship": "Vlaggenschip",
+    "genre": "Stijl"
+  },
+  "lanes": {
+    "kick": "Basdrum",
+    "snare": "Snaredrum",
+    "clap": "Handklap",
+    "closedHat": "Gesloten hi-hat",
+    "openHat": "Open hi-hat",
+    "rim": "Randslag",
+    "snap": "Vingerknip",
+    "perc": "Percussie",
+    "bass808": "808"
+  },
+  "device": {
+    "recovering": "Audioapparaat kwijt — opnieuw verbinden…",
+    "failed": "Geen audioapparaat. Nog steeds bezig…",
+    "recovered": "Audioapparaat is terug."
   }
 }

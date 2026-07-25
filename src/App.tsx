@@ -10,7 +10,7 @@ import { SettingsModal } from './components/Settings/Settings';
 import { TitleBar } from './components/layout/TitleBar';
 import { TransportBar } from './components/layout/TransportBar';
 import { UpdatePrompt } from './components/Updates/Updates';
-import { loadRoster } from './lib/roster';
+import { subscribeToPlayhead, useSession } from './state/session';
 import { useUi, WIDE_BREAKPOINT } from './state/ui';
 import './components/layout/layout.css';
 
@@ -25,6 +25,7 @@ function App() {
   const rightRailOpen = useUi((s) => s.rightRailOpen);
   const setWide = useUi((s) => s.setWide);
   const toggleRightRail = useUi((s) => s.toggleRightRail);
+  const init = useSession((s) => s.init);
 
   // A crash left a report behind: the relaunched app opens it on its own, which
   // is the whole point of the crash loop. A pending crash takes the dialog slot
@@ -41,14 +42,29 @@ function App() {
       });
   }, []);
 
-  // The roster, once per launch. Nothing renders from it yet — the rail and the
-  // search bar are TASK-028 — but the load is what proves the dataset shipped,
-  // and it puts the model count in the console where a build with a missing
-  // `data/` resource is visible rather than merely quiet.
+  // The roster and the playback status, once per launch. Everything the rail
+  // and the search bar draw comes from this, and the console line it logs is
+  // what makes a build with a missing `data/` resource visible rather than
+  // merely quiet.
   useEffect(() => {
-    loadRoster().catch((e: unknown) => {
-      console.error('dataset: the roster could not be loaded', e);
+    void init();
+  }, [init]);
+
+  // Follow the playhead the audio thread publishes at 30 Hz. Returns a no-op
+  // outside Tauri, where there is no event system behind it.
+  useEffect(() => {
+    let stop: (() => void) | undefined;
+    let cancelled = false;
+    void subscribeToPlayhead().then((unlisten) => {
+      // The effect may have been torn down while the listener was being set
+      // up; dropping it on the floor would leak a subscription per remount.
+      if (cancelled) unlisten();
+      else stop = unlisten;
     });
+    return () => {
+      cancelled = true;
+      stop?.();
+    };
   }, []);
 
   // The Havoc standard: a pending crash report always wins the dialog slot,

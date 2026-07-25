@@ -1,0 +1,168 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "summrs",
+  "type": "artist",
+  "name": "Summrs",
+  "aliases": [
+    "summrs",
+    "sumrs"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "pluggnb"
+  ],
+  "era": "2020-present",
+  "genres": [
+    "rap",
+    "plugg",
+    "rnb"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research ch.4 Summrs",
+    "style-research ch.1 S4 Plugg / Pluggnb"
+  ],
+  "notes": "Canonical pluggnb, with detours into rage. Soft punchy kicks, clap on 3, skittering hat triplets used lightly, and rubbery gliding 808s with low distortion.",
+  "session": {
+    "bpm": {
+      "min": 135,
+      "max": 160,
+      "mode": 146
+    },
+    "halfTime": true,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "major"
+      ],
+      "weights": [
+        4,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.56
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "syncopation": 0.45,
+      "tresilloBias": 0.2,
+      "lockTo808": 1.0
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "lowPassedClap": true,
+      "layerClapOffsetMs": [
+        4,
+        9
+      ],
+      "ghost": {
+        "prob": 0.3,
+        "pos": [
+          "4&"
+        ],
+        "vel": [
+          0.35,
+          0.5
+        ]
+      },
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.35,
+      "velocities": {
+        "main": [
+          0.7,
+          0.9
+        ],
+        "ghost": [
+          0.35,
+          0.55
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16T",
+            "32",
+            "16"
+          ],
+          "weights": [
+            3,
+            2,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.5,
+        "velocityRamp": true,
+        "burstNotes": [
+          3,
+          3
+        ]
+      },
+      "openHat": {
+        "prob": 0.7,
+        "pos": [
+          "1&",
+          "2&",
+          "3&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          3
+        ]
+      },
+      "pitchBendProb": 0.1
+    },
+    "bass808": {
+      "role": "counter_riff",
+      "sustain": "legato",
+      "monoCutSelf": true,
+      "slideProb": 0.65,
+      "slidesPer4Bars": [
+        2,
+        3
+      ],
+      "slideIntervals": {
+        "values": [
+          "P5",
+          "P8",
+          "M2"
+        ],
+        "weights": [
+          3,
+          3,
+          2
+        ]
+      },
+      "slidePositions": [
+        "phrase_end",
+        "bar_4"
+      ],
+      "melodicallyIndependent": true,
+      "register": [
+        24,
+        38
+      ],
+      "distortion": "none"
+    }
+  }
+}

@@ -21,13 +21,23 @@
     "emptyBody": "Listeden birini seç, sonra Oluştur'a bas.",
     "seed": "tohum",
     "bars": "ölçü",
-    "generate": "Oluştur"
+    "generate": "Oluştur",
+    "barsLabel": "Desen uzunluğu (ölçü)",
+    "copySeed": "Tohumu kopyala",
+    "seedCopied": "Tohum kopyalandı.",
+    "seedLabel": "Tohum — aynı ritmi almak için yapıştır",
+    "seedAuto": "rastgele",
+    "generating": "Oluşturuluyor…",
+    "laterPhase": "Bu üretici sonraki bir aşamada gelecek.",
+    "readyBody": "{{name}} hazır. Oluştur’a bas."
   },
   "rails": {
     "searchPlaceholder": "Sanatçı ara…",
     "searchLabel": "Sanatçı ara",
     "noDataset": "Henüz veri seti yüklenmedi.",
-    "noKit": "Henüz kit yok. One-shot'larını bu panelin herhangi bir yerine bırak."
+    "noKit": "Henüz kit yok. One-shot'larını bu panelin herhangi bir yerine bırak.",
+    "noMatch": "“{{query}}” ile eşleşen bir şey yok.",
+    "results": "Arama sonuçları"
   },
   "sections": {
     "genres": "Türler",
@@ -46,7 +56,9 @@
     "loop": "Döngü",
     "masterLevel": "Master seviyesi: sessiz",
     "toggleRightRail": "Sağ paneli aç/kapat (K)",
-    "reportBug": "Hata bildir"
+    "reportBug": "Hata bildir",
+    "loopAlways": "Bu aşamada çalma her zaman döngüdedir.",
+    "unavailable": "Çalma kullanılamıyor: {{reason}}"
   },
   "theme": {
     "group": "Tema",
@@ -73,8 +85,9 @@
     "exportTitle": "MIDI'yi bir klasöre yazar ve klasörü açar",
     "dragDesktopOnly": "Sürükleme yalnızca masaüstü uygulamasında çalışır.",
     "exportDesktopOnly": "Dışa aktarma yalnızca masaüstü uygulamasında çalışır.",
-    "dropped": "Bırakıldı. DAW'ın görmezden geldiyse bunu matrise işle.",
-    "exportedTo": "{{path}} konumuna aktarıldı"
+    "dropped": "İndi.",
+    "exportedTo": "{{path}} konumuna aktarıldı",
+    "nothingToExport": "Önce bir ritim oluştur."
   },
   "settings": {
     "title": "Ayarlar",
@@ -99,7 +112,13 @@
     "themeNote": "Koyu tema varsayılandır ve uygulamanın imzası sayılır. İki temanın da kontrastı WCAG 2.1 AA'ya göre denetlendi.",
     "languageHeading": "Dil",
     "languageNote": "Arayüz dili. Her dil ihtiyaç duyduğu yazı tipleriyle birlikte gelir, indirilecek hiçbir şey yok.",
-    "languageLabel": "Arayüz dili"
+    "languageLabel": "Arayüz dili",
+    "datasetHeading": "Stil veri kümesi",
+    "datasetOk": "{{count}} stil yüklendi. Hiçbiri atlanmadı.",
+    "datasetSkipped": "{{count}} stil yüklenemedi ve atlandı:",
+    "motionHeading": "Hareket",
+    "reduceMotion": "Hareketi azalt",
+    "reduceMotionHint": "Üretim taramasını kısa bir geçişle değiştirir. Sistem ayarınız bunu zaten yapar — sistemde böyle bir ayar yoksa veya diğer her şeyin hareketli kalmasını istiyorsanız kullanın."
   },
   "about": {
     "title": "Hakkında",
@@ -143,5 +162,30 @@
   },
   "common": {
     "close": "Kapat"
+  },
+  "grid": {
+    "label": "Oluşturulan desen",
+    "summary": "{{bars}} ölçü · {{steps}} adım · {{notes}} nota"
+  },
+  "roster": {
+    "artists": "Sanatçılar",
+    "flagship": "Öne çıkan",
+    "genre": "Tür"
+  },
+  "lanes": {
+    "kick": "Bas davul",
+    "snare": "Trampet",
+    "clap": "Alkış",
+    "closedHat": "Kapalı hi-hat",
+    "openHat": "Açık hi-hat",
+    "rim": "Kenar vuruşu",
+    "snap": "Parmak şıklatma",
+    "perc": "Perküsyon",
+    "bass808": "808"
+  },
+  "device": {
+    "recovering": "Ses aygıtı kayboldu — yeniden bağlanıyor…",
+    "failed": "Ses aygıtı yok. Denemeye devam ediliyor…",
+    "recovered": "Ses aygıtı geri geldi."
   }
 }

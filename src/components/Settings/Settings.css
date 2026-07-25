@@ -303,3 +303,32 @@
   flex: 0 0 14px;
   color: var(--color-accent);
 }
+
+/* A skipped model is a missing artist the user would otherwise never hear
+   about. Warning-coloured because it is a real fault in what shipped, not a
+   note — and the file and reason are listed, because a count alone is not
+   something anyone can act on. */
+.settings__problems {
+  margin: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--color-warning);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-2);
+  color: var(--color-text-2);
+  font-size: var(--text-small);
+  line-height: 1.5;
+}
+
+.settings__problems p {
+  margin: 0 0 var(--space-2);
+  color: var(--color-warning);
+}
+
+.settings__problems ul {
+  margin: 0;
+  padding-inline-start: var(--space-4);
+}
+
+.settings__problems code {
+  font-family: var(--font-mono);
+}

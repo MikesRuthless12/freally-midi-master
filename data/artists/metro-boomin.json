@@ -1,0 +1,165 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "metro-boomin",
+  "type": "artist",
+  "name": "Metro Boomin",
+  "aliases": [
+    "metro",
+    "young metro",
+    "metro boomin type"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "trap"
+  ],
+  "era": "2013-present",
+  "genres": [
+    "rap",
+    "trap"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research ch.3 Metro Boomin (flagship)",
+    "style-research ch.1 S1 Trap"
+  ],
+  "notes": "Dark cinematic Atlanta trap. An 1/8 hat bed rather than a carpet, with 1/16 and 1/32 rolls and triplet bursts over it; layered snare and clap on 3, sharp and dry; a sparse syncopated kick locked hard to the 808, which carries the chord roots and slides into downbeats.",
+  "session": {
+    "bpm": {
+      "min": 120,
+      "max": 150,
+      "mode": 140
+    },
+    "halfTime": true,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "harmonic_minor",
+        "phrygian"
+      ],
+      "weights": [
+        4,
+        3,
+        3
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.5
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3",
+      "syncopation": 0.45,
+      "tresilloBias": 0.25,
+      "avoidPreSnareGap": "8th",
+      "lockTo808": 1.0
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "layered": true,
+      "layerClapOffsetMs": [
+        2,
+        5
+      ],
+      "ghost": {
+        "prob": 0.2,
+        "pos": [
+          "4&"
+        ],
+        "vel": [
+          0.4,
+          0.55
+        ]
+      },
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.45,
+      "velocities": {
+        "main": [
+          0.8,
+          1.0
+        ],
+        "ghost": [
+          0.4,
+          0.6
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "16T",
+            "32"
+          ],
+          "weights": [
+            4,
+            3,
+            3
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "pre_snare",
+          "bar_4"
+        ],
+        "freqPerBar": 0.8,
+        "velocityRamp": true,
+        "rampRange": [
+          0.5,
+          1.0
+        ]
+      },
+      "openHat": {
+        "prob": 0.3,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "pitchBendProb": 0.2
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "monoCutSelf": true,
+      "slideProb": 0.55,
+      "slideIntervals": {
+        "values": [
+          "P5",
+          "P8",
+          "M2"
+        ],
+        "weights": [
+          3,
+          3,
+          2
+        ]
+      },
+      "slidePositions": [
+        "phrase_end",
+        "bar_2",
+        "bar_4"
+      ],
+      "register": [
+        17,
+        31
+      ],
+      "distortion": "medium"
+    }
+  }
+}

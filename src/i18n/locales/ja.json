@@ -21,13 +21,23 @@
     "emptyBody": "リストからアーティストを選び、生成を押す。",
     "seed": "シード",
     "bars": "小節",
-    "generate": "生成"
+    "generate": "生成",
+    "barsLabel": "パターンの長さ（小節）",
+    "copySeed": "シードをコピー",
+    "seedCopied": "シードをコピーしました。",
+    "seedLabel": "シード — 貼り付けると同じビートになります",
+    "seedAuto": "ランダム",
+    "generating": "生成中…",
+    "laterPhase": "このジェネレーターは後のフェーズで追加されます。",
+    "readyBody": "{{name}} の準備ができました。生成を押してください。"
   },
   "rails": {
     "searchPlaceholder": "アーティストを検索…",
     "searchLabel": "アーティストを検索",
     "noDataset": "データセットは未読み込みです。",
-    "noKit": "キットがありません。ワンショットをこのパネルのどこにでもドロップ。"
+    "noKit": "キットがありません。ワンショットをこのパネルのどこにでもドロップ。",
+    "noMatch": "「{{query}}」に一致するものはありません。",
+    "results": "検索結果"
   },
   "sections": {
     "genres": "ジャンル",
@@ -46,7 +56,9 @@
     "loop": "ループ",
     "masterLevel": "マスターレベル: 無音",
     "toggleRightRail": "右パネルの表示切替 (K)",
-    "reportBug": "バグを報告"
+    "reportBug": "バグを報告",
+    "loopAlways": "このフェーズでは再生は常にループします。",
+    "unavailable": "再生できません: {{reason}}"
   },
   "theme": {
     "group": "テーマ",
@@ -73,8 +85,9 @@
     "exportTitle": "MIDIをフォルダーに書き出して場所を開く",
     "dragDesktopOnly": "ドラッグはデスクトップアプリでのみ使えます。",
     "exportDesktopOnly": "書き出しはデスクトップアプリでのみ使えます。",
-    "dropped": "ドロップしました。DAW側で無視された場合はマトリクスに記録してください。",
-    "exportedTo": "{{path}} に書き出しました"
+    "dropped": "届きました。",
+    "exportedTo": "{{path}} に書き出しました",
+    "nothingToExport": "先にビートを生成してください。"
   },
   "settings": {
     "title": "設定",
@@ -99,7 +112,13 @@
     "themeNote": "ダークが既定で、このアプリらしい見た目です。どちらのテーマも WCAG 2.1 AA のコントラスト基準で検証済みです。",
     "languageHeading": "言語",
     "languageNote": "インターフェースの言語です。各言語に必要なフォントを同梱しているため、ダウンロードは不要です。",
-    "languageLabel": "インターフェースの言語"
+    "languageLabel": "インターフェースの言語",
+    "datasetHeading": "スタイルデータセット",
+    "datasetOk": "{{count}} 件のスタイルを読み込みました。スキップはありません。",
+    "datasetSkipped": "{{count}} 件のスタイルを読み込めず、スキップしました:",
+    "motionHeading": "モーション",
+    "reduceMotion": "モーションを減らす",
+    "reduceMotionHint": "生成時のスイープを短いフェードに置き換えます。システム設定でも同じことができます — システムにその設定がない場合や、ほかは動いていてよい場合に使ってください。"
   },
   "about": {
     "title": "情報",
@@ -143,5 +162,30 @@
   },
   "common": {
     "close": "閉じる"
+  },
+  "grid": {
+    "label": "生成されたパターン",
+    "summary": "{{bars}} 小節 · {{steps}} ステップ · {{notes}} ノート"
+  },
+  "roster": {
+    "artists": "アーティスト",
+    "flagship": "主要",
+    "genre": "ジャンル"
+  },
+  "lanes": {
+    "kick": "キック",
+    "snare": "スネア",
+    "clap": "クラップ",
+    "closedHat": "クローズドハット",
+    "openHat": "オープンハット",
+    "rim": "リム",
+    "snap": "スナップ",
+    "perc": "パーカッション",
+    "bass808": "808"
+  },
+  "device": {
+    "recovering": "オーディオデバイスが切断されました — 再接続中…",
+    "failed": "オーディオデバイスがありません。再試行中…",
+    "recovered": "オーディオデバイスが復帰しました。"
   }
 }

@@ -1,0 +1,202 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "pop-smoke",
+  "type": "artist",
+  "name": "Pop Smoke",
+  "aliases": [
+    "pop smoke",
+    "popsmoke",
+    "woo"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "ny-drill"
+  ],
+  "era": "2019-2020",
+  "genres": [
+    "rap",
+    "drill"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research ch.3 Pop Smoke",
+    "style-research ch.1 S2 Drill (NY/Brooklyn)"
+  ],
+  "notes": "Brooklyn drill over the 808Melo grammar. Skippy displaced snares and rims, a kick that avoids the grid, triplet hat stutters and woodblock percs, under gliding portamento 808s that carry the melody across bar-lines.",
+  "session": {
+    "bpm": {
+      "min": 138,
+      "max": 146,
+      "mode": 141
+    },
+    "halfTime": true,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "phrygian",
+        "harmonic_minor"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.54
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1"
+      ],
+      "offbeat8thShare": 0.45,
+      "syncopation": 0.7,
+      "tresilloBias": 0.6,
+      "avoidPreSnareGap": "8th",
+      "lockTo808": 0.65,
+      "fourBarGrammar": [
+        [
+          "1",
+          "2&",
+          "4"
+        ],
+        [
+          "1&",
+          "3"
+        ]
+      ]
+    },
+    "snare": {
+      "placement": "drill_3_4",
+      "reverb": "large",
+      "ghost": {
+        "prob": 0.6,
+        "pos": [
+          "4&"
+        ],
+        "vel": [
+          0.4,
+          0.5
+        ]
+      },
+      "offGridMs": [
+        2,
+        5
+      ]
+    },
+    "hihat": {
+      "base": "tresillo",
+      "tresilloGrouping": [
+        3,
+        3,
+        2
+      ],
+      "fillDensity": 0.55,
+      "velocities": {
+        "main": [
+          0.9,
+          1.0
+        ],
+        "ghost": [
+          0.4,
+          0.6
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16T",
+            "16",
+            "32"
+          ],
+          "weights": [
+            4,
+            3,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "pre_snare",
+          "bar_4"
+        ],
+        "freqPerBar": 0.6,
+        "velocityRamp": true,
+        "burstNotes": [
+          3,
+          3
+        ]
+      },
+      "openHat": {
+        "prob": 0.4,
+        "pos": [
+          "2&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      },
+      "pitchBendProb": 0.05
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "perc"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "placement": "offbeat"
+    },
+    "bass808": {
+      "role": "counter_riff",
+      "sustain": "legato",
+      "monoCutSelf": true,
+      "portamentoMs": [
+        30,
+        50
+      ],
+      "slidesPer4Bars": [
+        3,
+        4
+      ],
+      "slideProb": 0.8,
+      "slideIntervals": {
+        "values": [
+          "P5",
+          "P8",
+          "m7",
+          "M2"
+        ],
+        "weights": [
+          3,
+          3,
+          2,
+          2
+        ]
+      },
+      "slidePositions": [
+        "phrase_end",
+        "bar_2",
+        "bar_4"
+      ],
+      "longDownGlideProb": 0.45,
+      "muteUnderSnare": true,
+      "melodicallyIndependent": true,
+      "register": [
+        24,
+        36
+      ],
+      "distortion": "medium"
+    }
+  }
+}

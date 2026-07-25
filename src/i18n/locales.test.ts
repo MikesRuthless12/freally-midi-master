@@ -20,6 +20,8 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 import { CATEGORIES } from '../components/Settings/categories';
+import { LANE_ORDER } from '../components/DrumGrid/cells';
+import { DEVICE_STATES } from '../state/session';
 import { THEME_PREFERENCES } from '../state/theme';
 import { GENERATOR_TABS, SECTIONS } from '../state/ui';
 import { LOCALE_CODES, LOCALES, resolveLocale } from './locales';
@@ -175,6 +177,8 @@ describe('locale catalogs', () => {
     ['sections', SECTIONS],
     ['theme', THEME_PREFERENCES],
     ['theme.short', THEME_PREFERENCES],
+    ['lanes', LANE_ORDER],
+    ['device', DEVICE_STATES],
   ] as const;
 
   it.each(TEMPLATED_GROUPS)(

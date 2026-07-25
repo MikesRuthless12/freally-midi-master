@@ -21,13 +21,23 @@
     "emptyBody": "Pick someone from the roster, then hit Generate.",
     "seed": "seed",
     "bars": "bars",
-    "generate": "Generate"
+    "generate": "Generate",
+    "barsLabel": "Pattern length in bars",
+    "copySeed": "Copy seed",
+    "seedCopied": "Seed copied.",
+    "seedLabel": "Seed — paste one to get the same beat",
+    "seedAuto": "random",
+    "generating": "Generating…",
+    "laterPhase": "This generator arrives in a later phase.",
+    "readyBody": "{{name}} is ready. Hit Generate."
   },
   "rails": {
     "searchPlaceholder": "Search an artist…",
     "searchLabel": "Search an artist",
     "noDataset": "No dataset loaded yet.",
-    "noKit": "No kit yet. Drop your one-shots anywhere on this panel."
+    "noKit": "No kit yet. Drop your one-shots anywhere on this panel.",
+    "noMatch": "Nothing matches “{{query}}”.",
+    "results": "Search results"
   },
   "sections": {
     "genres": "Genres",
@@ -46,7 +56,9 @@
     "loop": "Loop",
     "masterLevel": "Master level: silent",
     "toggleRightRail": "Toggle right rail (K)",
-    "reportBug": "Report a bug"
+    "reportBug": "Report a bug",
+    "loopAlways": "Playback always loops in this phase.",
+    "unavailable": "Playback is unavailable: {{reason}}"
   },
   "theme": {
     "group": "Theme",
@@ -73,8 +85,9 @@
     "exportTitle": "Write the MIDI to a folder and reveal it",
     "dragDesktopOnly": "Drag only works in the desktop app.",
     "exportDesktopOnly": "Export only works in the desktop app.",
-    "dropped": "Dropped. If your DAW ignored it, record that in the matrix.",
-    "exportedTo": "Exported to {{path}}"
+    "dropped": "Landed.",
+    "exportedTo": "Exported to {{path}}",
+    "nothingToExport": "Generate a beat first."
   },
   "settings": {
     "title": "Settings",
@@ -99,7 +112,13 @@
     "themeNote": "Dark is the default and the app’s signature look. Both themes are contrast-checked to WCAG 2.1 AA.",
     "languageHeading": "Language",
     "languageNote": "The interface language. Every language ships with the fonts it needs, so nothing has to be downloaded.",
-    "languageLabel": "Interface language"
+    "languageLabel": "Interface language",
+    "datasetHeading": "Style dataset",
+    "datasetOk": "{{count}} styles loaded. Nothing was skipped.",
+    "datasetSkipped": "{{count}} styles could not be loaded and were skipped:",
+    "motionHeading": "Motion",
+    "reduceMotion": "Reduce motion",
+    "reduceMotionHint": "Replaces the generation sweep with a short fade. Your system setting already does this — use this when the system offers no such setting, or when you want everything else to keep moving."
   },
   "about": {
     "title": "About",
@@ -143,5 +162,30 @@
   },
   "common": {
     "close": "Close"
+  },
+  "grid": {
+    "label": "Generated pattern",
+    "summary": "{{bars}} bars · {{steps}} steps · {{notes}} notes"
+  },
+  "roster": {
+    "artists": "Artists",
+    "flagship": "Flagship",
+    "genre": "Genre"
+  },
+  "lanes": {
+    "kick": "Kick",
+    "snare": "Snare",
+    "clap": "Clap",
+    "closedHat": "Closed hat",
+    "openHat": "Open hat",
+    "rim": "Rim",
+    "snap": "Snap",
+    "perc": "Perc",
+    "bass808": "808"
+  },
+  "device": {
+    "recovering": "Audio device lost — reconnecting…",
+    "failed": "No audio device. Still trying…",
+    "recovered": "Audio device is back."
   }
 }

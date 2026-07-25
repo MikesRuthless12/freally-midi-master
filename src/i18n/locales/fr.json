@@ -21,13 +21,23 @@
     "emptyBody": "Choisis un artiste dans la liste, puis lance Générer.",
     "seed": "graine",
     "bars": "mesures",
-    "generate": "Générer"
+    "generate": "Générer",
+    "barsLabel": "Longueur du motif en mesures",
+    "copySeed": "Copier la graine",
+    "seedCopied": "Graine copiée.",
+    "seedLabel": "Graine — collez-la pour retrouver le même beat",
+    "seedAuto": "aléatoire",
+    "generating": "Génération…",
+    "laterPhase": "Ce générateur arrivera dans une phase ultérieure.",
+    "readyBody": "{{name}} est prêt. Appuyez sur Générer."
   },
   "rails": {
     "searchPlaceholder": "Rechercher un artiste…",
     "searchLabel": "Rechercher un artiste",
     "noDataset": "Aucun jeu de données chargé.",
-    "noKit": "Aucun kit pour l’instant. Dépose tes one-shots n’importe où sur ce panneau."
+    "noKit": "Aucun kit pour l’instant. Dépose tes one-shots n’importe où sur ce panneau.",
+    "noMatch": "Aucun résultat pour « {{query}} ».",
+    "results": "Résultats de recherche"
   },
   "sections": {
     "genres": "Genres",
@@ -46,7 +56,9 @@
     "loop": "Boucle",
     "masterLevel": "Niveau master : silencieux",
     "toggleRightRail": "Afficher/masquer le panneau droit (K)",
-    "reportBug": "Signaler un bug"
+    "reportBug": "Signaler un bug",
+    "loopAlways": "La lecture est toujours en boucle à ce stade.",
+    "unavailable": "Lecture indisponible : {{reason}}"
   },
   "theme": {
     "group": "Thème",
@@ -73,8 +85,9 @@
     "exportTitle": "Écrire le MIDI dans un dossier et l’afficher",
     "dragDesktopOnly": "Le glisser-déposer ne fonctionne que dans l’application de bureau.",
     "exportDesktopOnly": "L’export ne fonctionne que dans l’application de bureau.",
-    "dropped": "Déposé. Si ton DAW l’a ignoré, note-le dans la matrice.",
-    "exportedTo": "Exporté vers {{path}}"
+    "dropped": "C’est posé.",
+    "exportedTo": "Exporté vers {{path}}",
+    "nothingToExport": "Générez d’abord un beat."
   },
   "settings": {
     "title": "Paramètres",
@@ -99,7 +112,13 @@
     "themeNote": "Le sombre est le thème par défaut et la signature de l’application. Les deux thèmes sont vérifiés en contraste selon WCAG 2.1 AA.",
     "languageHeading": "Langue",
     "languageNote": "La langue de l’interface. Chaque langue embarque les polices dont elle a besoin : il n’y a rien à télécharger.",
-    "languageLabel": "Langue de l’interface"
+    "languageLabel": "Langue de l’interface",
+    "datasetHeading": "Jeu de styles",
+    "datasetOk": "{{count}} styles chargés. Rien n’a été ignoré.",
+    "datasetSkipped": "{{count}} styles n’ont pas pu être chargés et ont été ignorés :",
+    "motionHeading": "Animations",
+    "reduceMotion": "Réduire les animations",
+    "reduceMotionHint": "Remplace le balayage de génération par un fondu court. Le réglage système le fait déjà — utilisez ceci si le système ne le propose pas, ou si vous voulez garder le reste animé."
   },
   "about": {
     "title": "À propos",
@@ -143,5 +162,30 @@
   },
   "common": {
     "close": "Fermer"
+  },
+  "grid": {
+    "label": "Motif généré",
+    "summary": "{{bars}} mesures · {{steps}} pas · {{notes}} notes"
+  },
+  "roster": {
+    "artists": "Artistes",
+    "flagship": "Emblématique",
+    "genre": "Style"
+  },
+  "lanes": {
+    "kick": "Grosse caisse",
+    "snare": "Caisse claire",
+    "clap": "Claquement",
+    "closedHat": "Charley fermé",
+    "openHat": "Charley ouvert",
+    "rim": "Cercle",
+    "snap": "Claquement de doigts",
+    "perc": "Percussion",
+    "bass808": "808"
+  },
+  "device": {
+    "recovering": "Périphérique audio perdu — reconnexion…",
+    "failed": "Aucun périphérique audio. Nouvelle tentative…",
+    "recovered": "Le périphérique audio est revenu."
   }
 }

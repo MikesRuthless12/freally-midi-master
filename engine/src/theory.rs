@@ -130,3 +130,76 @@ mod tests {
         assert_eq!(fold_into_register(24, 24, 26), Some(24));
     }
 }
+
+/// The pitch class of a key name — `"C"`, `"F#m"`, `"Bbm"`.
+///
+/// The dataset spells keys three ways and all three are legitimate: sharp
+/// minors (`"F#m"`) in most models, bare majors (`"G"`) in country and pop,
+/// and flats (`"Bbm"`, `"Ebm"`) in R&B. The trailing `m` is a hint about the
+/// mode and is *not* what decides the scale — a model states that separately in
+/// `session.scales` — so it is accepted and ignored here.
+pub fn key_pitch_class(name: &str) -> Option<u8> {
+    let mut chars = name.trim().chars();
+    let letter = chars.next()?;
+    let base = match letter.to_ascii_uppercase() {
+        'C' => 0,
+        'D' => 2,
+        'E' => 4,
+        'F' => 5,
+        'G' => 7,
+        'A' => 9,
+        'B' => 11,
+        _ => return None,
+    };
+
+    let rest: String = chars.collect();
+    let (accidental, rest) = match rest.chars().next() {
+        Some('#') => (1i8, &rest[1..]),
+        Some('b') if rest.len() > 1 || rest == "b" => (-1i8, &rest[1..]),
+        _ => (0, rest.as_str()),
+    };
+
+    // What may follow: nothing, or a mode marker.
+    if !matches!(rest, "" | "m" | "min" | "maj" | "M") {
+        return None;
+    }
+
+    Some(((base as i8 + accidental).rem_euclid(12)) as u8)
+}
+
+#[cfg(test)]
+mod key_tests {
+    use super::*;
+
+    #[test]
+    fn all_three_spellings_the_dataset_uses_parse() {
+        // Sharp minors — most models.
+        assert_eq!(key_pitch_class("F#m"), Some(6));
+        assert_eq!(key_pitch_class("C#m"), Some(1));
+        // Bare majors — country-train, pop-2000s.
+        assert_eq!(key_pitch_class("G"), Some(7));
+        assert_eq!(key_pitch_class("C"), Some(0));
+        // Flats — rnb-2000s.
+        assert_eq!(key_pitch_class("Bbm"), Some(10));
+        assert_eq!(key_pitch_class("Ebm"), Some(3));
+        // Plain minors.
+        assert_eq!(key_pitch_class("Am"), Some(9));
+        assert_eq!(key_pitch_class("Cm"), Some(0));
+    }
+
+    #[test]
+    fn the_mode_marker_does_not_change_the_root() {
+        // `session.scales` decides the scale; the `m` is only a hint, so a
+        // model that spells the same root both ways must not move the key.
+        assert_eq!(key_pitch_class("A"), key_pitch_class("Am"));
+        assert_eq!(key_pitch_class("Eb"), key_pitch_class("Ebm"));
+    }
+
+    #[test]
+    fn nonsense_is_rejected_rather_than_guessed() {
+        assert_eq!(key_pitch_class("H"), None);
+        assert_eq!(key_pitch_class(""), None);
+        assert_eq!(key_pitch_class("Cmaj7"), None);
+        assert_eq!(key_pitch_class("2"), None);
+    }
+}

@@ -1,6 +1,8 @@
+pub mod audio;
 pub mod bugreport;
 pub mod dataset;
 pub mod export;
+pub mod generate;
 pub mod store;
 pub mod tray;
 
@@ -66,6 +68,12 @@ pub fn run() {
             // 1,000 models; the engine bench measures 219 ms), so this costs
             // nothing visible and saves the first search from waiting on IO.
             app.manage(dataset::load(app.handle()));
+            // The output device and the preview kit. Opening a device is slow
+            // and can fail outright, and neither may stop the app: a machine
+            // with no sound card still generates and exports, and
+            // `playback_status` is what tells the UI why play is unavailable.
+            app.manage(audio::start(app.handle()));
+            audio::spawn_publisher(app.handle().clone());
             tray::sync(app.handle())?;
             Ok(())
         })
@@ -103,6 +111,13 @@ pub fn run() {
             bugreport::bug_report_preview,
             dataset::roster_summary,
             dataset::resolve_model,
+            generate::generate_pattern,
+            generate::export_midi,
+            audio::play_pattern,
+            audio::stop_playback,
+            audio::set_looping,
+            audio::preview_pad,
+            audio::playback_status,
             export::drag::drag_capability,
             export::drag::export_spike_midi,
             export::drag::drag_source_ready,

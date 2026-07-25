@@ -21,13 +21,23 @@
     "emptyBody": "Elige a alguien de la lista y presiona Generar.",
     "seed": "semilla",
     "bars": "compases",
-    "generate": "Generar"
+    "generate": "Generar",
+    "barsLabel": "Duración del patrón en compases",
+    "copySeed": "Copiar semilla",
+    "seedCopied": "Semilla copiada.",
+    "seedLabel": "Semilla: pégala para obtener el mismo beat",
+    "seedAuto": "aleatoria",
+    "generating": "Generando…",
+    "laterPhase": "Este generador llegará en una fase posterior.",
+    "readyBody": "{{name}} está listo. Pulsa Generar."
   },
   "rails": {
     "searchPlaceholder": "Busca un artista…",
     "searchLabel": "Buscar un artista",
     "noDataset": "Aún no se ha cargado ningún dataset.",
-    "noKit": "Aún no hay kit. Suelta tus one-shots en cualquier parte de este panel."
+    "noKit": "Aún no hay kit. Suelta tus one-shots en cualquier parte de este panel.",
+    "noMatch": "Nada coincide con «{{query}}».",
+    "results": "Resultados de búsqueda"
   },
   "sections": {
     "genres": "Géneros",
@@ -46,7 +56,9 @@
     "loop": "Bucle",
     "masterLevel": "Nivel máster: en silencio",
     "toggleRightRail": "Alternar el panel derecho (K)",
-    "reportBug": "Reportar un error"
+    "reportBug": "Reportar un error",
+    "loopAlways": "La reproducción siempre se repite en esta fase.",
+    "unavailable": "La reproducción no está disponible: {{reason}}"
   },
   "theme": {
     "group": "Tema",
@@ -73,8 +85,9 @@
     "exportTitle": "Guarda el MIDI en una carpeta y la abre",
     "dragDesktopOnly": "Arrastrar solo funciona en la app de escritorio.",
     "exportDesktopOnly": "Exportar solo funciona en la app de escritorio.",
-    "dropped": "Soltado. Si tu DAW lo ignoró, anótalo en la matriz.",
-    "exportedTo": "Exportado a {{path}}"
+    "dropped": "Aterrizó.",
+    "exportedTo": "Exportado a {{path}}",
+    "nothingToExport": "Primero genera un beat."
   },
   "settings": {
     "title": "Ajustes",
@@ -99,7 +112,13 @@
     "themeNote": "El oscuro es el predeterminado y el aspecto característico de la app. El contraste de ambos temas está verificado según WCAG 2.1 AA.",
     "languageHeading": "Idioma",
     "languageNote": "El idioma de la interfaz. Cada idioma incluye las fuentes que necesita, así que no hay que descargar nada.",
-    "languageLabel": "Idioma de la interfaz"
+    "languageLabel": "Idioma de la interfaz",
+    "datasetHeading": "Conjunto de estilos",
+    "datasetOk": "{{count}} estilos cargados. No se omitió nada.",
+    "datasetSkipped": "No se pudieron cargar {{count}} estilos y se omitieron:",
+    "motionHeading": "Movimiento",
+    "reduceMotion": "Reducir el movimiento",
+    "reduceMotionHint": "Sustituye el barrido de generación por un fundido corto. Tu ajuste del sistema ya hace esto — usa este cuando el sistema no tenga ese ajuste, o cuando quieras que todo lo demás siga en movimiento."
   },
   "about": {
     "title": "Acerca de",
@@ -143,5 +162,30 @@
   },
   "common": {
     "close": "Cerrar"
+  },
+  "grid": {
+    "label": "Patrón generado",
+    "summary": "{{bars}} compases · {{steps}} pasos · {{notes}} notas"
+  },
+  "roster": {
+    "artists": "Artistas",
+    "flagship": "Destacado",
+    "genre": "Género"
+  },
+  "lanes": {
+    "kick": "Bombo",
+    "snare": "Caja",
+    "clap": "Palmada",
+    "closedHat": "Charles cerrado",
+    "openHat": "Charles abierto",
+    "rim": "Aro",
+    "snap": "Chasquido",
+    "perc": "Percusión",
+    "bass808": "808"
+  },
+  "device": {
+    "recovering": "Se perdió el dispositivo de audio: reconectando…",
+    "failed": "Sin dispositivo de audio. Seguimos intentándolo…",
+    "recovered": "El dispositivo de audio volvió."
   }
 }

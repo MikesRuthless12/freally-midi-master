@@ -1,0 +1,160 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "osamason",
+  "type": "artist",
+  "name": "OsamaSon",
+  "aliases": [
+    "osama",
+    "osamason",
+    "osama son"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "rage"
+  ],
+  "era": "2022-present",
+  "genres": [
+    "rap",
+    "rage",
+    "plugg"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research ch.4 OsamaSon"
+  ],
+  "notes": "Rage crossed with dark plugg. Sparse plugg-derived kicks with rage double-time bursts; hats skittery but thin - triplet rolls used as accents rather than a carpet; clap on 3; heavily distorted gliding 808s with frequent long slides.",
+  "session": {
+    "bpm": {
+      "min": 140,
+      "max": 165,
+      "mode": 152
+    },
+    "halfTime": true,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "phrygian",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.52
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "syncopation": 0.5,
+      "tresilloBias": 0.3,
+      "lockTo808": 1.0
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "layered": true,
+      "ghost": {
+        "prob": 0.15,
+        "pos": [
+          "4&"
+        ],
+        "vel": [
+          0.35,
+          0.5
+        ]
+      },
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": 0.3,
+      "velocities": {
+        "main": [
+          0.75,
+          0.95
+        ],
+        "ghost": [
+          0.35,
+          0.55
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16T",
+            "32T",
+            "32"
+          ],
+          "weights": [
+            4,
+            3,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "pre_downbeat"
+        ],
+        "freqPerBar": 0.6,
+        "velocityRamp": true,
+        "burstOnly": true
+      },
+      "openHat": {
+        "prob": 0.35,
+        "pos": [
+          "1_pre",
+          "3_pre"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "pitchBendProb": 0.1
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "monoCutSelf": true,
+      "slideProb": 0.7,
+      "slidesPer4Bars": [
+        3,
+        4
+      ],
+      "slideIntervals": {
+        "values": [
+          "P5",
+          "P8",
+          "m2"
+        ],
+        "weights": [
+          3,
+          3,
+          2
+        ]
+      },
+      "slidePositions": [
+        "phrase_end",
+        "bar_2"
+      ],
+      "longDownGlideProb": 0.4,
+      "register": [
+        17,
+        31
+      ],
+      "distortion": "heavy",
+      "clipping": true
+    }
+  }
+}

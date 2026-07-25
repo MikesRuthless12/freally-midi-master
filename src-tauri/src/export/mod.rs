@@ -63,12 +63,54 @@ pub fn safe_stem(input: &str) -> String {
     }
 }
 
+/// How many exports the session directory keeps.
+///
+/// A drop hands the DAW a path in a temp directory, and some hosts reference
+/// that file rather than copying it — so the last few exports have to outlive
+/// the drag. Twenty is enough that going back to something from earlier in a
+/// session works, and few enough that a long session cannot fill a disk.
+pub const KEEP_EXPORTS: usize = 20;
+
 /// Write bytes into the session dir under a safe name.
 pub fn write_session_file(stem: &str, extension: &str, bytes: &[u8]) -> std::io::Result<PathBuf> {
     let dir = session_dir()?;
     let path = dir.join(format!("{}.{}", safe_stem(stem), safe_stem(extension)));
     write_atomic(&path, bytes)?;
+    // Pruned here rather than on quit: a crash or a kill never reaches a quit
+    // handler, and that is exactly the session that generated hundreds of
+    // exports. Bounded at all times costs one directory read per export.
+    prune_exports(&dir, KEEP_EXPORTS);
     Ok(path)
+}
+
+/// Keep the newest `keep` exports and delete the rest.
+///
+/// Best-effort by design: a file another process still holds open cannot be
+/// removed on Windows, and failing an export because tidying failed would be
+/// the wrong trade entirely.
+pub fn prune_exports(dir: &Path, keep: usize) {
+    let Ok(entries) = fs::read_dir(dir) else {
+        return;
+    };
+
+    let mut files: Vec<(std::time::SystemTime, PathBuf)> = entries
+        .filter_map(Result::ok)
+        .filter(|entry| entry.path().extension().is_some_and(|e| e == "mid"))
+        .filter_map(|entry| {
+            let modified = entry.metadata().ok()?.modified().ok()?;
+            Some((modified, entry.path()))
+        })
+        .collect();
+
+    if files.len() <= keep {
+        return;
+    }
+
+    // Newest first, then drop everything past the limit.
+    files.sort_by_key(|(modified, _)| std::cmp::Reverse(*modified));
+    for (_, path) in files.into_iter().skip(keep) {
+        let _ = fs::remove_file(path);
+    }
 }
 
 /// Write via a temp file and rename, so a crash mid-write cannot leave a
@@ -164,6 +206,57 @@ mod tests {
         let content = fs::read_to_string(&path).unwrap();
         assert!(content.starts_with("payload "), "got {content:?}");
         let _ = fs::remove_file(&path);
+    }
+
+    #[test]
+    fn the_session_directory_stays_bounded() {
+        // A long session generating hundreds of clips must not fill the disk,
+        // and the newest must survive — a prune that kept the *oldest* twenty
+        // would delete the clip the user just dragged.
+        let dir = session_dir().unwrap().join("prune-test");
+        let _ = fs::remove_dir_all(&dir);
+        fs::create_dir_all(&dir).unwrap();
+
+        for i in 0..(KEEP_EXPORTS + 15) {
+            let path = dir.join(format!("clip-{i:03}.mid"));
+            fs::write(&path, b"MThd").unwrap();
+            // Timestamps have coarse resolution on some filesystems, so order
+            // is established explicitly rather than trusted to write speed.
+            let when = std::time::SystemTime::UNIX_EPOCH
+                + std::time::Duration::from_secs(1_700_000_000 + i as u64 * 60);
+            let file = fs::File::options().write(true).open(&path).unwrap();
+            file.set_modified(when).unwrap();
+        }
+
+        // A file that is not an export is not ours to delete.
+        fs::write(dir.join("notes.txt"), b"keep me").unwrap();
+
+        prune_exports(&dir, KEEP_EXPORTS);
+
+        let mut remaining: Vec<String> = fs::read_dir(&dir)
+            .unwrap()
+            .filter_map(Result::ok)
+            .map(|e| e.file_name().to_string_lossy().into_owned())
+            .collect();
+        remaining.sort();
+
+        assert!(
+            remaining.contains(&"notes.txt".to_string()),
+            "{remaining:?}"
+        );
+        let mids: Vec<&String> = remaining.iter().filter(|n| n.ends_with(".mid")).collect();
+        assert_eq!(mids.len(), KEEP_EXPORTS, "{mids:?}");
+        // The newest survived and the oldest did not.
+        assert!(
+            mids.iter().any(|n| n.as_str() == "clip-034.mid"),
+            "{mids:?}"
+        );
+        assert!(
+            !mids.iter().any(|n| n.as_str() == "clip-000.mid"),
+            "{mids:?}"
+        );
+
+        let _ = fs::remove_dir_all(&dir);
     }
 
     #[test]

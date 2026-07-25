@@ -41,10 +41,30 @@ test.describe('Phase gate — UI contract', () => {
   });
 
   test('nothing claims to work before it does', async ({ page }) => {
+    // Still the rule; the line has moved. Search is live and Generate becomes
+    // live once an artist is chosen (TASK-028), so the controls that must stay
+    // disabled are the ones with nothing behind them yet: transport with no
+    // pattern and no device, and a loop toggle that has nothing to toggle.
     for (const name of ['Generate', 'Play', 'Stop', 'Loop']) {
       await expect(page.getByRole('button', { name })).toBeDisabled();
     }
-    await expect(page.getByLabel('Search an artist')).toBeDisabled();
+    await expect(page.getByLabel('Search an artist')).toBeEnabled();
+  });
+
+  test('a control becomes live exactly when it can do something', async ({ page }) => {
+    // The other half of the same rule, and the one a "disabled" sweep cannot
+    // see: a control that stays disabled after its precondition is met is
+    // just as broken as one that lies about being ready.
+    const search = page.getByLabel('Search an artist');
+    const generate = page.getByRole('button', { name: 'Generate' });
+
+    await expect(generate).toBeDisabled();
+    await search.fill('trap');
+    await search.press('Enter');
+    await expect(generate).toBeEnabled();
+
+    await generate.click();
+    await expect(page.getByRole('table', { name: 'Generated pattern' })).toBeVisible();
   });
 });
 

@@ -240,3 +240,106 @@ mod tests {
         assert!(!json.contains("timingJitterMs"), "got {json}");
     }
 }
+
+/// What a caller may pin instead of letting the model choose it.
+///
+/// Everything is optional: an override the user has not touched must stay
+/// absent rather than arrive as a default, or the artist's own value is
+/// silently replaced by whatever the UI happened to initialise (PRD § 4
+/// `SessionOverrides`).
+#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export, export_to = "../../src/lib/ipc-types.ts")]
+pub struct SessionOverrides {
+    pub bpm: Option<f32>,
+    /// Pitch class, 0 = C.
+    pub key_root: Option<u8>,
+    pub scale: Option<Scale>,
+    pub swing: Option<f32>,
+    pub bars: Option<u16>,
+    pub half_time: Option<bool>,
+}
+
+impl SessionContext {
+    /// The session a style model asks for, with anything the user pinned
+    /// taking precedence.
+    ///
+    /// Sampled from a seeded stream of its own, so the same seed always yields
+    /// the same tempo and key — the seed chip's promise covers the session, not
+    /// only the notes — and so that adding a session parameter later cannot
+    /// shift the note streams.
+    pub fn from_model(model: &crate::StyleModel, overrides: &SessionOverrides, seed: u64) -> Self {
+        let mut rng = crate::rng::stream(seed, "session");
+        let session = model.session.as_ref();
+        let defaults = Self::default();
+
+        let bpm = overrides.bpm.unwrap_or_else(|| {
+            session
+                .and_then(|s| s.bpm.as_ref())
+                .map(|spec| spec.nominal() as f32)
+                .unwrap_or(defaults.bpm)
+        });
+
+        let key_root = overrides.key_root.unwrap_or_else(|| {
+            session
+                .and_then(|s| s.keys.as_ref())
+                .and_then(|spec| spec.sample(&mut rng).ok())
+                .and_then(|name| crate::theory::key_pitch_class(&name))
+                .unwrap_or(defaults.key_root)
+        });
+
+        let scale = overrides.scale.unwrap_or_else(|| {
+            session
+                .and_then(|s| s.scales.as_ref())
+                .and_then(|spec| spec.sample(&mut rng).ok())
+                .and_then(|name| serde_json::from_value(serde_json::Value::String(name)).ok())
+                .unwrap_or(defaults.scale)
+        });
+
+        let authored_swing = session.and_then(|s| s.swing.as_ref());
+        let swing = Swing {
+            grid: match authored_swing.map(|s| s.grid.as_str()) {
+                Some("8th") => SwingGrid::Eighth,
+                _ => SwingGrid::Sixteenth,
+            },
+            amount: overrides
+                .swing
+                .unwrap_or_else(|| authored_swing.map(|s| s.amount as f32).unwrap_or(0.5)),
+        };
+
+        let humanize = session
+            .and_then(|s| s.humanize.as_ref())
+            .map(|spec| Humanize {
+                quantize_strength: spec.quantize_strength.unwrap_or(0.92) as f32,
+                velocity_var: spec.velocity_var.unwrap_or(0.12) as f32,
+                // A lane name the engine does not know is dropped here, which
+                // is why `engine/tests/humanize.rs` asserts every authored key
+                // parses: a typo would silently cost that lane its feel.
+                timing_jitter_ms: spec
+                    .timing_jitter_ms
+                    .iter()
+                    .filter_map(|(lane, ms)| {
+                        serde_json::from_value::<Lane>(serde_json::Value::String(lane.clone()))
+                            .ok()
+                            .map(|lane| (lane, *ms as f32))
+                    })
+                    .collect(),
+            })
+            .unwrap_or_default();
+
+        SessionContext {
+            bpm,
+            time_sig_num: 4,
+            time_sig_den: 4,
+            key_root,
+            scale,
+            swing,
+            bars: overrides.bars.unwrap_or(4),
+            half_time: overrides
+                .half_time
+                .or_else(|| session.and_then(|s| s.half_time))
+                .unwrap_or(false),
+            humanize,
+        }
+    }
+}

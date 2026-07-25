@@ -33,6 +33,13 @@ struct Voice {
     samples: Vec<f32>,
     /// Pads in the same choke group cut each other off, as a real hi-hat does.
     choke_group: Option<u8>,
+    /// The MIDI note this sample was synthesized at, for pads that carry pitch.
+    ///
+    /// `None` for percussion, which has no pitch to transpose from. Without it
+    /// the sampler has no way to play an 808 line in the session's key — every
+    /// note would sound at the pitch the sample happens to be, and a bassline
+    /// would come out monotone.
+    root_note: Option<u8>,
 }
 
 fn build_trap_kit() -> Vec<Voice> {
@@ -42,6 +49,7 @@ fn build_trap_kit() -> Vec<Voice> {
             lane: "kick",
             samples: voices::kick(),
             choke_group: None,
+            root_note: None,
         },
         Voice {
             // E1 — the low end of the trap 808 register in research ch. 2.
@@ -49,42 +57,49 @@ fn build_trap_kit() -> Vec<Voice> {
             lane: "bass808",
             samples: voices::eight_o_eight(41.2, 1.4, 2.2),
             choke_group: Some(2),
+            root_note: Some(28),
         },
         Voice {
             name: "snare",
             lane: "snare",
             samples: voices::snare(KIT_SEED),
             choke_group: None,
+            root_note: None,
         },
         Voice {
             name: "clap",
             lane: "clap",
             samples: voices::clap(KIT_SEED),
             choke_group: None,
+            root_note: None,
         },
         Voice {
             name: "closed-hat",
             lane: "closedHat",
             samples: voices::closed_hat(KIT_SEED),
             choke_group: Some(1),
+            root_note: None,
         },
         Voice {
             name: "open-hat",
             lane: "openHat",
             samples: voices::open_hat(KIT_SEED),
             choke_group: Some(1),
+            root_note: None,
         },
         Voice {
             name: "rim",
             lane: "rim",
             samples: voices::rim(KIT_SEED),
             choke_group: None,
+            root_note: None,
         },
         Voice {
             name: "perc",
             lane: "perc",
             samples: voices::perc(KIT_SEED),
             choke_group: None,
+            root_note: None,
         },
     ]
 }
@@ -115,6 +130,7 @@ fn write_kit(out_dir: &Path, id: &str, name: &str, voices: Vec<Voice>) -> std::i
             "pitchSemis": 0,
             "pan": 0.0,
             "chokeGroup": voice.choke_group,
+            "rootNote": voice.root_note,
         }));
     }
 

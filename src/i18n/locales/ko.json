@@ -21,13 +21,23 @@
     "emptyBody": "로스터에서 아티스트를 고르고 생성을 누르세요.",
     "seed": "시드",
     "bars": "마디",
-    "generate": "생성"
+    "generate": "생성",
+    "barsLabel": "패턴 길이(마디)",
+    "copySeed": "시드 복사",
+    "seedCopied": "시드를 복사했습니다.",
+    "seedLabel": "시드 — 붙여넣으면 같은 비트가 나옵니다",
+    "seedAuto": "무작위",
+    "generating": "생성 중…",
+    "laterPhase": "이 제너레이터는 이후 단계에서 추가됩니다.",
+    "readyBody": "{{name}} 준비 완료. 생성을 누르세요."
   },
   "rails": {
     "searchPlaceholder": "아티스트 검색…",
     "searchLabel": "아티스트 검색",
     "noDataset": "불러온 데이터셋이 없습니다.",
-    "noKit": "아직 킷이 없습니다. 원샷 샘플을 이 패널 아무 곳에나 놓으세요."
+    "noKit": "아직 킷이 없습니다. 원샷 샘플을 이 패널 아무 곳에나 놓으세요.",
+    "noMatch": "“{{query}}”에 해당하는 항목이 없습니다.",
+    "results": "검색 결과"
   },
   "sections": {
     "genres": "장르",
@@ -46,7 +56,9 @@
     "loop": "루프",
     "masterLevel": "마스터 레벨: 무음",
     "toggleRightRail": "오른쪽 레일 전환 (K)",
-    "reportBug": "버그 신고"
+    "reportBug": "버그 신고",
+    "loopAlways": "이 단계에서는 재생이 항상 반복됩니다.",
+    "unavailable": "재생할 수 없습니다: {{reason}}"
   },
   "theme": {
     "group": "테마",
@@ -73,8 +85,9 @@
     "exportTitle": "MIDI를 폴더에 저장하고 위치 열기",
     "dragDesktopOnly": "드래그는 데스크톱 앱에서만 됩니다.",
     "exportDesktopOnly": "내보내기는 데스크톱 앱에서만 됩니다.",
-    "dropped": "드롭 완료. DAW가 받지 않았다면 매트릭스에 기록하세요.",
-    "exportedTo": "{{path}}에 내보냈습니다"
+    "dropped": "전달됐습니다.",
+    "exportedTo": "{{path}}에 내보냈습니다",
+    "nothingToExport": "먼저 비트를 생성하세요."
   },
   "settings": {
     "title": "설정",
@@ -99,7 +112,13 @@
     "themeNote": "다크가 기본이자 이 앱의 시그니처입니다. 두 테마 모두 WCAG 2.1 AA 대비를 충족합니다.",
     "languageHeading": "언어",
     "languageNote": "인터페이스 언어입니다. 모든 언어에 필요한 폰트가 함께 들어 있어 따로 내려받을 것이 없습니다.",
-    "languageLabel": "인터페이스 언어"
+    "languageLabel": "인터페이스 언어",
+    "datasetHeading": "스타일 데이터셋",
+    "datasetOk": "스타일 {{count}}개를 불러왔습니다. 건너뛴 항목은 없습니다.",
+    "datasetSkipped": "스타일 {{count}}개를 불러오지 못해 건너뛰었습니다:",
+    "motionHeading": "모션",
+    "reduceMotion": "모션 줄이기",
+    "reduceMotionHint": "생성 스윙을 짧은 페이드로 바꿉니다. 시스템 설정으로도 같은 효과를 얻습니다 — 시스템에 해당 설정이 없거나 나머지는 움직이게 두고 싶을 때 사용하세요."
   },
   "about": {
     "title": "정보",
@@ -143,5 +162,30 @@
   },
   "common": {
     "close": "닫기"
+  },
+  "grid": {
+    "label": "생성된 패턴",
+    "summary": "{{bars}}마디 · {{steps}}스텝 · {{notes}}노트"
+  },
+  "roster": {
+    "artists": "아티스트",
+    "flagship": "대표",
+    "genre": "장르"
+  },
+  "lanes": {
+    "kick": "킥",
+    "snare": "스네어",
+    "clap": "클랩",
+    "closedHat": "클로즈 하이햇",
+    "openHat": "오픈 하이햇",
+    "rim": "림",
+    "snap": "스냅",
+    "perc": "퍼커션",
+    "bass808": "808"
+  },
+  "device": {
+    "recovering": "오디오 장치 연결이 끊겼습니다 — 다시 연결 중…",
+    "failed": "오디오 장치가 없습니다. 계속 시도 중…",
+    "recovered": "오디오 장치가 복구됐습니다."
   }
 }

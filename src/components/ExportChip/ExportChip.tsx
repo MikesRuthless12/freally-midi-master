@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { FolderOpen, Upload } from 'lucide-react';
 
 import { invoke, isTauri } from '../../lib/ipc';
+import { useSession } from '../../state/session';
 import './ExportChip.css';
 import { useTranslation } from 'react-i18next';
 
@@ -28,6 +29,9 @@ type StartDrag = typeof import('@crabnebula/tauri-plugin-drag').startDrag;
 export function ExportChip() {
   const { t } = useTranslation();
   const [capability, setCapability] = useState<Capability | null>(null);
+  // Nothing generated means nothing to hand over. The chips say so rather than
+  // starting a drag that carries an empty file.
+  const pattern = useSession((s) => s.pattern);
   const [status, setStatus] = useState<Status>({ kind: 'idle' });
 
   useEffect(() => {
@@ -36,9 +40,18 @@ export function ExportChip() {
       .catch(() => setCapability(null));
   }, []);
 
-  /** Write the file first — a drag needs something real on disk. */
+  /**
+   * Write the file first — a drag needs something real on disk.
+   *
+   * The *generated* pattern, not the drag spike: what lands in the DAW has to
+   * be what is on screen. Exporting the pattern rather than regenerating from
+   * its seed matters too — the seed reproduces the notes, but not any edit the
+   * user has made to them.
+   */
   const prepare = async (): Promise<ExportResult> => {
-    const result = await invoke<ExportResult>('export_spike_midi');
+    const pattern = useSession.getState().pattern;
+    if (!pattern) throw new Error(t('export.nothingToExport'));
+    const result = await invoke<ExportResult>('export_midi', { pattern });
     // Verify before handing the path to the OS: a drag whose source does not
     // exist is silently ignored by the drop target, which looks exactly like
     // "this platform cannot drag".
@@ -60,6 +73,13 @@ export function ExportChip() {
    * the handler is normally already settled.
    */
   const readied = useRef<Promise<{ file: ExportResult; startDrag: StartDrag }> | null>(null);
+
+  // Readying happens on pointer-down and is cached, so a new generation has to
+  // throw the cache away — otherwise the chip keeps handing the DAW the beat
+  // before last.
+  useEffect(() => {
+    readied.current = null;
+  }, [pattern]);
 
   const ready = () => {
     readied.current ??= (async () => {
@@ -141,10 +161,15 @@ export function ExportChip() {
         <button
           type="button"
           className="btn-ghost"
-          draggable
+          draggable={pattern !== null}
+          disabled={pattern === null}
           onPointerDown={onPointerDown}
           onDragStart={onDragStart}
-          title={capability?.note ?? t('export.dragTitle')}
+          title={
+            pattern === null
+              ? t('export.nothingToExport')
+              : (capability?.note ?? t('export.dragTitle'))
+          }
         >
           <Upload size={14} aria-hidden="true" />
           {t('export.drag')}
@@ -155,7 +180,8 @@ export function ExportChip() {
         type="button"
         className="btn-ghost"
         onClick={onExport}
-        title={t('export.exportTitle')}
+        disabled={pattern === null}
+        title={pattern === null ? t('export.nothingToExport') : t('export.exportTitle')}
       >
         <FolderOpen size={14} aria-hidden="true" />
         {t('export.export')}

@@ -75,12 +75,16 @@ jobs:
       - name: cargo test
         run: cargo test --workspace
 
-      # ts-rs writes src/lib/ipc-types.ts during `cargo test`. The file is
-      # committed so a fresh clone can typecheck without running cargo, which
-      # means it can drift. If the regenerated file differs from the committed
-      # one, the IPC contract and the UI's view of it have diverged.
+      # ts-rs writes both files during `cargo test`. They are committed so a
+      # fresh clone can typecheck without running cargo, which means they can
+      # drift. If a regenerated file differs from the committed one, the IPC
+      # contract and the UI's view of it have diverged.
+      #
+      # Two files, one per crate, and they must stay separate: ts-rs truncates
+      # the file it writes, so pointing `engine` and `src-tauri` at one path
+      # made whichever ran last delete the other's types.
       - name: TypeScript bindings are up to date
-        run: git diff --exit-code -- src/lib/ipc-types.ts
+        run: git diff --exit-code -- src/lib/ipc-types.ts src/lib/ipc-audio-types.ts
 
       # ---- Frontend ------------------------------------------------------
       - name: typecheck

@@ -1,0 +1,50 @@
+/* Fills `.stage__body` exactly rather than sitting inside its flow.
+ *
+ * `.stage__empty` is `position: absolute; inset: 0` against the body, so a
+ * wrapper that merely contained it would become its containing block and give
+ * it whatever height the wrapper happened to have — which was none, and the
+ * empty state ended up over the tab strip, swallowing clicks on the tabs. */
+.genfx {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: auto;
+}
+
+/* The canvas sits over the grid and is decoration only — it must never take a
+   click or a hit test away from what it is drawn on top of. */
+.genfx__canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  border-radius: var(--radius-float);
+  mix-blend-mode: screen;
+}
+
+/* The reduced-motion path: no sweep, no ignition, just the new pattern
+   arriving. A short opacity change is not "motion" in the sense the setting
+   is asking about — a moving object crossing the screen is. */
+.genfx--crossfade > *:first-child {
+  animation: genfx-crossfade 150ms var(--ease-standard);
+}
+
+@keyframes genfx-crossfade {
+  from {
+    opacity: 0.4;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Belt and braces: if the OS asks for reduced motion, the crossfade is the
+   only thing that may run even should the class logic ever regress. */
+@media (prefers-reduced-motion: reduce) {
+  .genfx__canvas {
+    display: none;
+  }
+}

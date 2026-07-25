@@ -14,7 +14,8 @@
       "lane": "kick",
       "padIndex": 0,
       "pan": 0.0,
-      "pitchSemis": 0
+      "pitchSemis": 0,
+      "rootNote": null
     },
     {
       "chokeGroup": 2,
@@ -24,7 +25,8 @@
       "lane": "bass808",
       "padIndex": 1,
       "pan": 0.0,
-      "pitchSemis": 0
+      "pitchSemis": 0,
+      "rootNote": 28
     },
     {
       "chokeGroup": null,
@@ -34,7 +36,8 @@
       "lane": "snare",
       "padIndex": 2,
       "pan": 0.0,
-      "pitchSemis": 0
+      "pitchSemis": 0,
+      "rootNote": null
     },
     {
       "chokeGroup": null,
@@ -44,7 +47,8 @@
       "lane": "clap",
       "padIndex": 3,
       "pan": 0.0,
-      "pitchSemis": 0
+      "pitchSemis": 0,
+      "rootNote": null
     },
     {
       "chokeGroup": 1,
@@ -54,7 +58,8 @@
       "lane": "closedHat",
       "padIndex": 4,
       "pan": 0.0,
-      "pitchSemis": 0
+      "pitchSemis": 0,
+      "rootNote": null
     },
     {
       "chokeGroup": 1,
@@ -64,7 +69,8 @@
       "lane": "openHat",
       "padIndex": 5,
       "pan": 0.0,
-      "pitchSemis": 0
+      "pitchSemis": 0,
+      "rootNote": null
     },
     {
       "chokeGroup": null,
@@ -74,7 +80,8 @@
       "lane": "rim",
       "padIndex": 6,
       "pan": 0.0,
-      "pitchSemis": 0
+      "pitchSemis": 0,
+      "rootNote": null
     },
     {
       "chokeGroup": null,
@@ -84,7 +91,8 @@
       "lane": "perc",
       "padIndex": 7,
       "pan": 0.0,
-      "pitchSemis": 0
+      "pitchSemis": 0,
+      "rootNote": null
     }
   ],
   "sampleRate": 44100,

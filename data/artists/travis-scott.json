@@ -1,0 +1,160 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "travis-scott",
+  "type": "artist",
+  "name": "Travis Scott",
+  "aliases": [
+    "travis",
+    "la flame",
+    "cactus jack",
+    "travi"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "trap"
+  ],
+  "era": "2013-present",
+  "genres": [
+    "rap",
+    "trap"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research ch.3 Travis Scott (flagship)"
+  ],
+  "notes": "Psychedelic trap. Sparse hats, hard 808-locked kicks, and a snare on 3 drenched in short reverb; the 808 is cavernous and slides into section downbeats.",
+  "session": {
+    "bpm": {
+      "min": 130,
+      "max": 155,
+      "mode": 140
+    },
+    "halfTime": true,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "harmonic_minor",
+        "dorian"
+      ],
+      "weights": [
+        4,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.5
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3",
+      "syncopation": 0.4,
+      "tresilloBias": 0.25,
+      "avoidPreSnareGap": "8th",
+      "lockTo808": 1.0
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "reverb": "large",
+      "layered": true,
+      "layerClapOffsetMs": [
+        3,
+        7
+      ],
+      "ghost": {
+        "prob": 0.15,
+        "pos": [
+          "4&"
+        ],
+        "vel": [
+          0.35,
+          0.5
+        ]
+      },
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.3,
+      "velocities": {
+        "main": [
+          0.75,
+          0.95
+        ],
+        "ghost": [
+          0.4,
+          0.6
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "16T",
+            "32"
+          ],
+          "weights": [
+            4,
+            2,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.45,
+        "velocityRamp": true
+      },
+      "openHat": {
+        "prob": 0.3,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      },
+      "pitchBendProb": 0.1
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "monoCutSelf": true,
+      "slideProb": 0.6,
+      "slideIntervals": {
+        "values": [
+          "P5",
+          "P8",
+          "M2"
+        ],
+        "weights": [
+          3,
+          3,
+          2
+        ]
+      },
+      "slidePositions": [
+        "phrase_end",
+        "bar_4"
+      ],
+      "register": [
+        17,
+        29
+      ],
+      "distortion": "heavy"
+    }
+  }
+}

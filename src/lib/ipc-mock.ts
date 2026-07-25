@@ -9,7 +9,8 @@
  */
 
 import type { InvokeArgs } from '@tauri-apps/api/core';
-import type { RosterSummary } from './ipc-types';
+import type { Note, Pattern, RosterSummary } from './ipc-types';
+import type { PlaybackStarted } from './ipc-audio-types';
 
 type Handler = (args?: InvokeArgs) => unknown;
 
@@ -98,6 +99,66 @@ From: Freally MIDI Master`;
     ],
     problems: [],
   }),
+
+  // Generation. A real four-bar pattern rather than an empty one, because the
+  // grid is the thing under test: kick on every beat, a backbeat snare, and
+  // straight 16th hats is enough for a spec to count cells and know the
+  // rendering is wired, without this file becoming a second drum engine.
+  generate_pattern: (args): Pattern => {
+    const request = (args as { request?: { styleId?: string; bars?: number; seed?: string } })
+      ?.request;
+    const bars = request?.bars ?? 4;
+    const ppq = 960;
+    const note = (startTick: number, pitch: number, vel: number): Note => ({
+      startTick,
+      lenTicks: ppq / 4,
+      pitch,
+      vel,
+    });
+
+    const kick: Note[] = [];
+    const snare: Note[] = [];
+    const hat: Note[] = [];
+    for (let bar = 0; bar < bars; bar += 1) {
+      const start = bar * ppq * 4;
+      for (let beat = 0; beat < 4; beat += 1) {
+        kick.push(note(start + beat * ppq, 36, 110));
+        if (beat % 2 === 1) snare.push(note(start + beat * ppq, 38, 118));
+      }
+      for (let step = 0; step < 16; step += 1) {
+        hat.push(note(start + step * (ppq / 4), 42, step % 4 === 0 ? 100 : 72));
+      }
+    }
+
+    return {
+      id: `${request?.styleId ?? 'mock'}-mock`,
+      part: 'drums',
+      artistId: request?.styleId ?? 'mock',
+      // The seed is echoed back so the chip shows what was used, and a fixed
+      // one when none was asked for keeps the fixture reproducible.
+      seed: request?.seed && request.seed !== '' ? request.seed : '424242',
+      bars,
+      bpm: 140,
+      timeSigNum: 4,
+      timeSigDen: 4,
+      keyRoot: 6,
+      scale: 'natural_minor',
+      lanes: [
+        { lane: 'kick', notes: kick },
+        { lane: 'snare', notes: snare },
+        { lane: 'closedHat', notes: hat },
+      ],
+      ppq,
+    };
+  },
+
+  // Playback in a browser: there is no audio device behind the mock, so
+  // `playback_status` reports why rather than pretending there is one. The
+  // transport is then honestly disabled, which is what the spec asserts.
+  playback_status: () => 'Playback needs the desktop app.',
+  play_pattern: (): PlaybackStarted => ({ unplacedNotes: 0, voices: 0 }),
+  stop_playback: () => undefined,
+  set_looping: () => undefined,
 
   // Export / drag. Without these the ExportChip's catch-all would swallow a
   // missing-handler error and render as if everything were fine.

@@ -15,7 +15,7 @@ use midly::{
     Format, Header, MetaMessage, MidiMessage, Smf, Timing, Track, TrackEvent, TrackEventKind,
 };
 
-use crate::pattern::{Lane, Note, Pattern, PPQ};
+use crate::pattern::{Lane, Note, Pattern, Scale, PPQ};
 
 /// General MIDI drum note numbers, so a drum pattern is auditionable in any
 /// DAW without a kit loaded.
@@ -53,6 +53,58 @@ fn is_pitched(lane: Lane) -> bool {
 
 /// MIDI channel 10 (index 9) is percussion by GM convention.
 const DRUM_CHANNEL: u8 = 9;
+
+/// The SMF key signature for a session: accidentals, and whether it is minor.
+///
+/// Positive counts sharps, negative counts flats — the file format has no way
+/// to say more than that. Two consequences worth knowing rather than
+/// rediscovering in a DAW:
+///
+/// - **A mode is written as its parallel major or minor.** There is no way to
+///   spell Dorian or Mixolydian in a key signature, so the flag reports the
+///   scale's third and the count is the ordinary signature of the tonic. A
+///   piano roll then highlights a key that is close rather than exact, which is
+///   the best the format allows.
+/// - **The spelling is not the model's.** A [`Pattern`] carries `key_root` as a
+///   pitch class, so `"Ebm"` and `"D#m"` have already become the same 3 by the
+///   time they arrive here. Six accidentals goes to sharps for that reason —
+///   there is nothing left to prefer flats by.
+fn key_signature(key_root: u8, scale: Scale) -> (i8, bool) {
+    let minor = match scale {
+        Scale::Major | Scale::Lydian | Scale::Mixolydian | Scale::MajorPentatonic => false,
+        Scale::NaturalMinor
+        | Scale::HarmonicMinor
+        | Scale::Aeolian
+        | Scale::Dorian
+        | Scale::Phrygian
+        | Scale::MinorPentatonic
+        | Scale::Blues => true,
+        // The one that does not follow from its third. Phrygian dominant *has*
+        // a major third, but it is the fifth mode of harmonic minor and its ♭2
+        // and ♭6 sit on the minor side: E phrygian dominant shares five notes
+        // with E minor's signature and four with E major's. Minor is the less
+        // wrong of the two answers the format allows.
+        Scale::PhrygianDominant => true,
+    };
+
+    // A minor key borrows its signature from the major a minor third above.
+    let major_pc = if minor {
+        (key_root + 3) % 12
+    } else {
+        key_root % 12
+    };
+
+    // Each step clockwise round the circle of fifths adds one sharp, and a
+    // fifth is seven semitones.
+    let sharps = (u16::from(major_pc) * 7 % 12) as i8;
+    // 7 through 11 sharps are the same keys as 5 through 1 flats, spelled with
+    // fewer accidentals — C# major is written as D♭.
+    if sharps > 6 {
+        (sharps - 12, minor)
+    } else {
+        (sharps, minor)
+    }
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct Event {
@@ -191,6 +243,15 @@ pub fn pattern_to_smf(pattern: &Pattern) -> Vec<u8> {
             24,
             8,
         )),
+    });
+
+    // Key signature. Drums do not care, but the 808 lane is pitched and the
+    // clip is dropped into a project that already has a key — a DAW that reads
+    // this transposes and highlights against the right one.
+    let (sharps, minor) = key_signature(pattern.key_root, pattern.scale);
+    track.push(TrackEvent {
+        delta: u28::new(0),
+        kind: TrackEventKind::Meta(MetaMessage::KeySignature(sharps, minor)),
     });
 
     let name = format!("{} — {:?}", pattern.artist_id, pattern.part);
@@ -460,6 +521,80 @@ mod tests {
         });
         // 140 BPM -> 60_000_000 / 140 = 428571.4 -> 428571
         assert_eq!(tempo, Some(428_571));
+    }
+
+    fn written_key_signature(key_root: u8, scale: Scale) -> (i8, bool) {
+        let mut p = tiny(Lane::Bass808, vec![note(0, 240, 36)]);
+        p.key_root = key_root;
+        p.scale = scale;
+        let bytes = pattern_to_smf(&p);
+        Smf::parse(&bytes).unwrap().tracks[0]
+            .iter()
+            .find_map(|e| match e.kind {
+                TrackEventKind::Meta(MetaMessage::KeySignature(sharps, minor)) => {
+                    Some((sharps, minor))
+                }
+                _ => None,
+            })
+            .expect("a key signature must be written")
+    }
+
+    #[test]
+    fn the_key_signature_reaches_the_file_and_names_the_session_key() {
+        // The three spellings the dataset actually authors, as pitch classes.
+        assert_eq!(
+            written_key_signature(6, Scale::NaturalMinor),
+            (3, true),
+            "F# minor is three sharps"
+        );
+        assert_eq!(
+            written_key_signature(7, Scale::Major),
+            (1, false),
+            "G major is one sharp"
+        );
+        assert_eq!(
+            written_key_signature(10, Scale::NaturalMinor),
+            (-5, true),
+            "B♭ minor is five flats"
+        );
+        assert_eq!(written_key_signature(0, Scale::Major), (0, false));
+    }
+
+    #[test]
+    fn every_key_stays_inside_the_circle_and_names_its_own_tonic() {
+        // Both halves matter: an accidental count outside ±7 is not a legal key
+        // signature at all, and a count that does not lead back to the tonic is
+        // a legal signature for the wrong key — which no parser would flag.
+        for key_root in 0..12u8 {
+            for (scale, minor_expected) in [(Scale::Major, false), (Scale::NaturalMinor, true)] {
+                let (sharps, minor) = key_signature(key_root, scale);
+                assert_eq!(minor, minor_expected, "{key_root} {scale:?}");
+                assert!((-7..=7).contains(&sharps), "{key_root} {scale:?}: {sharps}");
+
+                // Walk the circle back: seven semitones per step, and a minor
+                // key sits a minor third below the major it borrowed from.
+                let major_pc = (i16::from(sharps) * 7).rem_euclid(12) as u8;
+                let tonic = if minor { (major_pc + 9) % 12 } else { major_pc };
+                assert_eq!(
+                    tonic, key_root,
+                    "{sharps} sharps says {tonic}, not {key_root}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn a_mode_is_written_as_the_parallel_key_of_its_third() {
+        // SMF cannot spell a mode, so the flag reports the third and the count
+        // is the tonic's own signature. D dorian is written as D minor rather
+        // than as the C major it is diatonic to — the tonic is what the clip is
+        // actually centred on.
+        assert_eq!(written_key_signature(2, Scale::Dorian), (-1, true));
+        assert_eq!(written_key_signature(7, Scale::Mixolydian), (1, false));
+        assert_eq!(written_key_signature(9, Scale::MinorPentatonic), (0, true));
+        // Phrygian dominant is the exception argued in `key_signature`: a major
+        // third, written minor, because its ♭2 and ♭6 land there.
+        assert_eq!(written_key_signature(4, Scale::PhrygianDominant), (1, true));
     }
 
     #[test]

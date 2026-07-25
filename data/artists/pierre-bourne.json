@@ -1,0 +1,172 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "pierre-bourne",
+  "type": "artist",
+  "name": "Pi'erre Bourne",
+  "aliases": [
+    "pierre bourne",
+    "pi'erre",
+    "pierre",
+    "pi erre"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "plugg"
+  ],
+  "era": "2017-present",
+  "genres": [
+    "rap",
+    "plugg",
+    "trap"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research ch.3 Pi'erre Bourne (flagship)",
+    "style-research ch.1 S4 Plugg"
+  ],
+  "notes": "Video-game candy trap. Hats stay plain 1/8 with a low roll density and the occasional stutter fill; the snare and clap on 3 are soft; the kick bounces. The 808 is rubbery and functions as a counter-melody, sliding between scale tones in bouncing octave patterns.",
+  "session": {
+    "bpm": {
+      "min": 140,
+      "max": 165,
+      "mode": 150
+    },
+    "halfTime": true,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "major",
+        "dorian"
+      ],
+      "weights": [
+        3,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.54
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "syncopation": 0.6,
+      "tresilloBias": 0.3,
+      "avoidPreSnareGap": "8th",
+      "lockTo808": 0.8
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "lowPassedClap": true,
+      "layerClapOffsetMs": [
+        4,
+        8
+      ],
+      "ghost": {
+        "prob": 0.25,
+        "pos": [
+          "4&"
+        ],
+        "vel": [
+          0.35,
+          0.5
+        ]
+      },
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.3,
+      "velocities": {
+        "main": [
+          0.75,
+          0.95
+        ],
+        "ghost": [
+          0.4,
+          0.6
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "32"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.35,
+        "velocityRamp": true,
+        "burstNotes": [
+          3,
+          4
+        ]
+      },
+      "openHat": {
+        "prob": 0.6,
+        "pos": [
+          "1&",
+          "2&",
+          "3&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          3
+        ]
+      },
+      "pitchBendProb": 0.1
+    },
+    "bass808": {
+      "role": "counter_riff",
+      "sustain": "legato",
+      "monoCutSelf": true,
+      "slideProb": 0.7,
+      "slidesPer4Bars": [
+        3,
+        4
+      ],
+      "slideIntervals": {
+        "values": [
+          "P8",
+          "P5",
+          "M2",
+          "m3"
+        ],
+        "weights": [
+          4,
+          3,
+          2,
+          2
+        ]
+      },
+      "slidePositions": [
+        "phrase_end",
+        "bar_2",
+        "bar_4"
+      ],
+      "melodicallyIndependent": true,
+      "register": [
+        24,
+        38
+      ],
+      "distortion": "none"
+    }
+  }
+}

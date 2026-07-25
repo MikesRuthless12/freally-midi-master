@@ -1,0 +1,71 @@
+.search-bar {
+  position: relative;
+}
+
+/* The dropdown floats over the panels below it, so it leaves the rail's flow
+   entirely — a list that pushed the roster down would reflow the whole rail on
+   every keystroke. */
+.suggest {
+  position: absolute;
+  inset-inline: 0;
+  top: calc(100% + var(--space-1));
+  z-index: 20;
+  margin: 0;
+  padding: var(--space-1);
+  list-style: none;
+  max-height: 19rem;
+  overflow-y: auto;
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-float);
+  box-shadow: var(--shadow-float);
+}
+
+.suggest__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2);
+  border-radius: var(--radius-control);
+  cursor: pointer;
+  font-size: var(--text-small);
+  color: var(--color-text);
+}
+
+.suggest__item--active {
+  background: var(--color-surface);
+  outline: 1px solid var(--color-border);
+}
+
+.suggest__name {
+  flex: 1 1 auto;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.suggest__era,
+.suggest__empty {
+  color: var(--color-text-2);
+  font-size: var(--text-micro);
+}
+
+.suggest__empty {
+  padding: var(--space-2);
+}
+
+.badge {
+  flex: 0 0 auto;
+  padding: 0 var(--space-1);
+  border-radius: var(--radius-control);
+  font-size: var(--text-micro);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-2);
+}
+
+.badge--flagship {
+  border-color: var(--color-primary);
+  color: var(--color-primary-hot);
+}

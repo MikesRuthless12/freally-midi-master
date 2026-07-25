@@ -21,13 +21,23 @@
     "emptyBody": "从名单里挑一位，然后点生成。",
     "seed": "种子",
     "bars": "小节",
-    "generate": "生成"
+    "generate": "生成",
+    "barsLabel": "节奏型长度（小节）",
+    "copySeed": "复制种子",
+    "seedCopied": "已复制种子。",
+    "seedLabel": "种子 — 粘贴即可得到相同的节奏",
+    "seedAuto": "随机",
+    "generating": "生成中…",
+    "laterPhase": "该生成器将在后续阶段推出。",
+    "readyBody": "{{name}} 已就绪。点击生成。"
   },
   "rails": {
     "searchPlaceholder": "搜索艺人…",
     "searchLabel": "搜索艺人",
     "noDataset": "尚未加载数据集。",
-    "noKit": "还没有鼓组。把你的单击采样拖到本面板任意位置。"
+    "noKit": "还没有鼓组。把你的单击采样拖到本面板任意位置。",
+    "noMatch": "没有与“{{query}}”匹配的项。",
+    "results": "搜索结果"
   },
   "sections": {
     "genres": "曲风",
@@ -46,7 +56,9 @@
     "loop": "循环",
     "masterLevel": "主输出电平：静音",
     "toggleRightRail": "切换右侧栏 (K)",
-    "reportBug": "报告问题"
+    "reportBug": "报告问题",
+    "loopAlways": "当前阶段播放始终循环。",
+    "unavailable": "无法播放：{{reason}}"
   },
   "theme": {
     "group": "主题",
@@ -73,8 +85,9 @@
     "exportTitle": "把 MIDI 写入文件夹并定位到该文件",
     "dragDesktopOnly": "拖放仅在桌面应用中可用。",
     "exportDesktopOnly": "导出仅在桌面应用中可用。",
-    "dropped": "已拖入。如果你的 DAW 没接住，请把这一条记进矩阵。",
-    "exportedTo": "已导出到 {{path}}"
+    "dropped": "已放入。",
+    "exportedTo": "已导出到 {{path}}",
+    "nothingToExport": "请先生成一段节奏。"
   },
   "settings": {
     "title": "设置",
@@ -99,7 +112,13 @@
     "themeNote": "深色是默认主题，也是本应用的标志性外观。两种主题的对比度均按 WCAG 2.1 AA 检验。",
     "languageHeading": "语言",
     "languageNote": "界面语言。每种语言都自带所需字体，无需下载任何内容。",
-    "languageLabel": "界面语言"
+    "languageLabel": "界面语言",
+    "datasetHeading": "风格数据集",
+    "datasetOk": "已加载 {{count}} 个风格，没有跳过任何内容。",
+    "datasetSkipped": "有 {{count}} 个风格无法加载，已跳过：",
+    "motionHeading": "动效",
+    "reduceMotion": "减少动效",
+    "reduceMotionHint": "把生成扫光换成短暂淡入。系统设置本身也能做到 — 当系统没有该设置，或你希望其他动效保留时使用。"
   },
   "about": {
     "title": "关于",
@@ -143,5 +162,30 @@
   },
   "common": {
     "close": "关闭"
+  },
+  "grid": {
+    "label": "生成的节奏型",
+    "summary": "{{bars}} 小节 · {{steps}} 步 · {{notes}} 音符"
+  },
+  "roster": {
+    "artists": "艺人",
+    "flagship": "旗舰",
+    "genre": "流派"
+  },
+  "lanes": {
+    "kick": "底鼓",
+    "snare": "军鼓",
+    "clap": "拍手",
+    "closedHat": "闭镲",
+    "openHat": "开镲",
+    "rim": "边击",
+    "snap": "响指",
+    "perc": "打击乐",
+    "bass808": "808"
+  },
+  "device": {
+    "recovering": "音频设备已断开 — 正在重新连接…",
+    "failed": "没有音频设备，仍在尝试…",
+    "recovered": "音频设备已恢复。"
   }
 }

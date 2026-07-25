@@ -59,6 +59,14 @@ type UiState = {
   rightRailOpen: boolean;
   sections: SectionState;
   theme: ThemePreference;
+  /**
+   * The Settings toggle that suppresses the generation animation.
+   *
+   * Distinct from the OS's `prefers-reduced-motion`, which is read where it is
+   * used. This can only ever turn motion *off*: on means off, off means "ask
+   * the OS" (FR-017).
+   */
+  reduceMotion: boolean;
   language: LocaleCode;
 
   setActiveTab: (tab: GeneratorTab) => void;
@@ -68,6 +76,7 @@ type UiState = {
   toggleSection: (id: SectionId) => void;
   setAllSections: (open: boolean) => void;
   setTheme: (theme: ThemePreference) => void;
+  setReduceMotion: (reduce: boolean) => void;
   setLanguage: (language: LocaleCode) => void;
 };
 
@@ -78,6 +87,10 @@ export const useUi = create<UiState>((set) => ({
   rightRailOpen: startsWide,
   sections: loadSections(),
   theme: loadThemePreference(),
+  // Never persisted to localStorage: unlike the theme, nothing has to be right
+  // before first paint, so settings.json is the single source and the
+  // reconcile below fills it in.
+  reduceMotion: false,
   language: loadLanguagePreference(),
 
   setActiveTab: (activeTab) => set({ activeTab }),
@@ -109,6 +122,10 @@ export const useUi = create<UiState>((set) => ({
     // treated as authoritative — so a theme picked from the transport toggle
     // reverted on the next launch.
     void persistPreference({ theme });
+  },
+
+  setReduceMotion: (reduceMotion) => {
+    set({ reduceMotion });
   },
 
   setLanguage: (language) => {
@@ -154,7 +171,17 @@ async function persistPreference(patch: Record<string, unknown>): Promise<void> 
 export async function reconcileWithSettings(): Promise<void> {
   if (!isTauri()) return;
   try {
-    const stored = await invoke<{ theme?: unknown; language?: unknown }>('settings_get');
+    const stored = await invoke<{
+      theme?: unknown;
+      language?: unknown;
+      reduceMotion?: unknown;
+    }>('settings_get');
+
+    // Straight adoption — there is no local copy to conflict with, because
+    // this one is not needed before first paint.
+    if (typeof stored?.reduceMotion === 'boolean') {
+      useUi.getState().setReduceMotion(stored.reduceMotion);
+    }
     const patch: Record<string, unknown> = {};
 
     const themeOnDisk = isThemePreference(stored?.theme) ? stored.theme : 'system';

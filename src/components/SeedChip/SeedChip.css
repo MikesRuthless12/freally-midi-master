@@ -1,0 +1,50 @@
+.seed {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.seed__label {
+  color: var(--color-text-3);
+}
+
+/* Sized to a u64's 20 digits so a pasted seed is never truncated on screen —
+   a seed you cannot read all of is a seed you cannot check. */
+.seed__input {
+  width: 12ch;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-variant-numeric: tabular-nums;
+}
+
+.seed__input:focus-visible {
+  outline: 1px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.seed__input::placeholder {
+  color: var(--color-text-3);
+}
+
+.seed__copy {
+  padding: 2px;
+}
+
+/* Announced by a screen reader, invisible on screen. Not `display: none`,
+   which removes it from the accessibility tree along with everything else. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}

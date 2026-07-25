@@ -610,3 +610,24 @@
   height: 100%;
   background: var(--color-success);
 }
+
+/* The output device going away and coming back (FR-014). Sits in the transport
+   beside the controls it affects, rather than as a floating toast that has to
+   be chased — the thing it is about is right there. */
+.transport__device {
+  padding: 0 var(--space-2);
+  border-radius: var(--radius-control);
+  font-size: var(--text-micro);
+  white-space: nowrap;
+}
+
+.transport__device--recovering,
+.transport__device--failed {
+  color: var(--color-warning);
+  border: 1px solid var(--color-warning);
+}
+
+.transport__device--recovered {
+  color: var(--color-success);
+  border: 1px solid var(--color-success);
+}

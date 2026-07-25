@@ -21,13 +21,23 @@
     "emptyBody": "Chọn một nghệ sĩ trong danh sách, rồi bấm Tạo.",
     "seed": "mã seed",
     "bars": "ô nhịp",
-    "generate": "Tạo"
+    "generate": "Tạo",
+    "barsLabel": "Độ dài mẫu theo ô nhịp",
+    "copySeed": "Sao chép seed",
+    "seedCopied": "Đã sao chép seed.",
+    "seedLabel": "Seed — dán vào để có cùng một beat",
+    "seedAuto": "ngẫu nhiên",
+    "generating": "Đang tạo…",
+    "laterPhase": "Bộ tạo này sẽ có ở giai đoạn sau.",
+    "readyBody": "{{name}} đã sẵn sàng. Nhấn Tạo."
   },
   "rails": {
     "searchPlaceholder": "Tìm nghệ sĩ…",
     "searchLabel": "Tìm nghệ sĩ",
     "noDataset": "Chưa nạp bộ dữ liệu nào.",
-    "noKit": "Chưa có bộ trống. Thả các one-shot của bạn vào bất kỳ đâu trên bảng này."
+    "noKit": "Chưa có bộ trống. Thả các one-shot của bạn vào bất kỳ đâu trên bảng này.",
+    "noMatch": "Không có gì khớp với “{{query}}”.",
+    "results": "Kết quả tìm kiếm"
   },
   "sections": {
     "genres": "Thể loại",
@@ -46,7 +56,9 @@
     "loop": "Lặp",
     "masterLevel": "Mức master: im lặng",
     "toggleRightRail": "Bật/tắt thanh phải (K)",
-    "reportBug": "Báo lỗi"
+    "reportBug": "Báo lỗi",
+    "loopAlways": "Ở giai đoạn này, phát lại luôn lặp.",
+    "unavailable": "Không thể phát: {{reason}}"
   },
   "theme": {
     "group": "Giao diện",
@@ -73,8 +85,9 @@
     "exportTitle": "Ghi MIDI ra thư mục và mở thư mục đó",
     "dragDesktopOnly": "Kéo thả chỉ hoạt động trong ứng dụng máy tính.",
     "exportDesktopOnly": "Xuất chỉ hoạt động trong ứng dụng máy tính.",
-    "dropped": "Đã thả. Nếu DAW của bạn bỏ qua, hãy ghi lại vào bảng tương thích.",
-    "exportedTo": "Đã xuất tới {{path}}"
+    "dropped": "Đã thả xong.",
+    "exportedTo": "Đã xuất tới {{path}}",
+    "nothingToExport": "Hãy tạo một beat trước."
   },
   "settings": {
     "title": "Cài đặt",
@@ -99,7 +112,13 @@
     "themeNote": "Tối là mặc định và là diện mạo đặc trưng của ứng dụng. Cả hai giao diện đều được kiểm tra tương phản theo WCAG 2.1 AA.",
     "languageHeading": "Ngôn ngữ",
     "languageNote": "Ngôn ngữ giao diện. Mỗi ngôn ngữ đi kèm sẵn phông chữ cần dùng, nên không phải tải thêm gì.",
-    "languageLabel": "Ngôn ngữ giao diện"
+    "languageLabel": "Ngôn ngữ giao diện",
+    "datasetHeading": "Bộ dữ liệu phong cách",
+    "datasetOk": "Đã tải {{count}} phong cách. Không có mục nào bị bỏ qua.",
+    "datasetSkipped": "Không thể tải {{count}} phong cách và đã bỏ qua:",
+    "motionHeading": "Chuyển động",
+    "reduceMotion": "Giảm chuyển động",
+    "reduceMotionHint": "Thay quét tạo nhịp bằng một hiệu ứng mờ ngắn. Cài đặt hệ thống đã làm điều này — dùng khi hệ thống không có tùy chọn đó, hoặc khi bạn muốn giữ chuyển động ở nơi khác."
   },
   "about": {
     "title": "Giới thiệu",
@@ -143,5 +162,30 @@
   },
   "common": {
     "close": "Đóng"
+  },
+  "grid": {
+    "label": "Mẫu đã tạo",
+    "summary": "{{bars}} ô nhịp · {{steps}} bước · {{notes}} nốt"
+  },
+  "roster": {
+    "artists": "Nghệ sĩ",
+    "flagship": "Tiêu biểu",
+    "genre": "Thể loại"
+  },
+  "lanes": {
+    "kick": "Trống bass",
+    "snare": "Trống snare",
+    "clap": "Vỗ tay",
+    "closedHat": "Hi-hat đóng",
+    "openHat": "Hi-hat mở",
+    "rim": "Vành trống",
+    "snap": "Búng tay",
+    "perc": "Bộ gõ",
+    "bass808": "808"
+  },
+  "device": {
+    "recovering": "Mất thiết bị âm thanh — đang kết nối lại…",
+    "failed": "Không có thiết bị âm thanh. Vẫn đang thử…",
+    "recovered": "Thiết bị âm thanh đã trở lại."
   }
 }

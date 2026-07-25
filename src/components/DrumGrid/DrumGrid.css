@@ -1,0 +1,90 @@
+.grid {
+  /* The lane-label column. Named because the playhead has to skip past it. */
+  --grid-label: 5.5rem;
+
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  padding: var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-float);
+  overflow-x: auto;
+}
+
+.grid__row {
+  display: grid;
+  grid-template-columns: var(--grid-label) 1fr;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.grid__lane {
+  font-size: var(--text-micro);
+  color: var(--color-text-2);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.grid__track {
+  display: grid;
+  /* One column per 16th, all equal, however many bars there are. */
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 2px;
+  min-width: 0;
+}
+
+.grid__cell {
+  height: 14px;
+  border-radius: 2px;
+  background: var(--color-surface-2);
+}
+
+/* Every beat gets a visible edge, so 16 cells read as four beats rather than
+   as an undifferentiated row. */
+.grid__cell--beat {
+  box-shadow: inset 1px 0 0 var(--color-border);
+}
+
+.grid__cell--on {
+  background: var(--color-primary);
+}
+
+/* More than one hit in a 16th is a roll. It gets the signal colour rather than
+   a brighter purple, because "several hits here" is a different fact from
+   "loud hit here" and the two must not look like the same axis. */
+.grid__cell--roll {
+  background: var(--color-signal);
+}
+
+.grid__playhead {
+  position: absolute;
+  top: var(--space-3);
+  bottom: var(--space-6);
+  inset-inline-start: calc(
+    var(--space-3) + var(--grid-label) + var(--space-2) +
+      (100% - var(--space-3) * 2 - var(--grid-label) - var(--space-2)) * var(--playhead)
+  );
+  width: 2px;
+  background: var(--color-signal);
+  box-shadow: 0 0 8px var(--color-signal);
+  pointer-events: none;
+}
+
+.grid__meta {
+  margin: var(--space-2) 0 0;
+  font-size: var(--text-micro);
+  color: var(--color-text-3);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .grid__cell {
+    transition: background var(--duration-fast) var(--ease-standard);
+  }
+}

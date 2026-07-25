@@ -21,13 +21,23 @@
     "emptyBody": "Wähl jemanden aus der Liste und drück auf Generieren.",
     "seed": "Startwert",
     "bars": "Takte",
-    "generate": "Generieren"
+    "generate": "Generieren",
+    "barsLabel": "Pattern-Länge in Takten",
+    "copySeed": "Seed kopieren",
+    "seedCopied": "Seed kopiert.",
+    "seedLabel": "Seed — einfügen für denselben Beat",
+    "seedAuto": "zufällig",
+    "generating": "Wird erzeugt…",
+    "laterPhase": "Dieser Generator kommt in einer späteren Phase.",
+    "readyBody": "{{name}} ist bereit. Auf Generieren klicken."
   },
   "rails": {
     "searchPlaceholder": "Künstler suchen…",
     "searchLabel": "Künstler suchen",
     "noDataset": "Noch kein Datensatz geladen.",
-    "noKit": "Noch kein Kit. Zieh deine One-Shots irgendwo in diesen Bereich."
+    "noKit": "Noch kein Kit. Zieh deine One-Shots irgendwo in diesen Bereich.",
+    "noMatch": "Nichts passt zu „{{query}}“.",
+    "results": "Suchergebnisse"
   },
   "sections": {
     "genres": "Genres",
@@ -46,7 +56,9 @@
     "loop": "Loop",
     "masterLevel": "Masterpegel: stumm",
     "toggleRightRail": "Rechte Leiste ein-/ausblenden (K)",
-    "reportBug": "Fehler melden"
+    "reportBug": "Fehler melden",
+    "loopAlways": "Die Wiedergabe läuft in dieser Phase immer in Schleife.",
+    "unavailable": "Wiedergabe nicht verfügbar: {{reason}}"
   },
   "theme": {
     "group": "Design",
@@ -73,8 +85,9 @@
     "exportTitle": "Das MIDI in einen Ordner schreiben und dort anzeigen",
     "dragDesktopOnly": "Ziehen funktioniert nur in der Desktop-App.",
     "exportDesktopOnly": "Export funktioniert nur in der Desktop-App.",
-    "dropped": "Abgelegt. Wenn deine DAW es ignoriert hat, trag das in die Matrix ein.",
-    "exportedTo": "Exportiert nach {{path}}"
+    "dropped": "Angekommen.",
+    "exportedTo": "Exportiert nach {{path}}",
+    "nothingToExport": "Erst einen Beat erzeugen."
   },
   "settings": {
     "title": "Einstellungen",
@@ -99,7 +112,13 @@
     "themeNote": "Dunkel ist die Voreinstellung und das prägende Erscheinungsbild der App. Beide Designs sind auf Kontrast nach WCAG 2.1 AA geprüft.",
     "languageHeading": "Sprache",
     "languageNote": "Die Sprache der Oberfläche. Jede Sprache bringt die nötigen Schriften mit, es muss also nichts heruntergeladen werden.",
-    "languageLabel": "Sprache der Oberfläche"
+    "languageLabel": "Sprache der Oberfläche",
+    "datasetHeading": "Stil-Datensatz",
+    "datasetOk": "{{count}} Stile geladen. Nichts wurde übersprungen.",
+    "datasetSkipped": "{{count}} Stile konnten nicht geladen werden und wurden übersprungen:",
+    "motionHeading": "Bewegung",
+    "reduceMotion": "Bewegung reduzieren",
+    "reduceMotionHint": "Ersetzt den Generierungs-Sweep durch eine kurze Blende. Die Systemeinstellung tut das bereits — nutze dies, wenn das System keine solche Einstellung hat oder alles andere in Bewegung bleiben soll."
   },
   "about": {
     "title": "Über",
@@ -143,5 +162,30 @@
   },
   "common": {
     "close": "Schließen"
+  },
+  "grid": {
+    "label": "Erzeugtes Pattern",
+    "summary": "{{bars}} Takte · {{steps}} Schritte · {{notes}} Noten"
+  },
+  "roster": {
+    "artists": "Künstler",
+    "flagship": "Aushängeschild",
+    "genre": "Stil"
+  },
+  "lanes": {
+    "kick": "Bassdrum",
+    "snare": "Snaredrum",
+    "clap": "Klatschen",
+    "closedHat": "Geschlossene Hi-Hat",
+    "openHat": "Offene Hi-Hat",
+    "rim": "Rimshot",
+    "snap": "Fingerschnippen",
+    "perc": "Perkussion",
+    "bass808": "808"
+  },
+  "device": {
+    "recovering": "Audiogerät verloren — wird neu verbunden…",
+    "failed": "Kein Audiogerät. Es wird weiter versucht…",
+    "recovered": "Audiogerät ist wieder da."
   }
 }

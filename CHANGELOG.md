@@ -59,8 +59,52 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   byte-identical pattern JSON and MIDI, pinned by committed snapshots. This is
   what makes the seed chip's promise — paste a seed, get the same beat — a
   guarantee rather than an intention.
+- Generation and export are reachable from the app: `generate_pattern` runs a
+  style model through the drum generator and the humanizer and hands back the
+  pattern, and `export_midi` writes it into the session directory as a type-0
+  MIDI file. A request may pin the tempo, key, scale, swing, bar count or
+  half-time feel; anything it leaves alone is the model's own choice, and
+  omitting the seed picks a fresh one that reproduces the result exactly.
+- Ten flagship artist models over the genre bases — Metro Boomin, Southside,
+  Pierre Bourne, OsamaSon, Nettspend, Summrs, Pop Smoke, Travis Scott, Future
+  and Drake — each with aliases to search by, and a test that every one of them
+  generates something its parent genre does not.
+- **The app makes beats.** Search an artist, press Generate, and the pattern
+  appears in the drum grid; press Play and you hear it; drag it into a DAW or
+  export it to a folder. Search is fuzzy and forgiving — "osa" finds OsamaSon,
+  "drizzy" finds Drake, and a typo still lands — with the keyboard alone:
+  ↑↓ to move, Enter to take, Esc to close.
+- Playback: a real-time audio engine with a synthesized preview kit, sample-
+  accurate sequencing, looping, a playhead that follows along, and a limiter so
+  a dense pattern never cracks the output. A machine with no sound card still
+  generates and exports, and says why playback is unavailable rather than
+  failing silently on click.
+- The seed is shown after every generation and can be pasted back to get the
+  same beat again.
+- A generation ripple sweeps the grid while a pattern is built, so a beat
+  arrives rather than blinking into place, igniting brightest where the notes
+  actually land. Turning on the system's reduced-motion setting replaces it with
+  a short crossfade — immediately, without a restart.
+- Settings now says when a style model was skipped at startup, with the file
+  and the reason. A skipped model is a missing artist, and until now only the
+  console ever mentioned it.
+- Unplugging an audio interface mid-session no longer leaves the app silently
+  deaf. It says the device is gone, reopens one by itself as soon as there is
+  one to open — retrying for as long as it takes — and says when it is back.
+  Playback does not restart on its own; pressing play works again, which was
+  the thing that stopped working.
+- A **Reduce motion** setting under Appearance, for machines whose system
+  offers no such preference, or anyone who wants everything else animated and
+  this one thing still. It takes effect the moment it is ticked.
 
 ### Changed
+
+- Exported MIDI now carries a key signature. It was the one session field the
+  file did not describe, so a clip landed in a project without saying what key
+  its 808 was in. A mode is written as its parallel major or minor, which is as
+  much as the format can say. **The golden `.mid` snapshots were regenerated for
+  this**: six bytes per file, the new meta event and nothing else — the pattern
+  JSON is untouched.
 
 - An 808 slide may now reach an octave above the note it starts from rather
   than being folded back inside the model's register. An octave glide — the

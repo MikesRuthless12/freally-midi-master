@@ -1,0 +1,173 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "future",
+  "type": "artist",
+  "name": "Future",
+  "aliases": [
+    "future hendrix",
+    "pluto",
+    "fewtch"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "trap"
+  ],
+  "era": "2011-present",
+  "genres": [
+    "rap",
+    "trap"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research ch.3 Future (flagship)"
+  ],
+  "notes": "Toxic opulent trap over the 808 Mafia grammar: dense rolling hats, a hard clap on 3, syncopated kicks under sliding subs, and a heavy saturated 808 that is the melodic counterweight to sparse keys.",
+  "session": {
+    "bpm": {
+      "min": 120,
+      "max": 150,
+      "mode": 138
+    },
+    "halfTime": true,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "phrygian",
+        "harmonic_minor"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.5
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1"
+      ],
+      "syncopation": 0.55,
+      "tresilloBias": 0.3,
+      "avoidPreSnareGap": "8th",
+      "lockTo808": 1.0
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "layered": true,
+      "layerClapOffsetMs": [
+        2,
+        6
+      ],
+      "ghost": {
+        "prob": 0.25,
+        "pos": [
+          "4&"
+        ],
+        "vel": [
+          0.4,
+          0.55
+        ]
+      },
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.6,
+      "velocities": {
+        "main": [
+          0.85,
+          1.0
+        ],
+        "ghost": [
+          0.4,
+          0.6
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "32",
+            "32T",
+            "64"
+          ],
+          "weights": [
+            3,
+            4,
+            2,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "pre_snare",
+          "bar_4"
+        ],
+        "freqPerBar": 1.0,
+        "velocityRamp": true,
+        "rampRange": [
+          0.45,
+          1.0
+        ]
+      },
+      "openHat": {
+        "prob": 0.3,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "pitchBendProb": 0.15
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "monoCutSelf": true,
+      "slideProb": 0.65,
+      "slidesPer4Bars": [
+        2,
+        3
+      ],
+      "slideIntervals": {
+        "values": [
+          "P8",
+          "P5",
+          "M2"
+        ],
+        "weights": [
+          3,
+          3,
+          2
+        ]
+      },
+      "slidePositions": [
+        "phrase_end",
+        "bar_2",
+        "bar_4"
+      ],
+      "register": [
+        17,
+        31
+      ],
+      "distortion": "heavy",
+      "distortionWet": [
+        0.25,
+        0.5
+      ]
+    }
+  }
+}

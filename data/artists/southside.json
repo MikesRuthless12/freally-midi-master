@@ -1,0 +1,193 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "southside",
+  "type": "artist",
+  "name": "Southside",
+  "aliases": [
+    "808 mafia",
+    "southside 808 mafia",
+    "sizzle"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "trap"
+  ],
+  "era": "2010-present",
+  "genres": [
+    "rap",
+    "trap"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research ch.3 Southside / 808 Mafia (flagship)"
+  ],
+  "notes": "Aggressive evil trap. Machine-gun 1/32 hat rolls and double-time switch bars, a hard clap-and-snare on 3 with flam layers, and a kick that doubles the 808 - which is the signature: distorted, long-sustained, busier than the kick, sliding octaves.",
+  "session": {
+    "bpm": {
+      "min": 130,
+      "max": 160,
+      "mode": 145
+    },
+    "halfTime": true,
+    "scales": {
+      "values": [
+        "phrygian",
+        "natural_minor",
+        "harmonic_minor"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.5
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1"
+      ],
+      "syncopation": 0.55,
+      "tresilloBias": 0.3,
+      "avoidPreSnareGap": "8th",
+      "lockTo808": 1.0
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "layered": true,
+      "layerClapOffsetMs": [
+        1,
+        4
+      ],
+      "ghost": {
+        "prob": 0.25,
+        "pos": [
+          "4&"
+        ],
+        "vel": [
+          0.4,
+          0.55
+        ]
+      },
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.6,
+      "velocities": {
+        "main": [
+          0.85,
+          1.0
+        ],
+        "ghost": [
+          0.4,
+          0.6
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32",
+            "32T",
+            "64"
+          ],
+          "weights": [
+            4,
+            2,
+            3
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "pre_snare",
+          "bar_4",
+          "two_beat_phrase_end"
+        ],
+        "freqPerBar": 1.2,
+        "velocityRamp": true,
+        "rampRange": [
+          0.4,
+          1.0
+        ]
+      },
+      "openHat": {
+        "prob": 0.25,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      },
+      "pitchBendProb": 0.15
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 8,
+      "snareRollLadder": true
+    },
+    "snareRoll": {
+      "ladder": [
+        "8",
+        "16",
+        "32"
+      ],
+      "velocityRampRange": [
+        16,
+        127
+      ],
+      "grouping": "strong_weak_weak_weak",
+      "buildAndStopProb": 0.35,
+      "dualLayerProb": 0.3
+    },
+    "bass808": {
+      "role": "counter_riff",
+      "sustain": "legato",
+      "monoCutSelf": true,
+      "slidesPer4Bars": [
+        3,
+        4
+      ],
+      "slideProb": 0.75,
+      "slideIntervals": {
+        "values": [
+          "P8",
+          "P5",
+          "M2",
+          "m2"
+        ],
+        "weights": [
+          4,
+          3,
+          2,
+          1
+        ]
+      },
+      "slidePositions": [
+        "phrase_end",
+        "bar_2",
+        "bar_4"
+      ],
+      "melodicallyIndependent": true,
+      "register": [
+        17,
+        31
+      ],
+      "distortion": "heavy",
+      "distortionWet": [
+        0.3,
+        0.6
+      ]
+    }
+  }
+}

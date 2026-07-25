@@ -21,13 +21,23 @@
     "emptyBody": "Scegli un artista dall’elenco, poi premi Genera.",
     "seed": "seed",
     "bars": "battute",
-    "generate": "Genera"
+    "generate": "Genera",
+    "barsLabel": "Lunghezza del pattern in battute",
+    "copySeed": "Copia il seed",
+    "seedCopied": "Seed copiato.",
+    "seedLabel": "Seed — incollalo per ottenere lo stesso beat",
+    "seedAuto": "casuale",
+    "generating": "Generazione…",
+    "laterPhase": "Questo generatore arriverà in una fase successiva.",
+    "readyBody": "{{name}} è pronto. Premi Genera."
   },
   "rails": {
     "searchPlaceholder": "Cerca un artista…",
     "searchLabel": "Cerca un artista",
     "noDataset": "Nessun dataset caricato.",
-    "noKit": "Nessun kit. Trascina i tuoi one-shot ovunque su questo pannello."
+    "noKit": "Nessun kit. Trascina i tuoi one-shot ovunque su questo pannello.",
+    "noMatch": "Nessun risultato per «{{query}}».",
+    "results": "Risultati della ricerca"
   },
   "sections": {
     "genres": "Generi",
@@ -46,7 +56,9 @@
     "loop": "Loop",
     "masterLevel": "Livello master: silenzio",
     "toggleRightRail": "Mostra/nascondi pannello destro (K)",
-    "reportBug": "Segnala un bug"
+    "reportBug": "Segnala un bug",
+    "loopAlways": "La riproduzione va sempre in loop in questa fase.",
+    "unavailable": "Riproduzione non disponibile: {{reason}}"
   },
   "theme": {
     "group": "Tema",
@@ -73,8 +85,9 @@
     "exportTitle": "Salva il MIDI in una cartella e mostrala",
     "dragDesktopOnly": "Il trascinamento funziona solo nell’app desktop.",
     "exportDesktopOnly": "L’esportazione funziona solo nell’app desktop.",
-    "dropped": "Rilasciato. Se la tua DAW l’ha ignorato, segnalo nella matrice.",
-    "exportedTo": "Esportato in {{path}}"
+    "dropped": "Atterrato.",
+    "exportedTo": "Esportato in {{path}}",
+    "nothingToExport": "Genera prima un beat."
   },
   "settings": {
     "title": "Impostazioni",
@@ -99,7 +112,13 @@
     "themeNote": "Scuro è il tema predefinito e il look distintivo dell’app. Entrambi i temi sono verificati nel contrasto secondo WCAG 2.1 AA.",
     "languageHeading": "Lingua",
     "languageNote": "La lingua dell’interfaccia. Ogni lingua include i font di cui ha bisogno, quindi non serve scaricare nulla.",
-    "languageLabel": "Lingua dell’interfaccia"
+    "languageLabel": "Lingua dell’interfaccia",
+    "datasetHeading": "Dataset degli stili",
+    "datasetOk": "{{count}} stili caricati. Non è stato saltato nulla.",
+    "datasetSkipped": "Non è stato possibile caricare {{count}} stili, che sono stati saltati:",
+    "motionHeading": "Movimento",
+    "reduceMotion": "Riduci il movimento",
+    "reduceMotionHint": "Sostituisce la spazzata di generazione con una breve dissolvenza. L’impostazione di sistema lo fa già — usa questa quando il sistema non ce l’ha, o quando vuoi che il resto resti in movimento."
   },
   "about": {
     "title": "Informazioni",
@@ -143,5 +162,30 @@
   },
   "common": {
     "close": "Chiudi"
+  },
+  "grid": {
+    "label": "Pattern generato",
+    "summary": "{{bars}} battute · {{steps}} step · {{notes}} note"
+  },
+  "roster": {
+    "artists": "Artisti",
+    "flagship": "Di punta",
+    "genre": "Genere"
+  },
+  "lanes": {
+    "kick": "Cassa",
+    "snare": "Rullante",
+    "clap": "Battito di mani",
+    "closedHat": "Charleston chiuso",
+    "openHat": "Charleston aperto",
+    "rim": "Bordo",
+    "snap": "Schiocco",
+    "perc": "Percussioni",
+    "bass808": "808"
+  },
+  "device": {
+    "recovering": "Dispositivo audio perso — riconnessione…",
+    "failed": "Nessun dispositivo audio. Si continua a provare…",
+    "recovered": "Il dispositivo audio è tornato."
   }
 }

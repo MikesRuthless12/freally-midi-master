@@ -17,6 +17,7 @@ import { invoke, isTauri } from '../../lib/ipc';
 import { LOCALES, type LocaleCode } from '../../i18n/locales';
 import { CATEGORIES, type CategoryId } from './categories';
 import { useUi } from '../../state/ui';
+import { useSession } from '../../state/session';
 import { THEME_PREFERENCES, type ThemePreference } from '../../state/theme';
 import './Settings.css';
 
@@ -43,6 +44,7 @@ type AppSettings = {
   showTrayIcon: boolean;
   theme: ThemePreference;
   language: LocaleCode | '';
+  reduceMotion: boolean;
 };
 
 const DEFAULTS: AppSettings = {
@@ -54,6 +56,8 @@ const DEFAULTS: AppSettings = {
   // never from here. Defaulting to 'en' would make the modal write a vote for
   // English the user never cast.
   language: '',
+  // Off, so the OS setting decides unless someone says otherwise here.
+  reduceMotion: false,
 };
 
 /**
@@ -67,7 +71,7 @@ const DEFAULTS: AppSettings = {
  */
 const CATEGORY_TERMS: Record<CategoryId, string> = {
   general: 'general tray system minimize minimise close taskbar notification area',
-  appearance: 'appearance theme dark light system colour color',
+  appearance: 'appearance theme dark light system colour color motion animation reduce',
   language: `language locale translation ${LOCALES.map((l) => `${l.english} ${l.native}`).join(' ')}`,
   about: 'about version licence license disclaimer credits artist names privacy',
 };
@@ -112,6 +116,12 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
   const { t } = useTranslation();
   const [active, setActive] = useState<CategoryId>('general');
   const [search, setSearch] = useState('');
+  // A model that failed to load is skipped rather than fatal (TASK-016), which
+  // is right for the launch and wrong for the user: until now nothing outside
+  // the console ever said so, and a missing artist looked like one that was
+  // never authored.
+  const problems = useSession((s) => s.problems);
+  const roster = useSession((s) => s.roster);
   // `null` until the real values are read. Seeding this with DEFAULTS was a
   // trap: `update` writes the whole object back, so one flipped checkbox
   // persisted a full mirror of the defaults over whatever was really on disk.
@@ -124,6 +134,7 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
   const setTheme = useUi((s) => s.setTheme);
   const language = useUi((s) => s.language);
   const setLanguage = useUi((s) => s.setLanguage);
+  const setReduceMotion = useUi((s) => s.setReduceMotion);
 
   useEffect(() => {
     invoke<AppSettings>('settings_get')
@@ -279,6 +290,28 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
                 />
 
                 {trayDisabled && <p className="settings__note">{t('settings.trayRequired')}</p>}
+
+                <h3>{t('settings.datasetHeading')}</h3>
+                {problems.length === 0 ? (
+                  <p className="settings__note">
+                    {t('settings.datasetOk', { count: roster.length })}
+                  </p>
+                ) : (
+                  // The list, not just the count. "3 models were skipped" is
+                  // not something anyone can act on; the file and the reason
+                  // are. Both are already on the wire from `roster_summary` —
+                  // until now only the console ever saw them.
+                  <div className="settings__problems" role="alert">
+                    <p>{t('settings.datasetSkipped', { count: problems.length })}</p>
+                    <ul>
+                      {problems.map((problem) => (
+                        <li key={problem.source}>
+                          <code>{problem.source}</code> — {problem.message}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </section>
             )}
 
@@ -311,6 +344,18 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
                     );
                   })}
                 </div>
+
+                <h3>{t('settings.motionHeading')}</h3>
+                <Toggle
+                  label={t('settings.reduceMotion')}
+                  hint={t('settings.reduceMotionHint')}
+                  checked={shownSettings.reduceMotion}
+                  disabled={!canPersist}
+                  onChange={(v) => {
+                    setReduceMotion(v);
+                    void update({ reduceMotion: v });
+                  }}
+                />
               </section>
             )}
 

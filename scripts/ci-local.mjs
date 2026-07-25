@@ -44,9 +44,14 @@ const GATES = [
   },
   { name: 'cargo test', cmd: 'cargo', args: ['test', '--workspace'], slow: true },
   {
+    // Both generated files, because two crates export bindings and each one
+    // *truncates* its own file. `engine` writes ipc-types.ts and `src-tauri`
+    // writes ipc-audio-types.ts; pointing them at one path made whichever
+    // crate's tests ran last overwrite the other's types, and the frontend
+    // then failed to typecheck against half a file.
     name: 'ts-rs bindings drift',
     cmd: 'git',
-    args: ['diff', '--exit-code', '--', 'src/lib/ipc-types.ts'],
+    args: ['diff', '--exit-code', '--', 'src/lib/ipc-types.ts', 'src/lib/ipc-audio-types.ts'],
   },
   { name: 'typecheck', cmd: 'npm', args: ['run', '-s', 'typecheck'] },
   { name: 'lint', cmd: 'npm', args: ['run', '-s', 'lint'] },

@@ -60,6 +60,15 @@ pub struct Settings {
     /// enum here would be a second copy to keep in step for no benefit. The
     /// frontend rejects an unrecognised tag on read.
     pub language: String,
+    /// Suppress the generation animation regardless of what the OS says.
+    ///
+    /// The OS setting is honoured on its own; this is for the case it does not
+    /// cover — a machine where `prefers-reduced-motion` is not exposed, or a
+    /// user who wants the rest of the system animated and this one thing still
+    /// (FR-017). It can only ever turn motion *off*: ticking it wins, leaving
+    /// it alone defers to the OS.
+    #[serde(default)]
+    pub reduce_motion: bool,
 }
 
 impl Default for Settings {
@@ -73,6 +82,10 @@ impl Default for Settings {
             theme: ThemePreference::default(),
             // Empty, not "en": see the field docs. This is "never chosen".
             language: String::new(),
+            // Off, so the OS setting is what decides unless someone says
+            // otherwise. Defaulting it on would silently override a system
+            // that had asked for animation.
+            reduce_motion: false,
         }
     }
 }
@@ -149,6 +162,10 @@ mod tests {
             s.language, "",
             "no language chosen yet — not a silent vote for English"
         );
+        assert!(
+            !s.reduce_motion,
+            "off by default, so the OS setting is what decides — defaulting it              on would override a system that had asked for animation"
+        );
     }
 
     #[test]
@@ -159,6 +176,7 @@ mod tests {
             show_tray_icon: true,
             theme: ThemePreference::Dark,
             language: "ja".to_string(),
+            reduce_motion: true,
         };
         let json = serde_json::to_string(&s).unwrap();
         assert!(
@@ -234,6 +252,7 @@ mod tests {
             show_tray_icon: true,
             theme: ThemePreference::Light,
             language: "fr".to_string(),
+            reduce_motion: false,
         }
         .save()
         .unwrap();

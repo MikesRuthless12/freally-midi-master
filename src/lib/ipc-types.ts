@@ -126,6 +126,20 @@ keyRoot: number, scale: Scale, swing: Swing, bars: number,
 halfTime: boolean, humanize: Humanize, };
 
 /**
+ * What a caller may pin instead of letting the model choose it.
+ *
+ * Everything is optional: an override the user has not touched must stay
+ * absent rather than arrive as a default, or the artist's own value is
+ * silently replaced by whatever the UI happened to initialise (PRD § 4
+ * `SessionOverrides`).
+ */
+export type SessionOverrides = { bpm: number | null, 
+/**
+ * Pitch class, 0 = C.
+ */
+keyRoot: number | null, scale: Scale | null, swing: number | null, bars: number | null, halfTime: boolean | null, };
+
+/**
  * A full arrangement — what Song Mode produces and what the multi-track SMF
  * export walks.
  */

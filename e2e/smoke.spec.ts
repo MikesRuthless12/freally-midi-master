@@ -51,9 +51,15 @@ test('controls that cannot work yet are disabled rather than merely inert', asyn
 }) => {
   // A control that looks live but does nothing is worse than one that admits
   // it, and screen readers need to be told.
-  await expect(page.getByLabel('Search an artist')).toBeDisabled();
+  //
+  // The rule has not changed since Phase 0; what each control can do has.
+  // Search and Generate are live now (TASK-028), so what they must admit to is
+  // narrower: Generate cannot run without someone selected, and Play cannot run
+  // without a pattern and an audio device — which a browser does not have.
+  await expect(page.getByLabel('Search an artist')).toBeEnabled();
   await expect(page.getByRole('button', { name: 'Generate' })).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Play' })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Stop' })).toBeDisabled();
 });
 
 test('K toggles the right rail', async ({ page }) => {

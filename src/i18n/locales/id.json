@@ -21,13 +21,23 @@
     "emptyBody": "Pilih satu artis dari daftar, lalu tekan Buat.",
     "seed": "seed",
     "bars": "bar",
-    "generate": "Buat"
+    "generate": "Buat",
+    "barsLabel": "Panjang pola dalam bar",
+    "copySeed": "Salin seed",
+    "seedCopied": "Seed disalin.",
+    "seedLabel": "Seed — tempel untuk mendapatkan beat yang sama",
+    "seedAuto": "acak",
+    "generating": "Membuat…",
+    "laterPhase": "Generator ini hadir pada fase berikutnya.",
+    "readyBody": "{{name}} siap. Tekan Buat."
   },
   "rails": {
     "searchPlaceholder": "Cari artis…",
     "searchLabel": "Cari artis",
     "noDataset": "Belum ada dataset yang dimuat.",
-    "noKit": "Belum ada kit. Jatuhkan one-shot di mana saja pada panel ini."
+    "noKit": "Belum ada kit. Jatuhkan one-shot di mana saja pada panel ini.",
+    "noMatch": "Tidak ada yang cocok dengan “{{query}}”.",
+    "results": "Hasil pencarian"
   },
   "sections": {
     "genres": "Genre",
@@ -46,7 +56,9 @@
     "loop": "Loop",
     "masterLevel": "Level master: senyap",
     "toggleRightRail": "Alihkan panel kanan (K)",
-    "reportBug": "Laporkan bug"
+    "reportBug": "Laporkan bug",
+    "loopAlways": "Pemutaran selalu berulang pada fase ini.",
+    "unavailable": "Pemutaran tidak tersedia: {{reason}}"
   },
   "theme": {
     "group": "Tema",
@@ -73,8 +85,9 @@
     "exportTitle": "Simpan MIDI ke folder lalu buka lokasinya",
     "dragDesktopOnly": "Seret hanya berfungsi di aplikasi desktop.",
     "exportDesktopOnly": "Ekspor hanya berfungsi di aplikasi desktop.",
-    "dropped": "Sudah dilepas. Jika DAW Anda mengabaikannya, catat di matriks.",
-    "exportedTo": "Diekspor ke {{path}}"
+    "dropped": "Mendarat.",
+    "exportedTo": "Diekspor ke {{path}}",
+    "nothingToExport": "Buat beat terlebih dahulu."
   },
   "settings": {
     "title": "Pengaturan",
@@ -99,7 +112,13 @@
     "themeNote": "Gelap adalah bawaan sekaligus tampilan khas aplikasi ini. Kontras kedua tema sudah diuji sesuai WCAG 2.1 AA.",
     "languageHeading": "Bahasa",
     "languageNote": "Bahasa antarmuka. Setiap bahasa sudah menyertakan font yang diperlukan, jadi tidak ada yang perlu diunduh.",
-    "languageLabel": "Bahasa antarmuka"
+    "languageLabel": "Bahasa antarmuka",
+    "datasetHeading": "Kumpulan gaya",
+    "datasetOk": "{{count}} gaya dimuat. Tidak ada yang dilewati.",
+    "datasetSkipped": "{{count}} gaya tidak dapat dimuat dan dilewati:",
+    "motionHeading": "Gerakan",
+    "reduceMotion": "Kurangi gerakan",
+    "reduceMotionHint": "Mengganti sapuan generasi dengan pudar singkat. Pengaturan sistem Anda sudah melakukannya — gunakan ini bila sistem tidak punya pengaturan itu, atau bila Anda ingin sisanya tetap bergerak."
   },
   "about": {
     "title": "Tentang",
@@ -143,5 +162,30 @@
   },
   "common": {
     "close": "Tutup"
+  },
+  "grid": {
+    "label": "Pola yang dihasilkan",
+    "summary": "{{bars}} bar · {{steps}} langkah · {{notes}} not"
+  },
+  "roster": {
+    "artists": "Artis",
+    "flagship": "Unggulan",
+    "genre": "Aliran"
+  },
+  "lanes": {
+    "kick": "Bas drum",
+    "snare": "Snar",
+    "clap": "Tepukan",
+    "closedHat": "Hi-hat tertutup",
+    "openHat": "Hi-hat terbuka",
+    "rim": "Pinggiran",
+    "snap": "Jentikan",
+    "perc": "Perkusi",
+    "bass808": "808"
+  },
+  "device": {
+    "recovering": "Perangkat audio hilang — menyambungkan ulang…",
+    "failed": "Tidak ada perangkat audio. Masih mencoba…",
+    "recovered": "Perangkat audio kembali."
   }
 }

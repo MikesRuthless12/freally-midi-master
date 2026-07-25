@@ -621,10 +621,16 @@ fn every_genre_in_the_roster_has_an_invariant_test() {
         "pop-2000s",
     ];
 
+    // Genres only: the artists are covered by
+    // `the_ten_flagship_artists_all_ship_and_generate` and
+    // `every_flagship_artist_sounds_unlike_the_genre_it_extends`, which is a
+    // stronger claim than a checklist because it compares output.
     let shipped_ids: Vec<String> = shipped()
-        .keys()
-        .filter(|id| !id.starts_with('_'))
-        .cloned()
+        .iter()
+        .filter(|(id, model)| {
+            !id.starts_with('_') && model.model_type == engine::dataset::ModelType::Genre
+        })
+        .map(|(id, _)| id.clone())
         .collect();
 
     for id in &shipped_ids {
@@ -638,5 +644,100 @@ fn every_genre_in_the_roster_has_an_invariant_test() {
             shipped_ids.iter().any(|s| s == id),
             "`{id}` is listed as covered but no longer ships"
         );
+    }
+}
+
+// --------------------------------------------------------------- the artists
+
+#[test]
+fn every_flagship_artist_sounds_unlike_the_genre_it_extends() {
+    // The product's whole premise (PRD § 1): "Trap is not Metro Boomin". An
+    // artist model that generates what its genre already generates is a name
+    // in a list, not a style.
+    let models = shipped();
+    let context = ctx(4);
+
+    let mut checked = 0;
+    for (id, model) in &models {
+        if model.model_type != engine::dataset::ModelType::Artist {
+            continue;
+        }
+        let parent = model
+            .blocks
+            .get("extends")
+            .and_then(Value::as_array)
+            .and_then(|a| a.first())
+            .and_then(Value::as_str)
+            .map(str::to_owned);
+        // `extends` is consumed by inheritance, so read it from the file the
+        // roster kept rather than the resolved model.
+        let Some(parent) = parent.or_else(|| {
+            models
+                .keys()
+                .find(|candidate| model.genres.iter().any(|g| g == *candidate))
+                .cloned()
+        }) else {
+            continue;
+        };
+        let Some(base) = models.get(&parent) else {
+            continue;
+        };
+
+        let mut different = 0;
+        for seed in 0..20u64 {
+            if generate(model, &context, seed) != generate(base, &context, seed) {
+                different += 1;
+            }
+        }
+        assert_eq!(
+            different, 20,
+            "{id} generates the same drums as `{parent}` on some seeds"
+        );
+        checked += 1;
+    }
+
+    assert!(checked > 0, "no artist model was compared to its genre");
+}
+
+#[test]
+fn the_ten_flagship_artists_all_ship_and_generate() {
+    // Named explicitly (PRD § 5 US-001): these are the roster the magic moment
+    // is demonstrated with, so a missing one is a missing demo.
+    const FLAGSHIPS: &[&str] = &[
+        "metro-boomin",
+        "southside",
+        "pierre-bourne",
+        "osamason",
+        "nettspend",
+        "summrs",
+        "pop-smoke",
+        "travis-scott",
+        "future",
+        "drake",
+    ];
+
+    let models = shipped();
+    let context = ctx(4);
+
+    for id in FLAGSHIPS {
+        let model = models
+            .get(*id)
+            .unwrap_or_else(|| panic!("`{id}` must ship — it is a named flagship"));
+        assert_eq!(model.tier, Some(engine::dataset::Tier::Flagship), "{id}");
+        assert!(!model.aliases.is_empty(), "{id} needs aliases to be found");
+
+        for seed in 0..20u64 {
+            let lanes = generate(model, &context, seed);
+            assert!(!lanes.is_empty(), "{id} seed {seed}: generated nothing");
+            for track in &lanes {
+                for n in &track.notes {
+                    assert!(
+                        n.start_tick < context.total_ticks(),
+                        "{id}: note past the end"
+                    );
+                    assert!(n.vel >= 1 && n.vel <= 127, "{id}: bad velocity");
+                }
+            }
+        }
     }
 }
