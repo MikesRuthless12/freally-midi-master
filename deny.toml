@@ -88,6 +88,16 @@ private = { ignore = true }
 [bans]
 multiple-versions = "warn"
 wildcards = "deny"
+# ...except between our own crates. The ban exists to stop an unbounded version
+# requirement on a *registry* crate, where "any version" means whatever the
+# index serves tomorrow. A path dependency inside this workspace resolves to the
+# copy in this repo and nothing else, so there is no range to pin.
+#
+# Pinning them anyway is what this replaced: `engine = { path, version = "0.1.0" }`
+# in three manifests, each of which had to be bumped in lockstep with the
+# workspace version. The first release after 0.1.0 stopped resolving because
+# they were not, which is a build break bought for no safety at all.
+allow-wildcard-paths = true
 # Nothing may depend on the engine except through its public API — a build
 # script reaching into it would break the "engine is pure" invariant.
 highlight = "all"

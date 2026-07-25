@@ -29,7 +29,11 @@ tauri-plugin-updater = "2"
 tauri-plugin-process = "2"
 # TASK-013 drag-out spike (CrabNebula).
 tauri-plugin-drag = "2"
-engine = { path = "../engine", version = "0.1.0" }
+# Path only, deliberately. A `version = "..."` requirement alongside it has to
+# be bumped in lockstep with the workspace version or the build stops resolving
+# — which is exactly what it did on the first release after 0.1.0. The engine is
+# `publish = false`, so the requirement bought nothing to begin with.
+engine = { path = "../engine" }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 # A fresh seed when the user has not pasted one. The *choice* of seed is not

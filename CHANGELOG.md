@@ -12,6 +12,11 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-07-25
+
+Phase 1: the app makes beats. Search an artist, press Generate, hear it, and
+drag it into a DAW.
+
 ### Added
 
 - The style dataset is bundled with the app and loaded at startup: every model

@@ -844,7 +844,7 @@ checksum = "a4ae5f15dda3c708c0ade84bfee31ccab44a3da4f88015ed22f63732abe300c8"
 
 [[package]]
 name = "datasetc"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "engine",
  "jsonschema",
@@ -1132,7 +1132,7 @@ checksum = "66b7e2430c6dff6a955451e2cfc438f09cea1965a9d6f87f7e3b90decc014099"
 
 [[package]]
 name = "engine"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "midly",
  "rand",
@@ -1344,7 +1344,7 @@ dependencies = [
 
 [[package]]
 name = "freally-midi-master"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "chrono",
  "cpal",
@@ -2295,7 +2295,7 @@ dependencies = [
 
 [[package]]
 name = "kitgen"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "engine",
  "rand",

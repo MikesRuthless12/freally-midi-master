@@ -12,7 +12,10 @@ publish = false
 unsafe_code = "forbid"
 
 [dependencies]
-engine = { path = "../../engine", version = "0.1.0" }
+# Path only: a `version` requirement here has to be bumped in lockstep with
+# the workspace version or the build stops resolving, and `engine` is
+# `publish = false`, so it bought nothing.
+engine = { path = "../../engine" }
 serde_json = "1"
 rand = "0.9"
 rand_chacha = "0.9"
