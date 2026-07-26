@@ -51,6 +51,7 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
         with:
+          toolchain: "1.97.1"
           components: rustfmt, clippy
 
       - uses: Swatinem/rust-cache@v2
@@ -142,6 +143,8 @@ jobs:
             imagemagick
 
       - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: "1.97.1"
 
       - uses: Swatinem/rust-cache@v2
         with:
@@ -248,6 +251,8 @@ jobs:
           persist-credentials: false
 
       - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: "1.97.1"
 
       - uses: Swatinem/rust-cache@v2
         with:
