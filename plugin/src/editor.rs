@@ -46,28 +46,45 @@ const SCHEME: &str = "freally";
 /// be summoned with K. 1280 is the UI's hard *minimum* (PRD § 8), not the size
 /// it was drawn against — asking for the minimum meant every host got the
 /// degraded layout.
-const LOGICAL_SIZE: (u32, u32) = SIZES[0].1;
+/// The layout the UI is always given, in CSS pixels, whatever size the window
+/// is on screen.
+///
+/// 1440 is the width at which the right rail stays open; below it the kit and
+/// session panels collapse and have to be summoned with K. **This number does
+/// not change when the window gets smaller** — that is the whole point of
+/// [`SCALES`]. Shrinking the window by shrinking the layout is what would take
+/// the rail away again.
+const LAYOUT: (u32, u32) = (1440, 900);
 
-/// The sizes the UI can ask for, in CSS pixels, smallest first.
+/// How large that layout is *drawn*, smallest first.
+///
+/// A 1440-wide layout at 100% is nearly a whole 1707-wide desktop once the
+/// display is scaled — so "bigger" was never the useful direction. These shrink
+/// the picture instead: the window takes less of the screen while the page
+/// still lays out at [`LAYOUT`] and still shows every panel, because the page
+/// is zoomed by the same factor the window is.
 ///
 /// **Presets rather than a draggable edge**, because the vendored adapter does
 /// not forward `Event::Window(Resized)` — its `on_event` handles keyboard and
 /// mouse and nothing else — so a window the host resized would leave the page
 /// inside it laid out at the old size. Teaching it to would mean editing
 /// `src/lib.rs`, which `VENDORED.md` deliberately keeps byte-for-byte upstream.
-///
-/// `medium` is the layout target: the smallest width that keeps the right rail
-/// open. `large` is for the screen a producer actually works on; it is clamped
-/// to the work area, so on a smaller display it quietly becomes "as big as
-/// fits" rather than opening off the edge.
-const SIZES: &[(&str, (u32, u32))] = &[("medium", (1440, 900)), ("large", (1760, 1080))];
+const SCALES: &[(&str, f32)] = &[("small", 0.7), ("medium", 0.85), ("large", 1.0)];
 
-/// A named size, in physical pixels, ready to hand to the window.
-fn preset(name: &str) -> Option<(u32, u32)> {
-    SIZES
+/// What the editor opens at. Not the largest: a window that fills the host on
+/// first insert is a window the user has to deal with before they can work.
+const DEFAULT_SCALE: &str = "medium";
+
+/// A named scale: the window in physical pixels, and the zoom the page applies.
+///
+/// The two must agree. The window is `LAYOUT * system_scale * factor` and the
+/// page is zoomed by `factor`, so the CSS viewport works out at `LAYOUT` again
+/// — a smaller window showing the same layout, rather than less of it.
+fn preset(name: &str) -> Option<((u32, u32), f32)> {
+    SCALES
         .iter()
         .find(|(id, _)| *id == name)
-        .map(|(_, logical)| physical(*logical))
+        .map(|(_, factor)| (physical(LAYOUT, *factor), *factor))
 }
 
 /// The window size to ask the host for, in **physical** pixels.
@@ -87,8 +104,8 @@ fn preset(name: &str) -> Option<(u32, u32)> {
 /// Scaling up is safe because the result is clamped to the work area below: on
 /// a 100% display this is exactly [`LOGICAL_SIZE`], and on a small screen it
 /// shrinks to fit rather than opening a window with its controls off-screen.
-fn physical((w, h): (u32, u32)) -> (u32, u32) {
-    let scale = system_scale();
+fn physical((w, h): (u32, u32), factor: f32) -> (u32, u32) {
+    let scale = system_scale() * factor;
     let (max_w, max_h) = work_area().unwrap_or((u32::MAX, u32::MAX));
 
     (
@@ -99,7 +116,9 @@ fn physical((w, h): (u32, u32)) -> (u32, u32) {
 
 /// The size the editor opens at.
 fn window_size() -> (u32, u32) {
-    physical(LOGICAL_SIZE)
+    preset(DEFAULT_SCALE)
+        .map(|(size, _)| size)
+        .unwrap_or(LAYOUT)
 }
 
 /// Commands the *window* owns, rather than the engine.
@@ -119,12 +138,15 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
 
     let name = request.args["size"].as_str().unwrap_or_default();
     Some(match preset(name) {
-        Some((width, height)) => {
+        Some(((width, height), factor)) => {
             shared.request_resize(width, height);
-            Ok(json!({ "width": width, "height": height }))
+            // `zoom` is what the page must apply for the layout to come out at
+            // `LAYOUT` inside a window this size. Sent back rather than
+            // duplicated in the frontend, so the two cannot drift apart.
+            Ok(json!({ "width": width, "height": height, "zoom": factor }))
         }
         None => {
-            let known: Vec<&str> = SIZES.iter().map(|(id, _)| *id).collect();
+            let known: Vec<&str> = SCALES.iter().map(|(id, _)| *id).collect();
             Err(format!(
                 "`{name}` is not a window size — expected one of {}",
                 known.join(", ")
