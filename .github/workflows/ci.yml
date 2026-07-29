@@ -415,7 +415,8 @@ jobs:
             libxkbcommon-dev \
             libxkbcommon-x11-dev \
             xvfb \
-            xdotool
+            xdotool \
+            imagemagick
 
       - uses: dtolnay/rust-toolchain@stable
         with:

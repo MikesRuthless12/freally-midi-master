@@ -71,7 +71,19 @@ function die(message) {
 }
 
 function sh(cmd, args) {
-  return spawnSync(cmd, args, { encoding: 'utf8' });
+  const done = spawnSync(cmd, args, { encoding: 'utf8' });
+  // ⛔ Name the missing tool. `spawnSync` reports ENOENT as a null status with
+  // empty streams, so the caller's `stderr || stdout || 'no output'` printed
+  // exactly `window capture failed: no output` — which cost a full CI round trip
+  // to work out meant "`import` is not installed".
+  if (done.error) {
+    return {
+      ...done,
+      status: done.status ?? 1,
+      stderr: `could not run \`${cmd}\`: ${done.error.message}`,
+    };
+  }
+  return done;
 }
 
 /**
