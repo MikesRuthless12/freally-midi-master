@@ -41,6 +41,11 @@ jobs:
       # under the webview editor — links X11 on Linux, and without the headers
       # `x11 v2.21.0`'s build script fails before anything of ours compiles.
       # Nothing else in the workspace needs them.
+      #
+      # `libx11-xcb-dev` is the one that is easy to miss: the `x11` crate asks
+      # pkg-config for `x11-xcb`, which `libx11-dev` does *not* provide. The
+      # error names the crate rather than the package, so it reads like an X11
+      # problem when it is an X11-to-XCB bridge problem.
       - name: Install Linux system dependencies
         if: matrix.os == 'ubuntu-latest'
         run: |
@@ -53,6 +58,7 @@ jobs:
             libasound2-dev \
             patchelf \
             libx11-dev \
+            libx11-xcb-dev \
             libxcb1-dev \
             libxcb-icccm4-dev \
             libxcursor-dev \
@@ -156,6 +162,7 @@ jobs:
             libasound2-dev \
             patchelf \
             libx11-dev \
+            libx11-xcb-dev \
             libxcb1-dev \
             libxcb-icccm4-dev \
             libxcursor-dev \
