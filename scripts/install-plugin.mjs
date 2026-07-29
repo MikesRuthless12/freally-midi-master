@@ -75,13 +75,21 @@ function builtLibrary() {
  * The **per-user** directory each OS specifies for CLAP plugins.
  *
  * Deliberately the user-level path rather than the system one. The CLAP spec
- * defines both, and every DAW scans both — but the system path lives under
+ * defines both and CLAP hosts scan both — but the system path lives under
  * `C:\Program Files` / `/Library`, which needs an elevated shell to write. A
  * default that fails with EPERM on a normal terminal is a default that does
  * not install anything, which defeats running this on every build.
  *
  * Add the system path to `plugin-install.json` if you want it as well; it will
  * be attempted, and reported rather than fatal when it is refused.
+ *
+ * **This folder only helps a host that speaks CLAP.** Bitwig, Reaper,
+ * FL Studio 21.2+, Studio One 6.5+ and Renoise do. **Ableton Live, Logic,
+ * Pro Tools and Cubase do not** — pointing Live's "VST3 custom folder" here
+ * cannot work, because Live is looking for a `.vst3` and a `.clap` is a
+ * different format wearing a different extension. Those hosts need the VST3
+ * that `clap-wrapper` produces (TASK-P08), and until it exists there is
+ * nothing this script can put anywhere that they will load.
  */
 function defaultClapDir() {
   switch (platform()) {
