@@ -21,11 +21,28 @@ loading before any of our code sees a byte, and an allocation abort cannot be
 trapped in-process (`Vec::with_capacity` calls `handle_alloc_error`, which a
 custom allocator does not intercept).
 
-APPLYING IT
-  Against nih-plug rev f36931f7af4646065488a9845d8f8c2f95252c23,
-  file `src/wrapper/clap/wrapper.rs`, in `ext_state_load` (~line 3147).
-  Requires a fork or vendored copy pinned the way the current git dep is —
-  see TASK-P11, which is the decision about owning one.
+✅ APPLIED 2026-07-29. Kept as the record of what was changed and why.
+
+  Fork:   https://github.com/MikesRuthless12/nih-plug
+  Branch: freally/state-load-bounds
+  Rev:    10bac6da816c6b95041cb6698d74eb465f60341f
+          (upstream f36931f7 plus this one commit, and nothing else)
+
+  Both `plugin/Cargo.toml` and `plugin/vendor/nih-plug-webview/Cargo.toml` point
+  at it. **They must stay identical** — two different `nih_plug` sources are two
+  different crates to cargo, and the adapter's `Editor` would stop being the
+  `Editor` the plugin expects.
+
+  Verified by the test that found the bug: `clap-validator`'s
+  `state-invalid-random` went from CRASHED to passing, 32/32 with no exclusion
+  for it. The `state-invalid-random` exclusion is gone from `ci.yml` and
+  `release.yml`; only `param-conversions` remains, and that one is the
+  validator's own divide-by-zero on a plugin with no parameters.
+
+  ⚠ A trap worth knowing, because it cost a wrong conclusion here: the first
+  validation after this landed still crashed, because `target/bundled/` held a
+  *stale* copy of the binary. The `.clap` is a copy of the cdylib, not a link —
+  compare timestamps before believing a result.
 
 --- a/src/wrapper/clap/wrapper.rs
 +++ b/src/wrapper/clap/wrapper.rs

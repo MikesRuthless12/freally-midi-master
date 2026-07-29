@@ -143,13 +143,23 @@ allow-registry = ["https://github.com/rust-lang/crates.io-index"]
 # dependency" is exactly the thing this check exists to notice — and every one
 # of them is pinned to a revision in the manifest that names it.
 #
-# `nih-plug` is unmaintained upstream as of March 2026 (the maintained fork,
-# `nice-plug`, has no webview adapter, which is the whole reason this project
-# is still on the original). `baseview` is here only because the vendored
-# `nih_plug_webview` needs a revision predating its raw-window-handle 0.6
-# migration — see plugin/vendor/VENDORED.md.
+# **`nih-plug` is our own fork**, and TASK-P11 records why we own one: upstream
+# is in maintenance mode and will not take the fix, and `nice-plug` — the
+# maintained community fork — carries the identical bug, so migrating was not an
+# escape from it. The fork is upstream's `f36931f7` plus exactly one commit
+# bounding the CLAP state length prefix, without which a corrupt project file
+# aborts the host process. See `patches/nih-plug-state-load-bounds.patch`.
+#
+# Upstream's URL is deliberately **not** listed: leaving it here would let a
+# manifest silently drift back to the unpatched crate and this gate would say
+# nothing. `cargo deny` also warns when an allowed source goes unused, which is
+# what would catch it.
+#
+# `baseview` is here only because the vendored `nih_plug_webview` needs a
+# revision predating its raw-window-handle 0.6 migration — see
+# plugin/vendor/VENDORED.md.
 allow-git = [
-    "https://github.com/robbert-vdh/nih-plug",
+    "https://github.com/MikesRuthless12/nih-plug",
     "https://github.com/RustAudio/baseview",
     # The CLAP bindings nih-plug builds on. Pinned by nih-plug itself.
     "https://github.com/micahrj/clap-sys",

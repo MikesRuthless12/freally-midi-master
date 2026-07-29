@@ -350,7 +350,7 @@ jobs:
         run: |
           set -euo pipefail
           "$CLAP_VALIDATOR" validate \
-            --exclude '^(state-invalid-random|param-conversions)$' \
+            --exclude '^param-conversions$' \
             "target/bundled/Freally MIDI Master.clap"
 
   supply-chain:

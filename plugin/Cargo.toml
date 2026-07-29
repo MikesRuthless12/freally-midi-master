@@ -60,9 +60,20 @@ clap-wrapper = { version = "0.3.1", features = ["vst3"] }
 # `standalone` is opted back in deliberately: it is what lets the plugin run as
 # an ordinary window with no DAW at all, which is how it gets tested day to day
 # (`npm run plugin:standalone`). It does not pull `vst3-sys`.
+#
+# **Our fork, and TASK-P11 explains why we own one.** It is upstream's
+# `f36931f7` plus exactly one commit: a bounds check on the CLAP state length
+# prefix. Without it `ext_state_load` hands an untrusted `u64` straight to
+# `Vec::with_capacity`, so a corrupt project file decodes to a ~1 exabyte
+# allocation and **Rust aborts the process** — an abort no host can catch, which
+# takes the whole DAW down. `clap-validator`'s `state-invalid-random` found it.
+#
+# Upstream is in maintenance mode and will not take it; `nice-plug`, the
+# maintained community fork, carries the identical bug, so migrating was not an
+# escape from this. Rebasing onto anything newer is a diff against one commit.
 [dependencies.nih_plug]
-git = "https://github.com/robbert-vdh/nih-plug.git"
-rev = "f36931f7af4646065488a9845d8f8c2f95252c23"
+git = "https://github.com/MikesRuthless12/nih-plug.git"
+rev = "10bac6da816c6b95041cb6698d74eb465f60341f"
 default-features = false
 features = ["standalone"]
 

@@ -28,7 +28,12 @@ keyboard-types = "0.6.2"
 # `plugin/Cargo.toml`: nih-plug's VST3 export pulls GPLv3 `vst3-sys`. Both
 # manifests must agree, or cargo unifies the feature back on and the GPL
 # dependency returns through this crate instead.
-nih_plug = { git = "https://github.com/robbert-vdh/nih-plug.git", rev = "f36931f7af4646065488a9845d8f8c2f95252c23", default-features = false }
+# ⛔ Must be the SAME source and rev as `plugin/Cargo.toml`. Two different
+# `nih_plug` sources are two different crates to cargo, so the `Editor` this
+# adapter implements would not be the `Editor` the plugin expects — and the
+# error points at a trait mismatch rather than at a duplicated dependency.
+# See TASK-P11 for why that source is our fork.
+nih_plug = { git = "https://github.com/MikesRuthless12/nih-plug.git", rev = "10bac6da816c6b95041cb6698d74eb465f60341f", default-features = false }
 
 # THE REASON THIS CRATE IS VENDORED.
 #
