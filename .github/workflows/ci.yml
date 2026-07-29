@@ -349,7 +349,7 @@ jobs:
 
   # TASK-P12. Separate from `plugin` above because Linux is not a shipping
   # target yet — this job does not build bundles or run the validator, it
-  # answers the one question the Linux editor exists to raise: **does the window
+  # answers the one question the editor exists to raise: **does the window
   # actually draw anything?**
   #
   # A `cargo build` on this runner goes green whether GTK starts, whether the
@@ -357,6 +357,17 @@ jobs:
   # of those failures is an empty window, and the only way to tell an empty
   # window from a working one is to photograph it and count the colours — which
   # is what the script does, and which was watched failing before it was trusted.
+  #
+  # ⛔ **WHY THIS IS NOT A THREE-OS MATRIX YET.** `screenshot-plugin.mjs` handles
+  # Windows and macOS too, and the intent is one job photographing all three so
+  # every build is proven to render. It cannot be turned on until **TASK-P16**:
+  # the Windows *standalone* opens a blank window because nothing pumps the
+  # WebView2 message loop on baseview's thread, so no navigation ever completes.
+  # The plugin a DAW loads is unaffected — Ableton and FL Studio pump their own
+  # loop — but the standalone this job drives is not, and adding the leg today
+  # would mean a permanently red gate or, worse, one allowed to fail. macOS is
+  # unverified and may already work; check before assuming. `VENDORED.md` has
+  # the diagnosis.
   plugin-editor-linux:
     name: plugin editor (ubuntu-latest)
     runs-on: ubuntu-latest

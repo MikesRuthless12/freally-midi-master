@@ -200,6 +200,13 @@ impl baseview::WindowHandler for WindowHandler {
 /// `with_web_context` is deliberately **not** applied here: it borrows for the
 /// builder's whole lifetime, so the context has to be a local of whichever
 /// scope is doing the building.
+///
+/// ⛔ **The caller must apply it *before* calling this, and that ordering is
+/// load-bearing.** wry registers a custom protocol against the web context, so a
+/// context attached after `with_custom_protocol` does not carry the scheme — the
+/// page then fails to load and the window shows the background colour and
+/// nothing else. The first version of this refactor applied it afterwards and
+/// did exactly that: a perfectly compiled, perfectly blank editor.
 fn configure<'a>(
     builder: WebViewBuilder<'a>,
     bounds: wry::Rect,
@@ -288,8 +295,9 @@ impl Editor for WebViewEditor {
             #[cfg(not(target_os = "linux"))]
             let webview = {
                 let mut web_context = WebContext::new(Some(std::env::temp_dir()));
+                // ⛔ The context goes on *first* — see `configure`.
                 configure(
-                    WebViewBuilder::new_as_child(window),
+                    WebViewBuilder::new_as_child(window).with_web_context(&mut web_context),
                     bounds,
                     &source,
                     background_color,
@@ -297,7 +305,6 @@ impl Editor for WebViewEditor {
                     custom_protocol,
                     events_sender,
                 )
-                .with_web_context(&mut web_context)
                 .build()
                 .unwrap_or_else(|e| panic!("Failed to construct webview. {}", e))
             };
@@ -317,8 +324,10 @@ impl Editor for WebViewEditor {
                         linux::on_gtk(move || {
                             let parent = linux::ParentXid(parent);
                             let mut web_context = WebContext::new(Some(std::env::temp_dir()));
-                            let built = configure(
-                                WebViewBuilder::new_as_child(&parent),
+                            // ⛔ The context goes on *first* — see `configure`.
+                            configure(
+                                WebViewBuilder::new_as_child(&parent)
+                                    .with_web_context(&mut web_context),
                                 bounds,
                                 &source,
                                 background_color,
@@ -326,7 +335,6 @@ impl Editor for WebViewEditor {
                                 custom_protocol,
                                 events_sender,
                             )
-                            .with_web_context(&mut web_context)
                             .build();
 
                             match built {

@@ -391,11 +391,16 @@ fn work_area() -> Option<(u32, u32)> {
     None
 }
 
+/// Where the page is loaded from.
+///
+/// One string for every platform: wry rewrites a custom scheme into
+/// `http://<scheme>.<host>` on Windows itself, so asking for that form directly
+/// changes nothing. It was tried — see `VENDORED.md` on the standalone's blank
+/// window, which is a message-pump problem rather than a URL one.
+const PAGE: &str = "freally://localhost/index.html";
+
 pub fn create(shared: SharedState) -> Option<Box<dyn Editor>> {
-    let editor = WebViewEditor::new(
-        HTMLSource::URL("freally://localhost/index.html"),
-        window_size(&shared),
-    )
+    let editor = WebViewEditor::new(HTMLSource::URL(PAGE), window_size(&shared))
     // The app's own background, so a slow first paint is the app's colour
     // rather than a white flash inside a dark DAW.
     .with_background_color((11, 11, 13, 255))

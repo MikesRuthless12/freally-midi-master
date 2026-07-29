@@ -135,6 +135,54 @@ bridge therefore runs as an HTTP round trip over the custom protocol
 synchronously and which depends on no tick at all. Do not move it back onto
 `next_event`/`send_json`.
 
+### ⛔ THE WINDOWS *STANDALONE* OPENS A BLANK WINDOW, AND IT IS THE MESSAGE PUMP
+
+**Diagnosed 2026-07-29. The plugin is fine; `npm run plugin:standalone` is not,
+on Windows.** Do not go looking for this in the engine, the embedded UI or the
+custom protocol — all three were ruled out, in this order:
+
+1. `assert-plugin-bundled` confirms the UI and dataset are in the binary.
+2. Instrumenting the adapter showed the webview is built correctly:
+   `bounds 1224x765, protocol=Some("freally"), devtools=true`,
+   `with_url(freally://localhost/index.html)`, `build ok = true`.
+3. `serve` is **never called** — not a 404, no request at all.
+4. Devtools (on by default in release) reports the page as **`about:blank`**,
+   with a real `<html><body>` sized 1208x749. So the webview exists and never
+   navigated.
+5. **The decisive test.** In the devtools console:
+   ```js
+   fetch('http://freally.localhost/index.html')
+     .then(r => console.log('STATUS', r.status))
+     .catch(e => console.log('FAILED', e.message))
+   ```
+   The promise stays **`pending` forever** — it neither resolves nor rejects. A
+   rejection would mean wry's `http://freally.*` resource filter did not match. A
+   *hang* means WebView2 intercepted the request and **the handler was never
+   dispatched**.
+
+WebView2 delivers `WebResourceRequested` — and completes navigation — through the
+**Windows message loop of the thread that created the webview**. In the
+standalone that is baseview's nested window thread, and nothing pumps it. So the
+webview sits inert: no navigation, no resource requests, no error either.
+
+**Why the DAWs work.** Ableton and FL Studio pump their own message loop, so the
+events fire and the editor renders — which is what TASK-P08 verified. **Why Linux
+works.** `src/linux.rs` runs a real `gtk::main()` on a thread it owns.
+
+Two things that are *not* the cause, both tried, so nobody repeats them:
+
+- **The URL scheme.** Asking for `http://freally.localhost/index.html` directly
+  changes nothing; wry already rewrites the custom scheme to exactly that.
+- **`with_web_context` ordering.** It must go on before the custom protocol —
+  that is real and is now commented in `configure` — but fixing it did not fix
+  the blank window, and reverting the whole refactor did not either. **The blank
+  standalone predates this session's changes.**
+
+**What a fix would look like:** pump the Windows message queue for the webview's
+thread from the editor's frame handler, the same shape `src/linux.rs` uses for
+GLib. Tracked as TASK-P16, and it is what the Windows and macOS screenshot legs
+of CI are waiting on.
+
 **Track this.** A vendored dependency nobody revisits is how a project ends up
 maintaining a fork it never chose to own. See TASK-P05 and TASK-P11 in
 `docs/product-roadmap.md`.
