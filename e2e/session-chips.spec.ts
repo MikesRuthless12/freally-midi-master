@@ -20,6 +20,16 @@ test.beforeEach(async ({ page }) => {
 async function pick(page: import('@playwright/test').Page, query: string) {
   const search = page.getByLabel('Search an artist');
   await search.fill(query);
+  // ⛔ Wait for the list before pressing Enter. `SearchBar.onKeyDown` returns
+  // early while the dropdown is closed or empty, so an Enter that arrives
+  // before React has rendered the filtered results **selects nothing and
+  // reports nothing** — the previous artist simply stays selected.
+  //
+  // That is a race, not a slow machine: it passed on three runs and failed
+  // twice on one macOS runner, and it failed as "the switch prompt never
+  // appeared", which points at the prompt rather than at the selection that
+  // never happened.
+  await expect(page.getByRole('option').first()).toBeVisible();
   await search.press('Enter');
 }
 
