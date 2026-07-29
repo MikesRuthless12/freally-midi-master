@@ -21,6 +21,7 @@
  *   node scripts/install-plugin.mjs --debug          # the debug build
  *   node scripts/install-plugin.mjs --dir "D:\\VST"  # one extra destination
  *   node scripts/install-plugin.mjs --copy           # copy instead of link
+ *   node scripts/install-plugin.mjs --bundle-only    # build the bundles, install nothing
  *   node scripts/install-plugin.mjs --remove         # take them back out
  */
 
@@ -34,6 +35,7 @@ import {
   readFileSync,
   rmSync,
   symlinkSync,
+  writeFileSync,
 } from 'node:fs';
 import { homedir, platform } from 'node:os';
 import { join } from 'node:path';
@@ -219,8 +221,70 @@ if (!existsSync(library)) {
 const bundled = join(cwd(), 'target', 'bundled');
 mkdirSync(bundled, { recursive: true });
 
-// CLAP: a plain file on Windows and Linux.
-if (platform() !== 'darwin') copyFileSync(library, join(bundled, ARTIFACTS[0].file));
+/**
+ * The `Info.plist` that makes a directory a macOS bundle.
+ *
+ * `CFBundleExecutable` **must** match the filename under `Contents/MacOS`
+ * exactly. A mismatch produces a bundle that exists, looks right in Finder and
+ * cannot be loaded by anything — the same class of silent failure as a plugin
+ * with no UI embedded in it.
+ *
+ * The version is read from `package.json` so there is one place to bump.
+ */
+function infoPlist(executable) {
+  const { version } = JSON.parse(readFileSync(join(cwd(), 'package.json'), 'utf8'));
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>CFBundleDevelopmentRegion</key>
+  <string>English</string>
+  <key>CFBundleExecutable</key>
+  <string>${executable}</string>
+  <key>CFBundleIdentifier</key>
+  <string>com.havocsoftware.freally-midi-master</string>
+  <key>CFBundleName</key>
+  <string>${executable}</string>
+  <key>CFBundlePackageType</key>
+  <string>BNDL</string>
+  <key>CFBundleSignature</key>
+  <string>????</string>
+  <key>CFBundleShortVersionString</key>
+  <string>${version}</string>
+  <key>CFBundleVersion</key>
+  <string>${version}</string>
+</dict>
+</plist>
+`;
+}
+
+// CLAP: a plain shared library on Windows and Linux, a **bundle directory** on
+// macOS.
+//
+// The spec allows a bare file on the first two, and that is what every CLAP
+// host there loads. macOS is not the same: a `.clap` is a bundle, exactly as a
+// `.vst3` and a `.component` are, and a lone `.dylib` wearing the extension is
+// not a plugin at all — `clap-validator` will not open it and no host will list
+// it. This branch used to skip macOS outright, which left the platform with no
+// CLAP to load, install *or* validate, and said nothing about it.
+//
+//   Freally MIDI Master.clap/
+//     Contents/
+//       Info.plist        <- CFBundleExecutable names the file below
+//       MacOS/
+//         Freally MIDI Master
+//       PkgInfo
+if (platform() === 'darwin') {
+  const executable = 'Freally MIDI Master';
+  const contents = join(bundled, ARTIFACTS[0].file, 'Contents');
+  mkdirSync(join(contents, 'MacOS'), { recursive: true });
+  copyFileSync(library, join(contents, 'MacOS', executable));
+  writeFileSync(join(contents, 'Info.plist'), infoPlist(executable));
+  // Ancient, still expected, and eight bytes.
+  writeFileSync(join(contents, 'PkgInfo'), 'BNDL????');
+} else {
+  copyFileSync(library, join(bundled, ARTIFACTS[0].file));
+}
 
 // VST3: a **bundle directory**, not a plain file. The format has required this
 // shape since VST3 3.6.10, and while some hosts still accept a bare `.vst3`
@@ -255,6 +319,17 @@ try {
       '  running process.',
   );
   exit(1);
+}
+
+// CI builds the bundles to check and validate them, and has no plugin folder
+// worth writing to. Stopping here keeps `target/bundled/` as the one thing this
+// script is expected to produce there, and keeps a runner's home directory out
+// of it.
+if (has('--bundle-only')) {
+  for (const { file, label } of ARTIFACTS) {
+    console.log(`install-plugin: ${label} bundled -> ${join(bundled, file)}`);
+  }
+  exit(0);
 }
 
 let failures = 0;
