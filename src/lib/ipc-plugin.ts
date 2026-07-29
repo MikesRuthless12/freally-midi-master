@@ -1,108 +1,87 @@
 /**
  * The transport when the UI is running inside the plugin.
  *
- * The desktop app talked to Tauri; the plugin talks over the webview's own
- * message channel to `plugin/src/bridge.rs`. Same command names, same
- * payloads — `src/lib/ipc.ts` was always the single seam, and this is one more
- * thing behind it.
+ * The desktop app talked to Tauri; the plugin posts to `plugin/src/editor.rs`
+ * over the same custom protocol the page itself was served from. Same command
+ * names, same payloads — `src/lib/ipc.ts` was always the single seam, and this
+ * is one more thing behind it.
  *
- * Calls are correlated by id rather than answered in order, because the bridge
- * drains its queue on the editor's event loop and nothing promises that a slow
- * command finishes before a fast one sent after it.
+ * **Why `fetch` and not the webview's IPC channel.** wry's IPC is one-way: a
+ * reply has to be pushed back with `evaluate_script`, which the adapter only
+ * does from the editor's *frame loop* — and a plugin window parented into
+ * Ableton Live never gets a frame tick. Every command was sent and none was
+ * ever answered, with nothing in the console but the sends. A custom-protocol
+ * request is handled synchronously and returns a body, so a call and its reply
+ * are one exchange that depends on no tick at all.
  */
 
-/** What the plugin's webview exposes. Neither exists in a browser or in Tauri. */
+/** What the plugin's webview injects. Neither exists in a browser or in Tauri. */
 declare global {
   interface Window {
-    ipc?: { postMessage: (message: string) => void };
-    onPluginMessageInternal?: (json: unknown) => void;
+    /** Injected by the plugin's webview adapter — the marker we detect on. */
+    sendToPlugin?: (message: unknown) => void;
     __TAURI_INTERNALS__?: unknown;
   }
 }
 
-type Pending = {
-  resolve: (value: unknown) => void;
-  reject: (error: Error) => void;
-};
-
-const pending = new Map<number, Pending>();
-let nextId = 1;
+/**
+ * Where commands are posted. Same origin as the page, so no scheme is needed
+ * and the browser resolves it against whatever the host mapped the protocol to
+ * — `http://freally.localhost/` on Windows, `freally://` elsewhere.
+ */
+const RPC_URL = '/__rpc';
 
 /**
- * How long a call may go unanswered before it rejects.
+ * How long a call may go unanswered before it gives up.
  *
- * Without this a bridge that silently drops a message leaves a promise pending
- * for the life of the session, and the UI shows a spinner that never resolves
- * — indistinguishable from a slow generation. Generous, because the first call
- * of a session parses the whole dataset.
+ * Generous, because the first call of a session parses the whole dataset.
  */
 const TIMEOUT_MS = 15_000;
+
+let counter = 1;
 
 /** True when running inside the plugin's webview. */
 export function isPlugin(): boolean {
   if (typeof window === 'undefined') return false;
-  // Tauri is checked first: its webview also has an `ipc` object, and treating
-  // a Tauri session as a plugin one would route every call into a bridge that
-  // is not there.
+  // Tauri is checked first: its webview also exposes an `ipc` object, and
+  // treating a Tauri session as a plugin one would route every call into a
+  // bridge that is not there.
   if (window.__TAURI_INTERNALS__ !== undefined) return false;
-  return typeof window.ipc?.postMessage === 'function';
+  return typeof window.sendToPlugin === 'function';
 }
 
-/**
- * Install the reply handler. Idempotent — every call goes through here.
- *
- * Guarded on the handler *existing* rather than on a "have I done this yet"
- * flag. The two can disagree: a flag says installed while the property has
- * been replaced or cleared, and the transport then sends messages nothing will
- * ever answer — every call hanging until its timeout, with no error to
- * attribute it to.
- */
-function listen(): void {
-  if (window.onPluginMessageInternal) return;
+export async function pluginInvoke<T>(command: string, args?: unknown): Promise<T> {
+  const id = counter++;
 
-  window.onPluginMessageInternal = (message: unknown) => {
-    // The plugin sends a value, but a webview bridge may hand it over as a
-    // JSON string depending on the platform. Accept both rather than failing
-    // on one of the two operating systems.
-    const payload = (typeof message === 'string' ? JSON.parse(message) : message) as {
-      type?: string;
-      id?: number;
-      ok?: unknown;
-      error?: string;
-    };
-
-    if (payload?.type !== 'response' || typeof payload.id !== 'number') return;
-
-    const entry = pending.get(payload.id);
-    if (!entry) return;
-    pending.delete(payload.id);
-
-    if (payload.error !== undefined) entry.reject(new Error(payload.error));
-    else entry.resolve(payload.ok);
-  };
-}
-
-export function pluginInvoke<T>(command: string, args?: unknown): Promise<T> {
-  listen();
-
-  const id = nextId++;
-  return new Promise<T>((resolve, reject) => {
-    const timer = window.setTimeout(() => {
-      pending.delete(id);
-      reject(new Error(`the plugin did not answer \`${command}\` within 15 seconds`));
-    }, TIMEOUT_MS);
-
-    pending.set(id, {
-      resolve: (value) => {
-        window.clearTimeout(timer);
-        resolve(value as T);
-      },
-      reject: (error) => {
-        window.clearTimeout(timer);
-        reject(error);
-      },
+  // `AbortSignal.timeout` rather than a bare fetch: without it a request the
+  // plugin never answers leaves a promise pending for the life of the session,
+  // and the UI shows a spinner that never resolves — indistinguishable from a
+  // slow generation.
+  let response: Response;
+  try {
+    // Not a network call, and the ban that flags it is right to exist. This
+    // request never leaves the process: `freally://` is a custom protocol
+    // served by `plugin/src/editor.rs` in the same binary, with no socket, no
+    // DNS and no host beyond the webview itself. It is the plugin's IPC, using
+    // the one transport that works in a hosted window — see the module comment.
+    //
+    // eslint-disable-next-line no-restricted-globals
+    response = await fetch(RPC_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, command, args: args ?? {} }),
+      signal: AbortSignal.timeout(TIMEOUT_MS),
     });
+  } catch (error) {
+    // Both the message and the `cause`. A bare "the plugin did not answer"
+    // inside a DAW, with no console open, is not something anyone can act on.
+    const reason = error instanceof Error ? error.message : String(error);
+    throw new Error(`the plugin did not answer \`${command}\`: ${reason}`, {
+      cause: error,
+    });
+  }
 
-    window.ipc?.postMessage(JSON.stringify({ id, command, args: args ?? {} }));
-  });
+  const payload = (await response.json()) as { ok?: unknown; error?: string };
+  if (payload.error !== undefined) throw new Error(payload.error);
+  return payload.ok as T;
 }

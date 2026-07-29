@@ -21,6 +21,14 @@
     'transport transport';
 }
 
+/* Inside a plugin the host draws the window frame, so our own title bar is not
+   rendered — and its 34px row has to go with it, or the layout keeps a gap
+   where a title bar used to be. The `title` area stays named so nothing else
+   has to know which shell it is in. */
+.studio[data-shell='plugin'] {
+  grid-template-rows: 0 minmax(0, 1fr) 56px;
+}
+
 /* ── Title bar ──────────────────────────────────────────────────────────────
  * The window is borderless, so this is the whole title bar. Dragging is
  * delegated to Tauri via data-tauri-drag-region, which keeps the OS snap

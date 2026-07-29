@@ -61,7 +61,12 @@ impl Default for FreallyMidiMaster {
 }
 
 impl Plugin for FreallyMidiMaster {
-    const NAME: &'static str = "Freally MIDI Master";
+    /// What the host puts on the plugin's window and in its browser.
+    ///
+    /// The identity a DAW saves in a project is `CLAP_ID` and the VST3 class
+    /// id, neither of which is this — so changing the display name never
+    /// orphans a plugin already placed on someone's track.
+    const NAME: &'static str = "Freally MIDI Master By: Mike Weaver";
     const VENDOR: &'static str = "Havoc Software";
     const URL: &'static str = "https://github.com/MikesRuthless12/freally-midi-master";
     const EMAIL: &'static str = "mythodikalone@gmail.com";

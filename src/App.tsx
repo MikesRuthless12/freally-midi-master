@@ -11,6 +11,7 @@ import { TitleBar } from './components/layout/TitleBar';
 import { TransportBar } from './components/layout/TransportBar';
 import { UpdatePrompt } from './components/Updates/Updates';
 import { subscribeToPlayhead, useSession } from './state/session';
+import { isPlugin } from './lib/ipc-plugin';
 import { useUi, WIDE_BREAKPOINT } from './state/ui';
 import './components/layout/layout.css';
 
@@ -118,11 +119,22 @@ function App() {
   }, [toggleRightRail]);
 
   return (
-    <div className="studio" data-right-rail={rightRailOpen ? 'open' : 'closed'}>
-      <TitleBar
-        onOpenSettings={() => setSettingsOpen(true)}
-        onOpenAbout={() => setAboutOpen(true)}
-      />
+    <div
+      className="studio"
+      data-right-rail={rightRailOpen ? 'open' : 'closed'}
+      data-shell={isPlugin() ? 'plugin' : 'desktop'}
+    >
+      {/* The host owns the plugin's window: Ableton draws the frame, the
+          title and the close button, and a second set of them inside it is
+          both redundant and a lie — our minimise and close cannot move a
+          window we do not own. Settings and About move into the transport
+          bar's overflow there instead. */}
+      {!isPlugin() && (
+        <TitleBar
+          onOpenSettings={() => setSettingsOpen(true)}
+          onOpenAbout={() => setAboutOpen(true)}
+        />
+      )}
       <LeftRail />
       <CenterStage />
       {rightRailOpen && <RightRail />}

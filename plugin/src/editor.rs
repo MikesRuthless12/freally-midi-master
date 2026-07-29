@@ -49,8 +49,18 @@ pub fn create(shared: SharedState) -> Option<Box<dyn Editor>> {
         // The app's own background, so a slow first paint is the app's colour
         // rather than a white flash inside a dark DAW.
         .with_background_color((11, 11, 13, 255))
-        .with_developer_mode(cfg!(debug_assertions))
-        .with_custom_protocol(SCHEME.into(), serve)
+        // On unless `FREALLY_NO_DEVTOOLS` is set, rather than only in debug
+        // builds. A plugin runs inside someone else's process: there is no
+        // console to read, no stderr anyone will see, and a release build is
+        // the only build a DAW ever loads — so gating devtools on
+        // `debug_assertions` means the one configuration that can fail in a
+        // host is the one configuration that cannot be inspected. That is how
+        // an afternoon goes into guessing at an IPC timeout.
+        .with_developer_mode(std::env::var("FREALLY_NO_DEVTOOLS").is_err())
+        .with_custom_protocol(SCHEME.into(), {
+            let shared = shared.clone();
+            move |request| serve(request, &shared)
+        })
         .with_event_loop(move |ctx, _setter, _window| {
             // Free anything the audio thread parked. This is the thread that
             // is allowed to.
@@ -96,14 +106,41 @@ pub fn create(shared: SharedState) -> Option<Box<dyn Editor>> {
     Some(Box::new(editor))
 }
 
-/// Serve one file out of the compiled-in frontend.
+/// The path the UI posts commands to.
+///
+/// **The bridge is an HTTP round trip over the custom protocol, not the
+/// webview's IPC channel.** That is not the obvious choice, and it is the only
+/// one that works in a hosted plugin window: wry's IPC is one-way, so a reply
+/// has to be pushed back with `evaluate_script` from the editor's *frame loop*
+/// — and a window parented into Ableton Live never gets a frame tick. Every
+/// command queued forever and nothing was ever answered.
+///
+/// A custom-protocol request is called synchronously by the webview and
+/// returns a body, so the request and its reply are one exchange that depends
+/// on no tick at all. The page already loads over this protocol, which is what
+/// makes it the proven path rather than the second guess.
+const RPC_PATH: &str = "__rpc";
+
+/// Serve one file out of the compiled-in frontend, or answer a command.
 fn serve(
     request: &nih_plug_webview::http::Request<Vec<u8>>,
+    shared: &SharedState,
 ) -> wry::Result<nih_plug_webview::http::Response<Cow<'static, [u8]>>> {
     use nih_plug_webview::http::{header::CONTENT_TYPE, Response, StatusCode};
 
     let path = request.uri().path().trim_start_matches('/');
     let path = if path.is_empty() { "index.html" } else { path };
+
+    if path == RPC_PATH {
+        return Ok(Response::builder()
+            .status(StatusCode::OK)
+            .header(CONTENT_TYPE, "application/json; charset=utf-8")
+            // The page is served from this same origin, but WebView2 treats a
+            // custom scheme as opaque for fetch unless it is told otherwise.
+            .header("Access-Control-Allow-Origin", "*")
+            .body(Cow::Owned(rpc(request.body(), shared).into_bytes()))
+            .unwrap());
+    }
 
     match UI.get_file(path) {
         Some(file) => Ok(Response::builder()
@@ -123,6 +160,40 @@ fn serve(
             ))
             .unwrap()),
     }
+}
+
+/// Answer one command, as JSON.
+///
+/// Never fails the HTTP request: a command that errors still returns 200 with
+/// an `error` field, because a non-200 arrives at the page as a network
+/// failure with no message in it — and "failed to fetch" is exactly the kind
+/// of unattributable error this bridge has already cost an evening to.
+fn rpc(body: &[u8], shared: &SharedState) -> String {
+    let reply = match serde_json::from_slice::<Request>(body) {
+        Ok(request) => {
+            let host = shared.host.snapshot();
+            match bridge::dispatch(&request, &host) {
+                Ok(value) => {
+                    // A generation is the one command with a side effect
+                    // beyond its reply: the notes have to reach the audio
+                    // thread. Arming happens here, off the audio thread,
+                    // because that is where the allocation belongs.
+                    if request.command == "generate_pattern" {
+                        if let Ok(pattern) = serde_json::from_value(value.clone()) {
+                            let mut schedule = Schedule::default();
+                            schedule.arm(&pattern, shared.sample_rate());
+                            shared.handoff.send(schedule);
+                        }
+                    }
+                    json!({ "id": request.id, "ok": value })
+                }
+                Err(message) => json!({ "id": request.id, "error": message }),
+            }
+        }
+        Err(error) => json!({ "error": format!("the plugin could not read this call: {error}") }),
+    };
+
+    reply.to_string()
 }
 
 /// Content types for what Vite emits.

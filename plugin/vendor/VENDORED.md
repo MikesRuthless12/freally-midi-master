@@ -40,8 +40,15 @@ and the one this code was written against.
 
 ### What was changed
 
-Only the manifest. `src/lib.rs` is byte-for-byte upstream, so a future rebase
-is a diff against one file.
+The manifest, and **one behaviour in `src/lib.rs`** — so a rebase is a diff
+against two files rather than one.
+
+`src/lib.rs`: the IPC handler used to `panic!` on JSON it could not parse. A
+panic on the UI thread of someone else's DAW takes the host down with it, and
+the message that caused it is a bug in the *page*, not grounds to kill Ableton.
+It logs and returns instead.
+
+The manifest:
 
 - `baseview` pinned to `91e3b4a50f1db712355ba0d991c02d024050ef40`.
 - `nih_plug` pinned to the same revision the rest of this workspace uses, so
@@ -54,13 +61,25 @@ is a diff against one file.
 
 Any one of:
 
-1. Upstream pins `baseview` and updates to `raw-window-handle` 0.6.
+1. Upstream pins `baseview`, updates to `raw-window-handle` 0.6, and stops
+   panicking on malformed IPC.
 2. The maintained framework fork (`nice-plug`) grows a webview adapter — it
    currently ships egui, iced, slint and vizia adapters and no webview, which
    is the whole reason this project is on the unmaintained `nih-plug`.
 3. This project writes its own editor directly on `wry` + `baseview`. The
    surface is small — one `Editor` impl, one window handler, an IPC channel —
    and 280 lines of it are already sitting here to read.
+
+**One upstream design decision this project had to route around, worth knowing
+before anyone "simplifies" it back.** The adapter's IPC is one-way: messages
+are queued and drained from `on_frame`, and replies go out via
+`evaluate_script` from that same frame handler. **A plugin window parented into
+Ableton Live never receives a frame tick**, so every command queued forever and
+none was ever answered — the UI rendered perfectly and nothing worked. The
+bridge therefore runs as an HTTP round trip over the custom protocol
+(`POST /__rpc` in `plugin/src/editor.rs`), which the webview handles
+synchronously and which depends on no tick at all. Do not move it back onto
+`next_event`/`send_json`.
 
 **Track this.** A vendored dependency nobody revisits is how a project ends up
 maintaining a fork it never chose to own. See TASK-P05 and TASK-P11 in

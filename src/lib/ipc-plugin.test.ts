@@ -5,57 +5,50 @@ import { isPlugin, pluginInvoke } from './ipc-plugin';
 /**
  * The transport between the UI and the plugin.
  *
- * Everything here is about the two ways this layer can lie: answering the
- * wrong caller, and never answering at all. A webview bridge has no ordering
- * guarantee and no failure signal, so both are silent by default.
+ * It posts to the plugin over the same custom protocol the page was served
+ * from, rather than the webview's IPC channel — see the module's own comment
+ * for why. What these tests hold onto is that a failure is always *reported*:
+ * a bridge that goes quiet has to surface as an error the user can read, not
+ * as a spinner that never stops.
  */
 
-type Sent = { id: number; command: string; args: unknown };
-
-/** What the plugin's webview injects, and what the tests stand in for. */
-function installBridge(): Sent[] {
-  const sent: Sent[] = [];
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  (window as any).ipc = {
-    postMessage: (message: string) => sent.push(JSON.parse(message) as Sent),
-  };
-  return sent;
-}
-
-/** Answer as the plugin would. */
-function reply(payload: unknown, asString = false) {
-  const handler = window.onPluginMessageInternal;
-  expect(handler, 'the transport should have installed a reply handler').toBeDefined();
-  handler!(asString ? JSON.stringify(payload) : payload);
-}
+const fetchMock = vi.fn();
 
 beforeEach(() => {
-  vi.useFakeTimers();
+  vi.stubGlobal('fetch', fetchMock);
+  fetchMock.mockReset();
 });
 
 afterEach(() => {
-  vi.useRealTimers();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  delete (window as any).ipc;
+  vi.unstubAllGlobals();
+  delete window.sendToPlugin;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   delete (window as any).__TAURI_INTERNALS__;
-  delete window.onPluginMessageInternal;
 });
+
+/** Answer as the plugin's RPC endpoint would. */
+function answers(payload: unknown) {
+  fetchMock.mockResolvedValue({ json: async () => payload } as Response);
+}
+
+/** Stand in for the marker the plugin's webview adapter injects. */
+function installBridge() {
+  window.sendToPlugin = () => {};
+}
 
 describe('isPlugin', () => {
   it('is false in a plain browser', () => {
     expect(isPlugin()).toBe(false);
   });
 
-  it('is true when the webview bridge is present', () => {
+  it('is true when the webview adapter has injected its API', () => {
     installBridge();
     expect(isPlugin()).toBe(true);
   });
 
-  it('is false inside Tauri even though it also has an ipc object', () => {
-    // The bug this prevents: Tauri's webview exposes `ipc` too, so a naive
-    // check routes every desktop call into a plugin bridge that is not there
-    // — and every one of them hangs until the timeout.
+  it('is false inside Tauri', () => {
+    // The bug this prevents: treating a Tauri session as a plugin one routes
+    // every desktop call at an RPC endpoint that is not there.
     installBridge();
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (window as any).__TAURI_INTERNALS__ = {};
@@ -64,81 +57,60 @@ describe('isPlugin', () => {
 });
 
 describe('pluginInvoke', () => {
-  it('sends the command and resolves with what comes back', async () => {
-    const sent = installBridge();
-    const call = pluginInvoke<{ ok: true }>('roster_summary', { a: 1 });
+  it('posts the command and resolves with what comes back', async () => {
+    answers({ id: 1, ok: { entries: [] } });
 
-    expect(sent).toHaveLength(1);
-    expect(sent[0].command).toBe('roster_summary');
-    expect(sent[0].args).toEqual({ a: 1 });
+    await expect(pluginInvoke('roster_summary', { a: 1 })).resolves.toEqual({
+      entries: [],
+    });
 
-    reply({ type: 'response', id: sent[0].id, ok: { ok: true } });
-    await expect(call).resolves.toEqual({ ok: true });
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe('/__rpc');
+    expect(init.method).toBe('POST');
+    expect(JSON.parse(init.body as string)).toMatchObject({
+      command: 'roster_summary',
+      args: { a: 1 },
+    });
   });
 
-  it('answers each caller with its own reply, whatever order they arrive in', async () => {
-    // The bridge drains its queue on the editor's event loop and nothing
-    // promises a slow command finishes before a fast one sent after it. Match
-    // by id, or a generation resolves with the roster.
-    const sent = installBridge();
-    const first = pluginInvoke<string>('slow');
-    const second = pluginInvoke<string>('fast');
+  it('gives every call its own id', async () => {
+    answers({ ok: null });
+    await pluginInvoke('one');
+    await pluginInvoke('two');
 
-    reply({ type: 'response', id: sent[1].id, ok: 'second' });
-    reply({ type: 'response', id: sent[0].id, ok: 'first' });
-
-    await expect(first).resolves.toBe('first');
-    await expect(second).resolves.toBe('second');
+    const ids = fetchMock.mock.calls.map(
+      ([, init]) => (JSON.parse(init.body as string) as { id: number }).id,
+    );
+    expect(new Set(ids).size).toBe(2);
   });
 
   it('rejects with the plugin’s own message', async () => {
-    const sent = installBridge();
-    const call = pluginInvoke('generate_pattern');
-
-    reply({ type: 'response', id: sent[0].id, error: 'trap has no Melody part authored' });
-    await expect(call).rejects.toThrow('trap has no Melody part authored');
+    answers({ id: 1, error: 'trap has no Melody part authored' });
+    await expect(pluginInvoke('generate_pattern')).rejects.toThrow(
+      'trap has no Melody part authored',
+    );
   });
 
-  it('accepts a reply delivered as a JSON string', async () => {
-    // Which of the two a webview hands over is platform-dependent, and
-    // supporting only one means the plugin works on exactly one OS.
-    const sent = installBridge();
-    const call = pluginInvoke<number>('host_session');
-
-    reply({ type: 'response', id: sent[0].id, ok: 92 }, true);
-    await expect(call).resolves.toBe(92);
-  });
-
-  it('rejects rather than hanging when nothing ever answers', async () => {
-    // Without this a dropped message leaves a promise pending for the life of
-    // the session, and the UI shows a spinner that never resolves — which
+  it('reports a bridge that never answers instead of hanging', async () => {
+    // The failure this exists for: without it a dropped call leaves a promise
+    // pending for the life of the session, and the UI shows a spinner that
     // looks exactly like a slow generation.
-    installBridge();
-    const call = pluginInvoke('generate_pattern');
-    const assertion = expect(call).rejects.toThrow(/did not answer/);
-
-    await vi.advanceTimersByTimeAsync(15_001);
-    await assertion;
+    fetchMock.mockRejectedValue(new Error('TimeoutError'));
+    await expect(pluginInvoke('roster_summary')).rejects.toThrow(/did not answer/);
   });
 
-  it('ignores a reply for a call that already resolved', async () => {
-    // A duplicate must not throw on the way through and take the whole
-    // handler down with it, silently ending every future reply.
-    const sent = installBridge();
-    const call = pluginInvoke<string>('app_info');
-
-    reply({ type: 'response', id: sent[0].id, ok: 'once' });
-    await expect(call).resolves.toBe('once');
-
-    expect(() => reply({ type: 'response', id: sent[0].id, ok: 'twice' })).not.toThrow();
+  it('names the command that failed', async () => {
+    // "Something went wrong" in a plugin window, inside someone else's DAW,
+    // with no console open, is not a bug report anybody can act on.
+    fetchMock.mockRejectedValue(new Error('Failed to fetch'));
+    await expect(pluginInvoke('host_session')).rejects.toThrow(/host_session/);
   });
 
-  it('ignores messages that are not responses', async () => {
-    const sent = installBridge();
-    const call = pluginInvoke<string>('app_info');
-
-    expect(() => reply({ type: 'something-else', id: sent[0].id })).not.toThrow();
-    reply({ type: 'response', id: sent[0].id, ok: 'still works' });
-    await expect(call).resolves.toBe('still works');
+  it('passes an empty object when there are no arguments', async () => {
+    // The bridge indexes into `args`, and `undefined` would arrive as a
+    // missing field rather than an empty one.
+    answers({ ok: null });
+    await pluginInvoke('app_info');
+    expect(JSON.parse(fetchMock.mock.calls[0][1].body as string).args).toEqual({});
   });
 });

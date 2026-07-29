@@ -223,11 +223,16 @@ impl Editor for WebViewEditor {
                 .with_web_context(&mut web_context)
                 .with_initialization_script(include_str!("script.js"))
                 .with_ipc_handler(move |msg: String| {
-                    if let Ok(json_value) = serde_json::from_str(&msg) {
-                        let _ = events_sender.send(json_value);
-                    } else {
-                        panic!("Invalid JSON from web view: {}.", msg);
-                    }
+                    let Ok(json_value) = serde_json::from_str::<Value>(&msg) else {
+                        // Upstream panicked here. A panic on the UI thread of
+                        // someone else's DAW takes the host down with it, and
+                        // the message it carried is a bug in the *page*, not
+                        // grounds to kill Ableton.
+                        eprintln!("nih_plug_webview: invalid JSON from the web view: {msg}");
+                        return;
+                    };
+
+                    let _ = events_sender.send(json_value);
                 })
                 .with_background_color(background_color);
 
