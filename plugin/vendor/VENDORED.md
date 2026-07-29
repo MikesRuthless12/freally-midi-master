@@ -160,10 +160,28 @@ custom protocol — all three were ruled out, in this order:
    *hang* means WebView2 intercepted the request and **the handler was never
    dispatched**.
 
-WebView2 delivers `WebResourceRequested` — and completes navigation — through the
-**Windows message loop of the thread that created the webview**. In the
-standalone that is baseview's nested window thread, and nothing pumps it. So the
-webview sits inert: no navigation, no resource requests, no error either.
+**What is established, and what is still inference. Keep the two apart.**
+
+*Established by the evidence above:* WebView2 accepted the request and **never
+dispatched our handler**, and navigation never completed. A hung fetch cannot be
+a filter miss, a 404, or a missing asset.
+
+*Inference, not yet proven:* that the cause is the **Windows message loop** —
+WebView2 delivers `WebResourceRequested` and completes navigation through the
+message loop of the thread that created it, so an unpumped loop would produce
+exactly this. **But do not treat that as diagnosed.** There is a specific reason
+to doubt it: baseview's Windows backend creates a *parented* window on the
+**calling** thread, not a new one, and nih-plug's standalone runs a blocking loop
+on that thread — which ought to be pumping already. Whoever picks this up should
+confirm where the messages are going before writing a pump, or they will add a
+second loop to a thread that already has one.
+
+Worth checking first, in rough order of likelihood: whether the WebView2
+environment is being created against a user data folder that another environment
+already holds with different options (the adapter passes the bare
+`std::env::temp_dir()`, which is shared and is a poor choice regardless); whether
+`open_parented` on Windows really is same-thread here; and whether the handler
+closure is being dropped before the request arrives.
 
 **Why the DAWs work.** Ableton and FL Studio pump their own message loop, so the
 events fire and the editor renders — which is what TASK-P08 verified. **Why Linux

@@ -236,14 +236,48 @@ function captureWindow() {
     `;
     const found = sh('osascript', ['-l', 'JavaScript', '-e', lookup]);
     const id = (found.stdout ?? '').trim();
-    if (!/^\d+$/.test(id)) {
+    if (/^\d+$/.test(id)) {
+      // `-o` drops the drop-shadow so the image is the window and nothing else.
+      return sh('screencapture', ['-x', '-o', '-l', id, output]);
+    }
+
+    // No window id: fall back to a region grab of the window's bounds.
+    //
+    // ⛔ Not a nicety. `CGWindowListCopyWindowInfo` returns nothing to
+    // `osascript` on GitHub's macOS image, which does not grant it the Screen
+    // Recording permission `screencapture` itself has. Without this fallback the
+    // job would fail on a *permission* and tell us nothing about whether the
+    // editor renders — an uninformative red is worse than a partial picture.
+    // The inset colour count still refuses a blank window.
+    const bounds = sh('osascript', [
+      '-e',
+      `tell application "System Events"
+         set procs to (every process whose name contains "${PROCESS_NAME}")
+         if (count of procs) = 0 then return "none"
+         set p to item 1 of procs
+         if (count of windows of p) = 0 then return "none"
+         set w to window 1 of p
+         set position of w to {0, 25}
+         set {x, y} to position of w
+         set {ww, hh} to size of w
+         return (x as text) & "," & (y as text) & "," & (ww as text) & "," & (hh as text)
+       end tell`,
+    ]);
+    const answer = (bounds.stdout ?? '').trim();
+    if (!answer || answer === 'none') {
       return {
         status: 1,
-        stderr: `no CGWindowID for ${PROCESS_NAME}: ${found.stderr || 'no output'}`,
+        stderr:
+          `no CGWindowID (${found.stderr || 'no output'}) and no window bounds ` +
+          `either (${bounds.stderr || 'no output'})`,
       };
     }
-    // `-o` drops the drop-shadow so the image is the window and nothing else.
-    return sh('screencapture', ['-x', '-o', '-l', id, output]);
+
+    console.log(
+      `::warning::macOS capture is a region grab, not a window buffer (no CGWindowID)`,
+    );
+    const [x, y, w, h] = answer.split(',').map(Number);
+    return sh('screencapture', ['-x', '-R', `${x},${y},${w},${h}`, output]);
   }
 
   // Windows: PrintWindow, which asks the window to render *itself* into a

@@ -358,19 +358,29 @@ jobs:
   # window from a working one is to photograph it and count the colours — which
   # is what the script does, and which was watched failing before it was trusted.
   #
-  # ⛔ **WHY THIS IS NOT A THREE-OS MATRIX YET.** `screenshot-plugin.mjs` handles
-  # Windows and macOS too, and the intent is one job photographing all three so
-  # every build is proven to render. It cannot be turned on until **TASK-P16**:
-  # the Windows *standalone* opens a blank window because nothing pumps the
-  # WebView2 message loop on baseview's thread, so no navigation ever completes.
-  # The plugin a DAW loads is unaffected — Ableton and FL Studio pump their own
-  # loop — but the standalone this job drives is not, and adding the leg today
-  # would mean a permanently red gate or, worse, one allowed to fail. macOS is
-  # unverified and may already work; check before assuming. `VENDORED.md` has
-  # the diagnosis.
-  plugin-editor-linux:
-    name: plugin editor (ubuntu-latest)
-    runs-on: ubuntu-latest
+  # ⛔ **WHY WINDOWS IS NOT IN THIS MATRIX.** `screenshot-plugin.mjs` handles all
+  # three platforms and the intent is to photograph all three. Windows is left
+  # out because of **TASK-P16**: the Windows *standalone* opens a blank window —
+  # WebView2 accepts the resource request and never dispatches the handler, so
+  # navigation never completes and devtools reports `about:blank`. The plugin a
+  # DAW loads is unaffected (Ableton and FL Studio both render it), but the
+  # standalone this job drives is not, so the leg would be permanently red — or,
+  # worse, allowed to fail, which is the green-and-blind gate this repo has been
+  # caught by five times. `plugin/vendor/VENDORED.md` has the evidence and what
+  # is still inference.
+  #
+  # **macOS is in, and is genuinely unproven.** WKWebView does not depend on the
+  # message loop the way WebView2 does, so the Windows cause probably does not
+  # apply — but nobody has run it, and this job is how that gets answered rather
+  # than assumed. If it goes red, that is a finding to act on, not a state to
+  # leave.
+  plugin-editor:
+    name: plugin editor (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
 
     steps:
       - uses: actions/checkout@v4
@@ -379,9 +389,11 @@ jobs:
 
       # webkit2gtk is what wry's Linux backend links; the xcb/xkb set is what
       # baseview's X11 backend needs; libjack is pulled in by nih-plug's
-      # `standalone` feature; xvfb/xdotool/imagemagick are how a headless runner
-      # sees a window at all.
+      # `standalone` feature; xvfb and xdotool are how a headless runner sees a
+      # window at all. macOS needs none of it — WKWebView and CoreAudio ship with
+      # the OS, and `screencapture` is built in.
       - name: Install Linux system dependencies
+        if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
           sudo apt-get install -y \
@@ -398,8 +410,7 @@ jobs:
             libxkbcommon-dev \
             libxkbcommon-x11-dev \
             xvfb \
-            xdotool \
-            imagemagick
+            xdotool
 
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -407,7 +418,7 @@ jobs:
 
       - uses: Swatinem/rust-cache@v2
         with:
-          key: plugin-editor-ubuntu-latest
+          key: plugin-editor-${{ matrix.os }}
 
       - uses: actions/setup-node@v4
         with:
@@ -423,15 +434,22 @@ jobs:
       - name: Build the standalone
         run: cargo build -p freally-midi-master-plugin --release
 
-      - name: Photograph the editor
+      # Linux runners have no display, so the app gets a virtual one. The macOS
+      # runner has a real window server already.
+      - name: Photograph the editor (Linux)
+        if: matrix.os == 'ubuntu-latest'
         run: |
           xvfb-run -a --server-args="-screen 0 1600x1000x24" \
             node scripts/screenshot-plugin.mjs screenshots/linux-plugin.png
 
+      - name: Photograph the editor (macOS)
+        if: matrix.os == 'macos-latest'
+        run: node scripts/screenshot-plugin.mjs screenshots/macos-plugin.png
+
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:
-          name: plugin-editor-screenshot-linux
+          name: plugin-editor-screenshot-${{ matrix.os }}
           path: screenshots/
 
   supply-chain:
