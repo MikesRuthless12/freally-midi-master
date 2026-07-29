@@ -27,6 +27,28 @@ are actually writing rather than at whatever tempo the artist is authored at.
   authored at 140 generates at 92 inside a 92 BPM project; a pinned tempo beats
   the host; a host that has not reported yet leaves the model its own value.
 - **Notes are emitted onto the host's track**, replacing drag-out.
+- **The session is saved with the project.** Artist, seed, pins, bars and the
+  window size go through the host's own state calls — there is no settings file
+  and no path to find, and a session belongs to a *song* rather than to a
+  machine. The notes are not saved; the inputs that make them are, because the
+  engine is deterministic and a project file should not carry regenerable notes.
+- **The window has three scales** (small, medium, large) on a button in the
+  transport bar. The layout stays 1440x900 at all of them — the window is drawn
+  smaller, rather than shown less of — so the kit and session panels never
+  disappear just because the window shrank.
+- **Verified in Ableton Live 12 (VST3) and FL Studio (CLAP).** FL is the first
+  host to load the `.clap` itself rather than the projection.
+- **Releases now carry the plugin**, as a per-platform zip holding both the
+  `.clap` and the `.vst3`, validated by `clap-validator` before the draft is
+  published and refused by `verify-downloads.yml` if either format is missing.
+
+### Known issue
+
+- **A corrupt project file can abort the host.** `nih-plug`'s CLAP state loader
+  reads a length prefix straight into an allocation with no sanity check, so
+  malformed state aborts the process rather than failing to load. It is upstream's
+  bug, the maintained fork carries it identically, and it needs a patched fork to
+  fix. `clap-validator`'s `state-invalid-random` is excluded by name until then.
 - **The UI carried across.** `src/lib/ipc.ts` was always the one seam and gained
   a third branch; the React app, the 18 locale catalogs and the design tokens
   are the same ones the desktop app shipped.

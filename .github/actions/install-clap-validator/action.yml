@@ -1,0 +1,51 @@
+name: Install clap-validator
+description: >
+  Download the pinned clap-validator release and expose its path as the
+  CLAP_VALIDATOR environment variable.
+
+# Shared by `ci.yml` (every push) and `release.yml` (before a draft is
+# published), because a validator that only runs in one of those is a validator
+# that can be skipped by tagging.
+#
+# Prebuilt, because building it from source costs more than the job it serves.
+# Pinned to a release for the same reason nih-plug is pinned to a revision: a
+# validator that changes underneath us turns an unrelated push red.
+#
+# Split per OS because the two platforms package it differently and neither is a
+# plain binary at a predictable path. Windows ships `clap-validator.exe` at the
+# root of the zip; macOS ships a **tarball inside** the zip — whose inner
+# filename upstream still stamps `0.3.2` — holding `binaries/clap-validator`.
+
+runs:
+  using: composite
+  steps:
+    - name: Install clap-validator (Windows)
+      if: runner.os == 'Windows'
+      shell: pwsh
+      run: |
+        $build = '0.4.1-127-g152b982'
+        $dir = Join-Path $env:RUNNER_TEMP 'clap-validator'
+        New-Item -ItemType Directory -Force -Path $dir | Out-Null
+        Invoke-WebRequest -OutFile "$dir\cv.zip" -Uri `
+          "https://github.com/free-audio/clap-validator/releases/download/0.4.1/clap-validator-$build-windows.zip"
+        Expand-Archive -Path "$dir\cv.zip" -DestinationPath $dir -Force
+        # Forward slashes deliberately: the validate step runs under bash, and
+        # bash only treats a string as a path at all if it contains `/`. A
+        # `D:\a\_temp\...` path would be looked up on PATH instead, and fail.
+        $bin = (Join-Path $dir 'clap-validator.exe').Replace('\', '/')
+        "CLAP_VALIDATOR=$bin" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+    - name: Install clap-validator (macOS)
+      if: runner.os == 'macOS'
+      shell: bash
+      run: |
+        set -euo pipefail
+        build=0.4.1-127-g152b982
+        dir="$RUNNER_TEMP/clap-validator"
+        mkdir -p "$dir"
+        curl -fsSL -o "$dir/cv.zip" \
+          "https://github.com/free-audio/clap-validator/releases/download/0.4.1/clap-validator-$build-macos-universal.zip"
+        unzip -q "$dir/cv.zip" -d "$dir"
+        tar -xzf "$dir"/*.tar.gz -C "$dir"
+        chmod +x "$dir/binaries/clap-validator"
+        echo "CLAP_VALIDATOR=$dir/binaries/clap-validator" >> "$GITHUB_ENV"

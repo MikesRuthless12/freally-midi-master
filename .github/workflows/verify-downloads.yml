@@ -92,7 +92,9 @@ jobs:
           fail=0
           # A release missing a platform is a silent regression: the download
           # page still looks fine, and only that platform's users notice.
-          for pattern in '*.exe' '*.msi' '*.dmg' '*.app.tar.gz' '*.AppImage' '*.deb'; do
+          for pattern in '*.exe' '*.msi' '*.dmg' '*.app.tar.gz' '*.AppImage' '*.deb' \
+                         'freally-midi-master-plugins-windows.zip' \
+                         'freally-midi-master-plugins-macos.zip'; do
             # shellcheck disable=SC2086
             if ! compgen -G "$pattern" > /dev/null; then
               echo "::error::no asset matching $pattern"
@@ -123,10 +125,27 @@ jobs:
           for f in *.AppImage;  do [ -e "$f" ] && check file -E "$f"; done
           # NSIS/MSI/DMG are all containers 7z can enumerate.
           for f in *.exe *.msi *.dmg; do [ -e "$f" ] && check 7z l "$f"; done
+          for f in freally-midi-master-plugins-*.zip; do [ -e "$f" ] && check 7z l "$f"; done
+
+          # **Both formats, in every plugin zip.** One binary produces the
+          # `.clap` and the `.vst3`, so a zip carrying only one is a packaging
+          # bug rather than a choice — and it is invisible until a producer on
+          # the wrong DAW finds nothing to load. Ableton, Logic, Pro Tools and
+          # Cubase need the VST3; Bitwig, Reaper and FL Studio take the CLAP.
+          for f in freally-midi-master-plugins-*.zip; do
+            [ -e "$f" ] || continue
+            listing=$(7z l "$f")
+            for want in '.clap' '.vst3'; do
+              if ! printf '%s' "$listing" | grep -q -- "$want"; then
+                echo "::error::$f contains no $want — half the hosts can load nothing"
+                fail=1
+              fi
+            done
+          done
 
           # A zero-length or absurdly small installer passes a checksum quite
           # happily; the bytes just match the wrong thing.
-          for f in *.exe *.msi *.dmg *.AppImage *.deb *.tar.gz; do
+          for f in *.exe *.msi *.dmg *.AppImage *.deb *.tar.gz freally-midi-master-plugins-*.zip; do
             [ -e "$f" ] || continue
             size=$(stat -c%s "$f")
             if [ "$size" -lt 1000000 ]; then
