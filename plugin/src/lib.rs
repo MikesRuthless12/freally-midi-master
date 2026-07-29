@@ -16,6 +16,7 @@
 //! [`SessionContext`] and returns notes. This crate is the second consumer of
 //! it, not a rewrite of it.
 
+use std::num::NonZeroU32;
 use std::sync::Arc;
 
 use nih_plug::prelude::*;
@@ -66,16 +67,35 @@ impl Plugin for FreallyMidiMaster {
     const EMAIL: &'static str = "mythodikalone@gmail.com";
     const VERSION: &'static str = env!("CARGO_PKG_VERSION");
 
-    /// A MIDI-effect layout: no audio in, no audio out.
+    /// A silent stereo pass-through, even though this plugin makes notes
+    /// rather than sound.
     ///
-    /// This plugin makes notes, not sound. Declaring an audio layout it does
-    /// not use would have hosts insert it on an audio track and wonder why it
-    /// is silent — the layout is how a DAW knows to offer it as a MIDI device.
-    const AUDIO_IO_LAYOUTS: &'static [AudioIOLayout] = &[AudioIOLayout {
-        main_input_channels: None,
-        main_output_channels: None,
-        ..AudioIOLayout::const_default()
-    }];
+    /// The honest layout is no audio buses at all — and **Ableton Live refuses
+    /// to open a VST3 that declares none**, with "This VST3 plug-in could not
+    /// be opened" and nothing more specific. Live is not unusual here; the
+    /// VST3 hosts generally expect at least one audio bus, and the MIDI-effect
+    /// plugins that work in them declare a pass-through for exactly this
+    /// reason.
+    ///
+    /// The audio is untouched: `process` writes nothing to the buffer, so
+    /// whatever comes in goes out. What the plugin actually produces is note
+    /// events on its MIDI output.
+    ///
+    /// Two layouts rather than one, so a host can insert it on a mono track
+    /// without a channel-count negotiation failure — which presents as the
+    /// same unhelpful message.
+    const AUDIO_IO_LAYOUTS: &'static [AudioIOLayout] = &[
+        AudioIOLayout {
+            main_input_channels: NonZeroU32::new(2),
+            main_output_channels: NonZeroU32::new(2),
+            ..AudioIOLayout::const_default()
+        },
+        AudioIOLayout {
+            main_input_channels: NonZeroU32::new(1),
+            main_output_channels: NonZeroU32::new(1),
+            ..AudioIOLayout::const_default()
+        },
+    ];
 
     const MIDI_INPUT: MidiConfig = MidiConfig::Basic;
     const MIDI_OUTPUT: MidiConfig = MidiConfig::Basic;
@@ -169,3 +189,11 @@ impl ClapPlugin for FreallyMidiMaster {
 // `cargo deny` is what found this, and it is why the `nih_plug` dependency
 // carries `default-features = false` in both manifests that name it.
 nih_export_clap!(FreallyMidiMaster);
+
+// VST3, projected from the CLAP above by `clap-wrapper` — the same binary
+// answering a second set of entry points, not a second implementation.
+//
+// This is what Ableton, Logic, Pro Tools and Cubase load; none of them speaks
+// CLAP. Licence-clean by construction: `clap-wrapper` is MIT/Apache-2.0 over
+// Steinberg's VST3 SDK, which went MIT in November 2025.
+clap_wrapper::export_vst3!();

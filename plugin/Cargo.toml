@@ -29,6 +29,18 @@ include_dir = "0.7"
 # Cargo unifies this with the adapter's copy; they must stay the same minor.
 wry = "0.35.1"
 
+# VST3 and AU, projected from the CLAP rather than implemented again.
+#
+# This is what makes the plugin loadable in **Ableton, Logic, Pro Tools and
+# Cubase**, none of which speak CLAP. It is also the licence-clean route:
+# MIT/Apache-2.0 over Steinberg's own VST3 SDK (MIT since November 2025) and
+# Apple's AudioUnitSDK — as opposed to nih-plug's VST3 export, which links the
+# GPLv3 `vst3-sys` and is disabled for that reason.
+#
+# No CMake; it compiles the C++ shim with the `cc` crate, using the same MSVC
+# toolchain the Rust build already requires.
+clap-wrapper = { version = "0.3.1", features = ["vst3"] }
+
 # Git rather than crates.io because that is the only place nih-plug is
 # published. Pinned to a revision for the same reason `rust-toolchain.toml`
 # pins the compiler: an unpinned plugin framework re-resolves on every clean

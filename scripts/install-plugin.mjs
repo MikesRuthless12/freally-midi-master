@@ -26,6 +26,8 @@
 
 import {
   copyFileSync,
+  cpSync,
+  statSync,
   existsSync,
   lstatSync,
   mkdirSync,
@@ -42,18 +44,20 @@ const has = (flag) => args.includes(flag);
 const profile = has('--debug') ? 'debug' : 'release';
 
 /**
- * What gets installed, in the order a DAW is likely to want it.
+ * What gets installed. One built library, two formats.
  *
- * **The VST3 does not exist yet**, and its absence here is expected rather than
- * a failure: nih-plug's VST3 export links `vst3-sys`, which is GPLv3 and
- * incompatible with this project's licence, so VST3 and AU are projected from
- * the CLAP by `clap-wrapper` instead (TASK-P08). The moment that lands and
- * writes a `.vst3` into `target/bundled/`, this script picks it up with no
- * change — which is why it is listed now and merely reported as missing.
+ * `nih_export_clap!` and `clap_wrapper::export_vst3!` both live in the same
+ * cdylib, so the `.clap` and the `.vst3` are that one file under two names —
+ * nothing is compiled twice. VST3 comes from `clap-wrapper` (MIT/Apache-2.0
+ * over Steinberg's MIT SDK) rather than from nih-plug's own export, which
+ * links the GPLv3 `vst3-sys` and is disabled for that reason.
+ *
+ * Each format installs into its **own** directory: a VST3 in a CLAP folder is
+ * invisible to every host, and the reverse is what made Ableton show nothing.
  */
 const ARTIFACTS = [
-  { file: 'Freally MIDI Master.clap', label: 'CLAP' },
-  { file: 'Freally MIDI Master.vst3', label: 'VST3', pending: 'TASK-P08 (clap-wrapper)' },
+  { file: 'Freally MIDI Master.clap', label: 'CLAP', kind: 'CLAP' },
+  { file: 'Freally MIDI Master.vst3', label: 'VST3', kind: 'VST3', directory: true },
 ];
 
 /** Where cargo leaves the shared library this platform loads. */
@@ -83,27 +87,26 @@ function builtLibrary() {
  * Add the system path to `plugin-install.json` if you want it as well; it will
  * be attempted, and reported rather than fatal when it is refused.
  *
- * **This folder only helps a host that speaks CLAP.** Bitwig, Reaper,
+ * **The CLAP folder only helps a host that speaks CLAP.** Bitwig, Reaper,
  * FL Studio 21.2+, Studio One 6.5+ and Renoise do. **Ableton Live, Logic,
- * Pro Tools and Cubase do not** — pointing Live's "VST3 custom folder" here
- * cannot work, because Live is looking for a `.vst3` and a `.clap` is a
- * different format wearing a different extension. Those hosts need the VST3
- * that `clap-wrapper` produces (TASK-P08), and until it exists there is
- * nothing this script can put anywhere that they will load.
+ * Pro Tools and Cubase do not** — pointing Live's "VST3 custom folder" at the
+ * CLAP directory cannot work, because Live is looking for a `.vst3` and a
+ * `.clap` is a different format wearing a different extension. Those hosts
+ * load the VST3 bundle from the VST3 directory below.
  */
-function defaultClapDir() {
+function defaultDir(kind) {
   switch (platform()) {
     case 'win32':
       return join(
         process.env.LOCALAPPDATA ?? join(homedir(), 'AppData', 'Local'),
         'Programs',
         'Common',
-        'CLAP',
+        kind,
       );
     case 'darwin':
-      return join(homedir(), 'Library', 'Audio', 'Plug-Ins', 'CLAP');
+      return join(homedir(), 'Library', 'Audio', 'Plug-Ins', kind);
     default:
-      return join(homedir(), '.clap');
+      return kind === 'VST3' ? join(homedir(), '.vst3') : join(homedir(), '.clap');
   }
 }
 
@@ -113,8 +116,8 @@ function defaultClapDir() {
  * The OS-standard directory always, plus whatever `plugin-install.json` adds.
  * A bad config must not stop the build, so it is reported and skipped.
  */
-function destinations() {
-  const dirs = [defaultClapDir()];
+function destinations(kind) {
+  const dirs = [defaultDir(kind)];
 
   const configPath = join(cwd(), 'plugin-install.json');
   if (existsSync(configPath)) {
@@ -155,9 +158,14 @@ function place(source, dir, name) {
     }
   }
 
+  // A VST3 is a bundle *directory*; a CLAP on Windows and Linux is a file.
+  const isDir = statSync(source).isDirectory();
+  const put = () =>
+    isDir ? cpSync(source, target, { recursive: true }) : copyFileSync(source, target);
+
   if (has('--copy')) {
     try {
-      copyFileSync(source, target);
+      put();
       return { ok: true, how: 'copied' };
     } catch (error) {
       return { ok: false, why: `${error.code ?? error.message}` };
@@ -165,14 +173,15 @@ function place(source, dir, name) {
   }
 
   try {
-    symlinkSync(source, target, 'file');
+    symlinkSync(source, target, isDir ? 'junction' : 'file');
     return { ok: true, how: 'linked' };
   } catch (error) {
-    // Linking into `C:\Program Files\...` needs an elevated shell. Falling
-    // back to a copy is better than failing the build — it is stale-able, but
-    // this script runs on every build, so it is refreshed every build.
+    // Linking into `C:\Program Files\...` needs an elevated shell, and plain
+    // symlinks need Developer Mode on Windows. Falling back to a copy is
+    // better than failing the build — it can go stale, but this runs on every
+    // build, so it is refreshed on every build.
     try {
-      copyFileSync(source, target);
+      put();
       return { ok: true, how: 'copied (link refused)' };
     } catch (copyError) {
       return {
@@ -183,11 +192,9 @@ function place(source, dir, name) {
   }
 }
 
-const dirs = destinations();
-
 if (has('--remove')) {
-  for (const dir of dirs) {
-    for (const { file } of ARTIFACTS) {
+  for (const { file, kind } of ARTIFACTS) {
+    for (const dir of destinations(kind)) {
       const target = join(dir, file);
       if (existsSync(target) || isLink(target)) {
         rmSync(target, { force: true, recursive: true });
@@ -206,27 +213,64 @@ if (!existsSync(library)) {
   exit(1);
 }
 
-// On Windows and Linux a `.clap` is the shared library under another name; on
-// macOS it is a bundle, which `clap-wrapper` produces (TASK-P08).
+// One binary, two formats: `nih_export_clap!` and `clap_wrapper::export_vst3!`
+// both live in the same cdylib, so the `.clap` and the `.vst3` are that file
+// under two names. Nothing is compiled twice.
 const bundled = join(cwd(), 'target', 'bundled');
 mkdirSync(bundled, { recursive: true });
-const clapPath = join(bundled, ARTIFACTS[0].file);
-if (platform() !== 'darwin') copyFileSync(library, clapPath);
+
+// CLAP: a plain file on Windows and Linux.
+if (platform() !== 'darwin') copyFileSync(library, join(bundled, ARTIFACTS[0].file));
+
+// VST3: a **bundle directory**, not a plain file. The format has required this
+// shape since VST3 3.6.10, and while some hosts still accept a bare `.vst3`
+// DLL, Ableton Live is not reliably one of them — a loose file is the version
+// of this that silently fails to appear in the browser.
+//
+//   Freally MIDI Master.vst3/
+//     Contents/
+//       x86_64-win/
+//         Freally MIDI Master.vst3   <- the library
+const VST3_ARCH = {
+  win32: 'x86_64-win',
+  linux: 'x86_64-linux',
+  darwin: 'MacOS',
+};
+const vst3Root = join(bundled, ARTIFACTS[1].file);
+const vst3Binary = join(vst3Root, 'Contents', VST3_ARCH[platform()] ?? 'x86_64-win');
+
+// The bundle is *updated in place*, never removed and rebuilt. Once it has
+// been installed as a junction, a DAW holding the plugin open locks the file —
+// and `rmSync` on the tree then fails with EPERM, which stops the build over
+// something that did not need doing. Overwriting the one file inside it is all
+// this ever needed.
+mkdirSync(vst3Binary, { recursive: true });
+try {
+  copyFileSync(library, join(vst3Binary, ARTIFACTS[1].file));
+} catch (error) {
+  console.error(
+    `install-plugin: could not update the VST3 (${error.code ?? error.message}).\n` +
+      '  A DAW almost certainly has it loaded. Close the host and build again —\n' +
+      '  Windows will not let anyone overwrite a DLL that is mapped into a\n' +
+      '  running process.',
+  );
+  exit(1);
+}
 
 let failures = 0;
 
-for (const { file, label, pending } of ARTIFACTS) {
+for (const { file, label, kind } of ARTIFACTS) {
   const source = join(bundled, file);
   if (!existsSync(source)) {
-    // Expected while a format is not built yet. Said out loud rather than
-    // skipped silently, so "my DAW cannot see the VST3" has an answer here.
-    console.log(
-      `install-plugin: no ${label} yet${pending ? ` — arrives with ${pending}` : ''}`,
-    );
+    // Both formats come out of one build, so a missing one is a broken build
+    // rather than a format that has not landed yet. Said out loud, because
+    // "my DAW cannot see it" needs an answer here rather than in the DAW.
+    console.error(`install-plugin: no ${label} was produced — run npm run plugin:build`);
+    failures += 1;
     continue;
   }
 
-  for (const dir of dirs) {
+  for (const dir of destinations(kind)) {
     try {
       mkdirSync(dir, { recursive: true });
     } catch (error) {

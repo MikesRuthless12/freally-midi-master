@@ -44,6 +44,13 @@ const REQUIRED = [
     fix: 'the crate did not build as a cdylib — check `crate-type` in plugin/Cargo.toml',
   },
   {
+    marker: 'GetPluginFactory',
+    what: 'the VST3 entry point',
+    fix:
+      '`clap_wrapper::export_vst3!()` is missing from plugin/src/lib.rs. Without it ' +
+      'Ableton, Logic, Pro Tools and Cubase can load nothing at all — none of them speaks CLAP',
+  },
+  {
     marker: 'com.havocsoftware.freally-midi-master',
     what: 'the plugin id',
     fix: 'ClapPlugin::CLAP_ID is missing, and no host will be able to identify this plugin',
