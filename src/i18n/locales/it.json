@@ -43,7 +43,8 @@
     "genres": "Generi",
     "roster": "Artisti",
     "kit": "Kit",
-    "session": "Sessione"
+    "session": "Sessione",
+    "presets": "Preimpostazioni"
   },
   "readouts": {
     "bpm": "BPM",
@@ -213,5 +214,12 @@
     "recovering": "Dispositivo audio perso — riconnessione…",
     "failed": "Nessun dispositivo audio. Si continua a provare…",
     "recovered": "Il dispositivo audio è tornato."
+  },
+  "presets": {
+    "factory": "Di fabbrica",
+    "none": "Nessuna preimpostazione.",
+    "save": "Salva",
+    "name": "Nome preimpostazione",
+    "delete": "Elimina {{name}}"
   }
 }

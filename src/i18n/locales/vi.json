@@ -43,7 +43,8 @@
     "genres": "Thể loại",
     "roster": "Nghệ sĩ",
     "kit": "Bộ trống",
-    "session": "Phiên"
+    "session": "Phiên",
+    "presets": "Cài đặt sẵn"
   },
   "readouts": {
     "bpm": "BPM",
@@ -213,5 +214,12 @@
     "recovering": "Mất thiết bị âm thanh — đang kết nối lại…",
     "failed": "Không có thiết bị âm thanh. Vẫn đang thử…",
     "recovered": "Thiết bị âm thanh đã trở lại."
+  },
+  "presets": {
+    "factory": "Mặc định",
+    "none": "Chưa có cài đặt sẵn nào.",
+    "save": "Lưu",
+    "name": "Tên cài đặt sẵn",
+    "delete": "Xoá {{name}}"
   }
 }

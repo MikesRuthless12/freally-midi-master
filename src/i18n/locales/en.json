@@ -43,7 +43,8 @@
     "genres": "Genres",
     "roster": "Roster",
     "kit": "Kit",
-    "session": "Session"
+    "session": "Session",
+    "presets": "Presets"
   },
   "readouts": {
     "bpm": "BPM",
@@ -213,5 +214,12 @@
     "recovering": "Audio device lost — reconnecting…",
     "failed": "No audio device. Still trying…",
     "recovered": "Audio device is back."
+  },
+  "presets": {
+    "factory": "Factory",
+    "none": "No presets yet.",
+    "save": "Save",
+    "name": "Preset name",
+    "delete": "Delete {{name}}"
   }
 }

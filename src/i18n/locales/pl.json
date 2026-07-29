@@ -43,7 +43,8 @@
     "genres": "Gatunki",
     "roster": "Artyści",
     "kit": "Zestaw",
-    "session": "Sesja"
+    "session": "Sesja",
+    "presets": "Ustawienia wstępne"
   },
   "readouts": {
     "bpm": "BPM",
@@ -213,5 +214,12 @@
     "recovering": "Utracono urządzenie audio — ponowne łączenie…",
     "failed": "Brak urządzenia audio. Trwają próby…",
     "recovered": "Urządzenie audio wróciło."
+  },
+  "presets": {
+    "factory": "Fabryczne",
+    "none": "Brak ustawień wstępnych.",
+    "save": "Zapisz",
+    "name": "Nazwa ustawienia",
+    "delete": "Usuń {{name}}"
   }
 }

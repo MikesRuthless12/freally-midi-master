@@ -43,7 +43,8 @@
     "genres": "Gêneros",
     "roster": "Artistas",
     "kit": "Kit",
-    "session": "Sessão"
+    "session": "Sessão",
+    "presets": "Predefinições"
   },
   "readouts": {
     "bpm": "BPM",
@@ -213,5 +214,12 @@
     "recovering": "Dispositivo de áudio perdido — reconectando…",
     "failed": "Sem dispositivo de áudio. Ainda tentando…",
     "recovered": "O dispositivo de áudio voltou."
+  },
+  "presets": {
+    "factory": "De fábrica",
+    "none": "Ainda não há predefinições.",
+    "save": "Salvar",
+    "name": "Nome da predefinição",
+    "delete": "Excluir {{name}}"
   }
 }

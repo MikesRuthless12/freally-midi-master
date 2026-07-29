@@ -25,6 +25,7 @@ pub mod bridge;
 pub mod dataset;
 mod editor;
 pub mod host;
+pub mod presets;
 pub mod shared;
 pub mod state;
 pub mod voice;

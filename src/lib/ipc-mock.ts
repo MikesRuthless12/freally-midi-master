@@ -183,6 +183,29 @@ From: Freally MIDI Master`;
   stop_playback: () => undefined,
   set_looping: () => undefined,
 
+  // Presets (TASK-P13). The real ones are files the plugin owns; a browser has
+  // nowhere to put them, so the mock is a fixture that keeps the panel
+  // exercisable in `vite dev` and Playwright. Saving reports back rather than
+  // storing, because a mock that pretended to persist would make a broken save
+  // look like a working one.
+  presets_list: () => [
+    { id: 'factory/trap', name: 'Trap', factory: true },
+    { id: 'factory/uk-drill', name: 'UK Drill', factory: true },
+    { id: 'user/my-beat', name: 'My Beat', factory: false },
+  ],
+  preset_load: () => ({
+    selectedId: 'trap',
+    seed: '1404',
+    bars: 8,
+    pins: { bpm: null, keyRoot: null, scale: null, swing: null },
+  }),
+  preset_save: (args?: InvokeArgs) => ({
+    id: 'user/mock',
+    name: String((args as { name?: unknown } | undefined)?.name ?? 'Mock'),
+    factory: false,
+  }),
+  preset_delete: () => undefined,
+
   // Export / drag. Without these the ExportChip's catch-all would swallow a
   // missing-handler error and render as if everything were fine.
   drag_capability: () => ({

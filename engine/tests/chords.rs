@@ -313,8 +313,11 @@ const NOT_NOTE_LEVEL: &[(&str, &str)] = &[
     (
         "impliedByRiff",
         "rage states its harmony through the lead rather than a pad; the chord \
-         part is still generated so the tab is not empty, and TASK-035's melody \
-         is what should read this",
+         part is still generated so the tab is not empty. **Now read by \
+         `generators::melody`** (TASK-035), where it raises the chord-tone bias \
+         to a floor — the lead is the only thing stating the changes, so it \
+         cannot wander off them. It stays listed here because it is not the \
+         *chords* generator that acts on it",
     ),
     (
         "dissonanceBudget",

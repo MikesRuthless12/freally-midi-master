@@ -12,6 +12,44 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added — melodic generation, and moods that multiply it
+
+- **Melody generator** (TASK-035, FR-005). Phrase structures (riff loop,
+  question/answer, call/response, long arc), chord-tone bias on strong beats,
+  colour tones, interval and contour distributions, octave jumps, end variation,
+  and the per-genre devices: rage's two-to-three-note staccato motif, drill's
+  snare-mirrored onsets and doubled voicing, straight-eighth bars and deliberate
+  silence. Pitches are chosen as **scale degrees** and only then made into MIDI
+  notes, so staying in the key is structural rather than filtered for.
+- **Countermelody generator** (TASK-036, FR-006). Octave echo, bell echo,
+  arpeggio, answer lick and sustained pad, placed in the melody's gaps by
+  construction rather than by filtering afterwards.
+- **Moods** (TASK-040V, engine half). A model may author named `modes` — trap
+  ships dark, bounce, melodic and minimal — each a partial override merged into
+  the model *before* generation, so every generator honours a mood without
+  knowing moods exist. Moods inherit through `extends`, so an artist offers only
+  the moods its own lineage does.
+- **Presets the plugin owns** (TASK-P13, session half). Six factory presets
+  compiled into the binary, user presets in the platform's per-user data
+  directory, and a panel in the right rail. No factory preset pins a tempo — that
+  would override your DAW on load.
+- **The Linux editor** (TASK-P12). The plugin's window now opens on Linux over
+  X11 and WebKitGTK, verified by photographing it under Xvfb rather than by a
+  green build.
+
+### Fixed
+
+- **A repeated melody no longer clashes with the chords it repeats over.** A riff
+  now follows the progression, keeping its own contour and rhythm.
+- **The countermelody is no longer silent about half the time.** An octave echo
+  is delayed, because an octave copy at zero delay is a doubling.
+- **Sustained pads voice more than the chord root**, and pick their octave.
+- **`echoOffset: "1/8"` is read.** The note-value parser knew `"8th"` and `"16T"`
+  and silently ignored the third spelling the dataset uses.
+- **The seed box shows a whole seed.** It was 12 characters wide against a
+  20-digit `u64`, so a long seed was cut off — and a seed you cannot read is one
+  you cannot type back in.
+
 ### Changed — Freally MIDI Master is becoming a plugin
 
 Decided 2026-07-28. Not for the format's sake: a plugin is handed the host's

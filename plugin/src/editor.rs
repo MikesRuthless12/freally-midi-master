@@ -1,9 +1,10 @@
 //! The plugin's window: the existing React UI, in a webview.
 //!
 //! This is the part of the pivot that is *not* free. `nih-plug-webview` is
-//! explicitly work-in-progress and macOS/Windows only, so this module owns
-//! more of the integration than a dependency normally would, and Linux is not
-//! answered here yet.
+//! explicitly work-in-progress, so this module owns more of the integration
+//! than a dependency normally would. Upstream is macOS/Windows only; the X11 +
+//! WebKitGTK path is ours, in `plugin/vendor/nih-plug-webview/src/linux.rs`
+//! (TASK-P12), and `VENDORED.md` records what that cost.
 //!
 //! What it buys is the whole frontend: the same React app, the same 18 locale
 //! catalogs, the same design tokens, drum grid and session chips the desktop
@@ -60,8 +61,9 @@ const LAYOUT: (u32, u32) = (1440, 900);
 /// **Presets rather than a draggable edge**, because the vendored adapter does
 /// not forward `Event::Window(Resized)` — its `on_event` handles keyboard and
 /// mouse and nothing else — so a window the host resized would leave the page
-/// inside it laid out at the old size. Teaching it to would mean editing
-/// `src/lib.rs`, which `VENDORED.md` deliberately keeps byte-for-byte upstream.
+/// inside it laid out at the old size. Teaching it to is a change to someone
+/// else's crate, and every such change is one more line `VENDORED.md` has to
+/// account for on the next rebase.
 const SCALES: &[(&str, f32)] = &[("small", 0.7), ("medium", 0.85), ("large", 1.0)];
 
 /// What the editor opens at. Not the largest: a window that fills the host on
@@ -332,9 +334,11 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
 /// rather than a one-line change.
 ///
 /// Windows only, because Windows is where the adapter's TODO bites. macOS
-/// reports a backing scale factor through Cocoa that baseview already applies,
-/// and Linux has no editor at all until TASK-P12 — both fall through to 1.0,
-/// which is the same behaviour as before this function existed.
+/// reports a backing scale factor through Cocoa that baseview already applies.
+/// **Linux falls through to 1.0 and that is a known limit rather than a
+/// finding**: GTK reads its own scale from `GDK_SCALE`/Xft, so a HiDPI Linux
+/// desktop gets a window sized for 100% — the same shape of gap `work_area`
+/// leaves there and on macOS, and no worse than either.
 #[cfg(target_os = "windows")]
 fn system_scale() -> f32 {
     // `user32` is already linked by the window this plugin opens; declaring the

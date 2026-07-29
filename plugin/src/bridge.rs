@@ -18,6 +18,7 @@ use serde_json::{json, Value};
 
 use crate::dataset;
 use crate::host::HostSession;
+use crate::presets;
 use crate::state::{self, PluginSession, SessionStore};
 
 /// A call from the webview.
@@ -130,6 +131,35 @@ pub fn dispatch(
 
             state::write(session, next);
             Ok(Value::Null)
+        }
+
+        // Presets: the same session, named, kept outside any one project.
+        // See [`crate::presets`] — the plugin owns these, with its own UI;
+        // CLAP's preset-discovery factory is deliberately not used.
+        "presets_list" => serde_json::to_value(presets::list()).map_err(|e| e.to_string()),
+
+        // Saves what is stored, not what the args carry. The session store is
+        // already what the host persists, so a preset is a copy of it — and
+        // taking it from the args instead would let the two disagree about what
+        // "the current session" is.
+        "preset_save" => {
+            let name = request.args["name"].as_str().unwrap_or_default();
+            serde_json::to_value(presets::save(name, state::read(session))?)
+                .map_err(|e| e.to_string())
+        }
+
+        // Answers with the session rather than applying it. The UI owns the
+        // session store and the generate flow; handing the value back lets it
+        // apply the preset through the same path a user typing into the chips
+        // takes, instead of a second one that could drift from it.
+        "preset_load" => {
+            let id = request.args["id"].as_str().unwrap_or_default();
+            serde_json::to_value(presets::load(id)?).map_err(|e| e.to_string())
+        }
+
+        "preset_delete" => {
+            let id = request.args["id"].as_str().unwrap_or_default();
+            presets::delete(id).map(|()| Value::Null)
         }
 
         "app_info" => Ok(json!({

@@ -3338,6 +3338,7 @@ version = "0.0.0"
 dependencies = [
  "baseview 0.1.4",
  "crossbeam",
+ "gtk",
  "keyboard-types 0.6.2",
  "nih_plug",
  "parking_lot",

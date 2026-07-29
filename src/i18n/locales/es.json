@@ -43,7 +43,8 @@
     "genres": "Géneros",
     "roster": "Artistas",
     "kit": "Kit de batería",
-    "session": "Sesión"
+    "session": "Sesión",
+    "presets": "Preajustes"
   },
   "readouts": {
     "bpm": "BPM",
@@ -213,5 +214,12 @@
     "recovering": "Se perdió el dispositivo de audio: reconectando…",
     "failed": "Sin dispositivo de audio. Seguimos intentándolo…",
     "recovered": "El dispositivo de audio volvió."
+  },
+  "presets": {
+    "factory": "De fábrica",
+    "none": "Aún no hay preajustes.",
+    "save": "Guardar",
+    "name": "Nombre del preajuste",
+    "delete": "Eliminar {{name}}"
   }
 }

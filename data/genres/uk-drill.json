@@ -146,5 +146,42 @@
     "transitions": { "fillBeforeSection": true, "dropOutBeats": { "prob": 0.5, "beats": 2 }, "switchUpProb": 0.2 }
   },
 
-  "kit": { "preview": "drill-default" }
+  "kit": { "preview": "drill-default" },
+
+  "modes": [
+    {
+      "name": "dark",
+      "weight": 4,
+      "session": { "bpm": { "min": 138, "max": 145, "mode": 142 } },
+      "melody": {
+        "register": [48, 72],
+        "densityPerBar": [2, 4],
+        "chordToneBias": 0.7,
+        "halfStepDissonance": 0.2,
+        "contour": { "riff": 0.4, "descend": 0.5, "arch": 0.1 }
+      },
+      "chords": { "harmonicRhythm": "2_bars_per_chord", "susOrDimProb": 0.35 },
+      "countermelody": { "densityRatio": 0.25, "styles": { "values": ["sustain_pad"], "weights": [1] } }
+    },
+    {
+      "name": "melodic",
+      "weight": 3,
+      "melody": {
+        "register": [60, 84],
+        "densityPerBar": [3, 6],
+        "structure": "question_answer",
+        "halfStepDissonance": 0.08,
+        "colorTones": [2, 6]
+      },
+      "chords": { "harmonicRhythm": "1_per_bar" },
+      "countermelody": { "registerOffset": 12, "densityRatio": 0.45, "styles": { "values": ["answer_lick", "arp"], "weights": [2, 1] } }
+    },
+    {
+      "name": "uptempo",
+      "weight": 2,
+      "session": { "bpm": { "min": 145, "max": 152, "mode": 148 } },
+      "melody": { "densityPerBar": [4, 7], "octaveJumpProb": 0.2 },
+      "countermelody": { "densityRatio": 0.5 }
+    }
+  ]
 }

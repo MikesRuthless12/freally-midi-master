@@ -20,14 +20,20 @@ export const WIDE_BREAKPOINT = 1440;
 
 /** Individually collapsible panels. The right rail as a whole is separate — it
  *  is driven by the viewport breakpoint and the K shortcut. */
-export const SECTIONS = ['genres', 'roster', 'kit', 'session'] as const;
+export const SECTIONS = ['genres', 'roster', 'kit', 'session', 'presets'] as const;
 export type SectionId = (typeof SECTIONS)[number];
 
 export type SectionState = Record<SectionId, boolean>;
 
 const SECTIONS_KEY = 'freally.sections';
 
-const ALL_OPEN: SectionState = { genres: true, roster: true, kit: true, session: true };
+const ALL_OPEN: SectionState = {
+  genres: true,
+  roster: true,
+  kit: true,
+  session: true,
+  presets: true,
+};
 
 function loadSections(): SectionState {
   try {

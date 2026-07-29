@@ -43,7 +43,8 @@
     "genres": "Genres",
     "roster": "Artistes",
     "kit": "Kit",
-    "session": "Session"
+    "session": "Session",
+    "presets": "Préréglages"
   },
   "readouts": {
     "bpm": "BPM",
@@ -213,5 +214,12 @@
     "recovering": "Périphérique audio perdu — reconnexion…",
     "failed": "Aucun périphérique audio. Nouvelle tentative…",
     "recovered": "Le périphérique audio est revenu."
+  },
+  "presets": {
+    "factory": "Usine",
+    "none": "Aucun préréglage pour l’instant.",
+    "save": "Enregistrer",
+    "name": "Nom du préréglage",
+    "delete": "Supprimer {{name}}"
   }
 }

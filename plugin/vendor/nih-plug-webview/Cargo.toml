@@ -8,9 +8,10 @@ publish = false
 
 description = "An adapter to use webview GUIs with NIH-plug. Vendored — see VENDORED.md."
 
-# Third-party source, kept byte-for-byte so a future rebase is a diff against
-# this manifest alone. Linting someone else's code under `-D warnings` would
-# mean either editing it — losing that property — or a permanently red gate.
+# Third-party source. It is no longer byte-for-byte upstream — see VENDORED.md
+# for the two behaviours that changed and the Linux module that is entirely ours
+# — but it is still mostly someone else's code, and linting it under
+# `-D warnings` would mean either rewriting it or a permanently red gate.
 [lints.clippy]
 all = "allow"
 
@@ -52,3 +53,18 @@ nih_plug = { git = "https://github.com/MikesRuthless12/nih-plug.git", rev = "10b
 [dependencies.baseview]
 git = "https://github.com/RustAudio/baseview"
 rev = "91e3b4a50f1db712355ba0d991c02d024050ef40"
+
+# Linux only, and only so that GTK can be started before wry reaches for
+# `gdk::Display::default()` — which is `None` until someone has called
+# `gtk_init`, and a plugin cannot require its host to be a GTK application.
+#
+# ⛔ Must stay the same minor as wry's own `gtk`, which is 0.18. Two gtk crates
+# would be two sets of `IS_MAIN_THREAD` thread-locals, so our `init()` would not
+# be the initialisation wry's assertions look for, and every call would fail an
+# assert that reads as though GTK was never started at all.
+#
+# `src/linux.rs` explains why this is one thread per process rather than one per
+# window: gtk-rs *panics* on a second `init()` from a different thread, and
+# baseview spawns a fresh thread for every editor.
+[target.'cfg(target_os = "linux")'.dependencies]
+gtk = "0.18"

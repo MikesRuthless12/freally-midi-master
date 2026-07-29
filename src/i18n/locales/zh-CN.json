@@ -43,7 +43,8 @@
     "genres": "曲风",
     "roster": "艺人名单",
     "kit": "鼓组",
-    "session": "会话"
+    "session": "会话",
+    "presets": "预设"
   },
   "readouts": {
     "bpm": "BPM",
@@ -213,5 +214,12 @@
     "recovering": "音频设备已断开 — 正在重新连接…",
     "failed": "没有音频设备，仍在尝试…",
     "recovered": "音频设备已恢复。"
+  },
+  "presets": {
+    "factory": "出厂",
+    "none": "还没有预设。",
+    "save": "保存",
+    "name": "预设名称",
+    "delete": "删除 {{name}}"
   }
 }

@@ -43,7 +43,8 @@
     "genres": "장르",
     "roster": "로스터",
     "kit": "킷",
-    "session": "세션"
+    "session": "세션",
+    "presets": "프리셋"
   },
   "readouts": {
     "bpm": "BPM",
@@ -213,5 +214,12 @@
     "recovering": "오디오 장치 연결이 끊겼습니다 — 다시 연결 중…",
     "failed": "오디오 장치가 없습니다. 계속 시도 중…",
     "recovered": "오디오 장치가 복구됐습니다."
+  },
+  "presets": {
+    "factory": "기본 제공",
+    "none": "아직 프리셋이 없습니다.",
+    "save": "저장",
+    "name": "프리셋 이름",
+    "delete": "{{name}} 삭제"
   }
 }

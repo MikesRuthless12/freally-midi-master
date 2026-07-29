@@ -140,5 +140,63 @@
     "transitions": { "fillBeforeSection": true, "dropOutBeats": { "prob": 0.6, "beats": 2 }, "switchUpProb": 0.15 }
   },
 
-  "kit": { "preview": "trap-default" }
+  "kit": { "preview": "trap-default" },
+
+  "modes": [
+    {
+      "name": "dark",
+      "weight": 4,
+      "session": { "bpm": { "min": 128, "max": 145, "mode": 136 } },
+      "melody": {
+        "register": [60, 84],
+        "densityPerBar": [2, 5],
+        "chordToneBias": 0.75,
+        "halfStepDissonance": 0.16,
+        "octaveJumpProb": 0.12,
+        "contour": { "riff": 0.5, "descend": 0.4, "arch": 0.1 }
+      },
+      "chords": { "harmonicRhythm": "2_bars_per_chord" },
+      "countermelody": { "densityRatio": 0.3, "styles": { "values": ["sustain_pad", "octave_echo"], "weights": [3, 2] } }
+    },
+    {
+      "name": "bounce",
+      "weight": 3,
+      "session": { "bpm": { "min": 140, "max": 160, "mode": 148 } },
+      "melody": {
+        "densityPerBar": [5, 9],
+        "structure": "call_response",
+        "intervals": { "step": 0.45, "third": 0.3, "leap": 0.25 },
+        "octaveJumpProb": 0.3
+      },
+      "chords": { "harmonicRhythm": "syncopated_cell" },
+      "countermelody": { "densityRatio": 0.6, "styles": { "values": ["arp", "answer_lick"], "weights": [2, 2] } }
+    },
+    {
+      "name": "melodic",
+      "weight": 3,
+      "melody": {
+        "register": [72, 96],
+        "densityPerBar": [4, 7],
+        "structure": "question_answer",
+        "chordToneBias": 0.6,
+        "colorTones": [2, 4, 6],
+        "endVariation": true
+      },
+      "chords": { "harmonicRhythm": "1_per_bar", "extensions": ["7", "9"] },
+      "countermelody": { "registerOffset": -12, "densityRatio": 0.5 }
+    },
+    {
+      "name": "minimal",
+      "weight": 2,
+      "melody": {
+        "densityPerBar": [2, 3],
+        "structure": "riff_loop",
+        "octaveJumpProb": 0.05,
+        "endVariation": false,
+        "contour": { "riff": 0.8, "descend": 0.15, "arch": 0.05 }
+      },
+      "chords": { "harmonicRhythm": "vamp" },
+      "countermelody": { "densityRatio": 0.2 }
+    }
+  ]
 }

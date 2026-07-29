@@ -43,7 +43,8 @@
     "genres": "Türler",
     "roster": "Sanatçılar",
     "kit": "Davul kiti",
-    "session": "Oturum"
+    "session": "Oturum",
+    "presets": "Ön ayarlar"
   },
   "readouts": {
     "bpm": "BPM",
@@ -213,5 +214,12 @@
     "recovering": "Ses aygıtı kayboldu — yeniden bağlanıyor…",
     "failed": "Ses aygıtı yok. Denemeye devam ediliyor…",
     "recovered": "Ses aygıtı geri geldi."
+  },
+  "presets": {
+    "factory": "Fabrika",
+    "none": "Henüz ön ayar yok.",
+    "save": "Kaydet",
+    "name": "Ön ayar adı",
+    "delete": "{{name}} ön ayarını sil"
   }
 }

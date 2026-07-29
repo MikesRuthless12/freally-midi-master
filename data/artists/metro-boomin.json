@@ -161,5 +161,120 @@
       ],
       "distortion": "medium"
     }
-  }
+  },
+  "modes": [
+    {
+      "name": "dark",
+      "weight": 4,
+      "session": {
+        "bpm": {
+          "min": 120,
+          "max": 138,
+          "mode": 130
+        }
+      },
+      "melody": {
+        "densityPerBar": [
+          2,
+          4
+        ],
+        "chordToneBias": 0.8,
+        "halfStepDissonance": 0.18,
+        "contour": {
+          "riff": 0.45,
+          "descend": 0.45,
+          "arch": 0.1
+        }
+      },
+      "chords": {
+        "harmonicRhythm": "2_bars_per_chord"
+      },
+      "countermelody": {
+        "densityRatio": 0.25,
+        "styles": {
+          "values": [
+            "sustain_pad"
+          ],
+          "weights": [
+            1
+          ]
+        }
+      }
+    },
+    {
+      "name": "melodic",
+      "weight": 3,
+      "melody": {
+        "register": [
+          72,
+          96
+        ],
+        "structure": "question_answer",
+        "densityPerBar": [
+          4,
+          7
+        ],
+        "colorTones": [
+          2,
+          6
+        ],
+        "endVariation": true
+      },
+      "chords": {
+        "harmonicRhythm": "1_per_bar",
+        "extensions": [
+          "7",
+          "9"
+        ]
+      },
+      "countermelody": {
+        "registerOffset": -12,
+        "densityRatio": 0.5
+      }
+    },
+    {
+      "name": "uptempo",
+      "weight": 2,
+      "session": {
+        "bpm": {
+          "min": 145,
+          "max": 160,
+          "mode": 150
+        }
+      },
+      "melody": {
+        "densityPerBar": [
+          5,
+          8
+        ],
+        "octaveJumpProb": 0.3
+      },
+      "countermelody": {
+        "densityRatio": 0.6
+      }
+    },
+    {
+      "name": "minimal",
+      "weight": 2,
+      "melody": {
+        "densityPerBar": [
+          2,
+          3
+        ],
+        "octaveJumpProb": 0.05,
+        "endVariation": false,
+        "contour": {
+          "riff": 0.85,
+          "descend": 0.1,
+          "arch": 0.05
+        }
+      },
+      "chords": {
+        "harmonicRhythm": "vamp"
+      },
+      "countermelody": {
+        "densityRatio": 0.2
+      }
+    }
+  ]
 }

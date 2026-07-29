@@ -20,7 +20,7 @@ use super::{load, DatasetError, DatasetProblem, LoadedDataset};
 /// how one of them starts scanning the schema as a model — which is exactly
 /// what happened the first time the embedded loader was written, and what
 /// `the_shipped_dataset_scans_to_models_only` catches on this side.
-pub const NON_MODEL_DIRS: &[&str] = &["schema", "kits"];
+pub const NON_MODEL_DIRS: &[&str] = &["schema", "kits", "presets"];
 
 /// What a directory scan found.
 #[derive(Debug)]
@@ -138,12 +138,17 @@ mod tests {
         assert!(scan.problems.is_empty(), "{:?}", scan.problems);
         assert!(scan.files.len() >= 4, "expected _defaults plus the genres");
 
+        // Derived from `NON_MODEL_DIRS` rather than restating it. The list was
+        // spelled out here once, and a second copy of a list like this is how
+        // the next directory added to one of them goes unchecked by the other.
         for (path, _) in &scan.files {
             let text = path.to_string_lossy().replace('\\', "/");
-            assert!(
-                !text.contains("/schema/") && !text.contains("/kits/"),
-                "{text} is not a model and must not be scanned"
-            );
+            for excluded in NON_MODEL_DIRS {
+                assert!(
+                    !text.contains(&format!("/{excluded}/")),
+                    "{text} is in {excluded}/ and must not be scanned as a model"
+                );
+            }
         }
     }
 

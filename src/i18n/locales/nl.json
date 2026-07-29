@@ -43,7 +43,8 @@
     "genres": "Genres",
     "roster": "Artiesten",
     "kit": "Drumkit",
-    "session": "Sessie"
+    "session": "Sessie",
+    "presets": "Voorinstellingen"
   },
   "readouts": {
     "bpm": "BPM",
@@ -213,5 +214,12 @@
     "recovering": "Audioapparaat kwijt — opnieuw verbinden…",
     "failed": "Geen audioapparaat. Nog steeds bezig…",
     "recovered": "Audioapparaat is terug."
+  },
+  "presets": {
+    "factory": "Fabriek",
+    "none": "Nog geen voorinstellingen.",
+    "save": "Opslaan",
+    "name": "Naam voorinstelling",
+    "delete": "{{name}} verwijderen"
   }
 }

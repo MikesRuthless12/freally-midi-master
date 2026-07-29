@@ -1,0 +1,9 @@
+{
+  "name": "Plugg",
+  "session": {
+    "selectedId": "plugg",
+    "seed": "8080",
+    "bars": 8,
+    "pins": {}
+  }
+}

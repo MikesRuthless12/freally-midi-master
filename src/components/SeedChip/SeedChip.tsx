@@ -35,7 +35,12 @@ export function SeedChip() {
 
   return (
     <span className="chip chip--mono seed">
-      <label className="seed__label" htmlFor="seed-input">
+      {/* The label is for the accessibility tree only. Drawn, it sat to the left
+          of the number and took room the seed itself needs — a u64 is 20 digits
+          and the box was showing 12 of them. `visually-hidden` rather than
+          deleted, so the input keeps a real `<label>` association on top of its
+          `aria-label`. */}
+      <label className="seed__label visually-hidden" htmlFor="seed-input">
         {t('stage.seed')}
       </label>
       <input

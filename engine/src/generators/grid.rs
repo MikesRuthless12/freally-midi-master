@@ -67,13 +67,21 @@ pub fn position_ticks(text: &str, ctx: &SessionContext) -> Option<u32> {
     (ticks < ctx.ticks_per_bar()).then_some(ticks)
 }
 
-/// Parse a note value — `"8th"`, `"16"`, `"16T"`, `"32nd"`, `"64"` — into ticks.
+/// Parse a note value — `"8th"`, `"16"`, `"16T"`, `"32nd"`, `"64"`, `"1/8"` —
+/// into ticks.
 ///
-/// The dataset uses both spellings: `avoidPreSnareGap` says `"8th"` while the
-/// roll vocabulary says `"16T"`. A trailing `T` is a triplet, two thirds of the
-/// plain value.
+/// The dataset uses **three** spellings: `avoidPreSnareGap` says `"8th"`, the
+/// roll vocabulary says `"16T"`, and rage's `countermelody.echoOffset` says
+/// `"1/8"`. A trailing `T` is a triplet, two thirds of the plain value.
+///
+/// The `1/N` form is stripped rather than given its own branch, because it names
+/// the same thing `"8th"` does and two parsers for one vocabulary is how one of
+/// them starts disagreeing. Before this it returned `None` for `"1/8"`, so
+/// rage's echo silently fell back to its default — the exact way a string in
+/// this dataset goes missing.
 pub fn note_value_ticks(text: &str) -> Option<u32> {
     let text = text.trim();
+    let text = text.strip_prefix("1/").unwrap_or(text);
     let (digits, suffix) = text.split_at(
         text.find(|c: char| !c.is_ascii_digit())
             .unwrap_or(text.len()),
@@ -189,7 +197,7 @@ mod tests {
     }
 
     #[test]
-    fn note_values_read_in_both_spellings() {
+    fn note_values_read_in_all_three_spellings() {
         assert_eq!(note_value_ticks("4"), Some(960));
         assert_eq!(note_value_ticks("8"), Some(480));
         assert_eq!(note_value_ticks("8th"), Some(480));
@@ -198,6 +206,20 @@ mod tests {
         assert_eq!(note_value_ticks("32"), Some(120));
         assert_eq!(note_value_ticks("32nd"), Some(120));
         assert_eq!(note_value_ticks("64"), Some(60));
+
+        // ⛔ The third spelling, which rage's `countermelody.echoOffset` uses.
+        // This returned `None` before, so the echo silently fell back to its
+        // default and the model's authored offset did nothing — the exact way a
+        // string in this dataset goes missing. `1/8` must mean what `8th` means.
+        assert_eq!(note_value_ticks("1/8"), note_value_ticks("8th"));
+        assert_eq!(note_value_ticks("1/16"), Some(240));
+        assert_eq!(note_value_ticks("1/4"), Some(960));
+
+        // Still refused: a prefix that is not `1/` is not a note value, and
+        // guessing would put a note on a subdivision nobody asked for.
+        assert_eq!(note_value_ticks("3/8"), None);
+        assert_eq!(note_value_ticks("1/"), None);
+        assert_eq!(note_value_ticks("1/0"), None);
     }
 
     #[test]

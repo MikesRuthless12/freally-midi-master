@@ -24,8 +24,7 @@ serde_json = "1"
 include_dir = "0.7"
 # Directly, for the custom-protocol handler's own return type. The vendored
 # adapter re-exports `wry::http` but not `wry` itself, and reaching for it here
-# is better than editing that crate's source — its `src/lib.rs` is kept
-# byte-for-byte upstream so a future rebase is a diff against one manifest.
+# keeps the edits to that crate down to the ones VENDORED.md accounts for.
 # Cargo unifies this with the adapter's copy; they must stay the same minor.
 wry = "0.35.1"
 

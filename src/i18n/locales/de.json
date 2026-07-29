@@ -43,7 +43,8 @@
     "genres": "Genres",
     "roster": "Künstler",
     "kit": "Kit",
-    "session": "Session"
+    "session": "Session",
+    "presets": "Voreinstellungen"
   },
   "readouts": {
     "bpm": "BPM",
@@ -213,5 +214,12 @@
     "recovering": "Audiogerät verloren — wird neu verbunden…",
     "failed": "Kein Audiogerät. Es wird weiter versucht…",
     "recovered": "Audiogerät ist wieder da."
+  },
+  "presets": {
+    "factory": "Werk",
+    "none": "Noch keine Voreinstellungen.",
+    "save": "Speichern",
+    "name": "Name der Voreinstellung",
+    "delete": "{{name}} löschen"
   }
 }

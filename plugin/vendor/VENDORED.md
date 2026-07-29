@@ -40,13 +40,67 @@ and the one this code was written against.
 
 ### What was changed
 
-The manifest, and **one behaviour in `src/lib.rs`** — so a rebase is a diff
-against two files rather than one.
+The manifest, two behaviours in `src/lib.rs`, and **one file that is entirely
+ours** — `src/linux.rs`, which upstream has no equivalent of. A rebase is
+therefore a diff against the manifest and `lib.rs`, plus a module that can be
+carried across whole.
 
-`src/lib.rs`: the IPC handler used to `panic!` on JSON it could not parse. A
-panic on the UI thread of someone else's DAW takes the host down with it, and
-the message that caused it is a bug in the *page*, not grounds to kill Ableton.
-It logs and returns instead.
+`src/lib.rs`:
+
+- The IPC handler used to `panic!` on JSON it could not parse. A panic on the UI
+  thread of someone else's DAW takes the host down with it, and the message that
+  caused it is a bug in the *page*, not grounds to kill Ableton. It logs and
+  returns instead.
+- The webview's attributes moved into a `configure` function, and the webview
+  itself is built through a `cfg` — inline on Windows and macOS, on the GTK
+  thread on Linux. `WindowHandler::webview` is a `WebView` on the first two and
+  a `linux::WebViewHandle` on the third, with the same method names, so nothing
+  below the construction site has a `cfg` in it.
+
+`src/linux.rs` (**new, TASK-P12**): the X11 + WebKitGTK editor. Upstream is
+macOS/Windows only and this is the whole of the difference.
+
+### ⛔ The Linux editor runs GTK on one thread, and that is not a style choice
+
+wry's WebKitGTK backend asks for `gdk::Display::default()`, which is `None`
+until somebody has called `gtk_init`. A plugin cannot require that of its host —
+Reaper and Bitwig are not GTK applications — so the editor has to start GTK
+itself.
+
+The obvious place is baseview's window thread, and it is **wrong**. baseview
+spawns a fresh thread per editor, and gtk-rs panics on the second `init()` from
+a different thread:
+
+```text
+panicked at 'Attempted to initialize GTK from two different threads.'
+```
+
+A panic in a plugin takes the DAW down, and this is not an exotic path: closing
+the editor and reopening it is a new baseview thread, and so is a second
+instance on a second track. It would have passed a single-window screenshot test
+and destroyed a real session.
+
+So GTK is initialised **once, on a thread this crate owns**, every webview lives
+there, and other threads address one by id. Two things follow that are easy to
+undo by accident:
+
+1. **`on_gtk` waits for that thread before posting anything.**
+   `g_main_context_invoke` does not merely queue — if the calling thread can
+   *acquire* the context it runs the job inline, right there. Posting before the
+   GTK thread has claimed the context therefore runs webview construction on
+   baseview's thread and aborts the process with *"GTK has not been initialized"*.
+   That is what the first Xvfb run did, and the two symptoms pointed away from
+   the cause. Once `gtk::init()` returns Ok the GTK thread holds the default
+   context permanently (gtk-rs acquires and deliberately leaks it), so every
+   later `invoke` genuinely queues.
+2. **When GTK is unavailable the job is dropped, not run**, for the same reason.
+
+**Known limit, unverified rather than solved:** if the host's own main thread
+already owns the default main context — a host that is itself a GTK application
+— `gtk::init()` fails, and the plugin logs and opens no editor rather than
+crashing. The proper answer is to run the webview on the host's loop, which
+nih-plug's `Editor` API does not expose. Verified under Xvfb and in the
+standalone; **no Linux DAW has loaded this yet**, which is the rest of TASK-P12.
 
 The manifest:
 

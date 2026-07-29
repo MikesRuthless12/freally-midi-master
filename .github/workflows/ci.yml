@@ -325,22 +325,16 @@ jobs:
       # Shared with `release.yml`, so the same validator gates a push and a tag.
       - uses: ./.github/actions/install-clap-validator
 
-      # ⛔ Two tests are excluded, and neither exclusion is a shrug.
-      #
-      # `state-invalid-random` feeds 3x1MB of random bytes to
-      # `clap_plugin_state::load()`. **nih-plug aborts the process on it** —
-      # `ext_state_load` reads an 8-byte little-endian length prefix straight
-      # into `Vec::with_capacity` with no sanity check (`wrapper.rs:3147`), so
-      # garbage decodes to a ~1 exabyte allocation and Rust aborts, which no
-      # host can catch. It is a real crash reachable from a corrupt project
-      # file, it is *nih-plug's* bug rather than ours, and nih-plug has been
-      # unmaintained since March 2026 — so it needs a patched fork, which is a
-      # decision belonging to TASK-P11. Excluded here so this job can gate the
-      # other 42 tests instead of gating nothing.
+      # ⛔ One test is excluded, and the exclusion is not a shrug.
       #
       # `param-conversions` divides by the parameter count and this plugin
       # deliberately has none, so the *validator* panics: "attempt to divide by
       # zero. This is a bug in the validator". Nothing to fix on our side.
+      #
+      # `state-invalid-random` used to be excluded beside it, because nih-plug
+      # aborted the whole process on a malformed state blob. TASK-P14 fixed that
+      # on our fork and **deleted the exclusion**, which is what makes the fix
+      # provable: the test runs, and it passes.
       #
       # **Delete each exclusion the moment its cause is gone.** A permanently
       # skipped test is the "green and blind" gate this repo has been caught by
@@ -352,6 +346,82 @@ jobs:
           "$CLAP_VALIDATOR" validate \
             --exclude '^param-conversions$' \
             "target/bundled/Freally MIDI Master.clap"
+
+  # TASK-P12. Separate from `plugin` above because Linux is not a shipping
+  # target yet — this job does not build bundles or run the validator, it
+  # answers the one question the Linux editor exists to raise: **does the window
+  # actually draw anything?**
+  #
+  # A `cargo build` on this runner goes green whether GTK starts, whether the
+  # webview is ever constructed and whether the page is ever fetched. Every one
+  # of those failures is an empty window, and the only way to tell an empty
+  # window from a working one is to photograph it and count the colours — which
+  # is what the script does, and which was watched failing before it was trusted.
+  plugin-editor-linux:
+    name: plugin editor (ubuntu-latest)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      # webkit2gtk is what wry's Linux backend links; the xcb/xkb set is what
+      # baseview's X11 backend needs; libjack is pulled in by nih-plug's
+      # `standalone` feature; xvfb/xdotool/imagemagick are how a headless runner
+      # sees a window at all.
+      - name: Install Linux system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libgtk-3-dev \
+            libasound2-dev \
+            libjack-jackd2-dev \
+            libx11-dev \
+            libx11-xcb-dev \
+            libxcb1-dev \
+            libxcb-icccm4-dev \
+            libxcb-util-dev \
+            libxcursor-dev \
+            libxkbcommon-dev \
+            libxkbcommon-x11-dev \
+            xvfb \
+            xdotool \
+            imagemagick
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: '1.97.1'
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: plugin-editor-ubuntu-latest
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # `dist/` is gitignored and compiled into the binary with `include_dir!`,
+      # so the frontend build has to happen before cargo, not alongside it.
+      - run: npm run build
+
+      - name: Build the standalone
+        run: cargo build -p freally-midi-master-plugin --release
+
+      - name: Photograph the editor
+        run: |
+          xvfb-run -a --server-args="-screen 0 1600x1000x24" \
+            node scripts/screenshot-plugin.mjs screenshots/linux-plugin.png
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: plugin-editor-screenshot-linux
+          path: screenshots/
 
   supply-chain:
     name: supply chain

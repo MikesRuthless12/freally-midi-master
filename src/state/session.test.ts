@@ -75,12 +75,12 @@ const PATTERN: Pattern = {
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 /** The request `generate_pattern` was last called with. */
-function lastRequest(): { session?: Record<string, unknown> } {
+function lastRequest(): { session?: Record<string, unknown>; seed?: string | null } {
   const calls = invoke.mock.calls.filter((call: unknown[]) => call[0] === 'generate_pattern');
   expect(calls.length, 'generate_pattern should have been invoked').toBeGreaterThan(0);
   const [, args] = calls[calls.length - 1] as [
     string,
-    { request: { session?: Record<string, unknown> } },
+    { request: { session?: Record<string, unknown>; seed?: string | null } },
   ];
   return args.request;
 }
@@ -108,6 +108,30 @@ beforeEach(() => {
     bars: 4,
     generating: false,
     error: null,
+  });
+});
+
+describe('going back to a seed', () => {
+  it('sends the seed exactly as typed, so a known number reproduces its beat', async () => {
+    // US-004, and the reason the chip is an input rather than a readout: type a
+    // seed you kept, press Generate, get that beat back. A `u64` is up to 20
+    // digits and must survive as a string — `Number` would silently round the
+    // ones that matter, which is a different beat with no way to tell.
+    useSession.getState().select('trap');
+    useSession.getState().setSeed('18446744073709551615');
+    await useSession.getState().generate();
+
+    expect(lastRequest().seed).toBe('18446744073709551615');
+  });
+
+  it('sends an empty box as absent rather than as a seed that cannot parse', async () => {
+    // "Pick one for me" and "use the seed `''`" are different requests, and the
+    // second one is an error rather than a generation.
+    useSession.getState().select('trap');
+    useSession.getState().setSeed('');
+    await useSession.getState().generate();
+
+    expect(lastRequest().seed).toBeNull();
   });
 });
 

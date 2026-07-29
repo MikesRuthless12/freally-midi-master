@@ -136,6 +136,14 @@ type SessionState = {
   setPin: <K extends keyof SessionPins>(field: K, value: SessionPins[K]) => void;
   /** Ask the host what tempo it is running at. No-op outside a plugin. */
   refreshHost: () => Promise<void>;
+  /**
+   * Replace the session with a preset's, and save the result.
+   *
+   * Unlike the project restore this has no "only if nothing is selected" guard:
+   * loading a preset is a deliberate act, and refusing it because an artist was
+   * already chosen would make the control do nothing most of the time.
+   */
+  applyPreset: (session: SavedSession) => void;
   /** Keep the pinned session over the new artist's defaults. */
   keepPins: () => void;
   /** Drop every pin and let the new artist decide. */
@@ -185,7 +193,7 @@ async function loadDefaults(
  * `windowSize` is deliberately absent: the editor owns it, and the plugin
  * carries the stored value over any write that does not mention it.
  */
-type SavedSession = {
+export type SavedSession = {
   selectedId: string | null;
   seed: string;
   bars: number | null;
@@ -269,9 +277,26 @@ async function apply(
   // `loadDefaults` guards for exactly this reason; so does this.
   if (get().selectedId !== null) return;
 
-  // Field by field rather than spread: the plugin's pins are the engine's
-  // six-field `SessionOverrides` and this store's are four, so a spread would
-  // put `bars` and `halfTime` into a shape that has no room for them.
+  put(saved, set, get);
+}
+
+/**
+ * Put a stored session's fields into the store.
+ *
+ * Shared by the project restore above and by loading a preset, which are the
+ * same operation and differ only in whether they may overwrite a selection the
+ * user has already made. Two copies of this would be two answers to "what does
+ * a stored session set", and the pins are exactly where that drifts.
+ *
+ * Field by field rather than a spread: the plugin's pins are the engine's
+ * six-field `SessionOverrides` and this store's are four, so a spread would put
+ * `bars` and `halfTime` into a shape that has no room for them.
+ */
+function put(
+  saved: SavedSession,
+  set: (partial: Partial<SessionState>) => void,
+  get: () => SessionState,
+): void {
   set({
     seed: saved.seed ?? '',
     bars: saved.bars ?? get().bars,
@@ -284,8 +309,8 @@ async function apply(
   });
 
   // Set directly rather than through `select`, which would clear the pins as a
-  // different artist's and raise the keep-or-adopt prompt. This is the *same*
-  // session coming back, not a switch.
+  // different artist's and raise the keep-or-adopt prompt. This is a session
+  // arriving whole, not a switch.
   if (saved.selectedId) {
     set({ selectedId: saved.selectedId });
     void loadDefaults(saved.selectedId, set, get);
@@ -401,6 +426,14 @@ export const useSession = create<SessionState>((set, get) => ({
       // tempo to follow, and the artist's value stands.
       if (get().hostTempo !== null) set({ hostTempo: null });
     }
+  },
+
+  applyPreset(saved) {
+    put(saved, set, get);
+    // A preset that was not saved back would be forgotten the moment the host
+    // wrote the project out — which is the next thing that happens after
+    // someone loads one and presses Generate.
+    persist();
   },
 
   keepPins() {

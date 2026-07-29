@@ -1,6 +1,7 @@
 import { Section } from './Section';
 import { useTranslation } from 'react-i18next';
 
+import { Presets } from '../Presets/Presets';
 import { SessionChips } from '../SessionChips/SessionChips';
 
 /**
@@ -25,6 +26,10 @@ export function RightRail() {
 
       <Section id="session">
         <SessionChips />
+      </Section>
+
+      <Section id="presets">
+        <Presets />
       </Section>
     </aside>
   );

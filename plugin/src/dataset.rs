@@ -107,6 +107,35 @@ pub fn loaded() -> &'static LoadedDataset {
     })
 }
 
+/// The factory presets, as `(file stem, contents)`.
+///
+/// Read straight out of the already-embedded `data/`, rather than a second
+/// `include_dir!` over `data/presets` — a second one would compile the whole
+/// dataset into the binary twice, and the binary is already 23 MB.
+///
+/// `data/presets/` is in [`NON_MODEL_DIRS`], so [`collect`] steps over it and
+/// these files never reach the model loader. Without that they would be scanned
+/// as style models and every one of them would show up as a dataset problem in
+/// front of the user — which is exactly what `data/schema/` did the first time.
+pub fn factory_presets() -> Vec<(String, &'static str)> {
+    let Some(dir) = DATA.get_dir("presets") else {
+        return Vec::new();
+    };
+
+    let mut found: Vec<(String, &'static str)> = dir
+        .files()
+        .filter(|file| file.path().extension().is_some_and(|ext| ext == "json"))
+        .filter_map(|file| {
+            let stem = file.path().file_stem()?.to_string_lossy().into_owned();
+            Some((stem, file.contents_utf8()?))
+        })
+        .collect();
+
+    // `include_dir` promises no order, and the preset list is shown to a user.
+    found.sort_by(|a, b| a.0.cmp(&b.0));
+    found
+}
+
 /// One resolved model, inheritance already applied.
 pub fn model(id: &str) -> Result<StyleModel, String> {
     loaded()
