@@ -325,7 +325,7 @@ impl Editor for WebViewEditor {
                             let parent = linux::ParentXid(parent);
                             let mut web_context = WebContext::new(Some(std::env::temp_dir()));
                             // ⛔ The context goes on *first* — see `configure`.
-                            configure(
+                            let built = configure(
                                 WebViewBuilder::new_as_child(&parent)
                                     .with_web_context(&mut web_context),
                                 bounds,

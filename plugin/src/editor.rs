@@ -401,45 +401,45 @@ const PAGE: &str = "freally://localhost/index.html";
 
 pub fn create(shared: SharedState) -> Option<Box<dyn Editor>> {
     let editor = WebViewEditor::new(HTMLSource::URL(PAGE), window_size(&shared))
-    // The app's own background, so a slow first paint is the app's colour
-    // rather than a white flash inside a dark DAW.
-    .with_background_color((11, 11, 13, 255))
-    // On unless `FREALLY_NO_DEVTOOLS` is set, rather than only in debug
-    // builds. A plugin runs inside someone else's process: there is no
-    // console to read, no stderr anyone will see, and a release build is
-    // the only build a DAW ever loads — so gating devtools on
-    // `debug_assertions` means the one configuration that can fail in a
-    // host is the one configuration that cannot be inspected. That is how
-    // an afternoon goes into guessing at an IPC timeout.
-    .with_developer_mode(std::env::var("FREALLY_NO_DEVTOOLS").is_err())
-    .with_custom_protocol(SCHEME.into(), {
-        let shared = shared.clone();
-        move |request| serve(request, &shared)
-    })
-    .with_event_loop(move |ctx, _setter, window| {
-        // Free anything the audio thread parked. This is the thread that
-        // is allowed to.
-        shared.handoff.collect();
+        // The app's own background, so a slow first paint is the app's colour
+        // rather than a white flash inside a dark DAW.
+        .with_background_color((11, 11, 13, 255))
+        // On unless `FREALLY_NO_DEVTOOLS` is set, rather than only in debug
+        // builds. A plugin runs inside someone else's process: there is no
+        // console to read, no stderr anyone will see, and a release build is
+        // the only build a DAW ever loads — so gating devtools on
+        // `debug_assertions` means the one configuration that can fail in a
+        // host is the one configuration that cannot be inspected. That is how
+        // an afternoon goes into guessing at an IPC timeout.
+        .with_developer_mode(std::env::var("FREALLY_NO_DEVTOOLS").is_err())
+        .with_custom_protocol(SCHEME.into(), {
+            let shared = shared.clone();
+            move |request| serve(request, &shared)
+        })
+        .with_event_loop(move |ctx, _setter, window| {
+            // Free anything the audio thread parked. This is the thread that
+            // is allowed to.
+            shared.handoff.collect();
 
-        // A size the UI asked for. This is the only place it can be applied:
-        // `resize` needs the window, and the window only exists here.
-        if let Some((width, height)) = shared.take_resize() {
-            ctx.resize(window, width, height);
-        }
+            // A size the UI asked for. This is the only place it can be applied:
+            // `resize` needs the window, and the window only exists here.
+            if let Some((width, height)) = shared.take_resize() {
+                ctx.resize(window, width, height);
+            }
 
-        // **Nothing reads `ctx.next_event()`, deliberately.** This loop used to
-        // answer commands off the webview's IPC channel, and that path is dead:
-        // the UI posts everything to `/__rpc` (see [`rpc`]), because wry's IPC
-        // is one-way and a window parented into Ableton never gets a frame tick
-        // to push a reply from. `window.sendToPlugin` survives only as the
-        // marker `isPlugin()` checks for; it is never called.
-        //
-        // The handler was kept here for a while and answered nothing, a
-        // line-for-line copy of `rpc` that no request could reach — so the copy
-        // a reader met first was the one that could never run. Deleted rather
-        // than commented out, because a second answering path is exactly what
-        // this bridge already lost an evening to.
-    });
+            // **Nothing reads `ctx.next_event()`, deliberately.** This loop used to
+            // answer commands off the webview's IPC channel, and that path is dead:
+            // the UI posts everything to `/__rpc` (see [`rpc`]), because wry's IPC
+            // is one-way and a window parented into Ableton never gets a frame tick
+            // to push a reply from. `window.sendToPlugin` survives only as the
+            // marker `isPlugin()` checks for; it is never called.
+            //
+            // The handler was kept here for a while and answered nothing, a
+            // line-for-line copy of `rpc` that no request could reach — so the copy
+            // a reader met first was the one that could never run. Deleted rather
+            // than commented out, because a second answering path is exactly what
+            // this bridge already lost an evening to.
+        });
 
     Some(Box::new(editor))
 }

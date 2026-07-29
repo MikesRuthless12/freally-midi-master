@@ -392,6 +392,11 @@ jobs:
       # `standalone` feature; xvfb and xdotool are how a headless runner sees a
       # window at all. macOS needs none of it — WKWebView and CoreAudio ship with
       # the OS, and `screencapture` is built in.
+      #
+      # ⛔ `imagemagick` is here for `import`, which is how the Linux capture
+      # takes the window. It was briefly removed on the grounds that the *colour
+      # count* no longer needs `identify` — true, and irrelevant: `import` is
+      # ImageMagick too, and the leg failed without it.
       - name: Install Linux system dependencies
         if: matrix.os == 'ubuntu-latest'
         run: |
