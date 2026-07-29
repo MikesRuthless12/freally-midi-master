@@ -37,6 +37,10 @@ jobs:
       # Tauri's Linux runtime plus ALSA for the audio engine. Without these the
       # Linux leg fails at link time rather than at test time, which is a much
       # more confusing failure to read.
+      # The X11 packages are for the plugin: `baseview` — the windowing layer
+      # under the webview editor — links X11 on Linux, and without the headers
+      # `x11 v2.21.0`'s build script fails before anything of ours compiles.
+      # Nothing else in the workspace needs them.
       - name: Install Linux system dependencies
         if: matrix.os == 'ubuntu-latest'
         run: |
@@ -47,7 +51,12 @@ jobs:
             libayatana-appindicator3-dev \
             librsvg2-dev \
             libasound2-dev \
-            patchelf
+            patchelf \
+            libx11-dev \
+            libxcb1-dev \
+            libxcb-icccm4-dev \
+            libxcursor-dev \
+            libxkbcommon-dev
 
       - uses: dtolnay/rust-toolchain@stable
         with:
@@ -146,6 +155,11 @@ jobs:
             librsvg2-dev \
             libasound2-dev \
             patchelf \
+            libx11-dev \
+            libxcb1-dev \
+            libxcb-icccm4-dev \
+            libxcursor-dev \
+            libxkbcommon-dev \
             xvfb \
             xdotool \
             imagemagick
