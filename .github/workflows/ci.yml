@@ -46,6 +46,11 @@ jobs:
       # pkg-config for `x11-xcb`, which `libx11-dev` does *not* provide. The
       # error names the crate rather than the package, so it reads like an X11
       # problem when it is an X11-to-XCB bridge problem.
+      #
+      # `libjack-jackd2-dev` is for nih-plug's `standalone` feature, which the
+      # plugin opts into so it can run without a DAW. On Linux that reaches
+      # JACK through `jack-sys`, so the headers are needed to *compile* the
+      # plugin here even though CI never opens an audio device.
       - name: Install Linux system dependencies
         if: matrix.os == 'ubuntu-latest'
         run: |
@@ -56,6 +61,7 @@ jobs:
             libayatana-appindicator3-dev \
             librsvg2-dev \
             libasound2-dev \
+            libjack-jackd2-dev \
             patchelf \
             libx11-dev \
             libx11-xcb-dev \
