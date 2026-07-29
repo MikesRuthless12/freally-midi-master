@@ -39,14 +39,6 @@ static UI: Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/../dist");
 /// had to fix once.
 const SCHEME: &str = "freally";
 
-/// The window the UI is designed for, in **CSS pixels**.
-///
-/// 1440x900 rather than the 1280x760 this used to ask for, and the width is the
-/// number that matters: the right rail collapses below **1440**, so at 1280 the
-/// kit and session panels were hidden the moment the editor opened and had to
-/// be summoned with K. 1280 is the UI's hard *minimum* (PRD § 8), not the size
-/// it was drawn against — asking for the minimum meant every host got the
-/// degraded layout.
 /// The layout the UI is always given, in CSS pixels, whatever size the window
 /// is on screen.
 ///
@@ -85,27 +77,31 @@ fn preset(name: &str) -> Option<((u32, u32), f32)> {
     SCALES
         .iter()
         .find(|(id, _)| *id == name)
-        .map(|(_, factor)| physical(LAYOUT, *factor))
+        .map(|(_, factor)| physical(*factor))
 }
 
-/// The window size to ask the host for, in **physical** pixels.
+/// The scale after this one, wrapping, and whether it is *smaller*.
+///
+/// Both live here rather than in the frontend so the names exist in exactly one
+/// place. A list mirrored in TypeScript would let a rename here leave the button
+/// asking for a size the plugin rejects, and the "smaller" flag is what lets the
+/// button show the right icon without knowing which name is the smallest.
+fn next_scale(name: &str) -> (&'static str, bool) {
+    let at = SCALES.iter().position(|(id, _)| *id == name).unwrap_or(0);
+    let next = (at + 1) % SCALES.len();
+    (SCALES[next].0, SCALES[next].1 < SCALES[at].1)
+}
+
+/// The window in physical pixels, and the factor the page must actually zoom by.
 ///
 /// ⛔ The size handed to `WebViewEditor` is consumed as *physical* pixels while
 /// the page inside is laid out in *CSS* pixels, and on a scaled display those
 /// are not the same number. The vendored adapter says as much: its
 /// `set_scale_factor` is a stub returning `false` with "TODO: implement for
-/// Windows and Linux", so nih-plug's own DPI plumbing never reaches it.
-///
-/// The effect on a 150% display — which is an ordinary laptop, not an exotic
-/// setup — was that asking for 1280 gave the UI **853** CSS pixels. Below its
-/// own minimum, so the layout ran cramped and the right rail auto-collapsed,
-/// and nothing anywhere said why. Multiplying here is what makes the request
-/// mean what it says.
-///
-/// Scaling up is safe because the result is clamped to the work area below: on
-/// a 100% display this is exactly [`LOGICAL_SIZE`], and on a small screen it
-/// shrinks to fit rather than opening a window with its controls off-screen.
-/// The window in physical pixels, and the factor the page must actually zoom by.
+/// Windows and Linux", so nih-plug's own DPI plumbing never reaches it. The
+/// effect on an ordinary 150% laptop was that asking for 1280 gave the UI
+/// **853** CSS pixels — below its own minimum, so the layout ran cramped and
+/// the right rail auto-collapsed, with nothing anywhere saying why.
 ///
 /// ⛔ **The two are one number, and clamping has to move both.** The page is
 /// zoomed by the factor so the layout comes back out at [`LAYOUT`]; clamp the
@@ -116,9 +112,9 @@ fn preset(name: &str) -> Option<((u32, u32), f32)> {
 /// So a screen too small for the asked-for size does not get a clipped window:
 /// it gets a *smaller scale*, which still shows everything. A 1366x768 laptop
 /// asking for `large` is the case that matters, and it is not an exotic one.
-fn physical(layout: (u32, u32), factor: f32) -> ((u32, u32), f32) {
+fn physical(factor: f32) -> ((u32, u32), f32) {
     fit(
-        layout,
+        LAYOUT,
         system_scale(),
         factor,
         work_area().unwrap_or((u32::MAX, u32::MAX)),
@@ -169,7 +165,7 @@ mod sizing {
     fn the_window_is_the_layout_times_the_display_scale() {
         // 1440x900 at 150% is 2160x1350 physical, and the page is not zoomed
         // beyond the factor asked for.
-        let ((w, h), zoom) = fit((1440, 900), 1.5, 1.0, SCREEN);
+        let ((w, h), zoom) = fit(LAYOUT, 1.5, 1.0, SCREEN);
         assert_eq!((w, h), (2160, 1350));
         assert_eq!(zoom, 1.0);
     }
@@ -179,7 +175,7 @@ mod sizing {
         // The invariant the whole design rests on: window / (scale * zoom) is
         // always the layout, so the page always has 1440x900 to lay out in.
         for factor in [0.7, 0.85, 1.0] {
-            let ((w, _), zoom) = fit((1440, 900), 1.5, factor, SCREEN);
+            let ((w, _), zoom) = fit(LAYOUT, 1.5, factor, SCREEN);
             let css = w as f32 / (1.5 * zoom);
             assert!(
                 (css - 1440.0).abs() < 2.0,
@@ -196,7 +192,7 @@ mod sizing {
         // which is the failure the scales were introduced to avoid.
         //
         // A 1366x768 laptop at 100%, asking for the largest size.
-        let ((w, h), zoom) = fit((1440, 900), 1.0, 1.0, (1366, 728));
+        let ((w, h), zoom) = fit(LAYOUT, 1.0, 1.0, (1366, 728));
 
         assert!(w <= 1366 && h <= 728, "the window must fit the screen");
         assert!(zoom < 1.0, "the zoom must have come down with it");
@@ -213,7 +209,7 @@ mod sizing {
     fn a_big_screen_does_not_inflate_a_small_window() {
         // `fits` is capped at 1.0. Asking for small on a 4K display means
         // small, not "as big as the screen allows".
-        let ((w, _), zoom) = fit((1440, 900), 1.0, 0.7, (3840, 2160));
+        let ((w, _), zoom) = fit(LAYOUT, 1.0, 0.7, (3840, 2160));
         assert_eq!(zoom, 0.7);
         assert_eq!(w, 1008);
     }
@@ -226,7 +222,8 @@ mod sizing {
 /// by a build whose presets have since been renamed — falls back rather than
 /// refusing to open an editor.
 fn current_scale(shared: &SharedState) -> String {
-    let saved = state::read(&shared.session).window_size;
+    // One field, so `with` rather than a clone of the whole session.
+    let saved = state::with(&shared.session, |s| s.window_size.clone()).flatten();
     match saved {
         Some(name) if preset(&name).is_some() => name,
         _ => DEFAULT_SCALE.to_owned(),
@@ -234,10 +231,13 @@ fn current_scale(shared: &SharedState) -> String {
 }
 
 /// The size the editor opens at.
+///
+/// `current_scale` only ever returns a name `SCALES` contains, so `preset`
+/// cannot fail here — hence `expect` rather than a fallback that could only
+/// ever return a *logical* size from a function that promises physical pixels.
 fn window_size(shared: &SharedState) -> (u32, u32) {
-    preset(&current_scale(shared))
-        .map(|(size, _)| size)
-        .unwrap_or(LAYOUT)
+    let (size, _) = preset(&current_scale(shared)).expect("current_scale returns a known scale");
+    size
 }
 
 /// Commands the *window* owns, rather than the engine.
@@ -251,50 +251,52 @@ fn window_size(shared: &SharedState) -> (u32, u32) {
 /// Returns `None` when the command is not one of these, so the caller falls
 /// through to the bridge.
 fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Value, String>> {
-    // What size is this window, and what zoom goes with it? Asked on mount:
-    // the window already opens at the saved size, but the *page* has no way to
-    // know what zoom that implies, and at 1:1 inside a scaled window it would
-    // be cropped.
-    if request.command == "editor_size" {
-        let name = current_scale(shared);
-        return Some(match preset(&name) {
-            Some(((width, height), factor)) => {
-                Ok(json!({ "size": name, "width": width, "height": height, "zoom": factor }))
-            }
-            // `current_scale` only ever returns a name `preset` knows.
-            None => Err("no editor size is defined".to_owned()),
+    // `editor_size` reads, `set_editor_size` writes, and both answer with the
+    // same thing — so the reply is built once. Asked on mount because the
+    // window already opens at the saved size but the *page* has no way to know
+    // what zoom that implies, and at 1:1 inside a scaled window it is cropped.
+    let (name, resize) = match request.command.as_str() {
+        "editor_size" => (current_scale(shared), false),
+        "set_editor_size" => (
+            request.args["size"].as_str().unwrap_or_default().to_owned(),
+            true,
+        ),
+        _ => return None,
+    };
+
+    let Some(((width, height), zoom)) = preset(&name) else {
+        let known: Vec<&str> = SCALES.iter().map(|(id, _)| *id).collect();
+        return Some(Err(format!(
+            "`{name}` is not a window size — expected one of {}",
+            known.join(", ")
+        )));
+    };
+
+    if resize {
+        shared.request_resize(width, height);
+
+        // Remembered here rather than by the UI, so the size is saved with the
+        // project by the same host state call as everything else and there is
+        // one place that knows what size this window is. One guard, not a
+        // read-clone-write across two.
+        state::update(&shared.session, |session| {
+            session.window_size = Some(name.clone());
         });
     }
 
-    if request.command != "set_editor_size" {
-        return None;
-    }
-
-    let name = request.args["size"].as_str().unwrap_or_default();
-    Some(match preset(name) {
-        Some(((width, height), factor)) => {
-            shared.request_resize(width, height);
-
-            // Remembered here rather than by the UI, so the size is saved with
-            // the project by the same host state call as everything else and
-            // there is one place that knows what size this window is.
-            let mut session = state::read(&shared.session);
-            session.window_size = Some(name.to_owned());
-            state::write(&shared.session, session);
-
-            // `zoom` is what the page must apply for the layout to come out at
-            // `LAYOUT` inside a window this size. Sent back rather than
-            // duplicated in the frontend, so the two cannot drift apart.
-            Ok(json!({ "size": name, "width": width, "height": height, "zoom": factor }))
-        }
-        None => {
-            let known: Vec<&str> = SCALES.iter().map(|(id, _)| *id).collect();
-            Err(format!(
-                "`{name}` is not a window size — expected one of {}",
-                known.join(", ")
-            ))
-        }
-    })
+    // `zoom` is what the page must apply for the layout to come out at `LAYOUT`
+    // inside a window this size; `next` is what the button cycles to and
+    // `nextShrinks` which icon it should wear. All of it is sent rather than
+    // duplicated in the frontend, so none of it can drift.
+    let (next, shrinks) = next_scale(&name);
+    Some(Ok(json!({
+        "size": name,
+        "next": next,
+        "nextShrinks": shrinks,
+        "width": width,
+        "height": height,
+        "zoom": zoom,
+    })))
 }
 
 /// The desktop scale factor, as a multiplier (1.5 at 150%).
@@ -386,43 +388,18 @@ pub fn create(shared: SharedState) -> Option<Box<dyn Editor>> {
             ctx.resize(window, width, height);
         }
 
-        while let Ok(message) = ctx.next_event() {
-            let Ok(request) = serde_json::from_value::<Request>(message.clone()) else {
-                // Not a request shape at all. Loud rather than ignored:
-                // silence here is how a UI that is talking to nothing
-                // looks exactly like a UI whose command failed.
-                ctx.send_json(json!({
-                    "type": "response",
-                    "id": Value::Null,
-                    "error": format!("the plugin could not read this message: {message}"),
-                }));
-                continue;
-            };
-
-            let host = shared.host.snapshot();
-            let outcome = window_command(&request, &shared)
-                .unwrap_or_else(|| bridge::dispatch(&request, &host, &shared.session));
-            let reply = match outcome {
-                Ok(value) => {
-                    // A generation is the one command with a side effect
-                    // beyond its reply: the notes have to reach the audio
-                    // thread. Arming happens *here*, on the UI thread,
-                    // because that is where the allocation belongs.
-                    if request.command == "generate_pattern" {
-                        if let Ok(pattern) = serde_json::from_value(value.clone()) {
-                            let mut schedule = Schedule::default();
-                            schedule.arm(&pattern, shared.sample_rate());
-                            shared.handoff.send(schedule);
-                        }
-                    }
-                    json!({ "type": "response", "id": request.id, "ok": value })
-                }
-                Err(message) => {
-                    json!({ "type": "response", "id": request.id, "error": message })
-                }
-            };
-            ctx.send_json(reply);
-        }
+        // **Nothing reads `ctx.next_event()`, deliberately.** This loop used to
+        // answer commands off the webview's IPC channel, and that path is dead:
+        // the UI posts everything to `/__rpc` (see [`rpc`]), because wry's IPC
+        // is one-way and a window parented into Ableton never gets a frame tick
+        // to push a reply from. `window.sendToPlugin` survives only as the
+        // marker `isPlugin()` checks for; it is never called.
+        //
+        // The handler was kept here for a while and answered nothing, a
+        // line-for-line copy of `rpc` that no request could reach — so the copy
+        // a reader met first was the one that could never run. Deleted rather
+        // than commented out, because a second answering path is exactly what
+        // this bridge already lost an evening to.
     });
 
     Some(Box::new(editor))

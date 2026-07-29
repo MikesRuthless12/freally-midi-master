@@ -125,16 +125,21 @@ jobs:
           for f in *.AppImage;  do [ -e "$f" ] && check file -E "$f"; done
           # NSIS/MSI/DMG are all containers 7z can enumerate.
           for f in *.exe *.msi *.dmg; do [ -e "$f" ] && check 7z l "$f"; done
-          for f in freally-midi-master-plugins-*.zip; do [ -e "$f" ] && check 7z l "$f"; done
-
-          # **Both formats, in every plugin zip.** One binary produces the
-          # `.clap` and the `.vst3`, so a zip carrying only one is a packaging
-          # bug rather than a choice — and it is invisible until a producer on
-          # the wrong DAW finds nothing to load. Ableton, Logic, Pro Tools and
-          # Cubase need the VST3; Bitwig, Reaper and FL Studio take the CLAP.
+          # One enumeration per plugin zip, answering both questions: that it
+          # opens at all, and that **both formats are in it**. One binary
+          # produces the `.clap` and the `.vst3`, so a zip carrying only one is
+          # a packaging bug rather than a choice — and it is invisible until a
+          # producer on the wrong DAW finds nothing to load. Ableton, Logic,
+          # Pro Tools and Cubase need the VST3; Bitwig, Reaper and FL Studio
+          # take the CLAP.
           for f in freally-midi-master-plugins-*.zip; do
             [ -e "$f" ] || continue
-            listing=$(7z l "$f")
+            if ! listing=$(7z l "$f" 2>/dev/null); then
+              echo "::error::$f did not open — it is corrupt or truncated"
+              fail=1
+              continue
+            fi
+            echo "ok   $f"
             for want in '.clap' '.vst3'; do
               if ! printf '%s' "$listing" | grep -q -- "$want"; then
                 echo "::error::$f contains no $want — half the hosts can load nothing"

@@ -104,7 +104,11 @@ pub fn dispatch(
         // whenever the user changes something. There is no file and no path:
         // the value lives in the plugin's persisted params, and the DAW
         // decides when to write it out.
-        "session_state" => serde_json::to_value(state::read(session)).map_err(|e| e.to_string()),
+        // Serialized in place rather than out of a clone: `to_value` only needs
+        // a reference, and the clone would be dropped on the next line.
+        "session_state" => state::with(session, |s| serde_json::to_value(s))
+            .unwrap_or_else(|| serde_json::to_value(PluginSession::default()))
+            .map_err(|e| e.to_string()),
 
         // Deliberately replaces the whole session rather than patching a field.
         // A partial update needs the two sides to agree on which fields were

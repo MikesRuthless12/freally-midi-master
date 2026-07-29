@@ -94,6 +94,28 @@ pub fn write(store: &SessionStore, session: PluginSession) {
     }
 }
 
+/// Change part of the stored session in place.
+///
+/// One lock acquisition and no clone, where read-modify-write is two of each.
+/// A poisoned lock drops the change rather than the host, on the same reasoning
+/// as [`read`].
+pub fn update(store: &SessionStore, change: impl FnOnce(&mut PluginSession)) {
+    if let Ok(mut slot) = store.write() {
+        change(&mut slot);
+    }
+}
+
+/// Run `f` against the stored session without copying it.
+///
+/// For callers that want one field: cloning the whole session to read
+/// `window_size` and drop the rest is several allocations for an
+/// `Option<String>`. `None` means a writer poisoned the lock, which is the same
+/// condition [`read`] answers with a default — callers pick their own here
+/// because "the default" is not always meaningful for a single field.
+pub fn with<R>(store: &SessionStore, f: impl FnOnce(&PluginSession) -> R) -> Option<R> {
+    store.read().ok().map(|session| f(&session))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

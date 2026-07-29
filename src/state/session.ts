@@ -202,7 +202,7 @@ type SavedSession = {
  */
 let saveTimer: ReturnType<typeof setTimeout> | null = null;
 
-function persist(get: () => SessionState): void {
+function persist(): void {
   // Plugin only. Tauri has its own settings store and a browser has nowhere to
   // put this, and in both the command does not exist — calling it would be a
   // rejected promise per keystroke.
@@ -211,7 +211,7 @@ function persist(get: () => SessionState): void {
   if (saveTimer !== null) clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
     saveTimer = null;
-    const { selectedId, seed, bars, pins } = get();
+    const { selectedId, seed, bars, pins } = useSession.getState();
     void invoke('save_session_state', {
       session: { selectedId, seed, bars, pins },
     }).catch(() => {
@@ -229,18 +229,17 @@ function persist(get: () => SessionState): void {
  * the identical beat. `plugin/src/state.rs` explains why storing the inputs
  * beats storing a few hundred kilobytes of notes in someone's project file.
  */
-async function restore(
+function beginRestore(): Promise<SavedSession | null> {
+  if (!isPlugin()) return Promise.resolve(null);
+  return invoke<SavedSession>('session_state').catch(() => null);
+}
+
+async function apply(
+  pending: Promise<SavedSession | null>,
   set: (partial: Partial<SessionState>) => void,
   get: () => SessionState,
 ): Promise<void> {
-  if (!isPlugin()) return;
-
-  let saved: SavedSession;
-  try {
-    saved = await invoke<SavedSession>('session_state');
-  } catch {
-    return;
-  }
+  const saved = await pending;
   if (!saved) return;
 
   // Field by field rather than spread: the plugin's pins are the engine's
@@ -291,6 +290,8 @@ export const useSession = create<SessionState>((set, get) => ({
   pendingArtist: null,
 
   async init() {
+    const saved = beginRestore();
+
     try {
       const summary = await loadRoster();
       set({
@@ -313,9 +314,12 @@ export const useSession = create<SessionState>((set, get) => ({
       set({ playbackFailure: null });
     }
 
-    // After the roster, because restoring a selection wants the entry to exist
-    // for the rail to highlight, and because `loadDefaults` reads the dataset.
-    await restore(set, get);
+    // Applied after the roster, because restoring a selection wants the entry
+    // to exist for the rail to highlight and `loadDefaults` reads the dataset —
+    // but *started* before it, since the read depends on nothing above and
+    // `roster_summary` is the call that triggers the one-time dataset parse.
+    // Waiting for it in series would queue a small lock read behind that.
+    await apply(saved, set, get);
   },
 
   select(id) {
@@ -342,22 +346,18 @@ export const useSession = create<SessionState>((set, get) => ({
     });
 
     void loadDefaults(id, set, get);
-    persist(get);
   },
 
   setSeed(seed) {
     set({ seed: seed.trim() });
-    persist(get);
   },
 
   setBars(bars) {
     set({ bars });
-    persist(get);
   },
 
   setPin(field, value) {
     set({ pins: { ...get().pins, [field]: value } });
-    persist(get);
   },
 
   async refreshHost() {
@@ -378,12 +378,10 @@ export const useSession = create<SessionState>((set, get) => ({
 
   keepPins() {
     set({ pendingArtist: null });
-    persist(get);
   },
 
   adoptDefaults() {
     set({ pins: NO_PINS, pendingArtist: null });
-    persist(get);
   },
 
   async generate() {
@@ -407,10 +405,6 @@ export const useSession = create<SessionState>((set, get) => ({
       // Show the seed that was actually used, so the chip can be copied even
       // when the user never typed one (US-004).
       set({ pattern, seed: pattern.seed, generating: false });
-      // The seed the engine chose is the one that reproduces this beat, so it
-      // is the one worth saving — an unsaved fresh seed would reopen the
-      // project on a different pattern by the same artist.
-      persist(get);
     } catch (error) {
       set({ generating: false, error: reason(error) });
     }
@@ -440,6 +434,33 @@ export const useSession = create<SessionState>((set, get) => ({
     set({ playing: false, playhead: 0 });
   },
 }));
+
+/**
+ * Save the session whenever the user changes it.
+ *
+ * A subscription rather than a `persist()` call at the end of each mutating
+ * action. Opt-in was one line per action to remember, and it was already wrong
+ * in both directions: `keepPins` called it while changing nothing that is
+ * saved, and `generate` needed its own call precisely *because* an opt-in
+ * cannot notice that the engine wrote a fresh seed back into the store. A
+ * subscriber sees that for free, and the next action to touch these fields
+ * cannot forget.
+ *
+ * Reference equality is enough for `pins`: every writer replaces the object.
+ */
+if (isPlugin()) {
+  useSession.subscribe((state, prev) => {
+    if (
+      state.selectedId === prev.selectedId &&
+      state.seed === prev.seed &&
+      state.bars === prev.bars &&
+      state.pins === prev.pins
+    ) {
+      return;
+    }
+    persist();
+  });
+}
 
 /**
  * Follow the playhead the audio thread publishes.

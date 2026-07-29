@@ -22,18 +22,22 @@ import { useTranslation } from 'react-i18next';
 import { invoke } from '../../lib/ipc';
 import { isPlugin } from '../../lib/ipc-plugin';
 
-/** Smallest first, matching `SCALES` in the plugin. */
-const SIZES = ['small', 'medium', 'large'] as const;
-type Size = (typeof SIZES)[number];
-
 /**
- * Only a starting guess, and only until the plugin answers. The real value is
- * whatever the project was saved at — `editor_size` is asked on mount rather
- * than assumed here, so a reopened song comes back at the size it was closed.
+ * What the plugin says about the window it just sized.
+ *
+ * **No list of size names lives here.** `next` is what the button cycles to and
+ * comes from `SCALES` in `plugin/src/editor.rs`, which is the only place the
+ * names exist — a copy in TypeScript would let a rename there leave this button
+ * asking for a size the plugin rejects.
  */
-const DEFAULT: Size = 'medium';
-
-type SizeReply = { size: Size; width: number; height: number; zoom: number };
+type SizeReply = {
+  size: string;
+  next: string;
+  nextShrinks: boolean;
+  width: number;
+  height: number;
+  zoom: number;
+};
 
 /**
  * The page's own zoom. Set on the root element rather than in a stylesheet
@@ -46,7 +50,10 @@ function applyZoom(zoom: number): void {
 
 export function WindowSize() {
   const { t } = useTranslation();
-  const [size, setSize] = useState<Size>(DEFAULT);
+  // `null` until the plugin answers, which is also what keeps the button from
+  // guessing: the size is whatever the project was saved at, not a default
+  // assumed here.
+  const [sizing, setSizing] = useState<SizeReply | null>(null);
 
   // The window already opens at the saved size — the plugin reads it out of the
   // project state before it builds the editor — but the *page* has no way to
@@ -55,9 +62,9 @@ export function WindowSize() {
   useEffect(() => {
     if (!isPlugin()) return;
     void invoke<SizeReply>('editor_size')
-      .then(({ size: saved, zoom }) => {
-        setSize(saved);
-        applyZoom(zoom);
+      .then((reply) => {
+        setSizing(reply);
+        applyZoom(reply.zoom);
       })
       .catch(() => {
         // A shell with no such command leaves the page at 1:1, which is what
@@ -65,9 +72,9 @@ export function WindowSize() {
       });
   }, []);
 
-  if (!isPlugin()) return null;
-
-  const next = SIZES[(SIZES.indexOf(size) + 1) % SIZES.length];
+  // Nothing is drawn until the plugin has said what size it is. A button that
+  // guessed would show the wrong icon on a project saved at a different scale.
+  if (!isPlugin() || sizing === null) return null;
 
   return (
     <button
@@ -76,22 +83,24 @@ export function WindowSize() {
       aria-label={t('transport.windowSize')}
       title={t('transport.windowSize')}
       onClick={() => {
-        // Optimistic, and deliberately so: the window belongs to the host,
-        // which may clamp the size to the screen or refuse it outright.
-        // Tracking what was *asked for* keeps the button cycling either way,
-        // rather than sticking on a size the host quietly declined.
+        // The reply is the source of truth, not what was asked for: the host
+        // may clamp the size to the screen, and `fit` then returns the scale
+        // that actually fits. Taking the answer rather than the request keeps
+        // the zoom matched to the window it really got.
         //
         // The plugin records the choice in the project's own state, so there
         // is nothing to save here.
-        setSize(next);
-        void invoke<SizeReply>('set_editor_size', { size: next })
-          .then(({ zoom }) => applyZoom(zoom))
+        void invoke<SizeReply>('set_editor_size', { size: sizing.next })
+          .then((reply) => {
+            setSizing(reply);
+            applyZoom(reply.zoom);
+          })
           .catch(() => {
             // No such command in this shell; the window stays as it is.
           });
       }}
     >
-      {size === 'large' ? (
+      {sizing.nextShrinks ? (
         <Minimize2 size={14} aria-hidden="true" />
       ) : (
         <Maximize2 size={14} aria-hidden="true" />
