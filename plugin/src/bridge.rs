@@ -112,8 +112,18 @@ pub fn dispatch(
         // mean "the artist chooses" — so a patch protocol would make "unpin
         // the tempo" and "do not mention the tempo" the same message.
         "save_session_state" => {
-            let next: PluginSession = serde_json::from_value(request.args["session"].clone())
+            let mut next: PluginSession = serde_json::from_value(request.args["session"].clone())
                 .map_err(|e| format!("bad session state: {e}"))?;
+
+            // `window_size` is the *editor's*, not the UI's — `set_editor_size`
+            // is what sets it. A whole-session write that did not carry it
+            // would silently reset the window every time the user changed an
+            // artist, and the project would reopen at the wrong size with
+            // nothing to explain why.
+            if next.window_size.is_none() {
+                next.window_size = state::read(session).window_size;
+            }
+
             state::write(session, next);
             Ok(Value::Null)
         }
@@ -467,6 +477,61 @@ mod tests {
             Some("trap"),
             "a rejected write must leave the stored session alone"
         );
+    }
+
+    #[test]
+    fn saving_the_session_does_not_forget_the_window_size() {
+        // The UI writes the whole session on every change and knows nothing
+        // about the window. Without the carry-over, picking an artist would
+        // reset the size, and the project would reopen wrong with nothing to
+        // explain it.
+        let store = SessionStore::default();
+        state::write(
+            &store,
+            PluginSession {
+                window_size: Some("small".into()),
+                ..PluginSession::default()
+            },
+        );
+
+        super::dispatch(
+            &request(
+                "save_session_state",
+                json!({ "session": { "selectedId": "trap", "seed": "7" } }),
+            ),
+            &host(),
+            &store,
+        )
+        .unwrap();
+
+        let saved = state::read(&store);
+        assert_eq!(saved.selected_id.as_deref(), Some("trap"));
+        assert_eq!(saved.window_size.as_deref(), Some("small"));
+    }
+
+    #[test]
+    fn an_explicit_window_size_still_wins() {
+        // The carry-over must not make the field unwritable.
+        let store = SessionStore::default();
+        state::write(
+            &store,
+            PluginSession {
+                window_size: Some("small".into()),
+                ..PluginSession::default()
+            },
+        );
+
+        super::dispatch(
+            &request(
+                "save_session_state",
+                json!({ "session": { "windowSize": "large" } }),
+            ),
+            &host(),
+            &store,
+        )
+        .unwrap();
+
+        assert_eq!(state::read(&store).window_size.as_deref(), Some("large"));
     }
 
     #[test]

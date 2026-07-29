@@ -52,6 +52,13 @@ pub struct PluginSession {
     /// the two missing ones arrive as `None`, which is the behaviour
     /// `generate_pattern` has always relied on.
     pub pins: SessionOverrides,
+    /// Which of the editor's size presets this was last left at, so a project
+    /// reopens the way it was closed. `None` is the default size.
+    ///
+    /// A name rather than a pixel count, because the pixels depend on the
+    /// display: the same project opened on a 4K desktop and a laptop should be
+    /// the same *scale*, not the same number of pixels.
+    pub window_size: Option<String>,
 }
 
 /// The one store, shared by the two things that need it.
@@ -103,6 +110,7 @@ mod tests {
                 key_root: Some(3),
                 ..SessionOverrides::default()
             },
+            window_size: Some("small".into()),
         };
 
         let json = serde_json::to_string(&session).unwrap();

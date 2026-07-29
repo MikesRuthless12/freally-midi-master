@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 
 import { invoke, isTauri } from '../lib/ipc';
+import { isPlugin } from '../lib/ipc-plugin';
 import { loadRoster } from '../lib/roster';
 import type {
   DatasetProblem,
@@ -176,6 +177,95 @@ async function loadDefaults(
   }
 }
 
+/**
+ * The session as the *plugin* stores it, which the host writes into the
+ * project file (TASK-P07). Field-for-field what `PluginSession` in
+ * `plugin/src/state.rs` reads and writes.
+ *
+ * `windowSize` is deliberately absent: the editor owns it, and the plugin
+ * carries the stored value over any write that does not mention it.
+ */
+type SavedSession = {
+  selectedId: string | null;
+  seed: string;
+  bars: number | null;
+  pins: Partial<SessionPins> | null;
+};
+
+/**
+ * Coalesces writes, because the seed box saves on every keystroke.
+ *
+ * The bridge is an HTTP round trip per call, and typing a six-digit seed would
+ * otherwise be six of them. The host decides when to actually write the project
+ * out, so there is nothing to be gained by being prompt here — only work to be
+ * saved by not being.
+ */
+let saveTimer: ReturnType<typeof setTimeout> | null = null;
+
+function persist(get: () => SessionState): void {
+  // Plugin only. Tauri has its own settings store and a browser has nowhere to
+  // put this, and in both the command does not exist — calling it would be a
+  // rejected promise per keystroke.
+  if (!isPlugin()) return;
+
+  if (saveTimer !== null) clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    saveTimer = null;
+    const { selectedId, seed, bars, pins } = get();
+    void invoke('save_session_state', {
+      session: { selectedId, seed, bars, pins },
+    }).catch(() => {
+      // Losing a session write is not worth interrupting someone mid-beat.
+      // The next change writes the whole session again anyway.
+    });
+  }, 300);
+}
+
+/**
+ * Put back what the host handed us when the project opened.
+ *
+ * **The pattern is not restored, because it is not saved** — the artist, seed
+ * and pins are, and the engine is deterministic, so pressing Generate produces
+ * the identical beat. `plugin/src/state.rs` explains why storing the inputs
+ * beats storing a few hundred kilobytes of notes in someone's project file.
+ */
+async function restore(
+  set: (partial: Partial<SessionState>) => void,
+  get: () => SessionState,
+): Promise<void> {
+  if (!isPlugin()) return;
+
+  let saved: SavedSession;
+  try {
+    saved = await invoke<SavedSession>('session_state');
+  } catch {
+    return;
+  }
+  if (!saved) return;
+
+  // Field by field rather than spread: the plugin's pins are the engine's
+  // six-field `SessionOverrides` and this store's are four, so a spread would
+  // put `bars` and `halfTime` into a shape that has no room for them.
+  set({
+    seed: saved.seed ?? '',
+    bars: saved.bars ?? get().bars,
+    pins: {
+      bpm: saved.pins?.bpm ?? null,
+      keyRoot: saved.pins?.keyRoot ?? null,
+      scale: saved.pins?.scale ?? null,
+      swing: saved.pins?.swing ?? null,
+    },
+  });
+
+  // Set directly rather than through `select`, which would clear the pins as a
+  // different artist's and raise the keep-or-adopt prompt. This is the *same*
+  // session coming back, not a switch.
+  if (saved.selectedId) {
+    set({ selectedId: saved.selectedId });
+    void loadDefaults(saved.selectedId, set, get);
+  }
+}
+
 export const useSession = create<SessionState>((set, get) => ({
   roster: [],
   problems: [],
@@ -222,6 +312,10 @@ export const useSession = create<SessionState>((set, get) => ({
       // session; the transport stays disabled and nothing is claimed.
       set({ playbackFailure: null });
     }
+
+    // After the roster, because restoring a selection wants the entry to exist
+    // for the rail to highlight, and because `loadDefaults` reads the dataset.
+    await restore(set, get);
   },
 
   select(id) {
@@ -248,18 +342,22 @@ export const useSession = create<SessionState>((set, get) => ({
     });
 
     void loadDefaults(id, set, get);
+    persist(get);
   },
 
   setSeed(seed) {
     set({ seed: seed.trim() });
+    persist(get);
   },
 
   setBars(bars) {
     set({ bars });
+    persist(get);
   },
 
   setPin(field, value) {
     set({ pins: { ...get().pins, [field]: value } });
+    persist(get);
   },
 
   async refreshHost() {
@@ -280,10 +378,12 @@ export const useSession = create<SessionState>((set, get) => ({
 
   keepPins() {
     set({ pendingArtist: null });
+    persist(get);
   },
 
   adoptDefaults() {
     set({ pins: NO_PINS, pendingArtist: null });
+    persist(get);
   },
 
   async generate() {
@@ -307,6 +407,10 @@ export const useSession = create<SessionState>((set, get) => ({
       // Show the seed that was actually used, so the chip can be copied even
       // when the user never typed one (US-004).
       set({ pattern, seed: pattern.seed, generating: false });
+      // The seed the engine chose is the one that reproduces this beat, so it
+      // is the one worth saving — an unsaved fresh seed would reopen the
+      // project on a different pattern by the same artist.
+      persist(get);
     } catch (error) {
       set({ generating: false, error: reason(error) });
     }

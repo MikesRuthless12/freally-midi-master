@@ -26,10 +26,14 @@ import { isPlugin } from '../../lib/ipc-plugin';
 const SIZES = ['small', 'medium', 'large'] as const;
 type Size = (typeof SIZES)[number];
 
-/** What the editor opens at. `DEFAULT_SCALE` in the plugin says the same. */
+/**
+ * Only a starting guess, and only until the plugin answers. The real value is
+ * whatever the project was saved at — `editor_size` is asked on mount rather
+ * than assumed here, so a reopened song comes back at the size it was closed.
+ */
 const DEFAULT: Size = 'medium';
 
-type SizeReply = { width: number; height: number; zoom: number };
+type SizeReply = { size: Size; width: number; height: number; zoom: number };
 
 /**
  * The page's own zoom. Set on the root element rather than in a stylesheet
@@ -40,25 +44,25 @@ function applyZoom(zoom: number): void {
   document.documentElement.style.zoom = String(zoom);
 }
 
-async function askFor(size: Size): Promise<void> {
-  try {
-    const { zoom } = await invoke<SizeReply>('set_editor_size', { size });
-    applyZoom(zoom);
-  } catch {
-    // A shell with no such command is not an error worth a toast — the window
-    // simply stays as it is.
-  }
-}
-
 export function WindowSize() {
   const { t } = useTranslation();
   const [size, setSize] = useState<Size>(DEFAULT);
 
-  // The window already opens at the default size, but the *page* does not know
-  // its zoom until someone says so — without this the first paint lays out at
-  // 1:1 inside a window sized for 0.85 and everything is cropped.
+  // The window already opens at the saved size — the plugin reads it out of the
+  // project state before it builds the editor — but the *page* has no way to
+  // know what zoom that implies. Without this the first paint lays out 1:1
+  // inside a scaled window and is cropped until the button is pressed.
   useEffect(() => {
-    if (isPlugin()) void askFor(DEFAULT);
+    if (!isPlugin()) return;
+    void invoke<SizeReply>('editor_size')
+      .then(({ size: saved, zoom }) => {
+        setSize(saved);
+        applyZoom(zoom);
+      })
+      .catch(() => {
+        // A shell with no such command leaves the page at 1:1, which is what
+        // it already was.
+      });
   }, []);
 
   if (!isPlugin()) return null;
@@ -76,8 +80,15 @@ export function WindowSize() {
         // which may clamp the size to the screen or refuse it outright.
         // Tracking what was *asked for* keeps the button cycling either way,
         // rather than sticking on a size the host quietly declined.
+        //
+        // The plugin records the choice in the project's own state, so there
+        // is nothing to save here.
         setSize(next);
-        void askFor(next);
+        void invoke<SizeReply>('set_editor_size', { size: next })
+          .then(({ zoom }) => applyZoom(zoom))
+          .catch(() => {
+            // No such command in this shell; the window stays as it is.
+          });
       }}
     >
       {size === 'large' ? (

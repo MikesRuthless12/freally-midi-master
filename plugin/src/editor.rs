@@ -24,6 +24,7 @@ use serde_json::{json, Value};
 
 use crate::bridge::{self, Request};
 use crate::shared::SharedState;
+use crate::state;
 use crate::voice::Schedule;
 
 /// The built frontend. Vite writes `index.html` plus hashed assets here.
@@ -114,9 +115,23 @@ fn physical((w, h): (u32, u32), factor: f32) -> (u32, u32) {
     )
 }
 
+/// The name of the size this session is at.
+///
+/// Saved with the project, so reopening a song gives back the window it was
+/// closed at rather than the default. An unrecognised name — a project written
+/// by a build whose presets have since been renamed — falls back rather than
+/// refusing to open an editor.
+fn current_scale(shared: &SharedState) -> String {
+    let saved = state::read(&shared.session).window_size;
+    match saved {
+        Some(name) if preset(&name).is_some() => name,
+        _ => DEFAULT_SCALE.to_owned(),
+    }
+}
+
 /// The size the editor opens at.
-fn window_size() -> (u32, u32) {
-    preset(DEFAULT_SCALE)
+fn window_size(shared: &SharedState) -> (u32, u32) {
+    preset(&current_scale(shared))
         .map(|(size, _)| size)
         .unwrap_or(LAYOUT)
 }
@@ -132,6 +147,21 @@ fn window_size() -> (u32, u32) {
 /// Returns `None` when the command is not one of these, so the caller falls
 /// through to the bridge.
 fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Value, String>> {
+    // What size is this window, and what zoom goes with it? Asked on mount:
+    // the window already opens at the saved size, but the *page* has no way to
+    // know what zoom that implies, and at 1:1 inside a scaled window it would
+    // be cropped.
+    if request.command == "editor_size" {
+        let name = current_scale(shared);
+        return Some(match preset(&name) {
+            Some(((width, height), factor)) => {
+                Ok(json!({ "size": name, "width": width, "height": height, "zoom": factor }))
+            }
+            // `current_scale` only ever returns a name `preset` knows.
+            None => Err("no editor size is defined".to_owned()),
+        });
+    }
+
     if request.command != "set_editor_size" {
         return None;
     }
@@ -140,10 +170,18 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
     Some(match preset(name) {
         Some(((width, height), factor)) => {
             shared.request_resize(width, height);
+
+            // Remembered here rather than by the UI, so the size is saved with
+            // the project by the same host state call as everything else and
+            // there is one place that knows what size this window is.
+            let mut session = state::read(&shared.session);
+            session.window_size = Some(name.to_owned());
+            state::write(&shared.session, session);
+
             // `zoom` is what the page must apply for the layout to come out at
             // `LAYOUT` inside a window this size. Sent back rather than
             // duplicated in the frontend, so the two cannot drift apart.
-            Ok(json!({ "width": width, "height": height, "zoom": factor }))
+            Ok(json!({ "size": name, "width": width, "height": height, "zoom": factor }))
         }
         None => {
             let known: Vec<&str> = SCALES.iter().map(|(id, _)| *id).collect();
@@ -216,7 +254,7 @@ fn work_area() -> Option<(u32, u32)> {
 pub fn create(shared: SharedState) -> Option<Box<dyn Editor>> {
     let editor = WebViewEditor::new(
         HTMLSource::URL("freally://localhost/index.html"),
-        window_size(),
+        window_size(&shared),
     )
     // The app's own background, so a slow first paint is the app's colour
     // rather than a white flash inside a dark DAW.
