@@ -85,7 +85,7 @@ fn preset(name: &str) -> Option<((u32, u32), f32)> {
     SCALES
         .iter()
         .find(|(id, _)| *id == name)
-        .map(|(_, factor)| (physical(LAYOUT, *factor), *factor))
+        .map(|(_, factor)| physical(LAYOUT, *factor))
 }
 
 /// The window size to ask the host for, in **physical** pixels.
@@ -105,14 +105,118 @@ fn preset(name: &str) -> Option<((u32, u32), f32)> {
 /// Scaling up is safe because the result is clamped to the work area below: on
 /// a 100% display this is exactly [`LOGICAL_SIZE`], and on a small screen it
 /// shrinks to fit rather than opening a window with its controls off-screen.
-fn physical((w, h): (u32, u32), factor: f32) -> (u32, u32) {
-    let scale = system_scale() * factor;
-    let (max_w, max_h) = work_area().unwrap_or((u32::MAX, u32::MAX));
-
-    (
-        ((w as f32 * scale) as u32).min(max_w),
-        ((h as f32 * scale) as u32).min(max_h),
+/// The window in physical pixels, and the factor the page must actually zoom by.
+///
+/// ⛔ **The two are one number, and clamping has to move both.** The page is
+/// zoomed by the factor so the layout comes back out at [`LAYOUT`]; clamp the
+/// window to the screen without clamping the factor and the CSS viewport is
+/// suddenly smaller than the layout, which crops the app and collapses the
+/// right rail — the exact failure this design exists to prevent.
+///
+/// So a screen too small for the asked-for size does not get a clipped window:
+/// it gets a *smaller scale*, which still shows everything. A 1366x768 laptop
+/// asking for `large` is the case that matters, and it is not an exotic one.
+fn physical(layout: (u32, u32), factor: f32) -> ((u32, u32), f32) {
+    fit(
+        layout,
+        system_scale(),
+        factor,
+        work_area().unwrap_or((u32::MAX, u32::MAX)),
     )
+}
+
+/// The arithmetic behind [`physical`], with the platform taken out of it.
+///
+/// Separated purely so it can be tested. The bug this shape exists to prevent
+/// was live and invisible: the window was clamped to the screen while the zoom
+/// was not, so a display too small for the asked-for size cropped the app
+/// instead of scaling it.
+fn fit(
+    (w, h): (u32, u32),
+    scale: f32,
+    factor: f32,
+    (max_w, max_h): (u32, u32),
+) -> ((u32, u32), f32) {
+    let want_w = w as f32 * scale * factor;
+    let want_h = h as f32 * scale * factor;
+
+    // How much of what was asked for actually fits. Capped at 1.0 because this
+    // may only ever shrink: a small window on a big screen is a choice, and
+    // blowing it up to fill the display would be overriding it.
+    let fits = (max_w as f32 / want_w)
+        .min(max_h as f32 / want_h)
+        .clamp(f32::MIN_POSITIVE, 1.0);
+
+    let effective = factor * fits;
+    (
+        (
+            (w as f32 * scale * effective) as u32,
+            (h as f32 * scale * effective) as u32,
+        ),
+        effective,
+    )
+}
+
+/// Separate from the module's other `tests` below, which cover the bridge and
+/// the served assets rather than the geometry.
+#[cfg(test)]
+mod sizing {
+    use super::*;
+
+    const SCREEN: (u32, u32) = (u32::MAX, u32::MAX);
+
+    #[test]
+    fn the_window_is_the_layout_times_the_display_scale() {
+        // 1440x900 at 150% is 2160x1350 physical, and the page is not zoomed
+        // beyond the factor asked for.
+        let ((w, h), zoom) = fit((1440, 900), 1.5, 1.0, SCREEN);
+        assert_eq!((w, h), (2160, 1350));
+        assert_eq!(zoom, 1.0);
+    }
+
+    #[test]
+    fn a_smaller_factor_shrinks_the_window_and_the_zoom_together() {
+        // The invariant the whole design rests on: window / (scale * zoom) is
+        // always the layout, so the page always has 1440x900 to lay out in.
+        for factor in [0.7, 0.85, 1.0] {
+            let ((w, _), zoom) = fit((1440, 900), 1.5, factor, SCREEN);
+            let css = w as f32 / (1.5 * zoom);
+            assert!(
+                (css - 1440.0).abs() < 2.0,
+                "factor {factor} gave the page {css} CSS px, not 1440"
+            );
+        }
+    }
+
+    #[test]
+    fn a_screen_too_small_shrinks_the_scale_rather_than_cropping_the_app() {
+        // ⛔ The bug this test exists for. Clamping the window to the screen
+        // without clamping the zoom leaves the page laying out at 1440 inside
+        // something narrower — the app is cropped and the right rail vanishes,
+        // which is the failure the scales were introduced to avoid.
+        //
+        // A 1366x768 laptop at 100%, asking for the largest size.
+        let ((w, h), zoom) = fit((1440, 900), 1.0, 1.0, (1366, 728));
+
+        assert!(w <= 1366 && h <= 728, "the window must fit the screen");
+        assert!(zoom < 1.0, "the zoom must have come down with it");
+
+        let css_w = w as f32 / zoom;
+        let css_h = h as f32 / zoom;
+        assert!(
+            css_w >= 1439.0 && css_h >= 899.0,
+            "the page still needs 1440x900 to lay out in, got {css_w}x{css_h}"
+        );
+    }
+
+    #[test]
+    fn a_big_screen_does_not_inflate_a_small_window() {
+        // `fits` is capped at 1.0. Asking for small on a 4K display means
+        // small, not "as big as the screen allows".
+        let ((w, _), zoom) = fit((1440, 900), 1.0, 0.7, (3840, 2160));
+        assert_eq!(zoom, 0.7);
+        assert_eq!(w, 1008);
+    }
 }
 
 /// The name of the size this session is at.
