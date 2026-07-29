@@ -81,6 +81,7 @@
     "loop": "Loop",
     "masterLevel": "Level master: senyap",
     "toggleRightRail": "Alihkan panel kanan (K)",
+    "windowSize": "Ukuran jendela",
     "reportBug": "Laporkan bug",
     "loopAlways": "Pemutaran selalu berulang pada fase ini.",
     "unavailable": "Pemutaran tidak tersedia: {{reason}}"

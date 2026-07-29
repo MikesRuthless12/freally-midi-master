@@ -411,8 +411,7 @@ mod tests {
                     "selectedId": "uk-drill",
                     "seed": "2024",
                     "bars": 8,
-                    "pins": { "bpm": 150.0, "keyRoot": 3, "scale": null, "swing": null, "bars": null, "halfTime": null },
-                    "part": "drums"
+                    "pins": { "bpm": 150.0, "keyRoot": 3, "scale": null, "swing": null }
                 }}),
             ),
             &host(),

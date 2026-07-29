@@ -46,7 +46,29 @@ const SCHEME: &str = "freally";
 /// be summoned with K. 1280 is the UI's hard *minimum* (PRD § 8), not the size
 /// it was drawn against — asking for the minimum meant every host got the
 /// degraded layout.
-const LOGICAL_SIZE: (u32, u32) = (1440, 900);
+const LOGICAL_SIZE: (u32, u32) = SIZES[0].1;
+
+/// The sizes the UI can ask for, in CSS pixels, smallest first.
+///
+/// **Presets rather than a draggable edge**, because the vendored adapter does
+/// not forward `Event::Window(Resized)` — its `on_event` handles keyboard and
+/// mouse and nothing else — so a window the host resized would leave the page
+/// inside it laid out at the old size. Teaching it to would mean editing
+/// `src/lib.rs`, which `VENDORED.md` deliberately keeps byte-for-byte upstream.
+///
+/// `medium` is the layout target: the smallest width that keeps the right rail
+/// open. `large` is for the screen a producer actually works on; it is clamped
+/// to the work area, so on a smaller display it quietly becomes "as big as
+/// fits" rather than opening off the edge.
+const SIZES: &[(&str, (u32, u32))] = &[("medium", (1440, 900)), ("large", (1760, 1080))];
+
+/// A named size, in physical pixels, ready to hand to the window.
+fn preset(name: &str) -> Option<(u32, u32)> {
+    SIZES
+        .iter()
+        .find(|(id, _)| *id == name)
+        .map(|(_, logical)| physical(*logical))
+}
 
 /// The window size to ask the host for, in **physical** pixels.
 ///
@@ -65,15 +87,50 @@ const LOGICAL_SIZE: (u32, u32) = (1440, 900);
 /// Scaling up is safe because the result is clamped to the work area below: on
 /// a 100% display this is exactly [`LOGICAL_SIZE`], and on a small screen it
 /// shrinks to fit rather than opening a window with its controls off-screen.
-fn window_size() -> (u32, u32) {
+fn physical((w, h): (u32, u32)) -> (u32, u32) {
     let scale = system_scale();
-    let (w, h) = LOGICAL_SIZE;
     let (max_w, max_h) = work_area().unwrap_or((u32::MAX, u32::MAX));
 
     (
         ((w as f32 * scale) as u32).min(max_w),
         ((h as f32 * scale) as u32).min(max_h),
     )
+}
+
+/// The size the editor opens at.
+fn window_size() -> (u32, u32) {
+    physical(LOGICAL_SIZE)
+}
+
+/// Commands the *window* owns, rather than the engine.
+///
+/// [`bridge::dispatch`] answers for the dataset and the generator and knows
+/// nothing about a window — it cannot, because the window exists only inside
+/// the frame loop. Handled before dispatch so that the bridge's "an unknown
+/// command fails loudly" rule keeps meaning what it says: this is a *known*
+/// command that simply lives on the other side of the seam.
+///
+/// Returns `None` when the command is not one of these, so the caller falls
+/// through to the bridge.
+fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Value, String>> {
+    if request.command != "set_editor_size" {
+        return None;
+    }
+
+    let name = request.args["size"].as_str().unwrap_or_default();
+    Some(match preset(name) {
+        Some((width, height)) => {
+            shared.request_resize(width, height);
+            Ok(json!({ "width": width, "height": height }))
+        }
+        None => {
+            let known: Vec<&str> = SIZES.iter().map(|(id, _)| *id).collect();
+            Err(format!(
+                "`{name}` is not a window size — expected one of {}",
+                known.join(", ")
+            ))
+        }
+    })
 }
 
 /// The desktop scale factor, as a multiplier (1.5 at 150%).
@@ -154,10 +211,16 @@ pub fn create(shared: SharedState) -> Option<Box<dyn Editor>> {
         let shared = shared.clone();
         move |request| serve(request, &shared)
     })
-    .with_event_loop(move |ctx, _setter, _window| {
+    .with_event_loop(move |ctx, _setter, window| {
         // Free anything the audio thread parked. This is the thread that
         // is allowed to.
         shared.handoff.collect();
+
+        // A size the UI asked for. This is the only place it can be applied:
+        // `resize` needs the window, and the window only exists here.
+        if let Some((width, height)) = shared.take_resize() {
+            ctx.resize(window, width, height);
+        }
 
         while let Ok(message) = ctx.next_event() {
             let Ok(request) = serde_json::from_value::<Request>(message.clone()) else {
@@ -173,7 +236,9 @@ pub fn create(shared: SharedState) -> Option<Box<dyn Editor>> {
             };
 
             let host = shared.host.snapshot();
-            let reply = match bridge::dispatch(&request, &host, &shared.session) {
+            let outcome = window_command(&request, &shared)
+                .unwrap_or_else(|| bridge::dispatch(&request, &host, &shared.session));
+            let reply = match outcome {
                 Ok(value) => {
                     // A generation is the one command with a side effect
                     // beyond its reply: the notes have to reach the audio
@@ -265,7 +330,9 @@ fn rpc(body: &[u8], shared: &SharedState) -> String {
     let reply = match serde_json::from_slice::<Request>(body) {
         Ok(request) => {
             let host = shared.host.snapshot();
-            match bridge::dispatch(&request, &host, &shared.session) {
+            let outcome = window_command(&request, shared)
+                .unwrap_or_else(|| bridge::dispatch(&request, &host, &shared.session));
+            match outcome {
                 Ok(value) => {
                     // A generation is the one command with a side effect
                     // beyond its reply: the notes have to reach the audio

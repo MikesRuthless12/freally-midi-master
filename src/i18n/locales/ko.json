@@ -81,6 +81,7 @@
     "loop": "루프",
     "masterLevel": "마스터 레벨: 무음",
     "toggleRightRail": "오른쪽 레일 전환 (K)",
+    "windowSize": "창 크기",
     "reportBug": "버그 신고",
     "loopAlways": "이 단계에서는 재생이 항상 반복됩니다.",
     "unavailable": "재생할 수 없습니다: {{reason}}"

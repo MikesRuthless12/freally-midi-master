@@ -132,6 +132,15 @@ pub struct Shared {
     /// The same `Arc` as the persisted field on
     /// [`FreallyParams`](crate::FreallyParams) — see [`Shared::new`].
     pub session: SessionStore,
+    /// A window size the UI has asked for, packed `width << 32 | height`, or
+    /// `0` for "nothing pending".
+    ///
+    /// The editor can only resize itself from inside its own event loop, where
+    /// baseview hands over the window — but the request arrives on the bridge,
+    /// which answers an HTTP call from the page. This is the one-slot handoff
+    /// between the two, and it is an atomic because the frame loop reads it on
+    /// every tick and must not take a lock to find out there is nothing to do.
+    resize_request: AtomicU64,
     /// The host's sample rate, from `initialize`.
     ///
     /// The editor arms schedules in *samples*, so this has to be the real
@@ -152,6 +161,7 @@ impl Shared {
             host: SharedHost::default(),
             handoff: Handoff::default(),
             session,
+            resize_request: AtomicU64::new(0),
             // Only ever read before `initialize` has run, which no host does
             // before opening an editor — but a wrong guess is quieter than a
             // zero, and a zero here would place every note at tick 0.
@@ -186,6 +196,25 @@ impl Shared {
 
     pub fn sample_rate(&self) -> f32 {
         self.sample_rate.load(Ordering::Relaxed) as f32
+    }
+
+    /// Ask the editor to become this size, in physical pixels.
+    ///
+    /// Nothing happens here: the window belongs to the frame loop, and this is
+    /// only where the request waits for it. A second request before the first
+    /// is picked up replaces it, for the same reason [`Handoff`] keeps one slot
+    /// — the user clicked again because they wanted the newer size.
+    pub fn request_resize(&self, width: u32, height: u32) {
+        let packed = (u64::from(width) << 32) | u64::from(height);
+        self.resize_request.store(packed, Ordering::Relaxed);
+    }
+
+    /// Take a pending resize, if there is one. The frame loop is the caller.
+    pub fn take_resize(&self) -> Option<(u32, u32)> {
+        let packed = self.resize_request.swap(0, Ordering::Relaxed);
+        // Zero is the sentinel, and it cannot collide with a real request: a
+        // window of zero width or height is not a size anything would ask for.
+        (packed != 0).then_some(((packed >> 32) as u32, (packed & 0xFFFF_FFFF) as u32))
     }
 }
 
@@ -259,6 +288,36 @@ mod tests {
             shared.set_sample_rate(bad);
             assert_eq!(shared.sample_rate(), 44_100.0, "accepted {bad}");
         }
+    }
+
+    #[test]
+    fn a_resize_request_is_taken_exactly_once() {
+        // The frame loop runs at sixty hertz; a request that survived being
+        // read would resize the window on every tick forever.
+        let shared = Shared::default();
+        assert_eq!(shared.take_resize(), None);
+
+        shared.request_resize(2160, 1350);
+        assert_eq!(shared.take_resize(), Some((2160, 1350)));
+        assert_eq!(shared.take_resize(), None, "it should not repeat");
+    }
+
+    #[test]
+    fn a_second_size_replaces_an_unclaimed_first() {
+        let shared = Shared::default();
+        shared.request_resize(2160, 1350);
+        shared.request_resize(2560, 1528);
+        assert_eq!(shared.take_resize(), Some((2560, 1528)));
+    }
+
+    #[test]
+    fn a_large_size_survives_the_packing() {
+        // Packed into one `u64` as `width << 32 | height`. A 4K-wide window is
+        // well inside `u32`, but the shift is the kind of arithmetic that is
+        // wrong silently, so it gets a test rather than a reading.
+        let shared = Shared::default();
+        shared.request_resize(3840, 2160);
+        assert_eq!(shared.take_resize(), Some((3840, 2160)));
     }
 
     #[test]

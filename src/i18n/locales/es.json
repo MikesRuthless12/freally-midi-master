@@ -81,6 +81,7 @@
     "loop": "Bucle",
     "masterLevel": "Nivel máster: en silencio",
     "toggleRightRail": "Alternar el panel derecho (K)",
+    "windowSize": "Tamaño de la ventana",
     "reportBug": "Reportar un error",
     "loopAlways": "La reproducción siempre se repite en esta fase.",
     "unavailable": "La reproducción no está disponible: {{reason}}"

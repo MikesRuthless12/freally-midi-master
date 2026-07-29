@@ -81,6 +81,7 @@
     "loop": "Loop",
     "masterLevel": "Livello master: silenzio",
     "toggleRightRail": "Mostra/nascondi pannello destro (K)",
+    "windowSize": "Dimensioni finestra",
     "reportBug": "Segnala un bug",
     "loopAlways": "La riproduzione va sempre in loop in questa fase.",
     "unavailable": "Riproduzione non disponibile: {{reason}}"

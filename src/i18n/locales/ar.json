@@ -81,6 +81,7 @@
     "loop": "تكرار",
     "masterLevel": "مستوى الماستر: صامت",
     "toggleRightRail": "تبديل الشريط الجانبي (K)",
+    "windowSize": "حجم النافذة",
     "reportBug": "الإبلاغ عن مشكلة",
     "loopAlways": "التشغيل يعمل دائماً في حلقة في هذه المرحلة.",
     "unavailable": "التشغيل غير متاح: {{reason}}"

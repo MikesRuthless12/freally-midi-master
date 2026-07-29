@@ -81,6 +81,7 @@
     "loop": "Loop",
     "masterLevel": "Master level: silent",
     "toggleRightRail": "Toggle right rail (K)",
+    "windowSize": "Window size",
     "reportBug": "Report a bug",
     "loopAlways": "Playback always loops in this phase.",
     "unavailable": "Playback is unavailable: {{reason}}"

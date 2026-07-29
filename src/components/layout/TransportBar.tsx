@@ -3,6 +3,7 @@ import { useUi } from '../../state/ui';
 import { useSession } from '../../state/session';
 import { ExportChip } from '../ExportChip/ExportChip';
 import { ViewMenu } from './ViewMenu';
+import { WindowSize } from './WindowSize';
 import type { ThemePreference } from '../../state/theme';
 import { useTranslation } from 'react-i18next';
 
@@ -150,6 +151,8 @@ export function TransportBar({ onReportBug }: { onReportBug: () => void }) {
       >
         <PanelRight size={14} aria-hidden="true" />
       </button>
+
+      <WindowSize />
 
       <button
         type="button"

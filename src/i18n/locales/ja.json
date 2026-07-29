@@ -81,6 +81,7 @@
     "loop": "ループ",
     "masterLevel": "マスターレベル: 無音",
     "toggleRightRail": "右パネルの表示切替 (K)",
+    "windowSize": "ウィンドウサイズ",
     "reportBug": "バグを報告",
     "loopAlways": "このフェーズでは再生は常にループします。",
     "unavailable": "再生できません: {{reason}}"

@@ -81,6 +81,7 @@
     "loop": "循环",
     "masterLevel": "主输出电平：静音",
     "toggleRightRail": "切换右侧栏 (K)",
+    "windowSize": "窗口大小",
     "reportBug": "报告问题",
     "loopAlways": "当前阶段播放始终循环。",
     "unavailable": "无法播放：{{reason}}"

@@ -81,6 +81,7 @@
     "loop": "Döngü",
     "masterLevel": "Master seviyesi: sessiz",
     "toggleRightRail": "Sağ paneli aç/kapat (K)",
+    "windowSize": "Pencere boyutu",
     "reportBug": "Hata bildir",
     "loopAlways": "Bu aşamada çalma her zaman döngüdedir.",
     "unavailable": "Çalma kullanılamıyor: {{reason}}"

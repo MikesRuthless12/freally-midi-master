@@ -81,6 +81,7 @@
     "loop": "Loop",
     "masterLevel": "Masterpegel: stumm",
     "toggleRightRail": "Rechte Leiste ein-/ausblenden (K)",
+    "windowSize": "Fenstergröße",
     "reportBug": "Fehler melden",
     "loopAlways": "Die Wiedergabe läuft in dieser Phase immer in Schleife.",
     "unavailable": "Wiedergabe nicht verfügbar: {{reason}}"

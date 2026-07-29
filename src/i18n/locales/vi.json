@@ -81,6 +81,7 @@
     "loop": "Lặp",
     "masterLevel": "Mức master: im lặng",
     "toggleRightRail": "Bật/tắt thanh phải (K)",
+    "windowSize": "Kích thước cửa sổ",
     "reportBug": "Báo lỗi",
     "loopAlways": "Ở giai đoạn này, phát lại luôn lặp.",
     "unavailable": "Không thể phát: {{reason}}"

@@ -81,6 +81,7 @@
     "loop": "Boucle",
     "masterLevel": "Niveau master : silencieux",
     "toggleRightRail": "Afficher/masquer le panneau droit (K)",
+    "windowSize": "Taille de la fenêtre",
     "reportBug": "Signaler un bug",
     "loopAlways": "La lecture est toujours en boucle à ce stade.",
     "unavailable": "Lecture indisponible : {{reason}}"

@@ -23,7 +23,6 @@
 use std::sync::{Arc, RwLock};
 
 use engine::context::SessionOverrides;
-use engine::pattern::Part;
 use serde::{Deserialize, Serialize};
 
 /// The session as the host stores it, and as the UI restores it.
@@ -48,10 +47,11 @@ pub struct PluginSession {
     pub bars: Option<u16>,
     /// What the user pinned. Absent fields mean "the artist chooses", which is
     /// the distinction `SessionOverrides` exists to keep.
+    ///
+    /// The UI sends its four-field `SessionPins` into this six-field type and
+    /// the two missing ones arrive as `None`, which is the behaviour
+    /// `generate_pattern` has always relied on.
     pub pins: SessionOverrides,
-    /// Which generator ran. `None` restores as the default (drums), so a
-    /// project saved before this field existed opens on the part it had.
-    pub part: Option<Part>,
 }
 
 /// The one store, shared by the two things that need it.
@@ -103,7 +103,6 @@ mod tests {
                 key_root: Some(3),
                 ..SessionOverrides::default()
             },
-            part: Some(Part::Drums),
         };
 
         let json = serde_json::to_string(&session).unwrap();
@@ -130,15 +129,31 @@ mod tests {
     #[test]
     fn a_state_written_by_an_older_build_still_opens() {
         // The whole point of `#[serde(default)]`. A project saved before
-        // `part` and `bars` existed must reopen on its artist and seed rather
+        // `bars` and `pins` existed must reopen on its artist and seed rather
         // than refusing and losing the session.
         let old = r#"{"selectedId":"trap","seed":"7"}"#;
         let session: PluginSession = serde_json::from_str(old).unwrap();
 
         assert_eq!(session.selected_id.as_deref(), Some("trap"));
         assert_eq!(session.seed, "7");
-        assert_eq!(session.part, None);
         assert_eq!(session.bars, None);
+        assert_eq!(session.pins, SessionOverrides::default());
+    }
+
+    #[test]
+    fn the_uis_four_pins_land_in_the_engines_six_field_overrides() {
+        // `SessionPins` in the frontend carries bpm/keyRoot/scale/swing;
+        // `SessionOverrides` also has bars and halfTime. The two missing ones
+        // must arrive as `None` — "the artist chooses" — rather than failing
+        // the whole load. `generate_pattern` has always relied on this, and
+        // now the saved session does too.
+        let pins = r#"{"pins":{"bpm":150.0,"keyRoot":3,"scale":null,"swing":null}}"#;
+        let session: PluginSession = serde_json::from_str(pins).unwrap();
+
+        assert_eq!(session.pins.bpm, Some(150.0));
+        assert_eq!(session.pins.key_root, Some(3));
+        assert_eq!(session.pins.bars, None);
+        assert_eq!(session.pins.half_time, None);
     }
 
     #[test]

@@ -81,6 +81,7 @@
     "loop": "Pętla",
     "masterLevel": "Poziom master: cisza",
     "toggleRightRail": "Przełącz prawy panel (K)",
+    "windowSize": "Rozmiar okna",
     "reportBug": "Zgłoś błąd",
     "loopAlways": "W tej fazie odtwarzanie zawsze się zapętla.",
     "unavailable": "Odtwarzanie niedostępne: {{reason}}"

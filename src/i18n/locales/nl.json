@@ -81,6 +81,7 @@
     "loop": "Loop",
     "masterLevel": "Masterniveau: stil",
     "toggleRightRail": "Rechterbalk tonen of verbergen (K)",
+    "windowSize": "Venstergrootte",
     "reportBug": "Bug melden",
     "loopAlways": "Afspelen loopt in deze fase altijd door.",
     "unavailable": "Afspelen is niet beschikbaar: {{reason}}"

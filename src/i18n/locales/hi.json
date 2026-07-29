@@ -81,6 +81,7 @@
     "loop": "लूप",
     "masterLevel": "मास्टर लेवल: मौन",
     "toggleRightRail": "दायाँ पैनल दिखाएँ/छिपाएँ (K)",
+    "windowSize": "विंडो का आकार",
     "reportBug": "बग रिपोर्ट करें",
     "loopAlways": "इस चरण में प्लेबैक हमेशा लूप करता है।",
     "unavailable": "प्लेबैक उपलब्ध नहीं है: {{reason}}"

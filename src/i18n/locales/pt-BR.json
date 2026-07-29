@@ -81,6 +81,7 @@
     "loop": "Loop",
     "masterLevel": "Nível master: silencioso",
     "toggleRightRail": "Alternar painel direito (K)",
+    "windowSize": "Tamanho da janela",
     "reportBug": "Relatar um erro",
     "loopAlways": "A reprodução sempre repete nesta fase.",
     "unavailable": "A reprodução não está disponível: {{reason}}"
