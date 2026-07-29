@@ -202,6 +202,32 @@ type SavedSession = {
  */
 let saveTimer: ReturnType<typeof setTimeout> | null = null;
 
+/**
+ * Write now, cancelling any pending debounce.
+ *
+ * ⛔ The debounce is trailing-only, and two things do not wait for it: the host
+ * serializes `#[persist]` state whenever *it* likes — project save, preset
+ * save, freeze — and closing the editor destroys the page with the timer still
+ * on it. Either inside the window loses the change silently, and the project
+ * reopens on the previous value with nothing to explain it.
+ */
+function flush(): void {
+  if (saveTimer === null) return;
+  clearTimeout(saveTimer);
+  saveTimer = null;
+  send();
+}
+
+function send(): void {
+  const { selectedId, seed, bars, pins } = useSession.getState();
+  void invoke('save_session_state', {
+    session: { selectedId, seed, bars, pins },
+  }).catch(() => {
+    // Losing a session write is not worth interrupting someone mid-beat. The
+    // next change writes the whole session again anyway.
+  });
+}
+
 function persist(): void {
   // Plugin only. Tauri has its own settings store and a browser has nowhere to
   // put this, and in both the command does not exist — calling it would be a
@@ -211,13 +237,7 @@ function persist(): void {
   if (saveTimer !== null) clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
     saveTimer = null;
-    const { selectedId, seed, bars, pins } = useSession.getState();
-    void invoke('save_session_state', {
-      session: { selectedId, seed, bars, pins },
-    }).catch(() => {
-      // Losing a session write is not worth interrupting someone mid-beat.
-      // The next change writes the whole session again anyway.
-    });
+    send();
   }, 300);
 }
 
@@ -241,6 +261,13 @@ async function apply(
 ): Promise<void> {
   const saved = await pending;
   if (!saved) return;
+
+  // ⛔ The roster is clickable before this resolves — `init` awaits the roster
+  // and the playback status first, and the user can pick an artist in between.
+  // Writing anyway would replace the seed and pins under a selection they just
+  // made, and leave `pendingArtist` naming an artist that is no longer chosen.
+  // `loadDefaults` guards for exactly this reason; so does this.
+  if (get().selectedId !== null) return;
 
   // Field by field rather than spread: the plugin's pins are the engine's
   // six-field `SessionOverrides` and this store's are four, so a spread would
@@ -459,6 +486,14 @@ if (isPlugin()) {
       return;
     }
     persist();
+  });
+
+  // The page is going away — `pagehide` is the last event a webview reliably
+  // delivers, and `visibilitychange` covers a host that hides the editor
+  // without destroying it. Both are cheap no-ops when nothing is pending.
+  window.addEventListener('pagehide', flush);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') flush();
   });
 }
 

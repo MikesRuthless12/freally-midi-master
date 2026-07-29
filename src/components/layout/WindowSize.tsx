@@ -21,6 +21,7 @@ import { useTranslation } from 'react-i18next';
 
 import { invoke } from '../../lib/ipc';
 import { isPlugin } from '../../lib/ipc-plugin';
+import { isWide, useUi } from '../../state/ui';
 
 /**
  * What the plugin says about the window it just sized.
@@ -46,6 +47,13 @@ type SizeReply = {
  */
 function applyZoom(zoom: number): void {
   document.documentElement.style.zoom = String(zoom);
+
+  // ⛔ Changing the zoom changes the width the app lays out in, but fires no
+  // `resize` event — so the rail breakpoint has to be told, or it keeps the
+  // answer it computed from the pre-zoom viewport. Without this the rail is
+  // collapsed on open at every scale below 1.0, which is precisely what the
+  // scaling exists to avoid.
+  useUi.getState().setWide(isWide());
 }
 
 export function WindowSize() {

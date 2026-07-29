@@ -12,7 +12,7 @@ import { TransportBar } from './components/layout/TransportBar';
 import { UpdatePrompt } from './components/Updates/Updates';
 import { subscribeToPlayhead, useSession } from './state/session';
 import { isPlugin } from './lib/ipc-plugin';
-import { useUi, WIDE_BREAKPOINT } from './state/ui';
+import { isWide, useUi } from './state/ui';
 import './components/layout/layout.css';
 
 function App() {
@@ -95,13 +95,21 @@ function App() {
   // way without remounting it.
   const updateMayShow = crashPending === false && !updateDismissed;
 
-  // The right rail follows the breakpoint, but only when it is actually
-  // crossed — so a manual K toggle is not undone by an unrelated resize.
+  // A resize listener rather than `matchMedia`, because a media query cannot
+  // see the plugin's root zoom: it evaluates against the viewport, which stays
+  // at the *window's* width while the page lays out at the full breakpoint
+  // inside it. `isWide` measures the layout. The crossing check is kept so a
+  // manual K toggle is not undone by an unrelated resize.
   useEffect(() => {
-    const mq = window.matchMedia(`(min-width: ${WIDE_BREAKPOINT}px)`);
-    const onChange = (e: MediaQueryListEvent) => setWide(e.matches);
-    mq.addEventListener('change', onChange);
-    return () => mq.removeEventListener('change', onChange);
+    let wasWide = isWide();
+    const onResize = () => {
+      const nowWide = isWide();
+      if (nowWide === wasWide) return;
+      wasWide = nowWide;
+      setWide(nowWide);
+    };
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
   }, [setWide]);
 
   useEffect(() => {

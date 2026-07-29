@@ -80,16 +80,34 @@ fn preset(name: &str) -> Option<((u32, u32), f32)> {
         .map(|(_, factor)| physical(*factor))
 }
 
-/// The scale after this one, wrapping, and whether it is *smaller*.
+/// The next scale that is actually a *different size*, wrapping, and whether it
+/// is smaller.
 ///
 /// Both live here rather than in the frontend so the names exist in exactly one
 /// place. A list mirrored in TypeScript would let a rename here leave the button
 /// asking for a size the plugin rejects, and the "smaller" flag is what lets the
 /// button show the right icon without knowing which name is the smallest.
+///
+/// ⛔ **Skipping equal sizes is not tidiness.** `SCALES` holds *nominal*
+/// factors; `fit` returns clamped ones, and on a screen too small for the larger
+/// presets two of them collapse onto the same effective size. On a 1366x768
+/// laptop `medium` and `large` both come out at 0.809 — so the button would
+/// change nothing at all on one press, while still flipping its icon as though
+/// it had. Comparing what the window will actually be is the only way to know.
 fn next_scale(name: &str) -> (&'static str, bool) {
     let at = SCALES.iter().position(|(id, _)| *id == name).unwrap_or(0);
-    let next = (at + 1) % SCALES.len();
-    (SCALES[next].0, SCALES[next].1 < SCALES[at].1)
+    let here = physical(SCALES[at].1).0;
+
+    for step in 1..=SCALES.len() {
+        let (id, factor) = SCALES[(at + step) % SCALES.len()];
+        if physical(factor).0 != here {
+            return (id, factor < SCALES[at].1);
+        }
+    }
+
+    // Every preset clamps to the same window — a screen so small that nothing
+    // fits. Stay put rather than pretend the button does something.
+    (SCALES[at].0, false)
 }
 
 /// The window in physical pixels, and the factor the page must actually zoom by.
@@ -300,6 +318,18 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
 }
 
 /// The desktop scale factor, as a multiplier (1.5 at 150%).
+///
+/// ⚠ **Known limit: this is the *system* DPI, not the monitor the editor opens
+/// on.** `GetSystemMetrics` agrees with it, so any single-monitor machine is
+/// correct — but a mixed-DPI pair is not, and producers run those. Opening the
+/// editor on a 150% secondary while the primary is 100% sizes the window for
+/// 100% and the page then zooms inside too few pixels, which crops it; the
+/// reverse leaves the UI small in a window with dead space around it.
+///
+/// Not fixed here because there is no window handle at `create()` time, so
+/// `GetDpiForWindow` is not available — it needs the DPI re-read from the frame
+/// loop and `fit` re-applied when it changes, which is TASK-P12's neighbourhood
+/// rather than a one-line change.
 ///
 /// Windows only, because Windows is where the adapter's TODO bites. macOS
 /// reports a backing scale factor through Cocoa that baseview already applies,
