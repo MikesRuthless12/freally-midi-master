@@ -15,17 +15,22 @@ CLAP · VST3 · AU — Windows · macOS
 
 ---
 
-> **Status: in development, and mid-pivot.**
+> **Status: in development. It is a plugin.**
 >
 > Freally MIDI Master began as a desktop app; [v0.2.0](https://github.com/MikesRuthless12/freally-midi-master/releases/tag/v0.2.0)
 > is that build, and it works — search an artist, generate drums, hear it, drag
-> it out.
+> it out. **As of 2026-07-29 the desktop app is retired**: it is no longer built
+> or released, and v0.2.0 stays up as the last of it. Nothing already installed
+> stops working; it simply stops finding updates.
 >
-> **As of 2026-07-28 it is becoming a plugin.** Not for the format's sake: a
-> plugin is handed the host's tempo, time signature and playhead, so a generated
-> pattern lands in the song you are actually writing instead of at whatever tempo
-> the artist happens to be authored at. The plugin builds and generates today;
-> **it has not yet been loaded in a DAW**, which is the next gate.
+> **It is a CLAP plugin, with VST3 and AU projected from it.** Not for the
+> format's sake: a plugin is handed the host's tempo, time signature and
+> playhead, so a generated pattern lands in the song you are actually writing
+> instead of at whatever tempo the artist happens to be authored at.
+>
+> It has been loaded and generates in **Ableton Live 12** (VST3) and **FL Studio**
+> (CLAP). Reaper, Bitwig and Logic are not yet tested, and Linux has no editor
+> yet.
 >
 > The `engine` crate — the dataset, inheritance, the drum engine, the chords
 > generator, humanize, the MIDI writer — carried across unchanged. That was the

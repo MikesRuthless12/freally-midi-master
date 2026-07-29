@@ -42,6 +42,19 @@ are actually writing rather than at whatever tempo the artist is authored at.
   `.clap` and the `.vst3`, validated by `clap-validator` before the draft is
   published and refused by `verify-downloads.yml` if either format is missing.
 
+### Removed — the desktop app is retired
+
+Freally MIDI Master ships as a **plugin** now. Releases from here on carry the
+CLAP and the VST3 and nothing else; the Windows, macOS and Linux installers are
+no longer built.
+
+**If you are on v0.2.0:** nothing you have installed stops working, and nothing
+is uninstalled. Your copy will simply stop finding updates, because there will
+not be any — the update channel goes quiet rather than breaking. To carry on,
+install the plugin from this release and load it in your DAW, which is where
+the tempo sync, the host key and the notes-on-the-track live. That is the whole
+reason for the move: the desktop app could not know what song you were writing.
+
 ### Known issue
 
 - **A corrupt project file can abort the host.** `nih-plug`'s CLAP state loader

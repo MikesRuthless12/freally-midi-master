@@ -16,153 +16,25 @@ permissions:
 env:
   CARGO_TERM_COLOR: always
 
+# ⛔ THE DESKTOP APP IS RETIRED. This workflow ships the **plugin** and nothing
+# else. The `build` job that ran `tauri-action` — three OS installers, the
+# `latest.json` updater manifest and the signing keys — is gone, along with the
+# unsigned-installer instructions in the release notes.
+#
+# What that means for the people already on v0.2.0: their updater points at this
+# channel and will simply stop finding new versions. It does not break, and
+# nothing they have installed stops working. Say so in the CHANGELOG section for
+# whichever release retires it, because the update prompt is the only channel
+# that reaches them and it will go quiet without explanation otherwise.
+#
+# `src-tauri/` is still in the tree: it generates `ipc-audio-types.ts`, which the
+# frontend imports, and it is the standalone audio path. Removing the crate is a
+# separate piece of surgery from removing the *product*.
+
 jobs:
-  build:
-    name: build (${{ matrix.label }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: macos-latest
-            label: macos-universal
-            # One universal binary rather than two downloads the user has to
-            # choose between.
-            args: '--target universal-apple-darwin'
-          - os: ubuntu-latest
-            label: linux
-            args: ''
-          - os: windows-latest
-            label: windows
-            args: ''
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-          ref: ${{ github.event.inputs.tag || github.ref }}
-
-      - name: Install Linux system dependencies
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libwebkit2gtk-4.1-dev \
-            libgtk-3-dev \
-            libayatana-appindicator3-dev \
-            librsvg2-dev \
-            libasound2-dev \
-            patchelf
-
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: '1.97.1'
-          targets: ${{ matrix.os == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
-
-      - uses: Swatinem/rust-cache@v2
-        with:
-          key: release-${{ matrix.label }}
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-
-      - run: npm ci
-
-      # The updater shows these notes in-app, and they are the one string a
-      # user cannot see any other way. A hardcoded "see the release notes"
-      # would be worse than useless.
-      #
-      # Matched LITERALLY, not as a regex: `## [0.1.0]` compiled as a pattern
-      # is a character class over `0.1`, with the dots as wildcards — it
-      # silently matches nothing and every release quietly ships a generic note.
-      - name: Extract release notes from CHANGELOG
-        id: notes
-        shell: bash
-        env:
-          TAG: ${{ github.event.inputs.tag || github.ref_name }}
-        run: |
-          set -euo pipefail
-          version="${TAG#v}"
-          notes=$(awk -v want="## [$version]" '
-            index($0, want) == 1 { grab = 1; next }
-            grab && /^## / { exit }
-            grab { print }
-          ' CHANGELOG.md)
-
-          if [ -z "$(printf '%s' "$notes" | tr -d '[:space:]')" ]; then
-            echo "::error::CHANGELOG.md has no '## [$version]' section. Add one before tagging — without it every user sees a generic update note."
-            exit 1
-          fi
-
-          {
-            echo 'body<<CHANGELOG_EOF'
-            printf '%s\n' "$notes"
-            echo 'CHANGELOG_EOF'
-          } >> "$GITHUB_OUTPUT"
-
-      - uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          # Update signing. Without these the updater refuses the manifest, so
-          # a release built without them is one no existing user can install.
-          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
-          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
-        with:
-          tagName: ${{ github.event.inputs.tag || github.ref_name }}
-          releaseName: 'Freally MIDI Master __VERSION__'
-          releaseBody: |
-            ${{ steps.notes.outputs.body }}
-
-            ---
-
-            ### The plugin
-
-            `freally-midi-master-plugins-windows.zip` and
-            `-macos.zip` each contain a **CLAP** and a **VST3**. Unzip and put
-            each one in its own folder — a `.clap` in a VST3 folder is invisible
-            to every host, and the reverse is what shows an empty browser:
-
-            - **CLAP** — `%COMMONPROGRAMFILES%\CLAP` on Windows,
-              `/Library/Audio/Plug-Ins/CLAP` on macOS. Loaded by Bitwig, Reaper,
-              FL Studio 21.2+, Studio One 6.5+ and Renoise.
-            - **VST3** — `%COMMONPROGRAMFILES%\VST3` on Windows,
-              `/Library/Audio/Plug-Ins/VST3` on macOS. This is what **Ableton
-              Live, Logic, Pro Tools and Cubase** load; none of them speaks CLAP.
-
-            Then rescan plugins in your DAW. Linux is not built yet.
-
-            ---
-
-            **Installers are unsigned by policy** — this project spends nothing,
-            ever, and code-signing certificates cost money. First run therefore
-            needs one extra step:
-
-            - **Windows** — SmartScreen appears: *More info* → *Run anyway*.
-            - **macOS** — right-click the app → *Open* → *Open*. Opening by
-              double-click alone will be refused.
-            - **Linux** — `chmod +x` the AppImage before running it.
-
-            Checksums are published as `SHA256SUMS` alongside the installers.
-            Every asset on this release is downloaded and verified by CI before
-            the release is announced.
-          releaseDraft: true
-          prerelease: false
-          includeUpdaterJson: true
-          args: ${{ matrix.args }}
-
-  # The plugin, which is what the project ships now.
-  #
-  # A separate job from `build` because it is a different artefact built a
-  # different way: `tauri-action` produces installers for the desktop app, and
-  # this produces the `.clap` and `.vst3` a DAW loads. It runs after `build`
-  # only because that is what creates the draft release these upload to.
-  #
   # Windows and macOS only, matching CI: Linux has no editor until TASK-P12.
   plugin:
     name: plugin (${{ matrix.label }})
-    needs: build
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -208,9 +80,6 @@ jobs:
       #
       # The two exclusions are the ones `ci.yml` carries, for the same reasons
       # and with the same instruction: delete each the moment its cause is gone.
-      # `state-invalid-random` aborts inside nih-plug's `ext_state_load`;
-      # `param-conversions` divides by a parameter count this plugin does not
-      # have, and the validator says so itself.
       - name: clap-validator
         shell: bash
         run: |
@@ -225,68 +94,130 @@ jobs:
       # directory the host is looking for.
       #
       # Split per OS for one unglamorous reason: **`zip` does not exist on the
-      # Windows runner.** Git for Windows' bash does not ship it, and nothing
-      # else in this repo invokes it there, so a single `shell: bash` step would
-      # have failed the first time a tag was pushed — on the release path, which
-      # is the worst place to find out. `Compress-Archive` is built into
-      # PowerShell; `zip` is guaranteed on macOS.
+      # Windows runner.** Git for Windows' bash does not ship it, so a single
+      # `shell: bash` step would fail the first time a tag was pushed — on the
+      # release path, which is the worst place to find out.
       - name: Package the bundles (Windows)
         if: matrix.os == 'windows-latest'
         shell: pwsh
         run: |
-          $zip = Join-Path $env:RUNNER_TEMP 'freally-midi-master-plugins-windows.zip'
-          Compress-Archive -Force -DestinationPath $zip -Path @(
+          New-Item -ItemType Directory -Force -Path dist-assets | Out-Null
+          Compress-Archive -Force -DestinationPath 'dist-assets/freally-midi-master-plugins-windows.zip' -Path @(
             'target/bundled/Freally MIDI Master.clap',
             'target/bundled/Freally MIDI Master.vst3'
           )
-          Get-Item $zip | Select-Object Name, Length
+          Get-Item dist-assets/*.zip | Select-Object Name, Length
 
       - name: Package the bundles (macOS)
         if: matrix.os == 'macos-latest'
         shell: bash
         run: |
           set -euo pipefail
-          cd target/bundled
-          zip -qr "$RUNNER_TEMP/freally-midi-master-plugins-macos.zip" \
-            "Freally MIDI Master.clap" "Freally MIDI Master.vst3"
-          ls -la "$RUNNER_TEMP/freally-midi-master-plugins-macos.zip"
+          mkdir -p dist-assets
+          (cd target/bundled && zip -qr "$GITHUB_WORKSPACE/dist-assets/freally-midi-master-plugins-macos.zip" \
+            "Freally MIDI Master.clap" "Freally MIDI Master.vst3")
+          ls -la dist-assets
 
-      # Uploaded to the draft `build` created. Never interpolate `${{ }}` into a
-      # run: block — GitHub splices the value into the shell source before bash
-      # parses it, and a ref name may contain quotes, semicolons and backticks.
-      - name: Attach to the draft release
-        shell: bash
-        env:
-          TAG: ${{ github.event.inputs.tag || github.ref_name }}
-          LABEL: ${{ matrix.label }}
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          set -euo pipefail
-          gh release upload "$TAG" \
-            "$RUNNER_TEMP/freally-midi-master-plugins-$LABEL.zip" \
-            --repo "$GITHUB_REPOSITORY" --clobber
+      - uses: actions/upload-artifact@v4
+        with:
+          name: plugins-${{ matrix.label }}
+          path: dist-assets/
+          if-no-files-found: error
+          retention-days: 1
 
-  checksums:
-    name: checksums
-    needs: [build, plugin]
+  draft:
+    name: draft release
+    needs: plugin
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
         with:
           persist-credentials: false
+          ref: ${{ github.event.inputs.tag || github.ref }}
 
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: plugins-*
+          merge-multiple: true
+          path: dist-assets
+
+      # The one string a user cannot see any other way. A hardcoded "see the
+      # release notes" would be worse than useless.
+      #
+      # Matched LITERALLY, not as a regex: `## [0.1.0]` compiled as a pattern is
+      # a character class over `0.1`, with the dots as wildcards — it silently
+      # matches nothing and every release quietly ships a generic note.
+      - name: Extract release notes from CHANGELOG
+        env:
+          TAG: ${{ github.event.inputs.tag || github.ref_name }}
+        run: |
+          set -euo pipefail
+          version="${TAG#v}"
+          awk -v want="## [$version]" '
+            index($0, want) == 1 { grab = 1; next }
+            grab && /^## / { exit }
+            grab { print }
+          ' CHANGELOG.md > notes.md
+
+          if [ ! -s notes.md ]; then
+            echo "::error::CHANGELOG.md has no '## [$version]' section. Add one before tagging."
+            exit 1
+          fi
+
+          cat >> notes.md <<'NOTES'
+
+          ---
+
+          ### Installing
+
+          Each zip holds a **CLAP** and a **VST3**. Unzip and put each in its own
+          folder — a `.clap` in a VST3 folder is invisible to every host, and the
+          reverse shows an empty browser:
+
+          - **CLAP** — `%COMMONPROGRAMFILES%\CLAP` on Windows,
+            `/Library/Audio/Plug-Ins/CLAP` on macOS. Loaded by Bitwig, Reaper,
+            FL Studio 21.2+, Studio One 6.5+ and Renoise.
+          - **VST3** — `%COMMONPROGRAMFILES%\VST3` on Windows,
+            `/Library/Audio/Plug-Ins/VST3` on macOS. This is what **Ableton Live,
+            Logic, Pro Tools and Cubase** load; none of them speaks CLAP.
+
+          Then rescan plugins in your DAW. Linux is not built yet.
+
+          The binaries are unsigned by policy — this project spends nothing, ever,
+          and code-signing certificates cost money. Checksums are published as
+          `SHA256SUMS`, and every asset is downloaded and verified by CI before
+          the release is announced.
+          NOTES
+
+      - name: Checksums
+        run: |
+          set -euo pipefail
+          cd dist-assets
+          rm -f SHA256SUMS
+          sha256sum ./* > SHA256SUMS
+          cat SHA256SUMS
+
+      # Created as a draft, never published here. `verify-downloads.yml` fetches
+      # every asset and checks it opens before a human publishes — which is why
+      # drafts need `contents: write` to be visible to the API at all.
+      #
       # Never interpolate ${{ }} into a run: block — GitHub splices the value
       # into the shell source before bash parses it, and a ref name may contain
       # quotes, semicolons and backticks. Pass it through env: instead.
-      - name: Generate SHA256SUMS
+      - name: Create or update the draft
         env:
           TAG: ${{ github.event.inputs.tag || github.ref_name }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
-          mkdir -p dist-assets && cd dist-assets
-          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern '*' --clobber
-          rm -f SHA256SUMS
-          sha256sum * > SHA256SUMS
-          cat SHA256SUMS
-          gh release upload "$TAG" SHA256SUMS --repo "$GITHUB_REPOSITORY" --clobber
+          if gh release view "$TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            gh release edit "$TAG" --repo "$GITHUB_REPOSITORY" \
+              --notes-file notes.md --draft
+            gh release upload "$TAG" --repo "$GITHUB_REPOSITORY" \
+              --clobber dist-assets/*
+          else
+            gh release create "$TAG" --repo "$GITHUB_REPOSITORY" \
+              --draft --title "Freally MIDI Master ${TAG#v}" \
+              --notes-file notes.md \
+              dist-assets/*
+          fi
