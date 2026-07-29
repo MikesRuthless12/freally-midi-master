@@ -166,7 +166,19 @@ custom protocol — all three were ruled out, in this order:
 dispatched our handler**, and navigation never completed. A hung fetch cannot be
 a filter miss, a 404, or a missing asset.
 
-*Inference, not yet proven:* that the cause is the **Windows message loop** —
+*Established 2026-07-29 by `FREALLY_TRACE_EDITOR=1`, which is now the fastest way
+back to this:* **not one WebView2 event fires.** With navigation, page-load and
+document-title handlers all attached, the log is completely empty — no
+`navigation requested`, no `page started`, nothing. Mike also reports it **ran a
+few days earlier**, so this is a change in state or environment rather than in
+this code.
+
+Three handlers silent at once rules out the protocol, the URL and the page: those
+would each fail *differently*. A webview whose every event is missing is a webview
+whose events are not being delivered.
+
+*Therefore, and now with evidence rather than a guess:* the cause is the **Windows
+message loop** —
 WebView2 delivers `WebResourceRequested` and completes navigation through the
 message loop of the thread that created it, so an unpumped loop would produce
 exactly this. **But do not treat that as diagnosed.** There is a specific reason

@@ -60,7 +60,9 @@
     "switchBody": "이전 아티스트가 고르지 않은 값을 고정해 두었습니다. {{name}}은(는) 자신의 값을 요구합니다.",
     "keep": "내 값 유지",
     "adopt": "{{name}} 값 사용",
-    "hostSynced": "DAW를 따라갑니다. 템포를 입력하면 고정됩니다."
+    "hostSynced": "DAW를 따라갑니다. 템포를 입력하면 고정됩니다.",
+    "autoSync": "DAW 따르기",
+    "autoSyncOff": "DAW가 아닌 아티스트의 템포를 사용합니다."
   },
   "scales": {
     "natural_minor": "자연 단음계",

@@ -78,8 +78,15 @@ pub fn dispatch(
             // a host that is the host's tempo rather than the model's. Showing
             // the authored 140 next to a beat that will come out at 92 is the
             // readout-that-lies failure TASK-033 exists to prevent.
-            if let Some(tempo) = host.tempo() {
-                defaults.bpm = tempo as f32;
+            //
+            // ⛔ Which is exactly why this now asks the toggle (TASK-P15). With
+            // auto-sync off the beat comes out at the *model's* tempo, so showing
+            // the host's would be the same lie in the opposite direction.
+            let auto_sync = state::with(session, |s| s.auto_sync).unwrap_or(true);
+            if auto_sync {
+                if let Some(tempo) = host.tempo() {
+                    defaults.bpm = tempo as f32;
+                }
             }
             serde_json::to_value(defaults).map_err(|e| e.to_string())
         }
@@ -87,7 +94,11 @@ pub fn dispatch(
         "generate_pattern" => {
             let args: GenerateArgs = serde_json::from_value(request.args["request"].clone())
                 .map_err(|e| format!("bad generate request: {e}"))?;
-            serde_json::to_value(generate(&args, host)?).map_err(|e| e.to_string())
+            // Auto-sync is a *session* setting, so it is read from the store
+            // rather than sent with the request: the page already saves it there
+            // and two copies of one switch is how they start disagreeing.
+            let auto_sync = state::with(session, |s| s.auto_sync).unwrap_or(true);
+            serde_json::to_value(generate(&args, host, auto_sync)?).map_err(|e| e.to_string())
         }
 
         // The host reports these; the UI shows them. Its own command so the
@@ -188,7 +199,7 @@ pub fn dispatch(
 /// The same three calls in the same order as the desktop app's `render` and
 /// `engine/tests/golden.rs`: generate on the grid, humanize, then hand back.
 /// A change here that is not a change there is a change nobody meant.
-fn generate(args: &GenerateArgs, host: &HostSession) -> Result<Pattern, String> {
+fn generate(args: &GenerateArgs, host: &HostSession, auto_sync: bool) -> Result<Pattern, String> {
     let part = args.part.unwrap_or(Part::Drums);
     if !matches!(part, Part::Drums | Part::Chords) {
         return Err(format!(
@@ -213,7 +224,7 @@ fn generate(args: &GenerateArgs, host: &HostSession) -> Result<Pattern, String> 
         overrides.bars = Some(bars);
     }
 
-    let ctx = host.session_for(&model, &overrides, seed);
+    let ctx = host.session_for(&model, &overrides, seed, auto_sync);
     let mut lanes = match part {
         Part::Chords => vec![chords::generate(&model, &ctx, seed).track],
         _ => drums::generate(&model, &ctx, seed),

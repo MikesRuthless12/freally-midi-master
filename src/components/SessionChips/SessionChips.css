@@ -119,3 +119,22 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-control);
 }
+
+/* The auto-sync toggle (TASK-P15). A `role="switch"` chip rather than a
+   checkbox, so it reads as one control alongside the other chips and announces
+   its state; the icon says which way it is set at a glance. */
+.session__sync {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-3);
+  font: inherit;
+  cursor: pointer;
+}
+
+.session__sync[aria-checked='true'] {
+  border-color: var(--color-primary);
+  color: var(--color-text);
+}

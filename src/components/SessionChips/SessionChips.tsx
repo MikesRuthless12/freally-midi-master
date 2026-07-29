@@ -1,4 +1,4 @@
-import { X } from 'lucide-react';
+import { Link2, Unlink, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { useSession } from '../../state/session';
@@ -38,6 +38,8 @@ export function SessionChips() {
   const pins = useSession((s) => s.pins);
   const setPin = useSession((s) => s.setPin);
   const hostTempo = useSession((s) => s.hostTempo);
+  const autoSync = useSession((s) => s.autoSync);
+  const setAutoSync = useSession((s) => s.setAutoSync);
 
   if (!selectedId) {
     return <p className="session__empty">{t('session.pickArtist')}</p>;
@@ -51,7 +53,12 @@ export function SessionChips() {
   // followed and the placeholder shows what it is being followed *to*; typing
   // a number pins it and the host stops deciding. Clearing it hands the tempo
   // back to the project.
-  const synced = pins.bpm === null && hostTempo !== null;
+  // ⛔ Three states, not two (TASK-P15). The pin distinguishes "mine" from
+  // "not mine"; `autoSync` distinguishes the two kinds of "not mine" — the
+  // DAW's tempo and the artist's own. Before the toggle existed the artist's
+  // was unreachable in a host, and a chip that showed the host's number while
+  // generating at the artist's would be the readout lying either way.
+  const synced = pins.bpm === null && hostTempo !== null && autoSync;
   const tempoPlaceholder = synced
     ? String(Math.round(hostTempo))
     : defaults
@@ -77,7 +84,13 @@ export function SessionChips() {
           // digits, because the ceiling is 999.
           value={pins.bpm ?? ''}
           placeholder={tempoPlaceholder}
-          title={synced ? t('session.hostSynced') : undefined}
+          title={
+            synced
+              ? t('session.hostSynced')
+              : hostTempo !== null && !autoSync
+                ? t('session.autoSyncOff')
+                : undefined
+          }
           onChange={(e) => {
             const digits = digitsOnly(e.target.value).slice(0, 3);
             setPin('bpm', digits === '' ? null : Number(digits));
@@ -94,6 +107,28 @@ export function SessionChips() {
         />
         <Unpin field="bpm" pinned={pins.bpm !== null} />
       </label>
+
+      {/* ⛔ Only shown inside a host, because there is nothing to sync to
+          otherwise — the standalone has no project. A toggle that was present
+          and inert would be a control that can only do nothing, which is the
+          rule the factory-preset delete button follows too. */}
+      {hostTempo !== null && (
+        <button
+          type="button"
+          className="chip session__sync"
+          role="switch"
+          aria-checked={autoSync}
+          title={autoSync ? t('session.hostSynced') : t('session.autoSyncOff')}
+          onClick={() => setAutoSync(!autoSync)}
+        >
+          {autoSync ? (
+            <Link2 size={12} aria-hidden="true" />
+          ) : (
+            <Unlink size={12} aria-hidden="true" />
+          )}
+          <span className="session__label">{t('session.autoSync')}</span>
+        </button>
+      )}
 
       <label className="chip chip--mono session__chip">
         <span className="session__label">{t('readouts.key')}</span>

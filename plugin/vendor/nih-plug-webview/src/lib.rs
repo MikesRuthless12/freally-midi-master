@@ -238,11 +238,58 @@ fn configure<'a>(
         builder = builder.with_custom_protocol(scheme, move |request| handler(&request).unwrap());
     }
 
+    // ⛔ **`FREALLY_TRACE_EDITOR=1` traces the load, and it exists because a
+    // plugin has no console.** When the editor comes up blank there is nothing to
+    // look at: no stderr anyone reads, no page to open devtools on if the page
+    // never arrived. These three handlers answer, in order, the only questions
+    // that matter — was navigation *requested*, did the content *start*, did it
+    // *finish* — and the difference between "no navigation line at all" and
+    // "Started with no Finished" is the difference between two entirely
+    // different bugs.
+    //
+    // Left in rather than removed after use: this is the second time an empty
+    // editor has cost an evening, and the first time the answer came from
+    // turning devtools on in release for exactly this reason.
+    if std::env::var("FREALLY_TRACE_EDITOR").is_ok() {
+        builder = builder
+            .with_navigation_handler(|url| {
+                eprintln!("[editor] navigation requested: {url}");
+                true
+            })
+            .with_on_page_load_handler(|event, url| {
+                // `PageLoadEvent` has no `Debug`, so it is named here.
+                let phase = match event {
+                    wry::PageLoadEvent::Started => "started",
+                    wry::PageLoadEvent::Finished => "finished",
+                };
+                eprintln!("[editor] page {phase}: {url}");
+            })
+            .with_document_title_changed_handler(|title| {
+                eprintln!("[editor] title: {title}");
+            });
+    }
+
     match source {
         HTMLSource::String(html) => builder.with_html(*html),
         HTMLSource::URL(url) => builder.with_url(*url),
     }
     .expect("the source is a static string or a static URL")
+}
+
+/// Where the webview keeps its own profile.
+///
+/// ⛔ **A directory of our own, not the bare system temp.** Upstream passes
+/// `std::env::temp_dir()`, which is shared with every other WebView2 and
+/// WebKitGTK profile on the machine. WebView2 in particular refuses to create a
+/// second environment over a user-data folder another environment already holds
+/// with different options — and it does so *without* failing the create, which
+/// presents as a webview that exists, reports success, and never navigates.
+///
+/// That is a live suspect for the blank Windows standalone (TASK-P16), and it is
+/// poor hygiene regardless: a plugin should not be sharing its browser profile
+/// with whatever else happens to be running.
+fn web_data_dir() -> std::path::PathBuf {
+    std::env::temp_dir().join("freally-midi-master-webview")
 }
 
 struct Instance {
@@ -294,7 +341,7 @@ impl Editor for WebViewEditor {
 
             #[cfg(not(target_os = "linux"))]
             let webview = {
-                let mut web_context = WebContext::new(Some(std::env::temp_dir()));
+                let mut web_context = WebContext::new(Some(web_data_dir()));
                 // ⛔ The context goes on *first* — see `configure`.
                 configure(
                     WebViewBuilder::new_as_child(window).with_web_context(&mut web_context),
@@ -323,7 +370,7 @@ impl Editor for WebViewEditor {
                         let parent = xlib.window;
                         linux::on_gtk(move || {
                             let parent = linux::ParentXid(parent);
-                            let mut web_context = WebContext::new(Some(std::env::temp_dir()));
+                            let mut web_context = WebContext::new(Some(web_data_dir()));
                             // ⛔ The context goes on *first* — see `configure`.
                             let built = configure(
                                 WebViewBuilder::new_as_child(&parent)

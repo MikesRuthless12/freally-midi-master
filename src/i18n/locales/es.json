@@ -60,7 +60,9 @@
     "switchBody": "Fijaste valores que el artista anterior no eligió. {{name}} pide los suyos.",
     "keep": "Mantener los míos",
     "adopt": "Usar los de {{name}}",
-    "hostSynced": "Sigue a tu DAW. Escribe un tempo para fijarlo."
+    "hostSynced": "Sigue a tu DAW. Escribe un tempo para fijarlo.",
+    "autoSync": "Seguir al DAW",
+    "autoSyncOff": "Se usa el tempo del artista, no el de tu DAW."
   },
   "scales": {
     "natural_minor": "Menor natural",

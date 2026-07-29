@@ -60,7 +60,9 @@
     "switchBody": "你固定了上一位艺术家未选择的数值。{{name}} 有自己的设定。",
     "keep": "保留我的",
     "adopt": "使用 {{name}} 的",
-    "hostSynced": "正在跟随你的 DAW。输入速度即可固定。"
+    "hostSynced": "正在跟随你的 DAW。输入速度即可固定。",
+    "autoSync": "跟随 DAW",
+    "autoSyncOff": "使用艺人的速度，而非你的 DAW 的速度。"
   },
   "scales": {
     "natural_minor": "自然小调",

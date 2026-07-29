@@ -60,7 +60,9 @@
     "switchBody": "Je hebt waarden vastgezet die de vorige artiest niet koos. {{name}} vraagt om eigen waarden.",
     "keep": "Die van mij houden",
     "adopt": "Die van {{name}} gebruiken",
-    "hostSynced": "Volgt je DAW. Typ een tempo om het vast te zetten."
+    "hostSynced": "Volgt je DAW. Typ een tempo om het vast te zetten.",
+    "autoSync": "DAW volgen",
+    "autoSyncOff": "Het tempo van de artist wordt gebruikt, niet dat van je DAW."
   },
   "scales": {
     "natural_minor": "Natuurlijk mineur",

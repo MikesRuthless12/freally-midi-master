@@ -60,7 +60,9 @@
     "switchBody": "You pinned a session the last artist did not choose. {{name}} asks for its own.",
     "keep": "Keep mine",
     "adopt": "Use {{name}}’s",
-    "hostSynced": "Following your DAW. Type a tempo to pin it."
+    "hostSynced": "Following your DAW. Type a tempo to pin it.",
+    "autoSync": "Follow DAW",
+    "autoSyncOff": "Using the artist’s tempo, not your DAW’s."
   },
   "scales": {
     "natural_minor": "Natural minor",

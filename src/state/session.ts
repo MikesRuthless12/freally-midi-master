@@ -113,6 +113,15 @@ type SessionState = {
    */
   hostTempo: number | null;
   /**
+   * Whether the tempo follows the DAW (TASK-P15).
+   *
+   * ⛔ Not a duplicate of `pins.bpm === null`. There are *three* states, and
+   * the pin only distinguishes two of them: pinned, following the host, and
+   * using the artist's own tempo. Without this the artist's authored tempo is
+   * unreachable inside a running project.
+   */
+  autoSync: boolean;
+  /**
    * What the selected style asks for, read the moment it is selected.
    *
    * `null` before the first selection and whenever the read failed — the chips
@@ -134,6 +143,7 @@ type SessionState = {
   setSeed: (seed: string) => void;
   setBars: (bars: number) => void;
   setPin: <K extends keyof SessionPins>(field: K, value: SessionPins[K]) => void;
+  setAutoSync: (on: boolean) => void;
   /** Ask the host what tempo it is running at. No-op outside a plugin. */
   refreshHost: () => Promise<void>;
   /**
@@ -198,6 +208,14 @@ export type SavedSession = {
   seed: string;
   bars: number | null;
   pins: Partial<SessionPins> | null;
+  /**
+   * Whether the tempo follows the host (TASK-P15).
+   *
+   * Optional on the way in because a project saved before it existed does not
+   * carry it, and absent must mean **on** — the plugin's own
+   * `auto_sync_default` makes the same choice for the same reason.
+   */
+  autoSync?: boolean;
 };
 
 /**
@@ -227,9 +245,9 @@ function flush(): void {
 }
 
 function send(): void {
-  const { selectedId, seed, bars, pins } = useSession.getState();
+  const { selectedId, seed, bars, pins, autoSync } = useSession.getState();
   void invoke('save_session_state', {
-    session: { selectedId, seed, bars, pins },
+    session: { selectedId, seed, bars, pins, autoSync },
   }).catch(() => {
     // Losing a session write is not worth interrupting someone mid-beat. The
     // next change writes the whole session again anyway.
@@ -300,6 +318,9 @@ function put(
   set({
     seed: saved.seed ?? '',
     bars: saved.bars ?? get().bars,
+    // Absent means on, matching the plugin's `auto_sync_default`: a project
+    // written before the toggle existed must keep following its DAW.
+    autoSync: saved.autoSync ?? true,
     pins: {
       bpm: saved.pins?.bpm ?? null,
       keyRoot: saved.pins?.keyRoot ?? null,
@@ -338,6 +359,7 @@ export const useSession = create<SessionState>((set, get) => ({
 
   pins: NO_PINS,
   hostTempo: null,
+  autoSync: true,
   defaults: null,
   pendingArtist: null,
 
@@ -410,6 +432,14 @@ export const useSession = create<SessionState>((set, get) => ({
 
   setPin(field, value) {
     set({ pins: { ...get().pins, [field]: value } });
+  },
+
+  setAutoSync(on) {
+    // Saved immediately rather than on the next generation: it is part of how a
+    // song was made, and a producer who turns it off and closes the project
+    // expects it off when they come back.
+    set({ autoSync: on });
+    persist();
   },
 
   async refreshHost() {

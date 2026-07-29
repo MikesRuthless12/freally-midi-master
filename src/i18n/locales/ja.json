@@ -60,7 +60,9 @@
     "switchBody": "前のアーティストが選んでいない値を固定しています。{{name}} は独自の値を求めています。",
     "keep": "自分の値を使う",
     "adopt": "{{name}} の値を使う",
-    "hostSynced": "DAW に追従しています。テンポを入力すると固定されます。"
+    "hostSynced": "DAW に追従しています。テンポを入力すると固定されます。",
+    "autoSync": "DAWに追従",
+    "autoSyncOff": "DAWではなくアーティストのテンポを使用しています。"
   },
   "scales": {
     "natural_minor": "自然的短音階",

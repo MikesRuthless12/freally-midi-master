@@ -60,7 +60,9 @@
     "switchBody": "Du hast Werte festgelegt, die der vorige Künstler nicht gewählt hat. {{name}} verlangt eigene.",
     "keep": "Meine behalten",
     "adopt": "Die von {{name}} verwenden",
-    "hostSynced": "Folgt deiner DAW. Tippe ein Tempo ein, um es festzulegen."
+    "hostSynced": "Folgt deiner DAW. Tippe ein Tempo ein, um es festzulegen.",
+    "autoSync": "DAW folgen",
+    "autoSyncOff": "Es gilt das Tempo des Artists, nicht das der DAW."
   },
   "scales": {
     "natural_minor": "Natürliches Moll",

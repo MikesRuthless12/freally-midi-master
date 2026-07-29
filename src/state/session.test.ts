@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Pattern, RosterEntry, SessionDefaults } from '../lib/ipc-types';
 
@@ -108,6 +108,53 @@ beforeEach(() => {
     bars: 4,
     generating: false,
     error: null,
+  });
+});
+
+describe('auto-sync', () => {
+  // ⛔ Two things have to be arranged before a save can happen at all, and both
+  // are the production behaviour rather than test scaffolding:
+  //
+  // 1. `persist()` is plugin-only — Tauri has its own store and a browser has
+  //    nowhere to put this — and `isPlugin()` detects the plugin by the
+  //    `sendToPlugin` marker its webview injects.
+  // 2. The write is debounced by 300 ms, because the seed box saves on every
+  //    keystroke. Without controlling the clock this asserts nothing.
+  beforeEach(() => {
+    (window as unknown as { sendToPlugin?: () => void }).sendToPlugin = () => {};
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    delete (window as unknown as { sendToPlugin?: () => void }).sendToPlugin;
+  });
+
+  /** The session the last `save_session_state` carried. */
+  function lastSaved(): Record<string, unknown> {
+    const calls = invoke.mock.calls.filter(
+      (call: unknown[]) => call[0] === 'save_session_state',
+    );
+    expect(calls.length, 'save_session_state should have been invoked').toBeGreaterThan(0);
+    const [, args] = calls[calls.length - 1] as [string, { session: Record<string, unknown> }];
+    return args.session;
+  }
+
+  it('is on to begin with, because following the DAW is the point', () => {
+    expect(useSession.getState().autoSync).toBe(true);
+  });
+
+  it('is saved with the project, so turning it off survives a reopen', () => {
+    // ⛔ It has to be in the *payload*, not merely in the store. A toggle the
+    // page holds and never sends is one that silently resets on reload, and the
+    // plugin would go on following the host while the chip said otherwise.
+    useSession.getState().setAutoSync(false);
+    vi.advanceTimersByTime(400);
+    expect(lastSaved().autoSync).toBe(false);
+
+    useSession.getState().setAutoSync(true);
+    vi.advanceTimersByTime(400);
+    expect(lastSaved().autoSync).toBe(true);
   });
 });
 

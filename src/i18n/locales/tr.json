@@ -60,7 +60,9 @@
     "switchBody": "Önceki sanatçının seçmediği değerleri sabitledin. {{name}} kendi değerlerini istiyor.",
     "keep": "Benimkini koru",
     "adopt": "{{name}} değerlerini kullan",
-    "hostSynced": "DAW'ını takip ediyor. Sabitlemek için bir tempo yaz."
+    "hostSynced": "DAW'ını takip ediyor. Sabitlemek için bir tempo yaz.",
+    "autoSync": "DAW’ı izle",
+    "autoSyncOff": "DAW’ınızın değil, sanatçının temposu kullanılıyor."
   },
   "scales": {
     "natural_minor": "Doğal minör",

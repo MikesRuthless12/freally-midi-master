@@ -60,7 +60,9 @@
     "switchBody": "Kamu mengunci nilai yang tidak dipilih artis sebelumnya. {{name}} meminta nilainya sendiri.",
     "keep": "Pertahankan milikku",
     "adopt": "Gunakan milik {{name}}",
-    "hostSynced": "Mengikuti DAW kamu. Ketik tempo untuk menguncinya."
+    "hostSynced": "Mengikuti DAW kamu. Ketik tempo untuk menguncinya.",
+    "autoSync": "Ikuti DAW",
+    "autoSyncOff": "Memakai tempo artis, bukan tempo DAW Anda."
   },
   "scales": {
     "natural_minor": "Minor natural",

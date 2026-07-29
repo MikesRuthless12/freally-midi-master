@@ -60,7 +60,9 @@
     "switchBody": "Tu as fixé des valeurs que l’artiste précédent n’avait pas choisies. {{name}} demande les siennes.",
     "keep": "Garder les miens",
     "adopt": "Utiliser ceux de {{name}}",
-    "hostSynced": "Suit ton DAW. Tape un tempo pour le fixer."
+    "hostSynced": "Suit ton DAW. Tape un tempo pour le fixer.",
+    "autoSync": "Suivre la STAN",
+    "autoSyncOff": "Le tempo de l’artiste est utilisé, pas celui de votre STAN."
   },
   "scales": {
     "natural_minor": "Mineur naturel",

@@ -31,7 +31,7 @@ fn shipped(id: &str) -> StyleModel {
 /// What the plugin does when the user presses Generate, minus the UI.
 fn generate_in_host(host: &HostSession, id: &str, seed: u64) -> Pattern {
     let model = shipped(id);
-    let ctx = host.session_for(&model, &SessionOverrides::default(), seed);
+    let ctx = host.session_for(&model, &SessionOverrides::default(), seed, true);
 
     // The same three calls, in the same order, as the desktop app's `render`
     // and `engine/tests/golden.rs`. Generation writes on the grid; feel is

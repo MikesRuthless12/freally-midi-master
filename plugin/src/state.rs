@@ -36,7 +36,10 @@ use serde::{Deserialize, Serialize};
 /// default and an unknown one is ignored. A plugin that refuses to load its own
 /// state presents to a producer as a lost session with no explanation, which is
 /// a far worse failure than a pin quietly reverting.
-#[derive(Debug, Clone, Default, PartialEq, Serialize, Deserialize)]
+///
+/// The struct therefore has a hand-written [`Default`] rather than a derived
+/// one — see [`auto_sync_default`].
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase", default)]
 pub struct PluginSession {
     /// The selected artist, or `None` when nothing has been chosen yet.
@@ -59,6 +62,41 @@ pub struct PluginSession {
     /// display: the same project opened on a 4K desktop and a laptop should be
     /// the same *scale*, not the same number of pixels.
     pub window_size: Option<String>,
+    /// Whether the tempo follows the host (TASK-P15).
+    ///
+    /// Part of how a song was made, so it is saved with the project like
+    /// everything else here. Precedence is **user pin > (host, if this) >
+    /// model**, which `crate::host::session_for` owns.
+    #[serde(default = "auto_sync_default")]
+    pub auto_sync: bool,
+}
+
+/// Auto-sync's default, which is **on**.
+///
+/// ⛔ A named function rather than `bool`'s own default, and the distinction is
+/// the whole point: `#[serde(default)]` on a `bool` gives `false`, so every
+/// project saved before this field existed would reopen with auto-sync *off* and
+/// silently stop following its DAW. Following the host is why the plugin exists,
+/// so **absent must mean on** —
+/// `a_project_saved_before_auto_sync_existed_reopens_following_its_daw` is what
+/// holds that.
+fn auto_sync_default() -> bool {
+    true
+}
+
+impl Default for PluginSession {
+    fn default() -> Self {
+        Self {
+            selected_id: None,
+            seed: String::new(),
+            bars: None,
+            pins: SessionOverrides::default(),
+            window_size: None,
+            // See `auto_sync_default`: following the host is the default because
+            // it is the reason the plugin exists.
+            auto_sync: true,
+        }
+    }
 }
 
 /// The one store, shared by the two things that need it.
@@ -133,6 +171,7 @@ mod tests {
                 ..SessionOverrides::default()
             },
             window_size: Some("small".into()),
+            auto_sync: true,
         };
 
         let json = serde_json::to_string(&session).unwrap();
@@ -154,6 +193,27 @@ mod tests {
         assert_eq!(json["selectedId"], "uk-drill");
         assert!(json.get("seed").is_some());
         assert!(json.get("pins").is_some());
+    }
+
+    #[test]
+    fn a_project_saved_before_auto_sync_existed_reopens_following_its_daw() {
+        // ⛔ The one that would have been silent. `#[serde(default)]` on a `bool`
+        // gives `false`, so without `auto_sync_default` every project written
+        // before TASK-P15 would come back with auto-sync *off* and quietly stop
+        // following the host — which is the whole reason the plugin exists, and a
+        // change nobody asked for that nothing would report.
+        let old = r#"{"selectedId":"trap","seed":"7"}"#;
+        let session: PluginSession = serde_json::from_str(old).unwrap();
+        assert!(session.auto_sync, "absent must mean on");
+
+        // And the default value of a fresh session agrees, so the two paths into
+        // a session cannot disagree about it.
+        assert!(PluginSession::default().auto_sync);
+
+        // Off is still honoured when it is actually written.
+        let off = r#"{"selectedId":"trap","autoSync":false}"#;
+        let session: PluginSession = serde_json::from_str(off).unwrap();
+        assert!(!session.auto_sync);
     }
 
     #[test]

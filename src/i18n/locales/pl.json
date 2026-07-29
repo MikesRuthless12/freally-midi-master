@@ -60,7 +60,9 @@
     "switchBody": "Przypięto wartości, których nie wybrał poprzedni artysta. {{name}} oczekuje własnych.",
     "keep": "Zachowaj moje",
     "adopt": "Użyj wartości {{name}}",
-    "hostSynced": "Podąża za Twoją stacją DAW. Wpisz tempo, aby je przypiąć."
+    "hostSynced": "Podąża za Twoją stacją DAW. Wpisz tempo, aby je przypiąć.",
+    "autoSync": "Podążaj za DAW",
+    "autoSyncOff": "Używane jest tempo artysty, nie tempo Twojego DAW."
   },
   "scales": {
     "natural_minor": "Molowa naturalna",

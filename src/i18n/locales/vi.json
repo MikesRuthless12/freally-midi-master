@@ -60,7 +60,9 @@
     "switchBody": "Bạn đã ghim những giá trị mà nghệ sĩ trước không chọn. {{name}} yêu cầu giá trị riêng.",
     "keep": "Giữ của tôi",
     "adopt": "Dùng của {{name}}",
-    "hostSynced": "Đang theo DAW của bạn. Nhập nhịp độ để ghim lại."
+    "hostSynced": "Đang theo DAW của bạn. Nhập nhịp độ để ghim lại.",
+    "autoSync": "Theo DAW",
+    "autoSyncOff": "Đang dùng tempo của nghệ sĩ, không phải của DAW."
   },
   "scales": {
     "natural_minor": "Thứ tự nhiên",
