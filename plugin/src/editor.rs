@@ -80,7 +80,7 @@ pub fn create(shared: SharedState) -> Option<Box<dyn Editor>> {
                 };
 
                 let host = shared.host.snapshot();
-                let reply = match bridge::dispatch(&request, &host) {
+                let reply = match bridge::dispatch(&request, &host, &shared.session) {
                     Ok(value) => {
                         // A generation is the one command with a side effect
                         // beyond its reply: the notes have to reach the audio
@@ -172,7 +172,7 @@ fn rpc(body: &[u8], shared: &SharedState) -> String {
     let reply = match serde_json::from_slice::<Request>(body) {
         Ok(request) => {
             let host = shared.host.snapshot();
-            match bridge::dispatch(&request, &host) {
+            match bridge::dispatch(&request, &host, &shared.session) {
                 Ok(value) => {
                     // A generation is the one command with a side effect
                     // beyond its reply: the notes have to reach the audio

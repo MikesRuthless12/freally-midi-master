@@ -18,6 +18,7 @@ use std::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 
 use crate::host::HostSession;
+use crate::state::SessionStore;
 use crate::voice::Schedule;
 
 /// The host's transport, readable from any thread without blocking.
@@ -126,6 +127,11 @@ impl Handoff {
 pub struct Shared {
     pub host: SharedHost,
     pub handoff: Handoff,
+    /// What the host saves with the project, and what the editor restores from.
+    ///
+    /// The same `Arc` as the persisted field on
+    /// [`FreallyParams`](crate::FreallyParams) — see [`Shared::new`].
+    pub session: SessionStore,
     /// The host's sample rate, from `initialize`.
     ///
     /// The editor arms schedules in *samples*, so this has to be the real
@@ -135,16 +141,33 @@ pub struct Shared {
     sample_rate: AtomicU32,
 }
 
-impl Default for Shared {
-    fn default() -> Self {
+impl Shared {
+    /// Build the shared state around the session store the host will persist.
+    ///
+    /// **This is the constructor production code must use.** The store has to
+    /// be the *same* `Arc` that `FreallyParams` holds, or the host saves one
+    /// value and the editor shows another.
+    pub fn new(session: SessionStore) -> Self {
         Self {
             host: SharedHost::default(),
             handoff: Handoff::default(),
+            session,
             // Only ever read before `initialize` has run, which no host does
             // before opening an editor — but a wrong guess is quieter than a
             // zero, and a zero here would place every note at tick 0.
             sample_rate: AtomicU32::new(48_000),
         }
+    }
+}
+
+/// A [`Shared`] whose session store is **detached** — connected to no
+/// `FreallyParams`, so nothing it holds is ever saved.
+///
+/// That is what a test wants and what the plugin must never use; the plugin
+/// builds its own through [`Shared::new`].
+impl Default for Shared {
+    fn default() -> Self {
+        Self::new(SessionStore::default())
     }
 }
 

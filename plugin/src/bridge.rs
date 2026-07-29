@@ -18,6 +18,7 @@ use serde_json::{json, Value};
 
 use crate::dataset;
 use crate::host::HostSession;
+use crate::state::{self, PluginSession, SessionStore};
 
 /// A call from the webview.
 #[derive(Debug, Clone, Deserialize)]
@@ -52,8 +53,13 @@ struct GenerateArgs {
 /// Returns the value the promise resolves with, or the message it rejects
 /// with. `host` is what the DAW last reported, so a generation started from
 /// the UI is placed in the project's own tempo and meter without the UI ever
-/// having to know the tempo.
-pub fn dispatch(request: &Request, host: &HostSession) -> Result<Value, String> {
+/// having to know the tempo. `session` is what the DAW will save with the
+/// project — see [`crate::state`].
+pub fn dispatch(
+    request: &Request,
+    host: &HostSession,
+    session: &SessionStore,
+) -> Result<Value, String> {
     match request.command.as_str() {
         "roster_summary" => {
             serde_json::to_value(&dataset::loaded().summary).map_err(|e| e.to_string())
@@ -91,6 +97,26 @@ pub fn dispatch(request: &Request, host: &HostSession) -> Result<Value, String> 
             "timeSigDen": host.time_signature().1,
             "playing": host.playing(),
         })),
+
+        // ---- Session state, saved with the project by the host -------------
+        //
+        // The UI asks for this once when the editor opens and writes it back
+        // whenever the user changes something. There is no file and no path:
+        // the value lives in the plugin's persisted params, and the DAW
+        // decides when to write it out.
+        "session_state" => serde_json::to_value(state::read(session)).map_err(|e| e.to_string()),
+
+        // Deliberately replaces the whole session rather than patching a field.
+        // A partial update needs the two sides to agree on which fields were
+        // *meant* to be absent, and `SessionOverrides` already uses absence to
+        // mean "the artist chooses" — so a patch protocol would make "unpin
+        // the tempo" and "do not mention the tempo" the same message.
+        "save_session_state" => {
+            let next: PluginSession = serde_json::from_value(request.args["session"].clone())
+                .map_err(|e| format!("bad session state: {e}"))?;
+            state::write(session, next);
+            Ok(Value::Null)
+        }
 
         "app_info" => Ok(json!({
             "version": env!("CARGO_PKG_VERSION"),
@@ -234,6 +260,13 @@ mod tests {
         HostSession::observed_for_test(Some(92.0), 4, 4)
     }
 
+    /// The cases below predate session state and say nothing about it, so they
+    /// get a throwaway store. The session commands use [`super::dispatch`]
+    /// directly with one they can inspect.
+    fn dispatch(request: &Request, host: &HostSession) -> Result<Value, String> {
+        super::dispatch(request, host, &SessionStore::default())
+    }
+
     #[test]
     fn the_roster_reaches_the_ui() {
         let value = dispatch(&request("roster_summary", json!({})), &host()).unwrap();
@@ -362,6 +395,115 @@ mod tests {
     fn playback_says_the_host_owns_it_rather_than_failing() {
         let value = dispatch(&request("playback_status", json!({})), &host()).unwrap();
         assert!(value.as_str().unwrap().contains("DAW"));
+    }
+
+    #[test]
+    fn a_saved_session_reads_back_through_the_bridge() {
+        // The round trip a reopened project makes: the UI writes what the user
+        // chose, the host persists the store behind it, and the UI asks for it
+        // again when the editor next opens.
+        let store = SessionStore::default();
+
+        let saved = super::dispatch(
+            &request(
+                "save_session_state",
+                json!({ "session": {
+                    "selectedId": "uk-drill",
+                    "seed": "2024",
+                    "bars": 8,
+                    "pins": { "bpm": 150.0, "keyRoot": 3, "scale": null, "swing": null, "bars": null, "halfTime": null },
+                    "part": "drums"
+                }}),
+            ),
+            &host(),
+            &store,
+        );
+        assert!(saved.is_ok(), "{saved:?}");
+
+        let value = super::dispatch(&request("session_state", json!({})), &host(), &store).unwrap();
+
+        assert_eq!(value["selectedId"], "uk-drill");
+        assert_eq!(value["seed"], "2024");
+        assert_eq!(value["bars"], 8);
+        assert_eq!(value["pins"]["bpm"], 150.0);
+    }
+
+    #[test]
+    fn an_unsaved_session_reads_as_empty_rather_than_failing() {
+        // A plugin inserted on a fresh track has no state, and that is not an
+        // error — the UI has to be able to tell "nothing saved" from "the
+        // bridge is broken".
+        let value = dispatch(&request("session_state", json!({})), &host()).unwrap();
+        assert_eq!(value["selectedId"], Value::Null);
+        assert_eq!(value["seed"], "");
+    }
+
+    #[test]
+    fn a_malformed_session_is_refused_rather_than_silently_emptied() {
+        // Writing junk must not clear a good session. Refusing loudly is what
+        // lets a wiring bug in the UI be found, rather than presenting as a
+        // project that quietly forgets what the user picked.
+        let store = SessionStore::default();
+        state::write(
+            &store,
+            PluginSession {
+                selected_id: Some("trap".into()),
+                ..PluginSession::default()
+            },
+        );
+
+        let err = super::dispatch(
+            &request(
+                "save_session_state",
+                json!({ "session": { "bars": "eight" } }),
+            ),
+            &host(),
+            &store,
+        )
+        .unwrap_err();
+        assert!(err.contains("bad session state"), "{err}");
+
+        assert_eq!(
+            state::read(&store).selected_id.as_deref(),
+            Some("trap"),
+            "a rejected write must leave the stored session alone"
+        );
+    }
+
+    #[test]
+    fn the_saved_seed_regenerates_the_pattern_it_was_saved_with() {
+        // Why persisting the *inputs* is enough: restore is a regeneration, and
+        // the engine is deterministic. If this ever stops holding, a reopened
+        // project comes back on a different beat.
+        let store = SessionStore::default();
+        super::dispatch(
+            &request(
+                "save_session_state",
+                json!({ "session": { "selectedId": "trap", "seed": "2024" } }),
+            ),
+            &host(),
+            &store,
+        )
+        .unwrap();
+
+        let restored = state::read(&store);
+        let regenerate = || {
+            super::dispatch(
+                &request(
+                    "generate_pattern",
+                    json!({ "request": {
+                        "styleId": restored.selected_id.clone().unwrap(),
+                        "seed": restored.seed,
+                    }}),
+                ),
+                &host(),
+                &store,
+            )
+            .unwrap()
+        };
+
+        assert_eq!(regenerate(), regenerate());
+        assert_eq!(regenerate()["seed"], "2024");
     }
 
     #[test]

@@ -26,11 +26,13 @@ pub mod dataset;
 mod editor;
 pub mod host;
 pub mod shared;
+pub mod state;
 pub mod voice;
 
 pub use bridge::{dispatch, Request};
 pub use host::HostSession;
 pub use shared::{Shared, SharedState};
+pub use state::{PluginSession, SessionStore};
 pub use voice::Schedule;
 
 /// The plugin's own state, held across the process callbacks.
@@ -46,16 +48,38 @@ pub struct FreallyMidiMaster {
     shared: SharedState,
 }
 
+/// No automatable parameters, and one persisted field.
+///
+/// A generator driven by a roster, a seed and a set of pins has nothing a host
+/// would sensibly draw a knob for or write automation against — the artist is
+/// not a continuous value. What it does have is a *session*, and that is what
+/// belongs in the project file.
+///
+/// `#[persist]` is how `nih-plug` carries arbitrary serde data through the
+/// host's own state calls, which is what TASK-P07 asked for: no settings file,
+/// no per-machine store, no path the plugin has to find. The DAW saves it with
+/// the song and hands it back on open.
 #[derive(Params, Default)]
-pub struct FreallyParams {}
+pub struct FreallyParams {
+    #[persist = "session"]
+    pub session: SessionStore,
+}
 
 impl Default for FreallyMidiMaster {
     fn default() -> Self {
+        // **One store, threaded into both.** `params` is what the host
+        // serializes; `shared` is what the editor reads and writes. They must
+        // be the same `Arc` — two stores would save one and display the other,
+        // which presents as "the DAW did not save my session" and stays
+        // invisible until someone reopens a project.
+        let params = Arc::new(FreallyParams::default());
+        let shared = Arc::new(Shared::new(params.session.clone()));
+
         Self {
-            params: Arc::new(FreallyParams::default()),
+            params,
             session: HostSession::default(),
             pending: Schedule::default(),
-            shared: Arc::new(Shared::default()),
+            shared,
         }
     }
 }
