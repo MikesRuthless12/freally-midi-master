@@ -48,7 +48,32 @@
   "readouts": {
     "bpm": "BPM",
     "key": "Tonart",
+    "scale": "Tonleiter",
     "swing": "Swing"
+  },
+  "session": {
+    "pickArtist": "Wähle einen Künstler, um zu sehen, was er verlangt.",
+    "artistChoice": "Vom Künstler",
+    "artistPicks": "{{value}} — vom Künstler",
+    "clearPin": "Zurück zum Wert des Künstlers",
+    "switchBody": "Du hast Werte festgelegt, die der vorige Künstler nicht gewählt hat. {{name}} verlangt eigene.",
+    "keep": "Meine behalten",
+    "adopt": "Die von {{name}} verwenden",
+    "hostSynced": "Folgt deiner DAW. Tippe ein Tempo ein, um es festzulegen."
+  },
+  "scales": {
+    "natural_minor": "Natürliches Moll",
+    "harmonic_minor": "Harmonisches Moll",
+    "phrygian": "Phrygisch",
+    "phrygian_dominant": "Phrygisch-dominant",
+    "dorian": "Dorisch",
+    "major": "Dur",
+    "mixolydian": "Mixolydisch",
+    "lydian": "Lydisch",
+    "aeolian": "Äolisch",
+    "minor_pentatonic": "Moll-Pentatonik",
+    "major_pentatonic": "Dur-Pentatonik",
+    "blues": "Blues-Tonleiter"
   },
   "transport": {
     "play": "Wiedergabe",

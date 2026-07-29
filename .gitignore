@@ -72,3 +72,7 @@ Live-To-Do.md
 
 # CI screenshot output
 screenshots
+
+# Machine-specific plugin install destinations. plugin-install.example.json
+# is the one that ships.
+plugin-install.json

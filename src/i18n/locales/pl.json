@@ -48,7 +48,32 @@
   "readouts": {
     "bpm": "BPM",
     "key": "Tonacja",
+    "scale": "Skala",
     "swing": "Swing"
+  },
+  "session": {
+    "pickArtist": "Wybierz artystę, aby zobaczyć, czego oczekuje.",
+    "artistChoice": "Artysty",
+    "artistPicks": "{{value}} — artysty",
+    "clearPin": "Powrót do wartości artysty",
+    "switchBody": "Przypięto wartości, których nie wybrał poprzedni artysta. {{name}} oczekuje własnych.",
+    "keep": "Zachowaj moje",
+    "adopt": "Użyj wartości {{name}}",
+    "hostSynced": "Podąża za Twoją stacją DAW. Wpisz tempo, aby je przypiąć."
+  },
+  "scales": {
+    "natural_minor": "Molowa naturalna",
+    "harmonic_minor": "Molowa harmoniczna",
+    "phrygian": "Frygijska",
+    "phrygian_dominant": "Frygijska dominantowa",
+    "dorian": "Dorycka",
+    "major": "Durowa",
+    "mixolydian": "Miksolidyjska",
+    "lydian": "Lidyjska",
+    "aeolian": "Eolska",
+    "minor_pentatonic": "Pentatonika molowa",
+    "major_pentatonic": "Pentatonika durowa",
+    "blues": "Skala bluesowa"
   },
   "transport": {
     "play": "Odtwórz",

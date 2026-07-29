@@ -175,6 +175,18 @@ impl StrSpec {
             }
         }
     }
+
+    /// Everything this spec could sample, in authored order.
+    ///
+    /// The counterpart of `NumSpec::nominal` for a readout shown before
+    /// anything is generated: a string is picked, not averaged, so the honest
+    /// answer is the list rather than one of its members.
+    pub fn options(&self) -> Vec<String> {
+        match self {
+            StrSpec::Exact(v) => vec![v.clone()],
+            StrSpec::Weighted { values, .. } => values.clone(),
+        }
+    }
 }
 
 /// Tempo, authored as `{ min, max, mode }` because a style's centre of gravity

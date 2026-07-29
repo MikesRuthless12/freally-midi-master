@@ -28,6 +28,18 @@ yanked = "deny"
 #
 # A real vulnerability must never be added here — fix or replace the dependency.
 ignore = [
+    # RUSTSEC-2024-0375 — `atty` is unmaintained; its own maintainer says to
+    # use `std::io::IsTerminal` instead. Not a vulnerability. It arrives
+    # through `nih_log` <- `nih_plug` and does nothing but detect whether a TTY
+    # is attached for dev logging, which the shipped plugin — running inside a
+    # DAW, with no terminal — never benefits from either way.
+    #
+    # **This one is ours, not Tauri's, and it has a name: `nih-plug` is
+    # unmaintained upstream as of March 2026.** An unmaintained framework is
+    # how a project inherits advisories it cannot close, and this is the first.
+    # It belongs in TASK-P11's migration decision rather than being quietly
+    # carried.
+    "RUSTSEC-2024-0375",
     # gtk-rs GTK3 bindings, unmaintained upstream. Tauri v2's Linux webview
     # requires them; there is no GTK4 path yet.
     "RUSTSEC-2024-0411",
@@ -125,3 +137,20 @@ deny = [
 unknown-registry = "deny"
 unknown-git = "deny"
 allow-registry = ["https://github.com/rust-lang/crates.io-index"]
+
+# The plugin's framework is not on crates.io. Each of these is named
+# individually rather than the gate being relaxed, because "some git
+# dependency" is exactly the thing this check exists to notice — and every one
+# of them is pinned to a revision in the manifest that names it.
+#
+# `nih-plug` is unmaintained upstream as of March 2026 (the maintained fork,
+# `nice-plug`, has no webview adapter, which is the whole reason this project
+# is still on the original). `baseview` is here only because the vendored
+# `nih_plug_webview` needs a revision predating its raw-window-handle 0.6
+# migration — see plugin/vendor/VENDORED.md.
+allow-git = [
+    "https://github.com/robbert-vdh/nih-plug",
+    "https://github.com/RustAudio/baseview",
+    # The CLAP bindings nih-plug builds on. Pinned by nih-plug itself.
+    "https://github.com/micahrj/clap-sys",
+]

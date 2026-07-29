@@ -25,3 +25,7 @@ src/assets/fonts/fonts-scripts.css
 # the thing under test — the engine would then have to match Prettier's output
 # rather than its own.
 engine/tests/snapshots/
+
+# Vendored third-party source, kept byte-for-byte upstream so a future rebase
+# is a diff against its manifest alone. See plugin/vendor/VENDORED.md.
+plugin/vendor

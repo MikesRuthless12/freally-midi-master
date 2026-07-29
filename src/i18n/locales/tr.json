@@ -48,7 +48,32 @@
   "readouts": {
     "bpm": "BPM",
     "key": "Ton",
+    "scale": "Dizi",
     "swing": "Swing"
+  },
+  "session": {
+    "pickArtist": "Ne istediğini görmek için bir sanatçı seç.",
+    "artistChoice": "Sanatçının",
+    "artistPicks": "{{value}} — sanatçının",
+    "clearPin": "Sanatçının değerine dön",
+    "switchBody": "Önceki sanatçının seçmediği değerleri sabitledin. {{name}} kendi değerlerini istiyor.",
+    "keep": "Benimkini koru",
+    "adopt": "{{name}} değerlerini kullan",
+    "hostSynced": "DAW'ını takip ediyor. Sabitlemek için bir tempo yaz."
+  },
+  "scales": {
+    "natural_minor": "Doğal minör",
+    "harmonic_minor": "Armonik minör",
+    "phrygian": "Frigyen",
+    "phrygian_dominant": "Frigyen dominant",
+    "dorian": "Doryen",
+    "major": "Majör",
+    "mixolydian": "Miksolidyen",
+    "lydian": "Lidyen",
+    "aeolian": "Eolyen",
+    "minor_pentatonic": "Minör pentatonik",
+    "major_pentatonic": "Majör pentatonik",
+    "blues": "Blues dizisi"
   },
   "transport": {
     "play": "Çal",

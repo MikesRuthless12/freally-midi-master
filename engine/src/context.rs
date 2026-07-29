@@ -260,6 +260,38 @@ pub struct SessionOverrides {
     pub half_time: Option<bool>,
 }
 
+/// The tempo a pinned session may ask for, wider than any authored model.
+///
+/// `midi::pattern_to_smf` and the audio transport both already refuse a
+/// non-positive tempo and substitute one, so an unclamped `0` does not crash —
+/// it plays and exports at *their* fallback while every readout in the app says
+/// `0`. And `ms_per_tick` divides by the tempo, so at `0` it is infinite and
+/// every humanize jitter collapses to zero ticks: the feel disappears with
+/// nothing reporting it. Clamping here keeps the tempo shown, the tempo heard
+/// and the tempo written the same number. Authored tempos come from a linted
+/// dataset; these arrive in an IPC payload, so this is the edge for the check.
+/// Ableton Live's tempo range, which is also what the plugin trusts from a
+/// host and what the BPM chip accepts. One range, three places, so a project
+/// the DAW is running at is never a tempo this engine refuses.
+const BPM_MIN: f32 = 20.0;
+const BPM_MAX: f32 = 999.0;
+
+/// Straight to fully triplet, with a little past each end for feel.
+/// `humanize` reads the amount as a ratio of the swung subdivision; outside
+/// this range the off-beat lands on — or past — the note after it.
+const SWING_MIN: f32 = 0.5;
+const SWING_MAX: f32 = 0.75;
+
+/// Clamp a caller-supplied value, falling back for a `NaN` that `clamp` would
+/// otherwise pass straight through.
+fn sane(value: f32, min: f32, max: f32, fallback: f32) -> f32 {
+    if value.is_nan() {
+        fallback
+    } else {
+        value.clamp(min, max)
+    }
+}
+
 impl SessionContext {
     /// The session a style model asks for, with anything the user pinned
     /// taking precedence.
@@ -273,12 +305,13 @@ impl SessionContext {
         let session = model.session.as_ref();
         let defaults = Self::default();
 
-        let bpm = overrides.bpm.unwrap_or_else(|| {
-            session
+        let bpm = match overrides.bpm {
+            Some(pinned) => sane(pinned, BPM_MIN, BPM_MAX, defaults.bpm),
+            None => session
                 .and_then(|s| s.bpm.as_ref())
                 .map(|spec| spec.nominal() as f32)
-                .unwrap_or(defaults.bpm)
-        });
+                .unwrap_or(defaults.bpm),
+        };
 
         let key_root = overrides.key_root.unwrap_or_else(|| {
             session
@@ -302,9 +335,10 @@ impl SessionContext {
                 Some("8th") => SwingGrid::Eighth,
                 _ => SwingGrid::Sixteenth,
             },
-            amount: overrides
-                .swing
-                .unwrap_or_else(|| authored_swing.map(|s| s.amount as f32).unwrap_or(0.5)),
+            amount: match overrides.swing {
+                Some(pinned) => sane(pinned, SWING_MIN, SWING_MAX, 0.5),
+                None => authored_swing.map(|s| s.amount as f32).unwrap_or(0.5),
+            },
         };
 
         let humanize = session
@@ -341,5 +375,96 @@ impl SessionContext {
                 .unwrap_or(false),
             humanize,
         }
+    }
+}
+
+/// What a model asks for, before a seed picks among the options it offers.
+///
+/// The session chips need this the moment an artist is selected, which is
+/// *before* there is a seed — and two of these fields are chosen by one.
+/// `bpm`, `swing` and `half_time` are deterministic, so they arrive as values;
+/// `keys` and `scales` are sampled, so they arrive as the authored lists. A
+/// sampled key here would be a readout that silently changed under the user
+/// the moment they pressed Generate (FR-002).
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export, export_to = "../../src/lib/ipc-types.ts")]
+pub struct SessionDefaults {
+    /// The tempo a generation will use: `BpmSpec::nominal`, not a sample.
+    pub bpm: f32,
+    /// Key names the model draws from, in authored order. Empty when it
+    /// authors none, in which case the engine's own default key applies.
+    pub keys: Vec<String>,
+    /// Scales the model draws from, in authored order.
+    pub scales: Vec<Scale>,
+    pub swing: Swing,
+    pub half_time: bool,
+}
+
+impl SessionDefaults {
+    /// Read a resolved model's session block. No seed, and no sampling.
+    pub fn of(model: &crate::StyleModel) -> Self {
+        let session = model.session.as_ref();
+        let fallback = SessionContext::default();
+
+        let authored_swing = session.and_then(|s| s.swing.as_ref());
+
+        Self {
+            bpm: session
+                .and_then(|s| s.bpm.as_ref())
+                .map(|spec| spec.nominal() as f32)
+                .unwrap_or(fallback.bpm),
+            keys: session
+                .and_then(|s| s.keys.as_ref())
+                .map(|spec| spec.options())
+                .unwrap_or_default(),
+            // A scale name the engine does not know is dropped, exactly as
+            // `from_model` drops it. `engine/tests/session_strings.rs` asserts
+            // every authored name parses, so a typo costs a failing test
+            // rather than a key the chip cannot offer.
+            scales: session
+                .and_then(|s| s.scales.as_ref())
+                .map(|spec| {
+                    spec.options()
+                        .into_iter()
+                        .filter_map(|name| {
+                            serde_json::from_value(serde_json::Value::String(name)).ok()
+                        })
+                        .collect()
+                })
+                .unwrap_or_default(),
+            swing: Swing {
+                grid: match authored_swing.map(|s| s.grid.as_str()) {
+                    Some("8th") => SwingGrid::Eighth,
+                    _ => SwingGrid::Sixteenth,
+                },
+                amount: authored_swing.map(|s| s.amount as f32).unwrap_or(0.5),
+            },
+            half_time: session.and_then(|s| s.half_time).unwrap_or(false),
+        }
+    }
+}
+
+#[cfg(test)]
+mod override_tests {
+    use super::*;
+
+    #[test]
+    fn a_pinned_tempo_outside_the_musical_range_is_clamped() {
+        assert_eq!(sane(0.0, BPM_MIN, BPM_MAX, 140.0), BPM_MIN);
+        assert_eq!(sane(10_000.0, BPM_MIN, BPM_MAX, 140.0), BPM_MAX);
+        assert_eq!(sane(f32::INFINITY, BPM_MIN, BPM_MAX, 140.0), BPM_MAX);
+        // NaN passes straight through `f32::clamp`, so it needs its own arm.
+        assert_eq!(sane(f32::NAN, BPM_MIN, BPM_MAX, 140.0), 140.0);
+        // ...and an ordinary value is untouched.
+        assert_eq!(sane(88.0, BPM_MIN, BPM_MAX, 140.0), 88.0);
+    }
+
+    #[test]
+    fn a_pinned_swing_stays_inside_the_subdivision() {
+        // Past 0.75 the swung note lands on the one after it.
+        assert_eq!(sane(0.9, SWING_MIN, SWING_MAX, 0.5), SWING_MAX);
+        assert_eq!(sane(0.0, SWING_MIN, SWING_MAX, 0.5), SWING_MIN);
+        assert_eq!(sane(0.62, SWING_MIN, SWING_MAX, 0.5), 0.62);
     }
 }

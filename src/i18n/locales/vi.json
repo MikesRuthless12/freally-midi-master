@@ -48,7 +48,32 @@
   "readouts": {
     "bpm": "BPM",
     "key": "Tông",
+    "scale": "Âm giai",
     "swing": "Độ swing"
+  },
+  "session": {
+    "pickArtist": "Chọn một nghệ sĩ để xem yêu cầu của họ.",
+    "artistChoice": "Của nghệ sĩ",
+    "artistPicks": "{{value}} — của nghệ sĩ",
+    "clearPin": "Trở lại giá trị của nghệ sĩ",
+    "switchBody": "Bạn đã ghim những giá trị mà nghệ sĩ trước không chọn. {{name}} yêu cầu giá trị riêng.",
+    "keep": "Giữ của tôi",
+    "adopt": "Dùng của {{name}}",
+    "hostSynced": "Đang theo DAW của bạn. Nhập nhịp độ để ghim lại."
+  },
+  "scales": {
+    "natural_minor": "Thứ tự nhiên",
+    "harmonic_minor": "Thứ hòa thanh",
+    "phrygian": "Điệu Phrygian",
+    "phrygian_dominant": "Điệu Phrygian át",
+    "dorian": "Điệu Dorian",
+    "major": "Trưởng",
+    "mixolydian": "Điệu Mixolydian",
+    "lydian": "Điệu Lydian",
+    "aeolian": "Điệu Aeolian",
+    "minor_pentatonic": "Ngũ cung thứ",
+    "major_pentatonic": "Ngũ cung trưởng",
+    "blues": "Âm giai blues"
   },
   "transport": {
     "play": "Phát",

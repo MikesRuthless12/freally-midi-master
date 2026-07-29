@@ -26,6 +26,7 @@ function App() {
   const setWide = useUi((s) => s.setWide);
   const toggleRightRail = useUi((s) => s.toggleRightRail);
   const init = useSession((s) => s.init);
+  const refreshHost = useSession((s) => s.refreshHost);
 
   // A crash left a report behind: the relaunched app opens it on its own, which
   // is the whole point of the crash loop. A pending crash takes the dialog slot
@@ -49,6 +50,20 @@ function App() {
   useEffect(() => {
     void init();
   }, [init]);
+
+  // Follow the DAW's tempo. Polled rather than pushed: the plugin's bridge is
+  // drained on the editor's event loop, and a host that changes tempo does not
+  // notify anyone — it simply reports a different number on the next block.
+  // Twice a second is far below anything a person notices as lag and far above
+  // anything that costs a frame.
+  //
+  // Outside a plugin the command does not exist, `refreshHost` swallows that,
+  // and the tempo stays null — which is exactly "no project to follow".
+  useEffect(() => {
+    void refreshHost();
+    const timer = window.setInterval(() => void refreshHost(), 500);
+    return () => window.clearInterval(timer);
+  }, [refreshHost]);
 
   // Follow the playhead the audio thread publishes at 30 Hz. Returns a no-op
   // outside Tauri, where there is no event system behind it.

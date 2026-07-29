@@ -35,6 +35,10 @@ const CI_ENV = {
 };
 
 const GATES = [
+  // First, because the plugin crate compiles `dist/` into its binary with
+  // `include_dir!` and `dist/` is gitignored — on a fresh checkout nothing
+  // Rust builds until Vite has run. CI has the same step in the same place.
+  { name: 'frontend build', cmd: 'npm', args: ['run', '-s', 'build'] },
   { name: 'cargo fmt', cmd: 'cargo', args: ['fmt', '--all', '--check'] },
   {
     name: 'cargo clippy',
@@ -57,7 +61,9 @@ const GATES = [
   { name: 'lint', cmd: 'npm', args: ['run', '-s', 'lint'] },
   { name: 'format check', cmd: 'npm', args: ['run', '-s', 'format:check'] },
   { name: 'unit tests', cmd: 'npm', args: ['run', '-s', 'test'] },
-  { name: 'frontend build', cmd: 'npm', args: ['run', '-s', 'build'] },
+  // (`frontend build` used to sit here. It moved to the top of the list when
+  // the plugin started embedding `dist/`; running it twice would only prove
+  // the same thing a second time.)
   { name: 'dataset validate', cmd: 'npm', args: ['run', '-s', 'dataset:validate'] },
   { name: 'denylist', cmd: 'node', args: ['scripts/check-denylist.mjs'] },
   { name: 'e2e', cmd: 'npm', args: ['run', '-s', 'test:e2e'], slow: true },

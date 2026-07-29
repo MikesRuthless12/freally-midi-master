@@ -48,7 +48,32 @@
   "readouts": {
     "bpm": "BPM",
     "key": "Toonsoort",
+    "scale": "Toonladder",
     "swing": "Swing"
+  },
+  "session": {
+    "pickArtist": "Kies een artiest om te zien wat die vraagt.",
+    "artistChoice": "Van de artiest",
+    "artistPicks": "{{value}} — van de artiest",
+    "clearPin": "Terug naar de waarde van de artiest",
+    "switchBody": "Je hebt waarden vastgezet die de vorige artiest niet koos. {{name}} vraagt om eigen waarden.",
+    "keep": "Die van mij houden",
+    "adopt": "Die van {{name}} gebruiken",
+    "hostSynced": "Volgt je DAW. Typ een tempo om het vast te zetten."
+  },
+  "scales": {
+    "natural_minor": "Natuurlijk mineur",
+    "harmonic_minor": "Harmonisch mineur",
+    "phrygian": "Frygisch",
+    "phrygian_dominant": "Frygisch dominant",
+    "dorian": "Dorisch",
+    "major": "Majeur",
+    "mixolydian": "Mixolydisch",
+    "lydian": "Lydisch",
+    "aeolian": "Aeolisch",
+    "minor_pentatonic": "Mineur pentatonisch",
+    "major_pentatonic": "Majeur pentatonisch",
+    "blues": "Bluestoonladder"
   },
   "transport": {
     "play": "Afspelen",

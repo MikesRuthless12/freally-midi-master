@@ -48,7 +48,32 @@
   "readouts": {
     "bpm": "BPM",
     "key": "キー",
+    "scale": "スケール",
     "swing": "スウィング"
+  },
+  "session": {
+    "pickArtist": "アーティストを選ぶと、その設定が表示されます。",
+    "artistChoice": "アーティストに任せる",
+    "artistPicks": "{{value}} — アーティスト",
+    "clearPin": "アーティストの値に戻す",
+    "switchBody": "前のアーティストが選んでいない値を固定しています。{{name}} は独自の値を求めています。",
+    "keep": "自分の値を使う",
+    "adopt": "{{name}} の値を使う",
+    "hostSynced": "DAW に追従しています。テンポを入力すると固定されます。"
+  },
+  "scales": {
+    "natural_minor": "自然的短音階",
+    "harmonic_minor": "和声的短音階",
+    "phrygian": "フリジアン",
+    "phrygian_dominant": "フリジアン・ドミナント",
+    "dorian": "ドリアン",
+    "major": "長音階",
+    "mixolydian": "ミクソリディアン",
+    "lydian": "リディアン",
+    "aeolian": "エオリアン",
+    "minor_pentatonic": "マイナー・ペンタトニック",
+    "major_pentatonic": "メジャー・ペンタトニック",
+    "blues": "ブルース・スケール"
   },
   "transport": {
     "play": "再生",

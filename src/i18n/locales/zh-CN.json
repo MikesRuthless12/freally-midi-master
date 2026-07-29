@@ -48,7 +48,32 @@
   "readouts": {
     "bpm": "BPM",
     "key": "调",
+    "scale": "音阶",
     "swing": "摇摆"
+  },
+  "session": {
+    "pickArtist": "选择一位艺术家，查看其设定。",
+    "artistChoice": "由艺术家决定",
+    "artistPicks": "{{value}} — 由艺术家决定",
+    "clearPin": "恢复为艺术家的数值",
+    "switchBody": "你固定了上一位艺术家未选择的数值。{{name}} 有自己的设定。",
+    "keep": "保留我的",
+    "adopt": "使用 {{name}} 的",
+    "hostSynced": "正在跟随你的 DAW。输入速度即可固定。"
+  },
+  "scales": {
+    "natural_minor": "自然小调",
+    "harmonic_minor": "和声小调",
+    "phrygian": "弗里几亚调式",
+    "phrygian_dominant": "弗里几亚属调式",
+    "dorian": "多利亚调式",
+    "major": "大调",
+    "mixolydian": "混合利底亚调式",
+    "lydian": "利底亚调式",
+    "aeolian": "爱奥利亚调式",
+    "minor_pentatonic": "小调五声音阶",
+    "major_pentatonic": "大调五声音阶",
+    "blues": "布鲁斯音阶"
   },
   "transport": {
     "play": "播放",

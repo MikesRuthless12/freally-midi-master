@@ -14,7 +14,13 @@ use super::{load, DatasetError, DatasetProblem, LoadedDataset};
 
 /// Directories under a dataset root that hold something other than models:
 /// the JSON Schema the models point at, and the sample kits.
-const NON_MODEL_DIRS: &[&str] = &["schema", "kits"];
+///
+/// Public because there is now a second loader: the plugin compiles `data/`
+/// into its binary and has to apply the same rule. Two copies of this list is
+/// how one of them starts scanning the schema as a model — which is exactly
+/// what happened the first time the embedded loader was written, and what
+/// `the_shipped_dataset_scans_to_models_only` catches on this side.
+pub const NON_MODEL_DIRS: &[&str] = &["schema", "kits"];
 
 /// What a directory scan found.
 #[derive(Debug)]

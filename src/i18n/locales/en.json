@@ -48,7 +48,32 @@
   "readouts": {
     "bpm": "BPM",
     "key": "Key",
+    "scale": "Scale",
     "swing": "Swing"
+  },
+  "session": {
+    "pickArtist": "Pick an artist to see what it asks for.",
+    "artistChoice": "The artist’s",
+    "artistPicks": "{{value}} — the artist’s",
+    "clearPin": "Back to the artist’s value",
+    "switchBody": "You pinned a session the last artist did not choose. {{name}} asks for its own.",
+    "keep": "Keep mine",
+    "adopt": "Use {{name}}’s",
+    "hostSynced": "Following your DAW. Type a tempo to pin it."
+  },
+  "scales": {
+    "natural_minor": "Natural minor",
+    "harmonic_minor": "Harmonic minor",
+    "phrygian": "Phrygian",
+    "phrygian_dominant": "Phrygian dominant",
+    "dorian": "Dorian",
+    "major": "Major",
+    "mixolydian": "Mixolydian",
+    "lydian": "Lydian",
+    "aeolian": "Aeolian",
+    "minor_pentatonic": "Minor pentatonic",
+    "major_pentatonic": "Major pentatonic",
+    "blues": "Blues"
   },
   "transport": {
     "play": "Play",

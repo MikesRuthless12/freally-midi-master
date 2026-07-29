@@ -126,6 +126,31 @@ keyRoot: number, scale: Scale, swing: Swing, bars: number,
 halfTime: boolean, humanize: Humanize, };
 
 /**
+ * What a model asks for, before a seed picks among the options it offers.
+ *
+ * The session chips need this the moment an artist is selected, which is
+ * *before* there is a seed — and two of these fields are chosen by one.
+ * `bpm`, `swing` and `half_time` are deterministic, so they arrive as values;
+ * `keys` and `scales` are sampled, so they arrive as the authored lists. A
+ * sampled key here would be a readout that silently changed under the user
+ * the moment they pressed Generate (FR-002).
+ */
+export type SessionDefaults = { 
+/**
+ * The tempo a generation will use: `BpmSpec::nominal`, not a sample.
+ */
+bpm: number, 
+/**
+ * Key names the model draws from, in authored order. Empty when it
+ * authors none, in which case the engine's own default key applies.
+ */
+keys: Array<string>, 
+/**
+ * Scales the model draws from, in authored order.
+ */
+scales: Array<Scale>, swing: Swing, halfTime: boolean, };
+
+/**
  * What a caller may pin instead of letting the model choose it.
  *
  * Everything is optional: an override the user has not touched must stay

@@ -1,0 +1,49 @@
+[package]
+name = "nih_plug_webview"
+version = "0.0.0"
+edition = "2021"
+authors = ["Max Huttunen <max.huttunen@gmail.com>"]
+license = "ISC"
+publish = false
+
+description = "An adapter to use webview GUIs with NIH-plug. Vendored — see VENDORED.md."
+
+# Third-party source, kept byte-for-byte so a future rebase is a diff against
+# this manifest alone. Linting someone else's code under `-D warnings` would
+# mean either editing it — losing that property — or a permanently red gate.
+[lints.clippy]
+all = "allow"
+
+[dependencies]
+parking_lot = "0.12.1"
+serde_json = "1.0"
+wry = { version = "0.35.1" }
+raw-window-handle = "0.5"
+crossbeam = "0.8.2"
+keyboard-types = "0.6.2"
+
+# The same revision the rest of the workspace pins, so there is one nih_plug in
+# the build rather than two that cannot pass types to each other.
+# `default-features = false` for the licence reason documented in
+# `plugin/Cargo.toml`: nih-plug's VST3 export pulls GPLv3 `vst3-sys`. Both
+# manifests must agree, or cargo unifies the feature back on and the GPL
+# dependency returns through this crate instead.
+nih_plug = { git = "https://github.com/robbert-vdh/nih-plug.git", rev = "f36931f7af4646065488a9845d8f8c2f95252c23", default-features = false }
+
+# THE REASON THIS CRATE IS VENDORED.
+#
+# Upstream depends on `baseview` from git with **no revision pin**, so cargo
+# resolves whatever HEAD happens to be. On 2026-06-19 baseview's `858113b`
+# migrated to `raw-window-handle` 0.6, and `cc28453` then moved its size types
+# to the `dpi` crate. Upstream's code — written against raw-window-handle 0.5
+# and `baseview::Size` — stopped compiling entirely: nine errors, none of them
+# in ours, on a dependency nobody can pin from the outside.
+#
+# `91e3b4a` is baseview 0.1.4 (2026-06-17), the last revision before that
+# migration and the one this crate was actually written against.
+#
+# Pinned here rather than `[patch]`ed from the workspace because cargo refuses
+# a patch that points at the same source URL as the dependency it replaces.
+[dependencies.baseview]
+git = "https://github.com/RustAudio/baseview"
+rev = "91e3b4a50f1db712355ba0d991c02d024050ef40"

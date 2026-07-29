@@ -9,7 +9,7 @@
  */
 
 import type { InvokeArgs } from '@tauri-apps/api/core';
-import type { Note, Pattern, RosterSummary } from './ipc-types';
+import type { Note, Pattern, RosterSummary, SessionDefaults } from './ipc-types';
 import type { PlaybackStarted } from './ipc-audio-types';
 
 type Handler = (args?: InvokeArgs) => unknown;
@@ -98,6 +98,29 @@ From: Freally MIDI Master`;
       },
     ],
     problems: [],
+  }),
+
+  // There is no DAW behind a browser, so there is no project tempo to follow
+  // and the artist's own value stands. `null` rather than a number: reporting
+  // a tempo nothing is running at is the readout-that-lies failure the session
+  // chips exist to avoid.
+  host_session: () => ({
+    tempo: null,
+    timeSigNum: 4,
+    timeSigDen: 4,
+    playing: false,
+  }),
+
+  // What a style asks for, for the session chips. The key list leads with F♯
+  // and the scale list with natural minor, which is what `generate_pattern`
+  // below returns — a fixture whose chips disagree with its own pattern would
+  // make a real mismatch impossible to see.
+  session_defaults: (): SessionDefaults => ({
+    bpm: 140,
+    keys: ['F#', 'C#', 'G#'],
+    scales: ['natural_minor', 'phrygian'],
+    swing: { grid: 'sixteenth', amount: 0.54 },
+    halfTime: true,
   }),
 
   // Generation. A real four-bar pattern rather than an empty one, because the

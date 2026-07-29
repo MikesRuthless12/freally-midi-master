@@ -48,7 +48,32 @@
   "readouts": {
     "bpm": "BPM",
     "key": "السلّم",
+    "scale": "السلم",
     "swing": "السوينغ"
+  },
+  "session": {
+    "pickArtist": "اختر فنانًا لعرض ما يطلبه.",
+    "artistChoice": "حسب الفنان",
+    "artistPicks": "{{value}} — حسب الفنان",
+    "clearPin": "العودة إلى قيمة الفنان",
+    "switchBody": "لقد ثبّتَ قيمًا لم يخترها الفنان السابق. {{name}} يطلب قيمه الخاصة.",
+    "keep": "الاحتفاظ بقيمي",
+    "adopt": "استخدام قيم {{name}}",
+    "hostSynced": "يتبع الـ DAW لديك. اكتب سرعة لتثبيتها."
+  },
+  "scales": {
+    "natural_minor": "الصغير الطبيعي",
+    "harmonic_minor": "الصغير التوافقي",
+    "phrygian": "فريجي",
+    "phrygian_dominant": "فريجي مهيمن",
+    "dorian": "دوري",
+    "major": "الكبير",
+    "mixolydian": "ميكسوليدي",
+    "lydian": "ليدي",
+    "aeolian": "إيولي",
+    "minor_pentatonic": "خماسي صغير",
+    "major_pentatonic": "خماسي كبير",
+    "blues": "سلم البلوز"
   },
   "transport": {
     "play": "تشغيل",

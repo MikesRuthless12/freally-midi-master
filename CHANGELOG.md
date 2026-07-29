@@ -12,6 +12,55 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Changed — Freally MIDI Master is becoming a plugin
+
+Decided 2026-07-28. Not for the format's sake: a plugin is handed the host's
+tempo, time signature and playhead, so a generated pattern lands in the song you
+are actually writing rather than at whatever tempo the artist is authored at.
+`docs/product-roadmap.md` carries the decision, what survived and what did not.
+
+- **New `plugin/` crate** on `nih-plug`, exporting **CLAP**. VST3 and AU are
+  projected from it by `clap-wrapper` at packaging time.
+- **The `engine` crate is unchanged**, which was the point of keeping it free of
+  shell types. No FFI and no C++.
+- **Host tempo sync**, with precedence **user pin > host > model**. Trap
+  authored at 140 generates at 92 inside a 92 BPM project; a pinned tempo beats
+  the host; a host that has not reported yet leaves the model its own value.
+- **Notes are emitted onto the host's track**, replacing drag-out.
+- **The UI carried across.** `src/lib/ipc.ts` was always the one seam and gained
+  a third branch; the React app, the 18 locale catalogs and the design tokens
+  are the same ones the desktop app shipped.
+
+### Added
+
+- **Session chips** — BPM, key, scale and swing, editable in the right rail.
+  Empty means the artist decides; a value means you do. When running in a host
+  the tempo chip follows the DAW and says so.
+- **The chords generator** (FR-004): progression families, diatonic
+  third-stacking so every pitch is in the key by construction, borrowed chords,
+  sus and the drill middle-note drop, close and open voicings, and syncopated
+  3–5 beat cells.
+- **`scripts/assert-plugin-bundled.mjs`** — refuses a plugin binary whose UI or
+  dataset failed to embed, because that failure otherwise presents as a blank
+  window with no error.
+- **`npm run plugin:standalone`** — the plugin in its own window, no DAW needed.
+  **`npm run plugin:install`** symlinks it into the CLAP folder so a rebuild is
+  live without copying.
+
+### Fixed
+
+- **`vst3-sys` is GPLv3** and nih-plug's VST3 export links it — which would have
+  put this proprietary product in breach. Caught by `cargo deny`. VST3 now comes
+  from `clap-wrapper` (MIT) instead. Steinberg's own VST3 SDK went MIT in
+  November 2025; nih-plug does not use it.
+- **The generation error message has never been visible.** `.stage__error` had
+  no CSS rule and sat behind the FX layer, which is `position: absolute;
+  inset: 0` over the whole stage.
+- **A pinned tempo is clamped** to Ableton Live's 20–999 at the IPC edge, and
+  the BPM box accepts digits only — `<input type="number">` accepts `e`, `E`,
+  `+` and `-`, so "1e5" was a legal tempo.
+- `.github/workflows/{ci,release}.yml` were failing `format:check` on `main`.
+
 ## [0.2.0] - 2026-07-25
 
 Phase 1: the app makes beats. Search an artist, press Generate, hear it, and

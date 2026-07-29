@@ -7,6 +7,7 @@ import { DrumGrid } from '../DrumGrid/DrumGrid';
 import { columnDensity } from '../DrumGrid/cells';
 import { GenFx } from '../GenFx/GenFx';
 import { SeedChip } from '../SeedChip/SeedChip';
+import { SessionSwitchPrompt } from '../SessionChips/SessionChips';
 import { useTranslation } from 'react-i18next';
 
 /** Density buckets handed to the ripple. Matches the columns it draws. */
@@ -115,40 +116,50 @@ export function CenterStage() {
           )}
         </GenFx>
 
-        {/* The error sits beside the control that caused it rather than in a
-            toast that has to be chased across the screen. */}
-        {error && (
-          <p className="stage__error" role="alert">
-            {error}
-          </p>
-        )}
+        {/* One positioned column above the bottom-right corner. `.genfx` is
+            `inset: 0` over the whole body, so a static sibling of it paints
+            underneath — which is where the error message used to go. */}
+        <div className="stage__bottom">
+          {/* The error sits beside the control that caused it rather than in a
+              toast that has to be chased across the screen. */}
+          {error && (
+            <p className="stage__error" role="alert">
+              {error}
+            </p>
+          )}
 
-        <div className="stage__controls">
-          <SeedChip />
+          {/* Beside Generate rather than beside the chips it is about: the
+              right rail collapses under 1440px and behind K, and this must
+              not. */}
+          <SessionSwitchPrompt />
 
-          <span className="chip chip--mono" role="group" aria-label={t('stage.barsLabel')}>
-            {BAR_CHOICES.map((choice) => (
-              <button
-                key={choice}
-                type="button"
-                className="chip__option"
-                aria-pressed={bars === choice}
-                onClick={() => setBars(choice)}
-              >
-                {choice}
-              </button>
-            ))}
-            {t('stage.bars')}
-          </span>
+          <div className="stage__controls">
+            <SeedChip />
 
-          <button
-            type="button"
-            className="btn-generate"
-            onClick={() => void generate()}
-            disabled={!isDrums || !selectedId || generating}
-          >
-            {generating ? t('stage.generating') : t('stage.generate')}
-          </button>
+            <span className="chip chip--mono" role="group" aria-label={t('stage.barsLabel')}>
+              {BAR_CHOICES.map((choice) => (
+                <button
+                  key={choice}
+                  type="button"
+                  className="chip__option"
+                  aria-pressed={bars === choice}
+                  onClick={() => setBars(choice)}
+                >
+                  {choice}
+                </button>
+              ))}
+              {t('stage.bars')}
+            </span>
+
+            <button
+              type="button"
+              className="btn-generate"
+              onClick={() => void generate()}
+              disabled={!isDrums || !selectedId || generating}
+            >
+              {generating ? t('stage.generating') : t('stage.generate')}
+            </button>
+          </div>
         </div>
       </div>
     </section>

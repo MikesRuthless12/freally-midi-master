@@ -48,7 +48,32 @@
   "readouts": {
     "bpm": "BPM",
     "key": "Nada Dasar",
+    "scale": "Skala",
     "swing": "Swing"
+  },
+  "session": {
+    "pickArtist": "Pilih artis untuk melihat apa yang dimintanya.",
+    "artistChoice": "Dari artis",
+    "artistPicks": "{{value}} — dari artis",
+    "clearPin": "Kembali ke nilai artis",
+    "switchBody": "Kamu mengunci nilai yang tidak dipilih artis sebelumnya. {{name}} meminta nilainya sendiri.",
+    "keep": "Pertahankan milikku",
+    "adopt": "Gunakan milik {{name}}",
+    "hostSynced": "Mengikuti DAW kamu. Ketik tempo untuk menguncinya."
+  },
+  "scales": {
+    "natural_minor": "Minor natural",
+    "harmonic_minor": "Minor harmonis",
+    "phrygian": "Frigia",
+    "phrygian_dominant": "Frigia dominan",
+    "dorian": "Doria",
+    "major": "Mayor",
+    "mixolydian": "Miksolidia",
+    "lydian": "Lidia",
+    "aeolian": "Aeolia",
+    "minor_pentatonic": "Pentatonik minor",
+    "major_pentatonic": "Pentatonik mayor",
+    "blues": "Skala blues"
   },
   "transport": {
     "play": "Putar",

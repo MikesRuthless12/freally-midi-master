@@ -112,6 +112,7 @@ pub fn run() {
             dataset::roster_summary,
             dataset::resolve_model,
             generate::generate_pattern,
+            generate::session_defaults,
             generate::export_midi,
             audio::play_pattern,
             audio::stop_playback,

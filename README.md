@@ -2,26 +2,37 @@
 
 # Freally MIDI Master
 
-**Artist-accurate MIDI. Drag it straight into your DAW.**
+**Artist-accurate MIDI, generated onto the track you are already working on.**
 
 Drums, melodies, countermelodies, 808s, chords — and complete song arrangements —
-generated in the style of specific artists, as original MIDI.
+generated in the style of specific artists, as original MIDI, **in your project's
+own key and tempo**.
 Free, offline, and 100% AI-free.
 
-Windows · macOS · Linux
+CLAP · VST3 · AU — Windows · macOS
 
 </div>
 
 ---
 
-> **Status: in development.** [v0.1.0](https://github.com/MikesRuthless12/freally-midi-master/releases/tag/v0.1.0)
-> is the first tagged build — the foundation, the shell and the CI spine, with
-> the generators deliberately disabled rather than pretending to work.
+> **Status: in development, and mid-pivot.**
 >
-> Phase 1 is under way: the drum engine now generates kicks, snares, hats, the
-> roll vocabulary, the 808 line and fills across fifteen genre archetypes, and
-> reproduces byte-identically from a seed. It is not wired to the UI yet, so
-> the installable app still cannot generate — that lands with the next release.
+> Freally MIDI Master began as a desktop app; [v0.2.0](https://github.com/MikesRuthless12/freally-midi-master/releases/tag/v0.2.0)
+> is that build, and it works — search an artist, generate drums, hear it, drag
+> it out.
+>
+> **As of 2026-07-28 it is becoming a plugin.** Not for the format's sake: a
+> plugin is handed the host's tempo, time signature and playhead, so a generated
+> pattern lands in the song you are actually writing instead of at whatever tempo
+> the artist happens to be authored at. The plugin builds and generates today;
+> **it has not yet been loaded in a DAW**, which is the next gate.
+>
+> The `engine` crate — the dataset, inheritance, the drum engine, the chords
+> generator, humanize, the MIDI writer — carried across unchanged. That was the
+> point of keeping it free of shell types from day one.
+>
+> See **[docs/product-roadmap.md](docs/product-roadmap.md)** for the pivot
+> decision and what it cost.
 
 ## What it is
 
@@ -35,6 +46,12 @@ the result into FL Studio, Ableton, Logic, Reaper, or anything else.
 
 ## How it works
 
+- **It follows your DAW.** The plugin reads the host's tempo and time signature
+  every block, so a pattern is generated *for your song* — trap authored at 140
+  comes out at 92 in a 92 BPM project. Pin a tempo yourself and yours wins; clear
+  it and the project decides again.
+- **The notes land on the track.** No file to drag, no folder to find — the
+  plugin emits them where you inserted it.
 - **Search an artist, not a genre.** Instant fuzzy autosuggest across a mainstream
   roster and an underground roster. Genres exist as a browse filter, not the unit of
   generation.
@@ -70,20 +87,28 @@ click to send them. Details in [EULA.md](EULA.md) § 5.
 
 ## Building from source
 
-Prerequisites: [Rust](https://rustup.rs) (stable), [Node.js](https://nodejs.org) 20+,
-and the [Tauri v2 system dependencies](https://v2.tauri.app/start/prerequisites/) for
-your platform.
+Prerequisites: [Rust](https://rustup.rs) (the version in `rust-toolchain.toml`)
+and [Node.js](https://nodejs.org) 20+. The desktop shell additionally needs the
+[Tauri v2 system dependencies](https://v2.tauri.app/start/prerequisites/).
 
 ```bash
 npm install
-npm run tauri dev      # run the app
-cargo test --workspace # engine + app tests
-npm run build          # typecheck + build the frontend
+npm run plugin:standalone   # the plugin in its own window, no DAW needed
+npm run plugin:build        # release .clap, with the bundled-content gate
+npm run plugin:install      # symlink it into the CLAP folder — once
+npm run ci:local            # every gate, with CI's own environment
 ```
 
-Layout: `engine/` is a pure Rust library holding all musical logic — no Tauri types,
-no network, no `unsafe` — so it can be tested headless and reused later.
-`src-tauri/` is the desktop shell, `src/` the React UI, and `data/` the style dataset.
+**`npm run build` must run before any cargo build**, because the plugin compiles
+the built UI and the dataset into its binary — a plugin has no resource directory
+to read them from. `npm run plugin:build` does both in order, and
+`scripts/assert-plugin-bundled.mjs` refuses a binary missing either, so the
+failure is a message rather than a blank window.
+
+Layout: `engine/` is a pure Rust library holding all musical logic — no shell
+types, no network, no `unsafe` — which is why it survived the pivot untouched.
+`plugin/` is the CLAP plugin, `src/` the React UI shared by both shells,
+`src-tauri/` the desktop shell, and `data/` the style dataset.
 
 ## Contributing
 

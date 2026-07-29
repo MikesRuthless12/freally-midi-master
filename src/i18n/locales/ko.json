@@ -48,7 +48,32 @@
   "readouts": {
     "bpm": "BPM",
     "key": "키",
+    "scale": "음계",
     "swing": "스윙"
+  },
+  "session": {
+    "pickArtist": "아티스트를 선택하면 어떤 설정을 요구하는지 표시됩니다.",
+    "artistChoice": "아티스트에게 맡김",
+    "artistPicks": "{{value}} — 아티스트",
+    "clearPin": "아티스트 값으로 되돌리기",
+    "switchBody": "이전 아티스트가 고르지 않은 값을 고정해 두었습니다. {{name}}은(는) 자신의 값을 요구합니다.",
+    "keep": "내 값 유지",
+    "adopt": "{{name}} 값 사용",
+    "hostSynced": "DAW를 따라갑니다. 템포를 입력하면 고정됩니다."
+  },
+  "scales": {
+    "natural_minor": "자연 단음계",
+    "harmonic_minor": "화성 단음계",
+    "phrygian": "프리지안",
+    "phrygian_dominant": "프리지안 도미넌트",
+    "dorian": "도리안",
+    "major": "장음계",
+    "mixolydian": "믹솔리디안",
+    "lydian": "리디안",
+    "aeolian": "에올리안",
+    "minor_pentatonic": "단조 5음계",
+    "major_pentatonic": "장조 5음계",
+    "blues": "블루스 음계"
   },
   "transport": {
     "play": "재생",

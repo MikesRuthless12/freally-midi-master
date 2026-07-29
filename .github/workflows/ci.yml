@@ -51,7 +51,7 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: "1.97.1"
+          toolchain: '1.97.1'
           components: rustfmt, clippy
 
       - uses: Swatinem/rust-cache@v2
@@ -65,6 +65,13 @@ jobs:
           cache: npm
 
       - run: npm ci
+
+      # The plugin compiles `dist/` into its binary with `include_dir!`, and
+      # `dist/` is gitignored — so on a fresh checkout it does not exist and
+      # *nothing Rust* builds until Vite has run. This has to come before
+      # cargo, not after it with the other frontend steps.
+      - name: frontend build (the plugin embeds dist/)
+        run: npm run build
 
       # ---- Rust ----------------------------------------------------------
       - name: cargo fmt
@@ -100,8 +107,9 @@ jobs:
       - name: unit tests
         run: npm run test
 
-      - name: frontend build
-        run: npm run build
+      # (`frontend build` used to sit here. It moved above the Rust steps when
+      # the plugin started embedding `dist/`; running it twice would only
+      # prove the same thing a second time.)
 
       # ---- Dataset -------------------------------------------------------
       # A malformed community model must fail here, not in a user's session.
@@ -144,7 +152,7 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: "1.97.1"
+          toolchain: '1.97.1'
 
       - uses: Swatinem/rust-cache@v2
         with:
@@ -252,7 +260,7 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: "1.97.1"
+          toolchain: '1.97.1'
 
       - uses: Swatinem/rust-cache@v2
         with:

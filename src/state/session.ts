@@ -2,7 +2,13 @@ import { create } from 'zustand';
 
 import { invoke, isTauri } from '../lib/ipc';
 import { loadRoster } from '../lib/roster';
-import type { DatasetProblem, Pattern, RosterEntry } from '../lib/ipc-types';
+import type {
+  DatasetProblem,
+  Pattern,
+  RosterEntry,
+  Scale,
+  SessionDefaults,
+} from '../lib/ipc-types';
 import type { DeviceNotice, PlaybackStarted, Playhead } from '../lib/ipc-audio-types';
 
 /**
@@ -23,10 +29,41 @@ import type { DeviceNotice, PlaybackStarted, Playhead } from '../lib/ipc-audio-t
  */
 export const DEVICE_STATES = ['recovering', 'failed', 'recovered'] as const;
 
+/** What `host_session` reports from the DAW the plugin is loaded in. */
+type HostSessionInfo = {
+  tempo: number | null;
+  timeSigNum: number;
+  timeSigDen: number;
+  playing: boolean;
+};
+
 export type DeviceStateLabel = (typeof DEVICE_STATES)[number];
 
 /** Bar counts the UI offers. Four is the default a pattern is demonstrated at. */
 export const BAR_CHOICES = [2, 4, 8] as const;
+
+/**
+ * The session values a user may pin, in the shape the engine's
+ * `SessionOverrides` reads (FR-002).
+ *
+ * `null` means "not pinned", not "zero" — an absent override lets the artist's
+ * own value stand, and sending a default in its place is how an artist's tempo
+ * silently becomes whatever the UI happened to initialise. The seed box works
+ * the same way, and for the same reason.
+ */
+export type SessionPins = {
+  bpm: number | null;
+  keyRoot: number | null;
+  scale: Scale | null;
+  swing: number | null;
+};
+
+export const NO_PINS: SessionPins = { bpm: null, keyRoot: null, scale: null, swing: null };
+
+/** Has the user pinned anything at all? */
+export function hasPins(pins: SessionPins): boolean {
+  return Object.values(pins).some((value) => value !== null);
+}
 
 type SessionState = {
   roster: RosterEntry[];
@@ -62,10 +99,46 @@ type SessionState = {
   /** Notes the preview kit had no pad for, from the last play. */
   unplacedNotes: number;
 
+  /** What the user pinned. Everything absent is the artist's to choose. */
+  pins: SessionPins;
+  /**
+   * The tempo the DAW is running at, or `null` outside a host.
+   *
+   * Held separately from `defaults` because it answers a different question:
+   * `defaults` is what the *artist* asks for, and this is what the *project*
+   * is. When both exist the project wins — a clip generated at the artist's
+   * 140 inside a 92 BPM song does not fit the song it was asked for — and the
+   * chip says which one it is showing rather than leaving the user to guess.
+   */
+  hostTempo: number | null;
+  /**
+   * What the selected style asks for, read the moment it is selected.
+   *
+   * `null` before the first selection and whenever the read failed — the chips
+   * then show nothing rather than a value from the artist before this one.
+   */
+  defaults: SessionDefaults | null;
+  /**
+   * The artist just switched to, while pins from the last one are still held.
+   *
+   * The switch has already happened; this only asks what to do with the pins
+   * (PRD FR-002: "user overrides persist until artist change — keep or adopt").
+   * Blocking the selection on the answer would make the prompt a toll gate on
+   * browsing, which is the one thing the roster is for.
+   */
+  pendingArtist: RosterEntry | null;
+
   init: () => Promise<void>;
   select: (id: string) => void;
   setSeed: (seed: string) => void;
   setBars: (bars: number) => void;
+  setPin: <K extends keyof SessionPins>(field: K, value: SessionPins[K]) => void;
+  /** Ask the host what tempo it is running at. No-op outside a plugin. */
+  refreshHost: () => Promise<void>;
+  /** Keep the pinned session over the new artist's defaults. */
+  keepPins: () => void;
+  /** Drop every pin and let the new artist decide. */
+  adoptDefaults: () => void;
   generate: () => Promise<void>;
   play: () => Promise<void>;
   stop: () => Promise<void>;
@@ -76,6 +149,31 @@ function reason(error: unknown): string {
   if (typeof error === 'string') return error;
   if (error instanceof Error) return error.message;
   return String(error);
+}
+
+/**
+ * Read what a style asks for, for the chips.
+ *
+ * A failure here is deliberately not an `error`: the banner sits under the
+ * Generate button and says a generation went wrong, and a readout that could
+ * not be filled in is not that. The chips fall back to showing nothing, which
+ * is what they showed before the artist was picked.
+ *
+ * The id is re-checked before the state is written, because clicking through a
+ * roster starts a read per artist and they do not have to come back in order —
+ * the last one to *arrive* would otherwise win over the one selected.
+ */
+async function loadDefaults(
+  id: string,
+  set: (partial: Partial<SessionState>) => void,
+  get: () => SessionState,
+): Promise<void> {
+  try {
+    const defaults = await invoke<SessionDefaults>('session_defaults', { styleId: id });
+    if (get().selectedId === id) set({ defaults });
+  } catch {
+    if (get().selectedId === id) set({ defaults: null });
+  }
 }
 
 export const useSession = create<SessionState>((set, get) => ({
@@ -96,6 +194,11 @@ export const useSession = create<SessionState>((set, get) => ({
   playbackFailure: null,
   deviceState: null,
   unplacedNotes: 0,
+
+  pins: NO_PINS,
+  hostTempo: null,
+  defaults: null,
+  pendingArtist: null,
 
   async init() {
     try {
@@ -122,10 +225,29 @@ export const useSession = create<SessionState>((set, get) => ({
   },
 
   select(id) {
-    if (get().selectedId === id) return;
+    const { selectedId, pins, roster } = get();
+    if (selectedId === id) return;
+
     // The old pattern belongs to the old artist. Keeping it on screen under a
     // new name would be the most convincing wrong thing the app could show.
-    set({ selectedId: id, pattern: null, error: null, unplacedNotes: 0 });
+    //
+    // The pins are the deliberate exception: they are the user's, not the
+    // artist's, so they survive the switch and the prompt asks about them.
+    // There is nothing to ask on the first selection — the pins cannot be from
+    // an artist when there was no artist.
+    set({
+      selectedId: id,
+      pattern: null,
+      error: null,
+      unplacedNotes: 0,
+      defaults: null,
+      pendingArtist:
+        selectedId !== null && hasPins(pins)
+          ? (roster.find((entry) => entry.id === id) ?? null)
+          : null,
+    });
+
+    void loadDefaults(id, set, get);
   },
 
   setSeed(seed) {
@@ -136,8 +258,36 @@ export const useSession = create<SessionState>((set, get) => ({
     set({ bars });
   },
 
+  setPin(field, value) {
+    set({ pins: { ...get().pins, [field]: value } });
+  },
+
+  async refreshHost() {
+    try {
+      const host = await invoke<HostSessionInfo>('host_session');
+      // A tempo the host has not reported yet arrives as null, and that is a
+      // different thing from 0 — the chip must fall back to the artist's value
+      // rather than showing a tempo nothing is running at.
+      const tempo = typeof host?.tempo === 'number' && host.tempo > 0 ? host.tempo : null;
+      if (get().hostTempo !== tempo) set({ hostTempo: tempo });
+    } catch {
+      // No host behind this UI — the desktop shell, a browser, or a bridge
+      // that has no such command. Not an error: there is simply no project
+      // tempo to follow, and the artist's value stands.
+      if (get().hostTempo !== null) set({ hostTempo: null });
+    }
+  },
+
+  keepPins() {
+    set({ pendingArtist: null });
+  },
+
+  adoptDefaults() {
+    set({ pins: NO_PINS, pendingArtist: null });
+  },
+
   async generate() {
-    const { selectedId, seed, bars, generating } = get();
+    const { selectedId, seed, bars, generating, pins } = get();
     if (!selectedId || generating) return;
 
     set({ generating: true, error: null });
@@ -149,6 +299,9 @@ export const useSession = create<SessionState>((set, get) => ({
           // An empty box means "pick one for me". Sending "" would be a seed
           // that fails to parse rather than an absent one.
           seed: seed === '' ? null : seed,
+          // Every unpinned field goes as null, which serde reads as absent —
+          // the artist's own value then stands (FR-002).
+          session: pins,
         },
       });
       // Show the seed that was actually used, so the chip can be copied even

@@ -48,7 +48,32 @@
   "readouts": {
     "bpm": "BPM",
     "key": "Tonalité",
+    "scale": "Gamme",
     "swing": "Swing"
+  },
+  "session": {
+    "pickArtist": "Choisis un artiste pour voir ce qu’il demande.",
+    "artistChoice": "De l’artiste",
+    "artistPicks": "{{value}} — de l’artiste",
+    "clearPin": "Revenir à la valeur de l’artiste",
+    "switchBody": "Tu as fixé des valeurs que l’artiste précédent n’avait pas choisies. {{name}} demande les siennes.",
+    "keep": "Garder les miens",
+    "adopt": "Utiliser ceux de {{name}}",
+    "hostSynced": "Suit ton DAW. Tape un tempo pour le fixer."
+  },
+  "scales": {
+    "natural_minor": "Mineur naturel",
+    "harmonic_minor": "Mineur harmonique",
+    "phrygian": "Phrygien",
+    "phrygian_dominant": "Phrygien dominant",
+    "dorian": "Dorien",
+    "major": "Majeur",
+    "mixolydian": "Mixolydien",
+    "lydian": "Lydien",
+    "aeolian": "Éolien",
+    "minor_pentatonic": "Pentatonique mineure",
+    "major_pentatonic": "Pentatonique majeure",
+    "blues": "Gamme blues"
   },
   "transport": {
     "play": "Lecture",

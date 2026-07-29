@@ -5,6 +5,7 @@
 //! applied afterwards by [`crate::humanize`] — keeping generation and feel
 //! apart is what lets a test say "the snare is on beat 3" and mean the tick.
 
+pub mod chords;
 pub mod drums;
 pub mod grid;
 pub mod rolls;
