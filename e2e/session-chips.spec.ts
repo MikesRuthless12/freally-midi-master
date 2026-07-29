@@ -20,17 +20,36 @@ test.beforeEach(async ({ page }) => {
 async function pick(page: import('@playwright/test').Page, query: string) {
   const search = page.getByLabel('Search an artist');
   await search.fill(query);
-  // ⛔ Wait for the list before pressing Enter. `SearchBar.onKeyDown` returns
-  // early while the dropdown is closed or empty, so an Enter that arrives
-  // before React has rendered the filtered results **selects nothing and
-  // reports nothing** — the previous artist simply stays selected.
-  //
-  // That is a race, not a slow machine: it passed on three runs and failed
-  // twice on one macOS runner, and it failed as "the switch prompt never
+
+  // ⛔ Click the option; do not press Enter. Enter goes through
+  // `SearchBar.onKeyDown`, which returns early unless the dropdown is *still*
+  // open — and the list closes on blur. Under load the keypress lands on a
+  // closed list, selects nothing, and reports nothing: `select()` also returns
+  // early when the id has not changed, so a mis-timed Enter is indistinguishable
+  // from a successful one. It surfaces much later as "the switch prompt never
   // appeared", which points at the prompt rather than at the selection that
-  // never happened.
-  await expect(page.getByRole('option').first()).toBeVisible();
-  await search.press('Enter');
+  // never happened — and three different tests in this file have now failed
+  // that way on macOS.
+  //
+  // `onMouseDown` calls `choose` directly and preventDefaults exactly so focus
+  // cannot close the list under the click, which makes it the one path with no
+  // timing in it. Filtering by the query pins the *right* option, since the
+  // previous query's results are still on screen for a frame after `fill`.
+  // `dispatchEvent` rather than `click`, and that is the third attempt at this
+  // line. `click` first waits for the element to be visible, enabled and
+  // stable — and the dropdown unmounts the moment the input blurs, so that wait
+  // is itself the window in which the option vanishes: "element was detached
+  // from the DOM, retrying", until the test times out. Dispatching resolves the
+  // element and fires synchronously, so there is no window to lose.
+  await page
+    .getByRole('option')
+    .filter({ hasText: new RegExp(query, 'i') })
+    .first()
+    .dispatchEvent('mousedown');
+
+  // `choose` writes the artist's full name back into the box, so a value that is
+  // no longer the raw query is the proof the selection actually landed.
+  await expect(search).not.toHaveValue(query);
 }
 
 test('the chips ask for an artist before they show anything', async ({ page }) => {
