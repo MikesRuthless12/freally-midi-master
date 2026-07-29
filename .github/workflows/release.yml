@@ -223,16 +223,33 @@ jobs:
       # CLAP is one on macOS. A release asset is a single file, so an unzipped
       # bundle cannot be uploaded at all — and a user who unpacks it gets the
       # directory the host is looking for.
-      - name: Package the bundles
+      #
+      # Split per OS for one unglamorous reason: **`zip` does not exist on the
+      # Windows runner.** Git for Windows' bash does not ship it, and nothing
+      # else in this repo invokes it there, so a single `shell: bash` step would
+      # have failed the first time a tag was pushed — on the release path, which
+      # is the worst place to find out. `Compress-Archive` is built into
+      # PowerShell; `zip` is guaranteed on macOS.
+      - name: Package the bundles (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: pwsh
+        run: |
+          $zip = Join-Path $env:RUNNER_TEMP 'freally-midi-master-plugins-windows.zip'
+          Compress-Archive -Force -DestinationPath $zip -Path @(
+            'target/bundled/Freally MIDI Master.clap',
+            'target/bundled/Freally MIDI Master.vst3'
+          )
+          Get-Item $zip | Select-Object Name, Length
+
+      - name: Package the bundles (macOS)
+        if: matrix.os == 'macos-latest'
         shell: bash
-        env:
-          LABEL: ${{ matrix.label }}
         run: |
           set -euo pipefail
           cd target/bundled
-          zip -qr "$RUNNER_TEMP/freally-midi-master-plugins-$LABEL.zip" \
+          zip -qr "$RUNNER_TEMP/freally-midi-master-plugins-macos.zip" \
             "Freally MIDI Master.clap" "Freally MIDI Master.vst3"
-          ls -la "$RUNNER_TEMP/freally-midi-master-plugins-$LABEL.zip"
+          ls -la "$RUNNER_TEMP/freally-midi-master-plugins-macos.zip"
 
       # Uploaded to the draft `build` created. Never interpolate `${{ }}` into a
       # run: block — GitHub splices the value into the shell source before bash
