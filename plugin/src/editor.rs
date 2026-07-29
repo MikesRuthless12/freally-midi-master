@@ -38,70 +38,163 @@ static UI: Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/../dist");
 /// had to fix once.
 const SCHEME: &str = "freally";
 
-/// The window the UI was designed against (PRD § 8's minimum).
+/// The window the UI is designed for, in **CSS pixels**.
 ///
-/// Smaller than the desktop app's window because a plugin lives inside a
-/// host's frame, and every DAW gives it less room than a full screen.
-const SIZE: (u32, u32) = (1280, 760);
+/// 1440x900 rather than the 1280x760 this used to ask for, and the width is the
+/// number that matters: the right rail collapses below **1440**, so at 1280 the
+/// kit and session panels were hidden the moment the editor opened and had to
+/// be summoned with K. 1280 is the UI's hard *minimum* (PRD § 8), not the size
+/// it was drawn against — asking for the minimum meant every host got the
+/// degraded layout.
+const LOGICAL_SIZE: (u32, u32) = (1440, 900);
+
+/// The window size to ask the host for, in **physical** pixels.
+///
+/// ⛔ The size handed to `WebViewEditor` is consumed as *physical* pixels while
+/// the page inside is laid out in *CSS* pixels, and on a scaled display those
+/// are not the same number. The vendored adapter says as much: its
+/// `set_scale_factor` is a stub returning `false` with "TODO: implement for
+/// Windows and Linux", so nih-plug's own DPI plumbing never reaches it.
+///
+/// The effect on a 150% display — which is an ordinary laptop, not an exotic
+/// setup — was that asking for 1280 gave the UI **853** CSS pixels. Below its
+/// own minimum, so the layout ran cramped and the right rail auto-collapsed,
+/// and nothing anywhere said why. Multiplying here is what makes the request
+/// mean what it says.
+///
+/// Scaling up is safe because the result is clamped to the work area below: on
+/// a 100% display this is exactly [`LOGICAL_SIZE`], and on a small screen it
+/// shrinks to fit rather than opening a window with its controls off-screen.
+fn window_size() -> (u32, u32) {
+    let scale = system_scale();
+    let (w, h) = LOGICAL_SIZE;
+    let (max_w, max_h) = work_area().unwrap_or((u32::MAX, u32::MAX));
+
+    (
+        ((w as f32 * scale) as u32).min(max_w),
+        ((h as f32 * scale) as u32).min(max_h),
+    )
+}
+
+/// The desktop scale factor, as a multiplier (1.5 at 150%).
+///
+/// Windows only, because Windows is where the adapter's TODO bites. macOS
+/// reports a backing scale factor through Cocoa that baseview already applies,
+/// and Linux has no editor at all until TASK-P12 — both fall through to 1.0,
+/// which is the same behaviour as before this function existed.
+#[cfg(target_os = "windows")]
+fn system_scale() -> f32 {
+    // `user32` is already linked by the window this plugin opens; declaring the
+    // one call is cheaper than taking a dependency on `windows` for it.
+    #[link(name = "user32")]
+    unsafe extern "system" {
+        fn GetDpiForSystem() -> u32;
+    }
+
+    // 96 DPI is 100%. A zero would mean the call failed, and dividing by it
+    // would hand the host a window of size NaN.
+    let dpi = unsafe { GetDpiForSystem() };
+    if dpi == 0 {
+        return 1.0;
+    }
+    (dpi as f32 / 96.0).clamp(1.0, 4.0)
+}
+
+#[cfg(not(target_os = "windows"))]
+fn system_scale() -> f32 {
+    1.0
+}
+
+/// The usable desktop, in physical pixels, so the window cannot open larger
+/// than the screen it appears on.
+///
+/// `SM_CXMAXIMIZED`/`SM_CYMAXIMIZED` rather than the raw screen size: it
+/// excludes the taskbar, which is what "as big as it can usefully be" means.
+#[cfg(target_os = "windows")]
+fn work_area() -> Option<(u32, u32)> {
+    #[link(name = "user32")]
+    unsafe extern "system" {
+        fn GetSystemMetrics(index: i32) -> i32;
+    }
+
+    const SM_CXMAXIMIZED: i32 = 61;
+    const SM_CYMAXIMIZED: i32 = 62;
+
+    let (w, h) = unsafe {
+        (
+            GetSystemMetrics(SM_CXMAXIMIZED),
+            GetSystemMetrics(SM_CYMAXIMIZED),
+        )
+    };
+    (w > 0 && h > 0).then_some((w as u32, h as u32))
+}
+
+#[cfg(not(target_os = "windows"))]
+fn work_area() -> Option<(u32, u32)> {
+    None
+}
 
 pub fn create(shared: SharedState) -> Option<Box<dyn Editor>> {
-    let editor = WebViewEditor::new(HTMLSource::URL("freally://localhost/index.html"), SIZE)
-        // The app's own background, so a slow first paint is the app's colour
-        // rather than a white flash inside a dark DAW.
-        .with_background_color((11, 11, 13, 255))
-        // On unless `FREALLY_NO_DEVTOOLS` is set, rather than only in debug
-        // builds. A plugin runs inside someone else's process: there is no
-        // console to read, no stderr anyone will see, and a release build is
-        // the only build a DAW ever loads — so gating devtools on
-        // `debug_assertions` means the one configuration that can fail in a
-        // host is the one configuration that cannot be inspected. That is how
-        // an afternoon goes into guessing at an IPC timeout.
-        .with_developer_mode(std::env::var("FREALLY_NO_DEVTOOLS").is_err())
-        .with_custom_protocol(SCHEME.into(), {
-            let shared = shared.clone();
-            move |request| serve(request, &shared)
-        })
-        .with_event_loop(move |ctx, _setter, _window| {
-            // Free anything the audio thread parked. This is the thread that
-            // is allowed to.
-            shared.handoff.collect();
+    let editor = WebViewEditor::new(
+        HTMLSource::URL("freally://localhost/index.html"),
+        window_size(),
+    )
+    // The app's own background, so a slow first paint is the app's colour
+    // rather than a white flash inside a dark DAW.
+    .with_background_color((11, 11, 13, 255))
+    // On unless `FREALLY_NO_DEVTOOLS` is set, rather than only in debug
+    // builds. A plugin runs inside someone else's process: there is no
+    // console to read, no stderr anyone will see, and a release build is
+    // the only build a DAW ever loads — so gating devtools on
+    // `debug_assertions` means the one configuration that can fail in a
+    // host is the one configuration that cannot be inspected. That is how
+    // an afternoon goes into guessing at an IPC timeout.
+    .with_developer_mode(std::env::var("FREALLY_NO_DEVTOOLS").is_err())
+    .with_custom_protocol(SCHEME.into(), {
+        let shared = shared.clone();
+        move |request| serve(request, &shared)
+    })
+    .with_event_loop(move |ctx, _setter, _window| {
+        // Free anything the audio thread parked. This is the thread that
+        // is allowed to.
+        shared.handoff.collect();
 
-            while let Ok(message) = ctx.next_event() {
-                let Ok(request) = serde_json::from_value::<Request>(message.clone()) else {
-                    // Not a request shape at all. Loud rather than ignored:
-                    // silence here is how a UI that is talking to nothing
-                    // looks exactly like a UI whose command failed.
-                    ctx.send_json(json!({
-                        "type": "response",
-                        "id": Value::Null,
-                        "error": format!("the plugin could not read this message: {message}"),
-                    }));
-                    continue;
-                };
+        while let Ok(message) = ctx.next_event() {
+            let Ok(request) = serde_json::from_value::<Request>(message.clone()) else {
+                // Not a request shape at all. Loud rather than ignored:
+                // silence here is how a UI that is talking to nothing
+                // looks exactly like a UI whose command failed.
+                ctx.send_json(json!({
+                    "type": "response",
+                    "id": Value::Null,
+                    "error": format!("the plugin could not read this message: {message}"),
+                }));
+                continue;
+            };
 
-                let host = shared.host.snapshot();
-                let reply = match bridge::dispatch(&request, &host, &shared.session) {
-                    Ok(value) => {
-                        // A generation is the one command with a side effect
-                        // beyond its reply: the notes have to reach the audio
-                        // thread. Arming happens *here*, on the UI thread,
-                        // because that is where the allocation belongs.
-                        if request.command == "generate_pattern" {
-                            if let Ok(pattern) = serde_json::from_value(value.clone()) {
-                                let mut schedule = Schedule::default();
-                                schedule.arm(&pattern, shared.sample_rate());
-                                shared.handoff.send(schedule);
-                            }
+            let host = shared.host.snapshot();
+            let reply = match bridge::dispatch(&request, &host, &shared.session) {
+                Ok(value) => {
+                    // A generation is the one command with a side effect
+                    // beyond its reply: the notes have to reach the audio
+                    // thread. Arming happens *here*, on the UI thread,
+                    // because that is where the allocation belongs.
+                    if request.command == "generate_pattern" {
+                        if let Ok(pattern) = serde_json::from_value(value.clone()) {
+                            let mut schedule = Schedule::default();
+                            schedule.arm(&pattern, shared.sample_rate());
+                            shared.handoff.send(schedule);
                         }
-                        json!({ "type": "response", "id": request.id, "ok": value })
                     }
-                    Err(message) => {
-                        json!({ "type": "response", "id": request.id, "error": message })
-                    }
-                };
-                ctx.send_json(reply);
-            }
-        });
+                    json!({ "type": "response", "id": request.id, "ok": value })
+                }
+                Err(message) => {
+                    json!({ "type": "response", "id": request.id, "error": message })
+                }
+            };
+            ctx.send_json(reply);
+        }
+    });
 
     Some(Box::new(editor))
 }
