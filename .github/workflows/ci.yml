@@ -358,16 +358,14 @@ jobs:
   # window from a working one is to photograph it and count the colours — which
   # is what the script does, and which was watched failing before it was trusted.
   #
-  # ⛔ **WHY WINDOWS IS NOT IN THIS MATRIX.** `screenshot-plugin.mjs` handles all
-  # three platforms and the intent is to photograph all three. Windows is left
-  # out because of **TASK-P16**: the Windows *standalone* opens a blank window —
-  # WebView2 accepts the resource request and never dispatches the handler, so
-  # navigation never completes and devtools reports `about:blank`. The plugin a
-  # DAW loads is unaffected (Ableton and FL Studio both render it), but the
-  # standalone this job drives is not, so the leg would be permanently red — or,
-  # worse, allowed to fail, which is the green-and-blind gate this repo has been
-  # caught by five times. `plugin/vendor/VENDORED.md` has the evidence and what
-  # is still inference.
+  # ✅ **WINDOWS IS IN THIS MATRIX AS OF TASK-P16.** It was held out because the
+  # Windows *standalone* opened a blank window: `baseview`'s `open_blocking`
+  # pumps with a non-NULL `hwnd`, which never retrieves thread messages, and
+  # WebView2 delivers its COM completions as exactly those — so the custom
+  # protocol handler was never dispatched and devtools reported `about:blank`.
+  # The vendored adapter now drains the queue from `on_frame`, off unless the
+  # process opts in. This leg is what keeps that fixed: it is the only thing
+  # standing between a regression there and a silently blank window shipping.
   #
   # **macOS is in, and is genuinely unproven.** WKWebView does not depend on the
   # message loop the way WebView2 does, so the Windows cause probably does not
@@ -380,7 +378,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest, windows-latest]
 
     steps:
       - uses: actions/checkout@v4
@@ -451,6 +449,14 @@ jobs:
       - name: Photograph the editor (macOS)
         if: matrix.os == 'macos-latest'
         run: node scripts/screenshot-plugin.mjs screenshots/macos-plugin.png
+
+      # The runner has a real window station, so no virtual display is needed.
+      # ⛔ This leg is the regression gate for TASK-P16 — a blank window here
+      # means the message pump stopped reaching WebView2 again, and the script
+      # refuses a flat window, so a pass is real rather than "it built".
+      - name: Photograph the editor (Windows)
+        if: matrix.os == 'windows-latest'
+        run: node scripts/screenshot-plugin.mjs screenshots/windows-plugin.png
 
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
