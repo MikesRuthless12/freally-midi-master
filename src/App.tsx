@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { BugReportOverlay } from './components/BugReport/BugReport';
 import { bugReportHasPendingCrash } from './components/BugReport/ipc';
 import { CenterStage } from './components/layout/CenterStage';
+import { Eula } from './components/Eula/Eula';
 import { LeftRail } from './components/layout/LeftRail';
 import { ResizeHandles } from './components/layout/ResizeHandles';
 import { RightRail } from './components/layout/RightRail';
@@ -15,7 +16,7 @@ import { isPlugin } from './lib/ipc-plugin';
 import { isWide, useUi } from './state/ui';
 import './components/layout/layout.css';
 
-function App() {
+function Studio() {
   const [bugReportOpen, setBugReportOpen] = useState(false);
   // Undefined until the crash check answers. The update prompt must not mount
   // before then, or it could beat a pending crash report to the dialog slot.
@@ -126,6 +127,31 @@ function App() {
     return () => window.removeEventListener('keydown', onKey);
   }, [toggleRightRail]);
 
+  // Undo and redo (FMM-U01). Both the Windows/Linux and the macOS spellings,
+  // plus Ctrl+Y, which is what a Windows producer's hands already do.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!e.ctrlKey && !e.metaKey) return;
+      if (e.altKey) return;
+
+      const key = e.key.toLowerCase();
+      if (key !== 'z' && key !== 'y') return;
+
+      // ⛔ Inside a text field the browser's own undo owns this chord, and it
+      // is undoing something more immediate than a session step. Taking it
+      // would make the seed box unable to un-type a character.
+      const el = e.target as HTMLElement | null;
+      if (el?.matches?.('input, textarea, [contenteditable]')) return;
+
+      e.preventDefault();
+      const { undo, redo } = useSession.getState();
+      if (key === 'y' || e.shiftKey) redo();
+      else undo();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
   return (
     <div
       className="studio"
@@ -158,6 +184,22 @@ function App() {
 
       <ResizeHandles />
     </div>
+  );
+}
+
+/**
+ * The app, behind its licence gate.
+ *
+ * [`Eula`] renders nothing but the agreement until it has been accepted, so the
+ * studio below is never mounted, never fetches and never wires its shortcuts —
+ * which is what "disable everything" has to mean on this side. The plugin
+ * enforces the same thing at its RPC boundary regardless.
+ */
+function App() {
+  return (
+    <Eula>
+      <Studio />
+    </Eula>
   );
 }
 

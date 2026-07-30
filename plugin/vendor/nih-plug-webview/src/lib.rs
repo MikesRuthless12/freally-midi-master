@@ -168,8 +168,187 @@ impl WindowHandler {
     }
 }
 
+/// Declare that this process owns its own Windows message queue (TASK-P16).
+///
+/// ⛔ **Only a standalone application may call this, and it must never be called
+/// from a plugin.** Inside Ableton or FL the *host* owns the thread's message
+/// queue; draining it from our frame handler would steal the host's messages and
+/// break it — the "takes the DAW down" failure class this project has already
+/// been bitten by. The flag therefore defaults to **off**, and a DAW has no code
+/// path that turns it on: `plugin/src/bin/standalone.rs` is the only caller, and
+/// a host never runs that binary's `main`.
+///
+/// It is deliberately *not* gated on "the host sends no frame ticks". That is a
+/// quirk of one host, not a statement about who owns the queue.
+///
+/// # Why this is needed at all
+///
+/// `baseview`'s `open_blocking` pumps with `GetMessageW(&mut msg, hwnd, 0, 0)` —
+/// a **non-NULL** `hwnd`, which retrieves only messages for that window and its
+/// children and **never retrieves thread messages at all**. WebView2 is COM/STA
+/// and delivers its async completions through a COM-owned message-only window
+/// plus posted thread messages, neither of which is our window. So the loop spins
+/// at 60 fps while every WebView2 callback sits unretrieved: the custom-protocol
+/// handler is never dispatched, navigation never completes, and the window stays
+/// on `about:blank`. `VENDORED.md` and `HANDOFF.md` carry the full diagnosis.
+pub fn own_message_queue() {
+    #[cfg(target_os = "windows")]
+    windows_pump::enable();
+}
+
+/// The pump itself. Windows-only, and inert unless [`own_message_queue`] ran.
+#[cfg(target_os = "windows")]
+mod windows_pump {
+    use std::cell::Cell;
+    use std::ffi::c_void;
+    use std::sync::atomic::{AtomicBool, Ordering};
+
+    // Declared rather than pulled in as a dependency, matching what
+    // `plugin/src/editor.rs` does for `GetDpiForSystem`: three calls do not
+    // justify the `windows` crate, and `user32` is already linked by the window
+    // this adapter opens.
+    #[link(name = "user32")]
+    unsafe extern "system" {
+        fn PeekMessageW(msg: *mut Msg, hwnd: *mut c_void, min: u32, max: u32, remove: u32) -> i32;
+        fn TranslateMessage(msg: *const Msg) -> i32;
+        fn DispatchMessageW(msg: *const Msg) -> isize;
+        fn IsChild(parent: *mut c_void, child: *mut c_void) -> i32;
+    }
+
+    #[repr(C)]
+    struct Point {
+        x: i32,
+        y: i32,
+    }
+
+    /// Win32 `MSG`. `repr(C)` so the padding matches what `PeekMessageW` writes.
+    #[repr(C)]
+    struct Msg {
+        hwnd: *mut c_void,
+        message: u32,
+        w_param: usize,
+        l_param: isize,
+        time: u32,
+        pt: Point,
+    }
+
+    const PM_NOREMOVE: u32 = 0x0000;
+    const PM_REMOVE: u32 = 0x0001;
+
+    static ENABLED: AtomicBool = AtomicBool::new(false);
+
+    pub fn enable() {
+        ENABLED.store(true, Ordering::Relaxed);
+    }
+
+    thread_local! {
+        /// Belt to the braces below: nothing dispatched here should re-enter
+        /// this function, and if a future message type ever does, it stops
+        /// rather than growing the stack until it does not.
+        static PUMPING: Cell<bool> = const { Cell::new(false) };
+    }
+
+    /// Resets the guard even if a dispatched message panics through us.
+    struct Guard;
+
+    impl Drop for Guard {
+        fn drop(&mut self) {
+            PUMPING.with(|p| p.set(false));
+        }
+    }
+
+    /// Drain what `baseview`'s loop cannot see, and **only** that.
+    ///
+    /// ⛔ **Messages belonging to `editor` or its children are deliberately left
+    /// in the queue.** `on_frame` is called from *inside* baseview's window
+    /// procedure, which is holding a `RefCell` borrow on its own window state
+    /// for the duration — so dispatching another message to that same procedure
+    /// re-enters it and panics with `RefCell already borrowed`
+    /// (`baseview/src/platform/win/window.rs:513`). That panic then crosses an
+    /// `extern "system"` frame, where it cannot unwind, and aborts the process.
+    ///
+    /// Leaving them is also simply correct: baseview's `GetMessageW` filter
+    /// retrieves messages for that window and its children perfectly well. The
+    /// **only** things it cannot retrieve are thread messages (`hwnd == NULL`)
+    /// and messages for windows outside that subtree — which is exactly where
+    /// WebView2's COM completions live, and exactly what this drains.
+    pub fn drain(editor: *mut c_void) {
+        if !ENABLED.load(Ordering::Relaxed) {
+            return;
+        }
+        if PUMPING.with(|p| p.replace(true)) {
+            return;
+        }
+        let _guard = Guard;
+
+        let mut msg = Msg {
+            hwnd: std::ptr::null_mut(),
+            message: 0,
+            w_param: 0,
+            l_param: 0,
+            time: 0,
+            pt: Point { x: 0, y: 0 },
+        };
+
+        // SAFETY: `msg` is a correctly laid out `MSG` we own for the whole call,
+        // and the queue being drained belongs to this thread — which is what
+        // `own_message_queue` asserts and what the flag above gates on.
+        unsafe {
+            loop {
+                // Look before taking. A message for baseview's window has to
+                // stay queued for baseview, and there is no un-remove.
+                if PeekMessageW(&mut msg, std::ptr::null_mut(), 0, 0, PM_NOREMOVE) == 0 {
+                    break;
+                }
+
+                let ours =
+                    !msg.hwnd.is_null() && (msg.hwnd == editor || IsChild(editor, msg.hwnd) != 0);
+                if ours {
+                    // Stop at the first one rather than skipping past it: the
+                    // queue is ordered, and baseview will take it on its very
+                    // next turn. Whatever is behind it keeps until then, and
+                    // `on_frame` comes back around at frame rate.
+                    break;
+                }
+
+                if PeekMessageW(&mut msg, std::ptr::null_mut(), 0, 0, PM_REMOVE) == 0 {
+                    break;
+                }
+                TranslateMessage(&msg);
+                DispatchMessageW(&msg);
+            }
+        }
+    }
+}
+
 impl baseview::WindowHandler for WindowHandler {
     fn on_frame(&mut self, window: &mut baseview::Window) {
+        // TASK-P16 probe. Whether this is called at all decides where the
+        // Windows message pump can live: a frame tick is the only thread-owned
+        // callback the adapter gets, so if it never fires the pump cannot be
+        // driven from here. Counted rather than logged per frame, or the trace
+        // is unreadable.
+        if std::env::var("FREALLY_TRACE_EDITOR").is_ok() {
+            static FRAMES: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
+            let n = FRAMES.fetch_add(1, std::sync::atomic::Ordering::Relaxed);
+            if n < 3 || n % 60 == 0 {
+                eprintln!("[editor] on_frame #{n}");
+            }
+        }
+
+        // TASK-P16. Off unless this process asked for it; see `own_message_queue`.
+        // The handle is passed so the pump can leave this window's own messages
+        // to baseview — see `windows_pump::drain` for why that is not optional.
+        #[cfg(target_os = "windows")]
+        {
+            use raw_window_handle::{HasRawWindowHandle, RawWindowHandle};
+            let editor = match window.raw_window_handle() {
+                RawWindowHandle::Win32(handle) => handle.hwnd,
+                _ => std::ptr::null_mut(),
+            };
+            windows_pump::drain(editor);
+        }
+
         let setter = ParamSetter::new(&*self.context);
         (self.event_loop_handler)(&self, setter, window);
     }

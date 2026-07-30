@@ -12,6 +12,66 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-07-29
+
+### Added — unlimited undo/redo, and the licence gate
+
+- **Unlimited undo/redo** (FMM-U01). Every session change — artist, seed, bars,
+  pins, auto-sync and each generation — steps back with `Ctrl`/`Cmd`+`Z` and
+  forward with `Ctrl`/`Cmd`+`Shift`+`Z` or `Ctrl`+`Y`. No depth limit: an entry
+  is a handful of scalars plus a *shared* `Pattern` reference, because a pattern
+  is derived from its seed rather than stored, so a hundred steps across one
+  generation cost one pattern. A run of edits to one control inside 600 ms
+  collapses into a single step; two generations never merge, however fast the
+  reroll. Recorded by a store subscription rather than per-action calls, so a
+  future action cannot forget to register — the same argument the session save
+  already made. Armed *after* the project restore, so `Ctrl`+`Z` cannot step
+  behind the session the host handed back onto an empty plugin.
+- **First-run licence gate.** The agreement is compiled in from
+  `EULA.md` and shown before anything else; nothing generates, plays, exports or
+  saves until it is accepted. **Agree stays disabled until the text has been
+  scrolled to the end**, because "you cannot use it until you read it" is the
+  requirement and a live button asks nobody to read anything. ⛔ Enforced at the
+  plugin's RPC boundary, not in the UI — a page that was reloaded, bypassed or
+  driven from devtools still cannot generate — and by an *allowlist*, so a new
+  command has to be added deliberately to be reachable before acceptance.
+  **Decline leaves the plugin inert rather than closing the DAW**, which a plugin
+  must never do; the agreement can be reopened and accepted at any time, and
+  everything works immediately after. Acceptance is stored per user, beside the
+  presets — never in the project file, which would ask a collaborator to
+  re-accept because they opened your song.
+- **The standalone carries the app icon on Windows**, with product, company and
+  copyright strings, via a new `plugin/build.rs`. A missing resource compiler
+  warns rather than failing the build.
+- **A documentation site** under `docs/`: what the
+  plugin does, how it follows the host, seeds, presets, shortcuts, privacy and
+  building from source, with search and a short changelog.
+
+### Fixed
+
+- **The Windows standalone opened a blank window** (TASK-P16). `baseview`'s
+  `open_blocking` pumps with `GetMessageW(&mut msg, hwnd, …)` — a non-NULL
+  `hwnd`, which retrieves messages only for that window and its children and
+  **never retrieves thread messages at all**. WebView2 is COM/STA and delivers
+  its completions as exactly those, through a COM-owned message-only window, so
+  the custom-protocol handler was never dispatched, navigation never completed
+  and the page stayed on `about:blank`. The vendored adapter now drains the queue
+  from `on_frame`, **off unless the process opts in** — `plugin/src/bin/standalone.rs`
+  is the only caller and a DAW never runs it, so a host's queue is never touched.
+  ⛔ It skips messages belonging to the editor window and its children:
+  dispatching those re-enters baseview's window procedure while it already holds
+  a `RefCell` borrow, which panics inside an `extern "system"` frame and aborts
+  the process. Verified by photographing the window, not by a green build.
+
+### Changed
+
+- **No downloads before `v1.0.0`.** The `v0.1.0` and `v0.2.0` desktop releases
+  were withdrawn from GitHub (converted to drafts; assets intact), and the
+  documentation site offers no download link. Building from source is the only
+  supported way to run it until 1.0.
+
+## [0.3.0] - 2026-07-29
+
 ### Added — melodic generation, and moods that multiply it
 
 - **Melody generator** (TASK-035, FR-005). Phrase structures (riff loop,

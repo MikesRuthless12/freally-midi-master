@@ -13,6 +13,11 @@ export default tseslint.config(
     ignores: [
       'dist',
       'target',
+      // The published GitHub Pages site. Plain browser scripts with no build
+      // step and no module system, so this config's globals and import rules
+      // do not describe them — `window` and `document` are exactly what they
+      // are supposed to use. Not app source; served as-is.
+      'docs',
       // Vendored third-party source, kept byte-for-byte upstream so a future
       // rebase is a diff against its manifest alone. Linting it would mean
       // either editing someone else's code or a permanently red gate. See

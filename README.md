@@ -17,11 +17,17 @@ CLAP · VST3 · AU — Windows · macOS
 
 > **Status: in development. It is a plugin.**
 >
-> Freally MIDI Master began as a desktop app; [v0.2.0](https://github.com/MikesRuthless12/freally-midi-master/releases/tag/v0.2.0)
-> is that build, and it works — search an artist, generate drums, hear it, drag
-> it out. **As of 2026-07-29 the desktop app is retired**: it is no longer built
-> or released, and v0.2.0 stays up as the last of it. Nothing already installed
-> stops working; it simply stops finding updates.
+> Freally MIDI Master began as a desktop app; `v0.2.0` was that build. **As of
+> 2026-07-29 the desktop app is retired** — it is no longer built or released.
+> Nothing already installed stops working; it simply stops finding updates.
+>
+> **There are no downloads, and there will not be until `v1.0.0`.** No beta, no
+> preview build, no early access — the desktop releases have been withdrawn and
+> the plugin has not shipped one. A generator that half-works inside somebody's
+> session is worse than one that is not there, so it ships when the QA matrix is
+> green on every host and every OS. **Until then the only way to run it is to
+> build it** — see [Building from source](#building-from-source), which is a
+> supported path rather than a workaround.
 >
 > **It is a CLAP plugin, with VST3 and AU projected from it.** Not for the
 > format's sake: a plugin is handed the host's tempo, time signature and
@@ -60,8 +66,10 @@ the result into FL Studio, Ableton, Logic, Reaper, or anything else.
 - **Search an artist, not a genre.** Instant fuzzy autosuggest across a mainstream
   roster and an underground roster. Genres exist as a browse filter, not the unit of
   generation.
-- **Six generators.** Drums · Melody · Countermelody · Bassline · Chords, plus Song
-  Mode, which lays out a full arrangement with every part filled in.
+- **Five generators, plus Song Mode.** Drums · Melody · Countermelody · Bassline ·
+  Chords — plus Song Mode, which is not a sixth generator but an arrangement that
+  fills all five in. Drums and chords generate in the plugin today; the other
+  three are wired through next.
 - **Audition with your own sounds.** Import `.wav`/`.mp3` one-shots as drum pad
   voices *or* as pitched instruments with root-note detection.
 - **Edit what you got.** Piano-roll editor and a pad-grid drum sequencer. Lock what
@@ -134,7 +142,7 @@ requirement.
 
 <div align="center">
 
-Built by [Havoc Software](https://github.com/MikesRuthless12) ·
+Freally MIDI Master · By [Mike Weaver](https://github.com/MikesRuthless12) ·
 [Report a bug](https://github.com/MikesRuthless12/freally-midi-master/issues)
 
 </div>

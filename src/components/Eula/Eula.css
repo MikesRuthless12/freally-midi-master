@@ -1,0 +1,133 @@
+/* The licence gate. Uses the app's own tokens so it is the same product, not a
+   system dialog bolted on — but it is deliberately plain: this screen is a legal
+   notice, and styling it like a marketing panel would be the wrong register. */
+
+.eula {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: var(--bg, #0b0b0d);
+  overflow: auto;
+}
+
+.eula__checking {
+  color: var(--text-muted, #93a0b5);
+}
+
+.eula__panel {
+  width: min(760px, 100%);
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 28px 30px;
+  border: 1px solid var(--border, #283650);
+  border-radius: 16px;
+  background: var(--surface, #12121a);
+  box-shadow: 0 24px 70px rgb(0 0 0 / 45%);
+}
+
+.eula__panel--narrow {
+  width: min(520px, 100%);
+}
+
+.eula__panel h1 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.eula__lede {
+  margin: 0;
+  color: var(--text, #f5f7fa);
+}
+
+.eula__muted {
+  margin: 0;
+  color: var(--text-muted, #93a0b5);
+}
+
+/* The agreement itself. Scrollable and focusable, because enabling Agree
+   depends on reaching the end of it — and a region you can only scroll with a
+   mouse would make that gate unreachable from the keyboard. */
+.eula__text {
+  flex: 1;
+  min-height: 220px;
+  overflow: auto;
+  padding: 16px 18px;
+  border: 1px solid var(--border, #283650);
+  border-radius: 10px;
+  background: var(--bg, #0b0b0d);
+}
+
+.eula__text:focus-visible {
+  outline: 2px solid var(--accent, #4a9eff);
+  outline-offset: 2px;
+}
+
+.eula__text pre {
+  margin: 0;
+  font-family: inherit;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--text-muted, #c7d1e0);
+}
+
+.eula__actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.eula__version {
+  margin-right: auto;
+  color: var(--text-muted, #93a0b5);
+  font-size: 0.85rem;
+}
+
+.eula__btn {
+  padding: 9px 20px;
+  border: 1px solid var(--border, #283650);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text, #f5f7fa);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.eula__btn:hover:not(:disabled),
+.eula__btn:focus-visible {
+  border-color: var(--accent, #4a9eff);
+}
+
+.eula__btn--primary {
+  border-color: var(--accent, #4a9eff);
+  background: color-mix(in srgb, var(--accent, #4a9eff) 18%, transparent);
+}
+
+.eula__btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.eula__hint,
+.eula__error {
+  margin: 0;
+  font-size: 0.85rem;
+  text-align: right;
+}
+
+.eula__hint {
+  color: var(--text-muted, #93a0b5);
+}
+
+.eula__error {
+  color: #ff6b6b;
+  text-align: left;
+}

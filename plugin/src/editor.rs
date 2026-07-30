@@ -506,8 +506,49 @@ fn serve(
 /// an `error` field, because a non-200 arrives at the page as a network
 /// failure with no message in it — and "failed to fetch" is exactly the kind
 /// of unattributable error this bridge has already cost an evening to.
+/// The only commands answerable before the licence is accepted.
+///
+/// ⛔ **An allowlist, not a denylist.** A new command must be *added* here to be
+/// reachable from an unaccepted plugin, so forgetting the gate fails closed.
+/// Listing what to *block* instead would let every future command through by
+/// default, which is how a consent gate quietly stops gating.
+///
+/// `app_info` is here because the About box and the bug reporter need a version
+/// even when nothing else works; `editor_size` because a window that cannot be
+/// resized to fit the screen is a window the notice cannot be read in.
+const BEFORE_ACCEPTANCE: &[&str] = &[
+    "eula_status",
+    "eula_accept",
+    "eula_decline",
+    "app_info",
+    "editor_size",
+    "set_editor_size",
+];
+
+/// Whether this call may proceed, given the licence has not been accepted.
+///
+/// ⛔ **Enforced at the RPC boundary, not in the UI, and that is the point.**
+/// Declining has to mean the plugin *cannot be used* — not that a dialog is
+/// covering it. A page that was reloaded, bypassed, or driven from devtools
+/// still arrives here, and this is what refuses it.
+///
+/// It sits here rather than in [`bridge::dispatch`] because this is the single
+/// door the webview comes through: `window_command` and `dispatch` are both
+/// behind it, so one check covers both and neither has to know a gate exists.
+fn licence_blocks(command: &str) -> bool {
+    !BEFORE_ACCEPTANCE.contains(&command) && !crate::eula::accepted()
+}
+
+/// What the page is told when the gate refuses. Phrased as the next action,
+/// because "not licensed" inside a DAW is not something anyone can act on.
+const NOT_ACCEPTED: &str = "Freally MIDI Master is waiting for you to accept its licence \
+     agreement. Read it in the window and choose Agree — everything works immediately after that.";
+
 fn rpc(body: &[u8], shared: &SharedState) -> String {
     let reply = match serde_json::from_slice::<Request>(body) {
+        Ok(request) if licence_blocks(&request.command) => {
+            json!({ "id": request.id, "error": NOT_ACCEPTED })
+        }
         Ok(request) => {
             let host = shared.host.snapshot();
             let outcome = window_command(&request, shared)
@@ -598,6 +639,60 @@ mod tests {
             );
         }
         assert!(referenced > 0, "index.html references no scripts or styles");
+    }
+
+    #[test]
+    fn the_licence_gate_is_an_allowlist_and_covers_the_whole_bridge() {
+        // ⛔ The property that matters is not "generate is blocked" — it is that
+        // *everything* is, apart from the named few. A denylist would pass a
+        // test naming generate and still let the next command through.
+        for command in [
+            "generate_pattern",
+            "roster_summary",
+            "session_state",
+            "save_session_state",
+            "preset_save",
+            "host_session",
+            "playback_status",
+            "some_command_added_next_year",
+        ] {
+            assert!(
+                BEFORE_ACCEPTANCE.contains(&command)
+                    || licence_blocks(command)
+                    || crate::eula::accepted(),
+                "{command} must be refused until the licence is accepted"
+            );
+        }
+
+        // The gate's own commands have to survive it, or it cannot be answered.
+        for command in ["eula_status", "eula_accept", "eula_decline"] {
+            assert!(
+                !licence_blocks(command),
+                "{command} is how the gate is answered and must never be blocked"
+            );
+        }
+    }
+
+    #[test]
+    fn a_blocked_call_is_answered_rather_than_left_hanging() {
+        // A refusal still has to be a well-formed reply carrying the request id.
+        // A dropped call leaves the UI on a spinner, which is indistinguishable
+        // from the plugin being broken — the failure `rpc` already exists to avoid.
+        if crate::eula::accepted() {
+            return; // This machine has accepted; the path under test is not reachable.
+        }
+
+        let body = br#"{"id":7,"command":"generate_pattern","args":{}}"#;
+        let reply: Value = serde_json::from_str(&rpc(body, &SharedState::default())).unwrap();
+
+        assert_eq!(reply["id"], 7);
+        assert!(
+            reply["error"]
+                .as_str()
+                .unwrap_or_default()
+                .contains("Agree"),
+            "the refusal must say what to do about it"
+        );
     }
 
     #[test]

@@ -56,6 +56,17 @@ carried across whole.
   thread on Linux. `WindowHandler::webview` is a `WebView` on the first two and
   a `linux::WebViewHandle` on the third, with the same method names, so nothing
   below the construction site has a `cfg` in it.
+- **`own_message_queue` and the `windows_pump` module (new, TASK-P16).** A
+  Windows message pump driven from `on_frame`, **off unless the process opts in**,
+  which fixes the blank standalone window diagnosed below. `plugin/src/bin/standalone.rs`
+  is the only caller and a DAW never runs it, so the host's queue is never touched.
+  ⛔ The pump **skips messages belonging to the editor window and its children** —
+  see the doc comment on `windows_pump::drain`. Dispatching those re-enters
+  baseview's window procedure while it is already holding a `RefCell` borrow, which
+  panics inside an `extern "system"` frame and **aborts the process**. That was
+  observed, not theorised: the first cut of this fix drained everything and died
+  with `RefCell already borrowed` at `baseview/src/platform/win/window.rs:513` the
+  moment the window was clicked.
 
 `src/linux.rs` (**new, TASK-P12**): the X11 + WebKitGTK editor. Upstream is
 macOS/Windows only and this is the whole of the difference.
@@ -135,7 +146,29 @@ bridge therefore runs as an HTTP round trip over the custom protocol
 synchronously and which depends on no tick at all. Do not move it back onto
 `next_event`/`send_json`.
 
-### ⛔ THE WINDOWS *STANDALONE* OPENS A BLANK WINDOW, AND IT IS THE MESSAGE PUMP
+### ✅ FIXED 2026-07-29 — the diagnosis below stands, and the fix is `windows_pump`
+
+`npm run plugin:standalone` renders. `node scripts/screenshot-plugin.mjs
+screenshots/windows-plugin.png target/debug/standalone.exe` captures 1240x804 with
+**332 distinct colours**, and that gate refuses a flat window, so the pass is real.
+
+Two things the fix taught that the diagnosis did not predict:
+
+1. **Draining the whole queue aborts the process.** `on_frame` runs *inside*
+   baseview's window procedure, not between messages, so dispatching anything back
+   to that same window re-enters a live `RefCell` borrow. The pump must skip the
+   editor window and its children — which is also simply correct, because those are
+   precisely the messages baseview's filtered `GetMessageW` *can* already retrieve.
+2. **The `cpal`/WASAPI panic you will hit next is unrelated.** `Received 1056
+   samples, while the configured buffer size is 512` comes from nih-plug's own
+   standalone backend on the `cpal_wasapi_out` thread and has nothing to do with the
+   editor. `--backend dummy` (what the screenshot gate uses) or a matching
+   `--period-size` avoids it.
+
+The diagnosis that got us here is kept below, because it is the reasoning that will
+be needed again if a rebase moves any of this.
+
+### ⛔ THE WINDOWS *STANDALONE* OPENED A BLANK WINDOW, AND IT WAS THE MESSAGE PUMP
 
 **Diagnosed 2026-07-29. The plugin is fine; `npm run plugin:standalone` is not,
 on Windows.** Do not go looking for this in the engine, the embedded UI or the
@@ -177,8 +210,81 @@ Three handlers silent at once rules out the protocol, the URL and the page: thos
 would each fail *differently*. A webview whose every event is missing is a webview
 whose events are not being delivered.
 
-*Therefore, and now with evidence rather than a guess:* the cause is the **Windows
-message loop** —
+### ✅ ROOT CAUSE FOUND, 2026-07-29. IT IS A MESSAGE FILTER, NOT A MISSING PUMP.
+
+**`baseview`'s `open_blocking` — `src/win/window.rs:615` — pumps with an `hwnd`
+filter:**
+
+```rust
+let status = GetMessageW(&mut msg, hwnd, 0, 0);
+//                                 ^^^^ not null_mut()
+```
+
+Win32: when `hWnd` is non-NULL, `GetMessage` retrieves **only messages for that
+window and its children**, and **thread messages (`msg.hwnd == NULL`) are never
+retrieved at all**. WebView2 is COM/STA, and an STA delivers cross-apartment
+completions through a hidden message-only window COM owns
+(`OleMainThreadWndClass`) plus posted thread messages. **That window is not our
+`hwnd` and not a child of it.** So the loop runs forever, faithfully, and every
+WebView2 callback sits in the queue unretrieved.
+
+So the earlier note below is half right and half wrong, and the wrong half matters:
+**the thread is pumping.** It is pumping the wrong subset. Anyone who adds "a pump"
+without removing the filter will add a second loop to a thread that already has one
+— which is exactly what the note below warned about, for the right reason.
+
+**The proof, and it is a clean two-class experiment.** With
+`FREALLY_TRACE_EDITOR=1` the adapter now counts `on_frame`:
+
+```
+[editor] on_frame #0 … #60 … #120 … #300      <- arriving, ~60fps
+(no navigation / page / title events at all)  <- never arriving
+```
+
+`on_frame` is driven by a `WM_TIMER` **to the editor's own child HWND** — a child of
+`hwnd`, so the filter passes it. The WebView2 events go to a window that is not.
+**One class arrives and the other does not, on the same thread, in the same loop.**
+That is a filter, and nothing else produces that split.
+
+**Two `baseview` crates are in this build, which is worth knowing before fixing it:**
+
+| rev | version | pulled in by | role here |
+|-----|---------|--------------|-----------|
+| `579130e` | 0.1.0 | `nih_plug` | owns the standalone's `open_blocking` loop — **the filtered one** |
+| `91e3b4a` | 0.1.4 | this vendored adapter | creates the editor's child window |
+
+They interoperate only through raw window handles, so this is not a type conflict —
+but the loop and the window belong to *different crates*, which is why the bug reads
+as nobody's fault from inside either one.
+
+### ⛔ HOW TO FIX IT — AND THE TRAP IN THE OBVIOUS FIX
+
+`on_frame` fires in the standalone (proven above), so **the pump can live in this
+adapter** and no new fork is needed. Drain the queue with
+`PeekMessageW(&mut msg, null_mut(), 0, 0, PM_REMOVE)` — `null_mut()` is the whole
+point — then `TranslateMessage` + `DispatchMessageW`.
+
+**Two things will bite whoever writes it:**
+
+1. **⛔ IT MUST NOT RUN INSIDE A DAW.** In Ableton or FL Studio the *host* owns that
+   thread's queue. Draining it from our frame handler would steal the host's own
+   messages and break it — the "takes the DAW down" failure this project has already
+   been bitten by once. Gate it on being the standalone explicitly (the standalone
+   binary is ours — have it say so), **not** on "no frame ticks arrive in Ableton",
+   which is a quirk and not a guarantee.
+2. **Guard against reentrancy.** `on_frame` is itself called from a dispatched
+   message. Pumping inside it can dispatch another `WM_TIMER` and recurse into
+   `on_frame`. Hold a thread-local "already pumping" flag and return early.
+
+The alternative — forking `baseview` to change one argument at the true root — fixes
+it for everyone and cannot touch the DAW path at all, since `open_blocking` is only
+ever used by the standalone. It is the cleaner fix and the more honest one. It costs
+a **third** fork to carry, which is the only reason it is not the recommendation.
+
+---
+
+*The original 2026-07-29 inference, kept because its warning was correct:* the cause
+is the **Windows message loop** —
 WebView2 delivers `WebResourceRequested` and completes navigation through the
 message loop of the thread that created it, so an unpumped loop would produce
 exactly this. **But do not treat that as diagnosed.** There is a specific reason

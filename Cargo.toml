@@ -20,6 +20,6 @@ panic = "abort"
 [workspace.package]
 version = "0.2.0"
 edition = "2021"
-authors = ["Havoc Software"]
+authors = ["Mike Weaver"]
 license = "LicenseRef-AllRightsReserved"
 repository = "https://github.com/MikesRuthless12/freally-midi-master"

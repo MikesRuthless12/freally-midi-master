@@ -127,14 +127,10 @@ fn is_safe_stem(stem: &str) -> bool {
 /// Built from the environment rather than a crate: three `join`s against a
 /// variable every one of these platforms defines is not worth a dependency,
 /// a licence to clear in `deny.toml` and another thing to audit.
-fn data_dir() -> Option<PathBuf> {
+pub(crate) fn data_dir() -> Option<PathBuf> {
     #[cfg(target_os = "windows")]
     {
-        std::env::var_os("APPDATA").map(|base| {
-            PathBuf::from(base)
-                .join("Havoc Software")
-                .join("Freally MIDI Master")
-        })
+        std::env::var_os("APPDATA").map(|base| PathBuf::from(base).join("Freally MIDI Master"))
     }
 
     #[cfg(target_os = "macos")]
@@ -143,7 +139,6 @@ fn data_dir() -> Option<PathBuf> {
             PathBuf::from(home)
                 .join("Library")
                 .join("Application Support")
-                .join("Havoc Software")
                 .join("Freally MIDI Master")
         })
     }

@@ -62,6 +62,13 @@ pub fn dispatch(
     session: &SessionStore,
 ) -> Result<Value, String> {
     match request.command.as_str() {
+        // ---- The licence gate. See [`crate::eula`] ------------------------
+        "eula_status" => serde_json::to_value(crate::eula::status()).map_err(|e| e.to_string()),
+
+        "eula_accept" => crate::eula::accept().map(|()| Value::Null),
+
+        "eula_decline" => crate::eula::decline().map(|()| Value::Null),
+
         "roster_summary" => {
             serde_json::to_value(&dataset::loaded().summary).map_err(|e| e.to_string())
         }

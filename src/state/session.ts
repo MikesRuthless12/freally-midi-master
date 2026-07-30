@@ -11,6 +11,7 @@ import type {
   SessionDefaults,
 } from '../lib/ipc-types';
 import type { DeviceNotice, PlaybackStarted, Playhead } from '../lib/ipc-audio-types';
+import { useHistory, type Snapshot } from './history';
 
 /**
  * The one loop the product is about: pick someone, generate, hear it, drag it
@@ -161,7 +162,60 @@ type SessionState = {
   generate: () => Promise<void>;
   play: () => Promise<void>;
   stop: () => Promise<void>;
+
+  /** Step back through the operation log (FMM-U01). No-op at the baseline. */
+  undo: () => void;
+  redo: () => void;
 };
+
+/**
+ * The fields an undo step restores.
+ *
+ * Everything else in the store is either derived (`defaults`), reported by the
+ * host (`hostTempo`), or transient (`generating`, `error`, the transport) — and
+ * restoring any of those would undo something the user did not do.
+ */
+function snapshotOf(state: SessionState): Snapshot {
+  const { selectedId, seed, bars, pins, autoSync, pattern } = state;
+  return { selectedId, seed, bars, pins, autoSync, pattern };
+}
+
+/**
+ * True while undo or redo is writing, so the subscriber below does not record
+ * the restore as a fresh edit — which would push a new entry on every undo and
+ * make the stack impossible to walk back out of.
+ *
+ * A module flag rather than store state: zustand calls subscribers synchronously
+ * inside `set`, so it is only ever true for the duration of one call.
+ */
+let applying = false;
+
+function applySnapshot(
+  snapshot: Snapshot,
+  set: (partial: Partial<SessionState>) => void,
+  get: () => SessionState,
+): void {
+  const from = get().selectedId;
+
+  applying = true;
+  try {
+    set(snapshot);
+  } finally {
+    applying = false;
+  }
+
+  // `defaults` belongs to whichever artist was selected when it was read, so
+  // stepping across an artist change has to re-read it — otherwise the chips
+  // keep showing the previous artist's tempo under the restored one's name,
+  // which is the readout-that-lies failure `loadDefaults` already guards.
+  //
+  // `pendingArtist` is cleared rather than restored: the keep-or-adopt prompt
+  // asks about a switch the user just made, and an undo is not that switch.
+  if (snapshot.selectedId !== from) {
+    set({ defaults: null, pendingArtist: null });
+    if (snapshot.selectedId !== null) void loadDefaults(snapshot.selectedId, set, get);
+  }
+}
 
 /** The message an IPC rejection carries, without leaking `[object Object]`. */
 function reason(error: unknown): string {
@@ -394,6 +448,12 @@ export const useSession = create<SessionState>((set, get) => ({
     // `roster_summary` is the call that triggers the one-time dataset parse.
     // Waiting for it in series would queue a small lock read behind that.
     await apply(saved, set, get);
+
+    // ⛔ Armed here and not at construction. The restore above writes the
+    // session the host handed back, and a history that had been recording
+    // would let Ctrl+Z step behind it onto an empty plugin — which reads as
+    // the project having failed to load, not as an undo.
+    useHistory.getState().arm(snapshotOf(get()));
   },
 
   select(id) {
@@ -523,7 +583,33 @@ export const useSession = create<SessionState>((set, get) => ({
     }
     set({ playing: false, playhead: 0 });
   },
+
+  undo() {
+    const snapshot = useHistory.getState().undo();
+    if (snapshot !== null) applySnapshot(snapshot, set, get);
+  },
+
+  redo() {
+    const snapshot = useHistory.getState().redo();
+    if (snapshot !== null) applySnapshot(snapshot, set, get);
+  },
 }));
+
+/**
+ * Record every document change as an undo step (FMM-U01).
+ *
+ * A subscription for the same reason the save below is one: opting in per
+ * action is a line to remember in every future action, and it was already wrong
+ * in both directions once. This cannot be forgotten, and it sees the seed the
+ * engine writes back after a generation for free.
+ *
+ * ⛔ Not gated on `isPlugin()`, unlike the save. Undo belongs to the app in
+ * every shell it runs in — the standalone and the desktop build included.
+ */
+useSession.subscribe((state) => {
+  if (applying) return;
+  useHistory.getState().record(snapshotOf(state));
+});
 
 /**
  * Save the session whenever the user changes it.

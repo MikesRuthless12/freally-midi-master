@@ -34,5 +34,16 @@ use freally_midi_master_plugin::FreallyMidiMaster;
 use nih_plug::prelude::*;
 
 fn main() {
+    // TASK-P16. **This binary owns its thread's Windows message queue; a DAW
+    // does not.** `baseview`'s standalone loop pumps with an `hwnd` filter, which
+    // never retrieves thread messages — and WebView2 delivers its COM completions
+    // as exactly those, so without this the window renders nothing at all. The
+    // call is a no-op off Windows.
+    //
+    // ⛔ It belongs *here* and nowhere else. Calling it from the plugin would
+    // drain the host's queue out from under Ableton or FL. `main` is the gate:
+    // a host loads the library and never runs this function.
+    nih_plug_webview::own_message_queue();
+
     nih_export_standalone::<FreallyMidiMaster>();
 }
