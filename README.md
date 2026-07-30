@@ -42,8 +42,9 @@ CLAP · VST3 · AU — Windows · macOS
 > generator, humanize, the MIDI writer — carried across unchanged. That was the
 > point of keeping it free of shell types from day one.
 >
-> See **[docs/product-roadmap.md](docs/product-roadmap.md)** for the pivot
-> decision and what it cost.
+> **Documentation:** <https://mikesruthless12.github.io/freally-midi-master/> —
+> what it does, how it follows the host, seeds, presets, shortcuts, privacy and
+> building from source. Source for the site is in [`docs/`](docs/).
 
 ## What it is
 
@@ -76,6 +77,9 @@ the result into FL Studio, Ableton, Logic, Reaper, or anything else.
   you like, reroll the rest.
 - **Drag out.** Standard MIDI files or rendered audio, straight into the DAW.
 - **Reproducible.** Every generation has a seed. Copy it, paste it, get it back.
+- **Unlimited undo/redo.** `Ctrl`/`Cmd`+`Z` steps back through every change —
+  artist, seed, bars, pins and each generation — with no depth limit, because an
+  undo entry is the inputs rather than the notes.
 
 ## The engine is rule-based, not trained
 
@@ -137,6 +141,10 @@ derivatives. See [LICENSE](LICENSE) and [EULA.md](EULA.md).
 
 **The music you make with it is yours,** with no royalty and no attribution
 requirement.
+
+The plugin shows the agreement the first time it opens and will not generate,
+play, export or save until it is accepted. Declining leaves it inert rather than
+closing your DAW; reopen the agreement and accept, and it works immediately.
 
 ---
 
