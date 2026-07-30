@@ -51,7 +51,7 @@ const REQUIRED = [
       'Ableton, Logic, Pro Tools and Cubase can load nothing at all — none of them speaks CLAP',
   },
   {
-    marker: 'com.havocsoftware.freally-midi-master',
+    marker: 'com.mikeweaver.freally-midi-master',
     what: 'the plugin id',
     fix: 'ClapPlugin::CLAP_ID is missing, and no host will be able to identify this plugin',
   },

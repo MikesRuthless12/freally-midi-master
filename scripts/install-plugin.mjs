@@ -242,7 +242,7 @@ function infoPlist(executable) {
   <key>CFBundleExecutable</key>
   <string>${executable}</string>
   <key>CFBundleIdentifier</key>
-  <string>com.havocsoftware.freally-midi-master</string>
+  <string>com.mikeweaver.freally-midi-master</string>
   <key>CFBundleName</key>
   <string>${executable}</string>
   <key>CFBundlePackageType</key>
