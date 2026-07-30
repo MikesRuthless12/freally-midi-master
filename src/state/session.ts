@@ -630,7 +630,11 @@ if (isPlugin()) {
       state.selectedId === prev.selectedId &&
       state.seed === prev.seed &&
       state.bars === prev.bars &&
-      state.pins === prev.pins
+      state.pins === prev.pins &&
+      // `send()` writes this too, so leaving it out meant an undone or redone
+      // toggle never reached the project — the session reopened contradicting
+      // what the UI had just shown.
+      state.autoSync === prev.autoSync
     ) {
       return;
     }

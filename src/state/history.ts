@@ -148,7 +148,16 @@ export const useHistory = create<HistoryState>((set, get) => ({
     if (present === null || past.length === 0) return null;
 
     const previous = past[past.length - 1];
-    set({ past: past.slice(0, -1), present: previous, future: [present, ...future] });
+    // ⛔ `field: null` on the restored entry, deliberately. A restored entry
+    // carries its *original* timestamp, so an edit to the same control shortly
+    // after an undo would satisfy the coalescing window against a moment that
+    // may be minutes old — replacing the entry instead of pushing, and making
+    // the state just undone to unreachable. Landing on a step is a boundary.
+    set({
+      past: past.slice(0, -1),
+      present: { ...previous, field: null },
+      future: [present, ...future],
+    });
     return previous.state;
   },
 
@@ -157,7 +166,7 @@ export const useHistory = create<HistoryState>((set, get) => ({
     if (present === null || future.length === 0) return null;
 
     const [next, ...rest] = future;
-    set({ past: [...past, present], present: next, future: rest });
+    set({ past: [...past, present], present: { ...next, field: null }, future: rest });
     return next.state;
   },
 }));

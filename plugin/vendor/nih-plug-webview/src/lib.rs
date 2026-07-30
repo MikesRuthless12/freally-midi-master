@@ -213,6 +213,7 @@ mod windows_pump {
         fn TranslateMessage(msg: *const Msg) -> i32;
         fn DispatchMessageW(msg: *const Msg) -> isize;
         fn IsChild(parent: *mut c_void, child: *mut c_void) -> i32;
+        fn PostQuitMessage(exit_code: i32);
     }
 
     #[repr(C)]
@@ -279,6 +280,13 @@ mod windows_pump {
         if PUMPING.with(|p| p.replace(true)) {
             return;
         }
+        // ⛔ No editor handle means we cannot tell whose messages are whose, and
+        // the safe reading of "no window" is *drain nothing* — not "nothing
+        // belongs to the editor", which would dispatch baseview's own messages
+        // and re-enter its window procedure on the first mouse move.
+        if editor.is_null() {
+            return;
+        }
         let _guard = Guard;
 
         let mut msg = Msg {
@@ -311,9 +319,43 @@ mod windows_pump {
                     break;
                 }
 
-                if PeekMessageW(&mut msg, std::ptr::null_mut(), 0, 0, PM_REMOVE) == 0 {
+                // ⛔ Remove **exactly** the message just inspected, by window
+                // and by id. Re-peeking with a wide filter is a race: between
+                // the two calls another thread can post to the editor window,
+                // and a posted message outranks the `WM_PAINT`/`WM_TIMER` this
+                // peek may have returned — so the wide `PM_REMOVE` would hand
+                // back a *different*, editor-owned message and dispatch it,
+                // re-entering baseview's window procedure while it holds its
+                // `RefCell` borrow. That aborts the process, which is the exact
+                // failure the `ours` check above exists to prevent.
+                //
+                // A thread message (`hwnd == NULL`) cannot be filtered by window
+                // — `NULL` there means "any window" — so it is narrowed with
+                // `-1`, which Win32 defines as "thread messages only".
+                let filter = if msg.hwnd.is_null() {
+                    usize::MAX as *mut c_void // (HWND)-1
+                } else {
+                    msg.hwnd
+                };
+                let (id, target) = (msg.message, msg.hwnd);
+                if PeekMessageW(&mut msg, filter, id, id, PM_REMOVE) == 0 {
+                    // Something else took it first. Nothing was removed, so the
+                    // queue is still consistent; come back on the next frame.
                     break;
                 }
+                debug_assert_eq!(msg.hwnd, target);
+
+                // `WM_QUIT` must not be swallowed. It is a thread message, so it
+                // fails the `ours` test and would be removed and then dropped by
+                // `DispatchMessageW` — leaving `baseview`'s loop waiting forever
+                // for a quit that has already been consumed, and the standalone
+                // hanging instead of closing.
+                const WM_QUIT: u32 = 0x0012;
+                if id == WM_QUIT {
+                    PostQuitMessage(msg.w_param as i32);
+                    break;
+                }
+
                 TranslateMessage(&msg);
                 DispatchMessageW(&msg);
             }
