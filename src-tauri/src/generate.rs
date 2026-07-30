@@ -5,8 +5,8 @@
 //! humanize, then write. `engine/tests/golden.rs` pins exactly this sequence,
 //! so a change here that is not a change there is a change nobody meant.
 
-use engine::context::{SessionContext, SessionOverrides};
-use engine::generators::drums;
+use engine::context::{SessionContext, SessionDefaults, SessionOverrides};
+use engine::generators::{chords, drums};
 use engine::humanize::humanize;
 use engine::midi::pattern_to_smf;
 use engine::pattern::{Part, Pattern, PPQ};
@@ -38,11 +38,12 @@ pub struct GenerateRequest {
 /// tested without a Tauri app.
 fn render(model: &StyleModel, request: &GenerateRequest) -> Result<Pattern, String> {
     let part = request.part.unwrap_or(Part::Drums);
-    if part != Part::Drums {
-        // The melodic generators arrive in Phase 2. Saying so is better than
-        // returning an empty pattern the UI would draw as a working result.
+    if !matches!(part, Part::Drums | Part::Chords) {
+        // The rest of the melodic generators are still to come in Phase 2.
+        // Saying so is better than returning an empty pattern the UI would
+        // draw as a working result.
         return Err(format!(
-            "the {part:?} generator is not implemented yet — only drums are"
+            "the {part:?} generator is not implemented yet — only drums and chords are"
         ));
     }
 
@@ -62,8 +63,26 @@ fn render(model: &StyleModel, request: &GenerateRequest) -> Result<Pattern, Stri
     }
 
     let ctx = SessionContext::from_model(model, &overrides, seed);
-    let mut lanes = drums::generate(model, &ctx, seed);
+    let mut lanes = match part {
+        Part::Chords => vec![chords::generate(model, &ctx, seed).track],
+        // Drums by construction — the match above rejected everything else.
+        _ => drums::generate(model, &ctx, seed),
+    };
+    // Chords are humanized too: a pad swings with the track and breathes with
+    // it. No lane authors `timingJitterMs` for chords, so the jitter term is
+    // zero and only the swing and the velocity spread apply — which is what a
+    // held chord should get and what a hat should not.
     humanize(&mut lanes, &ctx, seed);
+
+    if lanes.iter().all(|lane| lane.notes.is_empty()) {
+        // A model with no `chords` block generates nothing, and an empty grid
+        // reads as a failed generation rather than as a style that does not
+        // author harmony.
+        return Err(format!(
+            "{} has no {part:?} part authored — nothing to generate",
+            model.name
+        ));
+    }
 
     Ok(Pattern {
         id: format!("{}-{seed}", model.id),
@@ -89,6 +108,20 @@ pub fn generate_pattern(
 ) -> Result<Pattern, String> {
     let model = dataset.model(&request.style_id)?;
     render(&model, &request)
+}
+
+/// What a style asks for, for the session chips (FR-002).
+///
+/// Answered on selection rather than after a generation, because the chips have
+/// to show what pressing Generate *would* do — and because the keep-or-adopt
+/// prompt has to name the incoming artist's values while the outgoing artist's
+/// pattern is still the one on screen.
+#[tauri::command]
+pub fn session_defaults(
+    style_id: String,
+    dataset: State<'_, Dataset>,
+) -> Result<SessionDefaults, String> {
+    Ok(SessionDefaults::of(&dataset.model(&style_id)?))
 }
 
 /// Where an export may write.
@@ -203,6 +236,51 @@ mod tests {
     }
 
     #[test]
+    fn a_nonsense_pinned_tempo_never_reaches_the_pattern() {
+        // Nothing downstream would crash on it: the MIDI writer and the audio
+        // transport each substitute a tempo of their own for a non-positive
+        // one. That is the problem — the app would play and export at their
+        // fallback while the chip, the grid header and the file all said 0.
+        let trap = shipped("trap");
+        let mut req = request("trap", Some("7"));
+        req.session = Some(SessionOverrides {
+            bpm: Some(0.0),
+            ..Default::default()
+        });
+        let floored = render(&trap, &req).unwrap();
+        assert!(floored.bpm >= 20.0, "got {}", floored.bpm);
+
+        // The ceiling is Ableton Live's 999, not a bespoke number: the plugin
+        // is a guest in someone else's project and has to be able to say
+        // whatever that project says.
+        req.session = Some(SessionOverrides {
+            bpm: Some(100_000.0),
+            ..Default::default()
+        });
+        let capped = render(&trap, &req).unwrap();
+        assert!(capped.bpm <= 999.0, "got {}", capped.bpm);
+        assert!(
+            capped.bpm >= 900.0,
+            "clamped to something arbitrary: {}",
+            capped.bpm
+        );
+    }
+
+    #[test]
+    fn the_defaults_command_reports_what_the_model_asks_for() {
+        // trap authors bpm 130–170 with a mode of 140, and a set of keys to
+        // pick from. The chips show the tempo as a value and the keys as a
+        // list, because only the second is chosen by the seed.
+        let defaults = SessionDefaults::of(&shipped("trap"));
+        assert_eq!(defaults.bpm, 140.0);
+        assert!(
+            !defaults.keys.is_empty(),
+            "trap authors session.keys, so the chip has something to offer"
+        );
+        assert!(!defaults.scales.is_empty());
+    }
+
+    #[test]
     fn a_bad_seed_is_refused_rather_than_silently_replaced() {
         let trap = shipped("trap");
         let err = render(&trap, &request("trap", Some("not-a-number"))).unwrap_err();
@@ -217,6 +295,27 @@ mod tests {
         req.part = Some(Part::Melody);
         let err = render(&trap, &req).unwrap_err();
         assert!(err.contains("not implemented"), "{err}");
+    }
+
+    #[test]
+    fn the_chords_part_generates_in_the_session_key() {
+        // The whole point of one SessionContext: the chords land in the key
+        // the pattern says it is in, not one of their own.
+        let trap = shipped("trap");
+        let mut req = request("trap", Some("7"));
+        req.part = Some(Part::Chords);
+        req.session = Some(SessionOverrides {
+            key_root: Some(5),
+            scale: Some(engine::pattern::Scale::NaturalMinor),
+            ..Default::default()
+        });
+
+        let pattern = render(&trap, &req).unwrap();
+        assert_eq!(pattern.part, Part::Chords);
+        assert_eq!(pattern.key_root, 5);
+        assert_eq!(pattern.lanes.len(), 1);
+        assert_eq!(pattern.lanes[0].lane, Lane::Chords);
+        assert!(pattern.note_count() > 0);
     }
 
     #[test]

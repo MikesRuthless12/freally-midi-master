@@ -1,0 +1,233 @@
+//! Freally MIDI Master as a plugin.
+//!
+//! The whole reason this exists rather than the desktop app: a plugin is handed
+//! the host's tempo, time signature and playhead in its process callback. There
+//! is no protocol to negotiate, no MIDI cable and no discovery — the DAW's
+//! session *is* the session, and a generated pattern lands on the track in the
+//! project's own key and tempo.
+//!
+//! One plugin, three formats. This crate exports **CLAP** and **VST3**
+//! directly through `nih-plug`; **AUv2 and AUv3** are projected from the CLAP
+//! by `clap-wrapper` at packaging time. Nothing here is format-specific, and
+//! nothing here should become so.
+//!
+//! [`engine`] is untouched by any of this. It has no Tauri types, no network
+//! and no plugin types either — it takes a [`StyleModel`] and a
+//! [`SessionContext`] and returns notes. This crate is the second consumer of
+//! it, not a rewrite of it.
+
+use std::num::NonZeroU32;
+use std::sync::Arc;
+
+use nih_plug::prelude::*;
+
+pub mod bridge;
+pub mod dataset;
+mod editor;
+pub mod eula;
+pub mod host;
+pub mod presets;
+pub mod shared;
+pub mod state;
+pub mod voice;
+
+pub use bridge::{dispatch, Request};
+pub use host::HostSession;
+pub use shared::{Shared, SharedState};
+pub use state::{PluginSession, SessionStore};
+pub use voice::Schedule;
+
+/// The plugin's own state, held across the process callbacks.
+pub struct FreallyMidiMaster {
+    params: Arc<FreallyParams>,
+    /// What the host said about tempo and meter last time we looked, so a
+    /// change can be *noticed* rather than merely read.
+    session: HostSession,
+    /// Notes waiting to be emitted, in host time. Armed on the UI thread and
+    /// handed over whole; drained by `process`.
+    pending: Schedule,
+    /// The two-way channel with the editor.
+    shared: SharedState,
+}
+
+/// No automatable parameters, and one persisted field.
+///
+/// A generator driven by a roster, a seed and a set of pins has nothing a host
+/// would sensibly draw a knob for or write automation against — the artist is
+/// not a continuous value. What it does have is a *session*, and that is what
+/// belongs in the project file.
+///
+/// `#[persist]` is how `nih-plug` carries arbitrary serde data through the
+/// host's own state calls, which is what TASK-P07 asked for: no settings file,
+/// no per-machine store, no path the plugin has to find. The DAW saves it with
+/// the song and hands it back on open.
+#[derive(Params, Default)]
+pub struct FreallyParams {
+    #[persist = "session"]
+    pub session: SessionStore,
+}
+
+impl Default for FreallyMidiMaster {
+    fn default() -> Self {
+        // **One store, threaded into both.** `params` is what the host
+        // serializes; `shared` is what the editor reads and writes. They must
+        // be the same `Arc` — two stores would save one and display the other,
+        // which presents as "the DAW did not save my session" and stays
+        // invisible until someone reopens a project.
+        let params = Arc::new(FreallyParams::default());
+        let shared = Arc::new(Shared::new(params.session.clone()));
+
+        Self {
+            params,
+            session: HostSession::default(),
+            pending: Schedule::default(),
+            shared,
+        }
+    }
+}
+
+impl Plugin for FreallyMidiMaster {
+    /// What the host puts on the plugin's window and in its browser.
+    ///
+    /// The identity a DAW saves in a project is `CLAP_ID` and the VST3 class
+    /// id, neither of which is this — so changing the display name never
+    /// orphans a plugin already placed on someone's track.
+    const NAME: &'static str = "Freally MIDI Master By: Mike Weaver";
+    const VENDOR: &'static str = "Mike Weaver";
+    const URL: &'static str = "https://github.com/MikesRuthless12/freally-midi-master";
+    const EMAIL: &'static str = "mythodikalone@gmail.com";
+    const VERSION: &'static str = env!("CARGO_PKG_VERSION");
+
+    /// A silent stereo pass-through, even though this plugin makes notes
+    /// rather than sound.
+    ///
+    /// The honest layout is no audio buses at all — and **Ableton Live refuses
+    /// to open a VST3 that declares none**, with "This VST3 plug-in could not
+    /// be opened" and nothing more specific. Live is not unusual here; the
+    /// VST3 hosts generally expect at least one audio bus, and the MIDI-effect
+    /// plugins that work in them declare a pass-through for exactly this
+    /// reason.
+    ///
+    /// The audio is untouched: `process` writes nothing to the buffer, so
+    /// whatever comes in goes out. What the plugin actually produces is note
+    /// events on its MIDI output.
+    ///
+    /// Two layouts rather than one, so a host can insert it on a mono track
+    /// without a channel-count negotiation failure — which presents as the
+    /// same unhelpful message.
+    const AUDIO_IO_LAYOUTS: &'static [AudioIOLayout] = &[
+        AudioIOLayout {
+            main_input_channels: NonZeroU32::new(2),
+            main_output_channels: NonZeroU32::new(2),
+            ..AudioIOLayout::const_default()
+        },
+        AudioIOLayout {
+            main_input_channels: NonZeroU32::new(1),
+            main_output_channels: NonZeroU32::new(1),
+            ..AudioIOLayout::const_default()
+        },
+    ];
+
+    const MIDI_INPUT: MidiConfig = MidiConfig::Basic;
+    const MIDI_OUTPUT: MidiConfig = MidiConfig::Basic;
+
+    /// The pattern is placed against the host's own timeline, so a note's
+    /// position has to survive automation-block splitting.
+    const SAMPLE_ACCURATE_AUTOMATION: bool = true;
+
+    type SysExMessage = ();
+    type BackgroundTask = ();
+
+    fn params(&self) -> Arc<dyn Params> {
+        self.params.clone()
+    }
+
+    fn editor(&mut self, _async_executor: AsyncExecutor<Self>) -> Option<Box<dyn Editor>> {
+        editor::create(self.shared.clone())
+    }
+
+    fn initialize(
+        &mut self,
+        _layout: &AudioIOLayout,
+        buffer_config: &BufferConfig,
+        _context: &mut impl InitContext<Self>,
+    ) -> bool {
+        // The editor arms schedules in samples, so it needs the real rate
+        // rather than a guess: 48 kHz assumed inside a 44.1 kHz session places
+        // every note 8.8% late, which is a whole 16th out by bar four.
+        self.shared.set_sample_rate(buffer_config.sample_rate);
+        true
+    }
+
+    fn reset(&mut self) {
+        // The host has jumped or stopped. Anything still scheduled belongs to a
+        // timeline position that is no longer where we are, and emitting it
+        // would leave notes hanging on the track.
+        self.pending.clear();
+    }
+
+    fn process(
+        &mut self,
+        buffer: &mut Buffer,
+        _aux: &mut AuxiliaryBuffers,
+        context: &mut impl ProcessContext<Self>,
+    ) -> ProcessStatus {
+        // The pivot's whole point, in two lines: the host tells us the tempo
+        // and the meter, every block, for free.
+        self.session.observe(context.transport());
+        self.shared.host.publish(&self.session);
+
+        // Take a newly generated pattern if one is waiting. The schedule this
+        // replaces is handed back rather than dropped — freeing its `Vec` here
+        // would take the allocator's lock on the audio thread.
+        self.pending = self
+            .shared
+            .handoff
+            .receive(std::mem::take(&mut self.pending));
+
+        // ⛔ The block length is what advances the schedule. Passing it is not
+        // bookkeeping: without it `emit` replays the first block forever and
+        // nothing past ~170 ms of a pattern is ever heard.
+        self.pending.emit(context, buffer.samples() as u32);
+
+        ProcessStatus::Normal
+    }
+}
+
+impl ClapPlugin for FreallyMidiMaster {
+    const CLAP_ID: &'static str = "com.mikeweaver.freally-midi-master";
+    const CLAP_DESCRIPTION: Option<&'static str> = Some(
+        "Artist-accurate MIDI, generated by a rule-based engine. No AI, no accounts, no telemetry.",
+    );
+    const CLAP_MANUAL_URL: Option<&'static str> = Some(Self::URL);
+    const CLAP_SUPPORT_URL: Option<&'static str> = None;
+    const CLAP_FEATURES: &'static [ClapFeature] = &[
+        ClapFeature::NoteEffect,
+        ClapFeature::Utility,
+        ClapFeature::Custom("midi-generator"),
+    ];
+}
+
+// **No `Vst3Plugin` impl, and no `nih_export_vst3!` — deliberately.**
+//
+// nih-plug's VST3 export is built on `vst3-sys`, a third-party Rust
+// reimplementation of the VST3 interfaces licensed **GPLv3**. Linking it would
+// put this proprietary, All-Rights-Reserved product in breach. Steinberg's own
+// VST3 SDK went MIT in November 2025 — nih-plug does not use it.
+//
+// VST3 and AU are projected from this CLAP by `clap-wrapper` at packaging
+// time (MIT and Apache-2.0, over Steinberg's MIT SDK and Apple's AudioUnitSDK),
+// which is one plugin and three formats rather than three plugins. See
+// TASK-P08.
+//
+// `cargo deny` is what found this, and it is why the `nih_plug` dependency
+// carries `default-features = false` in both manifests that name it.
+nih_export_clap!(FreallyMidiMaster);
+
+// VST3, projected from the CLAP above by `clap-wrapper` — the same binary
+// answering a second set of entry points, not a second implementation.
+//
+// This is what Ableton, Logic, Pro Tools and Cubase load; none of them speaks
+// CLAP. Licence-clean by construction: `clap-wrapper` is MIT/Apache-2.0 over
+// Steinberg's VST3 SDK, which went MIT in November 2025.
+clap_wrapper::export_vst3!();

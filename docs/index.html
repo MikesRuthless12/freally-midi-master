@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Freally MIDI Master — Artist-accurate MIDI, in your DAW</title>
+    <meta
+      name="description"
+      content="Freally MIDI Master — a CLAP/VST3/AU plugin that generates original artist-style MIDI onto the track you are already working on, in your project's own key and tempo. Free, offline, and 100% AI-free."
+    />
+    <link rel="icon" href="favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="48x48" href="favicon-48.png" />
+    <link rel="icon" type="image/png" sizes="96x96" href="favicon-96.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <nav class="nav" aria-label="Site">
+      <a href="index.html" aria-current="page">Home</a>
+      <a href="documentation.html">Documentation</a>
+      <a href="changelog.html">Changelog</a>
+      <a href="https://github.com/MikesRuthless12/freally-midi-master">GitHub</a>
+    </nav>
+
+    <header class="hero">
+      <img
+        class="logo"
+        src="freally-icon.png"
+        alt="Freally MIDI Master icon"
+        width="288"
+        height="288"
+      />
+      <h1>Freally MIDI Master</h1>
+      <p class="tagline">
+        Artist-accurate MIDI, generated onto the track you are already working on.
+      </p>
+      <p class="sub">
+        Drums, melodies, countermelodies, 808s, chords and full song arrangements — generated in the
+        style of specific artists, as original MIDI, <strong>in your project's own key and
+        tempo</strong>. Free, offline, and 100% AI-free.
+      </p>
+      <div class="formats" role="list" aria-label="Plugin formats">
+        <span class="format" role="listitem">CLAP</span>
+        <span class="format" role="listitem">VST3</span>
+        <span class="format" role="listitem">AU</span>
+        <span class="format" role="listitem">Standalone</span>
+      </div>
+    </header>
+
+    <main>
+      <section class="features-grid" aria-label="Feature highlights">
+        <div class="feature-card">
+          <span class="ic" aria-hidden="true">🎤</span>
+          <h3>Artists, not genres</h3>
+          <p>
+            Most generators think in genres. "Trap" is not "Metro Boomin," and no mainstream tool has
+            heard of OsamaSon. Type a name and get patterns carrying that artist's actual signatures.
+          </p>
+        </div>
+        <div class="feature-card">
+          <span class="ic" aria-hidden="true">🎚️</span>
+          <h3>It follows your DAW</h3>
+          <p>
+            The plugin reads the host's tempo and time signature every block, so trap authored at 140
+            comes out at 92 in a 92&nbsp;BPM project. Pin a tempo and yours wins instead.
+          </p>
+        </div>
+        <div class="feature-card">
+          <span class="ic" aria-hidden="true">🥁</span>
+          <h3>Five generators, plus Song Mode</h3>
+          <p>
+            Drums, Melody, Countermelody, Bassline and Chords — plus Song Mode, which is not a sixth
+            generator but an arrangement that fills all five in.
+          </p>
+        </div>
+        <div class="feature-card">
+          <span class="ic" aria-hidden="true">🎯</span>
+          <h3>Notes land on the track</h3>
+          <p>
+            No file to drag, no folder to hunt for. The plugin emits MIDI where you inserted it, in
+            the host's own time.
+          </p>
+        </div>
+        <div class="feature-card">
+          <span class="ic" aria-hidden="true">🔁</span>
+          <h3>Reproducible by seed</h3>
+          <p>
+            Every generation has a seed. Copy it, paste it, get the exact same beat back — on any
+            machine, on any day. Determinism is enforced by the test suite.
+          </p>
+        </div>
+        <div class="feature-card">
+          <span class="ic" aria-hidden="true">🔒</span>
+          <h3>No AI, no account, no cloud</h3>
+          <p>
+            No models, no training data, no inference, and no network calls during generation. No
+            login and no telemetry. Everything happens on your machine.
+          </p>
+        </div>
+      </section>
+
+      <article class="release latest">
+        <div class="release-head">
+          <div class="meta">
+            <span class="badge">In development</span>
+            <span class="date">Plugin pivot · 2026</span>
+          </div>
+          <div class="downloads">
+            <span class="dl-placeholder">Downloads open at 1.0</span>
+          </div>
+        </div>
+
+        <h2>Status — it is a plugin now</h2>
+        <p class="summary">
+          Freally MIDI Master began as a desktop app; <strong>v0.2.0</strong> was that build. As of
+          <strong>29 July 2026 the desktop app is retired</strong> — it is no longer built or
+          released. Nothing already installed stops working; it simply stops finding updates.
+        </p>
+        <p class="summary" style="margin-top: 14px">
+          It is now a <strong>CLAP plugin, with VST3 and AU projected from it</strong> — not for the
+          format's sake, but because a plugin is handed the host's tempo, time signature and playhead.
+          A generated pattern lands in the song you are actually writing, instead of at whatever tempo
+          the artist happens to be authored at.
+        </p>
+
+        <h3>Where it has been loaded</h3>
+        <p class="summary">
+          It loads and generates in <strong>Ableton Live&nbsp;12</strong> (VST3) and
+          <strong>FL&nbsp;Studio</strong> (CLAP). Reaper, Bitwig and Logic are not yet tested. The
+          standalone build runs the same plugin in its own window with no DAW involved.
+        </p>
+
+        <div class="os-chips" style="margin-top: 16px">
+          <span class="os-chip">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M3 5.4 10.6 4.2v7.1H3zM11.6 4 21 2.7v8.6h-9.4zM3 12.7h7.6v7.1L3 18.6zM11.6 12.7H21v8.6l-9.4-1.3z" />
+            </svg>
+            Windows
+          </span>
+          <span class="os-chip">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M17.6 12.7c0-2.1 1.7-3.1 1.8-3.2-1-1.4-2.5-1.6-3-1.7-1.3-.1-2.5.8-3.1.8-.6 0-1.6-.7-2.7-.7-1.4 0-2.7.8-3.4 2.1-1.5 2.5-.4 6.3 1 8.4.7 1 1.5 2.2 2.6 2.1 1-.1 1.4-.7 2.7-.7 1.2 0 1.6.7 2.7.6 1.1 0 1.8-1 2.5-2 .8-1.2 1.1-2.3 1.1-2.3-.1 0-2.2-.8-2.2-3.3zM15.5 6.2c.6-.7 1-1.7.9-2.7-.9 0-1.9.6-2.5 1.3-.5.6-1 1.6-.9 2.6 1 .1 2-.5 2.5-1.2z" />
+            </svg>
+            macOS
+          </span>
+          <span class="os-chip">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 2c-2 0-3.2 1.7-3.2 4 0 1.5.2 2.4-.6 3.5-.9 1.2-2.2 2.4-2.2 4.6 0 .8.3 1.4.8 1.8-.3.7-.8 1.3-.8 2 0 1.4 1.7 2 3.7 2.2 1 .1 1.7.6 2.5.6s1.5-.5 2.5-.6c2-.2 3.7-.8 3.7-2.2 0-.7-.5-1.3-.8-2 .5-.4.8-1 .8-1.8 0-2.2-1.3-3.4-2.2-4.6-.8-1.1-.6-2-.6-3.5 0-2.3-1.2-4-3.2-4z" />
+            </svg>
+            Linux (editor in progress)
+          </span>
+        </div>
+
+        <p class="note">
+          ⛔ <strong>There is nothing to download yet, and there will not be until 1.0.</strong> No
+          beta, no preview build, no early access. A plugin that half-works inside somebody's
+          session is worse than one that is not there — so it ships when the QA matrix is green on
+          every host and every OS, and not before. Until then the source builds: see
+          <a href="documentation.html#building">Building from source</a>.
+        </p>
+      </article>
+
+      <article class="release">
+        <h2>The engine is rule-based, not trained</h2>
+        <p class="summary">
+          There is <strong>no AI in this product</strong>. No models, no training data, no inference,
+          no network calls during generation. The engine is deterministic procedural code reading
+          hand-authored style parameters derived from published research.
+        </p>
+        <p class="summary" style="margin-top: 14px">
+          That is a legal architecture as much as a technical one: nothing here is copied MIDI,
+          sampled audio, or a transcription of anyone's record, and there is no feature that recreates
+          a specific song. Artist names are descriptive style references only.
+        </p>
+        <p class="note">
+          <strong>The music you make with it is yours</strong>, with no royalty and no attribution
+          requirement. Freally MIDI Master itself is proprietary and source-available — you may read
+          the source, build it and run it locally, but not redistribute it. It is
+          <em>not</em> open source.
+        </p>
+      </article>
+
+      <section class="roadmap" aria-label="Road to 1.0">
+        <h2>The road to 1.0</h2>
+        <p>Every build lands a whole capability. Nothing ships half-done.</p>
+        <ul class="timeline">
+          <li>
+            <div>
+              <strong>Plugin pivot</strong>
+              <p>CLAP, with VST3 and AU projected from it. Loads in Ableton and FL Studio.</p>
+            </div>
+            <span class="soon now">now</span>
+          </li>
+          <li>
+            <div>
+              <strong>Unlimited undo/redo</strong>
+              <p>Every session change, one keystroke back — no depth limit.</p>
+            </div>
+            <span class="soon done">landed</span>
+          </li>
+          <li>
+            <div>
+              <strong>Playback &amp; drag-out</strong>
+              <p>Hear it in the plugin, or drag MIDI and rendered audio straight into the DAW.</p>
+            </div>
+            <span class="soon">next</span>
+          </li>
+          <li>
+            <div>
+              <strong>Your own sounds</strong>
+              <p>A file explorer for your sample library, with preview and drag-to-pad.</p>
+            </div>
+            <span class="soon">planned</span>
+          </li>
+          <li>
+            <div>
+              <strong>1.0 — downloads open</strong>
+              <p>
+                All five generators plus Song Mode, every format, on all three platforms. The first
+                build anyone can install.
+              </p>
+            </div>
+            <span class="soon">goal</span>
+          </li>
+        </ul>
+      </section>
+
+      <article class="release">
+        <h2>Privacy</h2>
+        <p class="summary">
+          No accounts. No telemetry. Nothing about you, your projects or your output is ever
+          transmitted. Generation, playback, import and export are entirely local.
+        </p>
+        <ul class="features">
+          <li>
+            A launch-time <strong>update check</strong> that fetches one small version file and
+            prompts before doing anything.
+          </li>
+          <li>
+            <strong>Crash reports</strong>, written locally, shown to you in full, and sent only if
+            you click to send them.
+          </li>
+        </ul>
+        <p class="note">Those two are the only outbound connections that exist.</p>
+      </article>
+    </main>
+
+    <footer>
+      <p>
+        Freally MIDI Master · By <a href="https://github.com/MikesRuthless12">Mike Weaver</a> ·
+        <a href="https://github.com/MikesRuthless12/freally-midi-master/issues">Report a bug</a> ·
+        <a href="https://github.com/MikesRuthless12/freally-midi-master">Source</a>
+      </p>
+      <p>© 2026 Mike Weaver — All Rights Reserved.</p>
+    </footer>
+  </body>
+</html>

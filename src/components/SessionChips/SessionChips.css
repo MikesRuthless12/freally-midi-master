@@ -1,0 +1,140 @@
+/* The session chips share `.chip--mono` with the seed, so a pinned value and a
+   generated one read as the same kind of thing. Only the controls are new. */
+
+.session {
+  align-items: center;
+}
+
+.session__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  cursor: text;
+}
+
+.session__label {
+  color: var(--color-text-3);
+}
+
+.session__number,
+.session__select {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+}
+
+.session__number {
+  width: 4ch;
+  font-variant-numeric: tabular-nums;
+  /* The spinner arrows steal a third of a chip this narrow, and the value is
+     typed or left alone rather than nudged. */
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+.session__number::-webkit-outer-spin-button,
+.session__number::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+.session__number::placeholder {
+  color: var(--color-text-3);
+}
+
+.session__select {
+  max-width: 14ch;
+  cursor: pointer;
+}
+
+.session__number:focus-visible,
+.session__select:focus-visible {
+  outline: 1px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+.session__unpin {
+  padding: 2px;
+}
+
+.session__empty {
+  color: var(--color-text-3);
+  font-size: var(--text-small);
+}
+
+/* ── Keep or adopt ──────────────────────────────────────────────────────── */
+
+.switch-prompt {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-2);
+  font-size: var(--text-small);
+}
+
+.switch-prompt__body {
+  color: var(--color-text-2);
+}
+
+.switch-prompt__rows {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--font-mono);
+  color: var(--color-text-3);
+}
+
+.switch-prompt__rows li {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.switch-prompt__rows strong {
+  color: var(--color-text);
+  font-weight: 500;
+}
+
+.switch-prompt__field {
+  color: var(--color-text-3);
+}
+
+.switch-prompt__actions {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.switch-prompt__actions .btn-ghost {
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+}
+
+/* The auto-sync toggle (TASK-P15). A `role="switch"` chip rather than a
+   checkbox, so it reads as one control alongside the other chips and announces
+   its state; the icon says which way it is set at a glance. */
+.session__sync {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text-3);
+  font: inherit;
+  cursor: pointer;
+}
+
+.session__sync[aria-checked='true'] {
+  border-color: var(--color-primary);
+  color: var(--color-text);
+}

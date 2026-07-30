@@ -92,7 +92,13 @@ jobs:
           fail=0
           # A release missing a platform is a silent regression: the download
           # page still looks fine, and only that platform's users notice.
-          for pattern in '*.exe' '*.msi' '*.dmg' '*.app.tar.gz' '*.AppImage' '*.deb'; do
+          #
+          # The desktop installers (`*.exe`, `*.msi`, `*.dmg`, `*.AppImage`,
+          # `*.deb`) are gone deliberately — the desktop app is retired and
+          # `release.yml` no longer builds it. Requiring them here would fail
+          # every release from now on.
+          for pattern in 'freally-midi-master-plugins-windows.zip' \
+                         'freally-midi-master-plugins-macos.zip'; do
             # shellcheck disable=SC2086
             if ! compgen -G "$pattern" > /dev/null; then
               echo "::error::no asset matching $pattern"
@@ -101,69 +107,49 @@ jobs:
           done
           exit $fail
 
-      - name: Archives and installers actually open
+      - name: The plugin bundles actually open
         run: |
           set -euo pipefail
           cd assets
           sudo apt-get update -qq
-          sudo apt-get install -y -qq p7zip-full binutils file
+          sudo apt-get install -y -qq p7zip-full
 
           fail=0
-          check() {
-            if "$@" > /dev/null 2>&1; then
-              echo "ok   $2"
-            else
-              echo "::error::$2 did not open — it is corrupt or truncated"
+          # One enumeration per plugin zip, answering both questions: that it
+          # opens at all, and that **both formats are in it**. One binary
+          # produces the `.clap` and the `.vst3`, so a zip carrying only one is
+          # a packaging bug rather than a choice — and it is invisible until a
+          # producer on the wrong DAW finds nothing to load. Ableton, Logic,
+          # Pro Tools and Cubase need the VST3; Bitwig, Reaper and FL Studio
+          # take the CLAP.
+          for f in freally-midi-master-plugins-*.zip; do
+            [ -e "$f" ] || continue
+            if ! listing=$(7z l "$f" 2>/dev/null); then
+              echo "::error::$f did not open — it is corrupt or truncated"
               fail=1
+              continue
             fi
-          }
+            echo "ok   $f"
+            for want in '.clap' '.vst3'; do
+              if ! printf '%s' "$listing" | grep -q -- "$want"; then
+                echo "::error::$f contains no $want — half the hosts can load nothing"
+                fail=1
+              fi
+            done
+          done
 
-          for f in *.tar.gz;    do [ -e "$f" ] && check tar -tzf "$f"; done
-          for f in *.deb;       do [ -e "$f" ] && check ar t "$f"; done
-          for f in *.AppImage;  do [ -e "$f" ] && check file -E "$f"; done
-          # NSIS/MSI/DMG are all containers 7z can enumerate.
-          for f in *.exe *.msi *.dmg; do [ -e "$f" ] && check 7z l "$f"; done
-
-          # A zero-length or absurdly small installer passes a checksum quite
-          # happily; the bytes just match the wrong thing.
-          for f in *.exe *.msi *.dmg *.AppImage *.deb *.tar.gz; do
+          # A zero-length or absurdly small archive passes a checksum quite
+          # happily; the bytes just match the wrong thing. The plugin carries the
+          # whole UI and dataset, so anything under a megabyte is not it.
+          for f in freally-midi-master-plugins-*.zip; do
             [ -e "$f" ] || continue
             size=$(stat -c%s "$f")
             if [ "$size" -lt 1000000 ]; then
-              echo "::error::$f is only $size bytes — too small to be a real installer"
+              echo "::error::$f is only $size bytes — too small to be a real bundle"
               fail=1
             fi
           done
           exit $fail
-
-      - name: Updater manifest is well formed
-        run: |
-          set -euo pipefail
-          cd assets
-          if [ ! -f latest.json ]; then
-            echo "::error::latest.json is missing — the updater will never see this release."
-            exit 1
-          fi
-          # The version must come from the manifest, and every platform entry
-          # needs both a signature and a url or the updater silently skips it.
-          python3 - <<'PY'
-          import json, sys
-          m = json.load(open('latest.json'))
-          problems = []
-          if not m.get('version'):
-              problems.append('latest.json has no version')
-          platforms = m.get('platforms') or {}
-          if not platforms:
-              problems.append('latest.json lists no platforms')
-          for name, entry in platforms.items():
-              if not entry.get('signature'):
-                  problems.append(f'{name} has no signature')
-              if not entry.get('url'):
-                  problems.append(f'{name} has no url')
-          for p in problems:
-              print(f'::error::{p}')
-          sys.exit(1 if problems else 0)
-          PY
 
       - name: What to do if this failed
         if: failure()

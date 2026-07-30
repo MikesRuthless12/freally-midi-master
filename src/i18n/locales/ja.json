@@ -43,12 +43,40 @@
     "genres": "ジャンル",
     "roster": "アーティスト",
     "kit": "キット",
-    "session": "セッション"
+    "session": "セッション",
+    "presets": "プリセット"
   },
   "readouts": {
     "bpm": "BPM",
     "key": "キー",
+    "scale": "スケール",
     "swing": "スウィング"
+  },
+  "session": {
+    "pickArtist": "アーティストを選ぶと、その設定が表示されます。",
+    "artistChoice": "アーティストに任せる",
+    "artistPicks": "{{value}} — アーティスト",
+    "clearPin": "アーティストの値に戻す",
+    "switchBody": "前のアーティストが選んでいない値を固定しています。{{name}} は独自の値を求めています。",
+    "keep": "自分の値を使う",
+    "adopt": "{{name}} の値を使う",
+    "hostSynced": "DAW に追従しています。テンポを入力すると固定されます。",
+    "autoSync": "DAWに追従",
+    "autoSyncOff": "DAWではなくアーティストのテンポを使用しています。"
+  },
+  "scales": {
+    "natural_minor": "自然的短音階",
+    "harmonic_minor": "和声的短音階",
+    "phrygian": "フリジアン",
+    "phrygian_dominant": "フリジアン・ドミナント",
+    "dorian": "ドリアン",
+    "major": "長音階",
+    "mixolydian": "ミクソリディアン",
+    "lydian": "リディアン",
+    "aeolian": "エオリアン",
+    "minor_pentatonic": "マイナー・ペンタトニック",
+    "major_pentatonic": "メジャー・ペンタトニック",
+    "blues": "ブルース・スケール"
   },
   "transport": {
     "play": "再生",
@@ -56,6 +84,7 @@
     "loop": "ループ",
     "masterLevel": "マスターレベル: 無音",
     "toggleRightRail": "右パネルの表示切替 (K)",
+    "windowSize": "ウィンドウサイズ",
     "reportBug": "バグを報告",
     "loopAlways": "このフェーズでは再生は常にループします。",
     "unavailable": "再生できません: {{reason}}"
@@ -187,5 +216,12 @@
     "recovering": "オーディオデバイスが切断されました — 再接続中…",
     "failed": "オーディオデバイスがありません。再試行中…",
     "recovered": "オーディオデバイスが復帰しました。"
+  },
+  "presets": {
+    "factory": "工場出荷",
+    "none": "プリセットはまだありません。",
+    "save": "保存",
+    "name": "プリセット名",
+    "delete": "{{name}} を削除"
   }
 }

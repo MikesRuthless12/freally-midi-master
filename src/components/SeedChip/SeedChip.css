@@ -8,11 +8,15 @@
   color: var(--color-text-3);
 }
 
-/* Sized to a u64's 20 digits so a pasted seed is never truncated on screen —
-   a seed you cannot read all of is a seed you cannot check. */
+/* ⛔ Fills the chip, and wide enough for a u64's 20 digits.
+   The comment here used to claim exactly that while setting `width: 12ch`, so a
+   long seed was cut off on screen — and a seed you cannot read all of is a seed
+   you cannot check or type back in, which is the whole of US-004. `flex: 1`
+   takes the room the visible label used to occupy. */
 .seed__input {
-  width: 12ch;
-  min-width: 0;
+  flex: 1;
+  width: 100%;
+  min-width: 20ch;
   padding: 0;
   border: 0;
   background: transparent;

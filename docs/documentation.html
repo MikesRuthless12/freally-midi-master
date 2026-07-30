@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Documentation — Freally MIDI Master</title>
+    <meta
+      name="description"
+      content="How Freally MIDI Master works: the generators, following your DAW's tempo and key, seeds, presets, the roster, plugin formats, and building from source."
+    />
+    <link rel="icon" href="favicon.ico" sizes="any" />
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="48x48" href="favicon-48.png" />
+    <link rel="icon" type="image/png" sizes="96x96" href="favicon-96.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="favicon-192.png" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <nav class="nav" aria-label="Site">
+      <a href="index.html">Home</a>
+      <a href="documentation.html" aria-current="page">Documentation</a>
+      <a href="changelog.html">Changelog</a>
+      <a href="https://github.com/MikesRuthless12/freally-midi-master">GitHub</a>
+    </nav>
+
+    <header class="hero">
+      <img
+        class="logo"
+        src="freally-icon.png"
+        alt="Freally MIDI Master icon"
+        width="288"
+        height="288"
+        style="width: 144px"
+      />
+      <h1>Documentation</h1>
+      <p class="tagline">Everything the plugin does, and how it decides what to play.</p>
+    </header>
+
+    <div class="search-wrap">
+      <label class="visually-hidden" for="q">Search the documentation</label>
+      <input
+        class="search-box"
+        id="q"
+        type="search"
+        placeholder="Search the documentation…"
+        autocomplete="off"
+      />
+      <ul class="search-results" id="results" hidden></ul>
+    </div>
+
+    <main>
+      <nav class="toc" aria-label="Contents">
+        <h2>Contents</h2>
+        <ol>
+          <li><a href="#formats">Formats &amp; hosts</a></li>
+          <li><a href="#install">Installing</a></li>
+          <li><a href="#loop">The core loop</a></li>
+          <li><a href="#roster">The roster</a></li>
+          <li><a href="#generators">The generators</a></li>
+          <li><a href="#tempo">Tempo, key &amp; auto-sync</a></li>
+          <li><a href="#seeds">Seeds &amp; reproducibility</a></li>
+          <li><a href="#presets">Presets</a></li>
+          <li><a href="#session">Session state</a></li>
+          <li><a href="#shortcuts">Keyboard shortcuts</a></li>
+          <li><a href="#standalone">The standalone</a></li>
+          <li><a href="#privacy">Privacy &amp; the two connections</a></li>
+          <li><a href="#bugs">Reporting a crash</a></li>
+          <li><a href="#building">Building from source</a></li>
+          <li><a href="#licence">Licence</a></li>
+        </ol>
+      </nav>
+
+      <article class="release" id="formats">
+        <h2>Formats &amp; hosts</h2>
+        <p class="summary">
+          Freally MIDI Master is a <strong>CLAP</strong> plugin. VST3 and AU are projected from it
+          rather than implemented separately, which is what makes it loadable in hosts that do not
+          speak CLAP.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Host</th>
+              <th>Format</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Ableton Live 12</td>
+              <td>VST3</td>
+              <td>Loads and generates</td>
+            </tr>
+            <tr>
+              <td>FL Studio</td>
+              <td>CLAP</td>
+              <td>Loads and generates</td>
+            </tr>
+            <tr>
+              <td>Reaper · Bitwig · Logic</td>
+              <td>CLAP / VST3 / AU</td>
+              <td>Not yet tested</td>
+            </tr>
+            <tr>
+              <td>No DAW</td>
+              <td>Standalone</td>
+              <td>Runs in its own window</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="note">
+          The plugin is a <strong>MIDI generator</strong>. It emits notes onto the track you inserted
+          it on; the instrument you have loaded there makes the sound.
+        </p>
+      </article>
+
+      <article class="release" id="install">
+        <h2>Installing</h2>
+        <p class="summary">
+          ⛔ <strong>Downloads open at 1.0.</strong> There is no installer, no beta and no preview
+          build before then — a plugin that half-works inside somebody's session is worse than one
+          that is not there, so it ships when the QA matrix is green on every host and every OS.
+        </p>
+        <p class="summary" style="margin-top: 14px">
+          Until then it builds from source, which is a supported path rather than a workaround — see
+          <a href="#building">Building from source</a>. <code>npm run plugin:install</code> links the
+          build straight into your CLAP folder.
+        </p>
+        <p class="summary" style="margin-top: 14px">Where the formats live, once 1.0 lands:</p>
+        <table>
+          <thead>
+            <tr>
+              <th>OS</th>
+              <th>CLAP</th>
+              <th>VST3</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Windows</td>
+              <td><code>%COMMONPROGRAMFILES%\CLAP</code></td>
+              <td><code>%COMMONPROGRAMFILES%\VST3</code></td>
+            </tr>
+            <tr>
+              <td>macOS</td>
+              <td><code>~/Library/Audio/Plug-Ins/CLAP</code></td>
+              <td><code>~/Library/Audio/Plug-Ins/VST3</code></td>
+            </tr>
+            <tr>
+              <td>Linux</td>
+              <td><code>~/.clap</code></td>
+              <td><code>~/.vst3</code></td>
+            </tr>
+          </tbody>
+        </table>
+      </article>
+
+      <article class="release" id="loop">
+        <h2>The core loop</h2>
+        <ol class="features">
+          <li><strong>Pick someone.</strong> Search an artist, or click a genre chip.</li>
+          <li><strong>Generate.</strong> The pattern is built for your project's tempo and key.</li>
+          <li><strong>Hear it.</strong> Press play in your DAW — the notes are already on the track.</li>
+          <li><strong>Reroll or keep.</strong> Every generation carries a seed you can copy back.</li>
+        </ol>
+      </article>
+
+      <article class="release" id="roster">
+        <h2>The roster</h2>
+        <p class="summary">
+          Most MIDI generators think in <em>genres</em>. "Trap" is not "Metro Boomin," and no
+          mainstream tool has heard of OsamaSon. Freally MIDI Master thinks in <strong>artists</strong>
+          — each one a set of hand-authored style parameters describing hat-roll grammar, 808 slide
+          behaviour, swing, register and section layout.
+        </p>
+        <p class="summary" style="margin-top: 14px">
+          Search is instant fuzzy autosuggest across a mainstream roster and an underground roster.
+          <strong>Genres are a browse filter, not the unit of generation</strong> — though a genre is
+          itself a real style model and generates in its own right.
+        </p>
+        <p class="note">
+          Artist names are <strong>descriptive style references only</strong>. Nothing in the dataset
+          is copied MIDI, sampled audio, or a transcription of anyone's record.
+        </p>
+      </article>
+
+      <article class="release" id="generators">
+        <h2>The generators</h2>
+        <p class="summary">
+          <strong>Five part generators, plus Song Mode.</strong> Song Mode is not a sixth generator —
+          it lays out an arrangement and fills the other five in.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Tab</th>
+              <th>What it makes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Drums</strong></td>
+              <td>Kick, snare/clap, hats with roll grammar, percussion, and the 808 line</td>
+            </tr>
+            <tr>
+              <td><strong>Melody</strong></td>
+              <td>
+                Phrase structures — riff loop, question/answer, call/response, long arc — with
+                chord-tone bias on strong beats and per-genre devices
+              </td>
+            </tr>
+            <tr>
+              <td><strong>Countermelody</strong></td>
+              <td>Octave echo, bell echo, arpeggio, answer lick and sustained pad, placed in the melody's gaps</td>
+            </tr>
+            <tr>
+              <td><strong>Bassline</strong></td>
+              <td>The low end, locked to the drums' 808 behaviour</td>
+            </tr>
+            <tr>
+              <td><strong>Chords</strong></td>
+              <td>Progressions in the session's key and scale</td>
+            </tr>
+            <tr>
+              <td><strong>Song</strong></td>
+              <td>An arrangement that fills the five above in — a mode, not a generator</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="summary" style="margin-top: 14px">
+          <strong>What generates in the plugin today:</strong> drums and chords. Melody,
+          countermelody and bassline exist in the engine and are being wired through — the plugin
+          says so plainly rather than returning an empty grid.
+        </p>
+        <p class="note">
+          Pitches are chosen as <strong>scale degrees</strong> and only then turned into MIDI notes,
+          so staying in key is structural rather than filtered for afterwards.
+        </p>
+      </article>
+
+      <article class="release" id="tempo">
+        <h2>Tempo, key &amp; auto-sync</h2>
+        <p class="summary">
+          The plugin reads the host's tempo and time signature every block. Trap authored at 140 comes
+          out at <strong>92 in a 92&nbsp;BPM project</strong> — because a clip generated at the
+          artist's tempo does not fit the song you asked for.
+        </p>
+        <h3>Precedence</h3>
+        <ol class="features">
+          <li><strong>Your pin wins.</strong> Pin a tempo in the session chips and it beats everything.</li>
+          <li><strong>Then the host.</strong> With auto-sync on, the DAW's tempo is used.</li>
+          <li><strong>Then the artist.</strong> With auto-sync off, the model's own authored tempo stands.</li>
+        </ol>
+        <p class="note">
+          Auto-sync is a session setting saved with your project — three states, not two. Turning it
+          off is how you reach the artist's authored tempo from inside a running project.
+        </p>
+      </article>
+
+      <article class="release" id="seeds">
+        <h2>Seeds &amp; reproducibility</h2>
+        <p class="summary">
+          Every generation has a <strong>seed</strong>. The same seed, artist and session always
+          produce a byte-identical pattern — on any machine, on any day. Copy the seed from the chip,
+          paste it back, and the beat returns.
+        </p>
+        <p class="summary" style="margin-top: 14px">
+          Leave the seed box empty to get a fresh one each time; the chip then shows the seed that was
+          actually used, so you can copy a generation you liked even though you never typed a number.
+        </p>
+        <p class="note">
+          Determinism is enforced by the test suite, not merely intended — it is also why a saved
+          project can restore a beat without storing a single note.
+        </p>
+      </article>
+
+      <article class="release" id="presets">
+        <h2>Presets</h2>
+        <p class="summary">
+          A preset is a named session — artist, seed, bars and pins. Factory presets are compiled into
+          the binary; your own are written to the platform's per-user data directory, so they outlive
+          any one project.
+        </p>
+        <p class="note">
+          <strong>No factory preset pins a tempo.</strong> A pin is an instruction from the user, and
+          a shipped file is not the user — a factory preset that pinned one would override your DAW
+          the moment you loaded it.
+        </p>
+      </article>
+
+      <article class="release" id="session">
+        <h2>Session state</h2>
+        <p class="summary">
+          The plugin saves your artist, seed, bars, pins and window size <strong>into the DAW's own
+          project file</strong>. Reopen the song and the session comes back. There is no file to
+          manage and no path to choose.
+        </p>
+        <p class="note">
+          The pattern itself is not stored — the inputs are, and the engine is deterministic, so
+          restoring is a regeneration. That is why a saved project costs bytes instead of hundreds of
+          kilobytes of notes.
+        </p>
+      </article>
+
+      <article class="release" id="shortcuts">
+        <h2>Keyboard shortcuts</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Keys</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><kbd>K</kbd></td>
+              <td>Show or hide the right rail</td>
+            </tr>
+            <tr>
+              <td><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Z</kbd></td>
+              <td>Undo</td>
+            </tr>
+            <tr>
+              <td><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>Shift</kbd> + <kbd>Z</kbd></td>
+              <td>Redo</td>
+            </tr>
+            <tr>
+              <td><kbd>Ctrl</kbd> + <kbd>Y</kbd></td>
+              <td>Redo (Windows)</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="note">
+          Undo is unlimited within a session and covers the artist, seed, bars, pins and each
+          generation. Inside a text field your system's own undo takes the shortcut, so the seed box
+          can still un-type a character.
+        </p>
+      </article>
+
+      <article class="release" id="standalone">
+        <h2>The standalone</h2>
+        <p class="summary">
+          The same plugin, in its own window, with no DAW involved — useful for trying things quickly
+          and for machines where you are not producing.
+        </p>
+        <p class="note">
+          <strong>It cannot sync to your DAW, and it never will</strong> — there is no host, so there
+          is nothing to sync to. A fixed tempo can be set on the command line, which exercises the same
+          path, but real host tempo, meter and playhead need a real host.
+        </p>
+      </article>
+
+      <article class="release" id="privacy">
+        <h2>Privacy &amp; the two connections</h2>
+        <p class="summary">
+          No accounts. No telemetry. Nothing about you, your projects or your output is transmitted.
+          Generation, playback, import and export are entirely local.
+        </p>
+        <p class="summary" style="margin-top: 14px">Exactly two outbound connections exist:</p>
+        <ul class="features">
+          <li>
+            <strong>A launch-time update check.</strong> Once per launch, a single small version file
+            is fetched from the GitHub releases page. Nothing about you, your machine or your content
+            is sent, and nothing downloads or installs without you answering the prompt.
+          </li>
+          <li>
+            <strong>Crash reports.</strong> Written locally, shown to you in full, and sent only if
+            you click to send them.
+          </li>
+        </ul>
+      </article>
+
+      <article class="release" id="bugs">
+        <h2>Reporting a crash</h2>
+        <p class="summary">
+          A crash writes a scrubbed report to a local file. Nothing is sent, ever, without a click.
+          The report shows you the <strong>exact text</strong> that will be sent and offers to open a
+          GitHub issue, compose it in Gmail, hand it to your mail client, or simply copy it.
+        </p>
+        <p class="note">
+          Your home path and username are redacted from the report before you see it. The crash time
+          is stamped in your local clock with its UTC offset, so a report filed three days later can
+          still be correlated.
+        </p>
+      </article>
+
+      <article class="release" id="building">
+        <h2>Building from source</h2>
+        <p class="summary">
+          Prerequisites: <a href="https://rustup.rs">Rust</a> (the version in
+          <code>rust-toolchain.toml</code>) and <a href="https://nodejs.org">Node.js</a> 20+.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>Command</th>
+              <th>What it does</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><code>npm install</code></td>
+              <td>Install the frontend toolchain</td>
+            </tr>
+            <tr>
+              <td><code>npm run plugin:standalone</code></td>
+              <td>The plugin in its own window, no DAW needed</td>
+            </tr>
+            <tr>
+              <td><code>npm run plugin:build</code></td>
+              <td>Release <code>.clap</code>, with the bundled-content gate</td>
+            </tr>
+            <tr>
+              <td><code>npm run plugin:install</code></td>
+              <td>Symlink it into the CLAP folder — once</td>
+            </tr>
+            <tr>
+              <td><code>npm run ci:local</code></td>
+              <td>Every gate, with CI's own environment</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="note">
+          <strong><code>npm run build</code> must run before any cargo build</strong>, because the
+          plugin compiles the built UI and the dataset into its binary — a plugin has no resource
+          directory to read them from. <code>npm run plugin:build</code> does both in order, and the
+          bundled-content gate refuses a binary missing either, so the failure is a message rather
+          than a blank window.
+        </p>
+      </article>
+
+      <article class="release" id="licence">
+        <h2>Licence</h2>
+        <p class="summary">
+          Proprietary, <strong>source-available, All Rights Reserved</strong>. You may read the
+          source, build and run it locally, and submit contributions; you may not redistribute it or
+          ship derivatives. It is <strong>not</strong> open source.
+        </p>
+        <p class="note">
+          <strong>The music you make with it is yours</strong>, with no royalty and no attribution
+          requirement.
+        </p>
+      </article>
+    </main>
+
+    <footer>
+      <p>
+        Freally MIDI Master · By <a href="https://github.com/MikesRuthless12">Mike Weaver</a> ·
+        <a href="https://github.com/MikesRuthless12/freally-midi-master/issues">Report a bug</a> ·
+        <a href="https://github.com/MikesRuthless12/freally-midi-master">Source</a>
+      </p>
+      <p>© 2026 Mike Weaver — All Rights Reserved.</p>
+    </footer>
+
+    <script src="search-index.js"></script>
+    <script src="search.js"></script>
+  </body>
+</html>

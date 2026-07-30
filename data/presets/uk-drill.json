@@ -1,0 +1,9 @@
+{
+  "name": "UK Drill",
+  "session": {
+    "selectedId": "uk-drill",
+    "seed": "1440",
+    "bars": 8,
+    "pins": {}
+  }
+}

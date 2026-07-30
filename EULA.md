@@ -1,11 +1,20 @@
 # Freally MIDI Master — End User License Agreement (EULA)
 
 **Software:** Freally MIDI Master ("the Software")
-**Licensor:** Mike Weaver <mythodikalone@gmail.com>, trading as Havoc Software ("the Licensor")
+**Licensor:** Mike Weaver <mythodikalone@gmail.com> ("the Licensor")
 **Effective date:** ______ *(to be set on release)*
 
 By installing, copying, or using the Software, you ("the User") agree to this
 Agreement. If you do not agree, do not install or use the Software.
+
+> **You cannot use Freally MIDI Master until you have read this Agreement and
+> accepted its terms.** The Software presents this text the first time it opens
+> and will not generate, play, export, or save anything until you choose
+> **Agree**. Choosing **Decline** is not a penalty and costs you nothing that
+> was already saved — it simply leaves the Software inert. You may reopen this
+> Agreement and accept it at any time, and the Software becomes usable
+> immediately. If this Agreement changes in a way that materially affects your
+> rights, you will be asked to read and accept it again.
 
 ## 1. License grant
 The Software is **proprietary** and **All Rights Reserved**. Subject to this

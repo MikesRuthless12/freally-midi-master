@@ -12,6 +12,188 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-07-29
+
+### Added — unlimited undo/redo, and the licence gate
+
+- **Unlimited undo/redo** (FMM-U01). Every session change — artist, seed, bars,
+  pins, auto-sync and each generation — steps back with `Ctrl`/`Cmd`+`Z` and
+  forward with `Ctrl`/`Cmd`+`Shift`+`Z` or `Ctrl`+`Y`. No depth limit: an entry
+  is a handful of scalars plus a *shared* `Pattern` reference, because a pattern
+  is derived from its seed rather than stored, so a hundred steps across one
+  generation cost one pattern. A run of edits to one control inside 600 ms
+  collapses into a single step; two generations never merge, however fast the
+  reroll. Recorded by a store subscription rather than per-action calls, so a
+  future action cannot forget to register — the same argument the session save
+  already made. Armed *after* the project restore, so `Ctrl`+`Z` cannot step
+  behind the session the host handed back onto an empty plugin.
+- **First-run licence gate.** The agreement is compiled in from
+  `EULA.md` and shown before anything else; nothing generates, plays, exports or
+  saves until it is accepted. **Agree stays disabled until the text has been
+  scrolled to the end**, because "you cannot use it until you read it" is the
+  requirement and a live button asks nobody to read anything. ⛔ Enforced at the
+  plugin's RPC boundary, not in the UI — a page that was reloaded, bypassed or
+  driven from devtools still cannot generate — and by an *allowlist*, so a new
+  command has to be added deliberately to be reachable before acceptance.
+  **Decline leaves the plugin inert rather than closing the DAW**, which a plugin
+  must never do; the agreement can be reopened and accepted at any time, and
+  everything works immediately after. Acceptance is stored per user, beside the
+  presets — never in the project file, which would ask a collaborator to
+  re-accept because they opened your song.
+- **The standalone carries the app icon on Windows**, with product, company and
+  copyright strings, via a new `plugin/build.rs`. A missing resource compiler
+  warns rather than failing the build.
+- **A documentation site** under `docs/`: what the
+  plugin does, how it follows the host, seeds, presets, shortcuts, privacy and
+  building from source, with search and a short changelog.
+
+### Fixed
+
+- **The Windows standalone opened a blank window** (TASK-P16). `baseview`'s
+  `open_blocking` pumps with `GetMessageW(&mut msg, hwnd, …)` — a non-NULL
+  `hwnd`, which retrieves messages only for that window and its children and
+  **never retrieves thread messages at all**. WebView2 is COM/STA and delivers
+  its completions as exactly those, through a COM-owned message-only window, so
+  the custom-protocol handler was never dispatched, navigation never completed
+  and the page stayed on `about:blank`. The vendored adapter now drains the queue
+  from `on_frame`, **off unless the process opts in** — `plugin/src/bin/standalone.rs`
+  is the only caller and a DAW never runs it, so a host's queue is never touched.
+  ⛔ It skips messages belonging to the editor window and its children:
+  dispatching those re-enters baseview's window procedure while it already holds
+  a `RefCell` borrow, which panics inside an `extern "system"` frame and aborts
+  the process. Verified by photographing the window, not by a green build.
+
+### Changed
+
+- **No downloads before `v1.0.0`.** The `v0.1.0` and `v0.2.0` desktop releases
+  were withdrawn from GitHub (converted to drafts; assets intact), and the
+  documentation site offers no download link. Building from source is the only
+  supported way to run it until 1.0.
+
+## [0.3.0] - 2026-07-29
+
+### Added — melodic generation, and moods that multiply it
+
+- **Melody generator** (TASK-035, FR-005). Phrase structures (riff loop,
+  question/answer, call/response, long arc), chord-tone bias on strong beats,
+  colour tones, interval and contour distributions, octave jumps, end variation,
+  and the per-genre devices: rage's two-to-three-note staccato motif, drill's
+  snare-mirrored onsets and doubled voicing, straight-eighth bars and deliberate
+  silence. Pitches are chosen as **scale degrees** and only then made into MIDI
+  notes, so staying in the key is structural rather than filtered for.
+- **Countermelody generator** (TASK-036, FR-006). Octave echo, bell echo,
+  arpeggio, answer lick and sustained pad, placed in the melody's gaps by
+  construction rather than by filtering afterwards.
+- **Moods** (TASK-040V, engine half). A model may author named `modes` — trap
+  ships dark, bounce, melodic and minimal — each a partial override merged into
+  the model *before* generation, so every generator honours a mood without
+  knowing moods exist. Moods inherit through `extends`, so an artist offers only
+  the moods its own lineage does.
+- **Presets the plugin owns** (TASK-P13, session half). Six factory presets
+  compiled into the binary, user presets in the platform's per-user data
+  directory, and a panel in the right rail. No factory preset pins a tempo — that
+  would override your DAW on load.
+- **The Linux editor** (TASK-P12). The plugin's window now opens on Linux over
+  X11 and WebKitGTK, verified by photographing it under Xvfb rather than by a
+  green build.
+
+### Fixed
+
+- **A repeated melody no longer clashes with the chords it repeats over.** A riff
+  now follows the progression, keeping its own contour and rhythm.
+- **The countermelody is no longer silent about half the time.** An octave echo
+  is delayed, because an octave copy at zero delay is a doubling.
+- **Sustained pads voice more than the chord root**, and pick their octave.
+- **`echoOffset: "1/8"` is read.** The note-value parser knew `"8th"` and `"16T"`
+  and silently ignored the third spelling the dataset uses.
+- **The seed box shows a whole seed.** It was 12 characters wide against a
+  20-digit `u64`, so a long seed was cut off — and a seed you cannot read is one
+  you cannot type back in.
+
+### Changed — Freally MIDI Master is becoming a plugin
+
+Decided 2026-07-28. Not for the format's sake: a plugin is handed the host's
+tempo, time signature and playhead, so a generated pattern lands in the song you
+are actually writing rather than at whatever tempo the artist is authored at.
+`docs/product-roadmap.md` carries the decision, what survived and what did not.
+
+- **New `plugin/` crate** on `nih-plug`, exporting **CLAP**. VST3 and AU are
+  projected from it by `clap-wrapper` at packaging time.
+- **The `engine` crate is unchanged**, which was the point of keeping it free of
+  shell types. No FFI and no C++.
+- **Host tempo sync**, with precedence **user pin > host > model**. Trap
+  authored at 140 generates at 92 inside a 92 BPM project; a pinned tempo beats
+  the host; a host that has not reported yet leaves the model its own value.
+- **Notes are emitted onto the host's track**, replacing drag-out.
+- **The session is saved with the project.** Artist, seed, pins, bars and the
+  window size go through the host's own state calls — there is no settings file
+  and no path to find, and a session belongs to a *song* rather than to a
+  machine. The notes are not saved; the inputs that make them are, because the
+  engine is deterministic and a project file should not carry regenerable notes.
+- **The window has three scales** (small, medium, large) on a button in the
+  transport bar. The layout stays 1440x900 at all of them — the window is drawn
+  smaller, rather than shown less of — so the kit and session panels never
+  disappear just because the window shrank.
+- **Verified in Ableton Live 12 (VST3) and FL Studio (CLAP).** FL is the first
+  host to load the `.clap` itself rather than the projection.
+- **Releases now carry the plugin**, as a per-platform zip holding both the
+  `.clap` and the `.vst3`, validated by `clap-validator` before the draft is
+  published and refused by `verify-downloads.yml` if either format is missing.
+
+### Removed — the desktop app is retired
+
+Freally MIDI Master ships as a **plugin** now. Releases from here on carry the
+CLAP and the VST3 and nothing else; the Windows, macOS and Linux installers are
+no longer built.
+
+**If you are on v0.2.0:** nothing you have installed stops working, and nothing
+is uninstalled. Your copy will simply stop finding updates, because there will
+not be any — the update channel goes quiet rather than breaking. To carry on,
+install the plugin from this release and load it in your DAW, which is where
+the tempo sync, the host key and the notes-on-the-track live. That is the whole
+reason for the move: the desktop app could not know what song you were writing.
+
+### Known issue
+
+- **A corrupt project file can abort the host.** `nih-plug`'s CLAP state loader
+  reads a length prefix straight into an allocation with no sanity check, so
+  malformed state aborts the process rather than failing to load. It is upstream's
+  bug, the maintained fork carries it identically, and it needs a patched fork to
+  fix. `clap-validator`'s `state-invalid-random` is excluded by name until then.
+- **The UI carried across.** `src/lib/ipc.ts` was always the one seam and gained
+  a third branch; the React app, the 18 locale catalogs and the design tokens
+  are the same ones the desktop app shipped.
+
+### Added
+
+- **Session chips** — BPM, key, scale and swing, editable in the right rail.
+  Empty means the artist decides; a value means you do. When running in a host
+  the tempo chip follows the DAW and says so.
+- **The chords generator** (FR-004): progression families, diatonic
+  third-stacking so every pitch is in the key by construction, borrowed chords,
+  sus and the drill middle-note drop, close and open voicings, and syncopated
+  3–5 beat cells.
+- **`scripts/assert-plugin-bundled.mjs`** — refuses a plugin binary whose UI or
+  dataset failed to embed, because that failure otherwise presents as a blank
+  window with no error.
+- **`npm run plugin:standalone`** — the plugin in its own window, no DAW needed.
+  **`npm run plugin:install`** symlinks it into the CLAP folder so a rebuild is
+  live without copying.
+
+### Fixed
+
+- **`vst3-sys` is GPLv3** and nih-plug's VST3 export links it — which would have
+  put this proprietary product in breach. Caught by `cargo deny`. VST3 now comes
+  from `clap-wrapper` (MIT) instead. Steinberg's own VST3 SDK went MIT in
+  November 2025; nih-plug does not use it.
+- **The generation error message has never been visible.** `.stage__error` had
+  no CSS rule and sat behind the FX layer, which is `position: absolute;
+  inset: 0` over the whole stage.
+- **A pinned tempo is clamped** to Ableton Live's 20–999 at the IPC edge, and
+  the BPM box accepts digits only — `<input type="number">` accepts `e`, `E`,
+  `+` and `-`, so "1e5" was a legal tempo.
+- `.github/workflows/{ci,release}.yml` were failing `format:check` on `main`.
+
 ## [0.2.0] - 2026-07-25
 
 Phase 1: the app makes beats. Search an artist, press Generate, hear it, and

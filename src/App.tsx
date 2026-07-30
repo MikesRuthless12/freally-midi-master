@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { BugReportOverlay } from './components/BugReport/BugReport';
 import { bugReportHasPendingCrash } from './components/BugReport/ipc';
 import { CenterStage } from './components/layout/CenterStage';
+import { Eula } from './components/Eula/Eula';
 import { LeftRail } from './components/layout/LeftRail';
 import { ResizeHandles } from './components/layout/ResizeHandles';
 import { RightRail } from './components/layout/RightRail';
@@ -11,10 +12,11 @@ import { TitleBar } from './components/layout/TitleBar';
 import { TransportBar } from './components/layout/TransportBar';
 import { UpdatePrompt } from './components/Updates/Updates';
 import { subscribeToPlayhead, useSession } from './state/session';
-import { useUi, WIDE_BREAKPOINT } from './state/ui';
+import { isPlugin } from './lib/ipc-plugin';
+import { isWide, useUi } from './state/ui';
 import './components/layout/layout.css';
 
-function App() {
+function Studio() {
   const [bugReportOpen, setBugReportOpen] = useState(false);
   // Undefined until the crash check answers. The update prompt must not mount
   // before then, or it could beat a pending crash report to the dialog slot.
@@ -26,6 +28,7 @@ function App() {
   const setWide = useUi((s) => s.setWide);
   const toggleRightRail = useUi((s) => s.toggleRightRail);
   const init = useSession((s) => s.init);
+  const refreshHost = useSession((s) => s.refreshHost);
 
   // A crash left a report behind: the relaunched app opens it on its own, which
   // is the whole point of the crash loop. A pending crash takes the dialog slot
@@ -49,6 +52,20 @@ function App() {
   useEffect(() => {
     void init();
   }, [init]);
+
+  // Follow the DAW's tempo. Polled rather than pushed: the plugin's bridge is
+  // drained on the editor's event loop, and a host that changes tempo does not
+  // notify anyone — it simply reports a different number on the next block.
+  // Twice a second is far below anything a person notices as lag and far above
+  // anything that costs a frame.
+  //
+  // Outside a plugin the command does not exist, `refreshHost` swallows that,
+  // and the tempo stays null — which is exactly "no project to follow".
+  useEffect(() => {
+    void refreshHost();
+    const timer = window.setInterval(() => void refreshHost(), 500);
+    return () => window.clearInterval(timer);
+  }, [refreshHost]);
 
   // Follow the playhead the audio thread publishes at 30 Hz. Returns a no-op
   // outside Tauri, where there is no event system behind it.
@@ -79,13 +96,21 @@ function App() {
   // way without remounting it.
   const updateMayShow = crashPending === false && !updateDismissed;
 
-  // The right rail follows the breakpoint, but only when it is actually
-  // crossed — so a manual K toggle is not undone by an unrelated resize.
+  // A resize listener rather than `matchMedia`, because a media query cannot
+  // see the plugin's root zoom: it evaluates against the viewport, which stays
+  // at the *window's* width while the page lays out at the full breakpoint
+  // inside it. `isWide` measures the layout. The crossing check is kept so a
+  // manual K toggle is not undone by an unrelated resize.
   useEffect(() => {
-    const mq = window.matchMedia(`(min-width: ${WIDE_BREAKPOINT}px)`);
-    const onChange = (e: MediaQueryListEvent) => setWide(e.matches);
-    mq.addEventListener('change', onChange);
-    return () => mq.removeEventListener('change', onChange);
+    let wasWide = isWide();
+    const onResize = () => {
+      const nowWide = isWide();
+      if (nowWide === wasWide) return;
+      wasWide = nowWide;
+      setWide(nowWide);
+    };
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
   }, [setWide]);
 
   useEffect(() => {
@@ -102,12 +127,48 @@ function App() {
     return () => window.removeEventListener('keydown', onKey);
   }, [toggleRightRail]);
 
+  // Undo and redo (FMM-U01). Both the Windows/Linux and the macOS spellings,
+  // plus Ctrl+Y, which is what a Windows producer's hands already do.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!e.ctrlKey && !e.metaKey) return;
+      if (e.altKey) return;
+
+      const key = e.key.toLowerCase();
+      if (key !== 'z' && key !== 'y') return;
+
+      // ⛔ Inside a text field the browser's own undo owns this chord, and it
+      // is undoing something more immediate than a session step. Taking it
+      // would make the seed box unable to un-type a character.
+      const el = e.target as HTMLElement | null;
+      if (el?.matches?.('input, textarea, [contenteditable]')) return;
+
+      e.preventDefault();
+      const { undo, redo } = useSession.getState();
+      if (key === 'y' || e.shiftKey) redo();
+      else undo();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
   return (
-    <div className="studio" data-right-rail={rightRailOpen ? 'open' : 'closed'}>
-      <TitleBar
-        onOpenSettings={() => setSettingsOpen(true)}
-        onOpenAbout={() => setAboutOpen(true)}
-      />
+    <div
+      className="studio"
+      data-right-rail={rightRailOpen ? 'open' : 'closed'}
+      data-shell={isPlugin() ? 'plugin' : 'desktop'}
+    >
+      {/* The host owns the plugin's window: Ableton draws the frame, the
+          title and the close button, and a second set of them inside it is
+          both redundant and a lie — our minimise and close cannot move a
+          window we do not own. Settings and About move into the transport
+          bar's overflow there instead. */}
+      {!isPlugin() && (
+        <TitleBar
+          onOpenSettings={() => setSettingsOpen(true)}
+          onOpenAbout={() => setAboutOpen(true)}
+        />
+      )}
       <LeftRail />
       <CenterStage />
       {rightRailOpen && <RightRail />}
@@ -123,6 +184,22 @@ function App() {
 
       <ResizeHandles />
     </div>
+  );
+}
+
+/**
+ * The app, behind its licence gate.
+ *
+ * [`Eula`] renders nothing but the agreement until it has been accepted, so the
+ * studio below is never mounted, never fetches and never wires its shortcuts —
+ * which is what "disable everything" has to mean on this side. The plugin
+ * enforces the same thing at its RPC boundary regardless.
+ */
+function App() {
+  return (
+    <Eula>
+      <Studio />
+    </Eula>
   );
 }
 

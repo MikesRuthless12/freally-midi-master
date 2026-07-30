@@ -34,7 +34,7 @@ beforeEach(() => {
     activeTab: 'drums',
     rightRailOpen: true,
     theme: 'system',
-    sections: { genres: true, roster: true, kit: true, session: true },
+    sections: { genres: true, roster: true, kit: true, session: true, presets: true },
   });
 });
 
@@ -145,7 +145,9 @@ describe('Studio shell', () => {
 
     first.unmount();
     // Rehydrate the way a fresh launch would.
-    useUi.setState({ sections: { genres: false, roster: true, kit: true, session: true } });
+    useUi.setState({
+      sections: { genres: false, roster: true, kit: true, session: true, presets: true },
+    });
     render(<App />);
 
     expect(screen.getByRole('button', { name: /Genres/i }).getAttribute('aria-expanded')).toBe(
@@ -165,6 +167,7 @@ describe('Studio shell', () => {
       'Roster',
       'Kit',
       'Session',
+      'Presets',
     ]);
   });
 

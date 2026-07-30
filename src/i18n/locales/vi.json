@@ -43,12 +43,40 @@
     "genres": "Thể loại",
     "roster": "Nghệ sĩ",
     "kit": "Bộ trống",
-    "session": "Phiên"
+    "session": "Phiên",
+    "presets": "Cài đặt sẵn"
   },
   "readouts": {
     "bpm": "BPM",
     "key": "Tông",
+    "scale": "Âm giai",
     "swing": "Độ swing"
+  },
+  "session": {
+    "pickArtist": "Chọn một nghệ sĩ để xem yêu cầu của họ.",
+    "artistChoice": "Của nghệ sĩ",
+    "artistPicks": "{{value}} — của nghệ sĩ",
+    "clearPin": "Trở lại giá trị của nghệ sĩ",
+    "switchBody": "Bạn đã ghim những giá trị mà nghệ sĩ trước không chọn. {{name}} yêu cầu giá trị riêng.",
+    "keep": "Giữ của tôi",
+    "adopt": "Dùng của {{name}}",
+    "hostSynced": "Đang theo DAW của bạn. Nhập nhịp độ để ghim lại.",
+    "autoSync": "Theo DAW",
+    "autoSyncOff": "Đang dùng tempo của nghệ sĩ, không phải của DAW."
+  },
+  "scales": {
+    "natural_minor": "Thứ tự nhiên",
+    "harmonic_minor": "Thứ hòa thanh",
+    "phrygian": "Điệu Phrygian",
+    "phrygian_dominant": "Điệu Phrygian át",
+    "dorian": "Điệu Dorian",
+    "major": "Trưởng",
+    "mixolydian": "Điệu Mixolydian",
+    "lydian": "Điệu Lydian",
+    "aeolian": "Điệu Aeolian",
+    "minor_pentatonic": "Ngũ cung thứ",
+    "major_pentatonic": "Ngũ cung trưởng",
+    "blues": "Âm giai blues"
   },
   "transport": {
     "play": "Phát",
@@ -56,6 +84,7 @@
     "loop": "Lặp",
     "masterLevel": "Mức master: im lặng",
     "toggleRightRail": "Bật/tắt thanh phải (K)",
+    "windowSize": "Kích thước cửa sổ",
     "reportBug": "Báo lỗi",
     "loopAlways": "Ở giai đoạn này, phát lại luôn lặp.",
     "unavailable": "Không thể phát: {{reason}}"
@@ -187,5 +216,12 @@
     "recovering": "Mất thiết bị âm thanh — đang kết nối lại…",
     "failed": "Không có thiết bị âm thanh. Vẫn đang thử…",
     "recovered": "Thiết bị âm thanh đã trở lại."
+  },
+  "presets": {
+    "factory": "Mặc định",
+    "none": "Chưa có cài đặt sẵn nào.",
+    "save": "Lưu",
+    "name": "Tên cài đặt sẵn",
+    "delete": "Xoá {{name}}"
   }
 }

@@ -20,14 +20,20 @@ export const WIDE_BREAKPOINT = 1440;
 
 /** Individually collapsible panels. The right rail as a whole is separate — it
  *  is driven by the viewport breakpoint and the K shortcut. */
-export const SECTIONS = ['genres', 'roster', 'kit', 'session'] as const;
+export const SECTIONS = ['genres', 'roster', 'kit', 'session', 'presets'] as const;
 export type SectionId = (typeof SECTIONS)[number];
 
 export type SectionState = Record<SectionId, boolean>;
 
 const SECTIONS_KEY = 'freally.sections';
 
-const ALL_OPEN: SectionState = { genres: true, roster: true, kit: true, session: true };
+const ALL_OPEN: SectionState = {
+  genres: true,
+  roster: true,
+  kit: true,
+  session: true,
+  presets: true,
+};
 
 function loadSections(): SectionState {
   try {
@@ -80,7 +86,29 @@ type UiState = {
   setLanguage: (language: LocaleCode) => void;
 };
 
-const startsWide = typeof window === 'undefined' ? true : window.innerWidth >= WIDE_BREAKPOINT;
+/**
+ * Whether the app has the width the right rail needs — measured on the layout,
+ * **not on the viewport**.
+ *
+ * ⛔ `window.innerWidth` and `matchMedia` are both wrong here, and wrong in a
+ * way that is invisible until the plugin is on a real screen. The plugin scales
+ * its window and applies a matching CSS `zoom` to the root, so the page lays out
+ * at the full 1440 inside a smaller window — but zoom changes neither the
+ * viewport nor media-query evaluation. Reading either of them makes the rail
+ * collapse at *every* scale below 1.0, which is the exact failure the scaling
+ * was written to prevent.
+ *
+ * `documentElement.clientWidth` is reported in the root's own (zoomed)
+ * coordinates, so it is the number the layout actually gets. Measured: in a
+ * 1224px viewport with `zoom: 0.85`, `innerWidth` stays 1224 and the 1440 media
+ * query stays false, while this returns 1440.
+ */
+export function isWide(): boolean {
+  if (typeof document === 'undefined') return true;
+  return (document.documentElement.clientWidth || window.innerWidth) >= WIDE_BREAKPOINT;
+}
+
+const startsWide = typeof window === 'undefined' ? true : isWide();
 
 export const useUi = create<UiState>((set) => ({
   activeTab: 'drums',

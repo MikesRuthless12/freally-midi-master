@@ -1,0 +1,81 @@
+Bound the CLAP state length before allocating against it
+
+nih-plug's `ext_state_load` reads an 8-byte little-endian length prefix off the
+host's stream and hands it straight to `Vec::with_capacity` with no sanity
+check. A corrupt or truncated project state decodes to an arbitrary u64 — in
+the case that found this, 1025222176999353387, about 1 exabyte — and Rust
+aborts the process on allocation failure.
+
+An abort is not an error a host can catch. The DAW goes down with the plugin,
+on nothing worse than a damaged project file.
+
+Found by `clap-validator`'s `state-invalid-random`, which feeds 3x1MB of random
+bytes to `clap_plugin_state::load()` and asserts the plugin does not crash.
+
+`nice-plug` carries the identical logic at
+`crates/nice-plug/src/wrapper/clap/wrapper.rs:3439-3441`, so migrating does not
+fix this — the same patch applies there, at a different path.
+
+It cannot be worked around from the plugin's side: the wrapper owns state
+loading before any of our code sees a byte, and an allocation abort cannot be
+trapped in-process (`Vec::with_capacity` calls `handle_alloc_error`, which a
+custom allocator does not intercept).
+
+✅ APPLIED 2026-07-29. Kept as the record of what was changed and why.
+
+  Fork:   https://github.com/MikesRuthless12/nih-plug
+  Branch: freally/state-load-bounds
+  Rev:    10bac6da816c6b95041cb6698d74eb465f60341f
+          (upstream f36931f7 plus this one commit, and nothing else)
+
+  Both `plugin/Cargo.toml` and `plugin/vendor/nih-plug-webview/Cargo.toml` point
+  at it. **They must stay identical** — two different `nih_plug` sources are two
+  different crates to cargo, and the adapter's `Editor` would stop being the
+  `Editor` the plugin expects.
+
+  Verified by the test that found the bug: `clap-validator`'s
+  `state-invalid-random` went from CRASHED to passing, 32/32 with no exclusion
+  for it. The `state-invalid-random` exclusion is gone from `ci.yml` and
+  `release.yml`; only `param-conversions` remains, and that one is the
+  validator's own divide-by-zero on a plugin with no parameters.
+
+  ⚠ A trap worth knowing, because it cost a wrong conclusion here: the first
+  validation after this landed still crashed, because `target/bundled/` held a
+  *stale* copy of the binary. The `.clap` is a copy of the cdylib, not a link —
+  compare timestamps before believing a result.
+
+--- a/src/wrapper/clap/wrapper.rs
++++ b/src/wrapper/clap/wrapper.rs
+@@ -3153,7 +3153,20 @@
+         let length = u64::from_le_bytes(length_bytes);
+
+-        let mut read_buffer: Vec<u8> = Vec::with_capacity(length as usize);
++        // The length prefix comes off the host's stream and is therefore
++        // untrusted: a truncated or corrupt state decodes to an arbitrary
++        // `u64`, and `Vec::with_capacity` **aborts the process** on allocation
++        // failure rather than returning an error. An abort cannot be caught by
++        // the host, so a damaged project file takes the whole DAW down.
++        //
++        // 64 MiB is far beyond any plausible plugin state — nih-plug writes
++        // JSON of the parameters and the persisted fields — while still being
++        // a bound rather than a guess at the true size.
++        const MAX_STATE_BYTES: u64 = 64 * 1024 * 1024;
++        if length > MAX_STATE_BYTES {
++            nih_debug_assert_failure!(
++                "State length {} exceeds the {} byte maximum; refusing to load.",
++                length,
++                MAX_STATE_BYTES
++            );
++            return false;
++        }
++
++        let mut read_buffer: Vec<u8> = Vec::with_capacity(length as usize);
+         if !read_stream(&*stream, read_buffer.spare_capacity_mut()) {
+             nih_debug_assert_failure!(
+                 "Error or end of stream while reading the state buffer from the stream."
+
+AFTER APPLYING
+  Delete the `state-invalid-random` exclusion from the `clap-validator` steps in
+  `.github/workflows/ci.yml` and `.github/workflows/release.yml`. A permanently
+  skipped test is the "green and blind" gate this repo has already been caught
+  by five times.

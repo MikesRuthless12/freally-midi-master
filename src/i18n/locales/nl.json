@@ -43,12 +43,40 @@
     "genres": "Genres",
     "roster": "Artiesten",
     "kit": "Drumkit",
-    "session": "Sessie"
+    "session": "Sessie",
+    "presets": "Voorinstellingen"
   },
   "readouts": {
     "bpm": "BPM",
     "key": "Toonsoort",
+    "scale": "Toonladder",
     "swing": "Swing"
+  },
+  "session": {
+    "pickArtist": "Kies een artiest om te zien wat die vraagt.",
+    "artistChoice": "Van de artiest",
+    "artistPicks": "{{value}} — van de artiest",
+    "clearPin": "Terug naar de waarde van de artiest",
+    "switchBody": "Je hebt waarden vastgezet die de vorige artiest niet koos. {{name}} vraagt om eigen waarden.",
+    "keep": "Die van mij houden",
+    "adopt": "Die van {{name}} gebruiken",
+    "hostSynced": "Volgt je DAW. Typ een tempo om het vast te zetten.",
+    "autoSync": "DAW volgen",
+    "autoSyncOff": "Het tempo van de artist wordt gebruikt, niet dat van je DAW."
+  },
+  "scales": {
+    "natural_minor": "Natuurlijk mineur",
+    "harmonic_minor": "Harmonisch mineur",
+    "phrygian": "Frygisch",
+    "phrygian_dominant": "Frygisch dominant",
+    "dorian": "Dorisch",
+    "major": "Majeur",
+    "mixolydian": "Mixolydisch",
+    "lydian": "Lydisch",
+    "aeolian": "Aeolisch",
+    "minor_pentatonic": "Mineur pentatonisch",
+    "major_pentatonic": "Majeur pentatonisch",
+    "blues": "Bluestoonladder"
   },
   "transport": {
     "play": "Afspelen",
@@ -56,6 +84,7 @@
     "loop": "Loop",
     "masterLevel": "Masterniveau: stil",
     "toggleRightRail": "Rechterbalk tonen of verbergen (K)",
+    "windowSize": "Venstergrootte",
     "reportBug": "Bug melden",
     "loopAlways": "Afspelen loopt in deze fase altijd door.",
     "unavailable": "Afspelen is niet beschikbaar: {{reason}}"
@@ -187,5 +216,12 @@
     "recovering": "Audioapparaat kwijt — opnieuw verbinden…",
     "failed": "Geen audioapparaat. Nog steeds bezig…",
     "recovered": "Audioapparaat is terug."
+  },
+  "presets": {
+    "factory": "Fabriek",
+    "none": "Nog geen voorinstellingen.",
+    "save": "Opslaan",
+    "name": "Naam voorinstelling",
+    "delete": "{{name}} verwijderen"
   }
 }

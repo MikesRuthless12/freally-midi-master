@@ -1,0 +1,14 @@
+{
+  "$comment": [
+    "Where `npm run plugin:build` installs the built plugin, on top of this OS's",
+    "standard CLAP directory (which is always included).",
+    "",
+    "Machine-specific, so it is gitignored — plugin-install.example.json is the",
+    "one that ships. Add whatever folders your DAWs scan.",
+    "",
+    "Writing under C:\\Program Files needs an elevated shell. Without one the",
+    "install falls back to a copy, and if that is refused too it says so and the",
+    "build still succeeds."
+  ],
+  "directories": ["C:\\Program Files\\Steinberg\\VSTPlugins"]
+}

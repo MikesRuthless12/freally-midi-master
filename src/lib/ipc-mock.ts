@@ -9,7 +9,7 @@
  */
 
 import type { InvokeArgs } from '@tauri-apps/api/core';
-import type { Note, Pattern, RosterSummary } from './ipc-types';
+import type { Note, Pattern, RosterSummary, SessionDefaults } from './ipc-types';
 import type { PlaybackStarted } from './ipc-audio-types';
 
 type Handler = (args?: InvokeArgs) => unknown;
@@ -100,6 +100,29 @@ From: Freally MIDI Master`;
     problems: [],
   }),
 
+  // There is no DAW behind a browser, so there is no project tempo to follow
+  // and the artist's own value stands. `null` rather than a number: reporting
+  // a tempo nothing is running at is the readout-that-lies failure the session
+  // chips exist to avoid.
+  host_session: () => ({
+    tempo: null,
+    timeSigNum: 4,
+    timeSigDen: 4,
+    playing: false,
+  }),
+
+  // What a style asks for, for the session chips. The key list leads with F♯
+  // and the scale list with natural minor, which is what `generate_pattern`
+  // below returns — a fixture whose chips disagree with its own pattern would
+  // make a real mismatch impossible to see.
+  session_defaults: (): SessionDefaults => ({
+    bpm: 140,
+    keys: ['F#', 'C#', 'G#'],
+    scales: ['natural_minor', 'phrygian'],
+    swing: { grid: 'sixteenth', amount: 0.54 },
+    halfTime: true,
+  }),
+
   // Generation. A real four-bar pattern rather than an empty one, because the
   // grid is the thing under test: kick on every beat, a backbeat snare, and
   // straight 16th hats is enough for a spec to count cells and know the
@@ -159,6 +182,29 @@ From: Freally MIDI Master`;
   play_pattern: (): PlaybackStarted => ({ unplacedNotes: 0, voices: 0 }),
   stop_playback: () => undefined,
   set_looping: () => undefined,
+
+  // Presets (TASK-P13). The real ones are files the plugin owns; a browser has
+  // nowhere to put them, so the mock is a fixture that keeps the panel
+  // exercisable in `vite dev` and Playwright. Saving reports back rather than
+  // storing, because a mock that pretended to persist would make a broken save
+  // look like a working one.
+  presets_list: () => [
+    { id: 'factory/trap', name: 'Trap', factory: true },
+    { id: 'factory/uk-drill', name: 'UK Drill', factory: true },
+    { id: 'user/my-beat', name: 'My Beat', factory: false },
+  ],
+  preset_load: () => ({
+    selectedId: 'trap',
+    seed: '1404',
+    bars: 8,
+    pins: { bpm: null, keyRoot: null, scale: null, swing: null },
+  }),
+  preset_save: (args?: InvokeArgs) => ({
+    id: 'user/mock',
+    name: String((args as { name?: unknown } | undefined)?.name ?? 'Mock'),
+    factory: false,
+  }),
+  preset_delete: () => undefined,
 
   // Export / drag. Without these the ExportChip's catch-all would swallow a
   // missing-handler error and render as if everything were fine.

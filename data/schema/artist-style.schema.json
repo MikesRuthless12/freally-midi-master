@@ -88,6 +88,37 @@
       "type": "object",
       "properties": { "preview": { "type": "string" } },
       "additionalProperties": false
+    },
+
+    "modes": {
+      "description": "Named partial overrides of this model — the same author writing a different kind of record (TASK-040V). Each carries a name, a sampling weight, and any block it wants to change; the override is merged into the model before any generator runs, so every part honours a mode without knowing modes exist. Inherited through `extends` like any other block, and because arrays replace rather than append, an artist authoring its own modes replaces its genre's rather than adding to them — which is what keeps an artist's moods to the ones that artist actually does.",
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["name"],
+        "properties": {
+          "name": {
+            "description": "How the mood is named in the UI. Unique within the model.",
+            "type": "string",
+            "minLength": 1
+          },
+          "weight": {
+            "description": "Relative likelihood when the seed picks. 0 means the mode exists but is only reachable by pinning it.",
+            "type": "number",
+            "minimum": 0
+          },
+          "session": { "type": "object" },
+          "drums": { "$ref": "#/$defs/partBlock" },
+          "chords": { "$ref": "#/$defs/partBlock" },
+          "melody": { "$ref": "#/$defs/partBlock" },
+          "countermelody": { "$ref": "#/$defs/partBlock" },
+          "bassline": { "$ref": "#/$defs/partBlock" },
+          "arrangement": { "$ref": "#/$defs/partBlock" },
+          "kit": { "type": "object" }
+        },
+        "additionalProperties": false
+      }
     }
   },
   "additionalProperties": false,

@@ -43,12 +43,40 @@
     "genres": "Gatunki",
     "roster": "Artyści",
     "kit": "Zestaw",
-    "session": "Sesja"
+    "session": "Sesja",
+    "presets": "Ustawienia wstępne"
   },
   "readouts": {
     "bpm": "BPM",
     "key": "Tonacja",
+    "scale": "Skala",
     "swing": "Swing"
+  },
+  "session": {
+    "pickArtist": "Wybierz artystę, aby zobaczyć, czego oczekuje.",
+    "artistChoice": "Artysty",
+    "artistPicks": "{{value}} — artysty",
+    "clearPin": "Powrót do wartości artysty",
+    "switchBody": "Przypięto wartości, których nie wybrał poprzedni artysta. {{name}} oczekuje własnych.",
+    "keep": "Zachowaj moje",
+    "adopt": "Użyj wartości {{name}}",
+    "hostSynced": "Podąża za Twoją stacją DAW. Wpisz tempo, aby je przypiąć.",
+    "autoSync": "Podążaj za DAW",
+    "autoSyncOff": "Używane jest tempo artysty, nie tempo Twojego DAW."
+  },
+  "scales": {
+    "natural_minor": "Molowa naturalna",
+    "harmonic_minor": "Molowa harmoniczna",
+    "phrygian": "Frygijska",
+    "phrygian_dominant": "Frygijska dominantowa",
+    "dorian": "Dorycka",
+    "major": "Durowa",
+    "mixolydian": "Miksolidyjska",
+    "lydian": "Lidyjska",
+    "aeolian": "Eolska",
+    "minor_pentatonic": "Pentatonika molowa",
+    "major_pentatonic": "Pentatonika durowa",
+    "blues": "Skala bluesowa"
   },
   "transport": {
     "play": "Odtwórz",
@@ -56,6 +84,7 @@
     "loop": "Pętla",
     "masterLevel": "Poziom master: cisza",
     "toggleRightRail": "Przełącz prawy panel (K)",
+    "windowSize": "Rozmiar okna",
     "reportBug": "Zgłoś błąd",
     "loopAlways": "W tej fazie odtwarzanie zawsze się zapętla.",
     "unavailable": "Odtwarzanie niedostępne: {{reason}}"
@@ -187,5 +216,12 @@
     "recovering": "Utracono urządzenie audio — ponowne łączenie…",
     "failed": "Brak urządzenia audio. Trwają próby…",
     "recovered": "Urządzenie audio wróciło."
+  },
+  "presets": {
+    "factory": "Fabryczne",
+    "none": "Brak ustawień wstępnych.",
+    "save": "Zapisz",
+    "name": "Nazwa ustawienia",
+    "delete": "Usuń {{name}}"
   }
 }

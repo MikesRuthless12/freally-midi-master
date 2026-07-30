@@ -37,6 +37,20 @@ jobs:
       # Tauri's Linux runtime plus ALSA for the audio engine. Without these the
       # Linux leg fails at link time rather than at test time, which is a much
       # more confusing failure to read.
+      # The X11 packages are for the plugin: `baseview` — the windowing layer
+      # under the webview editor — links X11 on Linux, and without the headers
+      # `x11 v2.21.0`'s build script fails before anything of ours compiles.
+      # Nothing else in the workspace needs them.
+      #
+      # `libx11-xcb-dev` is the one that is easy to miss: the `x11` crate asks
+      # pkg-config for `x11-xcb`, which `libx11-dev` does *not* provide. The
+      # error names the crate rather than the package, so it reads like an X11
+      # problem when it is an X11-to-XCB bridge problem.
+      #
+      # `libjack-jackd2-dev` is for nih-plug's `standalone` feature, which the
+      # plugin opts into so it can run without a DAW. On Linux that reaches
+      # JACK through `jack-sys`, so the headers are needed to *compile* the
+      # plugin here even though CI never opens an audio device.
       - name: Install Linux system dependencies
         if: matrix.os == 'ubuntu-latest'
         run: |
@@ -47,11 +61,18 @@ jobs:
             libayatana-appindicator3-dev \
             librsvg2-dev \
             libasound2-dev \
-            patchelf
+            libjack-jackd2-dev \
+            patchelf \
+            libx11-dev \
+            libx11-xcb-dev \
+            libxcb1-dev \
+            libxcb-icccm4-dev \
+            libxcursor-dev \
+            libxkbcommon-dev
 
       - uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: "1.97.1"
+          toolchain: '1.97.1'
           components: rustfmt, clippy
 
       - uses: Swatinem/rust-cache@v2
@@ -65,6 +86,13 @@ jobs:
           cache: npm
 
       - run: npm ci
+
+      # The plugin compiles `dist/` into its binary with `include_dir!`, and
+      # `dist/` is gitignored — so on a fresh checkout it does not exist and
+      # *nothing Rust* builds until Vite has run. This has to come before
+      # cargo, not after it with the other frontend steps.
+      - name: frontend build (the plugin embeds dist/)
+        run: npm run build
 
       # ---- Rust ----------------------------------------------------------
       - name: cargo fmt
@@ -100,8 +128,9 @@ jobs:
       - name: unit tests
         run: npm run test
 
-      - name: frontend build
-        run: npm run build
+      # (`frontend build` used to sit here. It moved above the Rust steps when
+      # the plugin started embedding `dist/`; running it twice would only
+      # prove the same thing a second time.)
 
       # ---- Dataset -------------------------------------------------------
       # A malformed community model must fail here, not in a user's session.
@@ -138,13 +167,19 @@ jobs:
             librsvg2-dev \
             libasound2-dev \
             patchelf \
+            libx11-dev \
+            libx11-xcb-dev \
+            libxcb1-dev \
+            libxcb-icccm4-dev \
+            libxcursor-dev \
+            libxkbcommon-dev \
             xvfb \
             xdotool \
             imagemagick
 
       - uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: "1.97.1"
+          toolchain: '1.97.1'
 
       - uses: Swatinem/rust-cache@v2
         with:
@@ -242,6 +277,193 @@ jobs:
           path: playwright-report/
           retention-days: 7
 
+  # The plugin as a *plugin*, rather than as a crate that happens to compile.
+  #
+  # `quality` builds this same code through `cargo clippy --workspace`, which
+  # proves it compiles and proves nothing about whether a host could load it.
+  # Until this job existed, nothing in CI ever produced a loadable bundle, and
+  # `clap-validator` had never run anywhere — not in CI and not on a dev
+  # machine, because the binary was never installed on one. The CLAP contract
+  # was entirely unchecked.
+  #
+  # Windows and macOS only: those are the v1 platforms. Linux has no editor
+  # until TASK-P12, so there is nothing there worth loading yet.
+  plugin:
+    name: plugin (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: '1.97.1'
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: plugin-${{ matrix.os }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # Frontend, then the release cdylib, then `assert-plugin-bundled` refusing
+      # a binary with no UI or no dataset in it, then the `.clap`/`.vst3` layout.
+      # `--bundle-only`, because a runner has no plugin folder worth writing to.
+      - name: Build the plugin bundles
+        run: npm run plugin:bundle
+
+      # Shared with `release.yml`, so the same validator gates a push and a tag.
+      - uses: ./.github/actions/install-clap-validator
+
+      # ⛔ One test is excluded, and the exclusion is not a shrug.
+      #
+      # `param-conversions` divides by the parameter count and this plugin
+      # deliberately has none, so the *validator* panics: "attempt to divide by
+      # zero. This is a bug in the validator". Nothing to fix on our side.
+      #
+      # `state-invalid-random` used to be excluded beside it, because nih-plug
+      # aborted the whole process on a malformed state blob. TASK-P14 fixed that
+      # on our fork and **deleted the exclusion**, which is what makes the fix
+      # provable: the test runs, and it passes.
+      #
+      # **Delete each exclusion the moment its cause is gone.** A permanently
+      # skipped test is the "green and blind" gate this repo has been caught by
+      # five times.
+      - name: clap-validator
+        shell: bash
+        run: |
+          set -euo pipefail
+          "$CLAP_VALIDATOR" validate \
+            --exclude '^param-conversions$' \
+            "target/bundled/Freally MIDI Master.clap"
+
+  # TASK-P12. Separate from `plugin` above because Linux is not a shipping
+  # target yet — this job does not build bundles or run the validator, it
+  # answers the one question the editor exists to raise: **does the window
+  # actually draw anything?**
+  #
+  # A `cargo build` on this runner goes green whether GTK starts, whether the
+  # webview is ever constructed and whether the page is ever fetched. Every one
+  # of those failures is an empty window, and the only way to tell an empty
+  # window from a working one is to photograph it and count the colours — which
+  # is what the script does, and which was watched failing before it was trusted.
+  #
+  # ✅ **WINDOWS IS IN THIS MATRIX AS OF TASK-P16.** It was held out because the
+  # Windows *standalone* opened a blank window: `baseview`'s `open_blocking`
+  # pumps with a non-NULL `hwnd`, which never retrieves thread messages, and
+  # WebView2 delivers its COM completions as exactly those — so the custom
+  # protocol handler was never dispatched and devtools reported `about:blank`.
+  # The vendored adapter now drains the queue from `on_frame`, off unless the
+  # process opts in. This leg is what keeps that fixed: it is the only thing
+  # standing between a regression there and a silently blank window shipping.
+  #
+  # **macOS is in, and is genuinely unproven.** WKWebView does not depend on the
+  # message loop the way WebView2 does, so the Windows cause probably does not
+  # apply — but nobody has run it, and this job is how that gets answered rather
+  # than assumed. If it goes red, that is a finding to act on, not a state to
+  # leave.
+  plugin-editor:
+    name: plugin editor (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      # webkit2gtk is what wry's Linux backend links; the xcb/xkb set is what
+      # baseview's X11 backend needs; libjack is pulled in by nih-plug's
+      # `standalone` feature; xvfb and xdotool are how a headless runner sees a
+      # window at all. macOS needs none of it — WKWebView and CoreAudio ship with
+      # the OS, and `screencapture` is built in.
+      #
+      # ⛔ `imagemagick` is here for `import`, which is how the Linux capture
+      # takes the window. It was briefly removed on the grounds that the *colour
+      # count* no longer needs `identify` — true, and irrelevant: `import` is
+      # ImageMagick too, and the leg failed without it.
+      - name: Install Linux system dependencies
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libgtk-3-dev \
+            libasound2-dev \
+            libjack-jackd2-dev \
+            libx11-dev \
+            libx11-xcb-dev \
+            libxcb1-dev \
+            libxcb-icccm4-dev \
+            libxcb-util-dev \
+            libxcursor-dev \
+            libxkbcommon-dev \
+            libxkbcommon-x11-dev \
+            xvfb \
+            xdotool \
+            imagemagick
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          toolchain: '1.97.1'
+
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: plugin-editor-${{ matrix.os }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # `dist/` is gitignored and compiled into the binary with `include_dir!`,
+      # so the frontend build has to happen before cargo, not alongside it.
+      - run: npm run build
+
+      - name: Build the standalone
+        run: cargo build -p freally-midi-master-plugin --release
+
+      # Linux runners have no display, so the app gets a virtual one. The macOS
+      # runner has a real window server already.
+      - name: Photograph the editor (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          xvfb-run -a --server-args="-screen 0 1600x1000x24" \
+            node scripts/screenshot-plugin.mjs screenshots/linux-plugin.png
+
+      - name: Photograph the editor (macOS)
+        if: matrix.os == 'macos-latest'
+        run: node scripts/screenshot-plugin.mjs screenshots/macos-plugin.png
+
+      # The runner has a real window station, so no virtual display is needed.
+      # ⛔ This leg is the regression gate for TASK-P16 — a blank window here
+      # means the message pump stopped reaching WebView2 again, and the script
+      # refuses a flat window, so a pass is real rather than "it built".
+      - name: Photograph the editor (Windows)
+        if: matrix.os == 'windows-latest'
+        run: node scripts/screenshot-plugin.mjs screenshots/windows-plugin.png
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: plugin-editor-screenshot-${{ matrix.os }}
+          path: screenshots/
+
   supply-chain:
     name: supply chain
     runs-on: ubuntu-latest
@@ -252,7 +474,7 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: "1.97.1"
+          toolchain: '1.97.1'
 
       - uses: Swatinem/rust-cache@v2
         with:

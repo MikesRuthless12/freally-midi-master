@@ -43,12 +43,40 @@
     "genres": "Genres",
     "roster": "Roster",
     "kit": "Kit",
-    "session": "Session"
+    "session": "Session",
+    "presets": "Presets"
   },
   "readouts": {
     "bpm": "BPM",
     "key": "Key",
+    "scale": "Scale",
     "swing": "Swing"
+  },
+  "session": {
+    "pickArtist": "Pick an artist to see what it asks for.",
+    "artistChoice": "The artist’s",
+    "artistPicks": "{{value}} — the artist’s",
+    "clearPin": "Back to the artist’s value",
+    "switchBody": "You pinned a session the last artist did not choose. {{name}} asks for its own.",
+    "keep": "Keep mine",
+    "adopt": "Use {{name}}’s",
+    "hostSynced": "Following your DAW. Type a tempo to pin it.",
+    "autoSync": "Follow DAW",
+    "autoSyncOff": "Using the artist’s tempo, not your DAW’s."
+  },
+  "scales": {
+    "natural_minor": "Natural minor",
+    "harmonic_minor": "Harmonic minor",
+    "phrygian": "Phrygian",
+    "phrygian_dominant": "Phrygian dominant",
+    "dorian": "Dorian",
+    "major": "Major",
+    "mixolydian": "Mixolydian",
+    "lydian": "Lydian",
+    "aeolian": "Aeolian",
+    "minor_pentatonic": "Minor pentatonic",
+    "major_pentatonic": "Major pentatonic",
+    "blues": "Blues"
   },
   "transport": {
     "play": "Play",
@@ -56,6 +84,7 @@
     "loop": "Loop",
     "masterLevel": "Master level: silent",
     "toggleRightRail": "Toggle right rail (K)",
+    "windowSize": "Window size",
     "reportBug": "Report a bug",
     "loopAlways": "Playback always loops in this phase.",
     "unavailable": "Playback is unavailable: {{reason}}"
@@ -187,5 +216,12 @@
     "recovering": "Audio device lost — reconnecting…",
     "failed": "No audio device. Still trying…",
     "recovered": "Audio device is back."
+  },
+  "presets": {
+    "factory": "Factory",
+    "none": "No presets yet.",
+    "save": "Save",
+    "name": "Preset name",
+    "delete": "Delete {{name}}"
   }
 }

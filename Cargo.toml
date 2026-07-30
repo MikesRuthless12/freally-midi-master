@@ -1,5 +1,12 @@
 [workspace]
-members = ["engine", "src-tauri", "tools/datasetc", "tools/kitgen"]
+members = [
+    "engine",
+    "plugin",
+    "plugin/vendor/nih-plug-webview",
+    "src-tauri",
+    "tools/datasetc",
+    "tools/kitgen",
+]
 resolver = "2"
 
 # The post-crash notice offers to restart, so it may only fire when a panic is
@@ -13,6 +20,6 @@ panic = "abort"
 [workspace.package]
 version = "0.2.0"
 edition = "2021"
-authors = ["Havoc Software"]
+authors = ["Mike Weaver"]
 license = "LicenseRef-AllRightsReserved"
 repository = "https://github.com/MikesRuthless12/freally-midi-master"

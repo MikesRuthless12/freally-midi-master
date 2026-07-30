@@ -1,0 +1,123 @@
+/* Presets (TASK-P13). Tokens only — a hard-coded colour here breaks the light
+   theme, and the light theme is contrast-checked in CI like the dark one. */
+
+.presets {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.presets__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.presets__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.presets__load {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.presets__load:hover {
+  border-color: var(--color-primary);
+}
+
+.presets__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.presets__badge {
+  flex-shrink: 0;
+  margin-inline-start: auto;
+  color: var(--color-text-3);
+  font-size: var(--text-micro);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.presets__delete {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-1);
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-text-3);
+  cursor: pointer;
+}
+
+.presets__delete:hover {
+  border-color: var(--color-border);
+  color: var(--color-text);
+}
+
+.presets__save {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.presets__input {
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  font: inherit;
+}
+
+.presets__input::placeholder {
+  color: var(--color-text-3);
+}
+
+.presets__button {
+  flex-shrink: 0;
+  padding: var(--space-1) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.presets__button:disabled {
+  color: var(--color-text-3);
+  cursor: default;
+}
+
+.presets__empty,
+.presets__error {
+  margin: 0;
+  color: var(--color-text-3);
+  font-size: var(--text-small);
+}
+
+.presets__error {
+  color: var(--color-error);
+}

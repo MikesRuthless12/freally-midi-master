@@ -43,12 +43,40 @@
     "genres": "Genres",
     "roster": "Artistes",
     "kit": "Kit",
-    "session": "Session"
+    "session": "Session",
+    "presets": "Préréglages"
   },
   "readouts": {
     "bpm": "BPM",
     "key": "Tonalité",
+    "scale": "Gamme",
     "swing": "Swing"
+  },
+  "session": {
+    "pickArtist": "Choisis un artiste pour voir ce qu’il demande.",
+    "artistChoice": "De l’artiste",
+    "artistPicks": "{{value}} — de l’artiste",
+    "clearPin": "Revenir à la valeur de l’artiste",
+    "switchBody": "Tu as fixé des valeurs que l’artiste précédent n’avait pas choisies. {{name}} demande les siennes.",
+    "keep": "Garder les miens",
+    "adopt": "Utiliser ceux de {{name}}",
+    "hostSynced": "Suit ton DAW. Tape un tempo pour le fixer.",
+    "autoSync": "Suivre la STAN",
+    "autoSyncOff": "Le tempo de l’artiste est utilisé, pas celui de votre STAN."
+  },
+  "scales": {
+    "natural_minor": "Mineur naturel",
+    "harmonic_minor": "Mineur harmonique",
+    "phrygian": "Phrygien",
+    "phrygian_dominant": "Phrygien dominant",
+    "dorian": "Dorien",
+    "major": "Majeur",
+    "mixolydian": "Mixolydien",
+    "lydian": "Lydien",
+    "aeolian": "Éolien",
+    "minor_pentatonic": "Pentatonique mineure",
+    "major_pentatonic": "Pentatonique majeure",
+    "blues": "Gamme blues"
   },
   "transport": {
     "play": "Lecture",
@@ -56,6 +84,7 @@
     "loop": "Boucle",
     "masterLevel": "Niveau master : silencieux",
     "toggleRightRail": "Afficher/masquer le panneau droit (K)",
+    "windowSize": "Taille de la fenêtre",
     "reportBug": "Signaler un bug",
     "loopAlways": "La lecture est toujours en boucle à ce stade.",
     "unavailable": "Lecture indisponible : {{reason}}"
@@ -187,5 +216,12 @@
     "recovering": "Périphérique audio perdu — reconnexion…",
     "failed": "Aucun périphérique audio. Nouvelle tentative…",
     "recovered": "Le périphérique audio est revenu."
+  },
+  "presets": {
+    "factory": "Usine",
+    "none": "Aucun préréglage pour l’instant.",
+    "save": "Enregistrer",
+    "name": "Nom du préréglage",
+    "delete": "Supprimer {{name}}"
   }
 }

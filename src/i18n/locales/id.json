@@ -43,12 +43,40 @@
     "genres": "Genre",
     "roster": "Artis",
     "kit": "Kit",
-    "session": "Sesi"
+    "session": "Sesi",
+    "presets": "Prasetel"
   },
   "readouts": {
     "bpm": "BPM",
     "key": "Nada Dasar",
+    "scale": "Skala",
     "swing": "Swing"
+  },
+  "session": {
+    "pickArtist": "Pilih artis untuk melihat apa yang dimintanya.",
+    "artistChoice": "Dari artis",
+    "artistPicks": "{{value}} — dari artis",
+    "clearPin": "Kembali ke nilai artis",
+    "switchBody": "Kamu mengunci nilai yang tidak dipilih artis sebelumnya. {{name}} meminta nilainya sendiri.",
+    "keep": "Pertahankan milikku",
+    "adopt": "Gunakan milik {{name}}",
+    "hostSynced": "Mengikuti DAW kamu. Ketik tempo untuk menguncinya.",
+    "autoSync": "Ikuti DAW",
+    "autoSyncOff": "Memakai tempo artis, bukan tempo DAW Anda."
+  },
+  "scales": {
+    "natural_minor": "Minor natural",
+    "harmonic_minor": "Minor harmonis",
+    "phrygian": "Frigia",
+    "phrygian_dominant": "Frigia dominan",
+    "dorian": "Doria",
+    "major": "Mayor",
+    "mixolydian": "Miksolidia",
+    "lydian": "Lidia",
+    "aeolian": "Aeolia",
+    "minor_pentatonic": "Pentatonik minor",
+    "major_pentatonic": "Pentatonik mayor",
+    "blues": "Skala blues"
   },
   "transport": {
     "play": "Putar",
@@ -56,6 +84,7 @@
     "loop": "Loop",
     "masterLevel": "Level master: senyap",
     "toggleRightRail": "Alihkan panel kanan (K)",
+    "windowSize": "Ukuran jendela",
     "reportBug": "Laporkan bug",
     "loopAlways": "Pemutaran selalu berulang pada fase ini.",
     "unavailable": "Pemutaran tidak tersedia: {{reason}}"
@@ -187,5 +216,12 @@
     "recovering": "Perangkat audio hilang — menyambungkan ulang…",
     "failed": "Tidak ada perangkat audio. Masih mencoba…",
     "recovered": "Perangkat audio kembali."
+  },
+  "presets": {
+    "factory": "Bawaan",
+    "none": "Belum ada prasetel.",
+    "save": "Simpan",
+    "name": "Nama prasetel",
+    "delete": "Hapus {{name}}"
   }
 }

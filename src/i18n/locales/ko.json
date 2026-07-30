@@ -43,12 +43,40 @@
     "genres": "장르",
     "roster": "로스터",
     "kit": "킷",
-    "session": "세션"
+    "session": "세션",
+    "presets": "프리셋"
   },
   "readouts": {
     "bpm": "BPM",
     "key": "키",
+    "scale": "음계",
     "swing": "스윙"
+  },
+  "session": {
+    "pickArtist": "아티스트를 선택하면 어떤 설정을 요구하는지 표시됩니다.",
+    "artistChoice": "아티스트에게 맡김",
+    "artistPicks": "{{value}} — 아티스트",
+    "clearPin": "아티스트 값으로 되돌리기",
+    "switchBody": "이전 아티스트가 고르지 않은 값을 고정해 두었습니다. {{name}}은(는) 자신의 값을 요구합니다.",
+    "keep": "내 값 유지",
+    "adopt": "{{name}} 값 사용",
+    "hostSynced": "DAW를 따라갑니다. 템포를 입력하면 고정됩니다.",
+    "autoSync": "DAW 따르기",
+    "autoSyncOff": "DAW가 아닌 아티스트의 템포를 사용합니다."
+  },
+  "scales": {
+    "natural_minor": "자연 단음계",
+    "harmonic_minor": "화성 단음계",
+    "phrygian": "프리지안",
+    "phrygian_dominant": "프리지안 도미넌트",
+    "dorian": "도리안",
+    "major": "장음계",
+    "mixolydian": "믹솔리디안",
+    "lydian": "리디안",
+    "aeolian": "에올리안",
+    "minor_pentatonic": "단조 5음계",
+    "major_pentatonic": "장조 5음계",
+    "blues": "블루스 음계"
   },
   "transport": {
     "play": "재생",
@@ -56,6 +84,7 @@
     "loop": "루프",
     "masterLevel": "마스터 레벨: 무음",
     "toggleRightRail": "오른쪽 레일 전환 (K)",
+    "windowSize": "창 크기",
     "reportBug": "버그 신고",
     "loopAlways": "이 단계에서는 재생이 항상 반복됩니다.",
     "unavailable": "재생할 수 없습니다: {{reason}}"
@@ -187,5 +216,12 @@
     "recovering": "오디오 장치 연결이 끊겼습니다 — 다시 연결 중…",
     "failed": "오디오 장치가 없습니다. 계속 시도 중…",
     "recovered": "오디오 장치가 복구됐습니다."
+  },
+  "presets": {
+    "factory": "기본 제공",
+    "none": "아직 프리셋이 없습니다.",
+    "save": "저장",
+    "name": "프리셋 이름",
+    "delete": "{{name}} 삭제"
   }
 }

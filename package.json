@@ -21,7 +21,12 @@
     "format:check": "prettier --check .",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
-    "ci:local": "node scripts/ci-local.mjs"
+    "ci:local": "node scripts/ci-local.mjs",
+    "plugin:build": "npm run build && cargo build -p freally-midi-master-plugin --release && node scripts/assert-plugin-bundled.mjs && node scripts/install-plugin.mjs",
+    "plugin:bundle": "npm run build && cargo build -p freally-midi-master-plugin --release && node scripts/assert-plugin-bundled.mjs && node scripts/install-plugin.mjs --bundle-only",
+    "plugin:standalone": "npm run build && cargo run -p freally-midi-master-plugin --bin standalone",
+    "plugin:install": "node scripts/install-plugin.mjs",
+    "plugin:validate": "clap-validator validate \"target/bundled/Freally MIDI Master.clap\""
   },
   "dependencies": {
     "@crabnebula/tauri-plugin-drag": "^2.1.0",

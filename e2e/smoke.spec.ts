@@ -92,8 +92,13 @@ test('a panel collapses from its header and stays collapsed across a reload', as
 test('the View menu lists every panel', async ({ page }) => {
   await page.getByRole('button', { name: /View/i }).click();
   const items = page.getByRole('menuitemcheckbox');
-  await expect(items).toHaveCount(5);
+  // The right rail plus one per `SECTIONS` in `src/state/ui.ts`: genres, roster,
+  // kit, session, presets. The menu is built from that list, so adding a panel
+  // is meant to land here — this count is the reminder to check the new one
+  // actually appears rather than a number to bump.
+  await expect(items).toHaveCount(6);
   await expect(items.first()).toContainText('Right rail');
+  await expect(items.last()).toContainText('Presets');
 });
 
 test('the theme toggle switches the document theme', async ({ page }) => {

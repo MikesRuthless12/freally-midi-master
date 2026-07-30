@@ -1,8 +1,12 @@
 {
   "compilerOptions": {
-    "target": "ES2020",
+    // ES2022 for `Error.cause`, which this project's own `preserve-caught-error`
+    // lint rule requires on every rethrow — the two disagreed at ES2020, and a
+    // rule that cannot be satisfied is a rule that gets disabled. Both webview
+    // engines this ships in (WebView2, WKWebView) have supported it since 2021.
+    "target": "ES2022",
     "useDefineForClassFields": true,
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
     "module": "ESNext",
     "skipLibCheck": true,
 

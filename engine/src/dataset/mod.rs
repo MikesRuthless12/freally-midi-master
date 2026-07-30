@@ -7,6 +7,7 @@
 
 pub mod files;
 pub mod inherit;
+pub mod modes;
 pub mod schema;
 pub mod validate;
 

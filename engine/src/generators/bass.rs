@@ -1,0 +1,593 @@
+//! The bassline generator (FR-007, research ch. 2).
+//!
+//! ⛔ **When the 808 is the bassline, this generates nothing, and that is the
+//! feature.** Most trap artists author `drums.bass808.role = "bassline"`: the
+//! 808 *is* the bass part, played on the drum kit. Generating a second bass
+//! under it would put two instruments on the same notes in the same octave,
+//! which is not a fuller low end but a muddier one — the single most common way
+//! an arrangement goes wrong. So the parts are unified by one of them staying
+//! silent and saying why, rather than by both playing and hoping.
+//!
+//! Everything else follows the same shape as the other generators: pitches come
+//! from the chord and the scale, each device has its own seeded stream, and feel
+//! is [`crate::humanize`]'s job afterwards.
+
+use rand::Rng;
+use serde_json::Value;
+
+use crate::context::SessionContext;
+use crate::dataset::StyleModel;
+use crate::generators::chords::Chords;
+use crate::generators::grid;
+use crate::generators::read::{block, number, pair, text};
+use crate::pattern::{Lane, LaneTrack, Note};
+use crate::rng;
+use crate::theory;
+
+/// The velocity a bass note is written at. Below the kick, which it sits under.
+const BASS_VELOCITY: u8 = 100;
+
+/// Where the bass sits when the model authors no register. C1–G2.
+const DEFAULT_REGISTER: (u8, u8) = (24, 43);
+
+/// Every parameter under `bassline` this generator reads.
+pub const READ_KEYS: &[&str] = &[
+    "followRootsProb",
+    "rhythm",
+    "register",
+    "glideProb",
+    "passingTones",
+    "cellShapes",
+    "anticipationProb",
+];
+
+/// How the bass places its notes.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Rhythm {
+    /// One note per kick — the trap and drill default, and why the kick and the
+    /// bass read as one instrument played twice.
+    MirrorKick,
+    /// Its own figure, ignoring the kick. Drill's counter-riff.
+    IndependentRiff,
+    /// Root on the beat, fifth on the offbeat — country and boom-bap.
+    BoomChick,
+    /// Every offbeat eighth, which is what makes house and afrobeats walk.
+    OffbeatEighths,
+    /// One long note per chord, detuned in the sound rather than the notes.
+    ReeseSustain,
+}
+
+impl Rhythm {
+    fn parse(text: &str) -> Option<Self> {
+        match text {
+            "mirror_kick" => Some(Self::MirrorKick),
+            "independent_riff" => Some(Self::IndependentRiff),
+            "boom_chick" => Some(Self::BoomChick),
+            "offbeat_8ths" => Some(Self::OffbeatEighths),
+            "reese_sustain" => Some(Self::ReeseSustain),
+            _ => None,
+        }
+    }
+}
+
+/// Is this rhythm name one the generator can act on?
+pub fn can_read_rhythm(name: &str) -> bool {
+    Rhythm::parse(name).is_some()
+}
+
+/// Is this cell-shape degree one the generator can act on?
+///
+/// `cellShapes` are authored as scale degrees with optional accidentals —
+/// `["1", "b3", "2"]`. A degree that fails to parse would drop that step of the
+/// figure, so the cell would play shorter than authored with nothing saying so.
+pub fn can_read_cell_degree(text: &str) -> bool {
+    cell_degree(text).is_some()
+}
+
+/// A cell-shape degree as `(degree, semitone offset)`.
+fn cell_degree(text: &str) -> Option<(i32, i32)> {
+    let text = text.trim();
+    let (accidental, rest) = match text.strip_prefix('b') {
+        Some(rest) => (-1, rest),
+        None => match text.strip_prefix('#') {
+            Some(rest) => (1, rest),
+            None => (0, text),
+        },
+    };
+    let degree: i32 = rest.parse().ok()?;
+    (degree >= 1).then_some((degree, accidental))
+}
+
+/// Does this model's 808 already play the bassline?
+///
+/// Read from the *drums* block, because that is where the 808 lives. The bass
+/// part deferring to it is the whole of FR-007's "unify with the 808 lane".
+pub fn eight_o_eight_is_the_bass(model: &StyleModel) -> bool {
+    let root = Value::Object(model.blocks.clone().into_iter().collect());
+    text(block(block(Some(&root), "drums"), "bass808"), "role") == Some("bassline")
+}
+
+pub fn generate(
+    model: &StyleModel,
+    ctx: &SessionContext,
+    seed: u64,
+    chords: &Chords,
+    drums: &[LaneTrack],
+) -> LaneTrack {
+    let empty = LaneTrack {
+        lane: Lane::Bass,
+        notes: Vec::new(),
+    };
+
+    // ⛔ See the module comment: the 808 is already the bassline for most trap
+    // artists, and doubling it is a production mistake rather than a fuller
+    // sound.
+    if eight_o_eight_is_the_bass(model) {
+        return empty;
+    }
+
+    let root = Value::Object(model.blocks.clone().into_iter().collect());
+    let Some(bass) = block(Some(&root), "bassline").cloned() else {
+        return empty;
+    };
+    let bass = Some(&bass);
+
+    let mut param_rng = rng::stream(seed, "bass/params");
+    let mut place_rng = rng::stream(seed, "bass/place");
+    let mut pitch_rng = rng::stream(seed, "bass/pitch");
+
+    let rhythm = text(bass, "rhythm")
+        .and_then(Rhythm::parse)
+        .unwrap_or(Rhythm::MirrorKick);
+    let follow_roots = number(bass, "followRootsProb", 0.85, &mut param_rng).clamp(0.0, 1.0);
+    let glide = number(bass, "glideProb", 0.0, &mut param_rng).clamp(0.0, 1.0);
+    let anticipation = number(bass, "anticipationProb", 0.0, &mut param_rng).clamp(0.0, 1.0);
+
+    let (low, high) = match pair(bass, "register") {
+        Some((lo, hi)) if lo < hi => (lo.clamp(0.0, 127.0) as u8, hi.clamp(0.0, 127.0) as u8),
+        _ => DEFAULT_REGISTER,
+    };
+
+    let passing: Vec<i8> = bass
+        .and_then(|b| b.get("passingTones"))
+        .and_then(Value::as_array)
+        .map(|names| {
+            names
+                .iter()
+                .filter_map(Value::as_str)
+                .filter_map(theory::interval_semitones)
+                .collect()
+        })
+        .unwrap_or_default();
+
+    let cells: Vec<Vec<(i32, i32)>> = bass
+        .and_then(|b| b.get("cellShapes"))
+        .and_then(Value::as_array)
+        .map(|shapes| {
+            shapes
+                .iter()
+                .filter_map(Value::as_array)
+                .map(|shape| {
+                    shape
+                        .iter()
+                        .filter_map(Value::as_str)
+                        .filter_map(cell_degree)
+                        .collect()
+                })
+                .collect()
+        })
+        .unwrap_or_default();
+
+    let onsets = onsets_for(rhythm, ctx, chords, drums, &mut place_rng);
+    if onsets.is_empty() {
+        return empty;
+    }
+
+    let degrees = theory::scale_semitones(ctx.scale);
+    let cell = (!cells.is_empty()).then(|| &cells[place_rng.random_range(0..cells.len())]);
+
+    let mut notes: Vec<Note> = Vec::with_capacity(onsets.len());
+    for (index, (tick, len)) in onsets.iter().enumerate() {
+        let event = chords.at(*tick);
+        let chord_root = event.map(|e| e.root).unwrap_or(ctx.key_root);
+
+        // The blend FR-007 asks for: follow the chord's root, or say something
+        // of your own. A cell shape, when the model authors one, is what "your
+        // own" means — otherwise it is a passing tone off the root.
+        let pitch_class = if pitch_rng.random_bool(follow_roots) {
+            i32::from(chord_root)
+        } else if let Some(cell) = cell {
+            let (degree, accidental) = cell[index % cell.len().max(1)];
+            i32::from(chord_root) + theory::degree_semitone(degrees, degree) + accidental
+        } else if !passing.is_empty() {
+            i32::from(chord_root) + i32::from(passing[index % passing.len()])
+        } else {
+            i32::from(chord_root)
+        };
+
+        // The register is a promise about where the instrument sits, so the
+        // pitch class is placed inside it rather than transposed freely — but
+        // *which* octave inside it is a choice, not always the bottom one.
+        // Octave pops are what bass players do, and a line pinned to the floor
+        // of its register is both less musical and less varied: it left
+        // `ny-drill` reaching 628 distinct basslines in 1,000 seeds where the
+        // others reached 1,000.
+        let places = octaves_of(pitch_class.rem_euclid(12) as u8, low, high);
+        if places.is_empty() {
+            continue;
+        }
+        let pitch = if places.len() > 1 && pitch_rng.random_bool(0.25) {
+            places[pitch_rng.random_range(1..places.len())]
+        } else {
+            places[0]
+        };
+
+        // Anticipation pushes the note *early*, which is what makes drill's bass
+        // lean. Never before the pattern starts.
+        let start = if anticipation > 0.0 && place_rng.random_bool(anticipation) {
+            tick.saturating_sub(grid::SIXTEENTH)
+        } else {
+            *tick
+        };
+        if start >= ctx.total_ticks() {
+            continue;
+        }
+
+        // A glide is the 808's own convention: this note slides to the next
+        // one's pitch. Recorded on the note so the writer emits the overlap the
+        // sampler reads as portamento.
+        notes.push(Note {
+            start_tick: start,
+            len_ticks: (*len).max(1).min(ctx.total_ticks() - start),
+            pitch,
+            vel: BASS_VELOCITY,
+            slide_to_pitch: None,
+            articulation: None,
+        });
+    }
+
+    // Glides are applied after placement, because a glide needs to know what it
+    // is gliding *to* — which is the next note, not a parameter.
+    if glide > 0.0 {
+        let mut glide_rng = rng::stream(seed, "bass/glide");
+        for index in 0..notes.len().saturating_sub(1) {
+            let next = notes[index + 1].pitch;
+            if next != notes[index].pitch && glide_rng.random_bool(glide) {
+                notes[index].slide_to_pitch = Some(next);
+            }
+        }
+    }
+
+    notes.sort_by_key(|note| (note.start_tick, note.pitch));
+    LaneTrack {
+        lane: Lane::Bass,
+        notes,
+    }
+}
+
+/// Every pitch of this class that fits inside the register, lowest first.
+///
+/// [`theory::pitch_class_in_register`] answers with the lowest, which is right
+/// when a part wants a definite pitch and wrong when it is choosing an octave.
+fn octaves_of(class: u8, low: u8, high: u8) -> Vec<u8> {
+    (low..=high).filter(|pitch| pitch % 12 == class).collect()
+}
+
+/// Where the bass plays, as `(tick, length)`.
+fn onsets_for(
+    rhythm: Rhythm,
+    ctx: &SessionContext,
+    chords: &Chords,
+    drums: &[LaneTrack],
+    rng: &mut impl Rng,
+) -> Vec<(u32, u32)> {
+    let sixteenth = grid::SIXTEENTH;
+    let beat = grid::ticks_per_beat(ctx);
+    let total = ctx.total_ticks();
+
+    match rhythm {
+        // One note per kick. Read off the generated kick rather than
+        // reconstructed from the same parameters — two answers to "where is the
+        // kick" is how the two parts drift apart.
+        Rhythm::MirrorKick => {
+            let mut ticks: Vec<u32> = drums
+                .iter()
+                .filter(|track| track.lane == Lane::Kick)
+                .flat_map(|track| track.notes.iter().map(|note| note.start_tick))
+                .collect();
+            ticks.sort_unstable();
+            ticks.dedup();
+
+            // No kick to mirror: fall back to the downbeats rather than going
+            // silent, so a model with no drums still has a bass part.
+            if ticks.is_empty() {
+                ticks = (0..total).step_by(beat as usize).collect();
+            }
+            held_to_next(ticks, total)
+        }
+
+        Rhythm::IndependentRiff => {
+            // Its own figure: a note every other sixteenth, jittered by whether
+            // this bar leans early or late, so the riff is not a metronome.
+            let mut ticks = Vec::new();
+            let mut tick = 0;
+            while tick < total {
+                ticks.push(tick);
+                tick += if rng.random_bool(0.5) {
+                    sixteenth * 2
+                } else {
+                    sixteenth * 3
+                };
+            }
+            held_to_next(ticks, total)
+        }
+
+        Rhythm::BoomChick => {
+            let ticks: Vec<u32> = (0..total).step_by((beat / 2).max(1) as usize).collect();
+            held_to_next(ticks, total)
+        }
+
+        Rhythm::OffbeatEighths => {
+            let ticks: Vec<u32> = (0..total)
+                .step_by((beat / 2).max(1) as usize)
+                .skip(1)
+                .step_by(2)
+                .collect();
+            held_to_next(ticks, total)
+        }
+
+        // One note per chord, held. The detune that makes a reese is a *sound*,
+        // not a note, so nothing here doubles it.
+        Rhythm::ReeseSustain => chords
+            .events
+            .iter()
+            .map(|event| (event.start_tick, event.len_ticks))
+            .collect(),
+    }
+}
+
+/// Hold each onset to the next one, so the line is legato by construction.
+fn held_to_next(ticks: Vec<u32>, total: u32) -> Vec<(u32, u32)> {
+    ticks
+        .iter()
+        .enumerate()
+        .filter(|(_, tick)| **tick < total)
+        .map(|(index, tick)| {
+            let end = ticks.get(index + 1).copied().unwrap_or(total).min(total);
+            (*tick, end.saturating_sub(*tick).max(1))
+        })
+        .collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::generators::chords as harmony;
+    use serde_json::json;
+
+    fn model_with(bass: Value, drums: Value) -> StyleModel {
+        serde_json::from_value(json!({
+            "id": "test",
+            "type": "genre",
+            "name": "Test",
+            "bassline": bass,
+            "drums": drums,
+            "chords": {
+                "progressionFamilies": [{ "roman": ["i", "VI", "III", "VII"], "weight": 1 }],
+                "harmonicRhythm": "1_per_bar",
+                "voicing": { "register": [48, 72] }
+            }
+        }))
+        .expect("the test model must parse")
+    }
+
+    fn run(bass: Value, seed: u64) -> (LaneTrack, Chords, SessionContext) {
+        let model = model_with(bass, json!({ "kick": { "densityPerBar": 3 } }));
+        let ctx = SessionContext::default();
+        let chords = harmony::generate(&model, &ctx, seed);
+        let kit = crate::generators::drums::generate(&model, &ctx, seed);
+        let track = generate(&model, &ctx, seed, &chords, &kit);
+        (track, chords, ctx)
+    }
+
+    #[test]
+    fn a_model_whose_808_is_the_bassline_does_not_also_generate_a_bass() {
+        // ⛔ FR-007's unification. Two instruments on the same notes in the same
+        // octave is a muddier low end, not a fuller one.
+        let model = model_with(
+            json!({ "rhythm": "mirror_kick", "register": [24, 43] }),
+            json!({ "kick": { "densityPerBar": 3 }, "bass808": { "role": "bassline" } }),
+        );
+        let ctx = SessionContext::default();
+        let chords = harmony::generate(&model, &ctx, 1);
+        let kit = crate::generators::drums::generate(&model, &ctx, 1);
+
+        assert!(eight_o_eight_is_the_bass(&model));
+        assert!(generate(&model, &ctx, 1, &chords, &kit).notes.is_empty());
+    }
+
+    #[test]
+    fn an_808_playing_something_else_leaves_the_bass_to_generate() {
+        let model = model_with(
+            json!({ "rhythm": "mirror_kick", "register": [24, 43] }),
+            json!({ "kick": { "densityPerBar": 3 }, "bass808": { "role": "counter_riff" } }),
+        );
+        let ctx = SessionContext::default();
+        let chords = harmony::generate(&model, &ctx, 1);
+        let kit = crate::generators::drums::generate(&model, &ctx, 1);
+
+        assert!(!eight_o_eight_is_the_bass(&model));
+        assert!(!generate(&model, &ctx, 1, &chords, &kit).notes.is_empty());
+    }
+
+    #[test]
+    fn a_model_with_no_bassline_block_generates_nothing() {
+        let model: StyleModel =
+            serde_json::from_value(json!({ "id": "bare", "type": "genre", "name": "Bare" }))
+                .unwrap();
+        let ctx = SessionContext::default();
+        let chords = harmony::generate(&model, &ctx, 1);
+        assert!(generate(&model, &ctx, 1, &chords, &[]).notes.is_empty());
+    }
+
+    #[test]
+    fn mirroring_the_kick_puts_a_bass_note_on_every_kick() {
+        // Read off the generated kick, not reconstructed — the two parts must
+        // not have separate opinions about where the kick is.
+        let model = model_with(
+            json!({ "rhythm": "mirror_kick", "register": [24, 43], "followRootsProb": 1.0 }),
+            json!({ "kick": { "densityPerBar": 3 } }),
+        );
+        let ctx = SessionContext::default();
+        let chords = harmony::generate(&model, &ctx, 5);
+        let kit = crate::generators::drums::generate(&model, &ctx, 5);
+        let bass = generate(&model, &ctx, 5, &chords, &kit);
+
+        let kicks: Vec<u32> = kit
+            .iter()
+            .filter(|t| t.lane == Lane::Kick)
+            .flat_map(|t| t.notes.iter().map(|n| n.start_tick))
+            .collect();
+        assert!(!kicks.is_empty(), "the fixture must generate kicks");
+
+        for kick in kicks {
+            assert!(
+                bass.notes.iter().any(|n| n.start_tick == kick),
+                "no bass note on the kick at {kick}"
+            );
+        }
+    }
+
+    #[test]
+    fn every_note_lands_inside_the_authored_register() {
+        for seed in 1..25u64 {
+            let (bass, _, _) = run(
+                json!({ "rhythm": "independent_riff", "register": [17, 31], "glideProb": 0.5 }),
+                seed,
+            );
+            for note in &bass.notes {
+                assert!(
+                    (17..=31).contains(&note.pitch),
+                    "seed {seed}: {} is outside 17..=31",
+                    note.pitch
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn following_the_roots_completely_means_every_note_is_a_chord_root() {
+        for seed in 1..20u64 {
+            let (bass, chords, _) = run(
+                json!({ "rhythm": "boom_chick", "register": [24, 43], "followRootsProb": 1.0 }),
+                seed,
+            );
+            for note in &bass.notes {
+                if let Some(event) = chords.at(note.start_tick) {
+                    assert_eq!(
+                        note.pitch % 12,
+                        event.root % 12,
+                        "seed {seed}: {} is not the chord root",
+                        note.pitch
+                    );
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn a_glide_targets_the_pitch_of_the_note_it_slides_into() {
+        let mut glided = 0;
+        for seed in 1..30u64 {
+            let (bass, _, _) = run(
+                json!({
+                    "rhythm": "independent_riff",
+                    "register": [17, 31],
+                    "glideProb": 1.0,
+                    "followRootsProb": 0.0,
+                    "passingTones": ["P5", "m7"]
+                }),
+                seed,
+            );
+            for (index, note) in bass.notes.iter().enumerate() {
+                if let Some(target) = note.slide_to_pitch {
+                    glided += 1;
+                    assert_eq!(
+                        Some(target),
+                        bass.notes.get(index + 1).map(|n| n.pitch),
+                        "a glide must target the next note"
+                    );
+                }
+            }
+        }
+        assert!(glided > 0, "a glideProb of 1.0 produced no glides at all");
+    }
+
+    #[test]
+    fn every_rhythm_and_cell_degree_the_dataset_uses_is_readable() {
+        for name in [
+            "mirror_kick",
+            "independent_riff",
+            "boom_chick",
+            "offbeat_8ths",
+            "reese_sustain",
+        ] {
+            assert!(can_read_rhythm(name), "{name}");
+        }
+        assert!(!can_read_rhythm("walking"));
+
+        for degree in ["1", "2", "b3", "#4", "b7", "8"] {
+            assert!(can_read_cell_degree(degree), "{degree}");
+        }
+        assert!(!can_read_cell_degree("x"));
+        assert!(!can_read_cell_degree("0"));
+        assert!(!can_read_cell_degree(""));
+    }
+
+    #[test]
+    fn a_reese_holds_one_note_per_chord() {
+        let (bass, chords, _) = run(
+            json!({ "rhythm": "reese_sustain", "register": [24, 43], "followRootsProb": 1.0 }),
+            9,
+        );
+        assert_eq!(bass.notes.len(), chords.events.len());
+        for note in &bass.notes {
+            assert!(
+                note.len_ticks > grid::SIXTEENTH * 4,
+                "{} ticks",
+                note.len_ticks
+            );
+        }
+    }
+
+    #[test]
+    fn the_same_seed_reproduces_the_same_bassline() {
+        let spec = json!({ "rhythm": "independent_riff", "register": [17, 31], "glideProb": 0.4 });
+        assert_eq!(run(spec.clone(), 42).0, run(spec, 42).0);
+    }
+
+    #[test]
+    fn notes_never_run_past_the_end_of_the_pattern() {
+        for rhythm in [
+            "mirror_kick",
+            "independent_riff",
+            "boom_chick",
+            "offbeat_8ths",
+            "reese_sustain",
+        ] {
+            for seed in 1..12u64 {
+                let (bass, _, ctx) = run(
+                    json!({ "rhythm": rhythm, "register": [24, 43], "anticipationProb": 0.5 }),
+                    seed,
+                );
+                for note in &bass.notes {
+                    assert!(
+                        note.start_tick + note.len_ticks <= ctx.total_ticks(),
+                        "{rhythm} seed {seed}: a note runs past the pattern"
+                    );
+                    assert!(note.len_ticks > 0 && note.vel >= 1);
+                }
+            }
+        }
+    }
+}

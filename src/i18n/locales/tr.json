@@ -43,12 +43,40 @@
     "genres": "Türler",
     "roster": "Sanatçılar",
     "kit": "Davul kiti",
-    "session": "Oturum"
+    "session": "Oturum",
+    "presets": "Ön ayarlar"
   },
   "readouts": {
     "bpm": "BPM",
     "key": "Ton",
+    "scale": "Dizi",
     "swing": "Swing"
+  },
+  "session": {
+    "pickArtist": "Ne istediğini görmek için bir sanatçı seç.",
+    "artistChoice": "Sanatçının",
+    "artistPicks": "{{value}} — sanatçının",
+    "clearPin": "Sanatçının değerine dön",
+    "switchBody": "Önceki sanatçının seçmediği değerleri sabitledin. {{name}} kendi değerlerini istiyor.",
+    "keep": "Benimkini koru",
+    "adopt": "{{name}} değerlerini kullan",
+    "hostSynced": "DAW'ını takip ediyor. Sabitlemek için bir tempo yaz.",
+    "autoSync": "DAW’ı izle",
+    "autoSyncOff": "DAW’ınızın değil, sanatçının temposu kullanılıyor."
+  },
+  "scales": {
+    "natural_minor": "Doğal minör",
+    "harmonic_minor": "Armonik minör",
+    "phrygian": "Frigyen",
+    "phrygian_dominant": "Frigyen dominant",
+    "dorian": "Doryen",
+    "major": "Majör",
+    "mixolydian": "Miksolidyen",
+    "lydian": "Lidyen",
+    "aeolian": "Eolyen",
+    "minor_pentatonic": "Minör pentatonik",
+    "major_pentatonic": "Majör pentatonik",
+    "blues": "Blues dizisi"
   },
   "transport": {
     "play": "Çal",
@@ -56,6 +84,7 @@
     "loop": "Döngü",
     "masterLevel": "Master seviyesi: sessiz",
     "toggleRightRail": "Sağ paneli aç/kapat (K)",
+    "windowSize": "Pencere boyutu",
     "reportBug": "Hata bildir",
     "loopAlways": "Bu aşamada çalma her zaman döngüdedir.",
     "unavailable": "Çalma kullanılamıyor: {{reason}}"
@@ -187,5 +216,12 @@
     "recovering": "Ses aygıtı kayboldu — yeniden bağlanıyor…",
     "failed": "Ses aygıtı yok. Denemeye devam ediliyor…",
     "recovered": "Ses aygıtı geri geldi."
+  },
+  "presets": {
+    "factory": "Fabrika",
+    "none": "Henüz ön ayar yok.",
+    "save": "Kaydet",
+    "name": "Ön ayar adı",
+    "delete": "{{name}} ön ayarını sil"
   }
 }

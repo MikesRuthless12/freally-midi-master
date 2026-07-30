@@ -1,0 +1,90 @@
+[package]
+name = "freally-midi-master-plugin"
+description = "Freally MIDI Master as a CLAP/VST3 plugin. Generates artist-accurate MIDI onto the host's track, in the host's key and tempo."
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+repository.workspace = true
+publish = false
+
+[lib]
+# Both, deliberately. `cdylib` is what a host loads; `lib` is what the tests and
+# any future standalone build link against. Without the `lib` crate type the
+# integration tests cannot see this crate at all.
+crate-type = ["cdylib", "lib"]
+
+# The standalone's Windows icon and version strings. See `build.rs` — Windows
+# only, and a missing resource compiler warns rather than failing the build.
+[target.'cfg(windows)'.build-dependencies]
+winresource = "0.1"
+
+[dependencies]
+engine = { path = "../engine" }
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+# The dataset and the built UI are compiled into the binary. A plugin is a
+# shared library in someone else's process: it has no resource directory, no
+# install layout it can rely on and no working directory it chose.
+include_dir = "0.7"
+# Directly, for the custom-protocol handler's own return type. The vendored
+# adapter re-exports `wry::http` but not `wry` itself, and reaching for it here
+# keeps the edits to that crate down to the ones VENDORED.md accounts for.
+# Cargo unifies this with the adapter's copy; they must stay the same minor.
+wry = "0.35.1"
+
+# VST3 and AU, projected from the CLAP rather than implemented again.
+#
+# This is what makes the plugin loadable in **Ableton, Logic, Pro Tools and
+# Cubase**, none of which speak CLAP. It is also the licence-clean route:
+# MIT/Apache-2.0 over Steinberg's own VST3 SDK (MIT since November 2025) and
+# Apple's AudioUnitSDK — as opposed to nih-plug's VST3 export, which links the
+# GPLv3 `vst3-sys` and is disabled for that reason.
+#
+# No CMake; it compiles the C++ shim with the `cc` crate, using the same MSVC
+# toolchain the Rust build already requires.
+clap-wrapper = { version = "0.3.1", features = ["vst3"] }
+
+# Git rather than crates.io because that is the only place nih-plug is
+# published. Pinned to a revision for the same reason `rust-toolchain.toml`
+# pins the compiler: an unpinned plugin framework re-resolves on every clean
+# build, and a plugin that stops loading in a DAW is the hardest kind of
+# regression to attribute after the fact.
+# CLAP only. `default-features = false` drops nih-plug's VST3 export, and with
+# it `vst3-sys` — a third-party Rust reimplementation of the VST3 interfaces
+# licensed **GPLv3**, which is incompatible with this project's proprietary,
+# All-Rights-Reserved licence. (Steinberg's own VST3 SDK went MIT in November
+# 2025; nih-plug does not use it.) `cargo deny` catches this, and it caught it
+# here.
+#
+# VST3 and AU are projected from the CLAP by `clap-wrapper` instead — MIT and
+# Apache-2.0 respectively, over Steinberg's MIT SDK and Apple's AudioUnitSDK.
+# See TASK-P08.
+#
+# `standalone` is opted back in deliberately: it is what lets the plugin run as
+# an ordinary window with no DAW at all, which is how it gets tested day to day
+# (`npm run plugin:standalone`). It does not pull `vst3-sys`.
+#
+# **Our fork, and TASK-P11 explains why we own one.** It is upstream's
+# `f36931f7` plus exactly one commit: a bounds check on the CLAP state length
+# prefix. Without it `ext_state_load` hands an untrusted `u64` straight to
+# `Vec::with_capacity`, so a corrupt project file decodes to a ~1 exabyte
+# allocation and **Rust aborts the process** — an abort no host can catch, which
+# takes the whole DAW down. `clap-validator`'s `state-invalid-random` found it.
+#
+# Upstream is in maintenance mode and will not take it; `nice-plug`, the
+# maintained community fork, carries the identical bug, so migrating was not an
+# escape from this. Rebasing onto anything newer is a diff against one commit.
+[dependencies.nih_plug]
+git = "https://github.com/MikesRuthless12/nih-plug.git"
+rev = "10bac6da816c6b95041cb6698d74eb465f60341f"
+default-features = false
+features = ["standalone"]
+
+# The editor. Vendored rather than fetched, because upstream depends on an
+# unpinned `baseview` that has since moved to raw-window-handle 0.6 and no
+# longer compiles it — and an unpinned git dep inside a dep cannot be pinned
+# from outside. `plugin/vendor/VENDORED.md` has the full reason and what has to
+# happen for it to go away.
+[dependencies.nih_plug_webview]
+path = "vendor/nih-plug-webview"

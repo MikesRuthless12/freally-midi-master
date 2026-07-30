@@ -127,5 +127,40 @@
     "transitions": { "fillBeforeSection": true, "dropOutBeats": { "prob": 0.7, "beats": 2 }, "switchUpProb": 0.1 }
   },
 
-  "kit": { "preview": "rage-default" }
+  "kit": { "preview": "rage-default" },
+
+  "modes": [
+    {
+      "name": "aggressive",
+      "weight": 4,
+      "session": { "bpm": { "min": 150, "max": 170, "mode": 160 } },
+      "melody": {
+        "motifPitchCount": [2, 2],
+        "densityPerBar": [2, 4],
+        "octaveJumpProb": 0.45,
+        "emptyBarBias": 0.5
+      },
+      "countermelody": { "densityRatio": 0.2 }
+    },
+    {
+      "name": "euphoric",
+      "weight": 3,
+      "melody": {
+        "register": [72, 96],
+        "motifPitchCount": [3, 3],
+        "densityPerBar": [3, 6],
+        "chordToneBias": 0.8,
+        "emptyBarBias": 0.2,
+        "contour": { "riff": 0.5, "descend": 0.1, "arch": 0.4 }
+      },
+      "chords": { "harmonicRhythm": "1_per_bar" },
+      "countermelody": { "densityRatio": 0.35, "styles": { "values": ["bell_echo", "octave_echo"], "weights": [3, 1] } }
+    },
+    {
+      "name": "sparse",
+      "weight": 2,
+      "melody": { "densityPerBar": [1, 3], "emptyBarBias": 0.6, "straightEighthsProb": 0.8 },
+      "countermelody": { "densityRatio": 0.15 }
+    }
+  ]
 }

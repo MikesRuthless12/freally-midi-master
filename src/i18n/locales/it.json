@@ -43,12 +43,40 @@
     "genres": "Generi",
     "roster": "Artisti",
     "kit": "Kit",
-    "session": "Sessione"
+    "session": "Sessione",
+    "presets": "Preimpostazioni"
   },
   "readouts": {
     "bpm": "BPM",
     "key": "Tonalità",
+    "scale": "Scala",
     "swing": "Swing"
+  },
+  "session": {
+    "pickArtist": "Scegli un artista per vedere cosa chiede.",
+    "artistChoice": "Dell’artista",
+    "artistPicks": "{{value}} — dell’artista",
+    "clearPin": "Torna al valore dell’artista",
+    "switchBody": "Hai fissato valori che l’artista precedente non aveva scelto. {{name}} chiede i suoi.",
+    "keep": "Mantieni i miei",
+    "adopt": "Usa quelli di {{name}}",
+    "hostSynced": "Segue la tua DAW. Digita un tempo per fissarlo.",
+    "autoSync": "Segui la DAW",
+    "autoSyncOff": "Si usa il tempo dell’artista, non quello della DAW."
+  },
+  "scales": {
+    "natural_minor": "Minore naturale",
+    "harmonic_minor": "Minore armonica",
+    "phrygian": "Frigio",
+    "phrygian_dominant": "Frigio dominante",
+    "dorian": "Dorico",
+    "major": "Maggiore",
+    "mixolydian": "Misolidio",
+    "lydian": "Lidio",
+    "aeolian": "Eolio",
+    "minor_pentatonic": "Pentatonica minore",
+    "major_pentatonic": "Pentatonica maggiore",
+    "blues": "Scala blues"
   },
   "transport": {
     "play": "Riproduci",
@@ -56,6 +84,7 @@
     "loop": "Loop",
     "masterLevel": "Livello master: silenzio",
     "toggleRightRail": "Mostra/nascondi pannello destro (K)",
+    "windowSize": "Dimensioni finestra",
     "reportBug": "Segnala un bug",
     "loopAlways": "La riproduzione va sempre in loop in questa fase.",
     "unavailable": "Riproduzione non disponibile: {{reason}}"
@@ -187,5 +216,12 @@
     "recovering": "Dispositivo audio perso — riconnessione…",
     "failed": "Nessun dispositivo audio. Si continua a provare…",
     "recovered": "Il dispositivo audio è tornato."
+  },
+  "presets": {
+    "factory": "Di fabbrica",
+    "none": "Nessuna preimpostazione.",
+    "save": "Salva",
+    "name": "Nome preimpostazione",
+    "delete": "Elimina {{name}}"
   }
 }

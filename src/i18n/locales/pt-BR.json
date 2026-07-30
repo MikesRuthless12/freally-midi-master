@@ -43,12 +43,40 @@
     "genres": "Gêneros",
     "roster": "Artistas",
     "kit": "Kit",
-    "session": "Sessão"
+    "session": "Sessão",
+    "presets": "Predefinições"
   },
   "readouts": {
     "bpm": "BPM",
     "key": "Tom",
+    "scale": "Escala",
     "swing": "Swing"
+  },
+  "session": {
+    "pickArtist": "Escolha um artista para ver o que ele pede.",
+    "artistChoice": "Do artista",
+    "artistPicks": "{{value}} — do artista",
+    "clearPin": "Voltar ao valor do artista",
+    "switchBody": "Você fixou valores que o artista anterior não escolheu. {{name}} pede os seus.",
+    "keep": "Manter os meus",
+    "adopt": "Usar os de {{name}}",
+    "hostSynced": "Seguindo sua DAW. Digite um andamento para fixá-lo.",
+    "autoSync": "Seguir a DAW",
+    "autoSyncOff": "Usando o tempo do artista, não o da sua DAW."
+  },
+  "scales": {
+    "natural_minor": "Menor natural",
+    "harmonic_minor": "Menor harmônica",
+    "phrygian": "Frígio",
+    "phrygian_dominant": "Frígio dominante",
+    "dorian": "Dórico",
+    "major": "Maior",
+    "mixolydian": "Mixolídio",
+    "lydian": "Lídio",
+    "aeolian": "Eólio",
+    "minor_pentatonic": "Pentatônica menor",
+    "major_pentatonic": "Pentatônica maior",
+    "blues": "Escala de blues"
   },
   "transport": {
     "play": "Tocar",
@@ -56,6 +84,7 @@
     "loop": "Loop",
     "masterLevel": "Nível master: silencioso",
     "toggleRightRail": "Alternar painel direito (K)",
+    "windowSize": "Tamanho da janela",
     "reportBug": "Relatar um erro",
     "loopAlways": "A reprodução sempre repete nesta fase.",
     "unavailable": "A reprodução não está disponível: {{reason}}"
@@ -187,5 +216,12 @@
     "recovering": "Dispositivo de áudio perdido — reconectando…",
     "failed": "Sem dispositivo de áudio. Ainda tentando…",
     "recovered": "O dispositivo de áudio voltou."
+  },
+  "presets": {
+    "factory": "De fábrica",
+    "none": "Ainda não há predefinições.",
+    "save": "Salvar",
+    "name": "Nome da predefinição",
+    "delete": "Excluir {{name}}"
   }
 }

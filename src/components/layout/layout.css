@@ -21,6 +21,14 @@
     'transport transport';
 }
 
+/* Inside a plugin the host draws the window frame, so our own title bar is not
+   rendered — and its 34px row has to go with it, or the layout keeps a gap
+   where a title bar used to be. The `title` area stays named so nothing else
+   has to know which shell it is in. */
+.studio[data-shell='plugin'] {
+  grid-template-rows: 0 minmax(0, 1fr) 56px;
+}
+
 /* ── Title bar ──────────────────────────────────────────────────────────────
  * The window is borderless, so this is the whole title bar. Dragging is
  * delegated to Tauri via data-tauri-drag-region, which keeps the OS snap
@@ -475,10 +483,35 @@
   color: var(--color-text-2);
 }
 
-.stage__controls {
+/* The error, the keep-or-adopt prompt and the controls, as one column above the
+   bottom-right corner.
+   The column is what has to be positioned, not the controls inside it: `.genfx`
+   is `position: absolute; inset: 0` over the whole body, and a *static* sibling
+   of a positioned element paints underneath it. That is why `.stage__error` was
+   never visible — it had no rule of its own and sat in flow behind the ripple
+   layer. */
+.stage__bottom {
   position: absolute;
   inset-inline-end: var(--space-5);
   bottom: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-3);
+  max-width: calc(100% - var(--space-5) * 2);
+}
+
+.stage__error {
+  margin: 0;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-error);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-2);
+  color: var(--color-error);
+  font-size: var(--text-small);
+}
+
+.stage__controls {
   display: flex;
   align-items: center;
   gap: var(--space-3);
