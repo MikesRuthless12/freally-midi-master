@@ -31,6 +31,13 @@ pub struct Request {
     pub args: Value,
 }
 
+/// The longest pattern the plugin will generate.
+///
+/// Well above the 8 the UI offers, so it never binds in normal use; it exists
+/// so a value from a file, a preset or devtools cannot ask for a pattern that
+/// takes minutes to build on the thread the host draws its window from.
+const MAX_BARS: u16 = 128;
+
 /// What the UI asks for when the user presses Generate.
 ///
 /// The same shape as the desktop app's `GenerateRequest`, because it is the
@@ -228,7 +235,14 @@ fn generate(args: &GenerateArgs, host: &HostSession, auto_sync: bool) -> Result<
 
     let mut overrides = args.session.clone().unwrap_or_default();
     if let Some(bars) = args.bars {
-        overrides.bars = Some(bars);
+        overrides.bars = Some(bars.clamp(1, MAX_BARS));
+    }
+    // ⛔ Also clamp what arrived inside `session`. Both paths reach the engine,
+    // and generation runs synchronously on the host's UI thread — an unbounded
+    // `bars` from a preset, a restored project or devtools is a multi-minute
+    // freeze of somebody's DAW, not a big pattern.
+    if let Some(bars) = overrides.bars {
+        overrides.bars = Some(bars.clamp(1, MAX_BARS));
     }
 
     let ctx = host.session_for(&model, &overrides, seed, auto_sync);

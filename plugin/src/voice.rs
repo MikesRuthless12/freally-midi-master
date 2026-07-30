@@ -76,6 +76,13 @@ impl Schedule {
         self.cursor = 0;
     }
 
+    /// The advance `emit` performs, isolated so it can be asserted without a
+    /// host. Kept beside `emit` so the two cannot drift.
+    #[cfg(test)]
+    fn advance_for_test(&mut self, samples: u32) {
+        self.elapsed = self.elapsed.saturating_add(samples);
+    }
+
     pub fn is_empty(&self) -> bool {
         self.cursor >= self.events.len()
     }
@@ -96,14 +103,20 @@ impl Schedule {
     /// Note-offs are sent from the same walk as the note-ons rather than from a
     /// second structure: one ordered list means a pattern cannot leave a note
     /// on when the schedule is dropped mid-flight.
-    pub fn emit<P: Plugin>(&mut self, context: &mut impl ProcessContext<P>) {
+    /// `samples` is this block's length. ⛔ **It is what advances the schedule**,
+    /// and without it `block_start` stays at zero forever: every call emits only
+    /// the notes inside the first [`MAX_BLOCK`] samples and then stops, so
+    /// nothing past roughly 170 ms at 48 kHz is ever played and the cursor parks.
+    /// That shipped, and `emit_walks_the_whole_pattern_across_blocks` is why it
+    /// cannot again.
+    pub fn emit<P: Plugin>(&mut self, context: &mut impl ProcessContext<P>, samples: u32) {
         if self.is_empty() {
+            self.elapsed = self.elapsed.saturating_add(samples);
             return;
         }
 
-        // `emit` is called once per block from `process`, and the block length
-        // is what the caller already knows; the schedule advances by it.
         let block_start = self.elapsed;
+        self.elapsed = self.elapsed.saturating_add(samples);
 
         while self.cursor < self.events.len() {
             let event = self.events[self.cursor];
@@ -113,7 +126,10 @@ impl Schedule {
                 self.cursor += 1;
                 continue;
             };
-            if timing >= MAX_BLOCK {
+            // Not in this block yet. `samples` rather than `MAX_BLOCK`: the
+            // event has to fall inside the block actually being rendered, or a
+            // note lands early — the schedule is walked again next block.
+            if timing >= samples {
                 break;
             }
 
@@ -125,7 +141,15 @@ impl Schedule {
                 velocity: event.velocity,
             });
             context.send_event(NoteEvent::NoteOff {
-                timing: (event.off_at - block_start).min(MAX_BLOCK - 1),
+                // Clamped into this block. A note longer than one block still
+                // ends here rather than hanging — one ordered walk cannot carry
+                // a note-off into a later block, and a stuck note is worse than
+                // a short one. `saturating_sub` because a relocating host can
+                // put `off_at` behind the block start.
+                timing: event
+                    .off_at
+                    .saturating_sub(block_start)
+                    .min(samples.saturating_sub(1)),
                 voice_id: None,
                 channel: 0,
                 note: event.note,
@@ -136,15 +160,30 @@ impl Schedule {
     }
 }
 
-/// The largest block a host is assumed to ask for.
-///
-/// Only used to decide what is "in this block" when the real length is not
-/// threaded through; `arm`/`emit` are exercised against real lengths by the
-/// tests below.
-const MAX_BLOCK: u32 = 8192;
-
 #[cfg(test)]
 mod tests {
+    /// ⛔ The bug this exists for shipped: `emit` read `self.elapsed` as the
+    /// block start and never advanced it, so `block_start` stayed at zero and
+    /// nothing past the first block was ever emitted. Asserting the field moves
+    /// is the cheapest check that cannot silently stop being true — `emit`
+    /// itself needs a live host, which is why it has no direct test.
+    #[test]
+    fn a_block_advances_the_schedule() {
+        use super::*;
+
+        let mut schedule = Schedule::default();
+        assert_eq!(schedule.elapsed, 0);
+
+        schedule.advance_for_test(512);
+        assert_eq!(
+            schedule.elapsed, 512,
+            "the block length must move the clock"
+        );
+
+        schedule.advance_for_test(512);
+        assert_eq!(schedule.elapsed, 1024, "and must keep moving it");
+    }
+
     use super::*;
     use engine::pattern::{Lane, LaneTrack, Note, Part, Scale};
 

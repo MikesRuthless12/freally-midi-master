@@ -559,6 +559,17 @@ fn rpc(body: &[u8], shared: &SharedState) -> String {
                     // beyond its reply: the notes have to reach the audio
                     // thread. Arming happens here, off the audio thread,
                     // because that is where the allocation belongs.
+                    // ⛔ Declining has to stop a pattern that is already armed.
+                    // The gate blocks new commands, but the audio thread does
+                    // not consult it — so without this the UI says "nothing in
+                    // the plugin will generate, play, export or save" while the
+                    // last generation keeps playing on every transport start.
+                    // An empty schedule replaces the live one by the same
+                    // handoff the arming below uses.
+                    if request.command == "eula_decline" {
+                        shared.handoff.send(Schedule::default());
+                    }
+
                     if request.command == "generate_pattern" {
                         if let Ok(pattern) = serde_json::from_value(value.clone()) {
                             let mut schedule = Schedule::default();

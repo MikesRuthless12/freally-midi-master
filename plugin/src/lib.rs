@@ -168,7 +168,7 @@ impl Plugin for FreallyMidiMaster {
 
     fn process(
         &mut self,
-        _buffer: &mut Buffer,
+        buffer: &mut Buffer,
         _aux: &mut AuxiliaryBuffers,
         context: &mut impl ProcessContext<Self>,
     ) -> ProcessStatus {
@@ -185,7 +185,10 @@ impl Plugin for FreallyMidiMaster {
             .handoff
             .receive(std::mem::take(&mut self.pending));
 
-        self.pending.emit(context);
+        // ⛔ The block length is what advances the schedule. Passing it is not
+        // bookkeeping: without it `emit` replays the first block forever and
+        // nothing past ~170 ms of a pattern is ever heard.
+        self.pending.emit(context, buffer.samples() as u32);
 
         ProcessStatus::Normal
     }
