@@ -39,6 +39,9 @@ function shippedRoster(): RosterEntry[] {
         type: model.type,
         tier: model.tier ?? null,
         genres: model.genres ?? [],
+        // Search does not read the cross-filter relation, so the real value is
+        // not worth loading the fixture with.
+        relatedGenres: [],
         era: model.era ?? null,
       });
     }
@@ -158,6 +161,7 @@ describe('search', () => {
       type: 'artist',
       tier: 'standard',
       genres: ['trap', 'drill'],
+      relatedGenres: [],
       era: null,
     }));
 

@@ -21,6 +21,7 @@ use std::sync::Arc;
 
 use nih_plug::prelude::*;
 
+pub mod audio;
 pub mod bridge;
 pub mod dataset;
 mod editor;
@@ -48,6 +49,21 @@ pub struct FreallyMidiMaster {
     pending: Schedule,
     /// The two-way channel with the editor.
     shared: SharedState,
+    /// The preview sampler's voices, and the note-ons of the current block.
+    ///
+    /// Both live on the plugin rather than inside `process` because both must
+    /// exist without being allocated on the audio thread: voices persist across
+    /// blocks by definition, and the fired-note array is reused every block.
+    sampler: audio::sampler::Sampler,
+    fired: voice::FiredNotes,
+    /// Interleaved scratch the sampler renders into before it is added to the
+    /// host's buffer.
+    ///
+    /// ⛔ Sized in `initialize`, never in `process`. nih-plug hands out
+    /// per-channel slices and the sampler writes interleaved, so one of the two
+    /// has to be converted — doing it through a buffer allocated once is what
+    /// keeps the audio thread free of the allocator.
+    scratch: Vec<f32>,
 }
 
 /// No automatable parameters, and one persisted field.
@@ -82,6 +98,9 @@ impl Default for FreallyMidiMaster {
             session: HostSession::default(),
             pending: Schedule::default(),
             shared,
+            sampler: audio::sampler::Sampler::default(),
+            fired: voice::FiredNotes::default(),
+            scratch: Vec::new(),
         }
     }
 }
@@ -156,14 +175,40 @@ impl Plugin for FreallyMidiMaster {
         // rather than a guess: 48 kHz assumed inside a 44.1 kHz session places
         // every note 8.8% late, which is a whole 16th out by bar four.
         self.shared.set_sample_rate(buffer_config.sample_rate);
+
+        // ⛔ The one place the scratch may be sized. `max_buffer_size` is the
+        // largest block the host promises to ask for, so allocating for it here
+        // means `process` never has to grow anything. Two channels because the
+        // sampler renders stereo; a mono layout takes the left of each frame.
+        self.scratch
+            .resize(buffer_config.max_buffer_size as usize * 2, 0.0);
+
+        // ⛔ The host has already deserialized the project into the store by
+        // now, and it never went near `save_session_state` — so this is where a
+        // restored session reaches the atomics the audio thread reads. Without
+        // it a project saved MIDI-only reopens making sound.
+        self.shared.adopt_session();
+
+        // Decode the preview kit now, off the audio thread. The first `process`
+        // would otherwise be the first caller and would allocate inside the
+        // host's callback.
+        let _ = audio::preview_kit();
         true
     }
 
     fn reset(&mut self) {
-        // The host has jumped or stopped. Anything still scheduled belongs to a
-        // timeline position that is no longer where we are, and emitting it
-        // would leave notes hanging on the track.
-        self.pending.clear();
+        // The host has jumped or stopped. The playhead goes home, but the
+        // pattern stays armed.
+        //
+        // ⛔ **`seek(0.0)`, not `clear()`.** Hosts call `reset` on every
+        // transport relocation and re-activation, so clearing the events threw
+        // the generated pattern away on the first stop — the producer pressed
+        // play again and got silence, with nothing on screen to say why, and had
+        // to press Generate for every pass of the transport.
+        self.pending.seek(0.0);
+        // Voices belong to notes that are no longer where we are. Letting an
+        // 808 ring through a relocation is the audible half of the same bug.
+        self.sampler.stop_all();
     }
 
     fn process(
@@ -185,12 +230,174 @@ impl Plugin for FreallyMidiMaster {
             .handoff
             .receive(std::mem::take(&mut self.pending));
 
+        // ⛔ **Nothing advances unless the host's transport is running.**
+        // `process` is called continuously whenever the plugin is active, not
+        // only while the DAW plays — so without this the schedule started
+        // advancing the moment a generation landed and the preview sampler
+        // played the whole pattern out loud with the transport stopped, while
+        // `playback_status` was telling the same user to press play in their
+        // DAW. The pattern stays armed and the playhead stays put; a seek is
+        // still honoured, so clicking the grid while stopped moves the marker.
+        if !self.session.playing() {
+            if let Some(progress) = self.shared.take_seek() {
+                self.pending.seek(progress);
+                self.sampler.stop_all();
+            }
+            self.shared.set_playhead(self.pending.progress());
+            // ⛔ `emit` is what normally clears this, and it did not run. Stale
+            // entries would be re-triggered on every callback, so a stopped
+            // transport would machine-gun the last block of notes forever.
+            self.fired.clear();
+            // Voices already sounding are allowed to finish rather than being
+            // cut mid-tail, which is what a transport stop sounds like on real
+            // hardware; nothing new is triggered.
+            self.render_preview(buffer);
+            return ProcessStatus::Normal;
+        }
+
+        // ⛔ Seek *before* emitting, never after (TASK-041T). Emitting first
+        // would play this block at the old position and only then jump, so a
+        // click on the timeline is heard as a stutter before it takes effect.
+        if let Some(progress) = self.shared.take_seek() {
+            self.pending.seek(progress);
+            // Voices belong to notes before the new position. Letting an 808
+            // ring across a seek is the same bug as letting it ring across a
+            // host relocation, which `reset` already handles.
+            self.sampler.stop_all();
+        }
+
         // ⛔ The block length is what advances the schedule. Passing it is not
         // bookkeeping: without it `emit` replays the first block forever and
         // nothing past ~170 ms of a pattern is ever heard.
-        self.pending.emit(context, buffer.samples() as u32);
+        self.pending
+            .emit(context, buffer.samples() as u32, &mut self.fired);
+
+        // Where the marker goes (TASK-041T). Published every block, so it moves
+        // with the tempo for free: the schedule is placed in samples against the
+        // host's own BPM, so a tempo change moves the notes and the marker
+        // together rather than letting them drift apart.
+        self.shared.set_playhead(self.pending.progress());
+
+        // The preview kit, played at the same sample offsets the host track
+        // just received (TASK-P17). Silent when the kit failed to decode.
+        self.render_preview(buffer);
 
         ProcessStatus::Normal
+    }
+}
+
+impl FreallyMidiMaster {
+    /// Play this block's note-ons through the preview kit, into the host's out.
+    ///
+    /// ⛔ **Rendered in segments split at each note-on, not once per block.**
+    /// Triggering everything at the block boundary would quantise every hit to
+    /// the block grid — up to 11 ms at 512 samples, which is a 32nd note at 140
+    /// BPM and audibly not the pattern that was generated. The host's own note
+    /// events carry sample offsets for the same reason, and these are the same
+    /// offsets, so the preview and the track agree.
+    ///
+    /// **Added to the buffer rather than replacing it.** The layout is declared
+    /// as a pass-through (see `AUDIO_IO_LAYOUTS`), so whatever a host routes in
+    /// must still come out.
+    fn render_preview(&mut self, buffer: &mut Buffer) {
+        // ⛔ **MIDI-only, checked before anything else.** The notes have
+        // already gone out by the time this runs, so returning here silences
+        // the plugin without silencing the pattern — which is exactly what a
+        // producer routing into their own drum sampler wants (FMM-S02).
+        if !self.shared.audio_enabled() {
+            self.sampler.stop_all();
+            return;
+        }
+
+        let Some(kit) = audio::preview_kit() else {
+            return;
+        };
+
+        // ⚠ **The preview kit is a drum kit, so the four melodic parts render
+        // silence.** `pad_for` returns `None` for Melody, Counter, Bass and
+        // Chords, which this same change made reachable through the bridge — so
+        // a producer picks Melody, sees the Audio chip on, and hears nothing.
+        // That is indistinguishable from a broken sampler, and the honest fix
+        // is pitched instrument voices (FMM-N15/N16), not a silent fallback:
+        // playing a melody through the kick pad would be worse than silence.
+        // Tracked rather than hidden — see the module doc.
+
+        // ⛔ Idle is this plugin's *normal* state — nothing is armed until
+        // someone presses Generate, and nothing sounds between patterns. Without
+        // this the block still costs a `fill`, a `limit` pass and a
+        // de-interleaving add over every sample, ~94 times a second, to write
+        // silence on top of silence.
+        if self.fired.as_slice().is_empty() && self.sampler.is_silent() {
+            return;
+        }
+
+        let frames = buffer.samples();
+        let channels = buffer.channels().clamp(1, 2);
+        let needed = frames * channels;
+        if needed > self.scratch.len() {
+            // The host asked for a block longer than it declared. Growing here
+            // would allocate on the audio thread, so the extra is skipped
+            // instead — a short render is recoverable, a stall is not.
+            return;
+        }
+
+        let scratch = &mut self.scratch[..needed];
+        scratch.fill(0.0);
+
+        // Walk the block, stopping at each note-on to trigger it. `at` is the
+        // frame the next segment starts on.
+        let fired = self.fired.as_slice();
+        let mut at = 0usize;
+        let mut next = 0usize;
+        while at < frames {
+            while next < fired.len() && fired[next].timing as usize <= at {
+                let note = fired[next];
+                // A muted lane is muted here and *only* here: its note-on has
+                // already been sent, so the DAW's own instrument still plays
+                // it. That is the difference between this and muting the lane.
+                if self.shared.lane_muted(note.lane) {
+                    next += 1;
+                    continue;
+                }
+                if let Some(pad_index) = kit.pad_for(note.lane) {
+                    // Percussion ignores pitch; a pad with a root note is
+                    // transposed to what was actually played, without which an
+                    // 808 line comes out monotone.
+                    let semis = match kit.pads[pad_index].root_note {
+                        Some(root) => f32::from(note.note) - f32::from(root),
+                        None => 0.0,
+                    };
+                    self.sampler.trigger(
+                        kit,
+                        pad_index,
+                        note.velocity,
+                        semis,
+                        f64::from(self.shared.sample_rate()),
+                    );
+                }
+                next += 1;
+            }
+
+            // Render up to the next trigger, or to the end of the block.
+            let until = fired
+                .get(next)
+                .map(|note| (note.timing as usize).min(frames))
+                .unwrap_or(frames)
+                .max(at + 1);
+            let segment = &mut scratch[at * channels..until * channels];
+            self.sampler.render(kit, segment, channels);
+            at = until;
+        }
+
+        audio::sampler::limit(scratch);
+
+        // De-interleave onto the host's per-channel slices.
+        for (channel, samples) in buffer.as_slice().iter_mut().enumerate() {
+            let source = channel.min(channels - 1);
+            for (frame, sample) in samples.iter_mut().enumerate().take(frames) {
+                *sample += scratch[frame * channels + source];
+            }
+        }
     }
 }
 

@@ -50,7 +50,8 @@
     "bpm": "BPM",
     "key": "키",
     "scale": "음계",
-    "swing": "스윙"
+    "swing": "스윙",
+    "mood": "무드"
   },
   "session": {
     "pickArtist": "아티스트를 선택하면 어떤 설정을 요구하는지 표시됩니다.",
@@ -62,7 +63,10 @@
     "adopt": "{{name}} 값 사용",
     "hostSynced": "DAW를 따라갑니다. 템포를 입력하면 고정됩니다.",
     "autoSync": "DAW 따르기",
-    "autoSyncOff": "DAW가 아닌 아티스트의 템포를 사용합니다."
+    "autoSyncOff": "DAW가 아닌 아티스트의 템포를 사용합니다.",
+    "audio": "오디오",
+    "audioOn": "플러그인 자체 킷으로 재생합니다.",
+    "audioOff": "MIDI 전용 — DAW의 악기가 연주합니다."
   },
   "scales": {
     "natural_minor": "자연 단음계",
@@ -199,7 +203,10 @@
   "roster": {
     "artists": "아티스트",
     "flagship": "대표",
-    "genre": "장르"
+    "genre": "장르",
+    "filteredBy": "{{name}}(으)로 필터링됨",
+    "showAll": "전체 보기",
+    "noneInGenre": "{{name}}에서 활동하는 아티스트가 아직 없습니다."
   },
   "lanes": {
     "kick": "킥",

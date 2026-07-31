@@ -299,3 +299,92 @@ fn every_shipped_model_points_at_the_schema_and_cites_its_sources() {
         );
     }
 }
+
+/// Every shipped model, artists included.
+///
+/// `shipped_models` above is deliberately genres-only — it exists to test
+/// inheritance from `_defaults` — but the roster's cross-filter is a relation
+/// *between* the two kinds, so it cannot be checked without both.
+fn shipped_dataset() -> engine::dataset::LoadedDataset {
+    let scan = engine::dataset::files::scan(&data_dir()).expect("data/ should scan");
+    assert!(
+        scan.problems.is_empty(),
+        "scan problems: {:?}",
+        scan.problems
+    );
+    engine::dataset::load("test", scan.files)
+}
+
+#[test]
+fn every_shipped_artist_says_which_genres_it_works_in() {
+    // ⛔ The guard is against the field quietly going away, not against it being
+    // wrong. `relatedGenres` is optional in the schema, so an artist that drops
+    // it still validates — and the roster's cross-filter would then narrow to
+    // nothing for that artist with no error anywhere.
+    let loaded = shipped_dataset();
+    let artists: Vec<_> = loaded
+        .summary
+        .entries
+        .iter()
+        .filter(|e| e.model_type == engine::dataset::ModelType::Artist)
+        .collect();
+
+    assert!(artists.len() >= 10, "expected the shipped roster");
+    for artist in artists {
+        assert!(
+            !artist.related_genres.is_empty(),
+            "`{}` should say which genres it works in",
+            artist.id
+        );
+    }
+}
+
+#[test]
+fn no_shipped_relation_points_at_a_model_that_is_not_a_genre() {
+    // `load` drops a dangling id and records a problem rather than failing, so
+    // the assertion is on the problem list — an empty roster field would
+    // otherwise look exactly like a correct one.
+    let loaded = shipped_dataset();
+    let dangling: Vec<_> = loaded
+        .summary
+        .problems
+        .iter()
+        .filter(|p| p.message.contains("relatedGenres"))
+        .collect();
+    assert!(dangling.is_empty(), "{dangling:#?}");
+}
+
+#[test]
+fn the_first_genre_an_artist_works_in_is_the_one_it_is_built_from() {
+    // The authored convention, and the rail shows this list in order — so the
+    // genre a model actually inherits its parameters from leads, rather than
+    // whichever one happened to be typed first.
+    //
+    // ⛔ Read from the raw files, not from `loaded.models`. `inherit` strips
+    // `extends` off a resolved model (it has no edges left to walk), so the
+    // resolved form reports none for everybody — the first cut of this test
+    // compared two empty lists on every artist and passed without asserting
+    // anything at all.
+    let mut checked = 0;
+    for path in std::fs::read_dir(data_dir().join("artists"))
+        .expect("data/artists should exist")
+        .filter_map(Result::ok)
+        .map(|e| e.path())
+        .filter(|p| p.extension().is_some_and(|x| x == "json"))
+    {
+        let text = fs::read_to_string(&path).unwrap();
+        let model: serde_json::Value = serde_json::from_str(&text).unwrap();
+        let name = path.file_name().unwrap().to_string_lossy().to_string();
+
+        let parent = model["extends"][0]
+            .as_str()
+            .expect("an artist has a parent");
+        let first = model["relatedGenres"][0]
+            .as_str()
+            .unwrap_or_else(|| panic!("{name} should say which genres it works in"));
+
+        assert_eq!(parent, first, "{name} should lead with its own parent");
+        checked += 1;
+    }
+    assert!(checked >= 10, "expected the shipped roster, saw {checked}");
+}

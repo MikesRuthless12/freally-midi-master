@@ -1,5 +1,7 @@
+import { useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { useSession } from '../../state/session';
 import type { Pattern } from '../../lib/ipc-types';
 import { toCells } from './cells';
 import './DrumGrid.css';
@@ -20,8 +22,35 @@ import './DrumGrid.css';
 
 export function DrumGrid({ pattern, playhead }: { pattern: Pattern; playhead: number }) {
   const { t } = useTranslation();
-  const rows = toCells(pattern);
+  const seek = useSession((s) => s.seek);
+  // ⛔ Memoised because the playhead re-renders this component on every
+  // transport tick, and `toCells` walks every note to build ~1,150 fresh cell
+  // objects for an 8-bar pattern. The marker is a CSS variable on a separate
+  // absolutely-positioned element — none of that work affects it.
+  const rows = useMemo(() => toCells(pattern), [pattern]);
   const columns = rows[0]?.cells.length ?? 0;
+
+  // Click anywhere on the grid to play from there (TASK-041T).
+  //
+  // ⛔ Measured against the *track that was clicked*, not the grid. The grid
+  // includes the lane-name gutter, so measuring the whole thing would put every
+  // click a gutter's width late — which reads as the seek being inaccurate
+  // rather than as the wrong element having been measured. `currentTarget` is
+  // the track itself, so there is nothing to hold a ref to and no way for one
+  // row's geometry to be used for another's.
+  const seekTo = useCallback(
+    (event: React.MouseEvent<HTMLDivElement>) => {
+      // ⛔ Primary button only. Bound to `onMouseDown`, every button fires it —
+      // so a right-click to reach the context menu also seeked, rewinding the
+      // audio thread and cutting the sampler mid-pattern while the menu the
+      // user actually wanted opened over the top. Middle-click autoscroll too.
+      if (event.button !== 0) return;
+      const track = event.currentTarget.getBoundingClientRect();
+      if (track.width === 0) return;
+      void seek((event.clientX - track.left) / track.width);
+    },
+    [seek],
+  );
 
   return (
     <div className="grid" role="table" aria-label={t('grid.label')}>
@@ -41,7 +70,7 @@ export function DrumGrid({ pattern, playhead }: { pattern: Pattern; playhead: nu
           <span className="grid__lane" role="rowheader">
             {t(`lanes.${lane}`)}
           </span>
-          <div className="grid__track">
+          <div className="grid__track" onMouseDown={seekTo}>
             {cells.map((cell, index) => (
               <span
                 key={index}

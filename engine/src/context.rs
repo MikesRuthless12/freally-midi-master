@@ -399,6 +399,14 @@ pub struct SessionDefaults {
     pub scales: Vec<Scale>,
     pub swing: Swing,
     pub half_time: bool,
+    /// The moods this model offers, in authored order (TASK-040V).
+    ///
+    /// Empty for a model with no `modes` block, which is most of them — the
+    /// chip is hidden rather than shown offering only "Any". Names only: the
+    /// overrides behind them are the engine's business, and the UI picks by
+    /// name.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub moods: Vec<String>,
 }
 
 impl SessionDefaults {
@@ -441,6 +449,10 @@ impl SessionDefaults {
                 amount: authored_swing.map(|s| s.amount as f32).unwrap_or(0.5),
             },
             half_time: session.and_then(|s| s.half_time).unwrap_or(false),
+            moods: crate::dataset::modes::modes_of(model)
+                .into_iter()
+                .map(|mode| mode.name)
+                .collect(),
         }
     }
 }

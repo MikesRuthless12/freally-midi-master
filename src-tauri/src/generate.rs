@@ -97,6 +97,7 @@ fn render(model: &StyleModel, request: &GenerateRequest) -> Result<Pattern, Stri
         scale: ctx.scale,
         lanes,
         ppq: PPQ,
+        mood: None,
     })
 }
 

@@ -49,3 +49,34 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Says what the list below has been narrowed to, and offers the way back. */
+.roster__filter {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+  font-size: var(--text-micro);
+  color: var(--color-text-3);
+}
+
+.roster__filter > span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.roster__show-all {
+  flex: none;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--color-primary);
+  font: inherit;
+  cursor: pointer;
+}
+
+.roster__show-all:hover {
+  text-decoration: underline;
+}

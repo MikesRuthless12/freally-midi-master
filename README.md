@@ -64,13 +64,17 @@ the result into FL Studio, Ableton, Logic, Reaper, or anything else.
   it and the project decides again.
 - **The notes land on the track.** No file to drag, no folder to find — the
   plugin emits them where you inserted it.
+- **And you can hear it straight away.** A preview kit is built in, so pressing
+  Generate and playing your project makes a sound without wiring an instrument
+  up first. One switch turns it off again and hands the notes to your own drum
+  sampler, because MIDI-only is a way of working rather than a fallback.
 - **Search an artist, not a genre.** Instant fuzzy autosuggest across a mainstream
   roster and an underground roster. Genres exist as a browse filter, not the unit of
   generation.
 - **Five generators, plus Song Mode.** Drums · Melody · Countermelody · Bassline ·
   Chords — plus Song Mode, which is not a sixth generator but an arrangement that
-  fills all five in. Drums and chords generate in the plugin today; the other
-  three are wired through next.
+  fills all five in. Drums is the one with an editor today; the other four are
+  wired through the plugin's engine bridge and surface as the piano roll lands.
 - **Audition with your own sounds.** Import `.wav`/`.mp3` one-shots as drum pad
   voices *or* as pitched instruments with root-note detection.
 - **Edit what you got.** Piano-roll editor and a pad-grid drum sequencer. Lock what

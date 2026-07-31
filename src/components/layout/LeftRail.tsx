@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { Section } from './Section';
 import { SearchBar } from '../SearchBar/SearchBar';
 import { RosterList } from '../RosterList/RosterList';
+import { crossFilter } from '../../lib/cross-filter';
 import { useSession } from '../../state/session';
 import { useTranslation } from 'react-i18next';
 
@@ -22,9 +24,32 @@ export function LeftRail() {
   const selectedId = useSession((s) => s.selectedId);
   const select = useSession((s) => s.select);
 
-  const genres = GENRE_CHIPS.map((id) => roster.find((entry) => entry.id === id)).filter(
-    (entry): entry is NonNullable<typeof entry> => entry !== undefined,
+  // ⛔ Holds the id **and** is cleared whenever the selection moves away, so
+  // "Show all" applies to the press that asked for it and not to every later
+  // visit. Holding the id alone made that one entry permanently unfilterable:
+  // select it, Show all, select something else, select it again — and the rail
+  // silently refused to narrow, with nothing on screen explaining why.
+  const [showAllFor, setShowAllFor] = useState<string | null>(null);
+  const [lastSelected, setLastSelected] = useState<string | null>(selectedId);
+  if (lastSelected !== selectedId) {
+    setLastSelected(selectedId);
+    if (showAllFor !== null) setShowAllFor(null);
+  }
+  const { artists, genres, filteredBy } = crossFilter(
+    roster,
+    selectedId === showAllFor ? null : selectedId,
   );
+
+  // Picking an artist replaces the quick-picks with that artist's own genres —
+  // all of them, not the ones that happen to be quick-picks, or an artist who
+  // works in none of the six would leave this row empty. Unfiltered, and when a
+  // genre is picked, it is the fixed shortcut list it has always been.
+  const chips =
+    filteredBy?.type === 'artist'
+      ? genres
+      : GENRE_CHIPS.map((id) => genres.find((entry) => entry.id === id)).filter(
+          (entry): entry is NonNullable<typeof entry> => entry !== undefined,
+        );
 
   return (
     <aside className="rail rail--left">
@@ -36,7 +61,7 @@ export function LeftRail() {
 
       <Section id="genres">
         <div className="chips">
-          {genres.map((genre) => (
+          {chips.map((genre) => (
             <button
               key={genre.id}
               type="button"
@@ -52,7 +77,27 @@ export function LeftRail() {
 
       <Section id="roster" grow>
         {rosterLoaded && roster.length > 0 ? (
-          <RosterList />
+          <>
+            {/* Search still reaches every model whatever is filtered here, so
+                this is legibility rather than an escape hatch — a narrowed list
+                with nothing saying so reads as a dataset that lost half itself. */}
+            {filteredBy && (
+              <div className="roster__filter">
+                <span>{t('roster.filteredBy', { name: filteredBy.name })}</span>
+                <button
+                  type="button"
+                  className="roster__show-all"
+                  onClick={() => setShowAllFor(selectedId)}
+                >
+                  {t('roster.showAll')}
+                </button>
+              </div>
+            )}
+            {filteredBy?.type === 'genre' && artists.length === 0 && (
+              <p className="rail__hint">{t('roster.noneInGenre', { name: filteredBy.name })}</p>
+            )}
+            <RosterList artists={artists} genres={genres} />
+          </>
         ) : (
           <p className="rail__hint">{t('rails.noDataset')}</p>
         )}

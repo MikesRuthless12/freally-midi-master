@@ -129,7 +129,7 @@ pub struct WindowHandler {
     // On Linux it lives on the process's one GTK thread and this is its address
     // — same method names, so nothing below has to know which it is holding.
     #[cfg(not(target_os = "linux"))]
-    webview: WebView,
+    webview: Option<WebView>,
     #[cfg(target_os = "linux")]
     webview: linux::WebViewHandle,
     events_receiver: Receiver<Value>,
@@ -138,13 +138,36 @@ pub struct WindowHandler {
 }
 
 impl WindowHandler {
+    /// The webview, if this editor has one.
+    ///
+    /// ⛔ **`None` is a real state on Windows and macOS, not a placeholder.**
+    /// When the webview cannot be constructed — no WebView2 runtime is the
+    /// common case — `spawn` logs and carries on rather than panicking inside
+    /// the host's editor-open callback. Everything below then quietly does
+    /// nothing, which is a plugin with a blank editor rather than a DAW that
+    /// has just closed on unsaved work.
+    ///
+    /// Linux always answers `Some`: its handle is an id, and a webview that
+    /// failed to build is simply absent from the registry the id addresses.
+    #[cfg(not(target_os = "linux"))]
+    fn webview(&self) -> Option<&WebView> {
+        self.webview.as_ref()
+    }
+
+    #[cfg(target_os = "linux")]
+    fn webview(&self) -> Option<&linux::WebViewHandle> {
+        Some(&self.webview)
+    }
+
     pub fn resize(&self, window: &mut baseview::Window, width: u32, height: u32) {
-        self.webview.set_bounds(wry::Rect {
-            x: 0,
-            y: 0,
-            width,
-            height,
-        });
+        if let Some(webview) = self.webview() {
+            webview.set_bounds(wry::Rect {
+                x: 0,
+                y: 0,
+                width,
+                height,
+            });
+        }
         self.width.store(width, Ordering::Relaxed);
         self.height.store(height, Ordering::Relaxed);
         self.context.request_resize();
@@ -155,12 +178,21 @@ impl WindowHandler {
     }
 
     pub fn send_json(&self, json: Value) {
+        let Some(webview) = self.webview() else {
+            return;
+        };
         let json_str = json.to_string();
         let json_str_quoted =
             serde_json::to_string(&json_str).expect("Should not fail: the value is always string");
-        self.webview
-            .evaluate_script(&format!("onPluginMessageInternal({});", json_str_quoted))
-            .unwrap();
+        // Upstream unwrapped. This is called from the editor's frame handler on
+        // the host's UI thread, so a failed script is not grounds to end the
+        // host's process — and a page that has navigated away or is being torn
+        // down is a perfectly ordinary reason for one to fail.
+        if let Err(error) =
+            webview.evaluate_script(&format!("onPluginMessageInternal({});", json_str_quoted))
+        {
+            eprintln!("nih_plug_webview: could not deliver a message to the page: {error}");
+        }
     }
 
     pub fn next_event(&self) -> Result<Value, crossbeam::channel::TryRecvError> {
@@ -456,7 +488,27 @@ fn configure<'a>(
         .with_background_color(background_color);
 
     if let Some((scheme, handler)) = custom_protocol {
-        builder = builder.with_custom_protocol(scheme, move |request| handler(&request).unwrap());
+        builder = builder.with_custom_protocol(scheme, move |request| match handler(&request) {
+            Ok(response) => response,
+            // Upstream unwrapped here too, and this one is the worse of the
+            // pair: the webview calls this closure from an `extern "C"` frame,
+            // where a panic cannot unwind — release builds set
+            // `panic = "abort"`, so it ends the *host's* process rather than
+            // arriving anywhere the host could catch it.
+            //
+            // A 500 reaches the page as a failed request instead, which a page
+            // can report and a user can act on. `Response::new` is used rather
+            // than the builder because the builder is itself fallible, and the
+            // error path is not a place to add a new way to fail.
+            Err(error) => {
+                eprintln!("nih_plug_webview: the custom-protocol handler failed: {error}");
+                let mut response = Response::new(Cow::Borrowed(
+                    b"the custom-protocol handler failed" as &[u8],
+                ));
+                *response.status_mut() = wry::http::StatusCode::INTERNAL_SERVER_ERROR;
+                response
+            }
+        });
     }
 
     // ⛔ **`FREALLY_TRACE_EDITOR=1` traces the load, and it exists because a
@@ -564,7 +616,7 @@ impl Editor for WebViewEditor {
             let webview = {
                 let mut web_context = WebContext::new(Some(web_data_dir()));
                 // ⛔ The context goes on *first* — see `configure`.
-                configure(
+                let built = configure(
                     WebViewBuilder::new_as_child(window).with_web_context(&mut web_context),
                     bounds,
                     &source,
@@ -573,8 +625,29 @@ impl Editor for WebViewEditor {
                     custom_protocol,
                     events_sender,
                 )
-                .build()
-                .unwrap_or_else(|e| panic!("Failed to construct webview. {}", e))
+                .build();
+
+                match built {
+                    Ok(webview) => Some(webview),
+                    // ⛔ Upstream panicked, and this closure is run by
+                    // `baseview::Window::open_parented` **from inside the
+                    // host's editor-open callback** — so the panic is the
+                    // host's crash, and under `panic = "abort"` it cannot even
+                    // be caught. It is not a remote failure either: a machine
+                    // with no WebView2 Evergreen runtime, a read-only temp
+                    // directory, or a `web_data_dir()` already held by another
+                    // WebView2 environment with different options all land
+                    // here. That last one is the standalone opened alongside
+                    // the DAW.
+                    //
+                    // Logged, exactly as the Linux branch below does, and the
+                    // editor stays inert. A blank editor is recoverable; a
+                    // closed DAW with unsaved work is not.
+                    Err(error) => {
+                        eprintln!("nih_plug_webview: could not construct the webview: {error}");
+                        None
+                    }
+                }
             };
 
             // Linux builds it on the GTK thread and keeps it there; see `linux`

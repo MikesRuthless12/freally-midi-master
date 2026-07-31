@@ -10,7 +10,8 @@
 //! exists to expose.
 
 use engine::context::{SessionDefaults, SessionOverrides};
-use engine::generators::{chords, drums};
+use engine::dataset::modes;
+use engine::generators::{bass, chords, counter, drums, melody};
 use engine::humanize::humanize;
 use engine::pattern::{Part, Pattern, PPQ};
 use serde::Deserialize;
@@ -54,6 +55,9 @@ struct GenerateArgs {
     bars: Option<u16>,
     #[serde(default)]
     seed: Option<String>,
+    /// The mood to generate in. Absent is "Any" — see [`generate`].
+    #[serde(default)]
+    mood: Option<String>,
 }
 
 /// Answer one call.
@@ -87,7 +91,24 @@ pub fn dispatch(
 
         "session_defaults" => {
             let id = request.args["styleId"].as_str().unwrap_or_default();
-            let mut defaults = SessionDefaults::of(&dataset::model(id)?);
+            // ⛔ **Through the pinned mood, because `generate` applies the mode
+            // before it builds the context** — and a mode retunes the session
+            // block. Trap is 140, its `dark` mode 136 and `bounce` 148, so
+            // reading the bare model made the chip name a tempo the engine was
+            // never going to use, which is the readout-that-lies failure the
+            // chip exists to prevent.
+            //
+            // ⚠ Only a *pinned* mood can be resolved here. On "Any" the mode is
+            // picked from the seed at generation time, and an empty seed box
+            // means the seed does not exist yet — so the chip shows the model's
+            // own tempo, which is the honest answer to "what will it be" when
+            // the thing that decides has not happened.
+            let model = dataset::model(id)?;
+            let model = match state::with(session, |s| s.mood.clone()).flatten() {
+                Some(mood) => modes::apply(&model, &mood).unwrap_or(model),
+                None => model,
+            };
+            let mut defaults = SessionDefaults::of(&model);
             // The chip must show what pressing Generate *would* do, and inside
             // a host that is the host's tempo rather than the model's. Showing
             // the authored 140 next to a beat that will come out at 92 is the
@@ -154,6 +175,15 @@ pub fn dispatch(
                 next.window_size = state::read(session).window_size;
             }
 
+            // ⛔ **`muted_lanes` is NOT carried over the way `window_size` is,
+            // and the difference is that empty is a legitimate value here.**
+            // Filling an empty list in from the store made "unmute the last
+            // muted lane" impossible to express — the message that clears the
+            // final lane is indistinguishable from the page not mentioning the
+            // field, so the mute would come straight back and the UI would
+            // insist the lane was on while the preview stayed silent. The page
+            // sends the field on every save instead (`send()` in session.ts).
+
             state::write(session, next);
             Ok(Value::Null)
         }
@@ -215,11 +245,6 @@ pub fn dispatch(
 /// A change here that is not a change there is a change nobody meant.
 fn generate(args: &GenerateArgs, host: &HostSession, auto_sync: bool) -> Result<Pattern, String> {
     let part = args.part.unwrap_or(Part::Drums);
-    if !matches!(part, Part::Drums | Part::Chords) {
-        return Err(format!(
-            "the {part:?} generator is not implemented yet — only drums and chords are"
-        ));
-    }
 
     let seed = match &args.seed {
         Some(text) if !text.is_empty() => text
@@ -232,6 +257,27 @@ fn generate(args: &GenerateArgs, host: &HostSession, auto_sync: bool) -> Result<
     };
 
     let model = dataset::model(&args.style_id)?;
+
+    // ⛔ **The mode is applied before anything reads the model, and that
+    // ordering is the design** — a mode is a partial override of its own model,
+    // including the `session` block it may retune the tempo or swing in. Apply
+    // it after the context is built and the generators get a mode the session
+    // never heard about.
+    //
+    // An absent `mood` means "Any", which is a *pick* rather than "no mode":
+    // the whole point of TASK-040V is that one artist writes more than one kind
+    // of record, so a reroll should be able to land on a different one. Picking
+    // runs on its own seeded stream, so it cannot move the notes of a part that
+    // was not re-rolled.
+    let (model, mood) = match args.mood.as_deref().map(str::trim) {
+        Some(name) if !name.is_empty() => (modes::apply(&model, name)?, Some(name.to_owned())),
+        _ => match modes::pick(&model, seed) {
+            Some(name) => (modes::apply(&model, &name)?, Some(name)),
+            // The common case today: eleven of the shipped genres author no
+            // modes at all, and a model with none generates exactly as before.
+            None => (model, None),
+        },
+    };
 
     let mut overrides = args.session.clone().unwrap_or_default();
     if let Some(bars) = args.bars {
@@ -246,13 +292,55 @@ fn generate(args: &GenerateArgs, host: &HostSession, auto_sync: bool) -> Result<
     }
 
     let ctx = host.session_for(&model, &overrides, seed, auto_sync);
+
+    // ⛔ **The melodic parts are not independent, and the order below is the
+    // dependency, not a preference.** A melody is written against the harmony
+    // and around the drums; a countermelody answers the melody; a bassline
+    // follows the harmony and locks to the kick. Generating one in isolation
+    // would produce notes in the right key that fit nothing — which is the
+    // difference between five parts and one part played five times.
+    //
+    // The parts a request does not ask for are still generated, because they
+    // are its inputs. That costs nothing anyone can hear and is not a cache
+    // miss: every generator is a pure function of `(model, ctx, seed)`, so the
+    // harmony computed here is byte-for-byte the harmony a `Chords` request
+    // returns for the same seed. `engine/tests/coherence.rs` builds all five in
+    // exactly this order and is what proves they belong together.
     let mut lanes = match part {
+        Part::Drums => drums::generate(&model, &ctx, seed),
         Part::Chords => vec![chords::generate(&model, &ctx, seed).track],
-        _ => drums::generate(&model, &ctx, seed),
+        Part::Melody => {
+            let harmony = chords::generate(&model, &ctx, seed);
+            let kit = drums::generate(&model, &ctx, seed);
+            vec![melody::generate(&model, &ctx, seed, &harmony, &kit)]
+        }
+        Part::Counter => {
+            let harmony = chords::generate(&model, &ctx, seed);
+            let kit = drums::generate(&model, &ctx, seed);
+            let lead = melody::generate(&model, &ctx, seed, &harmony, &kit);
+            vec![counter::generate(&model, &ctx, seed, &harmony, &lead)]
+        }
+        Part::Bass => {
+            let harmony = chords::generate(&model, &ctx, seed);
+            let kit = drums::generate(&model, &ctx, seed);
+            vec![bass::generate(&model, &ctx, seed, &harmony, &kit)]
+        }
     };
     humanize(&mut lanes, &ctx, seed);
 
     if lanes.iter().all(|lane| lane.notes.is_empty()) {
+        // A style whose 808 *is* the bassline authors no separate bass lane on
+        // purpose — doubling it is a production mistake rather than a fuller
+        // sound (FR-007). "Has no Bass part authored" would read as a gap in
+        // the style, and now that Bass is reachable it is a message producers
+        // will actually meet.
+        if part == Part::Bass && bass::eight_o_eight_is_the_bass(&model) {
+            return Err(format!(
+                "{}'s 808 is the bassline — it plays in the drums, so there is \
+                 no separate bass part to generate",
+                model.name
+            ));
+        }
         return Err(format!(
             "{} has no {part:?} part authored — nothing to generate",
             model.name
@@ -272,6 +360,7 @@ fn generate(args: &GenerateArgs, host: &HostSession, auto_sync: bool) -> Result<
         scale: ctx.scale,
         lanes,
         ppq: PPQ,
+        mood,
     })
 }
 
@@ -358,6 +447,136 @@ mod tests {
         let err = dispatch(&request("no_such_command", json!({})), &host()).unwrap_err();
         assert!(err.contains("no_such_command"), "{err}");
         assert!(err.contains("bridge.rs"), "{err}");
+    }
+
+    /// Generate one part of one style, or say why it refused.
+    fn generate_part(style: &str, part: &str) -> Result<Value, String> {
+        dispatch(
+            &request(
+                "generate_pattern",
+                json!({ "request": {
+                    "styleId": style, "part": part, "bars": 4, "seed": "7"
+                }}),
+            ),
+            &host(),
+        )
+    }
+
+    fn note_count(pattern: &Value) -> usize {
+        pattern["lanes"]
+            .as_array()
+            .expect("a pattern has lanes")
+            .iter()
+            .map(|lane| lane["notes"].as_array().map_or(0, Vec::len))
+            .sum()
+    }
+
+    #[test]
+    fn all_five_generators_are_reachable_through_the_bridge() {
+        // ⛔ Three of these answered "the Melody generator is not implemented
+        // yet" until the parts were wired through, and the engine had had them
+        // all along — so the refusal was in this file rather than in the thing
+        // it reported on. The gate is that a part answers with *notes*, not
+        // merely that it answers.
+        //
+        // `uk-drill` because it authors all five and its 808 is a
+        // `counter_riff`, so the bassline is a lane of its own. See the next
+        // test for the styles where that is deliberately not true.
+        for part in ["drums", "melody", "counter", "bass", "chords"] {
+            let value = generate_part("uk-drill", part).unwrap_or_else(|e| panic!("{part}: {e}"));
+            assert_eq!(value["part"], part);
+            assert!(note_count(&value) > 0, "{part} generated no notes");
+        }
+    }
+
+    #[test]
+    fn a_bass_request_defers_to_the_808_rather_than_doubling_it() {
+        // Trap's 808 *is* the bassline (`drums.bass808.role`), so a second bass
+        // lane would double it — a production mistake rather than a fuller
+        // sound. The refusal has to say that, or it reads as a hole in the
+        // style: the part is authored, and it is deliberately silent.
+        let err = generate_part("trap", "bass").unwrap_err();
+        assert!(err.contains("808 is the bassline"), "{err}");
+        assert!(!err.contains("no Bass part authored"), "{err}");
+    }
+
+    #[test]
+    fn a_pinned_mood_is_the_one_generated_in() {
+        let value = dispatch(
+            &request(
+                "generate_pattern",
+                json!({ "request": { "styleId": "trap", "seed": "7", "mood": "melodic" } }),
+            ),
+            &host(),
+        )
+        .unwrap();
+
+        assert_eq!(value["mood"], "melodic");
+    }
+
+    #[test]
+    fn any_picks_a_mood_from_the_seed_rather_than_generating_without_one() {
+        // ⛔ "Any" is a pick, not an absence — the whole point of TASK-040V is
+        // that one artist writes more than one kind of record, so a reroll has
+        // to be able to land on a different one. A pattern with no mood here
+        // would mean the modes were silently skipped.
+        let picked = |seed: &str| {
+            dispatch(
+                &request(
+                    "generate_pattern",
+                    json!({ "request": { "styleId": "trap", "seed": seed } }),
+                ),
+                &host(),
+            )
+            .unwrap()["mood"]
+                .clone()
+        };
+
+        let offered = ["dark", "bounce", "melodic", "minimal"];
+        assert!(offered.contains(&picked("7").as_str().unwrap()));
+        // Same seed, same mood — picking runs on its own seeded stream.
+        assert_eq!(picked("7"), picked("7"));
+    }
+
+    #[test]
+    fn a_style_with_no_modes_generates_exactly_as_before() {
+        // Eleven of the shipped genres author none, so this is the common path.
+        let value = dispatch(
+            &request(
+                "generate_pattern",
+                json!({ "request": { "styleId": "phonk", "seed": "7" } }),
+            ),
+            &host(),
+        )
+        .unwrap();
+
+        assert!(value.get("mood").is_none(), "{value}");
+    }
+
+    #[test]
+    fn a_mood_the_style_does_not_offer_is_refused_by_name() {
+        let err = dispatch(
+            &request(
+                "generate_pattern",
+                json!({ "request": { "styleId": "trap", "seed": "7", "mood": "nope" } }),
+            ),
+            &host(),
+        )
+        .unwrap_err();
+
+        assert!(err.contains("nope"), "{err}");
+    }
+
+    #[test]
+    fn a_melodic_part_is_reproducible_from_its_seed_like_every_other() {
+        // The melodic parts regenerate their own inputs — the harmony, and the
+        // kit or the lead they sit with — so determinism has to survive a chain
+        // of generators rather than one. If it stops holding, a reopened
+        // project comes back on a different melody.
+        assert_eq!(
+            generate_part("uk-drill", "counter"),
+            generate_part("uk-drill", "counter")
+        );
     }
 
     #[test]

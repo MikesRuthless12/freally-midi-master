@@ -50,7 +50,8 @@
     "bpm": "BPM",
     "key": "调",
     "scale": "音阶",
-    "swing": "摇摆"
+    "swing": "摇摆",
+    "mood": "氛围"
   },
   "session": {
     "pickArtist": "选择一位艺术家，查看其设定。",
@@ -62,7 +63,10 @@
     "adopt": "使用 {{name}} 的",
     "hostSynced": "正在跟随你的 DAW。输入速度即可固定。",
     "autoSync": "跟随 DAW",
-    "autoSyncOff": "使用艺人的速度，而非你的 DAW 的速度。"
+    "autoSyncOff": "使用艺人的速度，而非你的 DAW 的速度。",
+    "audio": "音频",
+    "audioOn": "使用插件自带音色播放。",
+    "audioOff": "仅 MIDI — 由你的 DAW 音源发声。"
   },
   "scales": {
     "natural_minor": "自然小调",
@@ -199,7 +203,10 @@
   "roster": {
     "artists": "艺人",
     "flagship": "旗舰",
-    "genre": "流派"
+    "genre": "流派",
+    "filteredBy": "按 {{name}} 筛选",
+    "showAll": "显示全部",
+    "noneInGenre": "{{name}} 中还没有艺人。"
   },
   "lanes": {
     "kick": "底鼓",

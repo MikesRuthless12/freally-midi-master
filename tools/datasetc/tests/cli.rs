@@ -107,6 +107,35 @@ fn validate_fails_and_names_the_file_and_pointer() {
 }
 
 #[test]
+fn a_related_genre_that_names_nothing_fails_validation() {
+    // The cross-reference check, which is the only one that needs the whole
+    // dataset: nothing inside this file can tell that `not-a-genre` is absent.
+    // The app drops the id and carries on (FR-001); here it must fail, or a
+    // roster filter that silently matches nobody ships.
+    let scratch = Scratch::with_dataset("dangling");
+    scratch.write(
+        "artists/dangling.json",
+        r#"{
+          "$schema": "../schema/artist-style.schema.json",
+          "id": "dangling", "type": "artist", "name": "Dangling",
+          "extends": ["trap"],
+          "relatedGenres": ["trap", "not-a-genre"]
+        }"#,
+    );
+
+    let (ok, _stdout, stderr) = datasetc(&["validate", scratch.path()]);
+    assert!(!ok, "a dangling related genre must fail validation");
+    assert!(
+        stderr.contains("dangling.json"),
+        "should name the file: {stderr}"
+    );
+    assert!(
+        stderr.contains("not-a-genre"),
+        "should name the id that resolved to nothing: {stderr}"
+    );
+}
+
+#[test]
 fn a_bad_enum_is_caught_by_the_schema() {
     let scratch = Scratch::with_dataset("enum");
     scratch.write(

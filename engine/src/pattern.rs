@@ -151,6 +151,14 @@ pub struct Pattern {
     pub scale: Scale,
     pub lanes: Vec<LaneTrack>,
     pub ppq: u32,
+    /// The mode this was generated in, when the model offers any (TASK-040V).
+    ///
+    /// Carried on the pattern because a mood picked by the seed is otherwise
+    /// invisible: "Any" has to be able to say *which* one it landed on, for the
+    /// same reason the seed box echoes back the seed it used. `None` means the
+    /// model offers no modes, not that one was declined.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub mood: Option<String>,
 }
 
 impl Pattern {
@@ -268,6 +276,7 @@ mod tests {
                 ],
             }],
             ppq: PPQ,
+            mood: None,
         }
     }
 

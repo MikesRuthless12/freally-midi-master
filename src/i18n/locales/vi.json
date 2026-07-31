@@ -50,7 +50,8 @@
     "bpm": "BPM",
     "key": "Tông",
     "scale": "Âm giai",
-    "swing": "Độ swing"
+    "swing": "Độ swing",
+    "mood": "Tâm trạng"
   },
   "session": {
     "pickArtist": "Chọn một nghệ sĩ để xem yêu cầu của họ.",
@@ -62,7 +63,10 @@
     "adopt": "Dùng của {{name}}",
     "hostSynced": "Đang theo DAW của bạn. Nhập nhịp độ để ghim lại.",
     "autoSync": "Theo DAW",
-    "autoSyncOff": "Đang dùng tempo của nghệ sĩ, không phải của DAW."
+    "autoSyncOff": "Đang dùng tempo của nghệ sĩ, không phải của DAW.",
+    "audio": "Âm thanh",
+    "audioOn": "Phát bằng bộ kit của chính plugin.",
+    "audioOff": "Chỉ MIDI — nhạc cụ trong DAW của bạn sẽ phát."
   },
   "scales": {
     "natural_minor": "Thứ tự nhiên",
@@ -199,7 +203,10 @@
   "roster": {
     "artists": "Nghệ sĩ",
     "flagship": "Tiêu biểu",
-    "genre": "Thể loại"
+    "genre": "Thể loại",
+    "filteredBy": "Đã lọc theo {{name}}",
+    "showAll": "Hiện tất cả",
+    "noneInGenre": "Chưa có nghệ sĩ nào thuộc {{name}}."
   },
   "lanes": {
     "kick": "Trống bass",

@@ -30,6 +30,11 @@
     },
     "era": { "type": "string" },
     "genres": { "type": "array", "items": { "type": "string" } },
+    "relatedGenres": {
+      "type": "array",
+      "items": { "type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$" },
+      "description": "Ids of the genre models this artist works in, for cross-filtering the roster. Distinct from the two neighbouring fields it is easy to confuse it with: `genres` is free-text tags in a vocabulary of its own (`rap`, `drill`) that names no model, and `extends` is parameter inheritance — a model can only extend what it is musically built from, and the first entry here is normally that parent. Every id must name a model of type `genre`, which is checked. Curated rather than derived: an artist's tags cannot produce this, because `rap` is on almost every model and would relate everything to everything."
+    },
     "confidence": {
       "enum": ["high", "medium", "low"],
       "description": "How well-sourced this model's parameters are. Low-confidence models should say why in `notes`."

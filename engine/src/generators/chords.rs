@@ -1025,6 +1025,7 @@ mod tests {
             extends: Vec::new(),
             era: None,
             genres: Vec::new(),
+            related_genres: Vec::new(),
             confidence: None,
             sources: Vec::new(),
             session: None,

@@ -50,7 +50,8 @@
     "bpm": "BPM",
     "key": "キー",
     "scale": "スケール",
-    "swing": "スウィング"
+    "swing": "スウィング",
+    "mood": "ムード"
   },
   "session": {
     "pickArtist": "アーティストを選ぶと、その設定が表示されます。",
@@ -62,7 +63,10 @@
     "adopt": "{{name}} の値を使う",
     "hostSynced": "DAW に追従しています。テンポを入力すると固定されます。",
     "autoSync": "DAWに追従",
-    "autoSyncOff": "DAWではなくアーティストのテンポを使用しています。"
+    "autoSyncOff": "DAWではなくアーティストのテンポを使用しています。",
+    "audio": "オーディオ",
+    "audioOn": "プラグイン内蔵キットで再生します。",
+    "audioOff": "MIDI のみ — DAW の音源が鳴ります。"
   },
   "scales": {
     "natural_minor": "自然的短音階",
@@ -199,7 +203,10 @@
   "roster": {
     "artists": "アーティスト",
     "flagship": "主要",
-    "genre": "ジャンル"
+    "genre": "ジャンル",
+    "filteredBy": "{{name}} で絞り込み中",
+    "showAll": "すべて表示",
+    "noneInGenre": "{{name}} のアーティストはまだいません。"
   },
   "lanes": {
     "kick": "キック",

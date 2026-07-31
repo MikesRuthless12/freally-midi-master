@@ -275,6 +275,44 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
     // same thing — so the reply is built once. Asked on mount because the
     // window already opens at the saved size but the *page* has no way to know
     // what zoom that implies, and at 1:1 inside a scaled window it is cropped.
+    // The transport (TASK-041T). Handled here rather than in `bridge::dispatch`
+    // for the reason every command in this function is: they need `shared`, and
+    // the playhead lives there because the audio thread publishes it and the
+    // editor may not take a lock to read it.
+    match request.command.as_str() {
+        // Polled by the editor at frame rate, so it stays a bare number rather
+        // than a struct — this is the hottest command in the bridge.
+        "playhead" => return Some(Ok(json!(shared.playhead()))),
+
+        // Click anywhere on the timeline. The audio thread picks it up on its
+        // next block and rewinds its own cursor to match.
+        "seek" => {
+            let to = request.args["progress"].as_f64().unwrap_or(0.0) as f32;
+            shared.request_seek(to);
+            return Some(Ok(Value::Null));
+        }
+
+        // ⛔ Stop is a seek to zero, and Pause is *nothing at all* — which is
+        // the whole distinction. Inside a DAW the host owns whether time is
+        // running; the plugin only owns where in the pattern it is. So Pause
+        // has nothing to do here (the host stops calling `process` with a
+        // moving transport, and the marker simply stays where it was), while
+        // Stop has to move the marker back itself.
+        // ⛔ `stop_playback`, not `transport_stop`. The name is the one the
+        // frontend already invokes and the one the desktop shell and the mock
+        // both answer — and a bridge that answers a *different* name fails in
+        // the quietest possible way: the unknown command rejects, `stop()`
+        // swallows it, the marker snaps to zero locally, and the audio thread
+        // never rewinds. The beat keeps playing from the middle of the pattern
+        // while the playhead says it stopped.
+        "stop_playback" => {
+            shared.request_seek(0.0);
+            return Some(Ok(Value::Null));
+        }
+
+        _ => {}
+    }
+
     let (name, resize) = match request.command.as_str() {
         "editor_size" => (current_scale(shared), false),
         "set_editor_size" => (
@@ -460,6 +498,15 @@ pub fn create(shared: SharedState) -> Option<Box<dyn Editor>> {
 const RPC_PATH: &str = "__rpc";
 
 /// Serve one file out of the compiled-in frontend, or answer a command.
+///
+/// ⛔ **Every `Response::builder()` here reports its error rather than
+/// unwrapping it.** The builder is fallible — it validates header names and
+/// values — and this function is called from the webview's custom-protocol
+/// callback, which is an `extern "C"` frame: a panic there cannot unwind, and a
+/// release build aborts the host's process. The adapter turns an `Err` into a
+/// 500 the page can report. These particular builders take static headers and
+/// so should never fail; `?` is what makes "should never" not mean "or else the
+/// DAW closes".
 fn serve(
     request: &nih_plug_webview::http::Request<Vec<u8>>,
     shared: &SharedState,
@@ -476,16 +523,14 @@ fn serve(
             // The page is served from this same origin, but WebView2 treats a
             // custom scheme as opaque for fetch unless it is told otherwise.
             .header("Access-Control-Allow-Origin", "*")
-            .body(Cow::Owned(rpc(request.body(), shared).into_bytes()))
-            .unwrap());
+            .body(Cow::Owned(rpc(request.body(), shared).into_bytes()))?);
     }
 
     match UI.get_file(path) {
         Some(file) => Ok(Response::builder()
             .status(StatusCode::OK)
             .header(CONTENT_TYPE, mime_for(path))
-            .body(Cow::Borrowed(file.contents()))
-            .unwrap()),
+            .body(Cow::Borrowed(file.contents()))?),
         // A 404 rather than falling back to `index.html`. SPA fallbacks make a
         // missing asset render as a blank page with no error — the frontend
         // has no router, so a miss here is a build that did not produce what
@@ -495,8 +540,7 @@ fn serve(
             .header(CONTENT_TYPE, "text/plain")
             .body(Cow::Owned(
                 format!("{path} is not in the bundled UI").into_bytes(),
-            ))
-            .unwrap()),
+            ))?),
     }
 }
 
@@ -576,6 +620,17 @@ fn rpc(body: &[u8], shared: &SharedState) -> String {
                             schedule.arm(&pattern, shared.sample_rate());
                             shared.handoff.send(schedule);
                         }
+                    }
+
+                    // ⛔ The audio thread cannot read the session — taking that
+                    // lock inside `process` is the dropout this whole module
+                    // avoids — so the two FMM-S02 switches live as atomics and
+                    // are mirrored here, from the value that was just written.
+                    // Mirrored from the *store* rather than from the request, so
+                    // a project restore and a user toggle take the same path and
+                    // cannot disagree.
+                    if request.command == "save_session_state" {
+                        shared.adopt_session();
                     }
                     json!({ "id": request.id, "ok": value })
                 }

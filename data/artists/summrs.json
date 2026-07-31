@@ -17,6 +17,11 @@
     "plugg",
     "rnb"
   ],
+  "relatedGenres": [
+    "pluggnb",
+    "plugg",
+    "rage"
+  ],
   "confidence": "high",
   "sources": [
     "style-research ch.4 Summrs",

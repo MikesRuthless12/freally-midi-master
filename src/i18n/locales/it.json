@@ -50,7 +50,8 @@
     "bpm": "BPM",
     "key": "Tonalità",
     "scale": "Scala",
-    "swing": "Swing"
+    "swing": "Swing",
+    "mood": "Atmosfera"
   },
   "session": {
     "pickArtist": "Scegli un artista per vedere cosa chiede.",
@@ -62,7 +63,10 @@
     "adopt": "Usa quelli di {{name}}",
     "hostSynced": "Segue la tua DAW. Digita un tempo per fissarlo.",
     "autoSync": "Segui la DAW",
-    "autoSyncOff": "Si usa il tempo dell’artista, non quello della DAW."
+    "autoSyncOff": "Si usa il tempo dell’artista, non quello della DAW.",
+    "audio": "Audio",
+    "audioOn": "Suona con il kit del plugin.",
+    "audioOff": "Solo MIDI — suonano gli strumenti della tua DAW."
   },
   "scales": {
     "natural_minor": "Minore naturale",
@@ -199,7 +203,10 @@
   "roster": {
     "artists": "Artisti",
     "flagship": "Di punta",
-    "genre": "Genere"
+    "genre": "Genere",
+    "filteredBy": "Filtrato per {{name}}",
+    "showAll": "Mostra tutto",
+    "noneInGenre": "Nessun artista lavora ancora in {{name}}."
   },
   "lanes": {
     "kick": "Cassa",

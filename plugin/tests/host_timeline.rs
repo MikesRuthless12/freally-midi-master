@@ -52,6 +52,7 @@ fn generate_in_host(host: &HostSession, id: &str, seed: u64) -> Pattern {
         scale: ctx.scale,
         lanes,
         ppq: PPQ,
+        mood: None,
     }
 }
 

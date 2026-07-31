@@ -51,6 +51,26 @@ carried across whole.
   thread of someone else's DAW takes the host down with it, and the message that
   caused it is a bug in the *page*, not grounds to kill Ableton. It logs and
   returns instead.
+- **The three remaining panics that could end the host's process are gone.**
+  Release sets `panic = "abort"`, so none of them unwound and the DAW could not
+  have caught any of them. Each now logs and degrades:
+  - **`build()` on the webview.** Upstream's `unwrap_or_else(|e| panic!(...))`
+    ran inside the closure `baseview::Window::open_parented` invokes **from the
+    host's own editor-open callback** — so the crash was the host's. It is not a
+    remote failure: no WebView2 Evergreen runtime, a read-only temp directory,
+    or a `web_data_dir()` already held by another WebView2 environment with
+    different options all land there, and that last one is the standalone opened
+    alongside the DAW. `WindowHandler::webview` is therefore `Option<WebView>`
+    off Linux, and a failure gives a **blank editor rather than a closed DAW**.
+    Linux already behaved this way; the two branches now agree.
+  - **The custom-protocol handler.** `handler(&request).unwrap()` ran from an
+    `extern "C"` frame, where a panic cannot unwind at all. An `Err` becomes a
+    500 the page can report. Latent while `plugin/src/editor.rs::serve` returned
+    `Ok` on every path — and it did that by `unwrap`ping three fallible
+    `Response::builder()` calls, which now use `?` and arrive here.
+  - **`send_json`.** `evaluate_script(...).unwrap()`, called from the frame
+    handler on the host's UI thread. A page mid-teardown is an ordinary reason
+    for a script to fail.
 - The webview's attributes moved into a `configure` function, and the webview
   itself is built through a `cfg` — inline on Windows and macOS, on the GTK
   thread on Linux. `WindowHandler::webview` is a `WebView` on the first two and
@@ -127,7 +147,7 @@ The manifest:
 Any one of:
 
 1. Upstream pins `baseview`, updates to `raw-window-handle` 0.6, and stops
-   panicking on malformed IPC.
+   panicking on threads the host owns.
 2. The maintained framework fork (`nice-plug`) grows a webview adapter — it
    currently ships egui, iced, slint and vizia adapters and no webview, which
    is the whole reason this project is on the unmaintained `nih-plug`.

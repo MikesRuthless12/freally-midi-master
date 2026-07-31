@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 
 import { useSession } from '../../state/session';
+import type { RosterEntry } from '../../lib/ipc-types';
 import './RosterList.css';
 
 /**
@@ -9,17 +10,23 @@ import './RosterList.css';
  * Artists first, then genres. That order is the product's claim: "Trap is not
  * Metro Boomin" — the named artist is what someone came for, and the genre is
  * the fallback underneath.
+ *
+ * The lists arrive as props rather than being read from the store, because the
+ * left rail cross-filters them against the current selection and its genre
+ * chips have to agree with this list exactly. One place decides; this draws it.
  */
-export function RosterList() {
+export function RosterList({
+  artists,
+  genres,
+}: {
+  artists: RosterEntry[];
+  genres: RosterEntry[];
+}) {
   const { t } = useTranslation();
-  const roster = useSession((s) => s.roster);
   const selectedId = useSession((s) => s.selectedId);
   const select = useSession((s) => s.select);
 
-  const artists = roster.filter((entry) => entry.type === 'artist');
-  const genres = roster.filter((entry) => entry.type === 'genre');
-
-  const group = (label: string, entries: typeof roster) =>
+  const group = (label: string, entries: RosterEntry[]) =>
     entries.length > 0 && (
       <li className="roster__group" key={label}>
         <h3 className="roster__heading">{label}</h3>

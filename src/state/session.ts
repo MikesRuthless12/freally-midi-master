@@ -123,6 +123,25 @@ type SessionState = {
    */
   autoSync: boolean;
   /**
+   * The pinned mood, or `null` for "Any" (TASK-040V).
+   *
+   * "Any" is not "no mood": the engine picks one from the seed, so a reroll can
+   * land on a different kind of record by the same artist — which is the whole
+   * point of modes. Pinning holds it to one. `pattern.mood` is what it landed
+   * on, the same way the seed box echoes the seed it used.
+   */
+  mood: string | null;
+  /**
+   * Whether the plugin plays its own preview kit (FMM-S02).
+   *
+   * ⛔ Off is **MIDI-only, and a first-class mode rather than a degraded one**:
+   * a producer routing these notes into Battery does not want the preview kit
+   * doubling every hit. It is what the plugin did before it had a sampler.
+   */
+  audioEnabled: boolean;
+  /** Lanes whose audio is muted. No UI yet — TASK-043 owns the lane headers. */
+  mutedLanes: string[];
+  /**
    * What the selected style asks for, read the moment it is selected.
    *
    * `null` before the first selection and whenever the read failed — the chips
@@ -145,6 +164,18 @@ type SessionState = {
   setBars: (bars: number) => void;
   setPin: <K extends keyof SessionPins>(field: K, value: SessionPins[K]) => void;
   setAutoSync: (on: boolean) => void;
+  /** Pin the mood, or hand it back to the seed with `null`. */
+  setMood: (mood: string | null) => void;
+  /** Let the plugin play its preview kit, or go MIDI-only. */
+  setAudioEnabled: (on: boolean) => void;
+  /**
+   * Move the playhead, as a fraction of the pattern (TASK-041T).
+   *
+   * Click anywhere on the timeline and playback continues from there. In the
+   * plugin the audio thread picks this up on its next block; the desktop
+   * transport has no such command and keeps the local move.
+   */
+  seek: (progress: number) => Promise<void>;
   /** Ask the host what tempo it is running at. No-op outside a plugin. */
   refreshHost: () => Promise<void>;
   /**
@@ -176,8 +207,8 @@ type SessionState = {
  * restoring any of those would undo something the user did not do.
  */
 function snapshotOf(state: SessionState): Snapshot {
-  const { selectedId, seed, bars, pins, autoSync, pattern } = state;
-  return { selectedId, seed, bars, pins, autoSync, pattern };
+  const { selectedId, seed, bars, pins, autoSync, pattern, mood, audioEnabled } = state;
+  return { selectedId, seed, bars, pins, autoSync, pattern, mood, audioEnabled };
 }
 
 /**
@@ -270,6 +301,29 @@ export type SavedSession = {
    * `auto_sync_default` makes the same choice for the same reason.
    */
   autoSync?: boolean;
+  /**
+   * The pinned mood, absent for "Any" (TASK-040V).
+   *
+   * ⛔ Only a pin is stored. "Any" means the mood is picked from the seed, so
+   * the same seed reopens on the same mood with nothing saved — the same
+   * argument that lets the pattern itself go unsaved.
+   */
+  mood?: string | null;
+  /**
+   * Whether the preview sampler sounds (FMM-S02).
+   *
+   * Optional on the way in, and absent means **on** — the plugin's own
+   * `audio_enabled_default` makes the same choice for the same reason.
+   */
+  audioEnabled?: boolean;
+  /**
+   * Lanes whose audio is muted (FMM-S02).
+   *
+   * ⛔ Sent on every save, even when empty. The plugin used to fill an empty
+   * list in from the store — which made "unmute the last lane" impossible to
+   * express, because an empty set and an unmentioned field looked identical.
+   */
+  mutedLanes?: string[];
 };
 
 /**
@@ -299,9 +353,10 @@ function flush(): void {
 }
 
 function send(): void {
-  const { selectedId, seed, bars, pins, autoSync } = useSession.getState();
+  const { selectedId, seed, bars, pins, autoSync, mood, audioEnabled, mutedLanes } =
+    useSession.getState();
   void invoke('save_session_state', {
-    session: { selectedId, seed, bars, pins, autoSync },
+    session: { selectedId, seed, bars, pins, autoSync, mood, audioEnabled, mutedLanes },
   }).catch(() => {
     // Losing a session write is not worth interrupting someone mid-beat. The
     // next change writes the whole session again anyway.
@@ -369,25 +424,42 @@ function put(
   set: (partial: Partial<SessionState>) => void,
   get: () => SessionState,
 ): void {
+  // ⛔ **One `set`, not two.** Every write here is recorded by the history
+  // subscriber, so splitting the selection out of the rest made a single preset
+  // load land as *two* undo entries — the first `Ctrl`+`Z` then stepped back to
+  // a half-applied preset that was never on screen.
   set({
     seed: saved.seed ?? '',
     bars: saved.bars ?? get().bars,
     // Absent means on, matching the plugin's `auto_sync_default`: a project
     // written before the toggle existed must keep following its DAW.
     autoSync: saved.autoSync ?? true,
+    mood: saved.mood ?? null,
+    audioEnabled: saved.audioEnabled ?? true,
+    mutedLanes: saved.mutedLanes ?? [],
     pins: {
       bpm: saved.pins?.bpm ?? null,
       keyRoot: saved.pins?.keyRoot ?? null,
       scale: saved.pins?.scale ?? null,
       swing: saved.pins?.swing ?? null,
     },
+    // ⛔ The prompt asks about an artist switch, and a preset is not that
+    // switch — leaving it up means answering it with "use theirs" wipes the
+    // pins the preset just set. `applySnapshot` clears it for the same reason.
+    pendingArtist: null,
+    // ⛔ The incoming session's pattern has not been generated yet — it is
+    // derived from the seed, on request. Leaving the old one up showed the
+    // *previous* artist's beat under the new artist's name, which is the
+    // readout-that-lies failure `loadDefaults` already guards against. Null on
+    // a project restore too, where it is already null and this changes nothing.
+    pattern: null,
+    // Set directly rather than through `select`, which would clear the pins as
+    // a different artist's and raise the keep-or-adopt prompt. This is a
+    // session arriving whole, not a switch.
+    ...(saved.selectedId ? { selectedId: saved.selectedId } : {}),
   });
 
-  // Set directly rather than through `select`, which would clear the pins as a
-  // different artist's and raise the keep-or-adopt prompt. This is a session
-  // arriving whole, not a switch.
   if (saved.selectedId) {
-    set({ selectedId: saved.selectedId });
     void loadDefaults(saved.selectedId, set, get);
   }
 }
@@ -414,6 +486,9 @@ export const useSession = create<SessionState>((set, get) => ({
   pins: NO_PINS,
   hostTempo: null,
   autoSync: true,
+  mood: null,
+  audioEnabled: true,
+  mutedLanes: [],
   defaults: null,
   pendingArtist: null,
 
@@ -469,6 +544,11 @@ export const useSession = create<SessionState>((set, get) => ({
     // an artist when there was no artist.
     set({
       selectedId: id,
+      // ⛔ A mood belongs to the artist it was picked for. Carrying it across
+      // means the next Generate is refused by the engine — and on a style that
+      // authors no modes the chip is not even rendered, so there is no control
+      // on screen to clear it.
+      mood: null,
       pattern: null,
       error: null,
       unplacedNotes: 0,
@@ -494,6 +574,20 @@ export const useSession = create<SessionState>((set, get) => ({
     set({ pins: { ...get().pins, [field]: value } });
   },
 
+  setAudioEnabled(on) {
+    // Saved at once, like auto-sync: it is part of how a song was made, and a
+    // producer who silenced the plugin expects it silent when they come back.
+    set({ audioEnabled: on });
+    persist();
+  },
+
+  setMood(mood) {
+    // Saved like auto-sync and for the same reason: it is part of how a song
+    // was made, not a transient view setting.
+    set({ mood });
+    persist();
+  },
+
   setAutoSync(on) {
     // Saved immediately rather than on the next generation: it is part of how a
     // song was made, and a producer who turns it off and closes the project
@@ -510,6 +604,15 @@ export const useSession = create<SessionState>((set, get) => ({
       // rather than showing a tempo nothing is running at.
       const tempo = typeof host?.tempo === 'number' && host.tempo > 0 ? host.tempo : null;
       if (get().hostTempo !== tempo) set({ hostTempo: tempo });
+
+      // ⛔ **The DAW owns whether time is running, and this is the only thing
+      // that tells the page.** `playing` gates the playhead poll and enables
+      // Stop; in a plugin `play()` is unreachable (playback belongs to the
+      // host), so without this the flag was permanently false — the marker
+      // never moved and Stop was never clickable, with the whole transport
+      // silently inert.
+      const playing = host?.playing === true;
+      if (get().playing !== playing) set({ playing });
     } catch {
       // No host behind this UI — the desktop shell, a browser, or a bridge
       // that has no such command. Not an error: there is simply no project
@@ -535,7 +638,7 @@ export const useSession = create<SessionState>((set, get) => ({
   },
 
   async generate() {
-    const { selectedId, seed, bars, generating, pins } = get();
+    const { selectedId, seed, bars, generating, pins, mood } = get();
     if (!selectedId || generating) return;
 
     set({ generating: true, error: null });
@@ -550,6 +653,9 @@ export const useSession = create<SessionState>((set, get) => ({
           // Every unpinned field goes as null, which serde reads as absent —
           // the artist's own value then stands (FR-002).
           session: pins,
+          // Null is "Any", which the engine answers by picking from the seed
+          // rather than by generating without a mode (TASK-040V).
+          mood,
         },
       });
       // Show the seed that was actually used, so the chip can be copied even
@@ -571,6 +677,19 @@ export const useSession = create<SessionState>((set, get) => ({
       set({ playing: true, unplacedNotes: started.unplacedNotes, error: null });
     } catch (error) {
       set({ playing: false, error: reason(error) });
+    }
+  },
+
+  async seek(progress) {
+    const to = Math.min(1, Math.max(0, progress));
+    // Moved locally first so the marker lands under the pointer on the same
+    // frame as the click. The audio thread is a block behind at worst, and a
+    // marker that waits for a round trip reads as a click that missed.
+    set({ playhead: to });
+    try {
+      await invoke('seek', { progress: to });
+    } catch {
+      // No such command in the desktop shell; the local move still stands.
     }
   },
 
@@ -631,10 +750,18 @@ if (isPlugin()) {
       state.seed === prev.seed &&
       state.bars === prev.bars &&
       state.pins === prev.pins &&
-      // `send()` writes this too, so leaving it out meant an undone or redone
-      // toggle never reached the project — the session reopened contradicting
+      // `send()` writes these too, so leaving one out means an undone or redone
+      // change never reaches the project — the session reopens contradicting
       // what the UI had just shown.
-      state.autoSync === prev.autoSync
+      //
+      // ⛔ **Every field `send()` carries has to be compared here.** The two
+      // lists are the same list, and they have now drifted twice: `autoSync`
+      // first, then `mood` and `audioEnabled`, which shipped with `persist()`
+      // called from their setters *and* absent from this check — so a direct
+      // toggle saved and an undone one did not.
+      state.autoSync === prev.autoSync &&
+      state.mood === prev.mood &&
+      state.audioEnabled === prev.audioEnabled
     ) {
       return;
     }
@@ -657,6 +784,53 @@ if (isPlugin()) {
  * transport state is driven by the play/stop calls alone.
  */
 export async function subscribeToPlayhead(): Promise<() => void> {
+  // ⛔ **The plugin has no event system to push this, so it polls** (TASK-041T).
+  // The bridge is an HTTP round trip over the custom protocol — wry's IPC is
+  // one-way, and a window parented into Ableton never gets the frame tick a push
+  // would need. That is the same constraint that made every other command a
+  // request/response, and it is why this is a poll rather than a listener.
+  //
+  // At frame rate against an atomic the audio thread already writes every block,
+  // so the marker moves with the tempo without the audio thread ever waiting for
+  // the page. Stopped when the editor closes, like every other subscription here.
+  if (isPlugin()) {
+    let live = true;
+    const tick = async () => {
+      if (!live) return;
+      // ⛔ Only while something is playing. An idle editor is the normal state
+      // and it must cost nothing — polling regardless was a round trip per
+      // frame, forever, to read a number that cannot change. The desktop
+      // emitter makes the same call for the same reason.
+      if (!useSession.getState().playing) {
+        schedule();
+        return;
+      }
+      try {
+        const position = await invoke<number>('playhead');
+        // ⛔ Only write when it moved. `set` on every frame would re-render the
+        // grid sixty times a second whether or not anything changed, and the
+        // playhead line is a CSS variable precisely so it does not have to.
+        if (useSession.getState().playhead !== position) {
+          useSession.setState({ playhead: position });
+        }
+      } catch {
+        // A dropped poll is a dropped frame of the marker, and the next one
+        // fixes it. Reporting it would put an error on screen for nothing.
+      }
+      schedule();
+    };
+    // 30 Hz, which is the rate the desktop path publishes at and the rate
+    // `App.tsx` already documents. rAF would be 60 and buys nothing: the marker
+    // is one CSS variable, and the pattern it walks is seconds long.
+    const schedule = () => {
+      if (live) window.setTimeout(() => void tick(), 33);
+    };
+    void tick();
+    return () => {
+      live = false;
+    };
+  }
+
   if (!isTauri()) return () => {};
   const { listen } = await import('@tauri-apps/api/event');
 

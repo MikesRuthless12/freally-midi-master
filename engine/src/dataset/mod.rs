@@ -201,6 +201,13 @@ pub struct RosterEntry {
     pub model_type: ModelType,
     pub tier: Option<Tier>,
     pub genres: Vec<String>,
+    /// Ids of the genre models this one works in, for cross-filtering the roster.
+    ///
+    /// Empty for a genre, and for an artist nobody has curated yet. ⛔ Not the
+    /// same thing as `genres`, which is free-text tags in a vocabulary of its
+    /// own — `rap`, `drill` — that name no model at all. Every id here has been
+    /// checked to name a real `genre`; see [`unknown_related_genres`].
+    pub related_genres: Vec<String>,
     pub era: Option<String>,
 }
 
@@ -267,8 +274,35 @@ fn roster_entry(model: &StyleModel, own: &Value) -> RosterEntry {
             .get("tier")
             .and_then(|v| serde_json::from_value(v.clone()).ok()),
         genres: string_list(own.get("genres")),
+        related_genres: string_list(own.get("relatedGenres")),
         era: own.get("era").and_then(Value::as_str).map(str::to_owned),
     }
+}
+
+/// The `relatedGenres` ids in a model's own JSON that do not name a genre.
+///
+/// ⛔ **Read from the model's own file, never from its resolved form** — the
+/// same rule, and the same reason, as [`roster_entry`]'s other metadata. A
+/// resolved model is a deep merge of its parents, so every artist under `trap`
+/// would otherwise claim whatever relations `trap` claimed.
+///
+/// Naming an *artist* is as wrong as naming nothing, and is the easier mistake
+/// to make: `pluggnb` is a genre and `summrs` is not, and nothing in how an id
+/// is spelled says which. Both come back here.
+///
+/// The **policy** is the caller's, which is why this only reports. `load` drops
+/// the ids and records a problem, so one bad file cannot cost the user the rest;
+/// `datasetc` fails CI on the same finding before it can ship.
+pub fn unknown_related_genres(own: &Value, models: &BTreeMap<String, StyleModel>) -> Vec<String> {
+    string_list(own.get("relatedGenres"))
+        .into_iter()
+        .filter(|id| {
+            !matches!(
+                models.get(id).map(|model| model.model_type),
+                Some(ModelType::Genre)
+            )
+        })
+        .collect()
 }
 
 /// Load a whole dataset: parse, resolve, and build the roster.
@@ -287,6 +321,32 @@ pub fn load(
     let registry = registry_from(files);
     let (models, errors) = registry.resolve_all();
 
+    // ⛔ A `relatedGenres` id naming nothing is **dropped** from the roster
+    // rather than carried into it. The rails filter on these, so a dangling id
+    // arrives as a genre that hides every artist — which reads as the app being
+    // broken rather than as a dataset mistake, and hides the mistake too.
+    let mut dangling: Vec<DatasetProblem> = Vec::new();
+    let entries: Vec<RosterEntry> = models
+        .iter()
+        .filter(|(id, _)| !is_internal(id))
+        .filter_map(|(id, model)| {
+            let own = registry.raw(id)?;
+            let mut entry = roster_entry(model, own);
+            let unknown = unknown_related_genres(own, &models);
+            if !unknown.is_empty() {
+                entry.related_genres.retain(|g| !unknown.contains(g));
+                dangling.push(DatasetProblem {
+                    source: id.clone(),
+                    message: format!(
+                        "`relatedGenres` names no genre model: {}",
+                        unknown.join(", ")
+                    ),
+                });
+            }
+            Some(entry)
+        })
+        .collect();
+
     let mut problems: Vec<DatasetProblem> = registry
         .rejected()
         .iter()
@@ -298,16 +358,11 @@ pub fn load(
             source: id,
             message: error.to_string(),
         }))
+        .chain(dangling)
         .collect();
     // Rejections come in file order and resolution failures in id order; sorting
     // the union keeps the badge list stable between launches.
     problems.sort();
-
-    let entries = models
-        .iter()
-        .filter(|(id, _)| !is_internal(id))
-        .filter_map(|(id, model)| Some(roster_entry(model, registry.raw(id)?)))
-        .collect();
 
     LoadedDataset {
         summary: RosterSummary {
@@ -473,6 +528,126 @@ mod tests {
         // for, and it is why the roster cannot be built from it.
         assert_eq!(loaded.models["osamason"].genres, ["trap"]);
         assert_eq!(loaded.models["osamason"].aliases, ["osama"]);
+    }
+
+    /// Two genres and one artist relating to both, as the shipped dataset does.
+    fn cross_filtered(artist: &str) -> LoadedDataset {
+        load(
+            "0.1.0",
+            vec![
+                entry(
+                    "plugg.json",
+                    r#"{"id":"plugg","type":"genre","name":"Plugg"}"#,
+                ),
+                entry("rage.json", r#"{"id":"rage","type":"genre","name":"Rage"}"#),
+                entry("artist.json", artist),
+            ],
+        )
+    }
+
+    fn related_of(loaded: &LoadedDataset, id: &str) -> Vec<String> {
+        loaded
+            .summary
+            .entries
+            .iter()
+            .find(|e| e.id == id)
+            .expect("the model should be in the roster")
+            .related_genres
+            .clone()
+    }
+
+    #[test]
+    fn an_artist_carries_the_genres_it_works_in_in_authored_order() {
+        // Order is the author's: the first entry is normally the model's own
+        // `extends` parent, and the rail shows them in the order given.
+        let loaded = cross_filtered(
+            r#"{"id":"osamason","type":"artist","name":"OsamaSon","extends":["rage"],
+                "relatedGenres":["rage","plugg"]}"#,
+        );
+        assert_eq!(related_of(&loaded, "osamason"), ["rage", "plugg"]);
+        // A genre relates to nobody from its own side; the rail inverts the
+        // artists' lists to answer "who works in this genre".
+        assert!(related_of(&loaded, "rage").is_empty());
+    }
+
+    #[test]
+    fn a_related_genre_that_names_nothing_is_dropped_and_reported() {
+        // ⛔ Dropped rather than kept: the rails filter on these, so a dangling
+        // id arrives in the UI as a genre that hides every artist — which reads
+        // as the app being broken and hides the dataset mistake behind it.
+        let loaded = cross_filtered(
+            r#"{"id":"osamason","type":"artist","name":"OsamaSon",
+                "relatedGenres":["rage","nope"]}"#,
+        );
+        assert_eq!(related_of(&loaded, "osamason"), ["rage"]);
+
+        let problem = loaded
+            .summary
+            .problems
+            .iter()
+            .find(|p| p.source == "osamason")
+            .expect("the dangling id should be reported");
+        assert!(problem.message.contains("nope"), "{}", problem.message);
+    }
+
+    #[test]
+    fn a_related_genre_pointing_at_an_artist_is_refused_like_a_missing_one() {
+        // The easier mistake of the two, and invisible in the id: `pluggnb` is
+        // a genre and `summrs` is not, and nothing in the spelling says which.
+        let loaded = load(
+            "0.1.0",
+            vec![
+                entry(
+                    "plugg.json",
+                    r#"{"id":"plugg","type":"genre","name":"Plugg"}"#,
+                ),
+                entry(
+                    "summrs.json",
+                    r#"{"id":"summrs","type":"artist","name":"Summrs"}"#,
+                ),
+                entry(
+                    "artist.json",
+                    r#"{"id":"osamason","type":"artist","name":"OsamaSon",
+                        "relatedGenres":["plugg","summrs"]}"#,
+                ),
+            ],
+        );
+
+        assert_eq!(related_of(&loaded, "osamason"), ["plugg"]);
+        assert!(loaded
+            .summary
+            .problems
+            .iter()
+            .any(|p| p.source == "osamason"));
+    }
+
+    #[test]
+    fn related_genres_are_the_models_own_and_never_inherited() {
+        // The same rule as every other roster field, and it matters more here:
+        // inheriting would give every artist under `plugg` whatever relations
+        // `plugg` carried, so one authored line would silently relate dozens.
+        let loaded = load(
+            "0.1.0",
+            vec![
+                entry("rage.json", r#"{"id":"rage","type":"genre","name":"Rage"}"#),
+                entry(
+                    "plugg.json",
+                    r#"{"id":"plugg","type":"genre","name":"Plugg","relatedGenres":["rage"]}"#,
+                ),
+                entry(
+                    "artist.json",
+                    r#"{"id":"summrs","type":"artist","name":"Summrs","extends":["plugg"]}"#,
+                ),
+            ],
+        );
+
+        assert!(
+            related_of(&loaded, "summrs").is_empty(),
+            "the artist authored none of its own"
+        );
+        // The resolved model does inherit, which is exactly why the roster is
+        // built from the raw file rather than from this.
+        assert_eq!(loaded.models["summrs"].related_genres, ["rage"]);
     }
 
     #[test]

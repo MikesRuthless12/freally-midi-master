@@ -17,6 +17,10 @@
     "rap",
     "drill"
   ],
+  "relatedGenres": [
+    "ny-drill",
+    "uk-drill"
+  ],
   "confidence": "high",
   "sources": [
     "style-research ch.3 Pop Smoke",

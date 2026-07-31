@@ -23,6 +23,7 @@
 use std::sync::{Arc, RwLock};
 
 use engine::context::SessionOverrides;
+use engine::pattern::Lane;
 use serde::{Deserialize, Serialize};
 
 /// The session as the host stores it, and as the UI restores it.
@@ -69,6 +70,36 @@ pub struct PluginSession {
     /// model**, which `crate::host::session_for` owns.
     #[serde(default = "auto_sync_default")]
     pub auto_sync: bool,
+    /// The pinned mood, or `None` for "Any" (TASK-040V).
+    ///
+    /// ⛔ Only a *pin* is stored. "Any" is not a value to restore: the mood is
+    /// then picked from the seed, so the same seed reopens on the same mood
+    /// without this carrying anything — the same argument that lets the pattern
+    /// itself go unsaved. Storing "Any" as a name would freeze a choice the
+    /// user deliberately left open.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub mood: Option<String>,
+    /// Whether the preview sampler sounds at all (FMM-S02).
+    ///
+    /// Part of how a song was made — a producer who silenced the plugin to
+    /// route MIDI into their own drum sampler expects it silent when they
+    /// reopen the project, not doubling every hit. Absent means **on**, for the
+    /// same reason as [`auto_sync_default`].
+    #[serde(default = "audio_enabled_default")]
+    pub audio_enabled: bool,
+    /// Lanes whose *audio* is muted. Their notes still reach the host.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub muted_lanes: Vec<Lane>,
+}
+
+/// The preview sampler's default, which is **on**.
+///
+/// ⛔ Safe to default this way because **no build has ever shipped**: no saved
+/// project predates the sampler, so none can be surprised by it. A generator
+/// nobody can hear without wiring an instrument up first is the problem the
+/// sampler exists to fix.
+fn audio_enabled_default() -> bool {
+    true
 }
 
 /// Auto-sync's default, which is **on**.
@@ -95,6 +126,9 @@ impl Default for PluginSession {
             // See `auto_sync_default`: following the host is the default because
             // it is the reason the plugin exists.
             auto_sync: true,
+            mood: None,
+            audio_enabled: true,
+            muted_lanes: Vec::new(),
         }
     }
 }
@@ -172,6 +206,9 @@ mod tests {
             },
             window_size: Some("small".into()),
             auto_sync: true,
+            mood: Some("dark".into()),
+            audio_enabled: false,
+            muted_lanes: vec![Lane::Snare],
         };
 
         let json = serde_json::to_string(&session).unwrap();

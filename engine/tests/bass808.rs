@@ -373,6 +373,8 @@ fn a_generated_slide_exports_as_two_overlapping_notes() {
         scale: Scale::NaturalMinor,
         lanes,
         ppq: PPQ,
+
+        mood: None,
     };
 
     let bytes = pattern_to_smf(&pattern);
