@@ -377,6 +377,7 @@ pub fn drag_spike_pattern() -> Pattern {
             },
         ],
         ppq: PPQ,
+        mood: None,
     }
 }
 
@@ -399,6 +400,7 @@ mod tests {
             scale: Scale::NaturalMinor,
             lanes: vec![LaneTrack { lane, notes }],
             ppq: PPQ,
+            mood: None,
         }
     }
 

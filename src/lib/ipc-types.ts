@@ -80,7 +80,16 @@ artistId: string, seed: string, bars: number, bpm: number, timeSigNum: number, t
 /**
  * Pitch class of the key root, 0 = C.
  */
-keyRoot: number, scale: Scale, lanes: Array<LaneTrack>, ppq: number, };
+keyRoot: number, scale: Scale, lanes: Array<LaneTrack>, ppq: number, 
+/**
+ * The mode this was generated in, when the model offers any (TASK-040V).
+ *
+ * Carried on the pattern because a mood picked by the seed is otherwise
+ * invisible: "Any" has to be able to say *which* one it landed on, for the
+ * same reason the seed box echoes back the seed it used. `None` means the
+ * model offers no modes, not that one was declined.
+ */
+mood?: string | null, };
 
 export type PatternRef = { patternId: string, };
 
@@ -94,7 +103,16 @@ export type PatternRef = { patternId: string, };
  * and `type` come from the resolved model, which `inherit` already guarantees
  * are the model's own.
  */
-export type RosterEntry = { id: string, name: string, aliases: Array<string>, type: ModelType, tier: Tier | null, genres: Array<string>, era: string | null, };
+export type RosterEntry = { id: string, name: string, aliases: Array<string>, type: ModelType, tier: Tier | null, genres: Array<string>, 
+/**
+ * Ids of the genre models this one works in, for cross-filtering the roster.
+ *
+ * Empty for a genre, and for an artist nobody has curated yet. ⛔ Not the
+ * same thing as `genres`, which is free-text tags in a vocabulary of its
+ * own — `rap`, `drill` — that name no model at all. Every id here has been
+ * checked to name a real `genre`; see [`unknown_related_genres`].
+ */
+relatedGenres: Array<string>, era: string | null, };
 
 /**
  * What `roster_summary` returns (PRD § 4).
@@ -148,7 +166,16 @@ keys: Array<string>,
 /**
  * Scales the model draws from, in authored order.
  */
-scales: Array<Scale>, swing: Swing, halfTime: boolean, };
+scales: Array<Scale>, swing: Swing, halfTime: boolean, 
+/**
+ * The moods this model offers, in authored order (TASK-040V).
+ *
+ * Empty for a model with no `modes` block, which is most of them — the
+ * chip is hidden rather than shown offering only "Any". Names only: the
+ * overrides behind them are the engine's business, and the UI picks by
+ * name.
+ */
+moods?: Array<string>, };
 
 /**
  * What a caller may pin instead of letting the model choose it.

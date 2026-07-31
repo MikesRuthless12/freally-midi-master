@@ -15,6 +15,8 @@
 //! the one thing a callback must not do.
 
 use std::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering};
+
+use engine::pattern::Lane;
 use std::sync::{Arc, Mutex};
 
 use crate::host::HostSession;
@@ -148,6 +150,31 @@ pub struct Shared {
     /// 8.8% late, which is a whole 16th note out by the end of four bars —
     /// audible, and easy to blame on the generator instead.
     sample_rate: AtomicU32,
+    /// Whether the preview sampler may make sound at all (FMM-S02).
+    ///
+    /// ⛔ **MIDI-only is a first-class mode, not a degraded one.** A producer
+    /// routing this plugin's notes into Battery or Kontakt does not want the
+    /// preview kit doubling every hit — that was the plugin's only behaviour
+    /// before the sampler existed, and it has to stay reachable in one switch.
+    audio_enabled: AtomicBool,
+    /// Lanes whose *audio* is muted, as a bitmask (FMM-S02).
+    ///
+    /// ⛔ The MIDI keeps flowing for a muted lane — that is the whole feature.
+    /// It lets the plugin play the hats while the producer's own sampler in the
+    /// DAW takes the snare, which muting the lane outright cannot express.
+    muted_lanes: AtomicU32,
+    /// Where the playhead is, 0.0–1.0 through the pattern (TASK-041T).
+    ///
+    /// Stored as the `f32`'s bits so the audio thread can publish it with one
+    /// relaxed store and the editor can read it without a lock — the same shape
+    /// [`SharedHost`] already uses for the tempo, and for the same reason: the
+    /// editor polls this at frame rate and `process` must never wait for it.
+    playhead_bits: AtomicU32,
+    /// A seek the UI has asked for, as `bits | SEEK_PENDING`, or `0`.
+    ///
+    /// One slot, like the resize request: clicking twice before a block runs
+    /// means the second click is where the user wants to be.
+    seek_request: AtomicU32,
 }
 
 impl Shared {
@@ -166,6 +193,15 @@ impl Shared {
             // before opening an editor — but a wrong guess is quieter than a
             // zero, and a zero here would place every note at tick 0.
             sample_rate: AtomicU32::new(48_000),
+            // ⛔ On by default, and the reason it is safe to default this way
+            // is a product fact rather than a technical one: **no build has
+            // ever shipped**, so no saved project predates the sampler and
+            // none can be surprised by it. A generator nobody can hear without
+            // wiring an instrument up first is the problem P17 exists to fix.
+            audio_enabled: AtomicBool::new(true),
+            muted_lanes: AtomicU32::new(0),
+            playhead_bits: AtomicU32::new(0),
+            seek_request: AtomicU32::new(0),
         }
     }
 }
@@ -198,6 +234,93 @@ impl Shared {
         self.sample_rate.load(Ordering::Relaxed) as f32
     }
 
+    /// Publish where the playhead is. Called from `process`.
+    pub fn set_playhead(&self, progress: f32) {
+        // Already 0..1 — `Schedule::progress` clamps. (`request_seek` clamps for
+        // a different reason: it is what keeps the sign bit free for
+        // `SEEK_PENDING`, so that one is load-bearing.)
+        self.playhead_bits
+            .store(progress.to_bits(), Ordering::Relaxed);
+    }
+
+    /// Where the playhead is, for the editor to draw.
+    pub fn playhead(&self) -> f32 {
+        f32::from_bits(self.playhead_bits.load(Ordering::Relaxed))
+    }
+
+    /// Ask the audio thread to move the playhead. UI thread.
+    pub fn request_seek(&self, progress: f32) {
+        // ⛔ The flag is what makes a seek to 0.0 expressible. Storing the bits
+        // alone would make "go back to the start" — which is what Stop does —
+        // indistinguishable from "nothing pending", so Stop would do nothing.
+        let bits = progress.clamp(0.0, 1.0).to_bits();
+        self.seek_request
+            .store(bits | SEEK_PENDING, Ordering::Relaxed);
+    }
+
+    /// Take a pending seek, if there is one. `process` is the caller.
+    pub fn take_seek(&self) -> Option<f32> {
+        let packed = self.seek_request.swap(0, Ordering::Relaxed);
+        (packed & SEEK_PENDING != 0).then(|| f32::from_bits(packed & !SEEK_PENDING))
+    }
+
+    /// Whether the preview sampler may sound (FMM-S02). Read every block.
+    pub fn audio_enabled(&self) -> bool {
+        self.audio_enabled.load(Ordering::Relaxed)
+    }
+
+    pub fn set_audio_enabled(&self, on: bool) {
+        self.audio_enabled.store(on, Ordering::Relaxed);
+    }
+
+    /// Whether this lane's *audio* is muted. Its notes go out regardless.
+    pub fn lane_muted(&self, lane: Lane) -> bool {
+        self.muted_lanes.load(Ordering::Relaxed) & lane_bit(lane) != 0
+    }
+
+    pub fn set_lane_muted(&self, lane: Lane, muted: bool) {
+        let bit = lane_bit(lane);
+        let mask = self.muted_lanes.load(Ordering::Relaxed);
+        self.muted_lanes.store(
+            if muted { mask | bit } else { mask & !bit },
+            Ordering::Relaxed,
+        );
+    }
+
+    /// Replace the whole mute set, for a session arriving from the host.
+    pub fn set_muted_lanes(&self, lanes: &[Lane]) {
+        let mask = lanes.iter().fold(0, |mask, lane| mask | lane_bit(*lane));
+        self.muted_lanes.store(mask, Ordering::Relaxed);
+    }
+
+    /// Copy the stored session's audio settings into the atomics.
+    ///
+    /// ⛔ **The audio thread cannot read the session** — taking that lock in
+    /// `process` is the dropout this module exists to avoid — so these two live
+    /// as atomics and this is what keeps them true.
+    ///
+    /// ⛔ **Called from `initialize`, not only after a save, and that is the
+    /// whole point.** [`SessionStore`] is the `#[persist]` field, so the host
+    /// deserializes a restored project *straight into the store* and never goes
+    /// near `save_session_state`. Projecting only on save meant a project saved
+    /// MIDI-only reopened making sound, until the page happened to persist
+    /// something unrelated — the setting was on disk and simply not being read.
+    pub fn adopt_session(&self) {
+        let session = crate::state::read(&self.session);
+        self.set_audio_enabled(session.audio_enabled);
+        self.set_muted_lanes(&session.muted_lanes);
+    }
+
+    /// Which lanes are muted, for saving with the project.
+    pub fn muted_lanes(&self) -> Vec<Lane> {
+        let mask = self.muted_lanes.load(Ordering::Relaxed);
+        ALL_LANES
+            .iter()
+            .copied()
+            .filter(|lane| mask & lane_bit(*lane) != 0)
+            .collect()
+    }
+
     /// Ask the editor to become this size, in physical pixels.
     ///
     /// Nothing happens here: the window belongs to the frame loop, and this is
@@ -215,6 +338,56 @@ impl Shared {
         // Zero is the sentinel, and it cannot collide with a real request: a
         // window of zero width or height is not a size anything would ask for.
         (packed != 0).then_some(((packed >> 32) as u32, (packed & 0xFFFF_FFFF) as u32))
+    }
+}
+
+/// Marks a seek request as present, so a seek to 0.0 is not read as "nothing".
+///
+/// The top bit of an `f32`'s bit pattern is its sign, and a playhead is never
+/// negative — so it is free to borrow.
+const SEEK_PENDING: u32 = 1 << 31;
+
+/// Every lane, so the mask can be read back out as names.
+const ALL_LANES: &[Lane] = &[
+    Lane::Kick,
+    Lane::Snare,
+    Lane::Clap,
+    Lane::ClosedHat,
+    Lane::OpenHat,
+    Lane::Rim,
+    Lane::Snap,
+    Lane::Perc,
+    Lane::Bass808,
+    Lane::Melody,
+    Lane::Counter,
+    Lane::Bass,
+    Lane::Chords,
+];
+
+/// This lane's bit in the mute mask.
+///
+/// Written out rather than cast from the enum's discriminant, which `Lane` does
+/// not expose anyway. ⚠ **The bits are process-local and never reach a file** —
+/// `PluginSession.muted_lanes` is a `Vec<Lane>` and `Lane` serializes *by name*
+/// (`engine/src/pattern.rs`), so a reordered enum cannot remap anything saved.
+/// An earlier version of this comment claimed the opposite and used it to
+/// justify the table; the table is still the clearer form, but it is a
+/// readability choice rather than a persistence guarantee.
+fn lane_bit(lane: Lane) -> u32 {
+    match lane {
+        Lane::Kick => 1 << 0,
+        Lane::Snare => 1 << 1,
+        Lane::Clap => 1 << 2,
+        Lane::ClosedHat => 1 << 3,
+        Lane::OpenHat => 1 << 4,
+        Lane::Rim => 1 << 5,
+        Lane::Snap => 1 << 6,
+        Lane::Perc => 1 << 7,
+        Lane::Bass808 => 1 << 8,
+        Lane::Melody => 1 << 9,
+        Lane::Counter => 1 << 10,
+        Lane::Bass => 1 << 11,
+        Lane::Chords => 1 << 12,
     }
 }
 
@@ -342,5 +515,69 @@ mod tests {
             handoff.incoming.lock().unwrap().is_none(),
             "one receive should have drained it"
         );
+    }
+}
+
+#[cfg(test)]
+mod bypass_tests {
+    use super::*;
+
+    #[test]
+    fn the_sampler_sounds_by_default_and_mutes_nothing() {
+        // ⛔ On by default is the product decision that makes the sampler worth
+        // porting: a generator nobody hears without wiring an instrument up
+        // first is the problem it was built to fix.
+        let shared = Shared::default();
+        assert!(shared.audio_enabled());
+        assert!(shared.muted_lanes().is_empty());
+    }
+
+    #[test]
+    fn a_muted_lane_is_muted_and_its_neighbours_are_not() {
+        // The bitmask is saved into a project file, so setting one lane must
+        // not disturb another — an off-by-one here mutes the wrong drum and
+        // only shows up as "the snare stopped working" in someone's session.
+        let shared = Shared::default();
+        shared.set_lane_muted(Lane::Snare, true);
+
+        assert!(shared.lane_muted(Lane::Snare));
+        for lane in [Lane::Kick, Lane::ClosedHat, Lane::Bass808, Lane::Chords] {
+            assert!(!shared.lane_muted(lane), "{lane:?} should be untouched");
+        }
+
+        shared.set_lane_muted(Lane::Snare, false);
+        assert!(!shared.lane_muted(Lane::Snare));
+    }
+
+    #[test]
+    fn every_lane_has_its_own_bit() {
+        // Two lanes sharing a bit would mute in pairs, which is the kind of
+        // mistake a hand-written mapping exists to make findable.
+        let mut seen = 0u32;
+        for lane in ALL_LANES {
+            let bit = lane_bit(*lane);
+            assert_eq!(bit.count_ones(), 1, "{lane:?} is not a single bit");
+            assert_eq!(seen & bit, 0, "{lane:?} collides with an earlier lane");
+            seen |= bit;
+        }
+        assert_eq!(seen.count_ones() as usize, ALL_LANES.len());
+    }
+
+    #[test]
+    fn a_mute_set_survives_the_round_trip_a_project_puts_it_through() {
+        // What is saved has to come back as the same lanes, or reopening a
+        // project silences a different part of the kit than it did on save.
+        let shared = Shared::default();
+        shared.set_muted_lanes(&[Lane::OpenHat, Lane::Bass808, Lane::Chords]);
+
+        let mut back = shared.muted_lanes();
+        back.sort();
+        let mut expected = vec![Lane::OpenHat, Lane::Bass808, Lane::Chords];
+        expected.sort();
+        assert_eq!(back, expected);
+
+        // Replacing the set clears what was there rather than adding to it.
+        shared.set_muted_lanes(&[Lane::Kick]);
+        assert_eq!(shared.muted_lanes(), vec![Lane::Kick]);
     }
 }

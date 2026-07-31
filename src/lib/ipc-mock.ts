@@ -76,6 +76,7 @@ From: Freally MIDI Master`;
         type: 'genre',
         tier: 'standard',
         genres: ['trap'],
+        relatedGenres: [],
         era: '2010s',
       },
       {
@@ -85,6 +86,7 @@ From: Freally MIDI Master`;
         type: 'genre',
         tier: 'standard',
         genres: ['drill'],
+        relatedGenres: [],
         era: '2018-',
       },
       {
@@ -94,6 +96,11 @@ From: Freally MIDI Master`;
         type: 'artist',
         tier: 'flagship',
         genres: ['trap'],
+        // The one artist relates to one of the two genres, so the roster's
+        // cross-filter has something real to narrow in the mock and under
+        // Playwright — an all-empty fixture would exercise only the
+        // uncurated-dataset path, which is the one that does nothing.
+        relatedGenres: ['trap'],
         era: null,
       },
     ],
@@ -181,6 +188,12 @@ From: Freally MIDI Master`;
   playback_status: () => 'Playback needs the desktop app.',
   play_pattern: (): PlaybackStarted => ({ unplacedNotes: 0, voices: 0 }),
   stop_playback: () => undefined,
+
+  // The transport (TASK-041T). A mock playhead that never moves is honest: the
+  // browser has no audio thread to advance it, and the seek below is what the
+  // e2e spec drives it with.
+  playhead: () => 0,
+  seek: () => undefined,
   set_looping: () => undefined,
 
   // Presets (TASK-P13). The real ones are files the plugin owns; a browser has

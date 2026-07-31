@@ -50,7 +50,8 @@
     "bpm": "BPM",
     "key": "Tono",
     "scale": "Escala",
-    "swing": "Swing"
+    "swing": "Swing",
+    "mood": "Ánimo"
   },
   "session": {
     "pickArtist": "Elige un artista para ver qué pide.",
@@ -62,7 +63,10 @@
     "adopt": "Usar los de {{name}}",
     "hostSynced": "Sigue a tu DAW. Escribe un tempo para fijarlo.",
     "autoSync": "Seguir al DAW",
-    "autoSyncOff": "Se usa el tempo del artista, no el de tu DAW."
+    "autoSyncOff": "Se usa el tempo del artista, no el de tu DAW.",
+    "audio": "Audio",
+    "audioOn": "Suena con el kit del plugin.",
+    "audioOff": "Solo MIDI — tocan los instrumentos de tu DAW."
   },
   "scales": {
     "natural_minor": "Menor natural",
@@ -199,7 +203,10 @@
   "roster": {
     "artists": "Artistas",
     "flagship": "Destacado",
-    "genre": "Género"
+    "genre": "Género",
+    "filteredBy": "Filtrado por {{name}}",
+    "showAll": "Mostrar todo",
+    "noneInGenre": "Todavía no hay artistas en {{name}}."
   },
   "lanes": {
     "kick": "Bombo",

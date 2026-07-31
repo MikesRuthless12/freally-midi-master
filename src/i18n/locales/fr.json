@@ -50,7 +50,8 @@
     "bpm": "BPM",
     "key": "Tonalité",
     "scale": "Gamme",
-    "swing": "Swing"
+    "swing": "Swing",
+    "mood": "Ambiance"
   },
   "session": {
     "pickArtist": "Choisis un artiste pour voir ce qu’il demande.",
@@ -62,7 +63,10 @@
     "adopt": "Utiliser ceux de {{name}}",
     "hostSynced": "Suit ton DAW. Tape un tempo pour le fixer.",
     "autoSync": "Suivre la STAN",
-    "autoSyncOff": "Le tempo de l’artiste est utilisé, pas celui de votre STAN."
+    "autoSyncOff": "Le tempo de l’artiste est utilisé, pas celui de votre STAN.",
+    "audio": "Audio",
+    "audioOn": "Joue avec le kit du plugin.",
+    "audioOff": "MIDI seul — les instruments de votre DAW jouent."
   },
   "scales": {
     "natural_minor": "Mineur naturel",
@@ -199,7 +203,10 @@
   "roster": {
     "artists": "Artistes",
     "flagship": "Emblématique",
-    "genre": "Style"
+    "genre": "Style",
+    "filteredBy": "Filtré par {{name}}",
+    "showAll": "Tout afficher",
+    "noneInGenre": "Aucun artiste ne travaille encore en {{name}}."
   },
   "lanes": {
     "kick": "Grosse caisse",

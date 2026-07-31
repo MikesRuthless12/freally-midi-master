@@ -1,4 +1,4 @@
-import { Link2, Unlink, X } from 'lucide-react';
+import { Link2, Unlink, Volume2, VolumeX, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { useSession } from '../../state/session';
@@ -40,10 +40,18 @@ export function SessionChips() {
   const hostTempo = useSession((s) => s.hostTempo);
   const autoSync = useSession((s) => s.autoSync);
   const setAutoSync = useSession((s) => s.setAutoSync);
+  const mood = useSession((s) => s.mood);
+  const setMood = useSession((s) => s.setMood);
+  const audioEnabled = useSession((s) => s.audioEnabled);
+  const setAudioEnabled = useSession((s) => s.setAudioEnabled);
 
   if (!selectedId) {
     return <p className="session__empty">{t('session.pickArtist')}</p>;
   }
+
+  // Absent rather than empty for a style with no `modes` block, which is most
+  // of them — the field is skipped on the wire when there is nothing to send.
+  const moods = defaults?.moods ?? [];
 
   /** What the artist chose last time, for the "leave it to them" option. */
   const chose = (value: string | null) =>
@@ -130,6 +138,27 @@ export function SessionChips() {
         </button>
       )}
 
+      {/* ⛔ Always offered, unlike the DAW-sync switch above it. That one is
+          about a host that may not exist; this is about the plugin's own sound,
+          which it makes in a DAW and in the standalone alike. MIDI-only is a
+          first-class mode — it is what the plugin did before it had a sampler,
+          and a producer routing into their own drums needs it in one click. */}
+      <button
+        type="button"
+        className="chip session__sync"
+        role="switch"
+        aria-checked={audioEnabled}
+        title={audioEnabled ? t('session.audioOn') : t('session.audioOff')}
+        onClick={() => setAudioEnabled(!audioEnabled)}
+      >
+        {audioEnabled ? (
+          <Volume2 size={12} aria-hidden="true" />
+        ) : (
+          <VolumeX size={12} aria-hidden="true" />
+        )}
+        <span className="session__label">{t('session.audio')}</span>
+      </button>
+
       <label className="chip chip--mono session__chip">
         <span className="session__label">{t('readouts.key')}</span>
         <select
@@ -165,6 +194,30 @@ export function SessionChips() {
           ))}
         </select>
       </label>
+
+      {/* Only for a style that offers modes — eleven of the shipped genres
+          author none, and a chip whose only option is "Any" is a control that
+          cannot do anything. "Any" is a *pick from the seed* rather than "no
+          mood", so a reroll can land on a different kind of record by the same
+          artist; the chip then says which one it landed on, exactly as the
+          key and scale chips do. */}
+      {moods.length > 0 && (
+        <label className="chip chip--mono session__chip">
+          <span className="session__label">{t('readouts.mood')}</span>
+          <select
+            className="session__select"
+            value={mood ?? ''}
+            onChange={(e) => setMood(e.target.value === '' ? null : e.target.value)}
+          >
+            <option value="">{chose(pattern?.mood ?? null)}</option>
+            {moods.map((name) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
+            ))}
+          </select>
+        </label>
+      )}
 
       <label className="chip chip--mono session__chip">
         <span className="session__label">{t('readouts.swing')}</span>

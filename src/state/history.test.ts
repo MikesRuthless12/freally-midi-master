@@ -18,6 +18,8 @@ const BASE: Snapshot = {
   pins: { bpm: null, keyRoot: null, scale: null, swing: null },
   autoSync: true,
   pattern: null,
+  mood: null,
+  audioEnabled: true,
 };
 
 function snap(over: Partial<Snapshot>): Snapshot {

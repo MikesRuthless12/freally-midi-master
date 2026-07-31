@@ -50,7 +50,8 @@
     "bpm": "BPM",
     "key": "Toonsoort",
     "scale": "Toonladder",
-    "swing": "Swing"
+    "swing": "Swing",
+    "mood": "Sfeer"
   },
   "session": {
     "pickArtist": "Kies een artiest om te zien wat die vraagt.",
@@ -62,7 +63,10 @@
     "adopt": "Die van {{name}} gebruiken",
     "hostSynced": "Volgt je DAW. Typ een tempo om het vast te zetten.",
     "autoSync": "DAW volgen",
-    "autoSyncOff": "Het tempo van de artist wordt gebruikt, niet dat van je DAW."
+    "autoSyncOff": "Het tempo van de artist wordt gebruikt, niet dat van je DAW.",
+    "audio": "Audio",
+    "audioOn": "Speelt via de eigen kit van de plug-in.",
+    "audioOff": "Alleen MIDI — de instrumenten van je DAW spelen."
   },
   "scales": {
     "natural_minor": "Natuurlijk mineur",
@@ -199,7 +203,10 @@
   "roster": {
     "artists": "Artiesten",
     "flagship": "Vlaggenschip",
-    "genre": "Stijl"
+    "genre": "Stijl",
+    "filteredBy": "Gefilterd op {{name}}",
+    "showAll": "Alles tonen",
+    "noneInGenre": "Nog geen artiesten in {{name}}."
   },
   "lanes": {
     "kick": "Basdrum",

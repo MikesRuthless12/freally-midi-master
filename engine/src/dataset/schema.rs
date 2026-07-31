@@ -311,6 +311,14 @@ pub struct StyleModel {
     pub era: Option<String>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub genres: Vec<String>,
+    /// Genre models this artist works in — the roster's cross-filter.
+    ///
+    /// ⛔ **Typed here rather than left to `blocks`.** Every field this struct
+    /// does not name falls into that flatten map, which the generators read as
+    /// *part blocks*; an unlisted `relatedGenres` would arrive there looking
+    /// exactly like a `drums` or `melody` section.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub related_genres: Vec<String>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub confidence: Option<Confidence>,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]

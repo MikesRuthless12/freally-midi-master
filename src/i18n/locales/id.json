@@ -50,7 +50,8 @@
     "bpm": "BPM",
     "key": "Nada Dasar",
     "scale": "Skala",
-    "swing": "Swing"
+    "swing": "Swing",
+    "mood": "Suasana"
   },
   "session": {
     "pickArtist": "Pilih artis untuk melihat apa yang dimintanya.",
@@ -62,7 +63,10 @@
     "adopt": "Gunakan milik {{name}}",
     "hostSynced": "Mengikuti DAW kamu. Ketik tempo untuk menguncinya.",
     "autoSync": "Ikuti DAW",
-    "autoSyncOff": "Memakai tempo artis, bukan tempo DAW Anda."
+    "autoSyncOff": "Memakai tempo artis, bukan tempo DAW Anda.",
+    "audio": "Audio",
+    "audioOn": "Berbunyi lewat kit milik plugin.",
+    "audioOff": "MIDI saja — instrumen DAW Anda yang memainkan."
   },
   "scales": {
     "natural_minor": "Minor natural",
@@ -199,7 +203,10 @@
   "roster": {
     "artists": "Artis",
     "flagship": "Unggulan",
-    "genre": "Aliran"
+    "genre": "Aliran",
+    "filteredBy": "Difilter menurut {{name}}",
+    "showAll": "Tampilkan semua",
+    "noneInGenre": "Belum ada artis di {{name}}."
   },
   "lanes": {
     "kick": "Bas drum",

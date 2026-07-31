@@ -37,6 +37,17 @@ export type Snapshot = {
   };
   autoSync: boolean;
   pattern: Pattern | null;
+  /** The pinned mood, or `null` for "Any" (TASK-040V). */
+  mood: string | null;
+  /**
+   * Whether the plugin sounds its own kit (FMM-S02).
+   *
+   * ⛔ In here because it is in `send()`: the undo stack and the saved session
+   * carry the same fields, and this one shipped in the persist guard but not
+   * the snapshot — so Ctrl+Z stepped everything else back and left the plugin
+   * silent, with nothing saying why the undo was partial.
+   */
+  audioEnabled: boolean;
 };
 
 /**

@@ -35,6 +35,7 @@
 
 use std::fs;
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 use serde::{Deserialize, Serialize};
 
@@ -80,15 +81,42 @@ fn stored() -> Record {
         .unwrap_or_default()
 }
 
+/// Set once this process has seen acceptance on disk. See [`accepted`].
+static SEEN_ACCEPTED: AtomicBool = AtomicBool::new(false);
+
 /// Whether this machine has accepted the version this build ships.
 ///
-/// ⛔ Everything gates on this. It is
-/// deliberately a *disk read* rather than a cached flag: the gate is consulted
-/// once per command, the file is a few dozen bytes, and a cache would need
-/// invalidating from the one place that writes it — which is exactly the kind of
-/// staleness that turns "I accepted it" into "it still will not generate".
+/// ⛔ Everything gates on this, and it runs on the host's UI thread once per
+/// command — so the read it used to do every time is a file system call between
+/// a producer and their own plugin. On a local disk that is microseconds; on a
+/// roaming or OneDrive-backed profile it is however long that redirect takes.
+///
+/// ⛔ **Only `true` is remembered, and that asymmetry is the whole design.**
+/// Caching both answers would need invalidating from wherever the file is
+/// written, which is the staleness that turns "I accepted it" into "it still
+/// will not generate". Caching only the positive cannot do that:
+///
+/// - **Not yet accepted** still reads the disk every time, so an acceptance
+///   written by another instance — a second DAW, another track — is picked up
+///   the moment it happens. That path is also cold: while the gate is up the
+///   only commands running are the handful it allows.
+/// - **Accepted** is remembered, which is the hot path and the only one worth
+///   removing. Within this process the single thing that can revoke it is
+///   [`decline`], which clears the flag itself.
+///
+/// The one behaviour this gives up: declining in *another* running host does not
+/// reach back into this one. That is the right outcome anyway — a decision made
+/// in Ableton should not silently disable a plugin mid-session in FL.
 pub fn accepted() -> bool {
-    stored().accepted_version.as_deref() == Some(VERSION)
+    if SEEN_ACCEPTED.load(Ordering::Relaxed) {
+        return true;
+    }
+
+    let accepted = stored().accepted_version.as_deref() == Some(VERSION);
+    if accepted {
+        SEEN_ACCEPTED.store(true, Ordering::Relaxed);
+    }
+    accepted
 }
 
 pub fn status() -> Status {
@@ -113,7 +141,12 @@ pub fn accept() -> Result<(), String> {
         accepted_version: Some(VERSION.to_owned()),
     };
     let text = serde_json::to_string_pretty(&record).map_err(|error| error.to_string())?;
-    fs::write(&path, text).map_err(|error| format!("could not write {path:?}: {error}"))
+    fs::write(&path, text).map_err(|error| format!("could not write {path:?}: {error}"))?;
+
+    // After the write, never before: a failed write must not leave this process
+    // believing an acceptance that is not on disk and will not survive a reload.
+    SEEN_ACCEPTED.store(true, Ordering::Relaxed);
+    Ok(())
 }
 
 /// Withdraw acceptance, leaving the plugin inert until it is accepted again.
@@ -132,7 +165,14 @@ pub fn decline() -> Result<(), String> {
 
     let text =
         serde_json::to_string_pretty(&Record::default()).map_err(|error| error.to_string())?;
-    fs::write(&path, text).map_err(|error| format!("could not write {path:?}: {error}"))
+    fs::write(&path, text).map_err(|error| format!("could not write {path:?}: {error}"))?;
+
+    // ⛔ Cleared *before* returning, so the very next command through the RPC
+    // boundary is refused. This is the only thing that revokes the memo in
+    // [`accepted`], and a decline that left it standing would leave the plugin
+    // fully working until the host was restarted.
+    SEEN_ACCEPTED.store(false, Ordering::Relaxed);
+    Ok(())
 }
 
 #[cfg(test)]

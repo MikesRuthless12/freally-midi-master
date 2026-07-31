@@ -5,7 +5,7 @@
 //! DAW — the gesture `TASK-013` existed to prove was even possible — the notes
 //! are emitted as events on the plugin's own output, in the host's time.
 
-use engine::pattern::{Pattern, PPQ};
+use engine::pattern::{Lane, Pattern, PPQ};
 use nih_plug::prelude::*;
 
 /// One note, placed in samples from the moment the schedule was armed.
@@ -14,10 +14,85 @@ struct Placed {
     /// Samples from the arming point. `u32` because a note is always inside
     /// the pattern, and the longest pattern this generates is a few seconds.
     at: u32,
+    /// Which voice this note belongs to.
+    ///
+    /// Carried so the preview sampler can find the pad that plays it — MIDI
+    /// only needs the pitch, but a kick and a snare are the same pitch on
+    /// different lanes, so dropping this would make the sampler play the wrong
+    /// drum (or nothing) while the host track stayed correct.
+    lane: Lane,
     note: u8,
     velocity: f32,
     /// The matching note-off, so a pattern can never leave a note hanging.
     off_at: u32,
+}
+
+/// A note that went out in this block, for the preview sampler to play.
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct Fired {
+    /// Samples into the block being rendered — the same offset the host's own
+    /// note event carries, so what is heard and what lands on the track agree.
+    pub timing: u32,
+    pub lane: Lane,
+    pub note: u8,
+    pub velocity: f32,
+}
+
+/// The note-ons of one block, in a fixed array.
+///
+/// ⛔ **Fixed, because this is filled on the audio thread.** A `Vec` that grew
+/// mid-block would take the allocator's lock inside the host's callback, which
+/// is the one thing `process` may never do.
+///
+/// Sized above [`crate::audio::sampler::MAX_VOICES`] so the sampler's own voice
+/// stealing — which is tuned and tested — decides what survives a dense block,
+/// rather than this silently truncating first.
+#[derive(Debug, Clone)]
+pub struct FiredNotes {
+    notes: [Fired; Self::CAPACITY],
+    len: usize,
+}
+
+impl Default for FiredNotes {
+    fn default() -> Self {
+        Self {
+            notes: [Fired {
+                timing: 0,
+                lane: Lane::Kick,
+                note: 0,
+                velocity: 0.0,
+            }; Self::CAPACITY],
+            len: 0,
+        }
+    }
+}
+
+impl FiredNotes {
+    /// Derived, so the two cannot drift: the sampler's own voice stealing —
+    /// which is tuned and tested — decides what survives a dense block, rather
+    /// than this silently truncating first.
+    const CAPACITY: usize = crate::audio::sampler::MAX_VOICES + 16;
+
+    /// Forget this block's note-ons.
+    ///
+    /// ⛔ Called by `emit` on every block, and by `process` on the blocks where
+    /// `emit` is skipped. Leaving stale entries here would re-trigger the
+    /// previous block's notes on every callback — a stopped transport would
+    /// machine-gun the last hits of the pattern forever.
+    pub(crate) fn clear(&mut self) {
+        self.len = 0;
+    }
+
+    fn push(&mut self, note: Fired) {
+        if self.len < Self::CAPACITY {
+            self.notes[self.len] = note;
+            self.len += 1;
+        }
+    }
+
+    pub fn as_slice(&self) -> &[Fired] {
+        &self.notes[..self.len]
+    }
 }
 
 /// Notes waiting to go out, drained a block at a time.
@@ -54,6 +129,7 @@ impl Schedule {
                     .round() as u32;
                 events.push(Placed {
                     at,
+                    lane: track.lane,
                     note: note.pitch,
                     velocity: f32::from(note.vel) / 127.0,
                     // A zero-length note is inaudible and, in some hosts,
@@ -92,10 +168,53 @@ impl Schedule {
     /// The placement is the claim the pivot rests on, and it is not otherwise
     /// observable from outside: `emit` needs a live host to call it.
     pub fn placement(&self) -> (usize, u32) {
-        (
-            self.events.len(),
-            self.events.last().map(|e| e.off_at).unwrap_or(0),
-        )
+        // ⛔ `length()`, not `events.last()`. This is what the transport tests
+        // measure against, so when it carried the same last-by-start mistake as
+        // `length` they compared a wrong number with itself and passed.
+        (self.events.len(), self.length())
+    }
+
+    /// How far through the pattern the playhead is, 0.0–1.0 (TASK-041T).
+    ///
+    /// Derived from `elapsed` rather than counted separately, so the marker and
+    /// the notes can never disagree about where we are — one clock, and it is
+    /// the one that decides what has already been emitted.
+    ///
+    /// `0.0` for an unarmed schedule, and it saturates at 1.0 rather than
+    /// wrapping: looping is the *host's* to decide inside a DAW, and a marker
+    /// that jumped back to the start on its own would be the plugin claiming a
+    /// loop the project does not have.
+    pub fn progress(&self) -> f32 {
+        let length = self.length();
+        if length == 0 {
+            return 0.0;
+        }
+        (self.elapsed as f32 / length as f32).clamp(0.0, 1.0)
+    }
+
+    /// The pattern's length in samples — the **greatest** note-off.
+    ///
+    /// ⛔ Not `events.last()`. `arm` sorts by `at`, so the last entry is the
+    /// latest-*starting* note and its `off_at` is not the end of the pattern —
+    /// for anything but a pattern ending in its longest note that under-reports,
+    /// and every melodic part does. Both directions of the transport normalise
+    /// against this, so a short length makes the marker run ahead of the beat
+    /// *and* makes click-to-seek land early.
+    fn length(&self) -> u32 {
+        self.events.iter().map(|e| e.off_at).max().unwrap_or(0)
+    }
+
+    /// Move the playhead, as a fraction of the pattern (TASK-041T).
+    ///
+    /// ⛔ **The cursor is rewound to match, and that is the whole of it.** The
+    /// cursor is an index into events already emitted; moving `elapsed` without
+    /// it would leave every note before the new position permanently skipped —
+    /// seeking backwards would play silence, which reads as the seek having
+    /// broken playback rather than having moved it.
+    pub fn seek(&mut self, progress: f32) {
+        let length = self.length();
+        self.elapsed = (progress.clamp(0.0, 1.0) * length as f32) as u32;
+        self.cursor = self.events.partition_point(|event| event.at < self.elapsed);
     }
 
     /// Emit whatever falls inside this block.
@@ -109,7 +228,20 @@ impl Schedule {
     /// nothing past roughly 170 ms at 48 kHz is ever played and the cursor parks.
     /// That shipped, and `emit_walks_the_whole_pattern_across_blocks` is why it
     /// cannot again.
-    pub fn emit<P: Plugin>(&mut self, context: &mut impl ProcessContext<P>, samples: u32) {
+    /// `fired` collects the note-ons that landed, so the preview sampler can
+    /// play them at the **same sample offsets** the host track receives them
+    /// at. ⛔ One walk feeds both: a second schedule for audio would be a second
+    /// answer to "when does this note play", and the two would drift the first
+    /// time a host relocated. Overflow is dropped rather than grown — this runs
+    /// on the audio thread and may not allocate — and a block carrying more
+    /// note-ons than the sampler has voices was going to steal voices anyway.
+    pub fn emit<P: Plugin>(
+        &mut self,
+        context: &mut impl ProcessContext<P>,
+        samples: u32,
+        fired: &mut FiredNotes,
+    ) {
+        fired.clear();
         if self.is_empty() {
             self.elapsed = self.elapsed.saturating_add(samples);
             return;
@@ -137,6 +269,12 @@ impl Schedule {
                 timing,
                 voice_id: None,
                 channel: 0,
+                note: event.note,
+                velocity: event.velocity,
+            });
+            fired.push(Fired {
+                timing,
+                lane: event.lane,
                 note: event.note,
                 velocity: event.velocity,
             });
@@ -204,6 +342,7 @@ mod tests {
                 notes,
             }],
             ppq: PPQ,
+            mood: None,
         }
     }
 
@@ -305,5 +444,154 @@ mod tests {
         let mut schedule = Schedule::default();
         schedule.arm(&pattern(0.0, vec![note(PPQ, PPQ, 36)]), 48_000.0);
         assert!(schedule.events.iter().all(|e| e.at < u32::MAX));
+    }
+}
+
+#[cfg(test)]
+mod transport_tests {
+    use super::*;
+    use engine::pattern::{LaneTrack, Note, Part, Pattern, Scale, PPQ};
+
+    /// Four bars of quarter notes at 120 BPM, so a position is easy to reason
+    /// about: one beat is half a second, and the pattern is eight seconds long.
+    fn armed() -> Schedule {
+        let notes: Vec<Note> = (0..16)
+            .map(|i| Note {
+                start_tick: i * PPQ,
+                len_ticks: PPQ,
+                pitch: 36,
+                vel: 100,
+                slide_to_pitch: None,
+                articulation: None,
+            })
+            .collect();
+
+        let pattern = Pattern {
+            id: "t".into(),
+            part: Part::Drums,
+            artist_id: "t".into(),
+            seed: 1,
+            bars: 4,
+            bpm: 120.0,
+            time_sig_num: 4,
+            time_sig_den: 4,
+            key_root: 0,
+            scale: Scale::NaturalMinor,
+            lanes: vec![LaneTrack {
+                lane: Lane::Kick,
+                notes,
+            }],
+            ppq: PPQ,
+            mood: None,
+        };
+
+        let mut schedule = Schedule::default();
+        schedule.arm(&pattern, 48_000.0);
+        schedule
+    }
+
+    #[test]
+    fn the_playhead_starts_at_zero_and_moves_with_the_blocks() {
+        // ⛔ This is the "moves with the BPM" requirement, and it is satisfied
+        // by construction rather than by a second clock: `arm` places the notes
+        // in samples against the pattern's own tempo, so the same `elapsed`
+        // that decides what has been emitted decides where the marker is.
+        let mut schedule = armed();
+        assert_eq!(schedule.progress(), 0.0);
+
+        // Half the pattern's length in samples.
+        let (_, length) = schedule.placement();
+        schedule.advance_for_test(length / 2);
+        let half = schedule.progress();
+        assert!((half - 0.5).abs() < 0.01, "expected ~0.5, got {half}");
+
+        schedule.advance_for_test(length);
+        assert_eq!(
+            schedule.progress(),
+            1.0,
+            "the marker saturates rather than wrapping — looping is the host's"
+        );
+    }
+
+    #[test]
+    fn an_unarmed_schedule_reports_zero_rather_than_dividing_by_it() {
+        assert_eq!(Schedule::default().progress(), 0.0);
+    }
+
+    #[test]
+    fn stop_returns_the_playhead_to_the_beginning_and_keeps_the_pattern() {
+        // ⛔ Stop is not `clear`. Clearing would throw the notes away, so
+        // pressing play again would be silent until the next Generate — the
+        // marker going home is the whole of what Stop means.
+        //
+        // Driven through `seek(0.0)` because that is the path Stop actually
+        // takes: `stop_playback` → `request_seek(0.0)` → `process` → here.
+        // A dedicated `rewind()` existed and was called by nothing but this
+        // test, which made the test pass without exercising the real route.
+        let mut schedule = armed();
+        let (count, length) = schedule.placement();
+        schedule.advance_for_test(length / 2);
+
+        schedule.seek(0.0);
+
+        assert_eq!(schedule.progress(), 0.0);
+        assert_eq!(schedule.placement().0, count, "the notes are still armed");
+        assert!(!schedule.is_empty());
+    }
+
+    #[test]
+    fn pause_is_the_absence_of_advancing_and_holds_its_position() {
+        // Pause has no method on purpose: inside a host, time running is the
+        // host's business. Not advancing *is* pausing, and the marker has to
+        // stay exactly where it was rather than drifting or resetting.
+        let mut schedule = armed();
+        let (_, length) = schedule.placement();
+        schedule.advance_for_test(length / 4);
+
+        let held = schedule.progress();
+        // Any number of blocks with nothing advancing.
+        assert_eq!(schedule.progress(), held);
+        assert_eq!(schedule.progress(), held);
+        assert!(held > 0.0, "and it is not at the start");
+    }
+
+    #[test]
+    fn seeking_forward_skips_the_notes_behind_the_new_position() {
+        let mut schedule = armed();
+        schedule.seek(0.5);
+
+        let progress = schedule.progress();
+        assert!((progress - 0.5).abs() < 0.01, "{progress}");
+        // Half the notes are behind the playhead and must not fire again.
+        assert_eq!(schedule.cursor, 8);
+    }
+
+    #[test]
+    fn seeking_backward_rewinds_the_cursor_so_the_notes_play_again() {
+        // ⛔ The bug this exists for: `cursor` indexes events already emitted,
+        // so moving `elapsed` without rewinding it leaves every note before the
+        // new position permanently skipped. Seeking back would play silence,
+        // which reads as the seek having broken playback rather than moved it.
+        let mut schedule = armed();
+        schedule.seek(1.0);
+        assert_eq!(schedule.cursor, 16, "everything is behind us");
+
+        schedule.seek(0.25);
+
+        assert_eq!(schedule.cursor, 4, "the notes after the seek play again");
+        assert!(!schedule.is_empty());
+    }
+
+    #[test]
+    fn a_seek_outside_the_pattern_is_clamped_rather_than_trusted() {
+        // The progress arrives from a click in a webview, so it is not trusted.
+        let mut schedule = armed();
+
+        schedule.seek(9.0);
+        assert_eq!(schedule.progress(), 1.0);
+
+        schedule.seek(-3.0);
+        assert_eq!(schedule.progress(), 0.0);
+        assert_eq!(schedule.cursor, 0);
     }
 }

@@ -314,6 +314,7 @@ mod tests {
             scale: Scale::NaturalMinor,
             lanes,
             ppq: PPQ,
+            mood: None,
         }
     }
 

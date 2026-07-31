@@ -50,7 +50,8 @@
     "bpm": "BPM",
     "key": "Tom",
     "scale": "Escala",
-    "swing": "Swing"
+    "swing": "Swing",
+    "mood": "Clima"
   },
   "session": {
     "pickArtist": "Escolha um artista para ver o que ele pede.",
@@ -62,7 +63,10 @@
     "adopt": "Usar os de {{name}}",
     "hostSynced": "Seguindo sua DAW. Digite um andamento para fixá-lo.",
     "autoSync": "Seguir a DAW",
-    "autoSyncOff": "Usando o tempo do artista, não o da sua DAW."
+    "autoSyncOff": "Usando o tempo do artista, não o da sua DAW.",
+    "audio": "Áudio",
+    "audioOn": "Tocando pelo kit do próprio plugin.",
+    "audioOff": "Apenas MIDI — os instrumentos da sua DAW tocam."
   },
   "scales": {
     "natural_minor": "Menor natural",
@@ -199,7 +203,10 @@
   "roster": {
     "artists": "Artistas",
     "flagship": "Destaque",
-    "genre": "Gênero"
+    "genre": "Gênero",
+    "filteredBy": "Filtrado por {{name}}",
+    "showAll": "Mostrar tudo",
+    "noneInGenre": "Ainda não há artistas em {{name}}."
   },
   "lanes": {
     "kick": "Bumbo",

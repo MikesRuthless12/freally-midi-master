@@ -43,6 +43,7 @@ const ROSTER: RosterEntry[] = [
     type: 'genre',
     tier: 'standard',
     genres: [],
+    relatedGenres: [],
     era: null,
   },
   {
@@ -52,6 +53,7 @@ const ROSTER: RosterEntry[] = [
     type: 'genre',
     tier: 'standard',
     genres: [],
+    relatedGenres: [],
     era: null,
   },
 ];
@@ -101,6 +103,8 @@ beforeEach(() => {
     roster: ROSTER,
     selectedId: null,
     pattern: null,
+    mood: null,
+    audioEnabled: true,
     pins: NO_PINS,
     defaults: null,
     pendingArtist: null,
@@ -321,5 +325,57 @@ describe('keep or adopt', () => {
     useSession.getState().setPin('bpm', null);
 
     expect(useSession.getState().pins).toEqual({ ...NO_PINS, swing: 0.62 });
+  });
+});
+
+describe('applyPreset', () => {
+  const PRESET = {
+    selectedId: 'uk-drill',
+    seed: '99',
+    bars: 8,
+    autoSync: false,
+    pins: { bpm: 150, keyRoot: null, scale: null, swing: null },
+  };
+
+  it('clears the pattern rather than showing the previous artist under a new name', () => {
+    useSession.getState().select('trap');
+    useSession.setState({ pattern: PATTERN });
+
+    useSession.getState().applyPreset(PRESET);
+
+    // The preset carries inputs, not notes — the pattern is derived from the
+    // seed on request, so until Generate runs there is nothing to show. Keeping
+    // trap's beat under uk-drill's name is a readout that lies.
+    expect(useSession.getState().pattern).toBeNull();
+    expect(useSession.getState().selectedId).toBe('uk-drill');
+    expect(useSession.getState().seed).toBe('99');
+    expect(useSession.getState().bars).toBe(8);
+    expect(useSession.getState().autoSync).toBe(false);
+    expect(useSession.getState().pins.bpm).toBe(150);
+  });
+
+  it('lands as one undo step, not two', async () => {
+    const { useHistory } = await import('./history');
+    useSession.getState().select('trap');
+    useHistory.getState().arm({
+      selectedId: 'trap',
+      seed: '',
+      bars: 4,
+      pins: NO_PINS,
+      autoSync: true,
+      pattern: null,
+      mood: null,
+      audioEnabled: true,
+    });
+
+    useSession.getState().applyPreset(PRESET);
+
+    // ⛔ The selection used to be `set` separately from the rest, so one load
+    // recorded two entries and the first Ctrl+Z stepped back to a half-applied
+    // preset that was never on screen.
+    const undone = useHistory.getState().undo();
+    expect(undone?.selectedId).toBe('trap');
+    expect(undone?.seed).toBe('');
+    expect(undone?.bars).toBe(4);
   });
 });

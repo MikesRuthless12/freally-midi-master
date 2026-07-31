@@ -12,6 +12,76 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added
+
+- **The plugin makes a sound.** The sampler and preview kit are ported out of
+  `src-tauri` and into the plugin, and the generated pattern is rendered into the
+  host's output — so a producer hears the beat on insert instead of having to
+  wire an instrument up first. The kit is compiled into the binary (a plugin has
+  no resource directory it can trust) and rendered in segments split at each
+  note-on, so a hit lands on its exact sample rather than quantised to the block
+  boundary — up to 11 ms at 512 samples, which is a 32nd note at 140 BPM. It
+  sounds only while the DAW's transport is running, so pressing Generate with
+  the project stopped no longer plays the pattern at you unasked. ⚠ **The
+  preview kit is a drum kit**, so Melody, Countermelody, Bass and Chords still
+  render silence — pitched instrument voices are FMM-N15/N16, and playing a
+  melody through the kick pad would be worse than hearing nothing.
+- **MIDI-only is one click away, and per-lane audio mute keeps the notes
+  flowing.** The plugin can be silenced entirely so the DAW's own instruments
+  play the notes — which is what it did before it had a sampler, and what a
+  producer routing into Battery needs. Muting a single lane's *audio* leaves its
+  MIDI going to the host, so the plugin can play the hats while your own sampler
+  takes the snare. Both save with the project. ⚠ The per-lane mute has no
+  control on screen yet — the lane headers that will carry it are TASK-043.
+- **A playhead that runs with the tempo, and a timeline you can click.** The
+  marker moves with the BPM because it is derived from the same clock that
+  decides which notes have been emitted — the two cannot drift apart. Click
+  anywhere on the grid to play from there; **Pause holds the marker where it is
+  and Stop returns it to the beginning**, keeping the pattern armed rather than
+  discarding it — including across a DAW transport stop, which used to throw the
+  generated pattern away and leave the next play silent until Generate was
+  pressed again. ⚠ Drums is the only part with an editor today, so that is where
+  it is drawn; the transport underneath is what the piano roll and the
+  arrangement view will use.
+- **All five generators are reachable in the plugin.** Melody, countermelody and
+  bassline were in the engine the whole time; `plugin/src/bridge.rs` refused
+  them with "not implemented yet", so the refusal was in the bridge rather than
+  in what it reported on. They generate in their real dependency order — a
+  melody against the harmony and around the drums, a countermelody answering the
+  melody, a bassline following the harmony and locking to the kick — which is
+  what makes five parts cohere instead of being one part played five times.
+  ⚠ Only the Drums tab has an editor, so the other four are reachable through
+  the bridge and not yet through the UI; the piano roll is what surfaces them.
+- **Asking Trap for a bassline now says why it has none.** Its 808 *is* the
+  bassline, so a separate bass lane would double it — that used to report as
+  "has no Bass part authored", which reads as a hole in the style rather than a
+  deliberate one.
+- **Genre and artist cross-filtering in the roster.** Picking a genre shows only
+  the artists who work in it; picking an artist shows only the genres they work
+  in, and the genre chips become that artist's own. Both directions come from a
+  new curated `relatedGenres` field on each artist — the relation did not exist
+  in the dataset before and could not be inferred from it: `extends` carries
+  exactly one parent per artist, and the `genres` field is free-text tags in a
+  vocabulary of its own where `rap` sits on almost every model. Each artist's
+  list is sourced from its own `notes`, and every id is checked to name a real
+  genre, so `datasetc validate` fails on a typo rather than shipping a filter
+  that silently matches nobody. A narrowed list says what narrowed it and offers
+  Show all; a genre nobody works in says so instead of rendering empty.
+
+### Fixed
+
+- **A machine without WebView2 no longer takes the DAW down with it.** Opening
+  the editor on a machine with no WebView2 Evergreen runtime — or with a
+  read-only temp directory, or with the plugin's browser profile already held by
+  another WebView2 environment, which is what the standalone opened alongside a
+  DAW does — panicked inside the host's own editor-open callback. Release builds
+  abort on panic, so the host could not catch it and the session went with it.
+  The editor now opens blank and says why on stderr. Two related panics went the
+  same way: the custom-protocol handler, which ran from a frame a panic cannot
+  even unwind out of, now answers 500, and `send_json` no longer treats a page
+  that is being torn down as fatal. Full write-up in
+  `plugin/vendor/VENDORED.md`.
+
 ## [0.4.0] - 2026-07-29
 
 ### Added — unlimited undo/redo, and the licence gate

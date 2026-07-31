@@ -50,7 +50,8 @@
     "bpm": "BPM",
     "key": "Tonacja",
     "scale": "Skala",
-    "swing": "Swing"
+    "swing": "Swing",
+    "mood": "Nastrój"
   },
   "session": {
     "pickArtist": "Wybierz artystę, aby zobaczyć, czego oczekuje.",
@@ -62,7 +63,10 @@
     "adopt": "Użyj wartości {{name}}",
     "hostSynced": "Podąża za Twoją stacją DAW. Wpisz tempo, aby je przypiąć.",
     "autoSync": "Podążaj za DAW",
-    "autoSyncOff": "Używane jest tempo artysty, nie tempo Twojego DAW."
+    "autoSyncOff": "Używane jest tempo artysty, nie tempo Twojego DAW.",
+    "audio": "Dźwięk",
+    "audioOn": "Gra przez własny zestaw wtyczki.",
+    "audioOff": "Tylko MIDI — grają instrumenty twojego DAW-a."
   },
   "scales": {
     "natural_minor": "Molowa naturalna",
@@ -199,7 +203,10 @@
   "roster": {
     "artists": "Artyści",
     "flagship": "Sztandarowy",
-    "genre": "Gatunek"
+    "genre": "Gatunek",
+    "filteredBy": "Filtrowane wg {{name}}",
+    "showAll": "Pokaż wszystko",
+    "noneInGenre": "Nikt jeszcze nie tworzy w {{name}}."
   },
   "lanes": {
     "kick": "Stopa",

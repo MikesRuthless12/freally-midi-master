@@ -112,6 +112,7 @@ fn render(model: &StyleModel, seed: u64, bars: u16) -> Pattern {
         scale: ctx.scale,
         lanes,
         ppq: PPQ,
+        mood: None,
     }
 }
 

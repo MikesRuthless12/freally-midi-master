@@ -50,7 +50,8 @@
     "bpm": "BPM",
     "key": "Tonart",
     "scale": "Tonleiter",
-    "swing": "Swing"
+    "swing": "Swing",
+    "mood": "Stimmung"
   },
   "session": {
     "pickArtist": "Wähle einen Künstler, um zu sehen, was er verlangt.",
@@ -62,7 +63,10 @@
     "adopt": "Die von {{name}} verwenden",
     "hostSynced": "Folgt deiner DAW. Tippe ein Tempo ein, um es festzulegen.",
     "autoSync": "DAW folgen",
-    "autoSyncOff": "Es gilt das Tempo des Artists, nicht das der DAW."
+    "autoSyncOff": "Es gilt das Tempo des Artists, nicht das der DAW.",
+    "audio": "Audio",
+    "audioOn": "Spielt über das eigene Kit des Plugins.",
+    "audioOff": "Nur MIDI — die Instrumente deiner DAW spielen."
   },
   "scales": {
     "natural_minor": "Natürliches Moll",
@@ -199,7 +203,10 @@
   "roster": {
     "artists": "Künstler",
     "flagship": "Aushängeschild",
-    "genre": "Stil"
+    "genre": "Stil",
+    "filteredBy": "Gefiltert nach {{name}}",
+    "showAll": "Alle anzeigen",
+    "noneInGenre": "Noch arbeitet niemand in {{name}}."
   },
   "lanes": {
     "kick": "Bassdrum",

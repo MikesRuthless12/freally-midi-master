@@ -935,6 +935,7 @@ mod tests {
                     .collect(),
             }],
             ppq: PPQ,
+            mood: None,
         }
     }
 
@@ -1121,6 +1122,7 @@ mod tests {
                     scale: Scale::NaturalMinor,
                     lanes,
                     ppq: PPQ,
+                    mood: None,
                 };
                 let schedule = transport::schedule(&pattern, &kit, 48_000.0);
                 assert_eq!(

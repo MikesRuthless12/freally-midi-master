@@ -50,7 +50,8 @@
     "bpm": "BPM",
     "key": "Key",
     "scale": "Scale",
-    "swing": "Swing"
+    "swing": "Swing",
+    "mood": "Mood"
   },
   "session": {
     "pickArtist": "Pick an artist to see what it asks for.",
@@ -62,7 +63,10 @@
     "adopt": "Use {{name}}’s",
     "hostSynced": "Following your DAW. Type a tempo to pin it.",
     "autoSync": "Follow DAW",
-    "autoSyncOff": "Using the artist’s tempo, not your DAW’s."
+    "autoSyncOff": "Using the artist’s tempo, not your DAW’s.",
+    "audio": "Audio",
+    "audioOn": "Playing through the plugin’s own kit.",
+    "audioOff": "MIDI only — your DAW’s instruments play the notes."
   },
   "scales": {
     "natural_minor": "Natural minor",
@@ -199,7 +203,10 @@
   "roster": {
     "artists": "Artists",
     "flagship": "Flagship",
-    "genre": "Genre"
+    "genre": "Genre",
+    "filteredBy": "Filtered by {{name}}",
+    "showAll": "Show all",
+    "noneInGenre": "No artists work in {{name}} yet."
   },
   "lanes": {
     "kick": "Kick",

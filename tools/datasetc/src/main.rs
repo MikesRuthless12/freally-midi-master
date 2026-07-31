@@ -16,7 +16,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use engine::dataset::{files, registry_from, validate, Registry};
+use engine::dataset::{files, registry_from, unknown_related_genres, validate, Registry};
 use serde_json::Value;
 
 const USAGE: &str = "\
@@ -172,6 +172,24 @@ fn run_validate(dir: &Path) -> Result<bool, String> {
                 eprintln!("     {error}");
                 ok = false;
             }
+        }
+    }
+
+    // 4. Cross-references. Last because it is the only check that needs the
+    //    whole dataset at once: no file can tell on its own whether `pluggnb`
+    //    exists, or whether it is a genre rather than an artist. The app drops
+    //    a dangling id and carries on (FR-001); here it is a failure, which is
+    //    the same split in policy every other check in this file makes.
+    for (path, text) in &files {
+        let Ok(instance) = serde_json::from_str::<Value>(text) else {
+            continue; // already reported as a rejection
+        };
+        let unknown = unknown_related_genres(&instance, &resolved);
+        if !unknown.is_empty() {
+            findings.entry(path.clone()).or_default().push(format!(
+                "`relatedGenres` names no genre model: {}",
+                unknown.join(", ")
+            ));
         }
     }
 
