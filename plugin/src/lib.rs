@@ -38,6 +38,25 @@ pub use shared::{Shared, SharedState};
 pub use state::{PluginSession, SessionStore};
 pub use voice::Schedule;
 
+/// Whether this process is our own standalone binary rather than a DAW.
+///
+/// ⛔ **Set by `main`, which a host never runs** — the same gate
+/// `own_message_queue` uses, and for the same reason: a library loaded into
+/// Ableton has no `main`, so there is no way for a host to trip this by
+/// accident. Do not infer the standalone from a behavioural quirk instead
+/// ("the host sends no frame ticks" was tried and is a quirk, not an identity).
+static STANDALONE: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
+/// Declare that this process is the standalone. Called once, from its `main`.
+pub fn mark_standalone() {
+    STANDALONE.store(true, std::sync::atomic::Ordering::Relaxed);
+}
+
+/// True when there is no host — so the transport is ours to run (TASK-041T).
+pub fn is_standalone() -> bool {
+    STANDALONE.load(std::sync::atomic::Ordering::Relaxed)
+}
+
 /// The plugin's own state, held across the process callbacks.
 pub struct FreallyMidiMaster {
     params: Arc<FreallyParams>,
@@ -220,7 +239,21 @@ impl Plugin for FreallyMidiMaster {
         // The pivot's whole point, in two lines: the host tells us the tempo
         // and the meter, every block, for free.
         self.session.observe(context.transport());
-        self.shared.host.publish(&self.session);
+
+        // ⛔ **Derived once, here, and both used and published from the same
+        // value** (TASK-041T). `HostSession` stays a pure record of what the
+        // host said — folding our own flag back into it gave `playing()` two
+        // meanings seven lines apart, and made the second term of the gate below
+        // unreachable.
+        //
+        // The page needs the *effective* answer: `host_session` is what gates
+        // its playhead poll and enables Stop. In the standalone nih-plug's cpal
+        // backend reports `transport.playing = true` on every block whatever the
+        // user pressed, so publishing that raw left Pause looking like it did
+        // nothing — the flag flipped back on the next 500 ms poll and the marker
+        // carried on.
+        let running = self.session.playing() && self.shared.running();
+        self.shared.host.publish(&self.session, running);
 
         // Take a newly generated pattern if one is waiting. The schedule this
         // replaces is handed back rather than dropped — freeing its `Vec` here
@@ -238,7 +271,12 @@ impl Plugin for FreallyMidiMaster {
         // `playback_status` was telling the same user to press play in their
         // DAW. The pattern stays armed and the playhead stays put; a seek is
         // still honoured, so clicking the grid while stopped moves the marker.
-        if !self.session.playing() {
+        //
+        // `running` above is the conjunction: the host's transport *and* ours.
+        // A DAW that is stopped stays stopped whatever our flag says, and the
+        // standalone's cpal backend hardcodes `transport.playing = true`, so its
+        // pause has to live somewhere the backend does not overwrite.
+        if !running {
             if let Some(progress) = self.shared.take_seek() {
                 self.pending.seek(progress);
                 self.sampler.stop_all();

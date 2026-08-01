@@ -51,11 +51,11 @@ in terms of measurable parameters, you are exactly the contributor this project 
 ### Code
 
 Bug fixes, performance work, accessibility, and platform-specific fixes (especially
-Linux/Wayland drag-out) are all welcome.
+the Linux editor, which CI can compile but nobody has run) are all welcome.
 
 Architectural rules that PRs must respect:
 
-- **The `engine` crate stays pure.** No Tauri types, no network, no AI/ML
+- **The `engine` crate stays pure.** No plugin types, no network, no AI/ML
   dependencies, no `unsafe` — it is `forbid(unsafe_code)` and must stay testable
   headless. All musical logic goes here.
 - **No AI, ever.** No ML runtime, model, or inference API gets added to this project

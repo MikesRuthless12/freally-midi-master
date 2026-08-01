@@ -30,7 +30,17 @@ pub struct SharedHost {
     /// zero, so the sentinel cannot collide with a value.
     tempo_bits: AtomicU64,
     time_sig: AtomicU32,
+    /// What the host reported, unmodified.
     playing: AtomicBool,
+    /// Whether time is *actually* advancing — the host's transport and our own
+    /// both saying yes (TASK-041T).
+    ///
+    /// ⛔ **Separate from `playing`, and the separation is the point.** This
+    /// used to be folded back into the host's own record before publishing, so
+    /// `HostSession::playing()` meant "the host is playing" for seven lines and
+    /// "time is advancing" thereafter. One field with two meanings is how the
+    /// gate in `process` ended up testing the same term twice.
+    running: AtomicBool,
 }
 
 impl Default for SharedHost {
@@ -40,14 +50,19 @@ impl Default for SharedHost {
             // 4/4, packed as num << 16 | den.
             time_sig: AtomicU32::new(4 << 16 | 4),
             playing: AtomicBool::new(false),
+            running: AtomicBool::new(false),
         }
     }
 }
 
 impl SharedHost {
-    /// Publish what the host reported. Called from `process`, so it must not
-    /// allocate, lock or wait — three atomic stores.
-    pub fn publish(&self, session: &HostSession) {
+    /// Publish what the host reported, and whether time is actually advancing.
+    ///
+    /// Called from `process`, so it must not allocate, lock or wait — four
+    /// atomic stores. `running` is passed in rather than derived here because
+    /// `process` is the one place that knows both halves, and it gates on the
+    /// same value it publishes.
+    pub fn publish(&self, session: &HostSession, running: bool) {
         let bits = session.tempo().map(f64::to_bits).unwrap_or(0);
         self.tempo_bits.store(bits, Ordering::Relaxed);
 
@@ -55,6 +70,12 @@ impl SharedHost {
         self.time_sig
             .store(u32::from(num) << 16 | u32::from(den), Ordering::Relaxed);
         self.playing.store(session.playing(), Ordering::Relaxed);
+        self.running.store(running, Ordering::Relaxed);
+    }
+
+    /// Whether time is advancing, for the editor to gate its playhead poll on.
+    pub fn running(&self) -> bool {
+        self.running.load(Ordering::Relaxed)
     }
 
     /// The host's session as the bridge wants it.
@@ -65,7 +86,14 @@ impl SharedHost {
 
         let mut session =
             HostSession::observed_for_test(tempo, (packed >> 16) as u8, (packed & 0xFFFF) as u8);
-        session.set_playing(self.playing.load(Ordering::Relaxed));
+        // ⛔ The *effective* value, not the raw one. `host_session` is what the
+        // page draws its transport from: it gates the playhead poll and enables
+        // Stop, so it has to mean "is time advancing" rather than "did the
+        // backend claim a transport". The standalone's cpal backend claims one
+        // unconditionally, which is exactly the case this distinction exists
+        // for. `SharedHost::playing` keeps the raw report for anything that
+        // needs to know what the host itself said.
+        session.set_playing(self.running.load(Ordering::Relaxed));
         session
     }
 }
@@ -175,6 +203,28 @@ pub struct Shared {
     /// One slot, like the resize request: clicking twice before a block runs
     /// means the second click is where the user wants to be.
     seek_request: AtomicU32,
+    /// Whether this process is our own standalone rather than a DAW.
+    ///
+    /// ⛔ **Read once at construction from the process-wide flag, and held
+    /// here.** A free static could not be varied per test, so every standalone
+    /// branch was untestable in the same binary as the tests that need a host.
+    /// Held as a plain `bool` because it cannot change while the plugin is
+    /// loaded — a library does not become an executable.
+    pub standalone: bool,
+    /// Whether *our* transport is running, which is only ever a question in the
+    /// standalone (TASK-041T).
+    ///
+    /// ⛔ **Inside a DAW this stays true and the host decides.** The host owns
+    /// whether time runs; a second run/stop flag of ours would be a way for the
+    /// plugin to sit silent through a playing project with nothing on screen
+    /// explaining it. `process` gates on the host's transport *and* this, so in
+    /// a host the term is a constant and the behaviour is unchanged.
+    ///
+    /// The standalone is the case this exists for: nih-plug's cpal backend sets
+    /// `transport.playing = true` unconditionally, so without this there is no
+    /// pause and no stop — a generated pattern loops forever from the moment it
+    /// lands, and Stop rewinds to zero and keeps playing.
+    running: AtomicBool,
 }
 
 impl Shared {
@@ -184,6 +234,7 @@ impl Shared {
     /// be the *same* `Arc` that `FreallyParams` holds, or the host saves one
     /// value and the editor shows another.
     pub fn new(session: SessionStore) -> Self {
+        let standalone = crate::is_standalone();
         Self {
             host: SharedHost::default(),
             handoff: Handoff::default(),
@@ -202,6 +253,33 @@ impl Shared {
             muted_lanes: AtomicU32::new(0),
             playhead_bits: AtomicU32::new(0),
             seek_request: AtomicU32::new(0),
+            standalone,
+            // ⛔ **True in a host, false in the standalone, and the asymmetry is
+            // the point.** In a host this term must never be the one that
+            // decides — the DAW's transport is, and a `false` here would silence
+            // a playing project with nothing on screen to explain it. In the
+            // standalone nih-plug's cpal backend claims a running transport on
+            // every block, so `true` here means the editor comes up already
+            // "playing": Pause and Stop offered for a pattern that does not
+            // exist, and a 30 Hz playhead poll running forever on an idle
+            // window. Nothing should advance there until someone presses Play.
+            running: AtomicBool::new(!standalone),
+        }
+    }
+
+    /// A [`Shared`] that believes it is the standalone, for tests.
+    ///
+    /// The process-wide flag is set from the standalone's `main`, which no test
+    /// runs — and setting it globally would leak into the tests that need a
+    /// host. This is the seam that keeps both testable in one binary.
+    #[cfg(test)]
+    pub fn standalone_for_test() -> Self {
+        Self {
+            standalone: true,
+            // Both, because `new` derives `running` from `standalone` and the
+            // process-wide flag says "host" inside a test binary.
+            running: AtomicBool::new(false),
+            ..Self::new(SessionStore::default())
         }
     }
 }
@@ -262,6 +340,26 @@ impl Shared {
     pub fn take_seek(&self) -> Option<f32> {
         let packed = self.seek_request.swap(0, Ordering::Relaxed);
         (packed & SEEK_PENDING != 0).then(|| f32::from_bits(packed & !SEEK_PENDING))
+    }
+
+    /// Whether our own transport is running (TASK-041T). Read every block.
+    pub fn running(&self) -> bool {
+        self.running.load(Ordering::Relaxed)
+    }
+
+    /// Start or hold our own transport.
+    ///
+    /// ⛔ **Self-gating, so the rule lives here rather than at every caller.**
+    /// A host owns whether time runs; letting one reach this would hand a DAW a
+    /// second transport that can silence the plugin permanently with nothing on
+    /// screen to explain it. Written as a no-op rather than an error because
+    /// the callers that *can* reach it already refuse first — this is the
+    /// backstop, and a backstop that panics is worse than the bug.
+    pub fn set_running(&self, running: bool) {
+        if !self.standalone {
+            return;
+        }
+        self.running.store(running, Ordering::Relaxed);
     }
 
     /// Whether the preview sampler may sound (FMM-S02). Read every block.
@@ -400,7 +498,7 @@ mod tests {
     #[test]
     fn a_published_tempo_reads_back_exactly() {
         let shared = SharedHost::default();
-        shared.publish(&HostSession::observed_for_test(Some(92.5), 6, 8));
+        shared.publish(&HostSession::observed_for_test(Some(92.5), 6, 8), true);
 
         let snapshot = shared.snapshot();
         assert_eq!(snapshot.tempo(), Some(92.5));
@@ -412,8 +510,29 @@ mod tests {
         // The sentinel has to stay distinguishable from a value, or the chip
         // shows 0 BPM while the host simply has not said yet.
         let shared = SharedHost::default();
-        shared.publish(&HostSession::observed_for_test(None, 4, 4));
+        shared.publish(&HostSession::observed_for_test(None, 4, 4), false);
         assert_eq!(shared.snapshot().tempo(), None);
+    }
+
+    #[test]
+    fn the_snapshot_reports_the_effective_transport_not_the_hosts_claim() {
+        // ⛔ The standalone's backend claims a running transport on every block
+        // whatever the user pressed, so the page has to be told what is
+        // *actually* advancing — otherwise Pause flips back on the next poll and
+        // the marker carries on. The raw claim stays available separately.
+        let shared = SharedHost::default();
+        let mut host = HostSession::observed_for_test(Some(120.0), 4, 4);
+        host.set_playing(true);
+
+        shared.publish(&host, false);
+        assert!(!shared.running());
+        assert!(
+            !shared.snapshot().playing(),
+            "a paused transport must not read as playing just because the host says so"
+        );
+
+        shared.publish(&host, true);
+        assert!(shared.snapshot().playing());
     }
 
     #[test]
@@ -579,5 +698,67 @@ mod bypass_tests {
         // Replacing the set clears what was there rather than adding to it.
         shared.set_muted_lanes(&[Lane::Kick]);
         assert_eq!(shared.muted_lanes(), vec![Lane::Kick]);
+    }
+}
+
+#[cfg(test)]
+mod transport_tests {
+    use super::*;
+
+    #[test]
+    fn our_own_transport_runs_until_something_holds_it() {
+        // ⛔ True by default is what keeps a host's behaviour unchanged. In a
+        // DAW nothing ever calls `set_running`, so this term is a constant and
+        // the host's own transport is the one that decides.
+        let shared = Shared::standalone_for_test();
+        // ⛔ Stopped at launch. The standalone's backend claims a running
+        // transport on every block, so starting `true` here would have the
+        // editor come up already playing a pattern nobody generated — Pause and
+        // Stop offered for nothing, and a 30 Hz playhead poll on an idle window.
+        assert!(!shared.running());
+
+        shared.set_running(true);
+        assert!(shared.running());
+
+        shared.set_running(false);
+        assert!(!shared.running());
+    }
+
+    #[test]
+    fn a_host_cannot_be_handed_a_second_transport() {
+        // ⛔ The backstop for the rule the callers already enforce. A DAW owns
+        // whether time runs; letting one reach `set_running` would silence the
+        // plugin for the rest of the session with nothing on screen to explain
+        // it. `Shared::default()` is not the standalone, so this must not take.
+        let shared = Shared::default();
+        assert!(!shared.standalone);
+        shared.set_running(false);
+        assert!(
+            shared.running(),
+            "a host must not be able to hold our transport"
+        );
+    }
+
+    #[test]
+    fn pausing_leaves_the_playhead_where_it_is_and_stopping_does_not() {
+        // The whole distinction between the two controls, at the level the
+        // audio thread sees it: pause writes nothing to the position, stop
+        // asks for a seek to zero. A pause that moved the marker would be a
+        // stop, and there would be no way to resume from the middle of a bar.
+        let shared = Shared::standalone_for_test();
+        shared.set_running(true);
+        shared.set_playhead(0.42);
+
+        shared.set_running(false);
+        assert_eq!(shared.playhead(), 0.42, "pause must not move the marker");
+        assert!(
+            shared.take_seek().is_none(),
+            "pause must not queue a seek — that is what stop does"
+        );
+
+        // What `stop_playback` does, and it has to survive being a seek to
+        // exactly zero (see `SEEK_PENDING`).
+        shared.request_seek(0.0);
+        assert_eq!(shared.take_seek(), Some(0.0));
     }
 }

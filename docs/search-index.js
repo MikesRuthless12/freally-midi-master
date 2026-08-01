@@ -63,13 +63,13 @@ window.SEARCH_INDEX = [
   },
   {
     id: 'privacy',
-    title: 'Privacy & the two connections',
-    body: 'privacy telemetry account cloud offline update check crash report outbound connection local',
+    title: 'Privacy & the network',
+    body: 'privacy telemetry account cloud offline no outbound connection local network denylist gate',
   },
   {
     id: 'bugs',
-    title: 'Reporting a crash',
-    body: 'bug report crash panic github issue gmail mailto email copy scrub redact home path username UTC timestamp',
+    title: 'Reporting a bug',
+    body: 'bug report crash panic github issue host DAW log CLAP VST3 version',
   },
   {
     id: 'building',

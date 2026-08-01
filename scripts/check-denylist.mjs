@@ -113,19 +113,14 @@ const TELEMETRY = [
  * Keep this SHORT. Adding a name here is a product decision, not a build fix.
  */
 const ALLOWED = {
-  // The Havoc-standard update check (TASK-014B), documented in EULA.md § 5 and
-  // PRD § 13. This is the product's ONE sanctioned network dependency: it
-  // fetches latest.json from GitHub releases to compare version numbers, sends
-  // nothing about the user, and installs nothing without an explicit yes.
-  //
-  // All four arrive transitively under tauri-plugin-updater — verified with
-  // `cargo tree -i`. Nothing in engine/, the audio path or the export path may
-  // reach them, which `engine`'s own dependency list enforces: it has none of
-  // these, and it is a pure library with no Tauri dependency at all.
-  reqwest: 'transitive dep of tauri-plugin-updater — update check only',
-  hyper: 'transitive dep of reqwest under tauri-plugin-updater',
-  hyper_rustls: 'transitive dep of reqwest under tauri-plugin-updater',
-  hyper_util: 'transitive dep of reqwest under tauri-plugin-updater',
+  // ⛔ **Empty, and that is the finding rather than an oversight.** It held
+  // `reqwest`, `hyper`, `hyper_rustls` and `hyper_util`, all four justified by
+  // one thing: the update check arrived transitively under
+  // `tauri-plugin-updater`. The desktop shell is gone and the plugin has no
+  // updater — a host installs plugins, and there is nothing to check against
+  // — so the justification expired with it. Leaving the names here would keep
+  // a hole open in the one gate that exists to notice a network dependency
+  // appearing. If any of them comes back, this gate should go red and say so.
 };
 
 /**
@@ -187,8 +182,8 @@ function selfCheck() {
     ['@tensorflow/tfjs', '@tensorflow', true],
     ['@tensorflow/tfjs', 'tensorflow', true],
     // ...without becoming a substring match.
-    ['@tauri-apps/api', 'ort', false],
-    ['@tauri-apps/plugin-opener', 'openai', false],
+    ['@testing-library/react', 'ort', false],
+    ['@playwright/test', 'openai', false],
     ['reporter', 'ort', false],
     ['transport', 'ort', false],
     ['@scope/reporter', 'ort', false],

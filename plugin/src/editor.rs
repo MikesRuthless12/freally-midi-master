@@ -292,21 +292,77 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
             return Some(Ok(Value::Null));
         }
 
-        // ⛔ Stop is a seek to zero, and Pause is *nothing at all* — which is
-        // the whole distinction. Inside a DAW the host owns whether time is
+        // ⛔ Stop is a seek to zero, and inside a DAW Pause is *nothing at
+        // all* — which is the whole distinction. The host owns whether time is
         // running; the plugin only owns where in the pattern it is. So Pause
-        // has nothing to do here (the host stops calling `process` with a
+        // has nothing to do there (the host stops calling `process` with a
         // moving transport, and the marker simply stays where it was), while
         // Stop has to move the marker back itself.
+        //
+        // The standalone has no host to own it, so it owns it here: Stop also
+        // holds the transport, or the marker snaps to zero and the pattern
+        // carries straight on playing from the top (TASK-041T).
         // ⛔ `stop_playback`, not `transport_stop`. The name is the one the
-        // frontend already invokes and the one the desktop shell and the mock
-        // both answer — and a bridge that answers a *different* name fails in
-        // the quietest possible way: the unknown command rejects, `stop()`
-        // swallows it, the marker snaps to zero locally, and the audio thread
-        // never rewinds. The beat keeps playing from the middle of the pattern
-        // while the playhead says it stopped.
+        // frontend already invokes and the one the mock answers — and a bridge
+        // that answers a *different* name fails in the quietest possible way:
+        // the unknown command rejects, `stop()` swallows it, the marker snaps
+        // to zero locally, and the audio thread never rewinds. The beat keeps
+        // playing from the middle of the pattern while the playhead says it
+        // stopped.
         "stop_playback" => {
             shared.request_seek(0.0);
+            // `set_running` is itself gated on being the standalone, so this
+            // needs no guard of its own.
+            shared.set_running(false);
+            return Some(Ok(Value::Null));
+        }
+
+        // Who owns the transport, and why it cannot be driven from the page if
+        // it cannot (TASK-041T).
+        //
+        // ⛔ **Both in one reply, because they are one fact.** They were briefly
+        // two commands — this and a `shell_info` — computed from the same source
+        // eight lines apart in `bridge.rs`. Two answers to one question is two
+        // answers that can drift, and the page recombined them into a single
+        // decision anyway: an enabled Play button whose tooltip said to press
+        // play in your DAW was one dropped reply away.
+        //
+        // ⛔ **Here rather than in `bridge::dispatch` for the reason every
+        // command in this function is here: it needs `shared`.** Reading a
+        // process-wide flag instead is what made it untestable — one global
+        // cannot be both a host and a standalone in the same test binary.
+        //
+        // `reason` is a *string for a human*, never a decision on its own. In a
+        // host it says who owns the transport; in the standalone nothing is
+        // wrong, so it is null — and if that ever stops being true (no output
+        // device, a kit that failed to decode) it can say so without the page
+        // mistaking it for "this is a plugin".
+        "playback_status" => {
+            return Some(Ok(json!({
+                "standalone": shared.standalone,
+                "reason": if shared.standalone {
+                    Value::Null
+                } else {
+                    Value::String(
+                        "Press play in your DAW — the plugin puts the notes on the track."
+                            .into(),
+                    )
+                },
+            })));
+        }
+
+        // ⛔ Both refused outside the standalone, rather than silently doing
+        // nothing. In a host these controls are not ours to offer — the UI
+        // does not render them — so a call arriving here means the page and
+        // the plugin disagree about which shell they are in, and that is worth
+        // an error rather than a no-op that looks like a broken button.
+        "transport_play" | "transport_pause" => {
+            if !shared.standalone {
+                return Some(Err(
+                    "the host owns the transport — press play in your DAW".into()
+                ));
+            }
+            shared.set_running(request.command == "transport_play");
             return Some(Ok(Value::Null));
         }
 
@@ -769,5 +825,111 @@ mod tests {
         assert!(mime_for("assets/index-abc123.css").starts_with("text/css"));
         assert_eq!(mime_for("fonts/NotoSans.woff2"), "font/woff2");
         assert_eq!(mime_for("index.html"), "text/html; charset=utf-8");
+    }
+
+    /// A `Request` for one of the window commands.
+    fn command(name: &str) -> Request {
+        Request {
+            id: 1,
+            command: name.to_owned(),
+            args: json!({}),
+        }
+    }
+
+    /// The three standalone-only transport arms, on both sides of the gate.
+    ///
+    /// ⛔ **These had no test at all, and both obvious mutations stayed green:**
+    /// inverting `playback_status`'s standalone branch, and dropping the
+    /// `shared.standalone` guard on `transport_play`. `Shared::standalone_for_test`
+    /// exists precisely so a host and a standalone can both be exercised in one
+    /// test binary — the process-wide flag cannot be.
+    mod transport {
+        use super::*;
+        use crate::shared::Shared;
+        use std::sync::Arc;
+
+        #[test]
+        fn a_host_is_told_who_owns_the_transport() {
+            let shared: SharedState = Arc::new(Shared::default());
+            let reply = window_command(&command("playback_status"), &shared)
+                .expect("playback_status is a window command")
+                .expect("it answers rather than failing");
+
+            assert_eq!(reply["standalone"], json!(false));
+            assert!(
+                reply["reason"].as_str().unwrap_or_default().contains("DAW"),
+                "a host needs a reason a human can act on: {reply}"
+            );
+        }
+
+        #[test]
+        fn the_standalone_is_given_no_reason_because_nothing_is_wrong() {
+            let shared: SharedState = Arc::new(Shared::standalone_for_test());
+            let reply = window_command(&command("playback_status"), &shared)
+                .expect("playback_status is a window command")
+                .expect("it answers rather than failing");
+
+            assert_eq!(reply["standalone"], json!(true));
+            assert_eq!(
+                reply["reason"],
+                Value::Null,
+                "there is no DAW to press play in, so there is nothing to say"
+            );
+        }
+
+        #[test]
+        fn a_host_is_refused_the_transport_rather_than_quietly_ignored() {
+            // ⛔ An error, not a no-op. A `transport_play` arriving here means the
+            // page and the plugin disagree about which shell they are in, and a
+            // silent success would leave that disagreement invisible.
+            let shared: SharedState = Arc::new(Shared::default());
+            for name in ["transport_play", "transport_pause"] {
+                let error = window_command(&command(name), &shared)
+                    .expect("the command is known")
+                    .expect_err("a host must be refused");
+                assert!(error.contains("host owns the transport"), "{name}: {error}");
+            }
+            assert!(shared.running(), "a refusal must not have moved anything");
+        }
+
+        #[test]
+        fn the_standalone_runs_and_holds_its_own_transport() {
+            let shared: SharedState = Arc::new(Shared::standalone_for_test());
+            assert!(!shared.running(), "stopped until someone presses Play");
+
+            window_command(&command("transport_play"), &shared)
+                .expect("known")
+                .expect("the standalone owns this");
+            assert!(shared.running());
+
+            window_command(&command("transport_pause"), &shared)
+                .expect("known")
+                .expect("the standalone owns this");
+            assert!(!shared.running());
+        }
+
+        #[test]
+        fn stop_rewinds_and_holds_in_the_standalone_but_only_rewinds_in_a_host() {
+            // The two halves of Stop. In a host the DAW owns whether time runs,
+            // so Stop may only move the marker; in the standalone it must also
+            // hold, or the pattern carries straight on playing from the top.
+            let standalone: SharedState = Arc::new(Shared::standalone_for_test());
+            standalone.set_running(true);
+            window_command(&command("stop_playback"), &standalone)
+                .expect("known")
+                .expect("answers");
+            assert_eq!(standalone.take_seek(), Some(0.0));
+            assert!(
+                !standalone.running(),
+                "stop holds the standalone's transport"
+            );
+
+            let hosted: SharedState = Arc::new(Shared::default());
+            window_command(&command("stop_playback"), &hosted)
+                .expect("known")
+                .expect("answers");
+            assert_eq!(hosted.take_seek(), Some(0.0));
+            assert!(hosted.running(), "stop must not stop a DAW");
+        }
     }
 }

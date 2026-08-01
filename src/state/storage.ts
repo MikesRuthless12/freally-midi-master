@@ -7,9 +7,10 @@
  * gets hardened in one copy and forgotten in the other two.
  *
  * Note what this store is NOT: durable. It lives in the WebView profile, which
- * "clear browsing data" or an app-data restore can wipe independently of
- * settings.json. Anything that must survive that is reconciled against the file
- * at startup — see `reconcileWithSettings` in ./ui.
+ * "clear browsing data" or an app-data restore can wipe. Nothing about a
+ * *project* lives here — the session goes through the host's own state calls
+ * (`plugin/src/state.rs`) and is saved with the song. What is here is the
+ * view's own preferences, which are cheap to set again.
  */
 
 /** Read a key, falling back when it is absent, invalid, or unreadable. */

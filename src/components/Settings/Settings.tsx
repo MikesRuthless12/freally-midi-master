@@ -13,8 +13,8 @@ import {
 
 import { useTranslation } from 'react-i18next';
 
-import { invoke, isTauri } from '../../lib/ipc';
-import { LOCALES, type LocaleCode } from '../../i18n/locales';
+import { invoke } from '../../lib/ipc';
+import { LOCALES } from '../../i18n/locales';
 import { CATEGORIES, type CategoryId } from './categories';
 import { useUi } from '../../state/ui';
 import { useSession } from '../../state/session';
@@ -27,7 +27,11 @@ import './Settings.css';
  *
  * Every control here is real and persists. Nothing decorative: a settings
  * screen that shows a toggle which does not survive a restart is worse than
- * one that omits it.
+ * one that omits it. ⛔ That rule is why the tray options are gone rather than
+ * disabled — the desktop shell owned the tray *and* `settings.json`, so with it
+ * removed those three toggles had nothing behind them and nowhere to be saved.
+ * Theme, language and motion persist to the WebView's own storage, which is the
+ * only durable place a plugin has for a preference that is not part of a song.
  */
 
 const CATEGORY_ICONS: Record<CategoryId, typeof Settings2> = {
@@ -37,40 +41,17 @@ const CATEGORY_ICONS: Record<CategoryId, typeof Settings2> = {
   about: Info,
 };
 
-/** Mirrors `Settings` in `src-tauri/src/store/settings.rs`. */
-type AppSettings = {
-  minimizeToTray: boolean;
-  closeToTray: boolean;
-  showTrayIcon: boolean;
-  theme: ThemePreference;
-  language: LocaleCode | '';
-  reduceMotion: boolean;
-};
-
-const DEFAULTS: AppSettings = {
-  minimizeToTray: false,
-  closeToTray: false,
-  showTrayIcon: true,
-  theme: 'system',
-  // Empty = never chosen; the picker reads the live language from the store,
-  // never from here. Defaulting to 'en' would make the modal write a vote for
-  // English the user never cast.
-  language: '',
-  // Off, so the OS setting decides unless someone says otherwise here.
-  reduceMotion: false,
-};
-
 /**
  * Search terms per category, so the filter matches content and not just titles.
  *
  * Deliberately English-only, and additive to the translated label the filter
- * also checks. Someone running a Japanese UI who searches "tray" — because that
- * is the word in every tutorial they have read — should still find the setting.
- * The language pane lists every endonym so a lost user can search for their own
- * language in their own script.
+ * also checks. Someone running a Japanese UI who searches "dataset" — because
+ * that is the word in every tutorial they have read — should still find the
+ * setting. The language pane lists every endonym so a lost user can search for
+ * their own language in their own script.
  */
 const CATEGORY_TERMS: Record<CategoryId, string> = {
-  general: 'general tray system minimize minimise close taskbar notification area',
+  general: 'general dataset styles artists skipped problems',
   appearance: 'appearance theme dark light system colour color motion animation reduce',
   language: `language locale translation ${LOCALES.map((l) => `${l.english} ${l.native}`).join(' ')}`,
   about: 'about version licence license disclaimer credits artist names privacy',
@@ -87,21 +68,18 @@ function Toggle({
   label,
   hint,
   checked,
-  disabled,
   onChange,
 }: {
   label: string;
   hint?: string;
   checked: boolean;
-  disabled?: boolean;
   onChange: (v: boolean) => void;
 }) {
   return (
-    <label className="settings__row" data-disabled={disabled || undefined}>
+    <label className="settings__row">
       <input
         type="checkbox"
         checked={checked}
-        disabled={disabled}
         onChange={(e) => onChange(e.currentTarget.checked)}
       />
       <span className="settings__rowtext">
@@ -122,31 +100,13 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
   // never authored.
   const problems = useSession((s) => s.problems);
   const roster = useSession((s) => s.roster);
-  // `null` until the real values are read. Seeding this with DEFAULTS was a
-  // trap: `update` writes the whole object back, so one flipped checkbox
-  // persisted a full mirror of the defaults over whatever was really on disk.
-  // A transiently unreadable settings.json — locked by antivirus, mid-restore —
-  // therefore destroyed every preference the moment the user touched anything.
-  const [settings, setSettings] = useState<AppSettings | null>(null);
-  const [error, setError] = useState<string | null>(null);
 
   const theme = useUi((s) => s.theme);
   const setTheme = useUi((s) => s.setTheme);
   const language = useUi((s) => s.language);
   const setLanguage = useUi((s) => s.setLanguage);
+  const reduceMotion = useUi((s) => s.reduceMotion);
   const setReduceMotion = useUi((s) => s.setReduceMotion);
-
-  useEffect(() => {
-    invoke<AppSettings>('settings_get')
-      .then((s) => setSettings({ ...DEFAULTS, ...s }))
-      .catch((e) => {
-        // Outside Tauri there is no backend at all and nothing is wrong — the
-        // panel still renders so the layout can be seen and tested. Inside it,
-        // a failure here is real and has to be said out loud, because the
-        // controls are about to refuse to save.
-        if (isTauri()) setError(e instanceof Error ? e.message : String(e));
-      });
-  }, []);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -155,21 +115,6 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   }, [onClose]);
-
-  /** Persist immediately — no Apply button to forget to press. */
-  const update = async (patch: Partial<AppSettings>) => {
-    // Never write without having read: the payload is the whole object, so
-    // writing an unverified one silently replaces the fields not being edited.
-    if (!settings) return;
-    const next = { ...settings, ...patch };
-    setSettings(next);
-    setError(null);
-    try {
-      await invoke<AppSettings>('settings_set', { settings: next });
-    } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
-    }
-  };
 
   const visible = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -185,18 +130,6 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
   // first visible one is shown. Storing that in state would need an effect to
   // keep it in step, which is a second source of truth for the same fact.
   const shown = visible.includes(active) ? active : (visible[0] ?? active);
-
-  // What the controls display before the read lands, or outside Tauri where
-  // there is nothing to read. `update` refuses to write in that state, so this
-  // is a placeholder for the eye only — it can never reach disk.
-  const shownSettings = settings ?? DEFAULTS;
-  const canPersist = settings !== null;
-  // Two distinct reasons the tray sub-options are unavailable, kept apart: the
-  // icon is off (which the note below explains and the user can fix), or
-  // settings could not be read at all (which the note would misexplain, since
-  // the icon toggle above shows as enabled).
-  const trayIconOff = !shownSettings.showTrayIcon;
-  const trayDisabled = trayIconOff || !canPersist;
 
   return (
     <div className="settings" role="dialog" aria-modal="true" aria-labelledby="settings-title">
@@ -263,34 +196,6 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
           >
             {shown === 'general' && (
               <section className="settings__section">
-                <h3>{t('settings.trayHeading')}</h3>
-
-                <Toggle
-                  label={t('settings.showTrayIcon')}
-                  hint={t('settings.showTrayIconHint')}
-                  checked={shownSettings.showTrayIcon}
-                  disabled={!canPersist}
-                  onChange={(v) => update({ showTrayIcon: v })}
-                />
-
-                <Toggle
-                  label={t('settings.minimizeToTray')}
-                  hint={t('settings.minimizeToTrayHint')}
-                  checked={shownSettings.minimizeToTray}
-                  disabled={trayDisabled}
-                  onChange={(v) => update({ minimizeToTray: v })}
-                />
-
-                <Toggle
-                  label={t('settings.closeToTray')}
-                  hint={t('settings.closeToTrayHint')}
-                  checked={shownSettings.closeToTray}
-                  disabled={trayDisabled}
-                  onChange={(v) => update({ closeToTray: v })}
-                />
-
-                {trayDisabled && <p className="settings__note">{t('settings.trayRequired')}</p>}
-
                 <h3>{t('settings.datasetHeading')}</h3>
                 {problems.length === 0 ? (
                   <p className="settings__note">
@@ -333,10 +238,7 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
                         role="radio"
                         aria-checked={theme === value}
                         className="settings__choice"
-                        onClick={() => {
-                          setTheme(value);
-                          void update({ theme: value });
-                        }}
+                        onClick={() => setTheme(value)}
                       >
                         <Icon size={16} aria-hidden="true" />
                         {t(`theme.short.${value}`)}
@@ -349,12 +251,8 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
                 <Toggle
                   label={t('settings.reduceMotion')}
                   hint={t('settings.reduceMotionHint')}
-                  checked={shownSettings.reduceMotion}
-                  disabled={!canPersist}
-                  onChange={(v) => {
-                    setReduceMotion(v);
-                    void update({ reduceMotion: v });
-                  }}
+                  checked={reduceMotion}
+                  onChange={setReduceMotion}
                 />
               </section>
             )}
@@ -378,13 +276,10 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
                       className="settings__language"
                       data-testid={`language-${code}`}
                       lang={code}
-                      onClick={() => {
-                        // Applied immediately, and persisted alongside it. A
-                        // language picker that needs a restart is one people
-                        // assume is broken.
-                        setLanguage(code);
-                        void update({ language: code });
-                      }}
+                      // Applied immediately, and persisted alongside it. A
+                      // language picker that needs a restart is one people
+                      // assume is broken.
+                      onClick={() => setLanguage(code)}
                     >
                       <span className="settings__langcheck">
                         {language === code && <Check size={12} aria-hidden="true" />}
@@ -399,12 +294,6 @@ export function SettingsModal({ onClose }: { onClose: () => void }) {
             {shown === 'about' && <AboutPane />}
           </div>
         </div>
-
-        {error && (
-          <p className="settings__error" role="alert">
-            {t('settings.saveFailed', { error })}
-          </p>
-        )}
       </div>
     </div>
   );
@@ -417,8 +306,11 @@ export function AboutPane() {
   const { t } = useTranslation();
   const [info, setInfo] = useState<AppInfo | null>(null);
 
+  // ⛔ Ungated. This used to be `if (!isTauri()) return`, which meant the pane
+  // showed an em dash for the version and the platform in the one shell that
+  // ships — the plugin's bridge has answered `app_info` all along. The mock
+  // answers it too, so the dev server shows its own values rather than nothing.
   useEffect(() => {
-    if (!isTauri()) return;
     invoke<AppInfo>('app_info')
       .then(setInfo)
       .catch(() => setInfo(null));

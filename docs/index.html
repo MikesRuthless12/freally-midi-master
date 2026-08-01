@@ -236,17 +236,14 @@
           No accounts. No telemetry. Nothing about you, your projects or your output is ever
           transmitted. Generation, playback, import and export are entirely local.
         </p>
-        <ul class="features">
-          <li>
-            A launch-time <strong>update check</strong> that fetches one small version file and
-            prompts before doing anything.
-          </li>
-          <li>
-            <strong>Crash reports</strong>, written locally, shown to you in full, and sent only if
-            you click to send them.
-          </li>
-        </ul>
-        <p class="note">Those two are the only outbound connections that exist.</p>
+        <p class="summary" style="margin-top: 14px">
+          <strong>There are no outbound connections at all.</strong> The two that used to exist — a
+          launch-time update check and an opt-in crash report — belonged to the desktop app and were
+          removed with it. A plugin is installed and updated by whoever installs plugins.
+        </p>
+        <p class="note">
+          Enforced by a build gate rather than promised: no HTTP client is compiled into the plugin.
+        </p>
       </article>
     </main>
 

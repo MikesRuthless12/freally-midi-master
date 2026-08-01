@@ -1,11 +1,7 @@
 {
   "titlebar": {
     "settings": "設定",
-    "about": "情報",
-    "minimize": "最小化",
-    "maximize": "最大化",
-    "restore": "元に戻す",
-    "close": "閉じる"
+    "about": "情報"
   },
   "tabs": {
     "group": "ジェネレーター",
@@ -84,12 +80,12 @@
   },
   "transport": {
     "play": "再生",
+    "pause": "一時停止",
     "stop": "停止",
     "loop": "ループ",
     "masterLevel": "マスターレベル: 無音",
     "toggleRightRail": "右パネルの表示切替 (K)",
     "windowSize": "ウィンドウサイズ",
-    "reportBug": "バグを報告",
     "loopAlways": "このフェーズでは再生は常にループします。",
     "unavailable": "再生できません: {{reason}}"
   },
@@ -111,36 +107,16 @@
     "showAll": "すべてのパネルを表示",
     "hideAll": "すべてのパネルを非表示"
   },
-  "export": {
-    "drag": "MIDIをドラッグ",
-    "dragTitle": "生成したMIDIをDAWにドラッグ",
-    "export": "書き出し",
-    "exportTitle": "MIDIをフォルダーに書き出して場所を開く",
-    "dragDesktopOnly": "ドラッグはデスクトップアプリでのみ使えます。",
-    "exportDesktopOnly": "書き出しはデスクトップアプリでのみ使えます。",
-    "dropped": "届きました。",
-    "exportedTo": "{{path}} に書き出しました",
-    "nothingToExport": "先にビートを生成してください。"
-  },
   "settings": {
     "title": "設定",
     "searchPlaceholder": "設定を検索…",
     "searchLabel": "設定を検索",
     "categories": "設定カテゴリー",
     "noMatch": "「{{query}}」に一致するものはありません。",
-    "saveFailed": "設定を保存できませんでした: {{error}}",
     "general": "一般",
     "appearance": "外観",
     "language": "言語",
     "about": "情報",
-    "trayHeading": "通知領域",
-    "showTrayIcon": "通知領域にアイコンを表示",
-    "showTrayIconHint": "Freally MIDI Master を通知領域に追加し、「表示」と「終了」を用意します。",
-    "minimizeToTray": "通知領域に最小化",
-    "minimizeToTrayHint": "最小化するとウィンドウはタスクバーではなく通知領域に隠れます。アイコンをクリックすると戻ります。",
-    "closeToTray": "閉じても通知領域に常駐",
-    "closeToTrayHint": "ウィンドウを閉じてもアプリは通知領域で動き続けます。終わるにはメニューから「終了」を選びます。",
-    "trayRequired": "上の2つを使うには通知領域のアイコンをオンにしてください — オフのままではウィンドウを戻す手段がありません。",
     "themeHeading": "テーマ",
     "themeNote": "ダークが既定で、このアプリらしい見た目です。どちらのテーマも WCAG 2.1 AA のコントラスト基準で検証済みです。",
     "languageHeading": "言語",
@@ -165,40 +141,13 @@
     "creditsHeading": "クレジット",
     "creditsBody": "タイミングとベロシティの統計は Magenta Groove MIDI Dataset (CC BY 4.0) に基づいています。Noto Sans、Noto Sans Display、Noto Sans Mono、および CJK・アラビア文字・ヘブライ文字・インド系文字などをカバーする文字体系別の Noto ファミリーは SIL Open Font License 1.1 のもとで使用しています。Lucide のアイコンは ISC のもとで使用しています。プレビュー用キットはリポジトリ内で合成したもので、サードパーティのサンプルは含みません。"
   },
-  "bugReport": {
-    "title": "バグを報告",
-    "intro": "レポートは匿名で、自動送信されることはありません。下の本文をそのまま確認してから、送信方法を選んでください — GitHub のイシュー、Gmail の下書き、お使いのメールソフトのいずれかです。送信は自分で押します。",
-    "crashNotice": "前回、Freally MIDI Master が予期せず終了しました。下のクラッシュ情報はこの端末にのみ保存されています。",
-    "describeLabel": "問題が起きたとき、何をしていましたか？",
-    "describePlaceholder": "任意ですが、大いに役立ちます。",
-    "includeCrash": "クラッシュ情報を含める",
-    "previewLabel": "送信される内容そのもの",
-    "openGithub": "GitHub でイシューを開く",
-    "composeGmail": "Gmail で作成",
-    "composeGmailTitle": "ブラウザーで Gmail の作成画面を開きます。内容は入力済みです。",
-    "sendEmail": "メールで送信",
-    "sendEmailTitle": "OS の既定のメールソフトを開きます。内容は入力済みです。",
-    "copy": "レポートをコピー",
-    "copied": "コピーしました",
-    "dismissCrash": "クラッシュ情報を閉じる",
-    "copyFailed": "レポートをクリップボードにコピーできませんでした。"
-  },
-  "update": {
-    "available": "バージョン {{version}} が利用できます",
-    "whatsNew": "変更点",
-    "noNotes": "このバージョンのリリースノートは公開されていません。",
-    "installFailed": "アップデートをインストールできませんでした: {{error}}",
-    "later": "いいえ、今はしない",
-    "install": "はい、今すぐ更新",
-    "installing": "更新中…",
-    "footer": "GitHub からダウンロードし、インストール前に署名を検証します。あなたやプロジェクトに関する情報は一切送信されません。"
-  },
   "common": {
     "close": "閉じる"
   },
   "grid": {
     "label": "生成されたパターン",
-    "summary": "{{bars}} 小節 · {{steps}} ステップ · {{notes}} ノート"
+    "summary": "{{bars}} 小節 · {{steps}} ステップ · {{notes}} ノート",
+    "muteLane": "プレビューで{{lane}}をミュート"
   },
   "roster": {
     "artists": "アーティスト",
@@ -218,11 +167,6 @@
     "snap": "スナップ",
     "perc": "パーカッション",
     "bass808": "808"
-  },
-  "device": {
-    "recovering": "オーディオデバイスが切断されました — 再接続中…",
-    "failed": "オーディオデバイスがありません。再試行中…",
-    "recovered": "オーディオデバイスが復帰しました。"
   },
   "presets": {
     "factory": "工場出荷",

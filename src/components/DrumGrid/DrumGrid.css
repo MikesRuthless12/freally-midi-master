@@ -22,13 +22,53 @@
 }
 
 .grid__lane {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
   font-size: var(--text-micro);
   color: var(--color-text-2);
   text-transform: uppercase;
   letter-spacing: 0.04em;
+}
+
+/* ⛔ The ellipsis lives on the text, not on the row. `text-overflow` has no
+   effect on a flex container, so once the lane header gained a mute button
+   beside its name a long localised name hard-clipped mid-glyph instead of
+   ellipsising — with nothing to signal it had been truncated. */
+.grid__lanename {
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* The per-lane preview mute (FMM-S02). Low-contrast until it is hovered or
+   actually muting something, so twelve of them down the gutter do not compete
+   with the pattern they sit beside. */
+.grid__mute {
+  flex: none;
+  display: inline-flex;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-text-3);
+  cursor: pointer;
+}
+
+.grid__mute:hover {
+  color: var(--color-text);
+}
+
+.grid__mute[aria-pressed='true'] {
+  color: var(--color-warning);
+}
+
+/* A muted lane keeps its cells — the notes still go to the host's track, and
+   hiding them would say the pattern changed when only the preview did. Dimmed
+   is the honest amount of difference. */
+.grid__row[data-muted] .grid__track {
+  opacity: 0.45;
 }
 
 .grid__track {

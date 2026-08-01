@@ -3,11 +3,11 @@ import { defineConfig, devices } from '@playwright/test';
 /**
  * E2E against `vite dev` with IPC served by `src/lib/ipc-mock`.
  *
- * Deliberately no Tauri binary: the UI is the thing under test here, and
- * building a native binary per platform to click a tab would make E2E slow
- * enough that people stop running it. Native behaviour — drag-out, the crash
- * loop, the updater — is covered by the smoke tests and the Havoc-standard
- * drill instead.
+ * Deliberately no plugin binary: the UI is the thing under test here, and
+ * building a native bundle per platform to click a tab would make E2E slow
+ * enough that people stop running it. What only a real host can show — the
+ * editor opening, tempo sync, notes reaching the track — is covered by the
+ * `plugin` and `plugin editor` CI jobs and by loading it in a DAW.
  */
 export default defineConfig({
   testDir: './e2e',

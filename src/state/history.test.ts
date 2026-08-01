@@ -20,6 +20,7 @@ const BASE: Snapshot = {
   pattern: null,
   mood: null,
   audioEnabled: true,
+  mutedLanes: [],
 };
 
 function snap(over: Partial<Snapshot>): Snapshot {
@@ -161,5 +162,35 @@ describe('the operation log', () => {
 
     for (let i = 0; i < 500; i += 1) history.undo();
     expect(useHistory.getState().present?.state.seed).toBe('');
+  });
+
+  it('steps each lane mute back on its own rather than merging them', () => {
+    // ⛔ **Two rules at once, and both had shipped broken.** `mutedLanes` was in
+    // `send()` but not in the snapshot, so a mute saved when clicked and was
+    // lost when undone — nothing in this file varied the field, so nothing
+    // caught it. And a mute is a *discrete act*: coalescing suits a seed being
+    // typed toward a value, but muting the kick and then the snare inside the
+    // 600 ms window is two intentions, and merging them made "kick muted, snare
+    // audible" unreachable by undo.
+    const history = useHistory.getState();
+    history.arm(BASE);
+
+    history.record(snap({ mutedLanes: ['kick'] }));
+    // Well inside COALESCE_MS — the point is that it does not merge anyway.
+    vi.advanceTimersByTime(50);
+    history.record(snap({ mutedLanes: ['kick', 'snare'] }));
+
+    expect(history.undo()?.mutedLanes).toEqual(['kick']);
+    expect(history.undo()?.mutedLanes).toEqual([]);
+  });
+
+  it('restores the mute set a redo steps back into', () => {
+    const history = useHistory.getState();
+    history.arm(BASE);
+
+    vi.advanceTimersByTime(5_000);
+    history.record(snap({ mutedLanes: ['openHat'] }));
+    expect(history.undo()?.mutedLanes).toEqual([]);
+    expect(history.redo()?.mutedLanes).toEqual(['openHat']);
   });
 });

@@ -15,12 +15,11 @@
  * are one exchange that depends on no tick at all.
  */
 
-/** What the plugin's webview injects. Neither exists in a browser or in Tauri. */
+/** What the plugin's webview injects. It does not exist in a browser. */
 declare global {
   interface Window {
     /** Injected by the plugin's webview adapter — the marker we detect on. */
     sendToPlugin?: (message: unknown) => void;
-    __TAURI_INTERNALS__?: unknown;
   }
 }
 
@@ -43,10 +42,6 @@ let counter = 1;
 /** True when running inside the plugin's webview. */
 export function isPlugin(): boolean {
   if (typeof window === 'undefined') return false;
-  // Tauri is checked first: its webview also exposes an `ipc` object, and
-  // treating a Tauri session as a plugin one would route every call into a
-  // bridge that is not there.
-  if (window.__TAURI_INTERNALS__ !== undefined) return false;
   return typeof window.sendToPlugin === 'function';
 }
 

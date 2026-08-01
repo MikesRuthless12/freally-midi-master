@@ -1,11 +1,7 @@
 {
   "titlebar": {
     "settings": "Ustawienia",
-    "about": "O programie",
-    "minimize": "Minimalizuj",
-    "maximize": "Maksymalizuj",
-    "restore": "Przywróć",
-    "close": "Zamknij"
+    "about": "O programie"
   },
   "tabs": {
     "group": "Generator",
@@ -84,12 +80,12 @@
   },
   "transport": {
     "play": "Odtwórz",
+    "pause": "Pauza",
     "stop": "Zatrzymaj",
     "loop": "Pętla",
     "masterLevel": "Poziom master: cisza",
     "toggleRightRail": "Przełącz prawy panel (K)",
     "windowSize": "Rozmiar okna",
-    "reportBug": "Zgłoś błąd",
     "loopAlways": "W tej fazie odtwarzanie zawsze się zapętla.",
     "unavailable": "Odtwarzanie niedostępne: {{reason}}"
   },
@@ -111,36 +107,16 @@
     "showAll": "Pokaż wszystkie panele",
     "hideAll": "Ukryj wszystkie panele"
   },
-  "export": {
-    "drag": "Przeciągnij MIDI",
-    "dragTitle": "Przeciągnij wygenerowane MIDI do swojego DAW",
-    "export": "Eksportuj",
-    "exportTitle": "Zapisz MIDI do folderu i pokaż plik",
-    "dragDesktopOnly": "Przeciąganie działa tylko w aplikacji desktopowej.",
-    "exportDesktopOnly": "Eksport działa tylko w aplikacji desktopowej.",
-    "dropped": "Wylądowało.",
-    "exportedTo": "Wyeksportowano do {{path}}",
-    "nothingToExport": "Najpierw wygeneruj beat."
-  },
   "settings": {
     "title": "Ustawienia",
     "searchPlaceholder": "Szukaj w ustawieniach…",
     "searchLabel": "Szukaj w ustawieniach",
     "categories": "Kategorie ustawień",
     "noMatch": "Nic nie pasuje do „{{query}}”.",
-    "saveFailed": "Nie udało się zapisać ustawień: {{error}}",
     "general": "Ogólne",
     "appearance": "Wygląd",
     "language": "Język",
     "about": "O programie",
-    "trayHeading": "Zasobnik systemowy",
-    "showTrayIcon": "Pokaż ikonę w zasobniku systemowym",
-    "showTrayIconHint": "Dodaje Freally MIDI Master do obszaru powiadomień, z opcjami Pokaż i Zakończ.",
-    "minimizeToTray": "Minimalizuj do zasobnika",
-    "minimizeToTrayHint": "Minimalizowanie chowa okno do zasobnika zamiast na pasek zadań. Kliknij ikonę w zasobniku, aby je przywrócić.",
-    "closeToTray": "Zamykaj do zasobnika",
-    "closeToTrayHint": "Zamknięcie okna nie kończy aplikacji — działa dalej w zasobniku. Aby wyjść, wybierz Zakończ z menu zasobnika.",
-    "trayRequired": "Włącz ikonę w zasobniku, aby korzystać z dwóch opcji powyżej — bez niej nie dałoby się przywrócić okna.",
     "themeHeading": "Motyw",
     "themeNote": "Ciemny to motyw domyślny i znak rozpoznawczy aplikacji. Oba mają kontrast sprawdzony pod kątem WCAG 2.1 AA.",
     "languageHeading": "Język",
@@ -165,40 +141,13 @@
     "creditsHeading": "Podziękowania",
     "creditsBody": "Statystyki czasu i velocity pochodzą z Magenta Groove MIDI Dataset (CC BY 4.0). Noto Sans, Noto Sans Display i Noto Sans Mono, wraz z rodzinami Noto dla poszczególnych pism — CJK, arabskiego, hebrajskiego, indyjskich i innych — na licencji SIL Open Font License 1.1. Ikony Lucide na licencji ISC. Zestawy podglądowe są syntezowane w repozytorium i nie zawierają próbek innych firm."
   },
-  "bugReport": {
-    "title": "Zgłoś błąd",
-    "intro": "Zgłoszenia są anonimowe i nigdy nie wysyłają się same. Przeczytaj dokładną treść poniżej, a potem wybierz sposób wysyłki — zgłoszenie na GitHub, wersję roboczą w Gmail albo własny klient poczty. To ty klikasz Wyślij.",
-    "crashNotice": "Freally MIDI Master zamknął się nieoczekiwanie przy ostatnim uruchomieniu. Poniższe szczegóły awarii zapisano tylko na tym komputerze.",
-    "describeLabel": "Co się działo, kiedy coś poszło nie tak?",
-    "describePlaceholder": "Opcjonalne, ale bardzo pomaga.",
-    "includeCrash": "Dołącz szczegóły awarii",
-    "previewLabel": "Dokładnie to zostanie wysłane",
-    "openGithub": "Otwórz zgłoszenie na GitHub",
-    "composeGmail": "Napisz w Gmail",
-    "composeGmailTitle": "Otwiera w przeglądarce okno tworzenia wiadomości Gmail z wypełnioną treścią.",
-    "sendEmail": "Wyślij e-mail",
-    "sendEmailTitle": "Otwiera domyślny klient poczty w systemie z wypełnioną treścią.",
-    "copy": "Kopiuj zgłoszenie",
-    "copied": "Skopiowano",
-    "dismissCrash": "Odrzuć awarię",
-    "copyFailed": "Nie udało się skopiować zgłoszenia do schowka."
-  },
-  "update": {
-    "available": "Dostępna jest wersja {{version}}",
-    "whatsNew": "Co nowego",
-    "noNotes": "Dla tej wersji nie opublikowano informacji o zmianach.",
-    "installFailed": "Nie udało się zainstalować aktualizacji: {{error}}",
-    "later": "Nie, nie teraz",
-    "install": "Tak, aktualizuj teraz",
-    "installing": "Aktualizowanie…",
-    "footer": "Pobrane z GitHub i zweryfikowane podpisem przed instalacją. Żadne dane o tobie ani twoich projektach nie są wysyłane."
-  },
   "common": {
     "close": "Zamknij"
   },
   "grid": {
     "label": "Wygenerowany wzór",
-    "summary": "{{bars}} taktów · {{steps}} kroków · {{notes}} nut"
+    "summary": "{{bars}} taktów · {{steps}} kroków · {{notes}} nut",
+    "muteLane": "Wycisz {{lane}} w podglądzie"
   },
   "roster": {
     "artists": "Artyści",
@@ -218,11 +167,6 @@
     "snap": "Pstryknięcie",
     "perc": "Perkusjonalia",
     "bass808": "808"
-  },
-  "device": {
-    "recovering": "Utracono urządzenie audio — ponowne łączenie…",
-    "failed": "Brak urządzenia audio. Trwają próby…",
-    "recovered": "Urządzenie audio wróciło."
   },
   "presets": {
     "factory": "Fabryczne",

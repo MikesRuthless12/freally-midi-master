@@ -22,7 +22,6 @@ import { describe, expect, it } from 'vitest';
 import { CATEGORIES } from '../components/Settings/categories';
 import { LANE_ORDER } from '../components/DrumGrid/cells';
 import { SCALES } from '../components/SessionChips/values';
-import { DEVICE_STATES } from '../state/session';
 import { THEME_PREFERENCES } from '../state/theme';
 import { GENERATOR_TABS, SECTIONS } from '../state/ui';
 import { LOCALE_CODES, LOCALES, resolveLocale } from './locales';
@@ -179,7 +178,6 @@ describe('locale catalogs', () => {
     ['theme', THEME_PREFERENCES],
     ['theme.short', THEME_PREFERENCES],
     ['lanes', LANE_ORDER],
-    ['device', DEVICE_STATES],
     ['scales', SCALES],
   ] as const;
 

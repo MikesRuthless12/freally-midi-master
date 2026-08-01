@@ -1,11 +1,7 @@
 {
   "titlebar": {
     "settings": "设置",
-    "about": "关于",
-    "minimize": "最小化",
-    "maximize": "最大化",
-    "restore": "还原",
-    "close": "关闭"
+    "about": "关于"
   },
   "tabs": {
     "group": "生成器",
@@ -84,12 +80,12 @@
   },
   "transport": {
     "play": "播放",
+    "pause": "暂停",
     "stop": "停止",
     "loop": "循环",
     "masterLevel": "主输出电平：静音",
     "toggleRightRail": "切换右侧栏 (K)",
     "windowSize": "窗口大小",
-    "reportBug": "报告问题",
     "loopAlways": "当前阶段播放始终循环。",
     "unavailable": "无法播放：{{reason}}"
   },
@@ -111,36 +107,16 @@
     "showAll": "显示所有面板",
     "hideAll": "隐藏所有面板"
   },
-  "export": {
-    "drag": "拖出 MIDI",
-    "dragTitle": "把生成的 MIDI 拖进你的 DAW",
-    "export": "导出",
-    "exportTitle": "把 MIDI 写入文件夹并定位到该文件",
-    "dragDesktopOnly": "拖放仅在桌面应用中可用。",
-    "exportDesktopOnly": "导出仅在桌面应用中可用。",
-    "dropped": "已放入。",
-    "exportedTo": "已导出到 {{path}}",
-    "nothingToExport": "请先生成一段节奏。"
-  },
   "settings": {
     "title": "设置",
     "searchPlaceholder": "搜索设置…",
     "searchLabel": "搜索设置",
     "categories": "设置分类",
     "noMatch": "没有与“{{query}}”匹配的项。",
-    "saveFailed": "无法保存你的设置：{{error}}",
     "general": "常规",
     "appearance": "外观",
     "language": "语言",
     "about": "关于",
-    "trayHeading": "系统托盘",
-    "showTrayIcon": "显示系统托盘图标",
-    "showTrayIconHint": "把 Freally MIDI Master 添加到通知区域，并提供显示和退出。",
-    "minimizeToTray": "最小化到系统托盘",
-    "minimizeToTrayHint": "最小化时窗口隐藏到托盘，而不是任务栏。点击托盘图标即可恢复。",
-    "closeToTray": "关闭到系统托盘",
-    "closeToTrayHint": "关闭窗口后应用仍在托盘中运行。从托盘菜单选择退出才会结束。",
-    "trayRequired": "先打开托盘图标才能使用以上两项 —— 否则将无法把窗口找回来。",
     "themeHeading": "主题",
     "themeNote": "深色是默认主题，也是本应用的标志性外观。两种主题的对比度均按 WCAG 2.1 AA 检验。",
     "languageHeading": "语言",
@@ -165,40 +141,13 @@
     "creditsHeading": "鸣谢",
     "creditsBody": "时值与力度统计取自 Magenta Groove MIDI Dataset（CC BY 4.0）。Noto Sans、Noto Sans Display 和 Noto Sans Mono，以及涵盖中日韩、阿拉伯文、希伯来文、印度系文字等的各书写系统 Noto 字族，依据 SIL Open Font License 1.1 授权。Lucide 图标依据 ISC 授权。预览鼓组在仓库内合成，不含任何第三方采样。"
   },
-  "bugReport": {
-    "title": "报告问题",
-    "intro": "报告是匿名的，绝不会自动发送。先读完下面的原文，再选择发送方式 —— GitHub 议题、Gmail 草稿，或你自己的邮件客户端。发送由你点击。",
-    "crashNotice": "Freally MIDI Master 上次意外退出。下面的崩溃详情仅保存在本机。",
-    "describeLabel": "出问题时你在做什么？",
-    "describePlaceholder": "可选，但很有帮助。",
-    "includeCrash": "包含崩溃详情",
-    "previewLabel": "将要发送的完整内容",
-    "openGithub": "打开 GitHub 议题",
-    "composeGmail": "在 Gmail 中撰写",
-    "composeGmailTitle": "在浏览器中打开 Gmail 撰写窗口，内容已预填。",
-    "sendEmail": "发送邮件",
-    "sendEmailTitle": "打开系统默认邮件客户端，内容已预填。",
-    "copy": "复制报告",
-    "copied": "已复制",
-    "dismissCrash": "忽略崩溃",
-    "copyFailed": "无法把报告复制到剪贴板。"
-  },
-  "update": {
-    "available": "{{version}} 版本可用",
-    "whatsNew": "更新内容",
-    "noNotes": "此版本未发布更新说明。",
-    "installFailed": "更新安装失败：{{error}}",
-    "later": "先不用",
-    "install": "好，立即更新",
-    "installing": "正在更新…",
-    "footer": "从 GitHub 下载，安装前已验证签名。不会发送任何关于你或你项目的信息。"
-  },
   "common": {
     "close": "关闭"
   },
   "grid": {
     "label": "生成的节奏型",
-    "summary": "{{bars}} 小节 · {{steps}} 步 · {{notes}} 音符"
+    "summary": "{{bars}} 小节 · {{steps}} 步 · {{notes}} 音符",
+    "muteLane": "在预览中静音{{lane}}"
   },
   "roster": {
     "artists": "艺人",
@@ -218,11 +167,6 @@
     "snap": "响指",
     "perc": "打击乐",
     "bass808": "808"
-  },
-  "device": {
-    "recovering": "音频设备已断开 — 正在重新连接…",
-    "failed": "没有音频设备，仍在尝试…",
-    "recovered": "音频设备已恢复。"
   },
   "presets": {
     "factory": "出厂",

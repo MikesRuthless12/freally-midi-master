@@ -45,5 +45,13 @@ fn main() {
     // a host loads the library and never runs this function.
     nih_plug_webview::own_message_queue();
 
+    // TASK-041T. **There is no host here, so the transport is ours to run.**
+    // nih-plug's cpal backend reports `transport.playing = true` on every
+    // block and offers no way to stop it — so without this a pattern loops
+    // from the moment it is generated, Stop rewinds to zero and keeps playing,
+    // and there is no pause at all. `main` is the gate for the same reason as
+    // the line above: a host loads the library and never runs this function.
+    freally_midi_master_plugin::mark_standalone();
+
     nih_export_standalone::<FreallyMidiMaster>();
 }

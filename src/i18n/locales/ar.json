@@ -1,11 +1,7 @@
 {
   "titlebar": {
     "settings": "الإعدادات",
-    "about": "حول",
-    "minimize": "تصغير",
-    "maximize": "تكبير",
-    "restore": "استعادة",
-    "close": "إغلاق"
+    "about": "حول"
   },
   "tabs": {
     "group": "المولّد",
@@ -84,12 +80,12 @@
   },
   "transport": {
     "play": "تشغيل",
+    "pause": "إيقاف مؤقت",
     "stop": "إيقاف",
     "loop": "تكرار",
     "masterLevel": "مستوى الماستر: صامت",
     "toggleRightRail": "تبديل الشريط الجانبي (K)",
     "windowSize": "حجم النافذة",
-    "reportBug": "الإبلاغ عن مشكلة",
     "loopAlways": "التشغيل يعمل دائماً في حلقة في هذه المرحلة.",
     "unavailable": "التشغيل غير متاح: {{reason}}"
   },
@@ -111,36 +107,16 @@
     "showAll": "إظهار كل اللوحات",
     "hideAll": "إخفاء كل اللوحات"
   },
-  "export": {
-    "drag": "سحب MIDI",
-    "dragTitle": "اسحب ملف MIDI المولَّد إلى برنامج DAW لديك",
-    "export": "تصدير",
-    "exportTitle": "احفظ ملف MIDI في مجلد وأظهِره هناك",
-    "dragDesktopOnly": "السحب يعمل في تطبيق سطح المكتب فقط.",
-    "exportDesktopOnly": "التصدير يعمل في تطبيق سطح المكتب فقط.",
-    "dropped": "وصلت.",
-    "exportedTo": "تم التصدير إلى {{path}}",
-    "nothingToExport": "ولّد إيقاعاً أولاً."
-  },
   "settings": {
     "title": "الإعدادات",
     "searchPlaceholder": "ابحث في الإعدادات…",
     "searchLabel": "ابحث في الإعدادات",
     "categories": "فئات الإعدادات",
     "noMatch": "لا شيء يطابق «{{query}}».",
-    "saveFailed": "تعذّر حفظ إعداداتك: {{error}}",
     "general": "عام",
     "appearance": "المظهر",
     "language": "اللغة",
     "about": "حول",
-    "trayHeading": "علبة النظام",
-    "showTrayIcon": "إظهار أيقونة في علبة النظام",
-    "showTrayIconHint": "يضيف Freally MIDI Master إلى منطقة الإعلام، مع خيارَي إظهار وإنهاء.",
-    "minimizeToTray": "التصغير إلى علبة النظام",
-    "minimizeToTrayHint": "التصغير يُخفي النافذة في علبة النظام بدلًا من شريط المهام. انقر الأيقونة لإعادتها.",
-    "closeToTray": "الإغلاق إلى علبة النظام",
-    "closeToTrayHint": "إغلاق النافذة يُبقي التطبيق يعمل في العلبة. أنهِ التطبيق من قائمة العلبة للخروج.",
-    "trayRequired": "فعّل أيقونة العلبة لاستخدام الخيارين أعلاه — بدونها لا سبيل لاستعادة النافذة.",
     "themeHeading": "السمة",
     "themeNote": "الداكنة هي الافتراضية وهي مظهر التطبيق المميّز. كلتا السمتين مفحوصة التباين وفق WCAG 2.1 AA.",
     "languageHeading": "اللغة",
@@ -165,40 +141,13 @@
     "creditsHeading": "شكر وتقدير",
     "creditsBody": "إحصاءات التوقيت وقوة العزف مستمدّة من Magenta Groove MIDI Dataset (CC BY 4.0). خطوط Noto Sans وNoto Sans Display وNoto Sans Mono، مع عائلات Noto لكل نظام كتابة تغطي الصينية واليابانية والكورية والعربية والعبرية والخطوط الهندية وغيرها، بموجب SIL Open Font License 1.1. أيقونات Lucide بموجب ISC. كِتات المعاينة مُركَّبة داخل المستودع ولا تحتوي على أي عيّنات من طرف ثالث."
   },
-  "bugReport": {
-    "title": "الإبلاغ عن مشكلة",
-    "intro": "التقارير مجهولة المصدر ولا تُرسل تلقائيًا أبدًا. اقرأ النص الدقيق أدناه، ثم اختر طريقة الإرسال — مشكلة على GitHub، أو مسودّة في Gmail، أو برنامج البريد لديك. أنت من يضغط إرسال.",
-    "crashNotice": "أُغلق Freally MIDI Master بشكل غير متوقّع في المرة السابقة. حُفظت تفاصيل العطل أدناه على هذا الجهاز فقط.",
-    "describeLabel": "ماذا كنت تفعل حين حدث الخلل؟",
-    "describePlaceholder": "اختياري، لكنه يساعد كثيرًا.",
-    "includeCrash": "تضمين تفاصيل العطل",
-    "previewLabel": "ما سيُرسل بالضبط",
-    "openGithub": "فتح مشكلة على GitHub",
-    "composeGmail": "الكتابة في Gmail",
-    "composeGmailTitle": "يفتح نافذة إنشاء رسالة في Gmail داخل متصفّحك، معبّأة مسبقًا.",
-    "sendEmail": "إرسال بريد",
-    "sendEmailTitle": "يفتح برنامج البريد الافتراضي في نظامك، معبّأً مسبقًا.",
-    "copy": "نسخ التقرير",
-    "copied": "تم النسخ",
-    "dismissCrash": "تجاهل العطل",
-    "copyFailed": "تعذّر نسخ التقرير إلى الحافظة."
-  },
-  "update": {
-    "available": "الإصدار {{version}} متاح",
-    "whatsNew": "الجديد",
-    "noNotes": "لم تُنشر ملاحظات إصدار لهذه النسخة.",
-    "installFailed": "تعذّر تثبيت التحديث: {{error}}",
-    "later": "لا، ليس الآن",
-    "install": "نعم، حدّث الآن",
-    "installing": "جارٍ التحديث…",
-    "footer": "يُنزَّل من GitHub ويُتحقَّق من توقيعه قبل التثبيت. لا يُرسل أي شيء عنك أو عن مشاريعك."
-  },
   "common": {
     "close": "إغلاق"
   },
   "grid": {
     "label": "النمط المُولَّد",
-    "summary": "{{bars}} مازورة · {{steps}} خطوة · {{notes}} نوتة"
+    "summary": "{{bars}} مازورة · {{steps}} خطوة · {{notes}} نوتة",
+    "muteLane": "كتم معاينة {{lane}}"
   },
   "roster": {
     "artists": "الفنانون",
@@ -218,11 +167,6 @@
     "snap": "طقطقة",
     "perc": "إيقاع",
     "bass808": "808"
-  },
-  "device": {
-    "recovering": "فُقد جهاز الصوت — تجري إعادة الاتصال…",
-    "failed": "لا يوجد جهاز صوت. ما زالت المحاولة…",
-    "recovered": "عاد جهاز الصوت."
   },
   "presets": {
     "factory": "مصنعية",

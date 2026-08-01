@@ -1,11 +1,7 @@
 {
   "titlebar": {
     "settings": "Cài đặt",
-    "about": "Giới thiệu",
-    "minimize": "Thu nhỏ",
-    "maximize": "Phóng to",
-    "restore": "Khôi phục",
-    "close": "Đóng"
+    "about": "Giới thiệu"
   },
   "tabs": {
     "group": "Trình tạo",
@@ -84,12 +80,12 @@
   },
   "transport": {
     "play": "Phát",
+    "pause": "Tạm dừng",
     "stop": "Dừng",
     "loop": "Lặp",
     "masterLevel": "Mức master: im lặng",
     "toggleRightRail": "Bật/tắt thanh phải (K)",
     "windowSize": "Kích thước cửa sổ",
-    "reportBug": "Báo lỗi",
     "loopAlways": "Ở giai đoạn này, phát lại luôn lặp.",
     "unavailable": "Không thể phát: {{reason}}"
   },
@@ -111,36 +107,16 @@
     "showAll": "Hiện tất cả bảng",
     "hideAll": "Ẩn tất cả bảng"
   },
-  "export": {
-    "drag": "Kéo MIDI",
-    "dragTitle": "Kéo MIDI vừa tạo vào DAW của bạn",
-    "export": "Xuất",
-    "exportTitle": "Ghi MIDI ra thư mục và mở thư mục đó",
-    "dragDesktopOnly": "Kéo thả chỉ hoạt động trong ứng dụng máy tính.",
-    "exportDesktopOnly": "Xuất chỉ hoạt động trong ứng dụng máy tính.",
-    "dropped": "Đã thả xong.",
-    "exportedTo": "Đã xuất tới {{path}}",
-    "nothingToExport": "Hãy tạo một beat trước."
-  },
   "settings": {
     "title": "Cài đặt",
     "searchPlaceholder": "Tìm trong cài đặt…",
     "searchLabel": "Tìm trong cài đặt",
     "categories": "Nhóm cài đặt",
     "noMatch": "Không có gì khớp với “{{query}}”.",
-    "saveFailed": "Không thể lưu cài đặt của bạn: {{error}}",
     "general": "Chung",
     "appearance": "Diện mạo",
     "language": "Ngôn ngữ",
     "about": "Giới thiệu",
-    "trayHeading": "Khay hệ thống",
-    "showTrayIcon": "Hiện biểu tượng ở khay hệ thống",
-    "showTrayIconHint": "Thêm Freally MIDI Master vào khu vực thông báo, kèm Hiện và Thoát.",
-    "minimizeToTray": "Thu nhỏ vào khay hệ thống",
-    "minimizeToTrayHint": "Thu nhỏ sẽ ẩn cửa sổ vào khay thay vì thanh tác vụ. Bấm biểu tượng khay để mở lại.",
-    "closeToTray": "Đóng vào khay hệ thống",
-    "closeToTrayHint": "Đóng cửa sổ vẫn giữ ứng dụng chạy trong khay. Thoát từ menu khay để kết thúc.",
-    "trayRequired": "Bật biểu tượng khay để dùng hai tùy chọn trên — không có nó thì không cách nào mở lại cửa sổ.",
     "themeHeading": "Giao diện",
     "themeNote": "Tối là mặc định và là diện mạo đặc trưng của ứng dụng. Cả hai giao diện đều được kiểm tra tương phản theo WCAG 2.1 AA.",
     "languageHeading": "Ngôn ngữ",
@@ -165,40 +141,13 @@
     "creditsHeading": "Ghi công",
     "creditsBody": "Thống kê về thời điểm và lực đánh nốt lấy từ Magenta Groove MIDI Dataset (CC BY 4.0). Noto Sans, Noto Sans Display và Noto Sans Mono, cùng các họ Noto riêng cho từng hệ chữ gồm Trung – Nhật – Hàn, Ả Rập, Do Thái, Ấn Độ và nhiều hệ khác, theo SIL Open Font License 1.1. Biểu tượng Lucide theo ISC. Bộ trống nghe thử được tổng hợp ngay trong kho mã và không chứa mẫu âm thanh của bên thứ ba."
   },
-  "bugReport": {
-    "title": "Báo lỗi",
-    "intro": "Báo cáo là ẩn danh và không bao giờ tự động gửi đi. Hãy đọc đúng nội dung bên dưới, rồi chọn cách gửi — một báo lỗi trên GitHub, một thư nháp Gmail, hoặc trình thư của riêng bạn. Bạn là người bấm Gửi.",
-    "crashNotice": "Freally MIDI Master đã đóng đột ngột ở lần chạy trước. Chi tiết sự cố bên dưới chỉ được lưu trên máy này.",
-    "describeLabel": "Bạn đang làm gì khi sự cố xảy ra?",
-    "describePlaceholder": "Không bắt buộc, nhưng giúp ích rất nhiều.",
-    "includeCrash": "Kèm chi tiết sự cố",
-    "previewLabel": "Chính xác những gì sẽ được gửi",
-    "openGithub": "Mở báo lỗi trên GitHub",
-    "composeGmail": "Soạn trong Gmail",
-    "composeGmailTitle": "Mở cửa sổ soạn thư Gmail trong trình duyệt, đã điền sẵn.",
-    "sendEmail": "Gửi email",
-    "sendEmailTitle": "Mở trình thư mặc định của hệ điều hành, đã điền sẵn.",
-    "copy": "Sao chép báo cáo",
-    "copied": "Đã sao chép",
-    "dismissCrash": "Bỏ qua sự cố",
-    "copyFailed": "Không thể sao chép báo cáo vào bộ nhớ tạm."
-  },
-  "update": {
-    "available": "Đã có phiên bản {{version}}",
-    "whatsNew": "Có gì mới",
-    "noNotes": "Phiên bản này không công bố ghi chú phát hành.",
-    "installFailed": "Không thể cài bản cập nhật: {{error}}",
-    "later": "Không, để sau",
-    "install": "Có, cập nhật ngay",
-    "installing": "Đang cập nhật…",
-    "footer": "Tải từ GitHub và xác minh chữ ký trước khi cài. Không gửi đi bất kỳ thông tin nào về bạn hay dự án của bạn."
-  },
   "common": {
     "close": "Đóng"
   },
   "grid": {
     "label": "Mẫu đã tạo",
-    "summary": "{{bars}} ô nhịp · {{steps}} bước · {{notes}} nốt"
+    "summary": "{{bars}} ô nhịp · {{steps}} bước · {{notes}} nốt",
+    "muteLane": "Tắt tiếng {{lane}} trong bản nghe thử"
   },
   "roster": {
     "artists": "Nghệ sĩ",
@@ -218,11 +167,6 @@
     "snap": "Búng tay",
     "perc": "Bộ gõ",
     "bass808": "808"
-  },
-  "device": {
-    "recovering": "Mất thiết bị âm thanh — đang kết nối lại…",
-    "failed": "Không có thiết bị âm thanh. Vẫn đang thử…",
-    "recovered": "Thiết bị âm thanh đã trở lại."
   },
   "presets": {
     "factory": "Mặc định",
