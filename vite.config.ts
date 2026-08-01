@@ -2,34 +2,21 @@ import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 
-// @ts-expect-error process is a nodejs global
-const host = process.env.TAURI_DEV_HOST;
-
 // https://vite.dev/config/
 export default defineConfig(async () => ({
   plugins: [react(), tailwindcss()],
 
-  // Vite options tailored for Tauri development and only applied in `tauri dev` or `tauri build`
-  //
-  // 1. prevent Vite from obscuring rust errors
+  // Rust errors are the ones worth reading during a plugin build; clearing the
+  // screen is what hides them.
   clearScreen: false,
-  // 2. tauri expects a fixed port, fail if that port is not available
   server: {
+    // Fixed, so the dev server is at a known address whatever else is running.
     port: 1420,
     strictPort: true,
-    host: host || false,
-    hmr: host
-      ? {
-          protocol: 'ws',
-          host,
-          port: 1421,
-        }
-      : undefined,
     watch: {
-      // 3. tell Vite to ignore watching `src-tauri` and the Cargo workspace
-      //    target dir (it lives at the repo root, and watching the locked
-      //    build artifacts makes chokidar throw EBUSY on Windows)
-      ignored: ['**/src-tauri/**', '**/target/**'],
+      // The Cargo workspace target dir lives at the repo root, and watching
+      // locked build artifacts makes chokidar throw EBUSY on Windows.
+      ignored: ['**/target/**'],
     },
   },
 }));

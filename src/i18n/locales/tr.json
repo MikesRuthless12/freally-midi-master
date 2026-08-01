@@ -1,11 +1,7 @@
 {
   "titlebar": {
     "settings": "Ayarlar",
-    "about": "Hakkında",
-    "minimize": "Küçült",
-    "maximize": "Büyüt",
-    "restore": "Geri yükle",
-    "close": "Kapat"
+    "about": "Hakkında"
   },
   "tabs": {
     "group": "Oluşturucu",
@@ -84,12 +80,12 @@
   },
   "transport": {
     "play": "Çal",
+    "pause": "Duraklat",
     "stop": "Durdur",
     "loop": "Döngü",
     "masterLevel": "Master seviyesi: sessiz",
     "toggleRightRail": "Sağ paneli aç/kapat (K)",
     "windowSize": "Pencere boyutu",
-    "reportBug": "Hata bildir",
     "loopAlways": "Bu aşamada çalma her zaman döngüdedir.",
     "unavailable": "Çalma kullanılamıyor: {{reason}}"
   },
@@ -111,36 +107,16 @@
     "showAll": "Tüm panelleri göster",
     "hideAll": "Tüm panelleri gizle"
   },
-  "export": {
-    "drag": "MIDI'yi sürükle",
-    "dragTitle": "Oluşturulan MIDI'yi DAW'ına sürükle",
-    "export": "Dışa aktar",
-    "exportTitle": "MIDI'yi bir klasöre yazar ve klasörü açar",
-    "dragDesktopOnly": "Sürükleme yalnızca masaüstü uygulamasında çalışır.",
-    "exportDesktopOnly": "Dışa aktarma yalnızca masaüstü uygulamasında çalışır.",
-    "dropped": "İndi.",
-    "exportedTo": "{{path}} konumuna aktarıldı",
-    "nothingToExport": "Önce bir ritim oluştur."
-  },
   "settings": {
     "title": "Ayarlar",
     "searchPlaceholder": "Ayarlarda ara…",
     "searchLabel": "Ayarlarda ara",
     "categories": "Ayar kategorileri",
     "noMatch": "“{{query}}” ile eşleşen bir şey yok.",
-    "saveFailed": "Ayarların kaydedilemedi: {{error}}",
     "general": "Genel",
     "appearance": "Görünüm",
     "language": "Dil",
     "about": "Hakkında",
-    "trayHeading": "Sistem tepsisi",
-    "showTrayIcon": "Sistem tepsisinde simge göster",
-    "showTrayIconHint": "Freally MIDI Master'ı Göster ve Çık seçenekleriyle bildirim alanına ekler.",
-    "minimizeToTray": "Sistem tepsisine küçült",
-    "minimizeToTrayHint": "Küçültünce pencere görev çubuğu yerine tepsiye gizlenir. Geri getirmek için tepsi simgesine tıkla.",
-    "closeToTray": "Sistem tepsisine kapat",
-    "closeToTrayHint": "Pencereyi kapatınca uygulama tepside çalışmaya devam eder. Çıkmak için tepsi menüsünden Çık'ı seç.",
-    "trayRequired": "Yukarıdaki iki seçeneği kullanmak için tepsi simgesini aç — o olmadan pencereyi geri getirmenin bir yolu kalmaz.",
     "themeHeading": "Tema",
     "themeNote": "Koyu tema varsayılandır ve uygulamanın imzası sayılır. İki temanın da kontrastı WCAG 2.1 AA'ya göre denetlendi.",
     "languageHeading": "Dil",
@@ -165,40 +141,13 @@
     "creditsHeading": "Teşekkürler",
     "creditsBody": "Zamanlama ve velocity istatistikleri Magenta Groove MIDI Dataset'ten (CC BY 4.0) türetilmiştir. Noto Sans, Noto Sans Display ve Noto Sans Mono ile CJK, Arapça, İbranice, Hint yazıları ve daha fazlasını kapsayan yazı sistemine özel Noto aileleri SIL Open Font License 1.1 kapsamındadır. Lucide simgeleri ISC kapsamındadır. Önizleme kitleri deponun içinde sentezlenir ve üçüncü taraf sample içermez."
   },
-  "bugReport": {
-    "title": "Hata bildir",
-    "intro": "Bildirimler anonimdir ve asla otomatik gönderilmez. Aşağıdaki metni olduğu gibi oku, sonra nasıl göndereceğini seç: GitHub'da bir hata kaydı, Gmail'de bir taslak ya da kendi e-posta programın. Gönder'e sen basarsın.",
-    "crashNotice": "Freally MIDI Master geçen sefer beklenmedik şekilde kapandı. Aşağıdaki çökme ayrıntıları yalnızca bu bilgisayarda saklandı.",
-    "describeLabel": "Sorun çıktığında ne yapıyordun?",
-    "describePlaceholder": "İsteğe bağlı ama çok işe yarar.",
-    "includeCrash": "Çökme ayrıntılarını ekle",
-    "previewLabel": "Tam olarak gönderilecek olan",
-    "openGithub": "GitHub'da hata kaydı aç",
-    "composeGmail": "Gmail'de yaz",
-    "composeGmailTitle": "Tarayıcında Gmail'in yazma penceresini önceden doldurulmuş olarak açar.",
-    "sendEmail": "E-posta gönder",
-    "sendEmailTitle": "İşletim sisteminin varsayılan e-posta programını önceden doldurulmuş olarak açar.",
-    "copy": "Raporu kopyala",
-    "copied": "Kopyalandı",
-    "dismissCrash": "Çökmeyi kapat",
-    "copyFailed": "Rapor panoya kopyalanamadı."
-  },
-  "update": {
-    "available": "{{version}} sürümü hazır",
-    "whatsNew": "Yenilikler",
-    "noNotes": "Bu sürüm için sürüm notu yayımlanmadı.",
-    "installFailed": "Güncelleme kurulamadı: {{error}}",
-    "later": "Hayır, şimdi değil",
-    "install": "Evet, şimdi güncelle",
-    "installing": "Güncelleniyor…",
-    "footer": "GitHub'dan indirilir ve kurulmadan önce imzası doğrulanır. Seninle ya da projelerinle ilgili hiçbir şey gönderilmez."
-  },
   "common": {
     "close": "Kapat"
   },
   "grid": {
     "label": "Oluşturulan desen",
-    "summary": "{{bars}} ölçü · {{steps}} adım · {{notes}} nota"
+    "summary": "{{bars}} ölçü · {{steps}} adım · {{notes}} nota",
+    "muteLane": "Önizlemede {{lane}} sesini kapat"
   },
   "roster": {
     "artists": "Sanatçılar",
@@ -218,11 +167,6 @@
     "snap": "Parmak şıklatma",
     "perc": "Perküsyon",
     "bass808": "808"
-  },
-  "device": {
-    "recovering": "Ses aygıtı kayboldu — yeniden bağlanıyor…",
-    "failed": "Ses aygıtı yok. Denemeye devam ediliyor…",
-    "recovered": "Ses aygıtı geri geldi."
   },
   "presets": {
     "factory": "Fabrika",

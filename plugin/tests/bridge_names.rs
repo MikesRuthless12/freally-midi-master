@@ -106,58 +106,60 @@ fn answered_by_the_plugin() -> BTreeSet<String> {
     let mut found = BTreeSet::new();
     for file in ["plugin/src/bridge.rs", "plugin/src/editor.rs"] {
         let source = fs::read_to_string(repo_root().join(file)).expect("source should be readable");
-        // Match arms of the shape `"name" =>`.
-        for (index, _) in source.match_indices("\" =>") {
-            let before = &source[..index];
-            let Some(open) = before.rfind('"') else {
+        // Match arms of the shape `"name" =>`, and or-patterns of the shape
+        // `"one" | "two" =>`.
+        //
+        // ⛔ **Both alternatives have to be seen.** An earlier version read only
+        // the string immediately before the `=>`, so the first arm of
+        // `"transport_play" | "transport_pause" =>` was invisible here — and an
+        // invisible answer reads to this gate as a command the plugin does not
+        // answer *and*, in the orphan test below, as one nothing invokes. A
+        // forward split rather than a backwards walk, because a test whose whole
+        // value is being obviously right should not need parsing in its head.
+        for line in source.lines() {
+            // ⛔ **Comments first.** Both dispatch tables are heavily commented,
+            // and those comments quote command names — including, in this very
+            // file's neighbourhood, an or-pattern written out to explain the
+            // parsing below. A quoted name followed by `=>` inside a comment
+            // would register here as a command the plugin answers, which can
+            // only ever *mask* a missing handler: the page would invoke it, the
+            // bridge would reject it at runtime, and this gate would say the two
+            // sides agree.
+            let code = line.split_once("//").map_or(line, |(before, _)| before);
+            let Some((head, _)) = code.split_once("=>") else {
                 continue;
             };
-            let name = &before[open + 1..];
-            if !name.is_empty() && name.chars().all(|c| c.is_ascii_lowercase() || c == '_') {
-                found.insert(name.to_owned());
+            for piece in head.split('|') {
+                let Some(name) = piece
+                    .trim()
+                    .strip_prefix('"')
+                    .and_then(|rest| rest.strip_suffix('"'))
+                else {
+                    continue;
+                };
+                if !name.is_empty() && name.chars().all(|c| c.is_ascii_lowercase() || c == '_') {
+                    found.insert(name.to_owned());
+                }
             }
         }
     }
     found
 }
 
-/// Commands that belong to the desktop shell and that the plugin answers on
-/// purpose by *not* implementing them.
+/// Commands the page may invoke that the plugin answers on purpose by *not*
+/// implementing them.
 ///
-/// `play_pattern` is the clearest case: playback belongs to the host now, and
-/// `playback_status` is the plugin's answer — "press play in your DAW". The
-/// store calls the desktop command anyway and treats the rejection as "no
-/// transport here", which is the behaviour the transport bar already draws.
-const DESKTOP_ONLY: &[&str] = &[
-    "play_pattern",
-    "kit_load",
-    "kit_state",
-    "settings_get",
-    "settings_set",
-    "import_samples",
-    "assign_pad",
-    "export_midi",
-    "drag_midi",
-    // Export and drag-out. The plugin puts notes on the host's track instead,
-    // and file drag-out is FMM-S03 — a native drag source per platform, not
-    // built. `ExportChip` degrades on the rejection.
-    "export_to_folder",
-    "pick_export_folder",
-    "drag_capability",
-    "drag_source_ready",
-    // ⚠ **The crash reporter, and this one is a gap rather than a decision.**
-    // `src/components/BugReport/ipc.ts` invokes all five and the plugin answers
-    // none, so the Havoc-standard reporter is inert inside a DAW — the panel
-    // opens and submitting does nothing. It is listed here to keep this gate
-    // green on a pre-existing hole rather than to bless it; the fix is to
-    // implement them in `bridge.rs`, and until then the entries are the record
-    // that they are missing.
-    "bug_report_has_pending_crash",
-    "bug_report_context",
-    "bug_report_preview",
-    "bug_report_submit",
-    "bug_report_clear_crash",
-];
+/// ⛔ **Emptied when `src-tauri` was removed, and that is the point of
+/// keeping the list rather than the constant.** Every entry named a command the
+/// desktop shell answered and the plugin did not — the settings store, the
+/// export and drag-out path, the crash reporter, `play_pattern`. With that
+/// shell gone the page no longer invokes any of them, so the exemption they
+/// bought is not needed and would now hide a real gap: a command the page calls
+/// and nothing answers is exactly what this gate exists to fail on.
+///
+/// Add a name here only with a written reason for why the plugin deliberately
+/// does not answer it.
+const DESKTOP_ONLY: &[&str] = &[];
 
 #[test]
 fn every_command_the_page_invokes_is_answered_or_deliberately_desktop_only() {

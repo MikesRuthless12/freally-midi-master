@@ -64,8 +64,8 @@
           <li><a href="#session">Session state</a></li>
           <li><a href="#shortcuts">Keyboard shortcuts</a></li>
           <li><a href="#standalone">The standalone</a></li>
-          <li><a href="#privacy">Privacy &amp; the two connections</a></li>
-          <li><a href="#bugs">Reporting a crash</a></li>
+          <li><a href="#privacy">Privacy &amp; the network</a></li>
+          <li><a href="#bugs">Reporting a bug</a></li>
           <li><a href="#building">Building from source</a></li>
           <li><a href="#licence">Licence</a></li>
         </ol>
@@ -352,36 +352,31 @@
       </article>
 
       <article class="release" id="privacy">
-        <h2>Privacy &amp; the two connections</h2>
+        <h2>Privacy &amp; the network</h2>
         <p class="summary">
           No accounts. No telemetry. Nothing about you, your projects or your output is transmitted.
           Generation, playback, import and export are entirely local.
         </p>
-        <p class="summary" style="margin-top: 14px">Exactly two outbound connections exist:</p>
-        <ul class="features">
-          <li>
-            <strong>A launch-time update check.</strong> Once per launch, a single small version file
-            is fetched from the GitHub releases page. Nothing about you, your machine or your content
-            is sent, and nothing downloads or installs without you answering the prompt.
-          </li>
-          <li>
-            <strong>Crash reports.</strong> Written locally, shown to you in full, and sent only if
-            you click to send them.
-          </li>
-        </ul>
+        <p class="summary" style="margin-top: 14px">
+          <strong>No outbound connections exist.</strong> The desktop app had exactly two — a
+          launch-time update check and an opt-in crash report — and both were removed with it. The
+          plugin is installed and updated by whoever installs plugins, and no HTTP client is
+          compiled into it. A build gate checks this on every commit rather than trusting the claim.
+        </p>
       </article>
 
       <article class="release" id="bugs">
-        <h2>Reporting a crash</h2>
+        <h2>Reporting a bug</h2>
         <p class="summary">
-          A crash writes a scrubbed report to a local file. Nothing is sent, ever, without a click.
-          The report shows you the <strong>exact text</strong> that will be sent and offers to open a
-          GitHub issue, compose it in Gmail, hand it to your mail client, or simply copy it.
+          The in-app crash reporter belonged to the desktop app and went with it. A plugin lives
+          inside someone else's process: when it takes the host down there is no window of ours left
+          to draw a dialog in, and the report a producer needs to send is the DAW's own crash log,
+          not ours.
         </p>
         <p class="note">
-          Your home path and username are redacted from the report before you see it. The crash time
-          is stamped in your local clock with its UTC offset, so a report filed three days later can
-          still be correlated.
+          So report a crash the ordinary way — open an issue on the repository, and say which host,
+          which format (CLAP or VST3) and which OS version. Attach the log your DAW wrote if it
+          wrote one.
         </p>
       </article>
 

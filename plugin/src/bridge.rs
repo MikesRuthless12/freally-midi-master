@@ -223,13 +223,6 @@ pub fn dispatch(
             "arch": std::env::consts::ARCH,
         })),
 
-        // Playback belongs to the host now. Answering with a reason rather
-        // than an error keeps the transport honestly disabled, which is the
-        // shape the UI already handles (`playbackFailure`).
-        "playback_status" => Ok(Value::String(
-            "Press play in your DAW — the plugin puts the notes on the track.".into(),
-        )),
-
         other => Err(format!(
             "the plugin has no handler for `{other}`. Add one in \
              plugin/src/bridge.rs — answering silently would hide the wiring \
@@ -687,9 +680,13 @@ mod tests {
     }
 
     #[test]
-    fn playback_says_the_host_owns_it_rather_than_failing() {
-        let value = dispatch(&request("playback_status", json!({})), &host()).unwrap();
-        assert!(value.as_str().unwrap().contains("DAW"));
+    fn playback_status_is_not_this_layer_s_to_answer() {
+        // It moved to `editor::window_command`, which has the `Shared` it needs
+        // to say which shell this is — see the note there. What this layer must
+        // do is refuse it loudly rather than answer it with something plausible,
+        // which is the rule every unknown command follows.
+        let error = dispatch(&request("playback_status", json!({})), &host()).unwrap_err();
+        assert!(error.contains("no handler"), "{error}");
     }
 
     #[test]

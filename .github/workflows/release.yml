@@ -27,9 +27,10 @@ env:
 # whichever release retires it, because the update prompt is the only channel
 # that reaches them and it will go quiet without explanation otherwise.
 #
-# `src-tauri/` is still in the tree: it generates `ipc-audio-types.ts`, which the
-# frontend imports, and it is the standalone audio path. Removing the crate is a
-# separate piece of surgery from removing the *product*.
+# `src-tauri/` is gone from the tree as well now. It survived the product's
+# retirement for two reasons — it generated `ipc-audio-types.ts`, and it held
+# the only sampler this project had — and both expired when the sampler was
+# ported into `plugin/src/audio/`.
 
 jobs:
   # Windows and macOS only, matching CI: Linux has no editor until TASK-P12.

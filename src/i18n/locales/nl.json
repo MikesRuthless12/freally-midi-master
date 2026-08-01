@@ -1,11 +1,7 @@
 {
   "titlebar": {
     "settings": "Instellingen",
-    "about": "Over",
-    "minimize": "Minimaliseren",
-    "maximize": "Maximaliseren",
-    "restore": "Herstellen",
-    "close": "Sluiten"
+    "about": "Over"
   },
   "tabs": {
     "group": "Generator",
@@ -84,12 +80,12 @@
   },
   "transport": {
     "play": "Afspelen",
+    "pause": "Pauzeren",
     "stop": "Stoppen",
     "loop": "Loop",
     "masterLevel": "Masterniveau: stil",
     "toggleRightRail": "Rechterbalk tonen of verbergen (K)",
     "windowSize": "Venstergrootte",
-    "reportBug": "Bug melden",
     "loopAlways": "Afspelen loopt in deze fase altijd door.",
     "unavailable": "Afspelen is niet beschikbaar: {{reason}}"
   },
@@ -111,36 +107,16 @@
     "showAll": "Alle panelen tonen",
     "hideAll": "Alle panelen verbergen"
   },
-  "export": {
-    "drag": "MIDI slepen",
-    "dragTitle": "Sleep de gegenereerde MIDI naar je DAW",
-    "export": "Exporteren",
-    "exportTitle": "Schrijf de MIDI naar een map en toon hem daar",
-    "dragDesktopOnly": "Slepen werkt alleen in de desktop-app.",
-    "exportDesktopOnly": "Exporteren werkt alleen in de desktop-app.",
-    "dropped": "Geland.",
-    "exportedTo": "Geëxporteerd naar {{path}}",
-    "nothingToExport": "Genereer eerst een beat."
-  },
   "settings": {
     "title": "Instellingen",
     "searchPlaceholder": "Instellingen doorzoeken…",
     "searchLabel": "Instellingen doorzoeken",
     "categories": "Categorieën instellingen",
     "noMatch": "Niets komt overeen met ‘{{query}}’.",
-    "saveFailed": "Kon je instellingen niet opslaan: {{error}}",
     "general": "Algemeen",
     "appearance": "Uiterlijk",
     "language": "Taal",
     "about": "Over",
-    "trayHeading": "Systeemvak",
-    "showTrayIcon": "Pictogram in het systeemvak tonen",
-    "showTrayIconHint": "Zet Freally MIDI Master in het meldingsgebied, met Tonen en Afsluiten.",
-    "minimizeToTray": "Minimaliseren naar systeemvak",
-    "minimizeToTrayHint": "Minimaliseren verbergt het venster in het systeemvak in plaats van op de taakbalk. Klik op het pictogram om het terug te halen.",
-    "closeToTray": "Sluiten naar systeemvak",
-    "closeToTrayHint": "Het venster sluiten laat de app in het systeemvak doordraaien. Sluit af via het menu van het systeemvak om te stoppen.",
-    "trayRequired": "Zet het pictogram in het systeemvak aan om de twee opties hierboven te gebruiken — zonder pictogram is er geen manier om het venster terug te halen.",
     "themeHeading": "Thema",
     "themeNote": "Donker is de standaard en het kenmerkende uiterlijk van de app. Beide thema’s zijn op contrast gecontroleerd volgens WCAG 2.1 AA.",
     "languageHeading": "Taal",
@@ -165,40 +141,13 @@
     "creditsHeading": "Met dank aan",
     "creditsBody": "Timing- en velocitystatistieken afgeleid van de Magenta Groove MIDI Dataset (CC BY 4.0). Noto Sans, Noto Sans Display en Noto Sans Mono, met Noto-families per schrift voor CJK, Arabisch, Hebreeuws, Indische schriften en meer, onder de SIL Open Font License 1.1. Lucide-pictogrammen onder ISC. Previewkits worden in de repo zelf gesynthetiseerd en bevatten geen samples van derden."
   },
-  "bugReport": {
-    "title": "Bug melden",
-    "intro": "Meldingen zijn anoniem en worden nooit automatisch verstuurd. Lees hieronder de exacte tekst en kies dan hoe je hem verstuurt — een GitHub-issue, een Gmail-concept of je eigen mailprogramma. Jij klikt op Verzenden.",
-    "crashNotice": "Freally MIDI Master is de vorige keer onverwacht afgesloten. De crashgegevens hieronder staan alleen op deze machine opgeslagen.",
-    "describeLabel": "Wat was je aan het doen toen het misging?",
-    "describePlaceholder": "Optioneel, maar het helpt enorm.",
-    "includeCrash": "Crashgegevens meesturen",
-    "previewLabel": "Precies wat er verstuurd wordt",
-    "openGithub": "GitHub-issue openen",
-    "composeGmail": "Opstellen in Gmail",
-    "composeGmailTitle": "Opent het opstelvenster van Gmail in je browser, vooraf ingevuld.",
-    "sendEmail": "E-mail versturen",
-    "sendEmailTitle": "Opent het standaard mailprogramma van je besturingssysteem, vooraf ingevuld.",
-    "copy": "Melding kopiëren",
-    "copied": "Gekopieerd",
-    "dismissCrash": "Crash negeren",
-    "copyFailed": "Kon de melding niet naar het klembord kopiëren."
-  },
-  "update": {
-    "available": "Versie {{version}} is beschikbaar",
-    "whatsNew": "Wat is er nieuw",
-    "noNotes": "Voor deze versie zijn geen releasenotes gepubliceerd.",
-    "installFailed": "De update kon niet worden geïnstalleerd: {{error}}",
-    "later": "Nee, nu niet",
-    "install": "Ja, nu updaten",
-    "installing": "Bezig met updaten…",
-    "footer": "Gedownload van GitHub en vóór installatie op handtekening gecontroleerd. Er wordt niets over jou of je projecten verstuurd."
-  },
   "common": {
     "close": "Sluiten"
   },
   "grid": {
     "label": "Gegenereerd patroon",
-    "summary": "{{bars}} maten · {{steps}} stappen · {{notes}} noten"
+    "summary": "{{bars}} maten · {{steps}} stappen · {{notes}} noten",
+    "muteLane": "{{lane}} dempen in de preview"
   },
   "roster": {
     "artists": "Artiesten",
@@ -218,11 +167,6 @@
     "snap": "Vingerknip",
     "perc": "Percussie",
     "bass808": "808"
-  },
-  "device": {
-    "recovering": "Audioapparaat kwijt — opnieuw verbinden…",
-    "failed": "Geen audioapparaat. Nog steeds bezig…",
-    "recovered": "Audioapparaat is terug."
   },
   "presets": {
     "factory": "Fabriek",

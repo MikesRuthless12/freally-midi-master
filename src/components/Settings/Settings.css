@@ -150,11 +150,6 @@
   background: var(--color-surface);
 }
 
-.settings__row[data-disabled] {
-  cursor: not-allowed;
-  opacity: 0.5;
-}
-
 .settings__row input {
   margin-top: 2px;
   accent-color: var(--color-primary);
@@ -224,14 +219,6 @@
 .settings__facts dd {
   margin: 0;
   color: var(--color-text-2);
-}
-
-.settings__error {
-  margin: 0;
-  padding: var(--space-3) var(--space-5);
-  border-top: 1px solid var(--color-border);
-  color: var(--color-error);
-  font-size: var(--text-small);
 }
 
 /* ── The standalone About overlay ───────────────────────────────────────── */

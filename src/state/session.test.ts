@@ -14,7 +14,6 @@ import type { Pattern, RosterEntry, SessionDefaults } from '../lib/ipc-types';
 const invoke = vi.fn();
 vi.mock('../lib/ipc', () => ({
   invoke: (command: string, args?: unknown) => invoke(command, args),
-  isTauri: () => false,
 }));
 
 const { NO_PINS, useSession } = await import('./session');
@@ -105,6 +104,7 @@ beforeEach(() => {
     pattern: null,
     mood: null,
     audioEnabled: true,
+    mutedLanes: [],
     pins: NO_PINS,
     defaults: null,
     pendingArtist: null,
@@ -119,7 +119,7 @@ describe('auto-sync', () => {
   // ⛔ Two things have to be arranged before a save can happen at all, and both
   // are the production behaviour rather than test scaffolding:
   //
-  // 1. `persist()` is plugin-only — Tauri has its own store and a browser has
+  // 1. `persist()` is plugin-only — a browser has
   //    nowhere to put this — and `isPlugin()` detects the plugin by the
   //    `sendToPlugin` marker its webview injects.
   // 2. The write is debounced by 300 ms, because the seed box saves on every
@@ -159,6 +159,40 @@ describe('auto-sync', () => {
     useSession.getState().setAutoSync(true);
     vi.advanceTimersByTime(400);
     expect(lastSaved().autoSync).toBe(true);
+  });
+
+  // FMM-S02. Same `lastSaved` harness, because the thing that has to hold is
+  // the same one: a mute the page holds and never sends is a lane that comes
+  // back audible on reopen with nothing saying why.
+  describe('per-lane preview mute', () => {
+    it('is saved with the project, and clearing the last one is expressible', () => {
+      useSession.getState().setLaneMuted('snare', true);
+      vi.advanceTimersByTime(400);
+      expect(lastSaved().mutedLanes).toEqual(['snare']);
+
+      // ⛔ The unmute that empties the list is the case the bridge had to be
+      // written around: an empty array must reach the plugin as an empty array
+      // rather than as an absent field, or the last mute can never be lifted.
+      useSession.getState().setLaneMuted('snare', false);
+      vi.advanceTimersByTime(400);
+      expect(lastSaved().mutedLanes).toEqual([]);
+    });
+
+    it('is a set rather than a click order, so the same mutes save the same bytes', () => {
+      useSession.getState().setLaneMuted('snare', true);
+      useSession.getState().setLaneMuted('kick', true);
+      vi.advanceTimersByTime(400);
+      expect(lastSaved().mutedLanes).toEqual(['kick', 'snare']);
+    });
+
+    it('records nothing when the lane is already in that state', () => {
+      useSession.getState().setLaneMuted('kick', true);
+      const before = useSession.getState().mutedLanes;
+      useSession.getState().setLaneMuted('kick', true);
+      // Reference equality: a fresh array would be a fresh undo entry and a
+      // fresh save for a click that changed nothing.
+      expect(useSession.getState().mutedLanes).toBe(before);
+    });
   });
 });
 
@@ -366,6 +400,7 @@ describe('applyPreset', () => {
       pattern: null,
       mood: null,
       audioEnabled: true,
+      mutedLanes: [],
     });
 
     useSession.getState().applyPreset(PRESET);

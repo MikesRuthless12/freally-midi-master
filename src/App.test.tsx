@@ -54,7 +54,11 @@ describe('Studio shell', () => {
     expect(screen.getByRole('tablist', { name: 'Generator' })).toBeDefined();
     // The transport is the region most easily lost to a grid-area mistake.
     expect(screen.getByRole('button', { name: 'Play' })).toBeDefined();
-    expect(screen.getByRole('button', { name: 'Report a bug' })).toBeDefined();
+    // Settings and About hang off the transport bar rather than a title bar:
+    // the host owns the plugin's window, so there is no chrome of ours to put
+    // them on, and for a while there was no route to either at all.
+    expect(screen.getByRole('button', { name: 'Settings' })).toBeDefined();
+    expect(screen.getByRole('button', { name: 'About' })).toBeDefined();
   });
 
   it('shows all six generator tabs', () => {

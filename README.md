@@ -101,16 +101,19 @@ see **[docs/legal/disclaimer.md](docs/legal/disclaimer.md)**.
 No accounts. No telemetry. Nothing about you, your projects, or your output is ever
 transmitted. Generation, playback, import, and export are entirely local.
 
-Two outbound connections exist and are documented: a launch-time **update check**
-that fetches one small version file and prompts before doing anything, and **crash
-reports**, which are written locally, shown to you in full, and sent only if you
-click to send them. Details in [EULA.md](EULA.md) § 5.
+**The plugin makes no outbound connections at all.** The two that used to exist — a
+launch-time update check and an opt-in crash report — belonged to the desktop shell
+and were removed with it; a plugin is installed and updated by whoever installs
+plugins, and the host owns that. `scripts/check-denylist.mjs` gates this rather than
+asserting it: no HTTP client is linked into the binary at all, so the allowlist that
+used to carry `reqwest` and `hyper` is now empty. Details in [EULA.md](EULA.md) § 5.
 
 ## Building from source
 
 Prerequisites: [Rust](https://rustup.rs) (the version in `rust-toolchain.toml`)
-and [Node.js](https://nodejs.org) 20+. The desktop shell additionally needs the
-[Tauri v2 system dependencies](https://v2.tauri.app/start/prerequisites/).
+and [Node.js](https://nodejs.org) 20+. On Linux the editor additionally needs
+WebKitGTK and the X11 development headers — `.github/workflows/ci.yml` lists the
+exact `apt` packages the runners install.
 
 ```bash
 npm install
@@ -128,8 +131,8 @@ failure is a message rather than a blank window.
 
 Layout: `engine/` is a pure Rust library holding all musical logic — no shell
 types, no network, no `unsafe` — which is why it survived the pivot untouched.
-`plugin/` is the CLAP plugin, `src/` the React UI shared by both shells,
-`src-tauri/` the desktop shell, and `data/` the style dataset.
+`plugin/` is the CLAP plugin, `src/` the React UI it embeds, and `data/` the style
+dataset.
 
 ## Contributing
 

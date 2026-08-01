@@ -196,28 +196,6 @@ test.describe('generation FX', () => {
   });
 });
 
-test.describe('export chips', () => {
-  test('both chips are dead until there is a beat, and say why', async ({ page }) => {
-    // A drag that starts with nothing held looks exactly like a platform that
-    // cannot drag — the distinction TASK-013 exists to make. Refusing before
-    // the gesture is the only way to keep those two apart.
-    const drag = page.getByRole('button', { name: 'Drag MIDI' });
-    const exportButton = page.getByRole('button', { name: 'Export', exact: true });
-
-    await expect(drag).toBeDisabled();
-    await expect(drag).toHaveAttribute('title', 'Generate a beat first.');
-    await expect(exportButton).toBeDisabled();
-
-    const search = page.getByLabel('Search an artist');
-    await search.fill('trap');
-    await search.press('Enter');
-    await page.getByRole('button', { name: 'Generate' }).click();
-
-    await expect(drag).toBeEnabled();
-    await expect(exportButton).toBeEnabled();
-  });
-});
-
 test('the Settings toggle suppresses the ripple without the OS setting', async ({ page }) => {
   // FR-017's other half: the OS setting is honoured on its own, but a machine
   // that does not expose one — or a user who wants everything else animated —

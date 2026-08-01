@@ -21,10 +21,14 @@ version = 2
 yanked = "deny"
 
 # Every entry here is an *unmaintained* advisory, not a vulnerability — checked
-# 2026-07-21: `cargo deny check advisories` reports zero `error[vulnerability]`.
-# All of them arrive transitively through Tauri and none is something this
-# project can drop or upgrade on its own. Re-check when Tauri bumps its Linux
-# stack; the goal state is an empty list.
+# 2026-07-31: `cargo deny check advisories` reports zero `error[vulnerability]`.
+# None is something this project can drop or upgrade on its own; the goal state
+# is an empty list.
+#
+# Six entries left with `src-tauri`. `cargo deny` reports an unmatched ignore as
+# `advisory-not-detected`, which is what identified them — an ignore that no
+# longer matches anything is a standing permission for an advisory to reappear
+# unnoticed, so they are deleted rather than kept "just in case".
 #
 # A real vulnerability must never be added here — fix or replace the dependency.
 ignore = [
@@ -34,15 +38,14 @@ ignore = [
     # is attached for dev logging, which the shipped plugin — running inside a
     # DAW, with no terminal — never benefits from either way.
     #
-    # **This one is ours, not Tauri's, and it has a name: `nih-plug` is
-    # unmaintained upstream as of March 2026.** An unmaintained framework is
+    # **It has a name: `nih-plug` is unmaintained upstream as of May 2026.** An unmaintained framework is
     # how a project inherits advisories it cannot close, and this is the first.
     # It belongs in TASK-P11's migration decision rather than being quietly
     # carried.
     "RUSTSEC-2024-0375",
-    # gtk-rs GTK3 bindings, unmaintained upstream. Tauri v2's Linux webview
-    # requires them; there is no GTK4 path yet.
-    "RUSTSEC-2024-0411",
+    # gtk-rs GTK3 bindings, unmaintained upstream. The vendored webview
+    # adapter's Linux path is WebKitGTK, which requires them; there is no GTK4
+    # path yet.
     "RUSTSEC-2024-0412",
     "RUSTSEC-2024-0413",
     "RUSTSEC-2024-0414",
@@ -52,11 +55,6 @@ ignore = [
     "RUSTSEC-2024-0418",
     "RUSTSEC-2024-0419",
     "RUSTSEC-2024-0420",
-    "RUSTSEC-2025-0075",
-    "RUSTSEC-2025-0080",
-    "RUSTSEC-2025-0081",
-    "RUSTSEC-2025-0098",
-    "RUSTSEC-2025-0100",
     # proc-macro-error, unmaintained; a build-time-only transitive dependency.
     "RUSTSEC-2024-0370",
 ]

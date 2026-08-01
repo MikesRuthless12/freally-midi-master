@@ -1,11 +1,7 @@
 {
   "titlebar": {
     "settings": "Pengaturan",
-    "about": "Tentang",
-    "minimize": "Minimalkan",
-    "maximize": "Maksimalkan",
-    "restore": "Pulihkan",
-    "close": "Tutup"
+    "about": "Tentang"
   },
   "tabs": {
     "group": "Generator",
@@ -84,12 +80,12 @@
   },
   "transport": {
     "play": "Putar",
+    "pause": "Jeda",
     "stop": "Berhenti",
     "loop": "Loop",
     "masterLevel": "Level master: senyap",
     "toggleRightRail": "Alihkan panel kanan (K)",
     "windowSize": "Ukuran jendela",
-    "reportBug": "Laporkan bug",
     "loopAlways": "Pemutaran selalu berulang pada fase ini.",
     "unavailable": "Pemutaran tidak tersedia: {{reason}}"
   },
@@ -111,36 +107,16 @@
     "showAll": "Tampilkan semua panel",
     "hideAll": "Sembunyikan semua panel"
   },
-  "export": {
-    "drag": "Seret MIDI",
-    "dragTitle": "Seret MIDI yang dihasilkan ke DAW Anda",
-    "export": "Ekspor",
-    "exportTitle": "Simpan MIDI ke folder lalu buka lokasinya",
-    "dragDesktopOnly": "Seret hanya berfungsi di aplikasi desktop.",
-    "exportDesktopOnly": "Ekspor hanya berfungsi di aplikasi desktop.",
-    "dropped": "Mendarat.",
-    "exportedTo": "Diekspor ke {{path}}",
-    "nothingToExport": "Buat beat terlebih dahulu."
-  },
   "settings": {
     "title": "Pengaturan",
     "searchPlaceholder": "Cari pengaturan…",
     "searchLabel": "Cari pengaturan",
     "categories": "Kategori pengaturan",
     "noMatch": "Tidak ada yang cocok dengan “{{query}}”.",
-    "saveFailed": "Tidak bisa menyimpan pengaturan Anda: {{error}}",
     "general": "Umum",
     "appearance": "Penampilan",
     "language": "Bahasa",
     "about": "Tentang",
-    "trayHeading": "Baki sistem",
-    "showTrayIcon": "Tampilkan ikon di baki sistem",
-    "showTrayIconHint": "Menambahkan Freally MIDI Master ke area notifikasi, lengkap dengan Tampilkan dan Keluar.",
-    "minimizeToTray": "Minimalkan ke baki sistem",
-    "minimizeToTrayHint": "Meminimalkan akan menyembunyikan jendela ke baki, bukan ke taskbar. Klik ikon baki untuk memunculkannya lagi.",
-    "closeToTray": "Tutup ke baki sistem",
-    "closeToTrayHint": "Menutup jendela membuat aplikasi tetap berjalan di baki. Pilih Keluar dari menu baki untuk berhenti.",
-    "trayRequired": "Nyalakan ikon baki untuk memakai dua opsi di atas — tanpa itu tidak ada cara mengembalikan jendela.",
     "themeHeading": "Tema",
     "themeNote": "Gelap adalah bawaan sekaligus tampilan khas aplikasi ini. Kontras kedua tema sudah diuji sesuai WCAG 2.1 AA.",
     "languageHeading": "Bahasa",
@@ -165,40 +141,13 @@
     "creditsHeading": "Kredit",
     "creditsBody": "Statistik timing dan velocity diturunkan dari Magenta Groove MIDI Dataset (CC BY 4.0). Noto Sans, Noto Sans Display dan Noto Sans Mono, beserta keluarga Noto per-aksara yang mencakup CJK, Arab, Ibrani, India dan lainnya, di bawah SIL Open Font License 1.1. Ikon Lucide di bawah ISC. Kit pratinjau disintesis di dalam repositori dan tidak memuat sampel pihak ketiga."
   },
-  "bugReport": {
-    "title": "Laporkan bug",
-    "intro": "Laporan bersifat anonim dan tidak pernah dikirim otomatis. Baca dulu teks persis di bawah ini, lalu pilih cara mengirimnya — isu GitHub, draf Gmail, atau klien email Anda sendiri. Anda yang menekan Kirim.",
-    "crashNotice": "Terakhir kali Freally MIDI Master tertutup tak terduga. Detail crash di bawah hanya tersimpan di komputer ini.",
-    "describeLabel": "Apa yang sedang Anda lakukan saat masalahnya muncul?",
-    "describePlaceholder": "Opsional, tapi sangat membantu.",
-    "includeCrash": "Sertakan detail crash",
-    "previewLabel": "Persis yang akan dikirim",
-    "openGithub": "Buka isu GitHub",
-    "composeGmail": "Tulis di Gmail",
-    "composeGmailTitle": "Membuka jendela tulis Gmail di peramban Anda, sudah terisi.",
-    "sendEmail": "Kirim email",
-    "sendEmailTitle": "Membuka klien email bawaan sistem operasi Anda, sudah terisi.",
-    "copy": "Salin laporan",
-    "copied": "Tersalin",
-    "dismissCrash": "Abaikan crash",
-    "copyFailed": "Tidak bisa menyalin laporan ke papan klip."
-  },
-  "update": {
-    "available": "Versi {{version}} sudah tersedia",
-    "whatsNew": "Yang baru",
-    "noNotes": "Tidak ada catatan rilis yang diterbitkan untuk versi ini.",
-    "installFailed": "Pembaruan tidak bisa dipasang: {{error}}",
-    "later": "Tidak, nanti saja",
-    "install": "Ya, perbarui sekarang",
-    "installing": "Memperbarui…",
-    "footer": "Diunduh dari GitHub dan diverifikasi tanda tangannya sebelum dipasang. Tidak ada data tentang Anda atau proyek Anda yang dikirim."
-  },
   "common": {
     "close": "Tutup"
   },
   "grid": {
     "label": "Pola yang dihasilkan",
-    "summary": "{{bars}} bar · {{steps}} langkah · {{notes}} not"
+    "summary": "{{bars}} bar · {{steps}} langkah · {{notes}} not",
+    "muteLane": "Bisukan {{lane}} di pratinjau"
   },
   "roster": {
     "artists": "Artis",
@@ -218,11 +167,6 @@
     "snap": "Jentikan",
     "perc": "Perkusi",
     "bass808": "808"
-  },
-  "device": {
-    "recovering": "Perangkat audio hilang — menyambungkan ulang…",
-    "failed": "Tidak ada perangkat audio. Masih mencoba…",
-    "recovered": "Perangkat audio kembali."
   },
   "presets": {
     "factory": "Bawaan",

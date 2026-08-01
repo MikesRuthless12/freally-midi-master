@@ -31,8 +31,7 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   play the notes — which is what it did before it had a sampler, and what a
   producer routing into Battery needs. Muting a single lane's *audio* leaves its
   MIDI going to the host, so the plugin can play the hats while your own sampler
-  takes the snare. Both save with the project. ⚠ The per-lane mute has no
-  control on screen yet — the lane headers that will carry it are TASK-043.
+  takes the snare. Both save with the project, and both step back with undo.
 - **A playhead that runs with the tempo, and a timeline you can click.** The
   marker moves with the BPM because it is derived from the same clock that
   decides which notes have been emitted — the two cannot drift apart. Click
@@ -67,6 +66,55 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   genre, so `datasetc validate` fails on a typo rather than shipping a filter
   that silently matches nobody. A narrowed list says what narrowed it and offers
   Show all; a genre nobody works in says so instead of rendering empty.
+
+- **The per-lane audio mute has a control now.** Every lane header in the drum
+  grid carries one, and the row dims rather than emptying: the notes still go to
+  the host's track, so the pattern has not changed — only what the plugin plays
+  of it. The label says "preview" for that reason; "Mute kick" would promise
+  something this does not do. The Rust half had shipped complete with nothing
+  able to set it.
+- **Play, Pause and Stop work in the standalone.** nih-plug's audio backend reports
+  its transport as permanently running, so a generated pattern looped from the
+  moment it landed, Stop rewound to the start and kept playing, there was no
+  pause at all, and the transport bar told you to "press play in your DAW" when
+  there was no DAW. The standalone now owns its own transport, stopped until you
+  press Play; inside a host nothing changes, because there the DAW's transport is
+  the only one and a second Play button of ours could not move it. **Pause holds
+  the marker and Stop returns it to the beginning**, so Stop stays reachable
+  *from* a pause — which is the whole difference between the two.
+
+### Changed
+
+- **The desktop application's crate is gone.** `src-tauri/` — the Tauri shell,
+  its tray, its updater, its crash reporter, its settings file and its audio
+  path — is removed from the tree. The product was retired on 2026-07-29; the
+  crate outlived it for two specific reasons, and both have now expired: it
+  generated `ipc-audio-types.ts`, which the frontend imported, and it held the
+  only sampler this project had. The sampler was ported into the plugin first,
+  which is what makes this safe rather than lossy.
+
+  What went with it: the updater and its prompt, the crash reporter, the system
+  tray and its three settings, the native title bar and window controls, the
+  export and drag-out chips, and the desktop screenshot CI job. Theme, language
+  and reduce-motion now persist to the WebView's own storage — `settings.json`
+  was their durable half and it went with the shell.
+
+  Two things this fixed on the way past, both of which had been broken in the
+  shipping plugin rather than merely dead: **Settings and About were
+  unreachable**, because the title bar was their only entry point and it never
+  rendered in a plugin — they now live in the transport bar. And the **About
+  pane showed an em dash for the version and platform**, because it asked only
+  when running under Tauri, while the plugin's bridge had been answering
+  `app_info` all along.
+- **The plugin makes no outbound connections at all**, and the README, the EULA
+  and the documentation site now say so instead of describing the update check
+  and the crash reporter that used to exist. This is not a wording change: the
+  supply-chain gate's allowlist held `reqwest`, `hyper`, `hyper_rustls` and
+  `hyper_util`, every one of them justified by `tauri-plugin-updater`, and it is
+  now **empty** — 187 linked crates with no HTTP client among them. Six RUSTSEC
+  advisory exemptions stopped matching anything and were deleted too; an ignore
+  that matches nothing is a standing permission for an advisory to come back
+  unnoticed.
 
 ### Fixed
 

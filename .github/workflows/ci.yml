@@ -58,11 +58,8 @@ jobs:
           sudo apt-get install -y \
             libwebkit2gtk-4.1-dev \
             libgtk-3-dev \
-            libayatana-appindicator3-dev \
-            librsvg2-dev \
             libasound2-dev \
             libjack-jackd2-dev \
-            patchelf \
             libx11-dev \
             libx11-xcb-dev \
             libxcb1-dev \
@@ -104,16 +101,16 @@ jobs:
       - name: cargo test
         run: cargo test --workspace
 
-      # ts-rs writes both files during `cargo test`. They are committed so a
-      # fresh clone can typecheck without running cargo, which means they can
-      # drift. If a regenerated file differs from the committed one, the IPC
-      # contract and the UI's view of it have diverged.
+      # ts-rs writes this file during `cargo test`. It is committed so a fresh
+      # clone can typecheck without running cargo, which means it can drift. If
+      # a regenerated file differs from the committed one, the IPC contract and
+      # the UI's view of it have diverged.
       #
-      # Two files, one per crate, and they must stay separate: ts-rs truncates
-      # the file it writes, so pointing `engine` and `src-tauri` at one path
-      # made whichever ran last delete the other's types.
+      # ⛔ The `cargo test` above must stay UNFILTERED. ts-rs truncates the
+      # file it writes, so a filtered run regenerates it from only the types
+      # whose export tests ran and deletes the rest.
       - name: TypeScript bindings are up to date
-        run: git diff --exit-code -- src/lib/ipc-types.ts src/lib/ipc-audio-types.ts
+        run: git diff --exit-code -- src/lib/ipc-types.ts
 
       # ---- Frontend ------------------------------------------------------
       - name: typecheck
@@ -136,85 +133,6 @@ jobs:
       # A malformed community model must fail here, not in a user's session.
       - name: validate dataset
         run: npm run dataset:validate
-
-  # Proof, in pictures, that the Studio actually renders on each OS.
-  #
-  # Every other gate can pass while the window comes up blank or half-drawn:
-  # the code compiles, the DOM tests pass against a browser, and nobody has
-  # looked at the thing. This job launches the real app on all three runners
-  # and uploads a screenshot each, so a human can see it.
-  screenshots:
-    name: screenshot (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          persist-credentials: false
-
-      - name: Install Linux system dependencies
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libwebkit2gtk-4.1-dev \
-            libgtk-3-dev \
-            libayatana-appindicator3-dev \
-            librsvg2-dev \
-            libasound2-dev \
-            patchelf \
-            libx11-dev \
-            libx11-xcb-dev \
-            libxcb1-dev \
-            libxcb-icccm4-dev \
-            libxcursor-dev \
-            libxkbcommon-dev \
-            xvfb \
-            xdotool \
-            imagemagick
-
-      - uses: dtolnay/rust-toolchain@stable
-        with:
-          toolchain: '1.97.1'
-
-      - uses: Swatinem/rust-cache@v2
-        with:
-          key: screenshot-${{ matrix.os }}
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-
-      - run: npm ci
-
-      # Linux runners have no display, so the app gets a virtual one. Windows
-      # and macOS runners already have a real desktop session.
-      - name: Capture (Linux)
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          xvfb-run -a --server-args="-screen 0 1600x1000x24" \
-            node scripts/screenshot-app.mjs screenshots/linux.png
-
-      - name: Capture (Windows)
-        if: matrix.os == 'windows-latest'
-        run: node scripts/screenshot-app.mjs screenshots/windows.png
-
-      - name: Capture (macOS)
-        if: matrix.os == 'macos-latest'
-        run: node scripts/screenshot-app.mjs screenshots/macos.png
-
-      - uses: actions/upload-artifact@v4
-        if: ${{ !cancelled() }}
-        with:
-          name: app-screenshot-${{ matrix.os }}
-          path: screenshots/
-          retention-days: 30
-          if-no-files-found: error
 
   e2e:
     name: e2e

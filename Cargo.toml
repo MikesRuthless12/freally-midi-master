@@ -3,17 +3,18 @@ members = [
     "engine",
     "plugin",
     "plugin/vendor/nih-plug-webview",
-    "src-tauri",
     "tools/datasetc",
     "tools/kitgen",
 ]
 resolver = "2"
 
-# The post-crash notice offers to restart, so it may only fire when a panic is
-# guaranteed to have killed the process. `bugreport::install_panic_hook` gates
-# the notice on `cfg!(panic = "abort")`; without this the shipped build unwinds,
-# the gate reads false, and the crash loop is dead code in exactly the profile
-# users run.
+# ⛔ **Kept after the desktop app was removed, and the reason changed rather
+# than expired.** It was here for the crash-notice gate (`cfg!(panic = "abort")`)
+# in a crate that no longer exists. It stays because this is a *plugin*: a
+# panic unwinding across the `extern "C"` boundary into a host is undefined
+# behaviour, so aborting is the defined outcome. That is also why the three
+# panics closest to that boundary were turned into errors rather than left to
+# be caught — with `abort`, nothing can catch them.
 [profile.release]
 panic = "abort"
 

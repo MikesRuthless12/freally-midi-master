@@ -22,8 +22,6 @@ beforeEach(() => {
 afterEach(() => {
   vi.unstubAllGlobals();
   delete window.sendToPlugin;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  delete (window as any).__TAURI_INTERNALS__;
 });
 
 /** Answer as the plugin's RPC endpoint would. */
@@ -44,15 +42,6 @@ describe('isPlugin', () => {
   it('is true when the webview adapter has injected its API', () => {
     installBridge();
     expect(isPlugin()).toBe(true);
-  });
-
-  it('is false inside Tauri', () => {
-    // The bug this prevents: treating a Tauri session as a plugin one routes
-    // every desktop call at an RPC endpoint that is not there.
-    installBridge();
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (window as any).__TAURI_INTERNALS__ = {};
-    expect(isPlugin()).toBe(false);
   });
 });
 

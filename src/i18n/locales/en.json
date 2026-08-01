@@ -1,11 +1,7 @@
 {
   "titlebar": {
     "settings": "Settings",
-    "about": "About",
-    "minimize": "Minimize",
-    "maximize": "Maximize",
-    "restore": "Restore",
-    "close": "Close"
+    "about": "About"
   },
   "tabs": {
     "group": "Generator",
@@ -84,12 +80,12 @@
   },
   "transport": {
     "play": "Play",
+    "pause": "Pause",
     "stop": "Stop",
     "loop": "Loop",
     "masterLevel": "Master level: silent",
     "toggleRightRail": "Toggle right rail (K)",
     "windowSize": "Window size",
-    "reportBug": "Report a bug",
     "loopAlways": "Playback always loops in this phase.",
     "unavailable": "Playback is unavailable: {{reason}}"
   },
@@ -111,36 +107,16 @@
     "showAll": "Show all panels",
     "hideAll": "Hide all panels"
   },
-  "export": {
-    "drag": "Drag MIDI",
-    "dragTitle": "Drag the generated MIDI into your DAW",
-    "export": "Export",
-    "exportTitle": "Write the MIDI to a folder and reveal it",
-    "dragDesktopOnly": "Drag only works in the desktop app.",
-    "exportDesktopOnly": "Export only works in the desktop app.",
-    "dropped": "Landed.",
-    "exportedTo": "Exported to {{path}}",
-    "nothingToExport": "Generate a beat first."
-  },
   "settings": {
     "title": "Settings",
     "searchPlaceholder": "Search settings…",
     "searchLabel": "Search settings",
     "categories": "Settings categories",
     "noMatch": "Nothing matches “{{query}}”.",
-    "saveFailed": "Could not save your settings: {{error}}",
     "general": "General",
     "appearance": "Appearance",
     "language": "Language",
     "about": "About",
-    "trayHeading": "System tray",
-    "showTrayIcon": "Show a system tray icon",
-    "showTrayIconHint": "Adds Freally MIDI Master to the notification area, with Show and Quit.",
-    "minimizeToTray": "Minimize to system tray",
-    "minimizeToTrayHint": "Minimizing hides the window to the tray instead of the taskbar. Click the tray icon to bring it back.",
-    "closeToTray": "Close to system tray",
-    "closeToTrayHint": "Closing the window keeps the app running in the tray. Quit from the tray menu to exit.",
-    "trayRequired": "Turn the tray icon on to use the two options above — without it there would be no way to get the window back.",
     "themeHeading": "Theme",
     "themeNote": "Dark is the default and the app’s signature look. Both themes are contrast-checked to WCAG 2.1 AA.",
     "languageHeading": "Language",
@@ -165,40 +141,13 @@
     "creditsHeading": "Credits",
     "creditsBody": "Timing and velocity statistics derived from the Magenta Groove MIDI Dataset (CC BY 4.0). Noto Sans, Noto Sans Display and Noto Sans Mono, with per-script Noto families covering CJK, Arabic, Hebrew, Indic and more, under the SIL Open Font License 1.1. Lucide icons under ISC. Preview kits are synthesized in-repo and contain no third-party samples."
   },
-  "bugReport": {
-    "title": "Report a bug",
-    "intro": "Reports are anonymous and never sent automatically. Read the exact text below, then choose how to send it — a GitHub issue, a Gmail draft, or your own mail client. You click Send.",
-    "crashNotice": "Freally MIDI Master closed unexpectedly last time. The crash details below were saved on this machine only.",
-    "describeLabel": "What were you doing when it went wrong?",
-    "describePlaceholder": "Optional, but it helps a lot.",
-    "includeCrash": "Include the crash details",
-    "previewLabel": "Exactly what will be sent",
-    "openGithub": "Open GitHub issue",
-    "composeGmail": "Compose in Gmail",
-    "composeGmailTitle": "Opens Gmail’s compose window in your browser, pre-filled.",
-    "sendEmail": "Send email",
-    "sendEmailTitle": "Opens your operating system’s default mail client, pre-filled.",
-    "copy": "Copy report",
-    "copied": "Copied",
-    "dismissCrash": "Dismiss crash",
-    "copyFailed": "Could not copy the report to the clipboard."
-  },
-  "update": {
-    "available": "Version {{version}} is available",
-    "whatsNew": "What’s new",
-    "noNotes": "No release notes were published for this version.",
-    "installFailed": "The update could not be installed: {{error}}",
-    "later": "No, not now",
-    "install": "Yes, update now",
-    "installing": "Updating…",
-    "footer": "Downloaded from GitHub and signature-verified before installing. Nothing about you or your projects is sent."
-  },
   "common": {
     "close": "Close"
   },
   "grid": {
     "label": "Generated pattern",
-    "summary": "{{bars}} bars · {{steps}} steps · {{notes}} notes"
+    "summary": "{{bars}} bars · {{steps}} steps · {{notes}} notes",
+    "muteLane": "Mute {{lane}} in the preview"
   },
   "roster": {
     "artists": "Artists",
@@ -218,11 +167,6 @@
     "snap": "Snap",
     "perc": "Perc",
     "bass808": "808"
-  },
-  "device": {
-    "recovering": "Audio device lost — reconnecting…",
-    "failed": "No audio device. Still trying…",
-    "recovered": "Audio device is back."
   },
   "presets": {
     "factory": "Factory",

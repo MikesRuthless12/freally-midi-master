@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-import { invoke, isTauri } from '../lib/ipc';
+import { invoke } from '../lib/ipc';
 import { isPlugin } from '../lib/ipc-plugin';
 import { loadRoster } from '../lib/roster';
 import type {
@@ -10,26 +10,17 @@ import type {
   Scale,
   SessionDefaults,
 } from '../lib/ipc-types';
-import type { DeviceNotice, PlaybackStarted, Playhead } from '../lib/ipc-audio-types';
 import { useHistory, type Snapshot } from './history';
 
 /**
- * The one loop the product is about: pick someone, generate, hear it, drag it
- * out (PRD § 1, US-001).
+ * The one loop the product is about: pick someone, generate, hear it, and have
+ * the notes land on the host's track (PRD § 1, US-001).
  *
  * One store rather than three, because these things are not independent:
- * generating replaces the pattern, which is what playback plays and what the
+ * generating replaces the pattern, which is what the sampler plays and what the
  * grid draws, and selecting someone else invalidates all of it. Splitting them
  * would mean keeping three stores in step by hand.
  */
-
-/**
- * The device conditions the transport can report (FR-014).
- *
- * Exported so `locales.test.ts` requires a `device.*` string for each: a state
- * with no catalog entry would render its own key into the transport bar.
- */
-export const DEVICE_STATES = ['recovering', 'failed', 'recovered'] as const;
 
 /** What `host_session` reports from the DAW the plugin is loaded in. */
 type HostSessionInfo = {
@@ -39,10 +30,43 @@ type HostSessionInfo = {
   playing: boolean;
 };
 
-export type DeviceStateLabel = (typeof DEVICE_STATES)[number];
-
 /** Bar counts the UI offers. Four is the default a pattern is demonstrated at. */
 export const BAR_CHOICES = [2, 4, 8] as const;
+
+/**
+ * `SAVED_FIELDS` must name exactly the undo snapshot's fields except `pattern`.
+ *
+ * ⛔ A compile-time check rather than a comment. `snapshotOf` lists the fields
+ * explicitly so the compiler catches one added to `Snapshot` and forgotten
+ * there; this catches the other direction — a field added to `Snapshot` and to
+ * `snapshotOf` but not to `SAVED_FIELDS`, which would save less than it undoes.
+ */
+type SavedFieldsCoverSnapshot =
+  Exclude<keyof Snapshot, 'pattern'> extends (typeof SAVED_FIELDS)[number] ? true : never;
+const SAVED_FIELDS_MATCH_SNAPSHOT: SavedFieldsCoverSnapshot = true;
+void SAVED_FIELDS_MATCH_SNAPSHOT;
+
+/**
+ * The fields that are saved with the project — the single list.
+ *
+ * ⛔ **This exists because the same list was written out three times and
+ * drifted three times.** `send()` builds the payload from it, the save
+ * subscriber compares it, and the undo snapshot carries it plus `pattern`; when
+ * those were three hand-maintained lists, `autoSync` shipped in one of them,
+ * then `mood` and `audioEnabled` in two, then `mutedLanes` in one — each time
+ * with the same symptom, where a direct change saved and an undone one did not.
+ * Adding a persisted field is now one edit here.
+ */
+export const SAVED_FIELDS = [
+  'selectedId',
+  'seed',
+  'bars',
+  'pins',
+  'autoSync',
+  'mood',
+  'audioEnabled',
+  'mutedLanes',
+] as const;
 
 /**
  * The session values a user may pin, in the shape the engine's
@@ -88,18 +112,27 @@ type SessionState = {
   playing: boolean;
   /** Position through the loop, 0–1, from the audio thread at 30 Hz. */
   playhead: number;
-  /** Why playback is unavailable on this machine, if it is. */
+  /**
+   * Why the transport cannot be driven from here, if it cannot.
+   *
+   * A human-readable reason for the Play button's tooltip — never a decision on
+   * its own. [`canDriveTransport`] is what decides.
+   */
   playbackFailure: string | null;
   /**
-   * What the output device is doing, when it is not simply working.
+   * Whether this UI is running without a host (TASK-041T).
    *
-   * `null` in the ordinary case. Driven by the `playback:device` event, so an
-   * interface pulled out mid-session is visible rather than leaving the app
-   * quietly deaf (FR-014).
+   * ⛔ Decides who owns Play and Pause, and it is not a cosmetic difference.
+   * In a DAW the project's transport is the transport, and a Play button of
+   * ours would be a second one that cannot move the first. In the standalone
+   * there is no host, so these are the only transport controls there are.
+   *
+   * Arrives with `playbackFailure` from one `playback_status` reply rather than
+   * from a command of its own: two commands answering from the same source is
+   * two flags that can drift, and the UI would recombine them into one decision
+   * anyway.
    */
-  deviceState: DeviceStateLabel | null;
-  /** Notes the preview kit had no pad for, from the last play. */
-  unplacedNotes: number;
+  standalone: boolean;
 
   /** What the user pinned. Everything absent is the artist's to choose. */
   pins: SessionPins;
@@ -139,7 +172,15 @@ type SessionState = {
    * doubling every hit. It is what the plugin did before it had a sampler.
    */
   audioEnabled: boolean;
-  /** Lanes whose audio is muted. No UI yet — TASK-043 owns the lane headers. */
+  /**
+   * Lanes whose audio is muted (FMM-S02).
+   *
+   * ⛔ **Audio only, and the distinction is the whole feature.** A muted lane
+   * still goes out as MIDI — the notes are already on the host's track by the
+   * time the preview renders — so this silences our kick without removing the
+   * kick from the pattern anyone routed away. Muting a *part* is the host's
+   * job, on the track the notes landed on.
+   */
   mutedLanes: string[];
   /**
    * What the selected style asks for, read the moment it is selected.
@@ -168,12 +209,14 @@ type SessionState = {
   setMood: (mood: string | null) => void;
   /** Let the plugin play its preview kit, or go MIDI-only. */
   setAudioEnabled: (on: boolean) => void;
+  /** Silence one lane in the preview, or let it back in (FMM-S02). */
+  setLaneMuted: (lane: string, muted: boolean) => void;
   /**
    * Move the playhead, as a fraction of the pattern (TASK-041T).
    *
    * Click anywhere on the timeline and playback continues from there. In the
-   * plugin the audio thread picks this up on its next block; the desktop
-   * transport has no such command and keeps the local move.
+   * plugin the audio thread picks this up on its next block; the mock has no
+   * audio thread and keeps the local move.
    */
   seek: (progress: number) => Promise<void>;
   /** Ask the host what tempo it is running at. No-op outside a plugin. */
@@ -190,8 +233,24 @@ type SessionState = {
   keepPins: () => void;
   /** Drop every pin and let the new artist decide. */
   adoptDefaults: () => void;
+  /**
+   * May this page drive the transport at all?
+   *
+   * ⛔ **The single predicate behind Play, Pause and their disabled state.**
+   * It was briefly three derivations across two wire fields — a `disabled`
+   * computed from the reason string, a conditional click handler, and the
+   * bridge's own refusal — which could each stop agreeing with the others with
+   * nothing failing loudly. Both terms are needed: `standalone` because a host
+   * owns its own transport, and `playbackFailure` because the standalone can
+   * still have a reason of its own (no output device, a kit that failed to
+   * decode), and then Play must be disabled rather than merely unhelpful.
+   */
+  canDriveTransport: () => boolean;
   generate: () => Promise<void>;
+  /** Run our own transport. Standalone only — in a host this is the DAW's. */
   play: () => Promise<void>;
+  /** Hold it where it is. Standalone only, for the same reason. */
+  pause: () => Promise<void>;
   stop: () => Promise<void>;
 
   /** Step back through the operation log (FMM-U01). No-op at the baseline. */
@@ -207,8 +266,28 @@ type SessionState = {
  * restoring any of those would undo something the user did not do.
  */
 function snapshotOf(state: SessionState): Snapshot {
-  const { selectedId, seed, bars, pins, autoSync, pattern, mood, audioEnabled } = state;
-  return { selectedId, seed, bars, pins, autoSync, pattern, mood, audioEnabled };
+  // ⛔ `SAVED_FIELDS` plus `pattern`. The undo stack and the saved session
+  // carry the same fields for the same reason — an undone change that never
+  // reaches the project reopens contradicting what the UI just showed — and
+  // `pattern` is the one addition, because it is restored rather than saved
+  // (the engine regenerates it from the seed).
+  // ⛔ Written out rather than built from `SAVED_FIELDS` by `Object.fromEntries`.
+  // That form needed an `as Omit<Snapshot, 'pattern'>` cast, and the cast is
+  // exactly what would stop the compiler noticing a field added to `Snapshot`
+  // and forgotten here — the drift this whole arrangement exists to prevent.
+  // `SAVED_FIELDS_MATCH_SNAPSHOT` below keeps the two lists honest instead.
+  const { selectedId, seed, bars, pins, autoSync, mood, audioEnabled, mutedLanes } = state;
+  return {
+    selectedId,
+    seed,
+    bars,
+    pins,
+    autoSync,
+    mood,
+    audioEnabled,
+    mutedLanes,
+    pattern: state.pattern,
+  };
 }
 
 /**
@@ -352,21 +431,36 @@ function flush(): void {
   send();
 }
 
+/**
+ * Write now rather than in 300 ms, for a change the audio thread must hear.
+ *
+ * ⛔ **Not [`flush`]:** that only drains a debounce that is already pending, so
+ * on the first change it does nothing at all. Most session writes can wait — the
+ * host decides when to serialize anyway — but the lane mutes reach the audio
+ * thread *through* this save, and half a beat of a lane still sounding after
+ * the row has visibly dimmed reads as a broken control.
+ */
+function persistNow(): void {
+  if (!isPlugin()) return;
+  if (saveTimer !== null) {
+    clearTimeout(saveTimer);
+    saveTimer = null;
+  }
+  send();
+}
+
 function send(): void {
-  const { selectedId, seed, bars, pins, autoSync, mood, audioEnabled, mutedLanes } =
-    useSession.getState();
-  void invoke('save_session_state', {
-    session: { selectedId, seed, bars, pins, autoSync, mood, audioEnabled, mutedLanes },
-  }).catch(() => {
+  const state = useSession.getState();
+  const session = Object.fromEntries(SAVED_FIELDS.map((key) => [key, state[key]]));
+  void invoke('save_session_state', { session }).catch(() => {
     // Losing a session write is not worth interrupting someone mid-beat. The
     // next change writes the whole session again anyway.
   });
 }
 
 function persist(): void {
-  // Plugin only. Tauri has its own settings store and a browser has nowhere to
-  // put this, and in both the command does not exist — calling it would be a
-  // rejected promise per keystroke.
+  // Plugin only. A browser has nowhere to put this and no such command —
+  // calling it would be a rejected promise per keystroke.
   if (!isPlugin()) return;
 
   if (saveTimer !== null) clearTimeout(saveTimer);
@@ -480,8 +574,7 @@ export const useSession = create<SessionState>((set, get) => ({
   playing: false,
   playhead: 0,
   playbackFailure: null,
-  deviceState: null,
-  unplacedNotes: 0,
+  standalone: false,
 
   pins: NO_PINS,
   hostTempo: null,
@@ -506,15 +599,31 @@ export const useSession = create<SessionState>((set, get) => ({
       set({ rosterLoaded: true, error: reason(error) });
     }
 
-    // Whether this machine can play at all. Asked once at startup so the
-    // transport can be honestly disabled rather than failing on click.
+    // Who owns the transport, and why it cannot be driven from here if it
+    // cannot. Asked once at startup — a plugin cannot become a standalone
+    // while it is running — so the buttons are honestly disabled rather than
+    // failing on click.
+    //
+    // ⛔ **One command carrying both, because they are one fact.** They were
+    // briefly two commands answered from the same source, which cost a second
+    // serial round trip before the restored session could appear and gave the
+    // page two flags that could drift into an enabled Play button whose tooltip
+    // told the user to press play in their DAW.
     try {
-      const failure = await invoke<string | null>('playback_status');
-      set({ playbackFailure: failure });
-    } catch {
-      // An app with no audio commands registered at all is a dev-mode browser
-      // session; the transport stays disabled and nothing is claimed.
-      set({ playbackFailure: null });
+      const status = await invoke<{ standalone: boolean; reason: string | null }>(
+        'playback_status',
+      );
+      set({ standalone: status.standalone === true, playbackFailure: status.reason ?? null });
+    } catch (error) {
+      // A shell with no transport commands at all is a dev-mode browser
+      // session. Not a standalone either — there is no audio thread behind the
+      // mock, so claiming the transport would be claiming it works.
+      //
+      // ⛔ **The reason is recorded, not swallowed.** This is asked exactly once
+      // and never retried, so a dropped reply disables Play for the rest of the
+      // session; leaving `playbackFailure` null meant the button was dead with
+      // an empty tooltip and nothing anywhere saying why.
+      set({ standalone: false, playbackFailure: reason(error) });
     }
 
     // Applied after the roster, because restoring a selection wants the entry
@@ -551,7 +660,6 @@ export const useSession = create<SessionState>((set, get) => ({
       mood: null,
       pattern: null,
       error: null,
-      unplacedNotes: 0,
       defaults: null,
       pendingArtist:
         selectedId !== null && hasPins(pins)
@@ -596,6 +704,26 @@ export const useSession = create<SessionState>((set, get) => ({
     persist();
   },
 
+  setLaneMuted(lane, muted) {
+    const current = get().mutedLanes;
+    if (current.includes(lane) === muted) return;
+    // ⛔ Sorted, so the list is a set rather than a history of the order they
+    // were clicked in. Two projects that mute the same two lanes must save the
+    // same bytes, or an undo entry and a project diff both record a change
+    // nobody made.
+    const next = muted
+      ? [...current, lane].sort()
+      : current.filter((muted_lane) => muted_lane !== lane);
+    set({ mutedLanes: next });
+    // ⛔ **Sent now, not on the 300 ms debounce.** The mask only reaches the
+    // audio thread when the plugin adopts a saved session, so a debounced write
+    // left the lane audibly playing for about half a beat at 120 BPM after the
+    // row had already dimmed — and if that write failed the lane stayed audible
+    // for good while the UI insisted it was muted. `flush()` also cancels the
+    // pending timer, so this replaces the debounced write rather than racing it.
+    persistNow();
+  },
+
   async refreshHost() {
     try {
       const host = await invoke<HostSessionInfo>('host_session');
@@ -605,18 +733,28 @@ export const useSession = create<SessionState>((set, get) => ({
       const tempo = typeof host?.tempo === 'number' && host.tempo > 0 ? host.tempo : null;
       if (get().hostTempo !== tempo) set({ hostTempo: tempo });
 
-      // ⛔ **The DAW owns whether time is running, and this is the only thing
-      // that tells the page.** `playing` gates the playhead poll and enables
-      // Stop; in a plugin `play()` is unreachable (playback belongs to the
-      // host), so without this the flag was permanently false — the marker
-      // never moved and Stop was never clickable, with the whole transport
-      // silently inert.
-      const playing = host?.playing === true;
-      if (get().playing !== playing) set({ playing });
+      // ⛔ **The DAW owns whether time is running, and this poll is the only
+      // thing that tells the page.** `playing` gates the playhead poll and
+      // enables Stop; nothing in a *host* can start playback from this UI, so
+      // without this the flag was permanently false — the marker never moved and
+      // Stop was never clickable, with the whole transport silently inert.
+      //
+      // ⛔ **Except in the standalone, where the page is the one that decides.**
+      // There `play()`/`pause()` write the flag optimistically and only then do
+      // the round trip, because a button that waits half a second to look
+      // pressed reads as a click that missed. This poll runs every 500 ms
+      // against an atomic the audio thread republishes on its *next* block, so
+      // a reply already in flight when the user clicks carries the pre-click
+      // value — and writing it back un-pressed the button, froze the marker and
+      // stayed wrong until the next poll, in both directions.
+      if (!get().standalone) {
+        const playing = host?.playing === true;
+        if (get().playing !== playing) set({ playing });
+      }
     } catch {
-      // No host behind this UI — the desktop shell, a browser, or a bridge
-      // that has no such command. Not an error: there is simply no project
-      // tempo to follow, and the artist's value stands.
+      // No host behind this UI — a browser, or a bridge that has no such
+      // command. Not an error: there is simply no project tempo to follow, and
+      // the artist's value stands.
       if (get().hostTempo !== null) set({ hostTempo: null });
     }
   },
@@ -635,6 +773,11 @@ export const useSession = create<SessionState>((set, get) => ({
 
   adoptDefaults() {
     set({ pins: NO_PINS, pendingArtist: null });
+  },
+
+  canDriveTransport() {
+    const { standalone, playbackFailure } = get();
+    return standalone && playbackFailure === null;
   },
 
   async generate() {
@@ -666,20 +809,6 @@ export const useSession = create<SessionState>((set, get) => ({
     }
   },
 
-  async play() {
-    const { pattern } = get();
-    if (!pattern) return;
-    try {
-      const started = await invoke<PlaybackStarted>('play_pattern', {
-        pattern,
-        looping: true,
-      });
-      set({ playing: true, unplacedNotes: started.unplacedNotes, error: null });
-    } catch (error) {
-      set({ playing: false, error: reason(error) });
-    }
-  },
-
   async seek(progress) {
     const to = Math.min(1, Math.max(0, progress));
     // Moved locally first so the marker lands under the pointer on the same
@@ -689,7 +818,39 @@ export const useSession = create<SessionState>((set, get) => ({
     try {
       await invoke('seek', { progress: to });
     } catch {
-      // No such command in the desktop shell; the local move still stands.
+      // No audio thread behind the mock; the local move still stands.
+    }
+  },
+
+  async play() {
+    // ⛔ `playing` is set optimistically rather than waited for. In the
+    // standalone the flag the audio thread reads is the same one `refreshHost`
+    // reports back, but that poll is up to 500 ms away — and a Play button
+    // that stays un-pressed for half a second reads as a click that missed.
+    // `error: null` on the way in rather than on success: the round trip may
+    // fail and overwrite it, and a stale failure banner sitting over a running
+    // transport is the contradiction this clears.
+    set({ playing: true, error: null });
+    try {
+      await invoke('transport_play');
+    } catch (error) {
+      set({ playing: false, error: reason(error) });
+    }
+  },
+
+  async pause() {
+    // ⛔ The playhead is deliberately left where it is. That is the entire
+    // difference between Pause and Stop, and it is the semantics the audio
+    // thread already has: pausing stops advancing the schedule, stopping seeks
+    // it back to zero.
+    set({ playing: false, error: null });
+    try {
+      await invoke('transport_pause');
+    } catch (error) {
+      // ⛔ Rolled back, like `play()`. Without this the store said paused while
+      // the audio thread kept advancing — a transport reported as held that is
+      // audibly still running, which is worse than the button not responding.
+      set({ playing: true, error: reason(error) });
     }
   },
 
@@ -745,26 +906,11 @@ useSession.subscribe((state) => {
  */
 if (isPlugin()) {
   useSession.subscribe((state, prev) => {
-    if (
-      state.selectedId === prev.selectedId &&
-      state.seed === prev.seed &&
-      state.bars === prev.bars &&
-      state.pins === prev.pins &&
-      // `send()` writes these too, so leaving one out means an undone or redone
-      // change never reaches the project — the session reopens contradicting
-      // what the UI had just shown.
-      //
-      // ⛔ **Every field `send()` carries has to be compared here.** The two
-      // lists are the same list, and they have now drifted twice: `autoSync`
-      // first, then `mood` and `audioEnabled`, which shipped with `persist()`
-      // called from their setters *and* absent from this check — so a direct
-      // toggle saved and an undone one did not.
-      state.autoSync === prev.autoSync &&
-      state.mood === prev.mood &&
-      state.audioEnabled === prev.audioEnabled
-    ) {
-      return;
-    }
+    // ⛔ Compared against the same list `send()` writes. Leaving a field out
+    // meant an undone or redone change never reached the project — the session
+    // reopened contradicting what the UI had just shown — and that happened
+    // three times while these were two hand-maintained lists.
+    if (SAVED_FIELDS.every((key) => state[key] === prev[key])) return;
     persist();
   });
 
@@ -780,10 +926,10 @@ if (isPlugin()) {
 /**
  * Follow the playhead the audio thread publishes.
  *
- * Only inside Tauri: in a browser there is no event system behind it, and the
- * transport state is driven by the play/stop calls alone.
+ * Returns a no-op outside the plugin: a browser has no audio thread, so there
+ * is nothing advancing to follow.
  */
-export async function subscribeToPlayhead(): Promise<() => void> {
+export function subscribeToPlayhead(): () => void {
   // ⛔ **The plugin has no event system to push this, so it polls** (TASK-041T).
   // The bridge is an HTTP round trip over the custom protocol — wry's IPC is
   // one-way, and a window parented into Ableton never gets the frame tick a push
@@ -793,82 +939,40 @@ export async function subscribeToPlayhead(): Promise<() => void> {
   // At frame rate against an atomic the audio thread already writes every block,
   // so the marker moves with the tempo without the audio thread ever waiting for
   // the page. Stopped when the editor closes, like every other subscription here.
-  if (isPlugin()) {
-    let live = true;
-    const tick = async () => {
-      if (!live) return;
-      // ⛔ Only while something is playing. An idle editor is the normal state
-      // and it must cost nothing — polling regardless was a round trip per
-      // frame, forever, to read a number that cannot change. The desktop
-      // emitter makes the same call for the same reason.
-      if (!useSession.getState().playing) {
-        schedule();
-        return;
-      }
-      try {
-        const position = await invoke<number>('playhead');
-        // ⛔ Only write when it moved. `set` on every frame would re-render the
-        // grid sixty times a second whether or not anything changed, and the
-        // playhead line is a CSS variable precisely so it does not have to.
-        if (useSession.getState().playhead !== position) {
-          useSession.setState({ playhead: position });
-        }
-      } catch {
-        // A dropped poll is a dropped frame of the marker, and the next one
-        // fixes it. Reporting it would put an error on screen for nothing.
-      }
+  if (!isPlugin()) return () => {};
+
+  let live = true;
+  const tick = async () => {
+    if (!live) return;
+    // ⛔ Only while something is playing. An idle editor is the normal state
+    // and it must cost nothing — polling regardless was a round trip per
+    // frame, forever, to read a number that cannot change.
+    if (!useSession.getState().playing) {
       schedule();
-    };
-    // 30 Hz, which is the rate the desktop path publishes at and the rate
-    // `App.tsx` already documents. rAF would be 60 and buys nothing: the marker
-    // is one CSS variable, and the pattern it walks is seconds long.
-    const schedule = () => {
-      if (live) window.setTimeout(() => void tick(), 33);
-    };
-    void tick();
-    return () => {
-      live = false;
-    };
-  }
-
-  if (!isTauri()) return () => {};
-  const { listen } = await import('@tauri-apps/api/event');
-
-  const playhead = await listen<Playhead>('playback:playhead', (event) => {
-    useSession.setState({
-      playing: event.payload.playing,
-      playhead: event.payload.position,
-    });
-  });
-
-  // The device coming and going (FR-014). A recovery clears itself after a few
-  // seconds — it is news, not a condition — while "lost" and "failed" stay up
-  // for as long as they are true.
-  let clearRecovered: number | undefined;
-  const device = await listen<DeviceNotice>('playback:device', (event) => {
-    window.clearTimeout(clearRecovered);
-    const { state, recovered } = event.payload;
-
-    if (recovered) {
-      useSession.setState({ deviceState: 'recovered' });
-      clearRecovered = window.setTimeout(
-        () => useSession.setState({ deviceState: null }),
-        6_000,
-      );
       return;
     }
-
-    useSession.setState({
-      deviceState: state === 'failed' ? 'failed' : 'recovering',
-      // The device is gone, so nothing is playing, whatever the last playhead
-      // event happened to say.
-      playing: false,
-    });
-  });
-
+    try {
+      const position = await invoke<number>('playhead');
+      // ⛔ Only write when it moved. `set` on every frame would re-render the
+      // grid sixty times a second whether or not anything changed, and the
+      // playhead line is a CSS variable precisely so it does not have to.
+      if (useSession.getState().playhead !== position) {
+        useSession.setState({ playhead: position });
+      }
+    } catch {
+      // A dropped poll is a dropped frame of the marker, and the next one
+      // fixes it. Reporting it would put an error on screen for nothing.
+    }
+    schedule();
+  };
+  // 30 Hz, which is the rate `App.tsx` already documents. rAF would be 60 and
+  // buys nothing: the marker is one CSS variable, and the pattern it walks is
+  // seconds long.
+  const schedule = () => {
+    if (live) window.setTimeout(() => void tick(), 33);
+  };
+  void tick();
   return () => {
-    window.clearTimeout(clearRecovered);
-    playhead();
-    device();
+    live = false;
   };
 }

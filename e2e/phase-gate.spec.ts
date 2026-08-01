@@ -68,45 +68,8 @@ test.describe('Phase gate — UI contract', () => {
   });
 });
 
-test.describe('Phase gate — window chrome', () => {
-  // The window is borderless (decorations: false), so the app draws its own
-  // title bar. If these controls go missing there is no other way to close
-  // the window.
-  test('the custom title bar provides minimize, maximize and close', async ({ page }) => {
-    await expect(page.getByRole('button', { name: 'Minimize' })).toBeVisible();
-    await expect(page.getByRole('button', { name: /Maximize|Restore/ })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Close' })).toBeVisible();
-  });
-
-  test('the title bar carries a drag region', async ({ page }) => {
-    // Tauri moves the window when this attribute is present. Without it the
-    // window cannot be moved at all, since there is no native title bar.
-    // (React renders a valueless JSX attribute as "true", not "".)
-    await expect(page.locator('.titlebar [data-tauri-drag-region]')).toHaveCount(1);
-  });
-
-  test('the title is centred on the window', async ({ page }) => {
-    const title = page.locator('.titlebar__name');
-    const box = await title.boundingBox();
-    const width = page.viewportSize()?.width ?? 0;
-    expect(box).not.toBeNull();
-    const centre = box!.x + box!.width / 2;
-    // Within a couple of pixels of the window's centre line.
-    expect(Math.abs(centre - width / 2)).toBeLessThan(2);
-  });
-
-  test('the window controls are not part of the drag region', async ({ page }) => {
-    // A control inside the drag region would move the window instead of
-    // firing, which is the classic borderless-window bug.
-    const inside = await page
-      .getByRole('button', { name: 'Close' })
-      .evaluate((el) => el.closest('[data-tauri-drag-region]') !== null);
-    expect(inside, 'window controls must sit outside the drag region').toBe(false);
-  });
-});
-
 test.describe('Phase gate — settings and about', () => {
-  test('the title bar offers Settings and About', async ({ page }) => {
+  test('the transport bar offers Settings and About', async ({ page }) => {
     await expect(page.getByRole('button', { name: 'Settings' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'About' })).toBeVisible();
   });
@@ -120,25 +83,9 @@ test.describe('Phase gate — settings and about', () => {
     await expect(page.getByRole('tab', { name: 'About' })).toBeVisible();
   });
 
-  test('the tray options are present and off by default', async ({ page }) => {
-    await page.getByRole('button', { name: 'Settings' }).click();
-    // A window that vanishes from the taskbar unasked is alarming, so both
-    // tray behaviours must default to off.
-    await expect(page.getByLabel(/Minimize to system tray/)).not.toBeChecked();
-    await expect(page.getByLabel(/Close to system tray/)).not.toBeChecked();
-  });
-
-  test('the tray behaviours are disabled without a tray icon', async ({ page }) => {
-    await page.getByRole('button', { name: 'Settings' }).click();
-    await page.getByLabel(/Show a system tray icon/).uncheck();
-    // Otherwise the window could be hidden with no way to bring it back.
-    await expect(page.getByLabel(/Minimize to system tray/)).toBeDisabled();
-    await expect(page.getByLabel(/Close to system tray/)).toBeDisabled();
-  });
-
   test('searching filters the categories', async ({ page }) => {
     await page.getByRole('button', { name: 'Settings' }).click();
-    await page.getByLabel('Search settings').fill('tray');
+    await page.getByLabel('Search settings').fill('dataset');
     await expect(page.getByRole('tab', { name: 'General' })).toBeVisible();
     await expect(page.getByRole('tab', { name: 'Appearance' })).toHaveCount(0);
   });

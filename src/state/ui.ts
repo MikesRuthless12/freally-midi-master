@@ -1,14 +1,8 @@
 import { create } from 'zustand';
-import { invoke, isTauri } from '../lib/ipc';
-import { writeStored } from './storage';
+import { readStored, writeStored } from './storage';
 import { applyLanguage, loadLanguagePreference } from '../i18n';
-import { isLocaleCode, type LocaleCode } from '../i18n/locales';
-import {
-  applyThemePreference,
-  isThemePreference,
-  loadThemePreference,
-  type ThemePreference,
-} from './theme';
+import { type LocaleCode } from '../i18n/locales';
+import { applyThemePreference, loadThemePreference, type ThemePreference } from './theme';
 
 /** The six generators. Order matches the tab strip in PRD § 8. */
 export const GENERATOR_TABS = ['drums', 'melody', 'counter', 'bass', 'chords', 'song'] as const;
@@ -26,6 +20,20 @@ export type SectionId = (typeof SECTIONS)[number];
 export type SectionState = Record<SectionId, boolean>;
 
 const SECTIONS_KEY = 'freally.sections';
+
+const REDUCE_MOTION_KEY = 'freally.reduceMotion';
+
+/**
+ * Whether the user asked for less animation.
+ *
+ * ⛔ In localStorage, like the theme and the language. It used to live only in
+ * `settings.json`, which the desktop shell owned — so when that shell was
+ * removed the preference had nowhere left to go and reset on every launch. Off
+ * by default, so the OS setting decides unless someone says otherwise here.
+ */
+function loadReduceMotion(): boolean {
+  return readStored(REDUCE_MOTION_KEY, (v): v is string => v === 'true', 'false') === 'true';
+}
 
 const ALL_OPEN: SectionState = {
   genres: true,
@@ -115,10 +123,7 @@ export const useUi = create<UiState>((set) => ({
   rightRailOpen: startsWide,
   sections: loadSections(),
   theme: loadThemePreference(),
-  // Never persisted to localStorage: unlike the theme, nothing has to be right
-  // before first paint, so settings.json is the single source and the
-  // reconcile below fills it in.
-  reduceMotion: false,
+  reduceMotion: loadReduceMotion(),
   language: loadLanguagePreference(),
 
   setActiveTab: (activeTab) => set({ activeTab }),
@@ -145,107 +150,15 @@ export const useUi = create<UiState>((set) => ({
   setTheme: (theme) => {
     applyThemePreference(theme);
     set({ theme });
-    // Write through to settings.json as well. Persisting only to localStorage
-    // left the file holding a stale value, which the startup reconcile then
-    // treated as authoritative — so a theme picked from the transport toggle
-    // reverted on the next launch.
-    void persistPreference({ theme });
   },
 
   setReduceMotion: (reduceMotion) => {
+    writeStored(REDUCE_MOTION_KEY, String(reduceMotion));
     set({ reduceMotion });
   },
 
   setLanguage: (language) => {
     applyLanguage(language);
     set({ language });
-    void persistPreference({ language });
   },
 }));
-
-/**
- * Reconcile the pre-paint theme with `settings.json`.
- *
- * The theme has to be applied synchronously before first paint or the window
- * flashes the wrong colours, and only localStorage can answer that fast. But
- * localStorage lives in the WebView's own profile: "clear browsing data", a
- * reset user profile, or restoring app data from a backup wipes it while
- * settings.json survives. Without this, settings.json was write-only — the
- * Settings modal saved a theme there that nothing ever read back, so the
- * durable store was decorative and the fragile one was authoritative.
- *
- * An explicit choice always beats an implicit default, whichever store holds
- * it. `system` in the file is indistinguishable from no file at all, since
- * `Settings::load` returns defaults for a missing one — so it counts as "no
- * information" rather than as a preference, and the healing runs the other way.
- */
-/**
- * Merge one preference into settings.json.
- *
- * Read-modify-write rather than a blind overwrite: `settings_set` takes the
- * whole struct, so sending a partial object would reset every field it omits.
- */
-async function persistPreference(patch: Record<string, unknown>): Promise<void> {
-  if (!isTauri()) return;
-  try {
-    const stored = await invoke<Record<string, unknown>>('settings_get');
-    await invoke('settings_set', { settings: { ...stored, ...patch } });
-  } catch {
-    // No bridge, or the file is unwritable — the in-memory choice still applies
-    // and localStorage still has it for the next launch.
-  }
-}
-
-export async function reconcileWithSettings(): Promise<void> {
-  if (!isTauri()) return;
-  try {
-    const stored = await invoke<{
-      theme?: unknown;
-      language?: unknown;
-      reduceMotion?: unknown;
-    }>('settings_get');
-
-    // Straight adoption — there is no local copy to conflict with, because
-    // this one is not needed before first paint.
-    if (typeof stored?.reduceMotion === 'boolean') {
-      useUi.getState().setReduceMotion(stored.reduceMotion);
-    }
-    const patch: Record<string, unknown> = {};
-
-    const themeOnDisk = isThemePreference(stored?.theme) ? stored.theme : 'system';
-    const themeLocal = useUi.getState().theme;
-    if (themeOnDisk !== themeLocal) {
-      if (themeOnDisk !== 'system') {
-        // The file has a real choice and we did not — adopt it, which also
-        // rewrites localStorage so the next launch paints it immediately.
-        useUi.getState().setTheme(themeOnDisk);
-      } else if (themeLocal !== 'system') {
-        // We have a real choice the file has never been told about: someone who
-        // chose a theme before this reconcile existed, or a file that was reset.
-        patch.theme = themeLocal;
-      }
-    }
-
-    // Language works the same way, with the empty string as its sentinel.
-    // `isLocaleCode('')` is false, so a file that has never recorded a choice
-    // counts as "no information" and the local pick — which came from the OS
-    // language on first launch — wins and is written back. Treating a missing
-    // file as a vote for English reset every non-English machine on every
-    // launch.
-    const languageOnDisk = isLocaleCode(stored?.language) ? stored.language : null;
-    const languageLocal = useUi.getState().language;
-    if (languageOnDisk && languageOnDisk !== languageLocal) {
-      useUi.getState().setLanguage(languageOnDisk);
-    } else if (!languageOnDisk) {
-      patch.language = languageLocal;
-    }
-
-    if (Object.keys(patch).length > 0) {
-      await invoke('settings_set', { settings: { ...(stored ?? {}), ...patch } }).catch(
-        () => {},
-      );
-    }
-  } catch {
-    // No bridge or no settings file yet — keep what was painted.
-  }
-}

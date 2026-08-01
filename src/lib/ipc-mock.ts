@@ -8,14 +8,13 @@
  * bugs E2E exists to catch.
  */
 
-import type { InvokeArgs } from '@tauri-apps/api/core';
+import type { InvokeArgs } from './ipc';
 import type { Note, Pattern, RosterSummary, SessionDefaults } from './ipc-types';
-import type { PlaybackStarted } from './ipc-audio-types';
 
 type Handler = (args?: InvokeArgs) => unknown;
 
 const handlers: Record<string, Handler> = {
-  // Exactly the shape `app_info` returns in src-tauri/src/lib.rs — no more, no
+  // Exactly the shape `app_info` returns in plugin/src/bridge.rs — no more, no
   // fewer. It used to omit `arch` and invent two fields the command has never
   // returned, so the About pane rendered "mock / undefined" here and correctly
   // in the real app: a fixture that disagrees with the DTO tests the fixture.
@@ -24,40 +23,6 @@ const handlers: Record<string, Handler> = {
     platform: 'mock',
     arch: 'mock',
   }),
-
-  // No crash happened in a browser, so the report overlay stays shut.
-  bug_report_has_pending_crash: () => false,
-
-  bug_report_context: () => ({
-    appVersion: '0.0.0-mock',
-    os: 'mock',
-    arch: 'mock',
-    diagnostics: 'From: Freally MIDI Master\nApp: 0.0.0-mock\nOS: mock / mock',
-    pendingCrash: null,
-  }),
-
-  bug_report_preview: (args) => {
-    const a = args as { description?: string } | undefined;
-    return `WHAT HAPPENED
-${a?.description?.trim() || '(no description provided)'}
-
-ANONYMOUS DIAGNOSTICS (no personal data)
-From: Freally MIDI Master`;
-  },
-
-  bug_report_submit: () => undefined,
-  bug_report_clear_crash: () => undefined,
-
-  // Settings, so the panel renders with real defaults in a browser.
-  settings_get: () => ({
-    minimizeToTray: false,
-    closeToTray: false,
-    showTrayIcon: true,
-    theme: 'system',
-    // Empty = never chosen, matching Settings::default() in Rust.
-    language: '',
-  }),
-  settings_set: (args) => (args as { settings: unknown } | undefined)?.settings,
 
   // The roster, as the real command returns it: two genres and one artist over
   // one of them, which is enough shape for search and the tier badges without
@@ -182,11 +147,12 @@ From: Freally MIDI Master`;
     };
   },
 
-  // Playback in a browser: there is no audio device behind the mock, so
+  // Playback in a browser: there is no audio thread behind the mock, so
   // `playback_status` reports why rather than pretending there is one. The
-  // transport is then honestly disabled, which is what the spec asserts.
-  playback_status: () => 'Playback needs the desktop app.',
-  play_pattern: (): PlaybackStarted => ({ unplacedNotes: 0, voices: 0 }),
+  // transport is then honestly disabled, which is what the spec asserts — and
+  // it is the same shape the plugin answers with, where the reason is that the
+  // host owns the transport rather than that there is no host.
+  playback_status: () => ({ standalone: false, reason: 'Playback needs the plugin.' }),
   stop_playback: () => undefined,
 
   // The transport (TASK-041T). A mock playhead that never moves is honest: the
@@ -195,6 +161,21 @@ From: Freally MIDI Master`;
   playhead: () => 0,
   seek: () => undefined,
   set_looping: () => undefined,
+
+  // The standalone's own transport (TASK-041T).
+  //
+  // ⛔ **Rejected, because the plugin rejects them.** `playback_status` above
+  // reports this shell as not-the-standalone, and `editor.rs` treats a
+  // `transport_play` arriving in that state as the page and the plugin
+  // disagreeing about which shell they are in — an error rather than a no-op.
+  // A mock that resolved them would keep the e2e suite green through exactly
+  // the wiring bug the bridge refuses in order to catch.
+  transport_play: () => {
+    throw new Error('the host owns the transport — press play in your DAW');
+  },
+  transport_pause: () => {
+    throw new Error('the host owns the transport — press play in your DAW');
+  },
 
   // Presets (TASK-P13). The real ones are files the plugin owns; a browser has
   // nowhere to put them, so the mock is a fixture that keeps the panel
@@ -218,15 +199,6 @@ From: Freally MIDI Master`;
     factory: false,
   }),
   preset_delete: () => undefined,
-
-  // Export / drag. Without these the ExportChip's catch-all would swallow a
-  // missing-handler error and render as if everything were fine.
-  drag_capability: () => ({
-    platform: 'mock',
-    dragSupported: false,
-    isWayland: false,
-    note: 'Drag-out needs the desktop app.',
-  }),
 };
 
 export async function mockInvoke<T>(command: string, args?: InvokeArgs): Promise<T> {

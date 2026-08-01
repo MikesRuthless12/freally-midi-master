@@ -82,22 +82,14 @@ projects, your generated output, your imported audio, or any information about y
 your machine anywhere. Music generation, playback, and export are entirely local and
 never touch the network.
 
-There are exactly two outbound connections, both described here so this document
-stays accurate:
+**The Software makes no outbound connections.** Earlier versions — the desktop
+application, up to and including `v0.2.0` — had exactly two, a launch-time update
+check and an opt-in crash report. Both belonged to that application and were removed
+with it: the Software now ships as an audio plugin, which is installed and updated
+by whoever installs plugins. No HTTP client is compiled into the binary.
 
-- **Update check.** Once per launch, and again whenever you choose *Check for
-  updates…*, the Software fetches one small file from this project's GitHub releases
-  page in order to compare version numbers. Nothing about you, your machine, or your
-  content is transmitted. If a newer version exists you are shown its version number
-  and release notes and asked **yes or no** — nothing downloads or installs without
-  that answer. Updates are cryptographically signature-verified before installation.
-  If you are offline, rate-limited, or already current, the Software stays silent.
-- **Crash reports.** These are **never transmitted automatically**. A report is
-  written to a local file, shown to you in full, and sent only if you choose to send
-  it — from your own email client or your own GitHub account. See
-  `docs/legal/disclaimer.md`.
-
-Both can be reviewed in the source; neither is on a server the Licensor operates.
+This can be reviewed in the source, and is enforced by a build gate
+(`scripts/check-denylist.mjs`) rather than left as a promise.
 
 The Software contains **no machine-learning or artificial-intelligence components of
 any kind**. It downloads no models and performs no inference. All generation is

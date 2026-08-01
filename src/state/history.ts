@@ -48,6 +48,16 @@ export type Snapshot = {
    * silent, with nothing saying why the undo was partial.
    */
   audioEnabled: boolean;
+  /**
+   * Lanes silenced in the preview (FMM-S02).
+   *
+   * ⛔ The same drift as `audioEnabled` above, one field over: `send()` has
+   * carried this since the sampler landed, while the snapshot and the persist
+   * guard did not — so a mute was saved when clicked and lost when undone.
+   * **Every field `send()` carries belongs in all three places.** Replaced
+   * wholesale on every change, so reference equality is enough to compare it.
+   */
+  mutedLanes: string[];
 };
 
 /**
@@ -60,8 +70,16 @@ export type Snapshot = {
  */
 export type Field = keyof Snapshot;
 
-/** Fields that never coalesce, however fast they arrive. */
-const DISCRETE: readonly Field[] = ['pattern'];
+/**
+ * Fields that never coalesce, however fast they arrive.
+ *
+ * ⛔ `mutedLanes` belongs here because a mute is a *discrete act*, not a value
+ * being typed toward. Coalescing suits the seed box, where six keystrokes are
+ * one intention; muting the kick and then the snare inside 600 ms is two, and
+ * merging them made "kick muted, snare audible" unreachable by undo — one
+ * Ctrl+Z un-muted both.
+ */
+const DISCRETE: readonly Field[] = ['pattern', 'mutedLanes'];
 
 /**
  * How long a run of edits to one field stays one undo step.

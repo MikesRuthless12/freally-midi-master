@@ -1,4 +1,5 @@
 import { useCallback, useMemo } from 'react';
+import { Volume2, VolumeX } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { useSession } from '../../state/session';
@@ -23,6 +24,8 @@ import './DrumGrid.css';
 export function DrumGrid({ pattern, playhead }: { pattern: Pattern; playhead: number }) {
   const { t } = useTranslation();
   const seek = useSession((s) => s.seek);
+  const mutedLanes = useSession((s) => s.mutedLanes);
+  const setLaneMuted = useSession((s) => s.setLaneMuted);
   // ⛔ Memoised because the playhead re-renders this component on every
   // transport tick, and `toCells` walks every note to build ~1,150 fresh cell
   // objects for an 8-bar pattern. The marker is a CSS variable on a separate
@@ -52,6 +55,73 @@ export function DrumGrid({ pattern, playhead }: { pattern: Pattern; playhead: nu
     [seek],
   );
 
+  // ⛔ **Memoised for the same reason `rows` is: nothing in here reads the
+  // playhead.** The marker moves 30 times a second, and every lane header and
+  // all ~1,150 cell spans were being rebuilt alongside it — each header costing
+  // an interpolating `t()` lookup and a fresh SVG. The marker still moves at
+  // 30 Hz; the grid under it now rebuilds only when the pattern, the mutes or
+  // the language actually change.
+  const lanes = useMemo(
+    () =>
+      rows.map(({ lane, cells }) => {
+        const muted = mutedLanes.includes(lane);
+        const name = t(`lanes.${lane}`);
+        // ⛔ **The name does not change with the state, because `aria-pressed`
+        // already carries it.** WAI-ARIA's toggle-button pattern asks for one or
+        // the other: swapping between "Mute…" and "Unmute…" *and* setting
+        // `aria-pressed` made the announcement contradict itself — "Unmute kick
+        // in the preview, toggle button, pressed" leaves a screen-reader user
+        // unable to tell whether the lane is muted right now.
+        const label = t('grid.muteLane', { lane: name });
+        return (
+          <div className="grid__row" role="row" key={lane} data-muted={muted || undefined}>
+            <span className="grid__lane" role="rowheader">
+              {/* ⛔ **Silences the preview, not the pattern** (FMM-S02). The
+                  notes have already gone out to the host's track by the time
+                  the sampler renders, so this mutes our kick without removing
+                  the kick anyone routed away. The label says "preview" for
+                  exactly that reason — "Mute kick" would be a lie in the one
+                  place it matters. */}
+              <button
+                type="button"
+                className="grid__mute"
+                aria-pressed={muted}
+                aria-label={label}
+                title={label}
+                onClick={() => setLaneMuted(lane, !muted)}
+              >
+                {muted ? (
+                  <VolumeX size={12} aria-hidden="true" />
+                ) : (
+                  <Volume2 size={12} aria-hidden="true" />
+                )}
+              </button>
+              <span className="grid__lanename">{name}</span>
+            </span>
+            <div className="grid__track" onMouseDown={seekTo}>
+              {cells.map((cell, index) => (
+                <span
+                  key={index}
+                  role="cell"
+                  data-hits={cell.hits || undefined}
+                  className={
+                    'grid__cell' +
+                    (cell.hits > 0 ? ' grid__cell--on' : '') +
+                    (cell.hits > 1 ? ' grid__cell--roll' : '') +
+                    (index % 4 === 0 ? ' grid__cell--beat' : '')
+                  }
+                  style={
+                    cell.hits > 0 ? { opacity: 0.35 + (cell.velocity / 127) * 0.65 } : undefined
+                  }
+                />
+              ))}
+            </div>
+          </div>
+        );
+      }),
+    [rows, mutedLanes, setLaneMuted, seekTo, t],
+  );
+
   return (
     <div className="grid" role="table" aria-label={t('grid.label')}>
       {/* One absolutely-positioned line rather than a class on the live cell:
@@ -65,31 +135,7 @@ export function DrumGrid({ pattern, playhead }: { pattern: Pattern; playhead: nu
         />
       )}
 
-      {rows.map(({ lane, cells }) => (
-        <div className="grid__row" role="row" key={lane}>
-          <span className="grid__lane" role="rowheader">
-            {t(`lanes.${lane}`)}
-          </span>
-          <div className="grid__track" onMouseDown={seekTo}>
-            {cells.map((cell, index) => (
-              <span
-                key={index}
-                role="cell"
-                data-hits={cell.hits || undefined}
-                className={
-                  'grid__cell' +
-                  (cell.hits > 0 ? ' grid__cell--on' : '') +
-                  (cell.hits > 1 ? ' grid__cell--roll' : '') +
-                  (index % 4 === 0 ? ' grid__cell--beat' : '')
-                }
-                style={
-                  cell.hits > 0 ? { opacity: 0.35 + (cell.velocity / 127) * 0.65 } : undefined
-                }
-              />
-            ))}
-          </div>
-        </div>
-      ))}
+      {lanes}
 
       <p className="grid__meta">
         {t('grid.summary', {

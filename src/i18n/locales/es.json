@@ -1,11 +1,7 @@
 {
   "titlebar": {
     "settings": "Ajustes",
-    "about": "Acerca de",
-    "minimize": "Minimizar",
-    "maximize": "Maximizar",
-    "restore": "Restaurar",
-    "close": "Cerrar"
+    "about": "Acerca de"
   },
   "tabs": {
     "group": "Generador",
@@ -84,12 +80,12 @@
   },
   "transport": {
     "play": "Reproducir",
+    "pause": "Pausa",
     "stop": "Detener",
     "loop": "Bucle",
     "masterLevel": "Nivel máster: en silencio",
     "toggleRightRail": "Alternar el panel derecho (K)",
     "windowSize": "Tamaño de la ventana",
-    "reportBug": "Reportar un error",
     "loopAlways": "La reproducción siempre se repite en esta fase.",
     "unavailable": "La reproducción no está disponible: {{reason}}"
   },
@@ -111,36 +107,16 @@
     "showAll": "Mostrar todos los paneles",
     "hideAll": "Ocultar todos los paneles"
   },
-  "export": {
-    "drag": "Arrastrar MIDI",
-    "dragTitle": "Arrastra el MIDI generado a tu DAW",
-    "export": "Exportar",
-    "exportTitle": "Guarda el MIDI en una carpeta y la abre",
-    "dragDesktopOnly": "Arrastrar solo funciona en la app de escritorio.",
-    "exportDesktopOnly": "Exportar solo funciona en la app de escritorio.",
-    "dropped": "Aterrizó.",
-    "exportedTo": "Exportado a {{path}}",
-    "nothingToExport": "Primero genera un beat."
-  },
   "settings": {
     "title": "Ajustes",
     "searchPlaceholder": "Buscar en los ajustes…",
     "searchLabel": "Buscar en los ajustes",
     "categories": "Categorías de ajustes",
     "noMatch": "Nada coincide con «{{query}}».",
-    "saveFailed": "No se pudieron guardar tus ajustes: {{error}}",
     "general": "General",
     "appearance": "Apariencia",
     "language": "Idioma",
     "about": "Acerca de",
-    "trayHeading": "Bandeja del sistema",
-    "showTrayIcon": "Mostrar un icono en la bandeja del sistema",
-    "showTrayIconHint": "Añade Freally MIDI Master al área de notificaciones, con Mostrar y Salir.",
-    "minimizeToTray": "Minimizar a la bandeja del sistema",
-    "minimizeToTrayHint": "Al minimizar, la ventana se oculta en la bandeja en lugar de ir a la barra de tareas. Haz clic en el icono de la bandeja para recuperarla.",
-    "closeToTray": "Cerrar a la bandeja del sistema",
-    "closeToTrayHint": "Al cerrar la ventana, la app sigue funcionando en la bandeja. Usa Salir en el menú de la bandeja para terminar.",
-    "trayRequired": "Activa el icono de la bandeja para usar las dos opciones de arriba: sin él no habría forma de recuperar la ventana.",
     "themeHeading": "Tema",
     "themeNote": "El oscuro es el predeterminado y el aspecto característico de la app. El contraste de ambos temas está verificado según WCAG 2.1 AA.",
     "languageHeading": "Idioma",
@@ -165,40 +141,13 @@
     "creditsHeading": "Créditos",
     "creditsBody": "Estadísticas de timing y velocity derivadas del Magenta Groove MIDI Dataset (CC BY 4.0). Noto Sans, Noto Sans Display y Noto Sans Mono, junto con familias Noto por escritura que cubren CJK, árabe, hebreo, índico y más, bajo la SIL Open Font License 1.1. Iconos Lucide bajo ISC. Los kits de previsualización se sintetizan dentro del propio repositorio y no contienen samples de terceros."
   },
-  "bugReport": {
-    "title": "Reportar un error",
-    "intro": "Los reportes son anónimos y nunca se envían de forma automática. Lee el texto exacto de abajo y elige cómo enviarlo: una incidencia en GitHub, un borrador en Gmail o tu propio cliente de correo. Enviar lo presionas tú.",
-    "crashNotice": "Freally MIDI Master se cerró de forma inesperada la última vez. Los detalles del fallo que aparecen abajo se guardaron solo en este equipo.",
-    "describeLabel": "¿Qué estabas haciendo cuando falló?",
-    "describePlaceholder": "Opcional, pero ayuda mucho.",
-    "includeCrash": "Incluir los detalles del fallo",
-    "previewLabel": "Esto es exactamente lo que se enviará",
-    "openGithub": "Abrir incidencia en GitHub",
-    "composeGmail": "Redactar en Gmail",
-    "composeGmailTitle": "Abre la ventana de redacción de Gmail en tu navegador, ya rellenada.",
-    "sendEmail": "Enviar correo",
-    "sendEmailTitle": "Abre el cliente de correo predeterminado de tu sistema operativo, ya rellenado.",
-    "copy": "Copiar reporte",
-    "copied": "Copiado",
-    "dismissCrash": "Descartar el fallo",
-    "copyFailed": "No se pudo copiar el reporte al portapapeles."
-  },
-  "update": {
-    "available": "La versión {{version}} ya está disponible",
-    "whatsNew": "Novedades",
-    "noNotes": "No se publicaron notas de lanzamiento para esta versión.",
-    "installFailed": "No se pudo instalar la actualización: {{error}}",
-    "later": "No, ahora no",
-    "install": "Sí, actualizar ahora",
-    "installing": "Actualizando…",
-    "footer": "Se descarga desde GitHub y se verifica la firma antes de instalar. No se envía nada sobre ti ni sobre tus proyectos."
-  },
   "common": {
     "close": "Cerrar"
   },
   "grid": {
     "label": "Patrón generado",
-    "summary": "{{bars}} compases · {{steps}} pasos · {{notes}} notas"
+    "summary": "{{bars}} compases · {{steps}} pasos · {{notes}} notas",
+    "muteLane": "Silenciar {{lane}} en la vista previa"
   },
   "roster": {
     "artists": "Artistas",
@@ -218,11 +167,6 @@
     "snap": "Chasquido",
     "perc": "Percusión",
     "bass808": "808"
-  },
-  "device": {
-    "recovering": "Se perdió el dispositivo de audio: reconectando…",
-    "failed": "Sin dispositivo de audio. Seguimos intentándolo…",
-    "recovered": "El dispositivo de audio volvió."
   },
   "presets": {
     "factory": "De fábrica",
