@@ -207,9 +207,18 @@ export function Ruler({
       if (x < gutter) return;
       const grip = gripAt(x, y, loop, region, span, (t) => gutter + tickToX(t, view));
       event.currentTarget.setPointerCapture(event.pointerId);
-      drag.current = { grip, pointerId: event.pointerId, fromTick: tick, span, pending: null };
+      // ⛔ Snapped on the way in. Only the moving end used to be, so a brace
+      // drawn on empty ruler started off-grid while its other end sat on the
+      // barline the pointer was nearest.
+      drag.current = {
+        grip,
+        pointerId: event.pointerId,
+        fromTick: snapTick(tick, snap, pattern.ppq),
+        span,
+        pending: null,
+      };
     },
-    [locate, gutter, loop, region, span, view],
+    [locate, gutter, loop, region, span, view, snap, pattern.ppq],
   );
 
   /**
@@ -262,11 +271,7 @@ export function Ruler({
       if (current.grip.kind === 'stretch') {
         if (current.span === null) return;
         const { tick } = locate(event);
-        const factor = stretchFactor(
-          current.span,
-          current.grip.edge,
-          snapTick(tick, snap, pattern.ppq),
-        );
+        const factor = stretchFactor(current.span, snapTick(tick, snap, pattern.ppq));
         if (factor === null || factor === 1) return;
         const next = stretch(pattern, lane, selection, factor);
         if (next === pattern) return;

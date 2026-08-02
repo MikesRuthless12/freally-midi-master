@@ -320,6 +320,53 @@ mod tests {
         assert_eq!(ctx.ticks_per_bar(), engine::pattern::PPQ * 3);
     }
 
+    /// ⛔ **The meter multiplies the note count exactly as `bars` does.**
+    /// `MAX_BARS` exists so a value from a file, a preset or devtools cannot ask
+    /// for a pattern that takes minutes to build on the thread the host draws
+    /// its window from — and `ticks_per_bar` is `num × 4 / den`, so `255/1` is
+    /// 63× a 4/4 bar and walks straight past that ceiling. Measured before the
+    /// clamp: `255/1` at 128 bars produced 526,000 notes and ~875 ms of
+    /// synchronous stall inside the DAW, plus a ~50 MB reply into the webview.
+    #[test]
+    fn a_meter_from_a_file_cannot_be_used_to_outgrow_the_bar_limit() {
+        let host = observed(Some(120.0), 4, 4);
+        let huge = SessionOverrides {
+            time_sig_num: Some(255),
+            time_sig_den: Some(1),
+            ..SessionOverrides::default()
+        };
+        let ctx = host.session_for(&shipped("trap"), &huge, 7, true);
+        assert_eq!(
+            (ctx.time_sig_num, ctx.time_sig_den),
+            (4, 4),
+            "a meter outside the range is refused rather than clamped to its \
+             edge: 255 is corrupt input, not a preference to honour partially"
+        );
+    }
+
+    /// ⛔ A denominator the MIDI writer cannot express used to divide the tick
+    /// arithmetic while the exported meta event fell back to `/4` — so the clip
+    /// and the file disagreed about how long a bar was.
+    #[test]
+    fn a_denominator_no_midi_file_can_write_is_refused() {
+        let host = observed(Some(120.0), 4, 4);
+        let with_den = |den: u8| {
+            let odd = SessionOverrides {
+                time_sig_den: Some(den),
+                ..SessionOverrides::default()
+            };
+            host.session_for(&shipped("trap"), &odd, 7, true)
+                .time_sig_den
+        };
+
+        for den in [0u8, 3, 5, 7, 64] {
+            assert_eq!(with_den(den), 4, "denominator {den} must not survive");
+        }
+        for den in [1u8, 2, 4, 8, 16, 32] {
+            assert_eq!(with_den(den), den, "denominator {den} is legal");
+        }
+    }
+
     #[test]
     fn half_a_meter_still_takes_the_rest_from_the_host() {
         // Only the field that was set wins. A numerator alone must not drag the

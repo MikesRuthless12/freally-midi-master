@@ -5,6 +5,7 @@ import { isTypingTarget } from '../../lib/keyboard';
 import { useEditing } from '../../state/editing';
 import {
   addNote,
+  addedIds,
   barTicks,
   deleteNotes,
   duplicateNotes,
@@ -13,7 +14,6 @@ import {
   notesOf,
   selectionLength,
   stepTicks,
-  type NoteId,
 } from './notes';
 import { reselect, stretch } from './transforms';
 
@@ -107,14 +107,15 @@ export function useRollShortcuts(
         const anchor = Math.min(...clipboard.map((note) => note.startTick));
         const offset = Math.round(playheadTicks) - anchor;
         let next = pattern;
-        const pasted: NoteId[] = [];
         for (const note of clipboard) {
-          const placed = { ...note, startTick: note.startTick + offset };
-          next = addNote(next, lane, placed);
-          pasted.push(noteId(placed));
+          next = addNote(next, lane, { ...note, startTick: note.startTick + offset });
         }
         editPattern(next);
-        editing.select(pasted);
+        // ⛔ Asked of the result rather than of what was requested. A block
+        // pasted past the clip end has every overrunning note clamped onto the
+        // last tick, where dedupe keeps one — so the ids built from the
+        // requested positions named notes that were never there.
+        editing.select(addedIds(pattern, next, lane));
         return;
       }
 

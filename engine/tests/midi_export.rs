@@ -299,3 +299,56 @@ fn a_six_eight_clip_says_six_eight_in_the_file() {
     // twelve quarters long rather than twenty-four.
     assert_eq!(ctx.ticks_per_bar(), PPQ * 3);
 }
+
+/// TASK-041E: the clip's own start and end have to reach the *file*.
+///
+/// ⛔ The markers were draggable, saved with the project and read by nothing —
+/// a producer trimmed a clip to its first bar, and the export still wrote four.
+/// A boundary that only moves two marks on screen is worse than no boundary.
+#[test]
+fn a_trimmed_clip_exports_trimmed() {
+    let models = shipped();
+    let trap = models.get("trap").expect("trap must ship");
+    let whole = render(trap, 7, 4);
+    let bar = PPQ * 4;
+
+    let mut trimmed = whole.clone();
+    trimmed.clip_region = Some(engine::pattern::Region {
+        from_tick: 0,
+        to_tick: bar,
+    });
+
+    let count = |pattern: &Pattern| {
+        Smf::parse(&pattern_to_smf(pattern))
+            .expect("parses")
+            .tracks
+            .iter()
+            .flatten()
+            .filter(|event| {
+                matches!(
+                    event.kind,
+                    TrackEventKind::Midi {
+                        message: MidiMessage::NoteOn { .. },
+                        ..
+                    }
+                )
+            })
+            .count()
+    };
+
+    let before = count(&whole);
+    let after = count(&trimmed);
+    assert!(before > 0, "the fixture must have notes to trim");
+    assert!(
+        after < before,
+        "trimming to one bar of four must drop notes: {after} of {before}"
+    );
+    assert!(
+        whole
+            .lanes
+            .iter()
+            .flat_map(|l| l.notes.iter())
+            .any(|n| n.start_tick >= bar),
+        "and the fixture must actually have notes past bar 1"
+    );
+}

@@ -180,13 +180,15 @@ export function withNotes(pattern: Pattern, lane: Lane, notes: Note[]): Pattern 
 }
 
 /**
- * Drop notes that now sit on top of another, keeping the last writer.
+ * Drop notes that now sit on top of another, keeping the one that just moved.
  *
  * A move or a transpose can land two notes on one tick and pitch — drag a note
  * onto its neighbour and they occupy the same slot. Two notes there are one
  * audible note and two MIDI events, the second of which cuts the first short,
- * so the pattern would export something nobody drew. The *moved* note wins
- * because it is the one the user just placed.
+ * so the pattern would export something nobody drew.
+ *
+ * The last writer wins, so **every caller must put the notes it just changed at
+ * the end** — see `mapNotes`, which is the one that has to work at it.
  */
 function dedupe(notes: Note[]): Note[] {
   const byId = new Map<NoteId, Note>();
@@ -242,10 +244,23 @@ export function mapNotes(
 ): Pattern {
   if (ids.size === 0) return pattern;
   const ticks = patternTicks(pattern);
-  const next = notesOf(pattern, lane).map((note) =>
-    ids.has(noteId(note)) ? clampNote(change(note), ticks) : note,
-  );
-  return withNotes(pattern, lane, dedupe(next));
+
+  // ⛔ **The changed notes go last, and that is what decides who survives a
+  // collision.** `dedupe` keeps the last writer, and mapping in place left a
+  // note dragged *forward* onto a neighbour still sitting earlier in the list —
+  // so the note the producer had hold of was the one thrown away, and the
+  // stationary one stayed wearing its own length and velocity. Dragging
+  // backward worked, which is exactly what made it read as a snapping quirk
+  // rather than as a note being deleted. One `ArrowRight` did it too, and then
+  // the selection pointed at a note that no longer existed.
+  const untouched: Note[] = [];
+  const changed: Note[] = [];
+  for (const note of notesOf(pattern, lane)) {
+    if (ids.has(noteId(note))) changed.push(clampNote(change(note), ticks));
+    else untouched.push(note);
+  }
+
+  return withNotes(pattern, lane, dedupe([...untouched, ...changed]));
 }
 
 /**
@@ -263,10 +278,62 @@ export function moveNotes(
   ids: ReadonlySet<NoteId>,
   deltaTicks: number,
   deltaPitch: number,
+  /** Leave the originals where they are and place copies at the delta. */
+  copy = false,
 ): Pattern {
   if (ids.size === 0) return pattern;
   const selected = notesOf(pattern, lane).filter((note) => ids.has(noteId(note)));
   if (selected.length === 0) return pattern;
+
+  const ticks = patternTicks(pattern);
+  const { deltaTicks: dt, deltaPitch: dp } = clampedMove(
+    pattern,
+    lane,
+    ids,
+    deltaTicks,
+    deltaPitch,
+  );
+  if (dt === 0 && dp === 0) return pattern;
+
+  // ⛔ **`copy` lives here, not in the caller, because the *clamped* delta is
+  // here.** Alt-drag has to leave the originals and place the copies where the
+  // drag actually ended — and "where it actually ended" is `dt`/`dp` above,
+  // clamped once for the whole selection. A caller doing its own duplicate-then-
+  // move would either re-derive that clamp or get it wrong at the clip's edges.
+  if (copy) {
+    const moved = selected.map((note) =>
+      clampNote({ ...note, startTick: note.startTick + dt, pitch: note.pitch + dp }, ticks),
+    );
+    // Copies last: `dedupe` keeps the last writer, and a copy dropped onto an
+    // existing note is the producer placing it there.
+    return withNotes(pattern, lane, dedupe([...notesOf(pattern, lane), ...moved]));
+  }
+
+  return mapNotes(pattern, lane, ids, (note) => ({
+    ...note,
+    startTick: note.startTick + dt,
+    pitch: note.pitch + dp,
+  }));
+}
+
+/**
+ * The delta a move can actually have, clamped once for the whole selection.
+ *
+ * ⛔ **Exported so the *preview* can use it too.** The renderer drew the raw
+ * delta while `moveNotes` committed a clamped one, so dragging a chord toward
+ * the clip's end or toward pitch 127 kept sliding on screen after the commit had
+ * stopped — and the notes landed where the canvas had stopped showing them. One
+ * function, asked by both, is the only arrangement where they cannot disagree.
+ */
+export function clampedMove(
+  pattern: Pattern,
+  lane: Lane,
+  ids: ReadonlySet<NoteId>,
+  deltaTicks: number,
+  deltaPitch: number,
+): { deltaTicks: number; deltaPitch: number } {
+  const selected = notesOf(pattern, lane).filter((note) => ids.has(noteId(note)));
+  if (selected.length === 0) return { deltaTicks: 0, deltaPitch: 0 };
 
   const ticks = patternTicks(pattern);
   const minStart = Math.min(...selected.map((note) => note.startTick));
@@ -274,15 +341,17 @@ export function moveNotes(
   const minPitch = Math.min(...selected.map((note) => note.pitch));
   const maxPitch = Math.max(...selected.map((note) => note.pitch));
 
-  const dt = Math.max(-minStart, Math.min(deltaTicks, ticks - maxEnd));
-  const dp = Math.max(MIN_PITCH - minPitch, Math.min(deltaPitch, MAX_PITCH - maxPitch));
-  if (dt === 0 && dp === 0) return pattern;
-
-  return mapNotes(pattern, lane, ids, (note) => ({
-    ...note,
-    startTick: note.startTick + dt,
-    pitch: note.pitch + dp,
-  }));
+  return {
+    // ⛔ The headroom is floored at zero, not used raw. `ticks - maxEnd` goes
+    // *negative* the moment any selected note ends past the clip — which the
+    // meter picker makes reachable, since switching 4/4 to 6/8 shortens the clip
+    // under notes that were legal a moment ago. Unfloored, that negative
+    // headroom became the delta: a pure pitch nudge, with `deltaTicks` of
+    // exactly 0, dragged the whole selection left. Nothing can move is the right
+    // answer; moving backwards is not.
+    deltaTicks: Math.max(-minStart, Math.min(deltaTicks, Math.max(0, ticks - maxEnd))),
+    deltaPitch: Math.max(MIN_PITCH - minPitch, Math.min(deltaPitch, MAX_PITCH - maxPitch)),
+  };
 }
 
 /** Which edge of a note a resize drag has hold of. */
@@ -327,7 +396,10 @@ export function resizeNotes(
 
   const maxEnd = Math.max(...selected.map((note) => note.startTick + note.lenTicks));
   const slack = Math.min(...selected.map((note) => note.lenTicks - floor));
-  const dt = Math.max(-slack, Math.min(deltaTicks, ticks - maxEnd));
+  // Floored for the reason `moveNotes` floors its own: a selection already past
+  // the clip end has negative headroom, and using it raw would *shorten* every
+  // note in the selection on a drag that asked to lengthen them.
+  const dt = Math.max(-slack, Math.min(deltaTicks, Math.max(0, ticks - maxEnd)));
   if (dt === 0) return pattern;
   return mapNotes(pattern, lane, ids, (note) => ({ ...note, lenTicks: note.lenTicks + dt }));
 }
@@ -408,14 +480,47 @@ export function notesInBox(
 }
 
 /** The note under a point, topmost first — the one a click should take. */
-export function noteAt(pattern: Pattern, lane: Lane, tick: number, pitch: number): Note | null {
+export function noteAt(
+  pattern: Pattern,
+  lane: Lane,
+  tick: number,
+  pitch: number,
+  /**
+   * The smallest span a note is *drawn* over, in ticks.
+   *
+   * ⛔ The renderer floors a note's width at two pixels so a 1/64 at low zoom is
+   * still visible; without the same floor here it was visible over two pixels
+   * and clickable over a fraction of one. The caller converts that floor from
+   * pixels, because only it knows the zoom.
+   */
+  minTicks = 0,
+): Note | null {
   // Reversed so the last-drawn note wins, matching what the renderer paints on
   // top when two notes overlap in time on the same row.
   const notes = notesOf(pattern, lane);
   for (let index = notes.length - 1; index >= 0; index -= 1) {
     const note = notes[index];
     if (note.pitch !== pitch) continue;
-    if (tick >= note.startTick && tick < note.startTick + note.lenTicks) return note;
+    const span = Math.max(note.lenTicks, minTicks);
+    if (tick >= note.startTick && tick < note.startTick + span) return note;
   }
   return null;
+}
+
+/**
+ * The ids a lane gained between two patterns.
+ *
+ * ⛔ **Because  clamps, and a  is the two fields it clamps.**
+ * Both callers built the id from the note they *asked* for: double-clicking in
+ * the dimmed space past the clip end drew a note that was then not selected,
+ * and pasting a block that overran the end clamped every overrunning note onto
+ * the last tick — where  kept one and the rest vanished, with the
+ * reported ids naming notes that were never there. Asking the resulting pattern
+ * is the only answer that cannot be wrong.
+ */
+export function addedIds(before: Pattern, after: Pattern, lane: Lane): NoteId[] {
+  const had = new Set(notesOf(before, lane).map(noteId));
+  return notesOf(after, lane)
+    .map(noteId)
+    .filter((id) => !had.has(id));
 }

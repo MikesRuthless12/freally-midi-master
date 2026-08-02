@@ -285,6 +285,49 @@ pub struct SessionOverrides {
 const BPM_MIN: f32 = 20.0;
 const BPM_MAX: f32 = 999.0;
 
+/// The denominators a MIDI file can express.
+///
+/// ⛔ The meta event stores the denominator as a **power of two**, so these are
+/// the only values that survive an export intact. A `3` used to divide the tick
+/// arithmetic by three while `pattern_to_smf` fell back to writing `/4` — the
+/// clip and the file disagreeing about how long a bar is.
+const TIME_SIG_DENOMINATORS: [u8; 6] = [1, 2, 4, 8, 16, 32];
+
+/// The longest bar a meter may ask for, in quarter notes.
+///
+/// ⛔ **A size limit, not a taste one, and it has to bound the *pair*.**
+/// `ticks_per_bar` is `num × 4 / den`, and the generators write on a fixed
+/// 240-tick grid — so the meter multiplies the note count exactly as `bars`
+/// does. `MAX_BARS` exists to stop a value from a file, a preset or devtools
+/// asking for a pattern that takes minutes to build on the thread the host
+/// draws its window from; checking the numerator and denominator separately
+/// does not close it, because `32/1` is a 128-quarter bar. Sixteen quarters is
+/// four times a common-time bar, which is past anything anyone writes and
+/// keeps the worst case inside the ceiling `MAX_BARS` was chosen for.
+const MAX_QUARTERS_PER_BAR: u32 = 16;
+
+/// A meter from untrusted input, or `4/4` if it is not one this can honour.
+///
+/// Refused as a pair rather than clamped field by field: a `255` nobody asked
+/// for is corrupt input, and honouring half of it — the denominator, say —
+/// would produce a bar the producer never chose and cannot see they have.
+fn meter_or_common_time(num: Option<u8>, den: Option<u8>) -> (u8, u8) {
+    let (Some(num), Some(den)) = (num.or(Some(4)), den.or(Some(4))) else {
+        return (4, 4);
+    };
+    if num == 0 || !TIME_SIG_DENOMINATORS.contains(&den) {
+        return (4, 4);
+    }
+    // ⛔ Measured in *ticks*, not in whole quarters. `4/32` is an eighth of a
+    // quarter note — a real, if tiny, bar — and integer-dividing to quarters
+    // rounded it to zero, so a legal meter was refused as degenerate.
+    let ticks = PPQ * 4 / u32::from(den) * u32::from(num);
+    if ticks == 0 || ticks > MAX_QUARTERS_PER_BAR * PPQ {
+        return (4, 4);
+    }
+    (num, den)
+}
+
 /// Straight to fully triplet, with a little past each end for feel.
 /// `humanize` reads the amount as a ratio of the swung subdivision; outside
 /// this range the off-beat lands on — or past — the note after it.
@@ -370,15 +413,26 @@ impl SessionContext {
             })
             .unwrap_or_default();
 
+        let meter = meter_or_common_time(overrides.time_sig_num, overrides.time_sig_den);
+
         SessionContext {
             bpm,
-            // ⛔ Zero is refused rather than carried. `ticks_per_bar` already
-            // substitutes for a zero denominator, but an authored `0` would
-            // reach `midi.rs`'s power-of-two lookup and be written into the
-            // file's meta event — so the clip would export as a meter no DAW
-            // can read while every readout in the app said 4/4.
-            time_sig_num: overrides.time_sig_num.filter(|n| *n > 0).unwrap_or(4),
-            time_sig_den: overrides.time_sig_den.filter(|d| *d > 0).unwrap_or(4),
+            // ⛔ **Clamped, and this is a size limit rather than a taste one.**
+            // `ticks_per_bar` is `num × 4 / den`, and the generators write a
+            // note every fixed 240 ticks — so the meter multiplies the note
+            // count as surely as `bars` does. `MAX_BARS` exists to stop a value
+            // from a file, a preset or devtools asking for a pattern that takes
+            // minutes to build on the thread the host draws its window from;
+            // unclamped, `255/1` multiplies past that ceiling by 63×, and
+            // `255/1 × 128 bars` measured at 526,000 notes and ~875 ms of
+            // synchronous stall inside the DAW.
+            //
+            // ⛔ The denominator is restricted to the powers of two
+            // `midi::pattern_to_smf` can actually write. A `3` used to divide
+            // the tick arithmetic by three while the exported meta event fell
+            // back to `/4` — the file and the clip disagreeing about the bar.
+            time_sig_num: meter.0,
+            time_sig_den: meter.1,
             key_root,
             scale,
             swing,

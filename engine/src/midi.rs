@@ -152,6 +152,12 @@ fn events_for(pattern: &Pattern) -> Vec<Event> {
         let channel = if pitched { 0 } else { DRUM_CHANNEL };
 
         for note in &lane.notes {
+            // The clip's own start and end (TASK-041E). A trimmed clip has to
+            // *export* trimmed, or the markers are a boundary the producer can
+            // see and the file does not have.
+            if !pattern.within_clip(note) {
+                continue;
+            }
             let key = if pitched {
                 note.pitch
             } else {

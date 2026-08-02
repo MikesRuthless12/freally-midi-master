@@ -93,9 +93,18 @@ export function yToPitch(y: number, rows: Rows, view: View): number | null {
   return rows.pitches[index] ?? null;
 }
 
-/** How wide a note of `lenTicks` is drawn. */
+/**
+ * How wide a note of `lenTicks` is drawn.
+ *
+ * ⛔ **Floored at two pixels, and the hit test uses the same floor.** The draw
+ * floored it and `noteAt` did not, so at low zoom a 1/64 was visible over two
+ * pixels and clickable over a fraction of one — the see-it-cannot-click-it case
+ * this module exists to prevent. One function, so they cannot disagree again.
+ */
+export const MIN_NOTE_WIDTH = 2;
+
 export function ticksToWidth(lenTicks: number, view: View): number {
-  return (lenTicks / view.ppq) * view.zoom;
+  return Math.max(MIN_NOTE_WIDTH, (lenTicks / view.ppq) * view.zoom);
 }
 
 /** Semitones above C in each octave that are black keys. */

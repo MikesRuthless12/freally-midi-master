@@ -142,15 +142,18 @@ describe('the stretch handles', () => {
   const span: Region = { fromTick: BAR, toTick: BAR * 3 };
 
   it('doubles the selection when the right handle is pulled to twice its length', () => {
-    expect(stretchFactor(span, 'to', BAR * 5)).toBe(2);
+    expect(stretchFactor(span, BAR * 5)).toBe(2);
   });
 
-  it('measures from the other edge when the left handle is pulled', () => {
-    expect(stretchFactor(span, 'from', BAR - BAR * 2)).toBe(2);
+  it('measures both handles from the selection start, which is what stretch anchors at', () => {
+    // ⛔ Measuring the left handle against the right end read correctly and was
+    // wrong:  always scales rightward from , so the left
+    // handle ended up moving the right edge.
+    expect(stretchFactor(span, BAR * 5)).toBe(2);
   });
 
   it('refuses a drag past the anchor rather than inverting the selection', () => {
-    expect(stretchFactor(span, 'to', BAR - 1)).toBeNull();
-    expect(stretchFactor({ fromTick: 0, toTick: 0 }, 'to', BAR)).toBeNull();
+    expect(stretchFactor(span, BAR - 1)).toBeNull();
+    expect(stretchFactor({ fromTick: 0, toTick: 0 }, BAR)).toBeNull();
   });
 });

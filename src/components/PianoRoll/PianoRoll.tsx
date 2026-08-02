@@ -7,9 +7,11 @@ import { useCanvasPalette } from './palette';
 import type { Lane, Note, Pattern } from '../../lib/ipc-types';
 import {
   addNote,
+  addedIds,
   barTicks,
   deleteNotes,
   laneOf,
+  clampedMove,
   moveNotes,
   noteAt,
   noteId,
@@ -23,6 +25,7 @@ import {
   type NoteId,
 } from './notes';
 import {
+  MIN_NOTE_WIDTH,
   edgeAt,
   isBlackKey,
   pitchName,
@@ -40,6 +43,7 @@ import { RollBar } from './RollBar';
 import { Ruler } from './Ruler';
 import { TransformMenu } from './TransformMenu';
 import { VelocityLane } from './VelocityLane';
+import { reselect } from './transforms';
 import { stemId } from './velocity';
 import { auditionNote } from './audition';
 import { useRollShortcuts } from './shortcuts';
@@ -77,7 +81,15 @@ function crisp(value: number, dpr: number): number {
   return Math.round(value * dpr) / dpr;
 }
 
-/** A note the user is previewing mid-drag, or the note itself when idle. */
+/**
+ * A note the user is previewing mid-drag, or the note itself when idle.
+ *
+ * ⛔ **The delta arrives already clamped**, by `clampedMove`/`clampedResize` in
+ * `notes.ts` — the same functions the commit uses. This applied the raw delta,
+ * so dragging a chord toward the clip's end or toward pitch 127 drew one thing
+ * and committed another: the preview kept sliding while the commit had already
+ * stopped, and the notes landed where the canvas had stopped showing them.
+ */
 function previewNote(
   note: Note,
   drag: ReturnType<typeof useEditing.getState>['drag'],
@@ -222,6 +234,10 @@ export function PianoRoll({
     const middle = Math.round((highest + lowest) / 2);
     useEditing.getState().scrollTo(0, Math.min(127, middle + Math.floor(rows / 2)));
   }, [pattern.id, notes, rowHeight]);
+
+  // The two pixels the renderer floors a note at, in this view's own ticks —
+  // so a note is clickable over exactly the span it is drawn over.
+  const minHitTicks = (MIN_NOTE_WIDTH / zoom) * pattern.ppq;
 
   const view: View = useMemo(
     () => ({ zoom, rowHeight, scrollTick, topPitch, ppq: pattern.ppq }),
@@ -603,7 +619,7 @@ export function PianoRoll({
         return;
       }
 
-      const hit = noteAt(pattern, lane, tick, pitch);
+      const hit = noteAt(pattern, lane, tick, pitch, minHitTicks);
       const editing = useEditing.getState();
 
       if (hit === null) {
@@ -649,7 +665,7 @@ export function PianoRoll({
       );
       event.currentTarget.setPointerCapture(event.pointerId);
     },
-    [locate, pattern, lane, part, view],
+    [locate, pattern, lane, part, view, minHitTicks],
   );
 
   const onPointerMove = useCallback(
@@ -664,7 +680,8 @@ export function PianoRoll({
       // for both, so what the cursor promises is what the pointer does.
       if (start === null) {
         const { x, tick, pitch, inGutter } = locate(event);
-        const hit = pitch === null || inGutter ? null : noteAt(pattern, lane, tick, pitch);
+        const hit =
+          pitch === null || inGutter ? null : noteAt(pattern, lane, tick, pitch, minHitTicks);
         const cursor =
           hit === null
             ? 'crosshair'
@@ -718,19 +735,28 @@ export function PianoRoll({
         return;
       }
       if (current.kind === 'move') {
+        // ⛔ Clamped on the way *into* the store, so the preview the canvas
+        // draws is the delta the commit will use — see .
+        const held = clampedMove(
+          pattern,
+          lane,
+          editing.selection,
+          deltaTicks,
+          pitch === null ? current.deltaPitch : pitch - start.pitch,
+        );
         editing.setDrag({
           kind: 'move',
-          deltaTicks,
+          deltaTicks: held.deltaTicks,
           // ⛔ The difference between the pitch *under the pointer* now and at
           // the start, which under a fold is the number of semitones the
           // visible rows actually span — dragging one row down in a folded roll
           // moves to the next row shown, not to the next semitone.
-          deltaPitch: pitch === null ? current.deltaPitch : pitch - start.pitch,
+          deltaPitch: held.deltaPitch,
           copy: event.altKey,
         });
       }
     },
-    [locate, snap, pattern, lane, view, bump],
+    [locate, snap, pattern, lane, view, bump, minHitTicks],
   );
 
   const onPointerUp = useCallback(() => {
@@ -749,9 +775,26 @@ export function PianoRoll({
 
     // One commit, one undo step — see `editPattern`.
     if (current.kind === 'move') {
-      editPattern(
-        moveNotes(pattern, lane, editing.selection, current.deltaTicks, current.deltaPitch),
+      // ⛔ **`copy` is finally read here** (TASK-041A). It was set from the
+      // modifier on pointerdown and on every pointermove and then dropped on
+      // the floor, so Alt-dragging — the duplicate gesture every DAW has —
+      // *moved* the original: the note disappeared from where it had been.
+      //
+      // A copy is `duplicateNotes` at zero offset followed by the move, so the
+      // originals stay put and the new notes take both the delta and the
+      // selection. Still one `editPattern`, so still one undo step.
+      const next = moveNotes(
+        pattern,
+        lane,
+        editing.selection,
+        current.deltaTicks,
+        current.deltaPitch,
+        current.copy,
       );
+      editPattern(next);
+      // The copies are what the producer is now holding, so they take the
+      // selection — the same rule `Shift+D` follows.
+      if (current.copy) editing.select(reselect(pattern, next, lane, editing.selection));
       return;
     }
     if (current.kind === 'resize') {
@@ -767,7 +810,7 @@ export function PianoRoll({
     (event: React.MouseEvent<HTMLCanvasElement>) => {
       const { tick, pitch, inGutter } = locate(event);
       if (inGutter || pitch === null) return;
-      if (noteAt(pattern, lane, tick, pitch) !== null) return;
+      if (noteAt(pattern, lane, tick, pitch, minHitTicks) !== null) return;
 
       const step = stepTicks(snap, pattern.ppq);
       const placed: Note = {
@@ -779,11 +822,15 @@ export function PianoRoll({
         // asked for.
         vel: 100,
       };
-      editPattern(addNote(pattern, lane, placed));
-      useEditing.getState().select([noteId(placed)]);
+      // ⛔ The id comes from the *result*, because  clamps and a
+      //  is the two fields it clamps. Double-clicking in the dimmed
+      // space past the clip end drew a note that was then not selected.
+      const next = addNote(pattern, lane, placed);
+      editPattern(next);
+      useEditing.getState().select(addedIds(pattern, next, lane));
       void auditionNote(pitch, part);
     },
-    [locate, pattern, lane, snap, editPattern, part],
+    [locate, pattern, lane, snap, editPattern, part, minHitTicks],
   );
 
   /** Right-click deletes, which is FL Studio's gesture and costs no selection. */
@@ -791,12 +838,12 @@ export function PianoRoll({
     (event: React.MouseEvent<HTMLCanvasElement>) => {
       const { tick, pitch, inGutter } = locate(event);
       if (inGutter || pitch === null) return;
-      const hit = noteAt(pattern, lane, tick, pitch);
+      const hit = noteAt(pattern, lane, tick, pitch, minHitTicks);
       if (hit === null) return;
       event.preventDefault();
       editPattern(deleteNotes(pattern, lane, new Set<NoteId>([noteId(hit)])));
     },
-    [locate, pattern, lane, editPattern],
+    [locate, pattern, lane, editPattern, minHitTicks],
   );
 
   // ---- the velocity lane (TASK-041V) -------------------------------------

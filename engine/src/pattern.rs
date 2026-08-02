@@ -336,6 +336,24 @@ pub struct Pattern {
 }
 
 impl Pattern {
+    /// Whether a note is inside the clip's own start and end (TASK-041E).
+    ///
+    /// ⛔ **The trim is honoured by everything that reads the clip, or it is a
+    /// lie.** The markers were draggable, saved with the project and read by
+    /// nothing: a producer trimmed a clip to bars 1–3, and the transport still
+    /// played four bars while the export still wrote four. A boundary that only
+    /// moves two marks on screen is worse than no boundary at all.
+    ///
+    /// A note is kept if it *starts* inside the region. Judging by its end would
+    /// drop a held note the producer can see sounding across the boundary, which
+    /// is the opposite of what trimming the end of a clip means.
+    pub fn within_clip(&self, note: &Note) -> bool {
+        match self.clip_region.and_then(Region::valid) {
+            None => true,
+            Some((from, to)) => note.start_tick >= from && note.start_tick < to,
+        }
+    }
+
     /// Last tick occupied by any note. `0` for an empty pattern.
     pub fn end_tick(&self) -> u32 {
         self.lanes

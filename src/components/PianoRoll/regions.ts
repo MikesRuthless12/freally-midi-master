@@ -101,9 +101,16 @@ export function moveEdge(
 ): Region {
   const gap = Math.max(1, step);
   const at = Math.min(Math.max(0, Math.round(tick)), limit);
+  // ⛔ **Both ends floored at zero, and the `from` end is the one that mattered.**
+  // Clamping only `at` was not enough: `toTick - gap` is itself negative once a
+  // brace has been dragged shorter than the current snap step, so dragging the
+  // left handle produced `fromTick: -900`. `Region.from_tick` is a `u32`, so
+  // that payload is rejected by *both* `arm_pattern` and `save_session_state` —
+  // and both rejections are swallowed. The session then silently stopped
+  // persisting anything at all: artist, seed, pins, mutes, the edited clip.
   return edge === 'from'
-    ? { ...region, fromTick: Math.min(at, region.toTick - gap) }
-    : { ...region, toTick: Math.max(at, region.fromTick + gap) };
+    ? { ...region, fromTick: Math.max(0, Math.min(at, region.toTick - gap)) }
+    : { ...region, toTick: Math.min(limit, Math.max(at, region.fromTick + gap)) };
 }
 
 /** A region from two ticks dragged in either order. */
@@ -121,10 +128,17 @@ export function regionBetween(a: number, b: number, step: number, limit: number)
  * handle grows the selection to the right and pulling the left one grows it to
  * the left — which is what a handle on that side has to mean.
  */
-export function stretchFactor(span: Region, edge: 'from' | 'to', tick: number): number | null {
+export function stretchFactor(span: Region, tick: number): number | null {
   const length = span.toTick - span.fromTick;
   if (length <= 0) return null;
-  const wanted = edge === 'to' ? tick - span.fromTick : span.toTick - tick;
+  // ⛔ **Both handles measure from the selection's *start*, because that is what
+  // `stretch` anchors at.** Measuring the left handle against the right end
+  // read correctly as prose and was wrong in practice: `stretch` always scales
+  // rightward from `span.from`, so dragging the left handle to the middle
+  // produced a factor of 0.5 and a block at 0–960 — the left handle moving the
+  // right edge. Until `stretch` can anchor at either end, the honest thing is
+  // for both handles to mean the same gesture.
+  const wanted = tick - span.fromTick;
   if (wanted <= 0) return null;
   return wanted / length;
 }

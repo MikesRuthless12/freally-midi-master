@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  addedIds,
+  clampedMove,
   addNote,
   deleteNotes,
   duplicateNotes,
@@ -340,5 +342,123 @@ describe('hit testing', () => {
     expect(noteAt(before, 'melody', 300, 60)).toMatchObject({ startTick: 240 });
     expect(noteAt(before, 'melody', 480, 60)).toBeNull();
     expect(noteAt(before, 'melody', 300, 61)).toBeNull();
+  });
+});
+
+/**
+ * The collision and clamp rules a code review found wrong (TASK-041).
+ *
+ * Each of these was a note the producer lost or a gesture that did the opposite
+ * of what it said, and each was verified failing before the fix.
+ */
+describe('a collision keeps the note that moved', () => {
+  it('when the move is forwards, which is the case that was broken', () => {
+    // ⛔ `dedupe` keeps the last writer and `mapNotes` used to map in place, so
+    // a note dragged *forward* onto a neighbour still sat earlier in the list
+    // and lost. The stationary note survived wearing its own length and
+    // velocity, and the producer had no idea which note they had just deleted.
+    const dragged = note(0, 60, 1920, 120);
+    const sitting = note(480, 60, 240, 40);
+    const before = pattern([{ lane: 'melody', notes: [dragged, sitting] }]);
+
+    const after = notesOf(moveNotes(before, 'melody', ids(dragged), 480, 0), 'melody');
+    expect(after).toHaveLength(1);
+    expect(after[0]).toMatchObject({ startTick: 480, lenTicks: 1920, vel: 120 });
+  });
+
+  it('and when it is backwards, which always worked', () => {
+    const sitting = note(0, 60, 1920, 120);
+    const dragged = note(480, 60, 240, 40);
+    const before = pattern([{ lane: 'melody', notes: [sitting, dragged] }]);
+
+    const after = notesOf(moveNotes(before, 'melody', ids(dragged), -480, 0), 'melody');
+    expect(after).toHaveLength(1);
+    expect(after[0]).toMatchObject({ startTick: 0, lenTicks: 240, vel: 40 });
+  });
+});
+
+describe('a selection that already overruns the clip', () => {
+  // Reachable from the meter picker: switching a 4/4 clip to 6/8 shortens it
+  // under notes that were legal a moment ago.
+  const late = note(3700, 60, 960);
+  const before = pattern([{ lane: 'melody', notes: [late] }]);
+
+  it('does not slide left when it is only transposed', () => {
+    // ⛔ `ticks - maxEnd` is negative here, and it used to *become* the delta —
+    // so a pure pitch nudge dragged the selection backwards in time.
+    const after = notesOf(moveNotes(before, 'melody', ids(late), 0, 1), 'melody');
+    expect(after[0]).toMatchObject({ startTick: 3700, pitch: 61 });
+  });
+
+  it('refuses to move later rather than moving earlier', () => {
+    const after = notesOf(moveNotes(before, 'melody', ids(late), 240, 0), 'melody');
+    expect(after[0].startTick).toBe(3700);
+  });
+});
+
+describe('Alt-drag copies rather than moves', () => {
+  it('leaves the original and places a copy at the clamped delta', () => {
+    // ⛔ `Drag.copy` was captured from the modifier on every pointermove and
+    // then never read, so the universal duplicate gesture moved the original —
+    // the note disappeared from where it had been.
+    const first = note(0, 60);
+    const before = pattern([{ lane: 'melody', notes: [first] }], 2);
+
+    const after = notesOf(moveNotes(before, 'melody', ids(first), 480, 0, true), 'melody');
+    expect(after.map((n) => n.startTick)).toEqual([0, 480]);
+  });
+
+  it('and moves as usual when the modifier is not held', () => {
+    const first = note(0, 60);
+    const before = pattern([{ lane: 'melody', notes: [first] }], 2);
+
+    const after = notesOf(moveNotes(before, 'melody', ids(first), 480, 0), 'melody');
+    expect(after.map((n) => n.startTick)).toEqual([480]);
+  });
+});
+
+describe('what the preview is allowed to draw', () => {
+  it('is exactly what the commit will do', () => {
+    // ⛔ The renderer applied the raw delta while `moveNotes` committed a
+    // clamped one, so a drag toward the clip's end kept sliding on screen after
+    // the commit had stopped — and the notes landed where the canvas had
+    // stopped showing them.
+    const held = note(3600, 126, 240);
+    const before = pattern([{ lane: 'melody', notes: [held] }]);
+
+    const shown = clampedMove(before, 'melody', ids(held), 9999, 9999);
+    const after = notesOf(moveNotes(before, 'melody', ids(held), 9999, 9999), 'melody')[0];
+    expect(after.startTick).toBe(held.startTick + shown.deltaTicks);
+    expect(after.pitch).toBe(held.pitch + shown.deltaPitch);
+    expect(after.pitch).toBe(127);
+  });
+});
+
+describe('a note is clickable over the width it is drawn at', () => {
+  it('even when that width is the two-pixel floor', () => {
+    // ⛔ The draw floored a note's width and the hit test did not, so at low
+    // zoom a 1/64 was visible over two pixels and clickable over a fraction of
+    // one — the see-it-cannot-click-it case `geometry.ts` exists to prevent.
+    const tiny = note(0, 60, 60);
+    const clip = pattern([{ lane: 'melody', notes: [tiny] }]);
+
+    expect(noteAt(clip, 'melody', 200, 60)).toBeNull();
+    expect(noteAt(clip, 'melody', 200, 60, 480)).toMatchObject({ startTick: 0 });
+  });
+});
+
+describe('the ids an add reports', () => {
+  it('name the notes that actually landed, not the ones asked for', () => {
+    // ⛔ `addNote` clamps, and a `NoteId` is the two fields it clamps — so a
+    // note drawn past the clip end was reported under a name it never had, and
+    // the selection silently pointed at nothing.
+    const clip = pattern([{ lane: 'melody', notes: [] }]);
+    const past = note(999_999, 60);
+    const after = addNote(clip, 'melody', past);
+
+    const landed = addedIds(clip, after, 'melody');
+    expect(landed).toHaveLength(1);
+    expect(landed[0]).not.toBe(noteId(past));
+    expect(landed).toEqual(notesOf(after, 'melody').map(noteId));
   });
 });
