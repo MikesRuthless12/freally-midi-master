@@ -171,6 +171,7 @@ impl Roll {
                 let ramped = from + (to - from) * (i as f32 / last);
                 let vel = (ramped * self.grouping.scale(i)).round().clamp(1.0, 127.0) as u8;
                 Note {
+                    model_vel: None,
                     start_tick: tick,
                     len_ticks: self.subdivision.max(1),
                     pitch: crate::midi::gm_drum_note(self.lane),
@@ -659,6 +660,7 @@ mod tests {
         let context = ctx(1);
         let mut closed: Vec<Note> = (0..16)
             .map(|i| Note {
+                model_vel: None,
                 start_tick: i * 240,
                 len_ticks: 240,
                 pitch: 42,
@@ -696,6 +698,7 @@ mod tests {
     fn a_model_with_no_rolls_block_gets_no_rolls() {
         let context = ctx(4);
         let mut closed = vec![Note {
+            model_vel: None,
             start_tick: 0,
             len_ticks: 240,
             pitch: 42,

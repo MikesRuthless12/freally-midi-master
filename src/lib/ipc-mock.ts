@@ -9,7 +9,7 @@
  */
 
 import type { InvokeArgs } from './ipc';
-import type { Note, Pattern, RosterSummary, SessionDefaults } from './ipc-types';
+import type { Note, Part, Pattern, RosterSummary, SessionDefaults } from './ipc-types';
 
 type Handler = (args?: InvokeArgs) => unknown;
 
@@ -100,16 +100,63 @@ const handlers: Record<string, Handler> = {
   // straight 16th hats is enough for a spec to count cells and know the
   // rendering is wired, without this file becoming a second drum engine.
   generate_pattern: (args): Pattern => {
-    const request = (args as { request?: { styleId?: string; bars?: number; seed?: string } })
-      ?.request;
+    const request = (
+      args as {
+        request?: { styleId?: string; bars?: number; seed?: string; part?: Part };
+      }
+    )?.request;
     const bars = request?.bars ?? 4;
+    const part: Part = request?.part ?? 'drums';
     const ppq = 960;
+    // ⛔ **`vel` is spread and `modelVel` is what the model asked for**, because
+    // that is what the engine hands back: `humanize` multiplies the tier value
+    // by a random factor and keeps the original beside it (TASK-041V). A fixture
+    // where the two were equal would let the velocity lane's reset pass while
+    // doing nothing, which is the one thing that gesture must not do. Derived
+    // from the note's own position rather than a random source, because a
+    // fixture that moves is not a fixture.
     const note = (startTick: number, pitch: number, vel: number): Note => ({
       startTick,
       lenTicks: ppq / 4,
       pitch,
-      vel,
+      vel: Math.min(127, Math.max(1, vel + (((startTick / 120 + pitch) % 7) - 3))),
+      modelVel: vel,
     });
+
+    const shell = {
+      id: `${request?.styleId ?? 'mock'}-mock`,
+      artistId: request?.styleId ?? 'mock',
+      // The seed is echoed back so the chip shows what was used, and a fixed
+      // one when none was asked for keeps the fixture reproducible.
+      seed: request?.seed && request.seed !== '' ? request.seed : '424242',
+      bars,
+      bpm: 140,
+      timeSigNum: 4,
+      timeSigDen: 4,
+      keyRoot: 6,
+      scale: 'natural_minor' as const,
+      ppq,
+    };
+
+    // ⛔ A melodic part answers in *its own lane*, because that is the one thing
+    // the piano roll reads (`notes.ts::laneOf`). A fixture that returned drum
+    // lanes for a melody request would draw an empty roll and look like the
+    // editor was broken rather than the fixture.
+    if (part !== 'drums') {
+      // An eighth-note figure walking a minor pentatonic around F♯3 — enough
+      // shape for a spec to move, resize and delete a real note without this
+      // file becoming a second melody generator.
+      const steps = [0, 3, 5, 7, 10, 7, 5, 3];
+      const melodic: Note[] = [];
+      for (let bar = 0; bar < bars; bar += 1) {
+        for (let step = 0; step < steps.length; step += 1) {
+          melodic.push(
+            note(bar * ppq * 4 + step * (ppq / 2), 54 + steps[step], step === 0 ? 108 : 84),
+          );
+        }
+      }
+      return { ...shell, part, lanes: [{ lane: part, notes: melodic }] };
+    }
 
     const kick: Note[] = [];
     const snare: Note[] = [];
@@ -126,25 +173,48 @@ const handlers: Record<string, Handler> = {
     }
 
     return {
-      id: `${request?.styleId ?? 'mock'}-mock`,
+      ...shell,
       part: 'drums',
-      artistId: request?.styleId ?? 'mock',
-      // The seed is echoed back so the chip shows what was used, and a fixed
-      // one when none was asked for keeps the fixture reproducible.
-      seed: request?.seed && request.seed !== '' ? request.seed : '424242',
-      bars,
-      bpm: 140,
-      timeSigNum: 4,
-      timeSigDen: 4,
-      keyRoot: 6,
-      scale: 'natural_minor',
       lanes: [
         { lane: 'kick', notes: kick },
         { lane: 'snare', notes: snare },
         { lane: 'closedHat', notes: hat },
       ],
-      ppq,
     };
+  },
+
+  // The keyboard gutter's click-to-audition (TASK-041). A browser has no
+  // sampler, so this resolves without sounding anything — which is the honest
+  // answer and matches what `auditionNote` already expects to be the common
+  // case. It is here rather than absent because `mockInvoke` treats an unknown
+  // command as a loud failure, and an audition must never be able to break the
+  // page it is decorating.
+  audition_note: () => undefined,
+
+  // An edited clip going back to the audio thread (TASK-041). The real command
+  // validates and echoes; the browser has no audio thread, so echoing is all
+  // there is to do — and echoing rather than returning `undefined` keeps the
+  // fixture the same shape as the command, which is what `app_info` above is a
+  // cautionary tale about.
+  arm_pattern: (args) => (args as { pattern?: unknown } | undefined)?.pattern,
+
+  // Scale intervals for the roll's row tinting and folding (TASK-041B). The
+  // real command reads `engine::theory::scale_semitones`; the fixture answers
+  // for the handful of scales the mock generates in, and falls back to the
+  // natural minor it reports in `session_defaults` above rather than inventing
+  // one — a fixture whose scale disagrees with its own pattern would make a
+  // real mismatch impossible to see.
+  scale_pitches: (args) => {
+    const scale = (args as { scale?: string } | undefined)?.scale;
+    const known: Record<string, number[]> = {
+      natural_minor: [0, 2, 3, 5, 7, 8, 10],
+      aeolian: [0, 2, 3, 5, 7, 8, 10],
+      major: [0, 2, 4, 5, 7, 9, 11],
+      phrygian: [0, 1, 3, 5, 7, 8, 10],
+      minor_pentatonic: [0, 3, 5, 7, 10],
+      chromatic: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+    };
+    return known[scale ?? ''] ?? known.natural_minor;
   },
 
   // Playback in a browser: there is no audio thread behind the mock, so

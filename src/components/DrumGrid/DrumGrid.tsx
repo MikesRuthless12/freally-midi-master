@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 
 import { useSession } from '../../state/session';
 import type { Pattern } from '../../lib/ipc-types';
+import { VelocityLane } from '../PianoRoll/VelocityLane';
+import { patternTicks } from '../PianoRoll/notes';
 import { toCells } from './cells';
 import './DrumGrid.css';
 
@@ -53,6 +55,15 @@ export function DrumGrid({ pattern, playhead }: { pattern: Pattern; playhead: nu
       void seek((event.clientX - track.left) / track.width);
     },
     [seek],
+  );
+
+  // The clip laid across whatever width the grid has — the same proportional
+  // mapping the playhead uses, so the marker, the cells and the caps cannot
+  // disagree about where a tick is.
+  const totalTicks = patternTicks(pattern);
+  const velocityX = useCallback(
+    (tick: number, width: number) => (tick / totalTicks) * width,
+    [totalTicks],
   );
 
   // ⛔ **Memoised for the same reason `rows` is: nothing in here reads the
@@ -136,6 +147,16 @@ export function DrumGrid({ pattern, playhead }: { pattern: Pattern; playhead: nu
       )}
 
       {lanes}
+
+      {/* The velocity lane, in a row of the same shape so its caps line up with
+          the cells above without either side measuring the other (TASK-041V).
+          The grid itself stays read-only — a velocity is not a note, and the
+          lane is what lets a producer disagree with the generator's accents
+          before the pads can be edited at all. */}
+      <div className="grid__velocity">
+        <span aria-hidden="true" />
+        <VelocityLane pattern={pattern} tracks={pattern.lanes} gutter={0} xOf={velocityX} />
+      </div>
 
       <p className="grid__meta">
         {t('grid.summary', {

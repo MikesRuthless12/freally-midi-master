@@ -257,6 +257,7 @@ fn echo_notes(
             let pitch =
                 theory::fold_into_register((i32::from(note.pitch) + offset) as i16, low, high)?;
             Some(Note {
+                model_vel: None,
                 start_tick: note.start_tick + delay,
                 len_ticks: len.unwrap_or(note.len_ticks),
                 pitch,
@@ -304,6 +305,7 @@ fn arp_notes(
 
         if let Some(pitch) = pitch {
             notes.push(Note {
+                model_vel: None,
                 start_tick: tick,
                 len_ticks: step,
                 pitch,
@@ -363,6 +365,7 @@ fn lick_notes(
 
             if let Some(pitch) = theory::fold_into_register(pitch as i16, low, high) {
                 notes.push(Note {
+                    model_vel: None,
                     start_tick: tick,
                     len_ticks: step,
                     pitch,
@@ -448,6 +451,7 @@ fn pad_notes(chords: &Chords, low: u8, high: u8, on: &[u32], rng: &mut impl Rng)
             used.push(pitch);
 
             notes.push(Note {
+                model_vel: None,
                 start_tick: start,
                 len_ticks: len,
                 pitch,

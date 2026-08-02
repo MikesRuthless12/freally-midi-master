@@ -170,8 +170,17 @@ impl HostSession {
         }
 
         let mut ctx = SessionContext::from_model(model, &overrides, seed);
-        ctx.time_sig_num = self.time_sig_num;
-        ctx.time_sig_den = self.time_sig_den;
+        // ⛔ **The host's meter is the default, not the verdict** (TASK-041E).
+        // A producer who set the clip to 6/8 has been more specific than the
+        // project it is sitting in, and overwriting it here would make the
+        // meter control in the roll do nothing while appearing to work — the
+        // same rule `bpm` above already follows for auto-sync.
+        if user.time_sig_num.is_none() {
+            ctx.time_sig_num = self.time_sig_num;
+        }
+        if user.time_sig_den.is_none() {
+            ctx.time_sig_den = self.time_sig_den;
+        }
         ctx
     }
 }
@@ -292,6 +301,36 @@ mod tests {
         // Six eighths is three quarter notes, which is what `ticks_per_bar`
         // already knows — this is wiring, not new arithmetic.
         assert_eq!(ctx.ticks_per_bar(), engine::pattern::PPQ * 3);
+    }
+
+    #[test]
+    fn a_clip_that_names_its_own_meter_keeps_it_inside_a_project_in_another() {
+        // TASK-041E. The host's meter is the default; a producer who set the
+        // clip to 3/4 has been more specific than the 4/4 project it sits in,
+        // and overwriting it here would make the roll's meter control appear to
+        // work while changing nothing.
+        let host = observed(Some(120.0), 4, 4);
+        let pinned = SessionOverrides {
+            time_sig_num: Some(3),
+            time_sig_den: Some(4),
+            ..SessionOverrides::default()
+        };
+        let ctx = host.session_for(&shipped("trap"), &pinned, 7, true);
+        assert_eq!((ctx.time_sig_num, ctx.time_sig_den), (3, 4));
+        assert_eq!(ctx.ticks_per_bar(), engine::pattern::PPQ * 3);
+    }
+
+    #[test]
+    fn half_a_meter_still_takes_the_rest_from_the_host() {
+        // Only the field that was set wins. A numerator alone must not drag the
+        // denominator back to a default nobody chose.
+        let host = observed(Some(120.0), 6, 8);
+        let pinned = SessionOverrides {
+            time_sig_num: Some(5),
+            ..SessionOverrides::default()
+        };
+        let ctx = host.session_for(&shipped("trap"), &pinned, 7, true);
+        assert_eq!((ctx.time_sig_num, ctx.time_sig_den), (5, 8));
     }
 
     #[test]

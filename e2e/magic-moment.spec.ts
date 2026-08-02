@@ -147,12 +147,45 @@ test('choosing someone else clears the pattern that was on screen', async ({ pag
   await expect(page.getByText('UK Drill is ready. Hit Generate.')).toBeVisible();
 });
 
-test('only the Drums tab generates', async ({ page }) => {
-  // The other five arrive in Phase 2. An empty grid there would read as a
-  // failed generation rather than as a feature that does not exist yet.
-  await page.getByRole('tab', { name: 'Melody' }).click();
+test('every part generates except Song, which says why', async ({ page }) => {
+  // ⛔ The phase line moved with TASK-041, and it moved to exactly one place.
+  // The four melodic parts have a piano roll now, so they generate; Song is an
+  // *arrangement* of the five rather than a part, has no generator behind it,
+  // and still says so rather than showing an empty surface that would read as a
+  // failed generation.
+  const search = page.getByLabel('Search an artist');
+  await search.fill('trap');
+  await search.press('Enter');
+
+  for (const tab of ['Melody', 'Counter', 'Bass', 'Chords']) {
+    await page.getByRole('tab', { name: tab }).click();
+    await expect(page.getByRole('button', { name: 'Generate' })).toBeEnabled();
+  }
+
+  await page.getByRole('tab', { name: 'Song' }).click();
   await expect(page.getByText('This generator arrives in a later phase.')).toBeVisible();
   await expect(page.getByRole('button', { name: 'Generate' })).toBeDisabled();
+});
+
+test('a melodic part draws in the piano roll, not the drum grid', async ({ page }) => {
+  // The four melodic parts were reachable through the bridge and had no editor
+  // at all before TASK-041 — `CenterStage` gated them on "arrives in a later
+  // phase" because `DrumGrid` was the only renderer.
+  const search = page.getByLabel('Search an artist');
+  await search.fill('trap');
+  await search.press('Enter');
+
+  await page.getByRole('tab', { name: 'Melody' }).click();
+  await page.getByRole('button', { name: 'Generate' }).click();
+
+  // The roll's accessible note list is the canvas's text alternative and the
+  // seam every note assertion goes through — see PianoRoll.tsx.
+  const notes = page.getByTestId('roll-notes');
+  await expect(notes).toBeAttached();
+  await expect(notes.locator('li').first()).toBeAttached();
+
+  // And the drum grid is not what is on screen.
+  await expect(page.getByRole('table', { name: 'Generated pattern' })).toHaveCount(0);
 });
 
 test.describe('generation FX', () => {
@@ -160,6 +193,10 @@ test.describe('generation FX', () => {
     // FR-017: the animation masks generation latency. The canvas is the ripple
     // path, and `data-running` is set for as long as the sweep lasts — at
     // least 300 ms, which is the floor that makes it register at all.
+    //
+    // ⛔ The FX's *own* canvas, by class. "Any canvas under the host" was only
+    // ever the same thing by accident, and stopped being so the moment the
+    // editors below grew one of their own.
     const host = page.getByTestId('genfx');
     await expect(host).toHaveClass(/genfx--ripple/);
 
@@ -169,7 +206,7 @@ test.describe('generation FX', () => {
     await page.getByRole('button', { name: 'Generate' }).click();
 
     await expect(host).toHaveAttribute('data-running', 'true');
-    await expect(host.locator('canvas')).toHaveCount(1);
+    await expect(host.locator('.genfx__canvas')).toHaveCount(1);
 
     // ...and it clears itself rather than sitting over the grid for good.
     await expect(host).not.toHaveAttribute('data-running', 'true', { timeout: 2000 });
@@ -184,7 +221,7 @@ test.describe('generation FX', () => {
 
     const host = page.getByTestId('genfx');
     await expect(host).toHaveClass(/genfx--crossfade/);
-    await expect(host.locator('canvas')).toHaveCount(0);
+    await expect(host.locator('.genfx__canvas')).toHaveCount(0);
 
     const search = page.getByLabel('Search an artist');
     await search.fill('trap');
@@ -192,7 +229,7 @@ test.describe('generation FX', () => {
     await page.getByRole('button', { name: 'Generate' }).click();
 
     await expect(page.getByRole('table', { name: 'Generated pattern' })).toBeVisible();
-    await expect(host.locator('canvas')).toHaveCount(0);
+    await expect(host.locator('.genfx__canvas')).toHaveCount(0);
   });
 });
 
@@ -210,5 +247,5 @@ test('the Settings toggle suppresses the ripple without the OS setting', async (
   await page.getByRole('button', { name: 'Close' }).last().click();
 
   await expect(host).toHaveClass(/genfx--crossfade/);
-  await expect(host.locator('canvas')).toHaveCount(0);
+  await expect(host.locator('.genfx__canvas')).toHaveCount(0);
 });

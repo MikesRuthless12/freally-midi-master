@@ -282,6 +282,10 @@ pub fn humanize(lanes: &mut [LaneTrack], ctx: &SessionContext, seed: u64) {
             // on tick 0 is pinned there rather than wrapping into a huge u32.
             note.start_tick = (start as f32 + offset).round().max(0.0) as u32;
             note.len_ticks = end.saturating_sub(start).max(1);
+            // Stamped before the spread, because after it the model's own value
+            // is gone — `vary` multiplies by a random factor and the lane's
+            // "reset to default" has nothing to return to (TASK-041V).
+            note.model_vel = Some(note.vel);
             note.vel = vary(note.vel, variance, &mut stream);
         }
 
@@ -309,6 +313,7 @@ mod tests {
 
     fn note(start: u32, len: u32) -> Note {
         Note {
+            model_vel: None,
             start_tick: start,
             len_ticks: len,
             pitch: 36,
@@ -730,6 +735,28 @@ mod tests {
         );
         // ±50% of 100 is 50–127 after the MIDI ceiling; nothing may fall out.
         assert!(velocities.iter().all(|v| *v >= 45));
+    }
+
+    #[test]
+    fn every_note_keeps_the_velocity_the_model_wrote_before_the_spread() {
+        // TASK-041V: the velocity lane's reset puts back the model's own value,
+        // and `vary` is not invertible — so it has to be kept, not recomputed.
+        let mut ctx = SessionContext::default();
+        ctx.humanize.velocity_var = 0.5;
+        let mut lanes = vec![LaneTrack {
+            lane: Lane::Clap,
+            notes: (0..64).map(|i| note(i * 120, 60)).collect(),
+        }];
+        humanize(&mut lanes, &ctx, 12);
+
+        assert!(
+            lanes[0].notes.iter().all(|n| n.model_vel == Some(100)),
+            "the pre-spread velocity is what a reset returns to"
+        );
+        assert!(
+            lanes[0].notes.iter().any(|n| n.vel != 100),
+            "and it is only worth keeping because the spread moved it"
+        );
     }
 
     #[test]

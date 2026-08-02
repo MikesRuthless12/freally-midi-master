@@ -34,9 +34,21 @@ export type Snapshot = {
     keyRoot: number | null;
     scale: Scale | null;
     swing: number | null;
+    /** The clip's own meter, when the producer set one (TASK-041E). */
+    timeSigNum: number | null;
+    timeSigDen: number | null;
   };
   autoSync: boolean;
   pattern: Pattern | null;
+  /**
+   * Whether the clip is an edit rather than the seed's own output (TASK-041).
+   *
+   * ⛔ In the snapshot because undoing back past the first edit has to make the
+   * clip the seed's again. Left out, a project undone to its generated state
+   * would still be saved as an edited one and reopen replaying a clip nobody
+   * had edited — the small-file property lost with nothing to show for it.
+   */
+  edited: boolean;
   /** The pinned mood, or `null` for "Any" (TASK-040V). */
   mood: string | null;
   /**

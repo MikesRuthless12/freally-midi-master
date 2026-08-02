@@ -203,6 +203,15 @@ pub struct Shared {
     /// One slot, like the resize request: clicking twice before a block runs
     /// means the second click is where the user wants to be.
     seek_request: AtomicU32,
+    /// A note the gutter asked to hear, as `pitch | AUDITION_PENDING`, or `0`
+    /// (TASK-041).
+    ///
+    /// ⛔ **One slot, and the newest click wins — deliberately, unlike a note
+    /// queue.** Running a finger down the keyboard sends a click per row far
+    /// faster than blocks arrive; queueing them would play the whole run back
+    /// seconds later, long after the pointer stopped. What a producer means by
+    /// dragging down the gutter is "let me hear where I am now".
+    audition_request: AtomicU32,
     /// Whether this process is our own standalone rather than a DAW.
     ///
     /// ⛔ **Read once at construction from the process-wide flag, and held
@@ -253,6 +262,7 @@ impl Shared {
             muted_lanes: AtomicU32::new(0),
             playhead_bits: AtomicU32::new(0),
             seek_request: AtomicU32::new(0),
+            audition_request: AtomicU32::new(0),
             standalone,
             // ⛔ **True in a host, false in the standalone, and the asymmetry is
             // the point.** In a host this term must never be the one that
@@ -340,6 +350,25 @@ impl Shared {
     pub fn take_seek(&self) -> Option<f32> {
         let packed = self.seek_request.swap(0, Ordering::Relaxed);
         (packed & SEEK_PENDING != 0).then(|| f32::from_bits(packed & !SEEK_PENDING))
+    }
+
+    /// Ask the audio thread to sound one note. UI thread (TASK-041).
+    ///
+    /// ⛔ The pending flag exists for the same reason [`request_seek`]'s does:
+    /// pitch 0 is a real MIDI note, so a bare value could not distinguish
+    /// "audition C-1" from "nothing pending" — and C-1 is reachable by
+    /// scrolling the gutter to the bottom.
+    pub fn request_audition(&self, pitch: u8) {
+        self.audition_request.store(
+            u32::from(pitch.min(127)) | AUDITION_PENDING,
+            Ordering::Relaxed,
+        );
+    }
+
+    /// Take a pending audition, if there is one. `process` is the caller.
+    pub fn take_audition(&self) -> Option<u8> {
+        let packed = self.audition_request.swap(0, Ordering::Relaxed);
+        (packed & AUDITION_PENDING != 0).then_some((packed & 0x7f) as u8)
     }
 
     /// Whether our own transport is running (TASK-041T). Read every block.
@@ -444,6 +473,12 @@ impl Shared {
 /// The top bit of an `f32`'s bit pattern is its sign, and a playhead is never
 /// negative — so it is free to borrow.
 const SEEK_PENDING: u32 = 1 << 31;
+
+/// Marks an audition request as present, so pitch 0 is not read as "nothing".
+///
+/// The same trick as [`SEEK_PENDING`] against a different payload: a MIDI pitch
+/// needs seven bits, so the top one is free for the same reason.
+const AUDITION_PENDING: u32 = 1 << 31;
 
 /// Every lane, so the mask can be read back out as names.
 const ALL_LANES: &[Lane] = &[
@@ -760,5 +795,53 @@ mod transport_tests {
         // exactly zero (see `SEEK_PENDING`).
         shared.request_seek(0.0);
         assert_eq!(shared.take_seek(), Some(0.0));
+    }
+
+    #[test]
+    fn an_audition_survives_being_the_lowest_note_on_the_keyboard() {
+        // ⛔ The same trap `SEEK_PENDING` exists for, one payload over: pitch 0
+        // is a real MIDI note and it is reachable — scroll the gutter to the
+        // bottom and click. Without the flag it would be indistinguishable from
+        // "nothing pending" and C-1 would be the one key that never sounded.
+        let shared = Shared::default();
+        assert!(shared.take_audition().is_none(), "nothing asked for yet");
+
+        shared.request_audition(0);
+        assert_eq!(shared.take_audition(), Some(0));
+    }
+
+    #[test]
+    fn taking_an_audition_clears_it() {
+        // A request that stayed set would re-trigger on every block — the note
+        // would not sound once, it would machine-gun for as long as the editor
+        // was open. This is the same failure `fired.clear()` guards in `process`.
+        let shared = Shared::default();
+        shared.request_audition(64);
+
+        assert_eq!(shared.take_audition(), Some(64));
+        assert!(shared.take_audition().is_none(), "one click, one note");
+    }
+
+    #[test]
+    fn the_newest_audition_wins_rather_than_queueing() {
+        // Running a finger down the gutter sends clicks far faster than blocks
+        // arrive. Queueing them would play the run back seconds late, after the
+        // pointer had stopped; what the gesture means is "where am I now".
+        let shared = Shared::default();
+        shared.request_audition(60);
+        shared.request_audition(72);
+
+        assert_eq!(shared.take_audition(), Some(72));
+    }
+
+    #[test]
+    fn an_out_of_range_audition_is_clamped_rather_than_wrapping() {
+        // The pitch shares its word with the pending flag, so a value past 127
+        // that was stored raw would corrupt the flag rather than merely being
+        // wrong — the request would read back as a different note, or as none.
+        let shared = Shared::default();
+        shared.request_audition(200);
+
+        assert_eq!(shared.take_audition(), Some(127));
     }
 }

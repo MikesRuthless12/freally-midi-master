@@ -1,0 +1,16 @@
+/* The bar/beat ruler and its braces (TASK-041E). Height comes from
+   `RULER_HEIGHT` on the element, so the number lives in one place. */
+.ruler {
+  position: relative;
+  flex: none;
+  width: 100%;
+}
+
+.ruler__canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  user-select: none;
+  touch-action: none;
+  cursor: ew-resize;
+}

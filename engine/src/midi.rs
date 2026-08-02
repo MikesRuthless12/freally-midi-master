@@ -15,7 +15,7 @@ use midly::{
     Format, Header, MetaMessage, MidiMessage, Smf, Timing, Track, TrackEvent, TrackEventKind,
 };
 
-use crate::pattern::{Lane, Note, Pattern, Scale, PPQ};
+use crate::pattern::{Lane, Note, Pattern, Scale, ScaleCharacter, PPQ};
 
 /// General MIDI drum note numbers, so a drum pattern is auditionable in any
 /// DAW without a kit loaded.
@@ -70,21 +70,24 @@ const DRUM_CHANNEL: u8 = 9;
 ///   time they arrive here. Six accidentals goes to sharps for that reason —
 ///   there is nothing left to prefer flats by.
 fn key_signature(key_root: u8, scale: Scale) -> (i8, bool) {
-    let minor = match scale {
-        Scale::Major | Scale::Lydian | Scale::Mixolydian | Scale::MajorPentatonic => false,
-        Scale::NaturalMinor
-        | Scale::HarmonicMinor
-        | Scale::Aeolian
-        | Scale::Dorian
-        | Scale::Phrygian
-        | Scale::MinorPentatonic
-        | Scale::Blues => true,
-        // The one that does not follow from its third. Phrygian dominant *has*
-        // a major third, but it is the fifth mode of harmonic minor and its ♭2
-        // and ♭6 sit on the minor side: E phrygian dominant shares five notes
-        // with E minor's signature and four with E major's. Minor is the less
-        // wrong of the two answers the format allows.
-        Scale::PhrygianDominant => true,
+    // ⛔ **Deferred to `theory::scale_character`, which is the one place that
+    // answers "is this scale dark or bright".** This was a hand-written match
+    // over every scale — fine at twelve, a drift hazard at forty-one — and then
+    // briefly its own interval rule, which promptly disagreed with the character
+    // table about the major blues scale: it carries *both* thirds, so "has a
+    // minor third" called it minor while the table called it bright. Two rules
+    // for one question is how a roll ends up tinting a scale bright over an
+    // export that says minor. There is one rule now, and
+    // `the_character_decides_the_signature` is what holds them together.
+    //
+    // Neutral is the only case left to decide here, and the third decides it:
+    // the symmetric scales have no dark/bright opinion, so the format gets the
+    // nearest thing it can express.
+    let degrees = crate::theory::scale_semitones(scale);
+    let minor = match crate::theory::scale_character(scale) {
+        ScaleCharacter::Dark => true,
+        ScaleCharacter::Bright => false,
+        ScaleCharacter::Neutral => !degrees.contains(&4),
     };
 
     // A minor key borrows its signature from the major a minor third above.
@@ -321,6 +324,7 @@ pub fn drag_spike_pattern() -> Pattern {
         // Kick on 1 and the "and" of 3 — a plain trap skeleton.
         for offset in [0, bar / 2 + PPQ / 2] {
             kick.push(Note {
+                model_vel: None,
                 start_tick: start + offset,
                 len_ticks: PPQ / 2,
                 pitch: 36,
@@ -331,6 +335,7 @@ pub fn drag_spike_pattern() -> Pattern {
         }
         // Snare on beat 3 only: half-time.
         snare.push(Note {
+            model_vel: None,
             start_tick: start + PPQ * 2,
             len_ticks: PPQ / 2,
             pitch: 38,
@@ -341,6 +346,7 @@ pub fn drag_spike_pattern() -> Pattern {
         // Straight 16th hats.
         for i in 0..16u32 {
             hats.push(Note {
+                model_vel: None,
                 start_tick: start + i * sixteenth,
                 len_ticks: sixteenth / 2,
                 pitch: 42,
@@ -352,6 +358,8 @@ pub fn drag_spike_pattern() -> Pattern {
     }
 
     Pattern {
+        loop_region: None,
+        clip_region: None,
         id: "drag-spike".into(),
         part: Part::Drums,
         artist_id: "spike".into(),
@@ -388,6 +396,8 @@ mod tests {
 
     fn tiny(lane: Lane, notes: Vec<Note>) -> Pattern {
         Pattern {
+            loop_region: None,
+            clip_region: None,
             id: "t".into(),
             part: Part::Drums,
             artist_id: "t".into(),
@@ -406,6 +416,7 @@ mod tests {
 
     fn note(start: u32, len: u32, pitch: u8) -> Note {
         Note {
+            model_vel: None,
             start_tick: start,
             len_ticks: len,
             pitch,
@@ -682,6 +693,7 @@ mod tests {
         // slide_to_pitch was dropped on the floor, so every 808 glide exported
         // as a flat retrigger.
         let slide = Note {
+            model_vel: None,
             start_tick: 0,
             len_ticks: 960,
             pitch: 33,
@@ -726,6 +738,7 @@ mod tests {
         // Otherwise it emits two notes on one key, which is the collision the
         // note-off pairing cannot survive.
         let flat = Note {
+            model_vel: None,
             start_tick: 0,
             len_ticks: 960,
             pitch: 33,
@@ -741,6 +754,7 @@ mod tests {
         // A drum lane's key is its voice, so sliding one would just be a
         // different drum.
         let hit = Note {
+            model_vel: None,
             start_tick: 0,
             len_ticks: 480,
             pitch: 36,

@@ -18,7 +18,15 @@ describe('session values', () => {
     const declared = /export type Scale = ([^;]+);/.exec(bindings);
     expect(declared, 'ipc-types.ts must declare a Scale union').not.toBeNull();
 
-    const generated = [...declared![1].matchAll(/"([a-z_]+)"/g)].map((m) => m[1]);
+    // ⛔ **Digits are part of a scale name.** This read `[a-z_]+`, which was
+    // true of all twelve original scales and stopped being true the moment the
+    // set grew to forty-one: `ionian_sharp5`, `dorian_sharp4`,
+    // `locrian_natural6` and the five `messiaen_mode*` all carry one. The
+    // scraper silently truncated them to `ionian_sharp`, so the gate compared a
+    // mangled list against a correct one and failed while both sides were in
+    // fact in step — a gate that cannot read its own input is worse than none,
+    // because it fails in a way that invites editing the *data* to match.
+    const generated = [...declared![1].matchAll(/"([a-z0-9_]+)"/g)].map((m) => m[1]);
     expect([...SCALES].sort()).toEqual([...generated].sort());
   });
 

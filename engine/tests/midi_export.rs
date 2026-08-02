@@ -64,6 +64,8 @@ fn render(model: &StyleModel, seed: u64, bars: u16) -> Pattern {
     humanize(&mut lanes, &ctx, seed);
 
     Pattern {
+        loop_region: None,
+        clip_region: None,
         id: format!("{}-{seed}", model.id),
         part: Part::Drums,
         artist_id: model.id.clone(),
@@ -243,4 +245,57 @@ fn the_session_the_user_set_is_the_session_the_daw_reads() {
     );
     assert_eq!(key, Some((3, true)), "F# minor is three sharps, minor");
     assert_eq!(name.as_deref(), Some("trap — Drums"));
+}
+
+/// TASK-041E: a clip in a meter other than 4/4 must *export* in it.
+///
+/// ⛔ The meta event is asserted, not `ticks_per_bar`. A DAW opening the file
+/// reads the meta event and nothing else — a clip whose arithmetic was in 6/8
+/// while its header said 4/4 would look right here and open wrong there, which
+/// is the whole failure this task exists to close.
+#[test]
+fn a_six_eight_clip_says_six_eight_in_the_file() {
+    let models = shipped();
+    let model = models.get("trap").expect("trap must be in the roster");
+
+    let ctx = SessionContext {
+        time_sig_num: 6,
+        time_sig_den: 8,
+        ..context(4)
+    };
+    let mut lanes = generate(model, &ctx, 7);
+    humanize(&mut lanes, &ctx, 7);
+    let pattern = Pattern {
+        loop_region: None,
+        clip_region: None,
+        id: "six-eight".into(),
+        part: Part::Drums,
+        artist_id: model.id.clone(),
+        seed: 7,
+        bars: ctx.bars,
+        bpm: ctx.bpm,
+        time_sig_num: ctx.time_sig_num,
+        time_sig_den: ctx.time_sig_den,
+        key_root: ctx.key_root,
+        scale: ctx.scale,
+        lanes,
+        ppq: PPQ,
+        mood: None,
+    };
+
+    let bytes = pattern_to_smf(&pattern);
+    let smf = Smf::parse(&bytes).expect("and parse back");
+
+    let mut meter = None;
+    for event in smf.tracks[0].iter() {
+        if let TrackEventKind::Meta(MetaMessage::TimeSignature(num, den_pow, _, _)) = event.kind {
+            meter = Some((num, den_pow));
+        }
+    }
+    // The denominator is a power of two in the file: 8 is 2³.
+    assert_eq!(meter, Some((6, 3)), "the file must say 6/8");
+
+    // And a 6/8 bar is three quarter notes, not six — so a four-bar clip is
+    // twelve quarters long rather than twenty-four.
+    assert_eq!(ctx.ticks_per_bar(), PPQ * 3);
 }

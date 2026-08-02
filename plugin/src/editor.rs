@@ -21,7 +21,10 @@ use std::borrow::Cow;
 use include_dir::{include_dir, Dir};
 use nih_plug::prelude::*;
 use nih_plug_webview::{HTMLSource, WebViewEditor};
+use serde::Deserialize;
 use serde_json::{json, Value};
+
+use engine::pattern::Pattern;
 
 use crate::bridge::{self, Request};
 use crate::shared::SharedState;
@@ -289,6 +292,25 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
         "seek" => {
             let to = request.args["progress"].as_f64().unwrap_or(0.0) as f32;
             shared.request_seek(to);
+            return Some(Ok(Value::Null));
+        }
+
+        // The piano roll's keyboard gutter (TASK-041). A window command rather
+        // than a bridge one for the same reason `seek` is: it needs the
+        // `Shared` the audio thread reads, which `bridge::dispatch` has no
+        // access to.
+        //
+        // ⛔ Answers `Ok` even when nothing will sound — the preview switched
+        // off, no kit, no tuned pad. An audition is feedback on a click that has
+        // already landed, so there is nothing for the page to do with a failure
+        // (see `audition.ts`), and reporting one would put an error banner under
+        // the Generate button for a preview a producer deliberately turned off.
+        "audition_note" => {
+            // Clamped once, in `request_audition`, which is where the test that
+            // proves it lives. A second clamp here would be a second authority
+            // on the same rule.
+            let pitch = request.args["pitch"].as_u64().unwrap_or(60);
+            shared.request_audition(pitch.try_into().unwrap_or(127));
             return Some(Ok(Value::Null));
         }
 
@@ -670,12 +692,28 @@ fn rpc(body: &[u8], shared: &SharedState) -> String {
                         shared.handoff.send(Schedule::default());
                     }
 
-                    if request.command == "generate_pattern" {
-                        if let Ok(pattern) = serde_json::from_value(value.clone()) {
-                            let mut schedule = Schedule::default();
-                            schedule.arm(&pattern, shared.sample_rate());
-                            shared.handoff.send(schedule);
-                        }
+                    // ⛔ **Armed from the *shape* of the reply, not from the
+                    // command's name.** This used to test for
+                    // `generate_pattern`, and TASK-041 is exactly the case that
+                    // broke: the piano roll edits notes and sends them back
+                    // through `arm_pattern`, so a name match meant an edited
+                    // clip never reached the audio thread — the producer moved a
+                    // note, saw it move, pressed play and heard the note they
+                    // had just moved away from. Any command that answers with a
+                    // `Pattern` is a command that changed what should be
+                    // playing, and there is no fourth string to remember.
+                    //
+                    // Safe to key on the type: `Pattern` has twelve required
+                    // fields, so no other reply in the bridge deserializes into
+                    // one by accident.
+                    // ⛔ Deserialized *from the reference*. `from_value` takes
+                    // the `Value` by move, so testing the shape used to deep-
+                    // clone every reply the bridge ever sends — the roster, the
+                    // dataset problems, the lot — to throw all but one away.
+                    if let Ok(pattern) = Pattern::deserialize(&value) {
+                        let mut schedule = Schedule::default();
+                        schedule.arm(&pattern, shared.sample_rate());
+                        shared.handoff.send(schedule);
                     }
 
                     // ⛔ The audio thread cannot read the session — taking that

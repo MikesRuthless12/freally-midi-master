@@ -14,6 +14,57 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Added
 
+- **A piano roll, and the four melodic parts are visible at last.** Melody,
+  Countermelody, Bass and Chords generated through the bridge and landed on the
+  host's track without ever appearing on screen; now they are drawn, and
+  editable, to the standard Ableton and FL set. Canvas rather than DOM because a
+  roll is 128 rows deep and the same approach the drum grid uses would be ~15,000
+  elements before a single note — with the notes published as a visually-hidden
+  list beside it, so the editor is reachable by a screen reader and assertable by
+  a test rather than only pokeable by coordinate.
+  - **Selection and note editing** (TASK-041A): marquee, `Shift`/`Ctrl`-click,
+    `Ctrl+A`, `Esc`, drag either edge to resize, `Del`, `Shift+D` and `Ctrl+D` to
+    duplicate, cut/copy/paste at the playhead, arrow-key transpose and nudge with
+    `Shift` widening both to an octave and a bar, and `Ctrl`-drag to copy. Every
+    gesture commits once, so a drag across forty notes is one undo step.
+  - **Scale awareness** (TASK-041B): in-key rows tinted, out-of-key dimmed, the
+    root marked, `Fold to scale` and Ableton's note `Fold`, and a scale picker in
+    the header that writes through to the session chip rather than holding a
+    second opinion about the key. A row holding a note is never folded away, so a
+    chromatic passing tone stays visible, audible and exported.
+  - **The full scale set** (TASK-041C): `Scale` goes from 12 to 41 — the modes,
+    the pentatonics and blues, the minor and major variants and their modes, the
+    symmetric scales, nine world scales and Messiaen modes 3–7 — each with a
+    Dark/Neutral/Bright character, and the picker offers the *model's* own scales
+    narrowed by the mood's character rather than all forty-one.
+  - **A velocity lane** (TASK-041V), under the roll and the drum grid: one stem
+    per note with a round cap, drag a cap to set it, drag sideways to paint every
+    slider at the pointer's height, `Shift` for a straight ramp, a selection
+    drags relatively so its accents survive, and right-click or double-click puts
+    a note back to the velocity the *model* wrote — which is now kept on the note
+    rather than recomputed, because `humanize` has already spread it by then.
+  - **Transforms on a selection** (TASK-041D): invert, reverse, stretch and
+    compress (with `*` and `/`, and handles on the selection's outer edges),
+    legato, quantize with a strength slider, humanize, and transpose to scale.
+    One undo step each.
+  - **Clip timing** (TASK-041E): a bar/beat ruler drawn from the clip's own
+    meter, a loop brace with draggable ends, clip start/end markers independent
+    of it, and a per-clip time signature that writes through to the chips *and*
+    to the exported file's meta event. The transport honours the loop region,
+    rendering each block in segments split at the turnover rather than wrapping
+    at the block boundary — which would put every note after the wrap up to a
+    32nd note out of place at 140 BPM.
+  - **A visual design pass** (TASK-041F): velocity-mapped note fill, a hover
+    affordance that appears under the pointer instead of a grip on every note,
+    grid and playhead snapped to whole device pixels so they stay crisp at any
+    `devicePixelRatio`, and a note outline chosen per theme for contrast — the
+    fixed one landed at 2.6:1 on the light theme's note colour, where "this note
+    is selected" quietly stopped being visible.
+  - **An edited clip is saved with the project.** The plugin stores the
+    *request* — artist, seed, pins — because the engine is deterministic, which
+    is what keeps a project file a few hundred bytes. The moment a producer moves
+    a note that stops being true, so from then on the clip itself is stored. An
+    unedited session still carries no notes at all.
 - **The plugin makes a sound.** The sampler and preview kit are ported out of
   `src-tauri` and into the plugin, and the generated pattern is rendered into the
   host's output — so a producer hears the beat on insert instead of having to

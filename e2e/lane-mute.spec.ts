@@ -83,3 +83,43 @@ test('a muted lane keeps its notes on screen', async ({ page }) => {
   await kick.locator('.grid__mute').click();
   await expect(kick.locator('.grid__cell--on')).toHaveCount(before);
 });
+
+test('the kit’s velocity lane edits the drum note it sits under', async ({ page }) => {
+  // TASK-041V's second half: the lane is under the drum grid as well as the
+  // roll, and it is the only thing on that screen that edits — a velocity is
+  // not a note, so the grid itself stays read-only until the pads are editable.
+  //
+  // ⛔ The stem's own lane is asserted, not just the value. The kit's lane draws
+  // every drum at once, so a value written back by tick and pitch alone could
+  // land on the 808 while the producer was dragging the kick.
+  const lane = page.locator('[data-testid="velocity-lane"]');
+  await expect(lane).toBeVisible();
+
+  const box = await lane.boundingBox();
+  if (box === null) throw new Error('the velocity lane has no box');
+
+  const stems = () =>
+    page.locator('[data-testid="velocity-stems"] li').evaluateAll((items) =>
+      items.map((li) => ({
+        lane: li.getAttribute('data-lane'),
+        vel: Number(li.getAttribute('data-vel')),
+        x: Number(li.getAttribute('data-x')),
+      })),
+    );
+
+  const before = await stems();
+  expect(before.length).toBeGreaterThan(0);
+  const target = before[0];
+
+  // The value axis, mirrored from `velocity.ts` exactly as the roll's spec does.
+  const capY = (vel: number) => box.y + (box.height - 2) - ((vel - 1) / 126) * (box.height - 8);
+
+  await page.mouse.move(box.x + target.x, capY(target.vel));
+  await page.mouse.down();
+  await page.mouse.move(box.x + target.x, capY(50), { steps: 4 });
+  await page.mouse.up();
+
+  const after = await stems();
+  expect(after[0]).toMatchObject({ lane: target.lane, vel: 50 });
+  expect(after.slice(1).map((s) => s.vel)).toEqual(before.slice(1).map((s) => s.vel));
+});

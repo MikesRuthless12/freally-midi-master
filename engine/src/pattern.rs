@@ -89,18 +89,165 @@ pub enum Articulation {
 #[serde(rename_all = "snake_case")]
 #[ts(export, export_to = "../../src/lib/ipc-types.ts")]
 pub enum Scale {
-    NaturalMinor,
-    HarmonicMinor,
-    Phrygian,
-    PhrygianDominant,
-    Dorian,
+    // ---- Modes of the major scale --------------------------------------
     Major,
-    Mixolydian,
+    Dorian,
+    Phrygian,
     Lydian,
+    Mixolydian,
+    NaturalMinor,
+    Locrian,
+    /// The natural minor under its modal name. See [`scale_semitones`] — the
+    /// dataset uses both spellings and they must not resolve differently.
     Aeolian,
-    MinorPentatonic,
+
+    // ---- Pentatonic and blues ------------------------------------------
     MajorPentatonic,
+    MinorPentatonic,
+    MajorBlues,
+    /// The minor blues, under the bare name the dataset already authors.
     Blues,
+
+    // ---- Minor and major variants --------------------------------------
+    HarmonicMinor,
+    MelodicMinor,
+    HarmonicMajor,
+
+    // ---- Modes of those ------------------------------------------------
+    PhrygianDominant,
+    DorianSharp4,
+    LydianAugmented,
+    LydianDominant,
+    SuperLocrian,
+    LocrianNatural6,
+    IonianSharp5,
+    Ultralocrian,
+
+    // ---- Symmetric ------------------------------------------------------
+    WholeTone,
+    WholeHalfDiminished,
+    HalfWholeDiminished,
+    Chromatic,
+
+    // ---- World ----------------------------------------------------------
+    HungarianMinor,
+    EightToneSpanish,
+    Bhairav,
+    Hirajoshi,
+    InSen,
+    Iwato,
+    Kumoi,
+    PelogSelisir,
+    PelogTembung,
+
+    // ---- Messiaen modes 3–7 ---------------------------------------------
+    MessiaenMode3,
+    MessiaenMode4,
+    MessiaenMode5,
+    MessiaenMode6,
+    MessiaenMode7,
+}
+
+impl Scale {
+    /// Every scale, so a gate can never be written against a subset.
+    ///
+    /// ⛔ **Hand-maintained, and the compiler is what keeps it honest.**
+    /// `theory::scale_semitones` and `theory::scale_character` are both
+    /// exhaustive matches, so a variant added to the enum fails to compile until
+    /// it has an interval set *and* a character — and whoever is already in both
+    /// of those files is one line from this one. The list itself only widens
+    /// what the tests cover, so a forgotten entry weakens a gate rather than
+    /// breaking the engine, which is why a build-time trick is not worth the
+    /// dependency it would cost.
+    pub const ALL: [Scale; 41] = [
+        Scale::Major,
+        Scale::Dorian,
+        Scale::Phrygian,
+        Scale::Lydian,
+        Scale::Mixolydian,
+        Scale::NaturalMinor,
+        Scale::Locrian,
+        Scale::Aeolian,
+        Scale::MajorPentatonic,
+        Scale::MinorPentatonic,
+        Scale::MajorBlues,
+        Scale::Blues,
+        Scale::HarmonicMinor,
+        Scale::MelodicMinor,
+        Scale::HarmonicMajor,
+        Scale::PhrygianDominant,
+        Scale::DorianSharp4,
+        Scale::LydianAugmented,
+        Scale::LydianDominant,
+        Scale::SuperLocrian,
+        Scale::LocrianNatural6,
+        Scale::IonianSharp5,
+        Scale::Ultralocrian,
+        Scale::WholeTone,
+        Scale::WholeHalfDiminished,
+        Scale::HalfWholeDiminished,
+        Scale::Chromatic,
+        Scale::HungarianMinor,
+        Scale::EightToneSpanish,
+        Scale::Bhairav,
+        Scale::Hirajoshi,
+        Scale::InSen,
+        Scale::Iwato,
+        Scale::Kumoi,
+        Scale::PelogSelisir,
+        Scale::PelogTembung,
+        Scale::MessiaenMode3,
+        Scale::MessiaenMode4,
+        Scale::MessiaenMode5,
+        Scale::MessiaenMode6,
+        Scale::MessiaenMode7,
+    ];
+}
+
+/// How a scale *feels*, for narrowing the picker by mood (TASK-041C).
+///
+/// ⛔ **A property of the scale, not of the mood.** Mike's rule is that "dark
+/// moods should only show dark scales" — and the only way that stays true as
+/// scales are added is for each scale to declare its own character once, here,
+/// with a test that every one of them has. The alternative, listing scales on
+/// every mode, restates the same information in thirty-odd places and drifts.
+///
+/// `Neutral` is a real answer rather than a fallback: the symmetric scales and
+/// the Messiaen modes have no tonic third to be major or minor about, and
+/// `uptempo`/`minimal` are tempo and density statements rather than emotional
+/// ones, so they inherit the model's full list.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "snake_case")]
+#[ts(export, export_to = "../../src/lib/ipc-types.ts")]
+pub enum ScaleCharacter {
+    Dark,
+    Neutral,
+    Bright,
+}
+
+/// A span of a clip, in absolute ticks (TASK-041E).
+///
+/// Used for both the loop brace and the clip's own start and end, which are
+/// deliberately two different things: a producer loops bar 2 of a four-bar idea
+/// to work on it, and trims the clip to bars 1–3 to keep it. One field for both
+/// would make either gesture destroy the other.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export, export_to = "../../src/lib/ipc-types.ts")]
+pub struct Region {
+    pub from_tick: u32,
+    pub to_tick: u32,
+}
+
+impl Region {
+    /// The region as a usable span, or `None` if it is empty or inverted.
+    ///
+    /// ⛔ Checked rather than trusted. A brace dragged past its own other end
+    /// arrives here inverted, and a transport that looped from a later tick to
+    /// an earlier one would emit nothing and read as playback having broken.
+    pub fn valid(self) -> Option<(u32, u32)> {
+        (self.to_tick > self.from_tick).then_some((self.from_tick, self.to_tick))
+    }
 }
 
 /// A single note event. Ticks are absolute from the start of the pattern.
@@ -114,6 +261,21 @@ pub struct Note {
     pub pitch: u8,
     /// MIDI velocity, 1–127.
     pub vel: u8,
+    /// What the model itself wrote here, before [`crate::humanize`] spread it
+    /// (TASK-041V).
+    ///
+    /// ⛔ **The velocity lane's "reset" needs this and cannot recompute it.**
+    /// Resetting a cap has to put back the value that note's own lane tier
+    /// asked for — a ghost note's 40, an accent's 120 — and by the time anyone
+    /// can see the lane, `vary` has already spread it by a random factor that
+    /// is not invertible. Resetting to a flat 100 instead would quietly delete
+    /// the accent pattern that is the difference between a played pattern and a
+    /// programmed one, using the control whose whole promise is "put it back".
+    ///
+    /// `None` on a note nobody generated — one the producer drew — where there
+    /// is no model opinion to return to.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub model_vel: Option<u8>,
     /// 808 slide target. The note glides to this pitch; the writer emits the
     /// overlap convention the sampler reads as portamento.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -159,6 +321,18 @@ pub struct Pattern {
     /// model offers no modes, not that one was declined.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub mood: Option<String>,
+    /// What the transport repeats, in ticks (TASK-041E).
+    ///
+    /// `None` is the whole clip, which is what every pattern is until someone
+    /// drags a brace. Carried on the pattern rather than held beside it because
+    /// it is a property of the clip: it saves with the project, travels with a
+    /// preset, and an edited clip that forgot its own loop on reload would be
+    /// the kind of quiet loss nobody attributes to the right feature.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub loop_region: Option<Region>,
+    /// The clip's own start and end, independent of the loop.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub clip_region: Option<Region>,
 }
 
 impl Pattern {
@@ -244,6 +418,8 @@ mod tests {
 
     fn sample_pattern(seed: u64) -> Pattern {
         Pattern {
+            loop_region: None,
+            clip_region: None,
             id: "p1".into(),
             part: Part::Drums,
             artist_id: "osamason".into(),
@@ -258,6 +434,7 @@ mod tests {
                 lane: Lane::Bass808,
                 notes: vec![
                     Note {
+                        model_vel: None,
                         start_tick: 0,
                         len_ticks: PPQ,
                         pitch: 30,
@@ -266,6 +443,7 @@ mod tests {
                         articulation: Some(Articulation::Legato),
                     },
                     Note {
+                        model_vel: None,
                         start_tick: PPQ * 2,
                         len_ticks: PPQ / 2,
                         pitch: 30,

@@ -6,7 +6,7 @@ use std::collections::BTreeMap;
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
-use crate::pattern::{Lane, Scale, PPQ};
+use crate::pattern::{Lane, Scale, ScaleCharacter, PPQ};
 
 /// The grid swing is applied against.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
@@ -258,6 +258,15 @@ pub struct SessionOverrides {
     pub swing: Option<f32>,
     pub bars: Option<u16>,
     pub half_time: Option<bool>,
+    /// The clip's own meter, when the producer set one (TASK-041E).
+    ///
+    /// ⛔ **Absent means "whatever the host is in", not 4/4.** Inside a DAW the
+    /// meter comes from the project, and a default here would silently drag a
+    /// 6/8 session back to common time on the next Generate. Set, it wins — a
+    /// producer writing a 3/4 clip in a 4/4 project has been more specific than
+    /// the project.
+    pub time_sig_num: Option<u8>,
+    pub time_sig_den: Option<u8>,
 }
 
 /// The tempo a pinned session may ask for, wider than any authored model.
@@ -363,8 +372,13 @@ impl SessionContext {
 
         SessionContext {
             bpm,
-            time_sig_num: 4,
-            time_sig_den: 4,
+            // ⛔ Zero is refused rather than carried. `ticks_per_bar` already
+            // substitutes for a zero denominator, but an authored `0` would
+            // reach `midi.rs`'s power-of-two lookup and be written into the
+            // file's meta event — so the clip would export as a meter no DAW
+            // can read while every readout in the app said 4/4.
+            time_sig_num: overrides.time_sig_num.filter(|n| *n > 0).unwrap_or(4),
+            time_sig_den: overrides.time_sig_den.filter(|d| *d > 0).unwrap_or(4),
             key_root,
             scale,
             swing,
@@ -409,6 +423,41 @@ pub struct SessionDefaults {
     pub moods: Vec<String>,
 }
 
+/// The model's scales narrowed to a mood's character (TASK-041C).
+///
+/// ⛔ **An intersection, and both terms hold at once.** A dark trap mood offers
+/// *trap's* dark scales — never Locrian just because Locrian is dark, and never
+/// Lydian just because trap is trap. Applying either constraint alone is what
+/// makes "artist-accurate" untrue on one of the two axes.
+///
+/// ⛔ **An empty intersection falls back to the model's own list rather than
+/// emptying the picker.** A bright mood on a genre that authors only minor
+/// scales is an authoring mistake, and the right response to one is to generate
+/// the genre's own music, not to generate nothing. The mistake is visible in the
+/// dataset rather than as a producer staring at a picker with no options.
+///
+/// A model that authors no scales at all keeps its empty list: it has said
+/// nothing, which is not the same as having said "only these", and the caller
+/// falls back to the engine's full set.
+fn narrow_by_character(scales: Vec<Scale>, character: Option<ScaleCharacter>) -> Vec<Scale> {
+    let Some(wanted) = character else {
+        return scales;
+    };
+    if scales.is_empty() {
+        return scales;
+    }
+    let narrowed: Vec<Scale> = scales
+        .iter()
+        .copied()
+        .filter(|scale| crate::theory::scale_character(*scale) == wanted)
+        .collect();
+    if narrowed.is_empty() {
+        scales
+    } else {
+        narrowed
+    }
+}
+
 impl SessionDefaults {
     /// Read a resolved model's session block. No seed, and no sampling.
     pub fn of(model: &crate::StyleModel) -> Self {
@@ -430,17 +479,20 @@ impl SessionDefaults {
             // `from_model` drops it. `engine/tests/session_strings.rs` asserts
             // every authored name parses, so a typo costs a failing test
             // rather than a key the chip cannot offer.
-            scales: session
-                .and_then(|s| s.scales.as_ref())
-                .map(|spec| {
-                    spec.options()
-                        .into_iter()
-                        .filter_map(|name| {
-                            serde_json::from_value(serde_json::Value::String(name)).ok()
-                        })
-                        .collect()
-                })
-                .unwrap_or_default(),
+            scales: narrow_by_character(
+                session
+                    .and_then(|s| s.scales.as_ref())
+                    .map(|spec| {
+                        spec.options()
+                            .into_iter()
+                            .filter_map(|name| {
+                                serde_json::from_value(serde_json::Value::String(name)).ok()
+                            })
+                            .collect()
+                    })
+                    .unwrap_or_default(),
+                session.and_then(|s| s.character),
+            ),
             swing: Swing {
                 grid: match authored_swing.map(|s| s.grid.as_str()) {
                     Some("8th") => SwingGrid::Eighth,
@@ -454,6 +506,74 @@ impl SessionDefaults {
                 .map(|mode| mode.name)
                 .collect(),
         }
+    }
+}
+
+#[cfg(test)]
+mod character_tests {
+    use super::*;
+
+    const TRAP: [Scale; 4] = [
+        Scale::NaturalMinor,
+        Scale::HarmonicMinor,
+        Scale::Phrygian,
+        Scale::MinorPentatonic,
+    ];
+
+    #[test]
+    fn a_mode_with_no_character_leaves_the_list_alone() {
+        // ⛔ Absent is not "neutral". Most modes say nothing about colour, and
+        // collapsing the two would make every one of them offer only the
+        // symmetric scales.
+        assert_eq!(narrow_by_character(TRAP.to_vec(), None), TRAP.to_vec());
+    }
+
+    #[test]
+    fn a_dark_mood_offers_the_models_own_dark_scales_and_no_others() {
+        // Both constraints at once: trap's list narrowed to the dark ones.
+        // Nothing dark that trap does not author may appear.
+        let dark = narrow_by_character(TRAP.to_vec(), Some(ScaleCharacter::Dark));
+        assert_eq!(dark, TRAP.to_vec(), "every scale trap authors is dark");
+        assert!(
+            !dark.contains(&Scale::Locrian),
+            "Locrian is dark but not trap's"
+        );
+    }
+
+    #[test]
+    fn a_mood_narrows_a_mixed_list_rather_than_reordering_it() {
+        let mixed = vec![
+            Scale::Major,
+            Scale::NaturalMinor,
+            Scale::Lydian,
+            Scale::Phrygian,
+        ];
+        assert_eq!(
+            narrow_by_character(mixed.clone(), Some(ScaleCharacter::Bright)),
+            vec![Scale::Major, Scale::Lydian]
+        );
+        assert_eq!(
+            narrow_by_character(mixed, Some(ScaleCharacter::Dark)),
+            vec![Scale::NaturalMinor, Scale::Phrygian]
+        );
+    }
+
+    #[test]
+    fn an_empty_intersection_falls_back_to_the_models_own_list() {
+        // ⛔ A bright mood on a genre that authors only minor scales is an
+        // authoring mistake. Generating the genre's own music is a better
+        // answer than generating nothing, and a picker with no options is what
+        // "nothing" looks like to a producer.
+        let bright = narrow_by_character(TRAP.to_vec(), Some(ScaleCharacter::Bright));
+        assert_eq!(bright, TRAP.to_vec());
+    }
+
+    #[test]
+    fn a_model_that_authors_no_scales_still_authors_none() {
+        // Saying nothing is not saying "only these" — the caller falls back to
+        // the engine's full set, and narrowing an empty list must not change
+        // that into "only the dark ones of nothing".
+        assert!(narrow_by_character(vec![], Some(ScaleCharacter::Dark)).is_empty());
     }
 }
 

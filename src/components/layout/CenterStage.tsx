@@ -4,7 +4,9 @@ import type { LucideIcon } from 'lucide-react';
 import { GENERATOR_TABS, useUi, type GeneratorTab } from '../../state/ui';
 import { BAR_CHOICES, useSession } from '../../state/session';
 import { DrumGrid } from '../DrumGrid/DrumGrid';
+import { PianoRoll } from '../PianoRoll/PianoRoll';
 import { columnDensity } from '../DrumGrid/cells';
+import type { Part } from '../../lib/ipc-types';
 import { GenFx } from '../GenFx/GenFx';
 import { SeedChip } from '../SeedChip/SeedChip';
 import { SessionSwitchPrompt } from '../SessionChips/SessionChips';
@@ -55,10 +57,36 @@ function GeneratorTabs() {
 }
 
 /**
- * Centre stage: the tab strip over the grid.
+ * Which part a tab generates, or `null` for a tab that is not a part at all.
  *
- * Only the Drums tab generates. The other five are Phase 2, and they say so
- * rather than showing an empty grid that reads as a failed generation.
+ * ⛔ Song is not a part and never becomes one — it is an *arrangement* of the
+ * five, and it arrives with TASK-063B. Mapping it to a `Part` here would make
+ * the Generate button offer to produce something the engine has no generator
+ * for, which is exactly the "empty grid that reads as a failed generation"
+ * this stage was written to avoid.
+ */
+const TAB_PART: Record<GeneratorTab, Part | null> = {
+  drums: 'drums',
+  melody: 'melody',
+  counter: 'counter',
+  bass: 'bass',
+  chords: 'chords',
+  song: null,
+};
+
+/**
+ * Centre stage: the tab strip over the editor for the part it names.
+ *
+ * Drums draws in `DrumGrid`; the four melodic parts draw in the piano roll
+ * (TASK-041). Song is still a later phase and says so rather than showing an
+ * empty surface.
+ *
+ * ⛔ **The editor is shown only when the pattern in hand is the tab's own
+ * part.** `session.pattern` is one slot, so generating a melody replaces the
+ * drums that were there — and drawing whatever is in the slot under whichever
+ * tab is open would put a melody's notes in the drum grid's lanes. Switching to
+ * a tab whose part is not loaded shows the "ready, hit Generate" state, which is
+ * true rather than merely blank.
  */
 export function CenterStage() {
   const { t } = useTranslation();
@@ -75,7 +103,9 @@ export function CenterStage() {
   const playhead = useSession((s) => s.playhead);
 
   const selected = roster.find((entry) => entry.id === selectedId) ?? null;
-  const isDrums = activeTab === 'drums';
+  const part = TAB_PART[activeTab];
+  // The pattern in hand belongs to this tab, so it is this tab's to draw.
+  const showing = part !== null && pattern?.part === part ? pattern : null;
 
   // What the ripple ignites. Recomputed only when the pattern changes, not on
   // every frame — the animation reads this, and it must not cost a render.
@@ -97,14 +127,16 @@ export function CenterStage() {
         {/* The ripple wraps whatever the stage is showing, so it sweeps the
             grid the notes are landing in rather than a layer beside it. */}
         <GenFx active={generating} density={density}>
-          {!isDrums ? (
+          {/* Ordered so the compiler can narrow `part`: past the `null` and the
+              `drums` arms, what is left is exactly a melodic part, which is what
+              the roll accepts. A conjunction here instead would leave `part`
+              still possibly `'drums'` on the roll's branch. */}
+          {part === null ? (
             <div className="stage__empty">
               <h2>{t(`tabs.${activeTab}`)}</h2>
               <p>{t('stage.laterPhase')}</p>
             </div>
-          ) : pattern ? (
-            <DrumGrid pattern={pattern} playhead={playhead} />
-          ) : (
+          ) : showing === null ? (
             <div className="stage__empty">
               <h2>{t('stage.emptyTitle')}</h2>
               <p>
@@ -113,6 +145,10 @@ export function CenterStage() {
                   : t('stage.emptyBody')}
               </p>
             </div>
+          ) : part === 'drums' ? (
+            <DrumGrid pattern={showing} playhead={playhead} />
+          ) : (
+            <PianoRoll pattern={showing} part={part} playhead={playhead} />
           )}
         </GenFx>
 
@@ -154,8 +190,8 @@ export function CenterStage() {
             <button
               type="button"
               className="btn-generate"
-              onClick={() => void generate()}
-              disabled={!isDrums || !selectedId || generating}
+              onClick={() => part !== null && void generate(part)}
+              disabled={part === null || !selectedId || generating}
             >
               {generating ? t('stage.generating') : t('stage.generate')}
             </button>

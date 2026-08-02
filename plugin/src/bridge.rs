@@ -126,6 +126,40 @@ pub fn dispatch(
             serde_json::to_value(defaults).map_err(|e| e.to_string())
         }
 
+        // Which semitones a scale contains, for the roll's row tinting and
+        // folding (TASK-041B).
+        //
+        // ⛔ **Asked rather than duplicated.** The alternative was a second
+        // interval table in TypeScript, and there are forty-one scales — a copy
+        // that drifts from `theory::scale_semitones` would tint the wrong rows
+        // and fold away notes that are in the key, which looks like the *engine*
+        // generating out of key. The page caches the answer per scale, so this
+        // is one round trip per scale change and never one per frame.
+        "scale_pitches" => {
+            let scale: engine::pattern::Scale =
+                serde_json::from_value(request.args["scale"].clone())
+                    .map_err(|e| format!("unknown scale: {e}"))?;
+            Ok(json!(engine::theory::scale_semitones(scale)))
+        }
+
+        // An edited clip, on its way back to the audio thread (TASK-041).
+        //
+        // ⛔ **The reply is the pattern, and that is what does the work.**
+        // `editor.rs` arms whatever a command answers with when it deserializes
+        // as a `Pattern`, so this command's whole job is to *validate* — a set
+        // of notes that does not round-trip through the engine's own type is
+        // refused here rather than reaching `Schedule::arm`.
+        //
+        // ⛔ **The plugin does not store it.** `state.rs` persists a session's
+        // inputs, not its notes, and the page owns the edited document until the
+        // materialisation decision is built (see the roadmap, above Phase 4).
+        // Arming is a *playback* concern and is all this needs to do.
+        "arm_pattern" => {
+            let pattern: Pattern = serde_json::from_value(request.args["pattern"].clone())
+                .map_err(|e| format!("bad pattern: {e}"))?;
+            serde_json::to_value(pattern).map_err(|e| e.to_string())
+        }
+
         "generate_pattern" => {
             let args: GenerateArgs = serde_json::from_value(request.args["request"].clone())
                 .map_err(|e| format!("bad generate request: {e}"))?;
@@ -341,6 +375,8 @@ fn generate(args: &GenerateArgs, host: &HostSession, auto_sync: bool) -> Result<
     }
 
     Ok(Pattern {
+        loop_region: None,
+        clip_region: None,
         id: format!("{}-{seed}", model.id),
         part,
         artist_id: model.id.clone(),

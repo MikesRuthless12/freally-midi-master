@@ -28,6 +28,24 @@ export function SearchBar() {
   const [activeRow, setActive] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  /**
+   * The deferred close from `onBlur`, cancellable.
+   *
+   * ⛔ **Without cancelling it the box goes dead after a selection.** `choose`
+   * blurs the input, and that blur schedules a close 120 ms out. Anyone who
+   * comes back to the box inside those 120 ms — picking a second artist to
+   * compare, which is the normal way this control is used — reopens the list
+   * only for the stale timer to shut it again, and nothing they type afterwards
+   * reopens it because `setOpen(true)` is already true. Returning focus has to
+   * cancel the close that focus leaving asked for.
+   */
+  const closeTimer = useRef<number | null>(null);
+  const cancelClose = () => {
+    if (closeTimer.current === null) return;
+    window.clearTimeout(closeTimer.current);
+    closeTimer.current = null;
+  };
+
   const results = useMemo(() => search(query, roster), [query, roster]);
 
   // Clamped rather than reset in an effect: a shrinking result list must not
@@ -90,14 +108,21 @@ export function SearchBar() {
           value={query}
           disabled={!rosterLoaded}
           onChange={(event) => {
+            cancelClose();
             setQuery(event.target.value);
             setActive(0);
             setOpen(true);
           }}
-          onFocus={() => setOpen(true)}
+          onFocus={() => {
+            cancelClose();
+            setOpen(true);
+          }}
           // A click on an option would otherwise be lost to the blur that
           // precedes it, so closing is deferred past the mousedown.
-          onBlur={() => window.setTimeout(() => setOpen(false), 120)}
+          onBlur={() => {
+            cancelClose();
+            closeTimer.current = window.setTimeout(() => setOpen(false), 120);
+          }}
           onKeyDown={onKeyDown}
         />
       </div>

@@ -5,6 +5,7 @@ import { isPlugin } from '../lib/ipc-plugin';
 import { loadRoster } from '../lib/roster';
 import type {
   DatasetProblem,
+  Part,
   Pattern,
   RosterEntry,
   Scale,
@@ -66,6 +67,7 @@ export const SAVED_FIELDS = [
   'mood',
   'audioEnabled',
   'mutedLanes',
+  'edited',
 ] as const;
 
 /**
@@ -82,9 +84,25 @@ export type SessionPins = {
   keyRoot: number | null;
   scale: Scale | null;
   swing: number | null;
+  /**
+   * The meter the producer set for this clip (TASK-041E).
+   *
+   * ⛔ Null means "whatever the host is in", not 4/4. Inside a DAW the meter
+   * comes from the project, and pinning a default here would drag a 6/8 session
+   * back to common time on the next Generate — see `host.rs::session_for`.
+   */
+  timeSigNum: number | null;
+  timeSigDen: number | null;
 };
 
-export const NO_PINS: SessionPins = { bpm: null, keyRoot: null, scale: null, swing: null };
+export const NO_PINS: SessionPins = {
+  bpm: null,
+  keyRoot: null,
+  scale: null,
+  swing: null,
+  timeSigNum: null,
+  timeSigDen: null,
+};
 
 /** Has the user pinned anything at all? */
 export function hasPins(pins: SessionPins): boolean {
@@ -183,6 +201,18 @@ type SessionState = {
    */
   mutedLanes: string[];
   /**
+   * Whether the clip on screen is an edit rather than the seed's own output.
+   *
+   * ⛔ **This is what makes an edited clip survive closing the project.**
+   * `plugin/src/state.rs` saves the *inputs* — artist, seed, pins — because the
+   * engine is deterministic, so a few hundred bytes reopen the same pattern.
+   * The moment a producer moves a note that stops being true, and regenerating
+   * from the seed would reopen the session having quietly undone their editing.
+   * From here on the clip itself is saved instead, and this is the flag that
+   * says which of the two the project file should trust.
+   */
+  edited: boolean;
+  /**
    * What the selected style asks for, read the moment it is selected.
    *
    * `null` before the first selection and whenever the read failed — the chips
@@ -246,7 +276,30 @@ type SessionState = {
    * decode), and then Play must be disabled rather than merely unhelpful.
    */
   canDriveTransport: () => boolean;
-  generate: () => Promise<void>;
+  /**
+   * Generate one part, defaulting to drums.
+   *
+   * The default keeps every existing caller — and the drums-only e2e path —
+   * saying exactly what it said before, while the piano roll's tabs name the
+   * part they are showing.
+   */
+  generate: (part?: Part) => Promise<void>;
+  /**
+   * Replace the pattern with an edited one (TASK-041).
+   *
+   * ⛔ **Called once per completed gesture, never per pointermove.** The history
+   * subscriber records every write, and `history.ts` lists `pattern` as
+   * *discrete* so pattern entries deliberately never coalesce — that is right
+   * for a generation, which is one deliberate act, and catastrophic for a drag,
+   * which would land one undo step per frame. The live drag is held in
+   * `state/editing.ts` as a delta and applied here on pointerup.
+   *
+   * ⛔ **This is the moment a clip stops being derived from its seed.** Until an
+   * edit it is reproducible from `seed` alone, which is what keeps project files
+   * tiny; afterwards the notes *are* the document and the seed is only where it
+   * started. See `materialised` below and `plugin/src/state.rs`.
+   */
+  editPattern: (next: Pattern) => void;
   /** Run our own transport. Standalone only — in a host this is the DAW's. */
   play: () => Promise<void>;
   /** Hold it where it is. Standalone only, for the same reason. */
@@ -276,7 +329,8 @@ function snapshotOf(state: SessionState): Snapshot {
   // exactly what would stop the compiler noticing a field added to `Snapshot`
   // and forgotten here — the drift this whole arrangement exists to prevent.
   // `SAVED_FIELDS_MATCH_SNAPSHOT` below keeps the two lists honest instead.
-  const { selectedId, seed, bars, pins, autoSync, mood, audioEnabled, mutedLanes } = state;
+  const { selectedId, seed, bars, pins, autoSync, mood, audioEnabled, mutedLanes, edited } =
+    state;
   return {
     selectedId,
     seed,
@@ -286,6 +340,7 @@ function snapshotOf(state: SessionState): Snapshot {
     mood,
     audioEnabled,
     mutedLanes,
+    edited,
     pattern: state.pattern,
   };
 }
@@ -373,6 +428,14 @@ export type SavedSession = {
   bars: number | null;
   pins: Partial<SessionPins> | null;
   /**
+   * The clip as edited, when the seed no longer describes it (TASK-041).
+   *
+   * Absent for every session nobody has drawn in — see `edited` on the store,
+   * and `PluginSession::pattern` on the other side of the bridge.
+   */
+  pattern?: Pattern | null;
+  edited?: boolean;
+  /**
    * Whether the tempo follows the host (TASK-P15).
    *
    * Optional on the way in because a project saved before it existed does not
@@ -451,7 +514,15 @@ function persistNow(): void {
 
 function send(): void {
   const state = useSession.getState();
-  const session = Object.fromEntries(SAVED_FIELDS.map((key) => [key, state[key]]));
+  const session: Record<string, unknown> = Object.fromEntries(
+    SAVED_FIELDS.map((key) => [key, state[key]]),
+  );
+  // ⛔ **Only an edited clip is sent, and it is not in `SAVED_FIELDS` for that
+  // reason.** Every other field is small and unconditional; this one is the
+  // whole pattern, and sending it for the unedited sessions that are most of
+  // them would put a few hundred kilobytes of notes into every project file to
+  // restore something the seed already describes exactly.
+  if (state.edited && state.pattern !== null) session.pattern = state.pattern;
   void invoke('save_session_state', { session }).catch(() => {
     // Losing a session write is not worth interrupting someone mid-beat. The
     // next change writes the whole session again anyway.
@@ -518,6 +589,12 @@ function put(
   set: (partial: Partial<SessionState>) => void,
   get: () => SessionState,
 ): void {
+  // ⛔ **Only trusted when the session says it was edited.** A stored clip and
+  // an unedited session together would mean regenerating anyway, and replaying
+  // a pattern the seed can rebuild is how a project stops picking up engine
+  // fixes for no benefit. `edited` is the flag, not "a pattern is present".
+  const restored = saved.edited && saved.pattern ? saved.pattern : null;
+
   // ⛔ **One `set`, not two.** Every write here is recorded by the history
   // subscriber, so splitting the selection out of the rest made a single preset
   // load land as *two* undo entries — the first `Ctrl`+`Z` then stepped back to
@@ -536,6 +613,8 @@ function put(
       keyRoot: saved.pins?.keyRoot ?? null,
       scale: saved.pins?.scale ?? null,
       swing: saved.pins?.swing ?? null,
+      timeSigNum: saved.pins?.timeSigNum ?? null,
+      timeSigDen: saved.pins?.timeSigDen ?? null,
     },
     // ⛔ The prompt asks about an artist switch, and a preset is not that
     // switch — leaving it up means answering it with "use theirs" wipes the
@@ -545,8 +624,11 @@ function put(
     // derived from the seed, on request. Leaving the old one up showed the
     // *previous* artist's beat under the new artist's name, which is the
     // readout-that-lies failure `loadDefaults` already guards against. Null on
-    // a project restore too, where it is already null and this changes nothing.
-    pattern: null,
+    // a project restore too — unless the project carried an *edited* clip,
+    // which the seed cannot reproduce and which is therefore the one thing
+    // here that has to come back whole rather than be regenerated.
+    pattern: restored,
+    edited: restored !== null,
     // Set directly rather than through `select`, which would clear the pins as
     // a different artist's and raise the keep-or-adopt prompt. This is a
     // session arriving whole, not a switch.
@@ -582,6 +664,7 @@ export const useSession = create<SessionState>((set, get) => ({
   mood: null,
   audioEnabled: true,
   mutedLanes: [],
+  edited: false,
   defaults: null,
   pendingArtist: null,
 
@@ -780,7 +863,7 @@ export const useSession = create<SessionState>((set, get) => ({
     return standalone && playbackFailure === null;
   },
 
-  async generate() {
+  async generate(part = 'drums') {
     const { selectedId, seed, bars, generating, pins, mood } = get();
     if (!selectedId || generating) return;
 
@@ -789,6 +872,12 @@ export const useSession = create<SessionState>((set, get) => ({
       const pattern = await invoke<Pattern>('generate_pattern', {
         request: {
           styleId: selectedId,
+          // ⛔ The bridge has taken a `part` since the five generators were
+          // wired up, and the UI never sent one — so every tab that could
+          // generate got drums. It is sent explicitly rather than left to the
+          // bridge's default because "which part am I looking at" is the page's
+          // question, not the engine's.
+          part,
           bars,
           // An empty box means "pick one for me". Sending "" would be a seed
           // that fails to parse rather than an absent one.
@@ -803,10 +892,37 @@ export const useSession = create<SessionState>((set, get) => ({
       });
       // Show the seed that was actually used, so the chip can be copied even
       // when the user never typed one (US-004).
-      set({ pattern, seed: pattern.seed, generating: false });
+      // `edited: false` — a fresh generation *is* the seed's own output again,
+      // so the project goes back to storing the request rather than the clip.
+      set({ pattern, seed: pattern.seed, generating: false, edited: false });
     } catch (error) {
       set({ generating: false, error: reason(error) });
     }
+  },
+
+  editPattern(next) {
+    // Reference-compared rather than deep-compared: every edit in
+    // `PianoRoll/notes.ts` returns the *same* object when it changes nothing
+    // (a move clamped to zero, a delete with an empty selection), so this
+    // filters those out for free and keeps a no-op gesture off the undo stack.
+    if (get().pattern === next) return;
+    // ⛔ **`edited` latches here and nowhere else.** From this call on the seed
+    // no longer describes what is on screen, so the project has to store the
+    // clip rather than the request that made it — see `edited`'s own note.
+    set({ pattern: next, edited: true });
+
+    // ⛔ **The edit has to reach the audio thread, or the preview keeps playing
+    // the notes that were there before it.** Nothing else does this: the
+    // schedule is armed in `editor.rs` from any reply that is a `Pattern`, and
+    // a purely local edit produces no reply at all — so a producer moved a
+    // note, watched it move, pressed play and heard the old one.
+    //
+    // Fire-and-forget for the same reason the session save is: losing one is
+    // not worth interrupting someone mid-beat, and the next edit sends the
+    // whole pattern again. Outside the plugin there is no audio thread to tell.
+    // Arming the audio thread and telling the project are the subscriber's job
+    // — see `clipChanged` below. Doing them here would be three call sites for
+    // one rule, and `applySnapshot` would still be the one that forgot.
   },
 
   async seek(progress) {
@@ -914,6 +1030,23 @@ if (isPlugin()) {
     persist();
   });
 
+  /**
+   * The clip itself, which `SAVED_FIELDS` deliberately does not cover.
+   *
+   * ⛔ **A subscriber, not two lines at each door, and that is the whole point.**
+   * A new pattern has to reach the audio thread — `editor.rs` arms the schedule
+   * from any reply that *is* a `Pattern`, and a local edit produces no reply at
+   * all, so a producer moved a note, watched it move, pressed play and heard the
+   * old one. There are four writers of `pattern`: `generate`, `editPattern`, the
+   * project restore, and `applySnapshot`. When this was a ritual copied into
+   * each, `applySnapshot` was the one that had neither — so **undo showed the
+   * old notes while the audio thread kept playing the new ones**, and an undo
+   * between two edits never reached the project file either.
+   *
+   * ⛔ The save is conditional on `edited` and the arm is not: an unedited clip
+   * is regenerated from its seed and is not worth a byte in the project, but
+   * every clip that reaches the screen has to be the one that plays.
+   */
   // The page is going away — `pagehide` is the last event a webview reliably
   // delivers, and `visibilitychange` covers a host that hides the editor
   // without destroying it. Both are cheap no-ops when nothing is pending.
@@ -922,6 +1055,14 @@ if (isPlugin()) {
     if (document.visibilityState === 'hidden') flush();
   });
 }
+
+useSession.subscribe((state, prev) => {
+  if (state.pattern === prev.pattern || !isPlugin()) return;
+  if (state.pattern !== null) {
+    void invoke('arm_pattern', { pattern: state.pattern }).catch(() => {});
+  }
+  if (state.edited) persist();
+});
 
 /**
  * Follow the playhead the audio thread publishes.

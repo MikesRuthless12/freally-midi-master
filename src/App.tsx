@@ -6,6 +6,7 @@ import { RightRail } from './components/layout/RightRail';
 import { AboutModal } from './components/Settings/About';
 import { SettingsModal } from './components/Settings/Settings';
 import { TransportBar } from './components/layout/TransportBar';
+import { isTypingTarget } from './lib/keyboard';
 import { subscribeToPlayhead, useSession } from './state/session';
 import { isWide, useUi } from './state/ui';
 import './components/layout/layout.css';
@@ -67,8 +68,7 @@ function Studio() {
       if (e.key !== 'k' && e.key !== 'K') return;
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       // Never steal the key from a text field.
-      const el = e.target as HTMLElement | null;
-      if (el?.matches?.('input, textarea, select, [contenteditable]')) return;
+      if (isTypingTarget(e.target)) return;
       e.preventDefault();
       toggleRightRail();
     };
@@ -89,8 +89,10 @@ function Studio() {
       // ⛔ Inside a text field the browser's own undo owns this chord, and it
       // is undoing something more immediate than a session step. Taking it
       // would make the seed box unable to un-type a character.
-      const el = e.target as HTMLElement | null;
-      if (el?.matches?.('input, textarea, [contenteditable]')) return;
+      //
+      // ⛔ This used to spell the selector out and *omitted `select`*, so undo
+      // was stolen from a dropdown while `K` above was not. One predicate now.
+      if (isTypingTarget(e.target)) return;
 
       e.preventDefault();
       const { undo, redo } = useSession.getState();

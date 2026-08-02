@@ -263,6 +263,16 @@ impl Plugin for FreallyMidiMaster {
             .handoff
             .receive(std::mem::take(&mut self.pending));
 
+        // The keyboard gutter's click-to-audition (TASK-041).
+        //
+        // ⛔ **Before the transport gate, because an audition is not playback.**
+        // A producer clicks a key to find a register *while the DAW is stopped*,
+        // which is the normal case — putting this after the `!running` early
+        // return would make the gutter silent exactly when it is most used.
+        if let Some(pitch) = self.shared.take_audition() {
+            self.audition(pitch);
+        }
+
         // ⛔ **Nothing advances unless the host's transport is running.**
         // `process` is called continuously whenever the plugin is active, not
         // only while the DAW plays — so without this the schedule started
@@ -337,6 +347,58 @@ impl FreallyMidiMaster {
     /// **Added to the buffer rather than replacing it.** The layout is declared
     /// as a pass-through (see `AUDIO_IO_LAYOUTS`), so whatever a host routes in
     /// must still come out.
+    /// Sound one note for the piano roll's keyboard gutter (TASK-041).
+    ///
+    /// ⛔ **Played through the one *tuned* pad in the preview kit, not through
+    /// whichever pad happens to be first.** `render_preview` already documents
+    /// that this kit is a drum kit and that the four melodic parts therefore
+    /// render silence until pitched instrument voices exist. An audition has the
+    /// same problem and one narrow way out: the 808 is the only pad that carries
+    /// a `root_note`, so it is the only one that can be transposed to an
+    /// arbitrary pitch and still be the note that was asked for. A kick pitched
+    /// up forty semitones is not a preview of anything.
+    ///
+    /// ⚠ **So the gutter previews with an 808 tone, and that is a stand-in.**
+    /// When TASK-052/053 give each melodic part its own instrument slot with
+    /// chromatic voices, this should play *that part's* instrument. Written down
+    /// rather than left to be discovered as "why does my melody sound like a
+    /// bass".
+    ///
+    /// Silent when the preview is switched off, because that switch means
+    /// MIDI-only and an audition is not MIDI (FMM-S02).
+    fn audition(&mut self, pitch: u8) {
+        if !self.shared.audio_enabled() {
+            return;
+        }
+        let Some(kit) = audio::preview_kit() else {
+            return;
+        };
+        // The tuned pad, found by the property that makes it usable rather than
+        // by name: a kit that renamed its 808 would still audition correctly,
+        // and one with no tuned pad at all stays silent rather than guessing.
+        //
+        // One pass yielding both the index and the root, so there is no
+        // second lookup to `expect` its way out of.
+        let Some((pad_index, root)) = kit
+            .pads
+            .iter()
+            .enumerate()
+            .find_map(|(index, pad)| pad.root_note.map(|root| (index, root)))
+        else {
+            return;
+        };
+        self.sampler.trigger(
+            kit,
+            pad_index,
+            // A fixed, comfortable level. An audition is a question about pitch,
+            // not about dynamics, and the note being previewed does not exist
+            // yet to have a velocity of its own.
+            0.8,
+            f32::from(pitch) - f32::from(root),
+            f64::from(self.shared.sample_rate()),
+        );
+    }
+
     fn render_preview(&mut self, buffer: &mut Buffer) {
         // ⛔ **MIDI-only, checked before anything else.** The notes have
         // already gone out by the time this runs, so returning here silences

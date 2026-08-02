@@ -15,12 +15,20 @@ const BASE: Snapshot = {
   selectedId: null,
   seed: '',
   bars: 4,
-  pins: { bpm: null, keyRoot: null, scale: null, swing: null },
+  pins: {
+    bpm: null,
+    keyRoot: null,
+    scale: null,
+    swing: null,
+    timeSigNum: null,
+    timeSigDen: null,
+  },
   autoSync: true,
   pattern: null,
   mood: null,
   audioEnabled: true,
   mutedLanes: [],
+  edited: false,
 };
 
 function snap(over: Partial<Snapshot>): Snapshot {

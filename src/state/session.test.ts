@@ -105,6 +105,7 @@ beforeEach(() => {
     mood: null,
     audioEnabled: true,
     mutedLanes: [],
+    edited: false,
     pins: NO_PINS,
     defaults: null,
     pendingArtist: null,
@@ -194,6 +195,67 @@ describe('auto-sync', () => {
       expect(useSession.getState().mutedLanes).toBe(before);
     });
   });
+
+  /**
+   * TASK-041's persist gate: an edited clip becomes document state.
+   *
+   * The rest of this file is about saving the *request* — artist, seed, pins —
+   * because the engine is deterministic and a few hundred bytes reopen the same
+   * pattern. Editing is the one thing that breaks that property, and these are
+   * the two halves of the answer: an unedited session still stores no notes,
+   * and an edited one stores the clip.
+   */
+  describe('an edited clip', () => {
+    const edit = () => ({
+      ...PATTERN,
+      lanes: [
+        {
+          lane: 'melody' as const,
+          notes: [{ startTick: 0, lenTicks: 240, pitch: 61, vel: 90 }],
+        },
+      ],
+    });
+
+    it('is not saved at all until something has been edited', () => {
+      useSession.setState({ pattern: PATTERN, edited: false });
+      useSession.getState().setAutoSync(false);
+      vi.advanceTimersByTime(400);
+      expect(lastSaved().pattern).toBeUndefined();
+      expect(lastSaved().edited).toBe(false);
+    });
+
+    it('is saved whole once the seed no longer describes it, and on every edit after', () => {
+      useSession.setState({ pattern: PATTERN });
+      useSession.getState().editPattern(edit());
+      vi.advanceTimersByTime(400);
+      expect(lastSaved().pattern).toEqual(edit());
+
+      // ⛔ The second edit is the one that used to be lost: `edited` has
+      // already flipped, so nothing in `SAVED_FIELDS` changes from here on.
+      const again = { ...edit(), bars: 8 };
+      useSession.getState().editPattern(again);
+      vi.advanceTimersByTime(400);
+
+      expect(lastSaved().edited).toBe(true);
+      expect(lastSaved().pattern).toEqual(again);
+    });
+
+    it('goes back to storing the request when a fresh pattern is generated', () => {
+      // ⛔ Otherwise a session stays "edited" for the rest of its life and every
+      // save from then on carries a clip the seed already describes exactly.
+      useSession.getState().select('trap');
+      useSession.getState().editPattern(edit());
+      expect(useSession.getState().edited).toBe(true);
+      return useSession
+        .getState()
+        .generate()
+        .then(() => {
+          expect(useSession.getState().edited).toBe(false);
+          vi.advanceTimersByTime(400);
+          expect(lastSaved().pattern).toBeUndefined();
+        });
+    });
+  });
 });
 
 describe('going back to a seed', () => {
@@ -230,6 +292,8 @@ describe('session pins', () => {
       keyRoot: null,
       scale: null,
       swing: null,
+      timeSigNum: null,
+      timeSigDen: null,
     });
   });
 
@@ -244,6 +308,11 @@ describe('session pins', () => {
       keyRoot: null,
       scale: 'dorian',
       swing: null,
+      // ⛔ Absent, not 4/4. The meter a clip does not name is the host's
+      // (TASK-041E), and sending a default here would drag a 6/8 project back
+      // to common time on every Generate.
+      timeSigNum: null,
+      timeSigDen: null,
     });
   });
 
@@ -401,6 +470,7 @@ describe('applyPreset', () => {
       mood: null,
       audioEnabled: true,
       mutedLanes: [],
+      edited: false,
     });
 
     useSession.getState().applyPreset(PRESET);

@@ -23,7 +23,7 @@
 use std::sync::{Arc, RwLock};
 
 use engine::context::SessionOverrides;
-use engine::pattern::Lane;
+use engine::pattern::{Lane, Pattern};
 use serde::{Deserialize, Serialize};
 
 /// The session as the host stores it, and as the UI restores it.
@@ -90,6 +90,31 @@ pub struct PluginSession {
     /// Lanes whose *audio* is muted. Their notes still reach the host.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub muted_lanes: Vec<Lane>,
+    /// The clip as the producer edited it, once the seed stops describing it.
+    ///
+    /// ⛔ **The exception the module header's rule needs, and only the
+    /// exception.** "The notes are not saved" holds because the engine is
+    /// deterministic — the seed *is* the pattern. That stops being true the
+    /// moment somebody moves a note, and from then on regenerating from the
+    /// seed reopens the project having silently undone their editing session.
+    /// So an edited clip is stored whole and an unedited one is still not
+    /// stored at all: `None` for every session nobody has drawn in, which is
+    /// most of them, and the small-project-file property survives for those.
+    ///
+    /// ⚠ The trade the header names goes the other way for these: a clip saved
+    /// here is *replayed*, not regenerated, so an engine improvement will not
+    /// reach it. That is the right answer — the producer's edit outranks the
+    /// engine's opinion of what the seed should have produced.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub pattern: Option<Pattern>,
+    /// Whether [`Self::pattern`] is an edit rather than the seed's own output.
+    ///
+    /// Carried explicitly rather than inferred from `pattern.is_some()`,
+    /// because the UI has to know on restore whether to trust the stored clip
+    /// or press on with the seed — and "there happens to be a pattern here"
+    /// does not answer that.
+    #[serde(default)]
+    pub edited: bool,
 }
 
 /// The preview sampler's default, which is **on**.
@@ -129,6 +154,8 @@ impl Default for PluginSession {
             mood: None,
             audio_enabled: true,
             muted_lanes: Vec::new(),
+            pattern: None,
+            edited: false,
         }
     }
 }
@@ -209,11 +236,72 @@ mod tests {
             mood: Some("dark".into()),
             audio_enabled: false,
             muted_lanes: vec![Lane::Snare],
+            pattern: None,
+            edited: false,
         };
 
         let json = serde_json::to_string(&session).unwrap();
         let back: PluginSession = serde_json::from_str(&json).unwrap();
         assert_eq!(back, session);
+    }
+
+    #[test]
+    fn an_edited_clip_survives_the_round_trip_whole() {
+        // ⛔ TASK-041's own gate. Everything else here is saved as the *inputs*
+        // that regenerate it, because the engine is deterministic — and the
+        // moment a producer moves a note that stops being true. A clip that did
+        // not survive this would reopen the project having silently undone
+        // their editing session, with the seed as the only explanation.
+        let mut edited = PluginSession {
+            selected_id: Some("trap".into()),
+            seed: "7".into(),
+            ..PluginSession::default()
+        };
+        edited.pattern = Some(Pattern {
+            id: "trap-7".into(),
+            part: engine::pattern::Part::Melody,
+            artist_id: "trap".into(),
+            seed: 7,
+            bars: 4,
+            bpm: 140.0,
+            time_sig_num: 4,
+            time_sig_den: 4,
+            key_root: 6,
+            scale: engine::pattern::Scale::NaturalMinor,
+            lanes: vec![engine::pattern::LaneTrack {
+                lane: Lane::Melody,
+                notes: vec![engine::pattern::Note {
+                    start_tick: 480,
+                    len_ticks: 240,
+                    pitch: 61,
+                    vel: 99,
+                    model_vel: Some(84),
+                    slide_to_pitch: None,
+                    articulation: None,
+                }],
+            }],
+            ppq: engine::pattern::PPQ,
+            mood: None,
+            loop_region: Some(engine::pattern::Region {
+                from_tick: 0,
+                to_tick: 3840,
+            }),
+            clip_region: None,
+        });
+        edited.edited = true;
+
+        let json = serde_json::to_string(&edited).unwrap();
+        let back: PluginSession = serde_json::from_str(&json).unwrap();
+        assert_eq!(back, edited, "the clip, its loop and its model velocities");
+
+        // And an unedited session still carries no notes at all, which is the
+        // property that keeps a project file a few hundred bytes.
+        let plain = PluginSession::default();
+        let json = serde_json::to_string(&plain).unwrap();
+        assert!(
+            !json.contains("pattern"),
+            "an unedited session must not store a clip: {json}"
+        );
     }
 
     #[test]

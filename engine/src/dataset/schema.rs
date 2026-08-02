@@ -19,6 +19,7 @@ use serde_json::Value;
 use ts_rs::TS;
 
 use crate::dataset::DatasetError;
+use crate::pattern::ScaleCharacter;
 
 /// A numeric parameter, in any of the three authoring forms.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
@@ -279,6 +280,24 @@ pub struct SessionSpec {
     pub keys: Option<StrSpec>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub scales: Option<StrSpec>,
+    /// The emotional colour a *mode* asks for, narrowing `scales` (TASK-041C).
+    ///
+    /// ⛔ **On the session block rather than on the mode, deliberately.** A mode
+    /// is merged into the model as a partial override of exactly these blocks,
+    /// so declaring it here means `"modes": [{ "name": "dark", "session": {
+    /// "character": "dark" } }]` works through the machinery that already
+    /// exists — and `extends` carries it, like everything else in `session`.
+    /// A field on `Mode` would have needed its own merge path and its own
+    /// inheritance rule.
+    ///
+    /// ⛔ **Absent is not "neutral".** Absent means the mode has no opinion and
+    /// the model's full scale list stands; `neutral` is a positive statement
+    /// that `uptempo` and `minimal` make — they are tempo and density
+    /// statements, not emotional ones — and it narrows to the neutral scales.
+    /// Collapsing the two would make every unauthored mode silently offer only
+    /// the symmetric scales.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub character: Option<ScaleCharacter>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub swing: Option<SwingSpec>,
     #[serde(default, skip_serializing_if = "Option::is_none")]
