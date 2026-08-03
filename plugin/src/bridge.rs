@@ -202,15 +202,7 @@ pub fn dispatch(
             let song: engine::pattern::Song =
                 engine::pattern::Song::deserialize(&request.args["song"])
                     .map_err(|e| format!("bad song: {e}"))?;
-            let dangling = song.dangling_refs();
-            if !dangling.is_empty() {
-                return Err(format!(
-                    "this song names {} pattern(s) it does not carry ({}) — \
-                     exporting it would write silence where they play",
-                    dangling.len(),
-                    dangling.join(", ")
-                ));
-            }
+            check_refs(&song)?;
             // The same trust boundary `song_smf` documents, and it has to be
             // here too: this path reaches `song_to_smf` with a `Song` that came
             // from the webview.
@@ -231,6 +223,12 @@ pub fn dispatch(
             let song: engine::pattern::Song =
                 engine::pattern::Song::deserialize(&request.args["song"])
                     .map_err(|e| format!("bad song: {e}"))?;
+            // ⛔ **The same refusal `export_song` makes, and leaving it out was
+            // an inconsistency rather than a shortcut.** A dangling reference
+            // draws as an empty row and writes as silence — so without this, a
+            // stem folder came back looking complete with one part quietly
+            // empty, which is exactly the failure the check exists to name.
+            check_refs(&song)?;
             check_song(&song)?;
             let folder = format!("{}-{}-stems", song.artist_id, song.seed);
             exports
@@ -314,15 +312,7 @@ pub fn dispatch(
             let song: engine::pattern::Song =
                 engine::pattern::Song::deserialize(&request.args["song"])
                     .map_err(|e| format!("bad song: {e}"))?;
-            let dangling = song.dangling_refs();
-            if !dangling.is_empty() {
-                return Err(format!(
-                    "this song names {} pattern(s) it does not carry ({}) — \
-                     exporting it would write silence where they play",
-                    dangling.len(),
-                    dangling.join(", ")
-                ));
-            }
+            check_refs(&song)?;
             // ⛔ **Bounded before the engine sees it, because this is a trust
             // boundary.** A `Song` arrives here as JSON from the webview — a
             // project file somebody else saved, or devtools — and every field is
@@ -628,6 +618,27 @@ fn reroll_section(args: RerollArgs, host: &HostSession) -> Result<engine::patter
 /// binds on anything a producer arranged. It exists so a *file* cannot describe
 /// a song whose length only makes sense as an attack.
 const MAX_SONG_BARS: u32 = 4_096;
+
+/// Refuse a song that names a clip it does not carry.
+///
+/// ⛔ **Every path that turns a `Song` into a file asks this**, and it was
+/// written out at each of them until a third export arrived without it. A
+/// dangling reference draws as an empty row and writes as *silence* — so the
+/// producer gets a file that opens, imports, and is quietly missing a part,
+/// with nothing anywhere saying why. `arrange` cannot produce one; a restored
+/// project file or a hand-edited one can.
+fn check_refs(song: &engine::pattern::Song) -> Result<(), String> {
+    let dangling = song.dangling_refs();
+    if dangling.is_empty() {
+        return Ok(());
+    }
+    Err(format!(
+        "this song names {} pattern(s) it does not carry ({}) — exporting it \
+         would write silence where they play",
+        dangling.len(),
+        dangling.join(", ")
+    ))
+}
 
 /// Refuse a song whose numbers cannot describe real music.
 ///

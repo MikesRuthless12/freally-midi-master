@@ -591,10 +591,19 @@ impl SectionTiling {
 
 impl Song {
     /// Total length in bars.
+    /// Total length in bars.
+    ///
+    /// ⚠ **Saturating, like every other tick sum over these fields.** Both
+    /// operands come off the wire on the song path, and `check_song` caps them
+    /// long before this is reached today — but that guard lives at the bridge
+    /// and this is a method on the type. `flatten_parts` is now a caller, and a
+    /// future one that does not cross the bridge would be an overflow panic in
+    /// a debug-assertions build, which with `panic = "abort"` is the host
+    /// process dying rather than one plugin misbehaving.
     pub fn total_bars(&self) -> u32 {
         self.sections
             .iter()
-            .map(|s| s.start_bar + u32::from(s.bars))
+            .map(|s| s.start_bar.saturating_add(u32::from(s.bars)))
             .max()
             .unwrap_or(0)
     }
