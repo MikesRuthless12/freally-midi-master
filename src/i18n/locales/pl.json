@@ -263,6 +263,8 @@
     "export": "Eksportuj .mid",
     "exporting": "Wybierz folder…",
     "exported": "Zapisano w {{path}}",
+    "stems": "Ścieżki",
+    "stemsHint": "Jeden .mid na partię, do folderu. Ścieżki audio pojawią się wraz z głosami tonalnymi.",
     "kind": {
       "intro": "Wstęp",
       "verse": "Zwrotka",

@@ -263,6 +263,8 @@
     "export": ".mid exporteren",
     "exporting": "Kies een map…",
     "exported": "Opgeslagen in {{path}}",
+    "stems": "Stems",
+    "stemsHint": "Eén .mid per partij, in een map. Audiostems komen met de getoonhoogde stemmen.",
     "kind": {
       "intro": "Intro",
       "verse": "Couplet",

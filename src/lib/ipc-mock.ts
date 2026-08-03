@@ -271,6 +271,7 @@ const handlers: Record<string, Handler> = {
   // browser that cannot write files — which is the fixture testing itself.
   // Cancelled is the one outcome that is *true* here.
   export_song: () => undefined,
+  export_stems: () => undefined,
   export_status: () => ({ state: 'cancelled' }),
 
   // The forms this artist writes, for the structure picker (TASK-070).

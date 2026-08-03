@@ -263,6 +263,8 @@
     "export": "Exporter .mid",
     "exporting": "Choisissez un dossier…",
     "exported": "Enregistré dans {{path}}",
+    "stems": "Pistes",
+    "stemsHint": "Un .mid par partie, dans un dossier. Les pistes audio arriveront avec les voix accordées.",
     "kind": {
       "intro": "Intro",
       "verse": "Couplet",

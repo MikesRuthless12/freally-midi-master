@@ -263,6 +263,8 @@
     "export": "Exportar .mid",
     "exporting": "Escolha uma pasta…",
     "exported": "Salvo em {{path}}",
+    "stems": "Stems",
+    "stemsHint": "Um .mid por parte, em uma pasta. Os stems de áudio chegam com as vozes afinadas.",
     "kind": {
       "intro": "Introdução",
       "verse": "Verso",

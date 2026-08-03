@@ -23,7 +23,7 @@
 //! dialogs from one plugin is a window a producer cannot explain, and "export
 //! twice quickly" is not a thing anybody means to do.
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::sync::Mutex;
 
 use engine::pattern::Song;
@@ -93,6 +93,112 @@ pub fn start_song_midi(song: &Song, suggested: &str) -> Result<(), String> {
     });
 
     Ok(())
+}
+
+/// Write one file per part into a folder the producer picks (TASK-069).
+///
+/// ## ⛔ MIDI stems, not audio stems, and the reason is measured
+///
+/// TASK-069 asks for per-part **wavs**. The plugin cannot honestly produce them
+/// yet: `audio::Kit::pad_for` returns `None` for Melody, Counter, Bass and
+/// Chords, because the preview kit is a *drum* kit — `lib.rs` says so in as
+/// many words and points at FMM-N15/FMM-N16 for the pitched voices. Rendering
+/// the four melodic parts today would write four silent files and call them
+/// stems, which is worse than not offering them: a producer would import them,
+/// hear nothing, and blame their DAW.
+///
+/// So this writes what the plugin actually has — one **type-0 `.mid` per
+/// part**, which the roadmap's own entry lists beside the wavs ("per-part
+/// type-0 clips alongside"). The audio half arrives with the pitched voices.
+///
+/// ## What "aligned to bar 1, identical lengths" means here
+///
+/// Every file is the whole song's timeline with one part in it, so they line up
+/// by construction: dropping all five onto a DAW at bar 1 reassembles the
+/// arrangement. That is the property the wav half would have needed too, and
+/// flattening is what gives it — see `Song::flatten_parts`.
+pub fn start_song_stems(song: &Song, folder_name: &str) -> Result<(), String> {
+    // Encoded on the caller's thread, for the same reason `start_song_midi`
+    // does it: the bytes are a pure function of the song, and cloning a whole
+    // arrangement onto the dialog thread would buy nothing.
+    let mut files: Vec<(String, Vec<u8>)> = Vec::new();
+    for part in engine::pattern::PART_ORDER {
+        let flat = song.flatten_parts(Some(&[part]));
+        // A part nothing plays gets no file. An empty stem is a file a producer
+        // imports, hears nothing from, and has to work out was always empty.
+        if flat.note_count() == 0 {
+            continue;
+        }
+        files.push((
+            // The names US-011 already gives the SMF's tracks, so a folder of
+            // stems and a multi-track export read the same.
+            format!("FMM {}.mid", part_name(part)),
+            engine::midi::pattern_to_smf(&flat),
+        ));
+    }
+    if files.is_empty() {
+        return Err("this song plays nothing, so there are no stems to write".to_owned());
+    }
+
+    let stem_dir = sanitize(folder_name);
+
+    {
+        let mut slot = STATUS
+            .lock()
+            .map_err(|_| "the export state is unusable".to_owned())?;
+        if *slot == Status::Running {
+            return Err("an export is already open — finish that one first".to_owned());
+        }
+        *slot = Status::Running;
+    }
+
+    std::thread::spawn(move || {
+        let picked = rfd::FileDialog::new().pick_folder();
+        let status = match picked {
+            Some(root) => write_stems(&root.join(&stem_dir), &files),
+            None => Status::Cancelled,
+        };
+        if let Ok(mut slot) = STATUS.lock() {
+            *slot = status;
+        }
+    });
+
+    Ok(())
+}
+
+/// ⚠ **Into a sub-folder of the one that was picked, not into it directly.**
+/// Five files dropped into somebody's Desktop is a mess they have to clean up
+/// by hand, and it makes "which of these go together" unanswerable once a
+/// second song is exported.
+fn write_stems(dir: &Path, files: &[(String, Vec<u8>)]) -> Status {
+    if let Err(error) = std::fs::create_dir_all(dir) {
+        return Status::Failed {
+            reason: format!("could not create {}: {error}", dir.display()),
+        };
+    }
+    for (name, bytes) in files {
+        if let Err(error) = std::fs::write(dir.join(name), bytes) {
+            return Status::Failed {
+                reason: format!("could not write {name}: {error}"),
+            };
+        }
+    }
+    Status::Done {
+        path: dir.display().to_string(),
+    }
+}
+
+/// The name US-011 gives this part's track, so a stem file and an SMF track
+/// agree.
+fn part_name(part: engine::pattern::Part) -> &'static str {
+    use engine::pattern::Part;
+    match part {
+        Part::Drums => "Drums",
+        Part::Chords => "Chords",
+        Part::Melody => "Melody",
+        Part::Counter => "Counter",
+        Part::Bass => "Bass",
+    }
 }
 
 /// Read the outcome, and clear it if there is one.
@@ -249,6 +355,58 @@ mod tests {
         assert_eq!(take_status(), Status::Running);
         assert_eq!(take_status(), Status::Running, "running is not an outcome");
         *STATUS.lock().unwrap() = Status::Idle;
+    }
+
+    #[test]
+    fn stems_land_in_their_own_folder_under_the_one_that_was_picked() {
+        // ⚠ Five files dropped straight into somebody's Desktop is a mess they
+        // clean up by hand, and it makes "which of these go together"
+        // unanswerable the moment a second song is exported.
+        let root = std::env::temp_dir().join("fmm-stem-test");
+        let _ = std::fs::remove_dir_all(&root);
+        let dir = root.join("trap-7-stems");
+
+        let files = vec![
+            ("FMM Drums.mid".to_owned(), vec![0x4d, 0x54, 0x68, 0x64]),
+            ("FMM Melody.mid".to_owned(), vec![0x4d, 0x54, 0x68, 0x64]),
+        ];
+        let status = write_stems(&dir, &files);
+
+        assert!(matches!(status, Status::Done { .. }), "{status:?}");
+        assert!(dir.join("FMM Drums.mid").is_file());
+        assert!(dir.join("FMM Melody.mid").is_file());
+        // Nothing was written beside the folder.
+        let loose = std::fs::read_dir(&root)
+            .expect("the root exists")
+            .filter_map(Result::ok)
+            .filter(|e| e.path().is_file())
+            .count();
+        assert_eq!(loose, 0, "a stem landed outside its folder");
+
+        let _ = std::fs::remove_dir_all(&root);
+    }
+
+    #[test]
+    fn a_song_that_plays_nothing_is_refused_rather_than_writing_an_empty_folder() {
+        // A folder of nothing is a successful-looking export the producer then
+        // has to work out was always empty.
+        let empty = engine::pattern::Song {
+            id: "s".into(),
+            artist_id: "trap".into(),
+            seed: 1,
+            bpm: 140.0,
+            key_root: 0,
+            scale: engine::pattern::Scale::NaturalMinor,
+            sections: vec![],
+            time_sig_num: 4,
+            time_sig_den: 4,
+            patterns: Default::default(),
+            ppq: engine::pattern::PPQ,
+        };
+        let err = start_song_stems(&empty, "trap-1-stems").unwrap_err();
+        assert!(err.contains("plays nothing"), "{err}");
+        // And it did not leave the mailbox claiming an export is running.
+        assert_eq!(take_status(), Status::Idle);
     }
 
     #[test]

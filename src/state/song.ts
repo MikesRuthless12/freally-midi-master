@@ -140,6 +140,17 @@ export type SongState = {
   exportState: 'idle' | 'running' | 'done' | 'cancelled' | 'failed';
   exportMessage: string | null;
   exportSong: () => Promise<void>;
+  /**
+   * One file per part, into a folder (TASK-069).
+   *
+   * ⚠ **MIDI stems, not audio stems.** The preview kit is a drum kit, so the
+   * four melodic parts have no voice to render through yet — `export.rs` has
+   * the full reasoning and points at FMM-N15/FMM-N16. Four silent wavs called
+   * stems would be worse than not offering them.
+   */
+  exportStems: () => Promise<void>;
+  /** Shared by both exports — see the note on the implementation. */
+  runExport: (command: 'export_song' | 'export_stems') => Promise<void>;
 
   /** Hand the arrangement to the audio thread, as it currently stands. */
   armSong: () => void;
@@ -218,11 +229,23 @@ export const useSong = create<SongState>((set, get) => ({
   exportMessage: null,
 
   async exportSong() {
+    await get().runExport('export_song');
+  },
+
+  async exportStems() {
+    await get().runExport('export_stems');
+  },
+
+  // ⛔ One implementation for both, because the *only* difference is the
+  // command name. The polling, the timeout and the status mapping were the
+  // fiddly parts, and two copies of them is two places for the export to end up
+  // stuck reading "exporting…" forever.
+  async runExport(command) {
     const { song, exportState } = get();
     if (!song || exportState === 'running') return;
     set({ exportState: 'running', exportMessage: null });
     try {
-      await invoke('export_song', { song });
+      await invoke(command, { song });
     } catch (error) {
       set({ exportState: 'failed', exportMessage: reason(error) });
       return;

@@ -263,6 +263,8 @@
     "export": "Ekspor .mid",
     "exporting": "Pilih folder…",
     "exported": "Disimpan ke {{path}}",
+    "stems": "Stem",
+    "stemsHint": "Satu .mid per bagian, ke dalam folder. Stem audio hadir bersama suara bernada.",
     "kind": {
       "intro": "Pembuka",
       "verse": "Bait",

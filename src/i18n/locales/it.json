@@ -263,6 +263,8 @@
     "export": "Esporta .mid",
     "exporting": "Scegli una cartella…",
     "exported": "Salvato in {{path}}",
+    "stems": "Stem",
+    "stemsHint": "Un .mid per parte, in una cartella. Gli stem audio arriveranno con le voci intonate.",
     "kind": {
       "intro": "Introduzione",
       "verse": "Strofa",

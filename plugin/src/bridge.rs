@@ -217,6 +217,20 @@ pub fn dispatch(
             crate::export::start_song_midi(&song, &suggested).map(|()| Value::Null)
         }
 
+        // One file per part, into a folder the producer picks (TASK-069).
+        //
+        // ⚠ **MIDI stems, not audio stems, and `export.rs` explains why in
+        // full**: the preview kit is a drum kit, so the four melodic parts have
+        // no voice to render through yet (FMM-N15/FMM-N16). Writing four silent
+        // wavs and calling them stems would be worse than not offering them.
+        "export_stems" => {
+            let song: engine::pattern::Song = serde_json::from_value(request.args["song"].clone())
+                .map_err(|e| format!("bad song: {e}"))?;
+            check_song(&song)?;
+            let folder = format!("{}-{}-stems", song.artist_id, song.seed);
+            crate::export::start_song_stems(&song, &folder).map(|()| Value::Null)
+        }
+
         // How the export that is running ended, if it has.
         //
         // ⚠ Polled, and the outcome is *taken* — see `export::take_status`. A

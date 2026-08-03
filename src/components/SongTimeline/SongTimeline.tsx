@@ -76,6 +76,7 @@ export function SongTimeline({ song }: Props) {
   const stopAudition = useSong((s) => s.stopAudition);
   const drillInto = useSong((s) => s.drillInto);
   const exportSong = useSong((s) => s.exportSong);
+  const exportStems = useSong((s) => s.exportStems);
   const exportState = useSong((s) => s.exportState);
   const exportMessage = useSong((s) => s.exportMessage);
   const structure = useSong((s) => s.structure);
@@ -228,6 +229,20 @@ export function SongTimeline({ song }: Props) {
           onClick={() => void exportSong()}
         >
           {exportState === 'running' ? t('song.exporting') : t('song.export')}
+        </button>
+        {/* One .mid per part, into a folder (TASK-069). ⚠ MIDI rather than
+            audio: the preview kit is a drum kit, so the melodic parts have no
+            voice to render through yet — the tooltip says so rather than
+            letting a producer discover it by importing silence. */}
+        <button
+          type="button"
+          className="song__export"
+          data-testid="song-export-stems"
+          disabled={exportState === 'running'}
+          title={t('song.stemsHint')}
+          onClick={() => void exportStems()}
+        >
+          {t('song.stems')}
         </button>
         {exportMessage !== null && (
           <span

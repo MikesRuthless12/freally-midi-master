@@ -263,6 +263,8 @@
     "export": "Xuất .mid",
     "exporting": "Chọn một thư mục…",
     "exported": "Đã lưu vào {{path}}",
+    "stems": "Stem",
+    "stemsHint": "Mỗi phần một tệp .mid, vào một thư mục. Stem âm thanh sẽ có cùng các giọng có cao độ.",
     "kind": {
       "intro": "Dạo đầu",
       "verse": "Phiên khúc",

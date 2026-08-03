@@ -263,6 +263,8 @@
     "export": "Export .mid",
     "exporting": "Choose a folder…",
     "exported": "Saved to {{path}}",
+    "stems": "Stems",
+    "stemsHint": "One .mid per part, into a folder. Audio stems arrive with the pitched voices.",
     "kind": {
       "intro": "Intro",
       "verse": "Verse",

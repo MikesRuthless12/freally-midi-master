@@ -263,6 +263,8 @@
     "export": ".mid exportieren",
     "exporting": "Ordner wählen…",
     "exported": "Gespeichert unter {{path}}",
+    "stems": "Stems",
+    "stemsHint": "Eine .mid pro Part, in einen Ordner. Audio-Stems kommen mit den tonalen Stimmen.",
     "kind": {
       "intro": "Intro",
       "verse": "Strophe",

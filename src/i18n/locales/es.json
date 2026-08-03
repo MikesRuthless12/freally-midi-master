@@ -263,6 +263,8 @@
     "export": "Exportar .mid",
     "exporting": "Elige una carpeta…",
     "exported": "Guardado en {{path}}",
+    "stems": "Pistas",
+    "stemsHint": "Un .mid por parte, en una carpeta. Las pistas de audio llegarán con las voces afinadas.",
     "kind": {
       "intro": "Introducción",
       "verse": "Estrofa",

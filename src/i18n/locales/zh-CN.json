@@ -263,6 +263,8 @@
     "export": "导出 .mid",
     "exporting": "请选择文件夹…",
     "exported": "已保存到 {{path}}",
+    "stems": "分轨",
+    "stemsHint": "每个声部一个 .mid，存入文件夹。音频分轨将随有音高的音色一同提供。",
     "kind": {
       "intro": "前奏",
       "verse": "主歌",

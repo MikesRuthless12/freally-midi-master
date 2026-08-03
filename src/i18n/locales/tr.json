@@ -263,6 +263,8 @@
     "export": ".mid dışa aktar",
     "exporting": "Bir klasör seçin…",
     "exported": "{{path}} konumuna kaydedildi",
+    "stems": "Stemler",
+    "stemsHint": "Her bölüm için bir .mid, bir klasöre. Ses stemleri perdeli seslerle birlikte gelecek.",
     "kind": {
       "intro": "Giriş",
       "verse": "Kıta",
