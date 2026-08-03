@@ -260,6 +260,9 @@
     "clipHint": "Klik dua kali untuk membuka klip ini di editornya",
     "rerollSection": "Buat ulang bagian ini",
     "rerollHint": "Klip yang dikunci tidak diubah",
+    "export": "Ekspor .mid",
+    "exporting": "Pilih folder…",
+    "exported": "Disimpan ke {{path}}",
     "kind": {
       "intro": "Pembuka",
       "verse": "Bait",

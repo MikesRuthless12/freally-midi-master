@@ -262,6 +262,17 @@ const handlers: Record<string, Handler> = {
     };
   },
 
+  // Exporting a song to a file (TASK-073). A browser has no native Save As and
+  // no filesystem, so the mock reports the shape of a *cancelled* export: the
+  // dialog opened and the producer closed it.
+  //
+  // ⛔ Cancelled rather than done, deliberately. `done` carries a path, and a
+  // fixture inventing one would let a spec assert a file was written in a
+  // browser that cannot write files — which is the fixture testing itself.
+  // Cancelled is the one outcome that is *true* here.
+  export_song: () => undefined,
+  export_status: () => ({ state: 'cancelled' }),
+
   // The forms this artist writes, for the structure picker (TASK-070).
   //
   // Two, because the picker only renders with more than one — a model that

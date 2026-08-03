@@ -260,6 +260,9 @@
     "clipHint": "Doppelklick öffnet diesen Clip im Editor",
     "rerollSection": "Diesen Abschnitt neu würfeln",
     "rerollHint": "Gesperrte Clips bleiben unverändert",
+    "export": ".mid exportieren",
+    "exporting": "Ordner wählen…",
+    "exported": "Gespeichert unter {{path}}",
     "kind": {
       "intro": "Intro",
       "verse": "Strophe",

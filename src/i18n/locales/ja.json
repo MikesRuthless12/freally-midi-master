@@ -260,6 +260,9 @@
     "clipHint": "ダブルクリックでこのクリップをエディターで開きます",
     "rerollSection": "このセクションを作り直す",
     "rerollHint": "ロックしたクリップはそのまま残ります",
+    "export": ".mid を書き出す",
+    "exporting": "フォルダーを選んでください…",
+    "exported": "{{path}} に保存しました",
     "kind": {
       "intro": "イントロ",
       "verse": "ヴァース",

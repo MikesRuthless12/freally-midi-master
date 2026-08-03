@@ -52,6 +52,20 @@ wry = "0.35.1"
 # No CMake; it compiles the C++ shim with the `cc` crate, using the same MSVC
 # toolchain the Rust build already requires.
 clap-wrapper = { version = "0.3.1", features = ["vst3"] }
+# The native Save As dialog a song is exported through (TASK-073).
+#
+# ⛔ **`default-features = false` with `xdg-portal`, and the reason is Linux.**
+# The default backend links GTK3, which would make the plugin refuse to load in
+# any host that has already initialised a different GTK version — and would put
+# a desktop toolkit inside a shared library loaded into someone else's process.
+# The portal backend talks to the desktop's own file-chooser over D-Bus instead,
+# which is what a sandboxed application is supposed to do and pulls no toolkit.
+# Windows and macOS use their platform dialogs either way.
+#
+# ⚠ It is **not** a network dependency and `scripts/check-denylist.mjs` still
+# passes with an empty allowlist — the gate's whole point is that no HTTP client
+# is linked, and this adds none.
+rfd = { version = "0.17.2", default-features = false, features = ["xdg-portal"] }
 
 # Git rather than crates.io because that is the only place nih-plug is
 # published. Pinned to a revision for the same reason `rust-toolchain.toml`

@@ -260,6 +260,9 @@
     "clipHint": "Double-cliquez pour ouvrir ce clip dans son éditeur",
     "rerollSection": "Relancer cette section",
     "rerollHint": "Les clips verrouillés ne sont pas touchés",
+    "export": "Exporter .mid",
+    "exporting": "Choisissez un dossier…",
+    "exported": "Enregistré dans {{path}}",
     "kind": {
       "intro": "Intro",
       "verse": "Couplet",

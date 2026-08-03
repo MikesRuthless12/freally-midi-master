@@ -260,6 +260,9 @@
     "clipHint": "더블클릭하면 이 클립이 편집기에서 열립니다",
     "rerollSection": "이 구간 다시 생성",
     "rerollHint": "잠긴 클립은 그대로 둡니다",
+    "export": ".mid 내보내기",
+    "exporting": "폴더를 선택하세요…",
+    "exported": "{{path}}에 저장했습니다",
     "kind": {
       "intro": "인트로",
       "verse": "벌스",

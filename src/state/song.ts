@@ -129,6 +129,18 @@ export type SongState = {
   drillInto: (clip: ClipId) => void;
   closeDrill: () => void;
 
+  /**
+   * What the last export did, for the chip to say (TASK-073).
+   *
+   * ⛔ Held here rather than shown as a transient toast: a native Save As can
+   * sit open for a minute while somebody makes a folder, and the one thing a
+   * producer needs afterwards is *where the file went*. A message that has
+   * already faded by the time they look back is no message at all.
+   */
+  exportState: 'idle' | 'running' | 'done' | 'cancelled' | 'failed';
+  exportMessage: string | null;
+  exportSong: () => Promise<void>;
+
   /** Hand the arrangement to the audio thread, as it currently stands. */
   armSong: () => void;
   setLoopSection: (index: number | null) => void;
@@ -166,6 +178,26 @@ export type SongState = {
 
 const INITIAL_VIEW: View = { zoom: 24, scrollBar: 0 };
 
+/** What `export_status` answers with. Mirrors `export::Status` in the plugin. */
+type ExportStatus =
+  | { state: 'idle' }
+  | { state: 'running' }
+  | { state: 'done'; path: string }
+  | { state: 'cancelled' }
+  | { state: 'failed'; reason: string };
+
+/** How often the export poll asks. Slow: a human is browsing for a folder. */
+const EXPORT_POLL_MS = 400;
+
+/**
+ * How long the poll keeps asking before giving up.
+ *
+ * Generous — five minutes is a producer making a folder, renaming it, and
+ * changing their mind — but finite, so a dialog thread that died does not leave
+ * the chip reading "exporting…" for the rest of the session.
+ */
+const EXPORT_TIMEOUT_MS = 5 * 60 * 1000;
+
 export const useSong = create<SongState>((set, get) => ({
   song: null,
   generating: false,
@@ -182,6 +214,56 @@ export const useSong = create<SongState>((set, get) => ({
   structure: null,
   audition: null,
   drillPatternId: null,
+  exportState: 'idle',
+  exportMessage: null,
+
+  async exportSong() {
+    const { song, exportState } = get();
+    if (!song || exportState === 'running') return;
+    set({ exportState: 'running', exportMessage: null });
+    try {
+      await invoke('export_song', { song });
+    } catch (error) {
+      set({ exportState: 'failed', exportMessage: reason(error) });
+      return;
+    }
+
+    // ⛔ **Polled, because the dialog is modal on its own thread and there is
+    // no event to wait on.** `export.rs` explains why the command cannot block:
+    // it answers on the frame the page is waiting on, which inside a host is
+    // the DAW's editor thread.
+    const started = Date.now();
+    const tick = async (): Promise<void> => {
+      let status: ExportStatus;
+      try {
+        status = await invoke<ExportStatus>('export_status');
+      } catch (error) {
+        set({ exportState: 'failed', exportMessage: reason(error) });
+        return;
+      }
+      if (status.state !== 'running') {
+        set({
+          exportState: status.state,
+          exportMessage:
+            status.state === 'done'
+              ? status.path
+              : status.state === 'failed'
+                ? status.reason
+                : null,
+        });
+        return;
+      }
+      // ⚠ A ceiling rather than a forever loop. If the dialog's own thread dies
+      // — or a host tears the window down under it — the chip would otherwise
+      // read "exporting…" for the rest of the session with nothing to clear it.
+      if (Date.now() - started > EXPORT_TIMEOUT_MS) {
+        set({ exportState: 'idle', exportMessage: null });
+        return;
+      }
+      setTimeout(() => void tick(), EXPORT_POLL_MS);
+    };
+    setTimeout(() => void tick(), EXPORT_POLL_MS);
+  },
 
   setStructure(index) {
     set({ structure: index });

@@ -260,6 +260,9 @@
     "clipHint": "Doble clic para abrir este clip en su editor",
     "rerollSection": "Volver a generar esta sección",
     "rerollHint": "Los clips bloqueados no se tocan",
+    "export": "Exportar .mid",
+    "exporting": "Elige una carpeta…",
+    "exported": "Guardado en {{path}}",
     "kind": {
       "intro": "Introducción",
       "verse": "Estrofa",

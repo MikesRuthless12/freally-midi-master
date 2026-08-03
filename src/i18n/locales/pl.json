@@ -260,6 +260,9 @@
     "clipHint": "Kliknij dwukrotnie, aby otworzyć ten klip w edytorze",
     "rerollSection": "Wylosuj tę sekcję ponownie",
     "rerollHint": "Zablokowane klipy pozostają bez zmian",
+    "export": "Eksportuj .mid",
+    "exporting": "Wybierz folder…",
+    "exported": "Zapisano w {{path}}",
     "kind": {
       "intro": "Wstęp",
       "verse": "Zwrotka",

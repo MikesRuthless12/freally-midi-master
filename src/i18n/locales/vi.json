@@ -260,6 +260,9 @@
     "clipHint": "Nhấp đúp để mở clip này trong trình chỉnh sửa",
     "rerollSection": "Tạo lại đoạn này",
     "rerollHint": "Các clip đã khoá vẫn giữ nguyên",
+    "export": "Xuất .mid",
+    "exporting": "Chọn một thư mục…",
+    "exported": "Đã lưu vào {{path}}",
     "kind": {
       "intro": "Dạo đầu",
       "verse": "Phiên khúc",

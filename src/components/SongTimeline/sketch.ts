@@ -15,7 +15,7 @@
  * notes.
  */
 
-import type { Pattern } from '../../lib/ipc-types';
+import type { Pattern, Song } from '../../lib/ipc-types';
 
 /**
  * How many columns the clip is divided into.
@@ -50,6 +50,27 @@ export function density(pattern: Pattern): number[] {
 
   const peak = Math.max(...buckets);
   return peak > 0 ? buckets.map((count) => count / peak) : buckets;
+}
+
+/**
+ * One level per section, for the generation FX to cascade over (TASK-073).
+ *
+ * ⛔ **The same array shape the ripple already takes, so Song Mode reuses the
+ * animation rather than growing a second one.** `GenFx` sweeps left to right and
+ * lights each column by its own level; a song only has to say what a column
+ * means here. A second animation would have needed a second reduced-motion
+ * path, which is the half this project has already had to fix twice.
+ *
+ * Weighted by how many parts a section plays rather than by its notes: the
+ * cascade runs *while the song is being built*, so the notes do not exist yet —
+ * and what a producer is watching for is the shape filling in.
+ */
+export function sectionDensity(song: Song): number[] {
+  const counts = song.sections.map((section) => Object.keys(section.patterns).length);
+  const peak = Math.max(1, ...counts);
+  // A floor, so a one-part intro still lights rather than reading as a gap in
+  // the sweep — the same reason `GenFx` gives an empty column a base glow.
+  return counts.map((count) => Math.max(0.25, count / peak));
 }
 
 /**

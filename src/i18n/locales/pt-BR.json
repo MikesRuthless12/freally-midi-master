@@ -260,6 +260,9 @@
     "clipHint": "Clique duas vezes para abrir este clipe no editor",
     "rerollSection": "Gerar esta seção de novo",
     "rerollHint": "Clipes bloqueados não são alterados",
+    "export": "Exportar .mid",
+    "exporting": "Escolha uma pasta…",
+    "exported": "Salvo em {{path}}",
     "kind": {
       "intro": "Introdução",
       "verse": "Verso",

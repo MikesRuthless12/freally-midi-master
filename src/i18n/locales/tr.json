@@ -260,6 +260,9 @@
     "clipHint": "Bu klibi düzenleyicide açmak için çift tıklayın",
     "rerollSection": "Bu bölümü yeniden üret",
     "rerollHint": "Kilitli klipler değişmez",
+    "export": ".mid dışa aktar",
+    "exporting": "Bir klasör seçin…",
+    "exported": "{{path}} konumuna kaydedildi",
     "kind": {
       "intro": "Giriş",
       "verse": "Kıta",

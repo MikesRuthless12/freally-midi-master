@@ -260,6 +260,9 @@
     "clipHint": "Dubbelklik om deze clip in de editor te openen",
     "rerollSection": "Dit gedeelte opnieuw genereren",
     "rerollHint": "Vergrendelde clips blijven ongewijzigd",
+    "export": ".mid exporteren",
+    "exporting": "Kies een map…",
+    "exported": "Opgeslagen in {{path}}",
     "kind": {
       "intro": "Intro",
       "verse": "Couplet",

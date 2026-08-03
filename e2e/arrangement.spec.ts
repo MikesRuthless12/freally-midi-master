@@ -527,3 +527,20 @@ test('double-clicking a clip opens it in its own editor', async ({ page }) => {
     'true',
   );
 });
+
+test('the song can be exported, and the chip reports what happened', async ({ page }) => {
+  // ⚠ The browser mock has no native Save As and no filesystem, so it reports a
+  // *cancelled* export — the one outcome that is actually true here. What this
+  // asserts is the wiring and the busy state; whether a file lands where the
+  // dialog said is in `Live-To-Do.md` § 4.
+  await openSong(page);
+
+  const chip = page.locator('[data-testid="song-export"]');
+  await expect(chip).toBeEnabled();
+  await chip.click();
+
+  // Cancelling leaves no message — closing a Save As is the ordinary way out of
+  // it, and reporting it would train people to ignore the one that matters.
+  await expect.poll(async () => chip.isEnabled()).toBe(true);
+  await expect(page.locator('[data-testid="song-export-note"]')).toHaveCount(0);
+});

@@ -26,6 +26,7 @@ pub mod bridge;
 pub mod dataset;
 mod editor;
 pub mod eula;
+pub mod export;
 pub mod host;
 pub mod presets;
 pub mod shared;

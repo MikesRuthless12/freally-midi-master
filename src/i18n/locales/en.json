@@ -260,6 +260,9 @@
     "clipHint": "Double-click to open this clip in its editor",
     "rerollSection": "Re-roll this section",
     "rerollHint": "Locked clips are left alone",
+    "export": "Export .mid",
+    "exporting": "Choose a folder…",
+    "exported": "Saved to {{path}}",
     "kind": {
       "intro": "Intro",
       "verse": "Verse",

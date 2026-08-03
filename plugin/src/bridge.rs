@@ -190,6 +190,42 @@ pub fn dispatch(
             serde_json::to_value(generate_song(&args, host, auto_sync)?).map_err(|e| e.to_string())
         }
 
+        // Write the whole arranged song to a file the producer picks (TASK-073).
+        //
+        // ⛔ **Starts an export and returns; it does not wait for the dialog.**
+        // A native Save As is modal, and this handler runs on a frame the page
+        // is waiting on — inside a host, the DAW's own editor thread. See
+        // `crate::export` for the whole reasoning; it is the same
+        // "takes the DAW down" shape this codebase has been bitten by twice.
+        "export_song" => {
+            let song: engine::pattern::Song = serde_json::from_value(request.args["song"].clone())
+                .map_err(|e| format!("bad song: {e}"))?;
+            let dangling = song.dangling_refs();
+            if !dangling.is_empty() {
+                return Err(format!(
+                    "this song names {} pattern(s) it does not carry ({}) — \
+                     exporting it would write silence where they play",
+                    dangling.len(),
+                    dangling.join(", ")
+                ));
+            }
+            // The same trust boundary `song_smf` documents, and it has to be
+            // here too: this path reaches `song_to_smf` with a `Song` that came
+            // from the webview.
+            check_song(&song)?;
+            let suggested = format!("{}-{}.mid", song.artist_id, song.seed);
+            crate::export::start_song_midi(&song, &suggested).map(|()| Value::Null)
+        }
+
+        // How the export that is running ended, if it has.
+        //
+        // ⚠ Polled, and the outcome is *taken* — see `export::take_status`. A
+        // terminal status left in place would re-announce the same successful
+        // export on every tick.
+        "export_status" => {
+            serde_json::to_value(crate::export::take_status()).map_err(|e| e.to_string())
+        }
+
         // The forms this artist writes, for the structure picker (TASK-070).
         //
         // ⚠ Its own command rather than a field on `session_defaults`, because

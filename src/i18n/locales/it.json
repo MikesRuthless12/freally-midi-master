@@ -260,6 +260,9 @@
     "clipHint": "Doppio clic per aprire questo clip nel suo editor",
     "rerollSection": "Rigenera questa sezione",
     "rerollHint": "I clip bloccati restano invariati",
+    "export": "Esporta .mid",
+    "exporting": "Scegli una cartella…",
+    "exported": "Salvato in {{path}}",
     "kind": {
       "intro": "Introduzione",
       "verse": "Strofa",

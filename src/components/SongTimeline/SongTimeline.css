@@ -532,3 +532,41 @@
   border-radius: 999px;
   cursor: pointer;
 }
+
+/* ── Exporting the whole arranged song (TASK-073). */
+.song__export {
+  padding: 0.15rem 0.5rem;
+  font-size: 0.7rem;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.song__export:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.song__export:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.song__export-note {
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  /* The path can be long, and truncating the *start* keeps the file name — the
+     part a producer is looking for — visible. */
+  direction: rtl;
+  text-align: left;
+  max-width: 22rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.song__export-note.is-error {
+  color: var(--danger, var(--accent));
+  direction: ltr;
+}

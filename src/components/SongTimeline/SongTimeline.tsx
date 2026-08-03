@@ -75,6 +75,9 @@ export function SongTimeline({ song }: Props) {
   const auditionClip = useSong((s) => s.auditionClip);
   const stopAudition = useSong((s) => s.stopAudition);
   const drillInto = useSong((s) => s.drillInto);
+  const exportSong = useSong((s) => s.exportSong);
+  const exportState = useSong((s) => s.exportState);
+  const exportMessage = useSong((s) => s.exportMessage);
   const structure = useSong((s) => s.structure);
   const setStructure = useSong((s) => s.setStructure);
   const locks = useSong((s) => s.locks);
@@ -212,6 +215,31 @@ export function SongTimeline({ song }: Props) {
             time: formatTime(barToSeconds(bars, song.bpm, beatsPerBar)),
           })}
         </span>
+        {/* Drag/export the whole arranged song (TASK-073). ⚠ The label says
+            "Export", not "Drag" — an HTML5 drag inside a webview is not an OS
+            file drag, and the native drag source is FMM-S03's work. A chip that
+            invited a drag it cannot start would be worse than one that does not
+            offer it. */}
+        <button
+          type="button"
+          className="song__export"
+          data-testid="song-export"
+          disabled={exportState === 'running'}
+          onClick={() => void exportSong()}
+        >
+          {exportState === 'running' ? t('song.exporting') : t('song.export')}
+        </button>
+        {exportMessage !== null && (
+          <span
+            className={`song__export-note${exportState === 'failed' ? ' is-error' : ''}`}
+            data-testid="song-export-note"
+          >
+            {exportState === 'done'
+              ? t('song.exported', { path: exportMessage })
+              : exportMessage}
+          </span>
+        )}
+
         {/* ⛔ An audition is *visible* while it lasts, and this is the way out
             of it. Without both, the transport would be looping one clip while
             the loop and solo badges on the timeline said otherwise. */}

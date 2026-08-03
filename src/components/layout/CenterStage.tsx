@@ -8,6 +8,7 @@ import { PianoRoll } from '../PianoRoll/PianoRoll';
 import { SongTimeline } from '../SongTimeline/SongTimeline';
 import { useSong } from '../../state/song';
 import { columnDensity } from '../DrumGrid/cells';
+import { sectionDensity } from '../SongTimeline/sketch';
 import type { Part } from '../../lib/ipc-types';
 import { GenFx } from '../GenFx/GenFx';
 import { SeedChip } from '../SeedChip/SeedChip';
@@ -126,10 +127,18 @@ export function CenterStage() {
 
   // What the ripple ignites. Recomputed only when the pattern changes, not on
   // every frame — the animation reads this, and it must not cost a render.
-  const density = useMemo(
-    () => (pattern ? columnDensity(pattern, FX_COLUMNS) : undefined),
-    [pattern],
-  );
+  //
+  // ⛔ **On the Song tab it is the *sections*, which is what makes the FX
+  // cascade section by section (TASK-073).** The ripple already sweeps
+  // left→right and lights each column by its own density, so a song only has to
+  // say what "a column" means here — one bucket per section, weighted by how
+  // much is playing in it. Writing a second animation for Song Mode would have
+  // meant a second reduced-motion path as well, and that is the one this
+  // project has already had to fix twice.
+  const density = useMemo(() => {
+    if (activeTab === 'song') return song ? sectionDensity(song) : undefined;
+    return pattern ? columnDensity(pattern, FX_COLUMNS) : undefined;
+  }, [activeTab, song, pattern]);
 
   return (
     <section className="stage">
@@ -143,7 +152,7 @@ export function CenterStage() {
       >
         {/* The ripple wraps whatever the stage is showing, so it sweeps the
             grid the notes are landing in rather than a layer beside it. */}
-        <GenFx active={generating} density={density}>
+        <GenFx active={generating || songGenerating} density={density}>
           {/* Ordered so the compiler can narrow `part`: past the `null` and the
               `drums` arms, what is left is exactly a melodic part, which is what
               the roll accepts. A conjunction here instead would leave `part`
