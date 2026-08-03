@@ -248,6 +248,13 @@
     "mutePart": "Tắt tiếng {{part}} khi nghe thử",
     "soloPart": "Nghe riêng {{part}} khi nghe thử",
     "previewOnly": "Chỉ nghe thử — bài hát và bản xuất không đổi",
+    "lockClip": "Khoá clip {{part}}",
+    "lockSection": "Khoá toàn bộ đoạn này",
+    "lockRow": "Khoá {{part}} ở mọi đoạn",
+    "lockHint": "Clip đã khoá không đổi khi tạo lại đoạn",
+    "structure": "Cấu trúc bài hát",
+    "form": "Dạng",
+    "formAny": "Tuỳ nghệ sĩ viết",
     "kind": {
       "intro": "Dạo đầu",
       "verse": "Phiên khúc",

@@ -248,6 +248,13 @@
     "mutePart": "Mute {{part}} in the preview",
     "soloPart": "Solo {{part}} in the preview",
     "previewOnly": "Preview only — the song and the export are unchanged",
+    "lockClip": "Lock the {{part}} clip",
+    "lockSection": "Lock this whole section",
+    "lockRow": "Lock {{part}} in every section",
+    "lockHint": "A locked clip is left alone when the section is re-rolled",
+    "structure": "Song structure",
+    "form": "Form",
+    "formAny": "Whatever the artist writes",
     "kind": {
       "intro": "Intro",
       "verse": "Verse",

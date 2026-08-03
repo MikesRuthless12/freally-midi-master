@@ -248,6 +248,13 @@
     "mutePart": "Silenciar {{part}} na prévia",
     "soloPart": "Isolar {{part}} na prévia",
     "previewOnly": "Apenas prévia — a música e a exportação não mudam",
+    "lockClip": "Bloquear o clipe de {{part}}",
+    "lockSection": "Bloquear toda esta seção",
+    "lockRow": "Bloquear {{part}} em todas as seções",
+    "lockHint": "Um clipe bloqueado não muda quando a seção é gerada de novo",
+    "structure": "Estrutura da música",
+    "form": "Forma",
+    "formAny": "O que o artista escrever",
     "kind": {
       "intro": "Introdução",
       "verse": "Verso",

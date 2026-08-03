@@ -248,6 +248,13 @@
     "mutePart": "Bisukan {{part}} di pratinjau",
     "soloPart": "Solokan {{part}} di pratinjau",
     "previewOnly": "Hanya pratinjau — lagu dan ekspor tidak berubah",
+    "lockClip": "Kunci klip {{part}}",
+    "lockSection": "Kunci seluruh bagian ini",
+    "lockRow": "Kunci {{part}} di setiap bagian",
+    "lockHint": "Klip yang dikunci tidak berubah saat bagian dibuat ulang",
+    "structure": "Struktur lagu",
+    "form": "Bentuk",
+    "formAny": "Apa pun yang ditulis artis",
     "kind": {
       "intro": "Pembuka",
       "verse": "Bait",

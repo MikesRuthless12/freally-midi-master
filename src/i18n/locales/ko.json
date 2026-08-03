@@ -248,6 +248,13 @@
     "mutePart": "미리듣기에서 {{part}} 음소거",
     "soloPart": "미리듣기에서 {{part}} 솔로",
     "previewOnly": "미리듣기 전용 — 곡과 내보내기는 그대로입니다",
+    "lockClip": "{{part}} 클립 잠금",
+    "lockSection": "이 구간 전체 잠금",
+    "lockRow": "모든 구간에서 {{part}} 잠금",
+    "lockHint": "잠긴 클립은 구간을 다시 생성해도 그대로입니다",
+    "structure": "곡 구성",
+    "form": "형식",
+    "formAny": "아티스트가 쓰는 대로",
     "kind": {
       "intro": "인트로",
       "verse": "벌스",

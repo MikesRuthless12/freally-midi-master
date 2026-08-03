@@ -248,6 +248,13 @@
     "mutePart": "Silenzia {{part}} nell’anteprima",
     "soloPart": "Isola {{part}} nell’anteprima",
     "previewOnly": "Solo anteprima: il brano e l’esportazione non cambiano",
+    "lockClip": "Blocca il clip {{part}}",
+    "lockSection": "Blocca tutta questa sezione",
+    "lockRow": "Blocca {{part}} in ogni sezione",
+    "lockHint": "Un clip bloccato resta invariato quando la sezione viene rigenerata",
+    "structure": "Struttura del brano",
+    "form": "Forma",
+    "formAny": "Quello che scrive l’artista",
     "kind": {
       "intro": "Introduzione",
       "verse": "Strofa",

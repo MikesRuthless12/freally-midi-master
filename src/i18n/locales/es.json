@@ -248,6 +248,13 @@
     "mutePart": "Silenciar {{part}} en la vista previa",
     "soloPart": "Aislar {{part}} en la vista previa",
     "previewOnly": "Solo vista previa: la canción y la exportación no cambian",
+    "lockClip": "Bloquear el clip de {{part}}",
+    "lockSection": "Bloquear toda esta sección",
+    "lockRow": "Bloquear {{part}} en todas las secciones",
+    "lockHint": "Un clip bloqueado no cambia al volver a generar la sección",
+    "structure": "Estructura de la canción",
+    "form": "Forma",
+    "formAny": "Lo que escriba el artista",
     "kind": {
       "intro": "Introducción",
       "verse": "Estrofa",

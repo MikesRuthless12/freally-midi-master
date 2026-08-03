@@ -248,6 +248,13 @@
     "mutePart": "Couper {{part}} dans l’aperçu",
     "soloPart": "Isoler {{part}} dans l’aperçu",
     "previewOnly": "Aperçu uniquement — le morceau et l’export sont inchangés",
+    "lockClip": "Verrouiller le clip {{part}}",
+    "lockSection": "Verrouiller toute cette section",
+    "lockRow": "Verrouiller {{part}} dans chaque section",
+    "lockHint": "Un clip verrouillé reste intact lorsque la section est relancée",
+    "structure": "Structure du morceau",
+    "form": "Forme",
+    "formAny": "Ce que l’artiste écrit",
     "kind": {
       "intro": "Intro",
       "verse": "Couplet",

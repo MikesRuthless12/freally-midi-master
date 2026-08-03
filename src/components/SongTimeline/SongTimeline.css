@@ -362,3 +362,114 @@
   color: var(--accent);
   background: color-mix(in srgb, var(--accent) 20%, transparent);
 }
+
+/* ── The structure chip row and the model-structure picker (TASK-070). */
+.song__structure {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.25rem 0.6rem;
+  border-bottom: 1px solid var(--line);
+  overflow-x: auto;
+}
+
+.song__structure-chips {
+  display: flex;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.song__structure-chip {
+  padding: 0.1rem 0.4rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.song__structure-pick {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-inline-start: auto;
+  font-size: 0.7rem;
+  color: var(--text-dim);
+}
+
+.song__structure-pick select {
+  max-width: 18rem;
+  font-size: 0.7rem;
+}
+
+/* ── The note-density sketch, behind the clip's own label. */
+.song__sketch {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0.55;
+}
+
+/* ── Locks. A locked clip is left alone by a re-roll. */
+.song__clip-lock,
+.song__section-lock,
+.song__row-lock {
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  color: var(--text-dim);
+  background: transparent;
+  border: 0;
+  border-radius: 3px;
+  cursor: pointer;
+  pointer-events: auto;
+  vertical-align: middle;
+  opacity: 0;
+}
+
+.song__clip-lock {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  z-index: 2;
+}
+
+.song__section-lock {
+  position: absolute;
+  top: 2px;
+  right: 22px;
+}
+
+.song__row-lock {
+  margin-inline-start: 2px;
+}
+
+.song__clip:hover .song__clip-lock,
+.song__section:hover .song__section-lock,
+.song__row:hover .song__row-lock,
+.song__clip-lock:focus-visible,
+.song__section-lock:focus-visible,
+.song__row-lock:focus-visible,
+.song__clip-lock.is-on,
+.song__section-lock.is-on,
+.song__row-lock.is-on {
+  opacity: 1;
+}
+
+.song__clip-lock.is-on,
+.song__section-lock.is-on,
+.song__row-lock.is-on {
+  color: var(--accent);
+}
+
+/* A locked clip reads as pinned at a glance, without hovering it. */
+.song__clip.is-locked {
+  border-style: dashed;
+}

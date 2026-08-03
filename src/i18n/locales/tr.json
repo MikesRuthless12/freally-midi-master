@@ -248,6 +248,13 @@
     "mutePart": "Önizlemede {{part}} sesini kapat",
     "soloPart": "Önizlemede {{part}} bölümünü solo yap",
     "previewOnly": "Yalnızca önizleme — şarkı ve dışa aktarma değişmez",
+    "lockClip": "{{part}} klibini kilitle",
+    "lockSection": "Bu bölümün tamamını kilitle",
+    "lockRow": "Her bölümde {{part}} kilitle",
+    "lockHint": "Kilitli bir klip, bölüm yeniden üretildiğinde değişmez",
+    "structure": "Şarkı yapısı",
+    "form": "Biçim",
+    "formAny": "Sanatçının yazdığı ne ise",
     "kind": {
       "intro": "Giriş",
       "verse": "Kıta",

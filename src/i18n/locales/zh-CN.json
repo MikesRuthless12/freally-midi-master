@@ -248,6 +248,13 @@
     "mutePart": "在试听中静音{{part}}",
     "soloPart": "在试听中独奏{{part}}",
     "previewOnly": "仅试听 — 歌曲与导出不受影响",
+    "lockClip": "锁定{{part}}片段",
+    "lockSection": "锁定整个段落",
+    "lockRow": "在所有段落中锁定{{part}}",
+    "lockHint": "锁定的片段在重新生成段落时保持不变",
+    "structure": "歌曲结构",
+    "form": "曲式",
+    "formAny": "交给这位艺人决定",
     "kind": {
       "intro": "前奏",
       "verse": "主歌",

@@ -382,3 +382,91 @@ test('generating a song drops a loop set on the previous one', async ({ page }) 
   await page.getByRole('button', { name: 'Generate' }).click();
   await expect(first).toHaveAttribute('data-looping', 'false');
 });
+
+// ---------------------------------------------------------------------------
+// Thumbnails, locks and the structure row (TASK-070).
+// ---------------------------------------------------------------------------
+
+test('every clip carries a note-density sketch', async ({ page }) => {
+  // ⛔ Painted as a gradient rather than mounted as a canvas or one element per
+  // bucket — see `sketch.ts`. A painted surface has no geometry to count, so
+  // what is asserted is that each clip really has one and that it is not the
+  // same flat fill for every clip.
+  await openSong(page);
+
+  const fills = await page
+    .locator('.song__sketch')
+    .evaluateAll((nodes) => nodes.map((n) => (n as HTMLElement).style.backgroundImage));
+  expect(fills.length).toBeGreaterThan(1);
+  for (const fill of fills) expect(fill).toContain('linear-gradient');
+  expect(new Set(fills).size).toBeGreaterThan(1);
+});
+
+test('locking a section locks every clip in it, and unlocks as one', async ({ page }) => {
+  await openSong(page);
+
+  const section = page.locator('[data-testid="song-section-1"]');
+  const clipsIn = page.locator('.song__row .song__clip');
+  await section.getByRole('button', { name: 'Lock this whole section' }).click();
+
+  // Every clip standing in that section's column is now locked.
+  const locked = await clipsIn.evaluateAll(
+    (nodes) => nodes.filter((n) => n.getAttribute('data-locked') === 'true').length,
+  );
+  expect(locked).toBeGreaterThan(0);
+
+  await section.getByRole('button', { name: 'Lock this whole section' }).click();
+  const after = await clipsIn.evaluateAll(
+    (nodes) => nodes.filter((n) => n.getAttribute('data-locked') === 'true').length,
+  );
+  expect(after).toBe(0);
+});
+
+test('locking a row locks that part in every section that plays it', async ({ page }) => {
+  await openSong(page);
+
+  const drums = page.locator('[data-testid="song-clip-drums"]');
+  const total = await drums.count();
+  await page.getByRole('button', { name: 'Lock Drums in every section' }).click();
+
+  for (let i = 0; i < total; i += 1) {
+    await expect(drums.nth(i)).toHaveAttribute('data-locked', 'true');
+  }
+});
+
+test('the structure row names the form the song actually has', async ({ page }) => {
+  await openSong(page);
+
+  const chips = await page
+    .locator('.song__structure-chip')
+    .evaluateAll((nodes) => nodes.map((n) => (n.textContent ?? '').trim()));
+  const kinds = (await sections(page)).map((s) => s.kind);
+
+  // One chip per section, in playing order — a row that drifted from the
+  // timeline under it would be a summary of a song that is not on screen.
+  expect(chips).toHaveLength(kinds.length);
+  expect(chips[0]).toBe('Intro');
+});
+
+test('the picker offers the forms the artist writes, and defaults to their choice', async ({
+  page,
+}) => {
+  await openSong(page);
+
+  const picker = page.locator('.song__structure-pick select');
+  await expect(picker).toBeVisible();
+  // ⛔ Absence is the default and it means "the artist chooses" — the same
+  // meaning it carries for every pin in this app, and what makes two
+  // generations of one artist differ.
+  await expect(picker).toHaveValue('');
+
+  const options = await picker.locator('option').evaluateAll((nodes) => nodes.length);
+  expect(options).toBeGreaterThan(2);
+
+  await picker.selectOption('1');
+  await expect(picker).toHaveValue('1');
+  // A picked form survives generating with it — it is an instruction about what
+  // to build next, not a one-shot.
+  await page.getByRole('button', { name: 'Generate' }).click();
+  await expect(picker).toHaveValue('1');
+});

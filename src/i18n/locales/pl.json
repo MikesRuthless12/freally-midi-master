@@ -248,6 +248,13 @@
     "mutePart": "Wycisz {{part}} w podglądzie",
     "soloPart": "Solo {{part}} w podglądzie",
     "previewOnly": "Tylko podgląd — utwór i eksport pozostają bez zmian",
+    "lockClip": "Zablokuj klip {{part}}",
+    "lockSection": "Zablokuj całą tę sekcję",
+    "lockRow": "Zablokuj {{part}} w każdej sekcji",
+    "lockHint": "Zablokowany klip pozostaje bez zmian przy ponownym losowaniu sekcji",
+    "structure": "Struktura utworu",
+    "form": "Forma",
+    "formAny": "To, co pisze artysta",
     "kind": {
       "intro": "Wstęp",
       "verse": "Zwrotka",

@@ -248,6 +248,13 @@
     "mutePart": "{{part}} in der Vorschau stummschalten",
     "soloPart": "{{part}} in der Vorschau solo schalten",
     "previewOnly": "Nur Vorschau — Song und Export bleiben unverändert",
+    "lockClip": "{{part}}-Clip sperren",
+    "lockSection": "Diesen ganzen Abschnitt sperren",
+    "lockRow": "{{part}} in jedem Abschnitt sperren",
+    "lockHint": "Ein gesperrter Clip bleibt beim Neuwürfeln des Abschnitts unverändert",
+    "structure": "Songstruktur",
+    "form": "Form",
+    "formAny": "Was der Künstler schreibt",
     "kind": {
       "intro": "Intro",
       "verse": "Strophe",

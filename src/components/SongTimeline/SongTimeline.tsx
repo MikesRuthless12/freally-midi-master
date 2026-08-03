@@ -13,15 +13,17 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef } from 'react';
-import { Repeat, Volume2, VolumeX } from 'lucide-react';
+import { Lock, LockOpen, Repeat, Volume2, VolumeX } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import type { Part, Section, Song } from '../../lib/ipc-types';
+import type { Part, Pattern as PatternType, Section, Song } from '../../lib/ipc-types';
 import { isTypingTarget } from '../../lib/keyboard';
 import { armCurrentPattern, useSession } from '../../state/session';
 import { useSong } from '../../state/song';
 import { isSelected, partsInUse, totalBars } from './clips';
 import { barLabel, barToSeconds, barToX, formatTime, gridFor } from './geometry';
+import { density, sketchGradient } from './sketch';
+import { StructureChips } from './StructureChips';
 import './SongTimeline.css';
 
 /** Height of one part row, in pixels. Matches `--song-row` in the CSS. */
@@ -66,6 +68,13 @@ export function SongTimeline({ song }: Props) {
   const armSong = useSong((s) => s.armSong);
   const loopSection = useSong((s) => s.loopSection);
   const setLoopSection = useSong((s) => s.setLoopSection);
+  const selectedId = useSession((s) => s.selectedId);
+  const structure = useSong((s) => s.structure);
+  const setStructure = useSong((s) => s.setStructure);
+  const locks = useSong((s) => s.locks);
+  const toggleLock = useSong((s) => s.toggleLock);
+  const toggleSectionLock = useSong((s) => s.toggleSectionLock);
+  const toggleRowLock = useSong((s) => s.toggleRowLock);
   const mutedParts = useSong((s) => s.mutedParts);
   const soloParts = useSong((s) => s.soloParts);
   const togglePartMute = useSong((s) => s.togglePartMute);
@@ -199,6 +208,15 @@ export function SongTimeline({ song }: Props) {
         </div>
       </div>
 
+      {/* The structure the song has, and the forms the artist writes
+          (TASK-070). Above the ruler because it is about the whole record. */}
+      <StructureChips
+        song={song}
+        styleId={selectedId}
+        structure={structure}
+        onPick={setStructure}
+      />
+
       <div className="song__scroller">
         <div className="song__canvas" style={{ width }}>
           {/* ── The ruler: bar numbers and timestamps over the grid. */}
@@ -226,10 +244,12 @@ export function SongTimeline({ song }: Props) {
                 width={section.bars * view.zoom}
                 selected={selection.some((c) => c.sectionIndex === index)}
                 looping={loopSection === index}
+                locked={sectionLocked(locks, section, index)}
                 onSelect={(additive) => selectSection(index, additive)}
                 onResize={(barsNext) => resize(index, barsNext)}
                 onClone={() => clone(index)}
                 onLoop={() => setLoopSection(loopSection === index ? null : index)}
+                onLock={() => toggleSectionLock(index)}
               />
             ))}
           </div>
@@ -307,6 +327,18 @@ export function SongTimeline({ song }: Props) {
                   >
                     S
                   </button>
+                  {/* Lock the whole row: this part is pinned in every section
+                      that plays it, so a re-roll leaves it alone (TASK-070). */}
+                  <button
+                    type="button"
+                    className={`song__row-lock${rowLocked(locks, song, part) ? ' is-on' : ''}`}
+                    aria-pressed={rowLocked(locks, song, part)}
+                    aria-label={t('song.lockRow', { part: t(`tabs.${part}`) })}
+                    title={t('song.lockHint')}
+                    onClick={() => toggleRowLock(part)}
+                  >
+                    {rowLocked(locks, song, part) ? <Lock size={12} /> : <LockOpen size={12} />}
+                  </button>
                 </span>
                 {song.sections.map((section, index) =>
                   section.patterns[part] ? (
@@ -314,11 +346,14 @@ export function SongTimeline({ song }: Props) {
                       key={`${part}-${index}`}
                       part={part}
                       section={section}
+                      clip={song.patterns[section.patterns[part].patternId] ?? null}
                       left={barToX(section.startBar, view)}
                       width={section.bars * view.zoom}
                       selected={isSelected(selection, { sectionIndex: index, part })}
+                      locked={locks.includes(`${index}:${part}`)}
                       beatsPerBar={beatsPerBar}
                       onSelect={(additive) => select({ sectionIndex: index, part }, additive)}
+                      onLock={() => toggleLock({ sectionIndex: index, part })}
                     />
                   ) : null,
                 )}
@@ -331,6 +366,26 @@ export function SongTimeline({ song }: Props) {
   );
 }
 
+/**
+ * Whether every clip in a section is locked.
+ *
+ * ⛔ **Every, not any.** A half-locked section reporting itself locked would let
+ * a re-roll change part of it while the badge said otherwise — and the producer
+ * would only find out by hearing a section they had pinned come back different.
+ */
+function sectionLocked(locks: string[], section: Section, index: number): boolean {
+  const parts = Object.keys(section.patterns) as Part[];
+  return parts.length > 0 && parts.every((part) => locks.includes(`${index}:${part}`));
+}
+
+/** The same question for a part row, across every section that plays it. */
+function rowLocked(locks: string[], song: Song, part: Part): boolean {
+  const playing = song.sections
+    .map((section, index) => (section.patterns[part] ? index : null))
+    .filter((index): index is number => index !== null);
+  return playing.length > 0 && playing.every((index) => locks.includes(`${index}:${part}`));
+}
+
 type HeaderProps = {
   section: Section;
   index: number;
@@ -338,10 +393,12 @@ type HeaderProps = {
   width: number;
   selected: boolean;
   looping: boolean;
+  locked: boolean;
   onSelect: (additive: boolean) => void;
   onResize: (bars: number) => void;
   onClone: () => void;
   onLoop: () => void;
+  onLock: () => void;
 };
 
 function SectionHeader({
@@ -351,10 +408,12 @@ function SectionHeader({
   width,
   selected,
   looping,
+  locked,
   onSelect,
   onResize,
   onClone,
   onLoop,
+  onLock,
 }: HeaderProps) {
   const { t } = useTranslation();
   // `markers` is optional over the wire — it is skipped when empty — so an
@@ -381,6 +440,18 @@ function SectionHeader({
         onClick={onLoop}
       >
         <Repeat size={12} />
+      </button>
+      {/* Lock the whole section — every clip in it — so a re-roll leaves it
+          standing (TASK-070). */}
+      <button
+        type="button"
+        className={`song__section-lock${locked ? ' is-on' : ''}`}
+        aria-pressed={locked}
+        aria-label={t('song.lockSection')}
+        title={t('song.lockHint')}
+        onClick={onLock}
+      >
+        {locked ? <Lock size={12} /> : <LockOpen size={12} />}
       </button>
       <button
         type="button"
@@ -416,26 +487,77 @@ function SectionHeader({
 type ClipProps = {
   part: Part;
   section: Section;
+  /** The clip this cell plays, for its sketch. `null` for a dangling ref. */
+  clip: PatternType | null;
   left: number;
   width: number;
   selected: boolean;
+  locked: boolean;
   /** The song's own beats per bar — the drop-out is measured in them. */
   beatsPerBar: number;
   onSelect: (additive: boolean) => void;
+  onLock: () => void;
 };
 
-function Clip({ part, section, left, width, selected, beatsPerBar, onSelect }: ClipProps) {
+function Clip({
+  part,
+  section,
+  clip,
+  left,
+  width,
+  selected,
+  locked,
+  beatsPerBar,
+  onSelect,
+  onLock,
+}: ClipProps) {
   const { t } = useTranslation();
+  // Recomputed only when the clip itself changes: a re-roll or an edit replaces
+  // the object, and a resize does not — so scrubbing a section's length does
+  // not rebuild every sketch on the row.
+  const sketch = useMemo(() => (clip ? sketchGradient(density(clip)) : 'none'), [clip]);
+
   return (
     <button
       type="button"
-      className={`song__clip song__clip--${part}${selected ? ' is-selected' : ''}`}
+      className={`song__clip song__clip--${part}${selected ? ' is-selected' : ''}${
+        locked ? ' is-locked' : ''
+      }`}
       style={{ left, width }}
       data-testid={`song-clip-${part}`}
+      data-locked={locked ? 'true' : 'false'}
       aria-pressed={selected}
       onClick={(event) => onSelect(event.shiftKey || event.ctrlKey || event.metaKey)}
     >
+      {/* The note-density sketch (TASK-070). Painted rather than mounted — see
+          `sketch.ts`, and the grid above, which made the same call. */}
+      <span className="song__sketch" style={{ backgroundImage: sketch }} aria-hidden="true" />
       <span className="song__clip-label">{t(`tabs.${part}`)}</span>
+      {/* ⛔ A `<span role="button">` rather than a nested `<button>`: a button
+          inside a button is invalid HTML and React will not render it. The clip
+          itself is the button, because clicking anywhere on a clip selects it. */}
+      <span
+        role="button"
+        tabIndex={0}
+        className={`song__clip-lock${locked ? ' is-on' : ''}`}
+        aria-label={t('song.lockClip', { part: t(`tabs.${part}`) })}
+        aria-pressed={locked}
+        title={t('song.lockHint')}
+        onClick={(event) => {
+          // Selecting is what a click on the clip does; locking must not also
+          // do it, or every lock would move the selection under the producer.
+          event.stopPropagation();
+          onLock();
+        }}
+        onKeyDown={(event) => {
+          if (event.key !== 'Enter' && event.key !== ' ') return;
+          event.stopPropagation();
+          event.preventDefault();
+          onLock();
+        }}
+      >
+        {locked ? <Lock size={11} /> : <LockOpen size={11} />}
+      </span>
       {/* The transitions from TASK-066 are drawn, because they are in the
           exported file — a producer has to be able to see why the last beats of
           a section are silent. */}

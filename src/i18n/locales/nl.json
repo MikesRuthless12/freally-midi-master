@@ -248,6 +248,13 @@
     "mutePart": "{{part}} dempen in het voorbeeld",
     "soloPart": "{{part}} solo zetten in het voorbeeld",
     "previewOnly": "Alleen voorbeeld — het nummer en de export blijven ongewijzigd",
+    "lockClip": "{{part}}-clip vergrendelen",
+    "lockSection": "Dit hele gedeelte vergrendelen",
+    "lockRow": "{{part}} in elk gedeelte vergrendelen",
+    "lockHint": "Een vergrendelde clip blijft ongewijzigd als het gedeelte opnieuw wordt gegenereerd",
+    "structure": "Songstructuur",
+    "form": "Vorm",
+    "formAny": "Wat de artiest schrijft",
     "kind": {
       "intro": "Intro",
       "verse": "Couplet",

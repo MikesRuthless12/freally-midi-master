@@ -88,6 +88,20 @@ export type SongState = {
   mutedParts: Part[];
   soloParts: Part[];
 
+  /**
+   * The authored song form the next generation should use (TASK-070).
+   *
+   * `null` is "the artist chooses" — sampled from the weights the model
+   * authored, which is the same meaning absence carries for every pin in this
+   * app and what makes two generations of one artist differ.
+   *
+   * ⚠ Kept across a generation, unlike the locks and the loop: it is an
+   * instruction about what to build *next*, so clearing it would mean the
+   * producer had to re-pick the form for every reroll.
+   */
+  structure: number | null;
+  setStructure: (index: number | null) => void;
+
   /** Hand the arrangement to the audio thread, as it currently stands. */
   armSong: () => void;
   setLoopSection: (index: number | null) => void;
@@ -138,6 +152,11 @@ export const useSong = create<SongState>((set, get) => ({
   loopSection: null,
   mutedParts: [],
   soloParts: [],
+  structure: null,
+
+  setStructure(index) {
+    set({ structure: index });
+  },
 
   armSong() {
     const { song, loopSection, mutedParts, soloParts } = get();
@@ -195,6 +214,7 @@ export const useSong = create<SongState>((set, get) => ({
           seed: seed === '' ? null : seed,
           session: pins,
           mood,
+          structure: get().structure,
         },
       });
       // A fresh generation *is* the seed's own output again, so the document

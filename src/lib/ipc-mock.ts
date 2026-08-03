@@ -262,6 +262,19 @@ const handlers: Record<string, Handler> = {
     };
   },
 
+  // The forms this artist writes, for the structure picker (TASK-070).
+  //
+  // Two, because the picker only renders with more than one — a model that
+  // writes exactly one form has nothing to choose between, and a fixture with
+  // one would leave the control untested. They differ in a way a spec can read:
+  // the second has a bridge.
+  song_structures: () => ({
+    structures: [
+      ['intro', 'verse', 'hook', 'verse', 'hook', 'outro'],
+      ['intro', 'verse', 'hook', 'bridge', 'hook', 'outro'],
+    ],
+  }),
+
   // Handing the arrangement to the audio thread (TASK-072). A browser has no
   // audio thread and no `Song::flatten`, and writing a second flattener here
   // would be the "second implementation" this file's header rules out — so this

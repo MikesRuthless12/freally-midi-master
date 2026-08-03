@@ -85,6 +85,12 @@ pub enum ArrangeError {
         index: usize,
         sections: usize,
     },
+    /// The picker named a form the model does not author (TASK-070).
+    NoSuchStructure {
+        model: String,
+        index: usize,
+        structures: usize,
+    },
 }
 
 impl std::fmt::Display for ArrangeError {
@@ -120,6 +126,15 @@ impl std::fmt::Display for ArrangeError {
                 "`{song}` has {sections} section(s), so there is no section \
                  {index} to re-roll"
             ),
+            ArrangeError::NoSuchStructure {
+                model,
+                index,
+                structures,
+            } => write!(
+                f,
+                "`{model}` authors {structures} song form(s), so there is no \
+                 form {index} to build"
+            ),
         }
     }
 }
@@ -139,13 +154,67 @@ struct Structure {
 /// is the *clip* length, not the song length; the structure decides how long the
 /// song is.
 pub fn generate(model: &StyleModel, ctx: &SessionContext, seed: u64) -> Result<Song, ArrangeError> {
+    generate_with(model, ctx, seed, None)
+}
+
+/// The forms this model writes, in authored order (TASK-070).
+///
+/// What the structure picker offers. Section names are returned as the model
+/// *authored* them rather than as [`SectionKind`]s, because that is what the
+/// picker shows and because `chorus` and `hook` are one kind under two genres'
+/// names for it — collapsing them would make pop's form read back in trap's
+/// vocabulary.
+pub fn structures_of(model: &StyleModel) -> Result<Vec<Vec<String>>, ArrangeError> {
+    let block = model
+        .blocks
+        .get(ARRANGEMENT)
+        .filter(|value| !value.is_null())
+        .ok_or_else(|| ArrangeError::NoArrangement(model.id.clone()))?;
+    let all = structures(block);
+    if all.is_empty() {
+        return Err(ArrangeError::NoStructures(model.id.clone()));
+    }
+    Ok(all.into_iter().map(|s| s.sections).collect())
+}
+
+/// Build a song, optionally forcing one of the model's authored forms.
+///
+/// ⛔ **`None` samples from the weights and is the only thing `generate` does.**
+/// A forced index is the producer overriding the artist — "give me the one with
+/// a bridge" — and it deliberately does not change any other stream, so the
+/// same seed with a different form keeps the same beats. `arrange/structure` is
+/// simply not consulted.
+pub fn generate_with(
+    model: &StyleModel,
+    ctx: &SessionContext,
+    seed: u64,
+    structure: Option<usize>,
+) -> Result<Song, ArrangeError> {
     let block = model
         .blocks
         .get(ARRANGEMENT)
         .filter(|value| !value.is_null())
         .ok_or_else(|| ArrangeError::NoArrangement(model.id.clone()))?;
 
-    let names = pick_structure(model, block, seed)?;
+    let names = match structure {
+        Some(index) => {
+            let mut all = structures(block);
+            if all.is_empty() {
+                return Err(ArrangeError::NoStructures(model.id.clone()));
+            }
+            if index >= all.len() {
+                return Err(ArrangeError::NoSuchStructure {
+                    model: model.id.clone(),
+                    index,
+                    structures: all.len(),
+                });
+            }
+            let mut sections = all.swap_remove(index).sections;
+            sections.truncate(MAX_SECTIONS);
+            sections
+        }
+        None => pick_structure(model, block, seed)?,
+    };
 
     let mut sections: Vec<Section> = Vec::new();
     let mut patterns: BTreeMap<String, Pattern> = BTreeMap::new();

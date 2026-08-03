@@ -58,6 +58,13 @@ struct GenerateArgs {
     /// The mood to generate in. Absent is "Any" — see [`generate`].
     #[serde(default)]
     mood: Option<String>,
+    /// Which of the model's authored song forms to build (TASK-070).
+    ///
+    /// Absent is "the artist chooses", sampled from the weights — the same
+    /// meaning absence carries everywhere else here. Read only by
+    /// `generate_song`; a single pattern has no form.
+    #[serde(default)]
+    structure: Option<usize>,
 }
 
 /// Answer one call.
@@ -181,6 +188,23 @@ pub fn dispatch(
                 .map_err(|e| format!("bad generate request: {e}"))?;
             let auto_sync = state::with(session, |s| s.auto_sync).unwrap_or(true);
             serde_json::to_value(generate_song(&args, host, auto_sync)?).map_err(|e| e.to_string())
+        }
+
+        // The forms this artist writes, for the structure picker (TASK-070).
+        //
+        // ⚠ Its own command rather than a field on `session_defaults`, because
+        // the two answer different questions and are asked at different times:
+        // the chips need defaults the moment an artist is picked, and the forms
+        // are only wanted once somebody opens the Song tab. A model with no
+        // `arrangement` block answers with an error rather than an empty list —
+        // "this artist writes no songs" and "this artist writes one unnamed
+        // song" are not the same thing, and the picker says so.
+        "song_structures" => {
+            let id = request.args["styleId"].as_str().unwrap_or_default();
+            let model = dataset::model(id)?;
+            let forms =
+                engine::arrange::structures_of(&model).map_err(|error| error.to_string())?;
+            Ok(json!({ "structures": forms }))
         }
 
         // The arrangement, on its way to the audio thread (TASK-072).
@@ -720,7 +744,13 @@ fn generate_song(
     }
 
     let ctx = host.session_for(&model, &overrides, seed, auto_sync);
-    engine::arrange::generate(&model, &ctx, seed).map_err(|error| error.to_string())
+    // ⛔ **A forced form does not move a single note (TASK-070).** The structure
+    // is sampled on its own stream, so overriding it leaves every other stream
+    // untouched — the same seed with a different form keeps the same beats,
+    // which is what makes the picker a way to hear one arrangement's ideas in
+    // another's shape rather than a second reroll button.
+    engine::arrange::generate_with(&model, &ctx, seed, args.structure)
+        .map_err(|error| error.to_string())
 }
 
 /// A seed with no dependency on the engine's own randomness.

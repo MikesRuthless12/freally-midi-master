@@ -248,6 +248,13 @@
     "mutePart": "プレビューで{{part}}をミュート",
     "soloPart": "プレビューで{{part}}をソロ",
     "previewOnly": "プレビューのみ — 曲と書き出しは変わりません",
+    "lockClip": "{{part}}クリップをロック",
+    "lockSection": "このセクション全体をロック",
+    "lockRow": "すべてのセクションで{{part}}をロック",
+    "lockHint": "ロックしたクリップはセクションを再生成しても変わりません",
+    "structure": "曲の構成",
+    "form": "構成",
+    "formAny": "アーティストにまかせる",
     "kind": {
       "intro": "イントロ",
       "verse": "ヴァース",
