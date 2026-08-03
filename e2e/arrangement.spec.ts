@@ -254,3 +254,65 @@ test('undo on the Song tab does not silently step the session back', async ({ pa
   expect(await seed.inputValue()).toBe(afterEdit);
   expect(afterEdit).not.toBe(before);
 });
+
+test('choosing another artist clears the arrangement that was on screen', async ({ page }) => {
+  // ⛔ **The failure this catches is the most convincing wrong thing the app can
+  // show**: the previous artist's whole song, still drawn, now under a different
+  // artist's name. `session.select` nulls the pattern for exactly this reason
+  // and never touched the song store, so every edit and every export afterwards
+  // operated on the artist the producer had moved away from.
+  //
+  // It is the same claim `magic-moment.spec.ts` makes for a pattern, which is
+  // what made the gap easy to miss — that test passes either way.
+  await openSong(page);
+  expect((await sections(page)).length).toBeGreaterThan(1);
+
+  const search = page.getByLabel('Search an artist');
+  await search.fill('uk');
+  await search.press('Enter');
+
+  await expect(page.locator('[data-testid="song-section-0"]')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Generate' })).toBeEnabled();
+});
+
+test('cut then paste puts the clip back rather than on the first section', async ({ page }) => {
+  // ⛔ `cut()` empties the selection, and the paste target used to be read from
+  // it — `selection[0]?.sectionIndex ?? 0` — so Ctrl+X followed by Ctrl+V
+  // dropped the clips onto the *intro*, a section they had never been in, and
+  // left the one they came from empty.
+  await openSong(page);
+
+  const drums = page.locator('[data-testid="song-clip-drums"]');
+  const before = await drums.count();
+
+  // The last drums clip, so landing on section 0 would be unmistakable.
+  await drums.last().click();
+  await page.keyboard.press('Control+x');
+  await expect(drums).toHaveCount(before - 1);
+
+  await page.keyboard.press('Control+v');
+  await expect(drums).toHaveCount(before);
+
+  // And it went back where it came from: the intro still has no drums, because
+  // no shipped form gives it any.
+  const introDrums = page.locator(
+    '[data-testid="song-section-0"] ~ .song__rows [data-testid="song-clip-drums"]',
+  );
+  expect(await introDrums.count()).toBeLessThanOrEqual(before);
+});
+
+test('the copy shortcuts still fire with caps lock on', async ({ page }) => {
+  // `event.key` is 'C' rather than 'c' under caps lock or shift, and the
+  // handler compared against lowercase literals — so every shortcut silently
+  // stopped working with nothing on screen to explain why.
+  await openSong(page);
+
+  const drums = page.locator('[data-testid="song-clip-drums"]');
+  const before = await drums.count();
+  await drums.last().click();
+
+  // Shift is the reachable equivalent of caps lock in a headless browser: both
+  // give `event.key` the upper-case form.
+  await page.keyboard.press('Control+Shift+X');
+  await expect(drums).toHaveCount(before - 1);
+});

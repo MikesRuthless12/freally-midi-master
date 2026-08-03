@@ -471,6 +471,49 @@ fn check_song(song: &engine::pattern::Song) -> Result<(), String> {
         }
     }
 
+    // ⛔ **The two bounds that are on the *product*, and the reason the ones
+    // above are not enough.** Every check so far reads one axis at a time, and
+    // an axis-at-a-time bound cannot see what happens when the legal maxima are
+    // combined:
+    //
+    // - **Notes.** A 1-bar clip holding 200,000 notes and one 4,096-bar section
+    //   playing it passes every per-axis test — and then tiles to roughly 1.6
+    //   billion events in a single `Vec`, which pins the thread the host draws
+    //   its editor from until the process is killed. The counted loop stopped
+    //   the *infinite* spin; it does not bound the work.
+    // - **Ticks.** 32 beats to the bar over a `/1` denominator puts a bar at
+    //   122,880 ticks, so a section starting at bar 4,096 lands at 503 million —
+    //   past the 28 bits an SMF delta can hold. `midly` *masks* rather than
+    //   refusing, so the export would succeed and place every marker and note in
+    //   that section at a completely different bar than the arrangement showed.
+    let ticks_per_bar = song.ticks_per_bar();
+    let mut events: u64 = 0;
+    for (index, section) in song.sections.iter().enumerate() {
+        let end = u64::from(section.start_bar.saturating_add(u32::from(section.bars)))
+            * u64::from(ticks_per_bar);
+        if end > u64::from(MAX_TICK) {
+            return Err(format!(
+                "section {index} ends at tick {end}, past the {MAX_TICK} a MIDI \
+                 file can address — the meter and the bar count are each legal \
+                 but their product is not"
+            ));
+        }
+        let repeats = u64::from(section.bars);
+        for reference in section.patterns.values() {
+            let notes = song
+                .patterns
+                .get(&reference.pattern_id)
+                .map_or(0, |p| p.note_count());
+            events = events.saturating_add(repeats.saturating_mul(notes as u64));
+        }
+    }
+    if events > MAX_SONG_EVENTS {
+        return Err(format!(
+            "this song would write about {events} notes; the most that can be \
+             exported is {MAX_SONG_EVENTS}"
+        ));
+    }
+
     Ok(())
 }
 
@@ -479,6 +522,21 @@ const MAX_BEATS_PER_BAR: u32 = 32;
 
 /// Mirrors `engine::arrange`'s own cap, which is what generation can produce.
 const MAX_SECTIONS: usize = 64;
+
+/// The largest tick an SMF delta can address: `u28::MAX`.
+///
+/// ⛔ **`midly` masks a larger value rather than refusing it**, so this is the
+/// only place that can catch it. Past this the file still parses and every event
+/// in the offending section sits at the wrong bar.
+const MAX_TICK: u32 = (1 << 28) - 1;
+
+/// The most note events a song may write.
+///
+/// Roughly two orders of magnitude above anything the generators produce — a
+/// dense 64-section song is a few tens of thousands — so it never binds on a
+/// real arrangement. It exists because the *product* of legal per-axis maxima is
+/// not itself legal.
+const MAX_SONG_EVENTS: u64 = 2_000_000;
 
 /// Build a whole arranged song for the UI's request.
 ///
@@ -767,6 +825,58 @@ mod tests {
         song["timeSigDen"] = json!(3);
         let err = dispatch(&request("song_smf", json!({ "song": song })), &host()).unwrap_err();
         assert!(err.contains("meter"), "{err}");
+    }
+
+    #[test]
+    fn a_song_whose_legal_axes_multiply_past_a_midi_tick_is_refused() {
+        // ⛔ **Every axis is legal and their product is not.** 32 beats to the
+        // bar over a `/1` denominator puts a bar at 122,880 ticks, so a section
+        // starting at bar 4,096 — exactly the limit — lands at 503 million,
+        // past the 28 bits an SMF delta can hold. `midly` *masks* rather than
+        // refusing, so without this the export succeeded and placed every
+        // marker and note in that section at a completely different bar than
+        // the arrangement showed, with nothing reporting anything.
+        let mut song = generate_song("trap", "7").unwrap();
+        song["timeSigNum"] = json!(32);
+        song["timeSigDen"] = json!(1);
+        song["sections"][0]["startBar"] = json!(4096);
+        let err = dispatch(&request("song_smf", json!({ "song": song })), &host()).unwrap_err();
+        assert!(err.contains("past the"), "{err}");
+    }
+
+    #[test]
+    fn a_song_whose_clips_multiply_to_billions_of_notes_is_refused() {
+        // ⛔ The other product the per-axis checks cannot see. A 1-bar clip and
+        // a 4,096-bar section are each inside their own limit; together they
+        // tile to more events than fit in memory, on the thread the host draws
+        // its editor from. The counted loop stopped the *infinite* spin; it
+        // does not bound the work.
+        let mut song = generate_song("trap", "7").unwrap();
+        song["sections"] = json!([{
+            "type": "verse",
+            "startBar": 0,
+            "bars": 4096,
+            "patterns": { "drums": { "patternId": "wide" } },
+            "dropOutBeats": 0,
+            "decay": false,
+            "markers": []
+        }]);
+
+        // One bar, packed with notes. 4,096 repeats of it is tens of millions.
+        let notes: Vec<Value> = (0..2_000)
+            .map(|i| json!({ "startTick": i, "lenTicks": 8, "pitch": 60, "vel": 100 }))
+            .collect();
+        song["patterns"] = json!({
+            "wide": {
+                "id": "wide", "part": "drums", "artistId": "trap", "seed": "1",
+                "bars": 1, "bpm": 140.0, "timeSigNum": 4, "timeSigDen": 4,
+                "keyRoot": 0, "scale": "natural_minor", "ppq": 960,
+                "lanes": [{ "lane": "kick", "notes": notes }]
+            }
+        });
+
+        let err = dispatch(&request("song_smf", json!({ "song": song })), &host()).unwrap_err();
+        assert!(err.contains("notes"), "{err}");
     }
 
     #[test]

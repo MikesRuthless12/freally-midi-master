@@ -119,6 +119,17 @@ struct Event {
     channel: u8,
     key: u8,
     velocity: u8,
+    /// The tick the note this event belongs to *started* at — the same value on
+    /// the on and its off.
+    ///
+    /// ⛔ **This is what keeps a pair together when one end is filtered.** The
+    /// song export drops notes that start past the end of a section, and
+    /// deciding that per *event* dropped the on and kept the off: an unmatched
+    /// note-off then landed inside the next section, on the same channel and
+    /// key, where a DAW pairs it with that section's own note and cuts it dead.
+    /// Judging both ends by the onset is what makes the filter operate on
+    /// notes rather than on halves of them.
+    origin: u32,
 }
 
 /// How far a slide's two notes overlap: a 32nd note.
@@ -128,13 +139,25 @@ struct Event {
 /// destination.
 const SLIDE_OVERLAP_TICKS: u32 = PPQ / 8;
 
-fn push_note(events: &mut Vec<Event>, channel: u8, key: u8, velocity: u8, on: u32, off: u32) {
+/// Push a note's on and off, both stamped with `origin` — the tick the note the
+/// pair belongs to started at. For a slide's second note that is still the
+/// *original* note's onset, so the whole gesture is kept or dropped together.
+fn push_note(
+    events: &mut Vec<Event>,
+    channel: u8,
+    key: u8,
+    velocity: u8,
+    on: u32,
+    off: u32,
+    origin: u32,
+) {
     events.push(Event {
         tick: on,
         is_on: true,
         channel,
         key,
         velocity,
+        origin,
     });
     events.push(Event {
         tick: off,
@@ -142,6 +165,7 @@ fn push_note(events: &mut Vec<Event>, channel: u8, key: u8, velocity: u8, on: u3
         channel,
         key,
         velocity: 0,
+        origin,
     });
 }
 
@@ -193,6 +217,7 @@ fn events_for(pattern: &Pattern) -> Vec<Event> {
                         velocity,
                         note.start_tick,
                         slide_at.saturating_add(overlap),
+                        note.start_tick,
                     );
                     push_note(
                         &mut events,
@@ -201,6 +226,7 @@ fn events_for(pattern: &Pattern) -> Vec<Event> {
                         velocity,
                         slide_at,
                         note.start_tick.saturating_add(len),
+                        note.start_tick,
                     );
                 }
                 None => push_note(
@@ -210,6 +236,7 @@ fn events_for(pattern: &Pattern) -> Vec<Event> {
                     velocity,
                     note.start_tick,
                     note.start_tick.saturating_add(len),
+                    note.start_tick,
                 ),
             }
         }
@@ -416,13 +443,27 @@ fn song_events_for(song: &Song, part: Part, ticks_per_bar: u32) -> Vec<Event> {
                 // written at all; one that started inside and rings past the
                 // end is allowed to finish, exactly as a held note does at a
                 // clip boundary.
-                if event.is_on && offset.saturating_add(event.tick) >= sounding {
+                //
+                // ⛔ Judged on `origin` — the onset of the note this event
+                // belongs to — and therefore applied to the note-off as well as
+                // the note-on. Testing `event.tick` and gating on `is_on`
+                // dropped the on and kept the off, and the orphan landed in the
+                // next section where a DAW paired it with that section's note.
+                if offset.saturating_add(event.origin) >= sounding {
                     continue;
                 }
                 let velocity = if section.decay && event.is_on {
-                    let through = f32::from(u16::try_from(offset / clip_len).unwrap_or(0))
-                        / f32::from(u16::try_from((section_len / clip_len).max(1)).unwrap_or(1));
-                    let scale = 1.0 - (1.0 - DECAY_FLOOR) * through.clamp(0.0, 1.0);
+                    // ⛔ **Measured across the section, not per whole clip
+                    // repeat.** `offset / clip_len` is zero for the whole of a
+                    // section exactly one clip long — which is what the shipped
+                    // data produces, since `_defaults` authors a 4-bar outro and
+                    // the bars chip defaults to 4 — so every decaying outro
+                    // exported dead flat while the timeline drew the badge. A
+                    // position within the section ramps continuously and reaches
+                    // the floor at the end whatever the clip length is.
+                    let position = offset.saturating_add(event.tick) as f32;
+                    let through = (position / section_len.max(1) as f32).clamp(0.0, 1.0);
+                    let scale = 1.0 - (1.0 - DECAY_FLOOR) * through;
                     ((f32::from(event.velocity) * scale).round() as u8).clamp(1, 127)
                 } else {
                     event.velocity
@@ -500,12 +541,17 @@ pub fn song_to_smf(song: &Song) -> Vec<u8> {
     let mut markers: Vec<(u32, String)> = song
         .sections
         .iter()
-        .map(|section| (section.start_bar * ticks_per_bar, section_marker(section)))
+        .map(|section| {
+            (
+                section.start_bar.saturating_mul(ticks_per_bar),
+                section_marker(section),
+            )
+        })
         .collect();
     markers.extend(song.sections.iter().flat_map(|s| {
         s.markers
             .iter()
-            .map(|m| (s.start_bar * ticks_per_bar, m.clone()))
+            .map(|m| (s.start_bar.saturating_mul(ticks_per_bar), m.clone()))
     }));
     // Stable, so a section's own kind marker stays ahead of any custom marker
     // sharing its tick.

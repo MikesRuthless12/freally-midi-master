@@ -181,12 +181,26 @@ pub fn generate(model: &StyleModel, ctx: &SessionContext, seed: u64) -> Result<S
         let section_model = scaled.as_ref().unwrap_or(model);
 
         let wanted = parts_for(&rule, model);
-        let rendered = render_section(section_model, ctx, section_seed, &wanted);
+        let rendered = render_section(section_model, ctx, section_seed, &wanted, None);
         // A switch-up varies only the *melodic* parts, so the back half needs a
         // second render on its own seed. Skipped entirely when there is no
         // switch-up, which is roughly six songs in seven.
-        let switched = (switch_seed != section_seed)
-            .then(|| render_section(section_model, ctx, switch_seed, &wanted));
+        //
+        // ⛔ **The switch-up render is given the section's *own* kit.** Without
+        // that it generated a second kit from `switch_seed` and wrote the
+        // back-half melody around it — while the section went on storing the
+        // drums from `section_seed`. The melody would have been written around a
+        // kick pattern the section does not play, which is precisely the
+        // incoherence the per-section seed fixed for the ordinary path.
+        let switched = (switch_seed != section_seed).then(|| {
+            render_section(
+                section_model,
+                ctx,
+                switch_seed,
+                &wanted,
+                Some(&rendered.kit),
+            )
+        });
 
         let mut refs: BTreeMap<Part, PatternRef> = BTreeMap::new();
         for PartRequest { part, .. } in wanted {
@@ -207,7 +221,7 @@ pub fn generate(model: &StyleModel, ctx: &SessionContext, seed: u64) -> Result<S
                     (true, Some(switched)) => switched,
                     _ => &rendered,
                 };
-                let Some(lanes) = source.get(&part) else {
+                let Some(lanes) = source.lanes.get(&part) else {
                     continue;
                 };
                 let pattern_seed = if melodic && switched.is_some() {
@@ -237,7 +251,7 @@ pub fn generate(model: &StyleModel, ctx: &SessionContext, seed: u64) -> Result<S
         start_bar += u32::from(bars);
     }
 
-    drop_out_before_hooks(&mut sections, transitions, seed);
+    drop_out_before_hooks(&mut sections, transitions, seed, ctx.time_sig_num.max(1));
 
     if patterns.is_empty() {
         return Err(ArrangeError::Silent(model.id.clone()));
@@ -436,7 +450,12 @@ fn switch_up_point(transitions: Option<&Value>, names: &[String], seed: u64) -> 
 /// not know what follows. The drop-out is the beat or two of nothing that makes
 /// a hook land, and putting it on the hook itself would cut the top off the
 /// thing it is announcing.
-fn drop_out_before_hooks(sections: &mut [Section], transitions: Option<&Value>, seed: u64) {
+fn drop_out_before_hooks(
+    sections: &mut [Section],
+    transitions: Option<&Value>,
+    seed: u64,
+    beats_per_bar: u8,
+) {
     let spec = transitions.and_then(|t| t.get("dropOutBeats"));
     let Some(spec) = spec else {
         return;
@@ -463,7 +482,13 @@ fn drop_out_before_hooks(sections: &mut [Section], transitions: Option<&Value>, 
         // Never more than the section has. A four-beat drop-out on a one-bar
         // section is a section that does not play, which reads as a hole rather
         // than as a transition.
-        let available = u32::from(previous.bars).saturating_mul(4).saturating_sub(4);
+        //
+        // ⛔ Measured in the *session's* beats per bar, not a hardcoded four.
+        // The exporter derives the same span from `time_sig_num`, so a literal
+        // 4 here made the engine and the file disagree in any other meter.
+        let available = u32::from(previous.bars)
+            .saturating_mul(u32::from(beats_per_bar))
+            .saturating_sub(u32::from(beats_per_bar));
         previous.drop_out_beats = u8::try_from(beats.min(u64::from(available))).unwrap_or(0);
     }
 }
@@ -554,7 +579,8 @@ fn render_section(
     ctx: &SessionContext,
     seed: u64,
     wanted: &[PartRequest],
-) -> BTreeMap<Part, Vec<LaneTrack>> {
+    base_kit: Option<&[LaneTrack]>,
+) -> SectionRender {
     use crate::generators::{bass, chords, counter, drums, melody};
     use crate::humanize::humanize;
 
@@ -568,10 +594,13 @@ fn render_section(
     let needs_lead = asked(&[Part::Melody, Part::Counter]);
 
     let harmony = needs_harmony.then(|| chords::generate(model, ctx, seed));
-    let kit = if needs_kit {
-        drums::generate(model, ctx, seed)
-    } else {
-        Vec::new()
+    // `base_kit` is the section's already-generated drums, handed in so a
+    // switch-up's melody is written around the beat the section actually plays
+    // rather than around a second kit nobody hears.
+    let kit = match base_kit {
+        Some(kit) => kit.to_vec(),
+        None if needs_kit => drums::generate(model, ctx, seed),
+        None => Vec::new(),
     };
     let lead = match (needs_lead, &harmony) {
         (true, Some(harmony)) => Some(melody::generate(model, ctx, seed, harmony, &kit)),
@@ -611,7 +640,15 @@ fn render_section(
             out.insert(request.part, lanes);
         }
     }
-    out
+    SectionRender { lanes: out, kit }
+}
+
+/// What one section's render produced.
+struct SectionRender {
+    lanes: BTreeMap<Part, Vec<LaneTrack>>,
+    /// The **un-humanized** kit the melodic parts were written against, so a
+    /// switch-up can be written against the same one.
+    kit: Vec<LaneTrack>,
 }
 
 /// Wrap a section's rendered lanes as the clip the store holds.

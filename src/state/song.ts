@@ -28,7 +28,7 @@ import {
   type ClipId,
 } from '../components/SongTimeline/clips';
 import { zoomIn, zoomOut, type View } from '../components/SongTimeline/geometry';
-import { reason, type SessionPins } from './session';
+import { reason, useSession, type SessionPins } from './session';
 
 export type SongState = {
   song: Song | null;
@@ -40,6 +40,15 @@ export type SongState = {
   view: View;
   selection: ClipId[];
   clipboard: Clipboard | null;
+  /**
+   * The section the last selection was made in.
+   *
+   * ⛔ Kept separately from `selection` because `cut()` empties the selection.
+   * Deriving the paste target from `selection[0]` meant Ctrl+X then Ctrl+V read
+   * an empty list, fell back to 0, and dropped the cut clips onto the *first*
+   * section instead of putting them back where they came from.
+   */
+  anchor: number | null;
 
   generate: (args: {
     styleId: string;
@@ -60,7 +69,7 @@ export type SongState = {
   deleteSelection: () => void;
   copy: () => void;
   cut: () => void;
-  paste: (sectionIndex: number) => void;
+  paste: () => void;
 };
 
 const INITIAL_VIEW: View = { zoom: 24, scrollBar: 0 };
@@ -73,6 +82,7 @@ export const useSong = create<SongState>((set, get) => ({
   view: INITIAL_VIEW,
   selection: [],
   clipboard: null,
+  anchor: null,
 
   async generate({ styleId, seed, pins, mood }) {
     if (get().generating) return;
@@ -96,6 +106,7 @@ export const useSong = create<SongState>((set, get) => ({
         generating: false,
         edited: false,
         selection: [],
+        anchor: null,
         // The view is deliberately kept: regenerating while zoomed in should
         // not throw the producer back to the top of the song.
       });
@@ -114,7 +125,7 @@ export const useSong = create<SongState>((set, get) => ({
   select(clip, additive) {
     const { selection } = get();
     if (!additive) {
-      set({ selection: [clip] });
+      set({ selection: [clip], anchor: clip.sectionIndex });
       return;
     }
     // Additive click toggles, so a mis-shift-click is undone by repeating it
@@ -123,6 +134,7 @@ export const useSong = create<SongState>((set, get) => ({
       selection: isSelected(selection, clip)
         ? selection.filter((s) => !sameClip(s, clip))
         : [...selection, clip],
+      anchor: clip.sectionIndex,
     });
   },
 
@@ -135,7 +147,7 @@ export const useSong = create<SongState>((set, get) => ({
       sectionIndex: index,
       part,
     }));
-    set({ selection: additive ? [...get().selection, ...clips] : clips });
+    set({ selection: additive ? [...get().selection, ...clips] : clips, anchor: index });
   },
 
   clearSelection() {
@@ -173,12 +185,37 @@ export const useSong = create<SongState>((set, get) => ({
     if (get().clipboard) get().deleteSelection();
   },
 
-  paste(sectionIndex) {
-    const clipboard = get().clipboard;
+  paste() {
+    const { clipboard, anchor } = get();
     if (!clipboard) return;
-    apply(set, get, (song) => pasteClips(song, clipboard, sectionIndex));
+    apply(set, get, (song) => pasteClips(song, clipboard, anchor ?? 0));
   },
 }));
+
+/**
+ * Drop the arrangement when the producer picks a different artist.
+ *
+ * ⛔ **`session.select` already does this for the pattern, and its comment says
+ * why: an artist's work left on screen under another artist's name is the most
+ * convincing wrong thing the app can show.** A song is the same claim at a
+ * larger scale — the whole arrangement, its tempo, its key and its pattern store
+ * all belong to the artist it was built for, and every edit and every export
+ * afterwards would operate on that one. `session.select` cannot clear it
+ * directly (this store imports *from* session, so the dependency only runs one
+ * way), which is why it is a subscription rather than a line in `select`.
+ */
+useSession.subscribe((state, previous) => {
+  if (state.selectedId !== previous.selectedId) {
+    useSong.setState({
+      song: null,
+      selection: [],
+      anchor: null,
+      clipboard: null,
+      edited: false,
+      error: null,
+    });
+  }
+});
 
 /**
  * Run an edit and record that the arrangement has moved away from its seed.

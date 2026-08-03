@@ -451,3 +451,167 @@ fn a_key_root_past_the_octave_does_not_overflow_the_signature() {
     };
     assert!(Smf::parse(&song_to_smf(&hostile)).is_ok());
 }
+
+/// Every note-on in a track pairs with a note-off on the same channel and key.
+fn unmatched_events(bytes: &[u8]) -> usize {
+    let smf = Smf::parse(bytes).expect("parses");
+    let mut orphans = 0usize;
+    for track in &smf.tracks {
+        let mut open: BTreeMap<(u8, u8), i32> = BTreeMap::new();
+        for event in track {
+            if let TrackEventKind::Midi { channel, message } = event.kind {
+                match message {
+                    MidiMessage::NoteOn { key, vel } if vel.as_int() > 0 => {
+                        *open.entry((channel.as_int(), key.as_int())).or_default() += 1;
+                    }
+                    MidiMessage::NoteOff { key, .. } | MidiMessage::NoteOn { key, .. } => {
+                        let slot = open.entry((channel.as_int(), key.as_int())).or_default();
+                        if *slot == 0 {
+                            orphans += 1;
+                        } else {
+                            *slot -= 1;
+                        }
+                    }
+                    _ => {}
+                }
+            }
+        }
+        orphans += open.values().filter(|v| **v > 0).count();
+    }
+    orphans
+}
+
+/// A one-section song over `pattern`, with the knobs the tests below vary.
+fn one_section(id: &str, pattern: &Pattern, bars: u16, drop_out_beats: u8, decay: bool) -> Song {
+    Song {
+        id: "fixture".into(),
+        artist_id: "trap".into(),
+        seed: 1,
+        bpm: 140.0,
+        key_root: 0,
+        scale: pattern.scale,
+        sections: vec![Section {
+            kind: SectionKind::Verse,
+            start_bar: 0,
+            bars,
+            patterns: BTreeMap::from([(
+                Part::Drums,
+                engine::pattern::PatternRef {
+                    pattern_id: id.to_owned(),
+                },
+            )]),
+            drop_out_beats,
+            decay,
+            markers: vec![],
+        }],
+        time_sig_num: 4,
+        time_sig_den: 4,
+        patterns: BTreeMap::from([(id.to_owned(), pattern.clone())]),
+        ppq: engine::pattern::PPQ,
+    }
+}
+
+/// A drum clip with enough notes to measure.
+fn drum_clip(seed: u64) -> (String, Pattern) {
+    let generated = song("trap", seed);
+    generated
+        .patterns
+        .iter()
+        .find(|(_, p)| p.part == Part::Drums && p.note_count() > 8)
+        .map(|(id, p)| (id.clone(), p.clone()))
+        .expect("a drum pattern with notes")
+}
+
+#[test]
+fn a_section_shorter_than_its_clip_writes_no_orphan_note_offs() {
+    // ⛔ **The bug: the tiling guard dropped note-*ons* past the end of the
+    // section and wrote their note-offs anyway.** An unmatched off lands inside
+    // the next section on the same channel and key, where a DAW pairs it with
+    // that section's own note and cuts it dead — so the top of the following
+    // hook goes silent. It happens out of the box whenever a 4-bar intro or
+    // outro plays an 8-bar clip, and by hand the moment a producer drags a
+    // section shorter than the clip in it.
+    let (id, pattern) = drum_clip(7);
+    let short = one_section(&id, &pattern, pattern.bars / 2, 0, false);
+    assert_eq!(
+        unmatched_events(&song_to_smf(&short)),
+        0,
+        "a section shorter than its clip left note-offs with no note-on"
+    );
+}
+
+#[test]
+fn a_drop_out_writes_no_orphan_note_offs() {
+    // The same filter reached the other way: a drop-out shortens the sounding
+    // span without shortening the section.
+    let (id, pattern) = drum_clip(7);
+    let dropped = one_section(&id, &pattern, pattern.bars, 6, false);
+    assert_eq!(unmatched_events(&song_to_smf(&dropped)), 0);
+}
+
+#[test]
+fn every_shipped_model_exports_a_song_with_no_orphan_note_events() {
+    // The case that actually ships: whatever the generators produce, dragged
+    // out as it stands.
+    for (id, model) in shipped() {
+        if id.starts_with('_') {
+            continue;
+        }
+        let song = arrange::generate(&model, &SessionContext::default(), 2026).expect("builds");
+        assert_eq!(
+            unmatched_events(&song_to_smf(&song)),
+            0,
+            "{id}'s exported song has unmatched note events"
+        );
+    }
+}
+
+#[test]
+fn a_one_clip_outro_still_fades() {
+    // ⛔ **The shape the shipped data actually produces.** `_defaults` authors a
+    // 4-bar outro with `decay: true` and the bars chip defaults to 4, so the
+    // section is exactly one clip long — and the old ramp, measured in whole
+    // clip *repeats*, was zero for the whole of it. Every decaying outro
+    // exported dead flat while the timeline drew the badge. The tiling test hid
+    // this by building a section four clips long, a shape the data never makes.
+    let (id, pattern) = drum_clip(7);
+
+    let velocities = |song: &Song| -> Vec<u8> {
+        let bytes = song_to_smf(song);
+        let smf = Smf::parse(&bytes).expect("parses");
+        smf.tracks
+            .iter()
+            .flat_map(|t| t.iter())
+            .filter_map(|e| match e.kind {
+                TrackEventKind::Midi {
+                    message: MidiMessage::NoteOn { vel, .. },
+                    ..
+                } if vel.as_int() > 0 => Some(vel.as_int()),
+                _ => None,
+            })
+            .collect()
+    };
+    let mean = |s: &[u8]| s.iter().map(|v| f64::from(*v)).sum::<f64>() / s.len() as f64;
+
+    // Exactly one clip — the default, and the case that was broken.
+    let flat = velocities(&one_section(&id, &pattern, pattern.bars, 0, false));
+    let faded = velocities(&one_section(&id, &pattern, pattern.bars, 0, true));
+
+    assert_eq!(flat.len(), faded.len(), "a decay must not delete notes");
+    assert!(!faded.is_empty(), "nothing was written");
+    assert!(faded.iter().all(|v| *v >= 1), "a decay silenced a note");
+    assert!(
+        mean(&faded) < mean(&flat),
+        "a one-clip outro exported dead flat: {:.1} against {:.1}",
+        mean(&faded),
+        mean(&flat)
+    );
+
+    // And it reaches the floor by the end rather than stopping short of it.
+    let tail = (faded.len() / 4).max(1);
+    let ratio = mean(&faded[faded.len() - tail..]) / mean(&flat[flat.len() - tail..]);
+    assert!(
+        ratio < 0.6,
+        "the end of the outro is {ratio:.2} of full velocity, nowhere near the floor"
+    );
+}

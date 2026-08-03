@@ -186,9 +186,13 @@ export function CenterStage() {
         <div className="stage__bottom">
           {/* The error sits beside the control that caused it rather than in a
               toast that has to be chased across the screen. */}
-          {(error ?? songError) && (
+          {/* ⛔ The error belongs to the tab that is showing. `error ?? songError`
+              showed the *session's* error whenever one existed, so a stale
+              "trap's 808 is the bassline" from a Bass request on another tab was
+              presented as though it were about the song. */}
+          {(part === null ? songError : error) && (
             <p className="stage__error" role="alert">
-              {error ?? songError}
+              {part === null ? songError : error}
             </p>
           )}
 

@@ -12,7 +12,7 @@
  * up showing something the exported file does not contain.
  */
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import type { Part, Section, Song } from '../../lib/ipc-types';
@@ -53,6 +53,16 @@ export function SongTimeline({ song }: Props) {
   const paste = useSong((s) => s.paste);
   const zoomInAction = useSong((s) => s.zoomIn);
   const zoomOutAction = useSong((s) => s.zoomOut);
+  // The paste target lives in the store, not in the selection: `cut()` clears
+  // the selection, so deriving it here would drop the cut clips onto section 0.
+  const anchor = useSong((s) => s.anchor) ?? 0;
+
+  // ⛔ **Focus has to come back here after an edit removes a clip.** A clip is a
+  // <button>, so clicking one focuses it — and cut and delete then unmount the
+  // very element holding focus. The browser drops focus to <body>, whose
+  // keydown never reaches this handler, so the *next* shortcut silently did
+  // nothing: Ctrl+X worked and the Ctrl+V after it went nowhere.
+  const rootRef = useRef<HTMLDivElement>(null);
 
   const beatsPerBar = Math.max(1, song.timeSigNum);
   const bars = totalBars(song);
@@ -110,32 +120,43 @@ export function SongTimeline({ song }: Props) {
       if (isTypingTarget(event.target)) return;
 
       const accel = event.ctrlKey || event.metaKey;
-      const anchor = selection[0]?.sectionIndex ?? 0;
+      // ⛔ Lower-cased, the way `App.tsx`'s undo handler already does it. With
+      // caps lock on — or shift held — `event.key` is `'C'`, and every one of
+      // these shortcuts silently stopped firing with nothing to explain why.
+      const key = event.key.toLowerCase();
 
-      if (accel && event.key === 'c') {
+      if (accel && key === 'c') {
         copy();
         event.preventDefault();
-      } else if (accel && event.key === 'x') {
+      } else if (accel && key === 'x') {
         cut();
+        rootRef.current?.focus();
         event.preventDefault();
-      } else if (accel && event.key === 'v') {
-        paste(anchor);
+      } else if (accel && key === 'v') {
+        paste();
         event.preventDefault();
-      } else if (accel && event.key === 'd') {
+      } else if (accel && key === 'd') {
         clone(anchor);
         event.preventDefault();
       } else if (event.key === 'Delete' || event.key === 'Backspace') {
         deleteSelection();
+        rootRef.current?.focus();
         event.preventDefault();
       } else if (event.key === 'Escape') {
         clearSelection();
       }
     },
-    [selection, copy, cut, paste, clone, deleteSelection, clearSelection],
+    [anchor, copy, cut, paste, clone, deleteSelection, clearSelection],
   );
 
   return (
-    <div className="song" onKeyDown={onKeyDown} tabIndex={0} aria-label={t('song.timeline')}>
+    <div
+      className="song"
+      ref={rootRef}
+      onKeyDown={onKeyDown}
+      tabIndex={0}
+      aria-label={t('song.timeline')}
+    >
       <div className="song__toolbar">
         <span className="song__meta">
           {t('song.length', {
@@ -220,6 +241,7 @@ export function SongTimeline({ song }: Props) {
                       left={barToX(section.startBar, view)}
                       width={section.bars * view.zoom}
                       selected={isSelected(selection, { sectionIndex: index, part })}
+                      beatsPerBar={beatsPerBar}
                       onSelect={(additive) => select({ sectionIndex: index, part }, additive)}
                     />
                   ) : null,
@@ -304,10 +326,12 @@ type ClipProps = {
   left: number;
   width: number;
   selected: boolean;
+  /** The song's own beats per bar — the drop-out is measured in them. */
+  beatsPerBar: number;
   onSelect: (additive: boolean) => void;
 };
 
-function Clip({ part, section, left, width, selected, onSelect }: ClipProps) {
+function Clip({ part, section, left, width, selected, beatsPerBar, onSelect }: ClipProps) {
   const { t } = useTranslation();
   return (
     <button
@@ -325,7 +349,7 @@ function Clip({ part, section, left, width, selected, onSelect }: ClipProps) {
       {section.dropOutBeats > 0 && (
         <span
           className="song__dropout"
-          style={{ width: `${(section.dropOutBeats / (section.bars * 4)) * 100}%` }}
+          style={{ width: `${(section.dropOutBeats / (section.bars * beatsPerBar)) * 100}%` }}
           title={t('song.dropOut', { beats: section.dropOutBeats })}
         />
       )}
