@@ -276,3 +276,89 @@
       border-color 120ms ease;
   }
 }
+
+/* ── The transport marker (TASK-072).
+ *
+ * Laid out at the canvas origin and moved with `transform`, so following it at
+ * 30 Hz costs no layout — the same reasoning the roll's own marker documents. */
+.song__playhead {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 2px;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* ── Loop one section while arranging it. */
+.song__loop {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  color: var(--text-dim);
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  cursor: pointer;
+  opacity: 0;
+}
+
+.song__section:hover .song__loop,
+.song__loop:focus-visible,
+.song__loop.is-on {
+  opacity: 1;
+}
+
+.song__loop.is-on {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.song__section.is-looping {
+  outline: 1px solid var(--accent);
+  outline-offset: -1px;
+}
+
+/* ── Per-part audition controls.
+ *
+ * ⛔ `pointer-events: auto`, because `.song__row-label` sets `none` so a click
+ * between two clips reaches the background and seeks. These are the exception:
+ * they are controls rather than a label, and without this they resolve, look
+ * enabled, and silently cannot be clicked. */
+.song__row-mute,
+.song__row-solo {
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  margin-inline-start: 2px;
+  padding: 0;
+  font-size: 0.66rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--text-dim);
+  background: transparent;
+  border: 0;
+  border-radius: 3px;
+  cursor: pointer;
+  pointer-events: auto;
+  vertical-align: middle;
+}
+
+.song__row-mute:hover,
+.song__row-solo:hover {
+  color: var(--text);
+}
+
+.song__row-mute.is-on,
+.song__row-solo.is-on {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+}

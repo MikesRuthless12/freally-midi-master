@@ -68,6 +68,32 @@ export type SongState = {
    */
   locks: string[];
 
+  /**
+   * The section playing on repeat, or `null` for the whole record (TASK-072).
+   *
+   * An index rather than a tick span, because the span is derived from the
+   * arrangement and the arrangement moves: resizing an earlier section shifts
+   * every bar after it, and a stored span would go on looping the bars the
+   * section used to occupy.
+   */
+  loopSection: number | null;
+  /**
+   * Parts silenced while auditioning, and parts soloed.
+   *
+   * ⚠ **A preview control, not an edit.** The song is unchanged and so is the
+   * export — the same distinction the per-lane audio mute already draws and
+   * labels *preview* on screen. A row mute that quietly changed the exported
+   * file would be a much worse control than one that does not.
+   */
+  mutedParts: Part[];
+  soloParts: Part[];
+
+  /** Hand the arrangement to the audio thread, as it currently stands. */
+  armSong: () => void;
+  setLoopSection: (index: number | null) => void;
+  togglePartMute: (part: Part) => void;
+  togglePartSolo: (part: Part) => void;
+
   generate: (args: {
     styleId: string;
     seed: string;
@@ -109,6 +135,53 @@ export const useSong = create<SongState>((set, get) => ({
   clipboard: null,
   anchor: null,
   locks: [],
+  loopSection: null,
+  mutedParts: [],
+  soloParts: [],
+
+  armSong() {
+    const { song, loopSection, mutedParts, soloParts } = get();
+    if (!song) return;
+    void invoke('arm_song', {
+      request: {
+        song,
+        // ⚠ Out of range is "no loop" on the far side rather than an error: a
+        // stale index arriving after a section was deleted must not stop
+        // playback.
+        loopSection,
+        parts: playingParts(song, mutedParts, soloParts),
+      },
+      // The reply is the flattened clip and `editor.rs` arms it from its shape;
+      // there is nothing for the page to do with it. A rejection means the song
+      // was refused at the bridge, and the timeline is still showing what was
+      // playing before — so this is deliberately not surfaced as a song error.
+    }).catch(() => {});
+  },
+
+  setLoopSection(index) {
+    set({ loopSection: index });
+    get().armSong();
+  },
+
+  togglePartMute(part) {
+    const { mutedParts } = get();
+    set({
+      mutedParts: mutedParts.includes(part)
+        ? mutedParts.filter((p) => p !== part)
+        : [...mutedParts, part],
+    });
+    get().armSong();
+  },
+
+  togglePartSolo(part) {
+    const { soloParts } = get();
+    set({
+      soloParts: soloParts.includes(part)
+        ? soloParts.filter((p) => p !== part)
+        : [...soloParts, part],
+    });
+    get().armSong();
+  },
 
   async generate({ styleId, seed, pins, mood }) {
     if (get().generating) return;
@@ -138,6 +211,10 @@ export const useSong = create<SongState>((set, get) => ({
         // sections nor the same clips — so a kept lock would pin whatever
         // happened to land at that index, which is not what the producer pinned.
         locks: [],
+        // ⛔ The loop names a section by index, and a fresh song has different
+        // sections at those indices — a kept loop would repeat whichever bars
+        // happened to land there.
+        loopSection: null,
         // The view is deliberately kept: regenerating while zoomed in should
         // not throw the producer back to the top of the song.
       });
@@ -145,6 +222,7 @@ export const useSong = create<SongState>((set, get) => ({
       // stored — but the *previous* one may have been edited and saved, and
       // leaving that in the project file would reopen it over this one.
       noteDocumentChange();
+      get().armSong();
     } catch (error) {
       set({ generating: false, error: reason(error) });
     }
@@ -315,6 +393,12 @@ useSession.subscribe((state, previous) => {
       clipboard: null,
       edited: false,
       locks: [],
+      loopSection: null,
+      // The audition filters go with the song too: a producer who soloed the
+      // drums on one artist's arrangement has not asked for the next artist's
+      // to open with everything else silent.
+      mutedParts: [],
+      soloParts: [],
       error: null,
     });
   }
@@ -333,7 +417,7 @@ registerSongDocument(
     const { song, edited } = useSong.getState();
     return { song, edited };
   },
-  ({ song, edited }) =>
+  ({ song, edited }) => {
     useSong.setState({
       song,
       edited,
@@ -342,9 +426,40 @@ registerSongDocument(
       anchor: null,
       clipboard: null,
       locks: [],
+      // ⛔ The loop names a section by index, and an undo can move or remove
+      // the section that index pointed at — so a kept loop would repeat bars
+      // the producer never chose. The audition filters are kept: they are about
+      // *parts*, which an arrangement edit does not renumber.
+      loopSection: null,
       error: null,
-    }),
+    });
+    // ⛔ Undo has to reach the audio thread, exactly as `session.ts` documents
+    // for the clip: without this the producer steps an edit back, watches the
+    // timeline change, presses play and hears the arrangement they just undid.
+    useSong.getState().armSong();
+  },
 );
+
+/**
+ * The parts that should sound, or `null` for all of them.
+ *
+ * ⛔ **Solo wins over mute, which is what every DAW does and is not merely a
+ * convention.** A producer soloing the drums to check a transition has usually
+ * muted something earlier and forgotten; making them undo that first would mean
+ * solo sometimes did nothing at all, with the row lit up saying otherwise.
+ *
+ * `null` rather than "every part" so the common case sends no filter and the
+ * engine takes the whole-song path — one less place for the list to be wrong.
+ */
+function playingParts(song: Song, muted: Part[], solo: Part[]): Part[] | null {
+  if (solo.length > 0) return solo;
+  if (muted.length === 0) return null;
+  const all = new Set<Part>();
+  for (const section of song.sections) {
+    for (const part of Object.keys(section.patterns) as Part[]) all.add(part);
+  }
+  return [...all].filter((part) => !muted.includes(part));
+}
 
 /** The key one clip is locked under. */
 function lockKey({ sectionIndex, part }: ClipId): string {
@@ -376,6 +491,7 @@ function lockedPartsIn(locks: string[], index: number): Part[] {
 function markEdited(): void {
   useSong.setState({ edited: true });
   noteDocumentChange();
+  useSong.getState().armSong();
 }
 
 /**
@@ -402,4 +518,10 @@ function apply(
     ...(clearSelection ? { selection: [] } : {}),
   });
   noteDocumentChange();
+  // ⛔ **Every geometry edit re-arms.** A resize retiles the whole song, so the
+  // clip already on the audio thread describes bars that have moved — and the
+  // producer would go on hearing the arrangement they had before while the
+  // timeline drew the one they had just made. Undo reaches this too, through
+  // `applySongDocument`, for the same reason.
+  get().armSong();
 }

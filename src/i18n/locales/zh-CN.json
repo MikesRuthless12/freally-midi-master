@@ -244,6 +244,10 @@
     "resizeStart": "缩短此段落",
     "resizeEnd": "延长此段落",
     "readyBody": "点击“生成”，为 {{name}} 编排一整首歌。",
+    "loopSection": "循环此段落",
+    "mutePart": "在试听中静音{{part}}",
+    "soloPart": "在试听中独奏{{part}}",
+    "previewOnly": "仅试听 — 歌曲与导出不受影响",
     "kind": {
       "intro": "前奏",
       "verse": "主歌",

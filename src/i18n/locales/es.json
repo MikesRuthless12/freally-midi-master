@@ -244,6 +244,10 @@
     "resizeStart": "Acortar esta sección",
     "resizeEnd": "Alargar esta sección",
     "readyBody": "Pulsa Generar para arreglar una canción entera de {{name}}.",
+    "loopSection": "Repetir esta sección",
+    "mutePart": "Silenciar {{part}} en la vista previa",
+    "soloPart": "Aislar {{part}} en la vista previa",
+    "previewOnly": "Solo vista previa: la canción y la exportación no cambian",
     "kind": {
       "intro": "Introducción",
       "verse": "Estrofa",

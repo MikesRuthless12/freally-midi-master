@@ -1186,6 +1186,25 @@ useSession.subscribe((state, prev) => {
 });
 
 /**
+ * Put the clip back on the audio thread, unchanged.
+ *
+ * ⛔ **The Song tab arms the whole arrangement, and there is only one
+ * schedule** — so leaving Song Mode has to give the transport back what the
+ * generator tabs are showing. Without this, switching to Song, then back to
+ * Drums, and pressing Play would play the song: the marker would be over the
+ * roll and the sound would be the record, which is the readout-that-lies
+ * failure at its worst because both halves look right on their own.
+ *
+ * The subscriber above cannot serve this — it fires on the pattern *changing*,
+ * and nothing about a tab switch changes it.
+ */
+export function armCurrentPattern(): void {
+  const { pattern } = useSession.getState();
+  if (!isPlugin() || pattern === null) return;
+  void invoke('arm_pattern', { pattern }).catch(() => {});
+}
+
+/**
  * Follow the playhead the audio thread publishes.
  *
  * Returns a no-op outside the plugin: a browser has no audio thread, so there

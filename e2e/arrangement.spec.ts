@@ -252,9 +252,7 @@ test('undo steps the arrangement back, and leaves the session alone', async ({ p
   await timeline.click();
   // Grow the first section by one bar, then take it back.
   await page.getByRole('button', { name: 'Lengthen this section' }).first().click();
-  await expect
-    .poll(async () => (await sections(page))[0].bars)
-    .toBe(before.bars + 1);
+  await expect.poll(async () => (await sections(page))[0].bars).toBe(before.bars + 1);
 
   await page.keyboard.press('Control+z');
 
@@ -322,4 +320,65 @@ test('the copy shortcuts still fire with caps lock on', async ({ page }) => {
   // give `event.key` the upper-case form.
   await page.keyboard.press('Control+Shift+X');
   await expect(drums).toHaveCount(before - 1);
+});
+
+// ---------------------------------------------------------------------------
+// Playback controls (TASK-072).
+//
+// ⚠ **Nothing here can hear anything.** The mock has no audio thread, so what
+// these assert is that the controls are wired to the right section and the right
+// row — which is the half a screenshot cannot check either. Whether the loop
+// actually turns over, and whether a muted row goes quiet, are in
+// `Live-To-Do.md` § 4 because only a human with speakers can answer them.
+// ---------------------------------------------------------------------------
+
+test('a section can be looped, and looping a second one moves the loop', async ({ page }) => {
+  await openSong(page);
+
+  const first = page.locator('[data-testid="song-section-0"]');
+  const second = page.locator('[data-testid="song-section-1"]');
+  await expect(first).toHaveAttribute('data-looping', 'false');
+
+  await first.getByRole('button', { name: 'Loop this section' }).click();
+  await expect(first).toHaveAttribute('data-looping', 'true');
+
+  // ⛔ One loop, not two. A per-section toggle that did not clear the others
+  // would leave the transport with a loop the producer thought they had moved.
+  await second.getByRole('button', { name: 'Loop this section' }).click();
+  await expect(second).toHaveAttribute('data-looping', 'true');
+  await expect(first).toHaveAttribute('data-looping', 'false');
+
+  // And pressing it again plays the record through.
+  await second.getByRole('button', { name: 'Loop this section' }).click();
+  await expect(second).toHaveAttribute('data-looping', 'false');
+});
+
+test('a part row can be muted and soloed for the preview', async ({ page }) => {
+  await openSong(page);
+
+  const mute = page.getByRole('button', { name: /^Mute Drums/ });
+  const solo = page.getByRole('button', { name: /^Solo Drums/ });
+
+  await expect(mute).toHaveAttribute('aria-pressed', 'false');
+  await mute.click();
+  await expect(mute).toHaveAttribute('aria-pressed', 'true');
+
+  await solo.click();
+  await expect(solo).toHaveAttribute('aria-pressed', 'true');
+  // ⚠ The mute stays set. Solo wins over it rather than clearing it, so
+  // un-soloing puts the producer back where they were.
+  await expect(mute).toHaveAttribute('aria-pressed', 'true');
+});
+
+test('generating a song drops a loop set on the previous one', async ({ page }) => {
+  // A loop names a section by index, and a fresh song has different sections at
+  // those indices — a kept loop would repeat whichever bars happened to land
+  // there, which is not what the producer chose.
+  await openSong(page);
+  const first = page.locator('[data-testid="song-section-0"]');
+  await first.getByRole('button', { name: 'Loop this section' }).click();
+  await expect(first).toHaveAttribute('data-looping', 'true');
+
+  await page.getByRole('button', { name: 'Generate' }).click();
+  await expect(first).toHaveAttribute('data-looping', 'false');
 });

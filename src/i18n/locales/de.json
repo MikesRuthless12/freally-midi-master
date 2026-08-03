@@ -244,6 +244,10 @@
     "resizeStart": "Diesen Abschnitt verkürzen",
     "resizeEnd": "Diesen Abschnitt verlängern",
     "readyBody": "Auf Generieren tippen, um einen ganzen Song für {{name}} zu arrangieren.",
+    "loopSection": "Diesen Abschnitt loopen",
+    "mutePart": "{{part}} in der Vorschau stummschalten",
+    "soloPart": "{{part}} in der Vorschau solo schalten",
+    "previewOnly": "Nur Vorschau — Song und Export bleiben unverändert",
     "kind": {
       "intro": "Intro",
       "verse": "Strophe",

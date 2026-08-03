@@ -183,6 +183,34 @@ pub fn dispatch(
             serde_json::to_value(generate_song(&args, host, auto_sync)?).map_err(|e| e.to_string())
         }
 
+        // The arrangement, on its way to the audio thread (TASK-072).
+        //
+        // ⛔ **Answers with the flattened `Pattern`, and that reply *is* the
+        // work.** `editor.rs` arms whatever a command answers with when it
+        // deserializes as a `Pattern` — keyed on the shape rather than the
+        // command's name, precisely so a fourth caller does not have to be
+        // remembered — so a song reaches the transport through the same door an
+        // edited clip does. The plugin had no notion of playing a `Song` at all
+        // before this, which is why TASK-063B's playhead was left unbuilt: a
+        // marker fed from one pattern's clock would sit at bar 3 of a 56-bar
+        // arrangement and stay there.
+        "arm_song" => {
+            let args: ArmSongArgs = serde_json::from_value(request.args["request"].clone())
+                .map_err(|e| format!("bad arm request: {e}"))?;
+            // The same trust boundary the export and the re-roll use. Flattening
+            // allocates one note per tile, so an unbounded song is an unbounded
+            // allocation on the thread the host draws its editor from.
+            check_song(&args.song)?;
+            let mut pattern = args.song.flatten_parts(args.parts.as_deref());
+            // ⚠ Set after flattening rather than inside it: a loop is a
+            // transport instruction about the clip, and `flatten` answers the
+            // different question of what the clip contains.
+            pattern.loop_region = args
+                .loop_section
+                .and_then(|index| args.song.section_span(index));
+            serde_json::to_value(pattern).map_err(|e| e.to_string())
+        }
+
         // Re-roll one section of an arrangement (TASK-067).
         //
         // ⛔ **Takes the `Song` rather than regenerating from its seed**, for
@@ -418,6 +446,19 @@ fn generate(args: &GenerateArgs, host: &HostSession, auto_sync: bool) -> Result<
         ppq: PPQ,
         mood,
     })
+}
+
+/// What the UI asks for when a song should start playing (TASK-072).
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct ArmSongArgs {
+    song: engine::pattern::Song,
+    /// The section to loop, or `None` to play the record through.
+    #[serde(default)]
+    loop_section: Option<usize>,
+    /// The parts to play. `None` is all of them — see `Song::flatten_parts`.
+    #[serde(default)]
+    parts: Option<Vec<Part>>,
 }
 
 /// What the UI asks for when the producer re-rolls one section (TASK-067).
@@ -850,6 +891,108 @@ mod tests {
                 );
             }
         }
+    }
+
+    // ---- Playing a whole song (TASK-072) ----------------------------------
+
+    fn arm_song(song: &Value, extra: Value) -> Result<Value, String> {
+        let mut request_args = json!({ "song": song });
+        if let (Some(target), Some(source)) = (request_args.as_object_mut(), extra.as_object()) {
+            for (key, value) in source {
+                target.insert(key.clone(), value.clone());
+            }
+        }
+        dispatch(
+            &request("arm_song", json!({ "request": request_args })),
+            &host(),
+        )
+    }
+
+    #[test]
+    fn arming_a_song_answers_with_a_pattern_so_the_editor_arms_it() {
+        // ⛔ **This is the whole mechanism.** `editor.rs` arms from the *shape*
+        // of a reply, not the command's name — so a reply that stopped
+        // deserializing as a `Pattern` would leave Play doing nothing at all,
+        // silently, with every other assertion here still passing.
+        let song = generate_song("trap", "7").unwrap();
+        let armed = arm_song(&song, json!({})).unwrap();
+
+        let pattern: Pattern = serde_json::from_value(armed.clone())
+            .expect("the reply must deserialize as a Pattern or nothing will arm it");
+        assert!(pattern.note_count() > 0, "{armed}");
+        // The whole song, so the playhead is a position through the arrangement
+        // rather than through whichever clip happens to be playing.
+        assert_eq!(
+            u32::from(pattern.bars),
+            song["sections"]
+                .as_array()
+                .expect("sections")
+                .iter()
+                .map(|s| s["startBar"].as_u64().unwrap_or(0) + s["bars"].as_u64().unwrap_or(0))
+                .max()
+                .unwrap_or(0) as u32
+        );
+    }
+
+    #[test]
+    fn looping_a_section_arms_that_sections_span_and_nothing_wider() {
+        let song = generate_song("trap", "7").unwrap();
+        let armed = arm_song(&song, json!({ "loopSection": 1 })).unwrap();
+
+        let bar = 960 * 4; // 4/4 at the engine's PPQ
+        let start = song["sections"][1]["startBar"].as_u64().expect("startBar") as u32;
+        let bars = song["sections"][1]["bars"].as_u64().expect("bars") as u32;
+        assert_eq!(armed["loopRegion"]["fromTick"], start * bar);
+        assert_eq!(armed["loopRegion"]["toTick"], (start + bars) * bar);
+    }
+
+    #[test]
+    fn playing_the_record_through_arms_no_loop() {
+        let song = generate_song("trap", "7").unwrap();
+        let armed = arm_song(&song, json!({})).unwrap();
+        assert!(armed["loopRegion"].is_null(), "{}", armed["loopRegion"]);
+    }
+
+    #[test]
+    fn soloing_a_part_leaves_the_others_out_of_what_is_armed() {
+        // ⚠ An audition filter, not an edit: the song is unchanged and so is the
+        // export. This asserts only that the armed clip narrows.
+        let song = generate_song("trap", "7").unwrap();
+        let all = arm_song(&song, json!({})).unwrap();
+        let drums = arm_song(&song, json!({ "parts": ["drums"] })).unwrap();
+
+        let count = |value: &Value| {
+            serde_json::from_value::<Pattern>(value.clone())
+                .expect("a pattern")
+                .note_count()
+        };
+        assert!(count(&drums) > 0, "soloing the drums silenced everything");
+        assert!(
+            count(&drums) < count(&all),
+            "soloing one part armed as many notes as the whole song"
+        );
+    }
+
+    #[test]
+    fn arming_a_crafted_song_is_refused_at_the_bridge() {
+        // ⛔ Flattening allocates one note per tile, so this is the same
+        // unbounded-work boundary `song_smf` documents — on the command that
+        // runs while a producer is pressing Play.
+        let mut song = generate_song("trap", "7").unwrap();
+        song["timeSigDen"] = json!(3);
+
+        let err = arm_song(&song, json!({})).unwrap_err();
+        assert!(err.contains("not a meter"), "{err}");
+    }
+
+    #[test]
+    fn a_loop_naming_no_section_plays_the_record_through() {
+        // Out of range is "no loop" rather than an error: the index comes from
+        // the page's own selection, and a stale one arriving after a section was
+        // deleted must not stop playback.
+        let song = generate_song("trap", "7").unwrap();
+        let armed = arm_song(&song, json!({ "loopSection": 9_999 })).unwrap();
+        assert!(armed["loopRegion"].is_null());
     }
 
     // ---- Re-rolling one section (TASK-067) --------------------------------

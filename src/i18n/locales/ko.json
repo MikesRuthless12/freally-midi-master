@@ -244,6 +244,10 @@
     "resizeStart": "이 구간 줄이기",
     "resizeEnd": "이 구간 늘리기",
     "readyBody": "생성을 누르면 {{name}}의 곡 전체를 편곡합니다.",
+    "loopSection": "이 구간 반복",
+    "mutePart": "미리듣기에서 {{part}} 음소거",
+    "soloPart": "미리듣기에서 {{part}} 솔로",
+    "previewOnly": "미리듣기 전용 — 곡과 내보내기는 그대로입니다",
     "kind": {
       "intro": "인트로",
       "verse": "벌스",

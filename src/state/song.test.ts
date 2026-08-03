@@ -102,6 +102,13 @@ beforeEach(() => {
     anchor: null,
     clipboard: null,
     locks: [],
+    // ⛔ Reset with the rest. Left out, the solo test's `soloParts` survived into
+    // the mute test below it and made a *correct* implementation look wrong —
+    // and would equally have let a broken one pass, which is the half that
+    // matters.
+    loopSection: null,
+    mutedParts: [],
+    soloParts: [],
   });
 });
 
@@ -313,4 +320,80 @@ it('two arrangement edits in quick succession are two undo steps', () => {
 
   useSession.getState().undo();
   expect(useSong.getState().song?.sections[0].bars).toBe(4);
+});
+
+// ---------------------------------------------------------------------------
+// Playback (TASK-072). The arrangement reaching the audio thread.
+// ---------------------------------------------------------------------------
+
+/** The last `arm_song` request, or null. */
+function lastArm(): { song: Song; loopSection: number | null; parts: Part[] | null } | null {
+  const calls = invoke.mock.calls.filter(([command]) => command === 'arm_song');
+  const last = calls.at(-1);
+  return last
+    ? (last[1] as { request: { song: Song; loopSection: number | null; parts: Part[] | null } })
+        .request
+    : null;
+}
+
+it('every arrangement edit re-arms what is playing', () => {
+  // ⛔ A resize retiles the whole song, so the clip already on the audio thread
+  // describes bars that have moved. Without this the producer goes on hearing
+  // the arrangement they had before while the timeline draws the one they made.
+  useSong.setState({ song: song() });
+  useSong.getState().resize(0, 8);
+
+  expect(lastArm()?.song.sections[0].bars).toBe(8);
+});
+
+it('undo re-arms the arrangement it restored', () => {
+  armedWith();
+  useSong.getState().resize(0, 8);
+  useSession.getState().undo();
+
+  expect(lastArm()?.song.sections[0].bars).toBe(4);
+});
+
+it('a section loop is sent as an index, and toggles off', () => {
+  useSong.setState({ song: song() });
+  useSong.getState().setLoopSection(1);
+  expect(lastArm()?.loopSection).toBe(1);
+
+  useSong.getState().setLoopSection(null);
+  expect(lastArm()?.loopSection).toBeNull();
+});
+
+it('the whole record sends no part filter at all', () => {
+  // `null` rather than "every part", so the common case takes the engine's
+  // whole-song path and there is one less list that can be wrong.
+  useSong.setState({ song: song() });
+  useSong.getState().armSong();
+  expect(lastArm()?.parts).toBeNull();
+});
+
+it('solo wins over mute', () => {
+  // ⛔ What every DAW does, and not merely a convention: a producer soloing the
+  // drums has usually muted something earlier and forgotten, and making them
+  // undo that first would mean solo sometimes did nothing while the row stayed
+  // lit saying otherwise.
+  useSong.setState({ song: song(), mutedParts: ['drums'] });
+  useSong.getState().togglePartSolo('drums');
+
+  expect(lastArm()?.parts).toEqual(['drums']);
+});
+
+it('muting a part leaves the others playing', () => {
+  useSong.setState({ song: song() });
+  useSong.getState().togglePartMute('drums');
+  expect(lastArm()?.parts).toEqual([]);
+});
+
+it('generating a fresh song drops the loop, because the indices moved', async () => {
+  invoke.mockResolvedValue(song());
+  useSong.setState({ song: song(), loopSection: 1 });
+
+  await useSong
+    .getState()
+    .generate({ styleId: 'trap', seed: '9', pins: {} as never, mood: null });
+  expect(useSong.getState().loopSection).toBeNull();
 });

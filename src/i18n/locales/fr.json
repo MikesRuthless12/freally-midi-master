@@ -244,6 +244,10 @@
     "resizeStart": "Raccourcir cette section",
     "resizeEnd": "Allonger cette section",
     "readyBody": "Appuie sur Générer pour arranger un morceau entier de {{name}}.",
+    "loopSection": "Boucler cette section",
+    "mutePart": "Couper {{part}} dans l’aperçu",
+    "soloPart": "Isoler {{part}} dans l’aperçu",
+    "previewOnly": "Aperçu uniquement — le morceau et l’export sont inchangés",
     "kind": {
       "intro": "Intro",
       "verse": "Couplet",

@@ -244,6 +244,10 @@
     "resizeStart": "このセクションを短くする",
     "resizeEnd": "このセクションを長くする",
     "readyBody": "「生成」を押すと {{name}} の曲全体を構成します。",
+    "loopSection": "このセクションをループ",
+    "mutePart": "プレビューで{{part}}をミュート",
+    "soloPart": "プレビューで{{part}}をソロ",
+    "previewOnly": "プレビューのみ — 曲と書き出しは変わりません",
     "kind": {
       "intro": "イントロ",
       "verse": "ヴァース",

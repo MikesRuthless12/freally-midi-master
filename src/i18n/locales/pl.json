@@ -244,6 +244,10 @@
     "resizeStart": "Skróć tę część",
     "resizeEnd": "Wydłuż tę część",
     "readyBody": "Naciśnij Generuj, aby ułożyć cały utwór dla {{name}}.",
+    "loopSection": "Zapętl tę sekcję",
+    "mutePart": "Wycisz {{part}} w podglądzie",
+    "soloPart": "Solo {{part}} w podglądzie",
+    "previewOnly": "Tylko podgląd — utwór i eksport pozostają bez zmian",
     "kind": {
       "intro": "Wstęp",
       "verse": "Zwrotka",

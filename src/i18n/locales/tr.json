@@ -244,6 +244,10 @@
     "resizeStart": "Bu bölümü kısalt",
     "resizeEnd": "Bu bölümü uzat",
     "readyBody": "{{name}} için bütün bir parça düzenlemek üzere Üret düğmesine bas.",
+    "loopSection": "Bu bölümü döngüye al",
+    "mutePart": "Önizlemede {{part}} sesini kapat",
+    "soloPart": "Önizlemede {{part}} bölümünü solo yap",
+    "previewOnly": "Yalnızca önizleme — şarkı ve dışa aktarma değişmez",
     "kind": {
       "intro": "Giriş",
       "verse": "Kıta",

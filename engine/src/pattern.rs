@@ -482,6 +482,113 @@ fn four() -> u8 {
     4
 }
 
+/// How quiet a decaying section gets by its last bar, as a share of the
+/// velocity it started at.
+///
+/// Not zero: an outro that reaches silence before it ends leaves the producer
+/// dragging in bars of nothing, and every DAW draws that as the clip being
+/// broken rather than as a fade.
+pub const DECAY_FLOOR: f32 = 0.35;
+
+/// How one section lays its clip out in time.
+///
+/// ⛔ **One implementation, because this arithmetic has been wrong twice and
+/// both times it shipped.** The exporter tiles a song into a MIDI file and the
+/// transport tiles the same song into a schedule to play; when those were two
+/// walks over the same fields they were free to disagree, and what a producer
+/// hears would not be what they exported. The two bugs were the tiling guard
+/// dropping note-ons while writing their offs, and the decay ramp measured in
+/// whole clip repeats — which is zero for a section exactly one clip long, the
+/// shape the shipped data actually produces.
+///
+/// Everything is in ticks. `repeats` is a **count**, deliberately: written as
+/// `while offset < sounding` with `offset += clip_len` the loop is a state
+/// machine over `k · clip_len mod 2^32`, and release builds have no overflow
+/// checks — for a long enough section over a long enough clip it orbits past
+/// `sounding` forever without reaching it, pinning the thread the host draws
+/// its editor from.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct SectionTiling {
+    /// Where the section begins on the song's timeline.
+    pub section_start: u32,
+    /// How long the section runs, whatever the clip does.
+    pub section_len: u32,
+    /// How long one repeat of the clip is. Never zero.
+    pub clip_len: u32,
+    /// How much of the section actually sounds — the drop-out is taken off the
+    /// end (TASK-066).
+    pub sounding: u32,
+    /// How many times the clip is laid down.
+    pub repeats: u32,
+    /// Whether the section fades across its length.
+    pub decay: bool,
+}
+
+impl SectionTiling {
+    /// Work out where `clip` falls inside `section`.
+    pub fn of(song: &Song, section: &Section, clip_bars: u16) -> Self {
+        let ticks_per_bar = song.ticks_per_bar();
+        let beat_ticks = (ticks_per_bar / u32::from(song.time_sig_num.max(1))).max(1);
+
+        // ⛔ **Saturating, because these ticks are untrusted.** A `Song` reaches
+        // here from the webview — a project file somebody else saved, or
+        // devtools — and this workspace sets `panic = "abort"`, so an
+        // overflow-checked build turns an arithmetic wrap into the *host*
+        // process dying. In the shipped release profile it wraps silently and
+        // places the notes at the wrong ticks instead, which is a corrupted
+        // export nobody can explain.
+        let section_start = section.start_bar.saturating_mul(ticks_per_bar);
+        let section_len = u32::from(section.bars).saturating_mul(ticks_per_bar);
+        let clip_len = u32::from(clip_bars).saturating_mul(ticks_per_bar).max(1);
+        let sounding = section_len
+            .saturating_sub(u32::from(section.drop_out_beats).saturating_mul(beat_ticks));
+
+        Self {
+            section_start,
+            section_len,
+            clip_len,
+            sounding,
+            repeats: sounding.div_ceil(clip_len),
+            decay: section.decay,
+        }
+    }
+
+    /// Where repeat `repeat` starts, relative to the section.
+    pub fn offset(&self, repeat: u32) -> u32 {
+        repeat.saturating_mul(self.clip_len)
+    }
+
+    /// Whether a note whose onset is `origin` within the clip sounds at all.
+    ///
+    /// ⛔ **Judged on the *onset*, so both ends of a note are kept or dropped
+    /// together.** Testing each event's own tick dropped a note-on past the end
+    /// of a section and wrote its note-off anyway; the orphan landed inside the
+    /// next section, on the same channel and key, where a DAW paired it with
+    /// that section's own note and cut it dead. A note that starts inside and
+    /// rings past the end is allowed to finish, exactly as one does at a clip
+    /// boundary.
+    pub fn sounds(&self, repeat: u32, origin: u32) -> bool {
+        self.offset(repeat).saturating_add(origin) < self.sounding
+    }
+
+    /// The velocity of `velocity` at `tick` within repeat `repeat`.
+    ///
+    /// ⛔ **Measured across the *section*, not per whole clip repeat.**
+    /// `offset / clip_len` is zero for the whole of a section exactly one clip
+    /// long — which is what the shipped data produces, since `_defaults`
+    /// authors a 4-bar outro and the bars chip defaults to 4 — so every
+    /// decaying outro came out dead flat while the timeline drew the badge.
+    pub fn velocity(&self, repeat: u32, tick: u32, velocity: u8) -> u8 {
+        if !self.decay {
+            return velocity;
+        }
+        let position = self.offset(repeat).saturating_add(tick) as f32;
+        let through = (position / self.section_len.max(1) as f32).clamp(0.0, 1.0);
+        let scale = 1.0 - (1.0 - DECAY_FLOOR) * through;
+        ((f32::from(velocity) * scale).round() as u8).clamp(1, 127)
+    }
+}
+
 impl Song {
     /// Total length in bars.
     pub fn total_bars(&self) -> u32 {
@@ -529,6 +636,134 @@ impl Song {
         missing.sort();
         missing.dedup();
         missing
+    }
+
+    /// The whole arrangement as one clip, laid out on the song's timeline
+    /// (TASK-072).
+    ///
+    /// ⛔ **This is what makes a song playable at all, and it is a flattening
+    /// rather than a new scheduler.** The transport arms a [`Pattern`] — that is
+    /// the only thing it knows how to place, seek within and report a position
+    /// through — and until this existed the plugin had no notion of playing a
+    /// `Song`. Teaching the audio thread about sections instead would have meant
+    /// a second tiling implementation on the thread least able to afford being
+    /// wrong, and the exporter's tiling has already been wrong twice.
+    ///
+    /// So the sections are collapsed here, on the UI thread, through the same
+    /// [`SectionTiling`] the exporter reads. **What is heard and what is
+    /// exported come out of one piece of arithmetic**, which is the property
+    /// this codebase's own rule about `drop_out_beats` and `decay` asks for: a
+    /// field the export honours and playback ignores is the same failure as a
+    /// field the export ignores.
+    ///
+    /// ⚠ Lanes are preserved rather than folded into channels — the export
+    /// needs channels, and the preview sampler and the per-lane mutes need
+    /// lanes. That is the one place the two paths legitimately differ.
+    pub fn flatten(&self) -> Pattern {
+        self.flatten_parts(None)
+    }
+
+    /// The arrangement as one clip, with only `parts` playing.
+    ///
+    /// ⚠ **`None` is every part; a list is an *audition* filter and nothing
+    /// more.** Muting or soloing a row in the timeline is "let me hear this
+    /// without the melody", not an edit — the song is unchanged and the export
+    /// is unchanged, which is the same distinction the per-lane audio mute
+    /// already draws and labels *preview* on screen. A filter that silently
+    /// changed the file would be a much worse control.
+    pub fn flatten_parts(&self, parts: Option<&[Part]>) -> Pattern {
+        // Lane order is the order lanes are first met, so a flattened song draws
+        // and mutes in the same order the sections do.
+        let mut lanes: Vec<LaneTrack> = Vec::new();
+
+        for section in &self.sections {
+            for (part, reference) in &section.patterns {
+                if parts.is_some_and(|keep| !keep.contains(part)) {
+                    continue;
+                }
+                let Some(clip) = self.pattern(reference) else {
+                    // A dangling reference is silence here, exactly as it is in
+                    // the export. `dangling_refs` is what reports it; inventing
+                    // a substitute would hide the problem behind sound.
+                    continue;
+                };
+                let tiling = SectionTiling::of(self, section, clip.bars);
+
+                for track in &clip.lanes {
+                    let slot = match lanes.iter().position(|l| l.lane == track.lane) {
+                        Some(index) => index,
+                        None => {
+                            lanes.push(LaneTrack {
+                                lane: track.lane,
+                                notes: Vec::new(),
+                            });
+                            lanes.len() - 1
+                        }
+                    };
+                    for repeat in 0..tiling.repeats {
+                        let offset = tiling.offset(repeat);
+                        for note in &track.notes {
+                            if !clip.within_clip(note) || !tiling.sounds(repeat, note.start_tick) {
+                                continue;
+                            }
+                            let vel = tiling.velocity(repeat, note.start_tick, note.vel);
+                            lanes[slot].notes.push(Note {
+                                start_tick: tiling
+                                    .section_start
+                                    .saturating_add(offset)
+                                    .saturating_add(note.start_tick),
+                                vel,
+                                ..*note
+                            });
+                        }
+                    }
+                }
+            }
+        }
+
+        for track in &mut lanes {
+            track
+                .notes
+                .sort_by_key(|note| (note.start_tick, note.pitch));
+        }
+
+        Pattern {
+            id: format!("{}-flat", self.id),
+            // ⛔ A song is every part at once, and `Part` has no name for that.
+            // Drums is the honest stand-in: the flattened clip is never handed
+            // to a generator or an editor, only to the schedule, and the lanes
+            // it carries are what anything downstream actually reads.
+            part: Part::Drums,
+            artist_id: self.artist_id.clone(),
+            seed: self.seed,
+            // The whole song, so `Schedule::progress` is a position through the
+            // arrangement rather than through whichever clip is playing.
+            bars: u16::try_from(self.total_bars()).unwrap_or(u16::MAX),
+            bpm: self.bpm,
+            time_sig_num: self.time_sig_num,
+            time_sig_den: self.time_sig_den,
+            key_root: self.key_root,
+            scale: self.scale,
+            lanes,
+            ppq: self.ppq,
+            mood: None,
+            loop_region: None,
+            clip_region: None,
+        }
+    }
+
+    /// The span one section occupies in the flattened clip, in ticks
+    /// (TASK-072's loop-section toggle).
+    pub fn section_span(&self, index: usize) -> Option<Region> {
+        let section = self.sections.get(index)?;
+        let ticks_per_bar = self.ticks_per_bar();
+        Some(Region {
+            from_tick: section.start_bar.saturating_mul(ticks_per_bar),
+            to_tick: section
+                .start_bar
+                .saturating_add(u32::from(section.bars))
+                .saturating_mul(ticks_per_bar),
+        })
     }
 }
 

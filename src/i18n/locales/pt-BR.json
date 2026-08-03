@@ -244,6 +244,10 @@
     "resizeStart": "Encurtar esta seção",
     "resizeEnd": "Alongar esta seção",
     "readyBody": "Toque em Gerar para arranjar uma música inteira de {{name}}.",
+    "loopSection": "Repetir esta seção",
+    "mutePart": "Silenciar {{part}} na prévia",
+    "soloPart": "Isolar {{part}} na prévia",
+    "previewOnly": "Apenas prévia — a música e a exportação não mudam",
     "kind": {
       "intro": "Introdução",
       "verse": "Verso",

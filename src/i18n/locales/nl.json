@@ -244,6 +244,10 @@
     "resizeStart": "Dit deel korter maken",
     "resizeEnd": "Dit deel langer maken",
     "readyBody": "Druk op Genereren om een heel nummer van {{name}} te arrangeren.",
+    "loopSection": "Dit gedeelte herhalen",
+    "mutePart": "{{part}} dempen in het voorbeeld",
+    "soloPart": "{{part}} solo zetten in het voorbeeld",
+    "previewOnly": "Alleen voorbeeld — het nummer en de export blijven ongewijzigd",
     "kind": {
       "intro": "Intro",
       "verse": "Couplet",

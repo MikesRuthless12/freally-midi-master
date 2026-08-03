@@ -244,6 +244,10 @@
     "resizeStart": "Perpendek bagian ini",
     "resizeEnd": "Perpanjang bagian ini",
     "readyBody": "Tekan Hasilkan untuk menyusun satu lagu penuh dari {{name}}.",
+    "loopSection": "Ulang bagian ini",
+    "mutePart": "Bisukan {{part}} di pratinjau",
+    "soloPart": "Solokan {{part}} di pratinjau",
+    "previewOnly": "Hanya pratinjau — lagu dan ekspor tidak berubah",
     "kind": {
       "intro": "Pembuka",
       "verse": "Bait",

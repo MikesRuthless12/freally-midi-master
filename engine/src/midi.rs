@@ -16,7 +16,9 @@ use midly::{
     Format, Header, MetaMessage, MidiMessage, Smf, Timing, Track, TrackEvent, TrackEventKind,
 };
 
-use crate::pattern::{Lane, Note, Part, Pattern, Scale, ScaleCharacter, Section, Song, PPQ};
+use crate::pattern::{
+    Lane, Note, Part, Pattern, Scale, ScaleCharacter, Section, SectionTiling, Song, PPQ,
+};
 
 /// General MIDI drum note numbers, so a drum pattern is auditionable in any
 /// DAW without a kit loaded.
@@ -344,14 +346,6 @@ pub fn pattern_to_smf(pattern: &Pattern) -> Vec<u8> {
     out
 }
 
-/// How quiet a decaying section gets by its last bar, as a share of the
-/// velocity it started at.
-///
-/// Not zero: an outro that reaches silence before it ends leaves the producer
-/// dragging in bars of nothing, and every DAW draws that as the clip being
-/// broken rather than as a fade.
-const DECAY_FLOOR: f32 = 0.35;
-
 /// The tracks a song is written as, in the order they appear in the file.
 ///
 /// Fixed rather than "whichever parts turned up", so two songs from the same
@@ -387,9 +381,8 @@ fn section_marker(section: &Section) -> String {
 /// four times; writing it once would export three bars of silence out of every
 /// four, which is the bug that makes an exported song sound like it is missing
 /// most of itself.
-fn song_events_for(song: &Song, part: Part, ticks_per_bar: u32) -> Vec<Event> {
+fn song_events_for(song: &Song, part: Part) -> Vec<Event> {
     let mut events: Vec<Event> = Vec::new();
-    let beat_ticks = (ticks_per_bar / u32::from(song.time_sig_num.max(1))).max(1);
 
     for section in &song.sections {
         let Some(reference) = section.patterns.get(&part) else {
@@ -399,23 +392,13 @@ fn song_events_for(song: &Song, part: Part, ticks_per_bar: u32) -> Vec<Event> {
             continue;
         };
 
-        // ⛔ **Saturating, because these ticks are untrusted.** A `Song` reaches
-        // here from the webview — a project file somebody else saved, or
-        // devtools — exactly as the notes in `voice.rs` do, and that file says
-        // the same thing: this workspace sets `panic = "abort"`, so an
-        // overflow-checked build turns an arithmetic wrap into the *host*
-        // process dying. In the shipped release profile it wraps silently
-        // instead and writes the notes at the wrong ticks, which is a corrupted
-        // export nobody can explain.
-        let section_start = section.start_bar.saturating_mul(ticks_per_bar);
-        let section_len = u32::from(section.bars).saturating_mul(ticks_per_bar);
-        let clip_len = u32::from(pattern.bars).saturating_mul(ticks_per_bar).max(1);
-
-        // The drop-out (TASK-066): the last beats of the section are silent so
-        // whatever follows lands. Measured from the section's end rather than
-        // the clip's, which is why it cannot live in the pattern.
-        let sounding = section_len
-            .saturating_sub(u32::from(section.drop_out_beats).saturating_mul(beat_ticks));
+        // ⛔ **The geometry comes from `SectionTiling`, which the transport also
+        // reads.** The drop-out span, the repeat count and the decay ramp were
+        // all computed here once, and all three had to be got right twice — the
+        // second time by the code that plays the song rather than exports it.
+        // Two walks over the same fields are free to disagree, and then what a
+        // producer hears is not what they exported.
+        let tiling = SectionTiling::of(song, section, pattern.bars);
 
         // Computed once and reused for every repeat: `events_for` allocates,
         // walks every note and sorts, and it is a pure function of the pattern —
@@ -424,47 +407,21 @@ fn song_events_for(song: &Song, part: Part, ticks_per_bar: u32) -> Vec<Event> {
         // anyway.
         let clip_events = events_for(pattern);
 
-        // ⛔ **A counted loop, not `while offset < sounding`.** With the
-        // increment written as `offset += clip_len` the loop is a state machine
-        // over `k * clip_len mod 2^32`: release builds have no overflow checks,
-        // so for a long enough section over a long enough clip `offset` wraps
-        // past `sounding` and cycles forever without ever exceeding it. That
-        // spins the thread the host draws its editor from, with no crash and no
-        // way out but killing the DAW. A repeat count cannot do that whatever
-        // the arithmetic does.
-        let repeats = sounding.div_ceil(clip_len);
-        for repeat in 0..repeats {
-            let offset = repeat.saturating_mul(clip_len);
+        for repeat in 0..tiling.repeats {
+            let offset = tiling.offset(repeat);
             for event in clip_events.iter().copied() {
-                let tick = section_start
-                    .saturating_add(offset)
-                    .saturating_add(event.tick);
-                // A note whose *start* falls outside the sounding span is not
-                // written at all; one that started inside and rings past the
-                // end is allowed to finish, exactly as a held note does at a
-                // clip boundary.
-                //
-                // ⛔ Judged on `origin` — the onset of the note this event
-                // belongs to — and therefore applied to the note-off as well as
-                // the note-on. Testing `event.tick` and gating on `is_on`
-                // dropped the on and kept the off, and the orphan landed in the
-                // next section where a DAW paired it with that section's note.
-                if offset.saturating_add(event.origin) >= sounding {
+                if !tiling.sounds(repeat, event.origin) {
                     continue;
                 }
-                let velocity = if section.decay && event.is_on {
-                    // ⛔ **Measured across the section, not per whole clip
-                    // repeat.** `offset / clip_len` is zero for the whole of a
-                    // section exactly one clip long — which is what the shipped
-                    // data produces, since `_defaults` authors a 4-bar outro and
-                    // the bars chip defaults to 4 — so every decaying outro
-                    // exported dead flat while the timeline drew the badge. A
-                    // position within the section ramps continuously and reaches
-                    // the floor at the end whatever the clip length is.
-                    let position = offset.saturating_add(event.tick) as f32;
-                    let through = (position / section_len.max(1) as f32).clamp(0.0, 1.0);
-                    let scale = 1.0 - (1.0 - DECAY_FLOOR) * through;
-                    ((f32::from(event.velocity) * scale).round() as u8).clamp(1, 127)
+                let tick = tiling
+                    .section_start
+                    .saturating_add(offset)
+                    .saturating_add(event.tick);
+                // ⚠ Only the note-*on* carries the fade. A note-off's velocity
+                // is a release value no sampler reads as loudness, and scaling
+                // it would ramp a number that means nothing.
+                let velocity = if event.is_on {
+                    tiling.velocity(repeat, event.tick, event.velocity)
                 } else {
                     event.velocity
                 };
@@ -572,7 +529,7 @@ pub fn song_to_smf(song: &Song) -> Vec<u8> {
 
     // ── One track per part that plays anywhere in the song.
     for part in TRACK_ORDER {
-        let events = song_events_for(song, part, ticks_per_bar);
+        let events = song_events_for(song, part);
         if events.is_empty() {
             continue;
         }

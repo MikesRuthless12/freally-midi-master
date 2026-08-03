@@ -12,11 +12,13 @@
  * up showing something the exported file does not contain.
  */
 
-import { useCallback, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { Repeat, Volume2, VolumeX } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import type { Part, Section, Song } from '../../lib/ipc-types';
 import { isTypingTarget } from '../../lib/keyboard';
+import { armCurrentPattern, useSession } from '../../state/session';
 import { useSong } from '../../state/song';
 import { isSelected, partsInUse, totalBars } from './clips';
 import { barLabel, barToSeconds, barToX, formatTime, gridFor } from './geometry';
@@ -26,13 +28,15 @@ import './SongTimeline.css';
 const ROW_HEIGHT = 44;
 
 /**
- * ⛔ **No playhead prop, and its absence is deliberate.** TASK-063B asks for the
- * transport marker to run in this view with click-to-seek, and it is *not* built:
- * the transport reports a position in ticks of the single pattern it is playing,
- * and the plugin has no notion of playing a `Song` at all. A marker fed from the
- * pattern's clock would sit at bar 3 of a 56-bar arrangement and stay there —
- * a readout that lies, which this project has a rule about. It arrives when
- * something can actually play a song.
+ * The playhead is read from the session store rather than passed in, because
+ * what it is a fraction *of* is now the whole arrangement (TASK-072).
+ *
+ * ⛔ This used to be deliberately absent, and the reason it could arrive is that
+ * something can finally play a song: `arm_song` hands the transport the
+ * flattened arrangement, so `progress` is a position through the record rather
+ * than through whichever clip happened to be armed. A marker fed from one
+ * pattern's clock would have sat at bar 3 of a 56-bar song and stayed there,
+ * which is the readout-that-lies failure this project has a rule about.
  */
 type Props = {
   song: Song;
@@ -56,6 +60,27 @@ export function SongTimeline({ song }: Props) {
   // The paste target lives in the store, not in the selection: `cut()` clears
   // the selection, so deriving it here would drop the cut clips onto section 0.
   const anchor = useSong((s) => s.anchor) ?? 0;
+
+  const playhead = useSession((s) => s.playhead);
+  const seek = useSession((s) => s.seek);
+  const armSong = useSong((s) => s.armSong);
+  const loopSection = useSong((s) => s.loopSection);
+  const setLoopSection = useSong((s) => s.setLoopSection);
+  const mutedParts = useSong((s) => s.mutedParts);
+  const soloParts = useSong((s) => s.soloParts);
+  const togglePartMute = useSong((s) => s.togglePartMute);
+  const togglePartSolo = useSong((s) => s.togglePartSolo);
+
+  // ⛔ **The visible tab decides what plays, and there is only one schedule.**
+  // Arriving here arms the arrangement; leaving gives the transport back the
+  // clip the generator tabs are showing. Without the cleanup a producer could
+  // switch to Drums, press Play, and hear the whole record with the roll's
+  // marker crawling across a four-bar clip — both halves looking right on their
+  // own, which is the worst kind of wrong readout.
+  useEffect(() => {
+    armSong();
+    return armCurrentPattern;
+  }, [armSong, song]);
 
   // ⛔ **Focus has to come back here after an edit removes a clip.** A clip is a
   // <button>, so clicking one focuses it — and cut and delete then unmount the
@@ -200,19 +225,44 @@ export function SongTimeline({ song }: Props) {
                 left={barToX(section.startBar, view)}
                 width={section.bars * view.zoom}
                 selected={selection.some((c) => c.sectionIndex === index)}
+                looping={loopSection === index}
                 onSelect={(additive) => selectSection(index, additive)}
                 onResize={(barsNext) => resize(index, barsNext)}
                 onClone={() => clone(index)}
+                onLoop={() => setLoopSection(loopSection === index ? null : index)}
               />
             ))}
           </div>
+
+          {/* ── The transport marker (TASK-041T in this view, TASK-072).
+              Drawn over the whole canvas so it crosses the ruler and every row,
+              and translated rather than laid out so following it costs no
+              layout — the same trick the roll's marker uses at 30 Hz. */}
+          {playhead > 0 && (
+            <div
+              className="song__playhead"
+              data-testid="song-playhead"
+              style={{ transform: `translateX(${playhead * width}px)` }}
+              aria-hidden="true"
+            />
+          )}
 
           {/* ── The clip grid. */}
           <div
             className="song__rows"
             style={{ height: rows.length * ROW_HEIGHT }}
             onMouseDown={(event) => {
-              if (event.target === event.currentTarget) clearSelection();
+              if (event.target !== event.currentTarget) return;
+              clearSelection();
+              // ⛔ Click-to-seek on the background, not on a clip: clicking a
+              // clip selects it, and a gesture that both selected and moved the
+              // transport would make selecting anything mid-playback jump the
+              // record. Measured against the canvas the clips are laid out in,
+              // so the marker lands under the pointer at any zoom.
+              const track = event.currentTarget.getBoundingClientRect();
+              if (track.width > 0) {
+                void seek((event.clientX - track.left) / track.width);
+              }
             }}
           >
             {/* Gridlines sit under the clips and take no pointer events, so a
@@ -231,7 +281,33 @@ export function SongTimeline({ song }: Props) {
                 key={part}
                 style={{ top: row * ROW_HEIGHT, height: ROW_HEIGHT }}
               >
-                <span className="song__row-label">{t(`tabs.${part}`)}</span>
+                {/* ⚠ The row header says *preview*: muting and soloing here
+                    change what is auditioned and not the song or the exported
+                    file, which is the same distinction the per-lane audio mute
+                    already draws. */}
+                <span className="song__row-label">
+                  {t(`tabs.${part}`)}
+                  <button
+                    type="button"
+                    className={`song__row-mute${mutedParts.includes(part) ? ' is-on' : ''}`}
+                    aria-pressed={mutedParts.includes(part)}
+                    aria-label={t('song.mutePart', { part: t(`tabs.${part}`) })}
+                    title={t('song.previewOnly')}
+                    onClick={() => togglePartMute(part)}
+                  >
+                    {mutedParts.includes(part) ? <VolumeX size={13} /> : <Volume2 size={13} />}
+                  </button>
+                  <button
+                    type="button"
+                    className={`song__row-solo${soloParts.includes(part) ? ' is-on' : ''}`}
+                    aria-pressed={soloParts.includes(part)}
+                    aria-label={t('song.soloPart', { part: t(`tabs.${part}`) })}
+                    title={t('song.previewOnly')}
+                    onClick={() => togglePartSolo(part)}
+                  >
+                    S
+                  </button>
+                </span>
                 {song.sections.map((section, index) =>
                   section.patterns[part] ? (
                     <Clip
@@ -261,9 +337,11 @@ type HeaderProps = {
   left: number;
   width: number;
   selected: boolean;
+  looping: boolean;
   onSelect: (additive: boolean) => void;
   onResize: (bars: number) => void;
   onClone: () => void;
+  onLoop: () => void;
 };
 
 function SectionHeader({
@@ -272,9 +350,11 @@ function SectionHeader({
   left,
   width,
   selected,
+  looping,
   onSelect,
   onResize,
   onClone,
+  onLoop,
 }: HeaderProps) {
   const { t } = useTranslation();
   // `markers` is optional over the wire — it is skipped when empty — so an
@@ -283,12 +363,25 @@ function SectionHeader({
 
   return (
     <div
-      className={`song__section${selected ? ' is-selected' : ''}`}
+      className={`song__section${selected ? ' is-selected' : ''}${looping ? ' is-looping' : ''}`}
       style={{ left, width }}
       data-testid={`song-section-${index}`}
       data-kind={section.type}
       data-bars={section.bars}
+      data-looping={looping ? 'true' : 'false'}
     >
+      {/* Loop this section on repeat while arranging it (TASK-072). Pressing it
+          again plays the record through — a toggle rather than a mode, because
+          the only other way out would be a second control saying "stop". */}
+      <button
+        type="button"
+        className={`song__loop${looping ? ' is-on' : ''}`}
+        aria-pressed={looping}
+        aria-label={t('song.loopSection')}
+        onClick={onLoop}
+      >
+        <Repeat size={12} />
+      </button>
       <button
         type="button"
         className="song__section-name"

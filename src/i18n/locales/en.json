@@ -244,6 +244,10 @@
     "resizeStart": "Shorten this section",
     "resizeEnd": "Lengthen this section",
     "readyBody": "Hit Generate to arrange a whole song for {{name}}.",
+    "loopSection": "Loop this section",
+    "mutePart": "Mute {{part}} in the preview",
+    "soloPart": "Solo {{part}} in the preview",
+    "previewOnly": "Preview only — the song and the export are unchanged",
     "kind": {
       "intro": "Intro",
       "verse": "Verse",

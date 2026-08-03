@@ -244,6 +244,10 @@
     "resizeStart": "Accorcia questa sezione",
     "resizeEnd": "Allunga questa sezione",
     "readyBody": "Premi Genera per arrangiare un brano intero di {{name}}.",
+    "loopSection": "Ripeti questa sezione",
+    "mutePart": "Silenzia {{part}} nell’anteprima",
+    "soloPart": "Isola {{part}} nell’anteprima",
+    "previewOnly": "Solo anteprima: il brano e l’esportazione non cambiano",
     "kind": {
       "intro": "Introduzione",
       "verse": "Strofa",

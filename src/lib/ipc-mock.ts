@@ -262,6 +262,16 @@ const handlers: Record<string, Handler> = {
     };
   },
 
+  // Handing the arrangement to the audio thread (TASK-072). A browser has no
+  // audio thread and no `Song::flatten`, and writing a second flattener here
+  // would be the "second implementation" this file's header rules out — so this
+  // resolves without doing anything, which is the honest answer.
+  //
+  // ⛔ It is here rather than absent because `mockInvoke` treats an unknown
+  // command as a loud failure, and every arrangement edit calls this. Without
+  // it the Playwright suite would see a rejected promise on every resize.
+  arm_song: () => undefined,
+
   // Re-rolling one section (TASK-067). The real engine regenerates the notes;
   // what a spec can meaningfully assert about it is the *shape* of the result —
   // that the named section's clips are new ones, that every other section is

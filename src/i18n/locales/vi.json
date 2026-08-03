@@ -244,6 +244,10 @@
     "resizeStart": "Rút ngắn đoạn này",
     "resizeEnd": "Kéo dài đoạn này",
     "readyBody": "Nhấn Tạo để dựng trọn một bài cho {{name}}.",
+    "loopSection": "Lặp đoạn này",
+    "mutePart": "Tắt tiếng {{part}} khi nghe thử",
+    "soloPart": "Nghe riêng {{part}} khi nghe thử",
+    "previewOnly": "Chỉ nghe thử — bài hát và bản xuất không đổi",
     "kind": {
       "intro": "Dạo đầu",
       "verse": "Phiên khúc",
