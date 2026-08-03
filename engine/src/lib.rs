@@ -13,11 +13,13 @@
 //! - all randomness comes from an explicitly seeded RNG, never system entropy,
 //!   so generation is reproducible from a seed.
 
+pub mod arrange;
 pub mod context;
 pub mod dataset;
 pub mod generators;
 pub mod humanize;
 pub mod midi;
+pub mod parts;
 pub mod pattern;
 pub mod rng;
 pub mod theory;

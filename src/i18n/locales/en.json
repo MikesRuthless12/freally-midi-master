@@ -24,7 +24,6 @@
     "seedLabel": "Seed — paste one to get the same beat",
     "seedAuto": "random",
     "generating": "Generating…",
-    "laterPhase": "This generator arrives in a later phase.",
     "readyBody": "{{name}} is ready. Hit Generate."
   },
   "rails": {
@@ -231,5 +230,27 @@
     "selectFirst": "Select some notes first.",
     "meterLabel": "Meter",
     "rulerLabel": "Bars, loop brace and clip markers"
+  },
+  "song": {
+    "timeline": "Arrangement",
+    "zoom": "Zoom",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "length": "{{bars}} bars · {{time}}",
+    "bars": "{{bars}} bars",
+    "dropOut": "Drops out for the last {{beats}} beats",
+    "decay": "Fades out",
+    "sectionHint": "Click to select · double-click to duplicate",
+    "resizeStart": "Shorten this section",
+    "resizeEnd": "Lengthen this section",
+    "readyBody": "Hit Generate to arrange a whole song for {{name}}.",
+    "kind": {
+      "intro": "Intro",
+      "verse": "Verse",
+      "preChorus": "Pre-chorus",
+      "hook": "Hook",
+      "bridge": "Bridge",
+      "outro": "Outro"
+    }
   }
 }

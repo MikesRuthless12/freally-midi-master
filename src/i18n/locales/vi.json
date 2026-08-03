@@ -24,7 +24,6 @@
     "seedLabel": "Seed — dán vào để có cùng một beat",
     "seedAuto": "ngẫu nhiên",
     "generating": "Đang tạo…",
-    "laterPhase": "Bộ tạo này sẽ có ở giai đoạn sau.",
     "readyBody": "{{name}} đã sẵn sàng. Nhấn Tạo."
   },
   "rails": {
@@ -231,5 +230,27 @@
     "selectFirst": "Hãy chọn vài nốt trước.",
     "meterLabel": "Nhịp",
     "rulerLabel": "Ô nhịp, ngoặc lặp và điểm đánh dấu clip"
+  },
+  "song": {
+    "timeline": "Bản phối",
+    "zoom": "Thu phóng",
+    "zoomIn": "Phóng to",
+    "zoomOut": "Thu nhỏ",
+    "length": "{{bars}} ô nhịp · {{time}}",
+    "bars": "{{bars}} ô nhịp",
+    "dropOut": "Ngắt trong {{beats}} phách cuối",
+    "decay": "Nhỏ dần rồi tắt",
+    "sectionHint": "Nhấp để chọn · nhấp đúp để nhân đôi",
+    "resizeStart": "Rút ngắn đoạn này",
+    "resizeEnd": "Kéo dài đoạn này",
+    "readyBody": "Nhấn Tạo để dựng trọn một bài cho {{name}}.",
+    "kind": {
+      "intro": "Dạo đầu",
+      "verse": "Phiên khúc",
+      "preChorus": "Trước điệp khúc",
+      "hook": "Điệp khúc",
+      "bridge": "Đoạn nối",
+      "outro": "Kết"
+    }
   }
 }

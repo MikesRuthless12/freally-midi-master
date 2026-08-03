@@ -23,6 +23,7 @@ import { CATEGORIES } from '../components/Settings/categories';
 import { LANE_ORDER } from '../components/DrumGrid/cells';
 import { SCALES } from '../components/SessionChips/values';
 import { THEME_PREFERENCES } from '../state/theme';
+import { SECTION_KINDS } from '../components/SongTimeline/clips';
 import { GENERATOR_TABS, SECTIONS } from '../state/ui';
 import { LOCALE_CODES, LOCALES, resolveLocale } from './locales';
 
@@ -188,6 +189,7 @@ describe('locale catalogs', () => {
     ['settings', CATEGORIES],
     ['tabs', GENERATOR_TABS],
     ['sections', SECTIONS],
+    ['song.kind', SECTION_KINDS],
     ['theme', THEME_PREFERENCES],
     ['theme.short', THEME_PREFERENCES],
     ['lanes', LANE_ORDER],

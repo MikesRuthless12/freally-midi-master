@@ -137,7 +137,11 @@
   "arrangement": {
     "sectionBars": { "intro": [4, 8], "verse": 16, "hook": 8, "bridge": [4, 8], "outro": 4 },
     "dropByBar": 5,
-    "transitions": { "fillBeforeSection": true, "dropOutBeats": { "prob": 0.6, "beats": 2 }, "switchUpProb": 0.15 }
+    "transitions": { "fillBeforeSection": true, "dropOutBeats": { "prob": 0.6, "beats": 2 }, "switchUpProb": 0.15 },
+    "structures": [
+      { "sections": ["intro", "verse", "hook", "verse", "hook", "bridge", "hook", "outro"], "weight": 3 },
+      { "sections": ["intro", "hook", "verse", "hook", "verse", "hook", "outro"], "weight": 2 }
+    ]
   },
 
   "kit": { "preview": "trap-default" },

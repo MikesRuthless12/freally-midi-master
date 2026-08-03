@@ -147,12 +147,15 @@ test('choosing someone else clears the pattern that was on screen', async ({ pag
   await expect(page.getByText('UK Drill is ready. Hit Generate.')).toBeVisible();
 });
 
-test('every part generates except Song, which says why', async ({ page }) => {
-  // ⛔ The phase line moved with TASK-041, and it moved to exactly one place.
-  // The four melodic parts have a piano roll now, so they generate; Song is an
-  // *arrangement* of the five rather than a part, has no generator behind it,
-  // and still says so rather than showing an empty surface that would read as a
-  // failed generation.
+test('every tab generates, Song included', async ({ page }) => {
+  // ⛔ **There is no phase line left, and that is the change TASK-063A/B made.**
+  // This test previously asserted the opposite — that Song said "a later phase"
+  // and its Generate was disabled — which was the truth right up until Song Mode
+  // existed. It is kept pointed at the same question so the day a tab stops
+  // generating is a failure here rather than a surprise in a DAW.
+  //
+  // Song is still not a `Part`: it goes through `useSong` and draws an
+  // arrangement rather than an editor, which is why it is asserted separately.
   const search = page.getByLabel('Search an artist');
   await search.fill('trap');
   await search.press('Enter');
@@ -163,8 +166,9 @@ test('every part generates except Song, which says why', async ({ page }) => {
   }
 
   await page.getByRole('tab', { name: 'Song' }).click();
-  await expect(page.getByText('This generator arrives in a later phase.')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Generate' })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Generate' })).toBeEnabled();
+  await page.getByRole('button', { name: 'Generate' }).click();
+  await expect(page.locator('[data-testid="song-section-0"]')).toBeVisible();
 });
 
 test('a melodic part draws in the piano roll, not the drum grid', async ({ page }) => {

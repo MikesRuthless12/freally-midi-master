@@ -52,6 +52,21 @@ pub enum Part {
     Chords,
 }
 
+/// The five parts in the order every surface presents them.
+///
+/// ⛔ **One list, because two would eventually disagree.** The arrangement's
+/// clip rows, the multi-track SMF's track order and the timeline's rows all have
+/// to be the same sequence — a song whose rows read one way and whose exported
+/// tracks read another looks wrong in the DAW and is nobody's obvious bug. This
+/// is deliberately *not* `Part`'s declaration order, which puts Chords last.
+pub const PART_ORDER: [Part; 5] = [
+    Part::Drums,
+    Part::Chords,
+    Part::Melody,
+    Part::Counter,
+    Part::Bass,
+];
+
 /// A voice within a pattern. Drum parts use several; melodic parts use one.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase")]
@@ -375,6 +390,15 @@ impl Pattern {
 pub enum SectionKind {
     Intro,
     Verse,
+    /// The lift into a chorus.
+    ///
+    /// ⛔ **Added because the data needs it, not to round the list out.**
+    /// `style-research.md` ch. 1 states pop's form as `V-PC-C-V2-PC-C-B-C`
+    /// outright, and there is no honest way to spell that in the other five —
+    /// writing a pre-chorus as a bridge would put the section that *builds into*
+    /// the chorus where the section that departs from it goes, and the drop-out
+    /// rule keys off what follows.
+    PreChorus,
     Hook,
     Bridge,
     Outro,
@@ -397,6 +421,21 @@ pub struct Section {
     pub bars: u16,
     /// One pattern per part present in this section.
     pub patterns: BTreeMap<Part, PatternRef>,
+    /// Beats of silence at the end of this section (TASK-066).
+    ///
+    /// The drop-out before a hook: the track cuts out for the last beat or two
+    /// so the hook lands. It is a property of *where the section sits* rather
+    /// than of its notes, because the clip underneath it loops — putting the
+    /// silence in the pattern would drop a beat out of every repeat instead of
+    /// once, at the end.
+    #[serde(default)]
+    pub drop_out_beats: u8,
+    /// Whether this section fades across its length (TASK-066).
+    ///
+    /// Same reasoning: a decay that lived in the clip would reset on every
+    /// repeat, which is a stutter rather than an outro.
+    #[serde(default)]
+    pub decay: bool,
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub markers: Vec<String>,
 }
@@ -416,7 +455,31 @@ pub struct Song {
     pub key_root: u8,
     pub scale: Scale,
     pub sections: Vec<Section>,
+    /// Time signature, carried so a song reads without its `SessionContext`.
+    #[serde(default = "four")]
+    pub time_sig_num: u8,
+    #[serde(default = "four")]
+    pub time_sig_den: u8,
+    /// Every pattern the sections name, by [`PatternRef::pattern_id`].
+    ///
+    /// ⛔ **A `PatternRef` is an id, and until this existed nothing anywhere
+    /// held what the id named** — a `Song` described which pattern played where
+    /// and could not answer what any of them was, so it could not be drawn,
+    /// exported or played.
+    ///
+    /// A store rather than a `Pattern` inline in each section, because sharing
+    /// is the point: verse 1 and verse 2 are the same beat, and in these genres
+    /// that is the rule rather than an optimisation. One entry per distinct
+    /// pattern is also what makes a re-roll of one section a change to one
+    /// section — the UI repoints that section's ref instead of editing a
+    /// pattern two sections are looking at.
+    #[serde(default)]
+    pub patterns: BTreeMap<String, Pattern>,
     pub ppq: u32,
+}
+
+fn four() -> u8 {
+    4
 }
 
 impl Song {
@@ -427,6 +490,45 @@ impl Song {
             .map(|s| s.start_bar + u32::from(s.bars))
             .max()
             .unwrap_or(0)
+    }
+
+    /// Ticks in one bar at this song's meter.
+    ///
+    /// ⛔ Mirrors [`crate::SessionContext::ticks_per_bar`] exactly, including the
+    /// zero-denominator fallback to 4 — that comment says the two "must agree or
+    /// the file says one thing and the tick arithmetic another", and the SMF
+    /// writer reads this one.
+    pub fn ticks_per_bar(&self) -> u32 {
+        let den = if self.time_sig_den == 0 {
+            4
+        } else {
+            self.time_sig_den
+        };
+        (PPQ * 4 / u32::from(den)).max(1) * u32::from(self.time_sig_num.max(1))
+    }
+
+    /// The pattern a section's reference names, if the store holds it.
+    pub fn pattern(&self, reference: &PatternRef) -> Option<&Pattern> {
+        self.patterns.get(&reference.pattern_id)
+    }
+
+    /// References naming no pattern in the store.
+    ///
+    /// A dangling ref is a section that draws as empty and exports as silence,
+    /// with nothing anywhere saying why. `arrange` cannot produce one and the
+    /// gate below proves it; this exists so a *loaded* song — an older project
+    /// file, a hand-edited one — is checked rather than trusted.
+    pub fn dangling_refs(&self) -> Vec<String> {
+        let mut missing: Vec<String> = self
+            .sections
+            .iter()
+            .flat_map(|section| section.patterns.values())
+            .filter(|reference| !self.patterns.contains_key(&reference.pattern_id))
+            .map(|reference| reference.pattern_id.clone())
+            .collect();
+        missing.sort();
+        missing.dedup();
+        missing
     }
 }
 
@@ -557,6 +659,8 @@ mod tests {
                     pattern_id: "p1".into(),
                 },
             )]),
+            drop_out_beats: 0,
+            decay: false,
             markers: vec![],
         };
         let json = serde_json::to_string(&section).unwrap();
@@ -582,6 +686,8 @@ mod tests {
                     start_bar: 0,
                     bars: 8,
                     patterns: BTreeMap::new(),
+                    drop_out_beats: 0,
+                    decay: false,
                     markers: vec!["drop".into()],
                 },
                 Section {
@@ -594,14 +700,68 @@ mod tests {
                             pattern_id: "p2".into(),
                         },
                     )]),
+                    drop_out_beats: 0,
+                    decay: false,
                     markers: vec![],
                 },
             ],
+            time_sig_num: 4,
+            time_sig_den: 4,
+            patterns: BTreeMap::from([("p2".to_owned(), sample_pattern(1))]),
             ppq: PPQ,
         };
         assert_eq!(song.total_bars(), 24);
         let back: Song = serde_json::from_str(&serde_json::to_string(&song).unwrap()).unwrap();
         assert_eq!(song, back);
+    }
+
+    #[test]
+    fn a_reference_resolves_through_the_store_and_a_missing_one_is_named() {
+        // The failure this is here to catch draws as an empty section and
+        // exports as silence, so it has to be reportable rather than merely
+        // absent.
+        let hook = Section {
+            kind: SectionKind::Hook,
+            start_bar: 0,
+            bars: 8,
+            patterns: BTreeMap::from([
+                (
+                    Part::Melody,
+                    PatternRef {
+                        pattern_id: "held".into(),
+                    },
+                ),
+                (
+                    Part::Drums,
+                    PatternRef {
+                        pattern_id: "gone".into(),
+                    },
+                ),
+            ]),
+            drop_out_beats: 0,
+            decay: false,
+            markers: vec![],
+        };
+        let song = Song {
+            id: "s1".into(),
+            artist_id: "osamason".into(),
+            seed: 1,
+            bpm: 150.0,
+            key_root: 6,
+            scale: Scale::Phrygian,
+            sections: vec![hook.clone()],
+            time_sig_num: 4,
+            time_sig_den: 4,
+            patterns: BTreeMap::from([("held".to_owned(), sample_pattern(2))]),
+            ppq: PPQ,
+        };
+
+        assert_eq!(
+            song.pattern(&hook.patterns[&Part::Melody]),
+            Some(&sample_pattern(2))
+        );
+        assert_eq!(song.pattern(&hook.patterns[&Part::Drums]), None);
+        assert_eq!(song.dangling_refs(), vec!["gone".to_owned()]);
     }
 
     #[test]

@@ -24,7 +24,6 @@
     "seedLabel": "Ziarno — wklej je, aby uzyskać ten sam beat",
     "seedAuto": "losowe",
     "generating": "Generowanie…",
-    "laterPhase": "Ten generator pojawi się w późniejszej fazie.",
     "readyBody": "{{name}} gotowy. Naciśnij Generuj."
   },
   "rails": {
@@ -231,5 +230,27 @@
     "selectFirst": "Najpierw zaznacz nuty.",
     "meterLabel": "Metrum",
     "rulerLabel": "Takty, klamra pętli i znaczniki klipu"
+  },
+  "song": {
+    "timeline": "Aranżacja",
+    "zoom": "Powiększenie",
+    "zoomIn": "Powiększ",
+    "zoomOut": "Pomniejsz",
+    "length": "{{bars}} taktów · {{time}}",
+    "bars": "{{bars}} taktów",
+    "dropOut": "Milknie przez ostatnie {{beats}} uderzeń",
+    "decay": "Wycisza się",
+    "sectionHint": "Kliknij, aby zaznaczyć · kliknij dwukrotnie, aby powielić",
+    "resizeStart": "Skróć tę część",
+    "resizeEnd": "Wydłuż tę część",
+    "readyBody": "Naciśnij Generuj, aby ułożyć cały utwór dla {{name}}.",
+    "kind": {
+      "intro": "Wstęp",
+      "verse": "Zwrotka",
+      "preChorus": "Przedrefren",
+      "hook": "Refren",
+      "bridge": "Most",
+      "outro": "Zakończenie"
+    }
   }
 }

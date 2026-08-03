@@ -24,7 +24,6 @@
     "seedLabel": "Seed — incollalo per ottenere lo stesso beat",
     "seedAuto": "casuale",
     "generating": "Generazione…",
-    "laterPhase": "Questo generatore arriverà in una fase successiva.",
     "readyBody": "{{name}} è pronto. Premi Genera."
   },
   "rails": {
@@ -231,5 +230,27 @@
     "selectFirst": "Seleziona prima delle note.",
     "meterLabel": "Metro",
     "rulerLabel": "Battute, parentesi di loop e marcatori della clip"
+  },
+  "song": {
+    "timeline": "Arrangiamento",
+    "zoom": "Zoom",
+    "zoomIn": "Ingrandisci",
+    "zoomOut": "Riduci",
+    "length": "{{bars}} battute · {{time}}",
+    "bars": "{{bars}} battute",
+    "dropOut": "Si interrompe negli ultimi {{beats}} movimenti",
+    "decay": "Sfuma",
+    "sectionHint": "Clic per selezionare · doppio clic per duplicare",
+    "resizeStart": "Accorcia questa sezione",
+    "resizeEnd": "Allunga questa sezione",
+    "readyBody": "Premi Genera per arrangiare un brano intero di {{name}}.",
+    "kind": {
+      "intro": "Introduzione",
+      "verse": "Strofa",
+      "preChorus": "Pre-ritornello",
+      "hook": "Ritornello",
+      "bridge": "Ponte",
+      "outro": "Finale"
+    }
   }
 }

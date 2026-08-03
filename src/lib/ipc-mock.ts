@@ -9,7 +9,17 @@
  */
 
 import type { InvokeArgs } from './ipc';
-import type { Note, Part, Pattern, RosterSummary, SessionDefaults } from './ipc-types';
+import type {
+  Note,
+  Part,
+  Pattern,
+  PatternRef,
+  RosterSummary,
+  Section,
+  SectionKind,
+  SessionDefaults,
+  Song,
+} from './ipc-types';
 
 type Handler = (args?: InvokeArgs) => unknown;
 
@@ -182,6 +192,82 @@ const handlers: Record<string, Handler> = {
       ],
     };
   },
+
+  // Song Mode (TASK-065). Built out of the same `generate_pattern` above rather
+  // than a second note fixture, so a spec that counts notes in the arrangement
+  // view and one that counts them in the roll cannot disagree.
+  //
+  // The form is `_defaults`' own — intro, verse, hook, verse, hook, outro —
+  // with the bar counts `_defaults` authors, because a spec asserting the ruler
+  // draws 56 bars has to have a fixture whose bars are knowable by reading it.
+  generate_song: (args): Song => {
+    const request = (args as { request?: { styleId?: string; seed?: string } })?.request;
+    const artistId = request?.styleId ?? 'mock';
+    const seed = request?.seed && request.seed !== '' ? request.seed : '424242';
+
+    const form: { kind: SectionKind; bars: number; parts: Part[] }[] = [
+      { kind: 'intro', bars: 4, parts: ['melody'] },
+      { kind: 'verse', bars: 16, parts: ['drums', 'melody', 'chords'] },
+      { kind: 'hook', bars: 8, parts: ['drums', 'melody', 'counter', 'chords'] },
+      { kind: 'verse', bars: 16, parts: ['drums', 'melody', 'chords'] },
+      { kind: 'hook', bars: 8, parts: ['drums', 'melody', 'counter', 'chords'] },
+      { kind: 'outro', bars: 4, parts: ['drums', 'melody'] },
+    ];
+
+    const patterns: Record<string, Pattern> = {};
+    const sections: Section[] = [];
+    let startBar = 0;
+
+    for (const [index, entry] of form.entries()) {
+      const refs: Partial<Record<Part, PatternRef>> = {};
+      for (const part of entry.parts) {
+        // Keyed by section kind, so the two verses share one pattern exactly as
+        // `arrange.rs` makes them.
+        const patternId = `${artistId}-${entry.kind}-${part}`;
+        if (!patterns[patternId]) {
+          patterns[patternId] = {
+            ...(handlers.generate_pattern({
+              request: { styleId: artistId, bars: 4, seed, part },
+            }) as Pattern),
+            id: patternId,
+          };
+        }
+        refs[part] = { patternId };
+      }
+      sections.push({
+        type: entry.kind,
+        startBar,
+        bars: entry.bars,
+        patterns: refs as Record<Part, PatternRef>,
+        // The drop-out sits on whatever runs into a hook, never on the hook.
+        dropOutBeats: form[index + 1]?.kind === 'hook' ? 2 : 0,
+        decay: entry.kind === 'outro',
+        markers: [],
+      });
+      startBar += entry.bars;
+    }
+
+    return {
+      id: `${artistId}-song-${seed}`,
+      artistId,
+      seed,
+      bpm: 140,
+      keyRoot: 6,
+      scale: 'natural_minor',
+      sections,
+      timeSigNum: 4,
+      timeSigDen: 4,
+      patterns,
+      ppq: 960,
+    };
+  },
+
+  // The exported bytes. A browser has no `song_to_smf`, and inventing an SMF
+  // encoder here would be the "second implementation" this file's header rules
+  // out — so it answers with the header every SMF starts with and a length,
+  // which is enough for a spec to assert a drag produced *something* and not
+  // enough to be mistaken for the real encoder.
+  song_smf: () => ({ bytes: [0x4d, 0x54, 0x68, 0x64] }),
 
   // The keyboard gutter's click-to-audition (TASK-041). A browser has no
   // sampler, so this resolves without sounding anything — which is the honest

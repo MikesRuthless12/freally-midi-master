@@ -24,7 +24,6 @@
     "seedLabel": "シード — 貼り付けると同じビートになります",
     "seedAuto": "ランダム",
     "generating": "生成中…",
-    "laterPhase": "このジェネレーターは後のフェーズで追加されます。",
     "readyBody": "{{name}} の準備ができました。生成を押してください。"
   },
   "rails": {
@@ -231,5 +230,27 @@
     "selectFirst": "先にノートを選択してください。",
     "meterLabel": "拍子",
     "rulerLabel": "小節、ループ範囲、クリップマーカー"
+  },
+  "song": {
+    "timeline": "アレンジ",
+    "zoom": "ズーム",
+    "zoomIn": "拡大",
+    "zoomOut": "縮小",
+    "length": "{{bars}} 小節 · {{time}}",
+    "bars": "{{bars}} 小節",
+    "dropOut": "最後の {{beats}} 拍は音が止まります",
+    "decay": "フェードアウトします",
+    "sectionHint": "クリックで選択 · ダブルクリックで複製",
+    "resizeStart": "このセクションを短くする",
+    "resizeEnd": "このセクションを長くする",
+    "readyBody": "「生成」を押すと {{name}} の曲全体を構成します。",
+    "kind": {
+      "intro": "イントロ",
+      "verse": "ヴァース",
+      "preChorus": "プリコーラス",
+      "hook": "フック",
+      "bridge": "ブリッジ",
+      "outro": "アウトロ"
+    }
   }
 }

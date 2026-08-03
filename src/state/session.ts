@@ -383,7 +383,7 @@ function applySnapshot(
 }
 
 /** The message an IPC rejection carries, without leaking `[object Object]`. */
-function reason(error: unknown): string {
+export function reason(error: unknown): string {
   if (typeof error === 'string') return error;
   if (error instanceof Error) return error.message;
   return String(error);

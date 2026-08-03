@@ -24,7 +24,6 @@
     "seedLabel": "시드 — 붙여넣으면 같은 비트가 나옵니다",
     "seedAuto": "무작위",
     "generating": "생성 중…",
-    "laterPhase": "이 제너레이터는 이후 단계에서 추가됩니다.",
     "readyBody": "{{name}} 준비 완료. 생성을 누르세요."
   },
   "rails": {
@@ -231,5 +230,27 @@
     "selectFirst": "먼저 노트를 선택하세요.",
     "meterLabel": "박자",
     "rulerLabel": "마디, 루프 범위, 클립 마커"
+  },
+  "song": {
+    "timeline": "편곡",
+    "zoom": "확대/축소",
+    "zoomIn": "확대",
+    "zoomOut": "축소",
+    "length": "{{bars}} 마디 · {{time}}",
+    "bars": "{{bars}} 마디",
+    "dropOut": "마지막 {{beats}} 박에서 멈춥니다",
+    "decay": "서서히 사라집니다",
+    "sectionHint": "클릭하여 선택 · 두 번 클릭하여 복제",
+    "resizeStart": "이 구간 줄이기",
+    "resizeEnd": "이 구간 늘리기",
+    "readyBody": "생성을 누르면 {{name}}의 곡 전체를 편곡합니다.",
+    "kind": {
+      "intro": "인트로",
+      "verse": "벌스",
+      "preChorus": "프리코러스",
+      "hook": "후렴",
+      "bridge": "브리지",
+      "outro": "아웃트로"
+    }
   }
 }

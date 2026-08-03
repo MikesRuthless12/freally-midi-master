@@ -24,7 +24,6 @@
     "seedLabel": "种子 — 粘贴即可得到相同的节奏",
     "seedAuto": "随机",
     "generating": "生成中…",
-    "laterPhase": "该生成器将在后续阶段推出。",
     "readyBody": "{{name}} 已就绪。点击生成。"
   },
   "rails": {
@@ -231,5 +230,27 @@
     "selectFirst": "请先选择音符。",
     "meterLabel": "拍号",
     "rulerLabel": "小节、循环括号与片段标记"
+  },
+  "song": {
+    "timeline": "编曲",
+    "zoom": "缩放",
+    "zoomIn": "放大",
+    "zoomOut": "缩小",
+    "length": "{{bars}} 小节 · {{time}}",
+    "bars": "{{bars}} 小节",
+    "dropOut": "最后 {{beats}} 拍静音",
+    "decay": "逐渐淡出",
+    "sectionHint": "单击选择 · 双击复制",
+    "resizeStart": "缩短此段落",
+    "resizeEnd": "延长此段落",
+    "readyBody": "点击“生成”，为 {{name}} 编排一整首歌。",
+    "kind": {
+      "intro": "前奏",
+      "verse": "主歌",
+      "preChorus": "预副歌",
+      "hook": "副歌",
+      "bridge": "桥段",
+      "outro": "尾奏"
+    }
   }
 }

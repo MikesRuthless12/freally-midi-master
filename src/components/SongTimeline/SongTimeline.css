@@ -1,0 +1,278 @@
+/* The arrangement view (TASK-063A / TASK-063B).
+ *
+ * Bar lines are heavier than beat lines, and the beat lines only exist at all
+ * once the zoom leaves room for them — see `gridFor`. The weights are set here
+ * rather than inline so the two never disagree about which is which.
+ */
+
+.song {
+  --song-row: 44px;
+  --song-ruler: 34px;
+  --song-header: 30px;
+
+  /* The grid is painted as a repeating gradient rather than mounted as one
+     element per line, so the two weights are variables it can reference.
+     A bar line is heavier than a beat line — that is what lets the eye read
+     the meter without counting. */
+  --song-bar-line: var(--line);
+  --song-beat-line: color-mix(in srgb, var(--line) 45%, transparent);
+
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  outline: none;
+}
+
+.song:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.song__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.35rem 0.6rem;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.78rem;
+  color: var(--text-dim);
+}
+
+.song__zoom {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.song__zoom button {
+  width: 1.6rem;
+  height: 1.6rem;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.song__zoom button:hover {
+  border-color: var(--accent);
+}
+
+.song__scroller {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.song__canvas {
+  position: relative;
+  min-width: 100%;
+}
+
+/* ---- Ruler ------------------------------------------------------------- */
+
+.song__ruler {
+  position: relative;
+  height: var(--song-ruler);
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  user-select: none;
+}
+
+.song__tick {
+  position: absolute;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  padding-left: 3px;
+  border-left: 1px solid var(--line-strong, var(--line));
+  height: 100%;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+.song__bar-number {
+  font-size: 0.72rem;
+  color: var(--text);
+}
+
+.song__time {
+  font-size: 0.62rem;
+  color: var(--text-dim);
+}
+
+/* ---- Section headers --------------------------------------------------- */
+
+.song__sections {
+  position: relative;
+  height: var(--song-header);
+  border-bottom: 1px solid var(--line);
+}
+
+.song__section {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  border-left: 2px solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  overflow: hidden;
+}
+
+.song__section.is-selected {
+  background: color-mix(in srgb, var(--accent) 26%, transparent);
+}
+
+.song__section-name {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  width: 100%;
+  height: 100%;
+  padding: 0 0.35rem;
+  border: 0;
+  background: none;
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.72rem;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.song__section-title {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.song__section-bars {
+  color: var(--text-dim);
+}
+
+.song__handle {
+  position: absolute;
+  top: 0;
+  width: 8px;
+  height: 100%;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: ew-resize;
+}
+
+.song__handle:hover {
+  background: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+.song__handle--start {
+  left: 0;
+}
+
+.song__handle--end {
+  right: 0;
+}
+
+/* ---- Clip rows --------------------------------------------------------- */
+
+.song__rows {
+  position: relative;
+}
+
+.song__grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.song__row {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 40%, transparent);
+}
+
+.song__row-label {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  display: inline-block;
+  padding: 0.15rem 0.4rem;
+  background: var(--surface);
+  color: var(--text-dim);
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  pointer-events: none;
+}
+
+.song__clip {
+  position: absolute;
+  top: 4px;
+  bottom: 5px;
+  display: flex;
+  align-items: center;
+  padding: 0 0.4rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--accent) 22%, var(--surface));
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.68rem;
+  overflow: hidden;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.song__clip:hover {
+  border-color: var(--accent);
+}
+
+.song__clip.is-selected {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+  background: color-mix(in srgb, var(--accent) 40%, var(--surface));
+}
+
+.song__clip-label {
+  opacity: 0.85;
+}
+
+/* The TASK-066 transitions, drawn because they are in the exported file: a
+   producer has to be able to see why a section's last beats are silent. */
+.song__dropout {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 3px,
+    color-mix(in srgb, var(--text) 22%, transparent) 3px,
+    color-mix(in srgb, var(--text) 22%, transparent) 6px
+  );
+  pointer-events: none;
+}
+
+.song__decay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to right,
+    transparent,
+    color-mix(in srgb, var(--surface) 70%, transparent)
+  );
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .song__clip {
+    transition:
+      background-color 120ms ease,
+      border-color 120ms ease;
+  }
+}

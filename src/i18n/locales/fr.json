@@ -24,7 +24,6 @@
     "seedLabel": "Graine — collez-la pour retrouver le même beat",
     "seedAuto": "aléatoire",
     "generating": "Génération…",
-    "laterPhase": "Ce générateur arrivera dans une phase ultérieure.",
     "readyBody": "{{name}} est prêt. Appuyez sur Générer."
   },
   "rails": {
@@ -231,5 +230,27 @@
     "selectFirst": "Sélectionnez d’abord des notes.",
     "meterLabel": "Mesure",
     "rulerLabel": "Mesures, accolade de boucle et repères du clip"
+  },
+  "song": {
+    "timeline": "Arrangement",
+    "zoom": "Zoom",
+    "zoomIn": "Agrandir",
+    "zoomOut": "Réduire",
+    "length": "{{bars}} mesures · {{time}}",
+    "bars": "{{bars}} mesures",
+    "dropOut": "S'interrompt sur les {{beats}} derniers temps",
+    "decay": "Se termine en fondu",
+    "sectionHint": "Cliquer pour sélectionner · double-cliquer pour dupliquer",
+    "resizeStart": "Raccourcir cette section",
+    "resizeEnd": "Allonger cette section",
+    "readyBody": "Appuie sur Générer pour arranger un morceau entier de {{name}}.",
+    "kind": {
+      "intro": "Intro",
+      "verse": "Couplet",
+      "preChorus": "Pré-refrain",
+      "hook": "Refrain",
+      "bridge": "Pont",
+      "outro": "Outro"
+    }
   }
 }

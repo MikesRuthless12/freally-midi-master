@@ -94,7 +94,26 @@ function Studio() {
       // was stolen from a dropdown while `K` above was not. One predicate now.
       if (isTypingTarget(e.target)) return;
 
+      // ⛔ **The Song tab owns a different document, and this stack is not its
+      // stack.** `useSession`'s history holds the pattern and the session
+      // chips; the arrangement lives in `useSong` and has no history yet. Left
+      // unguarded, Ctrl+Z on the Song tab silently stepped *the session* back —
+      // a seed keystroke, a pin, or a piano-roll edit made on another tab —
+      // while the arrangement stayed exactly as it was. That is worse than
+      // doing nothing: the producer sees no change here and finds the damage
+      // later, somewhere else.
+      //
+      // Doing nothing is the honest behaviour until `useSong` has a stack of
+      // its own. See the handoff.
+      //
+      // ⛔ **`preventDefault` first, then return** — returning early without it
+      // was itself a bug, and a confusing one: the chord fell through to the
+      // *browser's* undo, which reverted the last text field edited even though
+      // focus had long since moved to the timeline. The seed box emptied itself
+      // when the producer pressed Ctrl+Z over an arrangement.
       e.preventDefault();
+      if (useUi.getState().activeTab === 'song') return;
+
       const { undo, redo } = useSession.getState();
       if (key === 'y' || e.shiftKey) redo();
       else undo();

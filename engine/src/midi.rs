@@ -1,8 +1,9 @@
 //! Standard MIDI File output.
 //!
 //! A `Pattern` becomes a type-0 SMF (one track, every lane merged); a `Song`
-//! will become type-1 (a track per part) when Song Mode lands. PPQ is
-//! [`crate::pattern::PPQ`], so the roll subdivisions land on whole ticks.
+//! becomes type-1 — a conductor track carrying the tempo map and the section
+//! markers, then one track per part. PPQ is [`crate::pattern::PPQ`], so the roll
+//! subdivisions land on whole ticks.
 //!
 //! 808 slides are written as **overlapping notes**: the sliding note's
 //! note-off comes *after* the destination's note-on. That overlap is the
@@ -15,7 +16,7 @@ use midly::{
     Format, Header, MetaMessage, MidiMessage, Smf, Timing, Track, TrackEvent, TrackEventKind,
 };
 
-use crate::pattern::{Lane, Note, Pattern, Scale, ScaleCharacter, PPQ};
+use crate::pattern::{Lane, Note, Part, Pattern, Scale, ScaleCharacter, Section, Song, PPQ};
 
 /// General MIDI drum note numbers, so a drum pattern is auditionable in any
 /// DAW without a kit loaded.
@@ -91,11 +92,11 @@ fn key_signature(key_root: u8, scale: Scale) -> (i8, bool) {
     };
 
     // A minor key borrows its signature from the major a minor third above.
-    let major_pc = if minor {
-        (key_root + 3) % 12
-    } else {
-        key_root % 12
-    };
+    //
+    // Reduced *before* the third is added: `key_root` is a `u8` off the wire on
+    // the song path, and 253 or above overflowed the addition.
+    let key_root = key_root % 12;
+    let major_pc = if minor { (key_root + 3) % 12 } else { key_root };
 
     // Each step clockwise round the circle of fifths adds one sharp, and a
     // fifth is seven semitones.
@@ -179,8 +180,11 @@ fn events_for(pattern: &Pattern) -> Vec<Event> {
                 // destination's note-on lands while the origin is still held,
                 // and the origin's note-off follows it. Both stay inside the
                 // note's own span, so a slide never lengthens the pattern.
+                // ⛔ Saturating throughout: these ticks are untrusted on the song
+                // path — `song_smf` takes a whole `Song` from the webview — and
+                // `voice.rs` already writes down why that matters here.
                 Some(destination) => {
-                    let slide_at = note.start_tick + len / 2;
+                    let slide_at = note.start_tick.saturating_add(len / 2);
                     let overlap = SLIDE_OVERLAP_TICKS.clamp(1, len / 4);
                     push_note(
                         &mut events,
@@ -188,7 +192,7 @@ fn events_for(pattern: &Pattern) -> Vec<Event> {
                         key,
                         velocity,
                         note.start_tick,
-                        slide_at + overlap,
+                        slide_at.saturating_add(overlap),
                     );
                     push_note(
                         &mut events,
@@ -196,7 +200,7 @@ fn events_for(pattern: &Pattern) -> Vec<Event> {
                         destination,
                         velocity,
                         slide_at,
-                        note.start_tick + len,
+                        note.start_tick.saturating_add(len),
                     );
                 }
                 None => push_note(
@@ -205,7 +209,7 @@ fn events_for(pattern: &Pattern) -> Vec<Event> {
                     key,
                     velocity,
                     note.start_tick,
-                    note.start_tick + len,
+                    note.start_tick.saturating_add(len),
                 ),
             }
         }
@@ -306,6 +310,270 @@ pub fn pattern_to_smf(pattern: &Pattern) -> Vec<u8> {
             timing: Timing::Metrical(u15::new(PPQ as u16)),
         },
         tracks: vec![track],
+    };
+
+    let mut out = Vec::new();
+    smf.write(&mut out).expect("writing to a Vec cannot fail");
+    out
+}
+
+/// How quiet a decaying section gets by its last bar, as a share of the
+/// velocity it started at.
+///
+/// Not zero: an outro that reaches silence before it ends leaves the producer
+/// dragging in bars of nothing, and every DAW draws that as the clip being
+/// broken rather than as a fade.
+const DECAY_FLOOR: f32 = 0.35;
+
+/// The tracks a song is written as, in the order they appear in the file.
+///
+/// Fixed rather than "whichever parts turned up", so two songs from the same
+/// artist import into a DAW with their tracks in the same rows.
+const TRACK_ORDER: [Part; 5] = [
+    Part::Drums,
+    Part::Chords,
+    Part::Melody,
+    Part::Counter,
+    Part::Bass,
+];
+
+fn part_track_name(part: Part) -> &'static str {
+    // US-011 names these exactly: "FMM Drums", ... — the producer sees which
+    // rows came from this plugin in a project that already has twenty.
+    match part {
+        Part::Drums => "FMM Drums",
+        Part::Chords => "FMM Chords",
+        Part::Melody => "FMM Melody",
+        Part::Counter => "FMM Counter",
+        Part::Bass => "FMM Bass",
+    }
+}
+
+fn section_marker(section: &Section) -> String {
+    format!("{:?}", section.kind).to_uppercase()
+}
+
+/// Every event one part contributes across the whole song.
+///
+/// ⛔ **A section plays its clip on a loop, so the clip is tiled rather than
+/// placed once.** A sixteen-bar verse over a four-bar pattern is that pattern
+/// four times; writing it once would export three bars of silence out of every
+/// four, which is the bug that makes an exported song sound like it is missing
+/// most of itself.
+fn song_events_for(song: &Song, part: Part, ticks_per_bar: u32) -> Vec<Event> {
+    let mut events: Vec<Event> = Vec::new();
+    let beat_ticks = (ticks_per_bar / u32::from(song.time_sig_num.max(1))).max(1);
+
+    for section in &song.sections {
+        let Some(reference) = section.patterns.get(&part) else {
+            continue;
+        };
+        let Some(pattern) = song.pattern(reference) else {
+            continue;
+        };
+
+        // ⛔ **Saturating, because these ticks are untrusted.** A `Song` reaches
+        // here from the webview — a project file somebody else saved, or
+        // devtools — exactly as the notes in `voice.rs` do, and that file says
+        // the same thing: this workspace sets `panic = "abort"`, so an
+        // overflow-checked build turns an arithmetic wrap into the *host*
+        // process dying. In the shipped release profile it wraps silently
+        // instead and writes the notes at the wrong ticks, which is a corrupted
+        // export nobody can explain.
+        let section_start = section.start_bar.saturating_mul(ticks_per_bar);
+        let section_len = u32::from(section.bars).saturating_mul(ticks_per_bar);
+        let clip_len = u32::from(pattern.bars).saturating_mul(ticks_per_bar).max(1);
+
+        // The drop-out (TASK-066): the last beats of the section are silent so
+        // whatever follows lands. Measured from the section's end rather than
+        // the clip's, which is why it cannot live in the pattern.
+        let sounding = section_len
+            .saturating_sub(u32::from(section.drop_out_beats).saturating_mul(beat_ticks));
+
+        // Computed once and reused for every repeat: `events_for` allocates,
+        // walks every note and sorts, and it is a pure function of the pattern —
+        // so recomputing it per tile was doing that work up to four times per
+        // section for an identical answer, which the outer sort then discarded
+        // anyway.
+        let clip_events = events_for(pattern);
+
+        // ⛔ **A counted loop, not `while offset < sounding`.** With the
+        // increment written as `offset += clip_len` the loop is a state machine
+        // over `k * clip_len mod 2^32`: release builds have no overflow checks,
+        // so for a long enough section over a long enough clip `offset` wraps
+        // past `sounding` and cycles forever without ever exceeding it. That
+        // spins the thread the host draws its editor from, with no crash and no
+        // way out but killing the DAW. A repeat count cannot do that whatever
+        // the arithmetic does.
+        let repeats = sounding.div_ceil(clip_len);
+        for repeat in 0..repeats {
+            let offset = repeat.saturating_mul(clip_len);
+            for event in clip_events.iter().copied() {
+                let tick = section_start
+                    .saturating_add(offset)
+                    .saturating_add(event.tick);
+                // A note whose *start* falls outside the sounding span is not
+                // written at all; one that started inside and rings past the
+                // end is allowed to finish, exactly as a held note does at a
+                // clip boundary.
+                if event.is_on && offset.saturating_add(event.tick) >= sounding {
+                    continue;
+                }
+                let velocity = if section.decay && event.is_on {
+                    let through = f32::from(u16::try_from(offset / clip_len).unwrap_or(0))
+                        / f32::from(u16::try_from((section_len / clip_len).max(1)).unwrap_or(1));
+                    let scale = 1.0 - (1.0 - DECAY_FLOOR) * through.clamp(0.0, 1.0);
+                    ((f32::from(event.velocity) * scale).round() as u8).clamp(1, 127)
+                } else {
+                    event.velocity
+                };
+                events.push(Event {
+                    tick,
+                    velocity,
+                    ..event
+                });
+            }
+        }
+    }
+
+    events.sort_by(|a, b| a.tick.cmp(&b.tick).then(a.is_on.cmp(&b.is_on)));
+    events
+}
+
+/// Encode a whole song as a type-1 SMF: a conductor track, then one per part.
+///
+/// This is what US-011's "one drag lays the whole song on the DAW timeline"
+/// means, and the reason [`Section::drop_out_beats`] and [`Section::decay`] are
+/// fields rather than decoration — they are read here, so a transition the
+/// timeline draws is a transition the file contains.
+pub fn song_to_smf(song: &Song) -> Vec<u8> {
+    let ticks_per_bar = song.ticks_per_bar();
+
+    // ── The conductor track: tempo, meter, key, and where the sections are.
+    let mut conductor = Track::new();
+    let bpm = if song.bpm.is_finite() && song.bpm > 0.0 {
+        song.bpm
+    } else {
+        120.0
+    };
+    let us_per_quarter = (60_000_000.0 / bpm).round().clamp(1.0, 16_777_215.0) as u32;
+    conductor.push(TrackEvent {
+        delta: u28::new(0),
+        kind: TrackEventKind::Meta(MetaMessage::Tempo(u24::new(us_per_quarter))),
+    });
+
+    let den_pow = match song.time_sig_den {
+        1 => 0,
+        2 => 1,
+        4 => 2,
+        8 => 3,
+        16 => 4,
+        32 => 5,
+        _ => 2,
+    };
+    conductor.push(TrackEvent {
+        delta: u28::new(0),
+        kind: TrackEventKind::Meta(MetaMessage::TimeSignature(
+            song.time_sig_num.max(1),
+            den_pow,
+            24,
+            8,
+        )),
+    });
+
+    let (sharps, minor) = key_signature(song.key_root, song.scale);
+    conductor.push(TrackEvent {
+        delta: u28::new(0),
+        kind: TrackEventKind::Meta(MetaMessage::KeySignature(sharps, minor)),
+    });
+
+    let title = format!("{} — song", song.artist_id);
+    conductor.push(TrackEvent {
+        delta: u28::new(0),
+        kind: TrackEventKind::Meta(MetaMessage::TrackName(title.as_bytes())),
+    });
+
+    // Markers are how the arrangement survives the export: a producer opening
+    // the file sees INTRO / VERSE / HOOK on the DAW's own ruler rather than one
+    // undifferentiated run of bars.
+    let mut last_tick = 0u32;
+    let mut markers: Vec<(u32, String)> = song
+        .sections
+        .iter()
+        .map(|section| (section.start_bar * ticks_per_bar, section_marker(section)))
+        .collect();
+    markers.extend(song.sections.iter().flat_map(|s| {
+        s.markers
+            .iter()
+            .map(|m| (s.start_bar * ticks_per_bar, m.clone()))
+    }));
+    // Stable, so a section's own kind marker stays ahead of any custom marker
+    // sharing its tick.
+    markers.sort_by_key(|(tick, _)| *tick);
+    for (tick, text) in &markers {
+        conductor.push(TrackEvent {
+            delta: u28::new(tick.saturating_sub(last_tick)),
+            kind: TrackEventKind::Meta(MetaMessage::Marker(text.as_bytes())),
+        });
+        last_tick = *tick;
+    }
+    conductor.push(TrackEvent {
+        delta: u28::new(0),
+        kind: TrackEventKind::Meta(MetaMessage::EndOfTrack),
+    });
+
+    let mut tracks = vec![conductor];
+
+    // ── One track per part that plays anywhere in the song.
+    for part in TRACK_ORDER {
+        let events = song_events_for(song, part, ticks_per_bar);
+        if events.is_empty() {
+            continue;
+        }
+
+        let mut track = Track::new();
+        track.push(TrackEvent {
+            delta: u28::new(0),
+            kind: TrackEventKind::Meta(MetaMessage::TrackName(part_track_name(part).as_bytes())),
+        });
+
+        let mut last_tick = 0u32;
+        for event in events {
+            let delta = event.tick.saturating_sub(last_tick);
+            last_tick = event.tick;
+            let message = if event.is_on {
+                MidiMessage::NoteOn {
+                    key: u7::new(event.key.min(127)),
+                    vel: u7::new(event.velocity.min(127)),
+                }
+            } else {
+                MidiMessage::NoteOff {
+                    key: u7::new(event.key.min(127)),
+                    vel: u7::new(0),
+                }
+            };
+            track.push(TrackEvent {
+                delta: u28::new(delta),
+                kind: TrackEventKind::Midi {
+                    channel: u4::new(event.channel),
+                    message,
+                },
+            });
+        }
+
+        track.push(TrackEvent {
+            delta: u28::new(0),
+            kind: TrackEventKind::Meta(MetaMessage::EndOfTrack),
+        });
+        tracks.push(track);
+    }
+
+    let smf = Smf {
+        header: Header {
+            format: Format::Parallel,
+            timing: Timing::Metrical(u15::new(PPQ as u16)),
+        },
+        tracks,
     };
 
     let mut out = Vec::new();

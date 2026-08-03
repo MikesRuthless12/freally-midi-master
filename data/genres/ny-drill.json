@@ -10,6 +10,14 @@
   "genres": ["rap", "drill"],
   "confidence": "high",
   "sources": ["style-research ch.1 §2 Drill (NY/Brooklyn)"],
+  "arrangement": {
+    "structures": [
+      { "sections": ["intro", "verse", "hook", "verse", "hook", "outro"], "weight": 4 },
+      { "sections": ["intro", "hook", "verse", "hook", "verse", "hook"], "weight": 2 }
+    ],
+    "sectionBars": { "intro": 4, "verse": 16, "hook": 8, "bridge": 4, "outro": 4 },
+    "transitions": { "fillBeforeSection": true, "dropOutBeats": { "prob": 0.4, "beats": 2 }, "switchUpProb": 0.1 }
+  },
   "notes": "UK grammar exported to Brooklyn via 808Melo and AXL: the same sliding 808 and tresillo kick, but quantized harder, with a bigger reverb snare and longer, more prominent slides. Its signature two-bar snare form puts the hit on 3 in the first bar and on 4 in the second.",
 
   "session": {

@@ -24,7 +24,6 @@
     "seedLabel": "Seed — plak er een voor dezelfde beat",
     "seedAuto": "willekeurig",
     "generating": "Genereren…",
-    "laterPhase": "Deze generator komt in een latere fase.",
     "readyBody": "{{name}} staat klaar. Klik op Genereren."
   },
   "rails": {
@@ -231,5 +230,27 @@
     "selectFirst": "Selecteer eerst noten.",
     "meterLabel": "Maatsoort",
     "rulerLabel": "Maten, loopbeugel en clipmarkeringen"
+  },
+  "song": {
+    "timeline": "Arrangement",
+    "zoom": "Zoom",
+    "zoomIn": "Inzoomen",
+    "zoomOut": "Uitzoomen",
+    "length": "{{bars}} maten · {{time}}",
+    "bars": "{{bars}} maten",
+    "dropOut": "Valt weg tijdens de laatste {{beats}} tellen",
+    "decay": "Sterft weg",
+    "sectionHint": "Klik om te selecteren · dubbelklik om te dupliceren",
+    "resizeStart": "Dit deel korter maken",
+    "resizeEnd": "Dit deel langer maken",
+    "readyBody": "Druk op Genereren om een heel nummer van {{name}} te arrangeren.",
+    "kind": {
+      "intro": "Intro",
+      "verse": "Couplet",
+      "preChorus": "Pre-refrein",
+      "hook": "Refrein",
+      "bridge": "Brug",
+      "outro": "Outro"
+    }
   }
 }

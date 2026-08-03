@@ -24,7 +24,6 @@
     "seedLabel": "Seed — tempel untuk mendapatkan beat yang sama",
     "seedAuto": "acak",
     "generating": "Membuat…",
-    "laterPhase": "Generator ini hadir pada fase berikutnya.",
     "readyBody": "{{name}} siap. Tekan Buat."
   },
   "rails": {
@@ -231,5 +230,27 @@
     "selectFirst": "Pilih beberapa not dulu.",
     "meterLabel": "Birama",
     "rulerLabel": "Bar, kurung loop, dan penanda klip"
+  },
+  "song": {
+    "timeline": "Aransemen",
+    "zoom": "Perbesaran",
+    "zoomIn": "Perbesar",
+    "zoomOut": "Perkecil",
+    "length": "{{bars}} birama · {{time}}",
+    "bars": "{{bars}} birama",
+    "dropOut": "Berhenti pada {{beats}} ketuk terakhir",
+    "decay": "Memudar",
+    "sectionHint": "Klik untuk memilih · klik dua kali untuk menggandakan",
+    "resizeStart": "Perpendek bagian ini",
+    "resizeEnd": "Perpanjang bagian ini",
+    "readyBody": "Tekan Hasilkan untuk menyusun satu lagu penuh dari {{name}}.",
+    "kind": {
+      "intro": "Pembuka",
+      "verse": "Bait",
+      "preChorus": "Pra-refrein",
+      "hook": "Refrein",
+      "bridge": "Jembatan",
+      "outro": "Penutup"
+    }
   }
 }

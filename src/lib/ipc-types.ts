@@ -181,9 +181,26 @@ export type Section = { type: SectionKind, startBar: number, bars: number,
 /**
  * One pattern per part present in this section.
  */
-patterns: { [key in Part]?: PatternRef }, markers?: Array<string>, };
+patterns: { [key in Part]?: PatternRef }, 
+/**
+ * Beats of silence at the end of this section (TASK-066).
+ *
+ * The drop-out before a hook: the track cuts out for the last beat or two
+ * so the hook lands. It is a property of *where the section sits* rather
+ * than of its notes, because the clip underneath it loops — putting the
+ * silence in the pattern would drop a beat out of every repeat instead of
+ * once, at the end.
+ */
+dropOutBeats: number, 
+/**
+ * Whether this section fades across its length (TASK-066).
+ *
+ * Same reasoning: a decay that lived in the clip would reset on every
+ * repeat, which is a stutter rather than an outro.
+ */
+decay: boolean, markers?: Array<string>, };
 
-export type SectionKind = "intro" | "verse" | "hook" | "bridge" | "outro";
+export type SectionKind = "intro" | "verse" | "preChorus" | "hook" | "bridge" | "outro";
 
 /**
  * Everything a generator needs beyond the style model.
@@ -261,7 +278,27 @@ timeSigNum: number | null, timeSigDen: number | null, };
  * A full arrangement — what Song Mode produces and what the multi-track SMF
  * export walks.
  */
-export type Song = { id: string, artistId: string, seed: string, bpm: number, keyRoot: number, scale: Scale, sections: Array<Section>, ppq: number, };
+export type Song = { id: string, artistId: string, seed: string, bpm: number, keyRoot: number, scale: Scale, sections: Array<Section>, 
+/**
+ * Time signature, carried so a song reads without its `SessionContext`.
+ */
+timeSigNum: number, timeSigDen: number, 
+/**
+ * Every pattern the sections name, by [`PatternRef::pattern_id`].
+ *
+ * ⛔ **A `PatternRef` is an id, and until this existed nothing anywhere
+ * held what the id named** — a `Song` described which pattern played where
+ * and could not answer what any of them was, so it could not be drawn,
+ * exported or played.
+ *
+ * A store rather than a `Pattern` inline in each section, because sharing
+ * is the point: verse 1 and verse 2 are the same beat, and in these genres
+ * that is the rule rather than an optimisation. One entry per distinct
+ * pattern is also what makes a re-roll of one section a change to one
+ * section — the UI repoints that section's ref instead of editing a
+ * pattern two sections are looking at.
+ */
+patterns: { [key in string]?: Pattern }, ppq: number, };
 
 /**
  * MPC-style swing. `0.50` is straight and `0.667` is fully triplet; the

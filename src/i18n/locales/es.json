@@ -24,7 +24,6 @@
     "seedLabel": "Semilla: pégala para obtener el mismo beat",
     "seedAuto": "aleatoria",
     "generating": "Generando…",
-    "laterPhase": "Este generador llegará en una fase posterior.",
     "readyBody": "{{name}} está listo. Pulsa Generar."
   },
   "rails": {
@@ -231,5 +230,27 @@
     "selectFirst": "Selecciona algunas notas primero.",
     "meterLabel": "Compás",
     "rulerLabel": "Compases, corchete de bucle y marcadores de clip"
+  },
+  "song": {
+    "timeline": "Arreglo",
+    "zoom": "Zoom",
+    "zoomIn": "Acercar",
+    "zoomOut": "Alejar",
+    "length": "{{bars}} compases · {{time}}",
+    "bars": "{{bars}} compases",
+    "dropOut": "Se corta durante los últimos {{beats}} tiempos",
+    "decay": "Se desvanece",
+    "sectionHint": "Clic para seleccionar · doble clic para duplicar",
+    "resizeStart": "Acortar esta sección",
+    "resizeEnd": "Alargar esta sección",
+    "readyBody": "Pulsa Generar para arreglar una canción entera de {{name}}.",
+    "kind": {
+      "intro": "Introducción",
+      "verse": "Estrofa",
+      "preChorus": "Preestribillo",
+      "hook": "Estribillo",
+      "bridge": "Puente",
+      "outro": "Cierre"
+    }
   }
 }

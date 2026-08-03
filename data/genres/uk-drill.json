@@ -143,7 +143,11 @@
   "arrangement": {
     "sectionBars": { "intro": [4, 8], "verse": 16, "hook": 8, "bridge": [4, 8], "outro": 4 },
     "melodic808SlideAtLoopEnd": true,
-    "transitions": { "fillBeforeSection": true, "dropOutBeats": { "prob": 0.5, "beats": 2 }, "switchUpProb": 0.2 }
+    "transitions": { "fillBeforeSection": true, "dropOutBeats": { "prob": 0.5, "beats": 2 }, "switchUpProb": 0.2 },
+    "structures": [
+      { "sections": ["intro", "verse", "hook", "verse", "bridge", "verse", "outro"], "weight": 3 },
+      { "sections": ["intro", "verse", "hook", "verse", "hook", "outro"], "weight": 2 }
+    ]
   },
 
   "kit": { "preview": "drill-default" },

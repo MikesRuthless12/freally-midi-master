@@ -14,6 +14,42 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Added
 
+- **Song Mode: pick an artist, press Generate, and get a whole arrangement.**
+  The engine samples one of the artist's own song forms, gives each section its
+  bar count, and builds a clip per part per section — then the arrangement view
+  draws it and lets you edit it before it goes anywhere.
+  - **The Arrangement Creator** (TASK-065): weighted structure sampling, section
+    part masks, per-section density, and one seed per section so a melody is
+    written against the chords playing beside it rather than against a different
+    voicing of them. Sections of the same kind share a clip, because verse 1 and
+    verse 2 are the same beat.
+  - **Transitions** (TASK-066): the drop-out beats before a hook, the back-half
+    switch-up that varies the melody while the drums hold, and the outro's fade.
+    Each is a property of *where a section sits* rather than of its notes,
+    because the clip underneath it loops — and each is written into the exported
+    file, not merely drawn.
+  - **Genre song forms** (TASK-064): pop's verse–pre-chorus–chorus form, plugg's
+    chords-only intro and kick-and-bass bridge, west-coast club's instant hook,
+    phonk's 16-bar chorus, country's fills on the eight, drill's 16-bar verses,
+    and liquid's mute-the-turnaround. Taken from the research and only from the
+    research — the two genres it says nothing structural about keep the shared
+    default rather than a form nobody wrote down. `SectionKind` gained a
+    pre-chorus, because pop's form cannot be spelled honestly without one.
+  - **One multi-track MIDI file for the whole song**: a conductor track carrying
+    the tempo map and a marker per section, then a track per part named so you
+    can see which rows came from here. A section's clip is tiled across its
+    length, so a sixteen-bar verse over a four-bar loop exports as four bars
+    played four times rather than one bar and three of silence.
+  - **The arrangement view** (TASK-063A/B): a ruler with bar numbers and
+    timestamps, gridlines that get finer as you zoom rather than staying fixed,
+    and clips you can select, resize from either edge, clone, delete and
+    copy/cut/paste on the ordinary shortcuts. Deleting a part out of a section
+    leaves the section standing.
+  - ⚠ **The transport marker does not run in this view yet.** The transport
+    reports a position inside the single pattern it is playing, and nothing can
+    play a whole song; a marker fed from that clock would sit near the start of
+    the arrangement and stay there, so it is left out rather than shown wrong.
+
 - **A piano roll, and the four melodic parts are visible at last.** Melody,
   Countermelody, Bass and Chords generated through the bridge and landed on the
   host's track without ever appearing on screen; now they are drawn, and

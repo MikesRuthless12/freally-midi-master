@@ -11,8 +11,8 @@
 
 use engine::context::{SessionDefaults, SessionOverrides};
 use engine::dataset::modes;
-use engine::generators::{bass, chords, counter, drums, melody};
-use engine::humanize::humanize;
+use engine::generators::bass;
+use engine::parts;
 use engine::pattern::{Part, Pattern, PPQ};
 use serde::Deserialize;
 use serde_json::{json, Value};
@@ -170,6 +170,50 @@ pub fn dispatch(
             serde_json::to_value(generate(&args, host, auto_sync)?).map_err(|e| e.to_string())
         }
 
+        // ---- Song Mode (TASK-065) ------------------------------------------
+        //
+        // The same request shape as `generate_pattern` minus `part`, because a
+        // song is every part at once. Answers with the whole `Song` — sections,
+        // their geometry, and the pattern store the refs resolve into — so the
+        // timeline can draw it without a second round trip per clip.
+        "generate_song" => {
+            let args: GenerateArgs = serde_json::from_value(request.args["request"].clone())
+                .map_err(|e| format!("bad generate request: {e}"))?;
+            let auto_sync = state::with(session, |s| s.auto_sync).unwrap_or(true);
+            serde_json::to_value(generate_song(&args, host, auto_sync)?).map_err(|e| e.to_string())
+        }
+
+        // The bytes of a whole arranged song, for the drag-out and for Save As.
+        //
+        // ⛔ Takes the `Song` from the page rather than regenerating from the
+        // seed. That is the edited-clip decision applied to the export: once a
+        // clip has been edited or a section moved, the seed no longer describes
+        // what is on screen, and re-deriving here would hand the producer the
+        // song they started with instead of the one they arranged.
+        "song_smf" => {
+            let song: engine::pattern::Song = serde_json::from_value(request.args["song"].clone())
+                .map_err(|e| format!("bad song: {e}"))?;
+            let dangling = song.dangling_refs();
+            if !dangling.is_empty() {
+                return Err(format!(
+                    "this song names {} pattern(s) it does not carry ({}) — \
+                     exporting it would write silence where they play",
+                    dangling.len(),
+                    dangling.join(", ")
+                ));
+            }
+            // ⛔ **Bounded before the engine sees it, because this is a trust
+            // boundary.** A `Song` arrives here as JSON from the webview — a
+            // project file somebody else saved, or devtools — and every field is
+            // whatever that JSON said. Deserializing proves the *shape*; it
+            // proves nothing about the numbers, and this command was the first
+            // to hand unbounded ones to the tick arithmetic in `engine::midi`.
+            // `generate_pattern` has clamped `bars` for this reason since the
+            // meter work; a song has three more axes that multiply with it.
+            check_song(&song)?;
+            Ok(json!({ "bytes": engine::midi::song_to_smf(&song) }))
+        }
+
         // The host reports these; the UI shows them. Its own command so the
         // chips can refresh on a tempo change without regenerating.
         "host_session" => Ok(json!({
@@ -320,42 +364,12 @@ fn generate(args: &GenerateArgs, host: &HostSession, auto_sync: bool) -> Result<
 
     let ctx = host.session_for(&model, &overrides, seed, auto_sync);
 
-    // ⛔ **The melodic parts are not independent, and the order below is the
-    // dependency, not a preference.** A melody is written against the harmony
-    // and around the drums; a countermelody answers the melody; a bassline
-    // follows the harmony and locks to the kick. Generating one in isolation
-    // would produce notes in the right key that fit nothing — which is the
-    // difference between five parts and one part played five times.
-    //
-    // The parts a request does not ask for are still generated, because they
-    // are its inputs. That costs nothing anyone can hear and is not a cache
-    // miss: every generator is a pure function of `(model, ctx, seed)`, so the
-    // harmony computed here is byte-for-byte the harmony a `Chords` request
-    // returns for the same seed. `engine/tests/coherence.rs` builds all five in
-    // exactly this order and is what proves they belong together.
-    let mut lanes = match part {
-        Part::Drums => drums::generate(&model, &ctx, seed),
-        Part::Chords => vec![chords::generate(&model, &ctx, seed).track],
-        Part::Melody => {
-            let harmony = chords::generate(&model, &ctx, seed);
-            let kit = drums::generate(&model, &ctx, seed);
-            vec![melody::generate(&model, &ctx, seed, &harmony, &kit)]
-        }
-        Part::Counter => {
-            let harmony = chords::generate(&model, &ctx, seed);
-            let kit = drums::generate(&model, &ctx, seed);
-            let lead = melody::generate(&model, &ctx, seed, &harmony, &kit);
-            vec![counter::generate(&model, &ctx, seed, &harmony, &lead)]
-        }
-        Part::Bass => {
-            let harmony = chords::generate(&model, &ctx, seed);
-            let kit = drums::generate(&model, &ctx, seed);
-            vec![bass::generate(&model, &ctx, seed, &harmony, &kit)]
-        }
-    };
-    humanize(&mut lanes, &ctx, seed);
+    // The dependency order between the five parts lives in `engine::parts` —
+    // Song Mode builds every section through the same function, so there is one
+    // copy of it rather than two that can drift.
+    let lanes = parts::render(&model, &ctx, seed, part);
 
-    if lanes.iter().all(|lane| lane.notes.is_empty()) {
+    if parts::is_silent(&lanes) {
         // A style whose 808 *is* the bassline authors no separate bass lane on
         // purpose — doubling it is a production mistake rather than a fuller
         // sound (FR-007). "Has no Bass part authored" would read as a gap in
@@ -391,6 +405,129 @@ fn generate(args: &GenerateArgs, host: &HostSession, auto_sync: bool) -> Result<
         ppq: PPQ,
         mood,
     })
+}
+
+/// The longest song the plugin will export, in bars.
+///
+/// Generous — an eight-minute record at 140 BPM is under 300 bars — so it never
+/// binds on anything a producer arranged. It exists so a *file* cannot describe
+/// a song whose length only makes sense as an attack.
+const MAX_SONG_BARS: u32 = 4_096;
+
+/// Refuse a song whose numbers cannot describe real music.
+///
+/// ⛔ **Refusing rather than clamping, and that is the deliberate half.** A
+/// clamp would silently export something other than what the file said, which
+/// on this path means handing the producer a `.mid` that is not their song and
+/// saying nothing. Every bound below is far outside anything the UI can produce,
+/// so a song that trips one did not come from arranging.
+fn check_song(song: &engine::pattern::Song) -> Result<(), String> {
+    if song.sections.len() > MAX_SECTIONS {
+        return Err(format!(
+            "this song has {} sections; the most that can be exported is \
+             {MAX_SECTIONS}",
+            song.sections.len()
+        ));
+    }
+    // A denominator a MIDI file cannot express, or a numerator past the meters
+    // the engine will generate, makes the tick arithmetic and the file's own
+    // time-signature event disagree about how long a bar is.
+    if !matches!(song.time_sig_den, 1 | 2 | 4 | 8 | 16 | 32) || song.time_sig_num == 0 {
+        return Err(format!(
+            "{}/{} is not a meter this can be written in",
+            song.time_sig_num, song.time_sig_den
+        ));
+    }
+    if u32::from(song.time_sig_num) > MAX_BEATS_PER_BAR {
+        return Err(format!(
+            "{} beats to the bar is past the {MAX_BEATS_PER_BAR} this can write",
+            song.time_sig_num
+        ));
+    }
+
+    for (index, section) in song.sections.iter().enumerate() {
+        if section.bars == 0 || u32::from(section.bars) > MAX_SONG_BARS {
+            return Err(format!(
+                "section {index} is {} bars; sections run from 1 to \
+                 {MAX_SONG_BARS}",
+                section.bars
+            ));
+        }
+        if section.start_bar > MAX_SONG_BARS {
+            return Err(format!(
+                "section {index} starts at bar {}, past the {MAX_SONG_BARS}-bar \
+                 limit",
+                section.start_bar
+            ));
+        }
+    }
+
+    for (id, pattern) in &song.patterns {
+        if pattern.bars == 0 || u32::from(pattern.bars) > u32::from(MAX_BARS) {
+            return Err(format!(
+                "clip `{id}` is {} bars; a clip runs from 1 to {MAX_BARS}",
+                pattern.bars
+            ));
+        }
+    }
+
+    Ok(())
+}
+
+/// The widest meter the export will write.
+const MAX_BEATS_PER_BAR: u32 = 32;
+
+/// Mirrors `engine::arrange`'s own cap, which is what generation can produce.
+const MAX_SECTIONS: usize = 64;
+
+/// Build a whole arranged song for the UI's request.
+///
+/// Shares [`generate`]'s front half — seed, model, mode, session overrides — so
+/// a song is placed in the host's tempo and meter and honours the pinned mood
+/// exactly as a single pattern does. What it does *not* share is `bars`: in a
+/// song that is the **clip** length, and the structure decides how long the
+/// song runs.
+fn generate_song(
+    args: &GenerateArgs,
+    host: &HostSession,
+    auto_sync: bool,
+) -> Result<engine::pattern::Song, String> {
+    let seed = match &args.seed {
+        Some(text) if !text.is_empty() => text
+            .parse::<u64>()
+            .map_err(|_| format!("`{text}` is not a seed"))?,
+        _ => fresh_seed(),
+    };
+
+    let model = dataset::model(&args.style_id)?;
+    // The mood is applied and not reported back, unlike a pattern's: a `Song`
+    // has no `mood` field to carry it, so naming it here would be a value with
+    // nowhere to go. See the note in `generate` for why the mode is applied
+    // before the context is built.
+    let model = match args.mood.as_deref().map(str::trim) {
+        Some(name) if !name.is_empty() => modes::apply(&model, name)?,
+        _ => match modes::pick(&model, seed) {
+            Some(name) => modes::apply(&model, &name)?,
+            None => model,
+        },
+    };
+
+    let mut overrides = args.session.clone().unwrap_or_default();
+    if let Some(bars) = args.bars {
+        overrides.bars = Some(bars);
+    }
+    // ⛔ Clamped once, and on `overrides` rather than on `args`, so the bound
+    // covers what arrived inside `session` as well. Generation runs
+    // synchronously on the thread the host draws its window from — an unbounded
+    // `bars` from a preset, a restored project or devtools is a multi-minute
+    // freeze of somebody's DAW rather than a big pattern, and in a song it is
+    // that cost once per section.
+    if let Some(bars) = overrides.bars {
+        overrides.bars = Some(bars.clamp(1, MAX_BARS));
+    }
+
+    let ctx = host.session_for(&model, &overrides, seed, auto_sync);
+    engine::arrange::generate(&model, &ctx, seed).map_err(|error| error.to_string())
 }
 
 /// A seed with no dependency on the engine's own randomness.
@@ -527,6 +664,116 @@ mod tests {
         let err = generate_part("trap", "bass").unwrap_err();
         assert!(err.contains("808 is the bassline"), "{err}");
         assert!(!err.contains("no Bass part authored"), "{err}");
+    }
+
+    // ---- Song Mode (TASK-065) --------------------------------------
+
+    /// A whole song for a style, or why it refused.
+    fn generate_song(style: &str, seed: &str) -> Result<Value, String> {
+        dispatch(
+            &request(
+                "generate_song",
+                json!({ "request": { "styleId": style, "seed": seed } }),
+            ),
+            &host(),
+        )
+    }
+
+    #[test]
+    fn a_song_reaches_the_ui_with_its_patterns_attached() {
+        // ⛔ The sections carry *references*, so a song whose store did not come
+        // with it draws as a timeline of empty rows. The UI has no second call
+        // to fetch them and should not need one.
+        let song = generate_song("trap", "7").unwrap();
+        let sections = song["sections"].as_array().expect("sections");
+        assert!(!sections.is_empty(), "{song}");
+
+        let store = song["patterns"].as_object().expect("a pattern store");
+        for section in sections {
+            for reference in section["patterns"].as_object().expect("refs").values() {
+                let id = reference["patternId"].as_str().expect("an id");
+                assert!(
+                    store.contains_key(id),
+                    "a section names `{id}` and the store does not hold it"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn a_song_is_placed_in_the_hosts_tempo_the_way_a_pattern_is() {
+        // The host reports 92; the model asks for its own. Song Mode must not
+        // be the one path that ignores the DAW's tempo.
+        let song = generate_song("trap", "7").unwrap();
+        assert_eq!(song["bpm"], 92.0);
+    }
+
+    #[test]
+    fn the_same_seed_returns_the_same_song() {
+        assert_eq!(generate_song("trap", "11"), generate_song("trap", "11"));
+        assert_ne!(generate_song("trap", "11"), generate_song("trap", "12"));
+    }
+
+    #[test]
+    fn a_song_exports_bytes_that_start_with_the_smf_header() {
+        let song = generate_song("trap", "7").unwrap();
+        let out = dispatch(&request("song_smf", json!({ "song": song })), &host()).unwrap();
+        let bytes: Vec<u64> = out["bytes"]
+            .as_array()
+            .expect("bytes")
+            .iter()
+            .map(|b| b.as_u64().unwrap())
+            .collect();
+        // "MThd" — every SMF begins with it.
+        assert_eq!(&bytes[..4], &[0x4d, 0x54, 0x68, 0x64], "not an SMF");
+    }
+
+    #[test]
+    fn exporting_a_song_that_lost_its_patterns_is_refused_rather_than_written() {
+        // ⛔ Writing it anyway produces a file that is silent exactly where the
+        // missing clips play, which a producer discovers in the DAW rather than
+        // here. The refusal names the ids so it is actionable.
+        let mut song = generate_song("trap", "7").unwrap();
+        song["patterns"] = json!({});
+        let err = dispatch(&request("song_smf", json!({ "song": song })), &host()).unwrap_err();
+        assert!(err.contains("does not carry"), "{err}");
+    }
+
+    #[test]
+    fn a_song_whose_numbers_could_hang_the_host_is_refused() {
+        // ⛔ **The exploit /security-review found, refused by its own values.**
+        // `song_events_for` tiled a clip across a section with
+        // `offset += clip_len`. Release builds have no overflow checks, so for
+        // a long enough section over a long enough clip `offset` wrapped past
+        // the end and cycled forever — a 69/4 meter, a 64,824-bar section and a
+        // 16,384-bar clip spin at 100% on the thread the host draws its editor
+        // from, with no crash and no way out but killing the DAW.
+        //
+        // The loop is a counted one now, so it cannot hang whatever arrives;
+        // this asserts the *other* half — that a song like this is refused at
+        // the bridge instead of being quietly exported as something else.
+        let mut song = generate_song("trap", "7").unwrap();
+        song["timeSigNum"] = json!(69);
+        song["sections"][0]["bars"] = json!(64824);
+        let err = dispatch(&request("song_smf", json!({ "song": song })), &host()).unwrap_err();
+        assert!(err.contains("bars") || err.contains("beats"), "{err}");
+    }
+
+    #[test]
+    fn a_song_in_a_meter_no_midi_file_can_write_is_refused() {
+        // A denominator of 3 divided the tick arithmetic while the file's own
+        // meta event said /4 — the two then disagreed about how long a bar is.
+        let mut song = generate_song("trap", "7").unwrap();
+        song["timeSigDen"] = json!(3);
+        let err = dispatch(&request("song_smf", json!({ "song": song })), &host()).unwrap_err();
+        assert!(err.contains("meter"), "{err}");
+    }
+
+    #[test]
+    fn an_ordinary_song_still_exports() {
+        // The bounds must not bind on anything the app itself produces.
+        let song = generate_song("trap", "7").unwrap();
+        assert!(dispatch(&request("song_smf", json!({ "song": song })), &host()).is_ok());
     }
 
     #[test]

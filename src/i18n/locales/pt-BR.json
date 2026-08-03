@@ -24,7 +24,6 @@
     "seedLabel": "Semente — cole uma para obter o mesmo beat",
     "seedAuto": "aleatória",
     "generating": "Gerando…",
-    "laterPhase": "Este gerador chega em uma fase posterior.",
     "readyBody": "{{name}} está pronto. Toque em Gerar."
   },
   "rails": {
@@ -231,5 +230,27 @@
     "selectFirst": "Selecione algumas notas primeiro.",
     "meterLabel": "Compasso",
     "rulerLabel": "Compassos, chave de loop e marcadores do clipe"
+  },
+  "song": {
+    "timeline": "Arranjo",
+    "zoom": "Zoom",
+    "zoomIn": "Aproximar",
+    "zoomOut": "Afastar",
+    "length": "{{bars}} compassos · {{time}}",
+    "bars": "{{bars}} compassos",
+    "dropOut": "Silencia nos últimos {{beats}} tempos",
+    "decay": "Desaparece aos poucos",
+    "sectionHint": "Clique para selecionar · clique duas vezes para duplicar",
+    "resizeStart": "Encurtar esta seção",
+    "resizeEnd": "Alongar esta seção",
+    "readyBody": "Toque em Gerar para arranjar uma música inteira de {{name}}.",
+    "kind": {
+      "intro": "Introdução",
+      "verse": "Verso",
+      "preChorus": "Pré-refrão",
+      "hook": "Refrão",
+      "bridge": "Ponte",
+      "outro": "Encerramento"
+    }
   }
 }
