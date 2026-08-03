@@ -13,6 +13,7 @@ import type {
   Song,
 } from '../lib/ipc-types';
 import { useHistory, type Snapshot } from './history';
+import { useUi } from './ui';
 
 /**
  * The one loop the product is about: pick someone, generate, hear it, and have
@@ -315,6 +316,15 @@ type SessionState = {
    * tiny; afterwards the notes *are* the document and the seed is only where it
    * started. See `materialised` below and `plugin/src/state.rs`.
    */
+  /**
+   * Put one of a song's clips into the editors (TASK-071's drill-in).
+   *
+   * Its own action rather than a bare `set`, because two things have to happen
+   * together and neither is optional: the clip becomes the session's, and the
+   * tab moves to the part that can draw it. A caller doing one without the
+   * other leaves a melody clip open on the drum grid.
+   */
+  openClip: (pattern: Pattern, part: Part) => void;
   editPattern: (next: Pattern) => void;
   /** Run our own transport. Standalone only — in a host this is the DAW's. */
   play: () => Promise<void>;
@@ -1019,6 +1029,16 @@ export const useSession = create<SessionState>((set, get) => ({
     } catch (error) {
       set({ generating: false, error: reason(error) });
     }
+  },
+
+  openClip(pattern, part) {
+    // ⛔ **`edited` is set, and it is not a guess.** A clip lifted out of an
+    // arrangement is not what *this session's* seed produces — the session's
+    // seed makes a four-bar loop for whichever part is showing, and this is one
+    // section's clip out of a song. Left false, the next save would drop it and
+    // the next Generate would silently replace it.
+    set({ pattern, edited: true });
+    useUi.getState().setActiveTab(part);
   },
 
   editPattern(next) {

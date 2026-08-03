@@ -255,6 +255,11 @@
     "structure": "Songstruktur",
     "form": "Form",
     "formAny": "Was der Künstler schreibt",
+    "auditionClip": "{{part}}-Clip einzeln anhören",
+    "auditionStop": "Zurück zum ganzen Song",
+    "clipHint": "Doppelklick öffnet diesen Clip im Editor",
+    "rerollSection": "Diesen Abschnitt neu würfeln",
+    "rerollHint": "Gesperrte Clips bleiben unverändert",
     "kind": {
       "intro": "Intro",
       "verse": "Strophe",

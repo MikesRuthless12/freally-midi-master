@@ -255,6 +255,11 @@
     "structure": "Şarkı yapısı",
     "form": "Biçim",
     "formAny": "Sanatçının yazdığı ne ise",
+    "auditionClip": "{{part}} klibini tek başına dinle",
+    "auditionStop": "Şarkının tamamına dön",
+    "clipHint": "Bu klibi düzenleyicide açmak için çift tıklayın",
+    "rerollSection": "Bu bölümü yeniden üret",
+    "rerollHint": "Kilitli klipler değişmez",
     "kind": {
       "intro": "Giriş",
       "verse": "Kıta",

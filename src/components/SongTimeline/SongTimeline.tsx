@@ -13,7 +13,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef } from 'react';
-import { Lock, LockOpen, Repeat, Volume2, VolumeX } from 'lucide-react';
+import { Dices, Headphones, Lock, LockOpen, Repeat, Volume2, VolumeX } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import type { Part, Pattern as PatternType, Section, Song } from '../../lib/ipc-types';
@@ -69,6 +69,12 @@ export function SongTimeline({ song }: Props) {
   const loopSection = useSong((s) => s.loopSection);
   const setLoopSection = useSong((s) => s.setLoopSection);
   const selectedId = useSession((s) => s.selectedId);
+  const mood = useSession((s) => s.mood);
+  const reroll = useSong((s) => s.reroll);
+  const audition = useSong((s) => s.audition);
+  const auditionClip = useSong((s) => s.auditionClip);
+  const stopAudition = useSong((s) => s.stopAudition);
+  const drillInto = useSong((s) => s.drillInto);
   const structure = useSong((s) => s.structure);
   const setStructure = useSong((s) => s.setStructure);
   const locks = useSong((s) => s.locks);
@@ -172,6 +178,14 @@ export function SongTimeline({ song }: Props) {
       } else if (accel && key === 'd') {
         clone(anchor);
         event.preventDefault();
+      } else if (!accel && key === 'r') {
+        // ⛔ Re-roll the section the selection is in, and it is lock-respecting
+        // because the store resolves the locks — the engine is handed the parts
+        // to leave alone rather than the producer's clicks. `accel` is excluded
+        // so Ctrl+R still reloads, which is what a producer debugging a webview
+        // expects and what every browser binds it to.
+        reroll(anchor, mood);
+        event.preventDefault();
       } else if (event.key === 'Delete' || event.key === 'Backspace') {
         deleteSelection();
         rootRef.current?.focus();
@@ -180,7 +194,7 @@ export function SongTimeline({ song }: Props) {
         clearSelection();
       }
     },
-    [anchor, copy, cut, paste, clone, deleteSelection, clearSelection],
+    [anchor, copy, cut, paste, clone, deleteSelection, clearSelection, reroll, mood],
   );
 
   return (
@@ -198,6 +212,19 @@ export function SongTimeline({ song }: Props) {
             time: formatTime(barToSeconds(bars, song.bpm, beatsPerBar)),
           })}
         </span>
+        {/* ⛔ An audition is *visible* while it lasts, and this is the way out
+            of it. Without both, the transport would be looping one clip while
+            the loop and solo badges on the timeline said otherwise. */}
+        {audition !== null && (
+          <button
+            type="button"
+            className="song__audition-stop"
+            data-testid="song-audition-stop"
+            onClick={stopAudition}
+          >
+            {t('song.auditionStop')}
+          </button>
+        )}
         <div className="song__zoom" role="group" aria-label={t('song.zoom')}>
           <button type="button" onClick={zoomOutAction} aria-label={t('song.zoomOut')}>
             −
@@ -250,6 +277,7 @@ export function SongTimeline({ song }: Props) {
                 onClone={() => clone(index)}
                 onLoop={() => setLoopSection(loopSection === index ? null : index)}
                 onLock={() => toggleSectionLock(index)}
+                onReroll={() => void reroll(index, mood)}
               />
             ))}
           </div>
@@ -351,9 +379,12 @@ export function SongTimeline({ song }: Props) {
                       width={section.bars * view.zoom}
                       selected={isSelected(selection, { sectionIndex: index, part })}
                       locked={locks.includes(`${index}:${part}`)}
+                      auditioning={audition?.sectionIndex === index && audition?.part === part}
                       beatsPerBar={beatsPerBar}
                       onSelect={(additive) => select({ sectionIndex: index, part }, additive)}
                       onLock={() => toggleLock({ sectionIndex: index, part })}
+                      onAudition={() => auditionClip({ sectionIndex: index, part })}
+                      onDrillIn={() => drillInto({ sectionIndex: index, part })}
                     />
                   ) : null,
                 )}
@@ -399,6 +430,7 @@ type HeaderProps = {
   onClone: () => void;
   onLoop: () => void;
   onLock: () => void;
+  onReroll: () => void;
 };
 
 function SectionHeader({
@@ -414,6 +446,7 @@ function SectionHeader({
   onClone,
   onLoop,
   onLock,
+  onReroll,
 }: HeaderProps) {
   const { t } = useTranslation();
   // `markers` is optional over the wire — it is skipped when empty — so an
@@ -452,6 +485,18 @@ function SectionHeader({
         onClick={onLock}
       >
         {locked ? <Lock size={12} /> : <LockOpen size={12} />}
+      </button>
+      {/* Re-roll this section, leaving every locked clip alone (TASK-071). The
+          `R` shortcut on the timeline does the same thing to the section the
+          selection is in. */}
+      <button
+        type="button"
+        className="song__section-reroll"
+        aria-label={t('song.rerollSection')}
+        title={t('song.rerollHint')}
+        onClick={onReroll}
+      >
+        <Dices size={12} />
       </button>
       <button
         type="button"
@@ -493,10 +538,13 @@ type ClipProps = {
   width: number;
   selected: boolean;
   locked: boolean;
+  auditioning: boolean;
   /** The song's own beats per bar — the drop-out is measured in them. */
   beatsPerBar: number;
   onSelect: (additive: boolean) => void;
   onLock: () => void;
+  onAudition: () => void;
+  onDrillIn: () => void;
 };
 
 function Clip({
@@ -507,9 +555,12 @@ function Clip({
   width,
   selected,
   locked,
+  auditioning,
   beatsPerBar,
   onSelect,
   onLock,
+  onAudition,
+  onDrillIn,
 }: ClipProps) {
   const { t } = useTranslation();
   // Recomputed only when the clip itself changes: a re-roll or an edit replaces
@@ -522,12 +573,17 @@ function Clip({
       type="button"
       className={`song__clip song__clip--${part}${selected ? ' is-selected' : ''}${
         locked ? ' is-locked' : ''
-      }`}
+      }${auditioning ? ' is-auditioning' : ''}`}
       style={{ left, width }}
       data-testid={`song-clip-${part}`}
       data-locked={locked ? 'true' : 'false'}
+      data-auditioning={auditioning ? 'true' : 'false'}
       aria-pressed={selected}
       onClick={(event) => onSelect(event.shiftKey || event.ctrlKey || event.metaKey)}
+      // Double-click drills into the part's own editor with this clip loaded,
+      // and the edits write back — see the subscriber in `song.ts`.
+      onDoubleClick={onDrillIn}
+      title={t('song.clipHint')}
     >
       {/* The note-density sketch (TASK-070). Painted rather than mounted — see
           `sketch.ts`, and the grid above, which made the same call. */}
@@ -557,6 +613,29 @@ function Clip({
         }}
       >
         {locked ? <Lock size={11} /> : <LockOpen size={11} />}
+      </span>
+      {/* Solo-audition this one cell (TASK-071). Its own control rather than the
+          bare click, because a click already selects — and arming one looping
+          clip invisibly would leave the transport playing something the
+          timeline's loop and solo badges say it is not. */}
+      <span
+        role="button"
+        tabIndex={0}
+        className={`song__clip-audition${auditioning ? ' is-on' : ''}`}
+        aria-label={t('song.auditionClip', { part: t(`tabs.${part}`) })}
+        aria-pressed={auditioning}
+        onClick={(event) => {
+          event.stopPropagation();
+          onAudition();
+        }}
+        onKeyDown={(event) => {
+          if (event.key !== 'Enter' && event.key !== ' ') return;
+          event.stopPropagation();
+          event.preventDefault();
+          onAudition();
+        }}
+      >
+        <Headphones size={11} />
       </span>
       {/* The transitions from TASK-066 are drawn, because they are in the
           exported file — a producer has to be able to see why the last beats of

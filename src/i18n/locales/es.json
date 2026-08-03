@@ -255,6 +255,11 @@
     "structure": "Estructura de la canción",
     "form": "Forma",
     "formAny": "Lo que escriba el artista",
+    "auditionClip": "Escuchar el clip de {{part}} por separado",
+    "auditionStop": "Volver a la canción completa",
+    "clipHint": "Doble clic para abrir este clip en su editor",
+    "rerollSection": "Volver a generar esta sección",
+    "rerollHint": "Los clips bloqueados no se tocan",
     "kind": {
       "intro": "Introducción",
       "verse": "Estrofa",

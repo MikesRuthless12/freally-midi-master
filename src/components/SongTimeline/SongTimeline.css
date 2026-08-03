@@ -473,3 +473,62 @@
 .song__clip.is-locked {
   border-style: dashed;
 }
+
+/* ── Auditioning one cell, and re-rolling one section (TASK-071). */
+.song__clip-audition,
+.song__section-reroll {
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  color: var(--text-dim);
+  background: transparent;
+  border: 0;
+  border-radius: 3px;
+  cursor: pointer;
+  pointer-events: auto;
+  opacity: 0;
+}
+
+.song__clip-audition {
+  position: absolute;
+  top: 3px;
+  right: 21px;
+  z-index: 2;
+}
+
+.song__section-reroll {
+  position: absolute;
+  top: 2px;
+  right: 42px;
+}
+
+.song__clip:hover .song__clip-audition,
+.song__section:hover .song__section-reroll,
+.song__clip-audition:focus-visible,
+.song__section-reroll:focus-visible,
+.song__clip-audition.is-on {
+  opacity: 1;
+}
+
+.song__clip-audition.is-on {
+  color: var(--accent);
+}
+
+/* An auditioning clip is unmistakable, because the transport is playing it
+   alone and the loop badge is not what says so. */
+.song__clip.is-auditioning {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.song__audition-stop {
+  padding: 0.15rem 0.5rem;
+  font-size: 0.7rem;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  border-radius: 999px;
+  cursor: pointer;
+}

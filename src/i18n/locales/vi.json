@@ -255,6 +255,11 @@
     "structure": "Cấu trúc bài hát",
     "form": "Dạng",
     "formAny": "Tuỳ nghệ sĩ viết",
+    "auditionClip": "Nghe riêng clip {{part}}",
+    "auditionStop": "Quay lại cả bài",
+    "clipHint": "Nhấp đúp để mở clip này trong trình chỉnh sửa",
+    "rerollSection": "Tạo lại đoạn này",
+    "rerollHint": "Các clip đã khoá vẫn giữ nguyên",
     "kind": {
       "intro": "Dạo đầu",
       "verse": "Phiên khúc",

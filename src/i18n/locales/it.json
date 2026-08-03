@@ -255,6 +255,11 @@
     "structure": "Struttura del brano",
     "form": "Forma",
     "formAny": "Quello che scrive l’artista",
+    "auditionClip": "Ascolta il clip {{part}} da solo",
+    "auditionStop": "Torna al brano intero",
+    "clipHint": "Doppio clic per aprire questo clip nel suo editor",
+    "rerollSection": "Rigenera questa sezione",
+    "rerollHint": "I clip bloccati restano invariati",
     "kind": {
       "intro": "Introduzione",
       "verse": "Strofa",

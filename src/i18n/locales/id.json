@@ -255,6 +255,11 @@
     "structure": "Struktur lagu",
     "form": "Bentuk",
     "formAny": "Apa pun yang ditulis artis",
+    "auditionClip": "Dengarkan klip {{part}} sendirian",
+    "auditionStop": "Kembali ke lagu utuh",
+    "clipHint": "Klik dua kali untuk membuka klip ini di editornya",
+    "rerollSection": "Buat ulang bagian ini",
+    "rerollHint": "Klip yang dikunci tidak diubah",
     "kind": {
       "intro": "Pembuka",
       "verse": "Bait",

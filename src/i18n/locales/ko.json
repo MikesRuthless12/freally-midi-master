@@ -255,6 +255,11 @@
     "structure": "곡 구성",
     "form": "형식",
     "formAny": "아티스트가 쓰는 대로",
+    "auditionClip": "{{part}} 클립만 미리듣기",
+    "auditionStop": "곡 전체로 돌아가기",
+    "clipHint": "더블클릭하면 이 클립이 편집기에서 열립니다",
+    "rerollSection": "이 구간 다시 생성",
+    "rerollHint": "잠긴 클립은 그대로 둡니다",
     "kind": {
       "intro": "인트로",
       "verse": "벌스",

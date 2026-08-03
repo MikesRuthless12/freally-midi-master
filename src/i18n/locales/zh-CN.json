@@ -255,6 +255,11 @@
     "structure": "歌曲结构",
     "form": "曲式",
     "formAny": "交给这位艺人决定",
+    "auditionClip": "单独试听{{part}}片段",
+    "auditionStop": "返回整首歌",
+    "clipHint": "双击可在编辑器中打开此片段",
+    "rerollSection": "重新生成此段落",
+    "rerollHint": "锁定的片段保持不变",
     "kind": {
       "intro": "前奏",
       "verse": "主歌",

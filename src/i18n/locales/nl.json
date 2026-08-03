@@ -255,6 +255,11 @@
     "structure": "Songstructuur",
     "form": "Vorm",
     "formAny": "Wat de artiest schrijft",
+    "auditionClip": "{{part}}-clip los beluisteren",
+    "auditionStop": "Terug naar het hele nummer",
+    "clipHint": "Dubbelklik om deze clip in de editor te openen",
+    "rerollSection": "Dit gedeelte opnieuw genereren",
+    "rerollHint": "Vergrendelde clips blijven ongewijzigd",
     "kind": {
       "intro": "Intro",
       "verse": "Couplet",

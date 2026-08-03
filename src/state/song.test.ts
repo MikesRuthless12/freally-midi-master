@@ -109,7 +109,11 @@ beforeEach(() => {
     loopSection: null,
     mutedParts: [],
     soloParts: [],
+    audition: null,
+    drillPatternId: null,
+    structure: null,
   });
+  useSession.setState({ pattern: null, edited: false });
 });
 
 /** Run the 300 ms save debounce out. */
@@ -396,4 +400,86 @@ it('generating a fresh song drops the loop, because the indices moved', async ()
     .getState()
     .generate({ styleId: 'trap', seed: '9', pins: {} as never, mood: null });
   expect(useSong.getState().loopSection).toBeNull();
+});
+
+// ---------------------------------------------------------------------------
+// Timeline interactions (TASK-071): audition, re-roll, drill-in.
+// ---------------------------------------------------------------------------
+
+it('an audition arms that one cell, looping its section', () => {
+  useSong.setState({ song: song() });
+  useSong.getState().auditionClip({ sectionIndex: 1, part: 'drums' });
+
+  expect(lastArm()?.loopSection).toBe(1);
+  expect(lastArm()?.parts).toEqual(['drums']);
+});
+
+it('an audition overrides the loop and the solo while it lasts, then gives them back', () => {
+  // ⛔ It has to override both, or "audition this cell" would play the cell
+  // *and* whatever else was soloed. And it has to hand them back, or ending an
+  // audition would silently drop settings the producer never touched.
+  useSong.setState({ song: song(), loopSection: 0, soloParts: ['melody'] });
+  useSong.getState().auditionClip({ sectionIndex: 1, part: 'drums' });
+  expect(lastArm()?.loopSection).toBe(1);
+  expect(lastArm()?.parts).toEqual(['drums']);
+
+  useSong.getState().stopAudition();
+  expect(lastArm()?.loopSection).toBe(0);
+  expect(lastArm()?.parts).toEqual(['melody']);
+});
+
+it('auditioning the same cell twice is the way out of it', () => {
+  useSong.setState({ song: song() });
+  useSong.getState().auditionClip({ sectionIndex: 1, part: 'drums' });
+  useSong.getState().auditionClip({ sectionIndex: 1, part: 'drums' });
+  expect(useSong.getState().audition).toBeNull();
+});
+
+it('drilling into a clip opens it in its own editor', () => {
+  useSong.setState({ song: song() });
+  useSong.getState().drillInto({ sectionIndex: 0, part: 'drums' });
+
+  expect(useSession.getState().pattern?.id).toBe('a');
+  // ⛔ Marked edited, and it is not a guess: a clip lifted out of an arrangement
+  // is not what *this session's* seed produces. Left false, the next save would
+  // drop it and the next Generate would silently replace it.
+  expect(useSession.getState().edited).toBe(true);
+  expect(useSong.getState().drillPatternId).toBe('a');
+});
+
+it('editing a drilled-in clip writes back to the song', () => {
+  // The roadmap's own requirement, and the half a drill-in is worthless
+  // without: the producer edits in the roll and the arrangement has the edit.
+  useSong.setState({ song: song() });
+  useSong.getState().drillInto({ sectionIndex: 0, part: 'drums' });
+
+  const open = useSession.getState().pattern;
+  expect(open).not.toBeNull();
+  useSession.getState().editPattern({ ...open!, bars: 8 });
+
+  expect(useSong.getState().song?.patterns.a?.bars).toBe(8);
+  expect(useSong.getState().edited).toBe(true);
+});
+
+it('generating on a part tab after drilling in does not overwrite the song', () => {
+  // ⛔ A fresh generation is a *new* clip, not an edit of the song's — writing
+  // it back would drop a whole section's arrangement into the timeline without
+  // anybody asking for it. The id is what tells the two apart.
+  useSong.setState({ song: song() });
+  useSong.getState().drillInto({ sectionIndex: 0, part: 'drums' });
+
+  const open = useSession.getState().pattern;
+  useSession.getState().editPattern({ ...open!, id: 'something-else', bars: 8 });
+
+  expect(useSong.getState().song?.patterns.a?.bars).toBe(4);
+});
+
+it('closing a drill-in stops the write-back', () => {
+  useSong.setState({ song: song() });
+  useSong.getState().drillInto({ sectionIndex: 0, part: 'drums' });
+  useSong.getState().closeDrill();
+
+  const open = useSession.getState().pattern;
+  useSession.getState().editPattern({ ...open!, bars: 8 });
+  expect(useSong.getState().song?.patterns.a?.bars).toBe(4);
 });

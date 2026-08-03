@@ -255,6 +255,11 @@
     "structure": "Struktura utworu",
     "form": "Forma",
     "formAny": "To, co pisze artysta",
+    "auditionClip": "Odsłuchaj sam klip {{part}}",
+    "auditionStop": "Wróć do całego utworu",
+    "clipHint": "Kliknij dwukrotnie, aby otworzyć ten klip w edytorze",
+    "rerollSection": "Wylosuj tę sekcję ponownie",
+    "rerollHint": "Zablokowane klipy pozostają bez zmian",
     "kind": {
       "intro": "Wstęp",
       "verse": "Zwrotka",

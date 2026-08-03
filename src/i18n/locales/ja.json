@@ -255,6 +255,11 @@
     "structure": "曲の構成",
     "form": "構成",
     "formAny": "アーティストにまかせる",
+    "auditionClip": "{{part}}クリップだけを試聴",
+    "auditionStop": "曲全体に戻る",
+    "clipHint": "ダブルクリックでこのクリップをエディターで開きます",
+    "rerollSection": "このセクションを作り直す",
+    "rerollHint": "ロックしたクリップはそのまま残ります",
     "kind": {
       "intro": "イントロ",
       "verse": "ヴァース",

@@ -255,6 +255,11 @@
     "structure": "Song structure",
     "form": "Form",
     "formAny": "Whatever the artist writes",
+    "auditionClip": "Audition the {{part}} clip on its own",
+    "auditionStop": "Back to the whole song",
+    "clipHint": "Double-click to open this clip in its editor",
+    "rerollSection": "Re-roll this section",
+    "rerollHint": "Locked clips are left alone",
     "kind": {
       "intro": "Intro",
       "verse": "Verse",

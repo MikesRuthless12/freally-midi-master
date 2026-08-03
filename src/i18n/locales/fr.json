@@ -255,6 +255,11 @@
     "structure": "Structure du morceau",
     "form": "Forme",
     "formAny": "Ce que l’artiste écrit",
+    "auditionClip": "Écouter le clip {{part}} seul",
+    "auditionStop": "Revenir au morceau entier",
+    "clipHint": "Double-cliquez pour ouvrir ce clip dans son éditeur",
+    "rerollSection": "Relancer cette section",
+    "rerollHint": "Les clips verrouillés ne sont pas touchés",
     "kind": {
       "intro": "Intro",
       "verse": "Couplet",

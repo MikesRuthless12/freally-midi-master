@@ -102,6 +102,33 @@ export type SongState = {
   structure: number | null;
   setStructure: (index: number | null) => void;
 
+  /**
+   * The clip being auditioned on its own, or `null` (TASK-071).
+   *
+   * ⛔ **A visible state, not a momentary side effect of clicking.** The
+   * roadmap asks for "click cell = solo audition", and a bare click already
+   * selects — which is TASK-063B's gesture and cannot be taken away. Worse,
+   * arming one looping clip *invisibly* would leave the transport playing
+   * something the timeline's own loop and solo badges say it is not, which is
+   * the readout-that-lies failure this project has a rule about. So audition is
+   * its own control on the clip, it shows while it is on, and it says how to
+   * get back to the record.
+   */
+  audition: ClipId | null;
+  auditionClip: (clip: ClipId) => void;
+  stopAudition: () => void;
+
+  /**
+   * The clip open in a part editor, or `null` (TASK-071's drill-in).
+   *
+   * Held as the *pattern id* rather than the cell, because that is what an edit
+   * has to be written back to — and a resize or a clone can move the cell out
+   * from under an editor that is still open.
+   */
+  drillPatternId: string | null;
+  drillInto: (clip: ClipId) => void;
+  closeDrill: () => void;
+
   /** Hand the arrangement to the audio thread, as it currently stands. */
   armSong: () => void;
   setLoopSection: (index: number | null) => void;
@@ -153,13 +180,45 @@ export const useSong = create<SongState>((set, get) => ({
   mutedParts: [],
   soloParts: [],
   structure: null,
+  audition: null,
+  drillPatternId: null,
 
   setStructure(index) {
     set({ structure: index });
   },
 
+  auditionClip(clip) {
+    // Clicking the control again ends it, so the gesture is its own way out.
+    const { audition } = get();
+    set({ audition: audition && sameClip(audition, clip) ? null : clip });
+    get().armSong();
+  },
+
+  stopAudition() {
+    if (get().audition === null) return;
+    set({ audition: null });
+    get().armSong();
+  },
+
+  drillInto(clip) {
+    const { song } = get();
+    const reference = song?.sections[clip.sectionIndex]?.patterns[clip.part];
+    const pattern = reference ? song?.patterns[reference.patternId] : undefined;
+    if (!reference || !pattern) return;
+    set({ drillPatternId: reference.patternId });
+    // ⛔ Straight into the session's own clip slot, so the editors need no
+    // second source. They draw `useSession.pattern` and nothing else — an
+    // "embed mode" reading from the song would be a second renderer for the
+    // same notes, and the two would disagree the first time either changed.
+    useSession.getState().openClip(pattern, clip.part);
+  },
+
+  closeDrill() {
+    set({ drillPatternId: null });
+  },
+
   armSong() {
-    const { song, loopSection, mutedParts, soloParts } = get();
+    const { song, loopSection, mutedParts, soloParts, audition } = get();
     if (!song) return;
     void invoke('arm_song', {
       request: {
@@ -167,8 +226,11 @@ export const useSong = create<SongState>((set, get) => ({
         // ⚠ Out of range is "no loop" on the far side rather than an error: a
         // stale index arriving after a section was deleted must not stop
         // playback.
-        loopSection,
-        parts: playingParts(song, mutedParts, soloParts),
+        // An audition overrides both the loop and the part filter for as long
+        // as it is on — that is what "solo audition of this cell" means, and
+        // the timeline says so while it lasts.
+        loopSection: audition ? audition.sectionIndex : loopSection,
+        parts: audition ? [audition.part] : playingParts(song, mutedParts, soloParts),
       },
       // The reply is the flattened clip and `editor.rs` arms it from its shape;
       // there is nothing for the page to do with it. A rejection means the song
@@ -459,6 +521,37 @@ registerSongDocument(
     useSong.getState().armSong();
   },
 );
+
+/**
+ * Write a drilled-in edit back into the arrangement (TASK-071).
+ *
+ * ⛔ **A subscriber, not a line in `editPattern`.** `session.ts` documents why
+ * for the audio thread — there are four writers of `pattern` and the ritual was
+ * forgotten at one of them — and the same argument holds twice over here,
+ * because undo is a fifth writer. The roadmap's requirement is that "edits write
+ * back to the song", and an opt-in would be a line to remember in every future
+ * gesture the roll gains.
+ *
+ * ⚠ **The clip is shared, and the write-back respects that.** Verse 1 and verse
+ * 2 play one entry by id — that is the sharing rule `arrange.rs` states — so
+ * editing the verse melody changes it everywhere the verse plays. That is the
+ * rule rather than an oversight, and it is what the drill-in banner reports.
+ */
+useSession.subscribe((state, previous) => {
+  if (state.pattern === previous.pattern) return;
+  const { song, drillPatternId } = useSong.getState();
+  if (!song || drillPatternId === null || state.pattern === null) return;
+  // Only while the edited clip is still the one that was drilled into. Pressing
+  // Generate on the part tab replaces it with a fresh four-bar loop, which is a
+  // new clip rather than an edit of the song's — writing that back would drop a
+  // whole section's arrangement into the timeline without anybody asking.
+  if (state.pattern.id !== drillPatternId) return;
+
+  useSong.setState({
+    song: { ...song, patterns: { ...song.patterns, [drillPatternId]: state.pattern } },
+  });
+  markEdited();
+});
 
 /**
  * The parts that should sound, or `null` for all of them.

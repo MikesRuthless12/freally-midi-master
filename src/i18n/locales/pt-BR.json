@@ -255,6 +255,11 @@
     "structure": "Estrutura da música",
     "form": "Forma",
     "formAny": "O que o artista escrever",
+    "auditionClip": "Ouvir o clipe de {{part}} sozinho",
+    "auditionStop": "Voltar para a música inteira",
+    "clipHint": "Clique duas vezes para abrir este clipe no editor",
+    "rerollSection": "Gerar esta seção de novo",
+    "rerollHint": "Clipes bloqueados não são alterados",
     "kind": {
       "intro": "Introdução",
       "verse": "Verso",

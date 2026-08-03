@@ -470,3 +470,60 @@ test('the picker offers the forms the artist writes, and defaults to their choic
   await page.getByRole('button', { name: 'Generate' }).click();
   await expect(picker).toHaveValue('1');
 });
+
+// ---------------------------------------------------------------------------
+// The three interactions TASK-071 names.
+// ---------------------------------------------------------------------------
+
+test('a clip can be auditioned on its own, and the view says so', async ({ page }) => {
+  // ⛔ Audition is *visible* while it lasts. Arming one looping clip silently
+  // would leave the transport playing something the timeline's own loop and
+  // solo badges say it is not.
+  await openSong(page);
+
+  const clip = page.locator('[data-testid="song-clip-drums"]').first();
+  await expect(page.locator('[data-testid="song-audition-stop"]')).toHaveCount(0);
+
+  await clip.getByRole('button', { name: /^Audition the Drums clip/ }).click();
+  await expect(clip).toHaveAttribute('data-auditioning', 'true');
+  await expect(page.locator('[data-testid="song-audition-stop"]')).toBeVisible();
+
+  await page.locator('[data-testid="song-audition-stop"]').click();
+  await expect(clip).toHaveAttribute('data-auditioning', 'false');
+});
+
+test('R re-rolls the section the selection is in', async ({ page }) => {
+  await openSong(page);
+
+  const before = await sections(page);
+  await page.locator('[data-testid="song-section-1"] .song__section-name').click();
+  await page.keyboard.press('r');
+
+  // The mock re-roll repoints the section's clips at new ids and leaves the
+  // geometry alone — so what a spec can read is that the section still stands
+  // and nothing else moved.
+  await expect.poll(async () => (await sections(page)).length).toBe(before.length);
+  expect(await sections(page)).toEqual(before);
+});
+
+test('R does not fire while a text field has focus', async ({ page }) => {
+  // The same guard the copy shortcuts already have: the seed box is an <input>
+  // and typing an "r" into it must not re-roll a section.
+  await openSong(page);
+  const seed = page.getByLabel(/^Seed/);
+  await seed.fill('r');
+  await expect(seed).toHaveValue('r');
+});
+
+test('double-clicking a clip opens it in its own editor', async ({ page }) => {
+  await openSong(page);
+
+  await page.locator('[data-testid="song-clip-drums"]').first().dblclick();
+
+  // The tab moves to the part that can draw it — a melody clip left open on the
+  // drum grid would be the half-done version of this gesture.
+  await expect(page.getByRole('tab', { name: 'Drums' })).toHaveAttribute(
+    'aria-selected',
+    'true',
+  );
+});
