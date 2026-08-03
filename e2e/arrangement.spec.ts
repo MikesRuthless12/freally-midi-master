@@ -228,31 +228,38 @@ test('the transitions the export contains are drawn', async ({ page }) => {
   await expect(page.locator('.song__decay').first()).toBeAttached();
 });
 
-test('undo on the Song tab does not silently step the session back', async ({ page }) => {
+test('undo steps the arrangement back, and leaves the session alone', async ({ page }) => {
   // ⛔ **The bug this was written for, and it was watched failing.** Ctrl+Z is
-  // bound globally to `useSession`'s history. The arrangement is a different
-  // document with no history of its own, so on this tab the chord used to undo
+  // bound globally to `useSession`'s history. The arrangement used to be a
+  // different document with no history at all, so on this tab the chord undid
   // *the session* — a seed keystroke, a pin, or a piano-roll edit made on
   // another tab — while the arrangement stayed exactly as it was. The producer
   // sees nothing happen here and finds the damage later, somewhere else.
   //
-  // Doing nothing is the honest behaviour until the arrangement has its own
-  // stack, so this asserts the session is untouched.
+  // The arrangement is part of the same snapshot now (`history.ts`), so the
+  // shortcut does the obvious thing. Both halves are asserted: the section
+  // really goes back, **and** the seed does not move — a stack that stepped the
+  // session as well would pass a test that only checked the first.
   await openSong(page);
 
   const seed = page.getByLabel(/^Seed/);
-  const before = await seed.inputValue();
-
-  // Something undoable in the session, then focus back on the timeline.
   await seed.fill('123456');
   await seed.press('Enter');
-  await page.locator('[data-testid="song-section-0"]').click();
-
   const afterEdit = await seed.inputValue();
+
+  const before = (await sections(page))[0];
+  const timeline = page.locator('[data-testid="song-section-0"]');
+  await timeline.click();
+  // Grow the first section by one bar, then take it back.
+  await page.getByRole('button', { name: 'Lengthen this section' }).first().click();
+  await expect
+    .poll(async () => (await sections(page))[0].bars)
+    .toBe(before.bars + 1);
+
   await page.keyboard.press('Control+z');
 
+  await expect.poll(async () => (await sections(page))[0].bars).toBe(before.bars);
   expect(await seed.inputValue()).toBe(afterEdit);
-  expect(afterEdit).not.toBe(before);
 });
 
 test('choosing another artist clears the arrangement that was on screen', async ({ page }) => {

@@ -29,6 +29,8 @@ const BASE: Snapshot = {
   audioEnabled: true,
   mutedLanes: [],
   edited: false,
+  song: null,
+  songEdited: false,
 };
 
 function snap(over: Partial<Snapshot>): Snapshot {

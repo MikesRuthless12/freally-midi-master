@@ -183,6 +183,19 @@ pub fn dispatch(
             serde_json::to_value(generate_song(&args, host, auto_sync)?).map_err(|e| e.to_string())
         }
 
+        // Re-roll one section of an arrangement (TASK-067).
+        //
+        // ⛔ **Takes the `Song` rather than regenerating from its seed**, for
+        // the same reason `song_smf` does: once a clip has been edited or a
+        // section moved, the seed no longer describes what is on screen, and a
+        // re-roll that re-derived the whole song would silently discard every
+        // other edit the producer had made.
+        "reroll_section" => {
+            let args: RerollArgs = serde_json::from_value(request.args["request"].clone())
+                .map_err(|e| format!("bad re-roll request: {e}"))?;
+            serde_json::to_value(reroll_section(&args, host)?).map_err(|e| e.to_string())
+        }
+
         // The bytes of a whole arranged song, for the drag-out and for Save As.
         //
         // ⛔ Takes the `Song` from the page rather than regenerating from the
@@ -405,6 +418,87 @@ fn generate(args: &GenerateArgs, host: &HostSession, auto_sync: bool) -> Result<
         ppq: PPQ,
         mood,
     })
+}
+
+/// What the UI asks for when the producer re-rolls one section (TASK-067).
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct RerollArgs {
+    song: engine::pattern::Song,
+    index: usize,
+    /// Absent means "pick one" — the same rule the seed box follows.
+    #[serde(default)]
+    seed: Option<String>,
+    /// The parts the producer has locked. Empty re-rolls the section whole.
+    #[serde(default)]
+    locked: Vec<Part>,
+    #[serde(default)]
+    mood: Option<String>,
+}
+
+/// Re-roll one section, in the song's own key, tempo and meter.
+///
+/// ⛔ **The context is built from the `Song`, not from the host or the session
+/// chips.** Every other section was written in the key and tempo stored on the
+/// song; deriving this one from the current session instead would put a single
+/// verse in a different key from the record around it — in tune with nothing,
+/// and reproducible, so it would look deliberate.
+fn reroll_section(args: &RerollArgs, host: &HostSession) -> Result<engine::pattern::Song, String> {
+    // The same trust boundary `song_smf` documents: a `Song` arrives here as
+    // JSON from the webview, and re-rolling clones it and generates against its
+    // numbers. Deserializing proves the shape and nothing about the values.
+    check_song(&args.song)?;
+
+    let seed = match &args.seed {
+        Some(text) if !text.is_empty() => text
+            .parse::<u64>()
+            .map_err(|_| format!("`{text}` is not a seed"))?,
+        _ => fresh_seed(),
+    };
+
+    let model = dataset::model(&args.song.artist_id)?;
+    // Applied before the context is built, as everywhere else — a mode retunes
+    // the `session` block. Pinned only: on "Any" the mode was picked from the
+    // *song's* seed when it was generated, and re-picking from the re-roll seed
+    // would let one section land in a different mode from the record.
+    let model = match args.mood.as_deref().map(str::trim) {
+        Some(name) if !name.is_empty() => modes::apply(&model, name)?,
+        _ => model,
+    };
+
+    // The clip length this section already plays at. A re-roll varies the notes;
+    // it does not resize the clip, and taking `bars` from the session chips
+    // would make a re-rolled 4-bar loop come back 8 bars long.
+    let bars = args
+        .song
+        .sections
+        .get(args.index)
+        .and_then(|section| section.patterns.values().next())
+        .and_then(|reference| args.song.pattern(reference))
+        .map(|pattern| pattern.bars.clamp(1, MAX_BARS));
+
+    let overrides = SessionOverrides {
+        bpm: Some(args.song.bpm),
+        key_root: Some(args.song.key_root),
+        scale: Some(args.song.scale),
+        time_sig_num: Some(args.song.time_sig_num),
+        time_sig_den: Some(args.song.time_sig_den),
+        bars,
+        // Not on the `Song`, so they come from the model the way they did when
+        // it was generated.
+        swing: None,
+        half_time: None,
+    };
+
+    // ⛔ `auto_sync` is **false**, and it is not a shortcut. Every field the
+    // host could contribute is pinned above from the song itself, so the flag
+    // cannot change the answer — passing the session's value would imply the
+    // host still has a say in what key this section comes back in, and it does
+    // not.
+    let ctx = host.session_for(&model, &overrides, seed, false);
+
+    engine::arrange::reroll_section(&model, &ctx, &args.song, args.index, seed, &args.locked)
+        .map_err(|error| error.to_string())
 }
 
 /// The longest song the plugin will export, in bars.
@@ -756,6 +850,147 @@ mod tests {
                 );
             }
         }
+    }
+
+    // ---- Re-rolling one section (TASK-067) --------------------------------
+
+    /// Re-roll `index` of `song`, with the given parts locked.
+    fn reroll(song: &Value, index: usize, seed: &str, locked: &[&str]) -> Result<Value, String> {
+        dispatch(
+            &request(
+                "reroll_section",
+                json!({ "request": {
+                    "song": song,
+                    "index": index,
+                    "seed": seed,
+                    "locked": locked,
+                } }),
+            ),
+            &host(),
+        )
+    }
+
+    /// A section of `song` playing more than one part.
+    fn busy_section(song: &Value) -> usize {
+        song["sections"]
+            .as_array()
+            .expect("sections")
+            .iter()
+            .position(|s| s["patterns"].as_object().map(|p| p.len()).unwrap_or(0) > 1)
+            .expect("no section plays more than one part")
+    }
+
+    #[test]
+    fn a_rerolled_section_comes_back_in_the_songs_own_key_and_tempo() {
+        // ⛔ The failure this is here to catch is silent and sounds terrible: the
+        // context is built from the *song*, not from the host or the session
+        // chips, so a re-rolled verse cannot come back in a different key from
+        // the record around it. The host here reports 92 and the song was
+        // generated at 92, so the test moves the song's own tempo away from both
+        // to prove which one the re-roll follows.
+        let mut song = generate_song("trap", "7").unwrap();
+        song["bpm"] = json!(155.0);
+        song["keyRoot"] = json!(9);
+
+        let index = busy_section(&song);
+        let rerolled = reroll(&song, index, "4242", &[]).unwrap();
+
+        assert_eq!(rerolled["bpm"], 155.0);
+        assert_eq!(rerolled["keyRoot"], 9);
+
+        // ⚠ **The re-rolled section's clips only.** Every other section keeps
+        // the clip it already had — that is the byte-stability the whole task
+        // rests on — so those still carry the tempo they were generated at, and
+        // asserting over the whole store would be asserting that a re-roll
+        // rewrites the sections it was told not to touch.
+        let store = rerolled["patterns"].as_object().expect("store");
+        let section = &rerolled["sections"][index]["patterns"];
+        let refs = section.as_object().expect("refs");
+        assert!(!refs.is_empty());
+        for reference in refs.values() {
+            let id = reference["patternId"].as_str().expect("an id");
+            let clip = &store[id];
+            assert_eq!(clip["bpm"], 155.0, "`{id}` kept the host's tempo");
+            assert_eq!(clip["keyRoot"], 9, "`{id}` kept the host's key");
+        }
+    }
+
+    #[test]
+    fn a_reroll_keeps_the_clip_length_the_section_already_plays() {
+        // A re-roll varies the notes; it does not resize the clip. Taking `bars`
+        // from the session chips instead would hand back a 4-bar loop as 8.
+        let song = generate_song("trap", "7").unwrap();
+        let index = busy_section(&song);
+        let before: Vec<u64> = song["patterns"]
+            .as_object()
+            .expect("store")
+            .values()
+            .map(|c| c["bars"].as_u64().expect("bars"))
+            .collect();
+
+        let rerolled = reroll(&song, index, "88", &[]).unwrap();
+        let store = rerolled["patterns"].as_object().expect("store");
+        for reference in rerolled["sections"][index]["patterns"]
+            .as_object()
+            .expect("refs")
+            .values()
+        {
+            let id = reference["patternId"].as_str().expect("an id");
+            assert!(
+                before.contains(&store[id]["bars"].as_u64().expect("bars")),
+                "re-rolled clip `{id}` changed length"
+            );
+        }
+    }
+
+    #[test]
+    fn a_reroll_of_a_crafted_song_is_refused_at_the_bridge() {
+        // ⛔ **The same trust boundary `song_smf` documents, and it has to be on
+        // this command too.** A `Song` arrives here as JSON from the webview — a
+        // project file somebody else saved, or devtools — and re-rolling clones
+        // it and generates against its numbers. Without this the bound would
+        // exist on the export and not on the command next to it.
+        let mut song = generate_song("trap", "7").unwrap();
+        song["sections"][0]["bars"] = json!(0);
+
+        let err = reroll(&song, 0, "1", &[]).unwrap_err();
+        assert!(err.contains("sections run from"), "{err}");
+    }
+
+    #[test]
+    fn a_reroll_naming_no_section_says_so_rather_than_panicking() {
+        let song = generate_song("trap", "7").unwrap();
+        let count = song["sections"].as_array().expect("sections").len();
+
+        let err = reroll(&song, count, "1", &[]).unwrap_err();
+        assert!(err.contains("re-roll"), "{err}");
+    }
+
+    #[test]
+    fn a_reroll_is_reproducible_from_its_own_seed() {
+        let song = generate_song("trap", "7").unwrap();
+        let index = busy_section(&song);
+        assert_eq!(
+            reroll(&song, index, "31337", &[]),
+            reroll(&song, index, "31337", &[])
+        );
+        assert_ne!(
+            reroll(&song, index, "31337", &[]),
+            reroll(&song, index, "31338", &[])
+        );
+    }
+
+    #[test]
+    fn a_rerolled_song_still_exports() {
+        // The two commands sit next to each other and the second is handed what
+        // the first returns, so a re-roll that left a dangling reference or an
+        // out-of-bound number would only show up here.
+        let song = generate_song("trap", "7").unwrap();
+        let index = busy_section(&song);
+        let rerolled = reroll(&song, index, "5", &[]).unwrap();
+
+        dispatch(&request("song_smf", json!({ "song": rerolled })), &host())
+            .expect("a re-rolled song must still be exportable");
     }
 
     #[test]

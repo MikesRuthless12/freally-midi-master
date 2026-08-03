@@ -10,6 +10,7 @@ import type {
   RosterEntry,
   Scale,
   SessionDefaults,
+  Song,
 } from '../lib/ipc-types';
 import { useHistory, type Snapshot } from './history';
 
@@ -35,7 +36,22 @@ type HostSessionInfo = {
 export const BAR_CHOICES = [2, 4, 8] as const;
 
 /**
- * `SAVED_FIELDS` must name exactly the undo snapshot's fields except `pattern`.
+ * Snapshot fields that are **not** read out of this store.
+ *
+ * ⛔ Each one is a whole document rather than a session value, and each is sent
+ * conditionally by `send()` — `pattern` only when the clip was edited, `song`
+ * only when the arrangement was. `SAVED_FIELDS` drives a `state[key]` lookup, so
+ * naming them there would read `undefined` off the session store and save
+ * nothing while claiming to.
+ *
+ * `songEdited` rides with `song` because it is the flag that decides whether the
+ * document is worth storing at all; it has no meaning apart from it.
+ */
+type DocumentFields = 'pattern' | 'song' | 'songEdited';
+
+/**
+ * `SAVED_FIELDS` must name exactly the undo snapshot's fields except the
+ * documents above.
  *
  * ⛔ A compile-time check rather than a comment. `snapshotOf` lists the fields
  * explicitly so the compiler catches one added to `Snapshot` and forgotten
@@ -43,7 +59,7 @@ export const BAR_CHOICES = [2, 4, 8] as const;
  * `snapshotOf` but not to `SAVED_FIELDS`, which would save less than it undoes.
  */
 type SavedFieldsCoverSnapshot =
-  Exclude<keyof Snapshot, 'pattern'> extends (typeof SAVED_FIELDS)[number] ? true : never;
+  Exclude<keyof Snapshot, DocumentFields> extends (typeof SAVED_FIELDS)[number] ? true : never;
 const SAVED_FIELDS_MATCH_SNAPSHOT: SavedFieldsCoverSnapshot = true;
 void SAVED_FIELDS_MATCH_SNAPSHOT;
 
@@ -331,6 +347,9 @@ function snapshotOf(state: SessionState): Snapshot {
   // `SAVED_FIELDS_MATCH_SNAPSHOT` below keeps the two lists honest instead.
   const { selectedId, seed, bars, pins, autoSync, mood, audioEnabled, mutedLanes, edited } =
     state;
+  // The arrangement lives in its own store and is read through the seam, for
+  // the same reason `send()` reads it there — see `registerSongDocument`.
+  const arrangement = readSongDocument();
   return {
     selectedId,
     seed,
@@ -342,6 +361,8 @@ function snapshotOf(state: SessionState): Snapshot {
     mutedLanes,
     edited,
     pattern: state.pattern,
+    song: arrangement.song,
+    songEdited: arrangement.edited,
   };
 }
 
@@ -362,9 +383,21 @@ function applySnapshot(
 ): void {
   const from = get().selectedId;
 
+  // ⛔ The documents are peeled off rather than passed through. `set` merges
+  // whatever it is handed, so writing the whole snapshot would put `song` and
+  // `songEdited` into the *session* store — a second copy of the arrangement,
+  // living beside the real one in `useSong` and drifting from it the moment
+  // either changed.
+  const { song, songEdited, ...session } = snapshot;
+
   applying = true;
   try {
-    set(snapshot);
+    set(session);
+    // Inside the guard, because `applySongDocument` writes to a store the song
+    // module records edits from. Outside it, stepping back one arrangement edit
+    // would immediately record the restored state as a fresh one and undo would
+    // never move past it.
+    applySongDocument({ song, edited: songEdited });
   } finally {
     applying = false;
   }
@@ -466,7 +499,68 @@ export type SavedSession = {
    * express, because an empty set and an unmentioned field looked identical.
    */
   mutedLanes?: string[];
+  /**
+   * The arrangement, when the producer has edited it (TASK-067).
+   *
+   * Absent for every project that never opened Song Mode, and for every song
+   * still describable by its seed — see `songEdited`, and
+   * `PluginSession::song` on the other side of the bridge.
+   */
+  song?: Song | null;
+  songEdited?: boolean;
 };
+
+/**
+ * The song document, as this module sees it.
+ *
+ * ⛔ **Reached through a registration seam rather than an import, and the
+ * direction is the reason.** `song.ts` imports `useSession` — it has to, because
+ * selecting a different artist must drop the arrangement, and that subscription
+ * lives there. Importing `useSong` back here would close the loop, and a cycle
+ * between two Zustand stores initialises in whichever order the bundler happens
+ * to choose. `song.ts` registers itself at module load instead, so the
+ * dependency still runs exactly one way.
+ *
+ * The defaults below are what a browser build sees: `song.ts` is imported by the
+ * page, so in the app they are always replaced.
+ */
+type SongDocument = { song: Song | null; edited: boolean };
+
+let readSongDocument: () => SongDocument = () => ({ song: null, edited: false });
+let applySongDocument: (document: SongDocument) => void = () => {};
+
+export function registerSongDocument(
+  read: () => SongDocument,
+  apply: (document: SongDocument) => void,
+): void {
+  readSongDocument = read;
+  applySongDocument = apply;
+}
+
+/**
+ * Record and save an edit made in a document that lives outside this store.
+ *
+ * ⛔ **Both halves, in one call, because the two must not be reachable
+ * separately.** The session's own edits get them from two subscribers that
+ * cannot be forgotten; the arrangement has no such subscriber here, so this is
+ * the one door — and a caller that recorded without saving would build an undo
+ * stack over a project file that never changed, while one that saved without
+ * recording would put a state on disk that Ctrl+Z cannot reach.
+ *
+ * ⚠ **The `applying` check is a backstop, not a live guard.** Today a restore
+ * reaches the arrangement through `applySongDocument`, which writes `useSong`
+ * directly and never comes back through here — so nothing currently exercises
+ * it. It stays because the failure it prevents is silent and total: recording a
+ * restore would push an entry on every Ctrl+Z as it popped one, and the stack
+ * could never be walked out of. The same reasoning as `Shared::set_running`'s
+ * self-gate on the Rust side, which is also a backstop its callers already
+ * honour.
+ */
+export function noteDocumentChange(): void {
+  if (applying) return;
+  useHistory.getState().record(snapshotOf(useSession.getState()));
+  persist();
+}
 
 /**
  * Coalesces writes, because the seed box saves on every keystroke.
@@ -523,6 +617,17 @@ function send(): void {
   // them would put a few hundred kilobytes of notes into every project file to
   // restore something the seed already describes exactly.
   if (state.edited && state.pattern !== null) session.pattern = state.pattern;
+  // ⛔ **The same rule one document up (TASK-067).** An unedited arrangement is
+  // reproducible by pressing Generate on the artist and seed already in this
+  // payload, so storing it would be kilobytes of notes to restore something the
+  // seed describes exactly. An *edited* one is not reproducible by anything, and
+  // three handoffs running have recorded the symptom of leaving it out:
+  // arranging a whole song and reopening the project lost all of it.
+  const arrangement = readSongDocument();
+  if (arrangement.edited && arrangement.song !== null) {
+    session.song = arrangement.song;
+    session.songEdited = true;
+  }
   void invoke('save_session_state', { session }).catch(() => {
     // Losing a session write is not worth interrupting someone mid-beat. The
     // next change writes the whole session again anyway.
@@ -634,6 +739,22 @@ function put(
     // session arriving whole, not a switch.
     ...(saved.selectedId ? { selectedId: saved.selectedId } : {}),
   });
+
+  // ⛔ **After the `set` above, not inside it.** Changing `selectedId` fires the
+  // subscription in `song.ts` that clears the arrangement whenever the artist
+  // moves — so a song restored first would be wiped by the very write that
+  // restored the session it belongs to. Applied here it lands on the far side of
+  // that, which is also the correct order for a preset load: the preset carries
+  // no arrangement (see `presets::save_in`), so this clears whatever was open.
+  //
+  // Trusted only when the session says it was edited, for the same reason the
+  // clip above is: an unedited song is regenerated from the seed rather than
+  // replayed, so a project keeps picking up engine improvements.
+  applySongDocument(
+    saved.songEdited && saved.song
+      ? { song: saved.song, edited: true }
+      : { song: null, edited: false },
+  );
 
   if (saved.selectedId) {
     void loadDefaults(saved.selectedId, set, get);

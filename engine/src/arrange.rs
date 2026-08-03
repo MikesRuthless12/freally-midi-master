@@ -43,6 +43,7 @@ use serde_json::Value;
 use crate::context::SessionContext;
 use crate::dataset::StyleModel;
 use crate::generators::bass;
+use crate::generators::chords::Chords;
 use crate::generators::read;
 use crate::parts;
 use crate::pattern::{
@@ -78,6 +79,12 @@ pub enum ArrangeError {
     UnknownSection { model: String, name: String },
     /// Every part of every section came out silent.
     Silent(String),
+    /// A re-roll named a section the song does not have (TASK-067).
+    NoSuchSection {
+        song: String,
+        index: usize,
+        sections: usize,
+    },
 }
 
 impl std::fmt::Display for ArrangeError {
@@ -103,6 +110,15 @@ impl std::fmt::Display for ArrangeError {
                 f,
                 "every part of every section of `{id}` generated silence — the \
                  model has no parts authored that this form asks for"
+            ),
+            ArrangeError::NoSuchSection {
+                song,
+                index,
+                sections,
+            } => write!(
+                f,
+                "`{song}` has {sections} section(s), so there is no section \
+                 {index} to re-roll"
             ),
         }
     }
@@ -181,7 +197,7 @@ pub fn generate(model: &StyleModel, ctx: &SessionContext, seed: u64) -> Result<S
         let section_model = scaled.as_ref().unwrap_or(model);
 
         let wanted = parts_for(&rule, model);
-        let rendered = render_section(section_model, ctx, section_seed, &wanted, None);
+        let rendered = render_section(section_model, ctx, section_seed, &wanted, Carry::default());
         // A switch-up varies only the *melodic* parts, so the back half needs a
         // second render on its own seed. Skipped entirely when there is no
         // switch-up, which is roughly six songs in seven.
@@ -198,7 +214,10 @@ pub fn generate(model: &StyleModel, ctx: &SessionContext, seed: u64) -> Result<S
                 ctx,
                 switch_seed,
                 &wanted,
-                Some(&rendered.kit),
+                Carry {
+                    kit: Some(&rendered.kit),
+                    harmony: None,
+                },
             )
         });
 
@@ -270,6 +289,184 @@ pub fn generate(model: &StyleModel, ctx: &SessionContext, seed: u64) -> Result<S
         patterns,
         ppq: PPQ,
     })
+}
+
+/// Re-generate one section of a song, leaving every other one byte-stable
+/// (TASK-067).
+///
+/// `locked` names the parts the producer has pinned; they are kept exactly as
+/// they are, notes and all. **That is the whole of "lock-respecting" as far as
+/// the engine is concerned** — a lock is a UI state, and passing the resulting
+/// part list keeps this module from having to know about cells, rows or
+/// sections. An empty `locked` re-rolls the section whole.
+///
+/// ## ⛔ Why the re-rolled clips get their own ids
+///
+/// [`generate`] keys a pattern by *section name*, which is what makes verse 1
+/// and verse 2 the same beat. Re-rolling in place would therefore change every
+/// verse in the song — and "re-roll section 2 leaves the others byte-stable" is
+/// this task's own acceptance criterion. So a re-rolled section is keyed by its
+/// **index** instead and diverges from its siblings, exactly the way a switch-up
+/// diverges by keying on `{name}:switchup`. Re-rolling the same section again
+/// overwrites that entry rather than accumulating one per attempt.
+///
+/// ## ⛔ Why the locked parts are handed back in as dependencies
+///
+/// A melody is written *against* a harmony and a kit. Re-rolling the melody
+/// alone while the chords stay put would write it against a harmony derived
+/// from the new seed — a different voicing from the chord clip the section still
+/// plays, which is precisely the incoherence the per-section seed exists to
+/// prevent, one level down. So a locked Chords or Drums part is **re-derived
+/// from its own stored `Pattern::seed`** and handed to the render as [`Carry`].
+/// The stored clip is humanized and the generators want the raw one, which is
+/// why this regenerates rather than reusing the notes in the song.
+pub fn reroll_section(
+    model: &StyleModel,
+    ctx: &SessionContext,
+    song: &Song,
+    index: usize,
+    seed: u64,
+    locked: &[Part],
+) -> Result<Song, ArrangeError> {
+    let section = song
+        .sections
+        .get(index)
+        .ok_or_else(|| ArrangeError::NoSuchSection {
+            song: song.id.clone(),
+            index,
+            sections: song.sections.len(),
+        })?;
+
+    let block = model
+        .blocks
+        .get(ARRANGEMENT)
+        .filter(|value| !value.is_null())
+        .ok_or_else(|| ArrangeError::NoArrangement(model.id.clone()))?;
+
+    // ⛔ The parts the section *currently plays*, not the parts its rule asks
+    // for. A re-roll varies a section; it does not change which rows exist,
+    // which is what a resize or an edit is for. Deriving from the rule would
+    // let a re-roll silently grow a bass row on a style whose 808 is the bass.
+    let playing: Vec<Part> = PART_ORDER
+        .into_iter()
+        .filter(|part| section.patterns.contains_key(part))
+        .collect();
+    let wanted: Vec<PartRequest> = playing
+        .iter()
+        .filter(|part| !locked.contains(part))
+        .map(|part| PartRequest {
+            part: *part,
+            // The narrowing was decided when the section was first built and is
+            // already reflected in the clip that is there; re-deriving it would
+            // need the rule, which this deliberately does not consult.
+            only_low_end: false,
+        })
+        .collect();
+    if wanted.is_empty() {
+        // Every part locked is a no-op, and returning the same song is what
+        // makes it one — the UI's change detection compares by identity.
+        return Ok(song.clone());
+    }
+
+    let kind_name = section_name(section.kind);
+    let rule = section_rule(block, kind_name);
+    let scaled = with_density(model, rule.density);
+    let section_model = scaled.as_ref().unwrap_or(model);
+
+    // Keyed by index as well as name, so re-rolling verse 2 with the song's own
+    // seed cannot land on verse 1's notes.
+    let section_seed = rng::derive_seed(seed, &format!("section:{kind_name}@{index}"));
+
+    // The dependencies a lock pins. Re-derived from the stored clip's own seed
+    // rather than read out of it — see the doc comment.
+    let locked_seed = |part: Part| {
+        section
+            .patterns
+            .get(&part)
+            .and_then(|reference| song.pattern(reference))
+            .map(|pattern| pattern.seed)
+    };
+    let held_kit = locked
+        .contains(&Part::Drums)
+        .then(|| locked_seed(Part::Drums))
+        .flatten()
+        .map(|seed| crate::generators::drums::generate(section_model, ctx, seed));
+    let held_harmony = locked
+        .contains(&Part::Chords)
+        .then(|| locked_seed(Part::Chords))
+        .flatten()
+        .map(|seed| crate::generators::chords::generate(section_model, ctx, seed));
+
+    let rendered = render_section(
+        section_model,
+        ctx,
+        section_seed,
+        &wanted,
+        Carry {
+            kit: held_kit.as_deref(),
+            harmony: held_harmony.as_ref(),
+        },
+    );
+
+    let mut next = song.clone();
+    let mut refs = section.patterns.clone();
+    for PartRequest { part, .. } in &wanted {
+        let Some(lanes) = rendered.lanes.get(part) else {
+            // A part that re-rolled to silence keeps the clip it had. Dropping
+            // the row instead would make a re-roll a way to lose a part, and
+            // there would be nothing on screen saying it had gone.
+            continue;
+        };
+        let id = pattern_id(model, &format!("{kind_name}@{index}"), *part);
+        next.patterns.insert(
+            id.clone(),
+            pattern_for(model, ctx, section_seed, *part, &id, lanes.clone()),
+        );
+        refs.insert(*part, PatternRef { pattern_id: id });
+    }
+    next.sections[index].patterns = refs;
+    prune_patterns(&mut next);
+    Ok(next)
+}
+
+/// Drop clips no section names any more.
+///
+/// ⛔ **Re-rolling repeatedly would otherwise grow the song without bound**, and
+/// a `Song` crosses the bridge as JSON on every save — an arrangement carrying
+/// forty abandoned takes is a project file forty times the size, and
+/// `song_to_smf` would still be handed all of them.
+fn prune_patterns(song: &mut Song) {
+    let live: std::collections::BTreeSet<&str> = song
+        .sections
+        .iter()
+        .flat_map(|section| section.patterns.values())
+        .map(|reference| reference.pattern_id.as_str())
+        .collect();
+    let dead: Vec<String> = song
+        .patterns
+        .keys()
+        .filter(|id| !live.contains(id.as_str()))
+        .cloned()
+        .collect();
+    for id in dead {
+        song.patterns.remove(&id);
+    }
+}
+
+/// The authored name for a kind, for looking its rule back up.
+///
+/// The inverse of [`section_kind`], and it has to agree with it: `hook` is the
+/// spelling `_defaults` authors, with `chorus` accepted as the alias on the way
+/// in. `the_two_halves_of_the_section_vocabulary_agree` holds the pair together.
+fn section_name(kind: SectionKind) -> &'static str {
+    match kind {
+        SectionKind::Intro => "intro",
+        SectionKind::Verse => "verse",
+        SectionKind::PreChorus => "prechorus",
+        SectionKind::Hook => "hook",
+        SectionKind::Bridge => "bridge",
+        SectionKind::Outro => "outro",
+    }
 }
 
 /// The structure names a model offers, in authored order, with their weights.
@@ -579,7 +776,7 @@ fn render_section(
     ctx: &SessionContext,
     seed: u64,
     wanted: &[PartRequest],
-    base_kit: Option<&[LaneTrack]>,
+    carry: Carry<'_>,
 ) -> SectionRender {
     use crate::generators::{bass, chords, counter, drums, melody};
     use crate::humanize::humanize;
@@ -593,11 +790,14 @@ fn render_section(
     let needs_kit = asked(&[Part::Drums, Part::Melody, Part::Counter, Part::Bass]);
     let needs_lead = asked(&[Part::Melody, Part::Counter]);
 
-    let harmony = needs_harmony.then(|| chords::generate(model, ctx, seed));
-    // `base_kit` is the section's already-generated drums, handed in so a
+    let harmony = match carry.harmony {
+        Some(harmony) => Some(harmony.clone()),
+        None => needs_harmony.then(|| chords::generate(model, ctx, seed)),
+    };
+    // `carry.kit` is the section's already-generated drums, handed in so a
     // switch-up's melody is written around the beat the section actually plays
     // rather than around a second kit nobody hears.
-    let kit = match base_kit {
+    let kit = match carry.kit {
         Some(kit) => kit.to_vec(),
         None if needs_kit => drums::generate(model, ctx, seed),
         None => Vec::new(),
@@ -649,6 +849,26 @@ struct SectionRender {
     /// The **un-humanized** kit the melodic parts were written against, so a
     /// switch-up can be written against the same one.
     kit: Vec<LaneTrack>,
+}
+
+/// Dependencies a render is *handed* rather than deriving from its own seed.
+///
+/// ⛔ **This is the coherence device the module header's rule needs an escape
+/// hatch for.** Everything in a section derives from one seed precisely so the
+/// clips a producer hears together were written against each other. Two callers
+/// have to break that on purpose and must not break the invariant with it:
+///
+/// - A **switch-up** varies the melodic parts on a second seed while the drums
+///   hold, so it is handed the section's own kit.
+/// - A **re-roll of a subset** ([`reroll_section`]) leaves locked parts exactly
+///   as they are, so whatever it does re-generate has to be written against the
+///   clips that are staying — not against a fresh harmony and kit nobody keeps.
+///
+/// Both are `None` in the ordinary path, where the seed is the only input.
+#[derive(Default, Clone, Copy)]
+struct Carry<'a> {
+    kit: Option<&'a [LaneTrack]>,
+    harmony: Option<&'a Chords>,
 }
 
 /// Wrap a section's rendered lanes as the clip the store holds.

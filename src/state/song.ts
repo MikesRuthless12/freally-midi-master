@@ -28,7 +28,13 @@ import {
   type ClipId,
 } from '../components/SongTimeline/clips';
 import { zoomIn, zoomOut, type View } from '../components/SongTimeline/geometry';
-import { reason, useSession, type SessionPins } from './session';
+import {
+  noteDocumentChange,
+  reason,
+  registerSongDocument,
+  useSession,
+  type SessionPins,
+} from './session';
 
 export type SongState = {
   song: Song | null;
@@ -50,12 +56,31 @@ export type SongState = {
    */
   anchor: number | null;
 
+  /**
+   * Clips the producer has pinned, as `sectionIndex:part` (TASK-070).
+   *
+   * ⛔ **A flat set of cells, not a tree of section / row / cell locks.** All
+   * three gestures the roadmap names resolve to the same question a re-roll
+   * asks — *may this clip change?* — so locking a row is locking its cells and
+   * locking a section is locking its column. Keeping three kinds of lock would
+   * mean answering that question three ways, and `reroll` would have to consult
+   * all of them in an order nobody wrote down.
+   */
+  locks: string[];
+
   generate: (args: {
     styleId: string;
     seed: string;
     pins: SessionPins;
     mood: string | null;
   }) => Promise<void>;
+
+  /** Re-roll one section, keeping every locked clip (TASK-067 / TASK-071). */
+  reroll: (index: number, mood: string | null) => Promise<void>;
+
+  toggleLock: (clip: ClipId) => void;
+  toggleSectionLock: (index: number) => void;
+  toggleRowLock: (part: Part) => void;
 
   zoomIn: () => void;
   zoomOut: () => void;
@@ -83,6 +108,7 @@ export const useSong = create<SongState>((set, get) => ({
   selection: [],
   clipboard: null,
   anchor: null,
+  locks: [],
 
   async generate({ styleId, seed, pins, mood }) {
     if (get().generating) return;
@@ -107,12 +133,88 @@ export const useSong = create<SongState>((set, get) => ({
         edited: false,
         selection: [],
         anchor: null,
+        // ⛔ Locks go with the arrangement they were placed on. A lock names a
+        // section index and a part, and a fresh generation has neither the same
+        // sections nor the same clips — so a kept lock would pin whatever
+        // happened to land at that index, which is not what the producer pinned.
+        locks: [],
         // The view is deliberately kept: regenerating while zoomed in should
         // not throw the producer back to the top of the song.
       });
+      // A fresh song is describable by its seed again, so nothing has to be
+      // stored — but the *previous* one may have been edited and saved, and
+      // leaving that in the project file would reopen it over this one.
+      noteDocumentChange();
     } catch (error) {
       set({ generating: false, error: reason(error) });
     }
+  },
+
+  async reroll(index, mood) {
+    const { song, generating, locks } = get();
+    if (!song || generating) return;
+    set({ generating: true, error: null });
+    try {
+      const next = await invoke<Song>('reroll_section', {
+        request: {
+          song,
+          index,
+          // Absent is "pick one for me", the same rule the seed box follows.
+          // A re-roll always wants a new one — that is the gesture.
+          seed: null,
+          locked: lockedPartsIn(locks, index),
+          mood,
+        },
+      });
+      set({ song: next, generating: false, selection: [], anchor: null });
+      // ⛔ A re-rolled section is no longer what the song's own seed produces,
+      // so from here the arrangement only exists if it is saved. This is the
+      // edit that is easiest to lose, because nothing about it *looks* like an
+      // edit — the timeline redraws and the geometry is unchanged.
+      markEdited();
+    } catch (error) {
+      set({ generating: false, error: reason(error) });
+    }
+  },
+
+  toggleLock(clip) {
+    const key = lockKey(clip);
+    const { locks } = get();
+    set({ locks: locks.includes(key) ? locks.filter((l) => l !== key) : [...locks, key] });
+  },
+
+  toggleSectionLock(index) {
+    const { song, locks } = get();
+    const section = song?.sections[index];
+    if (!section) return;
+    const keys = (Object.keys(section.patterns) as Part[]).map((part) =>
+      lockKey({ sectionIndex: index, part }),
+    );
+    // Locked only when *every* clip in it is: a half-locked section that
+    // reported itself locked would let a re-roll change part of it.
+    const locked = keys.every((key) => locks.includes(key));
+    set({
+      locks: locked
+        ? locks.filter((l) => !keys.includes(l))
+        : [...locks.filter((l) => !keys.includes(l)), ...keys],
+    });
+  },
+
+  toggleRowLock(part) {
+    const { song, locks } = get();
+    if (!song) return;
+    const keys = song.sections
+      .map((section, index) =>
+        section.patterns[part] ? lockKey({ sectionIndex: index, part }) : null,
+      )
+      .filter((key): key is string => key !== null);
+    if (keys.length === 0) return;
+    const locked = keys.every((key) => locks.includes(key));
+    set({
+      locks: locked
+        ? locks.filter((l) => !keys.includes(l))
+        : [...locks.filter((l) => !keys.includes(l)), ...keys],
+    });
   },
 
   zoomIn() {
@@ -212,10 +314,69 @@ useSession.subscribe((state, previous) => {
       anchor: null,
       clipboard: null,
       edited: false,
+      locks: [],
       error: null,
     });
   }
 });
+
+/**
+ * Publish the arrangement to the session, which is what the host saves.
+ *
+ * ⛔ **Registered rather than imported, because the dependency runs one way.**
+ * See `registerSongDocument` in `session.ts`: this module already imports
+ * `useSession`, so `session.ts` reaching back for `useSong` would be a cycle
+ * between two stores whose initialisation order the bundler chooses.
+ */
+registerSongDocument(
+  () => {
+    const { song, edited } = useSong.getState();
+    return { song, edited };
+  },
+  ({ song, edited }) =>
+    useSong.setState({
+      song,
+      edited,
+      // A restored arrangement is not one anybody is mid-gesture on.
+      selection: [],
+      anchor: null,
+      clipboard: null,
+      locks: [],
+      error: null,
+    }),
+);
+
+/** The key one clip is locked under. */
+function lockKey({ sectionIndex, part }: ClipId): string {
+  return `${sectionIndex}:${part}`;
+}
+
+/**
+ * The parts locked in one section, in the shape the engine's re-roll wants.
+ *
+ * The engine is deliberately lock-agnostic: it takes a list of parts to leave
+ * alone, and everything about *how* a producer expressed that — a cell, a row,
+ * a whole section — is resolved here.
+ */
+function lockedPartsIn(locks: string[], index: number): Part[] {
+  const prefix = `${index}:`;
+  return locks
+    .filter((lock) => lock.startsWith(prefix))
+    .map((lock) => lock.slice(prefix.length) as Part);
+}
+
+/**
+ * Record that the arrangement has moved away from its seed, and save it.
+ *
+ * ⛔ **The two happen together and always have to.** `edited` is what makes the
+ * song worth storing at all — `send()` skips an unedited one deliberately — so
+ * a path that set the flag without asking for a save would leave the producer's
+ * arrangement in memory only, which is the failure this task exists to close.
+ */
+function markEdited(): void {
+  useSong.setState({ edited: true });
+  noteDocumentChange();
+}
 
 /**
  * Run an edit and record that the arrangement has moved away from its seed.
@@ -240,4 +401,5 @@ function apply(
     edited: true,
     ...(clearSelection ? { selection: [] } : {}),
   });
+  noteDocumentChange();
 }

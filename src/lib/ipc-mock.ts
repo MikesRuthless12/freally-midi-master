@@ -262,6 +262,63 @@ const handlers: Record<string, Handler> = {
     };
   },
 
+  // Re-rolling one section (TASK-067). The real engine regenerates the notes;
+  // what a spec can meaningfully assert about it is the *shape* of the result —
+  // that the named section's clips are new ones, that every other section is
+  // untouched, and that locked parts keep the clip they had. So this mock does
+  // exactly that transformation and does not pretend to generate anything.
+  //
+  // ⛔ Keyed by index, the way `arrange::reroll_section` keys it, because that
+  // is the property that stops verse 2 dragging verse 1 with it — and a mock
+  // that shared one id would make the spec pass on the bug.
+  reroll_section: (args): Song => {
+    const request = (
+      args as {
+        request?: { song?: Song; index?: number; locked?: Part[] };
+      }
+    )?.request;
+    const song = request?.song;
+    if (!song) throw new Error('reroll_section needs a song');
+    const index = request?.index ?? 0;
+    const locked = request?.locked ?? [];
+    const section = song.sections[index];
+    if (!section) throw new Error(`this song has no section ${index}`);
+
+    const patterns: Record<string, Pattern> = {};
+    for (const [id, clip] of Object.entries(song.patterns)) {
+      if (clip) patterns[id] = clip;
+    }
+    const refs: Partial<Record<Part, PatternRef>> = { ...section.patterns };
+    for (const [name, reference] of Object.entries(section.patterns)) {
+      const part = name as Part;
+      if (locked.includes(part)) continue;
+      const was = patterns[reference.patternId];
+      // A section naming a clip the store does not hold is the dangling
+      // reference `song_smf` refuses; leaving it alone is the honest mock.
+      if (!was) continue;
+      const patternId = `${song.artistId}-${section.type}@${index}-${part}`;
+      patterns[patternId] = {
+        ...was,
+        id: patternId,
+        // Something a spec can see, without a second note generator here.
+        seed: `${Number(was.seed) + 1}`,
+      };
+      refs[part] = { patternId };
+    }
+
+    const sections = song.sections.map((s, i) =>
+      i === index ? { ...s, patterns: refs as Record<Part, PatternRef> } : s,
+    );
+    // Clips nothing names any more go, the way the engine prunes them.
+    const live = new Set(
+      sections.flatMap((s) => Object.values(s.patterns).map((r) => r.patternId)),
+    );
+    for (const id of Object.keys(patterns)) {
+      if (!live.has(id)) delete patterns[id];
+    }
+    return { ...song, sections, patterns };
+  },
+
   // The exported bytes. A browser has no `song_to_smf`, and inventing an SMF
   // encoder here would be the "second implementation" this file's header rules
   // out — so it answers with the header every SMF starts with and a length,

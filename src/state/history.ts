@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-import type { Pattern, Scale } from '../lib/ipc-types';
+import type { Pattern, Scale, Song } from '../lib/ipc-types';
 
 /**
  * The operation log undo and redo walk (FMM-U01).
@@ -70,6 +70,24 @@ export type Snapshot = {
    * wholesale on every change, so reference equality is enough to compare it.
    */
   mutedLanes: string[];
+  /**
+   * The arrangement (TASK-063B).
+   *
+   * ⛔ **In the session's own snapshot rather than in a second stack, and that
+   * is the reuse this module's header asks for.** A producer has one Ctrl+Z.
+   * Two stacks would mean the shortcut had to decide which document it was
+   * about — from the visible tab, which is the only clue available — and
+   * undoing an arrangement edit after switching to the roll would then step the
+   * *session* back instead. That is exactly what the Song tab used to do, and
+   * why its undo was turned into a deliberate no-op rather than left wrong.
+   *
+   * Reference equality is what [`changed`] compares, and `clips.ts` returns the
+   * *same* `Song` when an edit changes nothing — so a resize to the width it
+   * already had records no step, without this module knowing what a resize is.
+   */
+  song: Song | null;
+  /** Whether `song` is an arrangement rather than the seed's own output. */
+  songEdited: boolean;
 };
 
 /**
@@ -91,7 +109,7 @@ export type Field = keyof Snapshot;
  * merging them made "kick muted, snare audible" unreachable by undo — one
  * Ctrl+Z un-muted both.
  */
-const DISCRETE: readonly Field[] = ['pattern', 'mutedLanes'];
+const DISCRETE: readonly Field[] = ['pattern', 'mutedLanes', 'song'];
 
 /**
  * How long a run of edits to one field stays one undo step.

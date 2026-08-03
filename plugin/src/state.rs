@@ -23,7 +23,7 @@
 use std::sync::{Arc, RwLock};
 
 use engine::context::SessionOverrides;
-use engine::pattern::{Lane, Pattern};
+use engine::pattern::{Lane, Pattern, Song};
 use serde::{Deserialize, Serialize};
 
 /// The session as the host stores it, and as the UI restores it.
@@ -115,6 +115,28 @@ pub struct PluginSession {
     /// does not answer that.
     #[serde(default)]
     pub edited: bool,
+    /// The arrangement, once the producer has edited it away from its seed
+    /// (TASK-067).
+    ///
+    /// ⛔ **The same rule as [`Self::pattern`], one document up, and it is the
+    /// rule rather than a second policy.** A song is derived from the artist,
+    /// the seed and the pins exactly as a pattern is, so an *unedited* one is
+    /// reproducible by pressing Generate and is not worth a byte in the project
+    /// file. The moment a section is resized, cloned, deleted or re-rolled, the
+    /// seed stops describing what is on screen — and from then on reopening the
+    /// project without this would hand the producer the song they started from,
+    /// having silently thrown away the arrangement they built.
+    ///
+    /// ⚠ A song is much larger than a clip: it carries a pattern per part per
+    /// distinct section. That is the cost of the edit being real, and it is only
+    /// paid by projects that have one.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub song: Option<Song>,
+    /// Whether [`Self::song`] is an arrangement rather than the seed's own
+    /// output — the same explicit flag, for the same reason, as
+    /// [`Self::edited`].
+    #[serde(default)]
+    pub song_edited: bool,
 }
 
 /// The preview sampler's default, which is **on**.
@@ -156,6 +178,8 @@ impl Default for PluginSession {
             muted_lanes: Vec::new(),
             pattern: None,
             edited: false,
+            song: None,
+            song_edited: false,
         }
     }
 }
@@ -238,6 +262,8 @@ mod tests {
             muted_lanes: vec![Lane::Snare],
             pattern: None,
             edited: false,
+            song: None,
+            song_edited: false,
         };
 
         let json = serde_json::to_string(&session).unwrap();
@@ -302,6 +328,110 @@ mod tests {
             !json.contains("pattern"),
             "an unedited session must not store a clip: {json}"
         );
+    }
+
+    /// The smallest thing that is recognisably an arrangement: one section
+    /// playing one clip, out of a store that holds it.
+    fn sample_song() -> Song {
+        use engine::pattern::{PatternRef, Section, SectionKind};
+        use std::collections::BTreeMap;
+
+        let clip = Pattern {
+            id: "trap-hook-drums".into(),
+            part: engine::pattern::Part::Drums,
+            artist_id: "trap".into(),
+            seed: 9,
+            bars: 4,
+            bpm: 140.0,
+            time_sig_num: 4,
+            time_sig_den: 4,
+            key_root: 0,
+            scale: engine::pattern::Scale::NaturalMinor,
+            lanes: vec![engine::pattern::LaneTrack {
+                lane: Lane::Kick,
+                notes: vec![engine::pattern::Note {
+                    start_tick: 0,
+                    len_ticks: 120,
+                    pitch: 36,
+                    vel: 110,
+                    model_vel: None,
+                    slide_to_pitch: None,
+                    articulation: None,
+                }],
+            }],
+            ppq: engine::pattern::PPQ,
+            mood: None,
+            loop_region: None,
+            clip_region: None,
+        };
+        Song {
+            id: "trap-song-9".into(),
+            artist_id: "trap".into(),
+            seed: 9,
+            bpm: 140.0,
+            key_root: 0,
+            scale: engine::pattern::Scale::NaturalMinor,
+            sections: vec![Section {
+                kind: SectionKind::Hook,
+                start_bar: 0,
+                bars: 8,
+                patterns: BTreeMap::from([(
+                    engine::pattern::Part::Drums,
+                    PatternRef {
+                        pattern_id: "trap-hook-drums".into(),
+                    },
+                )]),
+                drop_out_beats: 0,
+                decay: false,
+                markers: vec![],
+            }],
+            time_sig_num: 4,
+            time_sig_den: 4,
+            patterns: BTreeMap::from([("trap-hook-drums".to_owned(), clip)]),
+            ppq: engine::pattern::PPQ,
+        }
+    }
+
+    #[test]
+    fn an_edited_arrangement_survives_the_round_trip_whole() {
+        // ⛔ TASK-067's own gate, and the failure it closes is the one three
+        // handoffs have written down: arranging a whole song and reopening the
+        // project lost every bit of it, while a single edited *pattern*
+        // survived. `useSong.edited` existed and nothing read it.
+        let mut edited = PluginSession {
+            selected_id: Some("trap".into()),
+            seed: "9".into(),
+            ..PluginSession::default()
+        };
+        edited.song = Some(sample_song());
+        edited.song_edited = true;
+
+        let json = serde_json::to_string(&edited).unwrap();
+        let back: PluginSession = serde_json::from_str(&json).unwrap();
+        assert_eq!(back, edited, "the arrangement, its sections and its clips");
+
+        // And an *unedited* session still carries no arrangement, which is what
+        // keeps a project file a few hundred bytes for the sessions — most of
+        // them — that never opened Song Mode.
+        let plain = PluginSession::default();
+        let json = serde_json::to_string(&plain).unwrap();
+        assert!(
+            !json.contains("\"song\""),
+            "an unedited session must not store an arrangement: {json}"
+        );
+    }
+
+    #[test]
+    fn a_project_saved_before_song_mode_existed_still_opens() {
+        // The `#[serde(default)]` rule applied to the two new fields. A project
+        // written before this shipped must reopen on its artist and seed rather
+        // than refusing, which presents to a producer as a lost session.
+        let old = r#"{"selectedId":"trap","seed":"7","edited":true}"#;
+        let session: PluginSession = serde_json::from_str(old).unwrap();
+
+        assert_eq!(session.selected_id.as_deref(), Some("trap"));
+        assert_eq!(session.song, None);
+        assert!(!session.song_edited);
     }
 
     #[test]

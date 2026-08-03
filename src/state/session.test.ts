@@ -471,6 +471,8 @@ describe('applyPreset', () => {
       audioEnabled: true,
       mutedLanes: [],
       edited: false,
+      song: null,
+      songEdited: false,
     });
 
     useSession.getState().applyPreset(PRESET);

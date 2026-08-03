@@ -94,26 +94,20 @@ function Studio() {
       // was stolen from a dropdown while `K` above was not. One predicate now.
       if (isTypingTarget(e.target)) return;
 
-      // ⛔ **The Song tab owns a different document, and this stack is not its
-      // stack.** `useSession`'s history holds the pattern and the session
-      // chips; the arrangement lives in `useSong` and has no history yet. Left
-      // unguarded, Ctrl+Z on the Song tab silently stepped *the session* back —
-      // a seed keystroke, a pin, or a piano-roll edit made on another tab —
-      // while the arrangement stayed exactly as it was. That is worse than
-      // doing nothing: the producer sees no change here and finds the damage
-      // later, somewhere else.
-      //
-      // Doing nothing is the honest behaviour until `useSong` has a stack of
-      // its own. See the handoff.
-      //
-      // ⛔ **`preventDefault` first, then return** — returning early without it
-      // was itself a bug, and a confusing one: the chord fell through to the
+      // ⛔ **`preventDefault` before anything else.** Returning early without it
+      // was a bug once and a confusing one: the chord fell through to the
       // *browser's* undo, which reverted the last text field edited even though
-      // focus had long since moved to the timeline. The seed box emptied itself
-      // when the producer pressed Ctrl+Z over an arrangement.
+      // focus had long since moved to the timeline — the seed box emptied
+      // itself when the producer pressed Ctrl+Z over an arrangement.
       e.preventDefault();
-      if (useUi.getState().activeTab === 'song') return;
 
+      // ⛔ **No tab check, and its removal is the fix rather than an omission.**
+      // This used to return here on the Song tab, because the arrangement had
+      // no undo stack and stepping the *session* back instead was worse than
+      // doing nothing. The arrangement is now part of the same snapshot
+      // (`history.ts`: `Snapshot.song`), so there is one stack, one Ctrl+Z, and
+      // no question about which document a keypress is about — which is exactly
+      // why it was put there rather than into a second stack of its own.
       const { undo, redo } = useSession.getState();
       if (key === 'y' || e.shiftKey) redo();
       else undo();
