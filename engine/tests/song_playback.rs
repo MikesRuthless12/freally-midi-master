@@ -30,10 +30,10 @@ fn song(id: &str, seed: u64) -> Song {
     arrange::generate(&model, &SessionContext::default(), seed).expect("builds a song")
 }
 
-/// Every note-on tick in the exported file, across every track.
-fn exported_on_ticks(bytes: &[u8]) -> Vec<u32> {
+/// Every note-on in the exported file as (tick, velocity), across every track.
+fn exported_on_ticks(bytes: &[u8]) -> Vec<(u32, u8)> {
     let smf = Smf::parse(bytes).expect("the export must parse");
-    let mut out = Vec::new();
+    let mut out: Vec<(u32, u8)> = Vec::new();
     for track in &smf.tracks {
         let mut at = 0u32;
         for event in track {
@@ -44,7 +44,7 @@ fn exported_on_ticks(bytes: &[u8]) -> Vec<u32> {
             } = event.kind
             {
                 if vel.as_int() > 0 {
-                    out.push(at);
+                    out.push((at, vel.as_int()));
                 }
             }
         }
@@ -53,12 +53,12 @@ fn exported_on_ticks(bytes: &[u8]) -> Vec<u32> {
     out
 }
 
-/// Every note-on tick in the flattened clip.
-fn played_on_ticks(pattern: &Pattern) -> Vec<u32> {
-    let mut out: Vec<u32> = pattern
+/// Every note-on in the flattened clip as (tick, velocity).
+fn played_on_ticks(pattern: &Pattern) -> Vec<(u32, u8)> {
+    let mut out: Vec<(u32, u8)> = pattern
         .lanes
         .iter()
-        .flat_map(|lane| lane.notes.iter().map(|note| note.start_tick))
+        .flat_map(|lane| lane.notes.iter().map(|note| (note.start_tick, note.vel)))
         .collect();
     out.sort_unstable();
     out
@@ -91,11 +91,11 @@ fn what_plays_is_what_exports() {
             // Every played tick is an exported tick. Not the reverse: a slide's
             // destination note is written to the file and is part of the same
             // `Note` in the schedule.
-            let in_file: std::collections::BTreeSet<u32> = exported.iter().copied().collect();
+            let in_file: std::collections::BTreeSet<(u32, u8)> = exported.iter().copied().collect();
             for tick in &played {
                 assert!(
                     in_file.contains(tick),
-                    "{id}/{seed}: the schedule plays a note at {tick} the file does not"
+                    "{id}/{seed}: the schedule plays {tick:?} and the file does not — \n                     a tick or a velocity the export and the transport disagree on"
                 );
             }
         }
@@ -115,8 +115,8 @@ fn a_looping_clip_is_tiled_across_the_section_that_plays_it() {
     let ticks = played_on_ticks(&flat);
     // 8 bars + 4 bars of a one-bar clip carrying one note.
     assert_eq!(ticks.len(), 12, "the clip was not tiled: {ticks:?}");
-    assert_eq!(ticks.first(), Some(&0));
-    assert_eq!(ticks.last(), Some(&(11 * PPQ * 4)));
+    assert_eq!(ticks.first().map(|(tick, _)| *tick), Some(0));
+    assert_eq!(ticks.last().map(|(tick, _)| *tick), Some(11 * PPQ * 4));
 }
 
 #[test]
@@ -143,9 +143,9 @@ fn a_drop_out_is_silent_in_what_plays_as_well_as_in_what_exports() {
     let ticks = played_on_ticks(&song.flatten());
     let bar = PPQ * 4;
     // The first section keeps bars 0 and 1 and loses 2 and 3.
-    assert_eq!(ticks[0], 0);
-    assert_eq!(ticks[1], bar);
-    assert_eq!(ticks[2], 4 * bar, "the drop-out still sounded: {ticks:?}");
+    assert_eq!(ticks[0].0, 0);
+    assert_eq!(ticks[1].0, bar);
+    assert_eq!(ticks[2].0, 4 * bar, "the drop-out still sounded: {ticks:?}");
 }
 
 #[test]
@@ -330,4 +330,53 @@ fn a_single_part_flatten_keeps_that_part_rather_than_a_stand_in() {
     // And the whole-song flatten still uses the stand-in, because there is no
     // honest alternative — it never reaches the writer.
     assert_eq!(song.flatten().part, Part::Drums);
+}
+
+#[test]
+fn a_stem_and_its_track_in_the_multi_track_file_agree() {
+    // ⛔ **The strongest form of this module's claim, and the one the tick-set
+    // cross-check above cannot make.** `song_to_smf` tiles a part into a track;
+    // `pattern_to_smf(flatten_parts([part]))` is the same part as a stem file.
+    // They are two different routes to the same notes and they must produce the
+    // same bytes' worth of note-ons — otherwise a producer who drags the
+    // multi-track file gets one performance and one who drags the stems gets
+    // another.
+    //
+    // It caught a real divergence: a slide's destination note-on is emitted at
+    // `start + len / 2`, and the song exporter sampled the decay ramp *there*
+    // while the flatten baked it in at the note's onset. Every shipped model,
+    // 1–8 notes per song, quieter in the multi-track file than in the stem.
+    let mut clip = one_bar_kick("a");
+    clip.bars = 4;
+    clip.lanes = vec![engine::pattern::LaneTrack {
+        lane: Lane::Bass808,
+        notes: (0..4)
+            .map(|bar| Note {
+                start_tick: bar * PPQ * 4,
+                // Long, so the slide's halfway point is far from the onset and
+                // the two sampling points cannot coincide by luck.
+                len_ticks: PPQ * 2,
+                pitch: 30,
+                vel: 120,
+                model_vel: None,
+                slide_to_pitch: Some(37),
+                articulation: None,
+            })
+            .collect(),
+    }];
+
+    let mut song = two_sections(clip, 1, 4);
+    song.sections[1].decay = true;
+
+    let whole = exported_on_ticks(&song_to_smf(&song));
+    let stem = exported_on_ticks(&engine::midi::pattern_to_smf(
+        &song.flatten_parts(Some(&[Part::Drums])),
+    ));
+
+    assert!(!stem.is_empty(), "the stem carries no notes at all");
+    assert_eq!(
+        whole, stem,
+        "the multi-track file and the stem disagree — same part, same song, two \
+         different performances"
+    );
 }

@@ -343,3 +343,57 @@ fn every_section_of_every_sample_model_can_be_rerolled() {
         }
     }
 }
+
+#[test]
+fn rerolling_a_section_does_not_rewrite_a_clip_another_section_shares() {
+    // ⛔ **The collision the index keying alone could not prevent.** The id was
+    // `{model}-{kind}@{index}-{part}`, which is unique only if no *other*
+    // section holds a ref to that string — and the UI's clone inserts a copy
+    // sharing the source's refs while the source keeps its index, and paste
+    // writes an existing id into another section. So: re-roll a section, clone
+    // it, re-roll the original again, and the second insert replaced the clip
+    // the clone was also reading. The clone's notes changed with nothing on
+    // screen saying so — the exact byte-stability this task's criterion states.
+    //
+    // The re-roll seed is in the id now, so two re-rolls cannot collide.
+    let trap = model("trap");
+    let song = arrange::generate(&trap, &ctx(), 7).expect("builds");
+    let target = multi_part_section(&song);
+
+    let once =
+        arrange::reroll_section(&trap, &ctx(), song.clone(), target, 11, &[]).expect("re-rolls");
+
+    // What the timeline's clone does: a copy directly after, sharing the refs.
+    let mut cloned = once.clone();
+    let copy = cloned.sections[target].clone();
+    cloned.sections.insert(target + 1, copy);
+
+    // The notes the clone is reading, before the source is touched again.
+    let before: Vec<Vec<engine::pattern::LaneTrack>> = cloned.sections[target + 1]
+        .patterns
+        .values()
+        .map(|reference| cloned.pattern(reference).expect("resolves").lanes.clone())
+        .collect();
+
+    let again =
+        arrange::reroll_section(&trap, &ctx(), cloned.clone(), target, 22, &[]).expect("re-rolls");
+
+    let after: Vec<Vec<engine::pattern::LaneTrack>> = cloned.sections[target + 1]
+        .patterns
+        .values()
+        .map(|reference| {
+            again
+                .pattern(reference)
+                .expect("the clone's clip must survive")
+                .lanes
+                .clone()
+        })
+        .collect();
+
+    assert_eq!(
+        before,
+        after,
+        "re-rolling section {target} rewrote the clip its clone at {} is playing",
+        target + 1
+    );
+}

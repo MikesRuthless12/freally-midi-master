@@ -483,3 +483,123 @@ it('closing a drill-in stops the write-back', () => {
   useSession.getState().editPattern({ ...open!, bars: 8 });
   expect(useSong.getState().song?.patterns.a?.bars).toBe(4);
 });
+
+// ---------------------------------------------------------------------------
+// What the correctness review found. Every one of these was a live defect.
+// ---------------------------------------------------------------------------
+
+it('the snapshot taken on an artist change does not carry the old artist’s song', () => {
+  // ⛔ **The worst of them.** `song.ts` imports `session.ts`, so the history
+  // recorder is registered first and runs first for the same `set` — before the
+  // subscriber that clears the arrangement on an artist change. It therefore
+  // filed the outgoing artist's whole record under the incoming artist's id, and
+  // one Ctrl+Z brought it back under a different name and saved it there.
+  //
+  // Fixed by comparing `song.artistId` to `selectedId` in `snapshotOf` rather
+  // than by reordering subscribers, so registration order cannot break it again.
+  const current = song(); // artistId: 'trap'
+  useSong.setState({ song: current, edited: true });
+  useSession.setState({ selectedId: 'trap' });
+  useHistory.getState().arm({
+    selectedId: 'trap',
+    seed: '7',
+    bars: 4,
+    pins: {
+      bpm: null,
+      keyRoot: null,
+      scale: null,
+      swing: null,
+      timeSigNum: null,
+      timeSigDen: null,
+    },
+    autoSync: true,
+    pattern: null,
+    edited: false,
+    mood: null,
+    audioEnabled: true,
+    mutedLanes: [],
+    song: current,
+    songEdited: true,
+  });
+
+  // The artist moves. The song store is cleared by its own subscriber, but the
+  // history recorder has already run.
+  useSession.setState({ selectedId: 'uk-drill' });
+
+  const recorded = useHistory.getState().present?.state;
+  expect(recorded?.selectedId).toBe('uk-drill');
+  expect(recorded?.song).toBeNull();
+  expect(recorded?.songEdited).toBe(false);
+});
+
+it('an edit to a drilled-in clip does not re-arm the whole song', () => {
+  // ⛔ It runs on the *part* tab with the roll on screen, and the clip has
+  // already reached the audio thread through the session's own subscriber.
+  // Arming the arrangement here put the whole record on the transport while the
+  // roll drew four bars — and again on every subsequent note edit.
+  useSong.setState({ song: song() });
+  useSong.getState().drillInto({ sectionIndex: 0, part: 'drums' });
+  invoke.mockClear();
+
+  const open = useSession.getState().pattern;
+  useSession.getState().editPattern({ ...open!, bars: 8 });
+
+  expect(invoke.mock.calls.filter(([c]) => c === 'arm_song')).toHaveLength(0);
+  // The write-back itself still happened.
+  expect(useSong.getState().song?.patterns.a?.bars).toBe(8);
+});
+
+it('a drilled-in clip is never written back into a different song', () => {
+  // ⛔ `pattern_id` is `{model}-{section}-{part}` and carries **no seed**, so
+  // two generations of one artist reuse it. Drill in, Generate again, edit a
+  // note on the part tab, and song #1's clip replaced song #2's everywhere.
+  useSong.setState({ song: song() });
+  useSong.getState().drillInto({ sectionIndex: 0, part: 'drums' });
+
+  // A second generation: same clip ids, different song id.
+  const next = { ...song(), id: 'trap-song-99', seed: '99' };
+  useSong.setState({ song: next });
+
+  const open = useSession.getState().pattern;
+  useSession.getState().editPattern({ ...open!, bars: 8 });
+
+  expect(useSong.getState().song?.patterns.a?.bars).toBe(4);
+});
+
+it('merely looking at a clip is not an edit', () => {
+  // `drillInto` hands the editor the *same object* that is in the store, so the
+  // write-back would otherwise rebuild the song into an equal-but-new one, mark
+  // it edited and push an undo step that changes nothing on screen — and put a
+  // never-edited arrangement into the project file.
+  useSong.setState({ song: song(), edited: false });
+  useSong.getState().drillInto({ sectionIndex: 0, part: 'drums' });
+
+  expect(useSong.getState().edited).toBe(false);
+});
+
+it('a form picked for one artist does not follow to the next', () => {
+  // ⛔ A form index means a different form for a different artist, and one past
+  // the end of what they author makes every Generate fail — with no control on
+  // screen to clear it, because the picker lives inside the timeline and the
+  // timeline only mounts once a song exists. `mood` is cleared for exactly this
+  // reason and this was not.
+  useSession.setState({ selectedId: 'trap' });
+  useSong.setState({ song: song(), structure: 1 });
+
+  useSession.setState({ selectedId: 'uk-drill' });
+
+  expect(useSong.getState().structure).toBeNull();
+});
+
+it('generating a fresh song drops an audition placed on the old one', async () => {
+  // An audition names a section index *and* overrides both the loop and the
+  // part filter, so a kept one armed the brand-new song looping one cell of a
+  // section the producer never touched.
+  invoke.mockResolvedValue(song());
+  useSong.setState({ song: song(), audition: { sectionIndex: 1, part: 'drums' } });
+
+  await useSong
+    .getState()
+    .generate({ styleId: 'trap', seed: '9', pins: {} as never, mood: null });
+  expect(useSong.getState().audition).toBeNull();
+});

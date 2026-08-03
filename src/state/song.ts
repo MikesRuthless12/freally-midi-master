@@ -95,9 +95,12 @@ export type SongState = {
    * authored, which is the same meaning absence carries for every pin in this
    * app and what makes two generations of one artist differ.
    *
-   * ⚠ Kept across a generation, unlike the locks and the loop: it is an
-   * instruction about what to build *next*, so clearing it would mean the
-   * producer had to re-pick the form for every reroll.
+   * ⚠ Kept across a *generation*, unlike the locks and the loop: it is an
+   * instruction about what to build next, so clearing it would mean re-picking
+   * the form for every reroll. ⛔ But **not** across an artist change — a form
+   * index means a different form for a different artist, and one past the end
+   * of what they author makes every Generate fail with no control on screen to
+   * clear it. Same rule as `mood`, for the same reason.
    */
   structure: number | null;
   setStructure: (index: number | null) => void;
@@ -126,6 +129,14 @@ export type SongState = {
    * from under an editor that is still open.
    */
   drillPatternId: string | null;
+  /**
+   * The song the drilled-in clip came out of.
+   *
+   * ⛔ Held beside the id because the id does not identify a song:
+   * `pattern_id` is `{model}-{section}-{part}` and carries **no seed**, so two
+   * generations of one artist reuse it. `Song.id` does carry the seed.
+   */
+  drillSongId: string | null;
   drillInto: (clip: ClipId) => void;
   closeDrill: () => void;
 
@@ -225,6 +236,7 @@ export const useSong = create<SongState>((set, get) => ({
   structure: null,
   audition: null,
   drillPatternId: null,
+  drillSongId: null,
   exportState: 'idle',
   exportMessage: null,
 
@@ -310,7 +322,7 @@ export const useSong = create<SongState>((set, get) => ({
     const reference = song?.sections[clip.sectionIndex]?.patterns[clip.part];
     const pattern = reference ? song?.patterns[reference.patternId] : undefined;
     if (!reference || !pattern) return;
-    set({ drillPatternId: reference.patternId });
+    set({ drillPatternId: reference.patternId, drillSongId: song.id });
     // ⛔ Straight into the session's own clip slot, so the editors need no
     // second source. They draw `useSession.pattern` and nothing else — an
     // "embed mode" reading from the song would be a second renderer for the
@@ -319,7 +331,7 @@ export const useSong = create<SongState>((set, get) => ({
   },
 
   closeDrill() {
-    set({ drillPatternId: null });
+    set({ drillPatternId: null, drillSongId: null });
   },
 
   armSong() {
@@ -402,6 +414,15 @@ export const useSong = create<SongState>((set, get) => ({
         // sections at those indices — a kept loop would repeat whichever bars
         // happened to land there.
         loopSection: null,
+        // ⛔ The audition names a section index *and* overrides both the loop
+        // and the part filter, so a kept one armed the brand-new song looping
+        // one cell of a section the producer never touched.
+        audition: null,
+        // ⛔ The drill-in names a clip id that carries no seed, so it resolves
+        // against this new song just as happily as the old one — and the next
+        // note edited on the part tab wrote the *previous* song's clip into it.
+        drillPatternId: null,
+        drillSongId: null,
         // The view is deliberately kept: regenerating while zoomed in should
         // not throw the producer back to the top of the song.
       });
@@ -429,6 +450,9 @@ export const useSong = create<SongState>((set, get) => ({
           seed: null,
           locked: lockedPartsIn(locks, index),
           mood,
+          // Only swing and half-time are read on the far side — everything
+          // else a session pins is already carried by the song itself.
+          session: useSession.getState().pins,
         },
       });
       set({ song: next, generating: false, selection: [], anchor: null });
@@ -580,6 +604,18 @@ useSession.subscribe((state, previous) => {
       // to open with everything else silent.
       mutedParts: [],
       soloParts: [],
+      audition: null,
+      drillPatternId: null,
+      drillSongId: null,
+      // ⛔ **The form pin goes with the artist, exactly as `mood` does** — and
+      // `session.ts` gives the reason for `mood` in the same words: on a style
+      // that offers fewer forms the control is not even rendered, so there is
+      // no way on screen to clear it. Kept, a form index pinned on one artist
+      // silently built a *different* artist's form 1 — and if the new artist
+      // authored fewer forms, every Generate failed with "there is no form 1",
+      // leaving Song Mode unusable: the picker lives inside the timeline, which
+      // only mounts once a song exists, and no song could be built.
+      structure: null,
       error: null,
     });
   }
@@ -638,18 +674,47 @@ registerSongDocument(
  */
 useSession.subscribe((state, previous) => {
   if (state.pattern === previous.pattern) return;
-  const { song, drillPatternId } = useSong.getState();
+  const { song, drillPatternId, drillSongId } = useSong.getState();
   if (!song || drillPatternId === null || state.pattern === null) return;
+
   // Only while the edited clip is still the one that was drilled into. Pressing
   // Generate on the part tab replaces it with a fresh four-bar loop, which is a
   // new clip rather than an edit of the song's — writing that back would drop a
   // whole section's arrangement into the timeline without anybody asking.
   if (state.pattern.id !== drillPatternId) return;
 
+  // ⛔ **And only into the song it came out of.** `pattern_id` is
+  // `{model}-{section}-{part}` — **the seed is not in it** — so two generations
+  // of one artist reuse the same clip ids, and the id alone does not say *which
+  // song* the clip in hand belongs to. Drill in, press Generate again, then edit
+  // a note on the part tab, and song #1's clip silently replaced song #2's in
+  // every section that plays it. `Song.id` carries the seed, so it does.
+
+  // ⛔ **And only into the song it came out of.** `pattern_id` is
+  // `{model}-{section}-{part}` — **the seed is not in it** — so two generations
+  // of one artist reuse the same clip ids, and the id alone does not say *which
+  // song* the clip in hand belongs to. Drill in, press Generate again, then edit
+  // a note on the part tab, and song #1's clip silently replaced song #2's in
+  // every section that plays it. `Song.id` carries the seed, so it does.
+  if (song.id !== drillSongId) return;
+
+  // Nothing to write back: `drillInto` hands the editor the *same object* that
+  // is already in the store, so a double-click that only looked at a clip would
+  // otherwise rebuild the song into an equal-but-new object, mark it edited and
+  // push an undo step that changes nothing on screen.
+  if (song.patterns[drillPatternId] === state.pattern) return;
+
   useSong.setState({
     song: { ...song, patterns: { ...song.patterns, [drillPatternId]: state.pattern } },
   });
-  markEdited();
+  // ⛔ **Recorded and saved, but *not* re-armed.** This runs on the part tab
+  // with the roll on screen, and the clip has already reached the audio thread
+  // through `session.ts`'s own pattern subscriber. Arming the whole song here
+  // put the 56-bar record on the transport while the roll drew four bars — the
+  // exact readout-that-lies failure `SongTimeline`'s mount effect exists to
+  // prevent — and it happened again on every note edit. The timeline arms the
+  // arrangement when the producer goes back to it.
+  markEdited({ arm: false });
 });
 
 /**
@@ -761,10 +826,12 @@ function lockedPartsIn(locks: string[], index: number): Part[] {
  * a path that set the flag without asking for a save would leave the producer's
  * arrangement in memory only, which is the failure this task exists to close.
  */
-function markEdited(): void {
+function markEdited({ arm = true }: { arm?: boolean } = {}): void {
   useSong.setState({ edited: true });
   noteDocumentChange();
-  useSong.getState().armSong();
+  // ⚠ The one caller that passes `false` is the drill-in write-back, which runs
+  // while a *part editor* is on screen — see the note there.
+  if (arm) useSong.getState().armSong();
 }
 
 /**

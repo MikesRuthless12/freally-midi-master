@@ -545,6 +545,10 @@ struct RerollArgs {
     locked: Vec<Part>,
     #[serde(default)]
     mood: Option<String>,
+    /// The pins the producer set. Only  and  are read — every
+    /// other session value is carried by the  itself.
+    #[serde(default)]
+    session: Option<SessionOverrides>,
 }
 
 /// Re-roll one section, in the song's own key, tempo and meter.
@@ -595,10 +599,20 @@ fn reroll_section(args: RerollArgs, host: &HostSession) -> Result<engine::patter
         time_sig_num: Some(args.song.time_sig_num),
         time_sig_den: Some(args.song.time_sig_den),
         bars,
-        // Not on the `Song`, so they come from the model the way they did when
-        // it was generated.
-        swing: None,
-        half_time: None,
+        // ⛔ **From the producer's pins, not from nothing.** These two are the
+        // only session values a `Song` does not carry, and assuming they were
+        // never pinned was wrong: `generate_song` takes `overrides` straight
+        // from the page's `pins`, which includes `swing` — so a song generated
+        // at a pinned 0.62 came back re-rolled at the model's authored 0.54, and
+        // the re-rolled section's hats sat ~17 ms ahead of every other
+        // section's, reproducibly, so it read as deliberate. That is the same
+        // failure this function's own doc comment exists to prevent for the key
+        // and the tempo, one field over.
+        //
+        // Absent still means "the artist chooses", which is what `SessionPins`
+        // uses absence for everywhere else.
+        swing: args.session.as_ref().and_then(|s| s.swing),
+        half_time: args.session.as_ref().and_then(|s| s.half_time),
     };
 
     // ⛔ `auto_sync` is **false**, and it is not a shortcut. Every field the

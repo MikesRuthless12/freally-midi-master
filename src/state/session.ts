@@ -359,7 +359,25 @@ function snapshotOf(state: SessionState): Snapshot {
     state;
   // The arrangement lives in its own store and is read through the seam, for
   // the same reason `send()` reads it there — see `registerSongDocument`.
-  const arrangement = readSongDocument();
+  //
+  // ⛔ **Only when it belongs to the artist that is selected, and this is not
+  // belt-and-braces — it is the fix for a real ordering bug.** `song.ts` imports
+  // `session.ts`, so this store's subscribers are registered first and run first
+  // for the same `set`. When `select()` writes `selectedId`, the history
+  // recorder therefore runs *before* `song.ts` clears the arrangement — and
+  // filed the outgoing artist's song under the incoming artist's id. Ctrl+Z then
+  // brought the previous artist's whole record back under a different name, and
+  // the next save wrote it to the project. `put()` did the same thing to a
+  // preset load.
+  //
+  // Comparing the ids rather than reordering the subscribers is what makes it
+  // robust: a `Song` knows which artist it was built for, so this cannot be
+  // broken again by a change to registration order.
+  const held = readSongDocument();
+  const arrangement =
+    held.song !== null && held.song.artistId !== state.selectedId
+      ? { song: null, edited: false }
+      : held;
   return {
     selectedId,
     seed,

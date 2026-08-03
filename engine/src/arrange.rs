@@ -491,7 +491,17 @@ pub fn reroll_section(
             // there would be nothing on screen saying it had gone.
             continue;
         };
-        let id = pattern_id(model, &format!("{kind_name}@{index}"), *part);
+        // ⛔ **The re-roll seed is in the id, and that is what makes it
+        // unique.** Keying on `{kind}@{index}` alone assumed no *other* section
+        // could hold a ref to that string — but `cloneSection` inserts a copy
+        // sharing the source's refs, and `pasteClips` writes an existing id into
+        // another section. Re-roll a section, clone it, re-roll the original
+        // again, and the second `insert` replaced the clip the clone was also
+        // reading: the clone's notes changed with nothing on screen saying so,
+        // which is exactly the byte-stability this task's own criterion states.
+        // A fresh seed per re-roll cannot collide, and `prune_patterns` clears
+        // the entry the section stopped pointing at.
+        let id = pattern_id(model, &format!("{kind_name}@{index}:{seed}"), *part);
         next.patterns.insert(
             id.clone(),
             pattern_for(model, ctx, section_seed, *part, &id, lanes.clone()),

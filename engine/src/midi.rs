@@ -425,8 +425,19 @@ fn song_events_for(song: &Song, part: Part) -> Vec<Event> {
                 // ⚠ Only the note-*on* carries the fade. A note-off's velocity
                 // is a release value no sampler reads as loudness, and scaling
                 // it would ramp a number that means nothing.
+                //
+                // ⛔ **Sampled at `origin`, not at `tick`, so the file agrees
+                // with what plays.** `flatten_parts` evaluates the ramp once at
+                // each note's onset; the two coincide for a plain note, but an
+                // 808 slide emits its destination note-on at `start + len / 2`,
+                // so sampling `event.tick` read the ramp half a note later and
+                // wrote a quieter value than the transport and the stem files
+                // carry. Measured at 1–8 divergences per song across every
+                // shipped model — small, reproducible, and exactly the class of
+                // "the export is not what you heard" this module now shares
+                // `SectionTiling` to prevent.
                 let velocity = if event.is_on {
-                    tiling.velocity(repeat, event.tick, event.velocity)
+                    tiling.velocity(repeat, event.origin, event.velocity)
                 } else {
                     event.velocity
                 };
