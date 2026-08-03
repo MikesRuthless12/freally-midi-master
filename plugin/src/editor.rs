@@ -673,8 +673,9 @@ fn rpc(body: &[u8], shared: &SharedState) -> String {
         }
         Ok(request) => {
             let host = shared.host.snapshot();
-            let outcome = window_command(&request, shared)
-                .unwrap_or_else(|| bridge::dispatch(&request, &host, &shared.session));
+            let outcome = window_command(&request, shared).unwrap_or_else(|| {
+                bridge::dispatch(&request, &host, &shared.session, &shared.exports)
+            });
             match outcome {
                 Ok(value) => {
                     // A generation is the one command with a side effect

@@ -78,6 +78,7 @@ pub fn dispatch(
     request: &Request,
     host: &HostSession,
     session: &SessionStore,
+    exports: &crate::export::Exports,
 ) -> Result<Value, String> {
     match request.command.as_str() {
         // ---- The licence gate. See [`crate::eula`] ------------------------
@@ -144,7 +145,7 @@ pub fn dispatch(
         // is one round trip per scale change and never one per frame.
         "scale_pitches" => {
             let scale: engine::pattern::Scale =
-                serde_json::from_value(request.args["scale"].clone())
+                engine::pattern::Scale::deserialize(&request.args["scale"])
                     .map_err(|e| format!("unknown scale: {e}"))?;
             Ok(json!(engine::theory::scale_semitones(scale)))
         }
@@ -162,13 +163,13 @@ pub fn dispatch(
         // materialisation decision is built (see the roadmap, above Phase 4).
         // Arming is a *playback* concern and is all this needs to do.
         "arm_pattern" => {
-            let pattern: Pattern = serde_json::from_value(request.args["pattern"].clone())
+            let pattern: Pattern = Pattern::deserialize(&request.args["pattern"])
                 .map_err(|e| format!("bad pattern: {e}"))?;
             serde_json::to_value(pattern).map_err(|e| e.to_string())
         }
 
         "generate_pattern" => {
-            let args: GenerateArgs = serde_json::from_value(request.args["request"].clone())
+            let args: GenerateArgs = Deserialize::deserialize(&request.args["request"])
                 .map_err(|e| format!("bad generate request: {e}"))?;
             // Auto-sync is a *session* setting, so it is read from the store
             // rather than sent with the request: the page already saves it there
@@ -184,7 +185,7 @@ pub fn dispatch(
         // their geometry, and the pattern store the refs resolve into — so the
         // timeline can draw it without a second round trip per clip.
         "generate_song" => {
-            let args: GenerateArgs = serde_json::from_value(request.args["request"].clone())
+            let args: GenerateArgs = Deserialize::deserialize(&request.args["request"])
                 .map_err(|e| format!("bad generate request: {e}"))?;
             let auto_sync = state::with(session, |s| s.auto_sync).unwrap_or(true);
             serde_json::to_value(generate_song(&args, host, auto_sync)?).map_err(|e| e.to_string())
@@ -198,8 +199,9 @@ pub fn dispatch(
         // `crate::export` for the whole reasoning; it is the same
         // "takes the DAW down" shape this codebase has been bitten by twice.
         "export_song" => {
-            let song: engine::pattern::Song = serde_json::from_value(request.args["song"].clone())
-                .map_err(|e| format!("bad song: {e}"))?;
+            let song: engine::pattern::Song =
+                engine::pattern::Song::deserialize(&request.args["song"])
+                    .map_err(|e| format!("bad song: {e}"))?;
             let dangling = song.dangling_refs();
             if !dangling.is_empty() {
                 return Err(format!(
@@ -214,7 +216,9 @@ pub fn dispatch(
             // from the webview.
             check_song(&song)?;
             let suggested = format!("{}-{}.mid", song.artist_id, song.seed);
-            crate::export::start_song_midi(&song, &suggested).map(|()| Value::Null)
+            exports
+                .start_song_midi(song, &suggested)
+                .map(|()| Value::Null)
         }
 
         // One file per part, into a folder the producer picks (TASK-069).
@@ -224,11 +228,14 @@ pub fn dispatch(
         // no voice to render through yet (FMM-N15/FMM-N16). Writing four silent
         // wavs and calling them stems would be worse than not offering them.
         "export_stems" => {
-            let song: engine::pattern::Song = serde_json::from_value(request.args["song"].clone())
-                .map_err(|e| format!("bad song: {e}"))?;
+            let song: engine::pattern::Song =
+                engine::pattern::Song::deserialize(&request.args["song"])
+                    .map_err(|e| format!("bad song: {e}"))?;
             check_song(&song)?;
             let folder = format!("{}-{}-stems", song.artist_id, song.seed);
-            crate::export::start_song_stems(&song, &folder).map(|()| Value::Null)
+            exports
+                .start_song_stems(song, &folder)
+                .map(|()| Value::Null)
         }
 
         // How the export that is running ended, if it has.
@@ -236,9 +243,7 @@ pub fn dispatch(
         // ⚠ Polled, and the outcome is *taken* — see `export::take_status`. A
         // terminal status left in place would re-announce the same successful
         // export on every tick.
-        "export_status" => {
-            serde_json::to_value(crate::export::take_status()).map_err(|e| e.to_string())
-        }
+        "export_status" => serde_json::to_value(exports.take_status()).map_err(|e| e.to_string()),
 
         // The forms this artist writes, for the structure picker (TASK-070).
         //
@@ -269,7 +274,7 @@ pub fn dispatch(
         // marker fed from one pattern's clock would sit at bar 3 of a 56-bar
         // arrangement and stay there.
         "arm_song" => {
-            let args: ArmSongArgs = serde_json::from_value(request.args["request"].clone())
+            let args: ArmSongArgs = Deserialize::deserialize(&request.args["request"])
                 .map_err(|e| format!("bad arm request: {e}"))?;
             // The same trust boundary the export and the re-roll use. Flattening
             // allocates one note per tile, so an unbounded song is an unbounded
@@ -293,9 +298,9 @@ pub fn dispatch(
         // re-roll that re-derived the whole song would silently discard every
         // other edit the producer had made.
         "reroll_section" => {
-            let args: RerollArgs = serde_json::from_value(request.args["request"].clone())
+            let args: RerollArgs = Deserialize::deserialize(&request.args["request"])
                 .map_err(|e| format!("bad re-roll request: {e}"))?;
-            serde_json::to_value(reroll_section(&args, host)?).map_err(|e| e.to_string())
+            serde_json::to_value(reroll_section(args, host)?).map_err(|e| e.to_string())
         }
 
         // The bytes of a whole arranged song, for the drag-out and for Save As.
@@ -306,8 +311,9 @@ pub fn dispatch(
         // what is on screen, and re-deriving here would hand the producer the
         // song they started with instead of the one they arranged.
         "song_smf" => {
-            let song: engine::pattern::Song = serde_json::from_value(request.args["song"].clone())
-                .map_err(|e| format!("bad song: {e}"))?;
+            let song: engine::pattern::Song =
+                engine::pattern::Song::deserialize(&request.args["song"])
+                    .map_err(|e| format!("bad song: {e}"))?;
             let dangling = song.dangling_refs();
             if !dangling.is_empty() {
                 return Err(format!(
@@ -356,7 +362,7 @@ pub fn dispatch(
         // mean "the artist chooses" — so a patch protocol would make "unpin
         // the tempo" and "do not mention the tempo" the same message.
         "save_session_state" => {
-            let mut next: PluginSession = serde_json::from_value(request.args["session"].clone())
+            let mut next: PluginSession = PluginSession::deserialize(&request.args["session"])
                 .map_err(|e| format!("bad session state: {e}"))?;
 
             // `window_size` is the *editor's*, not the UI's — `set_editor_size`
@@ -558,7 +564,7 @@ struct RerollArgs {
 /// song; deriving this one from the current session instead would put a single
 /// verse in a different key from the record around it — in tune with nothing,
 /// and reproducible, so it would look deliberate.
-fn reroll_section(args: &RerollArgs, host: &HostSession) -> Result<engine::pattern::Song, String> {
+fn reroll_section(args: RerollArgs, host: &HostSession) -> Result<engine::pattern::Song, String> {
     // The same trust boundary `song_smf` documents: a `Song` arrives here as
     // JSON from the webview, and re-rolling clones it and generates against its
     // numbers. Deserializing proves the shape and nothing about the values.
@@ -612,7 +618,7 @@ fn reroll_section(args: &RerollArgs, host: &HostSession) -> Result<engine::patte
     // not.
     let ctx = host.session_for(&model, &overrides, seed, false);
 
-    engine::arrange::reroll_section(&model, &ctx, &args.song, args.index, seed, &args.locked)
+    engine::arrange::reroll_section(&model, &ctx, args.song, args.index, seed, &args.locked)
         .map_err(|error| error.to_string())
 }
 
@@ -868,7 +874,12 @@ mod tests {
     /// get a throwaway store. The session commands use [`super::dispatch`]
     /// directly with one they can inspect.
     fn dispatch(request: &Request, host: &HostSession) -> Result<Value, String> {
-        super::dispatch(request, host, &SessionStore::default())
+        super::dispatch(
+            request,
+            host,
+            &SessionStore::default(),
+            &crate::export::Exports::default(),
+        )
     }
 
     #[test]
@@ -1559,10 +1570,17 @@ mod tests {
             ),
             &host(),
             &store,
+            &crate::export::Exports::default(),
         );
         assert!(saved.is_ok(), "{saved:?}");
 
-        let value = super::dispatch(&request("session_state", json!({})), &host(), &store).unwrap();
+        let value = super::dispatch(
+            &request("session_state", json!({})),
+            &host(),
+            &store,
+            &crate::export::Exports::default(),
+        )
+        .unwrap();
 
         assert_eq!(value["selectedId"], "uk-drill");
         assert_eq!(value["seed"], "2024");
@@ -1601,6 +1619,7 @@ mod tests {
             ),
             &host(),
             &store,
+            &crate::export::Exports::default(),
         )
         .unwrap_err();
         assert!(err.contains("bad session state"), "{err}");
@@ -1634,6 +1653,7 @@ mod tests {
             ),
             &host(),
             &store,
+            &crate::export::Exports::default(),
         )
         .unwrap();
 
@@ -1661,6 +1681,7 @@ mod tests {
             ),
             &host(),
             &store,
+            &crate::export::Exports::default(),
         )
         .unwrap();
 
@@ -1680,6 +1701,7 @@ mod tests {
             ),
             &host(),
             &store,
+            &crate::export::Exports::default(),
         )
         .unwrap();
 
@@ -1695,6 +1717,7 @@ mod tests {
                 ),
                 &host(),
                 &store,
+                &crate::export::Exports::default(),
             )
             .unwrap()
         };

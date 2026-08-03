@@ -19,7 +19,7 @@ import { useTranslation } from 'react-i18next';
 import type { Part, Pattern as PatternType, Section, Song } from '../../lib/ipc-types';
 import { isTypingTarget } from '../../lib/keyboard';
 import { armCurrentPattern, useSession } from '../../state/session';
-import { useSong } from '../../state/song';
+import { lockKey, lockedRegions, useSong } from '../../state/song';
 import { isSelected, partsInUse, totalBars } from './clips';
 import { barLabel, barToSeconds, barToX, formatTime, gridFor } from './geometry';
 import { density, sketchGradient } from './sketch';
@@ -63,7 +63,6 @@ export function SongTimeline({ song }: Props) {
   // the selection, so deriving it here would drop the cut clips onto section 0.
   const anchor = useSong((s) => s.anchor) ?? 0;
 
-  const playhead = useSession((s) => s.playhead);
   const seek = useSession((s) => s.seek);
   const armSong = useSong((s) => s.armSong);
   const loopSection = useSong((s) => s.loopSection);
@@ -96,10 +95,17 @@ export function SongTimeline({ song }: Props) {
   // switch to Drums, press Play, and hear the whole record with the roll's
   // marker crawling across a four-bar clip — both halves looking right on their
   // own, which is the worst kind of wrong readout.
+  //
+  // ⛔ **`song` is deliberately NOT a dependency.** It is a new object on every
+  // arrangement edit, so including it made one resize fire three unordered
+  // round trips — `arm_song` from `apply`, then this effect's *cleanup* arming
+  // the four-bar clip, then `arm_song` again — and whichever resolved last won.
+  // The store already arms on every path that changes the song; this is only
+  // about arriving and leaving.
   useEffect(() => {
     armSong();
     return armCurrentPattern;
-  }, [armSong, song]);
+  }, [armSong]);
 
   // ⛔ **Focus has to come back here after an edit removes a clip.** A clip is a
   // <button>, so clicking one focuses it — and cut and delete then unmount the
@@ -127,6 +133,11 @@ export function SongTimeline({ song }: Props) {
     }
     return out;
   }, [bars, grid.labelStep, song.bpm, beatsPerBar]);
+
+  // Which sections and rows are fully locked. Computed once per lock change
+  // rather than per render: the view asks for each value three times — the
+  // class, the `aria-pressed` and the icon — for every section and every row.
+  const locked = useMemo(() => lockedRegions(song, locks), [song, locks]);
 
   // ⛔ **The grid is a repeating gradient, not one element per line.** Drawn as
   // elements it was unbounded in the song's own length: `sectionBars` accepts up
@@ -314,7 +325,7 @@ export function SongTimeline({ song }: Props) {
                 width={section.bars * view.zoom}
                 selected={selection.some((c) => c.sectionIndex === index)}
                 looping={loopSection === index}
-                locked={sectionLocked(locks, section, index)}
+                locked={locked.sections[index] ?? false}
                 onSelect={(additive) => selectSection(index, additive)}
                 onResize={(barsNext) => resize(index, barsNext)}
                 onClone={() => clone(index)}
@@ -329,14 +340,7 @@ export function SongTimeline({ song }: Props) {
               Drawn over the whole canvas so it crosses the ruler and every row,
               and translated rather than laid out so following it costs no
               layout — the same trick the roll's marker uses at 30 Hz. */}
-          {playhead > 0 && (
-            <div
-              className="song__playhead"
-              data-testid="song-playhead"
-              style={{ transform: `translateX(${playhead * width}px)` }}
-              aria-hidden="true"
-            />
-          )}
+          <Playhead width={width} />
 
           {/* ── The clip grid. */}
           <div
@@ -402,13 +406,13 @@ export function SongTimeline({ song }: Props) {
                       that plays it, so a re-roll leaves it alone (TASK-070). */}
                   <button
                     type="button"
-                    className={`song__row-lock${rowLocked(locks, song, part) ? ' is-on' : ''}`}
-                    aria-pressed={rowLocked(locks, song, part)}
+                    className={`song__row-lock${(locked.rows[part] ?? false) ? ' is-on' : ''}`}
+                    aria-pressed={locked.rows[part] ?? false}
                     aria-label={t('song.lockRow', { part: t(`tabs.${part}`) })}
                     title={t('song.lockHint')}
                     onClick={() => toggleRowLock(part)}
                   >
-                    {rowLocked(locks, song, part) ? <Lock size={12} /> : <LockOpen size={12} />}
+                    {(locked.rows[part] ?? false) ? <Lock size={12} /> : <LockOpen size={12} />}
                   </button>
                 </span>
                 {song.sections.map((section, index) =>
@@ -421,7 +425,7 @@ export function SongTimeline({ song }: Props) {
                       left={barToX(section.startBar, view)}
                       width={section.bars * view.zoom}
                       selected={isSelected(selection, { sectionIndex: index, part })}
-                      locked={locks.includes(`${index}:${part}`)}
+                      locked={locks.includes(lockKey({ sectionIndex: index, part }))}
                       auditioning={audition?.sectionIndex === index && audition?.part === part}
                       beatsPerBar={beatsPerBar}
                       onSelect={(additive) => select({ sectionIndex: index, part }, additive)}
@@ -441,23 +445,27 @@ export function SongTimeline({ song }: Props) {
 }
 
 /**
- * Whether every clip in a section is locked.
+ * The transport marker, and the *only* thing here that watches the playhead.
  *
- * ⛔ **Every, not any.** A half-locked section reporting itself locked would let
- * a re-roll change part of it while the badge said otherwise — and the producer
- * would only find out by hearing a section they had pinned come back different.
+ * ⛔ **A leaf, because the subscription is what re-renders.** Read in
+ * `SongTimeline` itself, the 30 Hz playhead tick reconciled the toolbar, the
+ * structure row, the ruler, every section header and up to 320 clips — each
+ * with its own `useTranslation`, six `t()` calls and two SVG trees — thirty
+ * times a second, to move one element by a transform. `PianoRoll` and
+ * `shortcuts.ts` both document reaching the same conclusion; Song Mode
+ * reintroduced the pattern against a DOM tree instead of a canvas.
  */
-function sectionLocked(locks: string[], section: Section, index: number): boolean {
-  const parts = Object.keys(section.patterns) as Part[];
-  return parts.length > 0 && parts.every((part) => locks.includes(`${index}:${part}`));
-}
-
-/** The same question for a part row, across every section that plays it. */
-function rowLocked(locks: string[], song: Song, part: Part): boolean {
-  const playing = song.sections
-    .map((section, index) => (section.patterns[part] ? index : null))
-    .filter((index): index is number => index !== null);
-  return playing.length > 0 && playing.every((index) => locks.includes(`${index}:${part}`));
+function Playhead({ width }: { width: number }) {
+  const playhead = useSession((s) => s.playhead);
+  if (playhead <= 0) return null;
+  return (
+    <div
+      className="song__playhead"
+      data-testid="song-playhead"
+      style={{ transform: `translateX(${playhead * width}px)` }}
+      aria-hidden="true"
+    />
+  );
 }
 
 type HeaderProps = {

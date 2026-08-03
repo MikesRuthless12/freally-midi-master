@@ -64,11 +64,13 @@ it('a note lands in the bucket its position falls in', () => {
   expect(levels.filter((level) => level > 0)).toHaveLength(1);
 });
 
-it('a note at the very end of the clip is drawn, not dropped', () => {
-  // Clamped rather than skipped: the last column reading as silence for a note
-  // that is really there is the kind of wrong picture nobody questions.
+it('a note at the very end of the clip falls outside it, and is not drawn', () => {
+  // ⚠ The bucket index for `startTick === ticks` is `BUCKETS`, which is past the
+  // end — so `columnDensity` skips it. That is unreachable in the app rather
+  // than a gap: `clampNote` keeps every note's onset strictly inside the clip,
+  // and a clip's own length is what defines where 'the end' is.
   const levels = density(clip({ lanes: [lane([960 * 4])] }));
-  expect(levels[BUCKETS - 1]).toBe(1);
+  expect(levels.every((level) => level === 0)).toBe(true);
 });
 
 it('density is relative to the clip’s own busiest bucket', () => {

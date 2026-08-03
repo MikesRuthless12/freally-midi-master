@@ -24,16 +24,17 @@
 //! twice quickly" is not a thing anybody means to do.
 
 use std::path::{Path, PathBuf};
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
-use engine::pattern::Song;
+use engine::pattern::{Song, PART_ORDER};
 use serde::Serialize;
 
 /// How an export ended, for the page to show.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+#[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "camelCase", tag = "state")]
 pub enum Status {
     /// Nothing has been exported since the last time the page looked.
+    #[default]
     Idle,
     /// A dialog is open, or the bytes are being written.
     Running,
@@ -51,119 +52,184 @@ pub enum Status {
     },
 }
 
-/// The one slot. See the module header for why there is only one.
-static STATUS: Mutex<Status> = Mutex::new(Status::Idle);
-
-/// Start writing `song` to a file the producer picks.
+/// One in-flight export and its outcome, held **per plugin instance**.
 ///
-/// Returns as soon as the thread is running. `suggested` is the file name the
-/// dialog opens with — the artist and the seed, so a folder full of exports is
-/// readable without opening any of them.
-pub fn start_song_midi(song: &Song, suggested: &str) -> Result<(), String> {
-    // Encoded **here, on the caller's thread**, and deliberately: the bytes are
-    // a pure function of the song and this is the last place that still has a
-    // borrow of it. Sending the `Song` to the thread instead would mean cloning
-    // an arrangement that can be megabytes, and doing the encoding somewhere
-    // nothing is waiting for it buys nothing.
-    let bytes = engine::midi::song_to_smf(song);
-    let name = sanitize(suggested);
-
-    {
-        let mut slot = STATUS
-            .lock()
-            .map_err(|_| "the export state is unusable".to_owned())?;
-        if *slot == Status::Running {
-            return Err("an export is already open — finish that one first".to_owned());
-        }
-        *slot = Status::Running;
-    }
-
-    std::thread::spawn(move || {
-        let picked = rfd::FileDialog::new()
-            .set_file_name(&name)
-            .add_filter("MIDI file", &["mid"])
-            .save_file();
-        let status = match picked {
-            Some(path) => write(&with_extension(path), &bytes),
-            None => Status::Cancelled,
-        };
-        if let Ok(mut slot) = STATUS.lock() {
-            *slot = status;
-        }
-    });
-
-    Ok(())
+/// ⛔ **Not a process global, and the difference is a real failure.** A DAW can
+/// load this plugin on twenty tracks in one process, and `take_status` is
+/// *destructive* — so a shared slot means instance B's 400 ms poll steals
+/// instance A's `Done { path }`. A's chip then reads "exporting…" until the
+/// five-minute timeout while B announces a file it never wrote, and the
+/// one-at-a-time refusal fires across instances with no dialog visible in the
+/// one that was refused. Everything else global in this crate — the dataset,
+/// the kit, the licence flag — is genuinely process-wide and effectively
+/// immutable; this is per-user-action state and belongs beside the session.
+#[derive(Debug, Default)]
+pub struct Exports {
+    status: Arc<Mutex<Status>>,
 }
 
-/// Write one file per part into a folder the producer picks (TASK-069).
-///
-/// ## ⛔ MIDI stems, not audio stems, and the reason is measured
-///
-/// TASK-069 asks for per-part **wavs**. The plugin cannot honestly produce them
-/// yet: `audio::Kit::pad_for` returns `None` for Melody, Counter, Bass and
-/// Chords, because the preview kit is a *drum* kit — `lib.rs` says so in as
-/// many words and points at FMM-N15/FMM-N16 for the pitched voices. Rendering
-/// the four melodic parts today would write four silent files and call them
-/// stems, which is worse than not offering them: a producer would import them,
-/// hear nothing, and blame their DAW.
-///
-/// So this writes what the plugin actually has — one **type-0 `.mid` per
-/// part**, which the roadmap's own entry lists beside the wavs ("per-part
-/// type-0 clips alongside"). The audio half arrives with the pitched voices.
-///
-/// ## What "aligned to bar 1, identical lengths" means here
-///
-/// Every file is the whole song's timeline with one part in it, so they line up
-/// by construction: dropping all five onto a DAW at bar 1 reassembles the
-/// arrangement. That is the property the wav half would have needed too, and
-/// flattening is what gives it — see `Song::flatten_parts`.
-pub fn start_song_stems(song: &Song, folder_name: &str) -> Result<(), String> {
-    // Encoded on the caller's thread, for the same reason `start_song_midi`
-    // does it: the bytes are a pure function of the song, and cloning a whole
-    // arrangement onto the dialog thread would buy nothing.
-    let mut files: Vec<(String, Vec<u8>)> = Vec::new();
-    for part in engine::pattern::PART_ORDER {
-        let flat = song.flatten_parts(Some(&[part]));
-        // A part nothing plays gets no file. An empty stem is a file a producer
-        // imports, hears nothing from, and has to work out was always empty.
-        if flat.note_count() == 0 {
-            continue;
+impl Exports {
+    /// Start writing `song` to a file the producer picks.
+    ///
+    /// Returns as soon as the thread is running. `suggested` is the file name
+    /// the dialog opens with — the artist and the seed, so a folder full of
+    /// exports is readable without opening any of them.
+    pub fn start_song_midi(&self, song: Song, suggested: &str) -> Result<(), String> {
+        let name = sanitize(suggested);
+        let claimed = self.claim()?;
+        // ⛔ **Encoded inside the job, after the dialog returns, not before it
+        // opens.** Doing it on the caller's thread put a whole-song SMF encode
+        // on the frame the page is waiting on — the very thread this module
+        // exists to keep free — and threw all of it away on the cancel that the
+        // header calls the ordinary way out.
+        run_dialog(claimed, move || {
+            let Some(path) = rfd::FileDialog::new()
+                .set_file_name(&name)
+                .add_filter("MIDI file", &["mid"])
+                .save_file()
+            else {
+                return Status::Cancelled;
+            };
+            write(&with_extension(path), &engine::midi::song_to_smf(&song))
+        });
+        Ok(())
+    }
+
+    /// Write one file per part into a folder the producer picks (TASK-069).
+    ///
+    /// ## ⛔ MIDI stems, not audio stems, and the reason is measured
+    ///
+    /// TASK-069 asks for per-part **wavs**. The plugin cannot honestly produce
+    /// them yet: `audio::Kit::pad_for` returns `None` for Melody, Counter, Bass
+    /// and Chords, because the preview kit is a *drum* kit — `lib.rs` says so in
+    /// as many words and points at FMM-N15/FMM-N16 for the pitched voices.
+    /// Rendering the four melodic parts today would write four silent files and
+    /// call them stems, which is worse than not offering them: a producer would
+    /// import them, hear nothing, and blame their DAW.
+    ///
+    /// So this writes what the plugin actually has — one **type-0 `.mid` per
+    /// part**, which the roadmap's own entry lists beside the wavs ("per-part
+    /// type-0 clips alongside"). The audio half arrives with the pitched voices.
+    ///
+    /// ## What "aligned to bar 1, identical lengths" means here
+    ///
+    /// Every file is the whole song's timeline with one part in it, so they line
+    /// up by construction: dropping all five onto a DAW at bar 1 reassembles the
+    /// arrangement. That is the property the wav half would have needed too, and
+    /// flattening is what gives it — see `Song::flatten_parts`.
+    pub fn start_song_stems(&self, song: Song, folder_name: &str) -> Result<(), String> {
+        // ⛔ **The emptiness check runs before the dialog, and it is the one
+        // thing that must.** A folder of nothing is a successful-looking export
+        // the producer then has to work out was always empty — and refusing
+        // after they have browsed for a folder is worse than refusing before.
+        // It is a note count, not an encode.
+        if !PART_ORDER
+            .into_iter()
+            .any(|part| song.flatten_parts(Some(&[part])).note_count() > 0)
+        {
+            return Err("this song plays nothing, so there are no stems to write".to_owned());
         }
-        files.push((
-            // The names US-011 already gives the SMF's tracks, so a folder of
-            // stems and a multi-track export read the same.
-            format!("FMM {}.mid", part_name(part)),
-            engine::midi::pattern_to_smf(&flat),
-        ));
-    }
-    if files.is_empty() {
-        return Err("this song plays nothing, so there are no stems to write".to_owned());
+
+        let stem_dir = sanitize(folder_name);
+        let claimed = self.claim()?;
+        run_dialog(claimed, move || {
+            let Some(root) = rfd::FileDialog::new().pick_folder() else {
+                return Status::Cancelled;
+            };
+            let files: Vec<(String, Vec<u8>)> = PART_ORDER
+                .into_iter()
+                .filter_map(|part| {
+                    let flat = song.flatten_parts(Some(&[part]));
+                    // A part nothing plays gets no file. An empty stem is a file
+                    // a producer imports, hears nothing from, and has to work out
+                    // was always empty.
+                    (flat.note_count() > 0).then(|| {
+                        // ⛔ The *engine's* name, so the file on disk and the
+                        // track inside it cannot disagree. A second table here
+                        // put `FMM Melody.mid` on disk with `trap — Drums` in it.
+                        (
+                            format!("{}.mid", engine::midi::part_track_name(part)),
+                            engine::midi::pattern_to_smf(&flat),
+                        )
+                    })
+                })
+                .collect();
+            write_stems(&root.join(&stem_dir), &files)
+        });
+        Ok(())
     }
 
-    let stem_dir = sanitize(folder_name);
+    /// Read the outcome, and clear it if there is one.
+    ///
+    /// ⛔ **Taken rather than merely read.** The page polls this, so a terminal
+    /// status left in place would re-announce the same successful export on
+    /// every tick — a toast that will not go away. `Running` stays, because it
+    /// is not an outcome.
+    pub fn take_status(&self) -> Status {
+        let Ok(mut slot) = self.status.lock() else {
+            return Status::Failed {
+                reason: "the export state is unusable".to_owned(),
+            };
+        };
+        match &*slot {
+            Status::Running => Status::Running,
+            other => {
+                let taken = other.clone();
+                *slot = Status::Idle;
+                taken
+            }
+        }
+    }
 
-    {
-        let mut slot = STATUS
+    /// Take the one slot, or say why it cannot be taken.
+    ///
+    /// ⛔ Written once because the "refuse a second export" rule and the
+    /// "always publish a terminal status" rule are a pair: a copy that claims
+    /// and forgets to publish leaves the chip reading "exporting…" for the rest
+    /// of the session, which is the failure `EXPORT_TIMEOUT_MS` on the page only
+    /// papers over. A third exporter — the audio stems this module's own note
+    /// promises — gets both for free.
+    fn claim(&self) -> Result<Claim, String> {
+        let mut slot = self
+            .status
             .lock()
             .map_err(|_| "the export state is unusable".to_owned())?;
         if *slot == Status::Running {
             return Err("an export is already open — finish that one first".to_owned());
         }
         *slot = Status::Running;
+        Ok(Claim(Arc::clone(&self.status)))
     }
+}
 
+/// Run `job` on its own thread and publish whatever it returns.
+///
+/// See the module header: the dialog is modal, and the thread the bridge answers
+/// on is the one a DAW draws its editor from.
+fn run_dialog(claim: Claim, job: impl FnOnce() -> Status + Send + 'static) {
     std::thread::spawn(move || {
-        let picked = rfd::FileDialog::new().pick_folder();
-        let status = match picked {
-            Some(root) => write_stems(&root.join(&stem_dir), &files),
-            None => Status::Cancelled,
-        };
-        if let Ok(mut slot) = STATUS.lock() {
+        let status = job();
+        if let Ok(mut slot) = claim.0.lock() {
             *slot = status;
         }
     });
+}
 
-    Ok(())
+/// Proof that the slot was taken, and the handle for putting an outcome back.
+///
+/// A value rather than a bare `Arc` so `run_dialog` cannot be called without
+/// having claimed first — the type is what makes the pair inseparable.
+struct Claim(Arc<Mutex<Status>>);
+
+fn write(path: &Path, bytes: &[u8]) -> Status {
+    match std::fs::write(path, bytes) {
+        Ok(()) => Status::Done {
+            path: path.display().to_string(),
+        },
+        Err(error) => Status::Failed {
+            reason: format!("could not write {}: {error}", path.display()),
+        },
+    }
 }
 
 /// ⚠ **Into a sub-folder of the one that was picked, not into it directly.**
@@ -185,52 +251,6 @@ fn write_stems(dir: &Path, files: &[(String, Vec<u8>)]) -> Status {
     }
     Status::Done {
         path: dir.display().to_string(),
-    }
-}
-
-/// The name US-011 gives this part's track, so a stem file and an SMF track
-/// agree.
-fn part_name(part: engine::pattern::Part) -> &'static str {
-    use engine::pattern::Part;
-    match part {
-        Part::Drums => "Drums",
-        Part::Chords => "Chords",
-        Part::Melody => "Melody",
-        Part::Counter => "Counter",
-        Part::Bass => "Bass",
-    }
-}
-
-/// Read the outcome, and clear it if there is one.
-///
-/// ⛔ **Taken rather than merely read.** The page polls this, so a terminal
-/// status left in place would re-announce the same successful export on every
-/// tick — a toast that will not go away. `Running` stays, because it is not an
-/// outcome.
-pub fn take_status() -> Status {
-    let Ok(mut slot) = STATUS.lock() else {
-        return Status::Failed {
-            reason: "the export state is unusable".to_owned(),
-        };
-    };
-    match &*slot {
-        Status::Running => Status::Running,
-        other => {
-            let taken = other.clone();
-            *slot = Status::Idle;
-            taken
-        }
-    }
-}
-
-fn write(path: &PathBuf, bytes: &[u8]) -> Status {
-    match std::fs::write(path, bytes) {
-        Ok(()) => Status::Done {
-            path: path.display().to_string(),
-        },
-        Err(error) => Status::Failed {
-            reason: format!("could not write {}: {error}", path.display()),
-        },
     }
 }
 
@@ -343,18 +363,23 @@ mod tests {
 
     #[test]
     fn a_terminal_status_is_taken_once_and_running_is_not() {
+        let exports = Exports::default();
         // ⛔ The page polls, so a `Done` left in the slot would re-announce the
         // same export on every tick — a toast that never goes away.
-        *STATUS.lock().unwrap() = Status::Done {
+        *exports.status.lock().unwrap() = Status::Done {
             path: "C:/x/beat.mid".into(),
         };
-        assert!(matches!(take_status(), Status::Done { .. }));
-        assert_eq!(take_status(), Status::Idle);
+        assert!(matches!(exports.take_status(), Status::Done { .. }));
+        assert_eq!(exports.take_status(), Status::Idle);
 
-        *STATUS.lock().unwrap() = Status::Running;
-        assert_eq!(take_status(), Status::Running);
-        assert_eq!(take_status(), Status::Running, "running is not an outcome");
-        *STATUS.lock().unwrap() = Status::Idle;
+        *exports.status.lock().unwrap() = Status::Running;
+        assert_eq!(exports.take_status(), Status::Running);
+        assert_eq!(
+            exports.take_status(),
+            Status::Running,
+            "running is not an outcome"
+        );
+        *exports.status.lock().unwrap() = Status::Idle;
     }
 
     #[test]
@@ -388,6 +413,7 @@ mod tests {
 
     #[test]
     fn a_song_that_plays_nothing_is_refused_rather_than_writing_an_empty_folder() {
+        let exports = Exports::default();
         // A folder of nothing is a successful-looking export the producer then
         // has to work out was always empty.
         let empty = engine::pattern::Song {
@@ -403,20 +429,21 @@ mod tests {
             patterns: Default::default(),
             ppq: engine::pattern::PPQ,
         };
-        let err = start_song_stems(&empty, "trap-1-stems").unwrap_err();
+        let err = exports.start_song_stems(empty, "trap-1-stems").unwrap_err();
         assert!(err.contains("plays nothing"), "{err}");
         // And it did not leave the mailbox claiming an export is running.
-        assert_eq!(take_status(), Status::Idle);
+        assert_eq!(exports.take_status(), Status::Idle);
     }
 
     #[test]
     fn cancelling_is_not_a_failure() {
+        let exports = Exports::default();
         // Closing a Save As is the ordinary way out of it. Reporting it as an
         // error trains people to ignore the one message that matters.
-        *STATUS.lock().unwrap() = Status::Cancelled;
-        let taken = take_status();
+        *exports.status.lock().unwrap() = Status::Cancelled;
+        let taken = exports.take_status();
         assert_eq!(taken, Status::Cancelled);
         assert!(!matches!(taken, Status::Failed { .. }));
-        *STATUS.lock().unwrap() = Status::Idle;
+        *exports.status.lock().unwrap() = Status::Idle;
     }
 }

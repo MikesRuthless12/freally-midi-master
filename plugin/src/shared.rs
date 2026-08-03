@@ -162,6 +162,13 @@ pub struct Shared {
     /// The same `Arc` as the persisted field on
     /// [`FreallyParams`](crate::FreallyParams) — see [`Shared::new`].
     pub session: SessionStore,
+    /// The one in-flight export and its outcome (TASK-073).
+    ///
+    /// ⛔ **Here rather than a module global, because this is per-*instance*
+    /// state.** A DAW loads this plugin on twenty tracks in one process, and
+    /// `take_status` is destructive — a shared slot means one instance's poll
+    /// steals another's result. `crate::export::Exports` has the full write-up.
+    pub exports: crate::export::Exports,
     /// A window size the UI has asked for, packed `width << 32 | height`, or
     /// `0` for "nothing pending".
     ///
@@ -247,6 +254,7 @@ impl Shared {
         Self {
             host: SharedHost::default(),
             handoff: Handoff::default(),
+            exports: crate::export::Exports::default(),
             session,
             resize_request: AtomicU64::new(0),
             // Only ever read before `initialize` has run, which no host does

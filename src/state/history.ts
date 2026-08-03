@@ -121,6 +121,26 @@ const DISCRETE: readonly Field[] = ['pattern', 'mutedLanes', 'song'];
  */
 const COALESCE_MS = 600;
 
+/**
+ * The most steps kept.
+ *
+ * ⛔ **Unlimited stopped being affordable when an entry started pinning a whole
+ * arrangement.** The module header's argument still holds for everything else —
+ * an entry is a handful of scalars and a *reference* to a shared pattern — but
+ * a re-roll receives a freshly deserialized `Song` from the bridge with no
+ * structural sharing at all, so every press of `R` retained a complete
+ * independent copy of the record's note data for the life of the session,
+ * inside somebody's DAW process. `song` is also in [`DISCRETE`], so those never
+ * coalesce away.
+ *
+ * ⚠ **A thousand is a bound on the pathological case, not a limit on the
+ * feature.** It is far past anything a producer reaches by hand in one sitting,
+ * so the "unlimited undo" the README claims stays true of every session anybody
+ * actually has — but it is finite, so a runaway cannot retain a DAW's memory
+ * for the life of the process.
+ */
+const HISTORY_LIMIT = 1_000;
+
 type Entry = {
   state: Snapshot;
   /** `null` when several fields moved at once — a preset load, or a generation. */
@@ -196,7 +216,10 @@ export const useHistory = create<HistoryState>((set, get) => ({
       at - present.at < COALESCE_MS;
 
     set({
-      past: coalesces ? past : [...past, present],
+      // ⛔ The oldest step is dropped rather than the newest refused: a stack
+      // that stopped accepting entries would silently stop recording edits,
+      // which is worse than being unable to walk back to last Tuesday.
+      past: coalesces ? past : [...past, present].slice(-HISTORY_LIMIT),
       present: entry,
       future: [],
     });

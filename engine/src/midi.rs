@@ -358,7 +358,12 @@ const TRACK_ORDER: [Part; 5] = [
     Part::Bass,
 ];
 
-fn part_track_name(part: Part) -> &'static str {
+/// The name US-011 gives this part's track.
+///
+/// ⛔ Public because the *stem* files are named from it too (`plugin/src/export.rs`).
+/// A second table would let `FMM Melody.mid` carry a track called something else
+/// — the file name and the file contradicting each other.
+pub fn part_track_name(part: Part) -> &'static str {
     // US-011 names these exactly: "FMM Drums", ... — the producer sees which
     // rows came from this plugin in a project that already has twenty.
     match part {

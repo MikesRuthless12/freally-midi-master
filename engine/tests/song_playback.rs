@@ -12,28 +12,19 @@
 //! things that are both wrong the same way passes.
 
 use std::collections::BTreeMap;
-use std::path::Path;
 
 use engine::arrange;
 use engine::context::SessionContext;
 use engine::midi::song_to_smf;
 use engine::pattern::{Lane, Note, Part, Pattern, PatternRef, Scale, Section, SectionKind, Song};
 use engine::pattern::{DECAY_FLOOR, PPQ};
-use engine::StyleModel;
+
+mod common;
+use common::shipped_models;
 use midly::{MidiMessage, Smf, TrackEventKind};
 
-fn shipped() -> BTreeMap<String, StyleModel> {
-    let dir = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("..")
-        .join("data");
-    let scan = engine::dataset::files::scan(&dir).expect("data/ must be readable");
-    let (models, errors) = engine::dataset::registry_from(scan.files).resolve_all();
-    assert!(errors.is_empty(), "the dataset must resolve: {errors:#?}");
-    models
-}
-
 fn song(id: &str, seed: u64) -> Song {
-    let model = shipped()
+    let model = shipped_models()
         .remove(id)
         .unwrap_or_else(|| panic!("no `{id}` in the shipped dataset"));
     arrange::generate(&model, &SessionContext::default(), seed).expect("builds a song")
@@ -314,4 +305,29 @@ fn two_sections(clip: Pattern, first_bars: u16, second_bars: u16) -> Song {
         patterns: BTreeMap::from([("a".to_owned(), clip)]),
         ppq: PPQ,
     }
+}
+
+#[test]
+fn a_single_part_flatten_keeps_that_part_rather_than_a_stand_in() {
+    // ⛔ **The file name and the file must not contradict each other.**
+    // `Pattern` has no honest value for "the whole song", so a whole-song
+    // flatten uses a stand-in — but `pattern_to_smf` writes its track name from
+    // this field, and the stems path feeds a *single-part* flatten straight to
+    // it. Without carrying the part through, every melodic stem landed on disk
+    // as `FMM Melody.mid` with a track called `trap — Drums` inside it.
+    let song = song("trap", 5);
+    for part in [Part::Drums, Part::Chords, Part::Melody, Part::Counter] {
+        let flat = song.flatten_parts(Some(&[part]));
+        if flat.note_count() == 0 {
+            continue;
+        }
+        assert_eq!(
+            flat.part, part,
+            "a {part:?} stem reported itself as another part"
+        );
+    }
+
+    // And the whole-song flatten still uses the stand-in, because there is no
+    // honest alternative — it never reaches the writer.
+    assert_eq!(song.flatten().part, Part::Drums);
 }

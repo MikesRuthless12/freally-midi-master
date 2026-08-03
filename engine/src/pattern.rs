@@ -729,11 +729,18 @@ impl Song {
 
         Pattern {
             id: format!("{}-flat", self.id),
-            // ⛔ A song is every part at once, and `Part` has no name for that.
-            // Drums is the honest stand-in: the flattened clip is never handed
-            // to a generator or an editor, only to the schedule, and the lanes
-            // it carries are what anything downstream actually reads.
-            part: Part::Drums,
+            // ⛔ **The part is carried through when the filter names exactly
+            // one, and only falls back to a stand-in for a true whole-song
+            // flatten.** A song is every part at once and `Part` has no name for
+            // that — but `pattern_to_smf` writes its track name from this field,
+            // so a fabricated `Drums` put `trap — Drums` *inside* every file
+            // called `FMM Melody.mid`. The name on disk and the name in the file
+            // contradicting each other is the failure this codebase writes down
+            // in capitals; the whole-song case never reaches the writer.
+            part: match parts {
+                Some([only]) => *only,
+                _ => Part::Drums,
+            },
             artist_id: self.artist_id.clone(),
             seed: self.seed,
             // The whole song, so `Schedule::progress` is a position through the

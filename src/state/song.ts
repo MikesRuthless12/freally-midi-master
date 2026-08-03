@@ -442,44 +442,38 @@ export const useSong = create<SongState>((set, get) => ({
     }
   },
 
+  // ⛔ **All three are the same all-or-nothing toggle over a key list**, and the
+  // "locked only when *every* one is" rule is stated once in `toggleLocks`. It
+  // was written out three times, and a fourth lock gesture would have copied it
+  // a fourth — while the badge in the view derived the same rule a fifth.
   toggleLock(clip) {
-    const key = lockKey(clip);
-    const { locks } = get();
-    set({ locks: locks.includes(key) ? locks.filter((l) => l !== key) : [...locks, key] });
+    toggleLocks(set, get, [lockKey(clip)]);
   },
 
   toggleSectionLock(index) {
-    const { song, locks } = get();
-    const section = song?.sections[index];
+    const section = get().song?.sections[index];
     if (!section) return;
-    const keys = (Object.keys(section.patterns) as Part[]).map((part) =>
-      lockKey({ sectionIndex: index, part }),
+    toggleLocks(
+      set,
+      get,
+      (Object.keys(section.patterns) as Part[]).map((part) =>
+        lockKey({ sectionIndex: index, part }),
+      ),
     );
-    // Locked only when *every* clip in it is: a half-locked section that
-    // reported itself locked would let a re-roll change part of it.
-    const locked = keys.every((key) => locks.includes(key));
-    set({
-      locks: locked
-        ? locks.filter((l) => !keys.includes(l))
-        : [...locks.filter((l) => !keys.includes(l)), ...keys],
-    });
   },
 
   toggleRowLock(part) {
-    const { song, locks } = get();
+    const { song } = get();
     if (!song) return;
-    const keys = song.sections
-      .map((section, index) =>
-        section.patterns[part] ? lockKey({ sectionIndex: index, part }) : null,
-      )
-      .filter((key): key is string => key !== null);
-    if (keys.length === 0) return;
-    const locked = keys.every((key) => locks.includes(key));
-    set({
-      locks: locked
-        ? locks.filter((l) => !keys.includes(l))
-        : [...locks.filter((l) => !keys.includes(l)), ...keys],
-    });
+    toggleLocks(
+      set,
+      get,
+      song.sections
+        .map((section, index) =>
+          section.patterns[part] ? lockKey({ sectionIndex: index, part }) : null,
+        )
+        .filter((key): key is string => key !== null),
+    );
   },
 
   zoomIn() {
@@ -679,9 +673,70 @@ function playingParts(song: Song, muted: Part[], solo: Part[]): Part[] | null {
   return [...all].filter((part) => !muted.includes(part));
 }
 
-/** The key one clip is locked under. */
-function lockKey({ sectionIndex, part }: ClipId): string {
+/**
+ * The key one clip is locked under.
+ *
+ * ⛔ Exported, because the view has to ask the same question the store answers.
+ * When both hand-rolled the format the string was written in five places across
+ * two files and had already drifted — the badge guarded an empty section and the
+ * store did not, so a padlock could say one thing while the re-roll it is
+ * supposed to describe did another.
+ */
+export function lockKey({ sectionIndex, part }: ClipId): string {
   return `${sectionIndex}:${part}`;
+}
+
+/**
+ * Lock every key, or unlock them all if every one is already locked.
+ *
+ * ⛔ The all-or-nothing rule lives here and nowhere else: a half-locked
+ * selection that reported itself locked would let a re-roll change part of it
+ * while the badge said otherwise, and the producer would only find out by
+ * hearing a section they had pinned come back different.
+ */
+function toggleLocks(
+  set: (partial: Partial<SongState>) => void,
+  get: () => SongState,
+  keys: string[],
+): void {
+  if (keys.length === 0) return;
+  const { locks } = get();
+  const rest = locks.filter((lock) => !keys.includes(lock));
+  set({ locks: keys.every((key) => locks.includes(key)) ? rest : [...rest, ...keys] });
+}
+
+/**
+ * Which sections and which rows are *fully* locked.
+ *
+ * ⛔ **Every, not any.** A half-locked section reporting itself locked would let
+ * a re-roll change part of it while the badge said otherwise — and the producer
+ * would only find out by hearing a section they had pinned come back different.
+ *
+ * Computed once per lock change rather than per render: the view asks for each
+ * value three times (class, `aria-pressed`, icon) and re-renders whenever the
+ * arrangement does.
+ */
+export function lockedRegions(
+  song: Song,
+  locks: string[],
+): { sections: boolean[]; rows: Partial<Record<Part, boolean>> } {
+  const held = new Set(locks);
+  const sections = song.sections.map((section, index) => {
+    const parts = Object.keys(section.patterns) as Part[];
+    return (
+      parts.length > 0 &&
+      parts.every((part) => held.has(lockKey({ sectionIndex: index, part })))
+    );
+  });
+
+  const rows: Partial<Record<Part, boolean>> = {};
+  for (const [index, section] of song.sections.entries()) {
+    for (const part of Object.keys(section.patterns) as Part[]) {
+      const locked = held.has(lockKey({ sectionIndex: index, part }));
+      rows[part] = (rows[part] ?? true) && locked;
+    }
+  }
+  return { sections, rows };
 }
 
 /**
@@ -730,16 +785,12 @@ function apply(
   if (!song) return;
   const next = edit(song);
   if (next === song) return;
-  set({
-    song: next,
-    edited: true,
-    ...(clearSelection ? { selection: [] } : {}),
-  });
-  noteDocumentChange();
-  // ⛔ **Every geometry edit re-arms.** A resize retiles the whole song, so the
-  // clip already on the audio thread describes bars that have moved — and the
-  // producer would go on hearing the arrangement they had before while the
-  // timeline drew the one they had just made. Undo reaches this too, through
-  // `applySongDocument`, for the same reason.
-  get().armSong();
+  set({ song: next, ...(clearSelection ? { selection: [] } : {}) });
+  // ⛔ **Through `markEdited`, not its body again.** Its own comment says the
+  // flag and the save must not be reachable separately, and re-arming is the
+  // third half of that invariant: a resize retiles the whole song, so the clip
+  // already on the audio thread describes bars that have moved and the producer
+  // would go on hearing the arrangement they had before. Two doors onto an
+  // invariant documented as having one is how a third one gets built.
+  markEdited();
 }

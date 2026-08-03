@@ -73,13 +73,22 @@ the result into FL Studio, Ableton, Logic, Reaper, or anything else.
   generation.
 - **Five generators, plus Song Mode.** Drums · Melody · Countermelody · Bassline ·
   Chords — plus Song Mode, which is not a sixth generator but an arrangement that
-  fills all five in. Drums is the one with an editor today; the other four are
-  wired through the plugin's engine bridge and surface as the piano roll lands.
+  fills all five in. Drums has a pad grid; the other four have a piano roll.
+- **A whole song, and you arrange it before it leaves.** Song Mode samples one of
+  the artist's own forms, builds a clip per part per section, and draws it on a
+  timeline you can edit: resize, clone, delete, lock what you like, re-roll a
+  section without touching the rest, and open any clip in its own editor. It
+  plays, so the marker is a position through the record rather than through one
+  loop.
 - **Audition with your own sounds.** Import `.wav`/`.mp3` one-shots as drum pad
   voices *or* as pitched instruments with root-note detection.
 - **Edit what you got.** Piano-roll editor and a pad-grid drum sequencer. Lock what
   you like, reroll the rest.
-- **Drag out.** Standard MIDI files or rendered audio, straight into the DAW.
+- **Export.** The whole arranged song as one multi-track Standard MIDI file, or
+  one file per part into a folder, through your platform's own Save As. ⚠ *Drag*
+  out to the desktop is not built yet: an HTML5 drag inside a plugin's webview is
+  not an operating-system file drag, and rendered audio waits on the pitched
+  instrument voices.
 - **Reproducible.** Every generation has a seed. Copy it, paste it, get it back.
 - **Unlimited undo/redo.** `Ctrl`/`Cmd`+`Z` steps back through every change —
   artist, seed, bars, pins and each generation — with no depth limit, because an

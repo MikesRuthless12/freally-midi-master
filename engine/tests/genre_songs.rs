@@ -16,14 +16,14 @@
 //! every 8. A suite that ran five trap-shaped genres would pass while the
 //! authored variety did nothing.
 
-use std::collections::BTreeMap;
-use std::path::Path;
-
 use engine::arrange;
 use engine::context::SessionContext;
 use engine::midi::song_to_smf;
 use engine::pattern::{Part, SectionKind, Song};
 use engine::StyleModel;
+
+mod common;
+use common::shipped_models;
 
 /// One family each, per FR-008's acceptance criterion.
 const FAMILIES: [&str; 5] = [
@@ -34,18 +34,8 @@ const FAMILIES: [&str; 5] = [
     "country-train",
 ];
 
-fn shipped() -> BTreeMap<String, StyleModel> {
-    let dir = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("..")
-        .join("data");
-    let scan = engine::dataset::files::scan(&dir).expect("data/ must be readable");
-    let (models, errors) = engine::dataset::registry_from(scan.files).resolve_all();
-    assert!(errors.is_empty(), "the dataset must resolve: {errors:#?}");
-    models
-}
-
 fn model(id: &str) -> StyleModel {
-    shipped()
+    shipped_models()
         .remove(id)
         .unwrap_or_else(|| panic!("no `{id}` in the shipped dataset"))
 }

@@ -392,7 +392,7 @@ pub fn generate_with(
 pub fn reroll_section(
     model: &StyleModel,
     ctx: &SessionContext,
-    song: &Song,
+    song: Song,
     index: usize,
     seed: u64,
     locked: &[Part],
@@ -477,8 +477,13 @@ pub fn reroll_section(
         },
     );
 
-    let mut next = song.clone();
+    // Taken before the move, because `section` borrows the song.
     let mut refs = section.patterns.clone();
+    // ⛔ **Moved, not cloned.** A re-roll is bound to the bare `R` key, so it is
+    // a rapid-fire gesture — and cloning copied every clip in the store to
+    // replace at most five of them, on the thread the host draws its editor
+    // from. The caller has already deserialized its own `Song` from the bridge.
+    let mut next = song;
     for PartRequest { part, .. } in &wanted {
         let Some(lanes) = rendered.lanes.get(part) else {
             // A part that re-rolled to silence keeps the clip it had. Dropping

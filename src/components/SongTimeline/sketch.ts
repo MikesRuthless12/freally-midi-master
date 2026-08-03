@@ -1,7 +1,8 @@
 /**
- * The note-density sketch drawn inside a clip (TASK-070).
+ * The note-density sketch drawn inside a clip, and the FX cascade's levels
+ * (TASK-070 / TASK-073).
  *
- * ⛔ **A painted gradient, not a canvas and not one element per bucket — the
+ * ⛔ **Painted as a gradient, not a canvas and not one element per bucket — the
  * same decision the grid in this view already makes, for the same reason.** A
  * structure may hold 64 sections over 5 part rows, so a clip is up to 320
  * places on screen; a canvas each means 320 contexts created and drawn
@@ -9,13 +10,17 @@
  * nodes. Both are the "takes the DAW down" shape this project has been bitten
  * by. A gradient is one string per clip and no extra nodes at any song length.
  *
- * The sketch answers one question — *where in this clip is anything
- * happening?* — so it is deliberately coarse. A producer reading it is
- * distinguishing a busy hook from a sparse intro at a glance, not counting
- * notes.
+ * ⛔ **The counting is `columnDensity`'s, not a second copy.** That function
+ * already buckets a pattern's notes and normalises them against the busiest
+ * bucket — including the "relative to the clip itself, so a chord pad does not
+ * lose to a hat lane" rule, which its own comment states. It also derives the
+ * clip's length through `patternTicks`, which is the one definition of that in
+ * the app; a private copy here would have been the ninth, and would have gone
+ * stale the next time a meter question came up.
  */
 
 import type { Pattern, Song } from '../../lib/ipc-types';
+import { columnDensity } from '../DrumGrid/cells';
 
 /**
  * How many columns the clip is divided into.
@@ -27,29 +32,9 @@ import type { Pattern, Song } from '../../lib/ipc-types';
  */
 export const BUCKETS = 16;
 
-/**
- * Note density per bucket, each `0`–`1` against the busiest bucket.
- *
- * Relative rather than absolute: a clip is being compared against *itself* —
- * where its own activity sits — and a chord pad holding four long notes would
- * otherwise sketch as almost nothing beside a hi-hat lane.
- */
+/** Note density per bucket, each `0`–`1` against the clip's busiest bucket. */
 export function density(pattern: Pattern): number[] {
-  const span = patternSpan(pattern);
-  const buckets = new Array<number>(BUCKETS).fill(0);
-  if (span <= 0) return buckets;
-
-  for (const lane of pattern.lanes) {
-    for (const note of lane.notes) {
-      // Clamped rather than skipped: a note exactly at the end of the clip is
-      // real, and dropping it would make the last column read as silence.
-      const at = Math.min(BUCKETS - 1, Math.floor((note.startTick / span) * BUCKETS));
-      if (at >= 0) buckets[at] += 1;
-    }
-  }
-
-  const peak = Math.max(...buckets);
-  return peak > 0 ? buckets.map((count) => count / peak) : buckets;
+  return columnDensity(pattern, BUCKETS);
 }
 
 /**
@@ -74,21 +59,7 @@ export function sectionDensity(song: Song): number[] {
 }
 
 /**
- * The clip's own length in ticks.
- *
- * ⚠ Derived from the meter rather than assumed to be four quarters to the bar.
- * `patternTicks` in the roll had exactly this bug and disagreed with the engine
- * for every meter but 4/4 — a 6/8 clip sketched with its notes bunched into the
- * first two thirds and the rest blank.
- */
-function patternSpan(pattern: Pattern): number {
-  const den = pattern.timeSigDen === 0 ? 4 : pattern.timeSigDen;
-  const perBar = Math.max(1, (pattern.ppq * 4) / den) * Math.max(1, pattern.timeSigNum);
-  return perBar * Math.max(1, pattern.bars);
-}
-
-/**
- * The gradient that paints `density` across a clip's width.
+ * The gradient that paints `levels` across a clip's width.
  *
  * Hard stops rather than a smooth ramp: the buckets are discrete and blending
  * them would suggest a resolution the sketch does not have.

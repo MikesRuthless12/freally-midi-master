@@ -50,8 +50,8 @@ fn rerolling_one_section_leaves_every_other_section_byte_stable() {
         let song = arrange::generate(&model, &ctx(), 4_242).expect("builds");
         let target = multi_part_section(&song);
 
-        let rerolled =
-            arrange::reroll_section(&model, &ctx(), &song, target, 99, &[]).expect("re-rolls");
+        let rerolled = arrange::reroll_section(&model, &ctx(), song.clone(), target, 99, &[])
+            .expect("re-rolls");
 
         assert_eq!(
             rerolled.sections.len(),
@@ -100,7 +100,7 @@ fn a_reroll_actually_changes_the_section_it_names() {
     let target = multi_part_section(&song);
 
     let rerolled =
-        arrange::reroll_section(&trap, &ctx(), &song, target, 5_150, &[]).expect("re-rolls");
+        arrange::reroll_section(&trap, &ctx(), song.clone(), target, 5_150, &[]).expect("re-rolls");
 
     let after = &rerolled.sections[target];
     let changed = song.sections[target].patterns.iter().any(|(part, was)| {
@@ -127,8 +127,8 @@ fn a_locked_part_survives_a_reroll_note_for_note() {
         .take(1)
         .collect();
 
-    let rerolled =
-        arrange::reroll_section(&trap, &ctx(), &song, target, 777, &locked).expect("re-rolls");
+    let rerolled = arrange::reroll_section(&trap, &ctx(), song.clone(), target, 777, &locked)
+        .expect("re-rolls");
 
     for part in &locked {
         let was = song
@@ -171,9 +171,15 @@ fn a_reroll_with_the_chords_locked_writes_its_melody_against_those_chords() {
     let melody_after = |chords_seed: u64| {
         let mut variant = song.clone();
         variant.patterns.get_mut(&chords_id).expect("resolves").seed = chords_seed;
-        let rerolled =
-            arrange::reroll_section(&trap, &ctx(), &variant, target, 1_234, &[Part::Chords])
-                .expect("re-rolls");
+        let rerolled = arrange::reroll_section(
+            &trap,
+            &ctx(),
+            variant.clone(),
+            target,
+            1_234,
+            &[Part::Chords],
+        )
+        .expect("re-rolls");
         rerolled
             .pattern(&rerolled.sections[target].patterns[&Part::Melody])
             .expect("the section still plays a melody")
@@ -208,7 +214,7 @@ fn locking_every_part_is_a_no_op_rather_than_a_regeneration() {
     let locked: Vec<Part> = song.sections[0].patterns.keys().copied().collect();
 
     let rerolled =
-        arrange::reroll_section(&trap, &ctx(), &song, 0, 999, &locked).expect("re-rolls");
+        arrange::reroll_section(&trap, &ctx(), song.clone(), 0, 999, &locked).expect("re-rolls");
     assert_eq!(rerolled, song);
 }
 
@@ -224,8 +230,8 @@ fn rerolling_repeatedly_does_not_grow_the_pattern_store() {
 
     let mut rolling = song;
     for seed in 0..20u64 {
-        rolling =
-            arrange::reroll_section(&trap, &ctx(), &rolling, target, seed, &[]).expect("re-rolls");
+        rolling = arrange::reroll_section(&trap, &ctx(), rolling.clone(), target, seed, &[])
+            .expect("re-rolls");
     }
 
     assert!(
@@ -247,8 +253,10 @@ fn the_same_reroll_seed_reproduces_the_same_section() {
     let song = arrange::generate(&trap, &ctx(), 5).expect("builds");
     let target = multi_part_section(&song);
 
-    let a = arrange::reroll_section(&trap, &ctx(), &song, target, 606, &[]).expect("re-rolls");
-    let b = arrange::reroll_section(&trap, &ctx(), &song, target, 606, &[]).expect("re-rolls");
+    let a =
+        arrange::reroll_section(&trap, &ctx(), song.clone(), target, 606, &[]).expect("re-rolls");
+    let b =
+        arrange::reroll_section(&trap, &ctx(), song.clone(), target, 606, &[]).expect("re-rolls");
     assert_eq!(a, b);
 }
 
@@ -279,7 +287,7 @@ fn two_sections_of_one_kind_diverge_rather_than_moving_together() {
         .expect("no seed in 64 produced two sections sharing their clips");
 
     let rerolled =
-        arrange::reroll_section(&trap, &ctx(), &song, second, 4_004, &[]).expect("re-rolls");
+        arrange::reroll_section(&trap, &ctx(), song.clone(), second, 4_004, &[]).expect("re-rolls");
 
     for (part, reference) in &song.sections[first].patterns {
         assert_eq!(
@@ -299,7 +307,7 @@ fn a_reroll_past_the_end_of_the_song_is_refused_by_name() {
     let song = arrange::generate(&trap, &ctx(), 3).expect("builds");
     let count = song.sections.len();
 
-    let error = arrange::reroll_section(&trap, &ctx(), &song, count, 1, &[]).unwrap_err();
+    let error = arrange::reroll_section(&trap, &ctx(), song.clone(), count, 1, &[]).unwrap_err();
     assert_eq!(
         error,
         ArrangeError::NoSuchSection {
@@ -322,8 +330,9 @@ fn every_section_of_every_sample_model_can_be_rerolled() {
         for seed in 0..8u64 {
             let song = arrange::generate(&model, &ctx(), seed).expect("builds");
             for index in 0..song.sections.len() {
-                let rerolled = arrange::reroll_section(&model, &ctx(), &song, index, seed, &[])
-                    .unwrap_or_else(|e| panic!("{id} section {index}: {e}"));
+                let rerolled =
+                    arrange::reroll_section(&model, &ctx(), song.clone(), index, seed, &[])
+                        .unwrap_or_else(|e| panic!("{id} section {index}: {e}"));
                 assert_eq!(
                     rerolled.sections[index].kind, song.sections[index].kind,
                     "{id}: re-rolling a {:?} produced a {:?}",

@@ -45,10 +45,50 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
     and clips you can select, resize from either edge, clone, delete and
     copy/cut/paste on the ordinary shortcuts. Deleting a part out of a section
     leaves the section standing.
-  - ⚠ **The transport marker does not run in this view yet.** The transport
-    reports a position inside the single pattern it is playing, and nothing can
-    play a whole song; a marker fed from that clock would sit near the start of
-    the arrangement and stay there, so it is left out rather than shown wrong.
+  - **A song plays** (TASK-072), which is what finally made the rest of this
+    list possible. The arrangement is flattened into one clip and handed to the
+    transport, so the marker in the arrangement view is a position through the
+    *record* rather than through whichever four bars happened to be armed —
+    with click-to-seek, a loop toggle on any section, and per-part mute and solo
+    for auditioning. The tiling that lays a song out in time now lives in one
+    place that both the player and the exporter read, so **what you hear and
+    what you export come out of the same arithmetic**.
+  - **Re-roll one section** (TASK-067) without touching the rest of the song,
+    keeping any clips you have locked. A re-rolled section gets its own clips
+    rather than rewriting the one its twin is also playing, so re-rolling verse
+    2 leaves verse 1 alone. A locked Chords or Drums part is handed back to the
+    generator as the harmony and kit to write against, so the new melody sits on
+    the chords the section actually plays.
+  - **An edited arrangement is saved with the project** (TASK-067). It was not,
+    while a single edited clip was — so arranging a whole song and reopening
+    lost all of it. An *unedited* arrangement is still stored as nothing but its
+    inputs, because pressing Generate reproduces it exactly.
+  - **Ctrl+Z works on the Song tab.** It used to do nothing, deliberately,
+    because the arrangement had no undo stack and stepping the session back
+    instead was worse. The arrangement is part of the same snapshot now: one
+    stack, one shortcut, and no question about which document a keypress is
+    about.
+  - **The timeline reads at a glance** (TASK-070): a note-density sketch inside
+    every clip, locks on any cell, row or section, a chip row naming the form
+    the song has, and a picker offering the forms *the artist writes* — never a
+    shape nobody researched. Forcing a form moves no notes: the same seed in
+    another shape keeps the same beats.
+  - **Audition, re-roll and drill-in** (TASK-071): hear one cell on its own,
+    press `R` to re-roll the section you are in, and double-click a clip to open
+    it in its own editor — where your edits write back into the arrangement.
+  - **Export** (TASK-073/TASK-069): write the whole arranged song as one
+    multi-track `.mid`, or one `.mid` per part into a folder, through your
+    platform's own Save As. The generation animation cascades across the
+    sections as they are built, with the same reduced-motion path everything
+    else uses.
+  - ⚠ **Stems are MIDI, not audio.** The preview kit is a drum kit, so the four
+    melodic parts have no voice to render through yet — writing four silent
+    `.wav`s and calling them stems would be worse than not offering them. The
+    audio half arrives with the pitched instrument voices.
+  - ⚠ **Dragging a song out to the desktop is not built.** An HTML5 drag inside
+    a plugin's webview is not an operating-system file drag; that needs a native
+    drag source per platform, which is its own piece of work. Export does the
+    same job in the meantime and the button says "Export" rather than "Drag".
 
 - **A piano roll, and the four melodic parts are visible at last.** Melody,
   Countermelody, Bass and Chords generated through the bridge and landed on the
