@@ -689,7 +689,13 @@ fn rpc(body: &[u8], shared: &SharedState) -> String {
                     // last generation keeps playing on every transport start.
                     // An empty schedule replaces the live one by the same
                     // handoff the arming below uses.
-                    if request.command == "eula_decline" {
+                    // ⛔ `disarm` joins it for a different reason with the same
+                    // shape: leaving Song Mode has to take the arrangement off
+                    // the transport, and a session that only ever used Song
+                    // Mode has no clip to put back in its place — so without an
+                    // explicit empty schedule the whole record kept playing
+                    // under an empty drum grid.
+                    if request.command == "eula_decline" || request.command == "disarm" {
                         shared.handoff.send(Schedule::default());
                     }
 

@@ -347,13 +347,23 @@ export function SongTimeline({ song }: Props) {
             className="song__rows"
             style={{ height: rows.length * ROW_HEIGHT }}
             onMouseDown={(event) => {
-              if (event.target !== event.currentTarget) return;
+              // ⛔ **`closest('.song__clip')`, not `target !== currentTarget`.**
+              // That guard could never pass: every pixel of `.song__rows` is
+              // covered by a `.song__row` child which is a live hit-test target
+              // (only the grid, the labels, the sketches and the playhead are
+              // `pointer-events: none`), so `event.target` was always a row and
+              // the handler returned on its first line. Click-to-seek — the
+              // thing TASK-072 advertises — and the background clear it replaced
+              // were both dead, and no gate covered either.
+              //
+              // What the gesture actually means is "not on a clip": clicking a
+              // clip selects it, and one that also moved the transport would
+              // make selecting anything mid-playback jump the record.
+              if ((event.target as HTMLElement).closest('.song__clip')) return;
               clearSelection();
-              // ⛔ Click-to-seek on the background, not on a clip: clicking a
-              // clip selects it, and a gesture that both selected and moved the
-              // transport would make selecting anything mid-playback jump the
-              // record. Measured against the canvas the clips are laid out in,
-              // so the marker lands under the pointer at any zoom.
+              // Measured against the row box, which spans the same width the
+              // clips and the playhead are laid out in, so the marker lands
+              // under the pointer at any zoom.
               const track = event.currentTarget.getBoundingClientRect();
               if (track.width > 0) {
                 void seek((event.clientX - track.left) / track.width);

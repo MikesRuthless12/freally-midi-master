@@ -28,6 +28,7 @@ import {
   type ClipId,
 } from '../components/SongTimeline/clips';
 import { zoomIn, zoomOut, type View } from '../components/SongTimeline/geometry';
+import { useUi } from './ui';
 import {
   noteDocumentChange,
   reason,
@@ -211,15 +212,6 @@ type ExportStatus =
 /** How often the export poll asks. Slow: a human is browsing for a folder. */
 const EXPORT_POLL_MS = 400;
 
-/**
- * How long the poll keeps asking before giving up.
- *
- * Generous — five minutes is a producer making a folder, renaming it, and
- * changing their mind — but finite, so a dialog thread that died does not leave
- * the chip reading "exporting…" for the rest of the session.
- */
-const EXPORT_TIMEOUT_MS = 5 * 60 * 1000;
-
 export const useSong = create<SongState>((set, get) => ({
   song: null,
   generating: false,
@@ -259,15 +251,22 @@ export const useSong = create<SongState>((set, get) => ({
     try {
       await invoke(command, { song });
     } catch (error) {
-      set({ exportState: 'failed', exportMessage: reason(error) });
-      return;
+      // ⛔ **A refusal because one is already open is adopted, not reported.**
+      // The plugin keeps one export slot and only this poll ever drains it, so
+      // if the page stopped polling — a reloaded webview, an editor window torn
+      // down and reopened — the producer met "an export is already open" with
+      // no dialog anywhere on screen and no way back. Falling through to the
+      // poll picks the in-flight one up and reports where its file went.
+      if (!reason(error).includes('already open')) {
+        set({ exportState: 'failed', exportMessage: reason(error) });
+        return;
+      }
     }
 
     // ⛔ **Polled, because the dialog is modal on its own thread and there is
     // no event to wait on.** `export.rs` explains why the command cannot block:
     // it answers on the frame the page is waiting on, which inside a host is
     // the DAW's editor thread.
-    const started = Date.now();
     const tick = async (): Promise<void> => {
       let status: ExportStatus;
       try {
@@ -288,13 +287,15 @@ export const useSong = create<SongState>((set, get) => ({
         });
         return;
       }
-      // ⚠ A ceiling rather than a forever loop. If the dialog's own thread dies
-      // — or a host tears the window down under it — the chip would otherwise
-      // read "exporting…" for the rest of the session with nothing to clear it.
-      if (Date.now() - started > EXPORT_TIMEOUT_MS) {
-        set({ exportState: 'idle', exportMessage: null });
-        return;
-      }
+      // ⛔ **No ceiling, and removing it was the fix.** The plugin's dialog
+      // thread always publishes a terminal status — `run_dialog` has no early
+      // return — so a `running` reply genuinely means a dialog is open, however
+      // long a producer spends making and renaming a folder. Giving up after
+      // five minutes set the chip idle while the slot stayed claimed: the next
+      // Export was refused with no dialog on screen, and when the original was
+      // finally confirmed the file was written and its path sat unread until
+      // the next claim overwrote it — so the one thing the chip exists to say
+      // was never said.
       setTimeout(() => void tick(), EXPORT_POLL_MS);
     };
     setTimeout(() => void tick(), EXPORT_POLL_MS);
@@ -337,6 +338,13 @@ export const useSong = create<SongState>((set, get) => ({
   armSong() {
     const { song, loopSection, mutedParts, soloParts, audition } = get();
     if (!song) return;
+    // ⛔ **Only while the Song tab is the one on screen.** There is a single
+    // schedule and the visible tab decides whose it is — the timeline's mount
+    // effect and `armCurrentPattern` exist to keep that true. Undo runs on
+    // every tab now, and a project restore runs on whichever tab is open, so
+    // without this an undo taken over the drum grid put the whole 56-bar record
+    // on the transport while the grid drew four bars.
+    if (useUi.getState().activeTab !== 'song') return;
     void invoke('arm_song', {
       request: {
         song,
@@ -418,6 +426,19 @@ export const useSong = create<SongState>((set, get) => ({
         // and the part filter, so a kept one armed the brand-new song looping
         // one cell of a section the producer never touched.
         audition: null,
+        // ⛔ The clipboard holds *pattern ids*, and a pattern id carries no seed
+        // (see the drill note below) — so the new song has a clip under the
+        // same name and the paste guard passes. With `anchor` cleared it would
+        // land on section 0: a clip the producer never copied, on a section they
+        // never targeted.
+        clipboard: null,
+        // ⛔ A solo on a part the new form does not play arms an empty clip and
+        // plays silence over a timeline visibly full of them — and `partsInUse`
+        // does not draw that row, so there is no lit badge on screen to turn
+        // off. The artist-change subscriber already clears these two for this
+        // reason; this reset path was not given the same treatment.
+        mutedParts: [],
+        soloParts: [],
         // ⛔ The drill-in names a clip id that carries no seed, so it resolves
         // against this new song just as happily as the old one — and the next
         // note edited on the part tab wrote the *previous* song's clip into it.
@@ -455,7 +476,28 @@ export const useSong = create<SongState>((set, get) => ({
           session: useSession.getState().pins,
         },
       });
-      set({ song: next, generating: false, selection: [], anchor: null });
+      // ⛔ **The clipboard and the drill-in are dropped, because the engine
+      // prunes.** `reroll_section` mints fresh clip ids and `prune_patterns`
+      // deletes every clip no section names — which is exactly what a *cut*
+      // clip is, and what a drilled-in clip becomes when its section is
+      // re-rolled. Left in place, Ctrl+V after a re-roll pasted nothing and said
+      // nothing, and a note edited afterwards on the part tab was written back
+      // under an id no section referenced: inaudible, invisible on the timeline,
+      // and persisted into the project file as an orphan.
+      //
+      // ⛔ **The anchor is kept.** Every keyboard gesture in the timeline reads
+      // `anchor ?? 0`, so clearing it made the *second* press of `R` re-roll the
+      // intro instead of the section the producer was working on — and the next
+      // Ctrl+D and Ctrl+V landed there too. The selection goes because the clips
+      // it named were replaced; the section it was in did not move.
+      set({
+        song: next,
+        generating: false,
+        selection: [],
+        clipboard: null,
+        drillPatternId: null,
+        drillSongId: null,
+      });
       // ⛔ A re-rolled section is no longer what the song's own seed produces,
       // so from here the arrangement only exists if it is saved. This is the
       // edit that is easiest to lose, because nothing about it *looks* like an
@@ -547,7 +589,19 @@ export const useSong = create<SongState>((set, get) => ({
     // insert has shifted by one, so a selection held by index now names
     // different clips. Keeping it would silently move the *next* delete onto
     // something the producer never selected.
+    //
+    // ⛔ **And so is everything else keyed by section index.** `locks`,
+    // `loopSection` and `audition` all name a section by number, and the insert
+    // renumbers every section after it — so a lock placed on the chorus drew on
+    // the pre-chorus afterwards, and pressing `R` on the chorus sent an empty
+    // locked list and regenerated the very clips the padlock said were pinned.
+    // The loop brace and a running audition moved the same way. They are
+    // *shifted* rather than dropped, because the producer's intent survives the
+    // insert — the section they pinned is still there, one place along.
+    const before = get();
     apply(set, get, (song) => cloneSection(song, index), true);
+    if (get().song === before.song) return;
+    set(shiftAfter(before, index));
   },
 
   deleteSelection() {
@@ -749,6 +803,34 @@ function playingParts(song: Song, muted: Part[], solo: Part[]): Part[] | null {
  */
 export function lockKey({ sectionIndex, part }: ClipId): string {
   return `${sectionIndex}:${part}`;
+}
+
+/**
+ * Move every index-keyed piece of state past `index` along by one.
+ *
+ * ⛔ **`locks`, `loopSection` and `audition` all name a section by number**, and
+ * `cloneSection` splices a copy in at `index + 1` — so without this a lock
+ * placed on the chorus drew on the pre-chorus afterwards, and a re-roll of the
+ * chorus regenerated the clips the padlock said were pinned. Shifted rather
+ * than dropped: the section the producer pinned still exists, one place along.
+ *
+ * ⚠ The *cloned* section deliberately does not inherit the source's locks. A
+ * copy is a new section nobody has pinned anything on, and inheriting would
+ * mean cloning a locked section produced two sections nobody could re-roll.
+ */
+function shiftAfter(before: SongState, index: number): Partial<SongState> {
+  const move = (at: number) => (at > index ? at + 1 : at);
+  return {
+    locks: before.locks.map((lock) => {
+      const [at, part] = lock.split(':');
+      return `${move(Number(at))}:${part}`;
+    }),
+    loopSection: before.loopSection === null ? null : move(before.loopSection),
+    audition:
+      before.audition === null
+        ? null
+        : { ...before.audition, sectionIndex: move(before.audition.sectionIndex) },
+  };
 }
 
 /**

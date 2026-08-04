@@ -260,6 +260,19 @@ pub fn dispatch(
             Ok(json!({ "structures": forms }))
         }
 
+        // Take whatever is playing off the transport.
+        //
+        // ⛔ **The counterpart `arm_song` needed and did not have.** Leaving a
+        // generator tab hands the transport back the clip that tab shows — but
+        // a session that has only used Song Mode has no clip, so there was
+        // nothing to hand back and the whole arrangement stayed armed. A
+        // producer then saw an empty grid and heard the whole record. Answering
+        // with an empty schedule is what `eula_decline` already does, and for
+        // the same reason: the audio thread does not consult the page.
+        // ⚠ The empty schedule is sent by `editor.rs`, which owns the handoff —
+        // the same place `eula_decline`'s is. This arm only has to answer.
+        "disarm" => Ok(Value::Null),
+
         // The arrangement, on its way to the audio thread (TASK-072).
         //
         // ⛔ **Answers with the flattened `Pattern`, and that reply *is* the
@@ -573,12 +586,26 @@ fn reroll_section(args: RerollArgs, host: &HostSession) -> Result<engine::patter
 
     let model = dataset::model(&args.song.artist_id)?;
     // Applied before the context is built, as everywhere else — a mode retunes
-    // the `session` block. Pinned only: on "Any" the mode was picked from the
-    // *song's* seed when it was generated, and re-picking from the re-roll seed
-    // would let one section land in a different mode from the record.
+    // the `session` block.
+    //
+    // ⛔ **On "Any" the mode is re-picked from the *song's* seed, not skipped.**
+    // `generate_song` resolves an absent mood with `modes::pick(model, seed)`,
+    // so an "Any" song is built entirely under whichever mode that landed on —
+    // and a mode deep-merges melody register, density, contour, harmonic rhythm
+    // and the session tempo. Applying nothing here meant a re-rolled section
+    // came back from the *un-retuned* model: one verse in a different register
+    // and density from every other verse, reproducibly, so it read as
+    // deliberate. Picking from the **song's** seed rather than the re-roll's is
+    // what keeps it the same mode as the record — re-picking from the re-roll
+    // seed would be the very defect the old comment here warned about.
     let model = match args.mood.as_deref().map(str::trim) {
         Some(name) if !name.is_empty() => modes::apply(&model, name)?,
-        _ => model,
+        _ => match modes::pick(&model, args.song.seed) {
+            Some(name) => modes::apply(&model, &name)?,
+            // Eleven of the shipped genres author no modes at all, and a model
+            // with none re-rolls exactly as before.
+            None => model,
+        },
     };
 
     // The clip length this section already plays at. A re-roll varies the notes;

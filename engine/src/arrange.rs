@@ -412,23 +412,36 @@ pub fn reroll_section(
         .filter(|value| !value.is_null())
         .ok_or_else(|| ArrangeError::NoArrangement(model.id.clone()))?;
 
-    // ⛔ The parts the section *currently plays*, not the parts its rule asks
-    // for. A re-roll varies a section; it does not change which rows exist,
-    // which is what a resize or an edit is for. Deriving from the rule would
-    // let a re-roll silently grow a bass row on a style whose 808 is the bass.
-    let playing: Vec<Part> = PART_ORDER
+    let kind_name = section_name(section.kind);
+    let rule = section_rule(block, kind_name);
+
+    // ⛔ **Which rows exist comes from the section, and the lane *narrowing*
+    // comes from the rule.** The first half is deliberate — a re-roll varies a
+    // section, it does not change which rows it has, so deriving the row list
+    // from the rule would grow a bass row on a style whose 808 is the bass.
+    //
+    // ⛔ The second half was wrong, and hardcoded. `parts_for` sets
+    // `only_low_end` when a section asks for the low end *without* asking for
+    // drums on a style whose 808 is its bassline, and `render_section` then
+    // keeps only the `Bass808` lane. `_defaults` authors exactly that for the
+    // bridge — `"bridge": { "parts": ["chords", "bass808"] }` — and every trap
+    // and drill model inherits it. Assuming `false` here meant re-rolling that
+    // bridge handed back kick, snare, hats and perc where the model authored
+    // chords over a bare 808, and fed that wrong kit to the re-rolled melody as
+    // `Carry` besides. `parts_for`'s own comment says the narrowing exists "so
+    // the bridge does not silently gain a full kit"; this is where it was.
+    let narrowed: Vec<Part> = parts_for(&rule, model)
         .into_iter()
-        .filter(|part| section.patterns.contains_key(part))
+        .filter(|request| request.only_low_end)
+        .map(|request| request.part)
         .collect();
-    let wanted: Vec<PartRequest> = playing
-        .iter()
-        .filter(|part| !locked.contains(part))
+
+    let wanted: Vec<PartRequest> = PART_ORDER
+        .into_iter()
+        .filter(|part| section.patterns.contains_key(part) && !locked.contains(part))
         .map(|part| PartRequest {
-            part: *part,
-            // The narrowing was decided when the section was first built and is
-            // already reflected in the clip that is there; re-deriving it would
-            // need the rule, which this deliberately does not consult.
-            only_low_end: false,
+            part,
+            only_low_end: narrowed.contains(&part),
         })
         .collect();
     if wanted.is_empty() {
@@ -436,9 +449,6 @@ pub fn reroll_section(
         // makes it one — the UI's change detection compares by identity.
         return Ok(song.clone());
     }
-
-    let kind_name = section_name(section.kind);
-    let rule = section_rule(block, kind_name);
     let scaled = with_density(model, rule.density);
     let section_model = scaled.as_ref().unwrap_or(model);
 

@@ -544,3 +544,35 @@ test('the song can be exported, and the chip reports what happened', async ({ pa
   await expect.poll(async () => chip.isEnabled()).toBe(true);
   await expect(page.locator('[data-testid="song-export-note"]')).toHaveCount(0);
 });
+
+test('clicking the empty grid clears the selection rather than doing nothing', async ({
+  page,
+}) => {
+  // ⛔ **The guard this replaces could never pass.** It was
+  // `event.target !== event.currentTarget` on `.song__rows`, but every pixel of
+  // that box is covered by a `.song__row` child which is a live hit-test
+  // target — so `event.target` was always a row and the handler returned on its
+  // first line. Click-to-seek and this background clear were both dead code,
+  // and nothing covered either.
+  //
+  // ⚠ The *seek* half cannot be asserted here: the browser mock has no audio
+  // thread, so the playhead never leaves zero. The selection clear is the
+  // observable half of the same handler, and it is what proves the handler runs
+  // at all. Whether the marker lands under the pointer is `Live-To-Do` § 4.5.
+  await openSong(page);
+
+  const clip = page.locator('[data-testid="song-clip-drums"]').first();
+  await clip.click();
+  await expect(clip).toHaveAttribute('aria-pressed', 'true');
+
+  // ⚠ A cell that genuinely has no clip in it, found rather than guessed: the
+  // fixture's intro plays *melody only*, so the first few bars of the drums row
+  // are empty. The far edge of the grid is not empty — the outro plays drums —
+  // and clicking a clip is the one thing this gesture must not be.
+  const drumsRow = page.locator('.song__row').filter({ hasText: 'Drums' }).first();
+  const box = await drumsRow.boundingBox();
+  if (!box) throw new Error('the drums row has no box');
+  await page.mouse.click(box.x + 30, box.y + box.height / 2);
+
+  await expect(clip).toHaveAttribute('aria-pressed', 'false');
+});

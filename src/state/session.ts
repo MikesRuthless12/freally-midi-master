@@ -430,6 +430,22 @@ function applySnapshot(
     applying = false;
   }
 
+  // ⛔ **The restore has to reach the project file, and no subscriber does it
+  // for an arrangement-only step.** The `SAVED_FIELDS` subscriber returns early
+  // when no saved session field changed and the pattern subscriber returns
+  // early when the clip is unchanged — an undo of a resize changes neither, and
+  // `applySongDocument` writes `useSong` directly, bypassing
+  // `noteDocumentChange` (which the `applying` flag would have blocked anyway).
+  // So the producer undid a section resize, watched it snap back, closed the
+  // project and reopened it to find the resize still there. That is word for
+  // word the failure this file's own persist comment says drove the single
+  // `SAVED_FIELDS` list into existence.
+  //
+  // Unconditional rather than gated on the song having changed: `persist` is
+  // debounced and idempotent, and the alternative is a fourth place that has to
+  // decide what counts as a change.
+  persist();
+
   // `defaults` belongs to whichever artist was selected when it was read, so
   // stepping across an artist change has to re-read it — otherwise the chips
   // keep showing the previous artist's tempo under the restored one's name,
@@ -783,6 +799,25 @@ function put(
       ? { song: saved.song, edited: true }
       : { song: null, edited: false },
   );
+
+  // ⛔ **Re-armed, because the `set` above already recorded a snapshot and the
+  // line before this one made it stale.** The history subscriber fires inside
+  // that `set`, reads the arrangement still on screen, and files it — and then
+  // `applySongDocument` throws that arrangement away. `useHistory.present` then
+  // named a record nobody could see, so one Ctrl+Y (or any session edit and a
+  // single Ctrl+Z, which pushes the stale entry into `past`) resurrected the
+  // arrangement a preset load had just deleted, alongside the preset's pins — a
+  // state the producer was never in.
+  //
+  // ⚠ **`amend`, not `arm` and not `record`.** `arm` resets `past`, which would
+  // make a preset load impossible to undo at all; `record` would push a second
+  // entry and make it two steps, which `lands as one undo step, not two`
+  // already guards. Amending corrects the entry that is current and leaves the
+  // stack alone.
+  //
+  // ⚠ `init`'s restore path was safe only by accident — it calls `arm` *after*
+  // `put`. `applyPreset` had no such correction, and this covers both.
+  useHistory.getState().amend(snapshotOf(get()));
 
   if (saved.selectedId) {
     void loadDefaults(saved.selectedId, set, get);
@@ -1237,9 +1272,21 @@ useSession.subscribe((state, prev) => {
  * and nothing about a tab switch changes it.
  */
 export function armCurrentPattern(): void {
+  if (!isPlugin()) return;
   const { pattern } = useSession.getState();
-  if (!isPlugin() || pattern === null) return;
-  void invoke('arm_pattern', { pattern }).catch(() => {});
+  if (pattern !== null) {
+    void invoke('arm_pattern', { pattern }).catch(() => {});
+    return;
+  }
+  // ⛔ **A null pattern must *disarm*, not return.** This is the common case,
+  // not an edge one: a session that has only ever used Song Mode has no clip at
+  // all — `generate_song` answers with a `Song`, which `editor.rs` does not
+  // deserialize as a `Pattern`, so nothing ever armed one. Returning here left
+  // the whole arrangement on the transport, so a producer could open Song Mode,
+  // click the Drums tab, see the empty "ready to generate" state, press Play and
+  // hear the entire record. That is the exact readout-that-lies failure this
+  // function exists to prevent, in the one case it was silently skipping.
+  void invoke('disarm').catch(() => {});
 }
 
 /**

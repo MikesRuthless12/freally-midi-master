@@ -167,6 +167,22 @@ type HistoryState = {
   /** Note that the document changed. A no-op write records nothing. */
   record: (state: Snapshot) => void;
 
+  /**
+   * Correct the entry that is already current, without pushing a new one.
+   *
+   * ⛔ **For a caller whose own `set` records a snapshot it is about to
+   * invalidate.** `put()` applies a preset in one `set` — which fires the
+   * recorder — and only afterwards clears the arrangement the preset does not
+   * carry, so the entry it just filed named a record no longer on screen. One
+   * Ctrl+Y then resurrected it alongside the preset's pins, a state nobody had
+   * been in.
+   *
+   * ⚠ Not `arm`, which resets `past` and would make a preset load impossible to
+   * undo at all, and not `record`, which would push a second entry and make it
+   * two steps. Both are wrong in ways a producer would notice.
+   */
+  amend: (state: Snapshot) => void;
+
   /** The state to restore, or `null` when there is nothing to undo. */
   undo: () => Snapshot | null;
   redo: () => Snapshot | null;
@@ -223,6 +239,12 @@ export const useHistory = create<HistoryState>((set, get) => ({
       present: entry,
       future: [],
     });
+  },
+
+  amend(state) {
+    const { present } = get();
+    if (present === null) return;
+    set({ present: { ...present, state } });
   },
 
   undo() {

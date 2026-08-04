@@ -28,6 +28,7 @@ vi.mock('../lib/ipc-plugin', async (importOriginal) => ({
 const { useSong } = await import('./song');
 const { useSession } = await import('./session');
 const { useHistory, canRedo, canUndo } = await import('./history');
+const { useUi } = await import('./ui');
 
 /** Two sections, the second sharing nothing with the first. */
 function song(): Song {
@@ -111,9 +112,14 @@ beforeEach(() => {
     soloParts: [],
     audition: null,
     drillPatternId: null,
+    drillSongId: null,
     structure: null,
   });
   useSession.setState({ pattern: null, edited: false });
+  // ⛔ `armSong` gates on the visible tab — there is one schedule and the tab
+  // decides whose it is. Every case here is about Song Mode, so this is the
+  // tab they run on; the one case that asserts the *gate* sets its own.
+  useUi.setState({ activeTab: 'song' });
 });
 
 /** Run the 300 ms save debounce out. */
@@ -130,6 +136,13 @@ function flushSave() {
  * having anything to undo.
  */
 function armedWith(current = song()) {
+  // ⛔ **The artist first, then the song, and the order is not cosmetic.**
+  // `snapshotOf` compares `song.artistId` to `selectedId` — the guard that stops
+  // a snapshot carrying the previous artist's record — so without a matching
+  // artist every snapshot recorded here would silently hold `song: null` and
+  // the undo assertions would be testing nothing. And setting it *after* the
+  // song trips the artist-change subscriber, which clears the song outright.
+  useSession.setState({ selectedId: current.artistId });
   useSong.setState({ song: current });
   useHistory.getState().arm({
     selectedId: 'trap',
@@ -602,4 +615,161 @@ it('generating a fresh song drops an audition placed on the old one', async () =
     .getState()
     .generate({ styleId: 'trap', seed: '9', pins: {} as never, mood: null });
   expect(useSong.getState().audition).toBeNull();
+});
+
+// ---------------------------------------------------------------------------
+// What the workflow-backed /code-review found. All 15 were verified defects.
+// ---------------------------------------------------------------------------
+
+/** The Song tab is what `armSong` now gates on. */
+function onSongTab() {
+  useUi.setState({ activeTab: 'song' });
+}
+
+it('cloning a section moves the locks, loop and audition along with it', () => {
+  // ⛔ `cloneSection` splices the copy in at `index + 1`, renumbering every
+  // section after it. `locks` are `"${sectionIndex}:${part}"`, `loopSection` is
+  // an index and `audition` holds one — so a lock placed on the hook drew on a
+  // different section afterwards, and pressing R on the hook sent an empty
+  // locked list and regenerated the very clips the padlock said were pinned.
+  onSongTab();
+  useSong.setState({
+    song: song(),
+    locks: ['1:drums'],
+    loopSection: 1,
+    audition: { sectionIndex: 1, part: 'drums' },
+  });
+
+  useSong.getState().clone(0);
+
+  expect(useSong.getState().locks).toEqual(['2:drums']);
+  expect(useSong.getState().loopSection).toBe(2);
+  expect(useSong.getState().audition?.sectionIndex).toBe(2);
+});
+
+it('a re-roll keeps the anchor, so the next R hits the same section', async () => {
+  // Every keyboard gesture reads `anchor ?? 0`, so clearing it made the second
+  // press of R re-roll the intro instead of the section being worked on — and
+  // the next Ctrl+D and Ctrl+V land there too.
+  onSongTab();
+  const current = song();
+  invoke.mockResolvedValue(current);
+  useSong.setState({ song: current, anchor: 1 });
+
+  await useSong.getState().reroll(1, null);
+
+  expect(useSong.getState().anchor).toBe(1);
+});
+
+it('a re-roll drops the clipboard and the drill-in, because the engine prunes', async () => {
+  // ⛔ `prune_patterns` deletes every clip no section names — exactly what a cut
+  // clip is, and what a drilled-in clip becomes when its section is re-rolled.
+  // Kept, Ctrl+V pasted nothing silently and a later note edit was written back
+  // under an id nothing referenced, then persisted as an orphan.
+  onSongTab();
+  const current = song();
+  invoke.mockResolvedValue(current);
+  useSong.setState({
+    song: current,
+    clipboard: { sectionIndex: 0, clips: [] } as never,
+    drillPatternId: 'a',
+    drillSongId: current.id,
+  });
+
+  await useSong.getState().reroll(0, null);
+
+  expect(useSong.getState().clipboard).toBeNull();
+  expect(useSong.getState().drillPatternId).toBeNull();
+});
+
+it('generating drops the clipboard, which holds ids the new song also has', async () => {
+  // `pattern_id` carries no seed, so `trap-hook-melody` exists in the new song
+  // too and the paste guard passes. With `anchor` cleared it would land on
+  // section 0 — a clip nobody copied, on a section nobody targeted.
+  onSongTab();
+  invoke.mockResolvedValue(song());
+  useSong.setState({ song: song(), clipboard: { sectionIndex: 5, clips: [] } as never });
+
+  await useSong
+    .getState()
+    .generate({ styleId: 'trap', seed: '9', pins: {} as never, mood: null });
+
+  expect(useSong.getState().clipboard).toBeNull();
+});
+
+it('generating drops a solo, which the new song may have no row for', async () => {
+  // A solo on a part the new form does not play arms an empty clip and plays
+  // silence over a timeline full of clips — and `partsInUse` does not draw that
+  // row, so there is no lit badge on screen to turn off.
+  onSongTab();
+  invoke.mockResolvedValue(song());
+  useSong.setState({ song: song(), soloParts: ['counter'], mutedParts: ['melody'] });
+
+  await useSong
+    .getState()
+    .generate({ styleId: 'trap', seed: '9', pins: {} as never, mood: null });
+
+  expect(useSong.getState().soloParts).toEqual([]);
+  expect(useSong.getState().mutedParts).toEqual([]);
+});
+
+it('the arrangement is not armed while a part tab is showing', () => {
+  // ⛔ There is one schedule and the visible tab decides whose it is. Undo runs
+  // on every tab now, and a project restore runs on whichever tab is open — so
+  // without the gate an undo taken over the drum grid put the whole record on
+  // the transport while the grid drew four bars.
+  useUi.setState({ activeTab: 'drums' });
+  useSong.setState({ song: song() });
+
+  useSong.getState().armSong();
+
+  expect(invoke.mock.calls.filter(([c]) => c === 'arm_song')).toHaveLength(0);
+});
+
+it('an arrangement-only undo reaches the project file', () => {
+  // ⛔ Neither persist subscriber fires for it: the SAVED_FIELDS one returns
+  // early when no session field changed, the pattern one when the clip is
+  // unchanged. So a producer undid a resize, watched it snap back, closed the
+  // project and reopened it to find the resize still there.
+  // ⚠ Two resizes and one undo, deliberately: undoing all the way back to the
+  // *unedited* baseline correctly saves no song at all — that absence is what
+  // makes a reopened project regenerate from the seed. The bug is about a
+  // restore never reaching the file, so the case has to land on a state that
+  // still has one.
+  onSongTab();
+  armedWith();
+  useSong.getState().resize(0, 8);
+  useSong.getState().resize(0, 12);
+  flushSave();
+  invoke.mockClear();
+
+  useSession.getState().undo();
+  flushSave();
+
+  const saved = lastSave();
+  expect(saved).not.toBeNull();
+  expect((saved?.song as Song).sections[0].bars).toBe(8);
+});
+
+it('a preset load does not leave a snapshot naming the arrangement it deleted', () => {
+  // ⛔ `put()` applies the preset in one `set` — which fires the history
+  // recorder — and only afterwards clears the arrangement the preset does not
+  // carry. The entry it filed therefore named a record no longer on screen, so
+  // one Ctrl+Y resurrected it alongside the preset's pins: a state nobody had
+  // been in. `amend` corrects that entry without pushing a second one.
+  onSongTab();
+  armedWith();
+  useSong.getState().resize(0, 8);
+
+  useSession.getState().applyPreset({
+    selectedId: 'trap',
+    seed: '99',
+    bars: 4,
+    pins: null,
+  });
+
+  // The arrangement is gone from the screen…
+  expect(useSong.getState().song).toBeNull();
+  // …and from the entry that is current, so redo cannot bring it back.
+  expect(useHistory.getState().present?.state.song).toBeNull();
 });

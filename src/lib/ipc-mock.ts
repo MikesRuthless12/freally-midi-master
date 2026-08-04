@@ -297,6 +297,12 @@ const handlers: Record<string, Handler> = {
   // it the Playwright suite would see a rejected promise on every resize.
   arm_song: () => undefined,
 
+  // Taking whatever is playing off the transport. A browser has no audio
+  // thread, so there is nothing to disarm — but it is here rather than absent
+  // because leaving the Song tab calls it and an unknown command is a loud
+  // failure by design.
+  disarm: () => undefined,
+
   // Re-rolling one section (TASK-067). The real engine regenerates the notes;
   // what a spec can meaningfully assert about it is the *shape* of the result —
   // that the named section's clips are new ones, that every other section is

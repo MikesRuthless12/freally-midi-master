@@ -90,6 +90,38 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
     drag source per platform, which is its own piece of work. Export does the
     same job in the meantime and the button says "Export" rather than "Drag".
 
+### Fixed
+
+Song Mode went through four reviews before it shipped, and they found things
+worth naming — every one with a test that was watched failing first.
+
+- **Undo now reaches the project file.** Undoing an arrangement edit changed
+  the screen and not the saved project, so closing and reopening brought the
+  edit back.
+- **Undo across an artist change no longer resurrects the previous artist's
+  record** under the new artist's name — and a preset load no longer leaves a
+  redo step that can bring back the arrangement it just cleared.
+- **Locks, the loop and an audition follow their section when you clone.**
+  Cloning renumbers everything after the insert, so a padlock drew on the wrong
+  section and a re-roll regenerated the very clips it said were pinned.
+- **Re-rolling honours the record it belongs to.** A re-rolled section keeps
+  the mode the song was generated in, keeps a pinned swing, and keeps a
+  section the style authors as 808-only from coming back with a full kit.
+- **Re-rolling a section leaves every other one alone**, including a clone of
+  it, and no longer strands a cut clip or an open editor.
+- **The transport plays what the visible tab shows.** Leaving Song Mode hands
+  it back the clip on screen, an undo taken on a part tab does not put the
+  whole record on it, and muting or soloing a part no longer restarts the song
+  from bar 1.
+- **Clicking the empty grid works** — it clears the selection and moves the
+  playhead. It had never worked: the guard could not pass.
+- **Generating a fresh song clears what belonged to the old one** — the
+  clipboard, a solo on a part the new form does not play, and an audition.
+- **An export dialog left open for a long time still reports where the file
+  went**, instead of the page giving up and refusing the next export.
+- **Every melodic stem carries its own track name**, rather than the drum
+  track's, and the multi-track file and the stems agree note for note.
+
 - **A piano roll, and the four melodic parts are visible at last.** Melody,
   Countermelody, Bass and Chords generated through the bridge and landed on the
   host's track without ever appearing on screen; now they are drawn, and
