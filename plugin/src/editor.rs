@@ -697,6 +697,7 @@ fn rpc(body: &[u8], shared: &SharedState) -> String {
                     // under an empty drum grid.
                     if request.command == "eula_decline" || request.command == "disarm" {
                         shared.handoff.send(Schedule::default());
+                        shared.disarmed();
                     }
 
                     // ⛔ **Armed from the *shape* of the reply, not from the
@@ -720,6 +721,18 @@ fn rpc(body: &[u8], shared: &SharedState) -> String {
                     if let Ok(pattern) = Pattern::deserialize(&value) {
                         let mut schedule = Schedule::default();
                         schedule.arm(&pattern, shared.sample_rate());
+                        // ⛔ **Hold the playhead when this is the clip already
+                        // playing.** A fresh `Schedule` has no `armed_id`, so
+                        // `arm`'s own resume path could never fire here and
+                        // every arm reset the position. That was invisible while
+                        // only a
+                        // generation re-armed — and then muting a part, soloing
+                        // one, toggling a loop or starting an audition all began
+                        // re-arming the song, so clicking any of them mid-record
+                        // threw it back to bar 1.
+                        if shared.arming(&pattern.id) {
+                            schedule.seek(shared.playhead());
+                        }
                         shared.handoff.send(schedule);
                     }
 

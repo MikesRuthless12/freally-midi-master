@@ -169,6 +169,18 @@ pub struct Shared {
     /// `take_status` is destructive — a shared slot means one instance's poll
     /// steals another's result. `crate::export::Exports` has the full write-up.
     pub exports: crate::export::Exports,
+    /// The id of the clip the editor last handed over.
+    ///
+    /// ⛔ **`Schedule::arm`'s own resume path cannot work without this.** That
+    /// function holds the playhead when the clip it is given is the one already
+    /// armed — but `editor.rs` builds a *fresh* `Schedule` for every reply, so
+    /// `armed_id` was always `None`, `same_clip` was always false, and every arm
+    /// reset the position. Harmless while only a generation re-armed; the moment
+    /// muting a part, soloing one, toggling a loop or starting an audition
+    /// re-armed the song, clicking any of them mid-playback threw the record
+    /// back to bar 1. The test that covers the resume re-arms the *same*
+    /// `Schedule`, which is not the shape the plugin produces.
+    armed_clip: Mutex<Option<String>>,
     /// A window size the UI has asked for, packed `width << 32 | height`, or
     /// `0` for "nothing pending".
     ///
@@ -255,6 +267,7 @@ impl Shared {
             host: SharedHost::default(),
             handoff: Handoff::default(),
             exports: crate::export::Exports::default(),
+            armed_clip: Mutex::new(None),
             session,
             resize_request: AtomicU64::new(0),
             // Only ever read before `initialize` has run, which no host does
@@ -328,6 +341,29 @@ impl Shared {
 
     pub fn sample_rate(&self) -> f32 {
         self.sample_rate.load(Ordering::Relaxed) as f32
+    }
+
+    /// Note which clip has just been handed over, and say whether it is the one
+    /// that was already playing.
+    ///
+    /// ⛔ **The two are one call because the answer is only true once.** A
+    /// caller that asked and then set would race itself on a second arm
+    /// arriving between the two, and the cost of getting it wrong is the record
+    /// jumping to bar 1 under the producer's hands.
+    pub fn arming(&self, id: &str) -> bool {
+        let Ok(mut slot) = self.armed_clip.lock() else {
+            return false;
+        };
+        let same = slot.as_deref() == Some(id);
+        *slot = Some(id.to_owned());
+        same
+    }
+
+    /// Forget what was armed, so the next arm starts from the top.
+    pub fn disarmed(&self) {
+        if let Ok(mut slot) = self.armed_clip.lock() {
+            *slot = None;
+        }
     }
 
     /// Publish where the playhead is. Called from `process`.
@@ -851,5 +887,51 @@ mod transport_tests {
         shared.request_audition(200);
 
         assert_eq!(shared.take_audition(), Some(127));
+    }
+}
+
+#[cfg(test)]
+mod arming_tests {
+    use super::*;
+
+    #[test]
+    fn re_arming_the_same_clip_is_reported_as_the_same_clip() {
+        // ⛔ What decides whether the playhead is held. `editor.rs` builds a
+        // *fresh* `Schedule` for every reply, so `Schedule::arm`'s own resume
+        // path — which keys on its `armed_id` — could never fire: `armed_id`
+        // was always `None`. Harmless while only a generation re-armed, and
+        // then muting a part, soloing one, toggling a loop or starting an
+        // audition all began re-arming the song, so clicking any of them
+        // mid-record threw it back to bar 1.
+        let shared = Shared::default();
+
+        assert!(
+            !shared.arming("trap-song-7-flat"),
+            "the first arm of a clip is not a re-arm"
+        );
+        assert!(
+            shared.arming("trap-song-7-flat"),
+            "the same clip again is the case the playhead must survive"
+        );
+        assert!(
+            !shared.arming("trap-song-9-flat"),
+            "a different song must start from the top"
+        );
+    }
+
+    #[test]
+    fn disarming_makes_the_next_arm_start_from_the_top() {
+        // Leaving Song Mode takes the arrangement off the transport, so coming
+        // back to it is a fresh start rather than a resume — otherwise the
+        // marker would jump to wherever the record had got to before.
+        let shared = Shared::default();
+        assert!(!shared.arming("trap-song-7-flat"));
+        assert!(shared.arming("trap-song-7-flat"));
+
+        shared.disarmed();
+        assert!(
+            !shared.arming("trap-song-7-flat"),
+            "a disarm must not leave the next arm resuming"
+        );
     }
 }
