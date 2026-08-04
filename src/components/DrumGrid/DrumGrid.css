@@ -128,3 +128,14 @@
     transition: background var(--duration-fast) var(--ease-standard);
   }
 }
+
+/* The velocity lane's row (TASK-041V). It borrows `.grid__row`'s two columns so
+   its caps land under the cells, but it is deliberately not one: a `.grid__row`
+   is a *lane*, with a mute and a name, and anything counting lanes would be off
+   by one the moment this shared the class. */
+.grid__velocity {
+  display: grid;
+  grid-template-columns: var(--grid-label) 1fr;
+  min-width: 0;
+  margin-top: var(--space-2);
+}

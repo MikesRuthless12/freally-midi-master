@@ -10,6 +10,20 @@
   "genres": ["rap", "plugg"],
   "confidence": "high",
   "sources": ["style-research ch.1 §4 Plugg / Pluggnb"],
+  "arrangement": {
+    "structures": [
+      { "sections": ["intro", "verse", "hook", "verse", "hook", "bridge", "hook", "outro"], "weight": 3 },
+      { "sections": ["intro", "verse", "hook", "verse", "hook", "outro"], "weight": 2 }
+    ],
+    "sectionBars": { "intro": 4, "verse": 8, "hook": 8, "bridge": [4, 8], "outro": 4 },
+    "sectionRules": {
+      "intro": { "parts": ["chords"], "density": 1 },
+      "verse": { "parts": "all", "density": 1 },
+      "hook": { "parts": "all", "density": 1, "addLayers": ["countermelody"] },
+      "bridge": { "parts": ["drums", "bass808"], "density": 0.6 },
+      "outro": { "parts": ["chords"], "density": 0.6, "decay": true }
+    }
+  },
   "notes": "Soft, rounded, dreamy drums out of the Zaytoven lineage. The open hats carry the pattern — 8th-note open-hat chains with roll inserts — while the closed hats are near absent, and the kick skips beats on purpose to leave air. The 808 is the 'Light 808': short, staccato and bouncy, not a sustain.",
 
   "session": {

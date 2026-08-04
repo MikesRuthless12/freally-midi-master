@@ -10,6 +10,7 @@
   "genres": ["rap", "drill"],
   "confidence": "high",
   "sources": ["style-research ch.1 §2 Drill (Chicago)"],
+  "arrangement": { "sectionBars": { "intro": 4, "verse": 16, "hook": 8, "bridge": 4, "outro": 4 } },
   "notes": "The original drill: straighter and sparser than the UK strain. Hats run 1/16 with the occasional 1/32 burst rather than triplet groupings, the snare on 3 is layered and aggressive, and the 808 mostly holds one pitch — the slides that define UK drill are the exception here, not the marker.",
 
   "session": {

@@ -1,0 +1,572 @@
+/* The arrangement view (TASK-063A / TASK-063B).
+ *
+ * Bar lines are heavier than beat lines, and the beat lines only exist at all
+ * once the zoom leaves room for them — see `gridFor`. The weights are set here
+ * rather than inline so the two never disagree about which is which.
+ */
+
+.song {
+  --song-row: 44px;
+  --song-ruler: 34px;
+  --song-header: 30px;
+
+  /* The grid is painted as a repeating gradient rather than mounted as one
+     element per line, so the two weights are variables it can reference.
+     A bar line is heavier than a beat line — that is what lets the eye read
+     the meter without counting. */
+  --song-bar-line: var(--line);
+  --song-beat-line: color-mix(in srgb, var(--line) 45%, transparent);
+
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  outline: none;
+}
+
+.song:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.song__toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.35rem 0.6rem;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.78rem;
+  color: var(--text-dim);
+}
+
+.song__zoom {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.song__zoom button {
+  width: 1.6rem;
+  height: 1.6rem;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.song__zoom button:hover {
+  border-color: var(--accent);
+}
+
+.song__scroller {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.song__canvas {
+  position: relative;
+  min-width: 100%;
+}
+
+/* ---- Ruler ------------------------------------------------------------- */
+
+.song__ruler {
+  position: relative;
+  height: var(--song-ruler);
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  user-select: none;
+}
+
+.song__tick {
+  position: absolute;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  padding-left: 3px;
+  border-left: 1px solid var(--line-strong, var(--line));
+  height: 100%;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+.song__bar-number {
+  font-size: 0.72rem;
+  color: var(--text);
+}
+
+.song__time {
+  font-size: 0.62rem;
+  color: var(--text-dim);
+}
+
+/* ---- Section headers --------------------------------------------------- */
+
+.song__sections {
+  position: relative;
+  height: var(--song-header);
+  border-bottom: 1px solid var(--line);
+}
+
+.song__section {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  border-left: 2px solid var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  overflow: hidden;
+}
+
+.song__section.is-selected {
+  background: color-mix(in srgb, var(--accent) 26%, transparent);
+}
+
+.song__section-name {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  width: 100%;
+  height: 100%;
+  padding: 0 0.35rem;
+  border: 0;
+  background: none;
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.72rem;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.song__section-title {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.song__section-bars {
+  color: var(--text-dim);
+}
+
+.song__handle {
+  position: absolute;
+  top: 0;
+  width: 8px;
+  height: 100%;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: ew-resize;
+}
+
+.song__handle:hover {
+  background: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+.song__handle--start {
+  left: 0;
+}
+
+.song__handle--end {
+  right: 0;
+}
+
+/* ---- Clip rows --------------------------------------------------------- */
+
+.song__rows {
+  position: relative;
+}
+
+.song__grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.song__row {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 40%, transparent);
+}
+
+.song__row-label {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  display: inline-block;
+  padding: 0.15rem 0.4rem;
+  background: var(--surface);
+  color: var(--text-dim);
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  pointer-events: none;
+}
+
+.song__clip {
+  position: absolute;
+  top: 4px;
+  bottom: 5px;
+  display: flex;
+  align-items: center;
+  padding: 0 0.4rem;
+  border: 1px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--accent) 22%, var(--surface));
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.68rem;
+  overflow: hidden;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.song__clip:hover {
+  border-color: var(--accent);
+}
+
+.song__clip.is-selected {
+  border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px var(--accent);
+  background: color-mix(in srgb, var(--accent) 40%, var(--surface));
+}
+
+.song__clip-label {
+  opacity: 0.85;
+}
+
+/* The TASK-066 transitions, drawn because they are in the exported file: a
+   producer has to be able to see why a section's last beats are silent. */
+.song__dropout {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent,
+    transparent 3px,
+    color-mix(in srgb, var(--text) 22%, transparent) 3px,
+    color-mix(in srgb, var(--text) 22%, transparent) 6px
+  );
+  pointer-events: none;
+}
+
+.song__decay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to right,
+    transparent,
+    color-mix(in srgb, var(--surface) 70%, transparent)
+  );
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .song__clip {
+    transition:
+      background-color 120ms ease,
+      border-color 120ms ease;
+  }
+}
+
+/* ── The transport marker (TASK-072).
+ *
+ * Laid out at the canvas origin and moved with `transform`, so following it at
+ * 30 Hz costs no layout — the same reasoning the roll's own marker documents. */
+.song__playhead {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 0;
+  width: 2px;
+  background: var(--accent);
+  box-shadow: 0 0 8px var(--accent);
+  pointer-events: none;
+  z-index: 3;
+}
+
+/* ── Loop one section while arranging it. */
+.song__loop {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  color: var(--text-dim);
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  cursor: pointer;
+  opacity: 0;
+}
+
+.song__section:hover .song__loop,
+.song__loop:focus-visible,
+.song__loop.is-on {
+  opacity: 1;
+}
+
+.song__loop.is-on {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+.song__section.is-looping {
+  outline: 1px solid var(--accent);
+  outline-offset: -1px;
+}
+
+/* ── Per-part audition controls.
+ *
+ * ⛔ `pointer-events: auto`, because `.song__row-label` sets `none` so a click
+ * between two clips reaches the background and seeks. These are the exception:
+ * they are controls rather than a label, and without this they resolve, look
+ * enabled, and silently cannot be clicked. */
+.song__row-mute,
+.song__row-solo {
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  margin-inline-start: 2px;
+  padding: 0;
+  font-size: 0.66rem;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--text-dim);
+  background: transparent;
+  border: 0;
+  border-radius: 3px;
+  cursor: pointer;
+  pointer-events: auto;
+  vertical-align: middle;
+}
+
+.song__row-mute:hover,
+.song__row-solo:hover {
+  color: var(--text);
+}
+
+.song__row-mute.is-on,
+.song__row-solo.is-on {
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+/* ── The structure chip row and the model-structure picker (TASK-070). */
+.song__structure {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.25rem 0.6rem;
+  border-bottom: 1px solid var(--line);
+  overflow-x: auto;
+}
+
+.song__structure-chips {
+  display: flex;
+  gap: 0.25rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.song__structure-chip {
+  padding: 0.1rem 0.4rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 0.66rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.song__structure-pick {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  margin-inline-start: auto;
+  font-size: 0.7rem;
+  color: var(--text-dim);
+}
+
+.song__structure-pick select {
+  max-width: 18rem;
+  font-size: 0.7rem;
+}
+
+/* ── The note-density sketch, behind the clip's own label. */
+.song__sketch {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0.55;
+}
+
+/* ── Locks. A locked clip is left alone by a re-roll. */
+.song__clip-lock,
+.song__section-lock,
+.song__row-lock {
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  color: var(--text-dim);
+  background: transparent;
+  border: 0;
+  border-radius: 3px;
+  cursor: pointer;
+  pointer-events: auto;
+  vertical-align: middle;
+  opacity: 0;
+}
+
+.song__clip-lock {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  z-index: 2;
+}
+
+.song__section-lock {
+  position: absolute;
+  top: 2px;
+  right: 22px;
+}
+
+.song__row-lock {
+  margin-inline-start: 2px;
+}
+
+.song__clip:hover .song__clip-lock,
+.song__section:hover .song__section-lock,
+.song__row:hover .song__row-lock,
+.song__clip-lock:focus-visible,
+.song__section-lock:focus-visible,
+.song__row-lock:focus-visible,
+.song__clip-lock.is-on,
+.song__section-lock.is-on,
+.song__row-lock.is-on {
+  opacity: 1;
+}
+
+.song__clip-lock.is-on,
+.song__section-lock.is-on,
+.song__row-lock.is-on {
+  color: var(--accent);
+}
+
+/* A locked clip reads as pinned at a glance, without hovering it. */
+.song__clip.is-locked {
+  border-style: dashed;
+}
+
+/* ── Auditioning one cell, and re-rolling one section (TASK-071). */
+.song__clip-audition,
+.song__section-reroll {
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  color: var(--text-dim);
+  background: transparent;
+  border: 0;
+  border-radius: 3px;
+  cursor: pointer;
+  pointer-events: auto;
+  opacity: 0;
+}
+
+.song__clip-audition {
+  position: absolute;
+  top: 3px;
+  right: 21px;
+  z-index: 2;
+}
+
+.song__section-reroll {
+  position: absolute;
+  top: 2px;
+  right: 42px;
+}
+
+.song__clip:hover .song__clip-audition,
+.song__section:hover .song__section-reroll,
+.song__clip-audition:focus-visible,
+.song__section-reroll:focus-visible,
+.song__clip-audition.is-on {
+  opacity: 1;
+}
+
+.song__clip-audition.is-on {
+  color: var(--accent);
+}
+
+/* An auditioning clip is unmistakable, because the transport is playing it
+   alone and the loop badge is not what says so. */
+.song__clip.is-auditioning {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
+.song__audition-stop {
+  padding: 0.15rem 0.5rem;
+  font-size: 0.7rem;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+/* ── Exporting the whole arranged song (TASK-073). */
+.song__export {
+  padding: 0.15rem 0.5rem;
+  font-size: 0.7rem;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  cursor: pointer;
+}
+
+.song__export:hover:not(:disabled) {
+  border-color: var(--accent);
+}
+
+.song__export:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.song__export-note {
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  /* The path can be long, and truncating the *start* keeps the file name — the
+     part a producer is looking for — visible. */
+  direction: rtl;
+  text-align: left;
+  max-width: 22rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.song__export-note.is-error {
+  color: var(--danger, var(--accent));
+  direction: ltr;
+}

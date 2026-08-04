@@ -32,6 +32,7 @@ fn shipped_models() -> BTreeMap<String, engine::StyleModel> {
 
 fn note(start: u32, len: u32, vel: u8) -> Note {
     Note {
+        model_vel: None,
         start_tick: start,
         len_ticks: len,
         pitch: 36,

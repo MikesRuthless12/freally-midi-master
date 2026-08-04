@@ -170,8 +170,17 @@ impl HostSession {
         }
 
         let mut ctx = SessionContext::from_model(model, &overrides, seed);
-        ctx.time_sig_num = self.time_sig_num;
-        ctx.time_sig_den = self.time_sig_den;
+        // ⛔ **The host's meter is the default, not the verdict** (TASK-041E).
+        // A producer who set the clip to 6/8 has been more specific than the
+        // project it is sitting in, and overwriting it here would make the
+        // meter control in the roll do nothing while appearing to work — the
+        // same rule `bpm` above already follows for auto-sync.
+        if user.time_sig_num.is_none() {
+            ctx.time_sig_num = self.time_sig_num;
+        }
+        if user.time_sig_den.is_none() {
+            ctx.time_sig_den = self.time_sig_den;
+        }
         ctx
     }
 }
@@ -292,6 +301,83 @@ mod tests {
         // Six eighths is three quarter notes, which is what `ticks_per_bar`
         // already knows — this is wiring, not new arithmetic.
         assert_eq!(ctx.ticks_per_bar(), engine::pattern::PPQ * 3);
+    }
+
+    #[test]
+    fn a_clip_that_names_its_own_meter_keeps_it_inside_a_project_in_another() {
+        // TASK-041E. The host's meter is the default; a producer who set the
+        // clip to 3/4 has been more specific than the 4/4 project it sits in,
+        // and overwriting it here would make the roll's meter control appear to
+        // work while changing nothing.
+        let host = observed(Some(120.0), 4, 4);
+        let pinned = SessionOverrides {
+            time_sig_num: Some(3),
+            time_sig_den: Some(4),
+            ..SessionOverrides::default()
+        };
+        let ctx = host.session_for(&shipped("trap"), &pinned, 7, true);
+        assert_eq!((ctx.time_sig_num, ctx.time_sig_den), (3, 4));
+        assert_eq!(ctx.ticks_per_bar(), engine::pattern::PPQ * 3);
+    }
+
+    /// ⛔ **The meter multiplies the note count exactly as `bars` does.**
+    /// `MAX_BARS` exists so a value from a file, a preset or devtools cannot ask
+    /// for a pattern that takes minutes to build on the thread the host draws
+    /// its window from — and `ticks_per_bar` is `num × 4 / den`, so `255/1` is
+    /// 63× a 4/4 bar and walks straight past that ceiling. Measured before the
+    /// clamp: `255/1` at 128 bars produced 526,000 notes and ~875 ms of
+    /// synchronous stall inside the DAW, plus a ~50 MB reply into the webview.
+    #[test]
+    fn a_meter_from_a_file_cannot_be_used_to_outgrow_the_bar_limit() {
+        let host = observed(Some(120.0), 4, 4);
+        let huge = SessionOverrides {
+            time_sig_num: Some(255),
+            time_sig_den: Some(1),
+            ..SessionOverrides::default()
+        };
+        let ctx = host.session_for(&shipped("trap"), &huge, 7, true);
+        assert_eq!(
+            (ctx.time_sig_num, ctx.time_sig_den),
+            (4, 4),
+            "a meter outside the range is refused rather than clamped to its \
+             edge: 255 is corrupt input, not a preference to honour partially"
+        );
+    }
+
+    /// ⛔ A denominator the MIDI writer cannot express used to divide the tick
+    /// arithmetic while the exported meta event fell back to `/4` — so the clip
+    /// and the file disagreed about how long a bar was.
+    #[test]
+    fn a_denominator_no_midi_file_can_write_is_refused() {
+        let host = observed(Some(120.0), 4, 4);
+        let with_den = |den: u8| {
+            let odd = SessionOverrides {
+                time_sig_den: Some(den),
+                ..SessionOverrides::default()
+            };
+            host.session_for(&shipped("trap"), &odd, 7, true)
+                .time_sig_den
+        };
+
+        for den in [0u8, 3, 5, 7, 64] {
+            assert_eq!(with_den(den), 4, "denominator {den} must not survive");
+        }
+        for den in [1u8, 2, 4, 8, 16, 32] {
+            assert_eq!(with_den(den), den, "denominator {den} is legal");
+        }
+    }
+
+    #[test]
+    fn half_a_meter_still_takes_the_rest_from_the_host() {
+        // Only the field that was set wins. A numerator alone must not drag the
+        // denominator back to a default nobody chose.
+        let host = observed(Some(120.0), 6, 8);
+        let pinned = SessionOverrides {
+            time_sig_num: Some(5),
+            ..SessionOverrides::default()
+        };
+        let ctx = host.session_for(&shipped("trap"), &pinned, 7, true);
+        assert_eq!((ctx.time_sig_num, ctx.time_sig_den), (5, 8));
     }
 
     #[test]

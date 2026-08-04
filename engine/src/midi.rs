@@ -1,8 +1,9 @@
 //! Standard MIDI File output.
 //!
 //! A `Pattern` becomes a type-0 SMF (one track, every lane merged); a `Song`
-//! will become type-1 (a track per part) when Song Mode lands. PPQ is
-//! [`crate::pattern::PPQ`], so the roll subdivisions land on whole ticks.
+//! becomes type-1 — a conductor track carrying the tempo map and the section
+//! markers, then one track per part. PPQ is [`crate::pattern::PPQ`], so the roll
+//! subdivisions land on whole ticks.
 //!
 //! 808 slides are written as **overlapping notes**: the sliding note's
 //! note-off comes *after* the destination's note-on. That overlap is the
@@ -15,7 +16,9 @@ use midly::{
     Format, Header, MetaMessage, MidiMessage, Smf, Timing, Track, TrackEvent, TrackEventKind,
 };
 
-use crate::pattern::{Lane, Note, Pattern, Scale, PPQ};
+use crate::pattern::{
+    Lane, Note, Part, Pattern, Scale, ScaleCharacter, Section, SectionTiling, Song, PPQ,
+};
 
 /// General MIDI drum note numbers, so a drum pattern is auditionable in any
 /// DAW without a kit loaded.
@@ -70,29 +73,32 @@ const DRUM_CHANNEL: u8 = 9;
 ///   time they arrive here. Six accidentals goes to sharps for that reason —
 ///   there is nothing left to prefer flats by.
 fn key_signature(key_root: u8, scale: Scale) -> (i8, bool) {
-    let minor = match scale {
-        Scale::Major | Scale::Lydian | Scale::Mixolydian | Scale::MajorPentatonic => false,
-        Scale::NaturalMinor
-        | Scale::HarmonicMinor
-        | Scale::Aeolian
-        | Scale::Dorian
-        | Scale::Phrygian
-        | Scale::MinorPentatonic
-        | Scale::Blues => true,
-        // The one that does not follow from its third. Phrygian dominant *has*
-        // a major third, but it is the fifth mode of harmonic minor and its ♭2
-        // and ♭6 sit on the minor side: E phrygian dominant shares five notes
-        // with E minor's signature and four with E major's. Minor is the less
-        // wrong of the two answers the format allows.
-        Scale::PhrygianDominant => true,
+    // ⛔ **Deferred to `theory::scale_character`, which is the one place that
+    // answers "is this scale dark or bright".** This was a hand-written match
+    // over every scale — fine at twelve, a drift hazard at forty-one — and then
+    // briefly its own interval rule, which promptly disagreed with the character
+    // table about the major blues scale: it carries *both* thirds, so "has a
+    // minor third" called it minor while the table called it bright. Two rules
+    // for one question is how a roll ends up tinting a scale bright over an
+    // export that says minor. There is one rule now, and
+    // `the_character_decides_the_signature` is what holds them together.
+    //
+    // Neutral is the only case left to decide here, and the third decides it:
+    // the symmetric scales have no dark/bright opinion, so the format gets the
+    // nearest thing it can express.
+    let degrees = crate::theory::scale_semitones(scale);
+    let minor = match crate::theory::scale_character(scale) {
+        ScaleCharacter::Dark => true,
+        ScaleCharacter::Bright => false,
+        ScaleCharacter::Neutral => !degrees.contains(&4),
     };
 
     // A minor key borrows its signature from the major a minor third above.
-    let major_pc = if minor {
-        (key_root + 3) % 12
-    } else {
-        key_root % 12
-    };
+    //
+    // Reduced *before* the third is added: `key_root` is a `u8` off the wire on
+    // the song path, and 253 or above overflowed the addition.
+    let key_root = key_root % 12;
+    let major_pc = if minor { (key_root + 3) % 12 } else { key_root };
 
     // Each step clockwise round the circle of fifths adds one sharp, and a
     // fifth is seven semitones.
@@ -115,6 +121,17 @@ struct Event {
     channel: u8,
     key: u8,
     velocity: u8,
+    /// The tick the note this event belongs to *started* at — the same value on
+    /// the on and its off.
+    ///
+    /// ⛔ **This is what keeps a pair together when one end is filtered.** The
+    /// song export drops notes that start past the end of a section, and
+    /// deciding that per *event* dropped the on and kept the off: an unmatched
+    /// note-off then landed inside the next section, on the same channel and
+    /// key, where a DAW pairs it with that section's own note and cuts it dead.
+    /// Judging both ends by the onset is what makes the filter operate on
+    /// notes rather than on halves of them.
+    origin: u32,
 }
 
 /// How far a slide's two notes overlap: a 32nd note.
@@ -124,13 +141,25 @@ struct Event {
 /// destination.
 const SLIDE_OVERLAP_TICKS: u32 = PPQ / 8;
 
-fn push_note(events: &mut Vec<Event>, channel: u8, key: u8, velocity: u8, on: u32, off: u32) {
+/// Push a note's on and off, both stamped with `origin` — the tick the note the
+/// pair belongs to started at. For a slide's second note that is still the
+/// *original* note's onset, so the whole gesture is kept or dropped together.
+fn push_note(
+    events: &mut Vec<Event>,
+    channel: u8,
+    key: u8,
+    velocity: u8,
+    on: u32,
+    off: u32,
+    origin: u32,
+) {
     events.push(Event {
         tick: on,
         is_on: true,
         channel,
         key,
         velocity,
+        origin,
     });
     events.push(Event {
         tick: off,
@@ -138,6 +167,7 @@ fn push_note(events: &mut Vec<Event>, channel: u8, key: u8, velocity: u8, on: u3
         channel,
         key,
         velocity: 0,
+        origin,
     });
 }
 
@@ -149,6 +179,12 @@ fn events_for(pattern: &Pattern) -> Vec<Event> {
         let channel = if pitched { 0 } else { DRUM_CHANNEL };
 
         for note in &lane.notes {
+            // The clip's own start and end (TASK-041E). A trimmed clip has to
+            // *export* trimmed, or the markers are a boundary the producer can
+            // see and the file does not have.
+            if !pattern.within_clip(note) {
+                continue;
+            }
             let key = if pitched {
                 note.pitch
             } else {
@@ -170,8 +206,11 @@ fn events_for(pattern: &Pattern) -> Vec<Event> {
                 // destination's note-on lands while the origin is still held,
                 // and the origin's note-off follows it. Both stay inside the
                 // note's own span, so a slide never lengthens the pattern.
+                // ⛔ Saturating throughout: these ticks are untrusted on the song
+                // path — `song_smf` takes a whole `Song` from the webview — and
+                // `voice.rs` already writes down why that matters here.
                 Some(destination) => {
-                    let slide_at = note.start_tick + len / 2;
+                    let slide_at = note.start_tick.saturating_add(len / 2);
                     let overlap = SLIDE_OVERLAP_TICKS.clamp(1, len / 4);
                     push_note(
                         &mut events,
@@ -179,7 +218,8 @@ fn events_for(pattern: &Pattern) -> Vec<Event> {
                         key,
                         velocity,
                         note.start_tick,
-                        slide_at + overlap,
+                        slide_at.saturating_add(overlap),
+                        note.start_tick,
                     );
                     push_note(
                         &mut events,
@@ -187,7 +227,8 @@ fn events_for(pattern: &Pattern) -> Vec<Event> {
                         destination,
                         velocity,
                         slide_at,
-                        note.start_tick + len,
+                        note.start_tick.saturating_add(len),
+                        note.start_tick,
                     );
                 }
                 None => push_note(
@@ -196,7 +237,8 @@ fn events_for(pattern: &Pattern) -> Vec<Event> {
                     key,
                     velocity,
                     note.start_tick,
-                    note.start_tick + len,
+                    note.start_tick.saturating_add(len),
+                    note.start_tick,
                 ),
             }
         }
@@ -304,6 +346,260 @@ pub fn pattern_to_smf(pattern: &Pattern) -> Vec<u8> {
     out
 }
 
+/// The tracks a song is written as, in the order they appear in the file.
+///
+/// Fixed rather than "whichever parts turned up", so two songs from the same
+/// artist import into a DAW with their tracks in the same rows.
+const TRACK_ORDER: [Part; 5] = [
+    Part::Drums,
+    Part::Chords,
+    Part::Melody,
+    Part::Counter,
+    Part::Bass,
+];
+
+/// The name US-011 gives this part's track.
+///
+/// ⛔ Public because the *stem* files are named from it too (`plugin/src/export.rs`).
+/// A second table would let `FMM Melody.mid` carry a track called something else
+/// — the file name and the file contradicting each other.
+pub fn part_track_name(part: Part) -> &'static str {
+    // US-011 names these exactly: "FMM Drums", ... — the producer sees which
+    // rows came from this plugin in a project that already has twenty.
+    match part {
+        Part::Drums => "FMM Drums",
+        Part::Chords => "FMM Chords",
+        Part::Melody => "FMM Melody",
+        Part::Counter => "FMM Counter",
+        Part::Bass => "FMM Bass",
+    }
+}
+
+fn section_marker(section: &Section) -> String {
+    format!("{:?}", section.kind).to_uppercase()
+}
+
+/// Every event one part contributes across the whole song.
+///
+/// ⛔ **A section plays its clip on a loop, so the clip is tiled rather than
+/// placed once.** A sixteen-bar verse over a four-bar pattern is that pattern
+/// four times; writing it once would export three bars of silence out of every
+/// four, which is the bug that makes an exported song sound like it is missing
+/// most of itself.
+fn song_events_for(song: &Song, part: Part) -> Vec<Event> {
+    let mut events: Vec<Event> = Vec::new();
+
+    for section in &song.sections {
+        let Some(reference) = section.patterns.get(&part) else {
+            continue;
+        };
+        let Some(pattern) = song.pattern(reference) else {
+            continue;
+        };
+
+        // ⛔ **The geometry comes from `SectionTiling`, which the transport also
+        // reads.** The drop-out span, the repeat count and the decay ramp were
+        // all computed here once, and all three had to be got right twice — the
+        // second time by the code that plays the song rather than exports it.
+        // Two walks over the same fields are free to disagree, and then what a
+        // producer hears is not what they exported.
+        let tiling = SectionTiling::of(song, section, pattern.bars);
+
+        // Computed once and reused for every repeat: `events_for` allocates,
+        // walks every note and sorts, and it is a pure function of the pattern —
+        // so recomputing it per tile was doing that work up to four times per
+        // section for an identical answer, which the outer sort then discarded
+        // anyway.
+        let clip_events = events_for(pattern);
+
+        for repeat in 0..tiling.repeats {
+            let offset = tiling.offset(repeat);
+            for event in clip_events.iter().copied() {
+                if !tiling.sounds(repeat, event.origin) {
+                    continue;
+                }
+                let tick = tiling
+                    .section_start
+                    .saturating_add(offset)
+                    .saturating_add(event.tick);
+                // ⚠ Only the note-*on* carries the fade. A note-off's velocity
+                // is a release value no sampler reads as loudness, and scaling
+                // it would ramp a number that means nothing.
+                //
+                // ⛔ **Sampled at `origin`, not at `tick`, so the file agrees
+                // with what plays.** `flatten_parts` evaluates the ramp once at
+                // each note's onset; the two coincide for a plain note, but an
+                // 808 slide emits its destination note-on at `start + len / 2`,
+                // so sampling `event.tick` read the ramp half a note later and
+                // wrote a quieter value than the transport and the stem files
+                // carry. Measured at 1–8 divergences per song across every
+                // shipped model — small, reproducible, and exactly the class of
+                // "the export is not what you heard" this module now shares
+                // `SectionTiling` to prevent.
+                let velocity = if event.is_on {
+                    tiling.velocity(repeat, event.origin, event.velocity)
+                } else {
+                    event.velocity
+                };
+                events.push(Event {
+                    tick,
+                    velocity,
+                    ..event
+                });
+            }
+        }
+    }
+
+    events.sort_by(|a, b| a.tick.cmp(&b.tick).then(a.is_on.cmp(&b.is_on)));
+    events
+}
+
+/// Encode a whole song as a type-1 SMF: a conductor track, then one per part.
+///
+/// This is what US-011's "one drag lays the whole song on the DAW timeline"
+/// means, and the reason [`Section::drop_out_beats`] and [`Section::decay`] are
+/// fields rather than decoration — they are read here, so a transition the
+/// timeline draws is a transition the file contains.
+pub fn song_to_smf(song: &Song) -> Vec<u8> {
+    let ticks_per_bar = song.ticks_per_bar();
+
+    // ── The conductor track: tempo, meter, key, and where the sections are.
+    let mut conductor = Track::new();
+    let bpm = if song.bpm.is_finite() && song.bpm > 0.0 {
+        song.bpm
+    } else {
+        120.0
+    };
+    let us_per_quarter = (60_000_000.0 / bpm).round().clamp(1.0, 16_777_215.0) as u32;
+    conductor.push(TrackEvent {
+        delta: u28::new(0),
+        kind: TrackEventKind::Meta(MetaMessage::Tempo(u24::new(us_per_quarter))),
+    });
+
+    let den_pow = match song.time_sig_den {
+        1 => 0,
+        2 => 1,
+        4 => 2,
+        8 => 3,
+        16 => 4,
+        32 => 5,
+        _ => 2,
+    };
+    conductor.push(TrackEvent {
+        delta: u28::new(0),
+        kind: TrackEventKind::Meta(MetaMessage::TimeSignature(
+            song.time_sig_num.max(1),
+            den_pow,
+            24,
+            8,
+        )),
+    });
+
+    let (sharps, minor) = key_signature(song.key_root, song.scale);
+    conductor.push(TrackEvent {
+        delta: u28::new(0),
+        kind: TrackEventKind::Meta(MetaMessage::KeySignature(sharps, minor)),
+    });
+
+    let title = format!("{} — song", song.artist_id);
+    conductor.push(TrackEvent {
+        delta: u28::new(0),
+        kind: TrackEventKind::Meta(MetaMessage::TrackName(title.as_bytes())),
+    });
+
+    // Markers are how the arrangement survives the export: a producer opening
+    // the file sees INTRO / VERSE / HOOK on the DAW's own ruler rather than one
+    // undifferentiated run of bars.
+    let mut last_tick = 0u32;
+    let mut markers: Vec<(u32, String)> = song
+        .sections
+        .iter()
+        .map(|section| {
+            (
+                section.start_bar.saturating_mul(ticks_per_bar),
+                section_marker(section),
+            )
+        })
+        .collect();
+    markers.extend(song.sections.iter().flat_map(|s| {
+        s.markers
+            .iter()
+            .map(|m| (s.start_bar.saturating_mul(ticks_per_bar), m.clone()))
+    }));
+    // Stable, so a section's own kind marker stays ahead of any custom marker
+    // sharing its tick.
+    markers.sort_by_key(|(tick, _)| *tick);
+    for (tick, text) in &markers {
+        conductor.push(TrackEvent {
+            delta: u28::new(tick.saturating_sub(last_tick)),
+            kind: TrackEventKind::Meta(MetaMessage::Marker(text.as_bytes())),
+        });
+        last_tick = *tick;
+    }
+    conductor.push(TrackEvent {
+        delta: u28::new(0),
+        kind: TrackEventKind::Meta(MetaMessage::EndOfTrack),
+    });
+
+    let mut tracks = vec![conductor];
+
+    // ── One track per part that plays anywhere in the song.
+    for part in TRACK_ORDER {
+        let events = song_events_for(song, part);
+        if events.is_empty() {
+            continue;
+        }
+
+        let mut track = Track::new();
+        track.push(TrackEvent {
+            delta: u28::new(0),
+            kind: TrackEventKind::Meta(MetaMessage::TrackName(part_track_name(part).as_bytes())),
+        });
+
+        let mut last_tick = 0u32;
+        for event in events {
+            let delta = event.tick.saturating_sub(last_tick);
+            last_tick = event.tick;
+            let message = if event.is_on {
+                MidiMessage::NoteOn {
+                    key: u7::new(event.key.min(127)),
+                    vel: u7::new(event.velocity.min(127)),
+                }
+            } else {
+                MidiMessage::NoteOff {
+                    key: u7::new(event.key.min(127)),
+                    vel: u7::new(0),
+                }
+            };
+            track.push(TrackEvent {
+                delta: u28::new(delta),
+                kind: TrackEventKind::Midi {
+                    channel: u4::new(event.channel),
+                    message,
+                },
+            });
+        }
+
+        track.push(TrackEvent {
+            delta: u28::new(0),
+            kind: TrackEventKind::Meta(MetaMessage::EndOfTrack),
+        });
+        tracks.push(track);
+    }
+
+    let smf = Smf {
+        header: Header {
+            format: Format::Parallel,
+            timing: Timing::Metrical(u15::new(PPQ as u16)),
+        },
+        tracks,
+    };
+
+    let mut out = Vec::new();
+    smf.write(&mut out).expect("writing to a Vec cannot fail");
+    out
+}
+
 /// A short, valid pattern for exercising the export and drag paths before the
 /// generators exist. Real, not a stub: four bars of kick, snare and hats that
 /// a DAW will happily play.
@@ -321,6 +617,7 @@ pub fn drag_spike_pattern() -> Pattern {
         // Kick on 1 and the "and" of 3 — a plain trap skeleton.
         for offset in [0, bar / 2 + PPQ / 2] {
             kick.push(Note {
+                model_vel: None,
                 start_tick: start + offset,
                 len_ticks: PPQ / 2,
                 pitch: 36,
@@ -331,6 +628,7 @@ pub fn drag_spike_pattern() -> Pattern {
         }
         // Snare on beat 3 only: half-time.
         snare.push(Note {
+            model_vel: None,
             start_tick: start + PPQ * 2,
             len_ticks: PPQ / 2,
             pitch: 38,
@@ -341,6 +639,7 @@ pub fn drag_spike_pattern() -> Pattern {
         // Straight 16th hats.
         for i in 0..16u32 {
             hats.push(Note {
+                model_vel: None,
                 start_tick: start + i * sixteenth,
                 len_ticks: sixteenth / 2,
                 pitch: 42,
@@ -352,6 +651,8 @@ pub fn drag_spike_pattern() -> Pattern {
     }
 
     Pattern {
+        loop_region: None,
+        clip_region: None,
         id: "drag-spike".into(),
         part: Part::Drums,
         artist_id: "spike".into(),
@@ -388,6 +689,8 @@ mod tests {
 
     fn tiny(lane: Lane, notes: Vec<Note>) -> Pattern {
         Pattern {
+            loop_region: None,
+            clip_region: None,
             id: "t".into(),
             part: Part::Drums,
             artist_id: "t".into(),
@@ -406,6 +709,7 @@ mod tests {
 
     fn note(start: u32, len: u32, pitch: u8) -> Note {
         Note {
+            model_vel: None,
             start_tick: start,
             len_ticks: len,
             pitch,
@@ -682,6 +986,7 @@ mod tests {
         // slide_to_pitch was dropped on the floor, so every 808 glide exported
         // as a flat retrigger.
         let slide = Note {
+            model_vel: None,
             start_tick: 0,
             len_ticks: 960,
             pitch: 33,
@@ -726,6 +1031,7 @@ mod tests {
         // Otherwise it emits two notes on one key, which is the collision the
         // note-off pairing cannot survive.
         let flat = Note {
+            model_vel: None,
             start_tick: 0,
             len_ticks: 960,
             pitch: 33,
@@ -741,6 +1047,7 @@ mod tests {
         // A drum lane's key is its voice, so sliding one would just be a
         // different drum.
         let hit = Note {
+            model_vel: None,
             start_tick: 0,
             len_ticks: 480,
             pitch: 36,

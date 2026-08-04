@@ -52,18 +52,54 @@ export function decimalOnly(text: string): string {
  * offer.
  */
 export const SCALES: readonly Scale[] = [
-  'natural_minor',
-  'harmonic_minor',
-  'phrygian',
-  'phrygian_dominant',
-  'dorian',
+  // Modes of the major scale
   'major',
-  'mixolydian',
+  'dorian',
+  'phrygian',
   'lydian',
+  'mixolydian',
+  'natural_minor',
+  'locrian',
   'aeolian',
-  'minor_pentatonic',
+  // Pentatonic and blues
   'major_pentatonic',
+  'minor_pentatonic',
+  'major_blues',
   'blues',
+  // Minor and major variants
+  'harmonic_minor',
+  'melodic_minor',
+  'harmonic_major',
+  // Modes of those
+  'phrygian_dominant',
+  'dorian_sharp4',
+  'lydian_augmented',
+  'lydian_dominant',
+  'super_locrian',
+  'locrian_natural6',
+  'ionian_sharp5',
+  'ultralocrian',
+  // Symmetric
+  'whole_tone',
+  'whole_half_diminished',
+  'half_whole_diminished',
+  'chromatic',
+  // World
+  'hungarian_minor',
+  'eight_tone_spanish',
+  'bhairav',
+  'hirajoshi',
+  'in_sen',
+  'iwato',
+  'kumoi',
+  'pelog_selisir',
+  'pelog_tembung',
+  // Messiaen modes
+  'messiaen_mode3',
+  'messiaen_mode4',
+  'messiaen_mode5',
+  'messiaen_mode6',
+  'messiaen_mode7',
 ];
 
 /**

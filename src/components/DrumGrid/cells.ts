@@ -1,4 +1,10 @@
 import type { Lane, Pattern } from '../../lib/ipc-types';
+// ⛔ **The clip's length honours its meter, and this file used to assume common
+// time** — `bars × ppq × 4`. Invisible until TASK-041E made the meter settable,
+// and then wrong in two directions at once: the grid drew a third more columns
+// than a 6/8 clip has, while the velocity lane below it (which does use this)
+// placed its caps on the real tick scale. One definition, one answer.
+import { patternTicks } from '../PianoRoll/notes';
 
 /**
  * Turning a pattern into grid cells, kept out of the component file.
@@ -54,7 +60,7 @@ export type Row = { lane: Lane; cells: Cell[] };
  */
 export function columnDensity(pattern: Pattern, columns: number): number[] {
   const density = new Array<number>(Math.max(1, columns)).fill(0);
-  const endTick = Math.max(1, pattern.bars * pattern.ppq * 4);
+  const endTick = patternTicks(pattern);
 
   for (const track of pattern.lanes) {
     for (const note of track.notes) {
@@ -77,7 +83,7 @@ export function columnDensity(pattern: Pattern, columns: number): number[] {
  * roll and one tap would draw identically.
  */
 export function toCells(pattern: Pattern): Row[] {
-  const columns = Math.max(1, Math.round((pattern.bars * pattern.ppq * 4) / TICKS_PER_16TH));
+  const columns = Math.max(1, Math.round(patternTicks(pattern) / TICKS_PER_16TH));
 
   return LANE_ORDER.filter((lane) => pattern.lanes.some((track) => track.lane === lane)).map(
     (lane) => {

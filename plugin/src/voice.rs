@@ -8,6 +8,30 @@
 use engine::pattern::{Lane, Pattern, PPQ};
 use nih_plug::prelude::*;
 
+/// The shortest loop the transport will turn over, in samples.
+///
+/// ⛔ **This bounds the audio thread's work per block, and it is a security
+/// floor rather than a musical one.** `emit` renders one segment per turnover,
+/// so segments-per-block is `block_size / loop_length` — unbounded from below.
+/// A crafted `arm_pattern`, or a clip restored from a project file, carrying a
+/// one-tick region turned a 512-frame block into 512 segments and roughly
+/// 100,000 `send_event` calls, every block, on the audio thread.
+///
+/// 1,024 samples is ~21 ms at 48 kHz, which is *shorter* than any brace the UI
+/// can draw — its own floor is one snap step, and a 1/64 note at 140 BPM is
+/// about 26 ms — so no loop a producer can ask for is affected. It caps an
+/// ordinary 512-frame block at one turnover and a 16k offline block at sixteen.
+const MIN_LOOP_SAMPLES: u32 = 1_024;
+
+/// The tempo range the schedule will place notes against.
+///
+/// ⛔ The same range `engine::context` clamps a pinned BPM to, applied again
+/// here because `Pattern.bpm` also arrives straight from the bridge and from
+/// project state. `.max(1.0)` alone kept the division safe while leaving a
+/// `bpm: 1e9` pattern free to collapse every tick to zero samples — which is
+/// the other half of the flood [`MIN_LOOP_SAMPLES`] closes.
+const TEMPO_RANGE: std::ops::RangeInclusive<f32> = 20.0..=999.0;
+
 /// One note, placed in samples from the moment the schedule was armed.
 #[derive(Debug, Clone, Copy, PartialEq)]
 struct Placed {
@@ -106,6 +130,19 @@ pub struct Schedule {
     elapsed: u32,
     /// Index of the first event not yet emitted.
     cursor: usize,
+    /// The clip's loop region in samples, when the producer set one (TASK-041E).
+    ///
+    /// ⛔ **This is the *clip's* loop, not the project's, and that is why the
+    /// plugin may repeat it.** The comment on `progress` is still true — the
+    /// marker never wraps on its own, because a plugin inventing a loop the
+    /// project does not have would fight the host's timeline. A brace someone
+    /// dragged is the opposite case: it is an instruction, and honouring it is
+    /// the only thing that makes the brace mean anything.
+    loop_span: Option<(u32, u32)>,
+    /// Which clip is armed, so a re-arm can tell an edit from a new generation.
+    armed_id: Option<String>,
+    /// The clip's own length in samples — what `progress` is a fraction *of*.
+    clip_len: u32,
 }
 
 impl Schedule {
@@ -119,14 +156,25 @@ impl Schedule {
         // A tick is a fraction of a quarter note, so its duration in samples
         // is decided by the tempo the pattern was generated at — which, in the
         // plugin, is the host's own (see `host.rs`).
-        let samples_per_tick =
-            f64::from(sample_rate) * 60.0 / f64::from(pattern.bpm.max(1.0)) / f64::from(PPQ);
+        let bpm = pattern.bpm.clamp(*TEMPO_RANGE.start(), *TEMPO_RANGE.end());
+        let samples_per_tick = f64::from(sample_rate) * 60.0 / f64::from(bpm) / f64::from(PPQ);
 
         for track in &pattern.lanes {
             for note in &track.notes {
+                // The clip's own start and end, honoured here so a trimmed clip
+                // plays trimmed rather than only looking it (TASK-041E).
+                if !pattern.within_clip(note) {
+                    continue;
+                }
                 let at = (f64::from(note.start_tick) * samples_per_tick).round() as u32;
-                let off = (f64::from(note.start_tick + note.len_ticks.max(1)) * samples_per_tick)
-                    .round() as u32;
+                // ⛔ **Saturating, because these ticks are untrusted.** They
+                // arrive from the webview and from whatever the host handed back
+                // as project state, so `start_tick + len_ticks` is an attacker's
+                // sum — and this workspace sets `panic = "abort"`, which makes an
+                // overflow panic in a debug-assertions build the *host process*
+                // going down rather than one plugin misbehaving.
+                let end = note.start_tick.saturating_add(note.len_ticks.max(1));
+                let off = (f64::from(end) * samples_per_tick).round() as u32;
                 events.push(Placed {
                     at,
                     lane: track.lane,
@@ -134,15 +182,61 @@ impl Schedule {
                     velocity: f32::from(note.vel) / 127.0,
                     // A zero-length note is inaudible and, in some hosts,
                     // invisible. One sample is the floor.
-                    off_at: off.max(at + 1),
+                    off_at: off.max(at.saturating_add(1)),
                 });
             }
         }
 
         events.sort_by_key(|e| e.at);
         self.events = events;
+
+        // ⛔ **An edit must not send the playhead back to bar 1.** Every note
+        // moved, every velocity painted and every brace dragged re-arms — that
+        // is what makes the preview play what is on screen — and resetting
+        // `elapsed` here meant the clip jumped to its start and ran out of phase
+        // with the host's transport for the rest of the pass. Whether this is a
+        // *new* clip is the question, and the pattern's own id answers it: a
+        // generation changes it, an edit does not.
+        let same_clip = self.armed_id.as_deref() == Some(pattern.id.as_str());
+        self.armed_id = Some(pattern.id.clone());
+        let resume = if same_clip { self.elapsed } else { 0 };
         self.elapsed = 0;
         self.cursor = 0;
+        // Converted here, once, on the thread that is allowed to do arithmetic
+        // with `Option` and rounding — `emit` runs on the audio thread.
+        self.loop_span = pattern
+            .loop_region
+            .and_then(|region| region.valid())
+            .map(|(from, to)| {
+                let at = |tick: u32| (f64::from(tick) * samples_per_tick).round() as u32;
+                let start = at(from);
+                // ⛔ **A block, not a sample.** `emit` renders one segment per
+                // turnover, so the number of segments in a block is
+                // `block / loop_length` — and a one-sample floor makes that
+                // ratio unbounded. A crafted `arm_pattern`, or a clip restored
+                // from a project file, with a one-tick region turned a 512-frame
+                // block into 512 segments and ~100,000 `send_event` calls, on
+                // the audio thread, every block. The UI cannot ask for this —
+                // `stepTicks` floors a brace at a 64th note — but the bridge is
+                // not the UI. Flooring bounds it.
+                let end = at(to).max(start.saturating_add(MIN_LOOP_SAMPLES));
+                (start, end)
+            });
+
+        // The clip's own length, in the same samples everything else here is in.
+        let bar_ticks = u32::from(pattern.time_sig_num.max(1)) * (PPQ * 4)
+            / u32::from(if pattern.time_sig_den == 0 {
+                4
+            } else {
+                pattern.time_sig_den
+            });
+        let clip_ticks = bar_ticks.saturating_mul(u32::from(pattern.bars));
+        self.clip_len = (f64::from(clip_ticks) * samples_per_tick).round() as u32;
+
+        // Put the playhead back where the edit found it, cursor and all.
+        if resume > 0 {
+            self.rewind_to(resume);
+        }
     }
 
     /// Drop everything scheduled. Used when the host relocates or stops.
@@ -150,6 +244,9 @@ impl Schedule {
         self.events.clear();
         self.elapsed = 0;
         self.cursor = 0;
+        self.loop_span = None;
+        self.armed_id = None;
+        self.clip_len = 0;
     }
 
     /// The advance `emit` performs, isolated so it can be asserted without a
@@ -201,6 +298,18 @@ impl Schedule {
     /// against this, so a short length makes the marker run ahead of the beat
     /// *and* makes click-to-seek land early.
     fn length(&self) -> u32 {
+        // ⛔ **The *clip's* length, not the last note-off.** `progress()` is what
+        // the roll draws its marker from and what "paste at the playhead" lands
+        // against, and both of those measure against `patternTicks` — the clip.
+        // Dividing by the last note-off instead made the two disagree by
+        // whatever tail the clip has after its final note: on drums they are
+        // nearly the same, and on every melodic part the marker ran ahead of the
+        // notes it was supposed to be over and then sat pinned at the right edge
+        // for the rest of each pass. Falls back to the last note-off for a clip
+        // that never said how long it is.
+        if self.clip_len > 0 {
+            return self.clip_len;
+        }
         self.events.iter().map(|e| e.off_at).max().unwrap_or(0)
     }
 
@@ -213,8 +322,14 @@ impl Schedule {
     /// broken playback rather than having moved it.
     pub fn seek(&mut self, progress: f32) {
         let length = self.length();
-        self.elapsed = (progress.clamp(0.0, 1.0) * length as f32) as u32;
-        self.cursor = self.events.partition_point(|event| event.at < self.elapsed);
+        self.rewind_to((progress.clamp(0.0, 1.0) * length as f32) as u32);
+    }
+
+    /// Put the playhead at a sample, cursor and all. The one place both the
+    /// seek and the loop turnover compute where the walk resumes.
+    fn rewind_to(&mut self, sample: u32) {
+        self.elapsed = sample;
+        self.cursor = self.events.partition_point(|event| event.at < sample);
     }
 
     /// Emit whatever falls inside this block.
@@ -242,6 +357,58 @@ impl Schedule {
         fired: &mut FiredNotes,
     ) {
         fired.clear();
+
+        // ⛔ **The block is rendered in segments split at the loop's turnover**,
+        // not wrapped once at the end of it. A block is up to ~11 ms, which is a
+        // 32nd note at 140 BPM — turning the loop over at the block boundary
+        // would put every note after the wrap that far out, which is exactly the
+        // error `lib.rs` splits its render segments to avoid. Two segments cost
+        // one extra walk of an already-sorted list and no allocation.
+        let mut offset = 0;
+        let mut remaining = samples;
+        while remaining > 0 {
+            let chunk = self.next_span(remaining);
+            self.emit_span(context, offset, chunk, samples, fired);
+            offset += chunk;
+            remaining -= chunk;
+            self.turn_over();
+        }
+    }
+
+    /// How much of what is left of a block may be rendered before the loop
+    /// turns over.
+    ///
+    /// ⛔ Floored at one sample. Without it a playhead already at or past the
+    /// loop's end would ask for a zero-length span forever and hang the audio
+    /// thread — which is a locked-up DAW, not a dropout.
+    fn next_span(&self, remaining: u32) -> u32 {
+        match self.loop_span {
+            Some((_, to)) => remaining.min(to.saturating_sub(self.elapsed).max(1)),
+            None => remaining,
+        }
+    }
+
+    /// Send the playhead back to the top of the loop, if it has reached the end.
+    fn turn_over(&mut self) {
+        if let Some((from, to)) = self.loop_span {
+            if self.elapsed >= to {
+                self.rewind_to(from);
+            }
+        }
+    }
+
+    /// One contiguous stretch of a block, with `offset` samples already sent.
+    fn emit_span<P: Plugin>(
+        &mut self,
+        context: &mut impl ProcessContext<P>,
+        offset: u32,
+        samples: u32,
+        // `block` is the whole block, so a note-off is clamped into *it* rather
+        // than into this segment — a note starting just before a loop turnover
+        // would otherwise be cut to a handful of samples.
+        block: u32,
+        fired: &mut FiredNotes,
+    ) {
         if self.is_empty() {
             self.elapsed = self.elapsed.saturating_add(samples);
             return;
@@ -265,15 +432,18 @@ impl Schedule {
                 break;
             }
 
+            // ⛔ `offset` is where this span sits inside the block the host is
+            // rendering. Without it every note after a loop turnover would be
+            // reported at the top of the block instead of where it plays.
             context.send_event(NoteEvent::NoteOn {
-                timing,
+                timing: timing + offset,
                 voice_id: None,
                 channel: 0,
                 note: event.note,
                 velocity: event.velocity,
             });
             fired.push(Fired {
-                timing,
+                timing: timing + offset,
                 lane: event.lane,
                 note: event.note,
                 velocity: event.velocity,
@@ -284,10 +454,8 @@ impl Schedule {
                 // a note-off into a later block, and a stuck note is worse than
                 // a short one. `saturating_sub` because a relocating host can
                 // put `off_at` behind the block start.
-                timing: event
-                    .off_at
-                    .saturating_sub(block_start)
-                    .min(samples.saturating_sub(1)),
+                timing: (offset + event.off_at.saturating_sub(block_start))
+                    .min(block.saturating_sub(1)),
                 voice_id: None,
                 channel: 0,
                 note: event.note,
@@ -327,6 +495,8 @@ mod tests {
 
     fn pattern(bpm: f32, notes: Vec<Note>) -> Pattern {
         Pattern {
+            loop_region: None,
+            clip_region: None,
             id: "p".into(),
             part: Part::Drums,
             artist_id: "trap".into(),
@@ -348,6 +518,7 @@ mod tests {
 
     fn note(start: u32, len: u32, pitch: u8) -> Note {
         Note {
+            model_vel: None,
             start_tick: start,
             len_ticks: len,
             pitch,
@@ -450,13 +621,24 @@ mod tests {
 #[cfg(test)]
 mod transport_tests {
     use super::*;
-    use engine::pattern::{LaneTrack, Note, Part, Pattern, Scale, PPQ};
+    use engine::pattern::{LaneTrack, Note, Part, Pattern, Region, Scale, PPQ};
 
     /// Four bars of quarter notes at 120 BPM, so a position is easy to reason
     /// about: one beat is half a second, and the pattern is eight seconds long.
     fn armed() -> Schedule {
+        armed_with(None)
+    }
+
+    fn armed_with(loop_region: Option<Region>) -> Schedule {
+        let mut schedule = Schedule::default();
+        schedule.arm(&armed_pattern(loop_region), 48_000.0);
+        schedule
+    }
+
+    fn armed_pattern(loop_region: Option<Region>) -> Pattern {
         let notes: Vec<Note> = (0..16)
             .map(|i| Note {
+                model_vel: None,
                 start_tick: i * PPQ,
                 len_ticks: PPQ,
                 pitch: 36,
@@ -466,7 +648,9 @@ mod transport_tests {
             })
             .collect();
 
-        let pattern = Pattern {
+        Pattern {
+            loop_region,
+            clip_region: None,
             id: "t".into(),
             part: Part::Drums,
             artist_id: "t".into(),
@@ -483,11 +667,73 @@ mod transport_tests {
             }],
             ppq: PPQ,
             mood: None,
-        };
+        }
+    }
 
+    /// TASK-041E's other half: the clip markers reach *playback*, not only the
+    /// export. They were draggable, persisted, and honoured by nothing.
+    #[test]
+    fn a_trimmed_clip_schedules_only_what_is_inside_it() {
+        let (all, _) = armed().placement();
+
+        let mut pattern = armed_pattern(None);
+        pattern.clip_region = Some(Region {
+            from_tick: 0,
+            to_tick: 4 * PPQ,
+        });
+        let mut trimmed = Schedule::default();
+        trimmed.arm(&pattern, 48_000.0);
+
+        assert_eq!(all, 16, "the fixture is sixteen quarter notes");
+        assert_eq!(trimmed.placement().0, 4, "one bar of it is four");
+    }
+
+    /// ⛔ Every note moved re-arms — that is what makes the preview play what is
+    /// on screen — and `arm` reset `elapsed`, so the clip jumped back to bar 1
+    /// and ran out of phase with the host's transport for the rest of the pass.
+    #[test]
+    fn an_edit_holds_the_playhead_and_a_new_clip_does_not() {
+        let mut schedule = armed();
+        let (_, length) = schedule.placement();
+        schedule.advance_for_test(length / 2);
+        let mid = schedule.progress();
+        assert!(mid > 0.4, "halfway through, got {mid}");
+
+        schedule.arm(&armed_pattern(None), 48_000.0);
+        assert!(
+            (schedule.progress() - mid).abs() < 0.01,
+            "an edit holds position, got {}",
+            schedule.progress()
+        );
+
+        let mut other = armed_pattern(None);
+        other.id = "another".into();
+        schedule.arm(&other, 48_000.0);
+        assert_eq!(
+            schedule.progress(),
+            0.0,
+            "a new clip starts at its own start"
+        );
+    }
+
+    #[test]
+    fn the_playhead_is_a_fraction_of_the_clip_not_of_its_last_note() {
+        // ⛔ `progress` divided by the greatest note-off while the roll draws its
+        // marker against `patternTicks` and paste lands against the same — so on
+        // every melodic part, whose last note ends before the clip does, the
+        // marker ran ahead of the notes and then sat pinned at the right edge.
+        let mut short = armed_pattern(None);
+        short.lanes[0].notes.truncate(1);
         let mut schedule = Schedule::default();
-        schedule.arm(&pattern, 48_000.0);
-        schedule
+        schedule.arm(&short, 48_000.0);
+
+        let (_, length) = schedule.placement();
+        schedule.advance_for_test(length / 2);
+        let half = schedule.progress();
+        assert!(
+            (half - 0.5).abs() < 0.01,
+            "half of the four-bar clip, not half of its one note: {half}"
+        );
     }
 
     #[test]
@@ -511,6 +757,94 @@ mod transport_tests {
             1.0,
             "the marker saturates rather than wrapping — looping is the host's"
         );
+    }
+
+    /// TASK-041E's own verification: a two-bar loop inside a four-bar clip.
+    ///
+    /// ⛔ Driven through the two functions `emit` itself calls, rather than a
+    /// copy of its control flow. A test that re-implemented the segmentation
+    /// would keep passing after the real one broke.
+    #[test]
+    fn a_loop_region_turns_the_playhead_over_at_its_own_end() {
+        // Bars 1–2 of four: ticks 0 up to 2 bars × 4 beats × PPQ.
+        let two_bars = 2 * 4 * PPQ;
+        let mut schedule = armed_with(Some(Region {
+            from_tick: 0,
+            to_tick: two_bars,
+        }));
+        let (_, length) = schedule.placement();
+        let half = length / 2;
+
+        // Just short of the turnover, the playhead is where the clip says.
+        schedule.advance_for_test(half - 1000);
+        schedule.turn_over();
+        assert!(schedule.progress() < 0.5);
+
+        // Past it, and it is back at the top of the loop rather than at the
+        // top of the clip — which for this region happen to be the same tick,
+        // so the next case is the one that tells them apart.
+        schedule.advance_for_test(2000);
+        schedule.turn_over();
+        assert_eq!(schedule.progress(), 0.0);
+    }
+
+    #[test]
+    fn a_loop_that_starts_late_returns_to_its_own_start_not_the_clip_s() {
+        let bar = 4 * PPQ;
+        let mut schedule = armed_with(Some(Region {
+            from_tick: bar,
+            to_tick: 2 * bar,
+        }));
+        let (_, length) = schedule.placement();
+
+        schedule.seek(0.5);
+        schedule.turn_over();
+        let after = schedule.progress();
+        assert!(
+            (after - 0.25).abs() < 0.01,
+            "expected the top of bar 2 (~0.25), got {after}"
+        );
+        assert!(length > 0);
+    }
+
+    #[test]
+    fn a_block_is_split_at_the_turnover_rather_than_wrapped_after_it() {
+        // ⛔ The reason `emit` renders in spans: a block is up to ~11 ms, and
+        // turning over at its boundary would put every note after the wrap that
+        // far out of place.
+        let bar = 4 * PPQ;
+        let mut schedule = armed_with(Some(Region {
+            from_tick: 0,
+            to_tick: bar,
+        }));
+        let (_, length) = schedule.placement();
+        let quarter = length / 4;
+
+        schedule.advance_for_test(quarter - 100);
+        assert_eq!(
+            schedule.next_span(512),
+            100,
+            "the span stops exactly at the loop's end, not one block past it"
+        );
+
+        // And with no loop set, a block is never split.
+        assert_eq!(armed().next_span(512), 512);
+    }
+
+    #[test]
+    fn an_inverted_brace_is_refused_rather_than_looping_backwards() {
+        let mut schedule = armed_with(Some(Region {
+            from_tick: 4 * PPQ,
+            to_tick: 0,
+        }));
+        assert_eq!(
+            schedule.next_span(512),
+            512,
+            "an unusable region leaves the transport exactly as it was"
+        );
+        schedule.advance_for_test(512);
+        schedule.turn_over();
+        assert!(schedule.progress() > 0.0);
     }
 
     #[test]

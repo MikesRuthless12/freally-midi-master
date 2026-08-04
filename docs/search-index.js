@@ -32,6 +32,11 @@ window.SEARCH_INDEX = [
     body: 'drums melody countermelody bassline chords song arrangement hats rolls 808 kick snare clap percussion phrase scale degrees key',
   },
   {
+    id: 'song-mode',
+    title: 'Song Mode',
+    body: 'song mode arrangement timeline section intro verse hook chorus bridge outro pre-chorus structure form clip loop tile re-roll reroll lock unlock audition solo mute drill in export stems multi-track marker playhead seek switch-up drop-out fade',
+  },
+  {
     id: 'tempo',
     title: 'Tempo, key & auto-sync',
     body: 'tempo bpm key scale time signature auto-sync host DAW pin precedence follow project 140 92 session chips',
@@ -49,7 +54,7 @@ window.SEARCH_INDEX = [
   {
     id: 'session',
     title: 'Session state',
-    body: 'session state save project file restore reopen window size persist inputs regeneration',
+    body: 'session state save project file restore reopen window size persist inputs regeneration arrangement song edited stored',
   },
   {
     id: 'shortcuts',

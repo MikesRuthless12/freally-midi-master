@@ -23,6 +23,7 @@ import { CATEGORIES } from '../components/Settings/categories';
 import { LANE_ORDER } from '../components/DrumGrid/cells';
 import { SCALES } from '../components/SessionChips/values';
 import { THEME_PREFERENCES } from '../state/theme';
+import { SECTION_KINDS } from '../components/SongTimeline/clips';
 import { GENERATOR_TABS, SECTIONS } from '../state/ui';
 import { LOCALE_CODES, LOCALES, resolveLocale } from './locales';
 
@@ -87,6 +88,19 @@ const PRESERVED = [
   'Magenta Groove MIDI Dataset',
   'WCAG 2.1 AA',
   'K',
+  // ⛔ **Scale names that are proper nouns** (TASK-041C). These are the names
+  // of specific Japanese, Indian and Balinese scales, and they are written the
+  // same way in every locale — Ableton's own scale menu does exactly this.
+  // Inventing a translation would produce a name no musician would recognise
+  // and no search would find, which is the failure this list exists to allow
+  // an exception for. The *descriptive* scales beside them are all translated.
+  'Bhairav',
+  'Hirajoshi',
+  'In-Sen',
+  'Iwato',
+  'Kumoi',
+  'Pelog Selisir',
+  'Pelog Tembung',
 ];
 
 /** Is this string English only because every word in it is a preserved term? */
@@ -175,6 +189,7 @@ describe('locale catalogs', () => {
     ['settings', CATEGORIES],
     ['tabs', GENERATOR_TABS],
     ['sections', SECTIONS],
+    ['song.kind', SECTION_KINDS],
     ['theme', THEME_PREFERENCES],
     ['theme.short', THEME_PREFERENCES],
     ['lanes', LANE_ORDER],

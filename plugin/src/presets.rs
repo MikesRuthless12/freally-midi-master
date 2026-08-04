@@ -259,7 +259,22 @@ pub fn save(name: &str, session: PluginSession) -> Result<PresetSummary, String>
     save_in(&dir, name, session)
 }
 
-fn save_in(dir: &Path, name: &str, session: PluginSession) -> Result<PresetSummary, String> {
+fn save_in(dir: &Path, name: &str, mut session: PluginSession) -> Result<PresetSummary, String> {
+    // ⛔ **A preset is a starting point, not somebody's record.** The session
+    // store is what the host persists and it now carries a whole arrangement
+    // once one has been edited (TASK-067) — so saving it verbatim would put the
+    // author's song inside the preset, and loading that preset in another
+    // project would silently replace the arrangement the producer was working
+    // on. The artist, seed and pins are what a preset is for; the arrangement
+    // they happened to have open is not.
+    //
+    // ⚠ `pattern` is deliberately left alone. It predates this and is a single
+    // clip rather than a document, and changing what an existing preset restores
+    // is a behaviour change this task did not ask for — but the two are the same
+    // question and it is worth answering deliberately rather than by omission.
+    session.song = None;
+    session.song_edited = false;
+
     let name = name.trim();
     if name.is_empty() {
         return Err("a preset needs a name".to_owned());

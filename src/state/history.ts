@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-import type { Pattern, Scale } from '../lib/ipc-types';
+import type { Pattern, Scale, Song } from '../lib/ipc-types';
 
 /**
  * The operation log undo and redo walk (FMM-U01).
@@ -34,9 +34,21 @@ export type Snapshot = {
     keyRoot: number | null;
     scale: Scale | null;
     swing: number | null;
+    /** The clip's own meter, when the producer set one (TASK-041E). */
+    timeSigNum: number | null;
+    timeSigDen: number | null;
   };
   autoSync: boolean;
   pattern: Pattern | null;
+  /**
+   * Whether the clip is an edit rather than the seed's own output (TASK-041).
+   *
+   * ⛔ In the snapshot because undoing back past the first edit has to make the
+   * clip the seed's again. Left out, a project undone to its generated state
+   * would still be saved as an edited one and reopen replaying a clip nobody
+   * had edited — the small-file property lost with nothing to show for it.
+   */
+  edited: boolean;
   /** The pinned mood, or `null` for "Any" (TASK-040V). */
   mood: string | null;
   /**
@@ -58,6 +70,24 @@ export type Snapshot = {
    * wholesale on every change, so reference equality is enough to compare it.
    */
   mutedLanes: string[];
+  /**
+   * The arrangement (TASK-063B).
+   *
+   * ⛔ **In the session's own snapshot rather than in a second stack, and that
+   * is the reuse this module's header asks for.** A producer has one Ctrl+Z.
+   * Two stacks would mean the shortcut had to decide which document it was
+   * about — from the visible tab, which is the only clue available — and
+   * undoing an arrangement edit after switching to the roll would then step the
+   * *session* back instead. That is exactly what the Song tab used to do, and
+   * why its undo was turned into a deliberate no-op rather than left wrong.
+   *
+   * Reference equality is what [`changed`] compares, and `clips.ts` returns the
+   * *same* `Song` when an edit changes nothing — so a resize to the width it
+   * already had records no step, without this module knowing what a resize is.
+   */
+  song: Song | null;
+  /** Whether `song` is an arrangement rather than the seed's own output. */
+  songEdited: boolean;
 };
 
 /**
@@ -79,7 +109,7 @@ export type Field = keyof Snapshot;
  * merging them made "kick muted, snare audible" unreachable by undo — one
  * Ctrl+Z un-muted both.
  */
-const DISCRETE: readonly Field[] = ['pattern', 'mutedLanes'];
+const DISCRETE: readonly Field[] = ['pattern', 'mutedLanes', 'song'];
 
 /**
  * How long a run of edits to one field stays one undo step.
@@ -90,6 +120,26 @@ const DISCRETE: readonly Field[] = ['pattern', 'mutedLanes'];
  * because undo granularity is judged by intent rather than by write cost.
  */
 const COALESCE_MS = 600;
+
+/**
+ * The most steps kept.
+ *
+ * ⛔ **Unlimited stopped being affordable when an entry started pinning a whole
+ * arrangement.** The module header's argument still holds for everything else —
+ * an entry is a handful of scalars and a *reference* to a shared pattern — but
+ * a re-roll receives a freshly deserialized `Song` from the bridge with no
+ * structural sharing at all, so every press of `R` retained a complete
+ * independent copy of the record's note data for the life of the session,
+ * inside somebody's DAW process. `song` is also in [`DISCRETE`], so those never
+ * coalesce away.
+ *
+ * ⚠ **A thousand is a bound on the pathological case, not a limit on the
+ * feature.** It is far past anything a producer reaches by hand in one sitting,
+ * so the "unlimited undo" the README claims stays true of every session anybody
+ * actually has — but it is finite, so a runaway cannot retain a DAW's memory
+ * for the life of the process.
+ */
+const HISTORY_LIMIT = 1_000;
 
 type Entry = {
   state: Snapshot;
@@ -116,6 +166,22 @@ type HistoryState = {
 
   /** Note that the document changed. A no-op write records nothing. */
   record: (state: Snapshot) => void;
+
+  /**
+   * Correct the entry that is already current, without pushing a new one.
+   *
+   * ⛔ **For a caller whose own `set` records a snapshot it is about to
+   * invalidate.** `put()` applies a preset in one `set` — which fires the
+   * recorder — and only afterwards clears the arrangement the preset does not
+   * carry, so the entry it just filed named a record no longer on screen. One
+   * Ctrl+Y then resurrected it alongside the preset's pins, a state nobody had
+   * been in.
+   *
+   * ⚠ Not `arm`, which resets `past` and would make a preset load impossible to
+   * undo at all, and not `record`, which would push a second entry and make it
+   * two steps. Both are wrong in ways a producer would notice.
+   */
+  amend: (state: Snapshot) => void;
 
   /** The state to restore, or `null` when there is nothing to undo. */
   undo: () => Snapshot | null;
@@ -166,10 +232,19 @@ export const useHistory = create<HistoryState>((set, get) => ({
       at - present.at < COALESCE_MS;
 
     set({
-      past: coalesces ? past : [...past, present],
+      // ⛔ The oldest step is dropped rather than the newest refused: a stack
+      // that stopped accepting entries would silently stop recording edits,
+      // which is worse than being unable to walk back to last Tuesday.
+      past: coalesces ? past : [...past, present].slice(-HISTORY_LIMIT),
       present: entry,
       future: [],
     });
+  },
+
+  amend(state) {
+    const { present } = get();
+    if (present === null) return;
+    set({ present: { ...present, state } });
   },
 
   undo() {

@@ -10,6 +10,14 @@
   "genres": ["dnb", "electronic"],
   "confidence": "high",
   "sources": ["style-research ch.1 §10 Drum & Bass (liquid / jump-up / neuro / 2-step pop)"],
+  "arrangement": {
+    "structures": [
+      { "sections": ["intro", "verse", "hook", "bridge", "hook", "outro"], "weight": 3 },
+      { "sections": ["intro", "hook", "verse", "hook", "outro"], "weight": 2 }
+    ],
+    "sectionBars": { "intro": 16, "verse": 16, "hook": 16, "bridge": 8, "outro": 16 },
+    "transitions": { "fillBeforeSection": true, "dropOutBeats": { "prob": 0.8, "beats": 2 }, "switchUpProb": 0.15 }
+  },
   "notes": "The two-step core at 174: snares locked to 2 and 4, kick on 1, and the second kick on the and-of-3 — the classic step, as opposed to neuro's 2a. Ghost snares sit six to twelve dB under the mains around 2a and 3e, and the closed hats fill every 8th gap.",
 
   "session": {

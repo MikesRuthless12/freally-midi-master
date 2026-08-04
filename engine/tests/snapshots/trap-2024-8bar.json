@@ -17,163 +17,190 @@
           "startTick": 1,
           "lenTicks": 259,
           "pitch": 36,
-          "vel": 98
+          "vel": 98,
+          "modelVel": 88
         },
         {
           "startTick": 960,
           "lenTicks": 259,
           "pitch": 36,
-          "vel": 73
+          "vel": 73,
+          "modelVel": 76
         },
         {
           "startTick": 1920,
           "lenTicks": 259,
           "pitch": 36,
-          "vel": 78
+          "vel": 78,
+          "modelVel": 86
         },
         {
           "startTick": 2880,
           "lenTicks": 259,
           "pitch": 36,
-          "vel": 78
+          "vel": 78,
+          "modelVel": 87
         },
         {
           "startTick": 3840,
           "lenTicks": 259,
           "pitch": 36,
-          "vel": 72
+          "vel": 72,
+          "modelVel": 78
         },
         {
           "startTick": 4099,
           "lenTicks": 221,
           "pitch": 36,
-          "vel": 84
+          "vel": 84,
+          "modelVel": 79
         },
         {
           "startTick": 4800,
           "lenTicks": 259,
           "pitch": 36,
-          "vel": 90
+          "vel": 90,
+          "modelVel": 85
         },
         {
           "startTick": 5759,
           "lenTicks": 259,
           "pitch": 36,
-          "vel": 78
+          "vel": 78,
+          "modelVel": 76
         },
         {
           "startTick": 7681,
           "lenTicks": 259,
           "pitch": 36,
-          "vel": 76
+          "vel": 76,
+          "modelVel": 82
         },
         {
           "startTick": 8160,
           "lenTicks": 259,
           "pitch": 36,
-          "vel": 80
+          "vel": 80,
+          "modelVel": 81
         },
         {
           "startTick": 9600,
           "lenTicks": 259,
           "pitch": 36,
-          "vel": 76
+          "vel": 76,
+          "modelVel": 88
         },
         {
           "startTick": 11521,
           "lenTicks": 259,
           "pitch": 36,
-          "vel": 85
+          "vel": 85,
+          "modelVel": 87
         },
         {
           "startTick": 12480,
           "lenTicks": 259,
           "pitch": 36,
-          "vel": 84
+          "vel": 84,
+          "modelVel": 89
         },
         {
           "startTick": 13441,
           "lenTicks": 259,
           "pitch": 36,
-          "vel": 76
+          "vel": 76,
+          "modelVel": 86
         },
         {
           "startTick": 14880,
           "lenTicks": 259,
           "pitch": 36,
-          "vel": 97
+          "vel": 97,
+          "modelVel": 87
         },
         {
           "startTick": 15360,
           "lenTicks": 259,
           "pitch": 36,
-          "vel": 89
+          "vel": 89,
+          "modelVel": 87
         },
         {
           "startTick": 17280,
           "lenTicks": 259,
           "pitch": 36,
-          "vel": 99
+          "vel": 99,
+          "modelVel": 87
         },
         {
           "startTick": 19199,
           "lenTicks": 259,
           "pitch": 36,
-          "vel": 82
+          "vel": 82,
+          "modelVel": 80
         },
         {
           "startTick": 21120,
           "lenTicks": 259,
           "pitch": 36,
-          "vel": 96
+          "vel": 96,
+          "modelVel": 87
         },
         {
           "startTick": 22080,
           "lenTicks": 259,
           "pitch": 36,
-          "vel": 78
+          "vel": 78,
+          "modelVel": 83
         },
         {
           "startTick": 22560,
           "lenTicks": 259,
           "pitch": 36,
-          "vel": 79
+          "vel": 79,
+          "modelVel": 89
         },
         {
           "startTick": 23040,
           "lenTicks": 259,
           "pitch": 36,
-          "vel": 75
+          "vel": 75,
+          "modelVel": 83
         },
         {
           "startTick": 24001,
           "lenTicks": 259,
           "pitch": 36,
-          "vel": 79
+          "vel": 79,
+          "modelVel": 78
         },
         {
           "startTick": 24960,
           "lenTicks": 259,
           "pitch": 36,
-          "vel": 75
+          "vel": 75,
+          "modelVel": 84
         },
         {
           "startTick": 26880,
           "lenTicks": 259,
           "pitch": 36,
-          "vel": 83
+          "vel": 83,
+          "modelVel": 77
         },
         {
           "startTick": 28800,
           "lenTicks": 259,
           "pitch": 36,
-          "vel": 83
+          "vel": 83,
+          "modelVel": 86
         },
         {
           "startTick": 30240,
           "lenTicks": 259,
           "pitch": 36,
-          "vel": 75
+          "vel": 75,
+          "modelVel": 78
         }
       ]
     },
@@ -184,19 +211,22 @@
           "startTick": 1919,
           "lenTicks": 259,
           "pitch": 38,
-          "vel": 80
+          "vel": 80,
+          "modelVel": 82
         },
         {
           "startTick": 5759,
           "lenTicks": 259,
           "pitch": 38,
-          "vel": 89
+          "vel": 89,
+          "modelVel": 83
         },
         {
           "startTick": 6720,
           "lenTicks": 259,
           "pitch": 38,
           "vel": 58,
+          "modelVel": 64,
           "articulation": "roll"
         },
         {
@@ -204,6 +234,7 @@
           "lenTicks": 221,
           "pitch": 38,
           "vel": 55,
+          "modelVel": 60,
           "articulation": "roll"
         },
         {
@@ -211,6 +242,7 @@
           "lenTicks": 259,
           "pitch": 38,
           "vel": 72,
+          "modelVel": 73,
           "articulation": "roll"
         },
         {
@@ -218,25 +250,29 @@
           "lenTicks": 221,
           "pitch": 38,
           "vel": 87,
+          "modelVel": 86,
           "articulation": "roll"
         },
         {
           "startTick": 9599,
           "lenTicks": 259,
           "pitch": 38,
-          "vel": 67
+          "vel": 67,
+          "modelVel": 78
         },
         {
           "startTick": 13439,
           "lenTicks": 259,
           "pitch": 38,
-          "vel": 80
+          "vel": 80,
+          "modelVel": 87
         },
         {
           "startTick": 14400,
           "lenTicks": 259,
           "pitch": 38,
           "vel": 61,
+          "modelVel": 64,
           "articulation": "roll"
         },
         {
@@ -244,6 +280,7 @@
           "lenTicks": 221,
           "pitch": 38,
           "vel": 52,
+          "modelVel": 60,
           "articulation": "roll"
         },
         {
@@ -251,6 +288,7 @@
           "lenTicks": 259,
           "pitch": 38,
           "vel": 81,
+          "modelVel": 73,
           "articulation": "roll"
         },
         {
@@ -258,25 +296,29 @@
           "lenTicks": 221,
           "pitch": 38,
           "vel": 76,
+          "modelVel": 86,
           "articulation": "roll"
         },
         {
           "startTick": 17281,
           "lenTicks": 259,
           "pitch": 38,
-          "vel": 71
+          "vel": 71,
+          "modelVel": 77
         },
         {
           "startTick": 21119,
           "lenTicks": 259,
           "pitch": 38,
-          "vel": 74
+          "vel": 74,
+          "modelVel": 77
         },
         {
           "startTick": 22080,
           "lenTicks": 259,
           "pitch": 38,
           "vel": 64,
+          "modelVel": 64,
           "articulation": "roll"
         },
         {
@@ -284,6 +326,7 @@
           "lenTicks": 221,
           "pitch": 38,
           "vel": 52,
+          "modelVel": 60,
           "articulation": "roll"
         },
         {
@@ -291,6 +334,7 @@
           "lenTicks": 259,
           "pitch": 38,
           "vel": 69,
+          "modelVel": 73,
           "articulation": "roll"
         },
         {
@@ -298,19 +342,22 @@
           "lenTicks": 221,
           "pitch": 38,
           "vel": 76,
+          "modelVel": 86,
           "articulation": "roll"
         },
         {
           "startTick": 24959,
           "lenTicks": 259,
           "pitch": 38,
-          "vel": 88
+          "vel": 88,
+          "modelVel": 89
         },
         {
           "startTick": 26400,
           "lenTicks": 259,
           "pitch": 38,
           "vel": 61,
+          "modelVel": 58,
           "articulation": "ghost"
         },
         {
@@ -318,6 +365,7 @@
           "lenTicks": 960,
           "pitch": 38,
           "vel": 1,
+          "modelVel": 1,
           "articulation": "roll"
         },
         {
@@ -325,6 +373,7 @@
           "lenTicks": 480,
           "pitch": 38,
           "vel": 29,
+          "modelVel": 33,
           "articulation": "roll"
         },
         {
@@ -332,6 +381,7 @@
           "lenTicks": 259,
           "pitch": 38,
           "vel": 65,
+          "modelVel": 64,
           "articulation": "roll"
         },
         {
@@ -339,6 +389,7 @@
           "lenTicks": 221,
           "pitch": 38,
           "vel": 68,
+          "modelVel": 69,
           "articulation": "roll"
         },
         {
@@ -346,6 +397,7 @@
           "lenTicks": 130,
           "pitch": 38,
           "vel": 85,
+          "modelVel": 96,
           "articulation": "roll"
         },
         {
@@ -353,6 +405,7 @@
           "lenTicks": 129,
           "pitch": 38,
           "vel": 72,
+          "modelVel": 77,
           "articulation": "roll"
         },
         {
@@ -360,6 +413,7 @@
           "lenTicks": 111,
           "pitch": 38,
           "vel": 73,
+          "modelVel": 84,
           "articulation": "roll"
         },
         {
@@ -367,6 +421,7 @@
           "lenTicks": 110,
           "pitch": 38,
           "vel": 79,
+          "modelVel": 91,
           "articulation": "roll"
         }
       ]
@@ -378,49 +433,57 @@
           "startTick": 1932,
           "lenTicks": 257,
           "pitch": 39,
-          "vel": 85
+          "vel": 85,
+          "modelVel": 87
         },
         {
           "startTick": 5772,
           "lenTicks": 257,
           "pitch": 39,
-          "vel": 79
+          "vel": 79,
+          "modelVel": 78
         },
         {
           "startTick": 9612,
           "lenTicks": 257,
           "pitch": 39,
-          "vel": 87
+          "vel": 87,
+          "modelVel": 87
         },
         {
           "startTick": 13452,
           "lenTicks": 257,
           "pitch": 39,
-          "vel": 89
+          "vel": 89,
+          "modelVel": 80
         },
         {
           "startTick": 17292,
           "lenTicks": 257,
           "pitch": 39,
-          "vel": 87
+          "vel": 87,
+          "modelVel": 88
         },
         {
           "startTick": 21132,
           "lenTicks": 257,
           "pitch": 39,
-          "vel": 96
+          "vel": 96,
+          "modelVel": 85
         },
         {
           "startTick": 24972,
           "lenTicks": 257,
           "pitch": 39,
-          "vel": 79
+          "vel": 79,
+          "modelVel": 83
         },
         {
           "startTick": 28812,
           "lenTicks": 257,
           "pitch": 39,
-          "vel": 86
+          "vel": 86,
+          "modelVel": 77
         }
       ]
     },
@@ -431,428 +494,495 @@
           "startTick": 1,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 117
+          "vel": 117,
+          "modelVel": 125
         },
         {
           "startTick": 260,
           "lenTicks": 221,
           "pitch": 42,
           "vel": 57,
+          "modelVel": 53,
           "articulation": "ghost"
         },
         {
           "startTick": 480,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 119
+          "vel": 119,
+          "modelVel": 114
         },
         {
           "startTick": 739,
           "lenTicks": 221,
           "pitch": 42,
           "vel": 71,
+          "modelVel": 65,
           "articulation": "ghost"
         },
         {
           "startTick": 960,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 117
+          "vel": 117,
+          "modelVel": 120
         },
         {
           "startTick": 1440,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 108
+          "vel": 108,
+          "modelVel": 103
         },
         {
           "startTick": 1921,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 127
+          "vel": 127,
+          "modelVel": 123
         },
         {
           "startTick": 2400,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 119
+          "vel": 119,
+          "modelVel": 122
         },
         {
           "startTick": 2880,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 102
+          "vel": 102,
+          "modelVel": 116
         },
         {
           "startTick": 3140,
           "lenTicks": 221,
           "pitch": 42,
           "vel": 65,
+          "modelVel": 74,
           "articulation": "ghost"
         },
         {
           "startTick": 3360,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 100
+          "vel": 100,
+          "modelVel": 116
         },
         {
           "startTick": 3841,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 90
+          "vel": 90,
+          "modelVel": 105
         },
         {
           "startTick": 4099,
           "lenTicks": 221,
           "pitch": 42,
           "vel": 57,
+          "modelVel": 58,
           "articulation": "ghost"
         },
         {
           "startTick": 4321,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 99
+          "vel": 99,
+          "modelVel": 103
         },
         {
           "startTick": 4579,
           "lenTicks": 221,
           "pitch": 42,
           "vel": 51,
+          "modelVel": 54,
           "articulation": "ghost"
         },
         {
           "startTick": 4799,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 126
+          "vel": 126,
+          "modelVel": 125
         },
         {
           "startTick": 5281,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 109
+          "vel": 109,
+          "modelVel": 126
         },
         {
           "startTick": 5540,
           "lenTicks": 221,
           "pitch": 42,
           "vel": 54,
+          "modelVel": 51,
           "articulation": "ghost"
         },
         {
           "startTick": 5760,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 121
+          "vel": 121,
+          "modelVel": 107
         },
         {
           "startTick": 6020,
           "lenTicks": 221,
           "pitch": 42,
           "vel": 70,
+          "modelVel": 70,
           "articulation": "ghost"
         },
         {
           "startTick": 6241,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 116
+          "vel": 116,
+          "modelVel": 114
         },
         {
           "startTick": 6500,
           "lenTicks": 221,
           "pitch": 42,
           "vel": 72,
+          "modelVel": 76,
           "articulation": "ghost"
         },
         {
           "startTick": 6720,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 127
+          "vel": 127,
+          "modelVel": 122
         },
         {
           "startTick": 6979,
           "lenTicks": 221,
           "pitch": 42,
           "vel": 76,
+          "modelVel": 75,
           "articulation": "ghost"
         },
         {
           "startTick": 7201,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 108
+          "vel": 108,
+          "modelVel": 124
         },
         {
           "startTick": 7459,
           "lenTicks": 221,
           "pitch": 42,
           "vel": 67,
+          "modelVel": 60,
           "articulation": "ghost"
         },
         {
           "startTick": 7681,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 120
+          "vel": 120,
+          "modelVel": 119
         },
         {
           "startTick": 7939,
           "lenTicks": 221,
           "pitch": 42,
           "vel": 76,
+          "modelVel": 76,
           "articulation": "ghost"
         },
         {
           "startTick": 8160,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 98
+          "vel": 98,
+          "modelVel": 115
         },
         {
           "startTick": 8641,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 127
+          "vel": 127,
+          "modelVel": 125
         },
         {
           "startTick": 9378,
           "lenTicks": 221,
           "pitch": 42,
           "vel": 67,
+          "modelVel": 68,
           "articulation": "ghost"
         },
         {
           "startTick": 9601,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 115
+          "vel": 115,
+          "modelVel": 126
         },
         {
           "startTick": 10080,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 103
+          "vel": 103,
+          "modelVel": 116
         },
         {
           "startTick": 10560,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 104
+          "vel": 104,
+          "modelVel": 116
         },
         {
           "startTick": 11299,
           "lenTicks": 221,
           "pitch": 42,
           "vel": 61,
+          "modelVel": 68,
           "articulation": "ghost"
         },
         {
           "startTick": 11520,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 127
+          "vel": 127,
+          "modelVel": 126
         },
         {
           "startTick": 11779,
           "lenTicks": 221,
           "pitch": 42,
           "vel": 80,
+          "modelVel": 74,
           "articulation": "ghost"
         },
         {
           "startTick": 11999,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 100
+          "vel": 100,
+          "modelVel": 107
         },
         {
           "startTick": 12258,
           "lenTicks": 221,
           "pitch": 42,
           "vel": 68,
+          "modelVel": 65,
           "articulation": "ghost"
         },
         {
           "startTick": 12481,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 121
+          "vel": 121,
+          "modelVel": 112
         },
         {
           "startTick": 13440,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 127
+          "vel": 127,
+          "modelVel": 126
         },
         {
           "startTick": 13921,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 117
+          "vel": 117,
+          "modelVel": 116
         },
         {
           "startTick": 14179,
           "lenTicks": 221,
           "pitch": 42,
           "vel": 64,
+          "modelVel": 58,
           "articulation": "ghost"
         },
         {
           "startTick": 14400,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 101
+          "vel": 101,
+          "modelVel": 116
         },
         {
           "startTick": 14659,
           "lenTicks": 221,
           "pitch": 42,
           "vel": 53,
+          "modelVel": 61,
           "articulation": "ghost"
         },
         {
           "startTick": 15361,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 112
+          "vel": 112,
+          "modelVel": 105
         },
         {
           "startTick": 15619,
           "lenTicks": 221,
           "pitch": 42,
           "vel": 46,
+          "modelVel": 51,
           "articulation": "ghost"
         },
         {
           "startTick": 15839,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 108
+          "vel": 108,
+          "modelVel": 113
         },
         {
           "startTick": 16320,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 89
+          "vel": 89,
+          "modelVel": 104
         },
         {
           "startTick": 16580,
           "lenTicks": 221,
           "pitch": 42,
           "vel": 69,
+          "modelVel": 75,
           "articulation": "ghost"
         },
         {
           "startTick": 16800,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 127
+          "vel": 127,
+          "modelVel": 125
         },
         {
           "startTick": 17060,
           "lenTicks": 221,
           "pitch": 42,
           "vel": 60,
+          "modelVel": 65,
           "articulation": "ghost"
         },
         {
           "startTick": 17280,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 123
+          "vel": 123,
+          "modelVel": 125
         },
         {
           "startTick": 17539,
           "lenTicks": 221,
           "pitch": 42,
           "vel": 75,
+          "modelVel": 66,
           "articulation": "ghost"
         },
         {
           "startTick": 17760,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 106
+          "vel": 106,
+          "modelVel": 112
         },
         {
           "startTick": 18019,
           "lenTicks": 221,
           "pitch": 42,
           "vel": 54,
+          "modelVel": 54,
           "articulation": "ghost"
         },
         {
           "startTick": 18241,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 127
+          "vel": 127,
+          "modelVel": 126
         },
         {
           "startTick": 18499,
           "lenTicks": 221,
           "pitch": 42,
           "vel": 83,
+          "modelVel": 75,
           "articulation": "ghost"
         },
         {
           "startTick": 18721,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 95
+          "vel": 95,
+          "modelVel": 109
         },
         {
           "startTick": 19200,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 118
+          "vel": 118,
+          "modelVel": 115
         },
         {
           "startTick": 19681,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 118
+          "vel": 118,
+          "modelVel": 107
         },
         {
           "startTick": 19939,
           "lenTicks": 221,
           "pitch": 42,
           "vel": 71,
+          "modelVel": 74,
           "articulation": "ghost"
         },
         {
           "startTick": 20159,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 123
+          "vel": 123,
+          "modelVel": 127
         },
         {
           "startTick": 20419,
           "lenTicks": 221,
           "pitch": 42,
           "vel": 77,
+          "modelVel": 70,
           "articulation": "ghost"
         },
         {
           "startTick": 21119,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 109
+          "vel": 109,
+          "modelVel": 127
         },
         {
           "startTick": 21599,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 118
+          "vel": 118,
+          "modelVel": 106
         },
         {
           "startTick": 21860,
           "lenTicks": 221,
           "pitch": 42,
           "vel": 51,
+          "modelVel": 57,
           "articulation": "ghost"
         },
         {
@@ -860,6 +990,7 @@
           "lenTicks": 221,
           "pitch": 42,
           "vel": 65,
+          "modelVel": 63,
           "articulation": "roll"
         },
         {
@@ -867,6 +998,7 @@
           "lenTicks": 259,
           "pitch": 42,
           "vel": 91,
+          "modelVel": 95,
           "articulation": "roll"
         },
         {
@@ -874,32 +1006,37 @@
           "lenTicks": 221,
           "pitch": 42,
           "vel": 127,
+          "modelVel": 127,
           "articulation": "roll"
         },
         {
           "startTick": 23040,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 109
+          "vel": 109,
+          "modelVel": 110
         },
         {
           "startTick": 23299,
           "lenTicks": 221,
           "pitch": 42,
           "vel": 63,
+          "modelVel": 64,
           "articulation": "ghost"
         },
         {
           "startTick": 23521,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 123
+          "vel": 123,
+          "modelVel": 108
         },
         {
           "startTick": 23779,
           "lenTicks": 221,
           "pitch": 42,
           "vel": 64,
+          "modelVel": 68,
           "articulation": "ghost"
         },
         {
@@ -907,6 +1044,7 @@
           "lenTicks": 65,
           "pitch": 42,
           "vel": 69,
+          "modelVel": 63,
           "articulation": "roll"
         },
         {
@@ -914,6 +1052,7 @@
           "lenTicks": 64,
           "pitch": 42,
           "vel": 75,
+          "modelVel": 68,
           "articulation": "roll"
         },
         {
@@ -921,6 +1060,7 @@
           "lenTicks": 65,
           "pitch": 42,
           "vel": 72,
+          "modelVel": 73,
           "articulation": "roll"
         },
         {
@@ -928,6 +1068,7 @@
           "lenTicks": 55,
           "pitch": 42,
           "vel": 80,
+          "modelVel": 78,
           "articulation": "roll"
         },
         {
@@ -935,6 +1076,7 @@
           "lenTicks": 56,
           "pitch": 42,
           "vel": 77,
+          "modelVel": 83,
           "articulation": "roll"
         },
         {
@@ -942,6 +1084,7 @@
           "lenTicks": 55,
           "pitch": 42,
           "vel": 80,
+          "modelVel": 88,
           "articulation": "roll"
         },
         {
@@ -949,6 +1092,7 @@
           "lenTicks": 55,
           "pitch": 42,
           "vel": 86,
+          "modelVel": 93,
           "articulation": "roll"
         },
         {
@@ -956,6 +1100,7 @@
           "lenTicks": 65,
           "pitch": 42,
           "vel": 83,
+          "modelVel": 97,
           "articulation": "roll"
         },
         {
@@ -963,6 +1108,7 @@
           "lenTicks": 65,
           "pitch": 42,
           "vel": 92,
+          "modelVel": 102,
           "articulation": "roll"
         },
         {
@@ -970,6 +1116,7 @@
           "lenTicks": 64,
           "pitch": 42,
           "vel": 92,
+          "modelVel": 107,
           "articulation": "roll"
         },
         {
@@ -977,6 +1124,7 @@
           "lenTicks": 55,
           "pitch": 42,
           "vel": 113,
+          "modelVel": 112,
           "articulation": "roll"
         },
         {
@@ -984,6 +1132,7 @@
           "lenTicks": 56,
           "pitch": 42,
           "vel": 114,
+          "modelVel": 117,
           "articulation": "roll"
         },
         {
@@ -991,6 +1140,7 @@
           "lenTicks": 55,
           "pitch": 42,
           "vel": 127,
+          "modelVel": 122,
           "articulation": "roll"
         },
         {
@@ -998,94 +1148,109 @@
           "lenTicks": 55,
           "pitch": 42,
           "vel": 127,
+          "modelVel": 127,
           "articulation": "roll"
         },
         {
           "startTick": 24960,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 121
+          "vel": 121,
+          "modelVel": 110
         },
         {
           "startTick": 25441,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 105
+          "vel": 105,
+          "modelVel": 108
         },
         {
           "startTick": 25698,
           "lenTicks": 221,
           "pitch": 42,
           "vel": 65,
+          "modelVel": 59,
           "articulation": "ghost"
         },
         {
           "startTick": 25920,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 120
+          "vel": 120,
+          "modelVel": 116
         },
         {
           "startTick": 26180,
           "lenTicks": 221,
           "pitch": 42,
           "vel": 57,
+          "modelVel": 64,
           "articulation": "ghost"
         },
         {
           "startTick": 26401,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 115
+          "vel": 115,
+          "modelVel": 115
         },
         {
           "startTick": 26879,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 102
+          "vel": 102,
+          "modelVel": 111
         },
         {
           "startTick": 27140,
           "lenTicks": 221,
           "pitch": 42,
           "vel": 57,
+          "modelVel": 58,
           "articulation": "ghost"
         },
         {
           "startTick": 27360,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 94
+          "vel": 94,
+          "modelVel": 106
         },
         {
           "startTick": 27841,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 110
+          "vel": 110,
+          "modelVel": 106
         },
         {
           "startTick": 28319,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 127
+          "vel": 127,
+          "modelVel": 126
         },
         {
           "startTick": 28800,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 103
+          "vel": 103,
+          "modelVel": 110
         },
         {
           "startTick": 29280,
           "lenTicks": 259,
           "pitch": 42,
-          "vel": 127
+          "vel": 127,
+          "modelVel": 124
         },
         {
           "startTick": 29538,
           "lenTicks": 221,
           "pitch": 42,
           "vel": 64,
+          "modelVel": 65,
           "articulation": "ghost"
         },
         {
@@ -1093,6 +1258,7 @@
           "lenTicks": 221,
           "pitch": 42,
           "vel": 58,
+          "modelVel": 63,
           "articulation": "roll"
         },
         {
@@ -1100,6 +1266,7 @@
           "lenTicks": 259,
           "pitch": 42,
           "vel": 90,
+          "modelVel": 95,
           "articulation": "roll"
         },
         {
@@ -1107,6 +1274,7 @@
           "lenTicks": 221,
           "pitch": 42,
           "vel": 127,
+          "modelVel": 127,
           "articulation": "roll"
         }
       ]
@@ -1119,6 +1287,7 @@
           "lenTicks": 259,
           "pitch": 46,
           "vel": 114,
+          "modelVel": 108,
           "articulation": "accent"
         },
         {
@@ -1126,6 +1295,7 @@
           "lenTicks": 259,
           "pitch": 46,
           "vel": 99,
+          "modelVel": 103,
           "articulation": "accent"
         },
         {
@@ -1133,6 +1303,7 @@
           "lenTicks": 259,
           "pitch": 46,
           "vel": 109,
+          "modelVel": 118,
           "articulation": "accent"
         },
         {
@@ -1140,6 +1311,7 @@
           "lenTicks": 259,
           "pitch": 46,
           "vel": 111,
+          "modelVel": 121,
           "articulation": "accent"
         },
         {
@@ -1147,6 +1319,7 @@
           "lenTicks": 259,
           "pitch": 46,
           "vel": 117,
+          "modelVel": 105,
           "articulation": "accent"
         }
       ]
@@ -1159,6 +1332,7 @@
           "lenTicks": 960,
           "pitch": 24,
           "vel": 95,
+          "modelVel": 100,
           "articulation": "legato"
         },
         {
@@ -1166,6 +1340,7 @@
           "lenTicks": 960,
           "pitch": 24,
           "vel": 112,
+          "modelVel": 100,
           "articulation": "legato"
         },
         {
@@ -1173,6 +1348,7 @@
           "lenTicks": 960,
           "pitch": 24,
           "vel": 100,
+          "modelVel": 100,
           "articulation": "legato"
         },
         {
@@ -1180,6 +1356,7 @@
           "lenTicks": 960,
           "pitch": 24,
           "vel": 112,
+          "modelVel": 100,
           "articulation": "legato"
         },
         {
@@ -1187,6 +1364,7 @@
           "lenTicks": 259,
           "pitch": 24,
           "vel": 98,
+          "modelVel": 100,
           "articulation": "legato"
         },
         {
@@ -1194,6 +1372,7 @@
           "lenTicks": 701,
           "pitch": 24,
           "vel": 91,
+          "modelVel": 100,
           "slideToPitch": 26,
           "articulation": "legato"
         },
@@ -1202,6 +1381,7 @@
           "lenTicks": 960,
           "pitch": 24,
           "vel": 86,
+          "modelVel": 100,
           "articulation": "legato"
         },
         {
@@ -1209,6 +1389,7 @@
           "lenTicks": 1920,
           "pitch": 24,
           "vel": 95,
+          "modelVel": 100,
           "slideToPitch": 31,
           "articulation": "legato"
         },
@@ -1217,6 +1398,7 @@
           "lenTicks": 480,
           "pitch": 24,
           "vel": 104,
+          "modelVel": 100,
           "articulation": "legato"
         },
         {
@@ -1224,6 +1406,7 @@
           "lenTicks": 1440,
           "pitch": 24,
           "vel": 112,
+          "modelVel": 100,
           "articulation": "legato"
         },
         {
@@ -1231,6 +1414,7 @@
           "lenTicks": 1920,
           "pitch": 24,
           "vel": 98,
+          "modelVel": 100,
           "articulation": "legato"
         },
         {
@@ -1238,6 +1422,7 @@
           "lenTicks": 960,
           "pitch": 24,
           "vel": 95,
+          "modelVel": 100,
           "slideToPitch": 31,
           "articulation": "legato"
         },
@@ -1246,6 +1431,7 @@
           "lenTicks": 960,
           "pitch": 24,
           "vel": 96,
+          "modelVel": 100,
           "slideToPitch": 31,
           "articulation": "legato"
         },
@@ -1254,6 +1440,7 @@
           "lenTicks": 1440,
           "pitch": 24,
           "vel": 105,
+          "modelVel": 100,
           "slideToPitch": 26,
           "articulation": "legato"
         },
@@ -1262,6 +1449,7 @@
           "lenTicks": 480,
           "pitch": 24,
           "vel": 109,
+          "modelVel": 100,
           "slideToPitch": 26,
           "articulation": "legato"
         },
@@ -1270,6 +1458,7 @@
           "lenTicks": 1920,
           "pitch": 24,
           "vel": 93,
+          "modelVel": 100,
           "articulation": "legato"
         },
         {
@@ -1277,6 +1466,7 @@
           "lenTicks": 1920,
           "pitch": 24,
           "vel": 94,
+          "modelVel": 100,
           "articulation": "legato"
         },
         {
@@ -1284,6 +1474,7 @@
           "lenTicks": 1920,
           "pitch": 24,
           "vel": 111,
+          "modelVel": 100,
           "articulation": "legato"
         },
         {
@@ -1291,6 +1482,7 @@
           "lenTicks": 960,
           "pitch": 24,
           "vel": 90,
+          "modelVel": 100,
           "slideToPitch": 26,
           "articulation": "legato"
         },
@@ -1299,6 +1491,7 @@
           "lenTicks": 480,
           "pitch": 24,
           "vel": 95,
+          "modelVel": 100,
           "articulation": "legato"
         },
         {
@@ -1306,6 +1499,7 @@
           "lenTicks": 480,
           "pitch": 24,
           "vel": 97,
+          "modelVel": 100,
           "articulation": "legato"
         },
         {
@@ -1313,6 +1507,7 @@
           "lenTicks": 960,
           "pitch": 24,
           "vel": 95,
+          "modelVel": 100,
           "articulation": "legato"
         },
         {
@@ -1320,6 +1515,7 @@
           "lenTicks": 960,
           "pitch": 24,
           "vel": 96,
+          "modelVel": 100,
           "articulation": "legato"
         },
         {
@@ -1327,6 +1523,7 @@
           "lenTicks": 1920,
           "pitch": 24,
           "vel": 91,
+          "modelVel": 100,
           "articulation": "legato"
         },
         {
@@ -1334,6 +1531,7 @@
           "lenTicks": 1920,
           "pitch": 24,
           "vel": 101,
+          "modelVel": 100,
           "slideToPitch": 36,
           "articulation": "legato"
         },
@@ -1342,6 +1540,7 @@
           "lenTicks": 1440,
           "pitch": 24,
           "vel": 102,
+          "modelVel": 100,
           "articulation": "legato"
         },
         {
@@ -1349,6 +1548,7 @@
           "lenTicks": 480,
           "pitch": 24,
           "vel": 115,
+          "modelVel": 100,
           "articulation": "legato"
         }
       ]

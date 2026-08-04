@@ -9,7 +9,17 @@
  */
 
 import type { InvokeArgs } from './ipc';
-import type { Note, Pattern, RosterSummary, SessionDefaults } from './ipc-types';
+import type {
+  Note,
+  Part,
+  Pattern,
+  PatternRef,
+  RosterSummary,
+  Section,
+  SectionKind,
+  SessionDefaults,
+  Song,
+} from './ipc-types';
 
 type Handler = (args?: InvokeArgs) => unknown;
 
@@ -100,16 +110,63 @@ const handlers: Record<string, Handler> = {
   // straight 16th hats is enough for a spec to count cells and know the
   // rendering is wired, without this file becoming a second drum engine.
   generate_pattern: (args): Pattern => {
-    const request = (args as { request?: { styleId?: string; bars?: number; seed?: string } })
-      ?.request;
+    const request = (
+      args as {
+        request?: { styleId?: string; bars?: number; seed?: string; part?: Part };
+      }
+    )?.request;
     const bars = request?.bars ?? 4;
+    const part: Part = request?.part ?? 'drums';
     const ppq = 960;
+    // ⛔ **`vel` is spread and `modelVel` is what the model asked for**, because
+    // that is what the engine hands back: `humanize` multiplies the tier value
+    // by a random factor and keeps the original beside it (TASK-041V). A fixture
+    // where the two were equal would let the velocity lane's reset pass while
+    // doing nothing, which is the one thing that gesture must not do. Derived
+    // from the note's own position rather than a random source, because a
+    // fixture that moves is not a fixture.
     const note = (startTick: number, pitch: number, vel: number): Note => ({
       startTick,
       lenTicks: ppq / 4,
       pitch,
-      vel,
+      vel: Math.min(127, Math.max(1, vel + (((startTick / 120 + pitch) % 7) - 3))),
+      modelVel: vel,
     });
+
+    const shell = {
+      id: `${request?.styleId ?? 'mock'}-mock`,
+      artistId: request?.styleId ?? 'mock',
+      // The seed is echoed back so the chip shows what was used, and a fixed
+      // one when none was asked for keeps the fixture reproducible.
+      seed: request?.seed && request.seed !== '' ? request.seed : '424242',
+      bars,
+      bpm: 140,
+      timeSigNum: 4,
+      timeSigDen: 4,
+      keyRoot: 6,
+      scale: 'natural_minor' as const,
+      ppq,
+    };
+
+    // ⛔ A melodic part answers in *its own lane*, because that is the one thing
+    // the piano roll reads (`notes.ts::laneOf`). A fixture that returned drum
+    // lanes for a melody request would draw an empty roll and look like the
+    // editor was broken rather than the fixture.
+    if (part !== 'drums') {
+      // An eighth-note figure walking a minor pentatonic around F♯3 — enough
+      // shape for a spec to move, resize and delete a real note without this
+      // file becoming a second melody generator.
+      const steps = [0, 3, 5, 7, 10, 7, 5, 3];
+      const melodic: Note[] = [];
+      for (let bar = 0; bar < bars; bar += 1) {
+        for (let step = 0; step < steps.length; step += 1) {
+          melodic.push(
+            note(bar * ppq * 4 + step * (ppq / 2), 54 + steps[step], step === 0 ? 108 : 84),
+          );
+        }
+      }
+      return { ...shell, part, lanes: [{ lane: part, notes: melodic }] };
+    }
 
     const kick: Note[] = [];
     const snare: Note[] = [];
@@ -126,25 +183,222 @@ const handlers: Record<string, Handler> = {
     }
 
     return {
-      id: `${request?.styleId ?? 'mock'}-mock`,
+      ...shell,
       part: 'drums',
-      artistId: request?.styleId ?? 'mock',
-      // The seed is echoed back so the chip shows what was used, and a fixed
-      // one when none was asked for keeps the fixture reproducible.
-      seed: request?.seed && request.seed !== '' ? request.seed : '424242',
-      bars,
-      bpm: 140,
-      timeSigNum: 4,
-      timeSigDen: 4,
-      keyRoot: 6,
-      scale: 'natural_minor',
       lanes: [
         { lane: 'kick', notes: kick },
         { lane: 'snare', notes: snare },
         { lane: 'closedHat', notes: hat },
       ],
-      ppq,
     };
+  },
+
+  // Song Mode (TASK-065). Built out of the same `generate_pattern` above rather
+  // than a second note fixture, so a spec that counts notes in the arrangement
+  // view and one that counts them in the roll cannot disagree.
+  //
+  // The form is `_defaults`' own — intro, verse, hook, verse, hook, outro —
+  // with the bar counts `_defaults` authors, because a spec asserting the ruler
+  // draws 56 bars has to have a fixture whose bars are knowable by reading it.
+  generate_song: (args): Song => {
+    const request = (args as { request?: { styleId?: string; seed?: string } })?.request;
+    const artistId = request?.styleId ?? 'mock';
+    const seed = request?.seed && request.seed !== '' ? request.seed : '424242';
+
+    const form: { kind: SectionKind; bars: number; parts: Part[] }[] = [
+      { kind: 'intro', bars: 4, parts: ['melody'] },
+      { kind: 'verse', bars: 16, parts: ['drums', 'melody', 'chords'] },
+      { kind: 'hook', bars: 8, parts: ['drums', 'melody', 'counter', 'chords'] },
+      { kind: 'verse', bars: 16, parts: ['drums', 'melody', 'chords'] },
+      { kind: 'hook', bars: 8, parts: ['drums', 'melody', 'counter', 'chords'] },
+      { kind: 'outro', bars: 4, parts: ['drums', 'melody'] },
+    ];
+
+    const patterns: Record<string, Pattern> = {};
+    const sections: Section[] = [];
+    let startBar = 0;
+
+    for (const [index, entry] of form.entries()) {
+      const refs: Partial<Record<Part, PatternRef>> = {};
+      for (const part of entry.parts) {
+        // Keyed by section kind, so the two verses share one pattern exactly as
+        // `arrange.rs` makes them.
+        const patternId = `${artistId}-${entry.kind}-${part}`;
+        if (!patterns[patternId]) {
+          patterns[patternId] = {
+            ...(handlers.generate_pattern({
+              request: { styleId: artistId, bars: 4, seed, part },
+            }) as Pattern),
+            id: patternId,
+          };
+        }
+        refs[part] = { patternId };
+      }
+      sections.push({
+        type: entry.kind,
+        startBar,
+        bars: entry.bars,
+        patterns: refs as Record<Part, PatternRef>,
+        // The drop-out sits on whatever runs into a hook, never on the hook.
+        dropOutBeats: form[index + 1]?.kind === 'hook' ? 2 : 0,
+        decay: entry.kind === 'outro',
+        markers: [],
+      });
+      startBar += entry.bars;
+    }
+
+    return {
+      id: `${artistId}-song-${seed}`,
+      artistId,
+      seed,
+      bpm: 140,
+      keyRoot: 6,
+      scale: 'natural_minor',
+      sections,
+      timeSigNum: 4,
+      timeSigDen: 4,
+      patterns,
+      ppq: 960,
+    };
+  },
+
+  // Exporting a song to a file (TASK-073). A browser has no native Save As and
+  // no filesystem, so the mock reports the shape of a *cancelled* export: the
+  // dialog opened and the producer closed it.
+  //
+  // ⛔ Cancelled rather than done, deliberately. `done` carries a path, and a
+  // fixture inventing one would let a spec assert a file was written in a
+  // browser that cannot write files — which is the fixture testing itself.
+  // Cancelled is the one outcome that is *true* here.
+  export_song: () => undefined,
+  export_stems: () => undefined,
+  export_status: () => ({ state: 'cancelled' }),
+
+  // The forms this artist writes, for the structure picker (TASK-070).
+  //
+  // Two, because the picker only renders with more than one — a model that
+  // writes exactly one form has nothing to choose between, and a fixture with
+  // one would leave the control untested. They differ in a way a spec can read:
+  // the second has a bridge.
+  song_structures: () => ({
+    structures: [
+      ['intro', 'verse', 'hook', 'verse', 'hook', 'outro'],
+      ['intro', 'verse', 'hook', 'bridge', 'hook', 'outro'],
+    ],
+  }),
+
+  // Handing the arrangement to the audio thread (TASK-072). A browser has no
+  // audio thread and no `Song::flatten`, and writing a second flattener here
+  // would be the "second implementation" this file's header rules out — so this
+  // resolves without doing anything, which is the honest answer.
+  //
+  // ⛔ It is here rather than absent because `mockInvoke` treats an unknown
+  // command as a loud failure, and every arrangement edit calls this. Without
+  // it the Playwright suite would see a rejected promise on every resize.
+  arm_song: () => undefined,
+
+  // Taking whatever is playing off the transport. A browser has no audio
+  // thread, so there is nothing to disarm — but it is here rather than absent
+  // because leaving the Song tab calls it and an unknown command is a loud
+  // failure by design.
+  disarm: () => undefined,
+
+  // Re-rolling one section (TASK-067). The real engine regenerates the notes;
+  // what a spec can meaningfully assert about it is the *shape* of the result —
+  // that the named section's clips are new ones, that every other section is
+  // untouched, and that locked parts keep the clip they had. So this mock does
+  // exactly that transformation and does not pretend to generate anything.
+  //
+  // ⛔ Keyed by index, the way `arrange::reroll_section` keys it, because that
+  // is the property that stops verse 2 dragging verse 1 with it — and a mock
+  // that shared one id would make the spec pass on the bug.
+  reroll_section: (args): Song => {
+    const request = (
+      args as {
+        request?: { song?: Song; index?: number; locked?: Part[] };
+      }
+    )?.request;
+    const song = request?.song;
+    if (!song) throw new Error('reroll_section needs a song');
+    const index = request?.index ?? 0;
+    const locked = request?.locked ?? [];
+    const section = song.sections[index];
+    if (!section) throw new Error(`this song has no section ${index}`);
+
+    const patterns: Record<string, Pattern> = {};
+    for (const [id, clip] of Object.entries(song.patterns)) {
+      if (clip) patterns[id] = clip;
+    }
+    const refs: Partial<Record<Part, PatternRef>> = { ...section.patterns };
+    for (const [name, reference] of Object.entries(section.patterns)) {
+      const part = name as Part;
+      if (locked.includes(part)) continue;
+      const was = patterns[reference.patternId];
+      // A section naming a clip the store does not hold is the dangling
+      // reference `song_smf` refuses; leaving it alone is the honest mock.
+      if (!was) continue;
+      const patternId = `${song.artistId}-${section.type}@${index}-${part}`;
+      patterns[patternId] = {
+        ...was,
+        id: patternId,
+        // Something a spec can see, without a second note generator here.
+        seed: `${Number(was.seed) + 1}`,
+      };
+      refs[part] = { patternId };
+    }
+
+    const sections = song.sections.map((s, i) =>
+      i === index ? { ...s, patterns: refs as Record<Part, PatternRef> } : s,
+    );
+    // Clips nothing names any more go, the way the engine prunes them.
+    const live = new Set(
+      sections.flatMap((s) => Object.values(s.patterns).map((r) => r.patternId)),
+    );
+    for (const id of Object.keys(patterns)) {
+      if (!live.has(id)) delete patterns[id];
+    }
+    return { ...song, sections, patterns };
+  },
+
+  // The exported bytes. A browser has no `song_to_smf`, and inventing an SMF
+  // encoder here would be the "second implementation" this file's header rules
+  // out — so it answers with the header every SMF starts with and a length,
+  // which is enough for a spec to assert a drag produced *something* and not
+  // enough to be mistaken for the real encoder.
+  song_smf: () => ({ bytes: [0x4d, 0x54, 0x68, 0x64] }),
+
+  // The keyboard gutter's click-to-audition (TASK-041). A browser has no
+  // sampler, so this resolves without sounding anything — which is the honest
+  // answer and matches what `auditionNote` already expects to be the common
+  // case. It is here rather than absent because `mockInvoke` treats an unknown
+  // command as a loud failure, and an audition must never be able to break the
+  // page it is decorating.
+  audition_note: () => undefined,
+
+  // An edited clip going back to the audio thread (TASK-041). The real command
+  // validates and echoes; the browser has no audio thread, so echoing is all
+  // there is to do — and echoing rather than returning `undefined` keeps the
+  // fixture the same shape as the command, which is what `app_info` above is a
+  // cautionary tale about.
+  arm_pattern: (args) => (args as { pattern?: unknown } | undefined)?.pattern,
+
+  // Scale intervals for the roll's row tinting and folding (TASK-041B). The
+  // real command reads `engine::theory::scale_semitones`; the fixture answers
+  // for the handful of scales the mock generates in, and falls back to the
+  // natural minor it reports in `session_defaults` above rather than inventing
+  // one — a fixture whose scale disagrees with its own pattern would make a
+  // real mismatch impossible to see.
+  scale_pitches: (args) => {
+    const scale = (args as { scale?: string } | undefined)?.scale;
+    const known: Record<string, number[]> = {
+      natural_minor: [0, 2, 3, 5, 7, 8, 10],
+      aeolian: [0, 2, 3, 5, 7, 8, 10],
+      major: [0, 2, 4, 5, 7, 9, 11],
+      phrygian: [0, 1, 3, 5, 7, 8, 10],
+      minor_pentatonic: [0, 3, 5, 7, 10],
+      chromatic: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+    };
+    return known[scale ?? ''] ?? known.natural_minor;
   },
 
   // Playback in a browser: there is no audio thread behind the mock, so

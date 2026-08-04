@@ -14,6 +14,165 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Added
 
+- **Song Mode: pick an artist, press Generate, and get a whole arrangement.**
+  The engine samples one of the artist's own song forms, gives each section its
+  bar count, and builds a clip per part per section — then the arrangement view
+  draws it and lets you edit it before it goes anywhere.
+  - **The Arrangement Creator** (TASK-065): weighted structure sampling, section
+    part masks, per-section density, and one seed per section so a melody is
+    written against the chords playing beside it rather than against a different
+    voicing of them. Sections of the same kind share a clip, because verse 1 and
+    verse 2 are the same beat.
+  - **Transitions** (TASK-066): the drop-out beats before a hook, the back-half
+    switch-up that varies the melody while the drums hold, and the outro's fade.
+    Each is a property of *where a section sits* rather than of its notes,
+    because the clip underneath it loops — and each is written into the exported
+    file, not merely drawn.
+  - **Genre song forms** (TASK-064): pop's verse–pre-chorus–chorus form, plugg's
+    chords-only intro and kick-and-bass bridge, west-coast club's instant hook,
+    phonk's 16-bar chorus, country's fills on the eight, drill's 16-bar verses,
+    and liquid's mute-the-turnaround. Taken from the research and only from the
+    research — the two genres it says nothing structural about keep the shared
+    default rather than a form nobody wrote down. `SectionKind` gained a
+    pre-chorus, because pop's form cannot be spelled honestly without one.
+  - **One multi-track MIDI file for the whole song**: a conductor track carrying
+    the tempo map and a marker per section, then a track per part named so you
+    can see which rows came from here. A section's clip is tiled across its
+    length, so a sixteen-bar verse over a four-bar loop exports as four bars
+    played four times rather than one bar and three of silence.
+  - **The arrangement view** (TASK-063A/B): a ruler with bar numbers and
+    timestamps, gridlines that get finer as you zoom rather than staying fixed,
+    and clips you can select, resize from either edge, clone, delete and
+    copy/cut/paste on the ordinary shortcuts. Deleting a part out of a section
+    leaves the section standing.
+  - **A song plays** (TASK-072), which is what finally made the rest of this
+    list possible. The arrangement is flattened into one clip and handed to the
+    transport, so the marker in the arrangement view is a position through the
+    *record* rather than through whichever four bars happened to be armed —
+    with click-to-seek, a loop toggle on any section, and per-part mute and solo
+    for auditioning. The tiling that lays a song out in time now lives in one
+    place that both the player and the exporter read, so **what you hear and
+    what you export come out of the same arithmetic**.
+  - **Re-roll one section** (TASK-067) without touching the rest of the song,
+    keeping any clips you have locked. A re-rolled section gets its own clips
+    rather than rewriting the one its twin is also playing, so re-rolling verse
+    2 leaves verse 1 alone. A locked Chords or Drums part is handed back to the
+    generator as the harmony and kit to write against, so the new melody sits on
+    the chords the section actually plays.
+  - **An edited arrangement is saved with the project** (TASK-067). It was not,
+    while a single edited clip was — so arranging a whole song and reopening
+    lost all of it. An *unedited* arrangement is still stored as nothing but its
+    inputs, because pressing Generate reproduces it exactly.
+  - **Ctrl+Z works on the Song tab.** It used to do nothing, deliberately,
+    because the arrangement had no undo stack and stepping the session back
+    instead was worse. The arrangement is part of the same snapshot now: one
+    stack, one shortcut, and no question about which document a keypress is
+    about.
+  - **The timeline reads at a glance** (TASK-070): a note-density sketch inside
+    every clip, locks on any cell, row or section, a chip row naming the form
+    the song has, and a picker offering the forms *the artist writes* — never a
+    shape nobody researched. Forcing a form moves no notes: the same seed in
+    another shape keeps the same beats.
+  - **Audition, re-roll and drill-in** (TASK-071): hear one cell on its own,
+    press `R` to re-roll the section you are in, and double-click a clip to open
+    it in its own editor — where your edits write back into the arrangement.
+  - **Export** (TASK-073/TASK-069): write the whole arranged song as one
+    multi-track `.mid`, or one `.mid` per part into a folder, through your
+    platform's own Save As. The generation animation cascades across the
+    sections as they are built, with the same reduced-motion path everything
+    else uses.
+  - ⚠ **Stems are MIDI, not audio.** The preview kit is a drum kit, so the four
+    melodic parts have no voice to render through yet — writing four silent
+    `.wav`s and calling them stems would be worse than not offering them. The
+    audio half arrives with the pitched instrument voices.
+  - ⚠ **Dragging a song out to the desktop is not built.** An HTML5 drag inside
+    a plugin's webview is not an operating-system file drag; that needs a native
+    drag source per platform, which is its own piece of work. Export does the
+    same job in the meantime and the button says "Export" rather than "Drag".
+
+### Fixed
+
+Song Mode went through four reviews before it shipped, and they found things
+worth naming — every one with a test that was watched failing first.
+
+- **Undo now reaches the project file.** Undoing an arrangement edit changed
+  the screen and not the saved project, so closing and reopening brought the
+  edit back.
+- **Undo across an artist change no longer resurrects the previous artist's
+  record** under the new artist's name — and a preset load no longer leaves a
+  redo step that can bring back the arrangement it just cleared.
+- **Locks, the loop and an audition follow their section when you clone.**
+  Cloning renumbers everything after the insert, so a padlock drew on the wrong
+  section and a re-roll regenerated the very clips it said were pinned.
+- **Re-rolling honours the record it belongs to.** A re-rolled section keeps
+  the mode the song was generated in, keeps a pinned swing, and keeps a
+  section the style authors as 808-only from coming back with a full kit.
+- **Re-rolling a section leaves every other one alone**, including a clone of
+  it, and no longer strands a cut clip or an open editor.
+- **The transport plays what the visible tab shows.** Leaving Song Mode hands
+  it back the clip on screen, an undo taken on a part tab does not put the
+  whole record on it, and muting or soloing a part no longer restarts the song
+  from bar 1.
+- **Clicking the empty grid works** — it clears the selection and moves the
+  playhead. It had never worked: the guard could not pass.
+- **Generating a fresh song clears what belonged to the old one** — the
+  clipboard, a solo on a part the new form does not play, and an audition.
+- **An export dialog left open for a long time still reports where the file
+  went**, instead of the page giving up and refusing the next export.
+- **Every melodic stem carries its own track name**, rather than the drum
+  track's, and the multi-track file and the stems agree note for note.
+
+- **A piano roll, and the four melodic parts are visible at last.** Melody,
+  Countermelody, Bass and Chords generated through the bridge and landed on the
+  host's track without ever appearing on screen; now they are drawn, and
+  editable, to the standard Ableton and FL set. Canvas rather than DOM because a
+  roll is 128 rows deep and the same approach the drum grid uses would be ~15,000
+  elements before a single note — with the notes published as a visually-hidden
+  list beside it, so the editor is reachable by a screen reader and assertable by
+  a test rather than only pokeable by coordinate.
+  - **Selection and note editing** (TASK-041A): marquee, `Shift`/`Ctrl`-click,
+    `Ctrl+A`, `Esc`, drag either edge to resize, `Del`, `Shift+D` and `Ctrl+D` to
+    duplicate, cut/copy/paste at the playhead, arrow-key transpose and nudge with
+    `Shift` widening both to an octave and a bar, and `Ctrl`-drag to copy. Every
+    gesture commits once, so a drag across forty notes is one undo step.
+  - **Scale awareness** (TASK-041B): in-key rows tinted, out-of-key dimmed, the
+    root marked, `Fold to scale` and Ableton's note `Fold`, and a scale picker in
+    the header that writes through to the session chip rather than holding a
+    second opinion about the key. A row holding a note is never folded away, so a
+    chromatic passing tone stays visible, audible and exported.
+  - **The full scale set** (TASK-041C): `Scale` goes from 12 to 41 — the modes,
+    the pentatonics and blues, the minor and major variants and their modes, the
+    symmetric scales, nine world scales and Messiaen modes 3–7 — each with a
+    Dark/Neutral/Bright character, and the picker offers the *model's* own scales
+    narrowed by the mood's character rather than all forty-one.
+  - **A velocity lane** (TASK-041V), under the roll and the drum grid: one stem
+    per note with a round cap, drag a cap to set it, drag sideways to paint every
+    slider at the pointer's height, `Shift` for a straight ramp, a selection
+    drags relatively so its accents survive, and right-click or double-click puts
+    a note back to the velocity the *model* wrote — which is now kept on the note
+    rather than recomputed, because `humanize` has already spread it by then.
+  - **Transforms on a selection** (TASK-041D): invert, reverse, stretch and
+    compress (with `*` and `/`, and handles on the selection's outer edges),
+    legato, quantize with a strength slider, humanize, and transpose to scale.
+    One undo step each.
+  - **Clip timing** (TASK-041E): a bar/beat ruler drawn from the clip's own
+    meter, a loop brace with draggable ends, clip start/end markers independent
+    of it, and a per-clip time signature that writes through to the chips *and*
+    to the exported file's meta event. The transport honours the loop region,
+    rendering each block in segments split at the turnover rather than wrapping
+    at the block boundary — which would put every note after the wrap up to a
+    32nd note out of place at 140 BPM.
+  - **A visual design pass** (TASK-041F): velocity-mapped note fill, a hover
+    affordance that appears under the pointer instead of a grip on every note,
+    grid and playhead snapped to whole device pixels so they stay crisp at any
+    `devicePixelRatio`, and a note outline chosen per theme for contrast — the
+    fixed one landed at 2.6:1 on the light theme's note colour, where "this note
+    is selected" quietly stopped being visible.
+  - **An edited clip is saved with the project.** The plugin stores the
+    *request* — artist, seed, pins — because the engine is deterministic, which
+    is what keeps a project file a few hundred bytes. The moment a producer moves
+    a note that stops being true, so from then on the clip itself is stored. An
+    unedited session still carries no notes at all.
 - **The plugin makes a sound.** The sampler and preview kit are ported out of
   `src-tauri` and into the plugin, and the generated pattern is rendered into the
   host's output — so a producer hears the beat on insert instead of having to

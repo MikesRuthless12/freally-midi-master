@@ -124,7 +124,18 @@
     "sectionBars": { "intro": [4, 8], "verse": 16, "hook": 8, "bridge": 4, "outro": 4 },
     "synthLoopBars": [1, 4],
     "drumLoopBars": 4,
-    "transitions": { "fillBeforeSection": true, "dropOutBeats": { "prob": 0.7, "beats": 2 }, "switchUpProb": 0.1 }
+    "transitions": { "fillBeforeSection": true, "dropOutBeats": { "prob": 0.7, "beats": 2 }, "switchUpProb": 0.1 },
+    "structures": [
+      { "sections": ["intro", "verse", "hook", "verse", "hook", "outro"], "weight": 3 },
+      { "sections": ["intro", "verse", "verse", "hook", "verse"], "weight": 2 }
+    ],
+    "sectionRules": {
+      "intro": { "parts": ["melody"], "density": 0.6 },
+      "verse": { "parts": "all", "density": 0.9 },
+      "hook": { "parts": "all", "density": 1, "addLayers": ["countermelody"] },
+      "bridge": { "parts": ["melody", "bass808"], "density": 0.5 },
+      "outro": { "parts": "all", "density": 0.9 }
+    }
   },
 
   "kit": { "preview": "rage-default" },

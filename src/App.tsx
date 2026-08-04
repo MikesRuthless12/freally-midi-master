@@ -6,6 +6,7 @@ import { RightRail } from './components/layout/RightRail';
 import { AboutModal } from './components/Settings/About';
 import { SettingsModal } from './components/Settings/Settings';
 import { TransportBar } from './components/layout/TransportBar';
+import { isTypingTarget } from './lib/keyboard';
 import { subscribeToPlayhead, useSession } from './state/session';
 import { isWide, useUi } from './state/ui';
 import './components/layout/layout.css';
@@ -67,8 +68,7 @@ function Studio() {
       if (e.key !== 'k' && e.key !== 'K') return;
       if (e.ctrlKey || e.metaKey || e.altKey) return;
       // Never steal the key from a text field.
-      const el = e.target as HTMLElement | null;
-      if (el?.matches?.('input, textarea, select, [contenteditable]')) return;
+      if (isTypingTarget(e.target)) return;
       e.preventDefault();
       toggleRightRail();
     };
@@ -89,10 +89,25 @@ function Studio() {
       // ⛔ Inside a text field the browser's own undo owns this chord, and it
       // is undoing something more immediate than a session step. Taking it
       // would make the seed box unable to un-type a character.
-      const el = e.target as HTMLElement | null;
-      if (el?.matches?.('input, textarea, [contenteditable]')) return;
+      //
+      // ⛔ This used to spell the selector out and *omitted `select`*, so undo
+      // was stolen from a dropdown while `K` above was not. One predicate now.
+      if (isTypingTarget(e.target)) return;
 
+      // ⛔ **`preventDefault` before anything else.** Returning early without it
+      // was a bug once and a confusing one: the chord fell through to the
+      // *browser's* undo, which reverted the last text field edited even though
+      // focus had long since moved to the timeline — the seed box emptied
+      // itself when the producer pressed Ctrl+Z over an arrangement.
       e.preventDefault();
+
+      // ⛔ **No tab check, and its removal is the fix rather than an omission.**
+      // This used to return here on the Song tab, because the arrangement had
+      // no undo stack and stepping the *session* back instead was worse than
+      // doing nothing. The arrangement is now part of the same snapshot
+      // (`history.ts`: `Snapshot.song`), so there is one stack, one Ctrl+Z, and
+      // no question about which document a keypress is about — which is exactly
+      // why it was put there rather than into a second stack of its own.
       const { undo, redo } = useSession.getState();
       if (key === 'y' || e.shiftKey) redo();
       else undo();

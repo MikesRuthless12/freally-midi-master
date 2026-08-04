@@ -237,6 +237,7 @@ pub fn generate(
         // one's pitch. Recorded on the note so the writer emits the overlap the
         // sampler reads as portamento.
         notes.push(Note {
+            model_vel: None,
             start_tick: start,
             len_ticks: (*len).max(1).min(ctx.total_ticks() - start),
             pitch,

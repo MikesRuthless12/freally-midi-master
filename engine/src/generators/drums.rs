@@ -191,6 +191,7 @@ impl DrumKit {
 /// correctly everywhere before the writer replaces it with the same value.
 fn note_at(lane: Lane, tick: u32, vel: u8, articulation: Option<Articulation>) -> Note {
     Note {
+        model_vel: None,
         start_tick: tick,
         len_ticks: HIT_TICKS,
         pitch: gm_drum_note(lane),
@@ -860,6 +861,7 @@ fn bass808(
         }
 
         notes.push(Note {
+            model_vel: None,
             start_tick: *tick,
             // Filled in by the legato pass below; a length of zero here would
             // survive as a zero-length note if that pass ever stopped running.

@@ -4,7 +4,12 @@ import type { LucideIcon } from 'lucide-react';
 import { GENERATOR_TABS, useUi, type GeneratorTab } from '../../state/ui';
 import { BAR_CHOICES, useSession } from '../../state/session';
 import { DrumGrid } from '../DrumGrid/DrumGrid';
+import { PianoRoll } from '../PianoRoll/PianoRoll';
+import { SongTimeline } from '../SongTimeline/SongTimeline';
+import { useSong } from '../../state/song';
 import { columnDensity } from '../DrumGrid/cells';
+import { sectionDensity } from '../SongTimeline/sketch';
+import type { Part } from '../../lib/ipc-types';
 import { GenFx } from '../GenFx/GenFx';
 import { SeedChip } from '../SeedChip/SeedChip';
 import { SessionSwitchPrompt } from '../SessionChips/SessionChips';
@@ -55,10 +60,34 @@ function GeneratorTabs() {
 }
 
 /**
- * Centre stage: the tab strip over the grid.
+ * Which part a tab generates, or `null` for a tab that is not a part at all.
  *
- * Only the Drums tab generates. The other five are Phase 2, and they say so
- * rather than showing an empty grid that reads as a failed generation.
+ * ⛔ Song is not a part and never becomes one — it is an *arrangement* of the
+ * five. Mapping it to a `Part` here would send it through `session.generate`,
+ * which fills the single pattern slot the editors draw from; a song has to go
+ * through `useSong` instead. The `null` is what routes it there.
+ */
+const TAB_PART: Record<GeneratorTab, Part | null> = {
+  drums: 'drums',
+  melody: 'melody',
+  counter: 'counter',
+  bass: 'bass',
+  chords: 'chords',
+  song: null,
+};
+
+/**
+ * Centre stage: the tab strip over the editor for the part it names.
+ *
+ * Drums draws in `DrumGrid`; the four melodic parts draw in the piano roll
+ * (TASK-041); Song draws in `SongTimeline` (TASK-063A / TASK-063B).
+ *
+ * ⛔ **The editor is shown only when the pattern in hand is the tab's own
+ * part.** `session.pattern` is one slot, so generating a melody replaces the
+ * drums that were there — and drawing whatever is in the slot under whichever
+ * tab is open would put a melody's notes in the drum grid's lanes. Switching to
+ * a tab whose part is not loaded shows the "ready, hit Generate" state, which is
+ * true rather than merely blank.
  */
 export function CenterStage() {
   const { t } = useTranslation();
@@ -74,15 +103,42 @@ export function CenterStage() {
   const generate = useSession((s) => s.generate);
   const playhead = useSession((s) => s.playhead);
 
+  const song = useSong((s) => s.song);
+  const songGenerating = useSong((s) => s.generating);
+  const songError = useSong((s) => s.error);
+  const buildSong = useSong((s) => s.generate);
+  const seed = useSession((s) => s.seed);
+  const pins = useSession((s) => s.pins);
+  const mood = useSession((s) => s.mood);
+
+  // Song Mode reads the same seed, pins and mood the chips already hold, so the
+  // arrangement is placed in the session the producer set up rather than in one
+  // of its own.
+  const generateSong = () => {
+    if (!selectedId) return;
+    return buildSong({ styleId: selectedId, seed, pins, mood });
+  };
+
   const selected = roster.find((entry) => entry.id === selectedId) ?? null;
-  const isDrums = activeTab === 'drums';
+  const part = TAB_PART[activeTab];
+
+  // The pattern in hand belongs to this tab, so it is this tab's to draw.
+  const showing = part !== null && pattern?.part === part ? pattern : null;
 
   // What the ripple ignites. Recomputed only when the pattern changes, not on
   // every frame — the animation reads this, and it must not cost a render.
-  const density = useMemo(
-    () => (pattern ? columnDensity(pattern, FX_COLUMNS) : undefined),
-    [pattern],
-  );
+  //
+  // ⛔ **On the Song tab it is the *sections*, which is what makes the FX
+  // cascade section by section (TASK-073).** The ripple already sweeps
+  // left→right and lights each column by its own density, so a song only has to
+  // say what "a column" means here — one bucket per section, weighted by how
+  // much is playing in it. Writing a second animation for Song Mode would have
+  // meant a second reduced-motion path as well, and that is the one this
+  // project has already had to fix twice.
+  const density = useMemo(() => {
+    if (activeTab === 'song') return song ? sectionDensity(song) : undefined;
+    return pattern ? columnDensity(pattern, FX_COLUMNS) : undefined;
+  }, [activeTab, song, pattern]);
 
   return (
     <section className="stage">
@@ -96,15 +152,28 @@ export function CenterStage() {
       >
         {/* The ripple wraps whatever the stage is showing, so it sweeps the
             grid the notes are landing in rather than a layer beside it. */}
-        <GenFx active={generating} density={density}>
-          {!isDrums ? (
-            <div className="stage__empty">
-              <h2>{t(`tabs.${activeTab}`)}</h2>
-              <p>{t('stage.laterPhase')}</p>
-            </div>
-          ) : pattern ? (
-            <DrumGrid pattern={pattern} playhead={playhead} />
-          ) : (
+        <GenFx active={generating || songGenerating} density={density}>
+          {/* Ordered so the compiler can narrow `part`: past the `null` and the
+              `drums` arms, what is left is exactly a melodic part, which is what
+              the roll accepts. A conjunction here instead would leave `part`
+              still possibly `'drums'` on the roll's branch. */}
+          {part === null ? (
+            // Song is not a part — it is an arrangement of the five, so it
+            // draws its own surface rather than an editor for a `Part`
+            // (TASK-063A / TASK-063B).
+            song === null ? (
+              <div className="stage__empty">
+                <h2>{t('tabs.song')}</h2>
+                <p>
+                  {selected
+                    ? t('song.readyBody', { name: selected.name })
+                    : t('stage.emptyBody')}
+                </p>
+              </div>
+            ) : (
+              <SongTimeline song={song} />
+            )
+          ) : showing === null ? (
             <div className="stage__empty">
               <h2>{t('stage.emptyTitle')}</h2>
               <p>
@@ -113,6 +182,10 @@ export function CenterStage() {
                   : t('stage.emptyBody')}
               </p>
             </div>
+          ) : part === 'drums' ? (
+            <DrumGrid pattern={showing} playhead={playhead} />
+          ) : (
+            <PianoRoll pattern={showing} part={part} playhead={playhead} />
           )}
         </GenFx>
 
@@ -122,9 +195,13 @@ export function CenterStage() {
         <div className="stage__bottom">
           {/* The error sits beside the control that caused it rather than in a
               toast that has to be chased across the screen. */}
-          {error && (
+          {/* ⛔ The error belongs to the tab that is showing. `error ?? songError`
+              showed the *session's* error whenever one existed, so a stale
+              "trap's 808 is the bassline" from a Bass request on another tab was
+              presented as though it were about the song. */}
+          {(part === null ? songError : error) && (
             <p className="stage__error" role="alert">
-              {error}
+              {part === null ? songError : error}
             </p>
           )}
 
@@ -151,13 +228,18 @@ export function CenterStage() {
               {t('stage.bars')}
             </span>
 
+            {/* ⛔ Song generates a whole arrangement rather than a part, so it
+                cannot go through `session.generate` — that fills the one pattern
+                slot the roll draws from, and a song is an arrangement of five.
+                The button was previously disabled here and said "a later
+                phase"; it now does the thing it names. */}
             <button
               type="button"
               className="btn-generate"
-              onClick={() => void generate()}
-              disabled={!isDrums || !selectedId || generating}
+              onClick={() => (part !== null ? void generate(part) : void generateSong())}
+              disabled={!selectedId || generating || songGenerating}
             >
-              {generating ? t('stage.generating') : t('stage.generate')}
+              {generating || songGenerating ? t('stage.generating') : t('stage.generate')}
             </button>
           </div>
         </div>

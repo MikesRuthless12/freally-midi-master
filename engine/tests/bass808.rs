@@ -361,6 +361,8 @@ fn a_generated_slide_exports_as_two_overlapping_notes() {
     );
 
     let pattern = Pattern {
+        loop_region: None,
+        clip_region: None,
         id: "test".into(),
         part: Part::Drums,
         artist_id: "test".into(),

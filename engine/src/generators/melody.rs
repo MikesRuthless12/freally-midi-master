@@ -336,6 +336,7 @@ pub fn generate(
             }
 
             notes.push(Note {
+                model_vel: None,
                 start_tick: start,
                 len_ticks: len,
                 pitch: *pitch,
@@ -354,6 +355,7 @@ pub fn generate(
             if monophonic < 1.0 && dyad_rng.random_bool((1.0 - monophonic).clamp(0.0, 1.0)) {
                 if let Some(double) = dyad(*pitch, chords, start, low, high) {
                     notes.push(Note {
+                        model_vel: None,
                         start_tick: start,
                         len_ticks: len,
                         pitch: double,
@@ -1156,6 +1158,7 @@ mod tests {
         let drums = vec![LaneTrack {
             lane: Lane::Snare,
             notes: vec![Note {
+                model_vel: None,
                 start_tick: snare_tick,
                 len_ticks: grid::SIXTEENTH,
                 pitch: 38,

@@ -8,7 +8,7 @@
 //! reason: the chord builder, the melody and the bass all have to agree on
 //! which notes are in the key, or "in scale" means three different things.
 
-use crate::pattern::Scale;
+use crate::pattern::{Scale, ScaleCharacter};
 
 /// Semitones for an interval name.
 ///
@@ -216,20 +216,64 @@ mod key_tests {
 /// the second question.
 pub fn scale_semitones(scale: Scale) -> &'static [u8] {
     match scale {
+        // ---- Modes of the major scale ----------------------------------
+        Scale::Major => &[0, 2, 4, 5, 7, 9, 11],
+        Scale::Dorian => &[0, 2, 3, 5, 7, 9, 10],
+        Scale::Phrygian => &[0, 1, 3, 5, 7, 8, 10],
+        Scale::Lydian => &[0, 2, 4, 6, 7, 9, 11],
+        Scale::Mixolydian => &[0, 2, 4, 5, 7, 9, 10],
         // Aeolian *is* the natural minor. Two names for one row, because the
         // dataset uses both and a model author picking the other spelling must
         // not get a different scale.
         Scale::NaturalMinor | Scale::Aeolian => &[0, 2, 3, 5, 7, 8, 10],
-        Scale::HarmonicMinor => &[0, 2, 3, 5, 7, 8, 11],
-        Scale::Phrygian => &[0, 1, 3, 5, 7, 8, 10],
-        Scale::PhrygianDominant => &[0, 1, 4, 5, 7, 8, 10],
-        Scale::Dorian => &[0, 2, 3, 5, 7, 9, 10],
-        Scale::Major => &[0, 2, 4, 5, 7, 9, 11],
-        Scale::Mixolydian => &[0, 2, 4, 5, 7, 9, 10],
-        Scale::Lydian => &[0, 2, 4, 6, 7, 9, 11],
-        Scale::MinorPentatonic => &[0, 3, 5, 7, 10],
+        Scale::Locrian => &[0, 1, 3, 5, 6, 8, 10],
+
+        // ---- Pentatonic and blues --------------------------------------
         Scale::MajorPentatonic => &[0, 2, 4, 7, 9],
+        Scale::MinorPentatonic => &[0, 3, 5, 7, 10],
+        Scale::MajorBlues => &[0, 2, 3, 4, 7, 9],
+        // The minor blues. Named bare because the dataset already authors it
+        // that way, for the same reason `Aeolian` is kept beside `NaturalMinor`.
         Scale::Blues => &[0, 3, 5, 6, 7, 10],
+
+        // ---- Minor and major variants ----------------------------------
+        Scale::HarmonicMinor => &[0, 2, 3, 5, 7, 8, 11],
+        Scale::MelodicMinor => &[0, 2, 3, 5, 7, 9, 11],
+        Scale::HarmonicMajor => &[0, 2, 4, 5, 7, 8, 11],
+
+        // ---- Modes of those --------------------------------------------
+        Scale::PhrygianDominant => &[0, 1, 4, 5, 7, 8, 10],
+        Scale::DorianSharp4 => &[0, 2, 3, 6, 7, 9, 10],
+        Scale::LydianAugmented => &[0, 2, 4, 6, 8, 9, 11],
+        Scale::LydianDominant => &[0, 2, 4, 6, 7, 9, 10],
+        Scale::SuperLocrian => &[0, 1, 3, 4, 6, 8, 10],
+        Scale::LocrianNatural6 => &[0, 1, 3, 5, 6, 9, 10],
+        Scale::IonianSharp5 => &[0, 2, 4, 5, 8, 9, 11],
+        Scale::Ultralocrian => &[0, 1, 3, 4, 6, 8, 9],
+
+        // ---- Symmetric --------------------------------------------------
+        Scale::WholeTone => &[0, 2, 4, 6, 8, 10],
+        Scale::WholeHalfDiminished => &[0, 2, 3, 5, 6, 8, 9, 11],
+        Scale::HalfWholeDiminished => &[0, 1, 3, 4, 6, 7, 9, 10],
+        Scale::Chromatic => &[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11],
+
+        // ---- World ------------------------------------------------------
+        Scale::HungarianMinor => &[0, 2, 3, 6, 7, 8, 11],
+        Scale::EightToneSpanish => &[0, 1, 3, 4, 5, 6, 8, 10],
+        Scale::Bhairav => &[0, 1, 4, 5, 7, 8, 11],
+        Scale::Hirajoshi => &[0, 2, 3, 7, 8],
+        Scale::InSen => &[0, 1, 5, 7, 10],
+        Scale::Iwato => &[0, 1, 5, 6, 10],
+        Scale::Kumoi => &[0, 2, 3, 7, 9],
+        Scale::PelogSelisir => &[0, 1, 3, 7, 8],
+        Scale::PelogTembung => &[0, 1, 5, 7, 8],
+
+        // ---- Messiaen modes 3–7 -----------------------------------------
+        Scale::MessiaenMode3 => &[0, 2, 3, 4, 6, 7, 8, 10, 11],
+        Scale::MessiaenMode4 => &[0, 1, 2, 5, 6, 7, 8, 11],
+        Scale::MessiaenMode5 => &[0, 1, 5, 6, 7, 11],
+        Scale::MessiaenMode6 => &[0, 2, 4, 5, 6, 8, 10, 11],
+        Scale::MessiaenMode7 => &[0, 1, 2, 3, 5, 6, 7, 8, 9, 11],
     }
 }
 
@@ -240,13 +284,135 @@ pub fn scale_semitones(scale: Scale) -> &'static [u8] {
 /// `VI` on the wrong root. Pentatonic and blues scales are *melodic* choices
 /// sitting inside a parent key, so the chords are built from that parent and
 /// the melody still gets the five notes it was authored for.
+///
+/// ⛔ **Every scale that is not seven notes long needs a parent here, and
+/// `every_scale_answers_seven_harmonic_degrees` is what makes that impossible to
+/// forget.** The rule for choosing one is the *tonic triad*: a scale is sent to
+/// the seven-note key its first, third and fifth degrees belong to, so the
+/// chords stay in the world the melody is being written in. A 5-, 6-, 8- or
+/// 12-note scale with no parent would hand the chord builder fewer degrees than
+/// it asks for and silently put roman numerals on the wrong roots.
 pub fn harmonic_degrees(scale: Scale) -> &'static [u8] {
     let parent = match scale {
-        Scale::MinorPentatonic | Scale::Blues => Scale::NaturalMinor,
-        Scale::MajorPentatonic => Scale::Major,
+        // Minor third, flat sixth: an ordinary natural minor.
+        Scale::MinorPentatonic
+        | Scale::Blues
+        | Scale::Hirajoshi
+        | Scale::WholeHalfDiminished
+        | Scale::MessiaenMode3
+        | Scale::MessiaenMode7 => Scale::NaturalMinor,
+
+        // Minor third, *natural* sixth. Dorian rather than the natural minor,
+        // because that sixth is the note the scale is chosen for and a flat one
+        // underneath it would put the harmony outside the melody's own key.
+        Scale::Kumoi => Scale::Dorian,
+
+        // A flat second is the defining note of these, so the parent has to
+        // have one. Iwato's flat fifth takes Locrian instead.
+        Scale::InSen | Scale::PelogSelisir | Scale::PelogTembung => Scale::Phrygian,
+        Scale::Iwato => Scale::Locrian,
+
+        // Major-third tonic.
+        Scale::MajorPentatonic | Scale::MajorBlues | Scale::Chromatic | Scale::MessiaenMode6 => {
+            Scale::Major
+        }
+
+        // A dominant-flavoured eight- or six-note scale: major third, flat
+        // seventh. Mixolydian is the seven-note key that describes it.
+        Scale::HalfWholeDiminished | Scale::EightToneSpanish => Scale::Mixolydian,
+
+        // Whole tone and Messiaen 5 have an augmented or bare fifth and a major
+        // third; Lydian augmented is the nearest seven-note key that keeps both.
+        Scale::WholeTone | Scale::MessiaenMode5 => Scale::LydianAugmented,
+
+        // Messiaen 4 opens with a minor second over a major third — the same
+        // shape Phrygian dominant names.
+        Scale::MessiaenMode4 => Scale::PhrygianDominant,
+
+        // Everything else already answers with seven degrees of its own.
         other => other,
     };
     scale_semitones(parent)
+}
+
+/// Whether a scale reads dark, neutral or bright (TASK-041C).
+///
+/// ⛔ **One table, and `every_scale_has_a_character` fails on a scale added
+/// without one.** This is what makes "a dark mood offers dark scales" hold for
+/// scales nobody has authored a mood against yet.
+///
+/// The rule is the third and the sixth: a minor third reads dark, a major third
+/// bright, and a scale with no stable third — the symmetric ones, where every
+/// transposition is the same set — reads neutral. The named exceptions are the
+/// ones where the sixth or the second overrides the third: Dorian's natural
+/// sixth lifts a minor scale to neutral, and Phrygian's flat second darkens one
+/// that is already minor.
+pub fn scale_character(scale: Scale) -> ScaleCharacter {
+    use ScaleCharacter::{Bright, Dark, Neutral};
+    match scale {
+        // A minor third, with nothing lifting it — or a flat second, which
+        // darkens a scale whatever its third is doing.
+        //
+        // ⛔ **Phrygian dominant and Bhairav are here despite a *major* third**,
+        // and they are the reason the rule is stated as "minor third or flat
+        // second" rather than "minor third". Both are ♭2/♭6 shapes and read as
+        // the Spanish/raga colour rather than as a major scale.
+        // `midi::key_signature` files them under minor in the same words, and
+        // the two have to agree — otherwise the roll tints a scale bright while
+        // the exported key signature calls it minor.
+        //
+        // Iwato, In-Sen and Pelog Tembung have no third at all; the flat second
+        // is what places them.
+        Scale::NaturalMinor
+        | Scale::Aeolian
+        | Scale::Phrygian
+        | Scale::Locrian
+        | Scale::HarmonicMinor
+        | Scale::MinorPentatonic
+        | Scale::Blues
+        | Scale::PhrygianDominant
+        | Scale::Bhairav
+        | Scale::SuperLocrian
+        | Scale::LocrianNatural6
+        | Scale::Ultralocrian
+        | Scale::HungarianMinor
+        | Scale::EightToneSpanish
+        | Scale::Iwato
+        | Scale::InSen
+        | Scale::Hirajoshi
+        | Scale::PelogSelisir
+        | Scale::PelogTembung
+        | Scale::DorianSharp4 => Dark,
+
+        // A major third and no flat second.
+        Scale::Major
+        | Scale::Lydian
+        | Scale::Mixolydian
+        | Scale::MajorPentatonic
+        | Scale::MajorBlues
+        | Scale::HarmonicMajor
+        | Scale::LydianDominant
+        | Scale::LydianAugmented
+        | Scale::IonianSharp5 => Bright,
+
+        // ⛔ Dorian is minor but its natural sixth is the whole reason a
+        // producer reaches for it instead of the natural minor — it is the
+        // "not-sad minor", and filing it under Dark would hide it from every
+        // mood that is not explicitly gloomy.
+        Scale::Dorian
+        | Scale::MelodicMinor
+        | Scale::Kumoi
+        // Symmetric: no tonic to be major or minor about.
+        | Scale::WholeTone
+        | Scale::WholeHalfDiminished
+        | Scale::HalfWholeDiminished
+        | Scale::Chromatic
+        | Scale::MessiaenMode3
+        | Scale::MessiaenMode4
+        | Scale::MessiaenMode5
+        | Scale::MessiaenMode6
+        | Scale::MessiaenMode7 => Neutral,
+    }
 }
 
 /// The semitone of a scale degree, counting from 1, wrapping into octaves.
@@ -330,19 +496,105 @@ mod scale_tests {
         assert_eq!(degree_semitone(minor, 0), -2);
     }
 
+    #[test]
+    fn every_scale_has_a_character() {
+        // ⛔ **The gate that makes "a dark mood offers dark scales" hold for
+        // scales nobody has authored a mood against yet.** `scale_character` is
+        // an exhaustive match, so this cannot fail at runtime — which is the
+        // point: adding a scale without classifying it fails to *compile*, and
+        // this test is what says so out loud to whoever hits that error.
+        for scale in Scale::ALL {
+            let character = scale_character(scale);
+            assert!(
+                matches!(
+                    character,
+                    ScaleCharacter::Dark | ScaleCharacter::Neutral | ScaleCharacter::Bright
+                ),
+                "{scale:?} has no character"
+            );
+        }
+    }
+
+    #[test]
+    fn the_intervals_agree_with_the_characters() {
+        // ⛔ **The rule the table is written to, checked rather than trusted —
+        // and it caught the table being wrong on its first run.** Phrygian
+        // dominant was filed Dark against a "dark means minor third" rule that
+        // it breaks, which is how the rule turned out to be *minor third or
+        // flat second*: a ♭2 darkens a scale whatever its third does. Iwato,
+        // In-Sen and Pelog Tembung have no third at all and are placed by the
+        // same ♭2.
+        //
+        // Neutral is exempt, which is what neutral means here: the symmetric
+        // scales have no tonic to be major or minor about.
+        for scale in Scale::ALL {
+            let degrees = scale_semitones(scale);
+            let minor_third = degrees.contains(&3);
+            let major_third = degrees.contains(&4);
+            let flat_second = degrees.contains(&1);
+
+            match scale_character(scale) {
+                ScaleCharacter::Dark => assert!(
+                    minor_third || flat_second,
+                    "{scale:?} is filed dark but has neither a minor third nor a flat second: {degrees:?}"
+                ),
+                ScaleCharacter::Bright => assert!(
+                    major_third && !flat_second,
+                    "{scale:?} is filed bright but is not a major third without a flat second: {degrees:?}"
+                ),
+                ScaleCharacter::Neutral => {}
+            }
+        }
+    }
+
+    #[test]
+    fn a_scale_carrying_both_thirds_is_still_placed_by_its_character() {
+        // ⛔ **The case that made `midi::key_signature` defer to this table.**
+        // The major blues scale is the major pentatonic plus a ♭3 blue note, so
+        // it holds *both* thirds — and any rule phrased as "has a minor third
+        // ⇒ minor" calls it minor while this table calls it bright. The blue
+        // note is a colour over a major scale, not a change of mode.
+        let degrees = scale_semitones(Scale::MajorBlues);
+        assert!(degrees.contains(&3) && degrees.contains(&4), "{degrees:?}");
+        assert_eq!(scale_character(Scale::MajorBlues), ScaleCharacter::Bright);
+
+        // Its minor namesake keeps the opposite answer, so the pair cannot be
+        // collapsed by anyone tidying up later.
+        assert_eq!(scale_character(Scale::Blues), ScaleCharacter::Dark);
+    }
+
+    #[test]
+    fn every_scale_is_listed_in_all_exactly_once() {
+        // `Scale::ALL` widens what every gate above covers, so a duplicate
+        // quietly means one scale is tested twice and — far more likely — that
+        // a paste went wrong and another is not tested at all.
+        let mut seen = std::collections::BTreeSet::new();
+        for scale in Scale::ALL {
+            assert!(
+                seen.insert(format!("{scale:?}")),
+                "{scale:?} is listed twice"
+            );
+        }
+        assert_eq!(seen.len(), Scale::ALL.len());
+    }
+
+    #[test]
+    fn the_two_names_for_the_natural_minor_stay_one_scale() {
+        // The dataset authors both spellings. They were one row before the set
+        // grew to forty-one and they have to stay one row.
+        assert_eq!(
+            scale_semitones(Scale::Aeolian),
+            scale_semitones(Scale::NaturalMinor)
+        );
+        assert_eq!(
+            scale_character(Scale::Aeolian),
+            scale_character(Scale::NaturalMinor)
+        );
+    }
+
     /// Every scale, so the invariants above cannot be tested on a subset.
-    const ALL_SCALES: [Scale; 12] = [
-        Scale::NaturalMinor,
-        Scale::HarmonicMinor,
-        Scale::Phrygian,
-        Scale::PhrygianDominant,
-        Scale::Dorian,
-        Scale::Major,
-        Scale::Mixolydian,
-        Scale::Lydian,
-        Scale::Aeolian,
-        Scale::MinorPentatonic,
-        Scale::MajorPentatonic,
-        Scale::Blues,
-    ];
+    ///
+    /// Points at the production list rather than restating it — a second copy
+    /// here is exactly how a gate ends up silently covering twelve of forty-one.
+    const ALL_SCALES: [Scale; 41] = Scale::ALL;
 }

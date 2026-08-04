@@ -100,6 +100,8 @@ fn render(model: &StyleModel, seed: u64, bars: u16) -> Pattern {
     humanize(&mut lanes, &ctx, seed);
 
     Pattern {
+        loop_region: None,
+        clip_region: None,
         id: format!("{}-{seed}", model.id),
         part: Part::Drums,
         artist_id: model.id.clone(),

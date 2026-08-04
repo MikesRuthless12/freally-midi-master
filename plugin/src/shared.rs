@@ -162,6 +162,25 @@ pub struct Shared {
     /// The same `Arc` as the persisted field on
     /// [`FreallyParams`](crate::FreallyParams) — see [`Shared::new`].
     pub session: SessionStore,
+    /// The one in-flight export and its outcome (TASK-073).
+    ///
+    /// ⛔ **Here rather than a module global, because this is per-*instance*
+    /// state.** A DAW loads this plugin on twenty tracks in one process, and
+    /// `take_status` is destructive — a shared slot means one instance's poll
+    /// steals another's result. `crate::export::Exports` has the full write-up.
+    pub exports: crate::export::Exports,
+    /// The id of the clip the editor last handed over.
+    ///
+    /// ⛔ **`Schedule::arm`'s own resume path cannot work without this.** That
+    /// function holds the playhead when the clip it is given is the one already
+    /// armed — but `editor.rs` builds a *fresh* `Schedule` for every reply, so
+    /// `armed_id` was always `None`, `same_clip` was always false, and every arm
+    /// reset the position. Harmless while only a generation re-armed; the moment
+    /// muting a part, soloing one, toggling a loop or starting an audition
+    /// re-armed the song, clicking any of them mid-playback threw the record
+    /// back to bar 1. The test that covers the resume re-arms the *same*
+    /// `Schedule`, which is not the shape the plugin produces.
+    armed_clip: Mutex<Option<String>>,
     /// A window size the UI has asked for, packed `width << 32 | height`, or
     /// `0` for "nothing pending".
     ///
@@ -203,6 +222,15 @@ pub struct Shared {
     /// One slot, like the resize request: clicking twice before a block runs
     /// means the second click is where the user wants to be.
     seek_request: AtomicU32,
+    /// A note the gutter asked to hear, as `pitch | AUDITION_PENDING`, or `0`
+    /// (TASK-041).
+    ///
+    /// ⛔ **One slot, and the newest click wins — deliberately, unlike a note
+    /// queue.** Running a finger down the keyboard sends a click per row far
+    /// faster than blocks arrive; queueing them would play the whole run back
+    /// seconds later, long after the pointer stopped. What a producer means by
+    /// dragging down the gutter is "let me hear where I am now".
+    audition_request: AtomicU32,
     /// Whether this process is our own standalone rather than a DAW.
     ///
     /// ⛔ **Read once at construction from the process-wide flag, and held
@@ -238,6 +266,8 @@ impl Shared {
         Self {
             host: SharedHost::default(),
             handoff: Handoff::default(),
+            exports: crate::export::Exports::default(),
+            armed_clip: Mutex::new(None),
             session,
             resize_request: AtomicU64::new(0),
             // Only ever read before `initialize` has run, which no host does
@@ -253,6 +283,7 @@ impl Shared {
             muted_lanes: AtomicU32::new(0),
             playhead_bits: AtomicU32::new(0),
             seek_request: AtomicU32::new(0),
+            audition_request: AtomicU32::new(0),
             standalone,
             // ⛔ **True in a host, false in the standalone, and the asymmetry is
             // the point.** In a host this term must never be the one that
@@ -312,6 +343,29 @@ impl Shared {
         self.sample_rate.load(Ordering::Relaxed) as f32
     }
 
+    /// Note which clip has just been handed over, and say whether it is the one
+    /// that was already playing.
+    ///
+    /// ⛔ **The two are one call because the answer is only true once.** A
+    /// caller that asked and then set would race itself on a second arm
+    /// arriving between the two, and the cost of getting it wrong is the record
+    /// jumping to bar 1 under the producer's hands.
+    pub fn arming(&self, id: &str) -> bool {
+        let Ok(mut slot) = self.armed_clip.lock() else {
+            return false;
+        };
+        let same = slot.as_deref() == Some(id);
+        *slot = Some(id.to_owned());
+        same
+    }
+
+    /// Forget what was armed, so the next arm starts from the top.
+    pub fn disarmed(&self) {
+        if let Ok(mut slot) = self.armed_clip.lock() {
+            *slot = None;
+        }
+    }
+
     /// Publish where the playhead is. Called from `process`.
     pub fn set_playhead(&self, progress: f32) {
         // Already 0..1 — `Schedule::progress` clamps. (`request_seek` clamps for
@@ -340,6 +394,25 @@ impl Shared {
     pub fn take_seek(&self) -> Option<f32> {
         let packed = self.seek_request.swap(0, Ordering::Relaxed);
         (packed & SEEK_PENDING != 0).then(|| f32::from_bits(packed & !SEEK_PENDING))
+    }
+
+    /// Ask the audio thread to sound one note. UI thread (TASK-041).
+    ///
+    /// ⛔ The pending flag exists for the same reason [`request_seek`]'s does:
+    /// pitch 0 is a real MIDI note, so a bare value could not distinguish
+    /// "audition C-1" from "nothing pending" — and C-1 is reachable by
+    /// scrolling the gutter to the bottom.
+    pub fn request_audition(&self, pitch: u8) {
+        self.audition_request.store(
+            u32::from(pitch.min(127)) | AUDITION_PENDING,
+            Ordering::Relaxed,
+        );
+    }
+
+    /// Take a pending audition, if there is one. `process` is the caller.
+    pub fn take_audition(&self) -> Option<u8> {
+        let packed = self.audition_request.swap(0, Ordering::Relaxed);
+        (packed & AUDITION_PENDING != 0).then_some((packed & 0x7f) as u8)
     }
 
     /// Whether our own transport is running (TASK-041T). Read every block.
@@ -444,6 +517,12 @@ impl Shared {
 /// The top bit of an `f32`'s bit pattern is its sign, and a playhead is never
 /// negative — so it is free to borrow.
 const SEEK_PENDING: u32 = 1 << 31;
+
+/// Marks an audition request as present, so pitch 0 is not read as "nothing".
+///
+/// The same trick as [`SEEK_PENDING`] against a different payload: a MIDI pitch
+/// needs seven bits, so the top one is free for the same reason.
+const AUDITION_PENDING: u32 = 1 << 31;
 
 /// Every lane, so the mask can be read back out as names.
 const ALL_LANES: &[Lane] = &[
@@ -760,5 +839,99 @@ mod transport_tests {
         // exactly zero (see `SEEK_PENDING`).
         shared.request_seek(0.0);
         assert_eq!(shared.take_seek(), Some(0.0));
+    }
+
+    #[test]
+    fn an_audition_survives_being_the_lowest_note_on_the_keyboard() {
+        // ⛔ The same trap `SEEK_PENDING` exists for, one payload over: pitch 0
+        // is a real MIDI note and it is reachable — scroll the gutter to the
+        // bottom and click. Without the flag it would be indistinguishable from
+        // "nothing pending" and C-1 would be the one key that never sounded.
+        let shared = Shared::default();
+        assert!(shared.take_audition().is_none(), "nothing asked for yet");
+
+        shared.request_audition(0);
+        assert_eq!(shared.take_audition(), Some(0));
+    }
+
+    #[test]
+    fn taking_an_audition_clears_it() {
+        // A request that stayed set would re-trigger on every block — the note
+        // would not sound once, it would machine-gun for as long as the editor
+        // was open. This is the same failure `fired.clear()` guards in `process`.
+        let shared = Shared::default();
+        shared.request_audition(64);
+
+        assert_eq!(shared.take_audition(), Some(64));
+        assert!(shared.take_audition().is_none(), "one click, one note");
+    }
+
+    #[test]
+    fn the_newest_audition_wins_rather_than_queueing() {
+        // Running a finger down the gutter sends clicks far faster than blocks
+        // arrive. Queueing them would play the run back seconds late, after the
+        // pointer had stopped; what the gesture means is "where am I now".
+        let shared = Shared::default();
+        shared.request_audition(60);
+        shared.request_audition(72);
+
+        assert_eq!(shared.take_audition(), Some(72));
+    }
+
+    #[test]
+    fn an_out_of_range_audition_is_clamped_rather_than_wrapping() {
+        // The pitch shares its word with the pending flag, so a value past 127
+        // that was stored raw would corrupt the flag rather than merely being
+        // wrong — the request would read back as a different note, or as none.
+        let shared = Shared::default();
+        shared.request_audition(200);
+
+        assert_eq!(shared.take_audition(), Some(127));
+    }
+}
+
+#[cfg(test)]
+mod arming_tests {
+    use super::*;
+
+    #[test]
+    fn re_arming_the_same_clip_is_reported_as_the_same_clip() {
+        // ⛔ What decides whether the playhead is held. `editor.rs` builds a
+        // *fresh* `Schedule` for every reply, so `Schedule::arm`'s own resume
+        // path — which keys on its `armed_id` — could never fire: `armed_id`
+        // was always `None`. Harmless while only a generation re-armed, and
+        // then muting a part, soloing one, toggling a loop or starting an
+        // audition all began re-arming the song, so clicking any of them
+        // mid-record threw it back to bar 1.
+        let shared = Shared::default();
+
+        assert!(
+            !shared.arming("trap-song-7-flat"),
+            "the first arm of a clip is not a re-arm"
+        );
+        assert!(
+            shared.arming("trap-song-7-flat"),
+            "the same clip again is the case the playhead must survive"
+        );
+        assert!(
+            !shared.arming("trap-song-9-flat"),
+            "a different song must start from the top"
+        );
+    }
+
+    #[test]
+    fn disarming_makes_the_next_arm_start_from_the_top() {
+        // Leaving Song Mode takes the arrangement off the transport, so coming
+        // back to it is a fresh start rather than a resume — otherwise the
+        // marker would jump to wherever the record had got to before.
+        let shared = Shared::default();
+        assert!(!shared.arming("trap-song-7-flat"));
+        assert!(shared.arming("trap-song-7-flat"));
+
+        shared.disarmed();
+        assert!(
+            !shared.arming("trap-song-7-flat"),
+            "a disarm must not leave the next arm resuming"
+        );
     }
 }

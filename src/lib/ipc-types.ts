@@ -58,6 +58,22 @@ pitch: number,
  */
 vel: number, 
 /**
+ * What the model itself wrote here, before [`crate::humanize`] spread it
+ * (TASK-041V).
+ *
+ * ⛔ **The velocity lane's "reset" needs this and cannot recompute it.**
+ * Resetting a cap has to put back the value that note's own lane tier
+ * asked for — a ghost note's 40, an accent's 120 — and by the time anyone
+ * can see the lane, `vary` has already spread it by a random factor that
+ * is not invertible. Resetting to a flat 100 instead would quietly delete
+ * the accent pattern that is the difference between a played pattern and a
+ * programmed one, using the control whose whole promise is "put it back".
+ *
+ * `None` on a note nobody generated — one the producer drew — where there
+ * is no model opinion to return to.
+ */
+modelVel?: number | null, 
+/**
  * 808 slide target. The note glides to this pitch; the writer emits the
  * overlap convention the sampler reads as portamento.
  */
@@ -89,9 +105,33 @@ keyRoot: number, scale: Scale, lanes: Array<LaneTrack>, ppq: number,
  * same reason the seed box echoes back the seed it used. `None` means the
  * model offers no modes, not that one was declined.
  */
-mood?: string | null, };
+mood?: string | null, 
+/**
+ * What the transport repeats, in ticks (TASK-041E).
+ *
+ * `None` is the whole clip, which is what every pattern is until someone
+ * drags a brace. Carried on the pattern rather than held beside it because
+ * it is a property of the clip: it saves with the project, travels with a
+ * preset, and an edited clip that forgot its own loop on reload would be
+ * the kind of quiet loss nobody attributes to the right feature.
+ */
+loopRegion?: Region | null, 
+/**
+ * The clip's own start and end, independent of the loop.
+ */
+clipRegion?: Region | null, };
 
 export type PatternRef = { patternId: string, };
+
+/**
+ * A span of a clip, in absolute ticks (TASK-041E).
+ *
+ * Used for both the loop brace and the clip's own start and end, which are
+ * deliberately two different things: a producer loops bar 2 of a four-bar idea
+ * to work on it, and trims the clip to bars 1–3 to keep it. One field for both
+ * would make either gesture destroy the other.
+ */
+export type Region = { fromTick: number, toTick: number, };
 
 /**
  * One entry in the searchable roster (PRD § 3 Indexes, § 4 `roster_summary`).
@@ -119,15 +159,48 @@ relatedGenres: Array<string>, era: string | null, };
  */
 export type RosterSummary = { datasetVersion: string, entries: Array<RosterEntry>, problems: Array<DatasetProblem>, };
 
-export type Scale = "natural_minor" | "harmonic_minor" | "phrygian" | "phrygian_dominant" | "dorian" | "major" | "mixolydian" | "lydian" | "aeolian" | "minor_pentatonic" | "major_pentatonic" | "blues";
+export type Scale = "major" | "dorian" | "phrygian" | "lydian" | "mixolydian" | "natural_minor" | "locrian" | "aeolian" | "major_pentatonic" | "minor_pentatonic" | "major_blues" | "blues" | "harmonic_minor" | "melodic_minor" | "harmonic_major" | "phrygian_dominant" | "dorian_sharp4" | "lydian_augmented" | "lydian_dominant" | "super_locrian" | "locrian_natural6" | "ionian_sharp5" | "ultralocrian" | "whole_tone" | "whole_half_diminished" | "half_whole_diminished" | "chromatic" | "hungarian_minor" | "eight_tone_spanish" | "bhairav" | "hirajoshi" | "in_sen" | "iwato" | "kumoi" | "pelog_selisir" | "pelog_tembung" | "messiaen_mode3" | "messiaen_mode4" | "messiaen_mode5" | "messiaen_mode6" | "messiaen_mode7";
+
+/**
+ * How a scale *feels*, for narrowing the picker by mood (TASK-041C).
+ *
+ * ⛔ **A property of the scale, not of the mood.** Mike's rule is that "dark
+ * moods should only show dark scales" — and the only way that stays true as
+ * scales are added is for each scale to declare its own character once, here,
+ * with a test that every one of them has. The alternative, listing scales on
+ * every mode, restates the same information in thirty-odd places and drifts.
+ *
+ * `Neutral` is a real answer rather than a fallback: the symmetric scales and
+ * the Messiaen modes have no tonic third to be major or minor about, and
+ * `uptempo`/`minimal` are tempo and density statements rather than emotional
+ * ones, so they inherit the model's full list.
+ */
+export type ScaleCharacter = "dark" | "neutral" | "bright";
 
 export type Section = { type: SectionKind, startBar: number, bars: number, 
 /**
  * One pattern per part present in this section.
  */
-patterns: { [key in Part]?: PatternRef }, markers?: Array<string>, };
+patterns: { [key in Part]?: PatternRef }, 
+/**
+ * Beats of silence at the end of this section (TASK-066).
+ *
+ * The drop-out before a hook: the track cuts out for the last beat or two
+ * so the hook lands. It is a property of *where the section sits* rather
+ * than of its notes, because the clip underneath it loops — putting the
+ * silence in the pattern would drop a beat out of every repeat instead of
+ * once, at the end.
+ */
+dropOutBeats: number, 
+/**
+ * Whether this section fades across its length (TASK-066).
+ *
+ * Same reasoning: a decay that lived in the clip would reset on every
+ * repeat, which is a stutter rather than an outro.
+ */
+decay: boolean, markers?: Array<string>, };
 
-export type SectionKind = "intro" | "verse" | "hook" | "bridge" | "outro";
+export type SectionKind = "intro" | "verse" | "preChorus" | "hook" | "bridge" | "outro";
 
 /**
  * Everything a generator needs beyond the style model.
@@ -189,13 +262,43 @@ export type SessionOverrides = { bpm: number | null,
 /**
  * Pitch class, 0 = C.
  */
-keyRoot: number | null, scale: Scale | null, swing: number | null, bars: number | null, halfTime: boolean | null, };
+keyRoot: number | null, scale: Scale | null, swing: number | null, bars: number | null, halfTime: boolean | null, 
+/**
+ * The clip's own meter, when the producer set one (TASK-041E).
+ *
+ * ⛔ **Absent means "whatever the host is in", not 4/4.** Inside a DAW the
+ * meter comes from the project, and a default here would silently drag a
+ * 6/8 session back to common time on the next Generate. Set, it wins — a
+ * producer writing a 3/4 clip in a 4/4 project has been more specific than
+ * the project.
+ */
+timeSigNum: number | null, timeSigDen: number | null, };
 
 /**
  * A full arrangement — what Song Mode produces and what the multi-track SMF
  * export walks.
  */
-export type Song = { id: string, artistId: string, seed: string, bpm: number, keyRoot: number, scale: Scale, sections: Array<Section>, ppq: number, };
+export type Song = { id: string, artistId: string, seed: string, bpm: number, keyRoot: number, scale: Scale, sections: Array<Section>, 
+/**
+ * Time signature, carried so a song reads without its `SessionContext`.
+ */
+timeSigNum: number, timeSigDen: number, 
+/**
+ * Every pattern the sections name, by [`PatternRef::pattern_id`].
+ *
+ * ⛔ **A `PatternRef` is an id, and until this existed nothing anywhere
+ * held what the id named** — a `Song` described which pattern played where
+ * and could not answer what any of them was, so it could not be drawn,
+ * exported or played.
+ *
+ * A store rather than a `Pattern` inline in each section, because sharing
+ * is the point: verse 1 and verse 2 are the same beat, and in these genres
+ * that is the rule rather than an optimisation. One entry per distinct
+ * pattern is also what makes a re-roll of one section a change to one
+ * section — the UI repoints that section's ref instead of editing a
+ * pattern two sections are looking at.
+ */
+patterns: { [key in string]?: Pattern }, ppq: number, };
 
 /**
  * MPC-style swing. `0.50` is straight and `0.667` is fully triplet; the

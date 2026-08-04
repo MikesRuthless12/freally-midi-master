@@ -10,6 +10,14 @@
   "genres": ["rap", "phonk"],
   "confidence": "high",
   "sources": ["style-research ch.1 §7 Memphis / Phonk"],
+  "arrangement": {
+    "structures": [
+      { "sections": ["intro", "verse", "hook", "verse", "hook", "outro"], "weight": 3 },
+      { "sections": ["intro", "hook", "verse", "hook", "outro"], "weight": 2 }
+    ],
+    "sectionBars": { "intro": 8, "verse": 8, "hook": 16, "bridge": 8, "outro": 8 },
+    "transitions": { "fillBeforeSection": true, "dropOutBeats": { "prob": 0.7, "beats": 2 }, "switchUpProb": 0.15 }
+  },
   "notes": "Modern drift phonk over the Memphis lineage. The kick is denser than trap — four to six a bar including offbeats — and the 808 doubles every one of them; octave glides are the signature and heavy distortion is mandatory. Full-time backbeat, straight 1/8 hats, and kick-roll builds into the drops. The research calls muting the 808 under the snare optional here and doubling every kick flat, so the mute is off: the sidechain to the kick is what carves the space.",
 
   "session": {

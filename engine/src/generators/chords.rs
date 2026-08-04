@@ -324,6 +324,7 @@ pub fn generate(model: &StyleModel, ctx: &SessionContext, seed: u64) -> Chords {
 
         for pitch in &voiced {
             notes.push(Note {
+                model_vel: None,
                 start_tick: *start,
                 len_ticks: *len,
                 pitch: *pitch,

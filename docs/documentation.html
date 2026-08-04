@@ -229,13 +229,94 @@
           </tbody>
         </table>
         <p class="summary" style="margin-top: 14px">
-          <strong>What generates in the plugin today:</strong> drums and chords. Melody,
-          countermelody and bassline exist in the engine and are being wired through — the plugin
-          says so plainly rather than returning an empty grid.
+          <strong>All five generate, and all five are editable.</strong> Drums has a pad grid; melody,
+          countermelody, bassline and chords have a piano roll. A style whose 808 <em>is</em> its
+          bassline says so rather than doubling it with a second low end.
         </p>
         <p class="note">
           Pitches are chosen as <strong>scale degrees</strong> and only then turned into MIDI notes,
           so staying in key is structural rather than filtered for afterwards.
+        </p>
+      </article>
+
+      <article class="release" id="song-mode">
+        <h2>Song Mode</h2>
+        <p class="summary">
+          Press Generate on the <strong>Song</strong> tab and you get a whole arrangement: one of the
+          artist's own song forms, a clip per part per section, and the transitions that make it read
+          as a record — the beat or two of silence before a hook lands, a back-half switch-up, an
+          outro that fades.
+        </p>
+        <p>
+          <strong>A section plays a looping clip.</strong> A sixteen-bar verse is a four-bar loop
+          played four times, which is what every DAW's arrangement view draws. Sections of the same
+          kind share one clip, because verse 1 and verse 2 are the same beat — the switch-up exists
+          precisely because that is the rule.
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>What you can do</th>
+              <th>How</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Resize, clone, delete, copy/cut/paste clips</td>
+              <td>Drag either edge, double-click a section header, and the ordinary shortcuts</td>
+            </tr>
+            <tr>
+              <td>Re-roll one section</td>
+              <td><kbd>R</kbd>, or the dice on the section header. Locked clips are left alone</td>
+            </tr>
+            <tr>
+              <td>Lock a clip, a row or a whole section</td>
+              <td>The padlock on the cell, the part row, or the section header</td>
+            </tr>
+            <tr>
+              <td>Hear one cell on its own</td>
+              <td>The headphones on the clip. The view says so while it lasts</td>
+            </tr>
+            <tr>
+              <td>Open a clip in its editor</td>
+              <td>Double-click it. Your edits write back into the arrangement</td>
+            </tr>
+            <tr>
+              <td>Loop a section, mute or solo a part</td>
+              <td>The repeat icon on the header; the speaker and <kbd>S</kbd> on the row</td>
+            </tr>
+            <tr>
+              <td>Choose which of the artist's forms to build</td>
+              <td>The picker in the structure row. Absent means they choose</td>
+            </tr>
+            <tr>
+              <td>Export</td>
+              <td>One multi-track <code>.mid</code>, or one file per part into a folder</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="note">
+          <strong>Mute and solo are preview controls.</strong> They change what you hear and never the
+          song or the exported file — the same distinction the per-lane audio mute draws. Toggling
+          one mid-playback keeps the marker where it is, so you can check a transition without
+          losing your place in the record.
+        </p>
+        <p class="note">
+          <strong>The transport plays whichever tab you are looking at.</strong> There is one
+          schedule: the Song tab puts the whole arrangement on it, and going back to a generator tab
+          hands it back that tab's clip. So the marker you can see is always the one that is moving.
+        </p>
+        <p class="note">
+          <strong>A re-roll stays inside the record.</strong> It keeps the mode the song was
+          generated in, the tempo and key it was generated at, and any swing you pinned — and it
+          leaves every other section, including a clone of the one you re-rolled, exactly as it was.
+        </p>
+        <p class="note">
+          <strong>Stems are MIDI, not audio, for now.</strong> The preview kit is a drum kit, so the
+          four melodic parts have no voice to render through yet; writing four silent
+          <code>.wav</code>s and calling them stems would be worse than not offering them. Dragging a
+          song out to the desktop is not built either — an HTML5 drag inside a plugin's webview is
+          not an operating-system file drag.
         </p>
       </article>
 
@@ -329,12 +410,21 @@
               <td><kbd>Ctrl</kbd> + <kbd>Y</kbd></td>
               <td>Redo (Windows)</td>
             </tr>
+            <tr>
+              <td><kbd>R</kbd></td>
+              <td>Re-roll the section you are in (Song tab)</td>
+            </tr>
+            <tr>
+              <td><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>D</kbd></td>
+              <td>Clone the section you are in (Song tab)</td>
+            </tr>
           </tbody>
         </table>
         <p class="note">
-          Undo is unlimited within a session and covers the artist, seed, bars, pins and each
-          generation. Inside a text field your system's own undo takes the shortcut, so the seed box
-          can still un-type a character.
+          Undo is unlimited within a session and covers the artist, seed, bars, pins, each generation
+          <strong>and the arrangement</strong> — one stack, whichever tab you are on. Inside a text
+          field your system's own undo takes the shortcut, so the seed box can still un-type a
+          character.
         </p>
       </article>
 

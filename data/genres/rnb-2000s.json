@@ -10,6 +10,25 @@
   "genres": ["rnb"],
   "confidence": "high",
   "sources": ["style-research ch.1 §9 R&B / Neo-soul (2000s Timbaland era → 2020s)"],
+  "arrangement": {
+    "structures": [
+      {
+        "sections": ["intro", "verse", "prechorus", "chorus", "verse", "prechorus", "chorus", "bridge", "chorus"],
+        "weight": 3
+      },
+      { "sections": ["intro", "verse", "chorus", "verse", "chorus", "outro"], "weight": 2 }
+    ],
+    "sectionBars": { "intro": [4, 8], "verse": 8, "prechorus": 8, "chorus": 8, "bridge": 8, "outro": 8 },
+    "sectionRules": {
+      "intro": { "parts": ["chords"], "density": 0.6 },
+      "verse": { "parts": "all", "density": 0.8 },
+      "prechorus": { "parts": "all", "density": 0.9 },
+      "chorus": { "parts": "all", "density": 1, "addLayers": ["countermelody"] },
+      "bridge": { "parts": ["drums"], "density": 0.5 },
+      "outro": { "parts": ["chords", "melody"], "density": 0.6, "decay": true }
+    },
+    "transitions": { "fillBeforeSection": true, "dropOutBeats": { "prob": 0.7, "beats": 2 }, "switchUpProb": 0.2 }
+  },
   "notes": "Kick on 1 and the and-of-2, with an and-of-4 added every other bar; snare on 2 and 4 with ghosts on the e and a slots. Hats run 16ths with the downbeats up around 85% and the offbeats between 40 and 60. Swung and deliberately under-quantized — the Timbaland rule is not to tighten it.",
 
   "session": {

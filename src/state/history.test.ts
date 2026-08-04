@@ -15,12 +15,22 @@ const BASE: Snapshot = {
   selectedId: null,
   seed: '',
   bars: 4,
-  pins: { bpm: null, keyRoot: null, scale: null, swing: null },
+  pins: {
+    bpm: null,
+    keyRoot: null,
+    scale: null,
+    swing: null,
+    timeSigNum: null,
+    timeSigDen: null,
+  },
   autoSync: true,
   pattern: null,
   mood: null,
   audioEnabled: true,
   mutedLanes: [],
+  edited: false,
+  song: null,
+  songEdited: false,
 };
 
 function snap(over: Partial<Snapshot>): Snapshot {
@@ -147,9 +157,18 @@ describe('the operation log', () => {
     expect(history.redo()).toBeNull();
   });
 
-  it('keeps unlimited depth rather than dropping the oldest step', () => {
-    // "Unlimited" is affordable because an entry is five scalars and a shared
-    // pattern reference — not a copy of the notes.
+  it('keeps far more depth than a session reaches, and still bounds it', () => {
+    // "Unlimited" was affordable because an entry is a few scalars and a shared
+    // *reference* to a pattern — not a copy of the notes.
+    //
+    // ⚠ **That stopped being true when an entry started pinning a whole
+    // arrangement.** A re-roll receives a freshly deserialized `Song` from the
+    // bridge with no structural sharing at all, and `song` is DISCRETE so those
+    // entries never coalesce away — so an uncapped stack retained a complete
+    // copy of the record per press of `R`, for the life of the process, inside
+    // somebody's DAW. The cap is far past any real session; this asserts both
+    // halves, because a bound nobody can reach and a promise nobody keeps are
+    // different failures.
     const history = useHistory.getState();
     history.arm(BASE);
 
@@ -162,6 +181,26 @@ describe('the operation log', () => {
 
     for (let i = 0; i < 500; i += 1) history.undo();
     expect(useHistory.getState().present?.state.seed).toBe('');
+  });
+
+  it('drops the oldest step rather than refusing the newest, past the cap', () => {
+    // ⛔ The direction matters. A stack that stopped *accepting* entries would
+    // silently stop recording edits — the producer keeps working and Ctrl+Z
+    // quietly does nothing new — which is worse than being unable to walk back
+    // to where they were an hour ago.
+    const history = useHistory.getState();
+    history.arm(BASE);
+
+    for (let i = 1; i <= 1_100; i += 1) {
+      vi.advanceTimersByTime(5_000);
+      history.record(snap({ seed: String(i) }));
+    }
+
+    expect(useHistory.getState().past.length).toBeLessThanOrEqual(1_000);
+    // The newest edit is the one on screen, and undo still moves.
+    expect(useHistory.getState().present?.state.seed).toBe('1100');
+    history.undo();
+    expect(useHistory.getState().present?.state.seed).toBe('1099');
   });
 
   it('steps each lane mute back on its own rather than merging them', () => {

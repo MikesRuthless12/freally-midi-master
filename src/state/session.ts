@@ -5,12 +5,15 @@ import { isPlugin } from '../lib/ipc-plugin';
 import { loadRoster } from '../lib/roster';
 import type {
   DatasetProblem,
+  Part,
   Pattern,
   RosterEntry,
   Scale,
   SessionDefaults,
+  Song,
 } from '../lib/ipc-types';
 import { useHistory, type Snapshot } from './history';
+import { useUi } from './ui';
 
 /**
  * The one loop the product is about: pick someone, generate, hear it, and have
@@ -34,7 +37,22 @@ type HostSessionInfo = {
 export const BAR_CHOICES = [2, 4, 8] as const;
 
 /**
- * `SAVED_FIELDS` must name exactly the undo snapshot's fields except `pattern`.
+ * Snapshot fields that are **not** read out of this store.
+ *
+ * ⛔ Each one is a whole document rather than a session value, and each is sent
+ * conditionally by `send()` — `pattern` only when the clip was edited, `song`
+ * only when the arrangement was. `SAVED_FIELDS` drives a `state[key]` lookup, so
+ * naming them there would read `undefined` off the session store and save
+ * nothing while claiming to.
+ *
+ * `songEdited` rides with `song` because it is the flag that decides whether the
+ * document is worth storing at all; it has no meaning apart from it.
+ */
+type DocumentFields = 'pattern' | 'song' | 'songEdited';
+
+/**
+ * `SAVED_FIELDS` must name exactly the undo snapshot's fields except the
+ * documents above.
  *
  * ⛔ A compile-time check rather than a comment. `snapshotOf` lists the fields
  * explicitly so the compiler catches one added to `Snapshot` and forgotten
@@ -42,7 +60,7 @@ export const BAR_CHOICES = [2, 4, 8] as const;
  * `snapshotOf` but not to `SAVED_FIELDS`, which would save less than it undoes.
  */
 type SavedFieldsCoverSnapshot =
-  Exclude<keyof Snapshot, 'pattern'> extends (typeof SAVED_FIELDS)[number] ? true : never;
+  Exclude<keyof Snapshot, DocumentFields> extends (typeof SAVED_FIELDS)[number] ? true : never;
 const SAVED_FIELDS_MATCH_SNAPSHOT: SavedFieldsCoverSnapshot = true;
 void SAVED_FIELDS_MATCH_SNAPSHOT;
 
@@ -66,6 +84,7 @@ export const SAVED_FIELDS = [
   'mood',
   'audioEnabled',
   'mutedLanes',
+  'edited',
 ] as const;
 
 /**
@@ -82,9 +101,25 @@ export type SessionPins = {
   keyRoot: number | null;
   scale: Scale | null;
   swing: number | null;
+  /**
+   * The meter the producer set for this clip (TASK-041E).
+   *
+   * ⛔ Null means "whatever the host is in", not 4/4. Inside a DAW the meter
+   * comes from the project, and pinning a default here would drag a 6/8 session
+   * back to common time on the next Generate — see `host.rs::session_for`.
+   */
+  timeSigNum: number | null;
+  timeSigDen: number | null;
 };
 
-export const NO_PINS: SessionPins = { bpm: null, keyRoot: null, scale: null, swing: null };
+export const NO_PINS: SessionPins = {
+  bpm: null,
+  keyRoot: null,
+  scale: null,
+  swing: null,
+  timeSigNum: null,
+  timeSigDen: null,
+};
 
 /** Has the user pinned anything at all? */
 export function hasPins(pins: SessionPins): boolean {
@@ -183,6 +218,18 @@ type SessionState = {
    */
   mutedLanes: string[];
   /**
+   * Whether the clip on screen is an edit rather than the seed's own output.
+   *
+   * ⛔ **This is what makes an edited clip survive closing the project.**
+   * `plugin/src/state.rs` saves the *inputs* — artist, seed, pins — because the
+   * engine is deterministic, so a few hundred bytes reopen the same pattern.
+   * The moment a producer moves a note that stops being true, and regenerating
+   * from the seed would reopen the session having quietly undone their editing.
+   * From here on the clip itself is saved instead, and this is the flag that
+   * says which of the two the project file should trust.
+   */
+  edited: boolean;
+  /**
    * What the selected style asks for, read the moment it is selected.
    *
    * `null` before the first selection and whenever the read failed — the chips
@@ -246,7 +293,39 @@ type SessionState = {
    * decode), and then Play must be disabled rather than merely unhelpful.
    */
   canDriveTransport: () => boolean;
-  generate: () => Promise<void>;
+  /**
+   * Generate one part, defaulting to drums.
+   *
+   * The default keeps every existing caller — and the drums-only e2e path —
+   * saying exactly what it said before, while the piano roll's tabs name the
+   * part they are showing.
+   */
+  generate: (part?: Part) => Promise<void>;
+  /**
+   * Replace the pattern with an edited one (TASK-041).
+   *
+   * ⛔ **Called once per completed gesture, never per pointermove.** The history
+   * subscriber records every write, and `history.ts` lists `pattern` as
+   * *discrete* so pattern entries deliberately never coalesce — that is right
+   * for a generation, which is one deliberate act, and catastrophic for a drag,
+   * which would land one undo step per frame. The live drag is held in
+   * `state/editing.ts` as a delta and applied here on pointerup.
+   *
+   * ⛔ **This is the moment a clip stops being derived from its seed.** Until an
+   * edit it is reproducible from `seed` alone, which is what keeps project files
+   * tiny; afterwards the notes *are* the document and the seed is only where it
+   * started. See `materialised` below and `plugin/src/state.rs`.
+   */
+  /**
+   * Put one of a song's clips into the editors (TASK-071's drill-in).
+   *
+   * Its own action rather than a bare `set`, because two things have to happen
+   * together and neither is optional: the clip becomes the session's, and the
+   * tab moves to the part that can draw it. A caller doing one without the
+   * other leaves a melody clip open on the drum grid.
+   */
+  openClip: (pattern: Pattern, part: Part) => void;
+  editPattern: (next: Pattern) => void;
   /** Run our own transport. Standalone only — in a host this is the DAW's. */
   play: () => Promise<void>;
   /** Hold it where it is. Standalone only, for the same reason. */
@@ -276,7 +355,29 @@ function snapshotOf(state: SessionState): Snapshot {
   // exactly what would stop the compiler noticing a field added to `Snapshot`
   // and forgotten here — the drift this whole arrangement exists to prevent.
   // `SAVED_FIELDS_MATCH_SNAPSHOT` below keeps the two lists honest instead.
-  const { selectedId, seed, bars, pins, autoSync, mood, audioEnabled, mutedLanes } = state;
+  const { selectedId, seed, bars, pins, autoSync, mood, audioEnabled, mutedLanes, edited } =
+    state;
+  // The arrangement lives in its own store and is read through the seam, for
+  // the same reason `send()` reads it there — see `registerSongDocument`.
+  //
+  // ⛔ **Only when it belongs to the artist that is selected, and this is not
+  // belt-and-braces — it is the fix for a real ordering bug.** `song.ts` imports
+  // `session.ts`, so this store's subscribers are registered first and run first
+  // for the same `set`. When `select()` writes `selectedId`, the history
+  // recorder therefore runs *before* `song.ts` clears the arrangement — and
+  // filed the outgoing artist's song under the incoming artist's id. Ctrl+Z then
+  // brought the previous artist's whole record back under a different name, and
+  // the next save wrote it to the project. `put()` did the same thing to a
+  // preset load.
+  //
+  // Comparing the ids rather than reordering the subscribers is what makes it
+  // robust: a `Song` knows which artist it was built for, so this cannot be
+  // broken again by a change to registration order.
+  const held = readSongDocument();
+  const arrangement =
+    held.song !== null && held.song.artistId !== state.selectedId
+      ? { song: null, edited: false }
+      : held;
   return {
     selectedId,
     seed,
@@ -286,7 +387,10 @@ function snapshotOf(state: SessionState): Snapshot {
     mood,
     audioEnabled,
     mutedLanes,
+    edited,
     pattern: state.pattern,
+    song: arrangement.song,
+    songEdited: arrangement.edited,
   };
 }
 
@@ -307,12 +411,40 @@ function applySnapshot(
 ): void {
   const from = get().selectedId;
 
+  // ⛔ The documents are peeled off rather than passed through. `set` merges
+  // whatever it is handed, so writing the whole snapshot would put `song` and
+  // `songEdited` into the *session* store — a second copy of the arrangement,
+  // living beside the real one in `useSong` and drifting from it the moment
+  // either changed.
+  const { song, songEdited, ...session } = snapshot;
+
   applying = true;
   try {
-    set(snapshot);
+    set(session);
+    // Inside the guard, because `applySongDocument` writes to a store the song
+    // module records edits from. Outside it, stepping back one arrangement edit
+    // would immediately record the restored state as a fresh one and undo would
+    // never move past it.
+    applySongDocument({ song, edited: songEdited });
   } finally {
     applying = false;
   }
+
+  // ⛔ **The restore has to reach the project file, and no subscriber does it
+  // for an arrangement-only step.** The `SAVED_FIELDS` subscriber returns early
+  // when no saved session field changed and the pattern subscriber returns
+  // early when the clip is unchanged — an undo of a resize changes neither, and
+  // `applySongDocument` writes `useSong` directly, bypassing
+  // `noteDocumentChange` (which the `applying` flag would have blocked anyway).
+  // So the producer undid a section resize, watched it snap back, closed the
+  // project and reopened it to find the resize still there. That is word for
+  // word the failure this file's own persist comment says drove the single
+  // `SAVED_FIELDS` list into existence.
+  //
+  // Unconditional rather than gated on the song having changed: `persist` is
+  // debounced and idempotent, and the alternative is a fourth place that has to
+  // decide what counts as a change.
+  persist();
 
   // `defaults` belongs to whichever artist was selected when it was read, so
   // stepping across an artist change has to re-read it — otherwise the chips
@@ -328,7 +460,7 @@ function applySnapshot(
 }
 
 /** The message an IPC rejection carries, without leaking `[object Object]`. */
-function reason(error: unknown): string {
+export function reason(error: unknown): string {
   if (typeof error === 'string') return error;
   if (error instanceof Error) return error.message;
   return String(error);
@@ -373,6 +505,14 @@ export type SavedSession = {
   bars: number | null;
   pins: Partial<SessionPins> | null;
   /**
+   * The clip as edited, when the seed no longer describes it (TASK-041).
+   *
+   * Absent for every session nobody has drawn in — see `edited` on the store,
+   * and `PluginSession::pattern` on the other side of the bridge.
+   */
+  pattern?: Pattern | null;
+  edited?: boolean;
+  /**
    * Whether the tempo follows the host (TASK-P15).
    *
    * Optional on the way in because a project saved before it existed does not
@@ -403,7 +543,68 @@ export type SavedSession = {
    * express, because an empty set and an unmentioned field looked identical.
    */
   mutedLanes?: string[];
+  /**
+   * The arrangement, when the producer has edited it (TASK-067).
+   *
+   * Absent for every project that never opened Song Mode, and for every song
+   * still describable by its seed — see `songEdited`, and
+   * `PluginSession::song` on the other side of the bridge.
+   */
+  song?: Song | null;
+  songEdited?: boolean;
 };
+
+/**
+ * The song document, as this module sees it.
+ *
+ * ⛔ **Reached through a registration seam rather than an import, and the
+ * direction is the reason.** `song.ts` imports `useSession` — it has to, because
+ * selecting a different artist must drop the arrangement, and that subscription
+ * lives there. Importing `useSong` back here would close the loop, and a cycle
+ * between two Zustand stores initialises in whichever order the bundler happens
+ * to choose. `song.ts` registers itself at module load instead, so the
+ * dependency still runs exactly one way.
+ *
+ * The defaults below are what a browser build sees: `song.ts` is imported by the
+ * page, so in the app they are always replaced.
+ */
+type SongDocument = { song: Song | null; edited: boolean };
+
+let readSongDocument: () => SongDocument = () => ({ song: null, edited: false });
+let applySongDocument: (document: SongDocument) => void = () => {};
+
+export function registerSongDocument(
+  read: () => SongDocument,
+  apply: (document: SongDocument) => void,
+): void {
+  readSongDocument = read;
+  applySongDocument = apply;
+}
+
+/**
+ * Record and save an edit made in a document that lives outside this store.
+ *
+ * ⛔ **Both halves, in one call, because the two must not be reachable
+ * separately.** The session's own edits get them from two subscribers that
+ * cannot be forgotten; the arrangement has no such subscriber here, so this is
+ * the one door — and a caller that recorded without saving would build an undo
+ * stack over a project file that never changed, while one that saved without
+ * recording would put a state on disk that Ctrl+Z cannot reach.
+ *
+ * ⚠ **The `applying` check is a backstop, not a live guard.** Today a restore
+ * reaches the arrangement through `applySongDocument`, which writes `useSong`
+ * directly and never comes back through here — so nothing currently exercises
+ * it. It stays because the failure it prevents is silent and total: recording a
+ * restore would push an entry on every Ctrl+Z as it popped one, and the stack
+ * could never be walked out of. The same reasoning as `Shared::set_running`'s
+ * self-gate on the Rust side, which is also a backstop its callers already
+ * honour.
+ */
+export function noteDocumentChange(): void {
+  if (applying) return;
+  useHistory.getState().record(snapshotOf(useSession.getState()));
+  persist();
+}
 
 /**
  * Coalesces writes, because the seed box saves on every keystroke.
@@ -451,7 +652,26 @@ function persistNow(): void {
 
 function send(): void {
   const state = useSession.getState();
-  const session = Object.fromEntries(SAVED_FIELDS.map((key) => [key, state[key]]));
+  const session: Record<string, unknown> = Object.fromEntries(
+    SAVED_FIELDS.map((key) => [key, state[key]]),
+  );
+  // ⛔ **Only an edited clip is sent, and it is not in `SAVED_FIELDS` for that
+  // reason.** Every other field is small and unconditional; this one is the
+  // whole pattern, and sending it for the unedited sessions that are most of
+  // them would put a few hundred kilobytes of notes into every project file to
+  // restore something the seed already describes exactly.
+  if (state.edited && state.pattern !== null) session.pattern = state.pattern;
+  // ⛔ **The same rule one document up (TASK-067).** An unedited arrangement is
+  // reproducible by pressing Generate on the artist and seed already in this
+  // payload, so storing it would be kilobytes of notes to restore something the
+  // seed describes exactly. An *edited* one is not reproducible by anything, and
+  // three handoffs running have recorded the symptom of leaving it out:
+  // arranging a whole song and reopening the project lost all of it.
+  const arrangement = readSongDocument();
+  if (arrangement.edited && arrangement.song !== null) {
+    session.song = arrangement.song;
+    session.songEdited = true;
+  }
   void invoke('save_session_state', { session }).catch(() => {
     // Losing a session write is not worth interrupting someone mid-beat. The
     // next change writes the whole session again anyway.
@@ -518,6 +738,12 @@ function put(
   set: (partial: Partial<SessionState>) => void,
   get: () => SessionState,
 ): void {
+  // ⛔ **Only trusted when the session says it was edited.** A stored clip and
+  // an unedited session together would mean regenerating anyway, and replaying
+  // a pattern the seed can rebuild is how a project stops picking up engine
+  // fixes for no benefit. `edited` is the flag, not "a pattern is present".
+  const restored = saved.edited && saved.pattern ? saved.pattern : null;
+
   // ⛔ **One `set`, not two.** Every write here is recorded by the history
   // subscriber, so splitting the selection out of the rest made a single preset
   // load land as *two* undo entries — the first `Ctrl`+`Z` then stepped back to
@@ -536,6 +762,8 @@ function put(
       keyRoot: saved.pins?.keyRoot ?? null,
       scale: saved.pins?.scale ?? null,
       swing: saved.pins?.swing ?? null,
+      timeSigNum: saved.pins?.timeSigNum ?? null,
+      timeSigDen: saved.pins?.timeSigDen ?? null,
     },
     // ⛔ The prompt asks about an artist switch, and a preset is not that
     // switch — leaving it up means answering it with "use theirs" wipes the
@@ -545,13 +773,51 @@ function put(
     // derived from the seed, on request. Leaving the old one up showed the
     // *previous* artist's beat under the new artist's name, which is the
     // readout-that-lies failure `loadDefaults` already guards against. Null on
-    // a project restore too, where it is already null and this changes nothing.
-    pattern: null,
+    // a project restore too — unless the project carried an *edited* clip,
+    // which the seed cannot reproduce and which is therefore the one thing
+    // here that has to come back whole rather than be regenerated.
+    pattern: restored,
+    edited: restored !== null,
     // Set directly rather than through `select`, which would clear the pins as
     // a different artist's and raise the keep-or-adopt prompt. This is a
     // session arriving whole, not a switch.
     ...(saved.selectedId ? { selectedId: saved.selectedId } : {}),
   });
+
+  // ⛔ **After the `set` above, not inside it.** Changing `selectedId` fires the
+  // subscription in `song.ts` that clears the arrangement whenever the artist
+  // moves — so a song restored first would be wiped by the very write that
+  // restored the session it belongs to. Applied here it lands on the far side of
+  // that, which is also the correct order for a preset load: the preset carries
+  // no arrangement (see `presets::save_in`), so this clears whatever was open.
+  //
+  // Trusted only when the session says it was edited, for the same reason the
+  // clip above is: an unedited song is regenerated from the seed rather than
+  // replayed, so a project keeps picking up engine improvements.
+  applySongDocument(
+    saved.songEdited && saved.song
+      ? { song: saved.song, edited: true }
+      : { song: null, edited: false },
+  );
+
+  // ⛔ **Re-armed, because the `set` above already recorded a snapshot and the
+  // line before this one made it stale.** The history subscriber fires inside
+  // that `set`, reads the arrangement still on screen, and files it — and then
+  // `applySongDocument` throws that arrangement away. `useHistory.present` then
+  // named a record nobody could see, so one Ctrl+Y (or any session edit and a
+  // single Ctrl+Z, which pushes the stale entry into `past`) resurrected the
+  // arrangement a preset load had just deleted, alongside the preset's pins — a
+  // state the producer was never in.
+  //
+  // ⚠ **`amend`, not `arm` and not `record`.** `arm` resets `past`, which would
+  // make a preset load impossible to undo at all; `record` would push a second
+  // entry and make it two steps, which `lands as one undo step, not two`
+  // already guards. Amending corrects the entry that is current and leaves the
+  // stack alone.
+  //
+  // ⚠ `init`'s restore path was safe only by accident — it calls `arm` *after*
+  // `put`. `applyPreset` had no such correction, and this covers both.
+  useHistory.getState().amend(snapshotOf(get()));
 
   if (saved.selectedId) {
     void loadDefaults(saved.selectedId, set, get);
@@ -582,6 +848,7 @@ export const useSession = create<SessionState>((set, get) => ({
   mood: null,
   audioEnabled: true,
   mutedLanes: [],
+  edited: false,
   defaults: null,
   pendingArtist: null,
 
@@ -780,7 +1047,7 @@ export const useSession = create<SessionState>((set, get) => ({
     return standalone && playbackFailure === null;
   },
 
-  async generate() {
+  async generate(part = 'drums') {
     const { selectedId, seed, bars, generating, pins, mood } = get();
     if (!selectedId || generating) return;
 
@@ -789,6 +1056,12 @@ export const useSession = create<SessionState>((set, get) => ({
       const pattern = await invoke<Pattern>('generate_pattern', {
         request: {
           styleId: selectedId,
+          // ⛔ The bridge has taken a `part` since the five generators were
+          // wired up, and the UI never sent one — so every tab that could
+          // generate got drums. It is sent explicitly rather than left to the
+          // bridge's default because "which part am I looking at" is the page's
+          // question, not the engine's.
+          part,
           bars,
           // An empty box means "pick one for me". Sending "" would be a seed
           // that fails to parse rather than an absent one.
@@ -803,10 +1076,47 @@ export const useSession = create<SessionState>((set, get) => ({
       });
       // Show the seed that was actually used, so the chip can be copied even
       // when the user never typed one (US-004).
-      set({ pattern, seed: pattern.seed, generating: false });
+      // `edited: false` — a fresh generation *is* the seed's own output again,
+      // so the project goes back to storing the request rather than the clip.
+      set({ pattern, seed: pattern.seed, generating: false, edited: false });
     } catch (error) {
       set({ generating: false, error: reason(error) });
     }
+  },
+
+  openClip(pattern, part) {
+    // ⛔ **`edited` is set, and it is not a guess.** A clip lifted out of an
+    // arrangement is not what *this session's* seed produces — the session's
+    // seed makes a four-bar loop for whichever part is showing, and this is one
+    // section's clip out of a song. Left false, the next save would drop it and
+    // the next Generate would silently replace it.
+    set({ pattern, edited: true });
+    useUi.getState().setActiveTab(part);
+  },
+
+  editPattern(next) {
+    // Reference-compared rather than deep-compared: every edit in
+    // `PianoRoll/notes.ts` returns the *same* object when it changes nothing
+    // (a move clamped to zero, a delete with an empty selection), so this
+    // filters those out for free and keeps a no-op gesture off the undo stack.
+    if (get().pattern === next) return;
+    // ⛔ **`edited` latches here and nowhere else.** From this call on the seed
+    // no longer describes what is on screen, so the project has to store the
+    // clip rather than the request that made it — see `edited`'s own note.
+    set({ pattern: next, edited: true });
+
+    // ⛔ **The edit has to reach the audio thread, or the preview keeps playing
+    // the notes that were there before it.** Nothing else does this: the
+    // schedule is armed in `editor.rs` from any reply that is a `Pattern`, and
+    // a purely local edit produces no reply at all — so a producer moved a
+    // note, watched it move, pressed play and heard the old one.
+    //
+    // Fire-and-forget for the same reason the session save is: losing one is
+    // not worth interrupting someone mid-beat, and the next edit sends the
+    // whole pattern again. Outside the plugin there is no audio thread to tell.
+    // Arming the audio thread and telling the project are the subscriber's job
+    // — see `clipChanged` below. Doing them here would be three call sites for
+    // one rule, and `applySnapshot` would still be the one that forgot.
   },
 
   async seek(progress) {
@@ -914,6 +1224,23 @@ if (isPlugin()) {
     persist();
   });
 
+  /**
+   * The clip itself, which `SAVED_FIELDS` deliberately does not cover.
+   *
+   * ⛔ **A subscriber, not two lines at each door, and that is the whole point.**
+   * A new pattern has to reach the audio thread — `editor.rs` arms the schedule
+   * from any reply that *is* a `Pattern`, and a local edit produces no reply at
+   * all, so a producer moved a note, watched it move, pressed play and heard the
+   * old one. There are four writers of `pattern`: `generate`, `editPattern`, the
+   * project restore, and `applySnapshot`. When this was a ritual copied into
+   * each, `applySnapshot` was the one that had neither — so **undo showed the
+   * old notes while the audio thread kept playing the new ones**, and an undo
+   * between two edits never reached the project file either.
+   *
+   * ⛔ The save is conditional on `edited` and the arm is not: an unedited clip
+   * is regenerated from its seed and is not worth a byte in the project, but
+   * every clip that reaches the screen has to be the one that plays.
+   */
   // The page is going away — `pagehide` is the last event a webview reliably
   // delivers, and `visibilitychange` covers a host that hides the editor
   // without destroying it. Both are cheap no-ops when nothing is pending.
@@ -921,6 +1248,45 @@ if (isPlugin()) {
   document.addEventListener('visibilitychange', () => {
     if (document.visibilityState === 'hidden') flush();
   });
+}
+
+useSession.subscribe((state, prev) => {
+  if (state.pattern === prev.pattern || !isPlugin()) return;
+  if (state.pattern !== null) {
+    void invoke('arm_pattern', { pattern: state.pattern }).catch(() => {});
+  }
+  if (state.edited) persist();
+});
+
+/**
+ * Put the clip back on the audio thread, unchanged.
+ *
+ * ⛔ **The Song tab arms the whole arrangement, and there is only one
+ * schedule** — so leaving Song Mode has to give the transport back what the
+ * generator tabs are showing. Without this, switching to Song, then back to
+ * Drums, and pressing Play would play the song: the marker would be over the
+ * roll and the sound would be the record, which is the readout-that-lies
+ * failure at its worst because both halves look right on their own.
+ *
+ * The subscriber above cannot serve this — it fires on the pattern *changing*,
+ * and nothing about a tab switch changes it.
+ */
+export function armCurrentPattern(): void {
+  if (!isPlugin()) return;
+  const { pattern } = useSession.getState();
+  if (pattern !== null) {
+    void invoke('arm_pattern', { pattern }).catch(() => {});
+    return;
+  }
+  // ⛔ **A null pattern must *disarm*, not return.** This is the common case,
+  // not an edge one: a session that has only ever used Song Mode has no clip at
+  // all — `generate_song` answers with a `Song`, which `editor.rs` does not
+  // deserialize as a `Pattern`, so nothing ever armed one. Returning here left
+  // the whole arrangement on the transport, so a producer could open Song Mode,
+  // click the Drums tab, see the empty "ready to generate" state, press Play and
+  // hear the entire record. That is the exact readout-that-lies failure this
+  // function exists to prevent, in the one case it was silently skipping.
+  void invoke('disarm').catch(() => {});
 }
 
 /**

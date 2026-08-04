@@ -10,6 +10,9 @@ import { expect, test } from '@playwright/test';
  * cargo tests; this is the part neither of those can see.
  */
 
+/** Where the ripple test parks what it saw, since the sweep outlives no poll. */
+type RippleProbe = Window & { __rippleRan?: boolean };
+
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('tablist', { name: 'Generator' })).toBeVisible();
@@ -147,12 +150,49 @@ test('choosing someone else clears the pattern that was on screen', async ({ pag
   await expect(page.getByText('UK Drill is ready. Hit Generate.')).toBeVisible();
 });
 
-test('only the Drums tab generates', async ({ page }) => {
-  // The other five arrive in Phase 2. An empty grid there would read as a
-  // failed generation rather than as a feature that does not exist yet.
+test('every tab generates, Song included', async ({ page }) => {
+  // ⛔ **There is no phase line left, and that is the change TASK-063A/B made.**
+  // This test previously asserted the opposite — that Song said "a later phase"
+  // and its Generate was disabled — which was the truth right up until Song Mode
+  // existed. It is kept pointed at the same question so the day a tab stops
+  // generating is a failure here rather than a surprise in a DAW.
+  //
+  // Song is still not a `Part`: it goes through `useSong` and draws an
+  // arrangement rather than an editor, which is why it is asserted separately.
+  const search = page.getByLabel('Search an artist');
+  await search.fill('trap');
+  await search.press('Enter');
+
+  for (const tab of ['Melody', 'Counter', 'Bass', 'Chords']) {
+    await page.getByRole('tab', { name: tab }).click();
+    await expect(page.getByRole('button', { name: 'Generate' })).toBeEnabled();
+  }
+
+  await page.getByRole('tab', { name: 'Song' }).click();
+  await expect(page.getByRole('button', { name: 'Generate' })).toBeEnabled();
+  await page.getByRole('button', { name: 'Generate' }).click();
+  await expect(page.locator('[data-testid="song-section-0"]')).toBeVisible();
+});
+
+test('a melodic part draws in the piano roll, not the drum grid', async ({ page }) => {
+  // The four melodic parts were reachable through the bridge and had no editor
+  // at all before TASK-041 — `CenterStage` gated them on "arrives in a later
+  // phase" because `DrumGrid` was the only renderer.
+  const search = page.getByLabel('Search an artist');
+  await search.fill('trap');
+  await search.press('Enter');
+
   await page.getByRole('tab', { name: 'Melody' }).click();
-  await expect(page.getByText('This generator arrives in a later phase.')).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Generate' })).toBeDisabled();
+  await page.getByRole('button', { name: 'Generate' }).click();
+
+  // The roll's accessible note list is the canvas's text alternative and the
+  // seam every note assertion goes through — see PianoRoll.tsx.
+  const notes = page.getByTestId('roll-notes');
+  await expect(notes).toBeAttached();
+  await expect(notes.locator('li').first()).toBeAttached();
+
+  // And the drum grid is not what is on screen.
+  await expect(page.getByRole('table', { name: 'Generated pattern' })).toHaveCount(0);
 });
 
 test.describe('generation FX', () => {
@@ -160,16 +200,40 @@ test.describe('generation FX', () => {
     // FR-017: the animation masks generation latency. The canvas is the ripple
     // path, and `data-running` is set for as long as the sweep lasts — at
     // least 300 ms, which is the floor that makes it register at all.
+    //
+    // ⛔ The FX's *own* canvas, by class. "Any canvas under the host" was only
+    // ever the same thing by accident, and stopped being so the moment the
+    // editors below grew one of their own.
     const host = page.getByTestId('genfx');
     await expect(host).toHaveClass(/genfx--ripple/);
+    await expect(host.locator('.genfx__canvas')).toHaveCount(1);
+
+    // ⛔ Record the attribute rather than polling for it. A mock generation
+    // lands in a few milliseconds, so the sweep is the floor — `durationFor`
+    // gives it ~360 ms and then it clears itself. `toHaveAttribute` polls, and
+    // on a loaded runner the first poll can arrive after the ripple is already
+    // over: the test then reports "no animation" about an animation that ran.
+    // The observer goes in before the click and cannot miss the window.
+    await page.evaluate(() => {
+      const node = document.querySelector('[data-testid="genfx"]');
+      if (!node) throw new Error('no genfx host to observe');
+      (window as RippleProbe).__rippleRan = false;
+      new MutationObserver(() => {
+        if (node.getAttribute('data-running') === 'true') {
+          (window as RippleProbe).__rippleRan = true;
+        }
+      }).observe(node, { attributes: true, attributeFilter: ['data-running'] });
+    });
 
     const search = page.getByLabel('Search an artist');
     await search.fill('trap');
     await search.press('Enter');
     await page.getByRole('button', { name: 'Generate' }).click();
 
-    await expect(host).toHaveAttribute('data-running', 'true');
-    await expect(host.locator('canvas')).toHaveCount(1);
+    // The sweep ran...
+    await expect
+      .poll(() => page.evaluate(() => (window as RippleProbe).__rippleRan))
+      .toBe(true);
 
     // ...and it clears itself rather than sitting over the grid for good.
     await expect(host).not.toHaveAttribute('data-running', 'true', { timeout: 2000 });
@@ -184,7 +248,7 @@ test.describe('generation FX', () => {
 
     const host = page.getByTestId('genfx');
     await expect(host).toHaveClass(/genfx--crossfade/);
-    await expect(host.locator('canvas')).toHaveCount(0);
+    await expect(host.locator('.genfx__canvas')).toHaveCount(0);
 
     const search = page.getByLabel('Search an artist');
     await search.fill('trap');
@@ -192,7 +256,7 @@ test.describe('generation FX', () => {
     await page.getByRole('button', { name: 'Generate' }).click();
 
     await expect(page.getByRole('table', { name: 'Generated pattern' })).toBeVisible();
-    await expect(host.locator('canvas')).toHaveCount(0);
+    await expect(host.locator('.genfx__canvas')).toHaveCount(0);
   });
 });
 
@@ -210,5 +274,5 @@ test('the Settings toggle suppresses the ripple without the OS setting', async (
   await page.getByRole('button', { name: 'Close' }).last().click();
 
   await expect(host).toHaveClass(/genfx--crossfade/);
-  await expect(host.locator('canvas')).toHaveCount(0);
+  await expect(host.locator('.genfx__canvas')).toHaveCount(0);
 });
