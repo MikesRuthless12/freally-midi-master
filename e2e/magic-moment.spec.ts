@@ -10,6 +10,9 @@ import { expect, test } from '@playwright/test';
  * cargo tests; this is the part neither of those can see.
  */
 
+/** Where the ripple test parks what it saw, since the sweep outlives no poll. */
+type RippleProbe = Window & { __rippleRan?: boolean };
+
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('tablist', { name: 'Generator' })).toBeVisible();
@@ -203,14 +206,34 @@ test.describe('generation FX', () => {
     // editors below grew one of their own.
     const host = page.getByTestId('genfx');
     await expect(host).toHaveClass(/genfx--ripple/);
+    await expect(host.locator('.genfx__canvas')).toHaveCount(1);
+
+    // ⛔ Record the attribute rather than polling for it. A mock generation
+    // lands in a few milliseconds, so the sweep is the floor — `durationFor`
+    // gives it ~360 ms and then it clears itself. `toHaveAttribute` polls, and
+    // on a loaded runner the first poll can arrive after the ripple is already
+    // over: the test then reports "no animation" about an animation that ran.
+    // The observer goes in before the click and cannot miss the window.
+    await page.evaluate(() => {
+      const node = document.querySelector('[data-testid="genfx"]');
+      if (!node) throw new Error('no genfx host to observe');
+      (window as RippleProbe).__rippleRan = false;
+      new MutationObserver(() => {
+        if (node.getAttribute('data-running') === 'true') {
+          (window as RippleProbe).__rippleRan = true;
+        }
+      }).observe(node, { attributes: true, attributeFilter: ['data-running'] });
+    });
 
     const search = page.getByLabel('Search an artist');
     await search.fill('trap');
     await search.press('Enter');
     await page.getByRole('button', { name: 'Generate' }).click();
 
-    await expect(host).toHaveAttribute('data-running', 'true');
-    await expect(host.locator('.genfx__canvas')).toHaveCount(1);
+    // The sweep ran...
+    await expect
+      .poll(() => page.evaluate(() => (window as RippleProbe).__rippleRan))
+      .toBe(true);
 
     // ...and it clears itself rather than sitting over the grid for good.
     await expect(host).not.toHaveAttribute('data-running', 'true', { timeout: 2000 });
