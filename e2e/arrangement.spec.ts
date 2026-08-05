@@ -37,7 +37,7 @@ async function openSong(page: Page) {
   await search.fill('trap');
   await search.press('Enter');
   await page.getByRole('tab', { name: 'Song' }).click();
-  await page.getByRole('button', { name: 'Generate' }).click();
+  await page.getByRole('button', { name: 'Generate', exact: true }).click();
   await expect(page.locator('[data-testid="song-section-0"]')).toBeVisible();
 }
 
@@ -277,7 +277,7 @@ test('choosing another artist clears the arrangement that was on screen', async 
   await search.press('Enter');
 
   await expect(page.locator('[data-testid="song-section-0"]')).toHaveCount(0);
-  await expect(page.getByRole('button', { name: 'Generate' })).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Generate', exact: true })).toBeEnabled();
 });
 
 test('cut then paste puts the clip back rather than on the first section', async ({ page }) => {
@@ -379,7 +379,7 @@ test('generating a song drops a loop set on the previous one', async ({ page }) 
   await first.getByRole('button', { name: 'Loop this section' }).click();
   await expect(first).toHaveAttribute('data-looping', 'true');
 
-  await page.getByRole('button', { name: 'Generate' }).click();
+  await page.getByRole('button', { name: 'Generate', exact: true }).click();
   await expect(first).toHaveAttribute('data-looping', 'false');
 });
 
@@ -467,7 +467,7 @@ test('the picker offers the forms the artist writes, and defaults to their choic
   await expect(picker).toHaveValue('1');
   // A picked form survives generating with it — it is an instruction about what
   // to build next, not a one-shot.
-  await page.getByRole('button', { name: 'Generate' }).click();
+  await page.getByRole('button', { name: 'Generate', exact: true }).click();
   await expect(picker).toHaveValue('1');
 });
 

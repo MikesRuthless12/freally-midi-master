@@ -24,7 +24,11 @@
     "seedLabel": "البذرة — الصقها لتحصل على الإيقاع نفسه",
     "seedAuto": "عشوائي",
     "generating": "جارٍ التوليد…",
-    "readyBody": "{{name}} جاهز. اضغط توليد."
+    "readyBody": "{{name}} جاهز. اضغط توليد.",
+    "generateAll": "توليد الكل",
+    "clear": "مسح",
+    "clearAll": "مسح الكل",
+    "clearLabel": "مسح الأجزاء المولَّدة"
   },
   "rails": {
     "searchPlaceholder": "ابحث عن فنان…",

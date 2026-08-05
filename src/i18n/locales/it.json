@@ -24,7 +24,11 @@
     "seedLabel": "Seed — incollalo per ottenere lo stesso beat",
     "seedAuto": "casuale",
     "generating": "Generazione…",
-    "readyBody": "{{name}} è pronto. Premi Genera."
+    "readyBody": "{{name}} è pronto. Premi Genera.",
+    "generateAll": "Genera tutto",
+    "clear": "Svuota",
+    "clearAll": "Svuota tutto",
+    "clearLabel": "Svuota le parti generate"
   },
   "rails": {
     "searchPlaceholder": "Cerca un artista…",

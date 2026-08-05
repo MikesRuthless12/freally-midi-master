@@ -24,7 +24,11 @@
     "seedLabel": "种子 — 粘贴即可得到相同的节奏",
     "seedAuto": "随机",
     "generating": "生成中…",
-    "readyBody": "{{name}} 已就绪。点击生成。"
+    "readyBody": "{{name}} 已就绪。点击生成。",
+    "generateAll": "全部生成",
+    "clear": "清除",
+    "clearAll": "全部清除",
+    "clearLabel": "清除已生成的声部"
   },
   "rails": {
     "searchPlaceholder": "搜索艺人…",

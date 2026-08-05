@@ -24,7 +24,11 @@
     "seedLabel": "Tohum — aynı ritmi almak için yapıştır",
     "seedAuto": "rastgele",
     "generating": "Oluşturuluyor…",
-    "readyBody": "{{name}} hazır. Oluştur’a bas."
+    "readyBody": "{{name}} hazır. Oluştur’a bas.",
+    "generateAll": "Tümünü üret",
+    "clear": "Temizle",
+    "clearAll": "Tümünü temizle",
+    "clearLabel": "Üretilen partisyonları temizle"
   },
   "rails": {
     "searchPlaceholder": "Sanatçı ara…",

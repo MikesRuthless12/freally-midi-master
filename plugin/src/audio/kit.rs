@@ -64,7 +64,8 @@ impl Kit {
     /// are compiled in for exactly this reason and the preview kit is the third
     /// thing that has to be.
     ///
-    /// It costs 400 KB, and the samples are `kitgen`'s own synthesis — CC0,
+    /// It costs ~1.2 MB since the four pitched voices landed (TASK-131), up
+    /// from 400 KB, and the samples are `kitgen`'s own synthesis — CC0,
     /// with no recorded material and so no third-party rights riding along
     /// inside the binary.
     pub fn embedded(dir: &Dir<'_>) -> Result<Kit, String> {
@@ -261,7 +262,7 @@ mod tests {
     fn the_shipped_kit_loads_with_every_pad_audible() {
         let kit = shipped();
         assert_eq!(kit.id, "trap-default");
-        assert_eq!(kit.pads.len(), 8);
+        assert_eq!(kit.pads.len(), 12);
 
         for pad in &kit.pads {
             assert!(!pad.samples.is_empty(), "{} decoded to nothing", pad.id);
@@ -312,8 +313,44 @@ mod tests {
     fn a_lane_the_kit_has_no_pad_for_is_none_rather_than_the_nearest_drum() {
         let kit = shipped();
         assert!(kit.pad_for(Lane::Kick).is_some());
-        // Melodic lanes get instruments, not kit pads.
-        assert_eq!(kit.pad_for(Lane::Melody), None);
+        // ⚠ `Snap` rather than `Melody`: the melodic lanes gained pads in
+        // TASK-131, and this test is about the *refusal* — a lane the kit does
+        // not cover must answer `None` rather than the nearest drum, because a
+        // wrong drum is harder to notice than silence and harder to explain.
+        assert_eq!(kit.pad_for(Lane::Snap), None);
+    }
+
+    #[test]
+    fn every_generated_part_has_a_voice_to_sound_through() {
+        // ⛔ **The gate TASK-131 exists to hold.** `pad_for` answering `None`
+        // means the trigger is skipped entirely, so a producer pressing Play on
+        // a melody heard nothing and had no way to tell a silent kit from a
+        // broken generator. That was true of four lanes out of five.
+        let kit = shipped();
+        for lane in [
+            Lane::Kick,
+            Lane::Bass808,
+            Lane::Melody,
+            Lane::Counter,
+            Lane::Bass,
+            Lane::Chords,
+        ] {
+            assert!(
+                kit.pad_for(lane).is_some(),
+                "{lane:?} has no pad, so that part plays silence"
+            );
+        }
+
+        // ...and every pitched pad declares the root it was synthesized at, or
+        // the sampler has nothing to transpose from and the part comes out
+        // monotone — the same failure the 808 had before it carried one.
+        for lane in [Lane::Melody, Lane::Counter, Lane::Bass, Lane::Chords] {
+            let index = kit.pad_for(lane).unwrap();
+            assert!(
+                kit.pads[index].root_note.is_some(),
+                "{lane:?} is pitched and must name its root note"
+            );
+        }
     }
 
     #[test]

@@ -1,0 +1,157 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "dark-trap",
+  "type": "genre",
+  "name": "Dark Trap",
+  "aliases": ["dark trap", "metro type", "808 mafia type"],
+  "tier": "standard",
+  "extends": ["trap"],
+  "era": "2013–present",
+  "genres": ["rap", "trap"],
+  "confidence": "high",
+  "sources": [
+    "style-research ch.1 §1 Trap",
+    "style-research ch.2 §1 Trap melodies — Metro/Southside half-step dissonance"
+  ],
+  "notes": "Trap with the lights off. The marker is not the drums — it is the deliberate half-step clash inside an otherwise simple line, the device the Metro/Southside school is built on. Harmony stays static for whole sections so the dissonance has nothing to resolve against, and the melody sits in the bell octave above a low-passed pad.",
+
+  "session": {
+    "bpm": { "min": 130, "max": 150, "mode": 140 },
+    "halfTime": true,
+    "keys": { "values": ["Fm", "F#m", "Gm", "Cm", "Bm"], "weights": [3, 3, 2, 2, 2] },
+    "scales": { "values": ["natural_minor", "harmonic_minor", "phrygian"], "weights": [4, 3, 3] },
+    "swing": { "grid": "16th", "amount": 0.5 },
+    "humanize": {
+      "quantizeStrength": 0.94,
+      "velocityVar": 0.1,
+      "timingJitterMs": { "kick": 1, "snare": 1, "clap": 2, "closedHat": 2, "bass808": 1 }
+    }
+  },
+
+  "drums": {
+    "kick": {
+      "densityPerBar": [2, 4],
+      "anchors": ["1"],
+      "secondaryAnchor": "3",
+      "syncopation": 0.35,
+      "tresilloBias": 0.35,
+      "avoidPreSnareGap": "8th",
+      "andOf4EveryOtherBar": true,
+      "lockTo808": 1.0
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "layerClapOffsetMs": [3, 7],
+      "ghost": { "prob": 0.25, "pos": ["4&"], "vel": [0.35, 0.5] },
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.5,
+      "velocities": { "main": [0.85, 1.0], "ghost": [0.4, 0.6] },
+      "rolls": {
+        "vocab": { "values": ["16T", "32", "32T", "64"], "weights": [3, 4, 2, 1] },
+        "positions": ["phrase_end", "pre_snare", "bar_4"],
+        "freqPerBar": 0.5,
+        "velocityRamp": true
+      },
+      "openHat": { "prob": 0.25, "pos": ["2&", "4&"], "perBar": [1, 1] },
+      "pitchBendProb": 0.08
+    },
+    "fills": { "smallEveryBars": 2, "bigEveryBars": 8, "snareRollLadder": true },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "monoCutSelf": true,
+      "slideProb": 0.35,
+      "slidesPer4Bars": [1, 2],
+      "slideIntervals": { "values": ["P8", "P5", "m3"], "weights": [3, 3, 2] },
+      "slidePositions": ["phrase_end"],
+      "register": [17, 31],
+      "distortion": "medium",
+      "distortionWet": [0.15, 0.3]
+    }
+  },
+
+  "chords": {
+    "progressionFamilies": [
+      { "roman": ["i"], "weight": 4 },
+      { "roman": ["i", "VI"], "weight": 3 },
+      { "roman": ["i", "VII"], "weight": 3 },
+      { "roman": ["i", "III", "VI"], "weight": 2 },
+      { "roman": ["i", "bII", "i"], "weight": 2 },
+      { "roman": ["i", "VI", "III", "VII"], "weight": 2 }
+    ],
+    "maxChords": 4,
+    "extensions": { "triad": 0.8, "seventh": 0.17, "ninth": 0.03 },
+    "voicing": { "style": "close", "register": [48, 67], "topVoiceStepwise": true },
+    "harmonicRhythm": { "values": ["vamp", "2_bars_per_chord", "1_per_bar"], "weights": [3, 3, 1] },
+    "susOrDimProb": 0.15
+  },
+
+  "melody": {
+    "register": [72, 96],
+    "phraseBars": { "values": [2, 4, 8], "weights": [3, 2, 1] },
+    "densityPerBar": [3, 7],
+    "structure": "riff_loop",
+    "twoBarCellRepeat": true,
+    "intervals": { "step": 0.55, "third": 0.3, "leap": 0.15 },
+    "contour": { "riff": 0.45, "descend": 0.4, "arch": 0.15 },
+    "chordToneBias": 0.5,
+    "halfStepDissonance": 0.3,
+    "monophonicBias": 0.85,
+    "endVariation": true,
+    "octaveJumpProb": 0.08,
+    "timbreHint": "dark_bell"
+  },
+
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.5,
+    "fillGapsOnly": true,
+    "styles": { "values": ["sustain_pad", "octave_echo", "answer_lick", "arp"], "weights": [2, 3, 3, 2] }
+  },
+
+  "bassline": {
+    "followRootsProb": 0.9,
+    "rhythm": "mirror_kick",
+    "register": [17, 31],
+    "glideProb": 0.35,
+    "passingTones": ["P5", "m7"],
+    "anticipationProb": 0.2
+  },
+
+  "arrangement": {
+    "sectionBars": { "intro": [4, 8], "verse": 16, "hook": 8, "bridge": [4, 8], "outro": 4 },
+    "transitions": { "fillBeforeSection": true, "dropOutBeats": { "prob": 0.6, "beats": 2 }, "switchUpProb": 0.2 },
+    "structures": [
+      { "sections": ["intro", "verse", "hook", "verse", "hook", "outro"], "weight": 3 },
+      { "sections": ["intro", "hook", "verse", "hook", "bridge", "hook", "outro"], "weight": 2 }
+    ]
+  },
+
+  "kit": { "preview": "trap-default" },
+
+  "modes": [
+    {
+      "name": "menace",
+      "weight": 4,
+      "session": { "scales": { "values": ["phrygian", "harmonic_minor"], "weights": [3, 2] } },
+      "melody": { "halfStepDissonance": 0.4, "densityPerBar": [2, 4], "contour": { "riff": 0.4, "descend": 0.5, "arch": 0.1 } },
+      "chords": { "harmonicRhythm": "vamp", "susOrDimProb": 0.3 }
+    },
+    {
+      "name": "cinematic",
+      "weight": 3,
+      "melody": { "register": [60, 84], "densityPerBar": [2, 4], "structure": "long_arc", "halfStepDissonance": 0.15 },
+      "countermelody": { "densityRatio": 0.45, "styles": { "values": ["sustain_pad"], "weights": [1] } },
+      "chords": { "extensions": { "triad": 0.6, "seventh": 0.32, "ninth": 0.08 }, "harmonicRhythm": "2_bars_per_chord" }
+    },
+    {
+      "name": "rattle",
+      "weight": 2,
+      "drums": { "hihat": { "fillDensity": 0.75, "rolls": { "freqPerBar": 0.9, "vocab": { "values": ["32", "32T", "64"], "weights": [3, 2, 2] } } } },
+      "melody": { "densityPerBar": [4, 7] }
+    }
+  ]
+}

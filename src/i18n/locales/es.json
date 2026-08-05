@@ -24,7 +24,11 @@
     "seedLabel": "Semilla: pégala para obtener el mismo beat",
     "seedAuto": "aleatoria",
     "generating": "Generando…",
-    "readyBody": "{{name}} está listo. Pulsa Generar."
+    "readyBody": "{{name}} está listo. Pulsa Generar.",
+    "generateAll": "Generar todo",
+    "clear": "Vaciar",
+    "clearAll": "Vaciar todo",
+    "clearLabel": "Vaciar las partes generadas"
   },
   "rails": {
     "searchPlaceholder": "Busca un artista…",

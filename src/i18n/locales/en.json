@@ -24,7 +24,11 @@
     "seedLabel": "Seed — paste one to get the same beat",
     "seedAuto": "random",
     "generating": "Generating…",
-    "readyBody": "{{name}} is ready. Hit Generate."
+    "readyBody": "{{name}} is ready. Hit Generate.",
+    "generateAll": "Generate all",
+    "clear": "Clear",
+    "clearAll": "Clear all",
+    "clearLabel": "Clear generated parts"
   },
   "rails": {
     "searchPlaceholder": "Search an artist…",

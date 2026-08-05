@@ -115,7 +115,7 @@ beforeEach(() => {
     drillSongId: null,
     structure: null,
   });
-  useSession.setState({ pattern: null, edited: false });
+  useSession.setState({ patterns: {}, edited: false });
   // ⛔ `armSong` gates on the visible tab — there is one schedule and the tab
   // decides whose it is. Every case here is about Song Mode, so this is the
   // tab they run on; the one case that asserts the *gate* sets its own.
@@ -157,7 +157,8 @@ function armedWith(current = song()) {
       timeSigDen: null,
     },
     autoSync: true,
-    pattern: null,
+    patterns: {},
+    editedParts: [],
     edited: false,
     mood: null,
     audioEnabled: true,
@@ -452,7 +453,7 @@ it('drilling into a clip opens it in its own editor', () => {
   useSong.setState({ song: song() });
   useSong.getState().drillInto({ sectionIndex: 0, part: 'drums' });
 
-  expect(useSession.getState().pattern?.id).toBe('a');
+  expect(useSession.getState().patterns.drums?.id).toBe('a');
   // ⛔ Marked edited, and it is not a guess: a clip lifted out of an arrangement
   // is not what *this session's* seed produces. Left false, the next save would
   // drop it and the next Generate would silently replace it.
@@ -466,8 +467,8 @@ it('editing a drilled-in clip writes back to the song', () => {
   useSong.setState({ song: song() });
   useSong.getState().drillInto({ sectionIndex: 0, part: 'drums' });
 
-  const open = useSession.getState().pattern;
-  expect(open).not.toBeNull();
+  const open = useSession.getState().patterns.drums;
+  expect(open).toBeDefined();
   useSession.getState().editPattern({ ...open!, bars: 8 });
 
   expect(useSong.getState().song?.patterns.a?.bars).toBe(8);
@@ -481,7 +482,7 @@ it('generating on a part tab after drilling in does not overwrite the song', () 
   useSong.setState({ song: song() });
   useSong.getState().drillInto({ sectionIndex: 0, part: 'drums' });
 
-  const open = useSession.getState().pattern;
+  const open = useSession.getState().patterns.drums;
   useSession.getState().editPattern({ ...open!, id: 'something-else', bars: 8 });
 
   expect(useSong.getState().song?.patterns.a?.bars).toBe(4);
@@ -492,7 +493,7 @@ it('closing a drill-in stops the write-back', () => {
   useSong.getState().drillInto({ sectionIndex: 0, part: 'drums' });
   useSong.getState().closeDrill();
 
-  const open = useSession.getState().pattern;
+  const open = useSession.getState().patterns.drums;
   useSession.getState().editPattern({ ...open!, bars: 8 });
   expect(useSong.getState().song?.patterns.a?.bars).toBe(4);
 });
@@ -526,7 +527,8 @@ it('the snapshot taken on an artist change does not carry the old artist’s son
       timeSigDen: null,
     },
     autoSync: true,
-    pattern: null,
+    patterns: {},
+    editedParts: [],
     edited: false,
     mood: null,
     audioEnabled: true,
@@ -554,7 +556,7 @@ it('an edit to a drilled-in clip does not re-arm the whole song', () => {
   useSong.getState().drillInto({ sectionIndex: 0, part: 'drums' });
   invoke.mockClear();
 
-  const open = useSession.getState().pattern;
+  const open = useSession.getState().patterns.drums;
   useSession.getState().editPattern({ ...open!, bars: 8 });
 
   expect(invoke.mock.calls.filter(([c]) => c === 'arm_song')).toHaveLength(0);
@@ -573,7 +575,7 @@ it('a drilled-in clip is never written back into a different song', () => {
   const next = { ...song(), id: 'trap-song-99', seed: '99' };
   useSong.setState({ song: next });
 
-  const open = useSession.getState().pattern;
+  const open = useSession.getState().patterns.drums;
   useSession.getState().editPattern({ ...open!, bars: 8 });
 
   expect(useSong.getState().song?.patterns.a?.bars).toBe(4);

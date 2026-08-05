@@ -306,6 +306,7 @@ pub fn generate(model: &StyleModel, ctx: &SessionContext, seed: u64) -> Chords {
             high,
             open,
             stepwise.then_some(previous_top).flatten(),
+            &mut voicing_rng,
         );
         if voiced.is_empty() {
             continue;
@@ -650,8 +651,36 @@ fn colour(chords: Option<&Value>, rng: &mut impl Rng) -> Colour {
 /// `previous_top` asks for the inversion whose top voice moves least from the
 /// last chord — `topVoiceStepwise`, which is what stops a progression sounding
 /// like four unrelated block chords.
-fn voice(tones: &[i32], low: u8, high: u8, open: bool, previous_top: Option<u8>) -> Vec<u8> {
-    let mut best: Option<(i32, Vec<u8>)> = None;
+/// How far above the best voice-leading cost a voicing may sit and still be
+/// worth reaching for, in semitones.
+///
+/// ⛔ **This is what stops the harmony saturating (TASK-126).** Taking the strict
+/// minimum made a voicing a pure function of the chord, so a model's whole
+/// reachable harmony was *families × extension rolls* and nothing else: measured
+/// 2026-08-04, `rage` reached **8 distinct progressions in 1,000 seeds** while
+/// its melody reached 823. Every other part varies its note content per seed and
+/// this one did not.
+///
+/// **Two semitones rather than "any voicing", because voice leading is the
+/// point of the scoring in the first place.** With a previous chord the cost is
+/// how far the top voice moves, so a tolerance of 2 keeps the top voice stepwise
+/// — which is what `topVoiceStepwise` asks for — while letting the inversion and
+/// the octave underneath it move. With no previous chord the cost is the
+/// inversion index, so every inversion is in range and the first chord of a
+/// progression is free, which is correct: there is nothing yet to lead from.
+const VOICING_TOLERANCE: i32 = 2;
+
+fn voice(
+    tones: &[i32],
+    low: u8,
+    high: u8,
+    open: bool,
+    previous_top: Option<u8>,
+    rng: &mut impl Rng,
+) -> Vec<u8> {
+    // Every voicing that fits, with its cost — rather than the running best, so
+    // the choice among the good ones can be made once at the end.
+    let mut candidates: Vec<(i32, Vec<u8>)> = Vec::new();
 
     // An open voicing needs somewhere to drop *to*. Stacking from the
     // register's floor leaves none — the dropped voice would land under it and
@@ -707,19 +736,29 @@ fn voice(tones: &[i32], low: u8, high: u8, open: bool, previous_top: Option<u8>)
                 _ => inversion as i32,
             };
 
-            if best.as_ref().is_none_or(|(best_cost, _)| cost < *best_cost) {
-                best = Some((cost, pitches));
-            }
+            candidates.push((cost, pitches));
         }
 
         // The higher base worked, so do not also try the floor — that fallback
         // exists for a register too narrow to open, not as a second candidate.
-        if best.is_some() {
+        if !candidates.is_empty() {
             break;
         }
     }
 
-    best.map(|(_, pitches)| pitches).unwrap_or_default()
+    let Some(best_cost) = candidates.iter().map(|(cost, _)| *cost).min() else {
+        return Vec::new();
+    };
+
+    // ⚠ **Retain rather than sort.** The candidates are built in inversion
+    // order, so keeping them in that order means the chosen index depends only
+    // on this chord's own options — a sort would make the pick depend on how
+    // ties happened to compare, which is the kind of thing that moves every
+    // golden snapshot for no musical reason.
+    candidates.retain(|(cost, _)| *cost <= best_cost + VOICING_TOLERANCE);
+
+    let pick = rng.random_range(0..candidates.len());
+    candidates.swap_remove(pick).1
 }
 
 /// The scale step above the voicing's top note — pluggnb's adjacent-2nd colour
@@ -881,17 +920,23 @@ mod tests {
 
     #[test]
     fn a_voicing_stays_inside_its_register_and_ascends() {
+        // Every candidate, not one draw: the register and the ascent are
+        // invariants of *all* the voicings sampling can now reach, so a single
+        // call would leave the other two thirds of them unchecked.
+        let mut rng = rng::stream(5, "test/voicing");
         for tones in [vec![0, 3, 7], vec![0, 4, 7, 10], vec![2, 5, 9, 0, 4]] {
-            let voiced = voice(&tones, 48, 72, false, None);
-            assert!(!voiced.is_empty(), "{tones:?} could not be voiced");
-            assert!(
-                voiced.iter().all(|p| (48..=72).contains(p)),
-                "{tones:?} -> {voiced:?}"
-            );
-            assert!(
-                voiced.windows(2).all(|w| w[0] < w[1]),
-                "{tones:?} -> {voiced:?} is not ascending"
-            );
+            for _ in 0..50 {
+                let voiced = voice(&tones, 48, 72, false, None, &mut rng);
+                assert!(!voiced.is_empty(), "{tones:?} could not be voiced");
+                assert!(
+                    voiced.iter().all(|p| (48..=72).contains(p)),
+                    "{tones:?} -> {voiced:?}"
+                );
+                assert!(
+                    voiced.windows(2).all(|w| w[0] < w[1]),
+                    "{tones:?} -> {voiced:?} is not ascending"
+                );
+            }
         }
     }
 
@@ -899,29 +944,52 @@ mod tests {
     fn a_register_too_narrow_for_the_chord_writes_nothing() {
         // Better than a chord folded on top of itself: the caller drops the
         // slot, and `datasetc`'s register lint is what reports the authoring.
-        assert!(voice(&[0, 4, 7], 60, 62, false, None).is_empty());
+        let mut rng = rng::stream(1, "test/voicing");
+        assert!(voice(&[0, 4, 7], 60, 62, false, None, &mut rng).is_empty());
     }
 
     #[test]
-    fn the_top_voice_takes_the_nearest_inversion() {
+    fn the_top_voice_leads_more_closely_than_an_unled_one() {
         // `topVoiceStepwise`: from a chord topping out at 67, the next chord's
-        // top note must be the closest one available rather than root
-        // position's.
-        let free = voice(&[5, 9, 0], 48, 72, false, None);
-        let led = voice(&[5, 9, 0], 48, 72, false, Some(67));
-        let top = |v: &Vec<u8>| i32::from(*v.last().unwrap());
+        // top note stays near it rather than snapping to root position.
+        //
+        // ⚠ **Stated over a run rather than a single draw** (TASK-126). The
+        // voicing now samples among the candidates within `VOICING_TOLERANCE`
+        // of the best, so any one draw may legitimately be a semitone or two
+        // off the nearest — the claim `topVoiceStepwise` actually makes is
+        // about where the top voice *tends* to sit, and a single pair of calls
+        // was only ever testing the tie-break order.
+        let mean_move = |previous: Option<u8>| {
+            let mut rng = rng::stream(7, "test/voicing");
+            let runs = 200;
+            let total: i32 = (0..runs)
+                .map(|_| {
+                    let voiced = voice(&[5, 9, 0], 48, 72, false, previous, &mut rng);
+                    (i32::from(*voiced.last().unwrap()) - 67).abs()
+                })
+                .sum();
+            f64::from(total) / f64::from(runs)
+        };
+
+        let led = mean_move(Some(67));
+        let free = mean_move(None);
         assert!(
-            (top(&led) - 67).abs() <= (top(&free) - 67).abs(),
-            "led {led:?} should move less than free {free:?}"
+            led < free,
+            "a led top voice ({led:.2} semitones) should move less than an unled one ({free:.2})"
         );
     }
 
     #[test]
     fn an_open_voicing_is_wider_than_a_close_one() {
-        let close = voice(&[0, 3, 7], 48, 72, false, None);
-        let open = voice(&[0, 3, 7], 48, 72, true, None);
+        // Drop-2 lowers the second voice from the top by an octave, so an open
+        // voicing is wider on every draw rather than on average.
+        let mut rng = rng::stream(3, "test/voicing");
         let span = |v: &Vec<u8>| i32::from(*v.last().unwrap()) - i32::from(v[0]);
-        assert!(span(&open) > span(&close), "{open:?} vs {close:?}");
+        for _ in 0..50 {
+            let close = voice(&[0, 3, 7], 48, 72, false, None, &mut rng);
+            let open = voice(&[0, 3, 7], 48, 72, true, None, &mut rng);
+            assert!(span(&open) > span(&close), "{open:?} vs {close:?}");
+        }
     }
 
     #[test]

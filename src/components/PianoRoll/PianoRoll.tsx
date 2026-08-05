@@ -255,6 +255,25 @@ export function PianoRoll({
   const anchor = useRef<{ tick: number; pitch: number } | null>(null);
 
   /**
+   * The note to reduce the selection to on pointerup, if the gesture turns out
+   * to have been a click rather than a drag.
+   *
+   * A ref for the same reason as `anchor`: it is decided on pointerdown, read
+   * once on pointerup, and nothing between them should render because of it.
+   */
+  const collapseTo = useRef<string | null>(null);
+
+  /**
+   * Whether the pointer actually moved during this gesture.
+   *
+   * ⚠ **Not the same question as "did the notes move".** A drag against the
+   * start of the pattern or the edge of the register is clamped to a zero
+   * delta, and reading the delta made those gestures indistinguishable from a
+   * click. What decides whether a gesture was a click is the pointer.
+   */
+  const moved = useRef(false);
+
+  /**
    * The note under the pointer, for the hover affordance (TASK-041F).
    *
    * In a ref rather than in state, and it asks for a repaint only when the
@@ -627,6 +646,7 @@ export function PianoRoll({
         // which is the only way to build a selection across two regions.
         if (!event.shiftKey) editing.clearSelection();
         anchor.current = { tick, pitch };
+        moved.current = false;
         editing.setDrag({
           kind: 'marquee',
           fromTick: tick,
@@ -642,10 +662,17 @@ export function PianoRoll({
       if (event.shiftKey || event.ctrlKey || event.metaKey) {
         editing.toggleSelected(id);
       } else if (!editing.selection.has(id)) {
-        // Clicking an unselected note selects just it. Clicking one that is
-        // already in the selection keeps the whole selection, so a multi-note
-        // drag does not collapse to the note that happened to be grabbed.
+        // Clicking an unselected note selects just it.
         editing.select([id]);
+      } else {
+        // ⛔ **Already selected: hold the whole selection until pointerup.**
+        // Collapsing here would break the multi-note drag — grabbing one of six
+        // selected notes would drop the other five before the gesture started.
+        // Collapsing *never* would strand a producer in a six-note selection
+        // with no way to reduce it but clicking empty canvas first, which is not
+        // what a DAW does. So the decision waits for the mouse to come back up
+        // and is made on whether the pointer actually moved.
+        collapseTo.current = id;
       }
 
       const noteX = GUTTER + tickToX(hit.startTick, view);
@@ -658,6 +685,7 @@ export function PianoRoll({
       // records of one fact, and a dummy `edge: 'end'` written twice to satisfy
       // a field that a marquee has no opinion about.
       anchor.current = { tick, pitch };
+      moved.current = false;
       editing.setDrag(
         edge === null
           ? { kind: 'move', deltaTicks: 0, deltaPitch: 0, copy: event.altKey }
@@ -708,6 +736,14 @@ export function PianoRoll({
       if (current === null) return;
 
       const { tick, pitch } = locate(event);
+
+      // ⛔ **Recorded from the pointer, before any clamping.** This is what
+      // separates a click from a drag on pointerup, and the clamped delta
+      // cannot: dragging left against tick 0 clamps to zero while the producer
+      // is plainly dragging. See `moved`'s own note.
+      if (tick !== start.tick || (pitch !== null && pitch !== start.pitch)) {
+        moved.current = true;
+      }
 
       if (current.kind === 'marquee') {
         editing.setDrag({
@@ -764,8 +800,24 @@ export function PianoRoll({
     anchor.current = null;
     const editing = useEditing.getState();
     const current = editing.drag;
+    const collapse = collapseTo.current;
+    collapseTo.current = null;
     editing.setDrag(null);
     if (start === null || current === null) return;
+
+    // A click on an already-selected note that never became a drag: reduce the
+    // selection to that one note, the way every DAW's arrange and roll do.
+    //
+    // ⛔ **Guarded on whether the *pointer* moved, not on the deltas.** The
+    // deltas come out of `clampedMove`, so a real drag the clamp pins to zero —
+    // dragging a selection left when its leftmost note already sits at tick 0,
+    // or down against the bottom of the register — read as a click and silently
+    // dropped the other five notes. The producer, still believing six were
+    // held, pressed Delete and one responded.
+    if (collapse !== null && current.kind === 'move' && !moved.current) {
+      editing.select([collapse]);
+      return;
+    }
 
     if (current.kind === 'marquee') {
       const hit = notesInBox(pattern, lane, current);

@@ -34,7 +34,7 @@ async function openRoll(page: Page) {
   await search.fill('trap');
   await search.press('Enter');
   await page.getByRole('tab', { name: 'Melody' }).click();
-  await page.getByRole('button', { name: 'Generate' }).click();
+  await page.getByRole('button', { name: 'Generate', exact: true }).click();
   await expect(page.locator('[data-testid="roll-notes"] li').first()).toBeAttached();
 }
 

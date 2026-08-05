@@ -1,7 +1,7 @@
 import { Link2, Unlink, Volume2, VolumeX, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { useSession } from '../../state/session';
+import { useSession, useActivePattern } from '../../state/session';
 import type { Scale } from '../../lib/ipc-types';
 import {
   BPM_MAX,
@@ -34,7 +34,7 @@ export function SessionChips() {
   const { t } = useTranslation();
   const selectedId = useSession((s) => s.selectedId);
   const defaults = useSession((s) => s.defaults);
-  const pattern = useSession((s) => s.pattern);
+  const pattern = useActivePattern();
   const pins = useSession((s) => s.pins);
   const setPin = useSession((s) => s.setPin);
   const hostTempo = useSession((s) => s.hostTempo);

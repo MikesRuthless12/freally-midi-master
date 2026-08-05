@@ -24,7 +24,11 @@
     "seedLabel": "Ziarno — wklej je, aby uzyskać ten sam beat",
     "seedAuto": "losowe",
     "generating": "Generowanie…",
-    "readyBody": "{{name}} gotowy. Naciśnij Generuj."
+    "readyBody": "{{name}} gotowy. Naciśnij Generuj.",
+    "generateAll": "Generuj wszystko",
+    "clear": "Wyczyść",
+    "clearAll": "Wyczyść wszystko",
+    "clearLabel": "Wyczyść wygenerowane partie"
   },
   "rails": {
     "searchPlaceholder": "Szukaj artysty…",

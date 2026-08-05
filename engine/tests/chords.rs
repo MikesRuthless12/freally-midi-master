@@ -16,6 +16,9 @@ use engine::pattern::Scale;
 use engine::theory;
 use serde_json::Value;
 
+mod common;
+use common::{shape, variety_seeds, MIN_DISTINCT};
+
 fn data_dir() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("..")
@@ -258,6 +261,118 @@ fn a_different_seed_reaches_a_different_harmony() {
             "{id} generates the same chords for all 24 seeds"
         );
     }
+}
+
+/// The harmony a model generates for one seed, through the real path.
+///
+/// The context is built per seed like every other variety measurement, because
+/// the key and the tempo are part of what a seed chooses — measuring a thousand
+/// harmonies in one fixed key would understate the reachable space and, worse,
+/// would not be what the product does.
+fn harmony_for(model: &engine::StyleModel, seed: u64) -> engine::pattern::LaneTrack {
+    let ctx = SessionContext::from_model(model, &SessionOverrides::default(), seed);
+    chords::generate(model, &ctx, seed).track
+}
+
+/// The share of seeds that must reach a voicing no other seed reached.
+///
+/// ⛔ **Far lower than [`common::DISTINCT_SHARE`], and calibrated from a
+/// measurement rather than guessed.** Harmony is the most *bounded* of the five
+/// parts by construction: a model authors a handful of progression families,
+/// caps them with `maxChords`, and picks a harmonic rhythm from two or three
+/// options. A melody chooses a pitch and a position for every note; a
+/// progression chooses a family and then a voicing of it. Demanding the melody's
+/// 0.98 would be demanding that a vamp genre stop being a vamp genre — the same
+/// mistake as authoring a chord family to satisfy a counter test.
+///
+/// Measured 2026-08-04 at 1,000 seeds, after the voicing fix below: the roster
+/// spans 0.50–0.99, clustering near 0.65. **0.45 is therefore a regression
+/// detector, not a target** — it fires when a model's reachable harmony roughly
+/// halves, which is the change worth catching, and it does not fire on a genre
+/// being what it is.
+///
+/// The absolute [`MIN_DISTINCT`] floor is what carries the real promise, and it
+/// is **not** relaxed: whatever a model's share, it owes a producer 500
+/// harmonies before it repeats one.
+const HARMONY_DISTINCT_SHARE: f64 = 0.45;
+
+/// Is this model's chord part a placeholder rather than a part?
+///
+/// ⛔ **Derived from the authored grammar, not a list of model ids** — the same
+/// rule `melody.rs`'s `deliberately_narrow` follows, and for the same reason:
+/// Phase 5 adds 500+ artists and a hand-kept list would rot on the first one
+/// that inherits the property legitimately (`osamason` extends `rage` and
+/// authors no chords of its own).
+///
+/// `impliedByRiff` is that property, and the dataset's own note for it says what
+/// it means: *"rage states its harmony through the lead rather than a pad; the
+/// chord part is still generated so the tab is not empty."* A model that states
+/// its harmony in the melody has one chord to voice, and asking it for 500
+/// distinct progressions is asking it to stop being that genre. Its **melody**
+/// carries the variety instead, and `melody.rs` measures it there — rage reaches
+/// 823/1000.
+fn harmony_is_implied_by_the_riff(block: &Value) -> bool {
+    block
+        .get("impliedByRiff")
+        .and_then(Value::as_bool)
+        .unwrap_or(false)
+}
+
+#[test]
+fn an_artist_can_reach_a_different_harmony_for_practically_every_seed() {
+    // ⛔ **The gate chords did not have.** Every other generator has measured
+    // its variety per model since Phase 2; harmony's only distinctness check was
+    // `a_different_seed_reaches_a_different_harmony` below, which asserts that
+    // 24 seeds produce *more than one* result. A model that reached exactly two
+    // voicings and then repeated them forever passed that, and would have
+    // shipped inside a 500-artist roster with nothing to catch it.
+    let seeds = variety_seeds();
+    let mut failures = Vec::new();
+    let mut report = Vec::new();
+
+    for (id, model, block) in harmonic_models() {
+        let mut seen = BTreeSet::new();
+        for seed in 1..=seeds {
+            seen.insert(shape(&harmony_for(&model, seed)));
+        }
+
+        let share = seen.len() as f64 / seeds as f64;
+        let implied = harmony_is_implied_by_the_riff(&block);
+        report.push(format!(
+            "{id}: {}/{seeds} distinct ({share:.3}){}",
+            seen.len(),
+            if implied {
+                " — implied by the riff"
+            } else {
+                ""
+            }
+        ));
+
+        // ⛔ The floor admits one exception, and it is authored rather than
+        // granted: a model whose harmony is stated by its lead has a single
+        // chord to voice, and its variety is measured on the melody instead.
+        if !implied && seen.len() < MIN_DISTINCT {
+            failures.push(format!(
+                "{id}: only {} distinct harmonies in {seeds} seeds, and every model \
+                 that authors a real chord part must reach {MIN_DISTINCT}",
+                seen.len()
+            ));
+        }
+
+        if !implied && share < HARMONY_DISTINCT_SHARE {
+            failures.push(format!(
+                "{id}: only {}/{seeds} harmonies were distinct ({share:.3}, needs \
+                 {HARMONY_DISTINCT_SHARE}) — that model's grammar is saturating",
+                seen.len()
+            ));
+        }
+    }
+
+    println!(
+        "harmony variety over {seeds} seeds:\n  {}",
+        report.join("\n  ")
+    );
+    assert!(failures.is_empty(), "{failures:#?}");
 }
 
 #[test]

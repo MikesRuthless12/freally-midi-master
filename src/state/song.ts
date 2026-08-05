@@ -727,15 +727,21 @@ registerSongDocument(
  * rule rather than an oversight, and it is what the drill-in banner reports.
  */
 useSession.subscribe((state, previous) => {
-  if (state.pattern === previous.pattern) return;
+  if (state.patterns === previous.patterns) return;
   const { song, drillPatternId, drillSongId } = useSong.getState();
-  if (!song || drillPatternId === null || state.pattern === null) return;
+  if (!song || drillPatternId === null) return;
 
   // Only while the edited clip is still the one that was drilled into. Pressing
   // Generate on the part tab replaces it with a fresh four-bar loop, which is a
   // new clip rather than an edit of the song's — writing that back would drop a
   // whole section's arrangement into the timeline without anybody asking.
-  if (state.pattern.id !== drillPatternId) return;
+  //
+  // ⛔ **Found by id across the five slots, not by looking in the drilled part's
+  // one** (TASK-119). The clip is still in the slot it was opened into, so both
+  // would work today — but keying on the *id* is what makes this immune to the
+  // tab having moved since, and it is the id that decides the write-back anyway.
+  const edited = Object.values(state.patterns).find((held) => held?.id === drillPatternId);
+  if (!edited) return;
 
   // ⛔ **And only into the song it came out of.** `pattern_id` is
   // `{model}-{section}-{part}` — **the seed is not in it** — so two generations
@@ -756,10 +762,10 @@ useSession.subscribe((state, previous) => {
   // is already in the store, so a double-click that only looked at a clip would
   // otherwise rebuild the song into an equal-but-new object, mark it edited and
   // push an undo step that changes nothing on screen.
-  if (song.patterns[drillPatternId] === state.pattern) return;
+  if (song.patterns[drillPatternId] === edited) return;
 
   useSong.setState({
-    song: { ...song, patterns: { ...song.patterns, [drillPatternId]: state.pattern } },
+    song: { ...song, patterns: { ...song.patterns, [drillPatternId]: edited } },
   });
   // ⛔ **Recorded and saved, but *not* re-armed.** This runs on the part tab
   // with the roll on screen, and the clip has already reached the audio thread

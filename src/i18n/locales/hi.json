@@ -24,7 +24,11 @@
     "seedLabel": "सीड — वही बीट पाने के लिए पेस्ट करें",
     "seedAuto": "यादृच्छिक",
     "generating": "बन रहा है…",
-    "readyBody": "{{name}} तैयार है। जेनरेट दबाएँ।"
+    "readyBody": "{{name}} तैयार है। जेनरेट दबाएँ।",
+    "generateAll": "सभी बनाएँ",
+    "clear": "हटाएँ",
+    "clearAll": "सभी हटाएँ",
+    "clearLabel": "बनाए गए हिस्से हटाएँ"
   },
   "rails": {
     "searchPlaceholder": "आर्टिस्ट खोजें…",

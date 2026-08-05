@@ -42,7 +42,7 @@ use kit::Kit;
 /// That `include_dir!` covers all of `data/`, and its `NON_MODEL_DIRS` filter
 /// only skips `kits/` when *parsing* models — never when embedding. An earlier
 /// version of this comment claimed the opposite, that a narrow root *avoided*
-/// duplicating 400 KB; it is the duplication.
+/// duplicating ~1.2 MB; it is the duplication.
 ///
 /// Kept anyway, on a measurement rather than a guess: the real cost is **~1 KB**,
 /// because the two embeds are identical `unnamed_addr` constants and the linker
@@ -84,12 +84,13 @@ mod tests {
     #[test]
     fn the_preview_kit_is_in_the_binary_and_decodes() {
         // ⛔ The gate is that it *decodes*, not that the files are present.
-        // `include_dir!` embedding eight WAVs that turn out to be unreadable
-        // would leave the plugin silent with nothing in the build to say so.
-        // What each pad actually sounds like is `kit`'s own tests' business.
+        // `include_dir!` embedding WAVs that turn out to be unreadable would
+        // leave the plugin silent with nothing in the build to say so. What each
+        // pad actually sounds like is `kit`'s own tests' business.
         let kit = preview_kit().expect("the preview kit should be compiled in and decodable");
         assert_eq!(kit.id, "trap-default");
-        assert_eq!(kit.pads.len(), 8, "the shipped kit authors eight pads");
+        // Eight percussion pads plus the four pitched voices (TASK-131).
+        assert_eq!(kit.pads.len(), 12, "the shipped kit authors twelve pads");
     }
 
     #[test]
@@ -137,6 +138,50 @@ mod tests {
             peak > 0.01,
             "a triggered kick rendered silence (peak {peak})"
         );
+    }
+
+    #[test]
+    fn every_melodic_part_renders_audio_and_transposes_with_the_note() {
+        // ⛔ **The end-to-end claim TASK-131 is actually for.** `pad_for`
+        // answering `Some` only proves the kit has a pad; it does not prove the
+        // voice sounds, and it does not prove the note's pitch reaches it. Four
+        // parts out of five rendered pure silence before this, and the failure
+        // presented to a producer as "the melody generator is broken".
+        let kit = preview_kit().unwrap();
+
+        for lane in [Lane::Melody, Lane::Counter, Lane::Bass, Lane::Chords] {
+            let pad = kit
+                .pad_for(lane)
+                .unwrap_or_else(|| panic!("{lane:?} has no pad"));
+            let root = kit.pads[pad]
+                .root_note
+                .unwrap_or_else(|| panic!("{lane:?} is pitched and must name a root"));
+
+            let render_at = |semis: f32| {
+                let mut sampler = sampler::Sampler::default();
+                sampler.trigger(kit, pad, 1.0, semis, 48_000.0);
+                let mut out = vec![0.0f32; 8192];
+                sampler.render(kit, &mut out, 2);
+                out
+            };
+
+            let at_root = render_at(0.0);
+            let peak = at_root.iter().fold(0.0f32, |p, s| p.max(s.abs()));
+            assert!(peak > 0.01, "{lane:?} rendered silence (peak {peak})");
+
+            // ⛔ **And it must actually transpose.** A pad that ignored `semis`
+            // would render the identical buffer for every note — a melody that
+            // plays but is monotone, which is the failure the 808 had before it
+            // carried a root note. Compared an octave up, where a real repitch
+            // cannot possibly produce the same samples.
+            let an_octave_up = render_at(12.0);
+            assert_ne!(
+                at_root, an_octave_up,
+                "{lane:?} rendered the same audio an octave apart — it is not transposing"
+            );
+            // The root is only meaningful if it is inside MIDI's range.
+            assert!(root <= 127, "{lane:?} root {root} is out of range");
+        }
     }
 
     #[test]

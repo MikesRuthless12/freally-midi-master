@@ -13,7 +13,7 @@ import type {
   Song,
 } from '../lib/ipc-types';
 import { useHistory, type Snapshot } from './history';
-import { useUi } from './ui';
+import { useUi, type GeneratorTab } from './ui';
 
 /**
  * The one loop the product is about: pick someone, generate, hear it, and have
@@ -48,7 +48,7 @@ export const BAR_CHOICES = [2, 4, 8] as const;
  * `songEdited` rides with `song` because it is the flag that decides whether the
  * document is worth storing at all; it has no meaning apart from it.
  */
-type DocumentFields = 'pattern' | 'song' | 'songEdited';
+type DocumentFields = 'patterns' | 'song' | 'songEdited';
 
 /**
  * `SAVED_FIELDS` must name exactly the undo snapshot's fields except the
@@ -85,6 +85,7 @@ export const SAVED_FIELDS = [
   'audioEnabled',
   'mutedLanes',
   'edited',
+  'editedParts',
 ] as const;
 
 /**
@@ -126,13 +127,128 @@ export function hasPins(pins: SessionPins): boolean {
   return Object.values(pins).some((value) => value !== null);
 }
 
+/**
+ * The five generators' clips, keyed by part (TASK-119).
+ *
+ * `Partial` rather than a full record with nulls: a part that has never been
+ * generated is *absent*, and a part that generated silence is present with
+ * empty lanes. Collapsing those two into `null` is what would make an 808-is-
+ * the-bass style look like a bass tab nobody had pressed Generate on.
+ */
+export type PatternsByPart = Partial<Record<Part, Pattern>>;
+
+/**
+ * The five parts, in the order Generate-all fills them.
+ *
+ * ⛔ **Drums first, and the order is the dependency rather than the tab strip.**
+ * `parts.rs` states it: harmony, then the melody written against it, then the
+ * counter answering the melody, then the bass locking to the kick. The engine
+ * regenerates every dependency per request, so this order does not change what
+ * comes back — but it is the order a producer watches fill in, and showing a
+ * countermelody land before the melody it answers reads as a bug.
+ */
+/** `list` with `part` added, kept sorted so equal sets compare equal. */
+function withEdit(list: Part[], part: Part): Part[] {
+  return list.includes(part) ? list : [...list, part].sort();
+}
+
+/** `list` without `part`. Returns the same array when nothing changed, so an
+ * action that edits nothing does not push an undo entry. */
+function withoutEdit(list: Part[], part: Part): Part[] {
+  return list.includes(part) ? list.filter((held) => held !== part) : list;
+}
+
+export const GENERATED_PARTS: readonly Part[] = [
+  'drums',
+  'chords',
+  'melody',
+  'counter',
+  'bass',
+];
+
+/**
+ * Which part a generator tab edits, or `null` for a tab that is not a part.
+ *
+ * ⛔ Song is not a part and never becomes one — it is an *arrangement* of the
+ * five, and it lives in `useSong`. The `null` is what keeps it out of the
+ * per-part slots.
+ *
+ * Lives here rather than in `CenterStage` because the arm path needs it too,
+ * and a second copy beside the first is the drift this codebase has been bitten
+ * by repeatedly.
+ */
+export const TAB_PART: Record<GeneratorTab, Part | null> = {
+  drums: 'drums',
+  melody: 'melody',
+  counter: 'counter',
+  bass: 'bass',
+  chords: 'chords',
+  song: null,
+};
+
+/** The clip the tab now showing would draw, or `null` if it has none. */
+export function patternForTab(state: SessionState, tab: GeneratorTab): Pattern | null {
+  const part = TAB_PART[tab];
+  return part === null ? null : (state.patterns[part] ?? null);
+}
+
+/**
+ * The clip on screen — the active tab's, or `null` on Song and on a part that
+ * has not been generated.
+ *
+ * ⛔ **This is what "the pattern" used to mean, and the two stopped being the
+ * same thing at TASK-119.** Before it there was one slot, so "the pattern in the
+ * store" and "the pattern you are looking at" were identical; now the store
+ * holds five and only one is on screen. Everything that used to read
+ * `session.pattern` for a readout — the transport position, the session chips,
+ * the editor — wants this rather than any particular slot.
+ */
+export function useActivePattern(): Pattern | null {
+  const activeTab = useUi((s) => s.activeTab);
+  return useSession((s) => patternForTab(s, activeTab));
+}
+
 type SessionState = {
   roster: RosterEntry[];
   problems: DatasetProblem[];
   rosterLoaded: boolean;
 
   selectedId: string | null;
-  pattern: Pattern | null;
+  /**
+   * One clip per part — the five generators each keep their own (TASK-119).
+   *
+   * ⛔ **This was a single `pattern` until 2026-08-04, and the difference is the
+   * whole defect.** With one slot, generating a bassline replaced the melody
+   * that was there, and `CenterStage` covered for it by drawing a tab's editor
+   * only when the slot happened to hold that tab's part — so the melody did not
+   * look corrupted, it looked *absent*. Mike found it in FL Studio; no gate
+   * could, because "the other four are still there" was asserted nowhere.
+   *
+   * ⚠ **Absent and empty are different.** A missing key is "never generated",
+   * which is the tab's ready-to-generate state. A present pattern with no notes
+   * is a real answer — a style whose 808 *is* the bassline authors no separate
+   * bass part, and `parts.rs` returns empty lanes for it on purpose.
+   *
+   * ⚠ Parts only agree with each other when they were generated from the same
+   * seed (`engine/src/parts.rs`). `generate` reuses the session seed for exactly
+   * that reason; see the comment there before changing it.
+   */
+  patterns: PatternsByPart;
+  /**
+   * Which parts are hand-edits rather than the seed's own output.
+   *
+   * ⛔ **`edited` was one flag for the whole session, and once there were five
+   * slots that flag became a defect.** `generate(part)` cleared it, and `send()`
+   * uses it to decide whether *any* clip is saved — so generating a bassline
+   * wrote the project with no clips at all and silently deleted a melody the
+   * producer had spent an hour drawing. The flag has to be per-part because the
+   * thing it describes is per-part.
+   *
+   * ⚠ `edited` is kept beside this and is exactly `editedParts.length > 0`. It
+   * stays because it is what crosses the bridge and what `put()` trusts on
+   * restore; this is the page's own finer-grained record of the same fact.
+   */
+  editedParts: Part[];
   bars: number;
   /**
    * The seed to generate with, as typed. A string because a u64 does not
@@ -302,6 +418,21 @@ type SessionState = {
    */
   generate: (part?: Part) => Promise<void>;
   /**
+   * Generate all five parts from one seed (TASK-120).
+   *
+   * ⛔ **One seed, and that is the whole point rather than an optimisation.**
+   * `engine/src/parts.rs` guarantees the five agree only when they share one —
+   * a melody is written against the harmony and around the drums, so five parts
+   * drawn from five seeds are five individually-correct clips that were never
+   * written against each other. The first reply fixes the seed for the rest,
+   * which is what makes an empty seed box still produce a coherent record.
+   */
+  generateAll: () => Promise<void>;
+  /** Empty one part's slot, leaving the other four (TASK-121). */
+  clearPart: (part: Part) => void;
+  /** Empty all five (TASK-121). */
+  clearAll: () => void;
+  /**
    * Replace the pattern with an edited one (TASK-041).
    *
    * ⛔ **Called once per completed gesture, never per pointermove.** The history
@@ -388,7 +519,8 @@ function snapshotOf(state: SessionState): Snapshot {
     audioEnabled,
     mutedLanes,
     edited,
-    pattern: state.pattern,
+    editedParts: state.editedParts,
+    patterns: state.patterns,
     song: arrangement.song,
     songEdited: arrangement.edited,
   };
@@ -505,11 +637,17 @@ export type SavedSession = {
   bars: number | null;
   pins: Partial<SessionPins> | null;
   /**
-   * The clip as edited, when the seed no longer describes it (TASK-041).
+   * The clips as edited, when the seed no longer describes them (TASK-041).
    *
    * Absent for every session nobody has drawn in — see `edited` on the store,
-   * and `PluginSession::pattern` on the other side of the bridge.
+   * and `PluginSession::patterns` on the other side of the bridge.
+   *
+   * ⚠ A map since TASK-119. `pattern` is still read for projects written before
+   * that, because a producer's saved work must survive the change that gave the
+   * other four parts somewhere to live.
    */
+  patterns?: PatternsByPart | null;
+  /** @deprecated Pre-TASK-119 projects: one clip, whichever part it was. */
   pattern?: Pattern | null;
   edited?: boolean;
   /**
@@ -660,7 +798,13 @@ function send(): void {
   // whole pattern, and sending it for the unedited sessions that are most of
   // them would put a few hundred kilobytes of notes into every project file to
   // restore something the seed already describes exactly.
-  if (state.edited && state.pattern !== null) session.pattern = state.pattern;
+  // ⚠ **The whole map goes, not only the part that was drawn in.** `edited` is
+  // one flag for the session, so it cannot say *which* of the five was edited —
+  // and saving only the edited one would reopen the project with the other four
+  // missing, which is the defect TASK-119 just closed arriving by a different
+  // road. Five clips is still kilobytes against a project, and still nothing at
+  // all for the sessions nobody has drawn in, which are most of them.
+  if (state.edited && Object.keys(state.patterns).length > 0) session.patterns = state.patterns;
   // ⛔ **The same rule one document up (TASK-067).** An unedited arrangement is
   // reproducible by pressing Generate on the artist and seed already in this
   // payload, so storing it would be kilobytes of notes to restore something the
@@ -742,7 +886,13 @@ function put(
   // an unedited session together would mean regenerating anyway, and replaying
   // a pattern the seed can rebuild is how a project stops picking up engine
   // fixes for no benefit. `edited` is the flag, not "a pattern is present".
-  const restored = saved.edited && saved.pattern ? saved.pattern : null;
+  // ⚠ **The legacy single clip is read into its own slot.** A project written
+  // before TASK-119 carries `pattern` and no map; dropping it would lose the one
+  // thing in a project file that cannot be regenerated. `pattern.part` says
+  // where it belongs, so the migration is exact rather than a guess.
+  const restored: PatternsByPart = !saved.edited
+    ? {}
+    : (saved.patterns ?? (saved.pattern ? { [saved.pattern.part]: saved.pattern } : {}));
 
   // ⛔ **One `set`, not two.** Every write here is recorded by the history
   // subscriber, so splitting the selection out of the rest made a single preset
@@ -776,8 +926,13 @@ function put(
     // a project restore too — unless the project carried an *edited* clip,
     // which the seed cannot reproduce and which is therefore the one thing
     // here that has to come back whole rather than be regenerated.
-    pattern: restored,
-    edited: restored !== null,
+    patterns: restored,
+    // ⚠ The wire carries one `edited` flag, so a restored project cannot say
+    // *which* parts were edited. Every clip it saved is therefore treated as an
+    // edit — which is right: they were only written because at least one was,
+    // and marking them all preserves every one of them.
+    editedParts: (Object.keys(restored) as Part[]).sort(),
+    edited: Object.keys(restored).length > 0,
     // Set directly rather than through `select`, which would clear the pins as
     // a different artist's and raise the keep-or-adopt prompt. This is a
     // session arriving whole, not a switch.
@@ -830,7 +985,8 @@ export const useSession = create<SessionState>((set, get) => ({
   rosterLoaded: false,
 
   selectedId: null,
-  pattern: null,
+  patterns: {},
+  editedParts: [],
   bars: 4,
   seed: '',
 
@@ -925,7 +1081,11 @@ export const useSession = create<SessionState>((set, get) => ({
       // authors no modes the chip is not even rendered, so there is no control
       // on screen to clear it.
       mood: null,
-      pattern: null,
+      // ⛔ **All five, not just the one showing.** The old pattern belonged to
+      // the old artist; so did the other four, and leaving any of them up would
+      // show one artist's clips under another artist's name.
+      patterns: {},
+      editedParts: [],
       error: null,
       defaults: null,
       pendingArtist:
@@ -1076,12 +1236,142 @@ export const useSession = create<SessionState>((set, get) => ({
       });
       // Show the seed that was actually used, so the chip can be copied even
       // when the user never typed one (US-004).
+      //
+      // ⛔ **Echoing the seed back is what makes the five parts agree**, and
+      // since TASK-119 that is load-bearing rather than a convenience. An empty
+      // box sends `null`, the engine picks, and the picked seed lands here — so
+      // the *next* part generates from the same one. `parts.rs` guarantees the
+      // five agree only on a shared seed; drawing a fresh one per part would
+      // give five clips in the same key that were never written against each
+      // other. With one slot nobody could have noticed.
+      //
+      // ⚠ **Only this part's slot is replaced.** The other four keep their
+      // existing object references, so their editors do not re-render and the
+      // undo stack's shared-reference model still holds.
+      //
       // `edited: false` — a fresh generation *is* the seed's own output again,
-      // so the project goes back to storing the request rather than the clip.
-      set({ pattern, seed: pattern.seed, generating: false, edited: false });
+      // so the project goes back to storing the request rather than the clips.
+      set((state) => {
+        // ⛔ **Only *this* part stops being an edit.** `edited` used to be
+        // cleared outright here, and because `send()` uses it to decide whether
+        // *any* clip is saved, regenerating one part wrote the project with no
+        // clips at all — silently deleting every other part's hand edits.
+        const editedParts = withoutEdit(state.editedParts, part);
+        return {
+          patterns: { ...state.patterns, [part]: pattern },
+          seed: pattern.seed,
+          generating: false,
+          editedParts,
+          edited: editedParts.length > 0,
+        };
+      });
     } catch (error) {
       set({ generating: false, error: reason(error) });
     }
+  },
+
+  async generateAll() {
+    const { selectedId, bars, generating, pins, mood } = get();
+    if (!selectedId || generating) return;
+
+    set({ generating: true, error: null });
+
+    // ⛔ **Accumulated locally and written once.** Five `set` calls would be
+    // five history entries for one deliberate act, five arms of the audio
+    // thread, and four renders of a half-filled session.
+    const filled: PatternsByPart = { ...get().patterns };
+    // Empty means "pick one for me" — and once the engine has, every remaining
+    // part must be given the same one. See `generateAll` on the type above for
+    // why that is correctness rather than tidiness.
+    let seed = get().seed;
+    const refused: string[] = [];
+
+    for (const part of GENERATED_PARTS) {
+      try {
+        const pattern = await invoke<Pattern>('generate_pattern', {
+          request: {
+            styleId: selectedId,
+            part,
+            bars,
+            seed: seed === '' ? null : seed,
+            session: pins,
+            mood,
+          },
+        });
+
+        // ⛔ **The artist may have changed while this was in flight.** `select`
+        // clears the slots and swaps `selectedId`; without this check the loop
+        // would go on to write the *previous* artist's five clips under the new
+        // one's name and arm one of them — which `select`'s own comment calls
+        // the most convincing wrong thing the app could show.
+        if (get().selectedId !== selectedId) {
+          set({ generating: false });
+          return;
+        }
+
+        filled[part] = pattern;
+        seed = pattern.seed;
+      } catch (error) {
+        // ⛔ **A refused part is not a failed run, and treating it as one was
+        // the defect.** A style whose 808 *is* the bassline authors no separate
+        // bass part on purpose (FR-007) and the engine says so by refusing —
+        // so on Drake, and on most of the trap roster, the fifth request always
+        // fails. Aborting there threw away the four parts that had already come
+        // back and the seed that made them agree, which is how "Generate all"
+        // came to do nothing at all on a flagship artist.
+        refused.push(reason(error));
+      }
+    }
+
+    if (get().selectedId !== selectedId) {
+      set({ generating: false });
+      return;
+    }
+
+    // Nothing came back at all — that is a real failure and keeps the error it
+    // reported. Anything else is a partial success, and the parts that
+    // generated are worth more than the tidiness of refusing all five.
+    const landed = Object.keys(filled).length > Object.keys(get().patterns).length;
+    if (!landed && refused.length > 0) {
+      set({ generating: false, error: refused[0] });
+      return;
+    }
+
+    set({
+      patterns: filled,
+      seed,
+      generating: false,
+      // Every part that landed is the seed's own output again, and the ones
+      // that were refused hold nothing to have edited.
+      editedParts: [],
+      edited: false,
+      // ⚠ The refusals are still worth saying — a producer who asked for five
+      // parts and got four should be told which one the style does not have,
+      // rather than left to notice the empty tab later.
+      error: refused.length > 0 ? refused[0] : null,
+    });
+  },
+
+  clearPart(part) {
+    // ⚠ A no-op when the slot is already empty, so clearing twice does not push
+    // a second undo entry for a button press that changed nothing.
+    if (get().patterns[part] === undefined) return;
+    set((state) => {
+      const patterns = { ...state.patterns };
+      delete patterns[part];
+      // ⛔ Clearing the one clip that was edited must also clear the *claim*
+      // that the session is edited, or `send()` goes on writing the remaining
+      // seed-reproducible clips into the project — which then replays them
+      // verbatim on every reopen instead of regenerating, and the session never
+      // picks up a later engine fix.
+      const editedParts = withoutEdit(state.editedParts, part);
+      return { patterns, editedParts, edited: editedParts.length > 0 };
+    });
+  },
+
+  clearAll() {
+    if (Object.keys(get().patterns).length === 0) return;
+    set({ patterns: {}, editedParts: [], edited: false });
   },
 
   openClip(pattern, part) {
@@ -1090,7 +1380,11 @@ export const useSession = create<SessionState>((set, get) => ({
     // seed makes a four-bar loop for whichever part is showing, and this is one
     // section's clip out of a song. Left false, the next save would drop it and
     // the next Generate would silently replace it.
-    set({ pattern, edited: true });
+    set((state) => ({
+      patterns: { ...state.patterns, [part]: pattern },
+      editedParts: withEdit(state.editedParts, part),
+      edited: true,
+    }));
     useUi.getState().setActiveTab(part);
   },
 
@@ -1099,11 +1393,19 @@ export const useSession = create<SessionState>((set, get) => ({
     // `PianoRoll/notes.ts` returns the *same* object when it changes nothing
     // (a move clamped to zero, a delete with an empty selection), so this
     // filters those out for free and keeps a no-op gesture off the undo stack.
-    if (get().pattern === next) return;
+    // ⛔ **The part comes off the pattern, not off the active tab.** They agree
+    // today, and tying the write to the tab would make them disagree the first
+    // time an edit is applied while the producer has clicked elsewhere — which
+    // would drop a melody edit into the bass slot.
+    if (get().patterns[next.part] === next) return;
     // ⛔ **`edited` latches here and nowhere else.** From this call on the seed
     // no longer describes what is on screen, so the project has to store the
     // clip rather than the request that made it — see `edited`'s own note.
-    set({ pattern: next, edited: true });
+    set((state) => ({
+      patterns: { ...state.patterns, [next.part]: next },
+      editedParts: withEdit(state.editedParts, next.part),
+      edited: true,
+    }));
 
     // ⛔ **The edit has to reach the audio thread, or the preview keeps playing
     // the notes that were there before it.** Nothing else does this: the
@@ -1202,6 +1504,25 @@ useSession.subscribe((state) => {
 });
 
 /**
+ * Re-arm when the producer changes tabs.
+ *
+ * ⛔ **`armCurrentPattern` reads the active tab, and nothing was watching it.**
+ * The `patterns` subscriber below only fires when a slot changes, and
+ * `setActiveTab` writes to `useUi` — so generating a melody and then clicking
+ * back to Drums left the *melody* on the audio thread while the drum grid was
+ * on screen with its playhead crawling across it. That is the readout-that-lies
+ * failure `armCurrentPattern`'s own doc says it exists to prevent, and under the
+ * single-slot shape it could not happen because there was only one clip to arm.
+ *
+ * ⚠ Song is excluded: `SongTimeline`'s own mount effect arms the arrangement and
+ * its cleanup hands the transport back, so arming here would race it.
+ */
+useUi.subscribe((state, prev) => {
+  if (state.activeTab === prev.activeTab || state.activeTab === 'song') return;
+  armCurrentPattern();
+});
+
+/**
  * Save the session whenever the user changes it.
  *
  * A subscription rather than a `persist()` call at the end of each mutating
@@ -1251,10 +1572,17 @@ if (isPlugin()) {
 }
 
 useSession.subscribe((state, prev) => {
-  if (state.pattern === prev.pattern || !isPlugin()) return;
-  if (state.pattern !== null) {
-    void invoke('arm_pattern', { pattern: state.pattern }).catch(() => {});
-  }
+  if (state.patterns === prev.patterns || !isPlugin()) return;
+  // ⛔ **Arm the tab that is showing, not "the pattern that changed".** There
+  // are five slots and one schedule, so the transport can only hold one of
+  // them, and the one it must hold is the one the producer is looking at —
+  // otherwise generating a bassline on the Bass tab while the Drums tab is open
+  // would silently swap what Play does. `armCurrentPattern` owns that choice;
+  // this defers to it rather than keeping a second copy of the rule.
+  //
+  // ⚠ Hearing all five at once is TASK-120's, and it needs a merge the audio
+  // thread does not have yet. Until then Play is honest about being one part.
+  armCurrentPattern();
   if (state.edited) persist();
 });
 
@@ -1273,7 +1601,7 @@ useSession.subscribe((state, prev) => {
  */
 export function armCurrentPattern(): void {
   if (!isPlugin()) return;
-  const { pattern } = useSession.getState();
+  const pattern = patternForTab(useSession.getState(), useUi.getState().activeTab);
   if (pattern !== null) {
     void invoke('arm_pattern', { pattern }).catch(() => {});
     return;

@@ -24,7 +24,8 @@ const BASE: Snapshot = {
     timeSigDen: null,
   },
   autoSync: true,
-  pattern: null,
+  patterns: {},
+  editedParts: [],
   mood: null,
   audioEnabled: true,
   mutedLanes: [],
@@ -38,8 +39,8 @@ function snap(over: Partial<Snapshot>): Snapshot {
 }
 
 /** A stand-in for a generated pattern — only its identity matters here. */
-function pattern(id: string): Snapshot['pattern'] {
-  return { id } as NonNullable<Snapshot['pattern']>;
+function pattern(id: string): NonNullable<Snapshot['patterns']['drums']> {
+  return { id } as NonNullable<Snapshot['patterns']['drums']>;
 }
 
 beforeEach(() => {
@@ -125,12 +126,12 @@ describe('the operation log', () => {
     const history = useHistory.getState();
     history.arm(BASE);
 
-    history.record(snap({ pattern: pattern('a') }));
+    history.record(snap({ patterns: { drums: pattern('a') } }));
     vi.advanceTimersByTime(10);
-    history.record(snap({ pattern: pattern('b') }));
+    history.record(snap({ patterns: { drums: pattern('b') } }));
 
     expect(useHistory.getState().past).toHaveLength(2);
-    expect(history.undo()?.pattern?.id).toBe('a');
+    expect(history.undo()?.patterns.drums?.id).toBe('a');
   });
 
   it('ignores a write that changed nothing', () => {

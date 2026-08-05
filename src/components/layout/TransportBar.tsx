@@ -11,7 +11,8 @@ import {
   Sun,
 } from 'lucide-react';
 import { useUi } from '../../state/ui';
-import { useSession } from '../../state/session';
+import { useSession, useActivePattern } from '../../state/session';
+import { useSong } from '../../state/song';
 import { ViewMenu } from './ViewMenu';
 import { WindowSize } from './WindowSize';
 import type { ThemePreference } from '../../state/theme';
@@ -80,7 +81,7 @@ function ThemeToggle() {
  * three digits.
  */
 function Position() {
-  const pattern = useSession((s) => s.pattern);
+  const pattern = useActivePattern();
   const playhead = useSession((s) => s.playhead);
 
   // Bars and beats from the fraction the audio thread publishes. 4/4 is the
@@ -108,7 +109,9 @@ export function TransportBar({
   const rightRailOpen = useUi((s) => s.rightRailOpen);
   const toggleRightRail = useUi((s) => s.toggleRightRail);
 
-  const pattern = useSession((s) => s.pattern);
+  const pattern = useActivePattern();
+  // Song is not a part, so it has no slot — the arrangement is what is armed.
+  const song = useSong((s) => s.song);
   const playing = useSession((s) => s.playing);
   // ⚠ Read as a boolean, never as the number. Subscribing to the raw playhead
   // here would re-render the whole footer 30 times a second, which is what
@@ -139,7 +142,15 @@ export function TransportBar({
   // claims a running transport, so `playing` can be true before anything exists
   // to play. There is no state where driving a transport over an absent pattern
   // is meaningful.
-  const canPress = canDriveTransport && pattern !== null;
+  // ⛔ **"Something is armed", not "the active tab holds a clip".** Gating on
+  // `useActivePattern()` alone disabled Play, Pause and Stop *entirely* on the
+  // Song tab — `TAB_PART.song` is `null` because a song is an arrangement of
+  // the five rather than a part, so the lookup always answered `null` and Song
+  // Mode had no transport at all. The arrangement is armed by `SongTimeline`
+  // and there is no other control in the app, so the record could not be
+  // auditioned. Before the five slots, `session.pattern` held whatever had been
+  // generated regardless of the visible tab, which is why this worked then.
+  const canPress = canDriveTransport && (pattern !== null || song !== null);
   // ⛔ **Stop is not gated on `playing`, and that is the whole difference
   // between it and Pause.** Pause holds the marker where it is; Stop returns it
   // to the beginning — so Stop has to stay reachable *from* a pause, which is

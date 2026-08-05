@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { Pattern, RosterEntry, SessionDefaults } from '../lib/ipc-types';
+import type { Part, Pattern, RosterEntry, SessionDefaults } from '../lib/ipc-types';
 
 /**
  * The session store's pin rules (FR-002).
@@ -101,7 +101,8 @@ beforeEach(() => {
   useSession.setState({
     roster: ROSTER,
     selectedId: null,
-    pattern: null,
+    patterns: {},
+    editedParts: [],
     mood: null,
     audioEnabled: true,
     mutedLanes: [],
@@ -217,18 +218,18 @@ describe('auto-sync', () => {
     });
 
     it('is not saved at all until something has been edited', () => {
-      useSession.setState({ pattern: PATTERN, edited: false });
+      useSession.setState({ patterns: { drums: PATTERN }, edited: false });
       useSession.getState().setAutoSync(false);
       vi.advanceTimersByTime(400);
-      expect(lastSaved().pattern).toBeUndefined();
+      expect(lastSaved().patterns).toBeUndefined();
       expect(lastSaved().edited).toBe(false);
     });
 
     it('is saved whole once the seed no longer describes it, and on every edit after', () => {
-      useSession.setState({ pattern: PATTERN });
+      useSession.setState({ patterns: { drums: PATTERN } });
       useSession.getState().editPattern(edit());
       vi.advanceTimersByTime(400);
-      expect(lastSaved().pattern).toEqual(edit());
+      expect(lastSaved().patterns).toEqual({ drums: edit() });
 
       // ⛔ The second edit is the one that used to be lost: `edited` has
       // already flipped, so nothing in `SAVED_FIELDS` changes from here on.
@@ -237,7 +238,7 @@ describe('auto-sync', () => {
       vi.advanceTimersByTime(400);
 
       expect(lastSaved().edited).toBe(true);
-      expect(lastSaved().pattern).toEqual(again);
+      expect(lastSaved().patterns).toEqual({ drums: again });
     });
 
     it('goes back to storing the request when a fresh pattern is generated', () => {
@@ -252,7 +253,7 @@ describe('auto-sync', () => {
         .then(() => {
           expect(useSession.getState().edited).toBe(false);
           vi.advanceTimersByTime(400);
-          expect(lastSaved().pattern).toBeUndefined();
+          expect(lastSaved().patterns).toBeUndefined();
         });
     });
   });
@@ -442,14 +443,14 @@ describe('applyPreset', () => {
 
   it('clears the pattern rather than showing the previous artist under a new name', () => {
     useSession.getState().select('trap');
-    useSession.setState({ pattern: PATTERN });
+    useSession.setState({ patterns: { drums: PATTERN } });
 
     useSession.getState().applyPreset(PRESET);
 
     // The preset carries inputs, not notes — the pattern is derived from the
     // seed on request, so until Generate runs there is nothing to show. Keeping
     // trap's beat under uk-drill's name is a readout that lies.
-    expect(useSession.getState().pattern).toBeNull();
+    expect(useSession.getState().patterns).toEqual({});
     expect(useSession.getState().selectedId).toBe('uk-drill');
     expect(useSession.getState().seed).toBe('99');
     expect(useSession.getState().bars).toBe(8);
@@ -466,7 +467,8 @@ describe('applyPreset', () => {
       bars: 4,
       pins: NO_PINS,
       autoSync: true,
-      pattern: null,
+      patterns: {},
+      editedParts: [],
       mood: null,
       audioEnabled: true,
       mutedLanes: [],
@@ -484,5 +486,240 @@ describe('applyPreset', () => {
     expect(undone?.selectedId).toBe('trap');
     expect(undone?.seed).toBe('');
     expect(undone?.bars).toBe(4);
+  });
+});
+
+/**
+ * The five generators each keep their own clip (TASK-119).
+ *
+ * ⛔ **The defect this closes was documented rather than unknown.** The store
+ * held one `pattern`, so `CenterStage` drew a tab's editor only when the slot
+ * happened to contain that tab's part — and generating a bassline threw the
+ * melody away. Mike found it in FL Studio; no gate could, because "the other
+ * four parts should still be there" was never asserted anywhere.
+ */
+describe('each part keeps its own pattern', () => {
+  beforeEach(() => {
+    // Answer with the part that was asked for, which the shared mock does not:
+    // a single fixed `PATTERN` would pass this test by accident.
+    invoke.mockImplementation((command: string, args?: unknown) => {
+      if (command === 'session_defaults') return Promise.resolve(TRAP);
+      if (command === 'generate_pattern') {
+        const { part, seed } = (args as { request: { part: Part; seed: string | null } })
+          .request;
+        return Promise.resolve({
+          ...PATTERN,
+          id: `trap-${part}`,
+          part,
+          seed: seed ?? '77',
+        } satisfies Pattern);
+      }
+      return Promise.resolve(null);
+    });
+    useSession.setState({ selectedId: 'trap', patterns: {}, seed: '' });
+  });
+
+  it('generating a bassline leaves the melody where it was', async () => {
+    await useSession.getState().generate('melody');
+    await useSession.getState().generate('bass');
+
+    const { patterns } = useSession.getState();
+    expect(patterns.melody?.part, 'the melody was destroyed by generating a bass').toBe(
+      'melody',
+    );
+    expect(patterns.bass?.part).toBe('bass');
+  });
+
+  it('fills every slot as the parts are generated, and replaces only its own', async () => {
+    for (const part of ['drums', 'melody', 'counter', 'bass', 'chords'] as const) {
+      await useSession.getState().generate(part);
+    }
+    expect(Object.keys(useSession.getState().patterns).sort()).toEqual([
+      'bass',
+      'chords',
+      'counter',
+      'drums',
+      'melody',
+    ]);
+
+    const before = useSession.getState().patterns;
+    await useSession.getState().generate('drums');
+    const after = useSession.getState().patterns;
+
+    // Regenerating one part replaces that one and leaves the other four
+    // *identical by reference* — a fresh object for an untouched part would
+    // re-render its editor and break the undo stack's shared-reference model.
+    expect(after.drums).not.toBe(before.drums);
+    expect(after.melody).toBe(before.melody);
+    expect(after.chords).toBe(before.chords);
+  });
+
+  it('reuses the seed across parts, because coherence depends on it', async () => {
+    // ⛔ `engine/src/parts.rs` guarantees five parts agree only when they share
+    // a seed. With one slot nobody could tell; with five, drawing a fresh seed
+    // per part would produce five clips in the same key that fit nothing.
+    await useSession.getState().generate('melody');
+    const first = useSession.getState().seed;
+    expect(first).not.toBe('');
+
+    await useSession.getState().generate('bass');
+    expect(lastRequest().seed).toBe(first);
+  });
+
+  // ── Generate all five at once (TASK-120) ────────────────────────────────
+  it('fills every part from one seed', async () => {
+    await useSession.getState().generateAll();
+
+    const { patterns, seed } = useSession.getState();
+    expect(Object.keys(patterns).sort()).toEqual([
+      'bass',
+      'chords',
+      'counter',
+      'drums',
+      'melody',
+    ]);
+
+    // ⛔ **The claim that makes them a record rather than five loops.** The seed
+    // box started empty, so the engine picked — and every part after the first
+    // had to be given the same one. `parts.rs` guarantees coherence on a shared
+    // seed and guarantees nothing otherwise.
+    const seeds = new Set(Object.values(patterns).map((p) => p!.seed));
+    expect(seeds.size, 'the five parts were generated from different seeds').toBe(1);
+    expect(seed).toBe([...seeds][0]);
+  });
+
+  it('sends the same seed on all five requests, not just the last', async () => {
+    await useSession.getState().generateAll();
+
+    const sent = invoke.mock.calls
+      .filter((call: unknown[]) => call[0] === 'generate_pattern')
+      .map((call: unknown[]) => (call[1] as { request: { seed: string | null } }).request.seed);
+
+    expect(sent).toHaveLength(5);
+    // The first asks for one ("pick for me"); the rest must name it.
+    expect(sent[0]).toBeNull();
+    expect(new Set(sent.slice(1)).size).toBe(1);
+    expect(sent[1]).toBe(useSession.getState().seed);
+  });
+
+  it('honours a seed the producer typed, without asking for a new one', async () => {
+    useSession.setState({ seed: '4242' });
+    await useSession.getState().generateAll();
+
+    const sent = invoke.mock.calls
+      .filter((call: unknown[]) => call[0] === 'generate_pattern')
+      .map((call: unknown[]) => (call[1] as { request: { seed: string | null } }).request.seed);
+
+    expect(sent).toEqual(['4242', '4242', '4242', '4242', '4242']);
+  });
+
+  // ── Clear, per part and for all (TASK-121) ──────────────────────────────
+  it('clears one part and leaves the other four', async () => {
+    await useSession.getState().generateAll();
+    useSession.getState().clearPart('melody');
+
+    const { patterns } = useSession.getState();
+    expect(patterns.melody).toBeUndefined();
+    expect(Object.keys(patterns).sort()).toEqual(['bass', 'chords', 'counter', 'drums']);
+  });
+
+  it('clears all five together', async () => {
+    await useSession.getState().generateAll();
+    useSession.getState().clearAll();
+    expect(useSession.getState().patterns).toEqual({});
+  });
+
+  // ── The defects /code-review found in TASK-119/120 ──────────────────────
+  it('keeps another part edited when one part is regenerated', async () => {
+    // ⛔ **Silent, permanent project data loss.** `edited` was one flag for the
+    // whole session and `send()` uses it to decide whether *any* clip is saved
+    // — so generating a bassline cleared it and the next save wrote the project
+    // with no clips at all, deleting a melody the producer had hand-edited.
+    await useSession.getState().generate('melody');
+    const edited = { ...useSession.getState().patterns.melody!, bars: 8 };
+    useSession.getState().editPattern(edited);
+    expect(useSession.getState().edited).toBe(true);
+
+    await useSession.getState().generate('bass');
+
+    expect(useSession.getState().editedParts).toEqual(['melody']);
+    expect(useSession.getState().edited, 'the melody edit was forgotten').toBe(true);
+    expect(useSession.getState().patterns.melody?.bars).toBe(8);
+  });
+
+  it('stops claiming to be edited once the edited part is cleared', () => {
+    useSession.setState({ patterns: { drums: PATTERN }, editedParts: ['drums'], edited: true });
+    useSession.getState().clearPart('drums');
+
+    // Otherwise `send()` goes on writing purely generated clips into the
+    // project, which are then replayed rather than regenerated forever after.
+    expect(useSession.getState().edited).toBe(false);
+    expect(useSession.getState().editedParts).toEqual([]);
+  });
+
+  it('keeps the parts that generated when a style refuses one of them', async () => {
+    // ⛔ **This is Drake, and most of the trap roster.** A style whose 808 *is*
+    // the bassline authors no separate bass part (FR-007), so the engine refuses
+    // that request — and aborting the run there threw away the four parts that
+    // had already come back. Generate all did nothing at all on a flagship.
+    invoke.mockImplementation((command: string, args?: unknown) => {
+      if (command === 'session_defaults') return Promise.resolve(TRAP);
+      if (command === 'generate_pattern') {
+        const { part, seed } = (args as { request: { part: Part; seed: string | null } })
+          .request;
+        if (part === 'bass') {
+          return Promise.reject(new Error("Drake's 808 is the bassline"));
+        }
+        return Promise.resolve({ ...PATTERN, id: `trap-${part}`, part, seed: seed ?? '77' });
+      }
+      return Promise.resolve(null);
+    });
+
+    await useSession.getState().generateAll();
+
+    const { patterns, error } = useSession.getState();
+    expect(Object.keys(patterns).sort()).toEqual(['chords', 'counter', 'drums', 'melody']);
+    // ...and the refusal is still reported, rather than the producer being left
+    // to notice an empty tab later.
+    expect(error).toContain('bassline');
+  });
+
+  it('does not write the previous artist’s clips after the artist changes', async () => {
+    // `select` clears the slots and swaps the id; a loop that ignored that wrote
+    // five clips of the outgoing artist under the incoming one's name.
+    let resolveFirst: ((value: Pattern) => void) | undefined;
+    invoke.mockImplementation((command: string) => {
+      if (command === 'session_defaults') return Promise.resolve(TRAP);
+      if (command === 'generate_pattern') {
+        return new Promise((resolve) => {
+          resolveFirst = resolve;
+        });
+      }
+      return Promise.resolve(null);
+    });
+
+    const running = useSession.getState().generateAll();
+    await flush();
+    useSession.setState({ selectedId: 'uk-drill' });
+    resolveFirst?.({ ...PATTERN, part: 'drums', seed: '5' });
+    await running;
+
+    expect(useSession.getState().patterns).toEqual({});
+    expect(useSession.getState().generating).toBe(false);
+  });
+
+  it('does nothing when there is nothing to clear', async () => {
+    await useSession.getState().generate('drums');
+    const before = useSession.getState().patterns;
+
+    // ⚠ Reference equality: a fresh object would be a fresh undo entry and a
+    // fresh save for a button press that changed nothing — the rule
+    // `setLaneMuted` already follows.
+    useSession.getState().clearPart('melody');
+    expect(useSession.getState().patterns).toBe(before);
+
+    useSession.getState().clearAll();
+    useSession.getState().clearAll();
+    expect(useSession.getState().patterns).toEqual({});
   });
 });

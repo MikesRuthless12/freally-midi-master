@@ -580,6 +580,149 @@ fn pop_stays_on_the_grid() {
     }
 }
 
+// ------------------------------------------------------------- trap family
+
+#[test]
+fn dark_trap_leaves_the_eighth_before_its_snare_clear() {
+    // Research ch. 1 §1: trap avoids a kick immediately before the beat-3
+    // snare, "leaving an 8th gap" — it is what lets the half-time backbeat land
+    // in silence. Bouncy trap does not author it, because its whole point is
+    // that the kick keeps moving, so the two make the claim checkable.
+    let context = ctx(4);
+    let bar = context.ticks_per_bar();
+    let snare = beat(&context) * 2; // beat 3, half-time
+    let gap = snare - beat(&context) / 2;
+
+    let pre_snare_share = |id: &str| {
+        let kicks = sweep(&model(id), Lane::Kick, 4);
+        let inside = kicks
+            .iter()
+            .filter(|(_, n)| (gap..snare).contains(&(n.start_tick % bar)))
+            .count();
+        inside as f64 / kicks.len() as f64
+    };
+
+    let dark = pre_snare_share("dark-trap");
+    let bouncy = pre_snare_share("bouncy-trap");
+    assert!(
+        dark < bouncy,
+        "dark trap ({dark:.3}) should crowd the pre-snare 8th less than bouncy trap ({bouncy:.3})"
+    );
+}
+
+#[test]
+fn bouncy_trap_keeps_its_kick_moving_more_than_the_dark_lane() {
+    // Research ch. 2 §1: the Pi'erre/Zaytoven lane is the bright exception, and
+    // the bounce is in the kick — `syncopation` 0.55 against dark trap's 0.35,
+    // with the tresillo lean to match.
+    let context = ctx(4);
+    let offbeat_share = |id: &str| {
+        let kicks = sweep(&model(id), Lane::Kick, 4);
+        let offbeat = kicks
+            .iter()
+            .filter(|(_, n)| {
+                grid::is_offbeat_eighth((n.start_tick % context.ticks_per_bar()) / grid::SIXTEENTH)
+            })
+            .count();
+        offbeat as f64 / kicks.len() as f64
+    };
+
+    let bouncy = offbeat_share("bouncy-trap");
+    let dark = offbeat_share("dark-trap");
+    assert!(
+        bouncy > dark,
+        "bouncy trap ({bouncy:.3}) should lean offbeat more than dark trap ({dark:.3})"
+    );
+}
+
+#[test]
+fn trap_soul_carries_r_and_b_harmony_rather_than_trap_triads() {
+    // ⛔ **The genre's actual marker, and the one that nearly got lost.** Trap
+    // soul is trap drums under R&B harmony (research ch. 1 §9, ch. 2 §6) — the
+    // m7/m9/maj9 stack is the whole point. The families were first authored as
+    // `i7`/`iv7`/`IIImaj7`, which the numeral parser cannot read, so every one
+    // of those chords was being **dropped silently**. Rewriting them as plain
+    // degrees is only correct if `extensions` really does the colouring, and
+    // nothing asserted that until this test.
+    let extended_share = |id: &str| {
+        let context = ctx(4);
+        let mut total = 0usize;
+        let mut extended = 0usize;
+        for seed in 0..SEEDS {
+            for event in engine::generators::chords::generate(&model(id), &context, seed).events {
+                total += 1;
+                if event.tones.len() >= 4 {
+                    extended += 1;
+                }
+            }
+        }
+        assert!(total > 0, "{id} generated no chords at all");
+        extended as f64 / total as f64
+    };
+
+    let soul = extended_share("trap-soul");
+    let trap = extended_share("trap");
+    assert!(
+        soul > 0.75,
+        "trap soul voiced only {soul:.2} of its chords as sevenths or richer — \
+         that is a triad genre wearing the name"
+    );
+    assert!(
+        soul > trap,
+        "trap soul ({soul:.2}) must be more extended than trap ({trap:.2})"
+    );
+}
+
+#[test]
+fn trap_soul_thins_the_hats_out_to_leave_room_for_a_vocal() {
+    // Research ch. 1 §9, trap-soul variant: trap grammar under R&B harmony,
+    // with the hats pulled back — `continuous: false` at 0.3 against trap's
+    // 0.55 carpet. A sung topline is what the space is for.
+    let soul = sweep(&model("trap-soul"), Lane::ClosedHat, 4).len();
+    let trap = sweep(&model("trap"), Lane::ClosedHat, 4).len();
+    assert!(
+        soul < trap,
+        "trap soul played {soul} closed hats against trap's {trap} — it must be the thinner of the two"
+    );
+    assert!(soul > 0, "trap soul still has a hat part");
+}
+
+#[test]
+fn cloud_rap_is_the_sparsest_kick_in_the_family() {
+    // The lane is defined by what it removes (research ch. 4 taxonomy, cloud
+    // end): no roll carpet, no distortion, and a kick that gets out of the way
+    // of the reverb. `densityPerBar` [1,3] against trap's [2,5].
+    let cloud = sweep(&model("cloud-rap"), Lane::Kick, 4).len();
+    let trap = sweep(&model("trap"), Lane::Kick, 4).len();
+    assert!(
+        cloud < trap,
+        "cloud rap played {cloud} kicks against trap's {trap} — it must be the sparser of the two"
+    );
+    assert!(cloud > 0, "cloud rap still keeps a pulse");
+}
+
+#[test]
+fn emo_rap_glides_its_808_more_than_the_dark_lane_does() {
+    // Research ch. 2 §5: the 808 "shadows the guitar-loop roots 1:1" and
+    // **glides for emotion** — which is the opposite use of the same device from
+    // dark trap, where a slide is an accent rather than the feeling.
+    let slide_share = |id: &str| {
+        let notes = sweep(&model(id), Lane::Bass808, 4);
+        let slid = notes
+            .iter()
+            .filter(|(_, n)| n.slide_to_pitch.is_some())
+            .count();
+        slid as f64 / notes.len() as f64
+    };
+
+    let emo = slide_share("emo-rap");
+    let dark = slide_share("dark-trap");
+    assert!(
+        emo > dark,
+        "emo rap slid {emo:.3} of its 808 notes against dark trap's {dark:.3}"
+    );
+}
+
 // ------------------------------------------------------------------- the set
 
 #[test]
@@ -619,6 +762,11 @@ fn every_genre_in_the_roster_has_an_invariant_test() {
         "liquid-dnb",
         "country-train",
         "pop-2000s",
+        "dark-trap",
+        "bouncy-trap",
+        "trap-soul",
+        "cloud-rap",
+        "emo-rap",
     ];
 
     // Genres only: the artists are covered by

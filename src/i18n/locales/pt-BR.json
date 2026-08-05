@@ -24,7 +24,11 @@
     "seedLabel": "Semente — cole uma para obter o mesmo beat",
     "seedAuto": "aleatória",
     "generating": "Gerando…",
-    "readyBody": "{{name}} está pronto. Toque em Gerar."
+    "readyBody": "{{name}} está pronto. Toque em Gerar.",
+    "generateAll": "Gerar tudo",
+    "clear": "Limpar",
+    "clearAll": "Limpar tudo",
+    "clearLabel": "Limpar as partes geradas"
   },
   "rails": {
     "searchPlaceholder": "Buscar um artista…",

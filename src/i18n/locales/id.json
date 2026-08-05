@@ -24,7 +24,11 @@
     "seedLabel": "Seed — tempel untuk mendapatkan beat yang sama",
     "seedAuto": "acak",
     "generating": "Membuat…",
-    "readyBody": "{{name}} siap. Tekan Buat."
+    "readyBody": "{{name}} siap. Tekan Buat.",
+    "generateAll": "Buat semua",
+    "clear": "Kosongkan",
+    "clearAll": "Kosongkan semua",
+    "clearLabel": "Kosongkan bagian yang dibuat"
   },
   "rails": {
     "searchPlaceholder": "Cari artis…",

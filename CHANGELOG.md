@@ -12,6 +12,32 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed
+
+- **An exported song no longer arrives as one instrument playing everything at
+  once.** Every pitched part was written on MIDI channel 0 — melody,
+  countermelody, bass and chords together — and while the file did carry one
+  *track* per part, a great many hosts (FL Studio among them) split an imported
+  SMF by **channel** rather than by track. Producers got four parts stacked on a
+  single instrument, with each part's note-offs cutting the others' held notes on
+  the same key. Each part now writes on its own channel, drums stay on channel 10
+  where General MIDI puts percussion, and the 808 takes a pitched channel of its
+  own rather than riding the drum channel — where its slides would have been read
+  as unrelated drum voices.
+  - ⚠ **The golden `.mid` snapshots moved and their JSON did not.** The note
+    content is byte-for-byte what it was; only the channel nibble changed, which
+    is why every file kept its exact length. Nothing about what the engine
+    *generates* changed here — only where the notes are addressed.
+
+- **Harmony no longer saturates.** Chord voicings were chosen by strict minimum
+  cost, which made a voicing a pure function of the chord — so a model's entire
+  reachable harmony was its progression families times its extension rolls, and
+  `rage` produced **8 distinct progressions in 1,000 seeds** while its melody
+  produced 823. Voicings are now sampled among the candidates within two
+  semitones of the best, which keeps the top voice stepwise while letting the
+  inversion and octave move. Every model that authors a real chord part now
+  clears the 500-harmony floor; most roughly doubled.
+
 ### Added
 
 - **Song Mode: pick an artist, press Generate, and get a whole arrangement.**

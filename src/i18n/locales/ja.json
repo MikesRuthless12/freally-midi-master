@@ -24,7 +24,11 @@
     "seedLabel": "シード — 貼り付けると同じビートになります",
     "seedAuto": "ランダム",
     "generating": "生成中…",
-    "readyBody": "{{name}} の準備ができました。生成を押してください。"
+    "readyBody": "{{name}} の準備ができました。生成を押してください。",
+    "generateAll": "すべて生成",
+    "clear": "クリア",
+    "clearAll": "すべてクリア",
+    "clearLabel": "生成したパートをクリア"
   },
   "rails": {
     "searchPlaceholder": "アーティストを検索…",

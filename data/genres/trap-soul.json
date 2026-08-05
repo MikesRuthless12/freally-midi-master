@@ -1,0 +1,154 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "trap-soul",
+  "type": "genre",
+  "name": "Trap Soul",
+  "aliases": ["trap soul", "trapsoul", "pbr&b", "bryson tiller type"],
+  "tier": "standard",
+  "extends": ["trap"],
+  "era": "2015–present",
+  "genres": ["rnb", "trap"],
+  "confidence": "high",
+  "sources": [
+    "style-research ch.1 §9 R&B / Neo-soul — trap-soul variant",
+    "style-research ch.2 §6 R&B / neo-soul harmony",
+    "style-research ch.3 Bryson Tiller"
+  ],
+  "notes": "Trap grammar carrying R&B harmony: the drum machine is a trap kit but everything above it is extended chords and a sung topline. The 808 glides softly rather than punching, hats thin out to leave room for the vocal, and the snare is often a rimshot. Felt at 60–75 while programmed at 130–150.",
+
+  "session": {
+    "bpm": { "min": 130, "max": 150, "mode": 140 },
+    "halfTime": true,
+    "keys": { "values": ["Am", "Em", "Bm", "F#m", "Cm"], "weights": [3, 3, 2, 2, 2] },
+    "scales": { "values": ["natural_minor", "dorian", "minor_pentatonic"], "weights": [4, 3, 2] },
+    "swing": { "grid": "16th", "amount": 0.55 },
+    "humanize": {
+      "quantizeStrength": 0.82,
+      "velocityVar": 0.18,
+      "timingJitterMs": { "kick": 2, "snare": 5, "clap": 4, "closedHat": 4, "bass808": 2 }
+    }
+  },
+
+  "drums": {
+    "kick": {
+      "densityPerBar": [2, 4],
+      "anchors": ["1"],
+      "syncopation": 0.4,
+      "tresilloBias": 0.3,
+      "lockTo808": 0.8
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "ghost": { "prob": 0.45, "pos": ["4&", "2&"], "vel": [0.3, 0.45] },
+      "offGridMs": [2, 5]
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": 0.3,
+      "velocities": { "main": [0.7, 0.9], "ghost": [0.35, 0.5] },
+      "rolls": {
+        "vocab": { "values": ["16T", "32"], "weights": [3, 2] },
+        "positions": ["phrase_end"],
+        "freqPerBar": 0.3,
+        "velocityRamp": true,
+        "burstOnly": true
+      },
+      "openHat": { "prob": 0.3, "pos": ["2&", "4&"], "perBar": [1, 1] },
+      "pitchBendProb": 0.0
+    },
+    "fills": { "smallEveryBars": 4, "bigEveryBars": 8 },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "monoCutSelf": true,
+      "portamentoMs": [40, 70],
+      "slideProb": 0.5,
+      "slidesPer4Bars": [2, 2],
+      "slideIntervals": { "values": ["m3", "P4", "P5", "M2"], "weights": [3, 3, 2, 2] },
+      "slidePositions": ["phrase_end", "bar_2"],
+      "register": [24, 38],
+      "distortion": "none"
+    }
+  },
+
+  "chords": {
+    "progressionFamilies": [
+      { "roman": ["i", "iv", "VII", "III"], "weight": 4 },
+      { "roman": ["i", "VI", "III", "VII"], "weight": 3 },
+      { "roman": ["i", "iv"], "weight": 3 },
+      { "roman": ["i", "v", "VI", "VII"], "weight": 2 }
+    ],
+    "maxChords": 4,
+    "extensions": { "triad": 0.1, "seventh": 0.55, "ninth": 0.35 },
+    "voicing": { "style": "open", "register": [48, 76], "topVoiceStepwise": true, "adjacentSecondProb": 0.35 },
+    "harmonicRhythm": { "values": ["1_per_bar", "2_bars_per_chord"], "weights": [3, 3] },
+    "susOrDimProb": 0.15
+  },
+
+  "melody": {
+    "register": [60, 84],
+    "phraseBars": { "values": [2, 4], "weights": [2, 3] },
+    "densityPerBar": [4, 8],
+    "structure": "question_answer",
+    "intervals": { "step": 0.7, "third": 0.22, "leap": 0.08 },
+    "contour": { "riff": 0.2, "descend": 0.5, "arch": 0.3 },
+    "chordToneBias": 0.7,
+    "colorTones": [2, 6],
+    "halfStepDissonance": 0.05,
+    "endVariation": true,
+    "octaveJumpProb": 0.05,
+    "timbreHint": "rhodes"
+  },
+
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.4,
+    "fillGapsOnly": true,
+    "styles": { "values": ["answer_lick", "sustain_pad"], "weights": [3, 2] }
+  },
+
+  "bassline": {
+    "followRootsProb": 0.8,
+    "rhythm": "mirror_kick",
+    "register": [24, 38],
+    "glideProb": 0.5,
+    "passingTones": ["P5", "m7", "M2"],
+    "anticipationProb": 0.35
+  },
+
+  "arrangement": {
+    "sectionBars": { "intro": [4, 8], "verse": 16, "hook": 8, "bridge": 8, "outro": [4, 8] },
+    "transitions": { "fillBeforeSection": true, "dropOutBeats": { "prob": 0.5, "beats": 2 }, "switchUpProb": 0.15 },
+    "structures": [
+      { "sections": ["intro", "verse", "hook", "verse", "hook", "bridge", "hook", "outro"], "weight": 3 },
+      { "sections": ["intro", "verse", "hook", "verse", "hook", "outro"], "weight": 2 }
+    ]
+  },
+
+  "kit": { "preview": "trap-default" },
+
+  "modes": [
+    {
+      "name": "late night",
+      "weight": 4,
+      "session": { "bpm": { "min": 130, "max": 140, "mode": 134 } },
+      "melody": { "densityPerBar": [3, 6], "contour": { "riff": 0.15, "descend": 0.6, "arch": 0.25 } },
+      "chords": { "extensions": { "triad": 0.05, "seventh": 0.5, "ninth": 0.45 }, "harmonicRhythm": "2_bars_per_chord" },
+      "drums": { "hihat": { "fillDensity": 0.2 } }
+    },
+    {
+      "name": "uptempo",
+      "weight": 2,
+      "session": { "bpm": { "min": 142, "max": 152, "mode": 146 } },
+      "drums": { "snare": { "fullTimeVariantProb": 0.6 }, "hihat": { "fillDensity": 0.5, "continuous": true } },
+      "melody": { "densityPerBar": [6, 10] }
+    },
+    {
+      "name": "guitar",
+      "weight": 2,
+      "melody": { "timbreHint": "clean_guitar", "register": [55, 79], "intervals": { "step": 0.6, "third": 0.3, "leap": 0.1 } },
+      "countermelody": { "densityRatio": 0.3, "styles": { "values": ["sustain_pad"], "weights": [1] } }
+    }
+  ]
+}

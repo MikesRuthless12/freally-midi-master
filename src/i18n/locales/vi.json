@@ -24,7 +24,11 @@
     "seedLabel": "Seed — dán vào để có cùng một beat",
     "seedAuto": "ngẫu nhiên",
     "generating": "Đang tạo…",
-    "readyBody": "{{name}} đã sẵn sàng. Nhấn Tạo."
+    "readyBody": "{{name}} đã sẵn sàng. Nhấn Tạo.",
+    "generateAll": "Tạo tất cả",
+    "clear": "Xóa",
+    "clearAll": "Xóa tất cả",
+    "clearLabel": "Xóa các phần đã tạo"
   },
   "rails": {
     "searchPlaceholder": "Tìm nghệ sĩ…",

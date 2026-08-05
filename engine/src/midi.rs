@@ -57,6 +57,37 @@ fn is_pitched(lane: Lane) -> bool {
 /// MIDI channel 10 (index 9) is percussion by GM convention.
 const DRUM_CHANNEL: u8 = 9;
 
+/// The MIDI channel a pitched lane is written on.
+///
+/// ⛔ **Every pitched part used to be written on channel 0, and that is what
+/// made an exported song unusable.** One track per part is only half of a
+/// multi-part file: a great many hosts — FL Studio among them — split an
+/// imported SMF by **channel** rather than by track, so melody, countermelody,
+/// bass and chords all arrived on one instrument playing simultaneously. A bass
+/// line an octave below a lead patch, chords underneath it, and every part's
+/// note-offs cutting the others' held notes on the same key — which is the exact
+/// collision this module's header warns about, arriving through the channel
+/// rather than through the key.
+///
+/// The 808 gets its own rather than riding the drum channel, because it is
+/// pitched: on channel 10 its notes would be read as drum voices and a sliding
+/// 808 line would come out as a rattle of unrelated percussion.
+fn pitched_channel(part: Part, lane: Lane) -> u8 {
+    // The 808 is authored inside the drums part but is a bass instrument, so it
+    // is keyed off the lane rather than the part it travels in.
+    if lane == Lane::Bass808 {
+        return 1;
+    }
+    match part {
+        Part::Melody => 0,
+        Part::Bass => 2,
+        Part::Chords => 3,
+        Part::Counter => 4,
+        // Only `Bass808` is pitched inside the drums part, and it returned above.
+        Part::Drums => 1,
+    }
+}
+
 /// The SMF key signature for a session: accidentals, and whether it is minor.
 ///
 /// Positive counts sharps, negative counts flats — the file format has no way
@@ -176,7 +207,11 @@ fn events_for(pattern: &Pattern) -> Vec<Event> {
 
     for lane in &pattern.lanes {
         let pitched = is_pitched(lane.lane);
-        let channel = if pitched { 0 } else { DRUM_CHANNEL };
+        let channel = if pitched {
+            pitched_channel(pattern.part, lane.lane)
+        } else {
+            DRUM_CHANNEL
+        };
 
         for note in &lane.notes {
             // The clip's own start and end (TASK-041E). A trimmed clip has to
