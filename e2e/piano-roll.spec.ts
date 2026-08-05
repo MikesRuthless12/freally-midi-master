@@ -59,7 +59,7 @@ async function openRoll(page: Page): Promise<Locator> {
   await search.fill('trap');
   await search.press('Enter');
   await page.getByRole('tab', { name: 'Melody' }).click();
-  await page.getByRole('button', { name: 'Generate' }).click();
+  await page.getByRole('button', { name: 'Generate', exact: true }).click();
 
   const canvas = page.locator('.roll__canvas');
   await expect(canvas).toBeVisible();

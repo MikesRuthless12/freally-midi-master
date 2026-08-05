@@ -29,7 +29,7 @@ test.describe('Phase gate — UI contract', () => {
     // PRD § 8: left rail, generator tabs, grid stage, right rail, transport.
     await expect(page.getByLabel('Search an artist')).toBeVisible();
     await expect(page.getByRole('tablist', { name: 'Generator' })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Generate' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Generate', exact: true })).toBeVisible();
     await expect(page.getByRole('button', { name: /Kit/i })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Play' })).toBeVisible();
   });
@@ -45,8 +45,12 @@ test.describe('Phase gate — UI contract', () => {
     // live once an artist is chosen (TASK-028), so the controls that must stay
     // disabled are the ones with nothing behind them yet: transport with no
     // pattern and no device, and a loop toggle that has nothing to toggle.
+    // ⚠ `exact` matters here: "Generate all" (TASK-120) shares a prefix with
+    // "Generate", and Playwright matches an accessible name by substring by
+    // default — so the unqualified form resolves to two buttons and fails
+    // strict mode rather than asserting anything.
     for (const name of ['Generate', 'Play', 'Stop', 'Loop']) {
-      await expect(page.getByRole('button', { name })).toBeDisabled();
+      await expect(page.getByRole('button', { name, exact: true })).toBeDisabled();
     }
     await expect(page.getByLabel('Search an artist')).toBeEnabled();
   });
@@ -56,7 +60,7 @@ test.describe('Phase gate — UI contract', () => {
     // see: a control that stays disabled after its precondition is met is
     // just as broken as one that lies about being ready.
     const search = page.getByLabel('Search an artist');
-    const generate = page.getByRole('button', { name: 'Generate' });
+    const generate = page.getByRole('button', { name: 'Generate', exact: true });
 
     await expect(generate).toBeDisabled();
     await search.fill('trap');

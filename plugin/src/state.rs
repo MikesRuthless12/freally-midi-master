@@ -20,10 +20,11 @@
 //! snapshots already make, and the same rule applies — regenerate them, read
 //! the diff, and note it in `CHANGELOG.md`.
 
+use std::collections::BTreeMap;
 use std::sync::{Arc, RwLock};
 
 use engine::context::SessionOverrides;
-use engine::pattern::{Lane, Pattern, Song};
+use engine::pattern::{Lane, Part, Pattern, Song};
 use serde::{Deserialize, Serialize};
 
 /// The session as the host stores it, and as the UI restores it.
@@ -90,29 +91,53 @@ pub struct PluginSession {
     /// Lanes whose *audio* is muted. Their notes still reach the host.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub muted_lanes: Vec<Lane>,
-    /// The clip as the producer edited it, once the seed stops describing it.
+    /// The clips as the producer edited them, once the seed stops describing
+    /// them — one per part (TASK-119).
     ///
     /// ⛔ **The exception the module header's rule needs, and only the
     /// exception.** "The notes are not saved" holds because the engine is
     /// deterministic — the seed *is* the pattern. That stops being true the
     /// moment somebody moves a note, and from then on regenerating from the
     /// seed reopens the project having silently undone their editing session.
-    /// So an edited clip is stored whole and an unedited one is still not
-    /// stored at all: `None` for every session nobody has drawn in, which is
-    /// most of them, and the small-project-file property survives for those.
+    /// So edited clips are stored whole and unedited ones are still not stored
+    /// at all: empty for every session nobody has drawn in, which is most of
+    /// them, and the small-project-file property survives for those.
     ///
     /// ⚠ The trade the header names goes the other way for these: a clip saved
     /// here is *replayed*, not regenerated, so an engine improvement will not
     /// reach it. That is the right answer — the producer's edit outranks the
     /// engine's opinion of what the seed should have produced.
+    ///
+    /// ⚠ **A map since TASK-119, and the page can send up to five.** Before it
+    /// the five generators shared one slot in the UI, so there was only ever one
+    /// clip to store; now each part keeps its own. `BTreeMap` rather than
+    /// `HashMap` so the serialized order is stable — a project file that
+    /// reorders its own keys between saves is a diff nobody can read.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub patterns: BTreeMap<Part, Pattern>,
+    /// A pre-TASK-119 project's single clip, until it has been migrated.
+    ///
+    /// ⛔ **This must survive a host save, and the first cut of it did not.**
+    /// It was `skip_serializing` on the reasoning that a project carrying both
+    /// shapes would have two answers to "what is in the drum slot" — true, but
+    /// it skipped a step: **nih-plug serializes this store directly**, so a host
+    /// that saves before the producer ever opens the editor rewrote the project
+    /// with the legacy field dropped and `patterns` still empty. The one thing
+    /// in a project file that cannot be regenerated was deleted by opening and
+    /// saving.
+    ///
+    /// So it round-trips, and the "two answers" problem is solved by an
+    /// invariant instead: **once `patterns` is non-empty this is `None`**, which
+    /// [`PluginSession::migrate`] enforces on every write. There is never a
+    /// moment when both hold a clip.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub pattern: Option<Pattern>,
-    /// Whether [`Self::pattern`] is an edit rather than the seed's own output.
+    /// Whether [`Self::patterns`] holds edits rather than the seed's own output.
     ///
-    /// Carried explicitly rather than inferred from `pattern.is_some()`,
-    /// because the UI has to know on restore whether to trust the stored clip
-    /// or press on with the seed — and "there happens to be a pattern here"
-    /// does not answer that.
+    /// Carried explicitly rather than inferred from the map being non-empty,
+    /// because the UI has to know on restore whether to trust the stored clips
+    /// or press on with the seed — and "there happen to be patterns here" does
+    /// not answer that.
     #[serde(default)]
     pub edited: bool,
     /// The arrangement, once the producer has edited it away from its seed
@@ -162,6 +187,30 @@ fn auto_sync_default() -> bool {
     true
 }
 
+impl PluginSession {
+    /// Fold a pre-TASK-119 single clip into [`Self::patterns`], once.
+    ///
+    /// ⛔ **The invariant this exists to hold: `pattern` and `patterns` are
+    /// never both populated.** The legacy field has to round-trip a host save,
+    /// because nih-plug may serialize this store before the editor has ever
+    /// opened — but two live copies of "the drum slot" with no rule for which
+    /// wins is the drift the first cut of this was trying to avoid. Folding on
+    /// every write gives both properties.
+    ///
+    /// The clip names its own `part`, so nothing is guessed. A legacy clip
+    /// arriving *beside* a populated map is dropped rather than merged: the map
+    /// is the newer shape, and a project that somehow carried both has already
+    /// been through a build that wrote the map.
+    pub fn migrate(&mut self) {
+        let Some(clip) = self.pattern.take() else {
+            return;
+        };
+        if self.patterns.is_empty() {
+            self.patterns.insert(clip.part, clip);
+        }
+    }
+}
+
 impl Default for PluginSession {
     fn default() -> Self {
         Self {
@@ -176,6 +225,7 @@ impl Default for PluginSession {
             mood: None,
             audio_enabled: true,
             muted_lanes: Vec::new(),
+            patterns: BTreeMap::new(),
             pattern: None,
             edited: false,
             song: None,
@@ -211,7 +261,8 @@ pub fn read(store: &SessionStore) -> PluginSession {
 }
 
 /// Replace the stored session. The editor is the only caller.
-pub fn write(store: &SessionStore, session: PluginSession) {
+pub fn write(store: &SessionStore, mut session: PluginSession) {
+    session.migrate();
     if let Ok(mut slot) = store.write() {
         *slot = session;
     }
@@ -243,49 +294,11 @@ pub fn with<R>(store: &SessionStore, f: impl FnOnce(&PluginSession) -> R) -> Opt
 mod tests {
     use super::*;
 
-    #[test]
-    fn a_session_survives_the_round_trip_the_host_will_put_it_through() {
-        // Exactly what a DAW does: serialize on save, deserialize on open.
-        let session = PluginSession {
-            selected_id: Some("trap".into()),
-            seed: "2024".into(),
-            bars: Some(8),
-            pins: SessionOverrides {
-                bpm: Some(150.0),
-                key_root: Some(3),
-                ..SessionOverrides::default()
-            },
-            window_size: Some("small".into()),
-            auto_sync: true,
-            mood: Some("dark".into()),
-            audio_enabled: false,
-            muted_lanes: vec![Lane::Snare],
-            pattern: None,
-            edited: false,
-            song: None,
-            song_edited: false,
-        };
-
-        let json = serde_json::to_string(&session).unwrap();
-        let back: PluginSession = serde_json::from_str(&json).unwrap();
-        assert_eq!(back, session);
-    }
-
-    #[test]
-    fn an_edited_clip_survives_the_round_trip_whole() {
-        // ⛔ TASK-041's own gate. Everything else here is saved as the *inputs*
-        // that regenerate it, because the engine is deterministic — and the
-        // moment a producer moves a note that stops being true. A clip that did
-        // not survive this would reopen the project having silently undone
-        // their editing session, with the seed as the only explanation.
-        let mut edited = PluginSession {
-            selected_id: Some("trap".into()),
-            seed: "7".into(),
-            ..PluginSession::default()
-        };
-        edited.pattern = Some(Pattern {
+    /// One edited melody clip — the shape a producer's hand-edit takes.
+    fn sample_clip() -> Pattern {
+        Pattern {
             id: "trap-7".into(),
-            part: engine::pattern::Part::Melody,
+            part: Part::Melody,
             artist_id: "trap".into(),
             seed: 7,
             bars: 4,
@@ -313,7 +326,52 @@ mod tests {
                 to_tick: 3840,
             }),
             clip_region: None,
-        });
+        }
+    }
+
+    #[test]
+    fn a_session_survives_the_round_trip_the_host_will_put_it_through() {
+        // Exactly what a DAW does: serialize on save, deserialize on open.
+        let session = PluginSession {
+            selected_id: Some("trap".into()),
+            seed: "2024".into(),
+            bars: Some(8),
+            pins: SessionOverrides {
+                bpm: Some(150.0),
+                key_root: Some(3),
+                ..SessionOverrides::default()
+            },
+            window_size: Some("small".into()),
+            auto_sync: true,
+            mood: Some("dark".into()),
+            audio_enabled: false,
+            muted_lanes: vec![Lane::Snare],
+            patterns: BTreeMap::new(),
+            pattern: None,
+            edited: false,
+            song: None,
+            song_edited: false,
+        };
+
+        let json = serde_json::to_string(&session).unwrap();
+        let back: PluginSession = serde_json::from_str(&json).unwrap();
+        assert_eq!(back, session);
+    }
+
+    #[test]
+    fn an_edited_clip_survives_the_round_trip_whole() {
+        // ⛔ TASK-041's own gate. Everything else here is saved as the *inputs*
+        // that regenerate it, because the engine is deterministic — and the
+        // moment a producer moves a note that stops being true. A clip that did
+        // not survive this would reopen the project having silently undone
+        // their editing session, with the seed as the only explanation.
+        let mut edited = PluginSession {
+            selected_id: Some("trap".into()),
+            seed: "7".into(),
+            ..PluginSession::default()
+        };
+        let clip = sample_clip();
+        edited.patterns = BTreeMap::from([(Part::Melody, clip.clone())]);
         edited.edited = true;
 
         let json = serde_json::to_string(&edited).unwrap();
@@ -328,6 +386,86 @@ mod tests {
             !json.contains("pattern"),
             "an unedited session must not store a clip: {json}"
         );
+    }
+
+    #[test]
+    fn a_project_saved_before_the_five_slots_still_opens_with_its_clip() {
+        // ⛔ TASK-119 turned one clip into five, and a producer's saved edit is
+        // the one thing in a project file that cannot be regenerated. A build
+        // that dropped it would present as "reopening lost my editing session",
+        // which is the exact failure `an_edited_clip_survives_the_round_trip`
+        // exists to prevent — arriving through the upgrade instead.
+        let legacy = r#"{
+            "selectedId": "trap",
+            "seed": "7",
+            "edited": true,
+            "pattern": {
+                "id": "trap-7", "part": "melody", "artistId": "trap", "seed": 7,
+                "bars": 4, "bpm": 140.0, "timeSigNum": 4, "timeSigDen": 4,
+                "keyRoot": 6, "scale": "natural_minor", "lanes": [], "ppq": 960
+            }
+        }"#;
+
+        let opened: PluginSession = serde_json::from_str(legacy).unwrap();
+        let carried = opened.pattern.as_ref().expect("the legacy clip must load");
+        assert_eq!(carried.part, Part::Melody);
+        assert!(opened.edited);
+        // The page migrates it into the map by the clip's own `part`; nothing
+        // here guesses, which is why the field is carried rather than converted.
+        assert!(opened.patterns.is_empty());
+
+        // ⛔ **And it survives a host save that happens before the editor has
+        // ever opened.** This assertion used to say the opposite, and the
+        // opposite was a defect: nih-plug serializes this store directly, so a
+        // project opened and saved without the producer touching the window was
+        // rewritten with the clip dropped and `patterns` still empty — deleting
+        // the one thing in a project file that cannot be regenerated.
+        let rewritten = serde_json::to_string(&opened).unwrap();
+        assert!(
+            rewritten.contains("\"pattern\":"),
+            "the legacy clip must round-trip until it is migrated: {rewritten}"
+        );
+
+        // ⛔ **And the two shapes are never both populated.** `migrate` runs on
+        // every `write`, folding the clip into the map by its own `part`, so
+        // there is no moment where "what is in the melody slot" has two answers.
+        let mut migrated = opened.clone();
+        migrated.migrate();
+        assert!(
+            migrated.pattern.is_none(),
+            "the legacy field must be cleared"
+        );
+        assert_eq!(
+            migrated.patterns.get(&Part::Melody).map(|p| p.id.as_str()),
+            Some("trap-7"),
+            "the clip must land in the slot its own `part` names"
+        );
+
+        let after = serde_json::to_string(&migrated).unwrap();
+        assert!(
+            !after.contains("\"pattern\":"),
+            "once migrated the legacy field must not be written again: {after}"
+        );
+    }
+
+    #[test]
+    fn writing_a_session_migrates_a_legacy_clip_rather_than_leaving_two_copies() {
+        // `write` is the path every save from the editor takes, which is where
+        // the invariant has to be enforced — a caller that had to remember to
+        // call `migrate` is a caller that will forget.
+        let store = SessionStore::default();
+        let mut legacy = PluginSession {
+            edited: true,
+            ..PluginSession::default()
+        };
+        legacy.pattern = Some(sample_clip());
+
+        write(&store, legacy);
+
+        let stored = read(&store);
+        assert!(stored.pattern.is_none());
+        assert_eq!(stored.patterns.len(), 1);
+        assert!(stored.patterns.contains_key(&Part::Melody));
     }
 
     /// The smallest thing that is recognisably an arrangement: one section

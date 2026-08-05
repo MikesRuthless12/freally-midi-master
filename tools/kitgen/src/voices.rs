@@ -107,6 +107,198 @@ pub fn eight_o_eight(root_hz: f32, length_s: f32, drive: f32) -> Vec<f32> {
     out
 }
 
+// ─────────────────────────────────────────────────────── the pitched voices
+//
+// ⛔ **Why these exist at all** (TASK-131). `Kit::pad_for` answers with the pad
+// whose lane matches, and until now the kit carried only percussion — so
+// melody, countermelody, bassline and chords returned `None` and played
+// *nothing*. That one fact is why TASK-069 shipped MIDI stems instead of wav,
+// why the arrangement cannot draw a waveform yet, and why a producer pressing
+// Play on a melody heard silence and reasonably concluded the generator was
+// broken.
+//
+// ⚠ **These are previews, not instruments, and the distinction is deliberate.**
+// Each is one sample transposed by the sampler, so playing two octaves off its
+// root thins it out — which is exactly why the roots below sit in the middle of
+// each part's authored register rather than at a tidy C. A producer who wants
+// their own sound imports a one-shot; this is what makes a fresh install
+// audible before they do.
+
+/// A one-pole low-pass whose cutoff moves while the sample plays.
+///
+/// ⛔ **The single most important difference between a synthesized preview that
+/// sounds like a toy and one that sounds like an instrument.** A static filter
+/// pass gives every moment of the note the same brightness; a real plucked or
+/// struck sound is bright at the transient and darkens as it decays, because the
+/// energy in the high partials dies first. The first cut of these voices used
+/// one static pass and that is precisely why they read as cheap.
+fn sweep_low_pass(samples: &mut [f32], from_hz: f32, to_hz: f32, over_s: f32) {
+    let dt = 1.0 / SR;
+    let mut prev = 0.0;
+    for (i, s) in samples.iter_mut().enumerate() {
+        let progress = ((i as f32 / SR) / over_s).min(1.0);
+        let cutoff = (from_hz + (to_hz - from_hz) * progress).max(30.0);
+        let rc = 1.0 / (std::f32::consts::TAU * cutoff);
+        let alpha = dt / (rc + dt);
+        prev += alpha * (*s - prev);
+        *s = prev;
+    }
+}
+
+/// The lead: a Karplus–Strong plucked string.
+///
+/// ⛔ **A physical model rather than stacked oscillators, and the difference is
+/// audible immediately.** Exciting a delay line one wavelength long with noise
+/// and feeding it back through a damping filter *is* how a plucked string
+/// behaves — the pick noise is real broadband energy, the partials decay at
+/// their own rates because the damping filter takes the highs first, and the
+/// tone evolves instead of holding still. Additive saws cannot do any of that;
+/// they hold one spectrum and fade.
+///
+/// Cheap, too: one buffer the length of a single cycle, and two adds per sample.
+pub fn pluck(root_hz: f32, length_s: f32, seed: u64) -> Vec<f32> {
+    let mut rng = stream(seed, "kit/pluck");
+    let n = seconds(length_s);
+    let delay = ((SR / root_hz).round() as usize).clamp(2, n.max(2));
+
+    // The excitation. Low-passed noise rather than raw: a pick is not a click,
+    // and unfiltered noise makes the attack read as a burst of static.
+    let mut line = noise(&mut rng, delay);
+    low_pass(&mut line, 6000.0);
+
+    let mut out = Vec::with_capacity(n);
+    let mut index = 0usize;
+    for i in 0..n {
+        let current = line[index];
+        let next = line[(index + 1) % delay];
+        // The averaging filter is the string's damping — it is what makes the
+        // high partials die before the fundamental. The coefficient sets how
+        // long the note rings.
+        let damped = 0.5 * (current + next) * 0.9965;
+        line[index] = damped;
+        // A slow overall decay on top, so the note ends rather than ringing to
+        // the end of the buffer.
+        out.push(current * decay(i as f32 / SR, length_s * 0.85));
+        index = (index + 1) % delay;
+    }
+
+    high_pass(&mut out, 80.0);
+    declick(&mut out);
+    normalize(&mut out, 0.74);
+    out
+}
+
+/// The countermelody: an FM bell.
+///
+/// ⛔ **Two-operator FM with a decaying modulation index, not a stack of
+/// partials.** Additive partials at fixed levels give a bell that is equally
+/// clangorous from start to finish; a real strike is bright and inharmonic for
+/// the first moment and settles toward the fundamental as it rings. Decaying the
+/// index is what produces that, and it is the reason FM owned this sound for a
+/// decade.
+///
+/// The 3.5 ratio is deliberately inharmonic — an integer ratio would give a
+/// harmonic tone, which is a flute rather than a bell.
+pub fn bell(root_hz: f32, length_s: f32) -> Vec<f32> {
+    let n = seconds(length_s);
+    let mut out = Vec::with_capacity(n);
+
+    for i in 0..n {
+        let t = i as f32 / SR;
+        // Bright at the strike, settling as it rings.
+        let index = 7.0 * decay(t, length_s * 0.25);
+        let modulator = (std::f32::consts::TAU * root_hz * 3.5 * t).sin() * index;
+        let carrier = (std::f32::consts::TAU * root_hz * t + modulator).sin();
+        // A second, quieter strike partial a fifth up gives the shimmer a single
+        // operator pair cannot.
+        let shimmer =
+            (std::f32::consts::TAU * root_hz * 2.99 * t).sin() * 0.18 * decay(t, length_s * 0.5);
+        out.push((carrier * decay(t, length_s * 0.85) + shimmer) * 0.55);
+    }
+
+    high_pass(&mut out, 130.0);
+    declick(&mut out);
+    normalize(&mut out, 0.68);
+    out
+}
+
+/// The bassline: a filtered saw over a sine sub.
+///
+/// ⛔ **Distinct from [`eight_o_eight`] rather than a copy of it** — the 808 is a
+/// sine with a pitch-drop transient and heavy drive, and a bass part that sounded
+/// identical would make the two lanes indistinguishable in the styles that
+/// author both.
+///
+/// The filter envelope is what makes it read as a played bass rather than a
+/// sustained tone: bright on the attack, closing to a round body within a couple
+/// of hundred milliseconds.
+pub fn synth_bass(root_hz: f32, length_s: f32) -> Vec<f32> {
+    let n = seconds(length_s);
+    let mut out = Vec::with_capacity(n);
+    let mut phase = 0.0f32;
+
+    for i in 0..n {
+        let t = i as f32 / SR;
+        phase += std::f32::consts::TAU * root_hz / SR;
+        // A bandlimited saw — enough harmonics for the filter to have something
+        // to work on, few enough that transposing up does not alias.
+        let saw = phase.sin()
+            + 0.5 * (2.0 * phase).sin()
+            + 0.33 * (3.0 * phase).sin()
+            + 0.25 * (4.0 * phase).sin();
+        // The sub is a clean sine an octave down, which is what survives on a
+        // laptop speaker and what holds the low end on a system.
+        let sub = (phase * 0.5).sin() * 0.9;
+        let amp = decay(t, length_s * 0.8);
+        out.push((saw * 0.35 + sub) * amp * 0.6);
+    }
+
+    // Bright attack closing into the body — the played-bass shape.
+    sweep_low_pass(&mut out, 3200.0, 420.0, 0.22);
+    // Gentle drive for weight, well short of the 808's clipping.
+    for s in out.iter_mut() {
+        *s = saturate(*s, 1.5);
+    }
+    declick(&mut out);
+    normalize(&mut out, 0.88);
+    out
+}
+
+/// The chord voice: an FM electric piano.
+///
+/// ⛔ **The Rhodes sound is FM, and additive sine stacks do not get close.** A
+/// tine piano is a struck bar: a hard metallic transient that dies in
+/// milliseconds over a soft sustained body. That is a modulation index which
+/// decays fast — the "bark" — sitting on a carrier that decays slowly. The first
+/// cut of this was a fundamental plus a fifth and an octave, which is an organ.
+///
+/// A 14:1 tine ratio over a 1:1 body is the classic pairing.
+pub fn keys(root_hz: f32, length_s: f32) -> Vec<f32> {
+    let n = seconds(length_s);
+    let mut out = Vec::with_capacity(n);
+
+    for i in 0..n {
+        let t = i as f32 / SR;
+        // The tine strike: high ratio, very fast index decay.
+        let tine_index = 2.6 * decay(t, 0.09);
+        let tine = (std::f32::consts::TAU * root_hz * 14.0 * t).sin() * tine_index;
+        // The body: 1:1 FM, which thickens without adding inharmonicity.
+        let body_index = 1.1 * decay(t, length_s * 0.4);
+        let body = (std::f32::consts::TAU * root_hz * t).sin() * body_index;
+
+        let carrier = (std::f32::consts::TAU * root_hz * t + tine + body).sin();
+        // A short attack rather than an instant one — a hammer has travel.
+        let attack = (1.0 - (-t / 0.006).exp()).min(1.0);
+        out.push(carrier * decay(t, length_s * 0.85) * attack * 0.6);
+    }
+
+    sweep_low_pass(&mut out, 6500.0, 2200.0, 0.5);
+    high_pass(&mut out, 70.0);
+    declick(&mut out);
+    normalize(&mut out, 0.72);
+    out
+}
+
 /// Closed hat: band-passed noise with a very fast decay.
 pub fn closed_hat(seed: u64) -> Vec<f32> {
     let mut rng = stream(seed, "kit/closed_hat");

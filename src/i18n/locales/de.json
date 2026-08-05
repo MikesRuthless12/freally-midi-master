@@ -24,7 +24,11 @@
     "seedLabel": "Seed — einfügen für denselben Beat",
     "seedAuto": "zufällig",
     "generating": "Wird erzeugt…",
-    "readyBody": "{{name}} ist bereit. Auf Generieren klicken."
+    "readyBody": "{{name}} ist bereit. Auf Generieren klicken.",
+    "generateAll": "Alle erzeugen",
+    "clear": "Leeren",
+    "clearAll": "Alle leeren",
+    "clearLabel": "Erzeugte Parts leeren"
   },
   "rails": {
     "searchPlaceholder": "Künstler suchen…",

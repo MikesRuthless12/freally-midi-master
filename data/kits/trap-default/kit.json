@@ -93,6 +93,50 @@
       "pan": 0.0,
       "pitchSemis": 0,
       "rootNote": null
+    },
+    {
+      "chokeGroup": null,
+      "file": "lead.wav",
+      "gainDb": 0.0,
+      "id": "lead",
+      "lane": "melody",
+      "padIndex": 8,
+      "pan": 0.0,
+      "pitchSemis": 0,
+      "rootNote": 84
+    },
+    {
+      "chokeGroup": null,
+      "file": "bell.wav",
+      "gainDb": 0.0,
+      "id": "bell",
+      "lane": "counter",
+      "padIndex": 9,
+      "pan": 0.0,
+      "pitchSemis": 0,
+      "rootNote": 72
+    },
+    {
+      "chokeGroup": null,
+      "file": "bass.wav",
+      "gainDb": 0.0,
+      "id": "bass",
+      "lane": "bass",
+      "padIndex": 10,
+      "pan": 0.0,
+      "pitchSemis": 0,
+      "rootNote": 36
+    },
+    {
+      "chokeGroup": null,
+      "file": "keys.wav",
+      "gainDb": 0.0,
+      "id": "keys",
+      "lane": "chords",
+      "padIndex": 11,
+      "pan": 0.0,
+      "pitchSemis": 0,
+      "rootNote": 60
     }
   ],
   "sampleRate": 44100,

@@ -101,6 +101,54 @@ fn build_trap_kit() -> Vec<Voice> {
             choke_group: None,
             root_note: None,
         },
+        // ── The pitched pads (TASK-131) ──────────────────────────────────
+        //
+        // ⛔ **Without these four the melodic generators are silent**, because
+        // `Kit::pad_for` answers `None` for a lane the kit has no pad for and
+        // the trigger is simply skipped. A producer pressing Play on a melody
+        // heard nothing and had no way to tell a silent kit from a broken
+        // generator.
+        //
+        // ⚠ **Each root sits in the middle of that part's authored register**,
+        // not at a tidy C, because the sampler transposes one sample and a
+        // two-octave stretch thins it out. Melody is authored around C5–C7
+        // (research ch. 2 §1 "bells C5–C7"), chords around C3–C5, and a bassline
+        // around C1–G2 — so the roots below are the centre of each of those.
+        //
+        // ⚠ **Each is choke-free.** A melody holds while the next note starts;
+        // choking it would cut every legato line into staccato.
+        Voice {
+            // C6 — the middle of the 72–96 lead register.
+            name: "lead",
+            lane: "melody",
+            samples: voices::pluck(1046.5, 1.1, KIT_SEED),
+            choke_group: None,
+            root_note: Some(84),
+        },
+        Voice {
+            // C5 — the counter sits an octave under the lead as often as over it.
+            name: "bell",
+            lane: "counter",
+            samples: voices::bell(523.25, 1.8),
+            choke_group: None,
+            root_note: Some(72),
+        },
+        Voice {
+            // C2 — the middle of the 24–43 bass register.
+            name: "bass",
+            lane: "bass",
+            samples: voices::synth_bass(65.41, 1.3),
+            choke_group: None,
+            root_note: Some(36),
+        },
+        Voice {
+            // C4 — the middle of the 48–72 chord voicing register.
+            name: "keys",
+            lane: "chords",
+            samples: voices::keys(261.63, 2.4),
+            choke_group: None,
+            root_note: Some(60),
+        },
     ]
 }
 

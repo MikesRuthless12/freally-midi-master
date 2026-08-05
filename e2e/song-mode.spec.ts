@@ -30,8 +30,8 @@ test('a genre with no artist over it arranges a whole song', async ({ page }) =>
 
   // Before Generate the tab says what it is waiting for rather than sitting
   // blank — a stage that draws nothing reads as the app having failed to load.
-  await expect(page.getByRole('button', { name: 'Generate' })).toBeEnabled();
-  await page.getByRole('button', { name: 'Generate' }).click();
+  await expect(page.getByRole('button', { name: 'Generate', exact: true })).toBeEnabled();
+  await page.getByRole('button', { name: 'Generate', exact: true }).click();
 
   await expect(page.locator('[data-testid="song-section-0"]')).toBeVisible();
   const sections = await page.locator('[data-testid^="song-section-"]').count();
@@ -44,7 +44,7 @@ test('a second genre arranges its own song rather than the first one’s', async
   // song store clears on `selectedId`, and genre mode is the path where that is
   // easiest to get wrong, because both selections are genres.
   await pickGenre(page, 'trap');
-  await page.getByRole('button', { name: 'Generate' }).click();
+  await page.getByRole('button', { name: 'Generate', exact: true }).click();
   await expect(page.locator('[data-testid="song-section-0"]')).toBeVisible();
 
   const search = page.getByLabel('Search an artist');
@@ -54,7 +54,7 @@ test('a second genre arranges its own song rather than the first one’s', async
   // Gone, not merely different: nothing has been generated for this genre yet.
   await expect(page.locator('[data-testid="song-section-0"]')).toHaveCount(0);
 
-  await page.getByRole('button', { name: 'Generate' }).click();
+  await page.getByRole('button', { name: 'Generate', exact: true }).click();
   await expect(page.locator('[data-testid="song-section-0"]')).toBeVisible();
 });
 
@@ -62,7 +62,7 @@ test('the whole loop runs on a genre: arrange, edit, and export', async ({ page 
   // The product's own claim for genre mode, end to end. Each half already has a
   // test; the sentence does not.
   await pickGenre(page, 'trap');
-  await page.getByRole('button', { name: 'Generate' }).click();
+  await page.getByRole('button', { name: 'Generate', exact: true }).click();
   await expect(page.locator('[data-testid="song-section-0"]')).toBeVisible();
 
   const barsOf = async (index: number) =>
@@ -87,7 +87,7 @@ test('the whole loop runs on a genre: arrange, edit, and export', async ({ page 
 
 test('a genre’s structure row and picker are populated', async ({ page }) => {
   await pickGenre(page, 'uk-drill');
-  await page.getByRole('button', { name: 'Generate' }).click();
+  await page.getByRole('button', { name: 'Generate', exact: true }).click();
   await expect(page.locator('[data-testid="song-structure"]')).toBeVisible();
 
   const chips = await page.locator('.song__structure-chip').count();

@@ -12,7 +12,56 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed
+
+- **An exported song no longer arrives as one instrument playing everything at
+  once.** Every pitched part was written on MIDI channel 0 — melody,
+  countermelody, bass and chords together — and while the file did carry one
+  *track* per part, a great many hosts (FL Studio among them) split an imported
+  SMF by **channel** rather than by track. Producers got four parts stacked on a
+  single instrument, with each part's note-offs cutting the others' held notes on
+  the same key. Each part now writes on its own channel, drums stay on channel 10
+  where General MIDI puts percussion, and the 808 takes a pitched channel of its
+  own rather than riding the drum channel — where its slides would have been read
+  as unrelated drum voices.
+  - ⚠ **The golden `.mid` snapshots moved and their JSON did not.** The note
+    content is byte-for-byte what it was; only the channel nibble changed, which
+    is why every file kept its exact length. Nothing about what the engine
+    *generates* changed here — only where the notes are addressed.
+
+- **Harmony no longer saturates.** Chord voicings were chosen by strict minimum
+  cost, which made a voicing a pure function of the chord — so a model's entire
+  reachable harmony was its progression families times its extension rolls, and
+  `rage` produced **8 distinct progressions in 1,000 seeds** while its melody
+  produced 823. Voicings are now sampled among the candidates within two
+  semitones of the best, which keeps the top voice stepwise while letting the
+  inversion and octave move. Every model that authors a real chord part now
+  clears the 500-harmony floor; most roughly doubled.
+
 ### Added
+
+
+- **Each generator keeps its own clip.** The five shared one slot, so generating a
+  bassline destroyed the melody that was there. Every part now has its own, through
+  the undo stack, the project file and the arm path — and a project saved before the
+  change still opens with its hand-edited clip intact.
+- **Generate all** fills every part from **one seed**, which is what makes the five
+  a record rather than five loops in the same key: the engine guarantees they agree
+  only when they share one. A part the style does not have — a bassline in a
+  trap-family model, where the 808 *is* the bass — is skipped rather than failing
+  the run.
+- **Clear**, per generator and for all of them, undoable.
+- **The melodic generators make a sound.** The preview kit carried percussion only,
+  so melody, countermelody, bassline and chords rendered silence — which presents as
+  a broken generator rather than a silent one. `kitgen` now synthesizes four pitched
+  voices: a Karplus–Strong string, an FM bell, a filter-enveloped bass and an FM
+  electric piano, each rooted at the centre of its part's authored register.
+- **Clicking a selected note collapses the selection to it on mouse-up**, the way a
+  DAW does — decided on whether the pointer moved, not on a delta the clamp may have
+  pinned to zero.
+- **The dataset protocol** (`docs/dataset-protocol.md`) and a generated roster
+  ledger, plus five trap-family genre archetypes: dark trap, bouncy trap, trap soul,
+  cloud rap and emo rap.
 
 - **Song Mode: pick an artist, press Generate, and get a whole arrangement.**
   The engine samples one of the artist's own song forms, gives each section its

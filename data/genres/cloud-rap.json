@@ -1,0 +1,154 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "cloud-rap",
+  "type": "genre",
+  "name": "Cloud Rap",
+  "aliases": ["cloud rap", "ethereal trap", "based"],
+  "tier": "standard",
+  "extends": ["trap"],
+  "era": "2011–present",
+  "genres": ["rap", "trap"],
+  "confidence": "medium",
+  "sources": [
+    "style-research ch.1 §1 Trap",
+    "style-research ch.2 §1 Trap melodies",
+    "style-research ch.4 scene taxonomy — UntilJapan cloud end"
+  ],
+  "notes": "Trap with the drums pushed to the back and the reverb pushed to the front. Defined by what it removes: no roll carpet, no distortion, no rhythmic 808. Harmony is a single sustained pad cycle and the melody drifts in long arcs rather than looping a riff. Confidence is medium because the lane is described consistently in the research but never given its own parameter table.",
+
+  "session": {
+    "bpm": { "min": 125, "max": 145, "mode": 134 },
+    "halfTime": true,
+    "keys": { "values": ["F#m", "C#m", "Bm", "Ebm"], "weights": [3, 3, 2, 2] },
+    "scales": { "values": ["natural_minor", "dorian", "lydian"], "weights": [4, 2, 2] },
+    "swing": { "grid": "16th", "amount": 0.52 },
+    "humanize": {
+      "quantizeStrength": 0.8,
+      "velocityVar": 0.2,
+      "timingJitterMs": { "kick": 3, "snare": 6, "clap": 6, "closedHat": 5, "bass808": 3 }
+    }
+  },
+
+  "drums": {
+    "kick": {
+      "densityPerBar": [1, 3],
+      "anchors": ["1"],
+      "syncopation": 0.25,
+      "tresilloBias": 0.2,
+      "lockTo808": 0.5
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "ghost": { "prob": 0.1, "pos": ["4&"], "vel": [0.25, 0.4] },
+      "offGridMs": [3, 8]
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.35,
+      "velocities": { "main": [0.5, 0.7], "ghost": [0.25, 0.4] },
+      "rolls": {
+        "vocab": { "values": ["16", "16T"], "weights": [3, 2] },
+        "positions": ["phrase_end"],
+        "freqPerBar": 0.15,
+        "velocityRamp": false,
+        "burstOnly": true
+      },
+      "openHat": { "prob": 0.2, "pos": ["4&"], "perBar": [1, 1] },
+      "pitchBendProb": 0.0
+    },
+    "fills": { "smallEveryBars": 4, "bigEveryBars": 16 },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "monoCutSelf": true,
+      "portamentoMs": [60, 120],
+      "slideProb": 0.3,
+      "slidesPer4Bars": [1, 1],
+      "slideIntervals": { "values": ["P5", "P8"], "weights": [3, 2] },
+      "slidePositions": ["phrase_end"],
+      "register": [24, 36],
+      "distortion": "none"
+    }
+  },
+
+  "chords": {
+    "progressionFamilies": [
+      { "roman": ["i"], "weight": 4 },
+      { "roman": ["i", "VI"], "weight": 3 },
+      { "roman": ["i", "iv"], "weight": 2 },
+      { "roman": ["i", "VII", "VI"], "weight": 2 }
+    ],
+    "maxChords": 4,
+    "extensions": { "triad": 0.25, "seventh": 0.45, "ninth": 0.3 },
+    "voicing": { "style": "open", "register": [48, 84], "topVoiceStepwise": true },
+    "harmonicRhythm": { "values": ["vamp", "2_bars_per_chord", "1_per_bar"], "weights": [3, 3, 1] },
+    "susOrDimProb": 0.3
+  },
+
+  "melody": {
+    "register": [72, 96],
+    "phraseBars": { "values": [4, 8], "weights": [3, 2] },
+    "densityPerBar": [2, 5],
+    "structure": "long_arc",
+    "emptyBarBias": 0.25,
+    "intervals": { "step": 0.75, "third": 0.2, "leap": 0.05 },
+    "contour": { "riff": 0.15, "descend": 0.45, "arch": 0.4 },
+    "chordToneBias": 0.75,
+    "halfStepDissonance": 0.04,
+    "endVariation": true,
+    "octaveJumpProb": 0.03,
+    "timbreHint": "airy_pad"
+  },
+
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.5,
+    "fillGapsOnly": true,
+    "styles": { "values": ["sustain_pad", "bell_echo", "answer_lick", "arp"], "weights": [2, 3, 3, 2] },
+    "echoOffset": "8th"
+  },
+
+  "bassline": {
+    "followRootsProb": 0.95,
+    "rhythm": "mirror_kick",
+    "register": [24, 36],
+    "glideProb": 0.4,
+    "passingTones": ["P5"],
+    "anticipationProb": 0.1
+  },
+
+  "arrangement": {
+    "sectionBars": { "intro": 8, "verse": 16, "hook": 8, "bridge": 8, "outro": 8 },
+    "transitions": { "fillBeforeSection": false, "dropOutBeats": { "prob": 0.3, "beats": 4 }, "switchUpProb": 0.1 },
+    "structures": [
+      { "sections": ["intro", "verse", "hook", "verse", "hook", "outro"], "weight": 3 },
+      { "sections": ["intro", "hook", "verse", "hook", "outro"], "weight": 2 }
+    ]
+  },
+
+  "kit": { "preview": "trap-default" },
+
+  "modes": [
+    {
+      "name": "drift",
+      "weight": 4,
+      "melody": { "densityPerBar": [1, 3], "emptyBarBias": 0.5, "phraseBars": 8 },
+      "chords": { "harmonicRhythm": "vamp" },
+      "drums": { "hihat": { "fillDensity": 0.08 } }
+    },
+    {
+      "name": "lucid",
+      "weight": 3,
+      "session": { "scales": { "values": ["lydian", "dorian"], "weights": [3, 2] } },
+      "melody": { "colorTones": [4, 6], "chordToneBias": 0.6, "contour": { "riff": 0.1, "descend": 0.3, "arch": 0.6 } },
+      "chords": { "extensions": { "triad": 0.1, "seventh": 0.4, "ninth": 0.5 } }
+    },
+    {
+      "name": "grounded",
+      "weight": 2,
+      "drums": { "kick": { "densityPerBar": [2, 4], "syncopation": 0.4 }, "hihat": { "base": "16th", "fillDensity": 0.35, "continuous": true } },
+      "melody": { "densityPerBar": [3, 5], "structure": "riff_loop" }
+    }
+  ]
+}

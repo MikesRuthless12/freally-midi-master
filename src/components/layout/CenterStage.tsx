@@ -2,14 +2,13 @@ import { useMemo } from 'react';
 import { AudioWaveform, Drum, ListMusic, Music2, Piano, Waves } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { GENERATOR_TABS, useUi, type GeneratorTab } from '../../state/ui';
-import { BAR_CHOICES, useSession } from '../../state/session';
+import { BAR_CHOICES, TAB_PART, useSession } from '../../state/session';
 import { DrumGrid } from '../DrumGrid/DrumGrid';
 import { PianoRoll } from '../PianoRoll/PianoRoll';
 import { SongTimeline } from '../SongTimeline/SongTimeline';
 import { useSong } from '../../state/song';
 import { columnDensity } from '../DrumGrid/cells';
 import { sectionDensity } from '../SongTimeline/sketch';
-import type { Part } from '../../lib/ipc-types';
 import { GenFx } from '../GenFx/GenFx';
 import { SeedChip } from '../SeedChip/SeedChip';
 import { SessionSwitchPrompt } from '../SessionChips/SessionChips';
@@ -60,34 +59,19 @@ function GeneratorTabs() {
 }
 
 /**
- * Which part a tab generates, or `null` for a tab that is not a part at all.
- *
- * ⛔ Song is not a part and never becomes one — it is an *arrangement* of the
- * five. Mapping it to a `Part` here would send it through `session.generate`,
- * which fills the single pattern slot the editors draw from; a song has to go
- * through `useSong` instead. The `null` is what routes it there.
- */
-const TAB_PART: Record<GeneratorTab, Part | null> = {
-  drums: 'drums',
-  melody: 'melody',
-  counter: 'counter',
-  bass: 'bass',
-  chords: 'chords',
-  song: null,
-};
-
-/**
  * Centre stage: the tab strip over the editor for the part it names.
  *
  * Drums draws in `DrumGrid`; the four melodic parts draw in the piano roll
  * (TASK-041); Song draws in `SongTimeline` (TASK-063A / TASK-063B).
  *
- * ⛔ **The editor is shown only when the pattern in hand is the tab's own
- * part.** `session.pattern` is one slot, so generating a melody replaces the
- * drums that were there — and drawing whatever is in the slot under whichever
- * tab is open would put a melody's notes in the drum grid's lanes. Switching to
- * a tab whose part is not loaded shows the "ready, hit Generate" state, which is
- * true rather than merely blank.
+ * ✅ **Each tab draws its own part's clip, and the other four are still there**
+ * (TASK-119). This used to read a single `session.pattern` and show an editor
+ * only when that one slot happened to hold the tab's part — which was not a
+ * display rule but a symptom: generating a melody genuinely destroyed the drums,
+ * and drawing the slot regardless would have put a melody's notes in the drum
+ * grid's lanes. A tab whose part has never been generated still shows the
+ * "ready, hit Generate" state, which is now true because the part is absent
+ * rather than because something else overwrote it.
  */
 export function CenterStage() {
   const { t } = useTranslation();
@@ -95,12 +79,15 @@ export function CenterStage() {
 
   const selectedId = useSession((s) => s.selectedId);
   const roster = useSession((s) => s.roster);
-  const pattern = useSession((s) => s.pattern);
+  const patterns = useSession((s) => s.patterns);
   const bars = useSession((s) => s.bars);
   const setBars = useSession((s) => s.setBars);
   const generating = useSession((s) => s.generating);
   const error = useSession((s) => s.error);
   const generate = useSession((s) => s.generate);
+  const generateAll = useSession((s) => s.generateAll);
+  const clearPart = useSession((s) => s.clearPart);
+  const clearAll = useSession((s) => s.clearAll);
   const playhead = useSession((s) => s.playhead);
 
   const song = useSong((s) => s.song);
@@ -122,8 +109,9 @@ export function CenterStage() {
   const selected = roster.find((entry) => entry.id === selectedId) ?? null;
   const part = TAB_PART[activeTab];
 
-  // The pattern in hand belongs to this tab, so it is this tab's to draw.
-  const showing = part !== null && pattern?.part === part ? pattern : null;
+  // This tab's own slot. Absent means nobody has generated it — not that
+  // another part took its place.
+  const showing = part === null ? null : (patterns[part] ?? null);
 
   // What the ripple ignites. Recomputed only when the pattern changes, not on
   // every frame — the animation reads this, and it must not cost a render.
@@ -137,8 +125,11 @@ export function CenterStage() {
   // project has already had to fix twice.
   const density = useMemo(() => {
     if (activeTab === 'song') return song ? sectionDensity(song) : undefined;
-    return pattern ? columnDensity(pattern, FX_COLUMNS) : undefined;
-  }, [activeTab, song, pattern]);
+    // ⚠ The tab's own clip, not "whatever was generated last" (TASK-119). With
+    // five slots, the latter would ignite the ripple over the drum grid with a
+    // bassline's density.
+    return showing ? columnDensity(showing, FX_COLUMNS) : undefined;
+  }, [activeTab, song, showing]);
 
   return (
     <section className="stage">
@@ -185,7 +176,16 @@ export function CenterStage() {
           ) : part === 'drums' ? (
             <DrumGrid pattern={showing} playhead={playhead} />
           ) : (
-            <PianoRoll pattern={showing} part={part} playhead={playhead} />
+            /* ⛔ **`key` is load-bearing, not a list-rendering habit.** Note ids
+               are `${startTick}:${pitch}` and `useEditing.selection` is a global
+               store nothing clears on a part change — so without a remount the
+               same roll instance re-renders with the counter's notes while the
+               melody's ids are still selected, and any counter note at a
+               matching tick and pitch draws selected. Delete or a Transform then
+               edits notes the producer never chose on that tab. Before the five
+               slots existed, two parts could not both hold a clip, so the tabs
+               were never one click apart. */
+            <PianoRoll key={part} pattern={showing} part={part} playhead={playhead} />
           )}
         </GenFx>
 
@@ -228,9 +228,48 @@ export function CenterStage() {
               {t('stage.bars')}
             </span>
 
+            {/* Clear this tab's own part, and all five (TASK-121). Hidden on
+                Song, which is not a part — its clips are cleared from the
+                timeline's own controls. Disabled rather than absent when the
+                slot is empty, so the control does not move under the pointer as
+                parts fill in. */}
+            {part !== null && (
+              <span className="chip chip--mono" role="group" aria-label={t('stage.clearLabel')}>
+                <button
+                  type="button"
+                  className="chip__option"
+                  onClick={() => clearPart(part)}
+                  disabled={patterns[part] === undefined}
+                >
+                  {t('stage.clear')}
+                </button>
+                <button
+                  type="button"
+                  className="chip__option"
+                  onClick={clearAll}
+                  disabled={Object.keys(patterns).length === 0}
+                >
+                  {t('stage.clearAll')}
+                </button>
+              </span>
+            )}
+
+            {/* Fill all five from one seed (TASK-120). Not offered on Song,
+                which already generates every part as an arrangement. */}
+            {part !== null && (
+              <button
+                type="button"
+                className="btn-generate btn-generate--secondary"
+                onClick={() => void generateAll()}
+                disabled={!selectedId || generating || songGenerating}
+              >
+                {t('stage.generateAll')}
+              </button>
+            )}
+
             {/* ⛔ Song generates a whole arrangement rather than a part, so it
-                cannot go through `session.generate` — that fills the one pattern
-                slot the roll draws from, and a song is an arrangement of five.
+                cannot go through `session.generate` — that fills the pattern
+                slots the roll draws from, and a song is an arrangement of five.
                 The button was previously disabled here and said "a later
                 phase"; it now does the thing it names. */}
             <button

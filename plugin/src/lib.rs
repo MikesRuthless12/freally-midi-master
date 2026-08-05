@@ -378,13 +378,27 @@ impl FreallyMidiMaster {
         // by name: a kit that renamed its 808 would still audition correctly,
         // and one with no tuned pad at all stays silent rather than guessing.
         //
-        // One pass yielding both the index and the root, so there is no
-        // second lookup to `expect` its way out of.
+        // ⛔ **The *nearest* tuned pad, not the first one.** This took whichever
+        // rooted pad came first in the manifest, which was the 808 — fine while
+        // it was the only pad carrying a root, and wrong the moment TASK-131
+        // gave melody, counter, bass and chords their own. Clicking C6 in the
+        // roll's keyboard gutter then triggered the 808 at **+56 semitones**,
+        // which is the "a kick pitched up forty semitones is not a preview of
+        // anything" case this function's own note warns about — and pressing
+        // Play on the same note sounded the lead pad instead, so the audition
+        // and the playback were two different instruments.
+        //
+        // ⚠ Nearest-root rather than the part's own pad, because the audition
+        // request carries a pitch and not a part. It reaches the right voice for
+        // every register the roll can show: a C6 finds the lead, a C2 finds the
+        // bass. Threading the part through would be more exact and is worth
+        // doing when the gutter learns to audition drums too.
         let Some((pad_index, root)) = kit
             .pads
             .iter()
             .enumerate()
-            .find_map(|(index, pad)| pad.root_note.map(|root| (index, root)))
+            .filter_map(|(index, pad)| pad.root_note.map(|root| (index, root)))
+            .min_by_key(|(_, root)| u8::abs_diff(*root, pitch))
         else {
             return;
         };

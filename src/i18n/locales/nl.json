@@ -24,7 +24,11 @@
     "seedLabel": "Seed — plak er een voor dezelfde beat",
     "seedAuto": "willekeurig",
     "generating": "Genereren…",
-    "readyBody": "{{name}} staat klaar. Klik op Genereren."
+    "readyBody": "{{name}} staat klaar. Klik op Genereren.",
+    "generateAll": "Alles genereren",
+    "clear": "Wissen",
+    "clearAll": "Alles wissen",
+    "clearLabel": "Gegenereerde partijen wissen"
   },
   "rails": {
     "searchPlaceholder": "Zoek een artiest…",

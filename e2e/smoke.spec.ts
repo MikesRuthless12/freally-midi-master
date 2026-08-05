@@ -18,7 +18,7 @@ test('the Studio renders every region', async ({ page }) => {
   await expect(page.getByLabel('Search an artist')).toBeVisible();
   await expect(page.getByRole('tablist', { name: 'Generator' })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Play' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Generate' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Generate', exact: true })).toBeVisible();
   await expect(page.getByText('Search an artist. Cook.')).toBeVisible();
 });
 
@@ -57,7 +57,7 @@ test('controls that cannot work yet are disabled rather than merely inert', asyn
   // narrower: Generate cannot run without someone selected, and Play cannot run
   // without a pattern and an audio device — which a browser does not have.
   await expect(page.getByLabel('Search an artist')).toBeEnabled();
-  await expect(page.getByRole('button', { name: 'Generate' })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Generate', exact: true })).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Play' })).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Stop' })).toBeDisabled();
 });

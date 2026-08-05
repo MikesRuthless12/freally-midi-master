@@ -12,7 +12,7 @@
 //! names are right, the markers are in the right bars — and the song is mostly
 //! empty.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
 use engine::arrange;
@@ -64,6 +64,69 @@ fn note_ons_by_track(bytes: &[u8]) -> BTreeMap<String, usize> {
         out.insert(name, ons);
     }
     out
+}
+
+/// The distinct MIDI channels each named track writes on.
+fn channels_by_track(bytes: &[u8]) -> BTreeMap<String, BTreeSet<u8>> {
+    let smf = Smf::parse(bytes).expect("the export must parse");
+    let mut out = BTreeMap::new();
+    for track in &smf.tracks {
+        let mut name = String::from("(unnamed)");
+        let mut channels = BTreeSet::new();
+        for event in track {
+            match event.kind {
+                TrackEventKind::Meta(MetaMessage::TrackName(raw)) => {
+                    name = String::from_utf8_lossy(raw).into_owned();
+                }
+                TrackEventKind::Midi { channel, .. } => {
+                    channels.insert(channel.as_int());
+                }
+                _ => {}
+            }
+        }
+        if !channels.is_empty() {
+            out.insert(name, channels);
+        }
+    }
+    out
+}
+
+#[test]
+fn every_part_lands_on_its_own_channel_rather_than_all_on_channel_zero() {
+    // ⛔ **The defect that made an exported song unusable, and it survived every
+    // gate here because they all counted notes rather than looking at where the
+    // notes were addressed.** One track per part is only half of a multi-part
+    // file: a great many hosts — FL Studio among them — split an imported SMF by
+    // **channel**, not by track. With every pitched part written on channel 0, a
+    // producer got melody, countermelody, bass and chords stacked on one
+    // instrument, playing at once, with each part's note-offs cutting the
+    // others' held notes on the same key.
+    //
+    // Mike's words for it: "it sounds horrible and is all over the place."
+    let channels = channels_by_track(&song_to_smf(&song("trap", 7)));
+    assert!(channels.len() >= 3, "too few tracks to be testing anything");
+
+    // No pitched part shares a channel with another.
+    let mut claimed: BTreeMap<u8, String> = BTreeMap::new();
+    for (track, used) in &channels {
+        for channel in used {
+            if let Some(other) = claimed.insert(*channel, track.clone()) {
+                panic!("`{track}` and `{other}` both write on channel {channel}");
+            }
+        }
+    }
+
+    // ...and the drums are still where General MIDI says percussion lives, or a
+    // host plays the kit as pitched notes on whatever patch channel 1 holds.
+    let drums = channels
+        .iter()
+        .find(|(name, _)| name.to_lowercase().contains("drum"))
+        .map(|(_, used)| used.clone())
+        .unwrap_or_default();
+    assert!(
+        drums.contains(&9),
+        "the drum track must use channel 10 (index 9), got {drums:?}"
+    );
 }
 
 fn markers(bytes: &[u8]) -> Vec<(u32, String)> {

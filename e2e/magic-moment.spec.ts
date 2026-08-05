@@ -29,7 +29,7 @@ test('type, Enter, Generate — the grid fills', async ({ page }) => {
   await search.press('Enter');
   await expect(page.getByText('UK Drill is ready. Hit Generate.')).toBeVisible();
 
-  const generate = page.getByRole('button', { name: 'Generate' });
+  const generate = page.getByRole('button', { name: 'Generate', exact: true });
   await expect(generate).toBeEnabled();
   await generate.click();
 
@@ -48,7 +48,7 @@ test('type, Enter, Generate — the grid fills', async ({ page }) => {
 test('Generate is refused until someone is chosen', async ({ page }) => {
   // Disabled for real, not merely styled: a producer tabbing to it must be
   // told, and a click that silently does nothing is the worst answer.
-  await expect(page.getByRole('button', { name: 'Generate' })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Generate', exact: true })).toBeDisabled();
   await expect(page.getByText('Search an artist. Cook.')).toBeVisible();
 });
 
@@ -97,13 +97,13 @@ test('the seed is shown after generating, and can be pasted back', async ({ page
   const search = page.getByLabel('Search an artist');
   await search.fill('trap');
   await search.press('Enter');
-  await page.getByRole('button', { name: 'Generate' }).click();
+  await page.getByRole('button', { name: 'Generate', exact: true }).click();
 
   const seed = page.getByLabel('Seed — paste one to get the same beat');
   await expect(seed).toHaveValue('424242');
 
   await seed.fill('2024');
-  await page.getByRole('button', { name: 'Generate' }).click();
+  await page.getByRole('button', { name: 'Generate', exact: true }).click();
   await expect(seed).toHaveValue('2024');
 });
 
@@ -117,7 +117,7 @@ test('a longer pattern really is longer', async ({ page }) => {
     .getByRole('group', { name: 'Pattern length in bars' })
     .getByRole('button', { name: '8' })
     .click();
-  await page.getByRole('button', { name: 'Generate' }).click();
+  await page.getByRole('button', { name: 'Generate', exact: true }).click();
 
   await expect(page.getByText(/8 bars · 128 steps/)).toBeVisible();
 });
@@ -128,7 +128,7 @@ test('playback is honestly disabled when there is no device', async ({ page }) =
   const search = page.getByLabel('Search an artist');
   await search.fill('trap');
   await search.press('Enter');
-  await page.getByRole('button', { name: 'Generate' }).click();
+  await page.getByRole('button', { name: 'Generate', exact: true }).click();
 
   const play = page.getByRole('button', { name: 'Play' });
   await expect(play).toBeDisabled();
@@ -141,7 +141,7 @@ test('choosing someone else clears the pattern that was on screen', async ({ pag
   const search = page.getByLabel('Search an artist');
   await search.fill('trap');
   await search.press('Enter');
-  await page.getByRole('button', { name: 'Generate' }).click();
+  await page.getByRole('button', { name: 'Generate', exact: true }).click();
   await expect(page.getByRole('table', { name: 'Generated pattern' })).toBeVisible();
 
   await search.fill('uk');
@@ -165,12 +165,12 @@ test('every tab generates, Song included', async ({ page }) => {
 
   for (const tab of ['Melody', 'Counter', 'Bass', 'Chords']) {
     await page.getByRole('tab', { name: tab }).click();
-    await expect(page.getByRole('button', { name: 'Generate' })).toBeEnabled();
+    await expect(page.getByRole('button', { name: 'Generate', exact: true })).toBeEnabled();
   }
 
   await page.getByRole('tab', { name: 'Song' }).click();
-  await expect(page.getByRole('button', { name: 'Generate' })).toBeEnabled();
-  await page.getByRole('button', { name: 'Generate' }).click();
+  await expect(page.getByRole('button', { name: 'Generate', exact: true })).toBeEnabled();
+  await page.getByRole('button', { name: 'Generate', exact: true }).click();
   await expect(page.locator('[data-testid="song-section-0"]')).toBeVisible();
 });
 
@@ -183,7 +183,7 @@ test('a melodic part draws in the piano roll, not the drum grid', async ({ page 
   await search.press('Enter');
 
   await page.getByRole('tab', { name: 'Melody' }).click();
-  await page.getByRole('button', { name: 'Generate' }).click();
+  await page.getByRole('button', { name: 'Generate', exact: true }).click();
 
   // The roll's accessible note list is the canvas's text alternative and the
   // seam every note assertion goes through — see PianoRoll.tsx.
@@ -228,7 +228,7 @@ test.describe('generation FX', () => {
     const search = page.getByLabel('Search an artist');
     await search.fill('trap');
     await search.press('Enter');
-    await page.getByRole('button', { name: 'Generate' }).click();
+    await page.getByRole('button', { name: 'Generate', exact: true }).click();
 
     // The sweep ran...
     await expect
@@ -253,7 +253,7 @@ test.describe('generation FX', () => {
     const search = page.getByLabel('Search an artist');
     await search.fill('trap');
     await search.press('Enter');
-    await page.getByRole('button', { name: 'Generate' }).click();
+    await page.getByRole('button', { name: 'Generate', exact: true }).click();
 
     await expect(page.getByRole('table', { name: 'Generated pattern' })).toBeVisible();
     await expect(host.locator('.genfx__canvas')).toHaveCount(0);

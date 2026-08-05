@@ -39,7 +39,17 @@ export type Snapshot = {
     timeSigDen: number | null;
   };
   autoSync: boolean;
-  pattern: Pattern | null;
+  /**
+   * One clip per part (TASK-119).
+   *
+   * ⚠ **The shared-reference argument above still holds, and it is why this is a
+   * map of references rather than a deep copy.** Regenerating one part rebuilds
+   * the small outer object and keeps the other four `Pattern` references, so a
+   * hundred undo steps across one generation still cost one pattern — not five.
+   */
+  patterns: Partial<Record<Pattern['part'], Pattern>>;
+  /** Which parts are hand-edits — per-part since TASK-119's five slots. */
+  editedParts: Pattern['part'][];
   /**
    * Whether the clip is an edit rather than the seed's own output (TASK-041).
    *
@@ -109,7 +119,7 @@ export type Field = keyof Snapshot;
  * merging them made "kick muted, snare audible" unreachable by undo — one
  * Ctrl+Z un-muted both.
  */
-const DISCRETE: readonly Field[] = ['pattern', 'mutedLanes', 'song'];
+const DISCRETE: readonly Field[] = ['patterns', 'mutedLanes', 'song'];
 
 /**
  * How long a run of edits to one field stays one undo step.

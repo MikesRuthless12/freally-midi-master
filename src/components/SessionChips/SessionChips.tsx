@@ -1,7 +1,8 @@
 import { Link2, Unlink, Volume2, VolumeX, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
-import { useSession } from '../../state/session';
+import { useSession, useActivePattern } from '../../state/session';
+import { useSong } from '../../state/song';
 import type { Scale } from '../../lib/ipc-types';
 import {
   BPM_MAX,
@@ -34,7 +35,19 @@ export function SessionChips() {
   const { t } = useTranslation();
   const selectedId = useSession((s) => s.selectedId);
   const defaults = useSession((s) => s.defaults);
-  const pattern = useSession((s) => s.pattern);
+  const active = useActivePattern();
+  const patterns = useSession((s) => s.patterns);
+  const song = useSong((s) => s.song);
+  // ⛔ **The readout must not blank when the *tab* has nothing.** It used to be
+  // the active tab's clip alone, so clicking Melody before generating it — or
+  // opening Song, which is not a part at all — emptied the key, scale and mood
+  // chips even though the session plainly had all three. The five parts share a
+  // seed, so any loaded one reports the session's key; the arrangement reports
+  // it when no part is loaded. Falling back is truthful rather than a guess.
+  const pattern =
+    active ??
+    Object.values(patterns)[0] ??
+    (song ? { keyRoot: song.keyRoot, scale: song.scale, mood: null } : null);
   const pins = useSession((s) => s.pins);
   const setPin = useSession((s) => s.setPin);
   const hostTempo = useSession((s) => s.hostTempo);

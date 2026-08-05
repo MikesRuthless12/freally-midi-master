@@ -79,7 +79,7 @@ test('key and scale offer the artist’s choice until a beat exists', async ({ p
   await expect(key).toHaveValue('');
   await expect(key.locator('option').first()).toHaveText('The artist’s');
 
-  await page.getByRole('button', { name: 'Generate' }).click();
+  await page.getByRole('button', { name: 'Generate', exact: true }).click();
   await expect(page.getByRole('table', { name: 'Generated pattern' })).toBeVisible();
 
   // ...and afterwards it says which one the artist landed on. The mock

@@ -57,6 +57,37 @@ fn is_pitched(lane: Lane) -> bool {
 /// MIDI channel 10 (index 9) is percussion by GM convention.
 const DRUM_CHANNEL: u8 = 9;
 
+/// The MIDI channel a pitched lane is written on.
+///
+/// ⛔ **Every pitched part used to be written on channel 0, and that is what
+/// made an exported song unusable.** One track per part is only half of a
+/// multi-part file: a great many hosts — FL Studio among them — split an
+/// imported SMF by **channel** rather than by track, so melody, countermelody,
+/// bass and chords all arrived on one instrument playing simultaneously. A bass
+/// line an octave below a lead patch, chords underneath it, and every part's
+/// note-offs cutting the others' held notes on the same key — which is the exact
+/// collision this module's header warns about, arriving through the channel
+/// rather than through the key.
+///
+/// The 808 gets its own rather than riding the drum channel, because it is
+/// pitched: on channel 10 its notes would be read as drum voices and a sliding
+/// 808 line would come out as a rattle of unrelated percussion.
+fn pitched_channel(part: Part, lane: Lane) -> u8 {
+    // The 808 is authored inside the drums part but is a bass instrument, so it
+    // is keyed off the lane rather than the part it travels in.
+    if lane == Lane::Bass808 {
+        return 1;
+    }
+    match part {
+        Part::Melody => 0,
+        Part::Bass => 2,
+        Part::Chords => 3,
+        Part::Counter => 4,
+        // Only `Bass808` is pitched inside the drums part, and it returned above.
+        Part::Drums => 1,
+    }
+}
+
 /// The SMF key signature for a session: accidentals, and whether it is minor.
 ///
 /// Positive counts sharps, negative counts flats — the file format has no way
@@ -171,12 +202,37 @@ fn push_note(
     });
 }
 
-fn events_for(pattern: &Pattern) -> Vec<Event> {
+/// How a file addresses its channels.
+///
+/// ⛔ **A multi-part file and a single-clip file want opposite things.** In a
+/// song, every part shares one file and hosts that split an import by channel
+/// need them separated — that is what `pitched_channel` is for. A stem, or a
+/// single pattern, is *one instrument in its own file*: putting it on channel 3
+/// means a producer whose sampler listens on channel 1 (the default for most
+/// instruments, and for FL's channel-filtered inputs) sees the clip land and
+/// hears nothing.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum Layout {
+    /// Every part in one file — separate them.
+    Song,
+    /// One part in its own file — the pitched lane takes channel 1.
+    Single,
+}
+
+fn events_for(pattern: &Pattern, layout: Layout) -> Vec<Event> {
     let mut events = Vec::new();
 
     for lane in &pattern.lanes {
         let pitched = is_pitched(lane.lane);
-        let channel = if pitched { 0 } else { DRUM_CHANNEL };
+        let channel = match (pitched, layout) {
+            (false, _) => DRUM_CHANNEL,
+            (true, Layout::Song) => pitched_channel(pattern.part, lane.lane),
+            // ⚠ The 808 keeps its own channel even alone, because it travels
+            // inside the *drums* pattern beside unpitched lanes — on channel 10
+            // its slides would be read as unrelated drum voices.
+            (true, Layout::Single) if lane.lane == Lane::Bass808 => 1,
+            (true, Layout::Single) => 0,
+        };
 
         for note in &lane.notes {
             // The clip's own start and end (TASK-041E). A trimmed clip has to
@@ -303,7 +359,7 @@ pub fn pattern_to_smf(pattern: &Pattern) -> Vec<u8> {
     });
 
     let mut last_tick = 0u32;
-    for event in events_for(pattern) {
+    for event in events_for(pattern, Layout::Single) {
         let delta = event.tick.saturating_sub(last_tick);
         last_tick = event.tick;
 
@@ -410,7 +466,7 @@ fn song_events_for(song: &Song, part: Part) -> Vec<Event> {
         // so recomputing it per tile was doing that work up to four times per
         // section for an identical answer, which the outer sort then discarded
         // anyway.
-        let clip_events = events_for(pattern);
+        let clip_events = events_for(pattern, Layout::Song);
 
         for repeat in 0..tiling.repeats {
             let offset = tiling.offset(repeat);
@@ -805,7 +861,7 @@ mod tests {
         // begins. If the off were emitted after the on, the second hit would be
         // silenced immediately.
         let p = tiny(Lane::Kick, vec![note(0, 480, 36), note(480, 480, 36)]);
-        let kinds: Vec<bool> = events_for(&p)
+        let kinds: Vec<bool> = events_for(&p, Layout::Single)
             .iter()
             .filter(|e| e.tick == 480)
             .map(|e| e.is_on)
@@ -918,7 +974,7 @@ mod tests {
     fn a_zero_length_note_still_produces_an_off() {
         // Otherwise the note hangs forever in the DAW.
         let p = tiny(Lane::Kick, vec![note(0, 0, 36)]);
-        let events = events_for(&p);
+        let events = events_for(&p, Layout::Single);
         assert_eq!(events.len(), 2);
         assert!(
             events[1].tick > events[0].tick,
@@ -960,7 +1016,7 @@ mod tests {
             notes: vec![note(240, 480, 0)],
         });
 
-        let events = events_for(&p);
+        let events = events_for(&p, Layout::Single);
         let clap = gm_drum_note(Lane::Clap);
         let snap = gm_drum_note(Lane::Snap);
         assert_ne!(clap, snap);
@@ -994,7 +1050,7 @@ mod tests {
             slide_to_pitch: Some(40),
             articulation: None,
         };
-        let events = events_for(&tiny(Lane::Bass808, vec![slide]));
+        let events = events_for(&tiny(Lane::Bass808, vec![slide]), Layout::Single);
 
         let on = |key: u8| {
             events
@@ -1039,7 +1095,10 @@ mod tests {
             slide_to_pitch: Some(33),
             articulation: None,
         };
-        assert_eq!(events_for(&tiny(Lane::Bass808, vec![flat])).len(), 2);
+        assert_eq!(
+            events_for(&tiny(Lane::Bass808, vec![flat]), Layout::Single).len(),
+            2
+        );
     }
 
     #[test]
@@ -1055,7 +1114,7 @@ mod tests {
             slide_to_pitch: Some(60),
             articulation: None,
         };
-        let events = events_for(&tiny(Lane::Kick, vec![hit]));
+        let events = events_for(&tiny(Lane::Kick, vec![hit]), Layout::Single);
         assert_eq!(events.len(), 2);
         assert!(events.iter().all(|e| e.key == gm_drum_note(Lane::Kick)));
     }

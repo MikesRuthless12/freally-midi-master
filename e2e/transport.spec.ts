@@ -20,10 +20,7 @@ test.beforeEach(async ({ page }) => {
 
   // A pattern has to exist before there is a grid to click.
   await page.locator('.roster__item', { hasText: 'Mock Artist' }).click();
-  await page
-    .getByRole('button', { name: /generate/i })
-    .first()
-    .click();
+  await page.getByRole('button', { name: 'Generate', exact: true }).first().click();
   await expect(page.locator('.grid__track').first()).toBeVisible();
 });
 
