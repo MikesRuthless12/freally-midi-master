@@ -80,8 +80,14 @@ the result into FL Studio, Ableton, Logic, Reaper, or anything else.
   section without touching the rest, and open any clip in its own editor. It
   plays, so the marker is a position through the record rather than through one
   loop.
-- **Audition with your own sounds.** Import `.wav`/`.mp3` one-shots as drum pad
-  voices *or* as pitched instruments with root-note detection.
+- **It makes a sound.** A sampler behind the generators, so every part is audible
+  before anything leaves the plugin — drums, and since the pitched voices landed,
+  melody, countermelody, bassline and chords too. ⚠ *Inside a DAW the host owns
+  the transport*, so press play in your DAW rather than in the plugin window; a
+  preview transport of its own is next.
+- **Audition with your own sounds.** ⚠ *Not built yet.* Importing `.wav`/`.mp3`
+  one-shots as drum pads *or* pitched instruments is the next build — today the
+  preview kit is the synthesized one that ships in the binary.
 - **Edit what you got.** Piano-roll editor and a pad-grid drum sequencer. Lock what
   you like, reroll the rest.
 - **Export.** The whole arranged song as one multi-track Standard MIDI file, or
@@ -93,6 +99,24 @@ the result into FL Studio, Ableton, Logic, Reaper, or anything else.
 - **Unlimited undo/redo.** `Ctrl`/`Cmd`+`Z` steps back through every change —
   artist, seed, bars, pins and each generation — with no depth limit, because an
   undo entry is the inputs rather than the notes.
+
+## The road to 1.0
+
+One build per rung, each landing a whole capability. Nothing ships half-done.
+
+| | |
+|---|---|
+| `v0.3.0` | **Plugin pivot** — CLAP, VST3 and AU; loads in Ableton and FL Studio *(now)* |
+| `v0.4.0` | **Unlimited undo** *(landed)* |
+| `v0.5.0` | **It makes a sound** — sampler, your own one-shots, a transport of its own |
+| `v0.6.0` | **Your sample library** — explorer, preview, drag-to-pad, reverse |
+| `v0.7.0` | **The arrangement, like a DAW** — clips drawn from their notes, drag-out per part |
+| `v0.8.0` | **50 genres, 500 artists** — the full roster, underground beside mainstream |
+| `v0.9.0` | **Polish and hardening** — accessibility, HiDPI, crash safety, cold start |
+| `v1.0.0` | **Downloads open** — every format, all three platforms, the full QA matrix |
+
+⛔ **There is nothing to download until 1.0.** No beta, no preview build. A plugin
+that half-works inside somebody's session is worse than one that is not there.
 
 ## The engine is rule-based, not trained
 

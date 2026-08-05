@@ -40,6 +40,29 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Added
 
+
+- **Each generator keeps its own clip.** The five shared one slot, so generating a
+  bassline destroyed the melody that was there. Every part now has its own, through
+  the undo stack, the project file and the arm path — and a project saved before the
+  change still opens with its hand-edited clip intact.
+- **Generate all** fills every part from **one seed**, which is what makes the five
+  a record rather than five loops in the same key: the engine guarantees they agree
+  only when they share one. A part the style does not have — a bassline in a
+  trap-family model, where the 808 *is* the bass — is skipped rather than failing
+  the run.
+- **Clear**, per generator and for all of them, undoable.
+- **The melodic generators make a sound.** The preview kit carried percussion only,
+  so melody, countermelody, bassline and chords rendered silence — which presents as
+  a broken generator rather than a silent one. `kitgen` now synthesizes four pitched
+  voices: a Karplus–Strong string, an FM bell, a filter-enveloped bass and an FM
+  electric piano, each rooted at the centre of its part's authored register.
+- **Clicking a selected note collapses the selection to it on mouse-up**, the way a
+  DAW does — decided on whether the pointer moved, not on a delta the clamp may have
+  pinned to zero.
+- **The dataset protocol** (`docs/dataset-protocol.md`) and a generated roster
+  ledger, plus five trap-family genre archetypes: dark trap, bouncy trap, trap soul,
+  cloud rap and emo rap.
+
 - **Song Mode: pick an artist, press Generate, and get a whole arrangement.**
   The engine samples one of the artist's own song forms, gives each section its
   bar count, and builds a clip per part per section — then the arrangement view
