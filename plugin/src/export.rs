@@ -124,10 +124,11 @@ impl Exports {
         // the producer then has to work out was always empty — and refusing
         // after they have browsed for a folder is worse than refusing before.
         // It is a note count, not an encode.
-        if !PART_ORDER
-            .into_iter()
-            .any(|part| song.flatten_parts(Some(&[part])).note_count() > 0)
-        {
+        // ⚠ Flattened once, here, and reused below — the first cut walked the
+        // whole arrangement twice, once to ask whether anything played and
+        // again to write it.
+        let parts = song_stem_patterns(&song);
+        if parts.is_empty() {
             return Err("this song plays nothing, so there are no stems to write".to_owned());
         }
 
@@ -137,22 +138,24 @@ impl Exports {
             let Some(root) = rfd::FileDialog::new().pick_folder() else {
                 return Status::Cancelled;
             };
-            let files: Vec<(String, Vec<u8>)> = PART_ORDER
-                .into_iter()
-                .filter_map(|part| {
-                    let flat = song.flatten_parts(Some(&[part]));
-                    // A part nothing plays gets no file. An empty stem is a file
-                    // a producer imports, hears nothing from, and has to work out
-                    // was always empty.
-                    (flat.note_count() > 0).then(|| {
-                        // ⛔ The *engine's* name, so the file on disk and the
-                        // track inside it cannot disagree. A second table here
-                        // put `FMM Melody.mid` on disk with `trap — Drums` in it.
-                        (
-                            format!("{}.mid", engine::midi::part_track_name(part)),
-                            engine::midi::pattern_to_smf(&flat),
-                        )
-                    })
+            let files: Vec<(String, Vec<u8>)> = parts
+                .iter()
+                .map(|flat| {
+                    // ⛔ The *engine's* name, so the file on disk and the track
+                    // inside it cannot disagree. A second table here put
+                    // `FMM Melody.mid` on disk with `trap — Drums` in it.
+                    //
+                    // ⚠ **Deliberately not [`stem_name`], which is what the
+                    // drag-out uses.** These land in a folder already named for
+                    // the artist and the seed, so repeating both in every file
+                    // name is noise; a dragged file arrives with no folder
+                    // around it and has to say what it is on its own. The
+                    // *patterns* are shared — see [`song_stem_patterns`] — and
+                    // only the label differs.
+                    (
+                        format!("{}.mid", engine::midi::part_track_name(flat.part)),
+                        engine::midi::pattern_to_smf(flat),
+                    )
                 })
                 .collect();
             write_stems(&root.join(&stem_dir), &files)
@@ -200,11 +203,12 @@ impl Exports {
         split_lanes: bool,
         kit: Option<Arc<crate::audio::kit::Kit>>,
     ) -> Result<(), String> {
-        let patterns = if split_lanes {
-            patterns.iter().flat_map(per_lane).collect()
-        } else {
-            patterns
-        };
+        // ⚠ **The lane split is [`stem_files`]'s, not this function's.** It used
+        // to happen here, which meant "split into lanes" and "name the file
+        // after the lane" lived in two places a caller had to get right
+        // together — and the drag-out (TASK-063C) is a second caller that would
+        // have had to get them right again. Splitting cannot change the total
+        // note count, so the emptiness refusal below is unaffected by the move.
         if patterns.iter().all(|p| p.note_count() == 0) {
             return Err("these parts play nothing, so there are no stems to write".to_owned());
         }
@@ -237,24 +241,15 @@ impl Exports {
             let Some(root) = rfd::FileDialog::new().pick_folder() else {
                 return Status::Cancelled;
             };
-            let files: Vec<(String, Vec<u8>)> = patterns
-                .iter()
-                .filter(|pattern| pattern.note_count() > 0)
-                .filter_map(|pattern| {
-                    let stem = stem_name(pattern, split_lanes);
-                    match &kit {
-                        Some(kit) => crate::audio::render::to_stereo(pattern, kit).map(|samples| {
-                            (
-                                format!("{stem}.wav"),
-                                crate::audio::render::to_wav(&samples),
-                            )
-                        }),
-                        None => {
-                            Some((format!("{stem}.mid"), engine::midi::pattern_to_smf(pattern)))
-                        }
-                    }
-                })
-                .collect();
+            let files = stem_files(
+                &patterns,
+                if split_lanes {
+                    Cut::EveryLane
+                } else {
+                    Cut::Parts
+                },
+                kit.as_deref(),
+            );
 
             if files.is_empty() {
                 return Status::Failed {
@@ -327,6 +322,137 @@ fn run_dialog(claim: Claim, job: impl FnOnce() -> Status + Send + 'static) {
 /// A value rather than a bare `Arc` so `run_dialog` cannot be called without
 /// having claimed first — the type is what makes the pair inseparable.
 struct Claim(Arc<Mutex<Status>>);
+
+/// The files a set of patterns becomes: a name and its bytes, one per part or
+/// one per lane.
+///
+/// ⛔ **The one place that turns patterns into named bytes**, and it is shared
+/// rather than copied because the drag-out (TASK-063C) needs exactly the same
+/// answer as the export does. A producer who drags a hi-hat loop into Ableton
+/// and then exports the same loop to a folder must get the same file with the
+/// same name in it; two implementations of that is how they stop agreeing.
+///
+/// `kit` is `Some` for audio and `None` for MIDI. ⚠ It is the kit that is
+/// **playing**, resolved by the caller — see [`Exports::start_pattern_stems`]
+/// for why passing it is not optional.
+pub(crate) fn stem_files(
+    patterns: &[Pattern],
+    cut: Cut,
+    kit: Option<&crate::audio::kit::Kit>,
+) -> Vec<(String, Vec<u8>)> {
+    let split;
+    let patterns = match cut {
+        Cut::Parts => patterns,
+        Cut::EveryLane => {
+            split = patterns.iter().flat_map(per_lane).collect::<Vec<_>>();
+            &split[..]
+        }
+        Cut::OneLane(lane) => {
+            split = patterns
+                .iter()
+                .flat_map(per_lane)
+                .filter(|one| one.lanes.first().is_some_and(|track| track.lane == lane))
+                .collect::<Vec<_>>();
+            &split[..]
+        }
+    };
+    let by_lane = !matches!(cut, Cut::Parts);
+    let mut taken = std::collections::BTreeSet::new();
+    patterns
+        .iter()
+        // A part nothing plays gets no file — the rule `start_song_stems`
+        // already follows, for the same reason: an empty stem is one a producer
+        // imports, hears nothing from, and has to work out was always empty.
+        .filter(|pattern| pattern.note_count() > 0)
+        .filter_map(|pattern| {
+            // ⛔ **The name is reserved only once a file really exists.** The
+            // reservation used to run ahead of the render, so a pattern whose
+            // lane the kit cannot play — `to_stereo` answers `None` and nothing
+            // is written — still consumed its name, and the next identical
+            // pattern came out as `… (2).wav` with no `(1)` anywhere. That reads
+            // as an overwrite that never happened.
+            let stem = stem_name(pattern, by_lane);
+            match kit {
+                Some(kit) => crate::audio::render::to_stereo(pattern, kit).map(|samples| {
+                    (
+                        format!("{}.wav", distinct(&mut taken, stem)),
+                        crate::audio::render::to_wav(&samples),
+                    )
+                }),
+                None => Some((
+                    format!("{}.mid", distinct(&mut taken, stem)),
+                    engine::midi::pattern_to_smf(pattern),
+                )),
+            }
+        })
+        .collect()
+}
+
+/// `name`, or `name (2)` if an earlier file in this batch already took it.
+///
+/// ⚠ The extension is added by the caller, so this numbers the *stem* — which
+/// is also the readable place for it: `trap - Drums - 140 BPM - C Minor (2).mid`
+/// rather than `… .mid (2)`.
+///
+/// ⛔ **The search is unbounded, and the bound it used to have was reasoning
+/// about the wrong quantity.** `check_patterns` caps how many *patterns* may
+/// arrive, but `Cut::EveryLane` multiplies that by a lane count nothing bounds
+/// — and `lanes` is a `Vec` that may repeat the same `Lane`. A project file
+/// with five patterns of twenty identical lanes yields a hundred stems all
+/// naming themselves the same thing; a cap of 64 uniquified the first 64 and
+/// then handed the bare name back for the rest, so they overwrote each other
+/// and the drop target received the same file thirty-six times. That is the
+/// exact failure the suffix exists to prevent, one step past the cap.
+fn distinct(taken: &mut std::collections::BTreeSet<String>, name: String) -> String {
+    if taken.insert(name.clone()) {
+        return name;
+    }
+    // Terminates because `taken` grows by one on every successful insert, so
+    // some `nth` is always free.
+    for nth in 2.. {
+        let candidate = format!("{name} ({nth})");
+        if taken.insert(candidate.clone()) {
+            return candidate;
+        }
+    }
+    unreachable!("a free suffix always exists")
+}
+
+/// How a set of patterns is carved into files.
+///
+/// ⛔ **A cut is both halves at once — which patterns become files *and* what
+/// those files are called.** They were separable when only the export called
+/// [`stem_files`], and the drag-out is what made the pair worth naming: the
+/// page used to slice a single lane out for itself and pass "split by lane",
+/// which meant "what a lane stem is" was implemented on both sides of the
+/// bridge. It is one thing here now, and the page names a lane instead.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub(crate) enum Cut {
+    /// One file per pattern, named for its part.
+    Parts,
+    /// One file per lane, each named for its lane.
+    EveryLane,
+    /// Just this lane — *"i can just drag the hihats out"*.
+    OneLane(engine::pattern::Lane),
+}
+
+/// The parts of an arrangement that become files, one flattened pattern each.
+///
+/// ⛔ **Shared by the song export and the song drag-out, because they had this
+/// loop twice and it is the loop that decides what a producer gets.** Every
+/// pattern is the whole timeline with one part in it, so dropping them all at
+/// bar 1 reassembles the arrangement — that property is what makes the split
+/// safe to offer, and it belongs in one place.
+///
+/// ⚠ **A part nothing plays gets no pattern**, so neither caller writes a file
+/// a producer imports and hears nothing from.
+pub(crate) fn song_stem_patterns(song: &Song) -> Vec<Pattern> {
+    PART_ORDER
+        .into_iter()
+        .map(|part| song.flatten_parts(Some(&[part])))
+        .filter(|flat| flat.note_count() > 0)
+        .collect()
+}
 
 /// What a stem is called on disk (TASK-131F).
 ///
@@ -406,14 +532,24 @@ fn safe_file_name(name: &str) -> String {
 /// drum generator; only the *name* is the lane's. Rewriting `part` would make
 /// `pattern_to_smf` write a track name that disagrees with the file name, which
 /// is the exact bug the naming comment above records.
+///
+/// ⚠ **The empty base is cloned, not the whole pattern.** `..pattern.clone()`
+/// per lane deep-copies every lane's notes and then throws all but one away —
+/// eight lanes' worth allocated and dropped to produce one, eight times over.
+/// It never mattered while this ran once behind a Save As dialog; the drag-out
+/// runs it on a gesture.
 fn per_lane(pattern: &Pattern) -> Vec<Pattern> {
+    let base = Pattern {
+        lanes: Vec::new(),
+        ..pattern.clone()
+    };
     pattern
         .lanes
         .iter()
         .filter(|track| !track.notes.is_empty())
         .map(|track| Pattern {
             lanes: vec![track.clone()],
-            ..pattern.clone()
+            ..base.clone()
         })
         .collect()
 }
@@ -434,21 +570,30 @@ fn write(path: &Path, bytes: &[u8]) -> Status {
 /// by hand, and it makes "which of these go together" unanswerable once a
 /// second song is exported.
 fn write_stems(dir: &Path, files: &[(String, Vec<u8>)]) -> Status {
-    if let Err(error) = std::fs::create_dir_all(dir) {
-        return Status::Failed {
-            reason: format!("could not create {}: {error}", dir.display()),
-        };
+    match spill(dir, files) {
+        Ok(_) => Status::Done {
+            path: dir.display().to_string(),
+        },
+        Err(reason) => Status::Failed { reason },
     }
-    for (name, bytes) in files {
-        if let Err(error) = std::fs::write(dir.join(name), bytes) {
-            return Status::Failed {
-                reason: format!("could not write {name}: {error}"),
-            };
-        }
-    }
-    Status::Done {
-        path: dir.display().to_string(),
-    }
+}
+
+/// Write every file into `dir`, and answer with where each one landed.
+///
+/// ⛔ **Shared with the drag-out (TASK-063C), which needs the paths rather than
+/// a `Status`.** The two had the same body and the same two error strings; the
+/// only difference was what they returned, so the split is at the return rather
+/// than at the loop.
+pub(crate) fn spill(dir: &Path, files: &[(String, Vec<u8>)]) -> Result<Vec<PathBuf>, String> {
+    std::fs::create_dir_all(dir).map_err(|e| format!("could not create {}: {e}", dir.display()))?;
+    files
+        .iter()
+        .map(|(name, bytes)| {
+            let path = dir.join(name);
+            std::fs::write(&path, bytes).map_err(|e| format!("could not write {name}: {e}"))?;
+            Ok(path)
+        })
+        .collect()
 }
 
 /// Make sure the file really is a `.mid`.
@@ -740,5 +885,88 @@ mod stem_name_tests {
             assert_eq!(one.time_sig_num, source.time_sig_num);
             assert_eq!(one.ppq, source.ppq);
         }
+    }
+
+    /// A drum pattern with a kick, an empty snare and a hat.
+    fn three_lanes() -> Pattern {
+        let mut source = pattern(Lane::Kick, "trap");
+        source.lanes.push(LaneTrack {
+            lane: Lane::Snare,
+            notes: vec![],
+        });
+        source.lanes.push(LaneTrack {
+            lane: Lane::ClosedHat,
+            notes: source.lanes[0].notes.clone(),
+        });
+        source
+    }
+
+    #[test]
+    fn splitting_by_lane_names_every_file_after_its_own_lane() {
+        // ⛔ This is the "drag just the hihats out" case, and the names are the
+        // whole point of it: `FMM Drums` three times over is three files a
+        // producer cannot tell apart.
+        let files = stem_files(&[three_lanes()], Cut::EveryLane, None);
+        let names: Vec<&str> = files.iter().map(|(name, _)| name.as_str()).collect();
+        assert_eq!(
+            names,
+            [
+                "trap - Kick - 140 BPM - C# Minor.mid",
+                "trap - ClosedHat - 140 BPM - C# Minor.mid",
+            ],
+            "the empty snare lane must get no file at all"
+        );
+    }
+
+    #[test]
+    fn without_the_split_the_whole_part_is_one_file_named_for_the_part() {
+        let files = stem_files(&[three_lanes()], Cut::Parts, None);
+        let names: Vec<&str> = files.iter().map(|(name, _)| name.as_str()).collect();
+        assert_eq!(names, ["trap - Drums - 140 BPM - C# Minor.mid"]);
+    }
+
+    #[test]
+    fn two_patterns_that_would_share_a_name_get_two_files() {
+        // ⛔ Same artist, same part, same tempo, same key — so `stem_name`
+        // answers the same thing twice. Without the de-collision the second
+        // overwrites the first *and both paths are handed to the drop target*,
+        // so a producer who asked for two clips gets one of them twice. The UI
+        // does not produce this; a project file can.
+        let one = pattern(Lane::Kick, "trap");
+        let two = pattern(Lane::Kick, "trap");
+        let files = stem_files(&[one, two], Cut::Parts, None);
+        let names: Vec<&str> = files.iter().map(|(name, _)| name.as_str()).collect();
+        assert_eq!(
+            names,
+            [
+                "trap - Drums - 140 BPM - C# Minor.mid",
+                "trap - Drums - 140 BPM - C# Minor (2).mid",
+            ]
+        );
+    }
+
+    #[test]
+    fn a_part_that_plays_nothing_gets_no_file_rather_than_a_silent_one() {
+        // An empty stem is one a producer imports, hears nothing from, and has
+        // to work out was always empty.
+        let mut silent = pattern(Lane::Kick, "trap");
+        silent.lanes[0].notes.clear();
+        assert!(stem_files(&[silent], Cut::Parts, None).is_empty());
+    }
+
+    #[test]
+    fn the_audio_half_writes_a_wav_our_own_reader_accepts() {
+        // ⛔ The claim TASK-069 could not make, and the one the drag-out rests
+        // on: the melodic parts render audibly rather than silently. If this
+        // ever regresses, a drag would hand the DAW a file of zeros.
+        let kit = crate::audio::preview_kit().expect("the shipped kit must load");
+        let files = stem_files(&[pattern(Lane::Snare, "trap")], Cut::EveryLane, Some(kit));
+        let (name, bytes) = files.first().expect("a snare must render");
+        assert_eq!(name, "trap - Snare - 140 BPM - C# Minor.wav");
+        let decoded = crate::audio::kit::decode_wav(bytes).expect("our own WAV must decode");
+        assert!(
+            decoded.samples.iter().any(|s| s.abs() > 0.01),
+            "the rendered stem is silent"
+        );
     }
 }

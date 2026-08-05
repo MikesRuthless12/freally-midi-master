@@ -262,6 +262,14 @@ pub struct Shared {
     /// `take_status` is destructive — a shared slot means one instance's poll
     /// steals another's result. `crate::export::Exports` has the full write-up.
     pub exports: crate::export::Exports,
+    /// The one prepared drag-out and its spooled files (TASK-063C).
+    ///
+    /// ⛔ **Per instance for the same reason `exports` is, and the consequence
+    /// is worse here.** A shared slot would let instance B's `drag_start` hand
+    /// the OS the files instance A prepared — the producer drops a loop from
+    /// one track and gets a different track's loop, with nothing anywhere
+    /// saying so.
+    pub drags: crate::drag::Drags,
     /// The id of the clip the editor last handed over.
     ///
     /// ⛔ **`Schedule::arm`'s own resume path cannot work without this.** That
@@ -362,6 +370,7 @@ impl Shared {
             kits: Arc::new(KitHandoff::default()),
             one_shots: crate::oneshot::OneShots::default(),
             exports: crate::export::Exports::default(),
+            drags: crate::drag::Drags::default(),
             armed_clip: Mutex::new(None),
             session,
             resize_request: AtomicU64::new(0),

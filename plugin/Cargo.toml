@@ -27,6 +27,57 @@ crate-type = ["cdylib", "lib"]
 [target.'cfg(windows)'.build-dependencies]
 winresource = "=0.1.31"
 
+# The Windows half of the drag-out (TASK-063C / FMM-S03). See `plugin/src/drag`.
+#
+# ⛔ **Not a new crate in the build.** `wry` already pulls `windows` 0.61
+# through `webview2-com`, so this unifies with the copy that is here rather
+# than adding one — the reason `windows_pump` in the vendored adapter declared
+# its two `user32` functions by hand no longer applies once the crate is in the
+# graph regardless.
+#
+# ⚠ **`windows::core::implement` is why this is the `windows` crate and not two
+# more `extern "system"` declarations.** `IDropSource` has to be a real COM
+# object, and hand-rolled vtables with hand-rolled reference counting run
+# **inside Ableton's process** — a refcount slip there is a use-after-free in
+# somebody else's DAW. The generated implementation is the safe half of a job
+# whose unsafe half is unavoidable. (It needs no feature flag: the macro comes
+# through `windows-core`, which is always present.)
+#
+# MIT OR Apache-2.0, already on `deny.toml`'s allowlist, and it links no HTTP
+# client, so `scripts/check-denylist.mjs` is unaffected.
+[target.'cfg(windows)'.dependencies.windows]
+version = "0.61"
+features = [
+    "Win32_Foundation",
+    # The drag image is a 32-bit DIB section the shell's drag helper blends.
+    "Win32_Graphics_Gdi",
+    "Win32_System_Com",
+    # ⛔ **`STGMEDIUM` and `STGMEDIUM_0` are gated on this**, and `drag/windows.rs`
+    # constructs both by hand. Neither `Win32_System_Com` nor `Win32_System_Ole`
+    # implies it. The build worked without it only because `wry` happens to
+    # enable it and Cargo unifies features — so a `wry` bump that dropped it, or
+    # any configuration without `wry` in the graph, would have broken the one
+    # platform this feature ships on, from an unrelated dependency change.
+    "Win32_System_Com_StructuredStorage",
+    "Win32_System_Memory",
+    "Win32_System_Ole",
+    "Win32_System_SystemServices",
+    "Win32_UI_Input_KeyboardAndMouse",
+    "Win32_UI_Shell",
+    "Win32_UI_Shell_Common",
+]
+
+# ⚠ **Named, because `#[implement]` expands to absolute `::windows_core::`
+# paths** — the macro cannot be used without the crate being in scope under
+# that exact name, and a `use windows::core as windows_core` alias does not
+# satisfy an absolute path. It resolves to the same 0.61.2 `windows` 0.61.3
+# already depends on, so this adds a name to the manifest and nothing to the
+# build. ⛔ Keep the two in step: a `windows` bump that moves `windows-core`
+# with it will produce a second copy and the macro will fail on a trait bound
+# from "a different version of the same crate", which reads as nonsense.
+[target.'cfg(windows)'.dependencies.windows-core]
+version = "0.61"
+
 [dependencies]
 engine = { path = "../engine" }
 serde = { version = "1", features = ["derive"] }

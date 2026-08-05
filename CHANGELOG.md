@@ -13,6 +13,28 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 ## [Unreleased]
 
 ### Added
+- **Drag a part straight out of the plugin and onto a DAW track
+  (TASK-063C / FMM-S03).** Mike, 2026-08-05: *"you need to be able to drag each
+  generator's midi or audio from the generator to the DAW and ensure it shows a
+  preview of what you are dragging"* … *"same with the song arrangement"*. Every
+  generated part has a **MIDI** and an **Audio** handle in the right rail; with
+  **Per lane** on, the drum part becomes one handle per lane, so just the hats
+  or just the snares can go out on their own. The whole arrangement drags too.
+  Files carry the name a producer would give them —
+  `trap - Snare - 140 BPM - C# Minor` — and a picture of the clip's own notes
+  rides on the cursor the whole way into the DAW.
+  - ⛔ **Windows only for now, and the plugin says so rather than pretending.**
+    macOS needs `NSFilePromiseProvider` and Linux needs XDND; neither is
+    written, so on those platforms no drag handle is drawn at all and Export
+    stays the route. A handle that drops nothing is worse than no handle — the
+    producer blames their DAW.
+  - ⚠ **An arrangement drags as MIDI.** A song is minutes long, and rendering
+    one to audio needs progress a producer can watch and a cancel they can
+    press; that is what Export is for.
+  - ⚠ Dropped files are spooled to your temp folder. **MIDI is copied into your
+    project by every DAW, so those are swept after a week — audio is
+    *referenced* by path, so those are never deleted.** Use your DAW's Collect
+    All and Save to keep a dropped loop for good.
 - **The drum grid is an editor (TASK-131G).** It was read-only and its own
   header said so. Click a cell to place a hit or clear it; **Alt+click** clones
   the previous bar of that lane; **Ctrl+2 … Ctrl+9** turn a cell into a tuplet —
@@ -25,8 +47,10 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   One file per part, or **one per lane** — so just the hats, or just the snares.
   Files are named the way a producer would name them:
   `trap - Snare - 140 BPM - C# Minor`.
-  ⚠ Export, not drag: an HTML5 drag inside a webview is not an OS file drag, so
-  dragging into the DAW still needs a native drag source (TASK-063C/FMM-S03).
+  ⚠ This is the *export* half — writing the files into a folder you pick. The
+  drag half landed alongside it (TASK-063C above) and shares the same naming
+  and the same bytes, deliberately: a loop you drag and the same loop you
+  export must be the same file.
 - **Every genre has its own harmony (TASK-040).** Twelve genres inherited their
   chords from `_defaults` wholesale and all reached exactly 121 distinct chord
   parts in 200 seeds. Each now authors its own progression families, harmonic

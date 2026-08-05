@@ -298,6 +298,8 @@
     "audio": "Audio",
     "perLane": "Per jalur",
     "hint": "Menulis setiap bagian yang dihasilkan ke berkasnya sendiri.",
-    "choosing": "Pilih sebuah folder…"
+    "choosing": "Pilih sebuah folder…",
+    "dragHint": "Seret satu bagian langsung ke track di DAW kamu.",
+    "preparing": "Sedang disiapkan…"
   }
 }

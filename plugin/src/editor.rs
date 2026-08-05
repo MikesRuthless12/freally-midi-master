@@ -462,41 +462,7 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
                 let patterns: Vec<Pattern> =
                     Vec::<engine::pattern::Pattern>::deserialize(&request.args["patterns"])
                         .map_err(|e| format!("bad patterns: {e}"))?;
-                if patterns.is_empty() {
-                    return Err("there is nothing generated to export".to_owned());
-                }
-                // ⛔ Bounded before anything is rendered, for the reason
-                // `check_song` exists: a `Pattern` arrives as JSON from the webview,
-                // so its bar count and tempo are whatever that JSON said, and
-                // rendering audio allocates a buffer sized from both.
-                // ⛔ A cap on the COUNT as well as on each one. `check_song` exists
-                // because "an axis-at-a-time bound cannot see what happens when the
-                // legal maxima are combined", and this reproduced only the bars
-                // half — `start_pattern_stems` then holds every rendered stem in
-                // memory at once, so the product is what matters.
-                if patterns.len() > engine::pattern::PART_ORDER.len() {
-                    return Err(format!(
-                        "{} parts is more than a pattern has",
-                        patterns.len()
-                    ));
-                }
-                for pattern in &patterns {
-                    // A meter of 0/0 divides the tick arithmetic by nothing and a
-                    // huge numerator multiplies the render length; both are the
-                    // same class `check_song` bounds for a song.
-                    if pattern.time_sig_num == 0 || pattern.time_sig_num > 32 {
-                        return Err("that meter is outside what can be exported".to_owned());
-                    }
-                    if pattern.time_sig_den == 0 || !pattern.time_sig_den.is_power_of_two() {
-                        return Err("that meter is outside what can be exported".to_owned());
-                    }
-                    if pattern.bars == 0 || pattern.bars > crate::bridge::MAX_BARS {
-                        return Err(format!(
-                            "a pattern of {} bars is outside what can be exported",
-                            pattern.bars
-                        ));
-                    }
-                }
+                crate::bridge::check_patterns(&patterns)?;
                 let audio = request.args["audio"].as_bool().unwrap_or(false);
                 let lanes = request.args["lanes"].as_bool().unwrap_or(false);
                 let first = &patterns[0];
@@ -517,6 +483,139 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
             return Some(
                 serde_json::to_value(shared.one_shots.take_status()).map_err(|e| e.to_string()),
             );
+        }
+
+        // ---- Dragging a part out into the DAW (TASK-063C / FMM-S03) --------
+        //
+        // ⛔ **Three commands, not one, and `crate::drag`'s header explains the
+        // split in full.** Rendering eight lanes of audio on the frame the page
+        // is waiting on is exactly the stall `export.rs` exists to avoid, so
+        // `drag_prepare` returns immediately, the page polls `drag_status`, and
+        // only `drag_start` — cheap once the bytes are on disk — enters the
+        // platform's modal drag loop.
+
+        // Whether this build, in this shell, can start an OS file drag.
+        //
+        // ⛔ **Here rather than on `app_info`, because it needs `shared`.** The
+        // answer is not just "which OS" — the standalone pumps its own message
+        // queue, so a drag there re-enters baseview's window procedure and
+        // aborts the process. `crate::drag::supported_in` is where that rule
+        // lives and this is the only thing that asks it.
+        "drag_supported" => {
+            return Some(Ok(
+                json!({ "supported": crate::drag::supported_in(shared.standalone) }),
+            ));
+        }
+
+        // Render and spool what is about to be dragged.
+        //
+        // ⚠ **Checked exactly as the equivalent export is**, and with the same
+        // function: these arrive as JSON from the webview through the same
+        // door, and this path renders audio from their bar count and meter just
+        // as that one does.
+        "drag_prepare" => {
+            return Some((|| -> Result<Value, String> {
+                let args = DragArgs::deserialize(&request.args)
+                    .map_err(|e| format!("bad drag request: {e}"))?;
+                // ⛔ The kit that is PLAYING, exactly as the export resolves it:
+                // a producer who assigned their own snare must drag out the one
+                // they heard, not the shipped one.
+                let kit = if args.audio {
+                    let kit = shared.current_kit();
+                    if kit.is_none() {
+                        return Err(
+                            "the preview kit did not load, so there is no audio to drag".to_owned()
+                        );
+                    }
+                    kit
+                } else {
+                    None
+                };
+
+                // ⚠ **A song travels as a song.** Flattening it is what makes
+                // every part the whole timeline with one part in it — the
+                // property that lets a producer drop all of them at bar 1 and
+                // get the arrangement back — and it happens on the spooling
+                // thread rather than here. See `drag::Subject`: doing it here
+                // walked the whole record five times on the thread the DAW
+                // draws its editor from, for every press of the chip.
+                let subject = match args.song {
+                    Some(song) => {
+                        if args.audio {
+                            // ⛔ A song is minutes long, and rendering one to
+                            // audio needs progress a producer can watch and a
+                            // cancel they can press — which is what Export is.
+                            return Err("a whole arrangement drags out as MIDI — render audio \
+                                        stems from Export instead"
+                                .to_owned());
+                        }
+                        // ⛔ **`check_song`, NOT `check_patterns`.** A flattened
+                        // arrangement is as long as the arrangement, and
+                        // `MAX_BARS` bounds the four- or eight-bar loop on
+                        // screen — running it over a song would refuse any
+                        // record past 128 bars, which is most of them.
+                        crate::bridge::check_song_for_export(&song)?;
+                        crate::drag::Subject::Song(song)
+                    }
+                    None => {
+                        crate::bridge::check_patterns(&args.patterns)?;
+                        crate::drag::Subject::Patterns {
+                            patterns: args.patterns,
+                            // ⚠ **The plugin cuts, not the page.** The page used
+                            // to slice a lane out of the pattern itself and ask
+                            // for "split by lane", which put "what a lane stem
+                            // is" on both sides of the bridge.
+                            cut: match (args.lane, args.lanes) {
+                                (Some(lane), _) => crate::export::Cut::OneLane(lane),
+                                (None, true) => crate::export::Cut::EveryLane,
+                                (None, false) => crate::export::Cut::Parts,
+                            },
+                        }
+                    }
+                };
+                shared
+                    .drags
+                    .prepare(subject, kit, shared.standalone)
+                    .map(|()| Value::Null)
+            })());
+        }
+
+        "drag_status" => {
+            return Some(serde_json::to_value(shared.drags.status()).map_err(|e| e.to_string()));
+        }
+
+        // ⛔ **This one blocks for the whole gesture**, and that is not a bug to
+        // fix later: `DoDragDrop` owns a modal loop and has to run on the thread
+        // the drag started from, which is the thread answering this call. The
+        // page's `fetch` stays outstanding until the producer lets go, which is
+        // correct — there is nothing for it to do in the meantime.
+        "drag_start" => {
+            return Some((|| -> Result<Value, String> {
+                // What rides on the cursor (Mike: "ensure it shows a preview of
+                // what you are dragging"). ⚠ **Optional on every path** — a drag
+                // with no picture still moves the file, and refusing one because
+                // the page could not draw would trade the feature for the
+                // decoration.
+                //
+                // ⛔ **Here, not on `drag_prepare`.** Prepare runs on every
+                // press, including the ones that are ordinary clicks, and this
+                // is ~96 KB of pixels through JSON each time.
+                let preview = Option::<PreviewArgs>::deserialize(&request.args["preview"])
+                    .map_err(|e| format!("bad drag image: {e}"))?
+                    .map(PreviewArgs::decode)
+                    .transpose()?;
+                shared
+                    .drags
+                    .start(preview)
+                    .and_then(|dropped| serde_json::to_value(dropped).map_err(|e| e.to_string()))
+            })());
+        }
+
+        // A `mousedown` that never became a drag. Without this the next drag
+        // would start from a stale selection.
+        "drag_cancel" => {
+            shared.drags.cancel();
+            return Some(Ok(Value::Null));
         }
 
         _ => {}
@@ -709,6 +808,52 @@ pub fn create(shared: SharedState) -> Option<Box<dyn Editor>> {
 /// on no tick at all. The page already loads over this protocol, which is what
 /// makes it the proven path rather than the second guess.
 const RPC_PATH: &str = "__rpc";
+
+/// What the page sends to start preparing a drag (TASK-063C).
+///
+/// ⛔ **A struct, like every other structured argument here** — `GenerateArgs`,
+/// `ArmSongArgs`, `RerollArgs`. The first cut read these fields off the raw
+/// `Value` with `as_bool().unwrap_or(false)` and `as_u64().unwrap_or(0)`, which
+/// turns a renamed field into a silent default: a `lanes` the page spelled
+/// differently would have exported per part while the UI said per lane, and
+/// said nothing. Deserializing names the field that is wrong.
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct DragArgs {
+    #[serde(default)]
+    patterns: Vec<Pattern>,
+    /// Present when the whole arrangement is being dragged.
+    #[serde(default)]
+    song: Option<Box<engine::pattern::Song>>,
+    #[serde(default)]
+    audio: bool,
+    /// One file per lane rather than per part.
+    #[serde(default)]
+    lanes: bool,
+    /// Just this one lane — *"i can just drag the hihats out"*.
+    #[serde(default)]
+    lane: Option<engine::pattern::Lane>,
+}
+
+/// The drag image, as the page's canvas produced it.
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct PreviewArgs {
+    width: u32,
+    height: u32,
+    /// Straight RGBA, base64. ⚠ Untrusted: see [`crate::drag::Preview::new`].
+    rgba: String,
+}
+
+impl PreviewArgs {
+    fn decode(self) -> Result<crate::drag::Preview, String> {
+        crate::drag::Preview::new(
+            self.width,
+            self.height,
+            crate::drag::from_base64(&self.rgba)?,
+        )
+    }
+}
 
 /// Serve one file out of the compiled-in frontend, or answer a command.
 ///

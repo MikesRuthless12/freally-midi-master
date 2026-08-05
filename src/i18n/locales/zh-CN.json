@@ -298,6 +298,8 @@
     "audio": "音频",
     "perLane": "按轨道",
     "hint": "将每个生成的声部写入各自的文件。",
-    "choosing": "请选择文件夹…"
+    "choosing": "请选择文件夹…",
+    "dragHint": "把某个部分直接拖到你的 DAW 轨道上。",
+    "preparing": "正在准备…"
   }
 }

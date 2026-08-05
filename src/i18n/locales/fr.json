@@ -298,6 +298,8 @@
     "audio": "Audio",
     "perLane": "Par piste",
     "hint": "Écrit chaque partie générée dans son propre fichier.",
-    "choosing": "Choisissez un dossier…"
+    "choosing": "Choisissez un dossier…",
+    "dragHint": "Glissez une partie directement sur une piste de votre STAN.",
+    "preparing": "Préparation…"
   }
 }

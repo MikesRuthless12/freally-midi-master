@@ -91,10 +91,15 @@ the result into FL Studio, Ableton, Logic, Reaper, or anything else.
 - **Edit what you got.** Piano-roll editor and a pad-grid drum sequencer. Lock what
   you like, reroll the rest.
 - **Export.** The whole arranged song as one multi-track Standard MIDI file, or
-  one file per part into a folder, through your platform's own Save As. ⚠ *Drag*
-  out to the desktop is not built yet: an HTML5 drag inside a plugin's webview is
-  not an operating-system file drag, and rendered audio waits on the pitched
-  instrument voices.
+  one file per part into a folder, through your platform's own Save As.
+- **Drag it out.** Pick a part up and drop it straight onto a DAW track, as MIDI
+  or as audio — or turn on **Per lane** and drag just the hats out. The whole
+  arrangement drags too. Files arrive named the way you would name them
+  (`trap - Snare - 140 BPM - C# Minor`), and the clip's own notes ride on the
+  cursor so you can see what you picked up. ⚠ **Windows only so far.** An HTML5
+  drag inside a plugin's webview is not an operating-system file drag, so this
+  needs a native drag source per platform; macOS and Linux keep Export until
+  theirs is written, and show no drag handle rather than one that does nothing.
 - **Reproducible.** Every generation has a seed. Copy it, paste it, get it back.
 - **Unlimited undo/redo.** `Ctrl`/`Cmd`+`Z` steps back through every change —
   artist, seed, bars, pins and each generation — with no depth limit, because an

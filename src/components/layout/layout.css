@@ -635,6 +635,67 @@
   color: var(--color-text);
 }
 
+/* Drag-out (TASK-063C). One row per thing that can be picked up, each with the
+   formats it can be dropped as. Rendered only where a native drag source
+   exists — see `DragRows`. */
+.drag {
+  margin-top: var(--space-3);
+}
+
+.drag__list {
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.drag__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.drag__label {
+  flex: 1;
+  color: var(--color-text-2);
+  font-family: var(--font-ui);
+  font-size: var(--text-micro);
+  /* A lane name that does not fit truncates rather than wrapping the row onto
+     two lines — the rail is narrow and a two-line row reads as two rows. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.drag__chip {
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-2);
+  color: var(--color-text-3);
+  font-family: var(--font-ui);
+  font-size: var(--text-micro);
+  /* ⛔ `grab`, not `pointer`. This is picked up, not pressed, and the cursor is
+     the only thing that says so before the producer tries it. */
+  cursor: grab;
+  /* ⛔ **Both are load-bearing on a drag source.** Without them the webview
+     starts its own text selection or panning gesture on `pointerdown`, which
+     eats the pointer stream `DragChip` needs and swallows the drag. */
+  user-select: none;
+  touch-action: none;
+}
+
+.drag__chip:hover {
+  border-color: var(--color-primary);
+  color: var(--color-text);
+}
+
+.drag__chip:active {
+  cursor: grabbing;
+}
+
 /* The folder that was written. Mono, because it is a path. */
 .stems__done {
   margin: var(--space-2) 0 0;

@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
+import { DragRows } from './DragRows';
 import { useSession } from '../../state/session';
 import { useStems } from '../../state/stems';
 
@@ -68,6 +69,13 @@ export function StemsPanel() {
       >
         {t('stems.perLane')}
       </button>
+
+      {/* ⛔ **Below the Export buttons, not instead of them** (TASK-063C). The
+          drag is the headline where there is a native drag source and renders
+          nothing at all where there is not, and Export stays either way — it is
+          the only route on macOS and Linux, and it is still the right one for
+          "put these files in a folder I choose". */}
+      <DragRows />
 
       {busy && <p className="kit-hint">{t('stems.choosing')}</p>}
       {/* ⚠ `cancelled` says nothing, deliberately: closing the folder picker is

@@ -298,6 +298,8 @@
     "audio": "Audio",
     "perLane": "Na ścieżkę",
     "hint": "Zapisuje każdą wygenerowaną partię do osobnego pliku.",
-    "choosing": "Wybierz folder…"
+    "choosing": "Wybierz folder…",
+    "dragHint": "Przeciągnij partię prosto na ścieżkę w Twoim DAW.",
+    "preparing": "Przygotowywanie…"
   }
 }

@@ -24,6 +24,7 @@ use nih_plug::prelude::*;
 pub mod audio;
 pub mod bridge;
 pub mod dataset;
+pub mod drag;
 mod editor;
 pub mod eula;
 pub mod export;

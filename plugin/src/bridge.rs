@@ -202,11 +202,10 @@ pub fn dispatch(
             let song: engine::pattern::Song =
                 engine::pattern::Song::deserialize(&request.args["song"])
                     .map_err(|e| format!("bad song: {e}"))?;
-            check_refs(&song)?;
             // The same trust boundary `song_smf` documents, and it has to be
             // here too: this path reaches `song_to_smf` with a `Song` that came
             // from the webview.
-            check_song(&song)?;
+            check_song_for_export(&song)?;
             let suggested = format!("{}-{}.mid", song.artist_id, song.seed);
             exports
                 .start_song_midi(song, &suggested)
@@ -228,8 +227,7 @@ pub fn dispatch(
             // draws as an empty row and writes as silence — so without this, a
             // stem folder came back looking complete with one part quietly
             // empty, which is exactly the failure the check exists to name.
-            check_refs(&song)?;
-            check_song(&song)?;
+            check_song_for_export(&song)?;
             let folder = format!("{}-{}-stems", song.artist_id, song.seed);
             exports
                 .start_song_stems(song, &folder)
@@ -334,7 +332,6 @@ pub fn dispatch(
             let song: engine::pattern::Song =
                 engine::pattern::Song::deserialize(&request.args["song"])
                     .map_err(|e| format!("bad song: {e}"))?;
-            check_refs(&song)?;
             // ⛔ **Bounded before the engine sees it, because this is a trust
             // boundary.** A `Song` arrives here as JSON from the webview — a
             // project file somebody else saved, or devtools — and every field is
@@ -343,7 +340,7 @@ pub fn dispatch(
             // to hand unbounded ones to the tick arithmetic in `engine::midi`.
             // `generate_pattern` has clamped `bars` for this reason since the
             // meter work; a song has three more axes that multiply with it.
-            check_song(&song)?;
+            check_song_for_export(&song)?;
             Ok(json!({ "bytes": engine::midi::song_to_smf(&song) }))
         }
 
@@ -442,6 +439,11 @@ pub fn dispatch(
             "version": env!("CARGO_PKG_VERSION"),
             "platform": std::env::consts::OS,
             "arch": std::env::consts::ARCH,
+            // ⚠ **Whether a drag is possible is deliberately NOT here.** It
+            // depends on the *shell* as well as the platform — the standalone
+            // pumps its own message queue and a drag there aborts the process —
+            // and this function cannot see `Shared`. `drag_supported` in
+            // `editor.rs` answers it, in the one place that can.
         })),
 
         other => Err(format!(
@@ -698,6 +700,66 @@ fn check_refs(song: &engine::pattern::Song) -> Result<(), String> {
         dangling.len(),
         dangling.join(", ")
     ))
+}
+
+/// Both refusals a song has to survive before its notes are written anywhere.
+///
+/// ⛔ **The pair, not one of them.** `export_stems` shipped making only the
+/// second check, and the gap was not theoretical: a dangling reference draws as
+/// an empty row and *writes as silence*, so the folder came back looking
+/// complete with one part quietly empty. Anything that turns a `Song` into
+/// bytes — the exports, and now the drag-out — goes through here so a third
+/// caller cannot repeat that omission by forgetting a line.
+pub(crate) fn check_song_for_export(song: &engine::pattern::Song) -> Result<(), String> {
+    check_refs(song)?;
+    check_song(song)
+}
+
+/// Refuse a set of on-screen patterns whose numbers cannot describe real music.
+///
+/// ⛔ **Bounded before anything is rendered, for the reason [`check_song`]
+/// exists**: a `Pattern` arrives as JSON from the webview, so its bar count and
+/// its meter are whatever that JSON said, and rendering audio allocates a
+/// buffer sized from both.
+///
+/// ⛔ **A cap on the COUNT as well as on each one.** `check_song` records that
+/// "an axis-at-a-time bound cannot see what happens when the legal maxima are
+/// combined", and the first cut of this reproduced only the bars half — the
+/// caller then holds every rendered stem in memory at once, so the product is
+/// what matters.
+///
+/// ⚠ **Shared by the export and the drag-out (TASK-063C), which is why it moved
+/// out of `editor.rs`.** Both reach `stem_files` with patterns off the same
+/// untrusted channel; a second copy of this check is how one of them quietly
+/// stops making it.
+pub(crate) fn check_patterns(patterns: &[Pattern]) -> Result<(), String> {
+    if patterns.is_empty() {
+        return Err("there is nothing generated to write".to_owned());
+    }
+    if patterns.len() > engine::pattern::PART_ORDER.len() {
+        return Err(format!(
+            "{} parts is more than a pattern has",
+            patterns.len()
+        ));
+    }
+    for pattern in patterns {
+        // A meter of 0/0 divides the tick arithmetic by nothing and a huge
+        // numerator multiplies the render length; both are the same class
+        // `check_song` bounds for a song.
+        if pattern.time_sig_num == 0 || pattern.time_sig_num > 32 {
+            return Err("that meter is outside what can be written".to_owned());
+        }
+        if pattern.time_sig_den == 0 || !pattern.time_sig_den.is_power_of_two() {
+            return Err("that meter is outside what can be written".to_owned());
+        }
+        if pattern.bars == 0 || pattern.bars > MAX_BARS {
+            return Err(format!(
+                "a pattern of {} bars is outside what can be written",
+                pattern.bars
+            ));
+        }
+    }
+    Ok(())
 }
 
 /// Refuse a song whose numbers cannot describe real music.
@@ -1424,6 +1486,49 @@ mod tests {
         // The bounds must not bind on anything the app itself produces.
         let song = generate_song("trap", "7").unwrap();
         assert!(dispatch(&request("song_smf", json!({ "song": song })), &host()).is_ok());
+    }
+
+    /// A pattern with whatever meter and length the caller wants.
+    fn sized_pattern(bars: u16, num: u8, den: u8) -> Pattern {
+        let mut pattern = generate(
+            &GenerateArgs {
+                style_id: "trap".into(),
+                ..Default::default()
+            },
+            &host(),
+            false,
+        )
+        .expect("trap must generate");
+        pattern.bars = bars;
+        pattern.time_sig_num = num;
+        pattern.time_sig_den = den;
+        pattern
+    }
+
+    #[test]
+    fn a_pattern_whose_numbers_cannot_describe_music_is_refused_before_it_is_rendered() {
+        // ⛔ **The sole guard on two paths that allocate from these numbers** —
+        // the pattern-stem export and the drag-out both size an audio buffer
+        // from `bars` and the meter, and both take them from webview JSON. It
+        // had no test at all until the drag-out made it load-bearing twice.
+        assert!(check_patterns(&[]).is_err(), "nothing to write is refused");
+        assert!(check_patterns(&[sized_pattern(4, 4, 4)]).is_ok());
+
+        // A meter of 0/0 divides the tick arithmetic by nothing.
+        assert!(check_patterns(&[sized_pattern(4, 0, 4)]).is_err());
+        assert!(check_patterns(&[sized_pattern(4, 4, 0)]).is_err());
+        // A denominator no MIDI file can express.
+        assert!(check_patterns(&[sized_pattern(4, 4, 3)]).is_err());
+        // A numerator that multiplies the render length.
+        assert!(check_patterns(&[sized_pattern(4, 33, 4)]).is_err());
+        // Bars past what the UI can ask for.
+        assert!(check_patterns(&[sized_pattern(0, 4, 4)]).is_err());
+        assert!(check_patterns(&[sized_pattern(MAX_BARS + 1, 4, 4)]).is_err());
+
+        // ⛔ And the count, not just each one: the caller holds every rendered
+        // stem in memory at once, so it is the product that matters.
+        let many = vec![sized_pattern(4, 4, 4); engine::pattern::PART_ORDER.len() + 1];
+        assert!(check_patterns(&many).is_err());
     }
 
     #[test]

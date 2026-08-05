@@ -7,6 +7,7 @@ import { AboutModal } from './components/Settings/About';
 import { SettingsModal } from './components/Settings/Settings';
 import { TransportBar } from './components/layout/TransportBar';
 import { isTypingTarget } from './lib/keyboard';
+import { useDrag } from './state/drag';
 import { subscribeToPlayhead, useSession } from './state/session';
 import { isWide, useUi } from './state/ui';
 import './components/layout/layout.css';
@@ -19,6 +20,7 @@ function Studio() {
   const toggleRightRail = useUi((s) => s.toggleRightRail);
   const init = useSession((s) => s.init);
   const refreshHost = useSession((s) => s.refreshHost);
+  const loadDragCapability = useDrag((s) => s.loadCapability);
 
   // The roster and the playback status, once per launch. Everything the rail
   // and the search bar draw comes from this, and the console line it logs is
@@ -27,6 +29,15 @@ function Studio() {
   useEffect(() => {
     void init();
   }, [init]);
+
+  // Whether this build has a native drag source (TASK-063C). Once per launch,
+  // because it is a fact about what was compiled in rather than about the
+  // session. ⛔ Asked rather than inferred from the platform name: the day a
+  // macOS build ships without `NSFilePromiseProvider`, a page that guessed
+  // would offer a handle that drops nothing.
+  useEffect(() => {
+    void loadDragCapability();
+  }, [loadDragCapability]);
 
   // Follow the DAW's tempo. Polled rather than pushed: the plugin's bridge is
   // drained on the editor's event loop, and a host that changes tempo does not

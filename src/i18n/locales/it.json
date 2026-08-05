@@ -298,6 +298,8 @@
     "audio": "Audio",
     "perLane": "Per traccia",
     "hint": "Scrive ogni parte generata in un file suo.",
-    "choosing": "Scegli una cartella…"
+    "choosing": "Scegli una cartella…",
+    "dragHint": "Trascina una parte direttamente su una traccia della tua DAW.",
+    "preparing": "Preparazione…"
   }
 }

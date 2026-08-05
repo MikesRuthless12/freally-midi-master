@@ -298,6 +298,8 @@
     "audio": "Áudio",
     "perLane": "Por faixa",
     "hint": "Grava cada parte gerada em seu próprio arquivo.",
-    "choosing": "Escolha uma pasta…"
+    "choosing": "Escolha uma pasta…",
+    "dragHint": "Arraste uma parte direto para uma faixa da sua DAW.",
+    "preparing": "Preparando…"
   }
 }

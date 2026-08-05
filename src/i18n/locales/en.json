@@ -298,6 +298,8 @@
     "audio": "Audio",
     "perLane": "Per lane",
     "hint": "Write each generated part to its own file.",
-    "choosing": "Choose a folder…"
+    "choosing": "Choose a folder…",
+    "dragHint": "Drag a part straight onto a track in your DAW.",
+    "preparing": "Getting it ready…"
   }
 }

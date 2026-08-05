@@ -281,6 +281,21 @@ const handlers: Record<string, Handler> = {
   // shell that cannot write files.
   export_pattern_stems: () => undefined,
 
+  // Dragging a part out into the DAW (TASK-063C). ⚠ **Reachable but inert**,
+  // and both halves of that are deliberate: `bridge_names.rs` asserts every
+  // command the page invokes is answered, so these must exist here — and
+  // `drag_supported` says `false`, so no handle is ever rendered to call them
+  // and a browser cannot pretend to have started an OS drag.
+  //
+  // ⛔ **`false` is the honest answer, not a convenience.** A browser has no
+  // `DoDragDrop`; a fixture saying `true` would let a spec assert the drag
+  // works somewhere it never can. The same rule the export fixtures follow.
+  drag_supported: () => ({ supported: false }),
+  drag_prepare: () => undefined,
+  drag_status: () => ({ state: 'idle' }),
+  drag_start: () => 'cancelled',
+  drag_cancel: () => undefined,
+
   // The KIT panel (TASK-131B, TASK-136). The shape `kit_state` answers with,
   // for every lane the engine has — because that is what the panel enumerates,
   // and a fixture listing only the eight drum lanes would let the four melodic

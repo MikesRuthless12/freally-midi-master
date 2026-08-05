@@ -298,6 +298,8 @@
     "audio": "Audio",
     "perLane": "Per spoor",
     "hint": "Schrijft elk gegenereerd onderdeel naar een eigen bestand.",
-    "choosing": "Kies een map…"
+    "choosing": "Kies een map…",
+    "dragHint": "Sleep een part rechtstreeks naar een spoor in je DAW.",
+    "preparing": "Wordt klaargemaakt…"
   }
 }

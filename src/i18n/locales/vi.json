@@ -298,6 +298,8 @@
     "audio": "Âm thanh",
     "perLane": "Theo làn",
     "hint": "Ghi từng phần đã tạo ra tệp riêng của nó.",
-    "choosing": "Chọn một thư mục…"
+    "choosing": "Chọn một thư mục…",
+    "dragHint": "Kéo một phần thẳng vào track trong DAW của bạn.",
+    "preparing": "Đang chuẩn bị…"
   }
 }

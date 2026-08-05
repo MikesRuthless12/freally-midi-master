@@ -298,6 +298,8 @@
     "audio": "Ses",
     "perLane": "Kanal başına",
     "hint": "Üretilen her bölümü kendi dosyasına yazar.",
-    "choosing": "Bir klasör seçin…"
+    "choosing": "Bir klasör seçin…",
+    "dragHint": "Bir partı doğrudan DAW’ındaki bir kanala sürükle.",
+    "preparing": "Hazırlanıyor…"
   }
 }

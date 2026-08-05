@@ -298,6 +298,8 @@
     "audio": "Audio",
     "perLane": "Pro Spur",
     "hint": "Schreibe jeden erzeugten Part in eine eigene Datei.",
-    "choosing": "Ordner wählen…"
+    "choosing": "Ordner wählen…",
+    "dragHint": "Zieh einen Part direkt auf eine Spur in deiner DAW.",
+    "preparing": "Wird vorbereitet…"
   }
 }
