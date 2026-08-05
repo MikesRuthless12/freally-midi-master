@@ -20,7 +20,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
 import { CATEGORIES } from '../components/Settings/categories';
-import { LANE_ORDER } from '../components/DrumGrid/cells';
+import { ALL_LANES } from '../state/kit';
 import { SCALES } from '../components/SessionChips/values';
 import { THEME_PREFERENCES } from '../state/theme';
 import { SECTION_KINDS } from '../components/SongTimeline/clips';
@@ -192,7 +192,11 @@ describe('locale catalogs', () => {
     ['song.kind', SECTION_KINDS],
     ['theme', THEME_PREFERENCES],
     ['theme.short', THEME_PREFERENCES],
-    ['lanes', LANE_ORDER],
+    // ⚠ `ALL_LANES`, not the drum grid's `LANE_ORDER`. It is a superset — the
+    // grid draws the nine percussion lanes and the KIT panel draws all
+    // thirteen, so checking the smaller list would let `lanes.chords` go
+    // missing and render as its own key in the panel (TASK-131B).
+    ['lanes', ALL_LANES],
     ['scales', SCALES],
   ] as const;
 

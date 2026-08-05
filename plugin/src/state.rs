@@ -91,6 +91,27 @@ pub struct PluginSession {
     /// Lanes whose *audio* is muted. Their notes still reach the host.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub muted_lanes: Vec<Lane>,
+    /// The producer's own one-shots, as **paths** to the files (TASK-131B).
+    ///
+    /// ⛔ **A path, not the audio, and that is a deliberate trade rather than a
+    /// shortcut.** Embedding the samples would make a project file carrying five
+    /// one-shots tens of megabytes, inside a `#[persist]` blob the host has to
+    /// serialize on every save — and it would quietly copy somebody's sample
+    /// pack into a file they may hand to someone else. Every DAW references
+    /// samples by path for both reasons, and every DAW therefore has a
+    /// "missing sample" state; so does this. [`crate::shared::Shared::restore_one_shots`]
+    /// logs and skips a path that no longer resolves, and the lane falls back to
+    /// the shipped voice rather than going silent.
+    ///
+    /// ⚠ **This is the exception to the module header's rule with no engine
+    /// behind it.** A clip can be regenerated from its seed and a song from its
+    /// artist; a sample on somebody's disk cannot be derived from anything, so
+    /// there is no version of this that stores less.
+    ///
+    /// `BTreeMap` for the reason [`Self::patterns`] is one: a stable serialized
+    /// order, so a project file does not reorder its own keys between saves.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub one_shots: BTreeMap<Lane, String>,
     /// The clips as the producer edited them, once the seed stops describing
     /// them — one per part (TASK-119).
     ///
@@ -225,6 +246,7 @@ impl Default for PluginSession {
             mood: None,
             audio_enabled: true,
             muted_lanes: Vec::new(),
+            one_shots: BTreeMap::new(),
             patterns: BTreeMap::new(),
             pattern: None,
             edited: false,
@@ -346,6 +368,7 @@ mod tests {
             mood: Some("dark".into()),
             audio_enabled: false,
             muted_lanes: vec![Lane::Snare],
+            one_shots: BTreeMap::from([(Lane::Melody, "C:/samples/lead.wav".to_owned())]),
             patterns: BTreeMap::new(),
             pattern: None,
             edited: false,
@@ -557,6 +580,50 @@ mod tests {
             !json.contains("\"song\""),
             "an unedited session must not store an arrangement: {json}"
         );
+    }
+
+    #[test]
+    fn assigned_one_shots_survive_the_round_trip_and_an_unassigned_project_stores_none() {
+        // ⛔ TASK-131B's own gate. A sample on somebody's disk is the one thing
+        // in this struct that cannot be derived from anything — there is no
+        // seed that regenerates it — so losing it on a reopen loses the kit the
+        // producer built, with nothing to explain where it went.
+        let assigned = PluginSession {
+            selected_id: Some("trap".into()),
+            one_shots: BTreeMap::from([
+                (Lane::Melody, "C:/samples/leads/glass.wav".to_owned()),
+                (Lane::Kick, "/home/mike/kicks/808 kick.aiff".to_owned()),
+            ]),
+            ..PluginSession::default()
+        };
+
+        let json = serde_json::to_string(&assigned).unwrap();
+        let back: PluginSession = serde_json::from_str(&json).unwrap();
+        assert_eq!(back, assigned, "every path, keyed by its lane");
+
+        // Serialized by lane *name*, so reordering the enum cannot remap a
+        // saved project onto a different pad — the same property
+        // `muted_lanes` relies on.
+        assert!(json.contains("\"melody\""), "{json}");
+
+        // And a project nobody assigned anything in carries no key at all,
+        // which is what keeps an ordinary session a few hundred bytes.
+        let plain = serde_json::to_string(&PluginSession::default()).unwrap();
+        assert!(
+            !plain.contains("oneShots"),
+            "an unassigned session must store nothing: {plain}"
+        );
+    }
+
+    #[test]
+    fn a_project_saved_before_one_shots_existed_still_opens() {
+        // The `#[serde(default)]` rule applied to the new field, which is the
+        // rule this struct's header calls load-bearing.
+        let old = r#"{"selectedId":"trap","seed":"7","edited":true}"#;
+        let session: PluginSession = serde_json::from_str(old).unwrap();
+
+        assert_eq!(session.selected_id.as_deref(), Some("trap"));
+        assert!(session.one_shots.is_empty());
     }
 
     #[test]

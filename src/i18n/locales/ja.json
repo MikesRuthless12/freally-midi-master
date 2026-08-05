@@ -34,16 +34,26 @@
     "searchPlaceholder": "アーティストを検索…",
     "searchLabel": "アーティストを検索",
     "noDataset": "データセットは未読み込みです。",
-    "noKit": "キットがありません。ワンショットをこのパネルのどこにでもドロップ。",
     "noMatch": "「{{query}}」に一致するものはありません。",
     "results": "検索結果"
+  },
+  "kit": {
+    "loading": "キットを読み込んでいます…",
+    "noneLoaded": "キットを読み込めなかったため、プラグインは無音です。",
+    "lanesLabel": "キットのレーン",
+    "assignHint": "レーンをクリックすると、自分のワンショットを鳴らせます。",
+    "shipped": "内蔵",
+    "silent": "音なし",
+    "choosing": "選択中…",
+    "clearOne": "{{lane}} のワンショットを解除"
   },
   "sections": {
     "genres": "ジャンル",
     "roster": "アーティスト",
     "kit": "キット",
     "session": "セッション",
-    "presets": "プリセット"
+    "presets": "プリセット",
+    "stems": "ステム"
   },
   "readouts": {
     "bpm": "BPM",
@@ -179,7 +189,8 @@
   "grid": {
     "label": "生成されたパターン",
     "summary": "{{bars}} 小節 · {{steps}} ステップ · {{notes}} ノート",
-    "muteLane": "プレビューで{{lane}}をミュート"
+    "muteLane": "プレビューで{{lane}}をミュート",
+    "cell": "{{lane}}、ステップ {{step}}"
   },
   "roster": {
     "artists": "アーティスト",
@@ -198,7 +209,11 @@
     "rim": "リム",
     "snap": "スナップ",
     "perc": "パーカッション",
-    "bass808": "808"
+    "bass808": "808",
+    "melody": "メロディ",
+    "counter": "カウンターメロディ",
+    "bass": "ベースライン",
+    "chords": "コード"
   },
   "presets": {
     "factory": "工場出荷",
@@ -277,5 +292,12 @@
       "bridge": "ブリッジ",
       "outro": "アウトロ"
     }
+  },
+  "stems": {
+    "midi": "MIDI",
+    "audio": "オーディオ",
+    "perLane": "レーンごと",
+    "hint": "生成した各パートを別々のファイルに書き出します。",
+    "choosing": "フォルダを選んでください…"
   }
 }

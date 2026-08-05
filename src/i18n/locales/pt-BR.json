@@ -34,16 +34,26 @@
     "searchPlaceholder": "Buscar um artista…",
     "searchLabel": "Buscar um artista",
     "noDataset": "Nenhum conjunto de dados carregado ainda.",
-    "noKit": "Nenhum kit ainda. Solte seus one-shots em qualquer lugar deste painel.",
     "noMatch": "Nada corresponde a “{{query}}”.",
     "results": "Resultados da busca"
+  },
+  "kit": {
+    "loading": "Lendo o kit…",
+    "noneLoaded": "Não foi possível carregar o kit, então o plugin está mudo.",
+    "lanesLabel": "Faixas do kit",
+    "assignHint": "Clique em uma faixa para tocar seu próprio one-shot nela.",
+    "shipped": "Incluído",
+    "silent": "Sem som",
+    "choosing": "Escolhendo…",
+    "clearOne": "Remover o one-shot de {{lane}}"
   },
   "sections": {
     "genres": "Gêneros",
     "roster": "Artistas",
     "kit": "Kit",
     "session": "Sessão",
-    "presets": "Predefinições"
+    "presets": "Predefinições",
+    "stems": "Faixas"
   },
   "readouts": {
     "bpm": "BPM",
@@ -179,7 +189,8 @@
   "grid": {
     "label": "Padrão gerado",
     "summary": "{{bars}} compassos · {{steps}} passos · {{notes}} notas",
-    "muteLane": "Silenciar {{lane}} na prévia"
+    "muteLane": "Silenciar {{lane}} na prévia",
+    "cell": "{{lane}}, passo {{step}}"
   },
   "roster": {
     "artists": "Artistas",
@@ -198,7 +209,11 @@
     "rim": "Aro",
     "snap": "Estalo",
     "perc": "Percussão",
-    "bass808": "808"
+    "bass808": "808",
+    "melody": "Melodia",
+    "counter": "Contramelodia",
+    "bass": "Linha de baixo",
+    "chords": "Acordes"
   },
   "presets": {
     "factory": "De fábrica",
@@ -277,5 +292,12 @@
       "bridge": "Ponte",
       "outro": "Encerramento"
     }
+  },
+  "stems": {
+    "midi": "MIDI",
+    "audio": "Áudio",
+    "perLane": "Por faixa",
+    "hint": "Grava cada parte gerada em seu próprio arquivo.",
+    "choosing": "Escolha uma pasta…"
   }
 }

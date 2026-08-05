@@ -34,16 +34,26 @@
     "searchPlaceholder": "Zoek een artiest…",
     "searchLabel": "Zoek een artiest",
     "noDataset": "Nog geen dataset geladen.",
-    "noKit": "Nog geen kit. Sleep je one-shots ergens op dit paneel.",
     "noMatch": "Niets komt overeen met ‘{{query}}’.",
     "results": "Zoekresultaten"
+  },
+  "kit": {
+    "loading": "Kit wordt gelezen…",
+    "noneLoaded": "De kit kon niet worden geladen, dus de plug-in blijft stil.",
+    "lanesLabel": "Kitsporen",
+    "assignHint": "Klik op een spoor om je eigen one-shot erop af te spelen.",
+    "shipped": "Meegeleverd",
+    "silent": "Geen geluid",
+    "choosing": "Kiezen…",
+    "clearOne": "One-shot op {{lane}} wissen"
   },
   "sections": {
     "genres": "Genres",
     "roster": "Artiesten",
     "kit": "Drumkit",
     "session": "Sessie",
-    "presets": "Voorinstellingen"
+    "presets": "Voorinstellingen",
+    "stems": "Stems"
   },
   "readouts": {
     "bpm": "BPM",
@@ -179,7 +189,8 @@
   "grid": {
     "label": "Gegenereerd patroon",
     "summary": "{{bars}} maten · {{steps}} stappen · {{notes}} noten",
-    "muteLane": "{{lane}} dempen in de preview"
+    "muteLane": "{{lane}} dempen in de preview",
+    "cell": "{{lane}}, stap {{step}}"
   },
   "roster": {
     "artists": "Artiesten",
@@ -198,7 +209,11 @@
     "rim": "Randslag",
     "snap": "Vingerknip",
     "perc": "Percussie",
-    "bass808": "808"
+    "bass808": "808",
+    "melody": "Melodie",
+    "counter": "Tegenmelodie",
+    "bass": "Baslijn",
+    "chords": "Akkoorden"
   },
   "presets": {
     "factory": "Fabriek",
@@ -277,5 +292,12 @@
       "bridge": "Brug",
       "outro": "Outro"
     }
+  },
+  "stems": {
+    "midi": "MIDI",
+    "audio": "Audio",
+    "perLane": "Per spoor",
+    "hint": "Schrijft elk gegenereerd onderdeel naar een eigen bestand.",
+    "choosing": "Kies een map…"
   }
 }

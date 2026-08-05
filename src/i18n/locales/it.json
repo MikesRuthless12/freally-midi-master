@@ -34,16 +34,26 @@
     "searchPlaceholder": "Cerca un artista…",
     "searchLabel": "Cerca un artista",
     "noDataset": "Nessun dataset caricato.",
-    "noKit": "Nessun kit. Trascina i tuoi one-shot ovunque su questo pannello.",
     "noMatch": "Nessun risultato per «{{query}}».",
     "results": "Risultati della ricerca"
+  },
+  "kit": {
+    "loading": "Lettura del kit…",
+    "noneLoaded": "Non è stato possibile caricare il kit, quindi il plugin resta muto.",
+    "lanesLabel": "Tracce del kit",
+    "assignHint": "Fai clic su una traccia per riprodurci il tuo one-shot.",
+    "shipped": "Incluso",
+    "silent": "Nessun suono",
+    "choosing": "Selezione…",
+    "clearOne": "Rimuovi il one-shot da {{lane}}"
   },
   "sections": {
     "genres": "Generi",
     "roster": "Artisti",
     "kit": "Kit",
     "session": "Sessione",
-    "presets": "Preimpostazioni"
+    "presets": "Preimpostazioni",
+    "stems": "Tracce"
   },
   "readouts": {
     "bpm": "BPM",
@@ -179,7 +189,8 @@
   "grid": {
     "label": "Pattern generato",
     "summary": "{{bars}} battute · {{steps}} step · {{notes}} note",
-    "muteLane": "Disattiva {{lane}} nell’anteprima"
+    "muteLane": "Disattiva {{lane}} nell’anteprima",
+    "cell": "{{lane}}, passo {{step}}"
   },
   "roster": {
     "artists": "Artisti",
@@ -198,7 +209,11 @@
     "rim": "Bordo",
     "snap": "Schiocco",
     "perc": "Percussioni",
-    "bass808": "808"
+    "bass808": "808",
+    "melody": "Melodia",
+    "counter": "Contromelodia",
+    "bass": "Linea di basso",
+    "chords": "Accordi"
   },
   "presets": {
     "factory": "Di fabbrica",
@@ -277,5 +292,12 @@
       "bridge": "Ponte",
       "outro": "Finale"
     }
+  },
+  "stems": {
+    "midi": "MIDI",
+    "audio": "Audio",
+    "perLane": "Per traccia",
+    "hint": "Scrive ogni parte generata in un file suo.",
+    "choosing": "Scegli una cartella…"
   }
 }

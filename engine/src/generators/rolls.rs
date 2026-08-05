@@ -85,6 +85,11 @@ pub struct Roll {
     /// exactly on the beat.
     pub offset_subdivisions: u32,
     pub grouping: Grouping,
+    /// Chromatic semitones added to the lane's own note, at the first note and
+    /// at the last (TASK-131D). `0, 0` — the default — is the flat roll every
+    /// model wrote before this existed. See [`Roll::walking`].
+    pub pitch_from: i8,
+    pub pitch_to: i8,
 }
 
 impl Roll {
@@ -101,6 +106,8 @@ impl Roll {
             gaps: false,
             offset_subdivisions: 0,
             grouping: Grouping::Even,
+            pitch_from: 0,
+            pitch_to: 0,
         }
     }
 
@@ -128,6 +135,44 @@ impl Roll {
     pub fn grouped(mut self, grouping: Grouping) -> Self {
         self.grouping = grouping;
         self
+    }
+
+    /// Move the roll's pitch across its length, in **chromatic semitones**
+    /// (TASK-131D).
+    ///
+    /// ⛔ **A drum roll that does not move in pitch is the one thing every
+    /// producer does to a roll that this could not do.** Mike, 2026-08-05:
+    /// "hihat rolls can go up and down so can kicks, 808s, snares, etc. in
+    /// actual song arrangements" — and "you cannot be just stuck on one line for
+    /// the entire drum pattern". Measured the same day: every roll note in the
+    /// shipped roster was written at one fixed pitch, because `render` set it
+    /// from `midi::gm_drum_note(lane)`, a constant per lane.
+    ///
+    /// ⚠ **Chromatic, not scale degrees, by Mike's own decision.** A pitched hat
+    /// run is chromatic; a tuned 808 follows the key, and the 808 is a *melodic*
+    /// generator that already does. This is the percussion case.
+    ///
+    /// The walk runs with the note index, so a rising roll rises and a roll
+    /// rendered with its ramp reversed can be given a falling walk to match.
+    pub fn walking(mut self, from: i8, to: i8) -> Self {
+        self.pitch_from = from;
+        self.pitch_to = to;
+        self
+    }
+
+    /// The MIDI note for the `index`th of `last + 1` notes.
+    ///
+    /// ⚠ **Saturating and clamped to MIDI's range**, because the walk is
+    /// authored data: a model asking for +40 semitones on a lane already at 82
+    /// would otherwise wrap into a pitch nobody asked for.
+    fn pitch_at(&self, index: usize, last: f32) -> u8 {
+        let base = i16::from(crate::midi::gm_drum_note(self.lane));
+        if self.pitch_from == 0 && self.pitch_to == 0 {
+            return base.clamp(0, 127) as u8;
+        }
+        let (from, to) = (f32::from(self.pitch_from), f32::from(self.pitch_to));
+        let walk = (from + (to - from) * (index as f32 / last)).round() as i16;
+        base.saturating_add(walk).clamp(0, 127) as u8
     }
 
     /// The ticks this roll would occupy, before gaps are cut.
@@ -174,7 +219,7 @@ impl Roll {
                     model_vel: None,
                     start_tick: tick,
                     len_ticks: self.subdivision.max(1),
-                    pitch: crate::midi::gm_drum_note(self.lane),
+                    pitch: self.pitch_at(i, last),
                     vel,
                     slide_to_pitch: None,
                     articulation: Some(Articulation::Roll),
@@ -368,6 +413,143 @@ pub fn hat_rolls(
     closed.sort_by_key(|n| n.start_tick);
 }
 
+/// The accent grouping a block asks for, sampled when it names more than one.
+///
+/// ⛔ **One reader, because there were two and they disagreed.**
+/// read  as a list and  read the same key as a bare
+/// string; when TASK-131C authored it as a list across the dataset, every ladder
+/// fell through to the default and nobody could see it. A key with two readers
+/// is a key with one silent consumer.
+///
+/// ⚠ A bare string still parses, so a model that authors one value is unchanged.
+fn grouping_from(block: Option<&Value>, rng: &mut impl Rng) -> Grouping {
+    let mut named: Vec<Grouping> = strings(block, "grouping")
+        .iter()
+        .filter_map(|name| Grouping::parse(name))
+        .collect();
+    if named.is_empty() {
+        // The single-string spelling the ladder has always used.
+        named.extend(
+            block
+                .and_then(|b| b.get("grouping"))
+                .and_then(Value::as_str)
+                .and_then(Grouping::parse),
+        );
+    }
+    match named.len() {
+        0 => Grouping::StrongWeakWeakWeak,
+        1 => named[0],
+        n => named[rng.random_range(0..n)],
+    }
+}
+
+/// The ordinary fill roll, built from what the artist authored (TASK-131C).
+///
+/// ⛔ **This replaces a hardcoded builder, and the hardcoding was a real,
+/// reported defect.** The fill used to be `Roll::new(.., SIXTEENTH).ramp(64,
+/// 120).grouped(StrongWeakWeakWeak)` written inline in `drums::fills` — it read
+/// nothing from the model, and with `gaps` off its `render` never touched the
+/// rng, so the roll was a pure function of the fill's *length*. Measured on
+/// 2026-08-05 across the shipped roster: **six of the ten flagship trap artists
+/// wrote a byte-identical roll** — ticks `[0,480,960,1200,1440,1560,1680,1800]`,
+/// velocities `[1,33,64,69,96,77,84,91]` — and every single model reached only
+/// one to four distinct rolls in forty seeds. Mike found it by ear in Ableton,
+/// walking the roster, before any gate here could.
+///
+/// ⛔ **Same class as the chord saturation TASK-126 fixed, and the same cure.**
+/// `voice()` took the strict minimum cost, which made a voicing a pure function
+/// of the chord; it now samples within two semitones of the best. Here the fill
+/// took one fixed shape; it now samples inside what the artist allows. The rule
+/// worth carrying: *a generator that takes a fixed value produces output that
+/// is a function of position rather than of the model or the seed.*
+///
+/// What the artist authors, and what is sampled from the seed inside it:
+///
+/// - `subdivisions` — the note values this artist's fills may run at, one
+///   picked per fill. `"32nd"`, `"16t"` and `"8t"` all parse, so a triplet roll
+///   costs the artist a string rather than this function a branch.
+/// - `velocityRampRange` — where the ramp starts and ends.
+/// - `rampJitter` — how far each end may wander, so two fills at one
+///   subdivision are still two fills.
+/// - `descendProb` — how often it falls away instead of building.
+/// - `gapProb` — how often it cuts a hole, which is what stops a long roll
+///   sounding like a machine.
+/// - `grouping` — a list, sampled, rather than one value.
+///
+/// ⚠ **Every default below is the old hardcoded behaviour**, so a model that
+/// authors nothing is unchanged in character — but it still *samples*, because
+/// an artist inheriting `_defaults` is the common case and was the whole
+/// problem.
+pub fn snare_fill(
+    block: Option<&Value>,
+    lane: Lane,
+    start_tick: u32,
+    length: u32,
+    rng: &mut impl Rng,
+) -> Vec<Note> {
+    // ⛔ Sampled per fill, not per pattern. Two fills in one four-bar loop
+    // should not be the same gesture twice — that is half of what made the old
+    // behaviour read as "it always does the same thing".
+    let steps: Vec<u32> = strings(block, "subdivisions")
+        .iter()
+        .filter_map(|value| grid::note_value_ticks(value))
+        .filter(|ticks| *ticks > 0)
+        .collect();
+    let step = if steps.is_empty() {
+        grid::SIXTEENTH
+    } else {
+        steps[rng.random_range(0..steps.len())]
+    };
+
+    let (base_from, base_to) = pair(block, "velocityRampRange")
+        .map(|(lo, hi)| (lo as f32, hi as f32))
+        .unwrap_or((64.0, 120.0));
+
+    // A ramp that lands on the same two numbers every time is the fixed value
+    // this function exists to stop being. Jitter is symmetric so the authored
+    // range stays the artist's centre rather than becoming its floor.
+    let jitter = number(block, "rampJitter", 12.0, rng).clamp(0.0, 48.0) as f32;
+    // Drawn separately so the two ends move independently: one offset applied
+    // to both would slide the whole ramp and leave its *span* — which is what a
+    // listener actually hears — identical every time.
+    let from = (base_from + rng.random_range(-jitter..=jitter)).clamp(1.0, 127.0);
+    let to = (base_to + rng.random_range(-jitter..=jitter)).clamp(1.0, 127.0);
+
+    // A fill that falls away is a real device — it hands the next section its
+    // entrance instead of shouting over it — and it is the cheapest way to
+    // double what one artist's fills can sound like.
+    let descend = number(block, "descendProb", 0.15, rng).clamp(0.0, 1.0);
+    let (from, to) = if rng.random_bool(descend) {
+        (to, from)
+    } else {
+        (from, to)
+    };
+
+    let grouping = grouping_from(block, rng);
+
+    let gap_chance = number(block, "gapProb", 0.25, rng).clamp(0.0, 1.0);
+    let gaps = rng.random_bool(gap_chance);
+
+    // Chromatic pitch movement across the roll (TASK-131D). `pitchWalk` is the
+    // span in semitones the artist allows; the direction is drawn per fill, so
+    // one artist's rolls climb and fall rather than always doing one.
+    let walk = number(block, "pitchWalk", 0.0, rng).clamp(0.0, 24.0) as i8;
+    let (pitch_from, pitch_to) = if walk == 0 {
+        (0, 0)
+    } else if rng.random_bool(0.5) {
+        (0, walk)
+    } else {
+        (walk, 0)
+    };
+
+    Roll::new(lane, start_tick, start_tick + length, step)
+        .ramp(from.round() as u8, to.round() as u8)
+        .grouped(grouping)
+        .with_gaps(gaps)
+        .walking(pitch_from, pitch_to)
+        .render(rng)
+}
+
 /// The snare-roll ladder: 1/4 → 1/8 → 1/16 → 1/32 across the window, with the
 /// velocity climbing the whole way (research ch. 1 §1, "up-and-down").
 ///
@@ -395,11 +577,12 @@ pub fn snare_ladder(
         .map(|(lo, hi)| (lo as u8, hi as u8))
         .unwrap_or((16, 127));
 
-    let grouping = block
-        .and_then(|b| b.get("grouping"))
-        .and_then(Value::as_str)
-        .and_then(Grouping::parse)
-        .unwrap_or(Grouping::Even);
+    // ⛔ **Read through the same helper  uses, and that is a fix.**
+    // This read  as a bare *string* while  reads it as a
+    // *list*, and TASK-131C authored it as a list in every model — so every
+    // ladder silently fell back to  and the accent pattern the data asked
+    // for stopped existing. One key, one block, two readers is how that happens.
+    let grouping = grouping_from(block, rng);
 
     // Each rung gets an equal slice of the window and its own slice of the ramp,
     // so the climb is continuous across the whole gesture rather than restarting

@@ -12,6 +12,7 @@
 //! Decoding *imported* samples is a different problem with its own crate
 //! (`symphonia`) and arrives with sample import.
 
+use std::collections::BTreeMap;
 use std::sync::Arc;
 
 use engine::pattern::Lane;
@@ -19,6 +20,12 @@ use include_dir::Dir;
 use serde::Deserialize;
 
 /// One pad: a sample plus how it should be played.
+///
+/// `Clone` is cheap and has to be: [`Kit::with_one_shots`] rebuilds the whole
+/// kit every time a producer assigns a sample, and `samples` is an `Arc<[f32]>`
+/// precisely so that copying a pad copies a reference count rather than a
+/// megabyte of audio.
+#[derive(Clone)]
 pub struct Pad {
     pub id: String,
     pub lane: Lane,
@@ -40,9 +47,53 @@ pub struct Pad {
     pub root_note: Option<u8>,
 }
 
+#[derive(Clone)]
 pub struct Kit {
     pub id: String,
     pub pads: Vec<Pad>,
+}
+
+/// ⚠ **Written out rather than derived, because a derived one would print the
+/// audio.** A kit is megabytes of samples; `{:?}` on the struct that holds it —
+/// which `Shared` does derive — would dump every one of them into a log.
+impl std::fmt::Debug for Kit {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Kit")
+            .field("id", &self.id)
+            .field("pads", &self.pads.len())
+            .finish()
+    }
+}
+
+/// A sample the producer assigned to a lane (TASK-131B).
+///
+/// Decoded once, on the loader thread, and then only ever cloned — `samples` is
+/// an `Arc<[f32]>` so rebuilding the kit after a *second* assignment does not
+/// re-copy the audio of the first.
+#[derive(Clone)]
+pub struct OneShot {
+    /// Where the file came from. This is what the project file stores, and it
+    /// is what a reopen reloads from — see [`crate::state::PluginSession`].
+    pub path: String,
+    /// The file's own name, which is what the KIT panel shows. Held rather than
+    /// derived from `path` on every read, because a panel that shows a full
+    /// path shows nothing useful in the width a rail has.
+    pub name: String,
+    pub samples: Arc<[f32]>,
+    pub sample_rate: u32,
+}
+
+/// Written out for the same reason [`Kit`]'s is: a derived one would print the
+/// whole sample.
+impl std::fmt::Debug for OneShot {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("OneShot")
+            .field("path", &self.path)
+            .field("name", &self.name)
+            .field("samples", &self.samples.len())
+            .field("sample_rate", &self.sample_rate)
+            .finish()
+    }
 }
 
 impl Kit {
@@ -53,6 +104,84 @@ impl Kit {
     /// and harder still to explain.
     pub fn pad_for(&self, lane: Lane) -> Option<usize> {
         self.pads.iter().position(|pad| pad.lane == lane)
+    }
+
+    /// How far to transpose `pitch` when it is played on `lane`.
+    ///
+    /// ⛔ **One definition, because there were two and they were already
+    /// diverging.** `render_preview` and the offline stem renderer each spelled
+    /// this rule out separately, and `render.rs` asserted the invariant in prose
+    /// — "the same rule `render_preview` follows, so a stem sounds like the
+    /// preview did" — with nothing holding it. Two spellings of one rule is how
+    /// an exported stem quietly stops matching what the producer auditioned.
+    ///
+    /// ⛔ **A `0` on an unpitched lane means "as sampled", not "36 semitones
+    /// down".** The drum grid places a hand-drawn hit with the pitch of a note
+    /// already in that lane, and has none to copy when the lane was just
+    /// emptied. Treating that as a real MIDI note transposed a kick down by its
+    /// own GM number — sub-rumble instead of a drum. MIDI note 0 is not a drum
+    /// any lane maps to, so it is safe to read as "no opinion".
+    pub fn semitones_for(pad: &Pad, lane: Lane, pitch: u8) -> f32 {
+        match pad.root_note {
+            Some(root) => f32::from(pitch) - f32::from(root),
+            None if pitch == 0 => 0.0,
+            None => f32::from(pitch) - f32::from(crate::midi_note_for(lane)),
+        }
+    }
+
+    /// This kit with the producer's own one-shots played instead of its own
+    /// (TASK-131B).
+    ///
+    /// ⛔ **A whole new kit, built off the audio thread, never a mutation of a
+    /// live one.** The sampler addresses pads *by index* and holds those indices
+    /// inside sounding voices, so editing a kit underneath the callback is how a
+    /// voice ends up playing a sample that is not the one it was triggered with.
+    /// The finished kit is handed over through [`crate::shared::KitHandoff`],
+    /// which is also what cuts the voices that were addressing the old one.
+    ///
+    /// ## What is inherited, and why
+    ///
+    /// Everything except the audio: gain, pan, the pitch offset, the choke
+    /// group and — the one that matters — **the root note**.
+    ///
+    /// ⛔ **Inheriting the root is what makes a one-shot on a melodic part play
+    /// at roughly its own pitch.** The lead pad is rooted at MIDI 84 because
+    /// that is where the melody generator writes; a sample assigned there is
+    /// therefore transposed by the *interval* the melody moves, not shifted into
+    /// another octave. Rooting a new sample at a fixed C3 instead would pitch it
+    /// two octaves up under that same melody, which is the chipmunk failure, and
+    /// the producer would have no control that fixes it. Detecting the sample's
+    /// real pitch is TASK-052 and is what makes this exact rather than sensible.
+    ///
+    /// A lane the shipped kit has **no** pad for gets a plain percussion pad:
+    /// unity gain, centred, and no root, so its notes play as sampled. Today
+    /// `Lane::Snap` is the only such lane — the drum generator can write it and
+    /// the kit has never carried it, so assigning one is the only way to hear
+    /// that lane at all.
+    pub fn with_one_shots(&self, assigned: &BTreeMap<Lane, OneShot>) -> Kit {
+        let mut kit = self.clone();
+        for (lane, one_shot) in assigned {
+            let replacement = |base: Option<&Pad>| Pad {
+                id: one_shot.name.clone(),
+                lane: *lane,
+                samples: Arc::clone(&one_shot.samples),
+                sample_rate: one_shot.sample_rate,
+                gain: base.map_or(1.0, |pad| pad.gain),
+                pan: base.map_or(0.0, |pad| pad.pan),
+                pitch_semis: base.map_or(0, |pad| pad.pitch_semis),
+                choke_group: base.and_then(|pad| pad.choke_group),
+                root_note: base.and_then(|pad| pad.root_note),
+            };
+
+            match kit.pad_for(*lane) {
+                Some(index) => {
+                    let pad = replacement(Some(&kit.pads[index]));
+                    kit.pads[index] = pad;
+                }
+                None => kit.pads.push(replacement(None)),
+            }
+        }
+        kit
     }
 
     /// Load `<dir>/kit.json` and every sample it names, out of the binary.

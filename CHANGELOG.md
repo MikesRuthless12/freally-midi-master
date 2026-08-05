@@ -12,7 +12,84 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added
+- **The drum grid is an editor (TASK-131G).** It was read-only and its own
+  header said so. Click a cell to place a hit or clear it; **Alt+click** clones
+  the previous bar of that lane; **Ctrl+2 … Ctrl+9** turn a cell into a tuplet —
+  a triplet, a quintuplet, whatever the digit says; **Delete** clears it. Edits
+  go through the same path the piano roll uses, so undo, arming and saving with
+  the project all come for free.
+  ⚠ The edits work on **ticks, never on cells**: a cell has already thrown away
+  where inside the 16th a hit sat, which is exactly what a tuplet is made of.
+- **Export the generated parts on their own, as MIDI or audio (TASK-131F).**
+  One file per part, or **one per lane** — so just the hats, or just the snares.
+  Files are named the way a producer would name them:
+  `trap - Snare - 140 BPM - C# Minor`.
+  ⚠ Export, not drag: an HTML5 drag inside a webview is not an OS file drag, so
+  dragging into the DAW still needs a native drag source (TASK-063C/FMM-S03).
+- **Every genre has its own harmony (TASK-040).** Twelve genres inherited their
+  chords from `_defaults` wholesale and all reached exactly 121 distinct chord
+  parts in 200 seeds. Each now authors its own progression families, harmonic
+  rhythms and voicings from the style research.
+
+
+- **Your own one-shot on any part (TASK-131B).** Click a lane in the KIT panel,
+  pick a sample, and that part plays it — drums lane by lane, plus melody,
+  countermelody, bassline and chords. WAV, AIFF, FLAC, MP3, M4A and OGG, decoded
+  by `symphonia`. The assignment is stored in the project as a **path**, the way
+  every DAW stores a sample reference, and is reloaded when the project reopens;
+  a file that has moved is reported rather than silently reverting.
+  ⚠ A one-shot on a melodic part inherits the placeholder's root note, so it
+  plays near its own pitch and moves by the melody's intervals rather than
+  jumping octaves. Detecting a sample's real pitch is TASK-052.
+  ⚠ `Lane::Snap` has never had a shipped pad, so it has always rendered silence;
+  assigning a one-shot to it is now the only way to hear that lane.
+- **Drum hits move in pitch (TASK-131D).** Rolls climb and fall in chromatic
+  semitones, by a span each artist authors — rage travels eight, Drake two, and
+  `country-train` none at all, because a train beat does not pitch its snare.
+  The plugin's own sampler now transposes percussion to match, so what the grid
+  shows is what you hear.
+
 ### Fixed
+
+- **The KIT panel no longer lies (TASK-136).** It rendered eight hardcoded
+  disabled buttons and a static "No kit yet" while a twelve-pad kit was loaded
+  and audibly playing. It now draws a row per lane, read from the plugin: what
+  plays it, whether that is your sample or the shipped one, and which lanes have
+  no sound at all.
+- **Every artist wrote the same snare roll.** The fill was built from a
+  hardcoded `Roll::new(..).ramp(64, 120)` that read neither the model nor the
+  seed, so it was a pure function of the fill's length. Measured across the
+  roster: **six of the ten flagship trap artists produced a byte-identical
+  roll**, and every model reached only one to four distinct rolls in forty
+  seeds. Each artist now authors its own subdivisions, ramp range, jitter,
+  descent and gap probability, and the generator samples inside them. Every
+  model now clears twenty-five distinct fills, and no two artists collide on
+  more than one seed in two hundred.
+- **UK drill, NY drill and Pop Smoke wrote exactly one kick pattern, ever.** An
+  explicit `fourBarGrammar` returned `grammar[bar % len]` and never touched the
+  seed. A model may now author `grammarVariants` — several complete multi-bar
+  forms, one chosen per pattern — so the signature still reproduces exactly and
+  there is more than one of it. ⚠ Every variant stays inside the tresillo the
+  research describes; `drills_kick_form_is_the_tresillo_it_is_described_as`
+  sweeps two hundred seeds and holds that line.
+- **An 808 could ring straight through a fill.** The mute list held only the
+  backbeat, so a kick landing on the beat a fill starts on let the 808 sustain
+  across the whole roll — the thing drill is defined against. It now stops at the
+  first snare it reaches, fills included, while still only *skipping* the
+  backbeat, so a roll does not shred the line. ⚠ The length clamp also used
+  `find` over the lane's insertion order rather than `min` over time, so it could
+  clamp to a later snare and leave an earlier one rung through.
+- **rage and osamason wrote four distinct chord parts in two hundred seeds.**
+  Both authored a single `harmonicRhythm` value and four mostly-one-chord
+  families — which is not harmonically static, it is four. Widened within the
+  style: rage now reaches 79, osamason 131.
+- **Two sibling models were too close to tell apart.** `pop-smoke` extends
+  `ny-drill` and differed from it by 0.05 on four numbers, producing an identical
+  beat on 16 seeds of 200. Pulled apart on kick density, hat density and the open
+  hat, along with `osamason`/`rage` and `metro-boomin`/`travis-scott`. Beat
+  collisions across the whole roster are now **zero**.
+
 
 - **An exported song no longer arrives as one instrument playing everything at
   once.** Every pitched part was written on MIDI channel 0 — melody,

@@ -34,16 +34,26 @@
     "searchPlaceholder": "Rechercher un artiste…",
     "searchLabel": "Rechercher un artiste",
     "noDataset": "Aucun jeu de données chargé.",
-    "noKit": "Aucun kit pour l’instant. Dépose tes one-shots n’importe où sur ce panneau.",
     "noMatch": "Aucun résultat pour « {{query}} ».",
     "results": "Résultats de recherche"
+  },
+  "kit": {
+    "loading": "Lecture du kit…",
+    "noneLoaded": "Le kit n'a pas pu être chargé, le plugin reste donc muet.",
+    "lanesLabel": "Pistes du kit",
+    "assignHint": "Cliquez sur une piste pour y jouer votre propre one-shot.",
+    "shipped": "Intégré",
+    "silent": "Aucun son",
+    "choosing": "Sélection…",
+    "clearOne": "Retirer le one-shot de {{lane}}"
   },
   "sections": {
     "genres": "Genres",
     "roster": "Artistes",
     "kit": "Kit",
     "session": "Session",
-    "presets": "Préréglages"
+    "presets": "Préréglages",
+    "stems": "Pistes"
   },
   "readouts": {
     "bpm": "BPM",
@@ -179,7 +189,8 @@
   "grid": {
     "label": "Motif généré",
     "summary": "{{bars}} mesures · {{steps}} pas · {{notes}} notes",
-    "muteLane": "Couper {{lane}} dans l’aperçu"
+    "muteLane": "Couper {{lane}} dans l’aperçu",
+    "cell": "{{lane}}, pas {{step}}"
   },
   "roster": {
     "artists": "Artistes",
@@ -198,7 +209,11 @@
     "rim": "Cercle",
     "snap": "Claquement de doigts",
     "perc": "Percussion",
-    "bass808": "808"
+    "bass808": "808",
+    "melody": "Mélodie",
+    "counter": "Contre-mélodie",
+    "bass": "Ligne de basse",
+    "chords": "Accords"
   },
   "presets": {
     "factory": "Usine",
@@ -277,5 +292,12 @@
       "bridge": "Pont",
       "outro": "Outro"
     }
+  },
+  "stems": {
+    "midi": "MIDI",
+    "audio": "Audio",
+    "perLane": "Par piste",
+    "hint": "Écrit chaque partie générée dans son propre fichier.",
+    "choosing": "Choisissez un dossier…"
   }
 }

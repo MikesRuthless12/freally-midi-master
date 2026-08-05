@@ -171,6 +171,189 @@
       ],
       "distortion": "heavy",
       "clipping": true
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "32nd",
+        "32nd",
+        "64th"
+      ],
+      "velocityRampRange": [
+        64,
+        127
+      ],
+      "rampJitter": 14,
+      "descendProb": 0.08,
+      "gapProb": 0.16,
+      "grouping": [
+        "even"
+      ],
+      "pitchWalk": 7
+    }
+  },
+  "melody": {
+    "register": [
+      78,
+      102
+    ],
+    "densityPerBar": [
+      6,
+      12
+    ],
+    "intervals": {
+      "step": 0.4,
+      "third": 0.28,
+      "leap": 0.32
+    },
+    "contour": {
+      "riff": 0.75,
+      "descend": 0.15,
+      "arch": 0.1
+    },
+    "chordToneBias": 0.42,
+    "halfStepDissonance": 0.28,
+    "colorTones": [
+      1,
+      2,
+      6
+    ],
+    "octaveJumpProb": 0.4,
+    "phraseBars": {
+      "values": [
+        2
+      ],
+      "weights": [
+        1
+      ]
+    },
+    "timbreHint": "bright_bell"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.65,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "arp"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "bII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "v"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "bII",
+          "VII"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "VI",
+          "i"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII",
+          "v"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.68,
+      "seventh": 0.27,
+      "ninth": 0.05
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        36,
+        58
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar",
+        "syncopated_cell"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      2,
+      8
+    ],
+    "susOrDimProb": 0.12,
+    "borrowed": {
+      "V": 0.12
     }
   }
 }

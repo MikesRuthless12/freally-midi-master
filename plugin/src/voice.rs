@@ -178,7 +178,25 @@ impl Schedule {
                 events.push(Placed {
                     at,
                     lane: track.lane,
-                    note: note.pitch,
+                    // ⛔ **A drum lane goes out on its own GM note, never on the
+                    // walked pitch** (TASK-131D). In MIDI a drum's note number
+                    // *is* which drum it is — there is no way to say "the same
+                    // snare, a tone higher". This emitted `note.pitch` verbatim,
+                    // so a rage snare roll with `pitchWalk: 8` climbed 38, 39,
+                    // 41, 43, 46 and fired Hand Clap, Low Floor Tom, High Floor
+                    // Tom and Open Hi-Hat in the producer's drum rack — a
+                    // different instrument on every hit of one roll.
+                    //
+                    // ⚠ The walk is therefore an *audio-domain* effect: the
+                    // plugin's own sampler and the rendered wav stems repitch
+                    // the pad, and MIDI — live and exported — carries the drum.
+                    // `engine::midi::events_for` already made the same choice
+                    // for the exported file, so all three now agree.
+                    note: if crate::midi_note_for(track.lane) == 0 {
+                        note.pitch
+                    } else {
+                        crate::midi_note_for(track.lane)
+                    },
                     velocity: f32::from(note.vel) / 127.0,
                     // A zero-length note is inaudible and, in some hosts,
                     // invisible. One sample is the floor.

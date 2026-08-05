@@ -34,16 +34,26 @@
     "searchPlaceholder": "Szukaj artysty…",
     "searchLabel": "Szukaj artysty",
     "noDataset": "Nie wczytano jeszcze żadnego zbioru danych.",
-    "noKit": "Nie ma jeszcze zestawu. Upuść swoje one-shoty w dowolnym miejscu tego panelu.",
     "noMatch": "Nic nie pasuje do „{{query}}”.",
     "results": "Wyniki wyszukiwania"
+  },
+  "kit": {
+    "loading": "Wczytywanie zestawu…",
+    "noneLoaded": "Nie udało się wczytać zestawu, więc wtyczka milczy.",
+    "lanesLabel": "Ścieżki zestawu",
+    "assignHint": "Kliknij ścieżkę, aby odtwarzać na niej własny one-shot.",
+    "shipped": "Wbudowany",
+    "silent": "Brak dźwięku",
+    "choosing": "Wybieranie…",
+    "clearOne": "Usuń one-shot ze ścieżki {{lane}}"
   },
   "sections": {
     "genres": "Gatunki",
     "roster": "Artyści",
     "kit": "Zestaw",
     "session": "Sesja",
-    "presets": "Ustawienia wstępne"
+    "presets": "Ustawienia wstępne",
+    "stems": "Ścieżki"
   },
   "readouts": {
     "bpm": "BPM",
@@ -179,7 +189,8 @@
   "grid": {
     "label": "Wygenerowany wzór",
     "summary": "{{bars}} taktów · {{steps}} kroków · {{notes}} nut",
-    "muteLane": "Wycisz {{lane}} w podglądzie"
+    "muteLane": "Wycisz {{lane}} w podglądzie",
+    "cell": "{{lane}}, krok {{step}}"
   },
   "roster": {
     "artists": "Artyści",
@@ -198,7 +209,11 @@
     "rim": "Obręcz",
     "snap": "Pstryknięcie",
     "perc": "Perkusjonalia",
-    "bass808": "808"
+    "bass808": "808",
+    "melody": "Melodia",
+    "counter": "Kontrmelodia",
+    "bass": "Linia basu",
+    "chords": "Akordy"
   },
   "presets": {
     "factory": "Fabryczne",
@@ -277,5 +292,12 @@
       "bridge": "Most",
       "outro": "Zakończenie"
     }
+  },
+  "stems": {
+    "midi": "MIDI",
+    "audio": "Audio",
+    "perLane": "Na ścieżkę",
+    "hint": "Zapisuje każdą wygenerowaną partię do osobnego pliku.",
+    "choosing": "Wybierz folder…"
   }
 }

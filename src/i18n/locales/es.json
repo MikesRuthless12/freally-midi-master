@@ -34,16 +34,26 @@
     "searchPlaceholder": "Busca un artista…",
     "searchLabel": "Buscar un artista",
     "noDataset": "Aún no se ha cargado ningún dataset.",
-    "noKit": "Aún no hay kit. Suelta tus one-shots en cualquier parte de este panel.",
     "noMatch": "Nada coincide con «{{query}}».",
     "results": "Resultados de búsqueda"
+  },
+  "kit": {
+    "loading": "Leyendo el kit…",
+    "noneLoaded": "No se pudo cargar el kit, así que el plugin está en silencio.",
+    "lanesLabel": "Pistas del kit",
+    "assignHint": "Haz clic en una pista para reproducir tu propio one-shot en ella.",
+    "shipped": "Incluido",
+    "silent": "Sin sonido",
+    "choosing": "Eligiendo…",
+    "clearOne": "Quitar el one-shot de {{lane}}"
   },
   "sections": {
     "genres": "Géneros",
     "roster": "Artistas",
     "kit": "Kit de batería",
     "session": "Sesión",
-    "presets": "Preajustes"
+    "presets": "Preajustes",
+    "stems": "Pistas"
   },
   "readouts": {
     "bpm": "BPM",
@@ -179,7 +189,8 @@
   "grid": {
     "label": "Patrón generado",
     "summary": "{{bars}} compases · {{steps}} pasos · {{notes}} notas",
-    "muteLane": "Silenciar {{lane}} en la vista previa"
+    "muteLane": "Silenciar {{lane}} en la vista previa",
+    "cell": "{{lane}}, paso {{step}}"
   },
   "roster": {
     "artists": "Artistas",
@@ -198,7 +209,11 @@
     "rim": "Aro",
     "snap": "Chasquido",
     "perc": "Percusión",
-    "bass808": "808"
+    "bass808": "808",
+    "melody": "Melodía",
+    "counter": "Contramelodía",
+    "bass": "Línea de bajo",
+    "chords": "Acordes"
   },
   "presets": {
     "factory": "De fábrica",
@@ -277,5 +292,12 @@
       "bridge": "Puente",
       "outro": "Cierre"
     }
+  },
+  "stems": {
+    "midi": "MIDI",
+    "audio": "Audio",
+    "perLane": "Por pista",
+    "hint": "Guarda cada parte generada en su propio archivo.",
+    "choosing": "Elige una carpeta…"
   }
 }

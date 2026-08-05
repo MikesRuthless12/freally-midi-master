@@ -37,7 +37,7 @@ pub struct Request {
 /// Well above the 8 the UI offers, so it never binds in normal use; it exists
 /// so a value from a file, a preset or devtools cannot ask for a pattern that
 /// takes minutes to build on the thread the host draws its window from.
-const MAX_BARS: u16 = 128;
+pub(crate) const MAX_BARS: u16 = 128;
 
 /// What the UI asks for when the user presses Generate.
 ///
@@ -236,6 +236,15 @@ pub fn dispatch(
                 .map(|()| Value::Null)
         }
 
+        // The parts on screen, one file each, as MIDI or as audio (TASK-131F).
+        //
+        // ⛔ **Separate from `export_stems`, which is a whole *song*.** This is
+        // the four- or eight-bar loop a producer is actually looking at, and it
+        // is the one they want to drop a hi-hat pattern out of.
+        //
+        // `lanes: true` splits a drum pattern into one file per lane — the
+        // "drag just the hihats out" case Mike asked for on 2026-08-05.
+        // `audio: true` renders through the preview kit; false writes MIDI.
         // How the export that is running ended, if it has.
         //
         // ⚠ Polled, and the outcome is *taken* — see `export::take_status`. A
@@ -385,6 +394,16 @@ pub fn dispatch(
             // field, so the mute would come straight back and the UI would
             // insist the lane was on while the preview stayed silent. The page
             // sends the field on every save instead (`send()` in session.ts).
+
+            // ⛔ **`one_shots` is carried over unconditionally, like
+            // `window_size` and unlike `muted_lanes` — because the page never
+            // authors it.** An assignment is made by `one_shot_assign` and
+            // undone by `one_shot_clear`, both of which write the store
+            // directly; the page has no message that *means* "there are no
+            // one-shots", so an absent field can only ever be the page not
+            // knowing about them. Taking the page's word here would delete a
+            // producer's whole kit on the next artist change.
+            next.one_shots = state::with(session, |s| s.one_shots.clone()).unwrap_or_default();
 
             state::write(session, next);
             Ok(Value::Null)
@@ -1712,6 +1731,50 @@ mod tests {
         let saved = state::read(&store);
         assert_eq!(saved.selected_id.as_deref(), Some("trap"));
         assert_eq!(saved.window_size.as_deref(), Some("small"));
+    }
+
+    #[test]
+    fn saving_the_session_does_not_delete_the_producers_one_shots() {
+        // ⛔ **The same trap as the window size, and worse if it lands.** The
+        // page writes the whole session on every change and knows nothing about
+        // one-shots — they are assigned through `one_shot_assign` and cleared
+        // through `one_shot_clear`, both of which write the store directly. So
+        // an absent field can only mean "the page did not mention them", never
+        // "there are none", and taking the page's word would wipe a producer's
+        // whole kit the next time they picked an artist.
+        let store = SessionStore::default();
+        state::write(
+            &store,
+            PluginSession {
+                one_shots: std::collections::BTreeMap::from([(
+                    engine::pattern::Lane::Melody,
+                    "C:/samples/glass.wav".to_owned(),
+                )]),
+                ..PluginSession::default()
+            },
+        );
+
+        super::dispatch(
+            &request(
+                "save_session_state",
+                json!({ "session": { "selectedId": "trap", "seed": "7" } }),
+            ),
+            &host(),
+            &store,
+            &crate::export::Exports::default(),
+        )
+        .unwrap();
+
+        let saved = state::read(&store);
+        assert_eq!(saved.selected_id.as_deref(), Some("trap"));
+        assert_eq!(
+            saved
+                .one_shots
+                .get(&engine::pattern::Lane::Melody)
+                .map(String::as_str),
+            Some("C:/samples/glass.wav"),
+            "the page's silence is not a request to clear them"
+        );
     }
 
     #[test]

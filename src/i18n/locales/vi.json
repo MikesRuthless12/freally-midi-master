@@ -34,16 +34,26 @@
     "searchPlaceholder": "Tìm nghệ sĩ…",
     "searchLabel": "Tìm nghệ sĩ",
     "noDataset": "Chưa nạp bộ dữ liệu nào.",
-    "noKit": "Chưa có bộ trống. Thả các one-shot của bạn vào bất kỳ đâu trên bảng này.",
     "noMatch": "Không có gì khớp với “{{query}}”.",
     "results": "Kết quả tìm kiếm"
+  },
+  "kit": {
+    "loading": "Đang đọc bộ kit…",
+    "noneLoaded": "Không tải được bộ kit nên plugin không phát ra tiếng.",
+    "lanesLabel": "Các làn của bộ kit",
+    "assignHint": "Nhấp vào một làn để phát one-shot của riêng bạn trên đó.",
+    "shipped": "Có sẵn",
+    "silent": "Không có tiếng",
+    "choosing": "Đang chọn…",
+    "clearOne": "Xoá one-shot trên {{lane}}"
   },
   "sections": {
     "genres": "Thể loại",
     "roster": "Nghệ sĩ",
     "kit": "Bộ trống",
     "session": "Phiên",
-    "presets": "Cài đặt sẵn"
+    "presets": "Cài đặt sẵn",
+    "stems": "Stem"
   },
   "readouts": {
     "bpm": "BPM",
@@ -179,7 +189,8 @@
   "grid": {
     "label": "Mẫu đã tạo",
     "summary": "{{bars}} ô nhịp · {{steps}} bước · {{notes}} nốt",
-    "muteLane": "Tắt tiếng {{lane}} trong bản nghe thử"
+    "muteLane": "Tắt tiếng {{lane}} trong bản nghe thử",
+    "cell": "{{lane}}, bước {{step}}"
   },
   "roster": {
     "artists": "Nghệ sĩ",
@@ -198,7 +209,11 @@
     "rim": "Vành trống",
     "snap": "Búng tay",
     "perc": "Bộ gõ",
-    "bass808": "808"
+    "bass808": "808",
+    "melody": "Giai điệu",
+    "counter": "Giai điệu đối",
+    "bass": "Đường bass",
+    "chords": "Hợp âm"
   },
   "presets": {
     "factory": "Mặc định",
@@ -277,5 +292,12 @@
       "bridge": "Đoạn nối",
       "outro": "Kết"
     }
+  },
+  "stems": {
+    "midi": "MIDI",
+    "audio": "Âm thanh",
+    "perLane": "Theo làn",
+    "hint": "Ghi từng phần đã tạo ra tệp riêng của nó.",
+    "choosing": "Chọn một thư mục…"
   }
 }

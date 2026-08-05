@@ -146,80 +146,136 @@
         },
         {
           "startTick": 6720,
+          "lenTicks": 130,
+          "pitch": 38,
+          "vel": 34,
+          "modelVel": 38,
+          "articulation": "roll"
+        },
+        {
+          "startTick": 6850,
+          "lenTicks": 129,
+          "pitch": 39,
+          "vel": 31,
+          "modelVel": 35,
+          "articulation": "roll"
+        },
+        {
+          "startTick": 6978,
+          "lenTicks": 111,
+          "pitch": 39,
+          "vel": 40,
+          "modelVel": 43,
+          "articulation": "roll"
+        },
+        {
+          "startTick": 7090,
+          "lenTicks": 110,
+          "pitch": 40,
+          "vel": 46,
+          "modelVel": 51,
+          "articulation": "roll"
+        },
+        {
+          "startTick": 7201,
+          "lenTicks": 130,
+          "pitch": 40,
+          "vel": 88,
+          "modelVel": 82,
+          "articulation": "roll"
+        },
+        {
+          "startTick": 7329,
+          "lenTicks": 129,
+          "pitch": 41,
+          "vel": 75,
+          "modelVel": 67,
+          "articulation": "roll"
+        },
+        {
+          "startTick": 7458,
+          "lenTicks": 111,
+          "pitch": 41,
+          "vel": 67,
+          "modelVel": 75,
+          "articulation": "roll"
+        },
+        {
+          "startTick": 7571,
+          "lenTicks": 110,
+          "pitch": 42,
+          "vel": 92,
+          "modelVel": 83,
+          "articulation": "roll"
+        },
+        {
+          "startTick": 9600,
           "lenTicks": 259,
           "pitch": 38,
-          "vel": 58,
-          "modelVel": 64,
-          "articulation": "roll"
-        },
-        {
-          "startTick": 6979,
-          "lenTicks": 221,
-          "pitch": 38,
-          "vel": 52,
-          "modelVel": 60,
-          "articulation": "roll"
-        },
-        {
-          "startTick": 7199,
-          "lenTicks": 259,
-          "pitch": 38,
-          "vel": 69,
-          "modelVel": 73,
-          "articulation": "roll"
-        },
-        {
-          "startTick": 7459,
-          "lenTicks": 221,
-          "pitch": 38,
-          "vel": 78,
-          "modelVel": 86,
-          "articulation": "roll"
-        },
-        {
-          "startTick": 9601,
-          "lenTicks": 259,
-          "pitch": 38,
-          "vel": 83,
+          "vel": 71,
           "modelVel": 77
         },
         {
-          "startTick": 13439,
+          "startTick": 13441,
           "lenTicks": 259,
           "pitch": 38,
           "vel": 92,
           "modelVel": 82
         },
         {
-          "startTick": 14399,
-          "lenTicks": 259,
+          "startTick": 14401,
+          "lenTicks": 130,
           "pitch": 38,
-          "vel": 57,
-          "modelVel": 64,
+          "vel": 32,
+          "modelVel": 37,
+          "articulation": "roll"
+        },
+        {
+          "startTick": 14531,
+          "lenTicks": 129,
+          "pitch": 39,
+          "vel": 53,
+          "modelVel": 50,
           "articulation": "roll"
         },
         {
           "startTick": 14660,
-          "lenTicks": 221,
-          "pitch": 38,
-          "vel": 67,
-          "modelVel": 60,
+          "lenTicks": 111,
+          "pitch": 39,
+          "vel": 65,
+          "modelVel": 63,
           "articulation": "roll"
         },
         {
-          "startTick": 14880,
+          "startTick": 14881,
           "lenTicks": 259,
           "pitch": 38,
-          "vel": 70,
+          "vel": 79,
           "modelVel": 75,
           "articulation": "ghost"
         },
         {
+          "startTick": 15010,
+          "lenTicks": 129,
+          "pitch": 41,
+          "vel": 87,
+          "modelVel": 89,
+          "articulation": "roll"
+        },
+        {
           "startTick": 15140,
-          "lenTicks": 221,
-          "pitch": 38,
-          "vel": 96,
-          "modelVel": 86,
+          "lenTicks": 111,
+          "pitch": 41,
+          "vel": 88,
+          "modelVel": 102,
+          "articulation": "roll"
+        },
+        {
+          "startTick": 15250,
+          "lenTicks": 110,
+          "pitch": 42,
+          "vel": 118,
+          "modelVel": 115,
           "articulation": "roll"
         }
       ]

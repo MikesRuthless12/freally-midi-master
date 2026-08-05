@@ -19,6 +19,7 @@ use std::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering};
 use engine::pattern::Lane;
 use std::sync::{Arc, Mutex};
 
+use crate::audio::kit::Kit;
 use crate::host::HostSession;
 use crate::state::SessionStore;
 use crate::voice::Schedule;
@@ -152,11 +153,103 @@ impl Handoff {
     }
 }
 
+/// A rebuilt preview kit on its way to the audio thread (TASK-131B).
+///
+/// The same shape as [`Handoff`] and for the same two reasons — one slot,
+/// because a second assignment before the first was picked up is simply the
+/// newer kit; and the replaced one is *parked* rather than dropped, because
+/// freeing a kit's samples on the audio thread takes the allocator's lock.
+///
+/// ⛔ **Separate from `Handoff` rather than generic over it.** They are handed
+/// over on different events and the audio thread has to do something different
+/// on each: a new schedule keeps the sounding voices, a new kit **must cut
+/// them**. Sharing the type would have hidden that difference behind a type
+/// parameter, and it is the whole reason a kit swap is not free.
+#[derive(Debug, Default)]
+pub struct KitHandoff {
+    incoming: Mutex<Option<Arc<Kit>>>,
+    spent: Mutex<Option<Arc<Kit>>>,
+}
+
+impl KitHandoff {
+    /// Hand a finished kit to the audio thread. Loader/UI thread only —
+    /// building it is what allocates, and that happens before this is called.
+    pub fn send(&self, kit: Arc<Kit>) {
+        if let Ok(mut slot) = self.incoming.lock() {
+            *slot = Some(kit);
+        }
+    }
+
+    /// Swap in whatever is waiting, parking what it replaces.
+    ///
+    /// **Audio thread.** `try_lock` for the same reason [`Handoff::receive`]
+    /// uses one: a loader thread mid-write must never stall the callback.
+    ///
+    /// Answers **whether it swapped**, because the caller owes something on a
+    /// swap that it does not owe otherwise. ⛔ The sampler holds pad *indices*
+    /// inside its sounding voices, and the new kit may have a different pad at
+    /// that index — so every voice has to be cut, or the note that was playing
+    /// a hi-hat finishes as somebody's vocal chop.
+    #[must_use = "a swapped kit means the sounding voices must be cut"]
+    pub fn receive(&self, current: &mut Option<Arc<Kit>>) -> bool {
+        let Ok(mut slot) = self.incoming.try_lock() else {
+            return false;
+        };
+        let Some(next) = slot.take() else {
+            return false;
+        };
+        drop(slot);
+
+        let previous = current.replace(next);
+        // Parked, not dropped: this may be the last reference, and freeing a
+        // megabyte of samples here would take the allocator's lock.
+        //
+        // ⛔ **The `else` is not optional, and its absence was the exact bug
+        // this type exists to prevent.** `collect()` runs on every editor
+        // redraw, so `try_lock` genuinely loses races — and with no else branch
+        // `previous` was simply dropped at the end of the function. On a second
+        // assignment that `Arc` is the sole reference to a one-shot kit, so the
+        // drop freed megabytes of `Arc<[f32]>` *inside the audio callback*.
+        //
+        // ⚠ **Leaking is the correct loser's move here.** A kit is ~1.2 MB, the
+        // race is rare, and the plugin holds at most a handful over a session —
+        // whereas taking the allocator's lock on the callback is a dropout the
+        // producer hears. Bounded waste beats an audible failure.
+        match self.spent.try_lock() {
+            Ok(mut spent) => *spent = previous,
+            Err(_) => std::mem::forget(previous),
+        }
+        true
+    }
+
+    /// Free anything the audio thread parked. UI thread only.
+    pub fn collect(&self) {
+        if let Ok(mut spent) = self.spent.lock() {
+            spent.take();
+        }
+    }
+}
+
 /// Everything both threads reach.
 #[derive(Debug)]
 pub struct Shared {
     pub host: SharedHost,
     pub handoff: Handoff,
+    /// A rebuilt preview kit on its way to the audio thread (TASK-131B).
+    ///
+    /// ⚠ An `Arc` where [`Self::handoff`] is a plain field, because a kit is
+    /// sent from a *detached loader thread* rather than from the bridge — that
+    /// thread outlives the call that started it and so has to own a handle.
+    pub kits: Arc<KitHandoff>,
+    /// The one-shots the producer has assigned, and the dialog that assigns
+    /// them (TASK-131B).
+    ///
+    /// ⛔ **Per instance, for the reason [`crate::export::Exports`] spells out
+    /// at length** — its status mailbox is polled and taken destructively, so a
+    /// process global would let one instance in a twenty-track session steal
+    /// another's result. The kit a producer builds on one track is also simply
+    /// not the kit they want on the next.
+    pub one_shots: crate::oneshot::OneShots,
     /// What the host saves with the project, and what the editor restores from.
     ///
     /// The same `Arc` as the persisted field on
@@ -266,6 +359,8 @@ impl Shared {
         Self {
             host: SharedHost::default(),
             handoff: Handoff::default(),
+            kits: Arc::new(KitHandoff::default()),
+            one_shots: crate::oneshot::OneShots::default(),
             exports: crate::export::Exports::default(),
             armed_clip: Mutex::new(None),
             session,
@@ -482,6 +577,53 @@ impl Shared {
         self.set_muted_lanes(&session.muted_lanes);
     }
 
+    /// Reload the one-shots a restored project asked for (TASK-131B).
+    ///
+    /// ⛔ **Separate from [`Self::adopt_session`] because it does I/O.** That
+    /// one is four atomic stores and is safe anywhere; this one reads and
+    /// decodes files off disk, so it is `initialize`-only and never on a path a
+    /// host might call at speed.
+    ///
+    /// A path that no longer resolves is **logged and skipped**, not fatal: a
+    /// producer who moved their sample folder must still get their project
+    /// back, with four of five one-shots and a line saying which one is gone.
+    /// The lane falls back to the shipped voice, which is audibly different and
+    /// therefore self-explaining once they look at the panel.
+    pub fn restore_one_shots(&self) {
+        let stored = crate::state::with(&self.session, |s| s.one_shots.clone()).unwrap_or_default();
+        for (lane, path) in stored {
+            if let Err(reason) = self
+                .one_shots
+                .restore(lane, &path, &self.kits, &self.session)
+            {
+                nih_plug::nih_log!(
+                    "the one-shot saved for {lane:?} could not be reloaded: {reason}"
+                );
+            }
+        }
+    }
+
+    /// Ask the producer for a sample and play it on `lane` (TASK-131B).
+    ///
+    /// ⛔ **Here rather than at the call site, so the three things an
+    /// assignment touches cannot come apart.** It needs the kit handoff to
+    /// reach the audio thread and the session store to survive a reopen, and a
+    /// bridge command that passed one and forgot the other would be an
+    /// assignment that plays and is never saved — or is saved and never heard.
+    pub fn assign_one_shot(&self, lane: Lane) -> Result<(), String> {
+        self.one_shots.assign(lane, &self.kits, &self.session)
+    }
+
+    /// The kit the preview is playing right now, one-shots included.
+    pub fn current_kit(&self) -> Option<Arc<Kit>> {
+        self.one_shots.current_kit()
+    }
+
+    /// Put a lane back on the shipped voice.
+    pub fn clear_one_shot(&self, lane: Lane) {
+        self.one_shots.clear(lane, &self.kits, &self.session);
+    }
+
     /// Which lanes are muted, for saving with the project.
     pub fn muted_lanes(&self) -> Vec<Lane> {
         let mask = self.muted_lanes.load(Ordering::Relaxed);
@@ -525,7 +667,12 @@ const SEEK_PENDING: u32 = 1 << 31;
 const AUDITION_PENDING: u32 = 1 << 31;
 
 /// Every lane, so the mask can be read back out as names.
-const ALL_LANES: &[Lane] = &[
+///
+/// ⚠ **Also what the KIT panel enumerates** (TASK-131B). It is `pub(crate)`
+/// rather than private for that reason and only that reason: a second list of
+/// lanes in `editor.rs` would be a second thing to remember on the day the
+/// engine gains one, and the panel would quietly stop offering it.
+pub(crate) const ALL_LANES: &[Lane] = &[
     Lane::Kick,
     Lane::Snare,
     Lane::Clap,
@@ -713,6 +860,74 @@ mod tests {
             handoff.incoming.lock().unwrap().is_none(),
             "one receive should have drained it"
         );
+    }
+
+    /// A kit with one nameable pad, so a swap can be told from a no-op.
+    fn kit_named(id: &str) -> Arc<Kit> {
+        Arc::new(Kit {
+            id: id.to_owned(),
+            pads: Vec::new(),
+        })
+    }
+
+    #[test]
+    fn an_empty_kit_handoff_leaves_the_current_kit_alone() {
+        let kits = KitHandoff::default();
+        let mut current = Some(kit_named("shipped"));
+        assert!(!kits.receive(&mut current), "nothing was waiting");
+        assert_eq!(current.as_ref().unwrap().id, "shipped");
+    }
+
+    #[test]
+    fn a_sent_kit_is_swapped_in_and_reported_as_a_swap() {
+        // ⛔ The bool is what makes `process` cut its voices. A swap that
+        // reported `false` would leave every sounding voice addressing a pad
+        // index in the *old* kit — a hi-hat finishing as somebody's vocal chop.
+        let kits = KitHandoff::default();
+        let mut current = Some(kit_named("shipped"));
+        kits.send(kit_named("with-one-shots"));
+
+        assert!(kits.receive(&mut current), "a swap must report itself");
+        assert_eq!(current.as_ref().unwrap().id, "with-one-shots");
+    }
+
+    #[test]
+    fn the_replaced_kit_is_parked_rather_than_freed_on_the_audio_thread() {
+        // ⛔ **The rule this whole type exists for.** A kit is megabytes of
+        // samples, and dropping the last reference to it inside the callback
+        // takes the allocator's lock — the one thing a process callback must
+        // never do. It has to stay alive until the editor thread collects it.
+        let kits = KitHandoff::default();
+        let mut current = Some(kit_named("shipped"));
+        let outgoing = Arc::downgrade(current.as_ref().unwrap());
+        kits.send(kit_named("with-one-shots"));
+
+        assert!(kits.receive(&mut current));
+        assert!(
+            outgoing.upgrade().is_some(),
+            "the outgoing kit was freed on the audio thread"
+        );
+
+        kits.collect();
+        assert!(
+            outgoing.upgrade().is_none(),
+            "the editor thread must be what actually frees it"
+        );
+    }
+
+    #[test]
+    fn a_second_assignment_replaces_an_unclaimed_first() {
+        // Assigning twice before the audio thread looked means the producer
+        // wanted the second sample — the same rule `Handoff` follows for a
+        // second Generate, and for the same reason.
+        let kits = KitHandoff::default();
+        kits.send(kit_named("first"));
+        kits.send(kit_named("second"));
+
+        let mut current = Some(kit_named("shipped"));
+        assert!(kits.receive(&mut current));
+        assert_eq!(current.as_ref().unwrap().id, "second");
+        assert!(!kits.receive(&mut current), "one receive drains the slot");
     }
 }
 

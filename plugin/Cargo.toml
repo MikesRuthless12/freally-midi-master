@@ -67,6 +67,41 @@ clap-wrapper = { version = "0.3.1", features = ["vst3"] }
 # is linked, and this adds none.
 rfd = { version = "0.17.2", default-features = false, features = ["xdg-portal"] }
 
+# Decoding the one-shots a producer assigns to a part (TASK-131B).
+#
+# ⛔ **Not for the shipped kit.** `audio::kit::decode_wav` still reads that, and
+# deliberately: those bytes are `kitgen`'s own output in a format this repo
+# controls exactly, and its decoder is the gate that catches a kit shipping
+# broken. This is for the other case — a file off somebody's disk, in whatever
+# their sample pack happened to use.
+#
+# `default-features = false` and every format named explicitly, because the
+# default set pulls video and subtitle codecs a sampler has no use for. What is
+# here is what a one-shot actually arrives as: WAV and AIFF uncompressed, FLAC
+# and ALAC lossless, MP3, Vorbis and AAC lossy, in their MP4/Ogg containers.
+# `id3v2` is not a format — it is what lets an MP3 carrying cover art be read
+# at all rather than failing on its own tag.
+#
+# ⚠ Pure Rust with no `unsafe`-heavy C decoder behind it, which matters more
+# than usual here: this parses **untrusted files** inside somebody else's DAW
+# process, where a memory-safety bug in a decoder is a crash in Ableton.
+# MPL-2.0, which `deny.toml` already allows and already explains; it links no
+# HTTP client, so `scripts/check-denylist.mjs` is unaffected.
+symphonia = { version = "0.6.0", default-features = false, features = [
+    "wav",
+    "pcm",
+    "adpcm",
+    "aiff",
+    "flac",
+    "mp3",
+    "id3v2",
+    "isomp4",
+    "aac",
+    "alac",
+    "ogg",
+    "vorbis",
+] }
+
 # Git rather than crates.io because that is the only place nih-plug is
 # published. Pinned to a revision for the same reason `rust-toolchain.toml`
 # pins the compiler: an unpinned plugin framework re-resolves on every clean

@@ -27,10 +27,12 @@
 //! thread, and handed across — the same shape [`crate::voice::Schedule`] already
 //! uses for patterns, and for the same reason.
 
+pub mod import;
 pub mod kit;
+pub mod render;
 pub mod sampler;
 
-use std::sync::OnceLock;
+use std::sync::{Arc, OnceLock};
 
 use include_dir::{include_dir, Dir};
 
@@ -62,10 +64,17 @@ pub(crate) static PREVIEW_KIT: Dir<'_> =
 /// A failed decode yields `None` and the plugin stays silent rather than
 /// refusing to load: a broken preview kit must not cost a producer the plugin
 /// that generates their MIDI.
-pub fn preview_kit() -> Option<&'static Kit> {
-    static KIT: OnceLock<Option<Kit>> = OnceLock::new();
+///
+/// ⚠ **An `Arc` since TASK-131B, and the reason is that the kit stopped being
+/// the only one.** A producer's own one-shots are applied by building a *whole
+/// new* kit over this one and handing it to the audio thread, so the thing the
+/// callback plays is no longer a `'static` — it is whichever kit was handed over
+/// last. This one is still the base every rebuild starts from, and is still
+/// decoded exactly once.
+pub fn preview_kit() -> Option<&'static Arc<Kit>> {
+    static KIT: OnceLock<Option<Arc<Kit>>> = OnceLock::new();
     KIT.get_or_init(|| match Kit::embedded(&PREVIEW_KIT) {
-        Ok(kit) => Some(kit),
+        Ok(kit) => Some(Arc::new(kit)),
         Err(error) => {
             nih_plug::nih_log!(
                 "the preview kit could not be loaded, so the plugin is silent: {error}"

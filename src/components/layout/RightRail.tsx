@@ -1,6 +1,7 @@
 import { Section } from './Section';
-import { useTranslation } from 'react-i18next';
 
+import { KitPanel } from '../Kit/KitPanel';
+import { StemsPanel } from '../Kit/StemsPanel';
 import { Presets } from '../Presets/Presets';
 import { SessionChips } from '../SessionChips/SessionChips';
 
@@ -9,19 +10,21 @@ import { SessionChips } from '../SessionChips/SessionChips';
  * 1440px and toggles with K; each panel inside also collapses on its own.
  */
 export function RightRail() {
-  const { t } = useTranslation();
-
   return (
     <aside className="rail rail--right">
       <Section id="kit" grow>
-        <div className="pads">
-          {Array.from({ length: 8 }, (_, i) => (
-            <button key={i} type="button" className="pad" disabled>
-              {i + 1}
-            </button>
-          ))}
-        </div>
-        <div className="kit-drop">{t('rails.noKit')}</div>
+        {/* ⛔ This panel used to be eight hardcoded `disabled` buttons and a
+            static "No kit yet", rendered while a twelve-pad kit was loaded and
+            audibly playing (TASK-136). It is `KitPanel`'s job now, and every
+            word it shows comes from `kit_state`. */}
+        <KitPanel />
+      </Section>
+
+      {/* ⛔ Here rather than in the stage toolbar. `stage__controls` sits under
+          `stage__body`, so a control there costs the velocity lane height and
+          fails `e2e/piano-roll.spec.ts` — see `StemsPanel` for the full note. */}
+      <Section id="stems">
+        <StemsPanel />
       </Section>
 
       <Section id="session">

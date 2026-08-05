@@ -1,0 +1,234 @@
+//! How many different melodies, counterlines, basslines and chord parts does
+//! one artist actually write?
+//!
+//! ⛔ **The drum half of this question was asked first and found a real defect**
+//! (`drum_variety.rs`): a hardcoded fill made six flagship trap artists write a
+//! byte-identical snare roll. Mike, 2026-08-05: "it shouldn't just be drums that
+//! generate differently for the artist/producers, it should also be melodies,
+//! counter melodies, basslines, and chords and it should generate as many as it
+//! can that are unique from one another." This is the same measurement, pointed
+//! at the other four generators.
+//!
+//! ⚠ **TASK-126 already did this once for chords** and the number is the reason
+//! it got fixed: `voice()` took the strict minimum cost, so a voicing was a pure
+//! function of the chord, and **rage reached 8 distinct progressions in 1,000
+//! seeds** while its melody reached 823.
+
+use std::collections::{BTreeMap, BTreeSet};
+use std::path::{Path, PathBuf};
+
+use engine::context::SessionContext;
+use engine::pattern::Part;
+use engine::StyleModel;
+
+const SEEDS: u64 = 200;
+
+fn data_dir() -> PathBuf {
+    Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("..")
+        .join("data")
+}
+
+fn shipped() -> BTreeMap<String, StyleModel> {
+    let scan = engine::dataset::files::scan(&data_dir()).expect("data/ must be readable");
+    let (models, errors) = engine::dataset::registry_from(scan.files).resolve_all();
+    assert!(errors.is_empty(), "the dataset must resolve: {errors:#?}");
+    models
+}
+
+/// A part as a listener hears it: pitch and onset, quantised to the 16th.
+///
+/// ⚠ Humanization nudges every note, so raw ticks would make every seed look
+/// distinct and the measure would report perfect variety over one melody — the
+/// mistake the drum version of this made on its first attempt.
+fn shape(model: &StyleModel, ctx: &SessionContext, part: Part, seed: u64) -> Vec<(u32, u8)> {
+    let pattern = engine::parts::render(model, ctx, seed, part);
+    let mut out: Vec<(u32, u8)> = pattern
+        .iter()
+        .flat_map(|t| t.notes.iter())
+        .map(|n| ((n.start_tick + 120) / 240, n.pitch))
+        .collect();
+    out.sort_unstable();
+    out.dedup();
+    out
+}
+
+#[test]
+fn report_how_many_distinct_melodic_parts_each_artist_writes() {
+    let models = shipped();
+    let ctx = SessionContext {
+        bars: 4,
+        ..Default::default()
+    };
+    const PARTS: [(Part, &str); 4] = [
+        (Part::Melody, "melody"),
+        (Part::Counter, "counter"),
+        (Part::Bass, "bass"),
+        (Part::Chords, "chords"),
+    ];
+
+    println!("\n  distinct over {SEEDS} seeds, 4 bars");
+    println!(
+        "  {:>16}  {:>7}  {:>7}  {:>7}  {:>7}",
+        "model", "melody", "counter", "bass", "chords"
+    );
+
+    let mut worst: Vec<(String, &str, usize)> = Vec::new();
+    for (id, model) in &models {
+        let mut counts = Vec::new();
+        for (part, name) in PARTS {
+            let mut seen = BTreeSet::new();
+            for seed in 0..SEEDS {
+                let s = shape(model, &ctx, part, seed);
+                if !s.is_empty() {
+                    seen.insert(s);
+                }
+            }
+            counts.push(seen.len());
+            if !seen.is_empty() {
+                worst.push((id.clone(), name, seen.len()));
+            }
+        }
+        println!(
+            "  {id:>16}  {:>7}  {:>7}  {:>7}  {:>7}",
+            counts[0], counts[1], counts[2], counts[3]
+        );
+    }
+
+    worst.sort_by_key(|(_, _, n)| *n);
+    println!("\n  TEN NARROWEST:");
+    for (id, part, n) in worst.iter().take(10) {
+        println!("    {id:>16} {part:>8}  {n:>4} / {SEEDS}");
+    }
+}
+
+/// The floor a part must clear before a producer notices it repeating.
+///
+/// ⛔ **Set from a measurement, not from taste.** Before this, `rage` and
+/// `osamason` reached **4 distinct chord parts in 200 seeds** — they authored a
+/// single `harmonicRhythm` value and four mostly-one-chord families, which is
+/// not "harmonically static", it is "four". The floor sits under the narrowest
+/// legitimate model so it fails on a collapse rather than on a tuning change.
+const FLOOR: usize = 55;
+
+#[test]
+fn no_part_collapses_to_a_handful_of_outputs() {
+    let models = shipped();
+    let ctx = SessionContext {
+        bars: 4,
+        ..Default::default()
+    };
+
+    let mut thin: Vec<(String, &str, usize)> = Vec::new();
+    for (id, model) in &models {
+        for (part, name) in [
+            (Part::Melody, "melody"),
+            (Part::Counter, "counter"),
+            (Part::Bass, "bass"),
+            (Part::Chords, "chords"),
+        ] {
+            let mut seen = BTreeSet::new();
+            for seed in 0..SEEDS {
+                let s = shape(model, &ctx, part, seed);
+                if !s.is_empty() {
+                    seen.insert(s);
+                }
+            }
+            // ⚠ **Empty is not narrow.** Trap's `Bass` is deliberately silent —
+            // the 808 carries the low end (FR-007) — so a part that never
+            // generates has nothing to measure and must not be failed for it.
+            if !seen.is_empty() && seen.len() < FLOOR {
+                thin.push((id.clone(), name, seen.len()));
+            }
+        }
+    }
+
+    thin.sort_by_key(|(_, _, n)| *n);
+    assert!(
+        thin.is_empty(),
+        "these parts barely vary over {SEEDS} seeds (floor {FLOOR}): {thin:?}\n\
+         The cure is authored range in the model — more progression families, more \
+         than one harmonicRhythm value, a chordDurationBeats range — not a lower floor."
+    );
+}
+
+#[test]
+fn two_different_artists_do_not_write_the_same_melodic_part() {
+    // ⛔ **The other axis, and the one Mike's report was actually about**: hold
+    // the seed, change the artist. The drum version of this
+    // (`drum_variety.rs`) found `ny-drill` and `pop-smoke` writing an identical
+    // beat on 16 seeds of 200 — two models separated by 0.05 on four numbers.
+    // The melodic generators need the same check or a genre inheriting its
+    // whole melody block is invisible here.
+    //
+    // ⚠ Same reasoning as the drum gate: zero is the wrong target. Two models
+    // in one family will coincide occasionally, and forcing that never to
+    // happen means authoring differences nobody asked for.
+    // ⛔ **Per part, because the parts have genuinely different vocabulary
+    // sizes.** A melody is a free line and two models writing the same one is
+    // real evidence they are the same model. A two-chord dark-minor vamp is
+    // nearly a closed set — trap, dark-trap, rage, phonk, future and osamason
+    // *are* one harmonic family, and forcing them never to coincide would mean
+    // authoring progressions none of them play, which is the thing this gate's
+    // failure message tells you not to do.
+    //
+    // ⚠ **What this catches is a model that inherits its parent wholesale**,
+    // which produces a 100% collision rate — before the blocks below were
+    // authored, six trap flagships shared one melody on **200 seeds of 200**
+    // and pluggnb/summrs shared one chord part on 200 of 200. It is not tuned
+    // to catch a family resemblance, and it should not be.
+    let ceiling_for = |part: &str| -> usize {
+        let per_1000 = match part {
+            "chords" => 250,
+            _ => 100,
+        };
+        SEEDS as usize * per_1000 / 1000
+    };
+
+    let models = shipped();
+    let ctx = SessionContext {
+        bars: 4,
+        ..Default::default()
+    };
+    let ids: Vec<&String> = models.keys().filter(|id| *id != "_defaults").collect();
+
+    let mut hits: BTreeMap<(&str, String), usize> = BTreeMap::new();
+    for (part, name) in [
+        (Part::Melody, "melody"),
+        (Part::Counter, "counter"),
+        (Part::Bass, "bass"),
+        (Part::Chords, "chords"),
+    ] {
+        for seed in 0..SEEDS {
+            let mut by_shape: BTreeMap<Vec<(u32, u8)>, Vec<&str>> = BTreeMap::new();
+            for id in &ids {
+                let s = shape(&models[*id], &ctx, part, seed);
+                if !s.is_empty() {
+                    by_shape.entry(s).or_default().push(id);
+                }
+            }
+            for group in by_shape.values().filter(|g| g.len() > 1) {
+                *hits.entry((name, group.join(" = "))).or_default() += 1;
+            }
+        }
+    }
+
+    let mut rows: Vec<(&(&str, String), &usize)> = hits.iter().collect();
+    rows.sort_by_key(|(_, count)| std::cmp::Reverse(**count));
+    println!("\n  melodic collisions over {SEEDS} seeds:");
+    for ((part, pair), count) in rows.iter().take(12) {
+        println!("    {count:>4} / {SEEDS}  {part:>8}  {pair}");
+    }
+
+    let over: Vec<(&str, &str, usize)> = hits
+        .iter()
+        .filter(|((part, _), count)| **count > ceiling_for(part))
+        .map(|((part, pair), count)| (*part, pair.as_str(), *count))
+        .collect();
+    assert!(
+        over.is_empty(),
+        "these models write the same part as each other too often in {SEEDS} seeds: \
+         {over:?}\n\
+         The cure is an authored block in the child, not a looser gate."
+    );
+}

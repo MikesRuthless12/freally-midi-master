@@ -257,9 +257,82 @@ impl Pools {
     }
 }
 
+/// The multi-bar kick form this pattern will play, resolved once.
+///
+/// ⛔ **"Exactly" used to mean "only", and that was a defect.** `kick_bar`
+/// returned `grammar[bar % len]` and never touched the rng, so **uk-drill,
+/// ny-drill and pop-smoke wrote exactly one kick pattern across 200 seeds** —
+/// measured 2026-08-05, after Mike reported the roster sounding the same in
+/// Ableton. A signature that cannot vary is not a signature; it is a loop.
+///
+/// ⚠ **The fix is not to make the grammar statistical.** That would throw away
+/// the thing it exists to protect — drill's two-bar form is the genre, and an
+/// approximation of it is a different genre. A model may instead author
+/// `grammarVariants`: several complete multi-bar forms, one chosen per pattern
+/// from the seed. Every row still reproduces exactly; there are simply more than
+/// one of them. Mike, 2026-08-05: "as many distinct drum patterns as possible
+/// per artist/producer **as long as it follows that artist's type of
+/// workflow**" — for a grammar, this is what that sentence means.
+///
+/// ⛔ **Resolved here rather than inside `kick_bar`, and that is load-bearing.**
+/// `kick_bar` runs once per bar off one rng stream, so drawing there would pick
+/// a different form every bar — cutting between two two-bar shapes mid-phrase
+/// and destroying the very thing the grammar encodes.
+///
+/// ⚠ `fourBarGrammar` still works and still means exactly what it meant. An
+/// artist authoring one form gets one form; nothing already in the dataset
+/// changes behaviour.
+fn kick_grammar(
+    kick: Option<&Value>,
+    ctx: &SessionContext,
+    rng: &mut impl Rng,
+) -> Option<Vec<Vec<u32>>> {
+    let rows = |form: &Value| -> Vec<Vec<u32>> {
+        form.as_array()
+            .map(|bars| {
+                bars.iter()
+                    .map(|row| {
+                        let mut ticks: Vec<u32> = row
+                            .as_array()
+                            .map(|positions| {
+                                positions
+                                    .iter()
+                                    .filter_map(Value::as_str)
+                                    .filter_map(|p| grid::position_ticks(p, ctx))
+                                    .collect()
+                            })
+                            .unwrap_or_default();
+                        ticks.sort_unstable();
+                        ticks.dedup();
+                        ticks
+                    })
+                    .collect()
+            })
+            .unwrap_or_default()
+    };
+
+    let variants = kick
+        .and_then(|k| k.get("grammarVariants"))
+        .and_then(Value::as_array)
+        .filter(|v| !v.is_empty());
+
+    if let Some(variants) = variants {
+        let choice = rng.random_range(0..variants.len());
+        let form = rows(&variants[choice]);
+        if !form.is_empty() {
+            return Some(form);
+        }
+    }
+
+    let single = kick.and_then(|k| k.get("fourBarGrammar"))?;
+    let form = rows(single);
+    (!form.is_empty()).then_some(form)
+}
+
 /// One bar of kick, placed from the grammar in the model.
 fn kick_bar(
     kick: Option<&Value>,
+    grammar: Option<&Vec<Vec<u32>>>,
     ctx: &SessionContext,
     bar: u32,
     snares: &[u32],
@@ -267,25 +340,10 @@ fn kick_bar(
 ) -> Vec<u32> {
     // An explicit multi-bar grammar wins over everything statistical: drill's
     // `[["1","2&","4"], ["1&","3"]]` is the genre's signature two-bar form and
-    // must reproduce exactly, not approximately.
-    let grammar = kick
-        .and_then(|k| k.get("fourBarGrammar"))
-        .and_then(Value::as_array);
+    // must reproduce exactly, not approximately. Which *form* is in play was
+    // decided once for the whole pattern — see [`kick_grammar`].
     if let Some(grammar) = grammar.filter(|g| !g.is_empty()) {
-        let row = &grammar[(bar as usize) % grammar.len()];
-        let mut ticks: Vec<u32> = row
-            .as_array()
-            .map(|positions| {
-                positions
-                    .iter()
-                    .filter_map(Value::as_str)
-                    .filter_map(|p| grid::position_ticks(p, ctx))
-                    .collect()
-            })
-            .unwrap_or_default();
-        ticks.sort_unstable();
-        ticks.dedup();
-        return ticks;
+        return grammar[(bar as usize) % grammar.len()].clone();
     }
 
     let syncopation = number(kick, "syncopation", 0.3, rng).clamp(0.0, 1.0);
@@ -385,6 +443,10 @@ pub fn generate(model: &StyleModel, ctx: &SessionContext, seed: u64) -> Vec<Lane
     let mut snare_rng = rng::stream(seed, "drums/snare");
     let mut kick_rng = rng::stream(seed, "drums/kick");
 
+    // ⛔ Drawn once, before the bar loop, for the reason `kick_grammar` gives:
+    // a form chosen per bar cuts between two two-bar shapes mid-phrase.
+    let kick_form = kick_grammar(kick_block, ctx, &mut kick_rng);
+
     // Placement is decided once for the whole pattern, not per bar: a snare
     // that changes its mind halfway through is not a style, it is a glitch.
     let mut placement = snare_block
@@ -460,7 +522,14 @@ pub fn generate(model: &StyleModel, ctx: &SessionContext, seed: u64) -> Vec<Lane
         // The kick reads this bar's snares, so it can leave the gap before them.
         let snares: Vec<u32> = hits.iter().map(|(tick, _)| *tick).collect();
         snares_by_bar.push(snares.clone());
-        for tick in kick_bar(kick_block, ctx, bar, &snares, &mut kick_rng) {
+        for tick in kick_bar(
+            kick_block,
+            kick_form.as_ref(),
+            ctx,
+            bar,
+            &snares,
+            &mut kick_rng,
+        ) {
             kit.hit(
                 Lane::Kick,
                 bar_start + tick,
@@ -506,10 +575,29 @@ pub fn generate(model: &StyleModel, ctx: &SessionContext, seed: u64) -> Vec<Lane
         })
         .map(|n| n.start_tick)
         .collect();
+    // ⛔ **Every snare, fills included, for the length clamp only.** The list
+    // above is what the 808 *skips*, and it is the backbeat on purpose. This is
+    // what it must not *ring through*, and the two are genuinely different
+    // rules: a fill is a wall of snares, so dropping the 808 under each one
+    // shreds the line — but letting it sustain across the whole wall is the
+    // thing drill is defined against.
+    //
+    // ⚠ **They only ever agreed by luck, and TASK-131C's data change broke the
+    // luck.** `drills_808_stops_under_the_snare` filters ghosts and *not* rolls,
+    // so it has always asserted this stricter rule — it passed because no kick
+    // grammar had yet put an 808 across a fill. The moment uk-drill gained a
+    // variant with a kick on beat 4, seed 0 rang an 808 from 6720 through the
+    // roll note at 6960. The test was right and the code was one list short.
+    let ringing_snares: Vec<u32> = kit
+        .notes(Lane::Snare)
+        .iter()
+        .filter(|n| n.articulation != Some(Articulation::Ghost))
+        .map(|n| n.start_tick)
+        .collect();
     let mut bass_rng = rng::stream(seed, "drums/bass808");
     kit.extend(
         Lane::Bass808,
-        bass808(drums, ctx, &kicks, &snares, &mut bass_rng),
+        bass808(drums, ctx, &kicks, &snares, &ringing_snares, &mut bass_rng),
     );
     kit.extend(Lane::ClosedHat, closed);
     kit.extend(Lane::OpenHat, open);
@@ -649,10 +737,12 @@ fn fills(kit: &mut DrumKit, drums: Option<&Value>, ctx: &SessionContext, rng: &m
         let notes = if big && use_ladder {
             rolls::snare_ladder(snare_roll, ctx, lane, start, length, rng)
         } else {
-            rolls::Roll::new(lane, start, start + length, grid::SIXTEENTH)
-                .ramp(64, 120)
-                .grouped(rolls::Grouping::StrongWeakWeakWeak)
-                .render(rng)
+            // ⛔ **Was a hardcoded `Roll::new(..).ramp(64,120)` written inline
+            // here, and that was the defect Mike reported on 2026-08-05: six of
+            // the ten flagship trap artists wrote a byte-identical roll.**
+            // `rolls::snare_fill` reads the artist's own block and samples
+            // inside it; its doc comment carries the measurement.
+            rolls::snare_fill(snare_roll, lane, start, length, rng)
         };
 
         // The ghosts `clear_for_fill` keeps live on the same 16th grid the
@@ -693,7 +783,11 @@ fn bass808(
     drums: Option<&Value>,
     ctx: &SessionContext,
     kicks: &[u32],
+    // The backbeat: where the 808 does not play at all.
     snares: &[u32],
+    // Every snare including a fill's, which the 808 may start on but must not
+    // ring past. See the call site for why these are two lists.
+    ringing_snares: &[u32],
     rng: &mut impl Rng,
 ) -> Vec<Note> {
     // `read::block` treats an explicit `null` as absent, which is how a
@@ -912,11 +1006,24 @@ fn bass808(
     // And a note that merely *reaches* a snare stops there. Nothing starts
     // within the tolerance of one any more, so the cut always leaves a real
     // note behind rather than a click.
+    //
+    // ⛔ **`ringing_snares`, not `snares` — a fill's notes count here and do
+    // not count above.** Dropping the 808 under every note of a roll shreds the
+    // line; sustaining it across the whole roll is what drill is defined
+    // against. Stopping at the first one it reaches is both rules at once.
     if mute {
         for note in &mut notes {
-            if let Some(snare) = snares
+            // ⛔ **`min`, not `find`.** The lane's notes are in insertion order —
+            // backbeat, then ghosts, then the fill's roll appended last — so
+            // `find` returned whichever happened to come first in the *vector*
+            // and clamped to it, leaving an earlier snare still rung through.
+            // "The first snare it reaches" is a fact about time, and only `min`
+            // says that. This was invisible while the list held nothing but a
+            // backbeat already in bar order.
+            if let Some(snare) = ringing_snares
                 .iter()
-                .find(|s| **s > note.start_tick && **s < note.start_tick + note.len_ticks)
+                .filter(|s| **s > note.start_tick && **s < note.start_tick + note.len_ticks)
+                .min()
             {
                 note.len_ticks = snare - note.start_tick;
             }

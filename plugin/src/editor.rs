@@ -271,6 +271,17 @@ fn window_size(shared: &SharedState) -> (u32, u32) {
 /// command fails loudly" rule keeps meaning what it says: this is a *known*
 /// command that simply lives on the other side of the seam.
 ///
+/// The `lane` argument of a one-shot command.
+///
+/// ⛔ **Refused rather than defaulted.** These arrive from the webview, so a
+/// lane the engine does not have means the page and the plugin disagree — and
+/// defaulting to `Kick` would silently assign somebody's sample to the wrong
+/// pad, which is far harder to notice than an error.
+fn lane_arg(request: &Request) -> Result<engine::pattern::Lane, String> {
+    serde_json::from_value(request.args["lane"].clone())
+        .map_err(|_| format!("{} is not a lane", request.args["lane"]))
+}
+
 /// Returns `None` when the command is not one of these, so the caller falls
 /// through to the bridge.
 fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Value, String>> {
@@ -386,6 +397,126 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
             }
             shared.set_running(request.command == "transport_play");
             return Some(Ok(Value::Null));
+        }
+
+        // ---- The KIT panel and one-shot assignment (TASK-131B, TASK-136) ----
+        //
+        // ⛔ **Here rather than in `bridge::dispatch` for the reason every
+        // command in this function is: they need `shared`.** The kit lives
+        // behind a handoff the audio thread reads, and the assignment map is
+        // per instance — neither is reachable from the bridge.
+
+        // What the KIT panel draws: every lane the engine has, what plays it,
+        // and whether that is the producer's own sample.
+        //
+        // ⛔ **Built from the kit and the assignment map, never from a table
+        // written here.** `RightRail` used to render eight hardcoded disabled
+        // buttons and a static "No kit yet" while a twelve-pad kit was loaded
+        // and audibly playing (TASK-136) — a readout that lies, and it lied
+        // because it was connected to nothing. A second list of lanes in this
+        // file would be the same defect with an extra step.
+        "kit_state" => {
+            let assigned = shared.one_shots.snapshot();
+            let base = crate::audio::preview_kit();
+            let lanes: Vec<Value> = crate::shared::ALL_LANES
+                .iter()
+                .map(|lane| {
+                    let one_shot = assigned.get(lane);
+                    json!({
+                        "lane": lane,
+                        // ⚠ A lane with neither is silent, and the panel has to
+                        // say so. `Lane::Snap` is that lane today: the drum
+                        // generator can write it and the shipped kit has never
+                        // carried a pad for it.
+                        "shipped": base.is_some_and(|kit| kit.pad_for(*lane).is_some()),
+                        "name": one_shot.map(|(_, name)| name.clone()),
+                        "path": one_shot.map(|(path, _)| path.clone()),
+                    })
+                })
+                .collect();
+            return Some(Ok(json!({
+                "id": base.map(|kit| kit.id.clone()),
+                "lanes": lanes,
+            })));
+        }
+
+        // Open a dialog and put what is picked on a lane. Returns immediately;
+        // the outcome arrives through `one_shot_status`. See `crate::oneshot`
+        // for why it cannot block here.
+        "one_shot_assign" => {
+            return Some(
+                lane_arg(request)
+                    .and_then(|lane| shared.assign_one_shot(lane).map(|()| Value::Null)),
+            );
+        }
+
+        "one_shot_clear" => {
+            return Some(lane_arg(request).map(|lane| {
+                shared.clear_one_shot(lane);
+                Value::Null
+            }));
+        }
+
+        "export_pattern_stems" => {
+            return Some((|| -> Result<Value, String> {
+                let patterns: Vec<Pattern> =
+                    Vec::<engine::pattern::Pattern>::deserialize(&request.args["patterns"])
+                        .map_err(|e| format!("bad patterns: {e}"))?;
+                if patterns.is_empty() {
+                    return Err("there is nothing generated to export".to_owned());
+                }
+                // ⛔ Bounded before anything is rendered, for the reason
+                // `check_song` exists: a `Pattern` arrives as JSON from the webview,
+                // so its bar count and tempo are whatever that JSON said, and
+                // rendering audio allocates a buffer sized from both.
+                // ⛔ A cap on the COUNT as well as on each one. `check_song` exists
+                // because "an axis-at-a-time bound cannot see what happens when the
+                // legal maxima are combined", and this reproduced only the bars
+                // half — `start_pattern_stems` then holds every rendered stem in
+                // memory at once, so the product is what matters.
+                if patterns.len() > engine::pattern::PART_ORDER.len() {
+                    return Err(format!(
+                        "{} parts is more than a pattern has",
+                        patterns.len()
+                    ));
+                }
+                for pattern in &patterns {
+                    // A meter of 0/0 divides the tick arithmetic by nothing and a
+                    // huge numerator multiplies the render length; both are the
+                    // same class `check_song` bounds for a song.
+                    if pattern.time_sig_num == 0 || pattern.time_sig_num > 32 {
+                        return Err("that meter is outside what can be exported".to_owned());
+                    }
+                    if pattern.time_sig_den == 0 || !pattern.time_sig_den.is_power_of_two() {
+                        return Err("that meter is outside what can be exported".to_owned());
+                    }
+                    if pattern.bars == 0 || pattern.bars > crate::bridge::MAX_BARS {
+                        return Err(format!(
+                            "a pattern of {} bars is outside what can be exported",
+                            pattern.bars
+                        ));
+                    }
+                }
+                let audio = request.args["audio"].as_bool().unwrap_or(false);
+                let lanes = request.args["lanes"].as_bool().unwrap_or(false);
+                let first = &patterns[0];
+                let folder = format!(
+                    "{}-{}-{}",
+                    first.artist_id,
+                    first.seed,
+                    if audio { "audio" } else { "midi" }
+                );
+                shared
+                    .exports
+                    .start_pattern_stems(patterns, &folder, audio, lanes, shared.current_kit())
+                    .map(|()| Value::Null)
+            })());
+        }
+
+        "one_shot_status" => {
+            return Some(
+                serde_json::to_value(shared.one_shots.take_status()).map_err(|e| e.to_string()),
+            );
         }
 
         _ => {}
@@ -536,6 +667,10 @@ pub fn create(shared: SharedState) -> Option<Box<dyn Editor>> {
             // Free anything the audio thread parked. This is the thread that
             // is allowed to.
             shared.handoff.collect();
+            // ...including a kit a one-shot assignment replaced (TASK-131B),
+            // which is megabytes rather than a schedule's few kilobytes and so
+            // is the one that would be most audible to free in the callback.
+            shared.kits.collect();
 
             // A size the UI asked for. This is the only place it can be applied:
             // `resize` needs the window, and the window only exists here.
@@ -988,6 +1123,183 @@ mod tests {
                 .expect("answers");
             assert_eq!(hosted.take_seek(), Some(0.0));
             assert!(hosted.running(), "stop must not stop a DAW");
+        }
+    }
+
+    /// The KIT panel's window commands (TASK-131B, TASK-136).
+    mod kit {
+        use super::*;
+        use crate::shared::Shared;
+        use engine::pattern::Lane;
+        use std::sync::Arc;
+
+        fn with_args(name: &str, args: Value) -> Request {
+            Request {
+                id: 1,
+                command: name.to_owned(),
+                args,
+            }
+        }
+
+        /// A real, decodable WAV on disk, for the paths that take a file name.
+        ///
+        /// Written rather than checked in: what these tests are for is that the
+        /// whole path works, and a fixture in the repo would be a second copy of
+        /// `kitgen`'s output with nothing keeping it in step.
+        fn written_sample() -> std::path::PathBuf {
+            let frames = 512usize;
+            let mut wav = Vec::with_capacity(44 + frames * 2);
+            wav.extend_from_slice(b"RIFF");
+            wav.extend_from_slice(&((36 + frames * 2) as u32).to_le_bytes());
+            wav.extend_from_slice(b"WAVEfmt ");
+            wav.extend_from_slice(&16u32.to_le_bytes());
+            wav.extend_from_slice(&1u16.to_le_bytes());
+            wav.extend_from_slice(&1u16.to_le_bytes());
+            wav.extend_from_slice(&44_100u32.to_le_bytes());
+            wav.extend_from_slice(&88_200u32.to_le_bytes());
+            wav.extend_from_slice(&2u16.to_le_bytes());
+            wav.extend_from_slice(&16u16.to_le_bytes());
+            wav.extend_from_slice(b"data");
+            wav.extend_from_slice(&((frames * 2) as u32).to_le_bytes());
+            for frame in 0..frames {
+                let value = if frame % 2 == 0 { i16::MAX } else { i16::MIN };
+                wav.extend_from_slice(&value.to_le_bytes());
+            }
+
+            let dir = std::env::temp_dir().join("fmm-one-shot-panel");
+            std::fs::create_dir_all(&dir).expect("the temp folder must be creatable");
+            let path = dir.join("one-shot-test.wav");
+            std::fs::write(&path, &wav).expect("the sample must be writable");
+            path
+        }
+
+        #[test]
+        fn the_panel_is_told_what_is_actually_loaded() {
+            // ⛔ **TASK-136's gate.** `RightRail` rendered eight hardcoded
+            // disabled buttons and a static "No kit yet" while a twelve-pad kit
+            // was loaded and audibly playing. The fix is not a better string —
+            // it is that the panel is told, and this is what tells it.
+            let shared: SharedState = Arc::new(Shared::default());
+            let reply = window_command(&command("kit_state"), &shared)
+                .expect("kit_state is a window command")
+                .expect("it answers rather than failing");
+
+            assert_eq!(reply["id"], json!("trap-default"));
+            let lanes = reply["lanes"].as_array().expect("a lane list");
+            assert_eq!(
+                lanes.len(),
+                crate::shared::ALL_LANES.len(),
+                "every lane the engine has, not a list written in the panel"
+            );
+
+            let of = |name: &str| {
+                lanes
+                    .iter()
+                    .find(|entry| entry["lane"] == json!(name))
+                    .unwrap_or_else(|| panic!("{name} must be listed"))
+                    .clone()
+            };
+
+            // A lane the shipped kit covers, with nothing assigned over it.
+            assert_eq!(of("melody")["shipped"], json!(true));
+            assert_eq!(of("melody")["name"], Value::Null);
+
+            // ⚠ And the one lane it has never covered. The drum generator can
+            // write `Snap` and no pad has ever played it, so it is silent — the
+            // panel has to be able to say that rather than drawing it like the
+            // others.
+            assert_eq!(of("snap")["shipped"], json!(false));
+        }
+
+        #[test]
+        fn an_assigned_sample_shows_up_in_the_panel_under_its_own_name() {
+            let shared: SharedState = Arc::new(Shared::default());
+            // Restoring is the no-dialog path, so it is the one a test can
+            // drive; `assign` differs only in where the path comes from.
+            let sample = written_sample();
+            shared
+                .one_shots
+                .restore(
+                    Lane::Melody,
+                    sample.to_str().expect("a utf-8 temp path"),
+                    &shared.kits,
+                    &shared.session,
+                )
+                .expect("a real WAV must load");
+
+            let reply = window_command(&command("kit_state"), &shared)
+                .expect("known")
+                .expect("answers");
+            let melody = reply["lanes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .find(|entry| entry["lane"] == json!("melody"))
+                .unwrap()
+                .clone();
+
+            assert_eq!(melody["name"], json!("one-shot-test.wav"));
+            assert!(melody["path"]
+                .as_str()
+                .unwrap()
+                .ends_with("one-shot-test.wav"));
+
+            // ...and clearing it puts the lane back on the shipped voice.
+            window_command(
+                &with_args("one_shot_clear", json!({ "lane": "melody" })),
+                &shared,
+            )
+            .expect("known")
+            .expect("answers");
+            let reply = window_command(&command("kit_state"), &shared)
+                .expect("known")
+                .expect("answers");
+            let melody = reply["lanes"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .find(|entry| entry["lane"] == json!("melody"))
+                .unwrap()
+                .clone();
+            assert_eq!(melody["name"], Value::Null);
+            assert_eq!(melody["shipped"], json!(true));
+        }
+
+        #[test]
+        fn a_lane_the_engine_does_not_have_is_refused_rather_than_defaulted() {
+            // ⛔ These arrive from the webview. Defaulting to `Kick` would put
+            // somebody's sample on the wrong pad, which is much harder to
+            // notice than an error and impossible to explain.
+            let shared: SharedState = Arc::new(Shared::default());
+            for command_name in ["one_shot_assign", "one_shot_clear"] {
+                let error = window_command(
+                    &with_args(command_name, json!({ "lane": "kazoo" })),
+                    &shared,
+                )
+                .expect("the command is known")
+                .expect_err("an unknown lane must be refused");
+                assert!(error.contains("is not a lane"), "{command_name}: {error}");
+
+                // A missing argument is the same mistake with a different shape.
+                assert!(
+                    window_command(&command(command_name), &shared)
+                        .expect("known")
+                        .is_err(),
+                    "{command_name} with no lane must be refused"
+                );
+            }
+        }
+
+        #[test]
+        fn the_status_is_taken_once_so_a_poll_does_not_repeat_itself() {
+            // The page polls this while a dialog is open. See
+            // `oneshot::OneShots::take_status` — a terminal status left in the
+            // slot is a toast that never goes away.
+            let shared: SharedState = Arc::new(Shared::default());
+            let reply = window_command(&command("one_shot_status"), &shared)
+                .expect("known")
+                .expect("answers");
+            assert_eq!(reply["state"], json!("idle"));
         }
     }
 }

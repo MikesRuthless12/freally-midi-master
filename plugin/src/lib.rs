@@ -28,6 +28,7 @@ mod editor;
 pub mod eula;
 pub mod export;
 pub mod host;
+pub mod oneshot;
 pub mod presets;
 pub mod shared;
 pub mod state;
@@ -58,6 +59,12 @@ pub fn is_standalone() -> bool {
     STANDALONE.load(std::sync::atomic::Ordering::Relaxed)
 }
 
+/// The GM note a drum lane sounds at. One hop to the engine, so the audio
+/// module has a single name for it rather than reaching across inline.
+pub fn midi_note_for(lane: engine::pattern::Lane) -> u8 {
+    engine::midi::gm_drum_note(lane)
+}
+
 /// The plugin's own state, held across the process callbacks.
 pub struct FreallyMidiMaster {
     params: Arc<FreallyParams>,
@@ -75,6 +82,15 @@ pub struct FreallyMidiMaster {
     /// exist without being allocated on the audio thread: voices persist across
     /// blocks by definition, and the fired-note array is reused every block.
     sampler: audio::sampler::Sampler,
+    /// The kit the preview plays right now.
+    ///
+    /// ⛔ **Owned here rather than reached for statically, because since
+    /// TASK-131B it can change.** It starts as the shipped kit and is replaced,
+    /// whole, whenever the producer assigns one of their own one-shots —
+    /// `shared.kits` is the handoff and `process` is the only place the swap
+    /// happens. `None` only while the shipped kit failed to decode, which
+    /// `audio::preview_kit` already logs.
+    kit: Option<Arc<audio::kit::Kit>>,
     fired: voice::FiredNotes,
     /// Interleaved scratch the sampler renders into before it is added to the
     /// host's buffer.
@@ -119,6 +135,8 @@ impl Default for FreallyMidiMaster {
             pending: Schedule::default(),
             shared,
             sampler: audio::sampler::Sampler::default(),
+            // Decoded lazily by `initialize`, off the audio thread.
+            kit: None,
             fired: voice::FiredNotes::default(),
             scratch: Vec::new(),
         }
@@ -212,7 +230,30 @@ impl Plugin for FreallyMidiMaster {
         // Decode the preview kit now, off the audio thread. The first `process`
         // would otherwise be the first caller and would allocate inside the
         // host's callback.
-        let _ = audio::preview_kit();
+        //
+        // ⛔ **And take a reference to it, rather than only warming the cache.**
+        // Since TASK-131B the callback plays whatever kit it was last handed,
+        // so it needs one to start from — without this the plugin is silent
+        // until the producer assigns a one-shot, which is the four-silent-parts
+        // failure of TASK-131A wearing a different hat.
+        // ⛔ **Only when there is nothing to keep.** This assigned
+        // unconditionally, and nih-plug calls `initialize` on every buffer or
+        // sample-rate change — so changing the buffer size threw away whatever
+        // kit `process` had been handed and reverted the producer to the stock
+        // samples. `restore_one_shots` below only puts them back if every path
+        // still resolves; when one does not it returns early, no rebuilt kit is
+        // sent, and the KIT panel goes on naming their files while they hear
+        // the shipped ones. A readout that lies, in the panel built to end that.
+        if self.kit.is_none() {
+            self.kit = audio::preview_kit().cloned();
+        }
+
+        // ⛔ **The one-shots a reopened project asked for, reloaded here.** The
+        // host has already deserialized the session by now (see
+        // `adopt_session` above), so this is the first moment their paths are
+        // known — and `initialize` is off the audio thread, which is where
+        // reading files from disk has to happen.
+        self.shared.restore_one_shots();
         true
     }
 
@@ -263,6 +304,17 @@ impl Plugin for FreallyMidiMaster {
             .shared
             .handoff
             .receive(std::mem::take(&mut self.pending));
+
+        // A kit the producer just assigned a one-shot into (TASK-131B).
+        //
+        // ⛔ **Every voice is cut on a swap, and it is not optional.** A voice
+        // holds the *index* of the pad it is playing, and the new kit may have a
+        // different pad at that index — so a note that started as a hi-hat would
+        // finish as somebody's vocal chop. Cutting them is also what a producer
+        // expects: changing the sound under a sounding note is not a crossfade.
+        if self.shared.kits.receive(&mut self.kit) {
+            self.sampler.stop_all();
+        }
 
         // The keyboard gutter's click-to-audition (TASK-041).
         //
@@ -371,7 +423,7 @@ impl FreallyMidiMaster {
         if !self.shared.audio_enabled() {
             return;
         }
-        let Some(kit) = audio::preview_kit() else {
+        let Some(kit) = self.kit.as_ref() else {
             return;
         };
         // The tuned pad, found by the property that makes it usable rather than
@@ -424,18 +476,21 @@ impl FreallyMidiMaster {
             return;
         }
 
-        let Some(kit) = audio::preview_kit() else {
+        let Some(kit) = self.kit.as_ref() else {
             return;
         };
 
-        // ⚠ **The preview kit is a drum kit, so the four melodic parts render
-        // silence.** `pad_for` returns `None` for Melody, Counter, Bass and
-        // Chords, which this same change made reachable through the bridge — so
-        // a producer picks Melody, sees the Audio chip on, and hears nothing.
-        // That is indistinguishable from a broken sampler, and the honest fix
-        // is pitched instrument voices (FMM-N15/N16), not a silent fallback:
-        // playing a melody through the kick pad would be worse than silence.
-        // Tracked rather than hidden — see the module doc.
+        // ⚠ **`kit` is whatever was last handed over, not a constant.** It is
+        // the shipped kit until the producer assigns one of their own one-shots
+        // (TASK-131B), and the swap happens in `process` rather than here — a
+        // kit must never change part way through a block, or the segment loop
+        // below would trigger half its notes on one kit and render them on
+        // another.
+        //
+        // ⚠ A lane the current kit has no pad for still renders silence, which
+        // is `pad_for` refusing to guess rather than a gap: `Lane::Snap` is the
+        // one lane the shipped kit has never covered, and assigning a one-shot
+        // to it is now how that gets a sound.
 
         // ⛔ Idle is this plugin's *normal* state — nothing is armed until
         // someone presses Generate, and nothing sounds between patterns. Without
@@ -475,13 +530,20 @@ impl FreallyMidiMaster {
                     continue;
                 }
                 if let Some(pad_index) = kit.pad_for(note.lane) {
-                    // Percussion ignores pitch; a pad with a root note is
-                    // transposed to what was actually played, without which an
-                    // 808 line comes out monotone.
-                    let semis = match kit.pads[pad_index].root_note {
-                        Some(root) => f32::from(note.note) - f32::from(root),
-                        None => 0.0,
-                    };
+                    // A pad with a root note is transposed to what was actually
+                    // played, without which an 808 line comes out monotone.
+                    //
+                    // ⛔ **Percussion transposes too, from the lane's own GM
+                    // note (TASK-131D).** It used to be pinned at 0, which was
+                    // right while every drum note in a pattern carried the same
+                    // pitch — and became a readout that lies the moment the
+                    // generator learned to walk a roll's pitch. The producer
+                    // would have seen the movement in the grid and in the
+                    // exported file, and heard a flat roll. Mike, 2026-08-05:
+                    // "hihat rolls can go up and down so can kicks, 808s,
+                    // snares, etc. in actual song arrangements."
+                    let semis =
+                        audio::kit::Kit::semitones_for(&kit.pads[pad_index], note.lane, note.note);
                     self.sampler.trigger(
                         kit,
                         pad_index,

@@ -26,7 +26,7 @@
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 
-use engine::pattern::{Song, PART_ORDER};
+use engine::pattern::{Pattern, Song, PART_ORDER};
 use serde::Serialize;
 
 /// How an export ended, for the page to show.
@@ -97,19 +97,20 @@ impl Exports {
 
     /// Write one file per part into a folder the producer picks (TASK-069).
     ///
-    /// ## ⛔ MIDI stems, not audio stems, and the reason is measured
+    /// ## MIDI stems for a whole song; audio is per pattern
     ///
-    /// TASK-069 asks for per-part **wavs**. The plugin cannot honestly produce
-    /// them yet: `audio::Kit::pad_for` returns `None` for Melody, Counter, Bass
-    /// and Chords, because the preview kit is a *drum* kit — `lib.rs` says so in
-    /// as many words and points at FMM-N15/FMM-N16 for the pitched voices.
-    /// Rendering the four melodic parts today would write four silent files and
-    /// call them stems, which is worse than not offering them: a producer would
-    /// import them, hear nothing, and blame their DAW.
+    /// ⚠ **This comment used to say the audio half was impossible, and that
+    /// stopped being true in TASK-131A.** The reason it gave was real and
+    /// measured — `audio::Kit::pad_for` answered `None` for Melody, Counter,
+    /// Bass and Chords, so rendering them would have written four silent files
+    /// and called them stems. The shipped kit now covers every generated lane.
     ///
-    /// So this writes what the plugin actually has — one **type-0 `.mid` per
-    /// part**, which the roadmap's own entry lists beside the wavs ("per-part
-    /// type-0 clips alongside"). The audio half arrives with the pitched voices.
+    /// What is still true is that a *song* is minutes long and rendering one to
+    /// audio is a different job from rendering a four-bar loop: it needs
+    /// progress the producer can watch and a cancel they can press. So a song
+    /// still writes one **type-0 `.mid` per part**, and
+    /// [`Self::start_pattern_stems`] is where the audio half landed
+    /// (TASK-131F).
     ///
     /// ## What "aligned to bar 1, identical lengths" means here
     ///
@@ -154,6 +155,112 @@ impl Exports {
                     })
                 })
                 .collect();
+            write_stems(&root.join(&stem_dir), &files)
+        });
+        Ok(())
+    }
+
+    /// Write the *current pattern's* parts into a folder, as MIDI or as audio
+    /// (TASK-131F).
+    ///
+    /// Mike, 2026-08-05: *"i also need to be able to export the drums by
+    /// themselves as midi or audio stems."* [`Self::start_song_stems`] does this
+    /// for a whole arrangement; this is the four- or eight-bar loop on screen,
+    /// which is what a producer actually has in front of them most of the time.
+    ///
+    /// ⛔ **The audio half was blocked until TASK-131A/131B and the block was
+    /// measured, not assumed.** `Kit::pad_for` answered `None` for the four
+    /// melodic parts, so rendering them would have written silent files and
+    /// called them stems. [`crate::audio::render`] carries the full note.
+    ///
+    /// ⚠ **A part that renders nothing gets no file.** An empty stem is one a
+    /// producer imports, hears nothing from, and has to work out was always
+    /// empty — the same rule `start_song_stems` already follows for notes.
+    /// ## ⛔ Per lane, not only per part — Mike, 2026-08-05
+    ///
+    /// *"i want to be able to drag just one drum lane out just like drum monkey,
+    /// where i can just drag the hihats out to the daw or just the snares, etc.
+    /// with either audio or midi."*
+    ///
+    /// `split_lanes` turns one drum pattern into one file per **lane** — kick,
+    /// snare, closed hat — rather than a single `FMM Drums` file holding all of
+    /// them. That is what makes a hat pattern something a producer can drop onto
+    /// its own track, and it is the whole reason to have this over the existing
+    /// per-part export.
+    ///
+    /// ⚠ **Export, not drag.** An HTML5 drag inside a webview is not an OS file
+    /// drag; it needs a native drag source per platform, which is TASK-063C
+    /// blocked on FMM-S03. Writing the files is the half that can ship now, and
+    /// a producer can drag them from the folder.
+    pub fn start_pattern_stems(
+        &self,
+        patterns: Vec<Pattern>,
+        folder_name: &str,
+        audio: bool,
+        split_lanes: bool,
+        kit: Option<Arc<crate::audio::kit::Kit>>,
+    ) -> Result<(), String> {
+        let patterns = if split_lanes {
+            patterns.iter().flat_map(per_lane).collect()
+        } else {
+            patterns
+        };
+        if patterns.iter().all(|p| p.note_count() == 0) {
+            return Err("these parts play nothing, so there are no stems to write".to_owned());
+        }
+        // ⛔ **The kit that is PLAYING, handed in by the caller — not
+        // `preview_kit()`.** This resolved the shipped base itself, so a
+        // producer who had assigned their own snare heard it in the preview and
+        // got the stock one in the exported wav: the plugin telling them one
+        // thing and writing another. The caller has `Shared` and therefore the
+        // one-shots; this does not, which is exactly why it must be passed.
+        //
+        // ⚠ Still resolved before the dialog opens — building it decodes and
+        // allocates, and doing that inside the job would put the work behind a
+        // modal window for no reason.
+        let kit = if audio {
+            match kit {
+                Some(kit) => Some(kit),
+                None => {
+                    return Err(
+                        "the preview kit did not load, so there is no audio to render".to_owned(),
+                    )
+                }
+            }
+        } else {
+            None
+        };
+
+        let stem_dir = sanitize(folder_name);
+        let claimed = self.claim()?;
+        run_dialog(claimed, move || {
+            let Some(root) = rfd::FileDialog::new().pick_folder() else {
+                return Status::Cancelled;
+            };
+            let files: Vec<(String, Vec<u8>)> = patterns
+                .iter()
+                .filter(|pattern| pattern.note_count() > 0)
+                .filter_map(|pattern| {
+                    let stem = stem_name(pattern, split_lanes);
+                    match &kit {
+                        Some(kit) => crate::audio::render::to_stereo(pattern, kit).map(|samples| {
+                            (
+                                format!("{stem}.wav"),
+                                crate::audio::render::to_wav(&samples),
+                            )
+                        }),
+                        None => {
+                            Some((format!("{stem}.mid"), engine::midi::pattern_to_smf(pattern)))
+                        }
+                    }
+                })
+                .collect();
+
+            if files.is_empty() {
+                return Status::Failed {
+                    reason: "none of these parts has a sound to render".to_owned(),
+                };
+            }
             write_stems(&root.join(&stem_dir), &files)
         });
         Ok(())
@@ -220,6 +327,96 @@ fn run_dialog(claim: Claim, job: impl FnOnce() -> Status + Send + 'static) {
 /// A value rather than a bare `Arc` so `run_dialog` cannot be called without
 /// having claimed first — the type is what makes the pair inseparable.
 struct Claim(Arc<Mutex<Status>>);
+
+/// What a stem is called on disk (TASK-131F).
+///
+/// Mike, 2026-08-05: *"it needs to be labeled when you drag it out like this:
+/// `Artist/Genre - Snares - 140 BPM - C# Minor`"*. A folder of those is readable
+/// without opening any of them, and dropped onto a DAW track the clip carries
+/// its own tempo and key — which is exactly what a producer needs to know before
+/// deciding whether it fits.
+///
+/// ⛔ **The lane or part name comes from the engine, never a table here.** A
+/// second naming table once put `FMM Melody.mid` on disk with `trap — Drums`
+/// inside it.
+///
+/// ⚠ Sanitized by the caller, not here: `sanitize` also has to run on the folder
+/// name, and doing it in one place is what stops the two drifting.
+fn stem_name(pattern: &Pattern, split_lanes: bool) -> String {
+    let what = match (split_lanes, pattern.lanes.first()) {
+        // ⚠ A lane split names the file after the *lane* — `FMM Drums` five
+        // times over is five files a producer cannot tell apart, which defeats
+        // the point of splitting.
+        (true, Some(track)) => format!("{:?}", track.lane),
+        _ => engine::midi::part_track_name(pattern.part)
+            .trim_start_matches("FMM ")
+            .to_owned(),
+    };
+    // Rounded, because a tempo the host reported as 139.9999 is 140 to a human
+    // and a file called `139.9999 BPM` reads as broken.
+    let bpm = pattern.bpm.round() as i64;
+    let key = engine::theory::key_label(pattern.key_root, pattern.scale);
+    safe_file_name(&format!(
+        "{} - {what} - {bpm} BPM - {key}",
+        pattern.artist_id
+    ))
+}
+
+/// A name that is safe as a file name and still readable as one.
+///
+/// ⛔ **Not [`sanitize`], and the difference is the whole point.** That one
+/// collapses everything but `[A-Za-z0-9-_.]` into dashes, which is right for a
+/// *suggested* name in a Save As box and would turn
+/// `trap - Snare - 140 BPM - C# Minor` into `trap-Snare-140-BPM-C-Minor`. Mike
+/// asked for the readable form, so spaces and `#` survive here.
+///
+/// ⚠ **`artist_id` still arrives as JSON from the webview**, so this is a trust
+/// boundary exactly as `sanitize` is: path separators go, and `..` goes with
+/// them, or a crafted id writes outside the folder the producer picked. The
+/// Windows-reserved set (`:*?"<>|`) goes too — on Linux those are legal in a
+/// name and would produce a file that cannot be copied to a Windows machine.
+fn safe_file_name(name: &str) -> String {
+    let cleaned: String = name
+        .chars()
+        .map(|c| match c {
+            '/' | '\\' | ':' | '*' | '?' | '"' | '<' | '>' | '|' => '-',
+            // Control characters are legal in a POSIX name and are how a file
+            // name hides what it really is.
+            c if c.is_control() => '-',
+            c => c,
+        })
+        .collect();
+    let cleaned = cleaned.replace("..", "-");
+    let trimmed = cleaned.trim().trim_matches(['-', '.']).trim();
+    if trimmed.is_empty() {
+        "stem".to_owned()
+    } else {
+        trimmed.to_owned()
+    }
+}
+
+/// One pattern per lane, each carrying only that lane's notes.
+///
+/// ⛔ **Everything else about the pattern is copied unchanged** — meter, tempo,
+/// bars, ppq — because the files have to line up when a producer drops them all
+/// onto a DAW at bar 1. That is the same property `start_song_stems` documents
+/// for the song case, and it is the whole reason the split is safe to offer.
+///
+/// ⚠ The clone keeps `part`, so a drum lane's file still says it came from the
+/// drum generator; only the *name* is the lane's. Rewriting `part` would make
+/// `pattern_to_smf` write a track name that disagrees with the file name, which
+/// is the exact bug the naming comment above records.
+fn per_lane(pattern: &Pattern) -> Vec<Pattern> {
+    pattern
+        .lanes
+        .iter()
+        .filter(|track| !track.notes.is_empty())
+        .map(|track| Pattern {
+            lanes: vec![track.clone()],
+            ..pattern.clone()
+        })
+        .collect()
+}
 
 fn write(path: &Path, bytes: &[u8]) -> Status {
     match std::fs::write(path, bytes) {
@@ -445,5 +642,103 @@ mod tests {
         assert_eq!(taken, Status::Cancelled);
         assert!(!matches!(taken, Status::Failed { .. }));
         *exports.status.lock().unwrap() = Status::Idle;
+    }
+}
+
+#[cfg(test)]
+mod stem_name_tests {
+    use super::*;
+    use engine::pattern::{Lane, LaneTrack, Note, Part, Scale};
+
+    fn pattern(lane: Lane, artist: &str) -> Pattern {
+        Pattern {
+            id: "t".into(),
+            part: Part::Drums,
+            artist_id: artist.into(),
+            seed: 7,
+            bars: 4,
+            bpm: 140.0,
+            time_sig_num: 4,
+            time_sig_den: 4,
+            key_root: 1,
+            scale: Scale::NaturalMinor,
+            lanes: vec![LaneTrack {
+                lane,
+                notes: vec![Note {
+                    start_tick: 0,
+                    len_ticks: 240,
+                    pitch: 38,
+                    vel: 100,
+                    model_vel: None,
+                    slide_to_pitch: None,
+                    articulation: None,
+                }],
+            }],
+            ppq: engine::pattern::PPQ,
+            mood: None,
+            loop_region: None,
+            clip_region: None,
+        }
+    }
+
+    #[test]
+    fn a_stem_is_labelled_the_way_a_producer_would_label_it() {
+        // ⛔ Mike, 2026-08-05, verbatim: "it needs to be labeled when you drag
+        // it out like this: Artist/Genre - Snares - 140 BPM - C# Minor".
+        assert_eq!(
+            stem_name(&pattern(Lane::Snare, "trap"), true),
+            "trap - Snare - 140 BPM - C# Minor"
+        );
+        // Without the lane split it is named for the part instead — and the
+        // engine's `FMM ` prefix is dropped, because the name already says
+        // which artist it came from.
+        assert_eq!(
+            stem_name(&pattern(Lane::Snare, "uk-drill"), false),
+            "uk-drill - Drums - 140 BPM - C# Minor"
+        );
+    }
+
+    #[test]
+    fn a_crafted_artist_id_cannot_write_outside_the_chosen_folder() {
+        // ⛔ `artist_id` arrives as JSON from the webview, so this is the same
+        // trust boundary `sanitize` guards for the Save As name.
+        let name = stem_name(&pattern(Lane::Kick, "../../etc/passwd"), true);
+        assert!(!name.contains('/'), "{name}");
+        assert!(!name.contains('\\'), "{name}");
+        assert!(!name.contains(".."), "{name}");
+    }
+
+    #[test]
+    fn the_readable_form_survives_where_sanitize_would_destroy_it() {
+        // ⚠ The reason `safe_file_name` exists at all: `sanitize` is right for a
+        // Save As suggestion and would turn this into `trap-Snare-140-BPM-C-Minor`.
+        let name = stem_name(&pattern(Lane::Snare, "trap"), true);
+        assert!(name.contains(" - "), "spaces must survive: {name}");
+        assert!(name.contains("C#"), "the sharp must survive: {name}");
+        assert_ne!(sanitize(&name), name, "sanitize is the stricter one");
+    }
+
+    #[test]
+    fn splitting_by_lane_gives_one_pattern_per_lane_and_drops_the_empty_ones() {
+        let mut source = pattern(Lane::Kick, "trap");
+        source.lanes.push(LaneTrack {
+            lane: Lane::Snare,
+            notes: vec![],
+        });
+        source.lanes.push(LaneTrack {
+            lane: Lane::ClosedHat,
+            notes: source.lanes[0].notes.clone(),
+        });
+
+        let split = per_lane(&source);
+        assert_eq!(split.len(), 2, "the empty snare lane gets no file");
+        // Everything else is copied, so the files line up when they are all
+        // dropped at bar 1.
+        for one in &split {
+            assert_eq!(one.bars, source.bars);
+            assert_eq!(one.bpm, source.bpm);
+            assert_eq!(one.time_sig_num, source.time_sig_num);
+            assert_eq!(one.ppq, source.ppq);
+        }
     }
 }

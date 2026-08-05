@@ -34,16 +34,26 @@
     "searchPlaceholder": "搜索艺人…",
     "searchLabel": "搜索艺人",
     "noDataset": "尚未加载数据集。",
-    "noKit": "还没有鼓组。把你的单击采样拖到本面板任意位置。",
     "noMatch": "没有与“{{query}}”匹配的项。",
     "results": "搜索结果"
+  },
+  "kit": {
+    "loading": "正在读取音色组…",
+    "noneLoaded": "音色组加载失败，因此插件没有声音。",
+    "lanesLabel": "音色组轨道",
+    "assignHint": "点击某个轨道，即可用你自己的单击采样演奏它。",
+    "shipped": "内置",
+    "silent": "无声音",
+    "choosing": "选择中…",
+    "clearOne": "清除 {{lane}} 上的单击采样"
   },
   "sections": {
     "genres": "曲风",
     "roster": "艺人名单",
     "kit": "鼓组",
     "session": "会话",
-    "presets": "预设"
+    "presets": "预设",
+    "stems": "分轨"
   },
   "readouts": {
     "bpm": "BPM",
@@ -179,7 +189,8 @@
   "grid": {
     "label": "生成的节奏型",
     "summary": "{{bars}} 小节 · {{steps}} 步 · {{notes}} 音符",
-    "muteLane": "在预览中静音{{lane}}"
+    "muteLane": "在预览中静音{{lane}}",
+    "cell": "{{lane}}，第 {{step}} 步"
   },
   "roster": {
     "artists": "艺人",
@@ -198,7 +209,11 @@
     "rim": "边击",
     "snap": "响指",
     "perc": "打击乐",
-    "bass808": "808"
+    "bass808": "808",
+    "melody": "旋律",
+    "counter": "对位旋律",
+    "bass": "贝斯线",
+    "chords": "和弦"
   },
   "presets": {
     "factory": "出厂",
@@ -277,5 +292,12 @@
       "bridge": "桥段",
       "outro": "尾奏"
     }
+  },
+  "stems": {
+    "midi": "MIDI",
+    "audio": "音频",
+    "perLane": "按轨道",
+    "hint": "将每个生成的声部写入各自的文件。",
+    "choosing": "请选择文件夹…"
   }
 }

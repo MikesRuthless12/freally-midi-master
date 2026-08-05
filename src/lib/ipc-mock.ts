@@ -8,6 +8,7 @@
  * bugs E2E exists to catch.
  */
 
+import { ALL_LANES } from '../state/kit';
 import type { InvokeArgs } from './ipc';
 import type {
   Note,
@@ -273,6 +274,40 @@ const handlers: Record<string, Handler> = {
   export_song: () => undefined,
   export_stems: () => undefined,
   export_status: () => ({ state: 'cancelled' }),
+
+  // Stems for the parts on screen (TASK-131F). Cancelled, like the exports
+  // above and for the same reason: a browser has no native folder picker, and
+  // a fixture reporting `done` would let a spec assert a file was written in a
+  // shell that cannot write files.
+  export_pattern_stems: () => undefined,
+
+  // The KIT panel (TASK-131B, TASK-136). The shape `kit_state` answers with,
+  // for every lane the engine has — because that is what the panel enumerates,
+  // and a fixture listing only the eight drum lanes would let the four melodic
+  // rows go missing without a spec noticing.
+  //
+  // ⚠ `snap` is `shipped: false` here because it is `false` in the real kit:
+  // the drum generator can write that lane and no shipped pad has ever played
+  // it. A fixture that quietly made it `true` would hide the one state the
+  // panel exists to be able to show.
+  kit_state: () => ({
+    id: 'trap-default',
+    lanes: ALL_LANES.map((lane) => ({
+      lane,
+      shipped: lane !== 'snap',
+      name: null,
+      path: null,
+    })),
+  }),
+
+  // Assigning one. A browser has no native Open dialog and no filesystem, so
+  // the mock reports a *cancelled* assignment for exactly the reason
+  // `export_status` above reports a cancelled export: `done` would claim a file
+  // was read in a shell that cannot read files, and cancelled is the one
+  // outcome that is true here.
+  one_shot_assign: () => undefined,
+  one_shot_clear: () => undefined,
+  one_shot_status: () => ({ state: 'cancelled' }),
 
   // The forms this artist writes, for the structure picker (TASK-070).
   //

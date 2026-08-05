@@ -34,16 +34,26 @@
     "searchPlaceholder": "Cari artis…",
     "searchLabel": "Cari artis",
     "noDataset": "Belum ada dataset yang dimuat.",
-    "noKit": "Belum ada kit. Jatuhkan one-shot di mana saja pada panel ini.",
     "noMatch": "Tidak ada yang cocok dengan “{{query}}”.",
     "results": "Hasil pencarian"
+  },
+  "kit": {
+    "loading": "Membaca kit…",
+    "noneLoaded": "Kit tidak dapat dimuat, jadi plugin ini tidak bersuara.",
+    "lanesLabel": "Jalur kit",
+    "assignHint": "Klik sebuah jalur untuk memainkan one-shot milikmu di sana.",
+    "shipped": "Bawaan",
+    "silent": "Tanpa suara",
+    "choosing": "Memilih…",
+    "clearOne": "Hapus one-shot pada {{lane}}"
   },
   "sections": {
     "genres": "Genre",
     "roster": "Artis",
     "kit": "Kit",
     "session": "Sesi",
-    "presets": "Prasetel"
+    "presets": "Prasetel",
+    "stems": "Stem"
   },
   "readouts": {
     "bpm": "BPM",
@@ -179,7 +189,8 @@
   "grid": {
     "label": "Pola yang dihasilkan",
     "summary": "{{bars}} bar · {{steps}} langkah · {{notes}} not",
-    "muteLane": "Bisukan {{lane}} di pratinjau"
+    "muteLane": "Bisukan {{lane}} di pratinjau",
+    "cell": "{{lane}}, langkah {{step}}"
   },
   "roster": {
     "artists": "Artis",
@@ -198,7 +209,11 @@
     "rim": "Pinggiran",
     "snap": "Jentikan",
     "perc": "Perkusi",
-    "bass808": "808"
+    "bass808": "808",
+    "melody": "Melodi",
+    "counter": "Kontramelodi",
+    "bass": "Garis bas",
+    "chords": "Akor"
   },
   "presets": {
     "factory": "Bawaan",
@@ -277,5 +292,12 @@
       "bridge": "Jembatan",
       "outro": "Penutup"
     }
+  },
+  "stems": {
+    "midi": "MIDI",
+    "audio": "Audio",
+    "perLane": "Per jalur",
+    "hint": "Menulis setiap bagian yang dihasilkan ke berkasnya sendiri.",
+    "choosing": "Pilih sebuah folder…"
   }
 }

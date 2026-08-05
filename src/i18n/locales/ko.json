@@ -34,16 +34,26 @@
     "searchPlaceholder": "아티스트 검색…",
     "searchLabel": "아티스트 검색",
     "noDataset": "불러온 데이터셋이 없습니다.",
-    "noKit": "아직 킷이 없습니다. 원샷 샘플을 이 패널 아무 곳에나 놓으세요.",
     "noMatch": "“{{query}}”에 해당하는 항목이 없습니다.",
     "results": "검색 결과"
+  },
+  "kit": {
+    "loading": "킷을 읽는 중…",
+    "noneLoaded": "킷을 불러오지 못해 플러그인이 소리를 내지 않습니다.",
+    "lanesLabel": "킷 레인",
+    "assignHint": "레인을 클릭하면 직접 준비한 원샷을 재생할 수 있습니다.",
+    "shipped": "기본 제공",
+    "silent": "소리 없음",
+    "choosing": "선택 중…",
+    "clearOne": "{{lane}}의 원샷 해제"
   },
   "sections": {
     "genres": "장르",
     "roster": "로스터",
     "kit": "킷",
     "session": "세션",
-    "presets": "프리셋"
+    "presets": "프리셋",
+    "stems": "스템"
   },
   "readouts": {
     "bpm": "BPM",
@@ -179,7 +189,8 @@
   "grid": {
     "label": "생성된 패턴",
     "summary": "{{bars}}마디 · {{steps}}스텝 · {{notes}}노트",
-    "muteLane": "미리듣기에서 {{lane}} 음소거"
+    "muteLane": "미리듣기에서 {{lane}} 음소거",
+    "cell": "{{lane}}, {{step}}단계"
   },
   "roster": {
     "artists": "아티스트",
@@ -198,7 +209,11 @@
     "rim": "림",
     "snap": "스냅",
     "perc": "퍼커션",
-    "bass808": "808"
+    "bass808": "808",
+    "melody": "멜로디",
+    "counter": "대선율",
+    "bass": "베이스라인",
+    "chords": "코드"
   },
   "presets": {
     "factory": "기본 제공",
@@ -277,5 +292,12 @@
       "bridge": "브리지",
       "outro": "아웃트로"
     }
+  },
+  "stems": {
+    "midi": "MIDI",
+    "audio": "오디오",
+    "perLane": "레인별",
+    "hint": "생성한 각 파트를 개별 파일로 저장합니다.",
+    "choosing": "폴더를 선택하세요…"
   }
 }

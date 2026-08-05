@@ -349,10 +349,26 @@
   font-size: var(--text-small);
 }
 
+/* ⛔⛔ **This row must never get taller, and that is not a style preference.**
+   `stage__controls` sits under `stage__body`, so every pixel it grows is a pixel
+   the editor above it loses — and the velocity lane is what loses it. A drag to
+   velocity 96 landed on 85 and `e2e/piano-roll.spec.ts` caught it; two attempts
+   at styling this row have already been reverted for exactly this.
+
+   `nowrap` is the fix for the *class* rather than the instance. The row grew by
+   **wrapping to a second line** once a third control group was added
+   (TASK-131F's stem chips), not by any one control being taller — so pinning the
+   height or shaving padding would only postpone it until the next control. The
+   row now scrolls sideways instead, which costs the editor nothing. */
 .stage__controls {
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  /* ⚠ `nowrap` only. An `overflow-x: auto` was tried here and made it *worse*:
+     the scrollbar it adds is itself height, and the velocity lane lost exactly
+     as much. Anything that needs to fit goes in an existing group rather than
+     becoming a new one. */
+  flex-wrap: nowrap;
 }
 
 /* ── Buttons ────────────────────────────────────────────────────────────── */
@@ -413,22 +429,112 @@
 }
 
 /* ── Kit pads ───────────────────────────────────────────────────────────── */
-.pads {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: var(--space-2);
+/* The KIT panel: a row per lane (TASK-131B, TASK-136).
+   ⚠ Replaced a `.pads` grid of eight square `.pad` buttons that were `disabled`
+   and numbered 1..8 — they were numbered because there was no data behind them
+   to name. Both rules are gone rather than left orphaned. */
+.kit-hint {
+  margin: 0 0 var(--space-2);
+  color: var(--color-text-3);
+  font-size: var(--text-small);
 }
 
-.pad {
-  aspect-ratio: 1;
-  min-height: 44px;
+.kit-lanes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.kit-lane {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-1);
+}
+
+.kit-lane__pad {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-2);
+  color: var(--color-text-2);
+  font-size: var(--text-small);
+  text-align: left;
+  cursor: pointer;
+}
+
+.kit-lane__pad:hover:not(:disabled) {
+  border-color: var(--color-primary);
+}
+
+.kit-lane__pad:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.kit-lane__name {
+  flex: none;
+}
+
+/* The file name, which is the part that can be arbitrarily long. It gets the
+   overflow so the lane name — the thing that identifies the row — is never the
+   half that gets cut. */
+.kit-lane__source {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-text-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  direction: rtl;
+}
+
+/* Assigned rows read as the producer's, so "is this mine or the shipped one"
+   is answerable at a glance rather than by reading every file name. */
+.kit-lane[data-assigned='true'] .kit-lane__source {
+  color: var(--color-text);
+}
+
+.kit-lane[data-assigned='true'] .kit-lane__pad {
+  border-color: var(--color-primary);
+}
+
+/* A lane with no voice at all. Dashed rather than dimmed: dimming reads as
+   "disabled", and this row is the one most worth clicking. */
+.kit-lane[data-silent='true'] .kit-lane__pad {
+  border-style: dashed;
+}
+
+.kit-lane__clear {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-control);
   background: var(--color-surface-2);
   color: var(--color-text-3);
-  font-family: var(--font-mono);
+  cursor: pointer;
+}
+
+.kit-lane__clear:hover:not(:disabled) {
+  color: var(--color-text);
+}
+
+.kit-error {
+  margin: var(--space-2) 0 0;
+  color: var(--color-error);
   font-size: var(--text-micro);
-  cursor: not-allowed;
 }
 
 .kit-drop {
@@ -480,4 +586,60 @@
   width: 0%;
   height: 100%;
   background: var(--color-success);
+}
+
+/* Stem export (TASK-131F). In the right rail, never the stage toolbar — see
+   `StemsPanel` for why that is not a layout preference. */
+.stems {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.stems__action {
+  flex: 1;
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-2);
+  color: var(--color-text-2);
+  font-family: var(--font-ui);
+  font-size: var(--text-small);
+  cursor: pointer;
+}
+
+.stems__action:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  color: var(--color-text);
+}
+
+.stems__action:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.stems__toggle {
+  width: 100%;
+  margin-top: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-text-3);
+  font-family: var(--font-ui);
+  font-size: var(--text-micro);
+  cursor: pointer;
+}
+
+.stems__toggle[aria-pressed='true'] {
+  border-color: var(--color-primary);
+  color: var(--color-text);
+}
+
+/* The folder that was written. Mono, because it is a path. */
+.stems__done {
+  margin: var(--space-2) 0 0;
+  color: var(--color-text-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  overflow-wrap: anywhere;
 }

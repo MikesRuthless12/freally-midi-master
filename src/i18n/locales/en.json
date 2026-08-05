@@ -34,16 +34,26 @@
     "searchPlaceholder": "Search an artist…",
     "searchLabel": "Search an artist",
     "noDataset": "No dataset loaded yet.",
-    "noKit": "No kit yet. Drop your one-shots anywhere on this panel.",
     "noMatch": "Nothing matches “{{query}}”.",
     "results": "Search results"
+  },
+  "kit": {
+    "loading": "Reading the kit…",
+    "noneLoaded": "The kit could not be loaded, so the plugin is silent.",
+    "lanesLabel": "Kit lanes",
+    "assignHint": "Click a lane to play your own one-shot on it.",
+    "shipped": "Built in",
+    "silent": "No sound",
+    "choosing": "Choosing…",
+    "clearOne": "Clear the one-shot on {{lane}}"
   },
   "sections": {
     "genres": "Genres",
     "roster": "Roster",
     "kit": "Kit",
     "session": "Session",
-    "presets": "Presets"
+    "presets": "Presets",
+    "stems": "Stems"
   },
   "readouts": {
     "bpm": "BPM",
@@ -179,7 +189,8 @@
   "grid": {
     "label": "Generated pattern",
     "summary": "{{bars}} bars · {{steps}} steps · {{notes}} notes",
-    "muteLane": "Mute {{lane}} in the preview"
+    "muteLane": "Mute {{lane}} in the preview",
+    "cell": "{{lane}}, step {{step}}"
   },
   "roster": {
     "artists": "Artists",
@@ -198,7 +209,11 @@
     "rim": "Rim",
     "snap": "Snap",
     "perc": "Perc",
-    "bass808": "808"
+    "bass808": "808",
+    "melody": "Melody",
+    "counter": "Countermelody",
+    "bass": "Bassline",
+    "chords": "Chords"
   },
   "presets": {
     "factory": "Factory",
@@ -277,5 +292,12 @@
       "bridge": "Bridge",
       "outro": "Outro"
     }
+  },
+  "stems": {
+    "midi": "MIDI",
+    "audio": "Audio",
+    "perLane": "Per lane",
+    "hint": "Write each generated part to its own file.",
+    "choosing": "Choose a folder…"
   }
 }

@@ -34,16 +34,26 @@
     "searchPlaceholder": "Sanatçı ara…",
     "searchLabel": "Sanatçı ara",
     "noDataset": "Henüz veri seti yüklenmedi.",
-    "noKit": "Henüz kit yok. One-shot'larını bu panelin herhangi bir yerine bırak.",
     "noMatch": "“{{query}}” ile eşleşen bir şey yok.",
     "results": "Arama sonuçları"
+  },
+  "kit": {
+    "loading": "Kit okunuyor…",
+    "noneLoaded": "Kit yüklenemedi, bu yüzden eklenti sessiz.",
+    "lanesLabel": "Kit kanalları",
+    "assignHint": "Kendi one-shot örneğinizi çalmak için bir kanala tıklayın.",
+    "shipped": "Yerleşik",
+    "silent": "Ses yok",
+    "choosing": "Seçiliyor…",
+    "clearOne": "{{lane}} kanalındaki one-shot örneğini kaldır"
   },
   "sections": {
     "genres": "Türler",
     "roster": "Sanatçılar",
     "kit": "Davul kiti",
     "session": "Oturum",
-    "presets": "Ön ayarlar"
+    "presets": "Ön ayarlar",
+    "stems": "Parçalar"
   },
   "readouts": {
     "bpm": "BPM",
@@ -179,7 +189,8 @@
   "grid": {
     "label": "Oluşturulan desen",
     "summary": "{{bars}} ölçü · {{steps}} adım · {{notes}} nota",
-    "muteLane": "Önizlemede {{lane}} sesini kapat"
+    "muteLane": "Önizlemede {{lane}} sesini kapat",
+    "cell": "{{lane}}, adım {{step}}"
   },
   "roster": {
     "artists": "Sanatçılar",
@@ -198,7 +209,11 @@
     "rim": "Kenar vuruşu",
     "snap": "Parmak şıklatma",
     "perc": "Perküsyon",
-    "bass808": "808"
+    "bass808": "808",
+    "melody": "Melodi",
+    "counter": "Karşı melodi",
+    "bass": "Bas hattı",
+    "chords": "Akorlar"
   },
   "presets": {
     "factory": "Fabrika",
@@ -277,5 +292,12 @@
       "bridge": "Köprü",
       "outro": "Çıkış"
     }
+  },
+  "stems": {
+    "midi": "MIDI",
+    "audio": "Ses",
+    "perLane": "Kanal başına",
+    "hint": "Üretilen her bölümü kendi dosyasına yazar.",
+    "choosing": "Bir klasör seçin…"
   }
 }
