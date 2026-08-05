@@ -1380,12 +1380,20 @@ export const useSession = create<SessionState>((set, get) => ({
     // seed makes a four-bar loop for whichever part is showing, and this is one
     // section's clip out of a song. Left false, the next save would drop it and
     // the next Generate would silently replace it.
+    // ⛔ **The tab moves first, and the order is the fix rather than a
+    // preference.** The `patterns` subscriber runs synchronously inside `set`
+    // and defers to `armCurrentPattern`, which reads the *active tab* — so with
+    // the tab still on Song, `patternForTab` answered `null` (Song is not a
+    // part) and fired a `disarm`. `setActiveTab` then unmounted `SongTimeline`,
+    // whose cleanup armed the clip: two fire-and-forget round trips in flight,
+    // and if the `disarm` resolved second the drilled-in clip was silent. Moving
+    // the tab first means the subscriber already sees the part it is arming.
+    useUi.getState().setActiveTab(part);
     set((state) => ({
       patterns: { ...state.patterns, [part]: pattern },
       editedParts: withEdit(state.editedParts, part),
       edited: true,
     }));
-    useUi.getState().setActiveTab(part);
   },
 
   editPattern(next) {

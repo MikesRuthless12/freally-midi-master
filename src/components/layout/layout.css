@@ -242,6 +242,46 @@
   font-weight: 500;
 }
 
+/* One selectable option inside a chip group — the bar counts, and Clear.
+ *
+ * ⛔ **Used by two controls and defined by neither**, so both rendered as bare
+ * inline buttons with no spacing: the bar chooser read as `248bars` and the
+ * clear pair as `ClearClear all`. Mike read the first as "it is generating 248
+ * bars" and reported it as a generator bug.
+ *
+ * ⛔⛔ **No vertical padding, no border, no display change.** `stage__controls`
+ * sits under `stage__body`, so anything that grows this row shrinks the editor
+ * above it — an earlier cut cost the velocity lane enough height that a drag to
+ * velocity 96 landed on 85, and `piano-roll.spec.ts:380` caught it. */
+.chip__option {
+  margin-inline-end: var(--space-2);
+  padding: 0 var(--space-1);
+  border: none;
+  border-radius: 3px;
+  background: transparent;
+  color: var(--color-text-2);
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+  cursor: pointer;
+}
+
+.chip__option:hover:not(:disabled) {
+  color: var(--color-text);
+}
+
+/* The chosen bar count. `aria-pressed` is the selection, so the style follows
+ * the attribute rather than a second class that could disagree with it. */
+.chip__option[aria-pressed='true'] {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.chip__option:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
 /* ── Center stage ───────────────────────────────────────────────────────── */
 .stage {
   grid-area: center;
@@ -357,6 +397,10 @@
 
 /* ── Buttons ────────────────────────────────────────────────────────────── */
 .btn-generate {
+  /* "Generate all" wrapped inside the fixed height and the second line's
+   * descender was clipped. Nothing else here changes — `display` in
+   * particular, which is what shrank the editor on the first attempt. */
+  white-space: nowrap;
   height: 44px;
   padding: 0 var(--space-6);
   border: none;
@@ -380,6 +424,22 @@
 .btn-generate:disabled {
   cursor: not-allowed;
   opacity: 0.5;
+}
+
+/* Generate-all: same size and shape, one step down in weight. The modifier was
+ * applied in `CenterStage` and defined nowhere, so the toolbar showed two
+ * identical primary CTAs side by side. */
+.btn-generate--secondary {
+  padding: 0 var(--space-4);
+  background: transparent;
+  border: 1px solid var(--color-primary);
+  color: var(--color-primary);
+  font-size: var(--text-body);
+}
+
+.btn-generate--secondary:hover:not(:disabled) {
+  background: var(--color-surface-2);
+  box-shadow: none;
 }
 
 .btn-ghost {
@@ -408,6 +468,16 @@
 }
 
 .btn-ghost[aria-pressed='true'] {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+/* ⛔ Looping is always on and is not yet a choice, so the loop button is
+ * `aria-pressed` *and* `disabled` — and the generic disabled rule dimmed the
+ * one thing saying it was on, leaving it identical to an off state. The opacity
+ * is lifted rather than removed: it is still not interactive. */
+.btn-ghost[aria-pressed='true']:disabled {
+  opacity: 0.85;
   color: var(--color-primary);
   border-color: var(--color-primary);
 }
