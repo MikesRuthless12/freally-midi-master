@@ -394,6 +394,12 @@
 .btn-generate {
   height: 44px;
   padding: 0 var(--space-6);
+  /* ⛔ "Generate All" broke to two lines — "Generate" over "All" — inside a
+     44px button. As a flex item in `.stage__controls` its `min-width: auto`
+     resolves to the *longest word*, so the row could shrink it until the label
+     wrapped. Widening it is free: that row is in flow below the editor and only
+     its height costs the velocity lane anything. See `.stage__controls`. */
+  white-space: nowrap;
   border: none;
   border-radius: var(--radius-control);
   background: var(--color-primary);
@@ -736,10 +742,14 @@
    anyone opened it — with the rows they were reaching for moving under the
    cursor. `inset-inline-end: 0` hangs it off the chip that opened it. */
 .drag__lanes {
-  position: absolute;
-  z-index: 2;
-  inset-inline-end: 0;
-  top: calc(100% + var(--space-1));
+  /* ⛔ **Fixed, and rendered into `document.body`, because absolute was cropped.**
+     This list used to sit inside `.rail__content`, which is `overflow-y: auto` —
+     so the scroll container cut it off partway down and the lower drum lanes
+     could not be reached at all. Mike screenshotted that on 2026-08-06. The
+     coordinates are set inline by `DragMenu`, measured from the chip, and it
+     still opens *below* the chip because he asked for it below. */
+  position: fixed;
+  z-index: 40;
   margin: 0;
   padding: var(--space-1);
   list-style: none;

@@ -39,21 +39,32 @@
 //! baseview's window procedure is not on the stack and nothing of its is
 //! borrowed.
 //!
-//! ⛔ **In the standalone it happens every time, and an earlier version of this
-//! comment claimed otherwise.** `plugin/src/bin/standalone.rs` calls
-//! `own_message_queue()`, which turns on `windows_pump`; `windows_pump::drain`
-//! is called **from `on_frame`**, which is itself called from inside baseview's
-//! window procedure with that borrow live. `drain` dispatches exactly the
-//! message-only-window messages WebView2's COM completions ride on — so in the
-//! standalone the RPC handler, and therefore this function, runs *inside* the
-//! window procedure. `DoDragDrop` then dispatches a `WM_TIMER` straight back
-//! into it, the `RefCell` panics inside an `extern "system"` frame, and the
-//! process aborts.
+//! ⛔ **It used to happen in the standalone every time, and TASK-063D is the fix
+//! rather than a workaround.** `plugin/src/bin/standalone.rs` calls
+//! `own_message_queue()`, which turns on `windows_pump`. That pump *used* to
+//! drain **from `on_frame`**, which is itself called from inside baseview's
+//! window procedure with the borrow live — and since draining is what dispatches
+//! the COM completions WebView2's resource handler rides on, the RPC handler and
+//! therefore this function ran *inside* that procedure. `DoDragDrop` then
+//! dispatched a `WM_TIMER` straight back into it, the `RefCell` panicked inside
+//! an `extern "system"` frame, and the process aborted.
 //!
-//! That is why [`crate::drag::supported_in`] refuses the standalone. The
-//! condition is **"this process pumps its own queue"**, which today is exactly
-//! "this is the standalone" — ⛔ if anything else ever calls
-//! `own_message_queue()`, it has to be refused here too.
+//! ✅ **The pump no longer runs there.** `windows_pump::request` posts to a
+//! **child window of the editor**, and `baseview`'s `open_blocking` loop —
+//! which is *outside* the window procedure — is what dispatches it, because
+//! `GetMessageW(&mut msg, hwnd, 0, 0)` retrieves messages for `hwnd` and its
+//! children. So the drain, the RPC handler and this function all run one frame
+//! below that loop with **no borrow live**, and a `WM_TIMER` dispatched back
+//! into baseview's procedure enters it cleanly for the first time.
+//! `windows_pump::request` carries the whole mechanism, including why a
+//! *message-only* window is the wrong shape for it.
+//!
+//! ⚠ **So the standalone is allowed now** — [`STANDALONE_SAFE`] is `true` and
+//! [`crate::drag::supported_in`] no longer refuses it. ⛔ The condition it
+//! encodes is unchanged and still worth respecting: **"this process pumps its
+//! own queue from inside somebody's window procedure"**. Anything that ever
+//! reintroduces that — a new `drain` call site on a borrowed stack, most
+//! obviously — brings the abort back and has to refuse here again.
 
 use std::mem::ManuallyDrop;
 use std::path::PathBuf;
@@ -95,11 +106,18 @@ use super::{Dropped, Preview};
 
 pub const SUPPORTED: bool = true;
 
-/// ⛔ **No.** This is the one platform where a standalone drag aborts the
-/// process — the module header above has the whole mechanism, and it is the
-/// reason `supported_in` refuses at all. Fixing it means getting `DoDragDrop`
-/// off the stack that baseview's window procedure is already on; see TASK-063D.
-pub const STANDALONE_SAFE: bool = false;
+/// ✅ **Yes, as of TASK-063D**, and this was the last platform to say no.
+///
+/// It said no because a standalone drag aborted the process: `DoDragDrop` ran on
+/// the stack baseview's window procedure was already on, and its modal loop
+/// dispatched straight back into it. The fix was to get `DoDragDrop` off that
+/// stack — `windows_pump::request` now drains from a child window dispatched by
+/// `open_blocking` instead of from `on_frame`, so nothing of baseview's is
+/// borrowed by the time this module runs. The module header has the mechanism.
+///
+/// ⛔ **This is the flag to flip back if a standalone drag ever aborts again.**
+/// One line, and the standalone keeps Export.
+pub const STANDALONE_SAFE: bool = true;
 
 /// Hand `paths` to the OS and block until the producer lets go.
 ///
@@ -143,7 +161,27 @@ pub fn drag(
         // OS rather than from the vendored adapter, so `VENDORED.md` still has
         // nothing to account for — this module's header makes a point of
         // `DoDragDrop` needing no `HWND`, and that stays true of the *drag*.
-        let editor = GetAncestor(GetFocus(), GA_ROOT);
+        //
+        // ⛔ **`GetFocus()` answers `NULL` when the focused window belongs to
+        // another thread's queue, and in the standalone it does.** Mike,
+        // 2026-08-06: *"when you get done dragging and dropping, the standalone
+        // needs to become the topmost again just like with the vst/clap/au
+        // plugin."* It did not, and this is why: with no focus window there is
+        // no ancestor, `restore_editor` finds nothing to raise and returns.
+        // ▶ The pump knows the real handle — `on_frame` hands it over every
+        // frame — so the standalone falls back to it. ⚠ Null in a host, where
+        // `GetFocus()` works and the answer must stay the DAW's frame.
+        let editor = match GetAncestor(GetFocus(), GA_ROOT) {
+            found if !found.is_invalid() => found,
+            _ => {
+                let own = nih_plug_webview::own_queue_editor_window();
+                if own.is_null() {
+                    HWND::default()
+                } else {
+                    GetAncestor(HWND(own), GA_ROOT)
+                }
+            }
+        };
 
         let data: IDataObject = SHCreateDataObject(None, None, None)
             .map_err(|e| format!("could not create the drag payload: {e}"))?;

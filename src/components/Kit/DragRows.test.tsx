@@ -78,30 +78,42 @@ beforeEach(() => {
 
 afterEach(cleanup);
 
-/** The menu hanging off a format button in the row named `part`. */
+/**
+ * Open the menu hanging off a format button in the row named `part`, and answer
+ * **the menu** rather than the row.
+ *
+ * ⛔ **The menu is rendered into `document.body`, so it is NOT a descendant of
+ * the row.** `.drag__lanes` used to be `position: absolute` inside
+ * `.rail__content`, which is `overflow-y: auto` — so the scroll container cut it
+ * off partway down and the lower drum lanes could not be reached at all. Mike
+ * screenshotted that on 2026-08-06, with Snare the last row he could see.
+ * Escaping the clip means escaping the row in the DOM, so **menu entries are
+ * queried through this and the format openers still through the row.**
+ */
 function openMenu(rowLabel: string, format: string) {
   const row = screen.getByText(rowLabel).closest('li') as HTMLElement;
   fireEvent.click(within(row).getByRole('button', { name: format }));
-  return row;
+  return document.querySelector('.drag__lanes') as HTMLElement;
 }
 
 describe('one part, one instrument at a time', () => {
   it('lists every instrument that is playing, and none that are not', () => {
     render(<DragRows />);
-    const row = openMenu('Drums', 'MIDI');
+    const menu = openMenu('Drums', 'MIDI');
 
-    expect(within(row).getByRole('button', { name: 'Kick' })).toBeTruthy();
-    expect(within(row).getByRole('button', { name: 'Snare' })).toBeTruthy();
-    expect(within(row).getByRole('button', { name: 'Closed hat' })).toBeTruthy();
+    expect(within(menu).getByRole('button', { name: 'Kick' })).toBeTruthy();
+    expect(within(menu).getByRole('button', { name: 'Snare' })).toBeTruthy();
+    expect(within(menu).getByRole('button', { name: 'Closed hat' })).toBeTruthy();
     // Authored but empty — offering it would spool a file of nothing.
-    expect(within(row).queryByRole('button', { name: 'Open hat' })).toBeNull();
+    expect(within(menu).queryByRole('button', { name: 'Open hat' })).toBeNull();
   });
 
-  it('offers All Tracks last, which is the part nothing could do before', () => {
+  it('gives the MIDI menu the instruments and nothing else', () => {
     // ⛔ Export wrote every lane in one action and drag could not, so eight
-    // instruments meant eight separate gestures across into the DAW.
+    // instruments meant eight separate gestures across into the DAW. All Tracks
+    // answered that — for audio. It is absent here by instruction.
     render(<DragRows />);
-    const row = openMenu('Drums', 'MIDI');
+    const menu = openMenu('Drums', 'MIDI');
 
     // ⚠ The menu's own entries, not every button in the row — the row also
     // holds the two format openers, and the Audio one sits after the MIDI menu
@@ -110,29 +122,53 @@ describe('one part, one instrument at a time', () => {
     // (hats above snare above kick), not the order the engine emitted them in.
     // A producer reading the menu is looking for the row they can see.
     //
-    // ⛔⛔ **"As one clip" is FIRST, and it is the gesture the menu took away.**
-    // Before this menu existed the format button was itself a draggable chip
-    // whose subject named no lane — `Cut::Parts`, one file holding the whole
-    // kit, onto one DAW track. Making it a menu opener turned it into a plain
-    // `<button onClick>` that cannot be dragged, so that had no route left:
-    // one instrument at a time, or All Tracks, which is eight separate files.
-    const entries = within(row)
+    // ⛔⛔ **NEITHER "As one clip" NOR "All Tracks" IS HERE, AND THAT IS THE
+    // POINT.** Mike, 2026-08-06: *"you shouldn't be able to drag the midi
+    // altogether for the drums, only the audio … there should never be one
+    // single midi file with all parts of the drums draggable"*, and then: *"the
+    // 'MIDI' should not have an 'All Tracks', only the audio should."* One
+    // `.mid` of the whole kit is eight instruments stacked on one track. The
+    // audio menu keeps both entries, and the test below pins that half.
+    const entries = within(menu)
+      .getAllByRole('listitem')
+      .map((item) => item.textContent);
+    expect(entries).toEqual(['Closed hat', 'Snare', 'Kick']);
+  });
+
+  it('never offers the whole drum kit as one MIDI file', () => {
+    // ⛔⛔ Mike's rule, pinned as a *refusal* rather than as an ordering, so it
+    // survives someone reinstating the entry without reading the line above.
+    render(<DragRows />);
+    const menu = openMenu('Drums', 'MIDI');
+
+    expect(within(menu).queryByRole('button', { name: 'As one clip' })).toBeNull();
+  });
+
+  it('does offer the whole drum kit as one AUDIO file, from the chip and the menu', () => {
+    // ⛔ The other half of the same rule: a bounced kit is one instrument on one
+    // track, which is exactly what a producer wants to receive.
+    render(<DragRows />);
+    const menu = openMenu('Drums', 'Audio');
+
+    // ⛔ Both whole-kit entries live here and neither exists under MIDI, which
+    // is the asymmetry Mike asked for. Asserted as menu *contents* rather than
+    // by inspecting the opener's classes: `DragChip` and the plain MIDI button
+    // render identical `className`s, so a class check would pass either way and
+    // prove nothing.
+    const entries = within(menu)
       .getAllByRole('listitem')
       .map((item) => item.textContent);
     expect(entries).toEqual(['As one clip', 'Closed hat', 'Snare', 'Kick', 'All Tracks']);
-  });
 
-  it('can still drag a whole multi-lane part out as a single file', () => {
-    // ⛔ The assertion above pins the *order*; this pins that the entry is a
-    // real drag source rather than a label — a chip, addressable, and naming no
-    // lane, which is what makes the plugin cut it as one file.
-    render(<DragRows />);
-    const row = openMenu('Drums', 'MIDI');
-
-    const whole = within(row).getByRole('button', { name: 'As one clip' });
-    expect(whole).toBeTruthy();
-    // A `<button>` inside the list, not the menu opener that sits outside it.
+    // A `<button>` inside the list, not the menu opener that sits outside it —
+    // and "outside" is now a different subtree entirely, since the list is
+    // portalled out of the scroll container that used to crop it.
+    const whole = within(menu).getByRole('button', { name: 'As one clip' });
     expect(whole.closest('.drag__lane')).toBeTruthy();
+    const row = screen.getByText('Drums').closest('li') as HTMLElement;
+    expect(
+      within(row).getByRole('button', { name: 'Audio' }).closest('.drag__lane'),
+    ).toBeNull();
   });
 
   it('still offers Audio when the KIT panel has never been opened', async () => {
@@ -158,10 +194,10 @@ describe('one part, one instrument at a time', () => {
   it('gives Audio the same menu as MIDI', () => {
     // Mike: "the same goes for the audio tracks".
     render(<DragRows />);
-    const row = openMenu('Drums', 'Audio');
+    const menu = openMenu('Drums', 'Audio');
 
-    expect(within(row).getByRole('button', { name: 'Kick' })).toBeTruthy();
-    expect(within(row).getByRole('button', { name: 'All Tracks' })).toBeTruthy();
+    expect(within(menu).getByRole('button', { name: 'Kick' })).toBeTruthy();
+    expect(within(menu).getByRole('button', { name: 'All Tracks' })).toBeTruthy();
   });
 
   it('says whether it is open, so the button is not a mystery', () => {
@@ -178,11 +214,13 @@ describe('one part, one instrument at a time', () => {
 
   it('closes on Escape rather than trapping the producer in it', () => {
     render(<DragRows />);
-    const row = openMenu('Drums', 'MIDI');
-    expect(within(row).queryByRole('button', { name: 'Kick' })).toBeTruthy();
+    const menu = openMenu('Drums', 'MIDI');
+    expect(within(menu).queryByRole('button', { name: 'Kick' })).toBeTruthy();
 
     fireEvent.keyDown(document, { key: 'Escape' });
-    expect(within(row).queryByRole('button', { name: 'Kick' })).toBeNull();
+    // ⚠ Re-queried rather than reusing `menu`: closing unmounts the portal, so
+    // the assertion is that the list is gone from the document altogether.
+    expect(document.querySelector('.drag__lanes')).toBeNull();
   });
 
   /**
@@ -207,19 +245,27 @@ describe('one part, one instrument at a time', () => {
       // for — the notes are real, and only *our* preview is silent on them.
       useSession.setState({ patterns: { drums: WITH_SNAP } });
       render(<DragRows />);
-      const row = openMenu('Drums', 'MIDI');
+      const menu = openMenu('Drums', 'MIDI');
 
-      expect(within(row).getByRole('button', { name: 'Snap' })).toBeTruthy();
+      expect(within(menu).getByRole('button', { name: 'Snap' })).toBeTruthy();
     });
 
-    it('is not offered as audio, because there is nothing to render', () => {
+    it('is offered as audio too, because every lane offers both formats', () => {
+      // ⛔⛔ **THIS ASSERTION IS THE INVERSE OF THE ONE IT REPLACES**, which read
+      // `queryByRole(...'Snap').toBeNull()` under the title *"is not offered as
+      // audio, because there is nothing to render"*. Mike, 2026-08-06: *"each
+      // individual drum lane should be able to drag midi or audio, not just
+      // midi and not just audio."*
+      //
+      // ⚠ The old rule was not wrong about the consequence — a lane the kit has
+      // no pad for spools a **silent** file — it was wrong about the remedy.
+      // Offering Kick as both and Snap as MIDI-only reads as a broken menu.
       useSession.setState({ patterns: { drums: WITH_SNAP } });
       render(<DragRows />);
-      const row = openMenu('Drums', 'Audio');
+      const menu = openMenu('Drums', 'Audio');
 
-      expect(within(row).queryByRole('button', { name: 'Snap' })).toBeNull();
-      // The lanes that can sound are still all there.
-      expect(within(row).getByRole('button', { name: 'Kick' })).toBeTruthy();
+      expect(within(menu).getByRole('button', { name: 'Snap' })).toBeTruthy();
+      expect(within(menu).getByRole('button', { name: 'Kick' })).toBeTruthy();
     });
 
     it('is offered as audio once the producer assigns their own sample', () => {
@@ -232,14 +278,22 @@ describe('one part, one instrument at a time', () => {
         ),
       });
       render(<DragRows />);
-      const row = openMenu('Drums', 'Audio');
+      const menu = openMenu('Drums', 'Audio');
 
-      expect(within(row).getByRole('button', { name: 'Snap' })).toBeTruthy();
+      expect(within(menu).getByRole('button', { name: 'Snap' })).toBeTruthy();
     });
 
-    it('takes the Audio chip away entirely when nothing in the part can sound', () => {
-      // ⚠ Not an empty menu — a handle that opens onto nothing is the
-      // readout-that-lies failure in miniature.
+    it('still offers Audio for a part only the producer can make sound', () => {
+      // ⛔⛔ **ALSO INVERTED, and by the same instruction.** This read
+      // `queryByRole(...'Audio').toBeNull()` under *"takes the Audio chip away
+      // entirely when nothing in the part can sound"*, whose reasoning was that
+      // a handle opening onto nothing is the readout-that-lies failure in
+      // miniature. That still holds for an *empty* menu — and this menu is not
+      // empty, because every written lane is now in it.
+      //
+      // ⚠ What the producer gets from a lane the shipped kit has no pad for is
+      // a silent render, until they assign their own sample. Mike chose that
+      // over a chip that disappears with no explanation.
       useSession.setState({
         patterns: {
           drums: {
@@ -254,7 +308,7 @@ describe('one part, one instrument at a time', () => {
       const row = screen.getByText('Drums').closest('li') as HTMLElement;
 
       expect(within(row).getByRole('button', { name: 'MIDI' })).toBeTruthy();
-      expect(within(row).queryByRole('button', { name: 'Audio' })).toBeNull();
+      expect(within(row).getByRole('button', { name: 'Audio' })).toBeTruthy();
     });
   });
 

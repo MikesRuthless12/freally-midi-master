@@ -152,9 +152,33 @@ type UiState = {
  * 1224px viewport with `zoom: 0.85`, `innerWidth` stays 1224 and the 1440 media
  * query stays false, while this returns 1440.
  */
+/**
+ * ⛔ **The slack is not a fudge — the layout width IS the breakpoint.**
+ *
+ * `LAYOUT` in `plugin/src/editor.rs` is 1440 wide and [`WIDE_BREAKPOINT`] is
+ * 1440, so the rail sits exactly on the edge at every scale, with nothing to
+ * spare. The width then arrives through a floating-point round trip: the window
+ * is `1440 * factor` **rounded to whole pixels**, and the page divides by that
+ * same factor to get back. At `factor: 1.0` that is exact; at anything else it
+ * can land a pixel low — `1224 / 0.85` is `1439.999…` — and one pixel was the
+ * difference between the rail being there and not.
+ *
+ * ▶ **Mike, 2026-08-06:** *"how come the smaller default size doesn't show the
+ * stems panel when it is supposed to be shown, but the bigger size does."* That
+ * is this: the larger preset zoomed by 1.0 and kept the rail, every other preset
+ * lost it.
+ *
+ * ⚠ Wide enough to also absorb a scrollbar gutter, which `clientWidth` excludes
+ * and which is the other way this measurement comes up short of the layout the
+ * page was given. Still far narrower than any real step down — the next honest
+ * reason to collapse the rail is a host window hundreds of pixels smaller.
+ */
+const BREAKPOINT_SLACK = 24;
+
 export function isWide(): boolean {
   if (typeof document === 'undefined') return true;
-  return (document.documentElement.clientWidth || window.innerWidth) >= WIDE_BREAKPOINT;
+  const layout = document.documentElement.clientWidth || window.innerWidth;
+  return layout >= WIDE_BREAKPOINT - BREAKPOINT_SLACK;
 }
 
 const startsWide = typeof window === 'undefined' ? true : isWide();

@@ -98,24 +98,29 @@ mod platform;
 /// ⚠ **All three platforms answer yes now.** macOS does so having never been
 /// run — see `drag/macos.rs` for why that exception was made deliberately.
 ///
-/// ⛔⛔ **The standalone refusal is WINDOWS-ONLY, and used to be blanket.**
+/// ✅ **No platform refuses the standalone any more, as of TASK-063D** — and the
+/// history is worth keeping, because the refusal was wrong twice over.
 ///
-/// The mechanism, in full at `drag/windows.rs`: the standalone calls
-/// `own_message_queue()`, so `windows_pump::drain` runs from `on_frame`, which
-/// is itself inside baseview's window procedure with a `RefCell` borrow live.
-/// `DoDragDrop`'s modal loop then dispatches a `WM_TIMER` straight back into
-/// that procedure, the `RefCell` panics inside an `extern "system"` frame, and
-/// the process aborts.
+/// It began as a blanket rule for all three. That was one platform's problem
+/// standing in for a rule: `own_message_queue()` is a no-op off Windows —
+/// `standalone.rs` says so at the call site — and neither a Cocoa dragging
+/// session nor a GTK drag re-enters anybody's window procedure. Lifting it for
+/// macOS and Linux gave them back a feature they could always have had.
 ///
-/// ⚠ **Every clause of that is Windows.** `own_message_queue()` is a no-op on
-/// the other two — `standalone.rs` says so at the call site — and neither a
-/// Cocoa dragging session nor a GTK drag re-enters anybody's window procedure.
-/// So refusing all three was one platform's problem standing in for a rule, and
-/// it cost the macOS and Linux standalones a feature they could always have had.
+/// Windows was genuinely blocked, and the mechanism was exact: the standalone
+/// calls `own_message_queue()`, `windows_pump` drained from `on_frame`, which is
+/// inside baseview's window procedure with a `RefCell` borrow live, and
+/// `DoDragDrop`'s modal loop dispatched a `WM_TIMER` straight back into it —
+/// panicking inside an `extern "system"` frame, where it cannot unwind, and
+/// aborting the process. ▶ **That was fixed at the root rather than gated
+/// around:** the pump now posts to a child window and `baseview`'s own
+/// `open_blocking` loop dispatches it, so nothing is borrowed by the time a drag
+/// runs. `drag/windows.rs` and `windows_pump::request` carry it in full.
 ///
-/// The honest condition is **"this process pumps its own message queue"**, and
+/// The honest condition remains **"this process pumps its own message queue
+/// from inside somebody's window procedure"**, and
 /// [`platform::STANDALONE_SAFE`] is where each platform answers it. ⛔ Anything
-/// else that ever calls `own_message_queue()` has to be refused here too.
+/// that reintroduces a drain on a borrowed stack has to answer `false` again.
 pub fn supported_in(standalone: bool) -> bool {
     platform::SUPPORTED && (!standalone || platform::STANDALONE_SAFE)
 }
@@ -1181,22 +1186,25 @@ mod tests {
         drags.cancel();
     }
 
+    /// ⛔⛔ **The Windows standalone is allowed, and it is the one that had to be
+    /// earned.** TASK-063D.
+    ///
+    /// This assertion is the inverse of the one it replaces, which read
+    /// `assert!(!supported_in(true))` and existed because a drag there aborted
+    /// the process. It is flipped rather than deleted so the reason survives:
+    /// the abort was real, and it was fixed by moving the message pump off
+    /// baseview's window procedure — **not** by deciding the risk was
+    /// acceptable. ⚠ If this ever fails, read `windows_pump::request` before
+    /// changing it; the likely cause is a `drain` call put back on a borrowed
+    /// stack, and the correct response is to fix that rather than this.
     #[test]
-    fn the_standalone_is_refused_because_a_drag_there_aborts_the_process() {
-        // ⛔⛔ Not a preference, and **Windows only**. That platform's standalone
-        // pumps its own message queue, so the RPC handler runs inside baseview's
-        // window procedure and `DoDragDrop` dispatches straight back into it.
-        // `own_message_queue()` is a no-op elsewhere, so elsewhere there is
-        // nothing to refuse — see `supported_in`, which used to refuse all
-        // three and cost the other two a feature they could always have had.
+    fn the_windows_standalone_may_drag_now_that_the_pump_is_off_the_borrowed_stack() {
         if !cfg!(windows) {
             return;
         }
-        assert!(!supported_in(true));
-        let drags = Drags::default();
-        assert_eq!(
-            drags.prepare(one_kick(), None, true).unwrap_err(),
-            NO_DRAG_SOURCE
+        assert!(
+            supported_in(true),
+            "the Windows standalone is refused again — was the pump moved back into `on_frame`?"
         );
     }
 
@@ -1204,19 +1212,26 @@ mod tests {
     ///
     /// TASK-063D. Mike, 2026-08-06: *"the Windows/macOS/Linux OS coverage of
     /// drag-and-drop to a DAW from the standalone, and this HAS to be done and
-    /// done right."* Two thirds of "done right" was realising the refusal was
-    /// never a three-platform rule — it is one platform's message-loop problem,
-    /// and this is what stops it being generalised again by accident.
+    /// done right."* All three now answer yes, and this is what stops one of
+    /// them drifting back to no quietly.
     #[test]
-    fn the_standalone_is_only_refused_where_it_would_actually_abort() {
-        // Windows: refused, and the mechanism is real and documented.
-        // Linux and macOS: no own message queue, no re-entered window
-        // procedure — the standalone is no different from a host.
-        assert_eq!(
-            platform::STANDALONE_SAFE,
-            !cfg!(windows),
-            "a platform changed its mind about the standalone without saying why"
-        );
+    fn every_platform_allows_the_standalone_now() {
+        // ⚠ Was `!cfg!(windows)` — Windows was the exception, for a documented
+        // reason, until the pump stopped draining from inside baseview's window
+        // procedure. There is no exception left.
+        //
+        // ⛔ **A `const` block, so drift fails the BUILD rather than the test
+        // run.** It is a compile-time constant on every platform, and the old
+        // form only escaped `clippy::assertions_on_constants` because it
+        // compared against `!cfg!(windows)`. Being unable to compile a build
+        // whose standalone quietly stopped offering the drag is the stronger
+        // guarantee, and it costs nothing.
+        const {
+            assert!(
+                platform::STANDALONE_SAFE,
+                "a platform changed its mind about the standalone without saying why"
+            )
+        };
 
         // ⚠ And the gate composes: a platform with no drag source at all must
         // stay refused in the standalone regardless of this flag.

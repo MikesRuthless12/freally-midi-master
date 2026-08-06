@@ -55,11 +55,9 @@ const LAYOUT: (u32, u32) = (1440, 900);
 
 /// How large that layout is *drawn*, smallest first.
 ///
-/// A 1440-wide layout at 100% is nearly a whole 1707-wide desktop once the
-/// display is scaled — so "bigger" was never the useful direction. These shrink
-/// the picture instead: the window takes less of the screen while the page
-/// still lays out at [`LAYOUT`] and still shows every panel, because the page
-/// is zoomed by the same factor the window is.
+/// The page always lays out at [`LAYOUT`] and always shows every panel, because
+/// the page is zoomed by the same factor the window is — a preset changes how
+/// big the picture is drawn, never how much of it you get.
 ///
 /// **Presets rather than a draggable edge**, because the vendored adapter does
 /// not forward `Event::Window(Resized)` — its `on_event` handles keyboard and
@@ -67,20 +65,41 @@ const LAYOUT: (u32, u32) = (1440, 900);
 /// inside it laid out at the old size. Teaching it to is a change to someone
 /// else's crate, and every such change is one more line `VENDORED.md` has to
 /// account for on the next rebase.
-/// ⛔ **Two, and `large` was removed on Mike's instruction, 2026-08-06:** *"it
-/// should only have 2 sizes, a smaller version and a medium/large version, not
-/// too large, but like the default size is, then a smaller version."* He asked
-/// for it having watched `large` leave dead space around the UI in Ableton.
 ///
-/// ⚠ **A project saved at `large` still opens.** `current_scale` falls back to
-/// [`DEFAULT_SCALE`] for any name `preset` does not recognise — which is exactly
-/// this case, and the reason that fallback was written rather than an `expect`.
-const SCALES: &[(&str, f32)] = &[("small", 0.7), ("medium", 0.85)];
+/// ⛔ **Both are at or above 1:1, and the default is the larger of the two sizes
+/// that came before.** Mike, 2026-08-06, in three steps as he tried each one:
+/// *"ensure that the app gets bigger one time and not smaller then back to
+/// bigger"* … *"it needs to start off bigger and get bigger instead of starting
+/// off smaller and get a little bigger"* … *"it needs to be the second size for
+/// the default and bigger for the bigger size."*
+///
+/// ⚠ **This reverses the same day's earlier instruction and that is deliberate.**
+/// `large` was removed that morning — *"it should only have 2 sizes, a smaller
+/// version and a medium/large version"* — because it left dead black space
+/// around the UI in Ableton. ▶ **That dead space was a bug, not a property of
+/// the size**: the display scale was being read at two different moments (see
+/// [`system_scale`]), so the window and the page disagreed. With that fixed the
+/// larger sizes are honest, and bigger is the direction he actually wanted.
+///
+/// ⛔ **1.1 rather than something rounder, and the ceiling is real.** The window
+/// is `LAYOUT * system_scale * factor`, so on a 150% display in Ableton `xl` is
+/// **2376x1485** against a **2582x1550** work area — it fits with room to spare,
+/// where 1.15 would have overrun the height and been clamped to a size nobody
+/// picked. [`fit`] would handle that, but a preset that silently is not its own
+/// factor is the thing this file has already been confused by once.
+///
+/// ⚠ **A project saved at `small` or `medium` still opens.** `current_scale`
+/// falls back to [`DEFAULT_SCALE`] for any name `preset` does not recognise —
+/// which is exactly this case, and the reason that fallback was written rather
+/// than an `expect`.
+const SCALES: &[(&str, f32)] = &[("large", 1.0), ("xl", 1.1)];
 
-/// What the editor opens at. The larger of the two: a window that fills the host
-/// on first insert is a window the user has to deal with before they can work,
-/// and 0.85 is the size Mike called "like the default size is".
-const DEFAULT_SCALE: &str = "medium";
+/// What the editor opens at. ⛔ **The *smaller* of the two, so the button's first
+/// press grows the window and its second returns it here** — which is the cycle
+/// Mike asked for by name. It is nonetheless the *larger* of the pair that
+/// shipped before this change: 1:1, where the page is drawn at exactly the size
+/// it lays out at and nothing is zoomed at all.
+const DEFAULT_SCALE: &str = "large";
 
 /// A named scale: the window in physical pixels, and the zoom the page applies.
 ///
@@ -239,34 +258,91 @@ mod sizing {
         );
     }
 
-    /// Mike, 2026-08-06, having used the largest one in Ableton: *"it should
-    /// only have 2 sizes, a smaller version and a medium/large version, not too
-    /// large, but like the default size is, then a smaller version."*
+    /// ⛔ Mike, 2026-08-06: *"it needs to be a little bigger than the default
+    /// for the first click of the resize button and then back to the default
+    /// size."* The default must therefore be the **smaller** of the two.
     #[test]
-    fn there_are_two_sizes_and_the_default_is_the_larger_of_them() {
+    fn there_are_two_sizes_and_the_default_is_the_smaller_of_them() {
         assert_eq!(SCALES.len(), 2, "the size button offers exactly two");
-        assert_eq!(SCALES.last().unwrap().0, DEFAULT_SCALE);
+        assert_eq!(
+            SCALES.first().unwrap().0,
+            DEFAULT_SCALE,
+            "the editor must open at the smaller one so the button's first press grows it"
+        );
         assert!(
-            SCALES.iter().all(|(_, factor)| *factor < 1.0),
-            "nothing is drawn at full size any more — that is the one he called too large"
+            SCALES[0].1 < SCALES[1].1,
+            "`SCALES` is smallest-first, and the rest of this module reads it that way"
         );
     }
 
     #[test]
     fn a_project_saved_at_a_size_that_no_longer_exists_still_opens() {
-        // ⛔ `large` was a real preset and is in real project files. `preset`
-        // answering `None` is what `current_scale` falls back on, so this is
-        // the assertion that keeps that fallback honest rather than decorative.
-        assert!(preset("large").is_none());
+        // ⛔ `small` and `medium` were both real presets and are both in real
+        // project files — they were dropped when the two sizes moved up to 1.0
+        // and 1.1. `preset` answering `None` is what `current_scale` falls back
+        // on, so this is the assertion that keeps that fallback honest rather
+        // than decorative.
+        assert!(preset("small").is_none());
+        assert!(preset("medium").is_none());
         assert!(preset(DEFAULT_SCALE).is_some());
     }
 
+    /// ⛔ One press bigger, the next press back — never bigger twice. Mike,
+    /// 2026-08-06: *"ensure that the app gets bigger one time and not smaller
+    /// then back to bigger."*
     #[test]
-    fn the_button_cycles_between_the_two_rather_than_sticking() {
-        let (next, _) = next_scale("medium");
-        assert_eq!(next, "small");
-        let (back, _) = next_scale("small");
-        assert_eq!(back, "medium");
+    fn the_button_grows_the_window_then_returns_it_to_the_default() {
+        let (next, shrinks) = next_scale(DEFAULT_SCALE);
+        assert_eq!(next, "xl");
+        assert!(
+            !shrinks,
+            "the first press must grow the window, not shrink it"
+        );
+
+        // ⛔ **Nothing is drawn below 1:1 any more.** Every factor under 1.0 put
+        // the page through a zoom round trip, and that is what cost the right
+        // rail its one pixel — see `state/ui.ts::isWide`.
+        assert!(
+            SCALES.iter().all(|(_, factor)| *factor >= 1.0),
+            "a preset below 1:1 reintroduces the zoom rounding that hid the Stems panel"
+        );
+
+        let (back, shrinks_back) = next_scale("xl");
+        assert_eq!(back, DEFAULT_SCALE);
+        assert!(
+            shrinks_back,
+            "the second press must come back down to the default"
+        );
+    }
+
+    /// ⛔ The third size, and it was never a third *preset*. Mike, 2026-08-06:
+    /// *"it only does it once and then back to the default size not twice and
+    /// then back to the medium size."*
+    #[test]
+    fn the_button_offers_exactly_as_many_distinct_windows_as_there_are_presets() {
+        // `system_scale` used to answer 1.0 before baseview made the process
+        // DPI-aware and 1.5 after, so `medium` was 1224 at open and 1836 at the
+        // first press — two windows from one preset. It is pinned now, so a
+        // preset resolves to one size however many times it is asked.
+        let sizes: Vec<(u32, u32)> = SCALES.iter().map(|(_, f)| physical(*f).0).collect();
+        let mut distinct = sizes.clone();
+        distinct.sort_unstable();
+        distinct.dedup();
+        assert_eq!(
+            distinct.len(),
+            SCALES.len(),
+            "two presets must be two windows, got {sizes:?}"
+        );
+
+        // And asking twice must answer the same, which is the property that
+        // actually broke — the cycle read it once per press.
+        for (name, _) in SCALES {
+            assert_eq!(
+                preset(name),
+                preset(name),
+                "`{name}` must be one window for the whole session"
+            );
+        }
     }
 
     #[test]
@@ -730,6 +806,27 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
 
 /// The desktop scale factor, as a multiplier (1.5 at 150%).
 ///
+/// ⛔ **Read once and pinned for the process, and that is a bug fix rather than
+/// an optimisation.** `GetDpiForSystem` answers **96** — so 1.0 — while the
+/// process is still DPI-unaware, and **baseview makes it per-monitor aware when
+/// it opens its first window**, which happens *after* `create()` has already
+/// sized the editor. So the same call answered 1.0 at open and 1.5 at every
+/// resize afterwards, and since a window is `LAYOUT * system_scale * factor`,
+/// each of the two [`SCALES`] factors silently meant two different windows.
+///
+/// ▶ **That is where the third size came from**, measured on Mike's machine on
+/// 2026-08-06: the editor opened `medium` at **1224**, the first press made
+/// `small` **1512** — *bigger* — and the second made `medium` **1836**, bigger
+/// again, so the button appeared to grow twice before coming back. `SCALES`
+/// held two entries the whole time. Mike: *"it only does it once and then back
+/// to the default size not twice."*
+///
+/// ⚠ **Consistency is the property that matters here, not the value.** Pinned
+/// at 1.0 the presets are 1224 and 1008; pinned at 1.5 they are 1836 and 1512.
+/// Either is self-consistent and neither leaves dead space — what cannot work
+/// is one preset measured against each. A host that is already DPI-aware when
+/// it loads the plugin simply pins the other value, and both stay correct.
+///
 /// ⚠ **Known limit: this is the *system* DPI, not the monitor the editor opens
 /// on.** `GetSystemMetrics` agrees with it, so any single-monitor machine is
 /// correct — but a mixed-DPI pair is not, and producers run those. Opening the
@@ -750,20 +847,23 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
 /// leaves there and on macOS, and no worse than either.
 #[cfg(target_os = "windows")]
 fn system_scale() -> f32 {
-    // `user32` is already linked by the window this plugin opens; declaring the
-    // one call is cheaper than taking a dependency on `windows` for it.
-    #[link(name = "user32")]
-    unsafe extern "system" {
-        fn GetDpiForSystem() -> u32;
-    }
+    static SCALE: std::sync::OnceLock<f32> = std::sync::OnceLock::new();
+    *SCALE.get_or_init(|| {
+        // `user32` is already linked by the window this plugin opens; declaring
+        // the one call is cheaper than taking a dependency on `windows` for it.
+        #[link(name = "user32")]
+        unsafe extern "system" {
+            fn GetDpiForSystem() -> u32;
+        }
 
-    // 96 DPI is 100%. A zero would mean the call failed, and dividing by it
-    // would hand the host a window of size NaN.
-    let dpi = unsafe { GetDpiForSystem() };
-    if dpi == 0 {
-        return 1.0;
-    }
-    (dpi as f32 / 96.0).clamp(1.0, 4.0)
+        // 96 DPI is 100%. A zero would mean the call failed, and dividing by it
+        // would hand the host a window of size NaN.
+        let dpi = unsafe { GetDpiForSystem() };
+        if dpi == 0 {
+            return 1.0;
+        }
+        (dpi as f32 / 96.0).clamp(1.0, 4.0)
+    })
 }
 
 #[cfg(not(target_os = "windows"))]
@@ -776,23 +876,36 @@ fn system_scale() -> f32 {
 ///
 /// `SM_CXMAXIMIZED`/`SM_CYMAXIMIZED` rather than the raw screen size: it
 /// excludes the taskbar, which is what "as big as it can usefully be" means.
+///
+/// ⛔ **Pinned for the process for the same reason [`system_scale`] is, and it
+/// must be pinned *with* it.** `GetSystemMetrics` answers in whatever units the
+/// caller's DPI awareness implies, and it flips in the very same instant:
+/// measured on Mike's machine, **1723x1035 while unaware** and **2582x1550**
+/// once baseview has made the process per-monitor aware. [`physical`] compares
+/// a want built from `system_scale` against this bound, so reading one before
+/// the flip and the other after would compare a logical bound to a physical
+/// want — a clamp to a scale nobody asked for. Reading both once keeps the pair
+/// honest whichever side of the flip they land on.
 #[cfg(target_os = "windows")]
 fn work_area() -> Option<(u32, u32)> {
-    #[link(name = "user32")]
-    unsafe extern "system" {
-        fn GetSystemMetrics(index: i32) -> i32;
-    }
+    static AREA: std::sync::OnceLock<Option<(u32, u32)>> = std::sync::OnceLock::new();
+    *AREA.get_or_init(|| {
+        #[link(name = "user32")]
+        unsafe extern "system" {
+            fn GetSystemMetrics(index: i32) -> i32;
+        }
 
-    const SM_CXMAXIMIZED: i32 = 61;
-    const SM_CYMAXIMIZED: i32 = 62;
+        const SM_CXMAXIMIZED: i32 = 61;
+        const SM_CYMAXIMIZED: i32 = 62;
 
-    let (w, h) = unsafe {
-        (
-            GetSystemMetrics(SM_CXMAXIMIZED),
-            GetSystemMetrics(SM_CYMAXIMIZED),
-        )
-    };
-    (w > 0 && h > 0).then_some((w as u32, h as u32))
+        let (w, h) = unsafe {
+            (
+                GetSystemMetrics(SM_CXMAXIMIZED),
+                GetSystemMetrics(SM_CYMAXIMIZED),
+            )
+        };
+        (w > 0 && h > 0).then_some((w as u32, h as u32))
+    })
 }
 
 #[cfg(not(target_os = "windows"))]
@@ -1091,7 +1204,18 @@ fn rpc(body: &[u8], shared: &SharedState) -> String {
                     }
                     json!({ "id": request.id, "ok": value })
                 }
-                Err(message) => json!({ "id": request.id, "error": message }),
+                Err(message) => {
+                    // ⛔⛔ **A refused command is invisible otherwise, and that
+                    // is how a real defect reads as "it does nothing".** The
+                    // reply carries the reason to the page, but nothing puts it
+                    // anywhere a developer reading the standalone's output can
+                    // see — so on 2026-08-06 a dead Drums drag and a refused
+                    // audio drag both presented as silence, and diagnosing them
+                    // began by adding this line. Cheap: it only runs when a
+                    // command has already failed.
+                    nih_plug::nih_log!("[rpc] {} refused: {message}", request.command);
+                    json!({ "id": request.id, "error": message })
+                }
             }
         }
         Err(error) => json!({ "error": format!("the plugin could not read this call: {error}") }),

@@ -12,6 +12,37 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed — the editor window sizes itself correctly, 2026-08-06
+
+- **⛔ The black band around the UI is gone.** A larger window left dead space
+  around the app, in the standalone and in a hosted VST3 alike. The editor's own
+  window was being sized from a display scale read at a different moment from the
+  one the rest of the geometry used, so the app ended up two-thirds of the window
+  that framed it and the frame's background painted the difference.
+- **⛔ The size button offers two sizes, not four.** Pressing it grew the window
+  *twice* before coming back, out of a list that has only ever held two entries.
+  The display scale was read fresh on every press, and it changes underneath the
+  editor: it reads 100% until the window system has been told the process is
+  DPI-aware, which happens *after* the editor has already been sized. So each of
+  the two presets quietly meant two different windows. The scale and the usable
+  desktop are now each read once and pinned together for the session, so a preset
+  is one window for as long as the plugin is open.
+- **The editor opens larger, and the button makes it larger still.** The two
+  sizes are now 1:1 and a step above it, so the first press grows the window and
+  the second returns it — rather than the only choice being *smaller* than the
+  default.
+- **⛔ The Stems panel no longer disappears at the default window size.** The
+  right rail opens at 1440px and the page lays out at exactly 1440px, so the two
+  numbers were equal and the rail had no margin at all: the width arrives through
+  a zoom round-trip that landed a single pixel short, and the whole rail — Stems,
+  Kit, Session, Presets — was gone at every size except the one that happened to
+  zoom by exactly 1. It now has room to spare, and neither size zooms the page.
+- **⛔ The per-lane drag-out menu is no longer cut in half.** Opening MIDI on the
+  Drums row showed a list that ran into the panel below it and stopped, so the
+  lower drum lanes could not be dragged out at all. The menu was being clipped by
+  the scrolling panel it lived in; it now escapes it, still opening downward, and
+  lifts only if it would otherwise run off the bottom of the screen.
+
 ### Fixed — six defects Mike found running the plugin in Ableton, 2026-08-06
 
 - **⛔ Generate really does generate now.** Pressing Generate repeatedly returned

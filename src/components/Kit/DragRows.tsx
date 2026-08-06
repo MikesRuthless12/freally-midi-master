@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 
 import { drawDragPreview, drawSongPreview } from './dragPreview';
@@ -162,8 +163,19 @@ export function DragRows() {
       const written = LANE_ORDER.filter((lane) =>
         pattern.lanes.some((track) => track.lane === lane && track.notes.length > 0),
       );
-      // ⛔ And audio drops the ones nothing can play. See `Row.audioLanes`.
-      const playable = written.filter(audible);
+      // ⛔⛔ **EVERY WRITTEN LANE OFFERS BOTH FORMATS.** Mike, 2026-08-06: *"each
+      // individual drum lane should be able to drag midi or audio, not just
+      // midi and not just audio."*
+      //
+      // ⚠ **This deliberately overrides an earlier rule**, which read *"audio
+      // drops the ones nothing can play"* and filtered the audio menu down to
+      // `written.filter(audible)` — the lanes the loaded kit has a sample for.
+      // The reasoning was sound (a lane with no pad renders a silent file) but
+      // the result was a menu that offered Kick as both and Snap as MIDI only,
+      // which reads as a bug rather than as a judgement. ⛔ The trade is real
+      // and is Mike's call: a lane the kit cannot play now spools **silence**
+      // rather than being hidden.
+      const playable = written;
       // One lane is not worth a menu: the part *is* that instrument, and opening
       // a list to find a single entry repeating the row's own name is a click
       // that tells the producer nothing.
@@ -309,14 +321,59 @@ function DragMenu({ row, format, label, lanes }: HandleProps) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const box = useRef<HTMLDivElement>(null);
+  const menu = useRef<HTMLUListElement>(null);
+
+  // ⛔ **The menu is rendered into `document.body`, and that is the fix for it
+  // being cut in half.** It used to be `position: absolute` inside
+  // `.rail__content`, which is `overflow-y: auto` — so the scroll container
+  // cropped it and the lower lanes could not be reached at all. Mike
+  // screenshotted exactly that on 2026-08-06, with Snare as the last row he
+  // could see. A portal escapes the clip; nothing else about the panel changes.
+  //
+  // ⚠ **It still opens downward**, because he was asked about flipping it
+  // upward and said *"you can do it below."* Only if it would run off the
+  // bottom of the screen does it lift, and then only far enough to fit — a menu
+  // that leaves the viewport is the same defect in a new place.
+  // ⚠ Written straight onto the node rather than held in state: the list has to
+  // be measured before it can be placed, so state would mean rendering once in
+  // the wrong place and again in the right one. A layout effect runs before the
+  // browser paints, so setting the style here is the only pass the user sees.
+  useLayoutEffect(() => {
+    const node = menu.current;
+    const trigger = box.current?.getBoundingClientRect();
+    if (!open || !node || !trigger) return;
+    const list = node.getBoundingClientRect();
+
+    const gap = 4;
+    // Right-aligned with the chip, the way `inset-inline-end: 0` had it.
+    const left = Math.max(
+      gap,
+      Math.min(trigger.right - list.width, window.innerWidth - list.width - gap),
+    );
+    const below = trigger.bottom + gap;
+    const top =
+      below + list.height > window.innerHeight - gap
+        ? Math.max(gap, window.innerHeight - gap - list.height)
+        : below;
+
+    node.style.top = `${top}px`;
+    node.style.left = `${left}px`;
+    node.style.visibility = 'visible';
+  }, [open, lanes.length, format]);
 
   // ⚠ Closes on a press anywhere else, but on `pointerdown` rather than
   // `click`: a drag that begins on another chip never produces a click, so the
   // menu would stay open under the drag that left it.
+  //
+  // ⛔ **Both the chip and the menu count as "inside".** The menu is portalled
+  // into `document.body`, so it is no longer a DOM descendant of `box` — before
+  // this second check, pressing a lane closed the menu on `pointerdown` and the
+  // press never became a drag.
   useEffect(() => {
     if (!open) return;
     const away = (event: PointerEvent) => {
-      if (!box.current?.contains(event.target as Node)) setOpen(false);
+      const target = event.target as Node;
+      if (!box.current?.contains(target) && !menu.current?.contains(target)) setOpen(false);
     };
     const escape = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setOpen(false);
@@ -331,60 +388,106 @@ function DragMenu({ row, format, label, lanes }: HandleProps) {
 
   return (
     <div className="drag__menu" ref={box}>
-      <button
-        type="button"
-        className="drag__chip drag__chip--menu"
-        aria-expanded={open}
-        onClick={() => setOpen((was) => !was)}
-      >
-        {label}
-      </button>
-      {open && (
-        <ul className="drag__lanes">
-          {/* ⛔⛔ **The whole part as ONE file, which this menu took away.**
-              Before the menu existed, a part with several instruments rendered
-              a plain draggable chip whose subject named no lane — `Cut::Parts`
-              on the other side, one `.mid`/`.wav` holding the whole kit, landing
-              on a single DAW track. Turning the format button into a menu opener
-              made it a `<button onClick>` that cannot be dragged at all, so that
-              gesture had no route left: the menu offered one instrument at a
-              time, or All Tracks, which is eight separate files. A producer who
-              wanted the drum part as one clip had to go back to Export.
+      {/* ⛔⛔ **AUDIO DRAGS FROM THIS CHIP. MIDI DOES NOT, AND THAT ASYMMETRY IS
+          MIKE'S RULE, NOT AN OVERSIGHT.** 2026-08-06: *"you shouldn't be able to
+          drag the midi altogether for the drums, only the audio, and then the
+          separate drum lanes should be draggable into the daw, there should
+          never be one single midi file with all parts of the drums
+          draggable."*
+
+          A kit bounced to audio is one instrument the producer puts on one
+          track; the same kit as one MIDI file is eight instruments stacked on a
+          single track, which is not a thing anybody wants to receive.
+
+          ⚠ **This chip used to be a plain `<button onClick>` in both formats**,
+          so there was nothing to pick up at all — and drums is the *only* part
+          that gets a menu (the only one with more than one written lane), so it
+          read as "drums cannot be dragged" while every melodic part could.
+          Nothing was refused and nothing was spooled; the gesture had no
+          handler. `DragChip` tells a drag from a click by whether the press
+          travelled, so finishing a drag never opens the menu. */}
+      {format === 'audio' ? (
+        <DragChip
+          subject={row.subject}
+          format={format}
+          label={label}
+          title={row.label}
+          expanded={open}
+          onClick={() => setOpen((was) => !was)}
+        />
+      ) : (
+        <button
+          type="button"
+          className="drag__chip drag__chip--menu"
+          aria-expanded={open}
+          onClick={() => setOpen((was) => !was)}
+        >
+          {label}
+        </button>
+      )}
+      {open &&
+        createPortal(
+          <ul
+            className="drag__lanes"
+            ref={menu}
+            // ⚠ Hidden until measured — the layout effect above places it and
+            // reveals it, before the browser paints. A menu that appears in the
+            // wrong place and jumps is worse than one that appears once.
+            style={{ visibility: 'hidden' }}
+          >
+            {/* ⛔⛔ **The whole part as ONE file — AUDIO ONLY.** Mike, 2026-08-06:
+              *"there should never be one single midi file with all parts of the
+              drums draggable."* So this entry, and the draggable chip above it,
+              exist for audio and are absent for MIDI: a bounced kit is one
+              instrument on one track, where the same kit as one `.mid` is eight
+              instruments stacked on a single track.
+              ⚠ It is also reachable by dragging the menu chip itself; kept as a
+              named entry because a producer who has opened the list should not
+              have to guess that the thing they opened is also the thing they
+              drag.
               ⚠ First, because it is the whole thing, and All Tracks stays last
               because it is the most granular. */}
-          <li className="drag__lane drag__lane--one">
-            <DragChip
-              subject={row.subject}
-              format={format}
-              label={t('stems.oneClip')}
-              title={row.label}
-            />
-          </li>
-          {lanes.map((lane) => (
-            <li key={lane} className="drag__lane">
-              <DragChip
-                subject={{ ...row.subject, lane } as DragSubject}
-                format={format}
-                label={t(`lanes.${lane}`)}
-                title={t(`lanes.${lane}`)}
-              />
-            </li>
-          ))}
-          {/* ⛔ **Last, and it drags every lane as SEPARATE files** — that is
-              what Mike asked for by name, and it is the thing that genuinely did
-              not exist: Export could do all of it in one action and drag could
-              not, so eight instruments meant eight gestures. `lanes: true` is
-              `Cut::EveryLane` on the other side; the plugin already knew how. */}
-          <li className="drag__lane drag__lane--all">
-            <DragChip
-              subject={{ ...row.subject, lanes: true } as DragSubject}
-              format={format}
-              label={t('stems.allTracks')}
-              title={row.label}
-            />
-          </li>
-        </ul>
-      )}
+            {format === 'audio' && (
+              <li className="drag__lane drag__lane--one">
+                <DragChip
+                  subject={row.subject}
+                  format={format}
+                  label={t('stems.oneClip')}
+                  title={row.label}
+                />
+              </li>
+            )}
+            {lanes.map((lane) => (
+              <li key={lane} className="drag__lane">
+                <DragChip
+                  subject={{ ...row.subject, lane } as DragSubject}
+                  format={format}
+                  label={t(`lanes.${lane}`)}
+                  title={t(`lanes.${lane}`)}
+                />
+              </li>
+            ))}
+            {/* ⛔ **Last, drags every lane as SEPARATE files, and AUDIO ONLY.**
+              Mike, 2026-08-06: *"the 'MIDI' should not have an 'All Tracks',
+              only the audio should because you can get the audio to come from
+              all tracks, i just don't want the midi to be altogether as one
+              complete clip for the drums."* So the MIDI menu is the individual
+              instruments and nothing else — no whole-kit entry of any kind, and
+              no draggable opener above it.
+              `lanes: true` is `Cut::EveryLane` on the other side. */}
+            {format === 'audio' && (
+              <li className="drag__lane drag__lane--all">
+                <DragChip
+                  subject={{ ...row.subject, lanes: true } as DragSubject}
+                  format={format}
+                  label={t('stems.allTracks')}
+                  title={row.label}
+                />
+              </li>
+            )}
+          </ul>,
+          document.body,
+        )}
     </div>
   );
 }
@@ -403,6 +506,8 @@ function DragChip({
   format,
   label,
   title,
+  onClick,
+  expanded,
 }: {
   subject: DragSubject;
   format: DragFormat;
@@ -410,6 +515,17 @@ function DragChip({
   label: string;
   /** What the drag image says: which part this is. */
   title: string;
+  /**
+   * What a press that never travelled means, if it means anything.
+   *
+   * ⛔ **Only fires when the gesture did not become a drag.** A chip that both
+   * drags and clicks has to tell them apart, and `moved` is already the thing
+   * that knows: firing on every `pointerup` would open a menu underneath the
+   * producer every time they finished dragging a clip into their DAW.
+   */
+  onClick?: () => void;
+  /** Set when this chip also opens a menu, so it can say so. */
+  expanded?: boolean;
 }) {
   const begin = useDrag((s) => s.begin);
   const abandon = useDrag((s) => s.abandon);
@@ -420,9 +536,16 @@ function DragChip({
   const gesture = useRef<Gesture | null>(null);
   const from = useRef<{ x: number; y: number } | null>(null);
 
+  // ⛔ **Set when the gesture became a drag, and read by the click that follows
+  // it.** The pointer is captured, so a drag released over the DAW still
+  // delivers `pointerup` — and therefore a `click` — to this button. Without
+  // this, finishing a drag would open the menu under the producer every time.
+  const dragged = useRef(false);
+
   const end = () => {
     // A press that never travelled is an ordinary click, and the payload it
     // prepared has to go — otherwise the *next* drag starts from it.
+    dragged.current = gesture.current?.moved ?? false;
     if (gesture.current) gesture.current.held = false;
     gesture.current = null;
     from.current = null;
@@ -432,7 +555,20 @@ function DragChip({
   return (
     <button
       type="button"
-      className="drag__chip"
+      className={expanded === undefined ? 'drag__chip' : 'drag__chip drag__chip--menu'}
+      aria-expanded={expanded}
+      // ⚠ **The native click, minus the one that ends a drag.** Keeping this on
+      // `click` rather than moving it to `pointerup` is deliberate: it is what
+      // keyboard activation and `fireEvent.click` both produce, and a chip whose
+      // menu only answered synthetic pointer sequences would be unreachable by
+      // either.
+      onClick={() => {
+        if (dragged.current) {
+          dragged.current = false;
+          return;
+        }
+        onClick?.();
+      }}
       // ⛔⛔ **Capture is required, and an earlier version of this file argued
       // the opposite.** The worry was that a captured pointer would stop
       // `DoDragDrop` seeing the cursor leave the plugin window. It does not:
