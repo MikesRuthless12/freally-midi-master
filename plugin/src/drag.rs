@@ -971,6 +971,39 @@ mod tests {
 
     /// Wait for the prepare thread, without a fixed sleep that would either be
     /// flaky or slow.
+    /// Exclusive use of the spool root, for the tests that count what is in it.
+    ///
+    /// ⛔⛔ **[`spool_root`] is ONE directory shared by every test in this
+    /// module, and `cargo test` runs them on parallel threads in a single
+    /// process — so they also share the `{pid}-` prefix the folder names are
+    /// built from.** `a_render_that_finishes_after_being_cancelled_takes_its_own_folder_back`
+    /// asserts that no folder with that prefix survives, which is only a
+    /// statement about *its own* render if nothing else is spooling at the time.
+    /// `two_drags_do_not_write_over_each_other` claims two folders outright, and
+    /// half a dozen more prepare real renders.
+    ///
+    /// ⚠ **This was always a race and it had simply never been lost.** It became
+    /// systematic the moment `Progress::step` started asking `wanted()` *before*
+    /// publishing: a cancelled render now returns on its first step instead of
+    /// rendering every file first, so the leak scan happens milliseconds after
+    /// `prepare` rather than tens of milliseconds later — reliably inside a
+    /// sibling test's window. It went red on all three runners at once.
+    ///
+    /// ⚠ **Holding the guard is not enough on its own — a test must also let its
+    /// render finish before releasing it**, because `prepare` spawns a thread
+    /// that claims its folder later. That is what [`settle`] is for, and every
+    /// holder of this guard calls it.
+    ///
+    /// ⚠ The poison is deliberately ignored: a sibling test failing while
+    /// holding this must not turn every other test in the module red as well,
+    /// which would bury the one real failure.
+    fn spool_guard() -> std::sync::MutexGuard<'static, ()> {
+        static SPOOL: Mutex<()> = Mutex::new(());
+        SPOOL
+            .lock()
+            .unwrap_or_else(|poisoned| poisoned.into_inner())
+    }
+
     fn settle(drags: &Drags) -> Status {
         for _ in 0..600 {
             let status = drags.status();
@@ -993,6 +1026,7 @@ mod tests {
 
     #[test]
     fn preparing_writes_the_files_where_the_drop_target_can_read_them() {
+        let _spool = spool_guard();
         let drags = Drags::default();
         if !supported_in(false) {
             // Off Windows this is a refusal, and that is the tested behaviour.
@@ -1031,6 +1065,7 @@ mod tests {
 
     #[test]
     fn only_the_named_lane_is_spooled_when_one_is_asked_for() {
+        let _spool = spool_guard();
         // ⛔ "i can just drag the hihats out to the daw or just the snares".
         // The page used to slice this itself, which put the rule on both sides.
         if !supported_in(false) {
@@ -1065,6 +1100,7 @@ mod tests {
 
     #[test]
     fn two_drags_do_not_write_over_each_other() {
+        let _spool = spool_guard();
         // ⛔ The reason the spool folder is a counter and not the seed: the
         // piano roll can edit a pattern without changing the seed, so the same
         // name can carry different notes.
@@ -1081,6 +1117,7 @@ mod tests {
 
     #[test]
     fn a_render_that_finishes_after_being_cancelled_takes_its_own_folder_back() {
+        let _spool = spool_guard();
         // ⛔⛔ **The leak the review found, and the one most likely to happen:**
         // releasing before the bytes exist is the ordinary abandonment.
         // `cancel` cannot reach into a running render, so without the
@@ -1127,6 +1164,7 @@ mod tests {
 
     #[test]
     fn a_second_press_during_a_cancelled_render_is_allowed() {
+        let _spool = spool_guard();
         // ⛔ The refusal used to fire here: `cancel` leaves a running render
         // alone, so the producer was told "a drag is already being prepared"
         // for the drag they were currently making.
@@ -1190,6 +1228,7 @@ mod tests {
 
     #[test]
     fn a_standalone_that_can_drag_is_not_told_it_cannot() {
+        let _spool = spool_guard();
         // ⚠ The other direction of the same rule, driven through `prepare`
         // rather than the flag — a gate that answers correctly while the code
         // path still refuses would be worse than no gate.
@@ -1201,6 +1240,12 @@ mod tests {
             drags.prepare(one_kick(), None, true).is_ok(),
             "the standalone was refused on a platform where it is safe"
         );
+        // ⛔ Waited for and taken back. This is the one that only started
+        // leaking when macOS and Linux turned `STANDALONE_SAFE` on: before
+        // that it returned above on every platform where the render could
+        // actually run, so the folder it now spools had never existed.
+        settle(&drags);
+        drags.cancel();
     }
 
     /// ⛔⛔ **Which platforms offer a handle, pinned so it cannot drift quietly.**
@@ -1241,6 +1286,7 @@ mod tests {
     /// be pressed *during* the drag, long after there is any chance to render.
     #[test]
     fn a_sequential_cut_spools_the_stacked_layout_alongside_it() {
+        let _spool = spool_guard();
         let drags = Drags::default();
         let subject = Subject::Patterns {
             patterns: vec![pattern(Lane::Kick)],
@@ -1251,27 +1297,38 @@ mod tests {
         }
         assert_eq!(settle(&drags), Status::Ready);
 
-        let slot = drags.slot.lock().unwrap();
-        let Stage::Ready(prepared) = &*slot else {
-            panic!("the render did not publish");
-        };
-        assert!(
-            !prepared.stacked.is_empty(),
-            "Ctrl would have nothing to switch to"
-        );
-        // ⚠ Sibling folders, because both sets carry the SAME file names — a
-        // lane stem is named for its lane in either layout. Side by side the
-        // second would overwrite the first and both drags would hand over the
-        // same files.
-        assert_ne!(
-            prepared.paths[0].parent(),
-            prepared.stacked[0].parent(),
-            "the two layouts were spooled into one folder"
-        );
+        {
+            let slot = drags.slot.lock().unwrap();
+            let Stage::Ready(prepared) = &*slot else {
+                panic!("the render did not publish");
+            };
+            assert!(
+                !prepared.stacked.is_empty(),
+                "Ctrl would have nothing to switch to"
+            );
+            // ⚠ Sibling folders, because both sets carry the SAME file names — a
+            // lane stem is named for its lane in either layout. Side by side the
+            // second would overwrite the first and both drags would hand over the
+            // same files.
+            assert_ne!(
+                prepared.paths[0].parent(),
+                prepared.stacked[0].parent(),
+                "the two layouts were spooled into one folder"
+            );
+        }
+        // ⛔ **Takes its own render back, and NOT tidiness.** A `Drags` left
+        // holding `Ready` has no `Drop` that cleans up, so this used to leave a
+        // spooled folder in temp for the rest of the process — which
+        // `a_render_that_finishes_after_being_cancelled_takes_its_own_folder_back`
+        // then counted as the leak *it* was looking for. That is what turned CI
+        // red on all three runners. ⚠ The lock above is scoped, because `cancel`
+        // takes the same mutex.
+        drags.cancel();
     }
 
     #[test]
     fn a_gesture_with_only_one_meaning_spools_no_alternative() {
+        let _spool = spool_guard();
         // ⚠ A single lane has one arrangement, so Ctrl has nothing to choose
         // between — and rendering a second copy of it would be work and disk
         // spent on a switch that can never fire.
@@ -1281,15 +1338,21 @@ mod tests {
         }
         assert_eq!(settle(&drags), Status::Ready);
 
-        let slot = drags.slot.lock().unwrap();
-        let Stage::Ready(prepared) = &*slot else {
-            panic!("the render did not publish");
-        };
-        assert!(prepared.stacked.is_empty());
+        {
+            let slot = drags.slot.lock().unwrap();
+            let Stage::Ready(prepared) = &*slot else {
+                panic!("the render did not publish");
+            };
+            assert!(prepared.stacked.is_empty());
+        }
+        // Takes its own render back — see the sibling test above for what a
+        // `Ready` left standing does to the leak scan.
+        drags.cancel();
     }
 
     #[test]
     fn a_folder_an_earlier_run_left_behind_is_stepped_over_rather_than_reused() {
+        let _spool = spool_guard();
         // ⛔⛔ **The bug the security review found, and it is the
         // never-delete-audio rule reached from the other side.** The counter
         // restarts at 0 in every process and Windows recycles process ids, so
@@ -1499,6 +1562,7 @@ mod tests {
 
     #[test]
     fn a_folder_holding_audio_is_never_swept_however_old_it_is() {
+        let _spool = spool_guard();
         // ⛔⛔ The rule that must not be "tidied up": Ableton references a
         // dropped wav by path, so deleting one empties a clip in a session that
         // opened fine last week.
