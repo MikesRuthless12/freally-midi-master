@@ -23,6 +23,9 @@
     "seedCopied": "Đã sao chép seed.",
     "seedLabel": "Seed — dán vào để có cùng một beat",
     "seedAuto": "ngẫu nhiên",
+    "seedLocked": "Đã khóa seed — Tạo sẽ dùng lại",
+    "seedRolls": "Seed đổi mỗi lần Tạo",
+    "seedLock": "Khóa seed",
     "generating": "Đang tạo…",
     "readyBody": "{{name}} đã sẵn sàng. Nhấn Tạo.",
     "generateAll": "Tạo tất cả",
@@ -297,9 +300,13 @@
     "midi": "MIDI",
     "audio": "Âm thanh",
     "perLane": "Theo làn",
+    "allTracks": "Tất cả các track",
+    "oneClip": "Thành một clip",
+    "allParts": "Tất cả các phần",
     "hint": "Ghi từng phần đã tạo ra tệp riêng của nó.",
     "choosing": "Chọn một thư mục…",
     "dragHint": "Kéo một phần thẳng vào track trong DAW của bạn.",
-    "preparing": "Đang chuẩn bị…"
+    "preparing": "Đang chuẩn bị…",
+    "rendering": "Đang kết xuất… {{percent}}%"
   }
 }

@@ -21,6 +21,8 @@ import {
   copyClips,
   deleteClips,
   isSelected,
+  moveClips,
+  moveShift,
   pasteClips,
   resizeSection,
   sameClip,
@@ -197,6 +199,19 @@ export type SongState = {
   copy: () => void;
   cut: () => void;
   paste: () => void;
+  /**
+   * Pick the selection up and put it down on another section (TASK-130).
+   *
+   * ⛔ The DAW verb the timeline was missing. Without it "rearrange" meant
+   * copy, paste, then go back and delete the original — three gestures and an
+   * undo stack three deep for one thing the producer thinks of as a drag.
+   *
+   * ⚠ **`to` is where the grabbed clip lands and `from` is where it came
+   * from**, because everything else in the selection moves by that distance
+   * rather than piling onto one section — see [`moveClips`], where dropping the
+   * whole selection on one target silently destroyed a clip.
+   */
+  move: (to: number, from: number) => void;
 };
 
 const INITIAL_VIEW: View = { zoom: 24, scrollBar: 0 };
@@ -628,6 +643,29 @@ export const useSong = create<SongState>((set, get) => ({
     const { clipboard, anchor } = get();
     if (!clipboard) return;
     apply(set, get, (song) => pasteClips(song, clipboard, anchor ?? 0));
+  },
+
+  move(to, from) {
+    const { selection, song } = get();
+    if (selection.length === 0 || song === null) return;
+    // ⛔ **The distance is asked for once and used twice.** The clips move by
+    // it and the selection has to move by the same amount — and it is *clamped*
+    // to the arrangement, so it is not simply `to - from`. Working it out
+    // separately here is how the ring ends up on cells the clips are not in.
+    const shift = moveShift(song, selection, to, from);
+    if (shift === 0) return;
+    // ⚠ **The selection follows the clips.** Leaving it on the section they
+    // came from would draw the selection ring around empty cells and make the
+    // next Delete remove nothing — while the clips the producer just moved sat
+    // unselected somewhere else.
+    apply(set, get, (current) => moveClips(current, selection, to, from));
+    set({
+      selection: get().selection.map((clip) => ({
+        ...clip,
+        sectionIndex: clip.sectionIndex + shift,
+      })),
+      anchor: from + shift,
+    });
   },
 }));
 

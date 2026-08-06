@@ -49,6 +49,21 @@ pub struct PluginSession {
     /// The seed exactly as typed. A string because a `u64` does not survive a
     /// JSON number — the same reason `Pattern.seed` is one.
     pub seed: String,
+    /// Whether [`Self::seed`] is the producer's choice or the engine's echo.
+    ///
+    /// ⛔ **`Option<bool>`, and the third state is the point.** `None` means the
+    /// project was written before the seed could be *unpinned* — and back then
+    /// a stored seed was re-sent on every Generate, so those projects must
+    /// reopen holding theirs or they stop reproducing the beat they were saved
+    /// with (US-004). A plain `bool` with `#[serde(default)]` would give
+    /// `false` and quietly reroll every one of them; the same trap
+    /// [`auto_sync_default`] exists for, one field over.
+    ///
+    /// ⚠ The frontend is what resolves `None`, in `put()` — it is the side that
+    /// also knows whether the seed is empty, and two answers to one question is
+    /// the drift this file's header warns about.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub seed_pinned: Option<bool>,
     pub bars: Option<u16>,
     /// What the user pinned. Absent fields mean "the artist chooses", which is
     /// the distinction `SessionOverrides` exists to keep.
@@ -237,6 +252,9 @@ impl Default for PluginSession {
         Self {
             selected_id: None,
             seed: String::new(),
+            // Nothing stored says nothing was chosen. See the field's own note
+            // for why this is `None` rather than `Some(false)`.
+            seed_pinned: None,
             bars: None,
             pins: SessionOverrides::default(),
             window_size: None,
@@ -357,6 +375,7 @@ mod tests {
         let session = PluginSession {
             selected_id: Some("trap".into()),
             seed: "2024".into(),
+            seed_pinned: Some(true),
             bars: Some(8),
             pins: SessionOverrides {
                 bpm: Some(150.0),
@@ -646,6 +665,9 @@ mod tests {
         // and restores as empty, with nothing reporting it.
         let json = serde_json::to_value(PluginSession {
             selected_id: Some("uk-drill".into()),
+            // ⚠ Set, because the field is skipped when `None` — a default
+            // session would prove nothing about its name.
+            seed_pinned: Some(true),
             ..PluginSession::default()
         })
         .unwrap();
@@ -653,6 +675,10 @@ mod tests {
         assert_eq!(json["selectedId"], "uk-drill");
         assert!(json.get("seed").is_some());
         assert!(json.get("pins").is_some());
+        // ⛔ `seedPinned`, not `seed_pinned`. The frontend reads this key by
+        // name in `put()`, and a mismatch presents as a seed that silently
+        // stops being held — which is the defect it was added to close.
+        assert_eq!(json["seedPinned"], true);
     }
 
     #[test]
@@ -713,6 +739,43 @@ mod tests {
         let newer = r#"{"selectedId":"trap","seed":"7","somethingFromTheFuture":42}"#;
         let session: PluginSession = serde_json::from_str(newer).unwrap();
         assert_eq!(session.selected_id.as_deref(), Some("trap"));
+    }
+
+    /// A project saved before the seed could be *unpinned* must not start
+    /// rolling one (2026-08-06).
+    ///
+    /// ⛔ **The `Option` is the whole point, and a `bool` here would be silently
+    /// wrong.** `#[serde(default)]` on a `bool` gives `false`, which the
+    /// frontend reads as "the producer never chose this seed" and answers by
+    /// asking the engine for a new one — so every project anybody had already
+    /// saved would reopen generating a different beat. `None` is the third
+    /// state that lets `put()` tell "unpinned" from "written before the
+    /// question existed", the same trap `auto_sync_default` exists for.
+    #[test]
+    fn a_project_saved_before_the_seed_pin_existed_does_not_claim_to_be_unpinned() {
+        let old = r#"{"selectedId":"trap","seed":"7"}"#;
+        let session: PluginSession = serde_json::from_str(old).unwrap();
+
+        assert_eq!(session.seed, "7");
+        assert_eq!(
+            session.seed_pinned, None,
+            "an absent pin was read as a deliberate `false`, which rerolls every saved project"
+        );
+    }
+
+    #[test]
+    fn an_unpinned_seed_survives_the_round_trip_as_itself() {
+        // The other direction: a session that really did leave the seed to the
+        // engine must reopen that way, not be re-pinned by the fallback above.
+        let session = PluginSession {
+            seed: "7".into(),
+            seed_pinned: Some(false),
+            ..PluginSession::default()
+        };
+        let json = serde_json::to_string(&session).unwrap();
+        let back: PluginSession = serde_json::from_str(&json).unwrap();
+
+        assert_eq!(back.seed_pinned, Some(false));
     }
 
     #[test]

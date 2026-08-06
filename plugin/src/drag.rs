@@ -10,10 +10,16 @@
 //! The webview hands a `dragstart` to the *page*, not to the window server, so
 //! the DAW never sees a file and the drag dies at the edge of the plugin
 //! window. What is needed is a **native drag source**, and there is one per
-//! platform: `DoDragDrop` on Windows, `NSFilePromiseProvider` on macOS, XDND on
-//! Linux. [`platform`] is that seam, and today only Windows is behind it —
-//! [`supported`] is what stops the other two offering an affordance that does
-//! nothing.
+//! platform: `DoDragDrop` on Windows, `NSDraggingSession` on macOS, and GTK
+//! carrying `text/uri-list` on Linux. [`platform`] is that seam.
+//!
+//! ⚠ **All three are switched on, and they are not equally proven.** Each
+//! platform module owns a `SUPPORTED` flag and [`supported_in`] is what the page
+//! asks before it draws a handle. Windows has been dropped into Ableton by a
+//! human; Linux compiles and has never been dropped; macOS has never even been
+//! compiled here — CI's macOS runner is the first thing that type-checks it.
+//! `drag/macos.rs` explains why it is on regardless: testers cannot report on a
+//! handle they cannot see.
 //!
 //! ## Two calls, not one, and the split is the whole design
 //!
@@ -59,7 +65,7 @@
 //! producer has actually begun the gesture.
 
 use std::path::{Path, PathBuf};
-use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::atomic::{AtomicU32, AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, Once};
 use std::time::{Duration, SystemTime};
 
@@ -70,27 +76,48 @@ use serde::Serialize;
 #[path = "drag/windows.rs"]
 mod platform;
 
-#[cfg(not(windows))]
+#[cfg(target_os = "linux")]
+#[path = "drag/linux.rs"]
+mod platform;
+
+#[cfg(target_os = "macos")]
+#[path = "drag/macos.rs"]
+mod platform;
+
+#[cfg(not(any(windows, target_os = "linux", target_os = "macos")))]
 #[path = "drag/unsupported.rs"]
 mod platform;
 
 /// Whether this build can start an OS file drag at all.
 ///
-/// ⛔ **The page asks before it renders a drag handle.** macOS and Linux have no
-/// native drag source yet, and a handle that looks draggable and drops nothing
-/// is worse than no handle: the producer blames their DAW. Those platforms keep
-/// the Export path, and the chip keeps saying "Export" — the same rule
-/// TASK-131F already followed for the same reason.
+/// ⛔ **The page asks before it renders a drag handle.** A handle that looks
+/// draggable and drops nothing is worse than no handle: the producer blames
+/// their DAW. A platform that answers no keeps the Export path, and the chip
+/// keeps saying "Export" — the same rule TASK-131F already followed.
 ///
-/// ⛔⛔ **`standalone` is not a nicety — a drag there aborts the process.** The
-/// standalone calls `own_message_queue()`, so its RPC handler runs from inside
-/// baseview's window procedure, and `DoDragDrop`'s modal loop dispatches
-/// straight back into it. `drag/windows.rs`'s header has the full mechanism.
-/// The honest condition is "this process pumps its own message queue"; today
-/// that is exactly the standalone, and nothing else may call
-/// `own_message_queue()` without being refused here as well.
+/// ⚠ **All three platforms answer yes now.** macOS does so having never been
+/// run — see `drag/macos.rs` for why that exception was made deliberately.
+///
+/// ⛔⛔ **The standalone refusal is WINDOWS-ONLY, and used to be blanket.**
+///
+/// The mechanism, in full at `drag/windows.rs`: the standalone calls
+/// `own_message_queue()`, so `windows_pump::drain` runs from `on_frame`, which
+/// is itself inside baseview's window procedure with a `RefCell` borrow live.
+/// `DoDragDrop`'s modal loop then dispatches a `WM_TIMER` straight back into
+/// that procedure, the `RefCell` panics inside an `extern "system"` frame, and
+/// the process aborts.
+///
+/// ⚠ **Every clause of that is Windows.** `own_message_queue()` is a no-op on
+/// the other two — `standalone.rs` says so at the call site — and neither a
+/// Cocoa dragging session nor a GTK drag re-enters anybody's window procedure.
+/// So refusing all three was one platform's problem standing in for a rule, and
+/// it cost the macOS and Linux standalones a feature they could always have had.
+///
+/// The honest condition is **"this process pumps its own message queue"**, and
+/// [`platform::STANDALONE_SAFE`] is where each platform answers it. ⛔ Anything
+/// else that ever calls `own_message_queue()` has to be refused here too.
 pub fn supported_in(standalone: bool) -> bool {
-    platform::SUPPORTED && !standalone
+    platform::SUPPORTED && (!standalone || platform::STANDALONE_SAFE)
 }
 
 /// What a platform with no drag source says, in one place.
@@ -101,13 +128,31 @@ pub fn supported_in(standalone: bool) -> bool {
 pub(crate) const NO_DRAG_SOURCE: &str = "this platform has no drag source yet — use Export instead";
 
 /// How a drag is going, for the page to show.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+///
+/// ⚠ `PartialEq` and not `Eq` since [`Self::Preparing`] began carrying a float.
+#[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(rename_all = "camelCase", tag = "state")]
 pub enum Status {
     /// No drag has been prepared since the last one finished.
     Idle,
     /// The bytes are being rendered and written.
-    Preparing,
+    ///
+    /// ⛔⛔ **`done` is what makes a whole-arrangement audio drag possible at
+    /// all.** Rendering a three-minute record is seconds of work, not the
+    /// milliseconds a four-bar loop takes — and the producer is holding the
+    /// mouse button down for every one of them. Without a number on screen that
+    /// is indistinguishable from the plugin having hung, which is exactly why
+    /// `editor.rs` used to refuse the request outright and say "render audio
+    /// stems from Export instead".
+    ///
+    /// ⚠ **0.0 for the short renders, and that is honest rather than lazy.** A
+    /// single loop finishes inside one poll interval, so a bar that appeared
+    /// and vanished would be noise; the page shows a plain "getting it ready"
+    /// until this passes zero.
+    Preparing {
+        /// How much of the work is done, 0.0 to 1.0.
+        done: f32,
+    },
     /// The files are on disk and `start` can hand them to the OS.
     ///
     /// ⚠ **Carries nothing.** It used to carry the file names "for the preview
@@ -156,6 +201,92 @@ pub struct Drags {
     slot: Arc<Mutex<Stage>>,
     /// Hands out the id each prepare stamps on its `Preparing`.
     next_id: AtomicU64,
+    /// How far the render in flight has got, in thousandths.
+    ///
+    /// ⛔ **Beside the slot rather than inside `Stage::Preparing`, and the reason
+    /// is lock traffic.** The page polls this every 40 ms while the producer
+    /// holds the button, and the render publishes on every part it finishes;
+    /// putting it in the slot would make both take the mutex the *drag start*
+    /// also needs. An integer atomic costs neither of them anything.
+    ///
+    /// ⚠ **The fraction's bits, the way `SharedState::set_playhead` already
+    /// publishes a 0..1 `f32` through an `AtomicU32`.** There is no `AtomicF32`,
+    /// and this crate had already answered that for this exact quantity —
+    /// `to_bits`/`from_bits` is exact and needs no clamping arithmetic at the
+    /// write and no divide at the read. A thousandths integer was a second,
+    /// lossy answer to a solved problem.
+    progress: Arc<AtomicU32>,
+}
+
+/// What a long render reports to, and asks whether anybody still wants it.
+///
+/// ⛔⛔ **The "cancel" half of progress-with-cancel, and it is not a new
+/// mechanism — it is the existing disown made *promptly observable*.** `cancel`
+/// already replaced the slot so a finished render would find an id that was not
+/// its own and throw its own work away; what it could not do was stop the work.
+/// For a four-bar loop that cost nothing. For a whole arrangement it is seconds
+/// of CPU inside somebody's DAW, burned after they let go — so the render now
+/// asks between parts whether it is still the one in the slot, and stops if it
+/// is not.
+struct Progress {
+    slot: Arc<Mutex<Stage>>,
+    published: Arc<AtomicU32>,
+    /// The id this render was stamped with, as `Stage::Preparing` holds it.
+    id: u64,
+}
+
+impl Progress {
+    /// Note that `done` of `total` units are finished, and say whether to go on.
+    ///
+    /// ⛔⛔ **Asks whether it is still wanted BEFORE it publishes, and the order
+    /// is the fix rather than a preference.** [`Self::published`] is one atomic
+    /// shared by every render this instance ever starts, so a render that has
+    /// been disowned and reports anyway is writing into its *successor's* bar.
+    /// It reads as a drag that opens at 85%, and the page's stall clock — which
+    /// only re-arms on a figure it has not already seen — then watched the new
+    /// render's honest 0.05, 0.10, 0.15 go by underneath it, waited ten seconds,
+    /// and killed a perfectly healthy whole-arrangement render. On every retry.
+    ///
+    /// ⚠ The other order had a reason and it does not survive: "a render that
+    /// stopped without publishing its last step leaves the bar short of where it
+    /// got". True, but only the *owning* render has a bar anybody is watching —
+    /// a disowned one is reporting to a slot that has moved on.
+    fn step(&self, done: usize, total: usize) -> bool {
+        if !self.wanted() {
+            return false;
+        }
+        let fraction = if total == 0 {
+            0.0
+        } else {
+            (done as f32 / total as f32).clamp(0.0, 1.0)
+        };
+        self.published.store(fraction.to_bits(), Ordering::Relaxed);
+        true
+    }
+
+    /// Is this render still the one the slot is holding?
+    ///
+    /// ⚠ A poisoned lock answers **no**. Something has already panicked with
+    /// this mutex held, and the honest response to "should I keep spending the
+    /// DAW's CPU" is to stop.
+    fn wanted(&self) -> bool {
+        self.slot
+            .lock()
+            .is_ok_and(|slot| matches!(&*slot, Stage::Preparing(id) if *id == self.id))
+    }
+
+    /// A handle with nobody watching, for tests that only care about the files.
+    ///
+    /// ⚠ Its slot is genuinely `Preparing`, so [`Self::wanted`] answers yes —
+    /// a stub that always said no would make every test render nothing.
+    #[cfg(test)]
+    fn detached() -> Self {
+        Self {
+            slot: Arc::new(Mutex::new(Stage::Preparing(0))),
+            published: Arc::new(AtomicU32::new(0)),
+            id: 0,
+        }
+    }
 }
 
 #[derive(Debug, Default)]
@@ -179,6 +310,19 @@ enum Stage {
 struct Prepared {
     /// Absolute paths, in the order they should be handed to the drop target.
     paths: Vec<PathBuf>,
+    /// The same clips with every lane starting at bar 1, handed over instead
+    /// **while Ctrl is held** (2026-08-06). Empty when Ctrl means nothing here.
+    ///
+    /// ⛔ **Spooled up front, alongside the other set, because the choice is
+    /// made mid-drag.** `drag/windows.rs` watches the modifier from inside
+    /// `QueryContinueDrag` and swaps the payload when it changes — which it can
+    /// only do if the files already exist. Rendering at the moment of the drop
+    /// would put a multi-lane audio render inside the drag loop, and the whole
+    /// `prepare`/`start` split exists to keep it out of there.
+    ///
+    /// ⚠ The expensive half is shared: both sets come from the same render, and
+    /// only the note offsets and the file writing differ.
+    stacked: Vec<PathBuf>,
     /// The folder they were spooled into, so an abandoned drag can take it back.
     dir: PathBuf,
 }
@@ -328,9 +472,19 @@ impl Drags {
             discard(std::mem::replace(&mut *slot, Stage::Preparing(mine)));
             Arc::clone(&self.slot)
         };
+        // ⚠ Zeroed with the claim, not when the render starts: the page can poll
+        // in between, and a stale figure from the *previous* drag would show a
+        // bar that starts at 70% and goes backwards.
+        self.progress.store(0, Ordering::Relaxed);
+
+        let progress = Progress {
+            slot: Arc::clone(&slot),
+            published: Arc::clone(&self.progress),
+            id: mine,
+        };
 
         std::thread::spawn(move || {
-            let outcome = match render_and_spool(subject, kit.as_deref()) {
+            let outcome = match render_and_spool(subject, kit.as_deref(), &progress) {
                 Ok(prepared) => Stage::Ready(prepared),
                 Err(reason) => Stage::Failed(reason),
             };
@@ -367,7 +521,12 @@ impl Drags {
         };
         match &*slot {
             Stage::Idle => Status::Idle,
-            Stage::Preparing(_) => Status::Preparing,
+            Stage::Preparing(_) => Status::Preparing {
+                // ⚠ `from_bits`, matching `Progress::step`'s `to_bits` — the
+                // same pairing `SharedState::playhead` uses. Exact, and no
+                // divide to keep in step with a multiply at the other end.
+                done: f32::from_bits(self.progress.load(Ordering::Relaxed)),
+            },
             Stage::Ready(_) => Status::Ready,
             Stage::Failed(reason) => {
                 let taken = Status::Failed {
@@ -410,7 +569,7 @@ impl Drags {
                 Stage::Idle => return Err("there is nothing prepared to drag".to_owned()),
             }
         };
-        let dropped = match platform::drag(&prepared.paths, preview.as_ref()) {
+        let dropped = match platform::drag(&prepared.paths, &prepared.stacked, preview.as_ref()) {
             Ok(dropped) => dropped,
             Err(error) => {
                 // ⛔ **The slot is already `Idle`, so nothing else will ever
@@ -510,29 +669,100 @@ fn remove(dir: &Path) {
 fn render_and_spool(
     subject: Subject,
     kit: Option<&crate::audio::kit::Kit>,
+    progress: &Progress,
 ) -> Result<Prepared, String> {
     // ⛔ **The export's own functions, not second copies.** A hi-hat loop
     // dragged into Ableton and the same loop exported to a folder must be the
     // same file; two implementations of that is how they stop agreeing.
+    // ⛔ **The Ctrl alternative, built here because it cannot be built later.**
+    // Only the sequential cut has one: every other gesture is a single file or
+    // a single lane, and Ctrl has nothing to choose between.
+    let mut alternative = Vec::new();
     let files = match subject {
-        Subject::Patterns { patterns, cut } => crate::export::stem_files(&patterns, cut, kit),
-        Subject::Song(song) => crate::export::stem_files(
-            &crate::export::song_stem_patterns(&song),
-            crate::export::Cut::Parts,
-            // ⛔ MIDI, and the caller has already refused the audio half — a
-            // song is minutes long and rendering one needs progress a producer
-            // can watch. This is belt and braces: `None` here cannot render.
-            None,
-        ),
+        Subject::Patterns { patterns, cut } => {
+            // ⛔ **Refused before rendering here too.** This branch renders audio
+            // for every lane, and it used to meet only the silent clamp — see
+            // [`crate::audio::render::refuse_if_too_long`], which is now the one
+            // rule every audio path asks.
+            crate::audio::render::refuse_if_too_long(&patterns, kit.is_some())?;
+            // ⛔⛔ **Only when the two layouts actually differ, which is MIDI
+            // only.** `stem_files_with` renders the sequential cut as the
+            // stacked one for audio — see the note on `Cut::EveryLaneInSequence`
+            // — so building an "alternative" there would render every lane a
+            // second time to produce byte-identical files. That is a full extra
+            // sampler pass per lane, on a gesture, inside a DAW.
+            if matches!(cut, crate::export::Cut::EveryLaneInSequence) && kit.is_none() {
+                alternative = crate::export::stem_files_with(
+                    &patterns,
+                    crate::export::Cut::EveryLane,
+                    kit,
+                    &mut |done, total| progress.step(done, total * 2),
+                );
+            }
+            // ⛔ **Progress is reported here too, not only for songs.** This is
+            // the branch that renders audio for every lane, so it is the one a
+            // producer is most likely to abandon mid-render — and the page's
+            // clock is a *stall* timer now, re-armed only when `done` advances.
+            // Left unreported, the longest render in the system was the one path
+            // that could neither say how far it had got nor be told to stop.
+            let offset = alternative.len();
+            crate::export::stem_files_with(&patterns, cut, kit, &mut |done, total| {
+                progress.step(offset + done, if offset > 0 { total * 2 } else { total })
+            })
+        }
+        // ⛔⛔ **Audio is allowed here now, and the comment this replaces said it
+        // never could be.** It read: *"MIDI, and the caller has already refused
+        // the audio half — a song is minutes long and rendering one needs
+        // progress a producer can watch."* That was the right objection and it
+        // is the one [`Progress`] answers, so `kit` is passed through rather
+        // than hard-coded to `None`. A song still drags as MIDI when no kit was
+        // asked for; the difference is that asking is no longer refused.
+        Subject::Song(song) => {
+            let parts = crate::export::song_stem_patterns(&song);
+            // ⛔ **Refused before rendering, not truncated during it.** The
+            // render buffer is clamped to `MAX_SECONDS`, and a clamp cannot
+            // report — a record longer than the bound would drag out silently
+            // short, which is worse than not dragging at all because the
+            // producer would find out in their arrangement rather than here.
+            crate::audio::render::refuse_if_too_long(&parts, kit.is_some())?;
+            crate::export::stem_files_with(
+                &parts,
+                crate::export::Cut::Parts,
+                kit,
+                &mut |done, total| progress.step(done, total),
+            )
+        }
     };
     if files.is_empty() {
         return Err("there is nothing here to drag".to_owned());
+    }
+    // ⛔ **Checked after the render, before anything is written.** A cancelled
+    // render returns whatever it had already encoded — `stem_files_with` hands
+    // it back rather than deciding — and spilling that would leave a partial
+    // arrangement on disk that the producer could then drag out as if it were
+    // the whole record.
+    if !progress.wanted() {
+        return Err("that drag was cancelled".to_owned());
     }
 
     SWEEP.call_once(sweep);
     let dir = fresh_spool_dir()?;
     let paths = crate::export::spill(&dir, &files)?;
-    Ok(Prepared { paths, dir })
+    // ⚠ **A sub-folder, because both sets carry the same names.** A lane stem
+    // is named for its lane in either layout — that is the point of the naming
+    // rule — so writing them side by side would have the second set overwrite
+    // the first and both drags hand over the same files. The folder goes with
+    // `dir` when the drag is abandoned, so nothing new has to be swept.
+    let stacked = if alternative.is_empty() {
+        Vec::new()
+    } else {
+        crate::export::spill(&dir.join("stacked"), &alternative)?
+    };
+    Ok(Prepared {
+        paths,
+        stacked,
+        dir,
+    })
 }
 
 /// Decode standard base64 — the drag image, and nothing else.
@@ -744,7 +974,9 @@ mod tests {
     fn settle(drags: &Drags) -> Status {
         for _ in 0..600 {
             let status = drags.status();
-            if status != Status::Preparing {
+            // ⚠ Matched on the variant rather than compared, since `Preparing`
+            // began carrying how far it has got — any `done` is still preparing.
+            if !matches!(status, Status::Preparing { .. }) {
                 return status;
             }
             std::thread::sleep(Duration::from_millis(10));
@@ -816,6 +1048,7 @@ mod tests {
                 cut: crate::export::Cut::OneLane(Lane::ClosedHat),
             },
             None,
+            &Progress::detached(),
         )
         .expect("a hat lane must spool");
         assert_eq!(
@@ -912,15 +1145,147 @@ mod tests {
 
     #[test]
     fn the_standalone_is_refused_because_a_drag_there_aborts_the_process() {
-        // ⛔⛔ Not a preference. The standalone pumps its own message queue, so
-        // the RPC handler runs inside baseview's window procedure and
-        // `DoDragDrop` dispatches straight back into it.
+        // ⛔⛔ Not a preference, and **Windows only**. That platform's standalone
+        // pumps its own message queue, so the RPC handler runs inside baseview's
+        // window procedure and `DoDragDrop` dispatches straight back into it.
+        // `own_message_queue()` is a no-op elsewhere, so elsewhere there is
+        // nothing to refuse — see `supported_in`, which used to refuse all
+        // three and cost the other two a feature they could always have had.
+        if !cfg!(windows) {
+            return;
+        }
         assert!(!supported_in(true));
         let drags = Drags::default();
         assert_eq!(
             drags.prepare(one_kick(), None, true).unwrap_err(),
             NO_DRAG_SOURCE
         );
+    }
+
+    /// ⛔⛔ **Which platforms may drag out of the standalone, pinned.**
+    ///
+    /// TASK-063D. Mike, 2026-08-06: *"the Windows/macOS/Linux OS coverage of
+    /// drag-and-drop to a DAW from the standalone, and this HAS to be done and
+    /// done right."* Two thirds of "done right" was realising the refusal was
+    /// never a three-platform rule — it is one platform's message-loop problem,
+    /// and this is what stops it being generalised again by accident.
+    #[test]
+    fn the_standalone_is_only_refused_where_it_would_actually_abort() {
+        // Windows: refused, and the mechanism is real and documented.
+        // Linux and macOS: no own message queue, no re-entered window
+        // procedure — the standalone is no different from a host.
+        assert_eq!(
+            platform::STANDALONE_SAFE,
+            !cfg!(windows),
+            "a platform changed its mind about the standalone without saying why"
+        );
+
+        // ⚠ And the gate composes: a platform with no drag source at all must
+        // stay refused in the standalone regardless of this flag.
+        if !platform::SUPPORTED {
+            assert!(!supported_in(true));
+            assert!(!supported_in(false));
+        }
+    }
+
+    #[test]
+    fn a_standalone_that_can_drag_is_not_told_it_cannot() {
+        // ⚠ The other direction of the same rule, driven through `prepare`
+        // rather than the flag — a gate that answers correctly while the code
+        // path still refuses would be worse than no gate.
+        if !supported_in(true) {
+            return;
+        }
+        let drags = Drags::default();
+        assert!(
+            drags.prepare(one_kick(), None, true).is_ok(),
+            "the standalone was refused on a platform where it is safe"
+        );
+    }
+
+    /// ⛔⛔ **Which platforms offer a handle, pinned so it cannot drift quietly.**
+    ///
+    /// `SUPPORTED` is what `drag_supported` answers and therefore what decides
+    /// whether the page draws a handle at all — and this project has recorded
+    /// five times that a handle which drops nothing is worse than no handle,
+    /// because the producer blames their DAW. So the matrix is asserted rather
+    /// than left to whatever each platform module happens to say.
+    ///
+    /// ⚠ **macOS is ON without anybody having watched a file land, and that is
+    /// Mike's call, made on 2026-08-06**: *"i thought you were going to build the
+    /// macOS drag-and-drop and let my Discord users test it for me totally?"* He
+    /// has testers on real Macs, and a flag that hides the handle leaves them
+    /// nothing to try — the caution would prevent the very report that resolves
+    /// it. Releases are suspended until v1.0.0 (TASK-075), so no unsuspecting
+    /// end user meets it first.
+    ///
+    /// ⚠ **This test previously asserted the opposite**, and the two halves of
+    /// one change disagreed: `macos.rs` shipped `SUPPORTED = true` while this
+    /// insisted macOS answer no, so `cargo test --workspace` on `macos-latest`
+    /// went red on every run. Whichever way it is set, both have to say so.
+    #[test]
+    fn only_the_platforms_somebody_has_decided_to_offer_are_offered() {
+        let offered = supported_in(false);
+
+        if cfg!(windows) || cfg!(target_os = "linux") || cfg!(target_os = "macos") {
+            assert!(offered, "a platform with a drag source stopped offering it");
+        } else {
+            assert!(!offered, "a platform with no drag source is offering one");
+        }
+    }
+
+    /// The Ctrl alternative is spooled up front, or it cannot exist at all.
+    ///
+    /// ⛔ `drag/windows.rs` swaps the payload from inside `QueryContinueDrag`,
+    /// which it can only do if both sets are already on disk — the modifier may
+    /// be pressed *during* the drag, long after there is any chance to render.
+    #[test]
+    fn a_sequential_cut_spools_the_stacked_layout_alongside_it() {
+        let drags = Drags::default();
+        let subject = Subject::Patterns {
+            patterns: vec![pattern(Lane::Kick)],
+            cut: crate::export::Cut::EveryLaneInSequence,
+        };
+        if drags.prepare(subject, None, false).is_err() {
+            return; // No drag source on this platform; covered above.
+        }
+        assert_eq!(settle(&drags), Status::Ready);
+
+        let slot = drags.slot.lock().unwrap();
+        let Stage::Ready(prepared) = &*slot else {
+            panic!("the render did not publish");
+        };
+        assert!(
+            !prepared.stacked.is_empty(),
+            "Ctrl would have nothing to switch to"
+        );
+        // ⚠ Sibling folders, because both sets carry the SAME file names — a
+        // lane stem is named for its lane in either layout. Side by side the
+        // second would overwrite the first and both drags would hand over the
+        // same files.
+        assert_ne!(
+            prepared.paths[0].parent(),
+            prepared.stacked[0].parent(),
+            "the two layouts were spooled into one folder"
+        );
+    }
+
+    #[test]
+    fn a_gesture_with_only_one_meaning_spools_no_alternative() {
+        // ⚠ A single lane has one arrangement, so Ctrl has nothing to choose
+        // between — and rendering a second copy of it would be work and disk
+        // spent on a switch that can never fire.
+        let drags = Drags::default();
+        if drags.prepare(one_kick(), None, false).is_err() {
+            return;
+        }
+        assert_eq!(settle(&drags), Status::Ready);
+
+        let slot = drags.slot.lock().unwrap();
+        let Stage::Ready(prepared) = &*slot else {
+            panic!("the render did not publish");
+        };
+        assert!(prepared.stacked.is_empty());
     }
 
     #[test]
@@ -953,6 +1318,86 @@ mod tests {
         let _ = std::fs::remove_dir_all(&root);
     }
 
+    /// Progress-with-cancel (2026-08-06).
+    ///
+    /// ⛔⛔ Mike: *"we need to do progress-with-cancel so that way we can drag
+    /// the entire song arrangement to the DAW all at once."* Before this the
+    /// bridge refused a song's audio outright, because a record is minutes of
+    /// rendering with no way to say how far along it was and no way to stop it.
+    mod progress {
+        use super::*;
+
+        #[test]
+        fn a_render_reports_how_far_it_has_got() {
+            let progress = Progress::detached();
+            // ⚠ Read back the way  reads it — as the bits of an f32,
+            // which is how  has always published a
+            // 0..1 fraction through an atomic.
+            let published = || f32::from_bits(progress.published.load(Ordering::Relaxed));
+            assert!(progress.step(1, 4));
+            assert_eq!(published(), 0.25);
+            assert!(progress.step(4, 4));
+            assert_eq!(published(), 1.0);
+        }
+
+        #[test]
+        fn nothing_to_do_is_reported_as_no_progress_rather_than_dividing_by_zero() {
+            let progress = Progress::detached();
+            assert!(progress.step(0, 0));
+            assert_eq!(
+                f32::from_bits(progress.published.load(Ordering::Relaxed)),
+                0.0
+            );
+        }
+
+        /// ⛔ **The cancel half, and it is the existing disown made promptly
+        /// observable.** `cancel` always replaced the slot so a finished render
+        /// would throw its own work away; what it could not do was *stop* the
+        /// work. For a four-bar loop that cost nothing. For a whole arrangement
+        /// it is seconds of CPU inside somebody's DAW, spent after they let go.
+        #[test]
+        fn a_disowned_render_is_told_to_stop_rather_than_finishing_unwanted() {
+            let progress = Progress::detached();
+            assert!(progress.step(1, 4), "it should still be wanted");
+
+            // Exactly what `cancel` does: move the slot out from under it.
+            *progress.slot.lock().unwrap() = Stage::Idle;
+
+            assert!(!progress.wanted());
+            assert!(
+                !progress.step(2, 4),
+                "a render nobody is waiting for was told to carry on"
+            );
+        }
+
+        #[test]
+        fn a_render_superseded_by_a_newer_one_is_also_told_to_stop() {
+            // ⚠ Not the same as a cancel: the slot is still `Preparing`, but for
+            // a *different* gesture. The id is what tells them apart, and
+            // without checking it the older render would go on burning CPU for
+            // a drag the producer has already replaced.
+            let progress = Progress::detached();
+            *progress.slot.lock().unwrap() = Stage::Preparing(progress.id + 1);
+
+            assert!(!progress.wanted());
+        }
+
+        #[test]
+        fn the_page_is_told_the_figure_the_render_published() {
+            // ⚠ End to end through `status`, because the number crossing the
+            // bridge is the one the producer reads — an atomic that advanced
+            // while `status` reported nothing would be worse than no bar.
+            let drags = Drags::default();
+            drags.progress.store(0.375f32.to_bits(), Ordering::Relaxed);
+            *drags.slot.lock().unwrap() = Stage::Preparing(0);
+
+            match drags.status() {
+                Status::Preparing { done } => assert!((done - 0.375).abs() < 0.001),
+                other => panic!("expected a preparing status, got {other:?}"),
+            }
+        }
+    }
+
     #[test]
     fn a_pattern_that_plays_nothing_is_refused_rather_than_spooling_silence() {
         let mut silent = pattern(Lane::Kick);
@@ -962,7 +1407,8 @@ mod tests {
                 patterns: vec![silent],
                 cut: crate::export::Cut::Parts,
             },
-            None
+            None,
+            &Progress::detached()
         )
         .is_err());
     }
@@ -990,6 +1436,7 @@ mod tests {
         // — this test is about the slot, not the filesystem.
         *drags.slot.lock().unwrap() = Stage::Ready(Prepared {
             paths: vec![PathBuf::from("a.mid")],
+            stacked: Vec::new(),
             dir: spool_root().join("does-not-exist"),
         });
         assert_eq!(drags.status(), Status::Ready);

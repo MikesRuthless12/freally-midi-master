@@ -196,3 +196,33 @@ features = ["standalone"]
 # happen for it to go away.
 [dependencies.nih_plug_webview]
 path = "vendor/nih-plug-webview"
+
+# The Linux half of the drag-out (TASK-063C / FMM-S03). See `plugin/src/drag/linux.rs`.
+#
+# ⛔ **Must stay the same minor as the vendored adapter's `gtk`, which is 0.18,
+# which is in turn wry's.** Two gtk crates in one build are two sets of
+# `IS_MAIN_THREAD` thread-locals — so the `gtk::is_initialized()` this asks
+# would not be the initialisation the adapter's GTK thread performed, and every
+# call would fail an assert that reads as though GTK had never started.
+#
+# ⚠ **Not a new crate in the build.** wry already pulls gtk 0.18 on Linux, so
+# this unifies with the copy that is already here rather than adding one.
+[target.'cfg(target_os = "linux")'.dependencies]
+gtk = "0.18"
+
+# The macOS half of the drag-out (TASK-063C / FMM-S03). See `plugin/src/drag/macos.rs`.
+#
+# ⚠ **Not new crates in the build.** wry already pulls all three on macOS, so
+# these unify with the copies that are here rather than adding any — the same
+# reasoning the `windows` and `gtk` blocks above give. Versions match
+# `Cargo.lock`'s existing entries exactly for that reason.
+#
+# ⛔ `objc2`'s `define_class!` is why this is the crate and not a pile of
+# `msg_send!`: `NSDraggingSource` is a real protocol AppKit calls back into, so
+# there has to be a real Objective-C class to receive `draggingSession:
+# endedAtPoint:operation:` — which is the callback that says whether anything
+# took the files.
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2 = "0.6"
+objc2-app-kit = "0.3"
+objc2-foundation = "0.3"

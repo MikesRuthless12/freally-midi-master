@@ -576,3 +576,75 @@ test('clicking the empty grid clears the selection rather than doing nothing', a
 
   await expect(clip).toHaveAttribute('aria-pressed', 'false');
 });
+
+/**
+ * Dragging a clip onto another section (TASK-130).
+ *
+ * ⛔⛔ **The one DAW verb the timeline did not have.** Mike, 2026-08-06: *"you
+ * should be able to rearrange or drag them and move them, delete them, copy and
+ * paste them, clone them, etc. like you would in a real DAW."* Every other verb
+ * in that sentence already worked and had a test above; rearranging meant copy,
+ * paste, then go back and delete the original — three gestures and three undo
+ * steps for one thing a producer thinks of as a drag.
+ */
+test('a clip can be dragged onto another section, and leaves the first one', async ({
+  page,
+}) => {
+  await openSong(page);
+
+  const drums = page.locator('[data-testid="song-clip-drums"]');
+  const melody = page.locator('[data-testid="song-clip-melody"]');
+  const before = await drums.count();
+  const layout = await sections(page);
+
+  // The first drum clip, onto the section the *last* melody clip sits in — a
+  // section that is certainly somewhere else along the timeline.
+  const from = await drums.first().boundingBox();
+  const to = await melody.last().boundingBox();
+  if (!from || !to) throw new Error('the clips have no box');
+
+  await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+  await page.mouse.down();
+  // ⚠ Stepped, because the move only becomes a drag past a 6px threshold — a
+  // single jump would still cross it, but stepping is what a hand does and it
+  // exercises the same path.
+  await page.mouse.move(to.x + to.width / 2, to.y + from.height / 2, { steps: 8 });
+  await page.mouse.up();
+
+  // ⚠ **A move never *adds* a clip.** Not "the count is unchanged": a cell holds
+  // one clip per part, so landing on a section that already has drums replaces
+  // it and the count drops by one. That is the same rule paste follows, and
+  // refusing the drop instead would make the gesture fail silently on what is
+  // probably the commonest case.
+  await expect(drums).not.toHaveCount(before + 1);
+  const boxes = await drums.evaluateAll((nodes) =>
+    nodes.map((n) => Math.round(n.getBoundingClientRect().x)),
+  );
+  expect(boxes, 'the clip did not leave the section it came from').not.toContain(
+    Math.round(from.x),
+  );
+
+  // ⚠ And the sections themselves are untouched — moving a clip out of one is
+  // not deleting it, the same rule `deleteClips` already holds, and the
+  // arrangement must not re-tile under the producer mid-gesture.
+  expect(await sections(page)).toEqual(layout);
+});
+
+test('a drag that goes nowhere is still just a click', async ({ page }) => {
+  // ⛔ `click` fires after `pointerup`, so the move path has to suppress it —
+  // otherwise every drag would also re-select at the far end. The inverse
+  // matters just as much: a press that never travelled must still select.
+  await openSong(page);
+
+  const first = page.locator('[data-testid="song-clip-drums"]').first();
+  const box = await first.boundingBox();
+  if (!box) throw new Error('no box');
+
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  // Two pixels — under the threshold, so this is a click with a shaky hand.
+  await page.mouse.move(box.x + box.width / 2 + 2, box.y + box.height / 2);
+  await page.mouse.up();
+
+  await expect(first).toHaveAttribute('aria-pressed', 'true');
+});

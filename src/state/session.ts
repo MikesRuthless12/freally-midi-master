@@ -33,8 +33,24 @@ type HostSessionInfo = {
   playing: boolean;
 };
 
-/** Bar counts the UI offers. Four is the default a pattern is demonstrated at. */
-export const BAR_CHOICES = [2, 4, 8] as const;
+/**
+ * Bar counts the UI offers. Four is the default a pattern is demonstrated at.
+ *
+ * ⛔ **Two was removed on Mike's instruction, 2026-08-06:** *"bars for the
+ * generators should be able to be 4 or 8 only, not 2"*, and then, clarifying
+ * what replaces it: *"every new generation should generate 4/8 bars only and
+ * you should be able to see all 8 bars."* A two-bar loop is a *view* of a
+ * pattern rather than a length worth generating at — there is not enough room
+ * in two bars for the fills and turnarounds the models author, so it made every
+ * artist sound the same.
+ *
+ * ⚠ **A project saved at two bars still opens.** Nothing here validates a
+ * restored value: `bridge.rs` clamps `bars` to `1..=MAX_BARS` on every path
+ * into the engine, so a stored 2 generates a two-bar pattern exactly as before
+ * — it simply is not offered as a new choice. Refusing it instead would break
+ * sessions somebody already has.
+ */
+export const BAR_CHOICES = [4, 8] as const;
 
 /**
  * Snapshot fields that are **not** read out of this store.
@@ -78,6 +94,7 @@ void SAVED_FIELDS_MATCH_SNAPSHOT;
 export const SAVED_FIELDS = [
   'selectedId',
   'seed',
+  'seedPinned',
   'bars',
   'pins',
   'autoSync',
@@ -253,8 +270,37 @@ type SessionState = {
   /**
    * The seed to generate with, as typed. A string because a u64 does not
    * survive a JSON number, which is the same reason `Pattern.seed` is one.
+   *
+   * ⚠ **This box holds two different things and [`seedPinned`] is what tells
+   * them apart** — a seed the producer chose, and the seed the engine last
+   * picked and echoed back for them to read. Never decide from `seed` alone.
    */
   seed: string;
+  /**
+   * Whether [`seed`] is the producer's choice rather than the engine's echo.
+   *
+   * ⛔⛔ **The whole of the defect Mike found in Ableton on 2026-08-06:**
+   * *"when i clicked to generate seeds for Drake and did it over and over
+   * again, the seed stayed the same and there was no variation"*. `generate`
+   * echoes the seed the engine used back into the box — which it must, see
+   * below — and the old code then re-sent it on the next press. So the first
+   * Generate rolled a seed and **every press after that regenerated it**,
+   * making the product look like it held one beat per artist.
+   *
+   * ⛔ **Deleting the echo is not the fix, and that was the tempting one.**
+   * `engine/src/parts.rs` guarantees the five parts agree *only* when they
+   * share a seed, and US-004 ("paste a seed, get the same beat") needs a typed
+   * seed to survive. Both of those are the echo. What was missing is the
+   * distinction the session already draws for tempo, key and scale: a value the
+   * *user* pinned is reused, a value the *engine* chose is displayed.
+   *
+   * So: pinned means every Generate reuses it; unpinned means every Generate
+   * asks for a fresh one and the box shows what came back, to read and to copy.
+   * Typing pins, clearing unpins, and the lock in `SeedChip` says which it is —
+   * a box that silently pinned itself after the first Generate is what caused
+   * this, so the mode is never left to be inferred.
+   */
+  seedPinned: boolean;
 
   generating: boolean;
   /** What went wrong last, for the user rather than the console. */
@@ -364,7 +410,16 @@ type SessionState = {
 
   init: () => Promise<void>;
   select: (id: string) => void;
+  /** Type or paste a seed. Anything non-empty pins it; clearing the box unpins. */
   setSeed: (seed: string) => void;
+  /**
+   * Hold the seed the engine just picked, or hand it back (the lock button).
+   *
+   * The other half of "typing pins it": a producer who likes what they just
+   * generated wants *that* seed held without retyping the twenty digits already
+   * in front of them.
+   */
+  setSeedPinned: (pinned: boolean) => void;
   setBars: (bars: number) => void;
   setPin: <K extends keyof SessionPins>(field: K, value: SessionPins[K]) => void;
   setAutoSync: (on: boolean) => void;
@@ -486,8 +541,18 @@ function snapshotOf(state: SessionState): Snapshot {
   // exactly what would stop the compiler noticing a field added to `Snapshot`
   // and forgotten here — the drift this whole arrangement exists to prevent.
   // `SAVED_FIELDS_MATCH_SNAPSHOT` below keeps the two lists honest instead.
-  const { selectedId, seed, bars, pins, autoSync, mood, audioEnabled, mutedLanes, edited } =
-    state;
+  const {
+    selectedId,
+    seed,
+    seedPinned,
+    bars,
+    pins,
+    autoSync,
+    mood,
+    audioEnabled,
+    mutedLanes,
+    edited,
+  } = state;
   // The arrangement lives in its own store and is read through the seam, for
   // the same reason `send()` reads it there — see `registerSongDocument`.
   //
@@ -512,6 +577,7 @@ function snapshotOf(state: SessionState): Snapshot {
   return {
     selectedId,
     seed,
+    seedPinned,
     bars,
     pins,
     autoSync,
@@ -634,6 +700,15 @@ async function loadDefaults(
 export type SavedSession = {
   selectedId: string | null;
   seed: string;
+  /**
+   * Whether `seed` was the producer's choice rather than the engine's echo.
+   *
+   * ⚠ **Absent means "this project predates the distinction", and it is read as
+   * pinned** — see `put()`. Every project written before the seed could be
+   * unpinned reused its stored seed on every Generate, so that is what those
+   * projects reopen doing.
+   */
+  seedPinned?: boolean | null;
   bars: number | null;
   pins: Partial<SessionPins> | null;
   /**
@@ -898,8 +973,21 @@ function put(
   // subscriber, so splitting the selection out of the rest made a single preset
   // load land as *two* undo entries — the first `Ctrl`+`Z` then stepped back to
   // a half-applied preset that was never on screen.
+  const seed = saved.seed ?? '';
+
   set({
-    seed: saved.seed ?? '',
+    seed,
+    // ⛔ **Absent means pinned, and the fallback is the whole compatibility
+    // story.** Before the pin existed a stored seed *was* re-sent on every
+    // Generate, so a project written then reopens reproducing its own beat —
+    // which is US-004 at its strongest, since a project file is the most
+    // deliberate way anyone ever keeps a seed. A stored `false` is honoured as
+    // itself: that session never chose the seed it happens to be showing, so
+    // acting on it would reintroduce exactly the defect this closes.
+    // ⚠ An empty seed can never be pinned — there is nothing to reuse, and
+    // `generate` would send `null` regardless. Deriving it here keeps the two
+    // from disagreeing.
+    seedPinned: seed !== '' && (saved.seedPinned ?? true),
     bars: saved.bars ?? get().bars,
     // Absent means on, matching the plugin's `auto_sync_default`: a project
     // written before the toggle existed must keep following its DAW.
@@ -989,6 +1077,8 @@ export const useSession = create<SessionState>((set, get) => ({
   editedParts: [],
   bars: 4,
   seed: '',
+  // Nothing has been chosen, so nothing is held: the first Generate rolls.
+  seedPinned: false,
 
   generating: false,
   error: null,
@@ -1098,7 +1188,20 @@ export const useSession = create<SessionState>((set, get) => ({
   },
 
   setSeed(seed) {
-    set({ seed: seed.trim() });
+    // ⛔ **Typing pins and clearing unpins**, so the common way in and the
+    // common way out both work without anyone finding the lock. Pasting a seed
+    // to get a beat back is US-004 and is meaningless unpinned; emptying the
+    // box is the plainest possible way to say "surprise me", and it is what
+    // the `random` placeholder already promises.
+    const typed = seed.trim();
+    set({ seed: typed, seedPinned: typed !== '' });
+  },
+
+  setSeedPinned(pinned) {
+    // ⚠ There is nothing to hold when the box is empty. Refusing here rather
+    // than in the button keeps the flag from ever contradicting the seed.
+    if (pinned && get().seed === '') return;
+    set({ seedPinned: pinned });
   },
 
   setBars(bars) {
@@ -1208,7 +1311,7 @@ export const useSession = create<SessionState>((set, get) => ({
   },
 
   async generate(part = 'drums') {
-    const { selectedId, seed, bars, generating, pins, mood } = get();
+    const { selectedId, seed, seedPinned, bars, generating, pins, mood } = get();
     if (!selectedId || generating) return;
 
     set({ generating: true, error: null });
@@ -1223,9 +1326,14 @@ export const useSession = create<SessionState>((set, get) => ({
           // question, not the engine's.
           part,
           bars,
-          // An empty box means "pick one for me". Sending "" would be a seed
-          // that fails to parse rather than an absent one.
-          seed: seed === '' ? null : seed,
+          // ⛔⛔ **The pin decides, never the box's contents.** An unpinned box
+          // is showing the seed the *engine* last picked, and re-sending that
+          // is precisely the defect: press Generate twice, get the same beat
+          // twice, forever. `null` means "pick one for me", which is what an
+          // unpinned session is asking for every single time.
+          // ⚠ Sending `""` would be a seed that fails to parse rather than an
+          // absent one, which is why this is null and not the empty string.
+          seed: seedPinned && seed !== '' ? seed : null,
           // Every unpinned field goes as null, which serde reads as absent —
           // the artist's own value then stands (FR-002).
           session: pins,
@@ -1237,13 +1345,23 @@ export const useSession = create<SessionState>((set, get) => ({
       // Show the seed that was actually used, so the chip can be copied even
       // when the user never typed one (US-004).
       //
-      // ⛔ **Echoing the seed back is what makes the five parts agree**, and
-      // since TASK-119 that is load-bearing rather than a convenience. An empty
-      // box sends `null`, the engine picks, and the picked seed lands here — so
-      // the *next* part generates from the same one. `parts.rs` guarantees the
-      // five agree only on a shared seed; drawing a fresh one per part would
-      // give five clips in the same key that were never written against each
-      // other. With one slot nobody could have noticed.
+      // ⛔ **The echo is a readout, and `seedPinned` is deliberately not set.**
+      // It was the absence of that distinction that made Generate return one
+      // beat per artist forever — see `seedPinned` on the state type. A
+      // producer who wants to keep what just came back presses the lock, or
+      // copies the number; what they must never get is the app quietly
+      // deciding for them that they meant to.
+      //
+      // ⚠ **Coherence across parts is now the pin's job, and that is a real
+      // change in behaviour.** `parts.rs` guarantees the five agree only on a
+      // shared seed, and generating drums and then a melody separately used to
+      // share one *because* of this echo. Unpinned, each press now rolls, so
+      // the two are written against different records. The two ways to get a
+      // matching set are `generateAll` — which shares one fresh seed across all
+      // five on purpose — and pinning the seed after the part you want to build
+      // around. Anything cleverer (reuse across *different* parts, roll on the
+      // *same* one) makes the rule depend on what you pressed last, which is
+      // not a rule anybody can hold in their head while making a beat.
       //
       // ⚠ **Only this part's slot is replaced.** The other four keep their
       // existing object references, so their editors do not re-render and the
@@ -1271,7 +1389,7 @@ export const useSession = create<SessionState>((set, get) => ({
   },
 
   async generateAll() {
-    const { selectedId, bars, generating, pins, mood } = get();
+    const { selectedId, bars, generating, pins, mood, seedPinned } = get();
     if (!selectedId || generating) return;
 
     set({ generating: true, error: null });
@@ -1280,10 +1398,16 @@ export const useSession = create<SessionState>((set, get) => ({
     // five history entries for one deliberate act, five arms of the audio
     // thread, and four renders of a half-filled session.
     const filled: PatternsByPart = { ...get().patterns };
-    // Empty means "pick one for me" — and once the engine has, every remaining
-    // part must be given the same one. See `generateAll` on the type above for
-    // why that is correctness rather than tidiness.
-    let seed = get().seed;
+    // ⛔ **One fresh seed for the set, unless the producer pinned one.** Empty
+    // means "pick one for me", and once the engine has, every remaining part
+    // must be given the same one — see `generateAll` on the type above for why
+    // that is correctness rather than tidiness. Starting from the *unpinned*
+    // box instead would hand every press the seed the last run echoed back,
+    // so "Generate all" would rebuild the identical record every time.
+    //
+    // ⚠ Local, and it does not touch `seedPinned`. The shared seed is how these
+    // five agree with each other; it is not a choice the producer made.
+    let seed = seedPinned ? get().seed : '';
     const refused: string[] = [];
 
     for (const part of GENERATED_PARTS) {
@@ -1578,6 +1702,31 @@ if (isPlugin()) {
     if (document.visibilityState === 'hidden') flush();
   });
 }
+
+/**
+ * Show the Stems panel once this session has generated something.
+ *
+ * ⛔⛔ **Mike found this in Ableton, 2026-08-06:** *"the stems panel should be
+ * visible if you have done a generation so that way you can ensure that you can
+ * drag it in no matter what right away."* The panel remembers being collapsed
+ * across reloads, and it holds the only way to get a pattern out of the plugin —
+ * so a producer who collapsed it once had no route to the drag rows and nothing
+ * on screen suggesting they existed.
+ *
+ * ⛔ **Not gated on `isPlugin()`, unlike the save below.** This is a UI rule, and
+ * gating it would make it untestable in exactly the place it is tested. The
+ * browser build has no drag source, but it has the Export buttons in the same
+ * panel and the same reason to show them.
+ *
+ * ⚠ Fires on any write that leaves a pattern in the store rather than on
+ * `generate` alone — restoring a project and drilling into a song clip both
+ * arrive here without going through it. `revealStems` is idempotent, so the
+ * repetition costs nothing and a deliberate collapse afterwards survives.
+ */
+useSession.subscribe((state) => {
+  if (Object.keys(state.patterns).length === 0) return;
+  useUi.getState().revealStems();
+});
 
 useSession.subscribe((state, prev) => {
   if (state.patterns === prev.patterns || !isPlugin()) return;

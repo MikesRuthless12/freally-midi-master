@@ -19,6 +19,7 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "test:e2e": "playwright test",
+    "test:gallery": "playwright test e2e/gallery.spec.ts e2e/features.spec.ts --config playwright.gallery.config.ts",
     "test:e2e:ui": "playwright test --ui",
     "ci:local": "node scripts/ci-local.mjs",
     "plugin:build": "npm run build && cargo build -p freally-midi-master-plugin --release && node scripts/assert-plugin-bundled.mjs && node scripts/install-plugin.mjs",

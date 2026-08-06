@@ -23,6 +23,9 @@
     "seedCopied": "Skopiowano ziarno.",
     "seedLabel": "Ziarno — wklej je, aby uzyskać ten sam beat",
     "seedAuto": "losowe",
+    "seedLocked": "Ziarno zablokowane — Generuj użyje go ponownie",
+    "seedRolls": "Ziarno zmienia się przy każdym Generuj",
+    "seedLock": "Zablokuj ziarno",
     "generating": "Generowanie…",
     "readyBody": "{{name}} gotowy. Naciśnij Generuj.",
     "generateAll": "Generuj wszystko",
@@ -297,9 +300,13 @@
     "midi": "MIDI",
     "audio": "Audio",
     "perLane": "Na ścieżkę",
+    "allTracks": "Wszystkie ścieżki",
+    "oneClip": "Jako jeden klip",
+    "allParts": "Wszystkie partie",
     "hint": "Zapisuje każdą wygenerowaną partię do osobnego pliku.",
     "choosing": "Wybierz folder…",
     "dragHint": "Przeciągnij partię prosto na ścieżkę w Twoim DAW.",
-    "preparing": "Przygotowywanie…"
+    "preparing": "Przygotowywanie…",
+    "rendering": "Renderowanie… {{percent}}%"
   }
 }

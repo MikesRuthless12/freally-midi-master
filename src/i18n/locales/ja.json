@@ -23,6 +23,9 @@
     "seedCopied": "シードをコピーしました。",
     "seedLabel": "シード — 貼り付けると同じビートになります",
     "seedAuto": "ランダム",
+    "seedLocked": "シードを固定 — 生成のたびに再利用します",
+    "seedRolls": "生成のたびにシードが変わります",
+    "seedLock": "シードを固定",
     "generating": "生成中…",
     "readyBody": "{{name}} の準備ができました。生成を押してください。",
     "generateAll": "すべて生成",
@@ -297,9 +300,13 @@
     "midi": "MIDI",
     "audio": "オーディオ",
     "perLane": "レーンごと",
+    "allTracks": "すべてのトラック",
+    "oneClip": "1 つのクリップとして",
+    "allParts": "すべてのパート",
     "hint": "生成した各パートを別々のファイルに書き出します。",
     "choosing": "フォルダを選んでください…",
     "dragHint": "パートを DAW のトラックへ直接ドラッグできます。",
-    "preparing": "準備しています…"
+    "preparing": "準備しています…",
+    "rendering": "書き出し中… {{percent}}%"
   }
 }

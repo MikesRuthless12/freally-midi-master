@@ -23,6 +23,9 @@
     "seedCopied": "Seed kopiert.",
     "seedLabel": "Seed — einfügen für denselben Beat",
     "seedAuto": "zufällig",
+    "seedLocked": "Seed gesperrt — Generieren verwendet ihn erneut",
+    "seedRolls": "Seed ändert sich bei jedem Generieren",
+    "seedLock": "Seed sperren",
     "generating": "Wird erzeugt…",
     "readyBody": "{{name}} ist bereit. Auf Generieren klicken.",
     "generateAll": "Alle erzeugen",
@@ -297,9 +300,13 @@
     "midi": "MIDI",
     "audio": "Audio",
     "perLane": "Pro Spur",
+    "allTracks": "Alle Spuren",
+    "oneClip": "Als ein Clip",
+    "allParts": "Alle Parts",
     "hint": "Schreibe jeden erzeugten Part in eine eigene Datei.",
     "choosing": "Ordner wählen…",
     "dragHint": "Zieh einen Part direkt auf eine Spur in deiner DAW.",
-    "preparing": "Wird vorbereitet…"
+    "preparing": "Wird vorbereitet…",
+    "rendering": "Rendern… {{percent}} %"
   }
 }

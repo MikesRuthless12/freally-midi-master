@@ -23,6 +23,9 @@
     "seedCopied": "已复制种子。",
     "seedLabel": "种子 — 粘贴即可得到相同的节奏",
     "seedAuto": "随机",
+    "seedLocked": "种子已锁定 — 生成时会重复使用",
+    "seedRolls": "每次生成都会更换种子",
+    "seedLock": "锁定种子",
     "generating": "生成中…",
     "readyBody": "{{name}} 已就绪。点击生成。",
     "generateAll": "全部生成",
@@ -297,9 +300,13 @@
     "midi": "MIDI",
     "audio": "音频",
     "perLane": "按轨道",
+    "allTracks": "全部音轨",
+    "oneClip": "作为一个片段",
+    "allParts": "全部声部",
     "hint": "将每个生成的声部写入各自的文件。",
     "choosing": "请选择文件夹…",
     "dragHint": "把某个部分直接拖到你的 DAW 轨道上。",
-    "preparing": "正在准备…"
+    "preparing": "正在准备…",
+    "rendering": "正在渲染… {{percent}}%"
   }
 }

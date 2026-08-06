@@ -67,10 +67,19 @@ const LAYOUT: (u32, u32) = (1440, 900);
 /// inside it laid out at the old size. Teaching it to is a change to someone
 /// else's crate, and every such change is one more line `VENDORED.md` has to
 /// account for on the next rebase.
-const SCALES: &[(&str, f32)] = &[("small", 0.7), ("medium", 0.85), ("large", 1.0)];
+/// ⛔ **Two, and `large` was removed on Mike's instruction, 2026-08-06:** *"it
+/// should only have 2 sizes, a smaller version and a medium/large version, not
+/// too large, but like the default size is, then a smaller version."* He asked
+/// for it having watched `large` leave dead space around the UI in Ableton.
+///
+/// ⚠ **A project saved at `large` still opens.** `current_scale` falls back to
+/// [`DEFAULT_SCALE`] for any name `preset` does not recognise — which is exactly
+/// this case, and the reason that fallback was written rather than an `expect`.
+const SCALES: &[(&str, f32)] = &[("small", 0.7), ("medium", 0.85)];
 
-/// What the editor opens at. Not the largest: a window that fills the host on
-/// first insert is a window the user has to deal with before they can work.
+/// What the editor opens at. The larger of the two: a window that fills the host
+/// on first insert is a window the user has to deal with before they can work,
+/// and 0.85 is the size Mike called "like the default size is".
 const DEFAULT_SCALE: &str = "medium";
 
 /// A named scale: the window in physical pixels, and the zoom the page applies.
@@ -95,8 +104,7 @@ fn preset(name: &str) -> Option<((u32, u32), f32)> {
 ///
 /// ⛔ **Skipping equal sizes is not tidiness.** `SCALES` holds *nominal*
 /// factors; `fit` returns clamped ones, and on a screen too small for the larger
-/// presets two of them collapse onto the same effective size. On a 1366x768
-/// laptop `medium` and `large` both come out at 0.809 — so the button would
+/// preset both can collapse onto the same effective size — so the button would
 /// change nothing at all on one press, while still flipping its icon as though
 /// it had. Comparing what the window will actually be is the only way to know.
 fn next_scale(name: &str) -> (&'static str, bool) {
@@ -197,7 +205,10 @@ mod sizing {
     fn a_smaller_factor_shrinks_the_window_and_the_zoom_together() {
         // The invariant the whole design rests on: window / (scale * zoom) is
         // always the layout, so the page always has 1440x900 to lay out in.
-        for factor in [0.7, 0.85, 1.0] {
+        // ⚠ Driven from `SCALES` rather than a copied list, so a preset added
+        // or removed is covered here without anyone remembering to come back.
+        for (_, factor) in SCALES {
+            let factor = *factor;
             let ((w, _), zoom) = fit(LAYOUT, 1.5, factor, SCREEN);
             let css = w as f32 / (1.5 * zoom);
             assert!(
@@ -226,6 +237,36 @@ mod sizing {
             css_w >= 1439.0 && css_h >= 899.0,
             "the page still needs 1440x900 to lay out in, got {css_w}x{css_h}"
         );
+    }
+
+    /// Mike, 2026-08-06, having used the largest one in Ableton: *"it should
+    /// only have 2 sizes, a smaller version and a medium/large version, not too
+    /// large, but like the default size is, then a smaller version."*
+    #[test]
+    fn there_are_two_sizes_and_the_default_is_the_larger_of_them() {
+        assert_eq!(SCALES.len(), 2, "the size button offers exactly two");
+        assert_eq!(SCALES.last().unwrap().0, DEFAULT_SCALE);
+        assert!(
+            SCALES.iter().all(|(_, factor)| *factor < 1.0),
+            "nothing is drawn at full size any more — that is the one he called too large"
+        );
+    }
+
+    #[test]
+    fn a_project_saved_at_a_size_that_no_longer_exists_still_opens() {
+        // ⛔ `large` was a real preset and is in real project files. `preset`
+        // answering `None` is what `current_scale` falls back on, so this is
+        // the assertion that keeps that fallback honest rather than decorative.
+        assert!(preset("large").is_none());
+        assert!(preset(DEFAULT_SCALE).is_some());
+    }
+
+    #[test]
+    fn the_button_cycles_between_the_two_rather_than_sticking() {
+        let (next, _) = next_scale("medium");
+        assert_eq!(next, "small");
+        let (back, _) = next_scale("small");
+        assert_eq!(back, "medium");
     }
 
     #[test]
@@ -541,14 +582,19 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
                 // draws its editor from, for every press of the chip.
                 let subject = match args.song {
                     Some(song) => {
-                        if args.audio {
-                            // ⛔ A song is minutes long, and rendering one to
-                            // audio needs progress a producer can watch and a
-                            // cancel they can press — which is what Export is.
-                            return Err("a whole arrangement drags out as MIDI — render audio \
-                                        stems from Export instead"
-                                .to_owned());
-                        }
+                        // ⛔⛔ **The refusal that stood here is gone, and what
+                        // replaced it is the thing it asked for.** It read: *"a
+                        // whole arrangement drags out as MIDI — render audio
+                        // stems from Export instead"*, because "a song is
+                        // minutes long, and rendering one to audio needs
+                        // progress a producer can watch and a cancel they can
+                        // press". Both now exist — `drag::Progress` publishes
+                        // how far the render has got and stops it the moment the
+                        // slot is disowned — so the request is answered rather
+                        // than turned away. Mike asked for exactly this on
+                        // 2026-08-06: *"we need to do progress-with-cancel so
+                        // that way we can drag the entire song arrangement to
+                        // the DAW all at once."*
                         // ⛔ **`check_song`, NOT `check_patterns`.** A flattened
                         // arrangement is as long as the arrangement, and
                         // `MAX_BARS` bounds the four- or eight-bar loop on
@@ -565,9 +611,17 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
                             // to slice a lane out of the pattern itself and ask
                             // for "split by lane", which put "what a lane stem
                             // is" on both sides of the bridge.
+                            // ⛔ **"All Tracks" spools the *sequential* layout,
+                            // and the stacked one rides along as the Ctrl
+                            // alternative** (Mike, 2026-08-06: *"it has to be
+                            // separate midi clips one after the other, but on
+                            // the same line unless you hold ctrl … then it
+                            // stacks them"*). `render_and_spool` builds both
+                            // from this one cut; `drag/windows.rs` picks
+                            // between them from inside the drag.
                             cut: match (args.lane, args.lanes) {
                                 (Some(lane), _) => crate::export::Cut::OneLane(lane),
-                                (None, true) => crate::export::Cut::EveryLane,
+                                (None, true) => crate::export::Cut::EveryLaneInSequence,
                                 (None, false) => crate::export::Cut::Parts,
                             },
                         }
@@ -662,6 +716,15 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
         "width": width,
         "height": height,
         "zoom": zoom,
+        // ⛔ **What the page must end up laying out in, so it can check rather
+        // than trust.** `zoom` above is correct only if the window really became
+        // `width` — and the resize is queued for the frame loop while this reply
+        // goes back immediately, so the page can apply a zoom for a window it
+        // never got. That mismatch is dead space around the UI (window bigger
+        // than the layout) or a cropped app (smaller), which is what Mike
+        // reported on 2026-08-06. With this the page divides by the window it
+        // can measure and lands on `LAYOUT` whatever actually happened.
+        "layoutWidth": LAYOUT.0,
     })))
 }
 

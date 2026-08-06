@@ -382,6 +382,41 @@ impl Pattern {
     pub fn note_count(&self) -> usize {
         self.lanes.iter().map(|l| l.notes.len()).sum()
     }
+
+    /// This clip's meter, with the values a project file can carry normalised.
+    ///
+    /// See [`normalise_meter`] for why the fallback lives in one place.
+    pub fn time_sig(&self) -> (u8, u8) {
+        normalise_meter(self.time_sig_num, self.time_sig_den)
+    }
+
+    /// How many ticks one bar of this clip's meter is.
+    pub fn ticks_per_bar(&self) -> u32 {
+        ticks_per_bar_of(self.time_sig_num, self.time_sig_den)
+    }
+}
+
+/// A meter with the values a project file can actually carry made safe.
+///
+/// ⛔ **One place for this, because it had been written out four times and the
+/// comments at each one asserted they agreed.** A zero denominator is not
+/// hypothetical — the meter is deserialized from someone's project and every
+/// caller then *divides* by it — and a zero numerator gives a bar of no beats.
+pub fn normalise_meter(num: u8, den: u8) -> (u8, u8) {
+    (num.max(1), if den == 0 { 4 } else { den })
+}
+
+/// Ticks in one bar of `num`/`den`.
+///
+/// ⛔⛔ **A free function precisely because the four callers are four different
+/// types.** `Pattern`, `Song` and `SessionContext` each need this and none of
+/// them can inherit a method from another, which is exactly how the formula came
+/// to be copied — the copies' own comments say they "must agree or the file says
+/// one thing and the tick arithmetic another", which is a claim no compiler was
+/// checking. Now they delegate and it is checked by construction.
+pub fn ticks_per_bar_of(num: u8, den: u8) -> u32 {
+    let (num, den) = normalise_meter(num, den);
+    (PPQ * 4 / u32::from(den)).max(1) * u32::from(num)
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
@@ -615,12 +650,7 @@ impl Song {
     /// the file says one thing and the tick arithmetic another", and the SMF
     /// writer reads this one.
     pub fn ticks_per_bar(&self) -> u32 {
-        let den = if self.time_sig_den == 0 {
-            4
-        } else {
-            self.time_sig_den
-        };
-        (PPQ * 4 / u32::from(den)).max(1) * u32::from(self.time_sig_num.max(1))
+        ticks_per_bar_of(self.time_sig_num, self.time_sig_den)
     }
 
     /// The pattern a section's reference names, if the store holds it.

@@ -23,6 +23,9 @@
     "seedCopied": "Graine copiée.",
     "seedLabel": "Graine — collez-la pour retrouver le même beat",
     "seedAuto": "aléatoire",
+    "seedLocked": "Graine verrouillée — Générer la réutilise",
+    "seedRolls": "La graine change à chaque Générer",
+    "seedLock": "Verrouiller la graine",
     "generating": "Génération…",
     "readyBody": "{{name}} est prêt. Appuyez sur Générer.",
     "generateAll": "Tout générer",
@@ -297,9 +300,13 @@
     "midi": "MIDI",
     "audio": "Audio",
     "perLane": "Par piste",
+    "allTracks": "Toutes les pistes",
+    "oneClip": "En un seul clip",
+    "allParts": "Toutes les parties",
     "hint": "Écrit chaque partie générée dans son propre fichier.",
     "choosing": "Choisissez un dossier…",
     "dragHint": "Glissez une partie directement sur une piste de votre STAN.",
-    "preparing": "Préparation…"
+    "preparing": "Préparation…",
+    "rendering": "Rendu… {{percent}} %"
   }
 }

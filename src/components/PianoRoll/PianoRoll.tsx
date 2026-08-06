@@ -710,16 +710,37 @@ export function PianoRoll({
         const { x, tick, pitch, inGutter } = locate(event);
         const hit =
           pitch === null || inGutter ? null : noteAt(pattern, lane, tick, pitch, minHitTicks);
+        // ⛔⛔ **Three cursors, and Mike named all three on 2026-08-06:** *"i do
+        // not want the '+' cursor for the piano rolls, only the '[' and ']'
+        // cursors for resizing notes and a regular mousepointer"*, and then
+        // *"can you also ensure that we have this for extending/shortening a
+        // note for the left and right sides of all generators."*
+        //
+        // ⚠ **`w-resize` and `e-resize`, not one `ew-resize` for both.** They
+        // are the bracket-shaped cursors, and which way the bracket faces says
+        // which end of the note is about to move — the left edge changes where
+        // it starts, the right edge changes how long it is. A single
+        // double-headed arrow says "this resizes" and leaves the producer to
+        // find out which end the hard way.
+        const edge =
+          hit === null
+            ? null
+            : edgeAt(
+                x,
+                GUTTER + tickToX(hit.startTick, view),
+                ticksToWidth(hit.lenTicks, view),
+              );
         const cursor =
           hit === null
-            ? 'crosshair'
-            : edgeAt(
-                  x,
-                  GUTTER + tickToX(hit.startTick, view),
-                  ticksToWidth(hit.lenTicks, view),
-                ) !== null
-              ? 'ew-resize'
-              : 'move';
+            ? // ⛔ Was `crosshair`. A "+" over empty grid reads as "click here to
+              // add", which is the draw-tool promise this roll does not make —
+              // a plain click selects. See `PianoRoll.css` for the same change.
+              'default'
+            : edge === 'start'
+              ? 'w-resize'
+              : edge === 'end'
+                ? 'e-resize'
+                : 'move';
         if (event.currentTarget.style.cursor !== cursor) {
           event.currentTarget.style.cursor = cursor;
         }

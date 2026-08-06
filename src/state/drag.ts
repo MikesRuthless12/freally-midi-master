@@ -50,19 +50,27 @@ export const THRESHOLD_PX = 6;
 export const DRAG_POLL_MS = 40;
 
 /**
- * How long to wait for the bytes before giving up.
+ * How long to wait **without progress** before giving up.
  *
- * ⚠ **Unlike the export poll, this one has a ceiling**, and the difference is
- * that an export waits on a *human* browsing for a folder while this waits on a
- * render. A render that has not finished in ten seconds is not going to become a
- * drag anybody still has their finger down for.
+ * ⛔⛔ **A stall timeout, not a total one, and that distinction is what lets a
+ * whole arrangement be dragged as audio.** It used to be a flat ceiling on the
+ * gesture, reasoning that "a render that has not finished in ten seconds is not
+ * going to become a drag anybody still has their finger down for". That was
+ * true while the longest render was a four-bar loop. A three-minute record is
+ * genuinely seconds of work, and killing it at ten would make the feature
+ * impossible rather than protecting anybody from it.
+ *
+ * What the ceiling was actually for is a render that has *stopped* — a thread
+ * that died, a status that never moves. That is what this measures now: the
+ * clock restarts every time the plugin reports it has got further.
  */
-export const DRAG_TIMEOUT_MS = 10_000;
+export const DRAG_STALL_MS = 10_000;
 
 /** What `drag_status` answers with. Mirrors `drag::Status` in the plugin. */
 type DragStatus =
   | { state: 'idle' }
-  | { state: 'preparing' }
+  /** `done` is 0.0–1.0. Absent from a plugin built before it existed. */
+  | { state: 'preparing'; done?: number }
   | { state: 'ready' }
   | { state: 'failed'; reason: string };
 
@@ -109,6 +117,15 @@ type DragState = {
 
   state: 'idle' | 'preparing' | 'dragging' | 'failed';
   message: string | null;
+  /**
+   * How far the render has got, 0.0–1.0, while `state` is `preparing`.
+   *
+   * ⚠ **Stays 0 for the short renders**, which is most of them: a four-bar loop
+   * finishes inside one poll, so a bar that flashed on and off would be noise.
+   * The page shows a plain "getting it ready" until this passes zero — see
+   * `drag::Status::Preparing` on the plugin side, which makes the same call.
+   */
+  progress: number;
 
   /** Begin the gesture. Resolves when the drag has ended, one way or another. */
   begin: (subject: DragSubject, format: DragFormat, gesture: Gesture) => Promise<void>;
@@ -122,6 +139,7 @@ export const useDrag = create<DragState>((set, get) => ({
   canDrag: false,
   state: 'idle',
   message: null,
+  progress: 0,
 
   async loadCapability() {
     try {
@@ -141,7 +159,10 @@ export const useDrag = create<DragState>((set, get) => ({
     // wiped the error too, so only the *second* press worked and the producer
     // never learned why the first did not.
     if (!get().canDrag || get().state === 'preparing' || get().state === 'dragging') return;
-    set({ state: 'preparing', message: null });
+    // ⚠ Zeroed with the state, not left from the last gesture — a bar that
+    // opened at the previous drag's 80% and then jumped backwards would be
+    // worse than no bar.
+    set({ state: 'preparing', message: null, progress: 0 });
 
     try {
       await invoke('drag_prepare', {
@@ -156,7 +177,9 @@ export const useDrag = create<DragState>((set, get) => ({
       return;
     }
 
-    const until = Date.now() + DRAG_TIMEOUT_MS;
+    // ⛔ Pushed forward every time the render reports it has got further, so a
+    // long render is bounded by *stalling* rather than by taking a long time.
+    let until = Date.now() + DRAG_STALL_MS;
     // ⚠ Cached, so the poll stops once the answer can no longer change. Without
     // this a producer who presses and holds without moving sends a round trip
     // every 40 ms — 250 of them — to the thread the DAW draws its editor from,
@@ -172,7 +195,7 @@ export const useDrag = create<DragState>((set, get) => ({
       }
       if (Date.now() > until) {
         await invoke('drag_cancel').catch(() => undefined);
-        set({ state: 'failed', message: 'that took too long to prepare' });
+        set({ state: 'failed', message: 'that stopped making progress' });
         return;
       }
 
@@ -194,6 +217,29 @@ export const useDrag = create<DragState>((set, get) => ({
         if (status.state === 'idle') {
           set({ state: 'idle' });
           return;
+        }
+        // ⛔ **Any forward movement re-arms the stall clock.** Without this the
+        // ceiling would still kill a whole-arrangement render at ten seconds,
+        // which is the limit `DRAG_STALL_MS` exists to stop being.
+        if (status.state === 'preparing') {
+          const done = typeof status.done === 'number' ? status.done : 0;
+          // ⚠ Compared against the store rather than a local copy of it. The
+          // two were the same number by construction, and two variables that
+          // have to stay in lockstep are two that can stop — the failure there
+          // would be a stall clock that never re-arms, which is silent and only
+          // shows up on the long renders this exists for.
+          //
+          // ⛔ **Any CHANGE re-arms it, not any increase.** A render that is
+          // reporting at all is alive, and the figure can legitimately go
+          // *down*: every `drag_prepare` zeroes the plugin's counter, so a
+          // second press that follows an abandoned one at 80% reports 0.0 and
+          // then climbs. Under `>` none of that counted as progress, the clock
+          // never re-armed, and ten seconds later the page cancelled a healthy
+          // render and told the producer "that stopped making progress".
+          if (done !== get().progress) {
+            until = Date.now() + DRAG_STALL_MS;
+            set({ progress: done });
+          }
         }
         ready = status.state === 'ready';
       }

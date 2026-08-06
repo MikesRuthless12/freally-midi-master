@@ -23,6 +23,9 @@
     "seedCopied": "Seed disalin.",
     "seedLabel": "Seed — tempel untuk mendapatkan beat yang sama",
     "seedAuto": "acak",
+    "seedLocked": "Seed dikunci — Buat memakainya lagi",
+    "seedRolls": "Seed berubah setiap kali Buat",
+    "seedLock": "Kunci seed",
     "generating": "Membuat…",
     "readyBody": "{{name}} siap. Tekan Buat.",
     "generateAll": "Buat semua",
@@ -297,9 +300,13 @@
     "midi": "MIDI",
     "audio": "Audio",
     "perLane": "Per jalur",
+    "allTracks": "Semua Trek",
+    "oneClip": "Sebagai satu klip",
+    "allParts": "Semua Bagian",
     "hint": "Menulis setiap bagian yang dihasilkan ke berkasnya sendiri.",
     "choosing": "Pilih sebuah folder…",
     "dragHint": "Seret satu bagian langsung ke track di DAW kamu.",
-    "preparing": "Sedang disiapkan…"
+    "preparing": "Sedang disiapkan…",
+    "rendering": "Merender… {{percent}}%"
   }
 }

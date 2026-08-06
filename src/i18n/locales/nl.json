@@ -23,6 +23,9 @@
     "seedCopied": "Seed gekopieerd.",
     "seedLabel": "Seed — plak er een voor dezelfde beat",
     "seedAuto": "willekeurig",
+    "seedLocked": "Seed vergrendeld — Genereren gebruikt hem opnieuw",
+    "seedRolls": "Seed verandert bij elke keer genereren",
+    "seedLock": "Seed vergrendelen",
     "generating": "Genereren…",
     "readyBody": "{{name}} staat klaar. Klik op Genereren.",
     "generateAll": "Alles genereren",
@@ -297,9 +300,13 @@
     "midi": "MIDI",
     "audio": "Audio",
     "perLane": "Per spoor",
+    "allTracks": "Alle sporen",
+    "oneClip": "Als één clip",
+    "allParts": "Alle parts",
     "hint": "Schrijft elk gegenereerd onderdeel naar een eigen bestand.",
     "choosing": "Kies een map…",
     "dragHint": "Sleep een part rechtstreeks naar een spoor in je DAW.",
-    "preparing": "Wordt klaargemaakt…"
+    "preparing": "Wordt klaargemaakt…",
+    "rendering": "Renderen… {{percent}}%"
   }
 }

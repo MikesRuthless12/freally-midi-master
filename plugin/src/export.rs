@@ -235,6 +235,11 @@ impl Exports {
             None
         };
 
+        // ⛔ **Before the folder dialog, not after it.** A refusal a producer
+        // meets *after* choosing where to put the files reads as the export
+        // having failed; met here it is an answer to what they just asked for.
+        crate::audio::render::refuse_if_too_long(&patterns, kit.is_some())?;
+
         let stem_dir = sanitize(folder_name);
         let claimed = self.claim()?;
         run_dialog(claimed, move || {
@@ -340,10 +345,60 @@ pub(crate) fn stem_files(
     cut: Cut,
     kit: Option<&crate::audio::kit::Kit>,
 ) -> Vec<(String, Vec<u8>)> {
+    // Nothing to report to and nothing that can call it off — the dialog-driven
+    // exports already have a thread of their own and a producer watching a
+    // folder picker.
+    stem_files_with(patterns, cut, kit, &mut |_, _| true)
+}
+
+/// [`stem_files`], reporting as it goes and stopping when asked.
+///
+/// ⛔⛔ **This is what makes a whole arrangement renderable to audio at all.**
+/// `editor.rs` used to refuse that request outright — *"a whole arrangement
+/// drags out as MIDI — render audio stems from Export instead"* — and the reason
+/// it gave was true: a record is minutes long, so the render is seconds of work
+/// with the producer holding a mouse button, and there was no way to say how far
+/// along it was or to stop it. `on_step` is both of those.
+///
+/// `on_step(done, total)` is called after each file is encoded and returns
+/// `false` to abandon the rest. ⚠ **What has already been encoded is returned
+/// rather than thrown away** — the caller is what decides whether a partial set
+/// is worth keeping, and for the drag it never is; it discards the folder. A
+/// function that returned nothing would make "stopped early" and "produced
+/// nothing" the same answer.
+pub(crate) fn stem_files_with(
+    patterns: &[Pattern],
+    cut: Cut,
+    kit: Option<&crate::audio::kit::Kit>,
+    on_step: &mut dyn FnMut(usize, usize) -> bool,
+) -> Vec<(String, Vec<u8>)> {
     let split;
     let patterns = match cut {
         Cut::Parts => patterns,
         Cut::EveryLane => {
+            split = patterns.iter().flat_map(per_lane).collect::<Vec<_>>();
+            &split[..]
+        }
+        // ⛔⛔ **MIDI only. Audio falls back to `EveryLane`, and that is a
+        // correctness-shaped performance decision rather than a shortcut.**
+        // Offsetting lane *i* means its clip has to be `i + 1` times as long or
+        // `within_clip` drops the notes — which for MIDI is a few more bytes,
+        // and for audio is a rendered buffer that grows with the *square* of
+        // the lane count. Eight lanes of a four-bar loop is 8+16+…+64 bars of
+        // stereo f32, seven eighths of it silence, allocated and soft-limited
+        // and peak-scanned and encoded, inside somebody's DAW, while they hold
+        // the mouse button down.
+        //
+        // ⚠ Mike's request was about MIDI in his own words — *"it has to be
+        // separate midi clips one after the other"* — and a producer dragging
+        // audio stems wants them stacked so the kit plays as a kit. So the
+        // sequential layout is offered where it was asked for and where it is
+        // cheap, and audio gets the layout it wants anyway.
+        Cut::EveryLaneInSequence if kit.is_none() => {
+            split = patterns.iter().flat_map(in_sequence).collect::<Vec<_>>();
+            &split[..]
+        }
+        Cut::EveryLaneInSequence => {
             split = patterns.iter().flat_map(per_lane).collect::<Vec<_>>();
             &split[..]
         }
@@ -358,13 +413,22 @@ pub(crate) fn stem_files(
     };
     let by_lane = !matches!(cut, Cut::Parts);
     let mut taken = std::collections::BTreeSet::new();
+    // ⚠ **Counted over what will actually be encoded**, not over `patterns` —
+    // the silent ones are filtered out below, and a total that included them
+    // would leave the bar short of 100% on every render that had any.
+    let total = patterns.iter().filter(|p| p.note_count() > 0).count();
+    let mut done = 0usize;
     patterns
         .iter()
         // A part nothing plays gets no file — the rule `start_song_stems`
         // already follows, for the same reason: an empty stem is one a producer
         // imports, hears nothing from, and has to work out was always empty.
         .filter(|pattern| pattern.note_count() > 0)
-        .filter_map(|pattern| {
+        // ⛔ **`map_while`, so a refusal stops the iterator rather than skipping
+        // one file.** With `filter_map` a cancelled render would go on to encode
+        // every remaining part and simply discard them — which is the CPU this
+        // whole mechanism exists to stop spending.
+        .map_while(|pattern| {
             // ⛔ **The name is reserved only once a file really exists.** The
             // reservation used to run ahead of the render, so a pattern whose
             // lane the kit cannot play — `to_stereo` answers `None` and nothing
@@ -372,19 +436,34 @@ pub(crate) fn stem_files(
             // pattern came out as `… (2).wav` with no `(1)` anywhere. That reads
             // as an overwrite that never happened.
             let stem = stem_name(pattern, by_lane);
-            match kit {
+            let file = match kit {
                 Some(kit) => crate::audio::render::to_stereo(pattern, kit).map(|samples| {
                     (
                         format!("{}.wav", distinct(&mut taken, stem)),
-                        crate::audio::render::to_wav(&samples),
+                        // ⛔ The same pattern the samples were rendered from, so
+                        // the tempo in the file describes the audio in it.
+                        crate::audio::render::to_wav(&samples, pattern),
                     )
                 }),
                 None => Some((
                     format!("{}.mid", distinct(&mut taken, stem)),
                     engine::midi::pattern_to_smf(pattern),
                 )),
+            };
+            // ⚠ **Reported even for a lane the kit could not play.** That part
+            // is finished as far as the producer is concerned — the work of
+            // deciding was done — and a bar that stalled on the silent ones
+            // would read as the render having hung.
+            done += 1;
+            if !on_step(done, total) {
+                return None;
             }
+            // ⚠ `Some(None)` keeps the iterator alive past a pattern that
+            // produced no file; `None` above is the stop. `map_while` reads the
+            // outer layer, and `flatten` drops the inner.
+            Some(file)
         })
+        .flatten()
         .collect()
 }
 
@@ -432,6 +511,20 @@ pub(crate) enum Cut {
     Parts,
     /// One file per lane, each named for its lane.
     EveryLane,
+    /// One file per lane, each starting where the last one ended (2026-08-06).
+    ///
+    /// ⛔⛔ **Mike:** *"it has to be separate midi clips one after the other, but
+    /// on the same line unless you hold ctrl or press and hold ctrl during the
+    /// dragging then it stacks them."* So this is [`Self::EveryLane`] with the
+    /// notes of lane *i* pushed `i` clip-lengths later, and the clip grown to
+    /// cover them.
+    ///
+    /// ⚠ **What this can and cannot promise.** The *time* relationship is baked
+    /// into the files, so it holds in every host: drop them anywhere and the
+    /// kick plays, then the snare, then the hats. Which **track** each one lands
+    /// on is the host's answer to a multi-file drop and cannot be set from the
+    /// drag source — see `drag/windows.rs`, where the modifier is read.
+    EveryLaneInSequence,
     /// Just this lane — *"i can just drag the hihats out"*.
     OneLane(engine::pattern::Lane),
 }
@@ -550,6 +643,63 @@ fn per_lane(pattern: &Pattern) -> Vec<Pattern> {
         .map(|track| Pattern {
             lanes: vec![track.clone()],
             ..base.clone()
+        })
+        .collect()
+}
+
+/// [`per_lane`], with each lane pushed a clip-length later than the one before.
+///
+/// ⛔ **The offset is inside the file, which is the only place it can survive
+/// the trip.** A drag source hands over paths; where the drop target puts them
+/// is its own decision. Baking the time in means "kick, then snare, then hats"
+/// holds whether the host stacks them on one track or spreads them over eight.
+///
+/// ⚠ **`bars` grows with the offset or the notes fall outside the clip.**
+/// `within_clip` is honoured by the MIDI writer and by the audio renderer, and
+/// this file's own history has the matching failure written down: a boundary
+/// that only moves marks on screen silently drops what is past it. The eighth
+/// lane of a four-bar loop starts at bar 29, so its clip has to be 32 bars long.
+///
+/// ⚠ Lanes are ordered as the pattern holds them, which is the order
+/// [`per_lane`] already produces — so the two cuts disagree about placement and
+/// about nothing else.
+fn in_sequence(pattern: &Pattern) -> Vec<Pattern> {
+    let span = pattern
+        .ticks_per_bar()
+        .saturating_mul(u32::from(pattern.bars));
+    per_lane(pattern)
+        .into_iter()
+        .enumerate()
+        .map(|(index, mut one)| {
+            let shift = span.saturating_mul(index as u32);
+            for track in &mut one.lanes {
+                for note in &mut track.notes {
+                    note.start_tick = note.start_tick.saturating_add(shift);
+                }
+            }
+            // ⛔⛔ **The clip's own boundary moves with its notes, and forgetting
+            // it emptied seven files out of eight.** `pattern_to_smf` filters
+            // every note through `Pattern::within_clip`, which is bounded by
+            // `clip_region` and not by `bars` — so a producer who had trimmed
+            // the clip with the piano roll's markers and then dragged "All
+            // Tracks" got lane 0 intact and every later lane written, named for
+            // its lane, and containing nothing at all. Growing `bars` below is
+            // not enough on its own; these are two different boundaries and both
+            // are read.
+            //
+            // ⚠ `loop_region` is deliberately left alone: it is what the
+            // transport repeats, and nothing that writes a file consults it.
+            if let Some(region) = &mut one.clip_region {
+                region.from_tick = region.from_tick.saturating_add(shift);
+                region.to_tick = region.to_tick.saturating_add(shift);
+            }
+            // ⚠ Saturating rather than wrapping: `bars` is a `u16`, and a
+            // pathological pattern must give a clip that is merely long rather
+            // than one that wrapped around to nothing.
+            one.bars = pattern
+                .bars
+                .saturating_mul(u16::try_from(index + 1).unwrap_or(u16::MAX));
+            one
         })
         .collect()
 }
@@ -824,6 +974,88 @@ mod stem_name_tests {
             loop_region: None,
             clip_region: None,
         }
+    }
+
+    /// ⛔⛔ Mike, 2026-08-06: *"it has to be separate midi clips one after the
+    /// other, but on the same line unless you hold ctrl … then it stacks them."*
+    #[test]
+    fn a_sequential_cut_starts_each_lane_where_the_last_one_ended() {
+        let kit = three_lanes();
+        let span = kit.ticks_per_bar() * u32::from(kit.bars);
+        let cut = in_sequence(&kit);
+
+        // ⚠ Two, not three: the fixture's snare is empty and `per_lane` drops
+        // it — so the hat becomes the *second* clip and starts one span in,
+        // not the third starting two spans in. A silent lane must not leave a
+        // gap in the sequence.
+        assert_eq!(
+            cut.len(),
+            2,
+            "one clip per playing lane, still separate files"
+        );
+        for (index, one) in cut.iter().enumerate() {
+            assert_eq!(
+                one.lanes[0].notes[0].start_tick,
+                span * index as u32,
+                "lane {index} does not begin where lane {} ended",
+                index.saturating_sub(1)
+            );
+        }
+    }
+
+    #[test]
+    fn a_sequential_clip_is_long_enough_to_hold_the_notes_it_was_given() {
+        // ⛔ **`within_clip` is honoured by the MIDI writer and the renderer**,
+        // so a clip left at its original length would silently drop every lane
+        // but the first — the file would exist, be named for its lane, and be
+        // empty. That is the readout-that-lies failure in its worst form,
+        // because the drag would look like it worked.
+        let kit = three_lanes();
+        for (index, one) in in_sequence(&kit).iter().enumerate() {
+            let last = one.lanes[0]
+                .notes
+                .iter()
+                .map(|n| n.start_tick)
+                .max()
+                .unwrap();
+            assert!(
+                last < one.ticks_per_bar() * u32::from(one.bars),
+                "lane {index}'s notes fall outside its own clip"
+            );
+        }
+    }
+
+    #[test]
+    fn the_stacked_cut_leaves_every_lane_at_the_start() {
+        // The Ctrl half, and the thing the sequential cut must differ from:
+        // `EveryLane` is unchanged and every lane still begins at bar 1.
+        let kit = three_lanes();
+        for one in per_lane(&kit) {
+            assert_eq!(one.lanes[0].notes[0].start_tick, 0);
+            assert_eq!(one.bars, kit.bars, "the clip grew when it should not have");
+        }
+    }
+
+    #[test]
+    fn both_layouts_name_their_files_the_same_way() {
+        // ⚠ The two sets are spooled into sibling folders precisely because
+        // they collide by name — which is correct, since a lane stem is named
+        // for its lane in either layout. If this ever stops being true,
+        // `render_and_spool`'s sub-folder stops being necessary and the comment
+        // there becomes a lie.
+        let kit = three_lanes();
+        let sequential: Vec<String> =
+            stem_files(std::slice::from_ref(&kit), Cut::EveryLaneInSequence, None)
+                .into_iter()
+                .map(|(name, _)| name)
+                .collect();
+        let stacked: Vec<String> = stem_files(&[kit], Cut::EveryLane, None)
+            .into_iter()
+            .map(|(name, _)| name)
+            .collect();
+
+        assert_eq!(sequential, stacked);
+        assert_eq!(sequential.len(), 2);
     }
 
     #[test]

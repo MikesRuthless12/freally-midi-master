@@ -16,7 +16,7 @@ vi.mock('../lib/ipc', () => ({
   invoke: (command: string, args?: unknown) => invoke(command, args),
 }));
 
-const { NO_PINS, useSession } = await import('./session');
+const { BAR_CHOICES, NO_PINS, useSession } = await import('./session');
 
 const TRAP: SessionDefaults = {
   bpm: 140,
@@ -111,6 +111,7 @@ beforeEach(() => {
     defaults: null,
     pendingArtist: null,
     seed: '',
+    seedPinned: false,
     bars: 4,
     generating: false,
     error: null,
@@ -458,12 +459,40 @@ describe('applyPreset', () => {
     expect(useSession.getState().pins.bpm).toBe(150);
   });
 
+  /**
+   * What a stored seed means when the project does not say (2026-08-06).
+   *
+   * ⛔ **Absent has to mean pinned, and the direction matters.** Every project
+   * written before the seed could be unpinned re-sent its stored seed on every
+   * Generate, so reading absence as *unpinned* would reopen all of them rolling
+   * a new beat — US-004's promise broken by an upgrade, silently, on work
+   * somebody saved. A stored `false` is honoured as itself, because that
+   * session genuinely never chose the seed it is showing.
+   */
+  it('treats a seed stored before the pin existed as the producer’s own', () => {
+    useSession.getState().applyPreset(PRESET);
+    expect(useSession.getState().seedPinned).toBe(true);
+  });
+
+  it('honours a stored unpinned seed rather than re-pinning it', () => {
+    useSession.getState().applyPreset({ ...PRESET, seedPinned: false });
+    expect(useSession.getState().seedPinned).toBe(false);
+    // Still shown, so it can be read and copied — it is a readout, not a choice.
+    expect(useSession.getState().seed).toBe('99');
+  });
+
+  it('never pins an empty seed, whatever the project claims', () => {
+    useSession.getState().applyPreset({ ...PRESET, seed: '', seedPinned: true });
+    expect(useSession.getState().seedPinned).toBe(false);
+  });
+
   it('lands as one undo step, not two', async () => {
     const { useHistory } = await import('./history');
     useSession.getState().select('trap');
     useHistory.getState().arm({
       selectedId: 'trap',
       seed: '',
+      seedPinned: false,
       bars: 4,
       pins: NO_PINS,
       autoSync: true,
@@ -554,16 +583,84 @@ describe('each part keeps its own pattern', () => {
     expect(after.chords).toBe(before.chords);
   });
 
-  it('reuses the seed across parts, because coherence depends on it', async () => {
+  it('reuses a PINNED seed across parts, because coherence depends on it', async () => {
     // ⛔ `engine/src/parts.rs` guarantees five parts agree only when they share
     // a seed. With one slot nobody could tell; with five, drawing a fresh seed
     // per part would produce five clips in the same key that fit nothing.
+    //
+    // ⚠ **The pin is what carries this now, and that is the deliberate change
+    // of 2026-08-06.** It used to ride on the seed the engine echoed back —
+    // which also meant a second press of Generate on *one* part reproduced the
+    // beat it had just made, forever. The mechanism is the same; what changed
+    // is that the producer says when they want it.
+    useSession.getState().setSeed('4242');
     await useSession.getState().generate('melody');
-    const first = useSession.getState().seed;
-    expect(first).not.toBe('');
+    expect(lastRequest().seed).toBe('4242');
 
     await useSession.getState().generate('bass');
-    expect(lastRequest().seed).toBe(first);
+    expect(lastRequest().seed).toBe('4242');
+  });
+
+  it('asks for a fresh seed on every press while the seed is unpinned', async () => {
+    // ⛔⛔ **The defect Mike found in Ableton on 2026-08-06**, at the level it
+    // was caused: *"the seed stayed the same and there was no variation"*. The
+    // engine's reply is echoed into the box so it can be read and copied, and
+    // the old code then re-sent it — so the second press and every press after
+    // it regenerated the first beat.
+    //
+    // ⚠ Asserted on what was **sent**, not on what came back. The mock answers
+    // with whatever it is given, so a test that only compared the resulting
+    // patterns would pass against the broken code.
+    await useSession.getState().generate('drums');
+    expect(useSession.getState().seed, 'the engine picked and it was shown').toBe('77');
+
+    await useSession.getState().generate('drums');
+    expect(
+      lastRequest().seed,
+      'the echoed seed was re-sent, so Generate reproduced its own beat',
+    ).toBeNull();
+  });
+
+  it('does not pin the seed it echoes back, however many times it is pressed', async () => {
+    for (let press = 0; press < 3; press += 1) {
+      await useSession.getState().generate('drums');
+    }
+    expect(useSession.getState().seedPinned).toBe(false);
+
+    const sent = invoke.mock.calls
+      .filter((call: unknown[]) => call[0] === 'generate_pattern')
+      .map((call: unknown[]) => (call[1] as { request: { seed: string | null } }).request.seed);
+    expect(sent, 'a press after the first named a seed instead of asking for one').toEqual([
+      null,
+      null,
+      null,
+    ]);
+  });
+
+  it('holds the seed once the producer locks what came back', async () => {
+    // The other half of the affordance: like what you just got, keep it —
+    // without retyping the twenty digits already on screen.
+    await useSession.getState().generate('drums');
+    const got = useSession.getState().seed;
+
+    useSession.getState().setSeedPinned(true);
+    await useSession.getState().generate('drums');
+
+    expect(lastRequest().seed).toBe(got);
+  });
+
+  it('refuses to lock an empty box, so the flag cannot contradict the seed', () => {
+    useSession.getState().setSeed('');
+    useSession.getState().setSeedPinned(true);
+    expect(useSession.getState().seedPinned).toBe(false);
+  });
+
+  it('unpins when the box is cleared, which is how you ask for a surprise', () => {
+    useSession.getState().setSeed('4242');
+    expect(useSession.getState().seedPinned).toBe(true);
+
+    useSession.getState().setSeed('');
+    expect(useSession.getState().seedPinned).toBe(false);
   });
 
   // ── Generate all five at once (TASK-120) ────────────────────────────────
@@ -603,7 +700,10 @@ describe('each part keeps its own pattern', () => {
   });
 
   it('honours a seed the producer typed, without asking for a new one', async () => {
-    useSession.setState({ seed: '4242' });
+    // ⚠ Through `setSeed`, not a bare `setState`: typing is what pins, and a
+    // seed the store merely *holds* is the engine's echo, which `generateAll`
+    // must roll past rather than rebuild the same record from.
+    useSession.getState().setSeed('4242');
     await useSession.getState().generateAll();
 
     const sent = invoke.mock.calls
@@ -611,6 +711,30 @@ describe('each part keeps its own pattern', () => {
       .map((call: unknown[]) => (call[1] as { request: { seed: string | null } }).request.seed);
 
     expect(sent).toEqual(['4242', '4242', '4242', '4242', '4242']);
+  });
+
+  it('draws a fresh seed for the set on every unpinned press of Generate all', async () => {
+    // ⛔ The same defect as the single-part case, one document up: the first run
+    // echoes its seed into the box, and starting the second run from that box
+    // rebuilt the identical five-part record. Mike asked for a new one *"every
+    // time i click 'Generate' or 'Generate All'"*, and named both.
+    await useSession.getState().generateAll();
+    const after = invoke.mock.calls.filter(
+      (call: unknown[]) => call[0] === 'generate_pattern',
+    ).length;
+
+    await useSession.getState().generateAll();
+
+    const second = invoke.mock.calls
+      .filter((call: unknown[]) => call[0] === 'generate_pattern')
+      .slice(after)
+      .map((call: unknown[]) => (call[1] as { request: { seed: string | null } }).request.seed);
+
+    // ⚠ First asks, and the remaining four still share what it answered — the
+    // `parts.rs` rule is untouched. What must not happen is the *first* one
+    // naming the seed the previous run ended on.
+    expect(second[0], 'the second run rebuilt the first run’s record').toBeNull();
+    expect(new Set(second.slice(1)).size).toBe(1);
   });
 
   // ── Clear, per part and for all (TASK-121) ──────────────────────────────
@@ -721,5 +845,104 @@ describe('each part keeps its own pattern', () => {
     useSession.getState().clearAll();
     useSession.getState().clearAll();
     expect(useSession.getState().patterns).toEqual({});
+  });
+});
+
+/**
+ * The Stems panel puts itself in front of a producer who has generated
+ * something (Mike, 2026-08-06).
+ *
+ * ⛔ **The defect was that the panel remembers being collapsed across reloads**,
+ * and it holds the only way to get a pattern out of the plugin. Collapse it
+ * once and the drag rows are unreachable, with nothing on screen saying they
+ * exist — which is exactly how Mike came to report that the drums could not be
+ * dragged out per instrument when half of that was already built.
+ */
+describe('the Stems panel reveals itself once anything is generated', () => {
+  let useUi: typeof import('./ui').useUi;
+
+  beforeEach(async () => {
+    ({ useUi } = await import('./ui'));
+    // Collapsed and hidden — the state a returning producer is actually in,
+    // and the one the fix has to survive.
+    useUi.setState({
+      stemsRevealed: false,
+      rightRailOpen: false,
+      sections: { ...useUi.getState().sections, stems: false },
+    });
+    useSession.setState({ selectedId: 'trap', patterns: {} });
+  });
+
+  it('opens the panel on the first generation of the session', async () => {
+    expect(useUi.getState().sections.stems).toBe(false);
+
+    await useSession.getState().generate('drums');
+
+    expect(useUi.getState().sections.stems).toBe(true);
+  });
+
+  it('leaves the right rail alone, because opening it costs the editor height', async () => {
+    // ⛔⛔ **The first cut of this forced the rail open and `e2e/piano-roll.
+    // spec.ts:380` caught it** — the stage re-lays, the velocity lane loses
+    // height, and a drag to velocity 96 lands on 85. `StemsPanel`'s header
+    // records the two earlier times something near the pattern grew.
+    //
+    // ⚠ Nothing is lost by leaving it: the plugin's page always lays out at
+    // 1440, which is `WIDE_BREAKPOINT`, so the rail is already open there.
+    await useSession.getState().generate('drums');
+
+    expect(useUi.getState().rightRailOpen).toBe(false);
+  });
+
+  it('does not reopen it after the producer has closed it again', async () => {
+    await useSession.getState().generate('drums');
+    useUi.getState().toggleSection('stems');
+    expect(useUi.getState().sections.stems).toBe(false);
+
+    // ⚠ The subscriber runs on every write that leaves a pattern in the store,
+    // so without the one-shot this would fight the producer on every press.
+    await useSession.getState().generate('melody');
+    await useSession.getState().generateAll();
+
+    expect(useUi.getState().sections.stems).toBe(false);
+  });
+
+  it('stays shut while nothing has been generated', () => {
+    // Selecting an artist is not generating, and a panel that opened on
+    // browsing would be back to being noise.
+    useSession.getState().select('uk-drill');
+
+    expect(useUi.getState().sections.stems).toBe(false);
+    expect(useUi.getState().stemsRevealed).toBe(false);
+  });
+});
+
+/**
+ * What lengths a generation is offered at (Mike, 2026-08-06).
+ *
+ * *"bars for the generators should be able to be 4 or 8 only, not 2 … every new
+ * generation should generate 4/8 bars only and you should be able to see all 8
+ * bars."* Two bars has no room for the fills and turnarounds the models author,
+ * so generating at it made every artist sound the same.
+ */
+describe('the bar choices', () => {
+  it('offers four and eight, and nothing shorter', () => {
+    expect([...BAR_CHOICES]).toEqual([4, 8]);
+  });
+
+  it('still opens a project that was saved at a length no longer offered', () => {
+    // ⛔ **The compatibility half, and it is the one that could bite somebody.**
+    // Nothing here validates a restored value against `BAR_CHOICES` — the
+    // engine clamps to `1..=MAX_BARS` on every path — so a session saved at two
+    // bars must come back at two bars rather than being silently rounded up
+    // into a pattern the producer did not arrange.
+    useSession.getState().applyPreset({
+      selectedId: 'trap',
+      seed: '99',
+      bars: 2,
+      pins: null,
+    });
+
+    expect(useSession.getState().bars).toBe(2);
   });
 });

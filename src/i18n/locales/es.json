@@ -23,6 +23,9 @@
     "seedCopied": "Semilla copiada.",
     "seedLabel": "Semilla: pégala para obtener el mismo beat",
     "seedAuto": "aleatoria",
+    "seedLocked": "Semilla fijada: Generar la reutiliza",
+    "seedRolls": "La semilla cambia en cada Generar",
+    "seedLock": "Fijar la semilla",
     "generating": "Generando…",
     "readyBody": "{{name}} está listo. Pulsa Generar.",
     "generateAll": "Generar todo",
@@ -297,9 +300,13 @@
     "midi": "MIDI",
     "audio": "Audio",
     "perLane": "Por pista",
+    "allTracks": "Todas las pistas",
+    "oneClip": "Como un solo clip",
+    "allParts": "Todas las partes",
     "hint": "Guarda cada parte generada en su propio archivo.",
     "choosing": "Elige una carpeta…",
     "dragHint": "Arrastra una parte directamente a una pista de tu DAW.",
-    "preparing": "Preparándolo…"
+    "preparing": "Preparándolo…",
+    "rendering": "Renderizando… {{percent}} %"
   }
 }

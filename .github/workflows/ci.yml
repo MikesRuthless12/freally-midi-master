@@ -188,6 +188,30 @@ jobs:
           path: screenshots/i18n/
           retention-days: 14
 
+      # ⛔ **The gallery and the feature sweep, on every OS.** Mike, 2026-08-06:
+      # *"can you get all the other screenshots that Docker/QEMU did for Linux
+      # through macOS runners"* — and this is where macOS gets them, because
+      # there is no way to run macOS from a Windows machine at all (Apple's
+      # licence permits macOS virtualisation only on Apple hardware).
+      #
+      # ⚠ **Free, because this repository is public.** GitHub Actions bills no
+      # minutes on public repos, macOS runners included — the 10x macOS
+      # multiplier only applies to private ones. That is the whole reason this
+      # can sit in the ordinary CI run rather than being something to ration.
+      #
+      # ⚠ Excluded from `npm run test:e2e` by `testIgnore`, deliberately: this
+      # is nineteen more page loads and a feature sweep, and it proves nothing a
+      # gate should fail on. It runs for the *artifacts*.
+      - name: Gallery and feature sweep
+        run: npm run test:gallery
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: gallery-${{ matrix.os }}
+          path: screenshots/gallery/
+          retention-days: 14
+
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
         with:

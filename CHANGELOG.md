@@ -12,7 +12,68 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed — six defects Mike found running the plugin in Ableton, 2026-08-06
+
+- **⛔ Generate really does generate now.** Pressing Generate repeatedly returned
+  the *same beat* forever, which made the product look like it held one loop per
+  artist. The engine's chosen seed was echoed back into the seed box and then
+  re-sent on the next press. The box now distinguishes **a seed you chose** from
+  **a seed the engine picked and is showing you** — typing pins it, clearing
+  unpins it, and the padlock says which mode it is in. Unpinned, every press
+  rolls a new one; **Generate all** draws one fresh seed and shares it across all
+  five parts, because `parts.rs` only guarantees the parts agree on a shared one.
+- **⛔ Dropped audio no longer plays at the wrong tempo.** A dragged `.wav`
+  carried no tempo at all, so Ableton warped it by guess — a 140 BPM loop played
+  at 96 in a 120 project. WAVs now carry an `acid` chunk with the tempo, the beat
+  count and the meter, which is what loop libraries use and what both Ableton and
+  FL read. MIDI was always fine.
+- **The Stems panel opens itself** the first time a session generates anything.
+  It remembered being collapsed across reloads, and it holds the only way to get
+  a pattern out of the plugin — so collapsing it once hid the drag rows for good.
+- **Two window sizes, not three.** The largest left dead black space around the
+  UI. The deeper cause is fixed too: the window size and the page zoom are one
+  number applied by two different routes, and the page now measures the window it
+  actually got rather than trusting the one it asked for.
+- **⛔ The controls stopped sitting on top of the velocity lane.** Found while
+  fixing the above, and live for months: the Generate/seed/bars row was an
+  absolutely-positioned column floating over the editor, so a velocity cap
+  underneath it could not be dragged at all. It is below the editor now.
+- **The piano roll's closing bar number is visible.** A four-bar clip is ruled
+  1–5 and an eight-bar clip 1–9, the way a DAW counts. The line was always drawn;
+  its *number* was painted three pixels past the edge of the canvas.
+
 ### Added
+
+- **Drag each instrument out on its own.** Clicking a part's **MIDI** or
+  **Audio** chip opens a menu of every instrument actually playing in it, each
+  its own drag handle, with **All Tracks** last — every lane at once, as separate
+  files, in one gesture. Mike, 2026-08-06: *"just dragging the hihats out like
+  Drum Monkey"*. **All Parts** does the same for melody, bass, counter and chords
+  together.
+  - ⚠ **MIDI and Audio offer different lists, deliberately.** A lane that was
+    written but that the kit cannot play drags as MIDI — the notes are real, and
+    a producer routing them into Battery wants them — but not as audio, which
+    would render silence.
+  - **Ctrl decides the layout** on All Tracks: held, the clips stack; released,
+    they land one after another. The modifier is read at the *drop*, so pressing
+    it during the drag counts.
+- **The whole arrangement drags out as audio**, which the plugin used to refuse
+  outright. Rendering a record is seconds of work, so it now reports how far it
+  has got and stops the moment the gesture is abandoned — that was the missing
+  piece, not the rendering.
+- **Clips can be dragged around the arrangement.** Every other DAW verb was
+  already there — delete, copy, cut, paste, clone, resize — and rearranging meant
+  copy, paste, then go back and delete the original.
+- **The plugin window comes back after a drag.** Dragging into Ableton's
+  Arrangement view made it disappear until you switched views and reopened it
+  by hand.
+- **Ctrl + ↑/↓ transposes a semitone, Shift + ↑/↓ an octave**, on one note or a
+  whole selection.
+- **A drag source for macOS and Linux.** Linux uses GTK with `text/uri-list`;
+  macOS uses `NSDraggingSession`. ⚠ **Neither has been dropped into a real DAW
+  yet** — Linux compiles and macOS has only ever been compiled by CI. They are
+  switched on so they can be tested, not because they are proven.
+
 - **Drag a part straight out of the plugin and onto a DAW track
   (TASK-063C / FMM-S03).** Mike, 2026-08-05: *"you need to be able to drag each
   generator's midi or audio from the generator to the DAW and ensure it shows a
@@ -23,14 +84,12 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   Files carry the name a producer would give them —
   `trap - Snare - 140 BPM - C# Minor` — and a picture of the clip's own notes
   rides on the cursor the whole way into the DAW.
-  - ⛔ **Windows only for now, and the plugin says so rather than pretending.**
-    macOS needs `NSFilePromiseProvider` and Linux needs XDND; neither is
-    written, so on those platforms no drag handle is drawn at all and Export
-    stays the route. A handle that drops nothing is worse than no handle — the
-    producer blames their DAW.
-  - ⚠ **An arrangement drags as MIDI.** A song is minutes long, and rendering
-    one to audio needs progress a producer can watch and a cancel they can
-    press; that is what Export is for.
+  - ⚠ **This shipped Windows-only and no longer is** — see the macOS and Linux
+    drag sources further up this release. Windows is the one a human has
+    actually dropped into Ableton.
+  - ⚠ **This shipped MIDI-only for arrangements and no longer is.** The reason
+    given — that a song needs progress to watch and a cancel to press — was
+    right, and it is now built rather than avoided.
   - ⚠ Dropped files are spooled to your temp folder. **MIDI is copied into your
     project by every DAW, so those are swept after a week — audio is
     *referenced* by path, so those are never deleted.** Use your DAW's Collect
@@ -74,6 +133,85 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   The plugin's own sampler now transposes percussion to match, so what the grid
   shows is what you hear.
 
+### Changed
+
+- **Generation offers 4 or 8 bars.** Two is gone — there is not enough room in
+  two bars for the fills and turnarounds the models author, so it made every
+  artist sound the same. ⚠ A project saved at two bars still opens at two bars.
+- **The piano roll wears a plain pointer**, not a `+`. A crosshair is what a
+  drawing tool wears, and clicking empty grid selects rather than draws. Note
+  edges now show which end will move rather than one two-headed arrow.
+
+### Fixed — an xhigh code review of the above, 2026-08-06
+
+Fifteen verified defects in the work described on this page, all but one closed.
+Four of them would have shipped something broken to somebody.
+
+- **⛔ Dragging a clip in the arrangement could delete another one.** Select two
+  clips of the same part — two drums clips, or simply two whole sections, since
+  selecting a section selects every part in it — drag them, and only one
+  arrived: a section holds one clip per part, so the second overwrote the first
+  after both had already been lifted. The clip was gone with nothing on screen
+  saying so, and undo was the only way back. **A selection now keeps its shape**:
+  the clip you grabbed lands where you dropped it and the rest move with it, the
+  way a DAW does, clamped so nothing is pushed off the end.
+- **⛔ The Audio drag chips disappeared if you had ever collapsed the KIT panel.**
+  The panel was the only thing that loaded the kit, and a collapsed panel is not
+  rendered — so with KIT closed the Stems panel decided nothing could be played
+  and hid every Audio handle, permanently, while Export went on offering audio.
+- **⛔ A drum part could no longer be dragged out as one file.** Adding the
+  per-instrument menu turned the MIDI and Audio buttons into menu openers, and a
+  menu opener cannot be dragged. **"As one clip" is the first entry in the menu
+  now** — the whole kit on one DAW track, which is what those buttons used to do.
+- **⛔ Dropped audio played at the wrong tempo in 6/8, 9/8, 12/8 and 7/8.** The
+  tempo chunk counted a bar's beats with the numerator, but the audio is
+  measured in quarter notes: four bars of 6/8 declared 24 beats for 12 beats of
+  music, so Ableton warped the stem to half speed. That is the same defect the
+  chunk was added to fix, arriving through the meter picker instead.
+- **A trimmed clip dragged as "All Tracks" wrote silent files.** Every lane after
+  the first was pushed past the clip's own trim marks, so its notes fell outside
+  and the file arrived empty — eight files dropped into the DAW, seven of them
+  containing nothing.
+- **Pressing the padlock on a clip could move the clip.** With a few pixels of
+  hand movement the press became a drag: it locked, threw away the rest of your
+  selection, and could relocate the clip across a section boundary.
+- **The right rail reopened by itself.** Collapsing it with **K** and then
+  resizing the plugin window put it straight back, taking height off the
+  velocity lane.
+- **A second drag attempt was killed as "stopped making progress".** An
+  abandoned render kept reporting into the next one's progress bar, so the real
+  render's honest figures looked like no progress at all and the page cancelled
+  it ten seconds later — every time.
+- **A long render is refused everywhere, not just in one place.** Rendering past
+  fifteen minutes of audio is refused with a message; before, only the
+  arrangement drag said so and every other route quietly truncated.
+
+### Verified
+
+- **⛔ The macOS drag source is now checked by a compiler, from Windows.** It is
+  the one file no local build compiles, and it had **four errors and two
+  lint failures** — every one of which CI's macOS runner would have found one
+  push at a time. `cargo check --target aarch64-apple-darwin` type-checks Rust
+  for macOS without an Apple toolchain, because only *linking* needs one.
+  `docs/runbooks/macos-typecheck.md` is how. ⚠ It still proves nothing about
+  behaviour: no code here has spoken to a window server.
+- **The macOS and Linux drags no longer freeze the host.** Both started a drag
+  and then blocked the very event loop that had to run it — ten minutes of
+  frozen DAW and no file dropped. Windows was never affected; its drag is
+  genuinely modal, which is what made the mistake easy to make twice.
+- **The plugin passes both automated plugin validators, for the first time.**
+  `pluginval` at strictness level 5 (the maximum) against the VST3, and
+  `clap-validator` against the CLAP — **33 passed, 10 skipped, 1 failed**. The
+  skips are things this plugin genuinely does not implement (preset discovery,
+  64-bit audio, automatable parameters); the one failure is the validator's own
+  divide-by-zero, which it reports as "a bug in the validator".
+- **Linux is verified locally**, in Docker: the full Rust suite passes and the UI
+  suite is 155 of 156, the one failure being the first navigation against a
+  cold Vite server rather than anything in the app.
+- **Every feature is driven, asserted and photographed.** `npm run test:gallery`
+  writes `screenshots/gallery/` with an image per screen, per language, and per
+  feature — plus `FEATURES.md`, which lists what was proved and, just as
+  importantly, the seven things a browser structurally cannot reach.
 ### Fixed
 
 - **The KIT panel no longer lies (TASK-136).** It rendered eight hardcoded

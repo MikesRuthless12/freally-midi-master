@@ -58,10 +58,11 @@
 use std::mem::ManuallyDrop;
 use std::path::PathBuf;
 
+use std::sync::atomic::{AtomicBool, Ordering};
 use windows::core::{implement, HRESULT};
 use windows::Win32::Foundation::{
-    COLORREF, DRAGDROP_S_CANCEL, DRAGDROP_S_DROP, DRAGDROP_S_USEDEFAULTCURSORS, HGLOBAL, POINT,
-    SIZE, S_OK,
+    COLORREF, DRAGDROP_S_CANCEL, DRAGDROP_S_DROP, DRAGDROP_S_USEDEFAULTCURSORS, HGLOBAL, HWND,
+    POINT, SIZE, S_OK,
 };
 use windows::Win32::Graphics::Gdi::{
     CreateDIBSection, DeleteObject, BITMAPINFO, BITMAPINFOHEADER, BI_RGB, DIB_RGB_COLORS,
@@ -75,18 +76,41 @@ use windows::Win32::System::Ole::{
     DoDragDrop, IDropSource, IDropSource_Impl, OleInitialize, CF_HDROP, DROPEFFECT,
     DROPEFFECT_COPY, DROPEFFECT_NONE,
 };
-use windows::Win32::System::SystemServices::{MK_LBUTTON, MK_RBUTTON, MODIFIERKEYS_FLAGS};
-use windows::Win32::UI::Input::KeyboardAndMouse::{GetAsyncKeyState, ReleaseCapture, VK_LBUTTON};
+
+use windows::Win32::System::SystemServices::{
+    MK_CONTROL, MK_LBUTTON, MK_RBUTTON, MODIFIERKEYS_FLAGS,
+};
+use windows::Win32::UI::Input::KeyboardAndMouse::{
+    GetAsyncKeyState, GetFocus, ReleaseCapture, VK_LBUTTON,
+};
 use windows::Win32::UI::Shell::{
     CLSID_DragDropHelper, IDragSourceHelper, SHCreateDataObject, DROPFILES, SHDRAGIMAGE,
+};
+use windows::Win32::UI::WindowsAndMessaging::{
+    GetAncestor, IsWindowVisible, SetWindowPos, ShowWindow, GA_ROOT, HWND_TOP, SWP_NOACTIVATE,
+    SWP_NOMOVE, SWP_NOSIZE, SWP_SHOWWINDOW, SW_SHOW,
 };
 
 use super::{Dropped, Preview};
 
 pub const SUPPORTED: bool = true;
 
+/// ⛔ **No.** This is the one platform where a standalone drag aborts the
+/// process — the module header above has the whole mechanism, and it is the
+/// reason `supported_in` refuses at all. Fixing it means getting `DoDragDrop`
+/// off the stack that baseview's window procedure is already on; see TASK-063D.
+pub const STANDALONE_SAFE: bool = false;
+
 /// Hand `paths` to the OS and block until the producer lets go.
-pub fn drag(paths: &[PathBuf], preview: Option<&Preview>) -> Result<Dropped, String> {
+///
+/// `stacked` is the alternative set to hand over **while Ctrl is held**, or
+/// empty where the gesture has only one meaning. See [`DropSource`] for why the
+/// choice is made during the drag rather than before it.
+pub fn drag(
+    paths: &[PathBuf],
+    stacked: &[PathBuf],
+    preview: Option<&Preview>,
+) -> Result<Dropped, String> {
     if paths.is_empty() {
         return Err("there are no files to drag".to_owned());
     }
@@ -114,6 +138,13 @@ pub fn drag(paths: &[PathBuf], preview: Option<&Preview>) -> Result<Dropped, Str
         // the drag appears to start and then goes nowhere.
         let _ = ReleaseCapture();
 
+        // ⛔⛔ **Remembered *before* the drag, because after it the focus is the
+        // DAW's.** See [`restore_editor`] for what this is for. Taken from the
+        // OS rather than from the vendored adapter, so `VENDORED.md` still has
+        // nothing to account for — this module's header makes a point of
+        // `DoDragDrop` needing no `HWND`, and that stays true of the *drag*.
+        let editor = GetAncestor(GetFocus(), GA_ROOT);
+
         let data: IDataObject = SHCreateDataObject(None, None, None)
             .map_err(|e| format!("could not create the drag payload: {e}"))?;
         let medium = hdrop(paths)?;
@@ -134,12 +165,23 @@ pub fn drag(paths: &[PathBuf], preview: Option<&Preview>) -> Result<Dropped, Str
             }
         }
 
-        let source: IDropSource = DropSource.into();
+        let source: IDropSource = DropSource {
+            data: data.clone(),
+            plain: paths.to_vec(),
+            stacked: stacked.to_vec(),
+            holding_stacked: AtomicBool::new(false),
+        }
+        .into();
         let mut effect = DROPEFFECT_NONE;
         // ⛔ **Copy only.** `DROPEFFECT_MOVE` would invite the drop target to
         // tell us to delete the source afterwards, and the source is the
         // producer's spooled loop — which their DAW may still be referencing.
         let result = DoDragDrop(&data, &source, DROPEFFECT_COPY, &mut effect);
+
+        // ⛔ **However the drag ended.** A cancelled or refused drag hides the
+        // window exactly as a successful one does, and leaving the producer to
+        // find it themselves is the complaint either way.
+        restore_editor(editor);
 
         match result {
             DRAGDROP_S_DROP if effect != DROPEFFECT_NONE => Ok(Dropped::Copied),
@@ -156,6 +198,47 @@ pub fn drag(paths: &[PathBuf], preview: Option<&Preview>) -> Result<Dropped, Str
             other => Err(format!("the drag failed ({:#010x})", other.0)),
         }
     }
+}
+
+/// Put the editor back once the drag is over.
+///
+/// ⛔⛔ **Mike, 2026-08-06, in Ableton:** *"it disappears when i go to drag midi
+/// or audio to the arrangement view … and then it never appears unless i go
+/// back to the other view and restore the window myself."* Dragging into the
+/// Arrangement means Ableton changes view, and the plugin window goes with it —
+/// so the producer lands the clip and is left with no plugin, having to go back
+/// to Session view and reopen it to drag the next lane. With eight drum lanes
+/// that is eight round trips through the host's own UI.
+///
+/// ⚠ **Restore, not "always on top", and Mike chose this himself:** *"can you
+/// just have it disappear while you are dragging into the DAW and have it show
+/// on top again after you get done dragging?"* A `WS_EX_TOPMOST` window floats
+/// over every application on the desktop for the rest of the session and fights
+/// the host's own plugin-window management — Ableton ships a preference for it,
+/// so it is already the producer's call. This only undoes what the drag did.
+///
+/// ⚠ **`SWP_NOACTIVATE`, so the DAW keeps the keyboard.** They have just
+/// dropped a clip and the next thing they do is in the arrangement; stealing
+/// focus back would put their next keystroke in the wrong application.
+///
+/// A window we cannot find is left alone rather than guessed at: raising the
+/// wrong top-level window would be worse than raising none.
+unsafe fn restore_editor(window: HWND) {
+    if window.is_invalid() {
+        return;
+    }
+    if !IsWindowVisible(window).as_bool() {
+        let _ = ShowWindow(window, SW_SHOW);
+    }
+    let _ = SetWindowPos(
+        window,
+        Some(HWND_TOP),
+        0,
+        0,
+        0,
+        0,
+        SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_SHOWWINDOW,
+    );
 }
 
 /// The `CF_HDROP` format, as every drop target asks for it.
@@ -219,8 +302,69 @@ unsafe fn hdrop(paths: &[PathBuf]) -> Result<STGMEDIUM, String> {
 /// The whole of the interface is two questions, and the answers are the
 /// standard ones: escape or the right button cancels, letting the left button
 /// go drops, and the shell draws the cursors.
+/// ⛔⛔ **Ctrl is read here, and this is the only place it can be.**
+///
+/// Mike, 2026-08-06: *"press and hold ctrl either before or during the drag"* —
+/// so the answer cannot be settled when the drag starts. The obvious hook would
+/// be `IDataObject::GetData`, which the drop target calls at the moment of the
+/// drop; but the payload is the **shell's** data object (`SHCreateDataObject`),
+/// not ours, so there is no `GetData` of ours to run. Writing one would mean
+/// implementing the whole of `IDataObject` — and `IDragSourceHelper` writes its
+/// own private formats onto that same object, so our implementation would have
+/// to carry those too.
+///
+/// `QueryContinueDrag` is called repeatedly for the length of the drag and is
+/// handed the live key state, and the data object is still ours to write to. So
+/// the modifier is watched here and the `CF_HDROP` is **replaced** whenever it
+/// changes — the target reads whatever was set last, which is the state at the
+/// drop.
+///
+/// ⚠ **Only rewritten when it actually changes.** This runs on every mouse
+/// message for the whole gesture; re-allocating the file list each time would
+/// be a global alloc per pointer move inside somebody's DAW.
 #[implement(IDropSource)]
-struct DropSource;
+struct DropSource {
+    /// The object the payload is written to. Cloned handle, same COM object.
+    data: IDataObject,
+    /// What is handed over with no modifier held.
+    plain: Vec<PathBuf>,
+    /// What is handed over while Ctrl is held. Empty when Ctrl means nothing
+    /// for this gesture — a single lane has only one arrangement.
+    stacked: Vec<PathBuf>,
+    holding_stacked: AtomicBool,
+}
+
+impl DropSource {
+    /// Put the set `ctrl` asks for onto the data object, if it is not already on.
+    ///
+    /// ⚠ A failure is logged and swallowed: the drag is already in flight and
+    /// the object still holds a perfectly good file list, so the honest outcome
+    /// is the other layout rather than a cancelled gesture.
+    fn follow_modifier(&self, ctrl: bool) {
+        if self.stacked.is_empty() || ctrl == self.holding_stacked.load(Ordering::Relaxed) {
+            return;
+        }
+        let want = if ctrl { &self.stacked } else { &self.plain };
+        // SAFETY: `hdrop` allocates an `HGLOBAL` this call hands to the data
+        // object (`true` transfers ownership, exactly as the initial `SetData`
+        // does), and the object releases the medium it held before.
+        unsafe {
+            match hdrop(want) {
+                Ok(medium) => {
+                    if let Err(error) = self.data.SetData(&hdrop_format(), &medium, true) {
+                        nih_plug::nih_log!("[drag] could not swap the payload: {error}");
+                        return;
+                    }
+                }
+                Err(error) => {
+                    nih_plug::nih_log!("[drag] could not build the payload: {error}");
+                    return;
+                }
+            }
+        }
+        self.holding_stacked.store(ctrl, Ordering::Relaxed);
+    }
+}
 
 impl IDropSource_Impl for DropSource_Impl {
     fn QueryContinueDrag(
@@ -231,6 +375,10 @@ impl IDropSource_Impl for DropSource_Impl {
         if escape_pressed.as_bool() || key_state.contains(MK_RBUTTON) {
             return DRAGDROP_S_CANCEL;
         }
+        // ⛔ **Before the drop is reported, not after.** Returning
+        // `DRAGDROP_S_DROP` is what sends the target to read the data, so the
+        // payload has to already say what the modifier asked for.
+        self.follow_modifier(key_state.contains(MK_CONTROL));
         if !key_state.contains(MK_LBUTTON) {
             return DRAGDROP_S_DROP;
         }
@@ -478,6 +626,6 @@ mod tests {
 
     #[test]
     fn dragging_nothing_is_refused_rather_than_starting_an_empty_drag() {
-        assert!(drag(&[], None).is_err());
+        assert!(drag(&[], &[], None).is_err());
     }
 }

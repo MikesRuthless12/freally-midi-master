@@ -60,16 +60,14 @@ function Studio() {
   // A resize listener rather than `matchMedia`, because a media query cannot
   // see the plugin's root zoom: it evaluates against the viewport, which stays
   // at the *window's* width while the page lays out at the full breakpoint
-  // inside it. `isWide` measures the layout. The crossing check is kept so a
-  // manual K toggle is not undone by an unrelated resize.
+  // inside it. `isWide` measures the layout.
+  //
+  // ⚠ **The crossing check is `setWide`'s own now**, and it had to move: this
+  // was not the only caller — `WindowSize.tsx::applyZoom` calls it too, without
+  // a guard, on every resize. Two callers of one rule is one caller too many,
+  // and the one that forgot it reopened the rail under the producer.
   useEffect(() => {
-    let wasWide = isWide();
-    const onResize = () => {
-      const nowWide = isWide();
-      if (nowWide === wasWide) return;
-      wasWide = nowWide;
-      setWide(nowWide);
-    };
+    const onResize = () => setWide(isWide());
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, [setWide]);

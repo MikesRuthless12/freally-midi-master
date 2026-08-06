@@ -23,6 +23,9 @@
     "seedCopied": "Tohum kopyalandı.",
     "seedLabel": "Tohum — aynı ritmi almak için yapıştır",
     "seedAuto": "rastgele",
+    "seedLocked": "Tohum kilitli — Oluştur onu yeniden kullanır",
+    "seedRolls": "Her Oluştur işleminde tohum değişir",
+    "seedLock": "Tohumu kilitle",
     "generating": "Oluşturuluyor…",
     "readyBody": "{{name}} hazır. Oluştur’a bas.",
     "generateAll": "Tümünü üret",
@@ -297,9 +300,13 @@
     "midi": "MIDI",
     "audio": "Ses",
     "perLane": "Kanal başına",
+    "allTracks": "Tüm Parçalar",
+    "oneClip": "Tek klip olarak",
+    "allParts": "Tüm Bölümler",
     "hint": "Üretilen her bölümü kendi dosyasına yazar.",
     "choosing": "Bir klasör seçin…",
     "dragHint": "Bir partı doğrudan DAW’ındaki bir kanala sürükle.",
-    "preparing": "Hazırlanıyor…"
+    "preparing": "Hazırlanıyor…",
+    "rendering": "İşleniyor… %{{percent}}"
   }
 }

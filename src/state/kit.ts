@@ -40,6 +40,24 @@ export const ALL_LANES: Lane[] = [
   'chords',
 ];
 
+/**
+ * Can this lane actually make a sound?
+ *
+ * ⛔ **One predicate, because the same question was being asked two ways.**
+ * `DragRows` asked `shipped || path !== null` to decide whether to offer an
+ * Audio handle; `KitPanel` asked `!shipped && name === null` to dim a row — the
+ * same concept keyed on *different fields*. Nothing made them move together, so
+ * a lane could be drawn as playable in one panel and hidden in the other, with
+ * no test able to catch the disagreement because neither file knew about the
+ * other.
+ *
+ * ⚠ A one-shot counts. The producer's own sample is a sample, and
+ * `audio/render.rs` renders a file from either.
+ */
+export function canSound(lane: KitLane): boolean {
+  return lane.shipped || lane.path !== null;
+}
+
 /** One row of the KIT panel. Mirrors what `kit_state` answers with. */
 export type KitLane = {
   lane: Lane;

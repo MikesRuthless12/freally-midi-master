@@ -15,6 +15,14 @@ use super::{Dropped, Preview, NO_DRAG_SOURCE};
 
 pub const SUPPORTED: bool = false;
 
-pub fn drag(_paths: &[PathBuf], _preview: Option<&Preview>) -> Result<Dropped, String> {
+/// Moot — there is no drag source here to allow anywhere. Present so the seam
+/// is the same shape on every platform and `supported_in` needs no `cfg`.
+pub const STANDALONE_SAFE: bool = false;
+
+pub fn drag(
+    _paths: &[PathBuf],
+    _stacked: &[PathBuf],
+    _preview: Option<&Preview>,
+) -> Result<Dropped, String> {
     Err(NO_DRAG_SOURCE.to_owned())
 }

@@ -321,22 +321,37 @@
   color: var(--color-text-2);
 }
 
-/* The error, the keep-or-adopt prompt and the controls, as one column above the
-   bottom-right corner.
-   The column is what has to be positioned, not the controls inside it: `.genfx`
+/* The error, the keep-or-adopt prompt and the controls, as one column **below**
+   the editor.
+
+   ⛔⛔ **In flow, and it must stay in flow.** This was `position: absolute` in
+   the body's bottom-right corner until 2026-08-06, floating over the editor —
+   and because it is right-aligned it lay across the velocity lane, which is
+   full-width at the bottom. Measured: the lane spanned y 748–843 and this
+   column sat at 776–820, so `document.elementFromPoint` there returned a
+   *control* rather than the lane and a producer dragging a velocity cap under
+   one moved nothing. Nothing reported it for months because the column only
+   reaches a given cap once it grows wide enough to; adding one small button to
+   the seed chip is what pushed its edge over a cap the tests happened to use.
+
+   ⚠ **The reason it was positioned is gone rather than overridden.** `.genfx`
    is `position: absolute; inset: 0` over the whole body, and a *static* sibling
-   of a positioned element paints underneath it. That is why `.stage__error` was
-   never visible — it had no rule of its own and sat in flow behind the ripple
-   layer. */
+   of a positioned element paints underneath it — that is why `.stage__error`
+   was once invisible, and why this column was absolutely positioned to escape.
+   It is no longer inside the body, so it is not that sibling any more.
+
+   ⚠ **`.genfx` still needs a positioned sibling rule if anything moves back in
+   there.** Do not "tidy" a future overlay into the body without re-reading the
+   above. */
 .stage__bottom {
-  position: absolute;
-  inset-inline-end: var(--space-5);
-  bottom: var(--space-5);
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: var(--space-3);
-  max-width: calc(100% - var(--space-5) * 2);
+  padding: var(--space-3) var(--space-5);
+  /* ⛔ It may not be squeezed by the editor above it, and it may not grow into
+     it either: the body is `flex: 1` and this is its own content height. */
+  flex: none;
 }
 
 .stage__error {
@@ -349,25 +364,29 @@
   font-size: var(--text-small);
 }
 
-/* ⛔⛔ **This row must never get taller, and that is not a style preference.**
-   `stage__controls` sits under `stage__body`, so every pixel it grows is a pixel
-   the editor above it loses — and the velocity lane is what loses it. A drag to
-   velocity 96 landed on 85 and `e2e/piano-roll.spec.ts` caught it; two attempts
-   at styling this row have already been reverted for exactly this.
+/* ⛔ **This row must never get taller, and that is not a style preference.**
+   `.stage__bottom` sits below `.stage__body`, which is `flex: 1` — so every
+   pixel this row grows is a pixel the editor above it loses, and the velocity
+   lane is what loses it. A drag to velocity 96 landed on 85 and
+   `e2e/piano-roll.spec.ts:380` caught it; that assertion has now reverted three
+   attempts at styling this row.
 
    `nowrap` is the fix for the *class* rather than the instance. The row grew by
    **wrapping to a second line** once a third control group was added
    (TASK-131F's stem chips), not by any one control being taller — so pinning the
-   height or shaving padding would only postpone it until the next control. The
-   row now scrolls sideways instead, which costs the editor nothing. */
+   height or shaving padding would only postpone it until the next control.
+
+   ⚠ **What is no longer true:** growing this row *wider* used to be the real
+   danger, because the column floated over the editor and reached further across
+   the velocity lane as it grew. It is in flow below the editor now, so width is
+   free again and only height costs anything. See `.stage__bottom`. */
 .stage__controls {
   display: flex;
   align-items: center;
   gap: var(--space-3);
   /* ⚠ `nowrap` only. An `overflow-x: auto` was tried here and made it *worse*:
      the scrollbar it adds is itself height, and the velocity lane lost exactly
-     as much. Anything that needs to fit goes in an existing group rather than
-     becoming a new one. */
+     as much. */
   flex-wrap: nowrap;
 }
 
@@ -694,6 +713,63 @@
 
 .drag__chip:active {
   cursor: grabbing;
+}
+
+/* The instruments inside one part (2026-08-06). The opener is pressed, not
+   picked up, so it does not wear the `grab` cursor its siblings do. */
+.drag__menu {
+  position: relative;
+}
+
+.drag__chip--menu {
+  cursor: pointer;
+}
+
+.drag__chip--menu[aria-expanded='true'] {
+  border-color: var(--color-primary);
+  color: var(--color-text);
+}
+
+/* ⛔ **Positioned out of flow, because the rail is short and this list is not.**
+   A drum kit can play nine instruments, so in flow this would push every row
+   below it down and grow the panel by a couple of hundred pixels the moment
+   anyone opened it — with the rows they were reaching for moving under the
+   cursor. `inset-inline-end: 0` hangs it off the chip that opened it. */
+.drag__lanes {
+  position: absolute;
+  z-index: 2;
+  inset-inline-end: 0;
+  top: calc(100% + var(--space-1));
+  margin: 0;
+  padding: var(--space-1);
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-2);
+  /* Lifted off the panel, so it reads as being above it rather than as more of
+     it — the only cue that these are one part's instruments and not new rows. */
+  box-shadow: 0 4px 16px rgb(0 0 0 / 45%);
+}
+
+.drag__lane {
+  display: flex;
+}
+
+.drag__lane .drag__chip {
+  flex: 1;
+  text-align: start;
+  white-space: nowrap;
+}
+
+/* "All Tracks" is a different kind of thing from the eight above it — every one
+   of them at once — so it is ruled off rather than left as a ninth lane. */
+.drag__lane--all {
+  margin-top: var(--space-1);
+  padding-top: var(--space-1);
+  border-top: 1px solid var(--color-border);
 }
 
 /* The folder that was written. Mono, because it is a path. */

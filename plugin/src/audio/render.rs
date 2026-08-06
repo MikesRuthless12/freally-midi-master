@@ -33,8 +33,59 @@ pub const RATE: u32 = 44_100;
 /// ⛔ **A bound, because a `Pattern` can arrive from a project file.** Bars and
 /// tempo are both attacker-controlled through the same door `check_song`
 /// already guards, and `bars * ticks_per_bar` at 60 BPM is minutes of stereo
-/// f32 per part. Five minutes is far past any loop the plugin generates.
-const MAX_SECONDS: u32 = 300;
+/// f32 per part.
+///
+/// ⚠ **Raised from five minutes when a whole arrangement became renderable.**
+/// Five was "far past any loop the plugin generates", and that was true while
+/// only a four-bar clip could reach here. Once a *song* could, the same number
+/// became a silent truncation of any record longer than it — the clamp below
+/// shortens the buffer and nothing says so, which is the readout-that-lies
+/// failure this project keeps recording. Fifteen minutes is past any record
+/// anybody arranges, and [`too_long_to_render`] is what refuses rather than
+/// quietly cutting.
+pub(crate) const MAX_SECONDS: u32 = 900;
+
+/// How long this clip would render for, in seconds.
+///
+/// ⛔ **So a caller can refuse before it renders, rather than after.** The
+/// buffer is clamped to [`MAX_SECONDS`] and a clamp cannot report — it just
+/// hands back a shorter file. Anything that could exceed the bound has to ask
+/// first, and say so in words the producer can act on.
+pub(crate) fn seconds_of(pattern: &Pattern) -> f64 {
+    let ticks = pattern
+        .ticks_per_bar()
+        .saturating_mul(u32::from(pattern.bars));
+    f64::from(ticks) * (60.0 / f64::from(tempo(pattern)) / f64::from(PPQ)) + TAIL_SECONDS
+}
+
+/// Would rendering this clip run past what [`MAX_SECONDS`] allows?
+pub(crate) fn too_long_to_render(pattern: &Pattern) -> bool {
+    seconds_of(pattern) > f64::from(MAX_SECONDS)
+}
+
+/// Refuse, in words a producer can act on, if any of these would run past it.
+///
+/// ⛔⛔ **Every path that renders audio has to call this, and for a while only
+/// one did.** [`MAX_SECONDS`] was tripled when a whole arrangement became
+/// draggable, and the refusal that was supposed to compensate was wired into the
+/// song drag alone — so the pattern drag, `start_pattern_stems` and
+/// `start_song_stems` all still met the *clamp*, now at three times the
+/// allocation. A clamp cannot report: it hands back a shorter buffer and says
+/// nothing, and the producer finds out in their arrangement rather than here.
+///
+/// ⚠ `audio` rather than an `Option<&Kit>`, because the bound is about rendered
+/// samples. MIDI has no length limit worth enforcing — a long `.mid` is a few
+/// more bytes.
+pub(crate) fn refuse_if_too_long(patterns: &[Pattern], audio: bool) -> Result<(), String> {
+    if audio && patterns.iter().any(too_long_to_render) {
+        return Err(format!(
+            "this is longer than {} minutes, which is as much audio as the plugin \
+             will render at once — use MIDI instead, or work in shorter sections",
+            MAX_SECONDS / 60
+        ));
+    }
+    Ok(())
+}
 
 /// Let every voice finish rather than cutting the last hit dead.
 const TAIL_SECONDS: f64 = 2.0;
@@ -46,27 +97,16 @@ const TAIL_SECONDS: f64 = 2.0;
 /// files called stems" failure this module's header exists to record. The caller
 /// skips the file instead.
 pub fn to_stereo(pattern: &Pattern, kit: &Kit) -> Option<Vec<f32>> {
-    let bpm = if pattern.bpm.is_finite() && pattern.bpm > 1.0 {
-        f64::from(pattern.bpm)
-    } else {
-        // A pattern with no usable tempo still has to render *something*
-        // rather than divide by zero; 120 is the neutral guess and only a
-        // corrupt project reaches it.
-        120.0
-    };
+    let bpm = f64::from(tempo(pattern));
     let seconds_per_tick = 60.0 / bpm / f64::from(PPQ);
 
-    // ⛔ Mirrors `SessionContext::ticks_per_bar` and `Song::ticks_per_bar`
-    // exactly, zero-denominator fallback included — those two already carry a
-    // note that they "must agree or the file says one thing and the tick
-    // arithmetic another", and a stem that ran short would be a third answer.
-    let den = if pattern.time_sig_den == 0 {
-        4
-    } else {
-        pattern.time_sig_den
-    };
-    let ticks_per_bar = (PPQ * 4 / u32::from(den)).max(1) * u32::from(pattern.time_sig_num.max(1));
-    let ticks = ticks_per_bar.saturating_mul(u32::from(pattern.bars));
+    // ⚠ The clip's own, not a copy of the formula. This used to restate
+    // `SessionContext::ticks_per_bar` and `Song::ticks_per_bar` inline with a
+    // comment insisting the three agreed — a claim no compiler was checking.
+    // All of them delegate to `pattern::ticks_per_bar_of` now.
+    let ticks = pattern
+        .ticks_per_bar()
+        .saturating_mul(u32::from(pattern.bars));
     let frames = (f64::from(ticks) * seconds_per_tick * f64::from(RATE)) as usize
         + (TAIL_SECONDS * f64::from(RATE)) as usize;
     let frames = frames.min(MAX_SECONDS as usize * RATE as usize);
@@ -132,19 +172,53 @@ pub fn to_stereo(pattern: &Pattern, kit: &Kit) -> Option<Vec<f32>> {
     (peak > 1.0e-4).then_some(out)
 }
 
-/// Interleaved stereo f32 as a 16-bit PCM WAV.
+/// The `acid` chunk's body, in bytes. The layout below is fixed at 24.
+const ACID_BODY: usize = 24;
+
+/// The tempo to render and to declare at, with a corrupt one made safe.
+///
+/// ⛔ **One place, because two would let the file disagree with its own audio.**
+/// [`to_stereo`] divides by this to place every hit, and [`write_acid`] writes it
+/// into a chunk a DAW believes — so if the two guards ever drifted, the WAV
+/// would declare a tempo the samples inside it were not rendered at. That is the
+/// exact defect the `acid` chunk was added to fix, arriving from the other side.
+fn tempo(pattern: &Pattern) -> f32 {
+    if pattern.bpm.is_finite() && pattern.bpm > 1.0 {
+        pattern.bpm
+    } else {
+        // A pattern with no usable tempo still has to render *something* rather
+        // than divide by zero; 120 is the neutral guess and only a corrupt
+        // project reaches it.
+        120.0
+    }
+}
+
+/// Interleaved stereo f32 as a 16-bit PCM WAV, tempo included.
 ///
 /// ⚠ **A writer, where `kit::decode_wav` is the reader.** They are deliberately
 /// separate: that one accepts a little more than this writes, because it has to
 /// survive a file somebody replaced. This one emits exactly one format.
-pub fn to_wav(samples: &[f32]) -> Vec<u8> {
+///
+/// ⛔⛔ **The `acid` chunk is not decoration — it is the fix for a defect Mike
+/// hit in Ableton on 2026-08-06:** *"the bpm was set to 120 in my DAW … as soon
+/// as I drag the audio out into the DAW, then it showed that each sample of
+/// audio output was only playing at 96 bpm"*. This wrote `RIFF`, `WAVEfmt ` and
+/// `data` and nothing else, so the file said how fast to play its *samples* and
+/// never how fast to play its *music*. Ableton had nothing to read, fell back to
+/// warping by guess, and guessed 96.
+///
+/// ⚠ `pattern` is taken for its tempo and meter alone — no audio comes from it.
+/// The samples were rendered from the same pattern by [`to_stereo`], and the two
+/// must describe one clip or the file contradicts itself.
+pub fn to_wav(samples: &[f32], pattern: &Pattern) -> Vec<u8> {
     const CHANNELS: u16 = 2;
     const BITS: u16 = 16;
 
     let data_len = samples.len() * 2;
-    let mut out = Vec::with_capacity(44 + data_len);
+    let acid_len = 8 + ACID_BODY;
+    let mut out = Vec::with_capacity(44 + acid_len + data_len);
     out.extend_from_slice(b"RIFF");
-    out.extend_from_slice(&((36 + data_len) as u32).to_le_bytes());
+    out.extend_from_slice(&((36 + acid_len + data_len) as u32).to_le_bytes());
     out.extend_from_slice(b"WAVEfmt ");
     out.extend_from_slice(&16u32.to_le_bytes());
     out.extend_from_slice(&1u16.to_le_bytes()); // PCM
@@ -154,6 +228,7 @@ pub fn to_wav(samples: &[f32]) -> Vec<u8> {
     out.extend_from_slice(&(RATE * block).to_le_bytes());
     out.extend_from_slice(&(block as u16).to_le_bytes());
     out.extend_from_slice(&BITS.to_le_bytes());
+    write_acid(&mut out, pattern);
     out.extend_from_slice(b"data");
     out.extend_from_slice(&(data_len as u32).to_le_bytes());
 
@@ -166,6 +241,86 @@ pub fn to_wav(samples: &[f32]) -> Vec<u8> {
         out.extend_from_slice(&scaled.to_le_bytes());
     }
     out
+}
+
+/// Say how fast this is meant to play, in the chunk loop libraries use.
+///
+/// ⛔ **`acid` rather than anything tidier, because the requirement is that
+/// *Ableton and FL already read it*.** It is the de-facto tempo chunk — every
+/// commercial loop pack ships it — which is the only property that matters here:
+/// a format both hosts ignore leaves the guess in place, and the guess is the
+/// defect. `bext` carries no tempo and `smpl` carries loop points but no tempo,
+/// so neither is a substitute.
+///
+/// The layout is fixed and undocumented by any standard; these are the fields as
+/// every reader expects them, in order:
+///
+/// | bytes | field |
+/// |---|---|
+/// | 4 | flags |
+/// | 2 | root note |
+/// | 2 | always `0x8000` |
+/// | 4 | always `0.0` |
+/// | 4 | beats |
+/// | 2 | meter denominator |
+/// | 2 | meter numerator |
+/// | 4 | tempo |
+fn write_acid(out: &mut Vec<u8>, pattern: &Pattern) {
+    // ⛔ **`0x04` — "stretch" — and NOT `0x01`.** Bit 0 is *one shot*, and a one
+    // shot is exactly the thing a host must never warp: setting it would tell
+    // Ableton to ignore the tempo written four fields further down, which is the
+    // guess this chunk exists to replace. Bit 1 (root note is set) stays clear
+    // because we do not write one; the field below is the conventional filler.
+    out.extend_from_slice(b"acid");
+    out.extend_from_slice(&(ACID_BODY as u32).to_le_bytes());
+    out.extend_from_slice(&0x0000_0004u32.to_le_bytes());
+    out.extend_from_slice(&60u16.to_le_bytes());
+    out.extend_from_slice(&0x8000u16.to_le_bytes());
+    out.extend_from_slice(&0.0f32.to_le_bytes());
+
+    // ⚠ **The musical loop, not the length of the file.** `to_stereo` renders
+    // `TAIL_SECONDS` past the end so the last hit rings out rather than being
+    // cut dead, so the file is deliberately longer than the loop it contains.
+    // Declaring the file's length here would tell the host to squeeze a decaying
+    // cymbal into the bar count and stretch everything by however long the tail
+    // happened to be.
+    //
+    // ⚠ The clip's effective meter, from the one place that decides it —
+    // `pattern::normalise_meter`, which `ticks_per_bar` is also built on. This
+    // used to restate the zero-denominator fallback inline, which made it the
+    // fourth copy of a rule whose own comments insisted the copies agreed.
+    let (num, den) = pattern.time_sig();
+
+    // ⛔⛔ **QUARTER notes, not bars × numerator — and the difference is the
+    // whole defect for any meter whose denominator is not 4.** A reader takes
+    // this field with the tempo below it, and that tempo is *beats per minute*
+    // in the only sense `to_stereo` renders: `60 / bpm / PPQ` seconds a tick,
+    // so one beat is one `PPQ`, so one beat is a quarter note.
+    //
+    // `bars * num` is quarter notes only when `den == 4`. Four bars of 6/8 is 12
+    // quarter notes of audio and this used to declare 24 — so Ableton read twice
+    // the music out of the file, warped the stem to half speed, and the loop
+    // played at the wrong tempo. That is the exact defect this chunk was added
+    // to fix, reintroduced through the meter picker, which offers 6/8, 9/8, 12/8
+    // and 7/8. Deriving it from `ticks_per_bar` instead means it cannot disagree
+    // with what was rendered, because it is the same expression.
+    //
+    // ⚠ **Rounded, because the field is an integer and some meters are not.**
+    // One bar of 7/8 is three and a half quarter notes and `acid` has nowhere to
+    // put the half. Rounding is at worst half a beat out over the whole clip;
+    // truncating would be up to a whole one, always short.
+    let ticks = pattern
+        .ticks_per_bar()
+        .saturating_mul(u32::from(pattern.bars));
+    let beats = ((f64::from(ticks) / f64::from(PPQ)).round() as u32).max(1);
+    out.extend_from_slice(&beats.to_le_bytes());
+    out.extend_from_slice(&u16::from(den).to_le_bytes());
+    out.extend_from_slice(&u16::from(num).to_le_bytes());
+
+    // ⛔ The same tempo `to_stereo` rendered at, from the same function — a
+    // corrupt project must not write `inf` or `0` into a field a DAW believes,
+    // and the file must not declare a tempo its samples were not made at.
+    out.extend_from_slice(&tempo(pattern).to_le_bytes());
 }
 
 #[cfg(test)]
@@ -254,8 +409,13 @@ mod tests {
         // ⛔ The writer and the reader are separate on purpose, so this is what
         // stops them drifting apart. A header this reader cannot parse is a file
         // a DAW may not parse either.
+        // ⚠ **And that it still round-trips with the `acid` chunk in the middle
+        // of the header**, which is the half this nearly lost: a reader that
+        // assumed `fmt ` was followed by `data` at a fixed offset would read the
+        // tempo chunk as audio. `decode_wav` walks the chunk list, and this is
+        // what proves it still does.
         let samples = vec![0.5f32, -0.5, 0.25, -0.25];
-        let bytes = to_wav(&samples);
+        let bytes = to_wav(&samples, &pattern_with(Lane::Kick, 36));
         let decoded = crate::audio::kit::decode_wav(&bytes).expect("our own WAV must decode");
 
         assert_eq!(decoded.sample_rate, RATE);
@@ -264,11 +424,139 @@ mod tests {
         assert!(decoded.samples.iter().all(|s| s.abs() < 0.01), "L+R cancel");
     }
 
+    /// The body of a named chunk, found by walking the list the way a DAW does.
+    fn chunk<'a>(bytes: &'a [u8], want: &[u8; 4]) -> Option<&'a [u8]> {
+        let mut cursor = 12usize;
+        while cursor + 8 <= bytes.len() {
+            let size =
+                u32::from_le_bytes(bytes[cursor + 4..cursor + 8].try_into().unwrap()) as usize;
+            let body = &bytes[cursor + 8..(cursor + 8 + size).min(bytes.len())];
+            if &bytes[cursor..cursor + 4] == want {
+                return Some(body);
+            }
+            cursor += 8 + size + (size & 1);
+        }
+        None
+    }
+
+    /// A pattern at a tempo and length that no fallback in this module shares.
+    fn at_140_over_four_bars() -> Pattern {
+        Pattern {
+            bpm: 140.0,
+            bars: 4,
+            ..pattern_with(Lane::Kick, 36)
+        }
+    }
+
+    /// ⛔⛔ The gate for the defect Mike found in Ableton on 2026-08-06.
+    ///
+    /// ⚠ **140 and 4 bars deliberately, because every fallback in this file is
+    /// 120 and 1.** Asserted at the module's own defaults, a writer that had
+    /// stopped reading the pattern entirely would pass this and the file would
+    /// still be wrong for every artist who is not at 120.
+    #[test]
+    fn the_wav_says_what_tempo_it_was_rendered_at() {
+        let pattern = at_140_over_four_bars();
+        let bytes = to_wav(&[0.0f32; 8], &pattern);
+        let acid = chunk(&bytes, b"acid").expect("no tempo chunk, so the host has to guess");
+
+        assert_eq!(acid.len(), ACID_BODY);
+        let tempo = f32::from_le_bytes(acid[20..24].try_into().unwrap());
+        assert!(
+            (tempo - 140.0).abs() < 0.001,
+            "the file claims {tempo} BPM, so a 120 project warps it by guess"
+        );
+    }
+
+    #[test]
+    fn a_stem_is_never_marked_as_a_one_shot() {
+        // ⛔ Bit 0 tells the host *not* to warp, which would make the tempo four
+        // fields along dead weight — the guess would stay exactly where it was.
+        let bytes = to_wav(&[0.0f32; 8], &at_140_over_four_bars());
+        let acid = chunk(&bytes, b"acid").unwrap();
+        let flags = u32::from_le_bytes(acid[0..4].try_into().unwrap());
+        assert_eq!(flags & 0x01, 0, "a one-shot is never warped to the project");
+    }
+
+    #[test]
+    fn the_declared_length_is_the_loop_rather_than_the_rendered_file() {
+        // ⚠ `to_stereo` renders `TAIL_SECONDS` past the end so the last hit
+        // rings out. Declaring the *file* here would tell the host to squeeze
+        // that decay into the bar count and stretch the whole loop with it.
+        let pattern = at_140_over_four_bars();
+        let bytes = to_wav(&[0.0f32; 8], &pattern);
+        let acid = chunk(&bytes, b"acid").unwrap();
+
+        let beats = u32::from_le_bytes(acid[12..16].try_into().unwrap());
+        assert_eq!(beats, 16, "four bars of 4/4 is sixteen beats");
+        assert_eq!(u16::from_le_bytes(acid[16..18].try_into().unwrap()), 4);
+        assert_eq!(u16::from_le_bytes(acid[18..20].try_into().unwrap()), 4);
+
+        // And the rendered audio really is longer than that, which is what makes
+        // the distinction above worth asserting rather than theoretical.
+        let kit = crate::audio::preview_kit().unwrap();
+        let rendered = to_stereo(&pattern, kit).unwrap();
+        let loop_frames = f64::from(beats) * 60.0 / 140.0 * f64::from(RATE);
+        assert!((rendered.len() / 2) as f64 > loop_frames);
+    }
+
+    /// ⛔⛔ **The declared length is in QUARTER notes, so an x/8 meter is not
+    /// `bars × numerator`.** This is the case all three tests above miss: every
+    /// one of them uses the 4/4 fixture, where the two happen to agree.
+    ///
+    /// `RollBar.tsx` offers 6/8, 9/8, 12/8 and 7/8. Four bars of 6/8 is twelve
+    /// quarter notes of rendered audio, and declaring 24 told Ableton to read
+    /// twice as much music out of the file as it holds — so it warped the stem
+    /// to half speed. That is the *same* defect the chunk was added to fix,
+    /// arriving through the meter picker instead of through the tempo field.
+    #[test]
+    fn a_compound_meter_declares_the_beats_it_actually_rendered() {
+        let pattern = Pattern {
+            time_sig_num: 6,
+            time_sig_den: 8,
+            bars: 4,
+            ..at_140_over_four_bars()
+        };
+        let bytes = to_wav(&[0.0f32; 8], &pattern);
+        let acid = chunk(&bytes, b"acid").unwrap();
+
+        let beats = u32::from_le_bytes(acid[12..16].try_into().unwrap());
+        assert_eq!(
+            beats, 12,
+            "four bars of 6/8 is twelve quarter notes; {beats} would warp the stem"
+        );
+        // The meter itself is still reported as written — only the beat count is
+        // converted, because that is the field the tempo is read against.
+        assert_eq!(u16::from_le_bytes(acid[16..18].try_into().unwrap()), 8);
+        assert_eq!(u16::from_le_bytes(acid[18..20].try_into().unwrap()), 6);
+
+        // ⛔ And the declaration matches the audio, which is the property that
+        // actually matters: the file must not claim a length it does not hold.
+        let kit = crate::audio::preview_kit().unwrap();
+        let rendered = to_stereo(&pattern, kit).unwrap();
+        let declared = f64::from(beats) * 60.0 / 140.0 * f64::from(RATE);
+        let actual = (rendered.len() / 2) as f64 - TAIL_SECONDS * f64::from(RATE);
+        assert!(
+            (declared - actual).abs() < f64::from(RATE) * 0.01,
+            "declared {declared} frames of loop, rendered {actual}"
+        );
+    }
+
+    #[test]
+    fn the_riff_size_counts_every_chunk_including_the_new_one() {
+        // ⛔ The failure this catches is silent and total: a RIFF size that does
+        // not cover the file makes strict readers stop early, and the stem
+        // arrives truncated or refused with nothing saying why.
+        let bytes = to_wav(&[0.25f32; 64], &at_140_over_four_bars());
+        let declared = u32::from_le_bytes(bytes[4..8].try_into().unwrap()) as usize;
+        assert_eq!(declared, bytes.len() - 8);
+    }
+
     #[test]
     fn full_scale_survives_the_write_without_wrapping() {
         // A float past ±1 cast straight to i16 is the classic way a loud stem
         // comes back as a click.
-        let bytes = to_wav(&[1.0, -1.0, 2.0, -2.0]);
+        let bytes = to_wav(&[1.0, -1.0, 2.0, -2.0], &pattern_with(Lane::Kick, 36));
         let decoded = crate::audio::kit::decode_wav(&bytes).unwrap();
         assert!(
             decoded.samples.iter().all(|s| s.abs() <= 1.0),

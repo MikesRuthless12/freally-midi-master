@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
 
-import { useKit } from '../../state/kit';
+import { canSound, useKit } from '../../state/kit';
 
 /**
  * The KIT panel: what each lane plays, and how to put your own sample on it.
@@ -71,7 +71,14 @@ export function KitPanel() {
               className="kit-lane"
               data-lane={entry.lane}
               data-assigned={entry.name !== null}
-              data-silent={!entry.shipped && entry.name === null}
+              // ⚠ **The shared predicate, not a second spelling of it.** This
+              // asked `!shipped && name === null` while `DragRows` asked
+              // `shipped || path !== null` — the same question keyed on
+              // different fields, with nothing making them move together. A
+              // lane could read as playable here and be hidden from the drag
+              // menu, and no test could catch the disagreement because neither
+              // file knew about the other.
+              data-silent={!canSound(entry)}
             >
               <button
                 type="button"

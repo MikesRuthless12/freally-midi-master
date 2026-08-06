@@ -28,6 +28,15 @@ import type { Pattern, Scale, Song } from '../lib/ipc-types';
 export type Snapshot = {
   selectedId: string | null;
   seed: string;
+  /**
+   * Whether `seed` is the producer's choice or the engine's echo.
+   *
+   * ⛔ In here because it is in `SAVED_FIELDS`, and this module's own notes on
+   * `audioEnabled` and `mutedLanes` record what happens when a saved field
+   * misses the snapshot: the change persists when made and is lost when undone.
+   * Locking a seed and pressing Ctrl+Z has to hand it back.
+   */
+  seedPinned: boolean;
   bars: number;
   pins: {
     bpm: number | null;

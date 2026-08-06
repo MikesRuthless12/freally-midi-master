@@ -147,6 +147,7 @@ function armedWith(current = song()) {
   useHistory.getState().arm({
     selectedId: 'trap',
     seed: '7',
+    seedPinned: true,
     bars: 4,
     pins: {
       bpm: null,
@@ -517,6 +518,7 @@ it('the snapshot taken on an artist change does not carry the old artist’s son
   useHistory.getState().arm({
     selectedId: 'trap',
     seed: '7',
+    seedPinned: true,
     bars: 4,
     pins: {
       bpm: null,

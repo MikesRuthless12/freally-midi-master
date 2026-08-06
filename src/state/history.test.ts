@@ -14,6 +14,7 @@ import { canRedo, canUndo, useHistory, type Snapshot } from './history';
 const BASE: Snapshot = {
   selectedId: null,
   seed: '',
+  seedPinned: false,
   bars: 4,
   pins: {
     bpm: null,

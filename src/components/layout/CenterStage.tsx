@@ -188,99 +188,116 @@ export function CenterStage() {
             <PianoRoll key={part} pattern={showing} part={part} playhead={playhead} />
           )}
         </GenFx>
+      </div>
 
-        {/* One positioned column above the bottom-right corner. `.genfx` is
-            `inset: 0` over the whole body, so a static sibling of it paints
-            underneath — which is where the error message used to go. */}
-        <div className="stage__bottom">
-          {/* The error sits beside the control that caused it rather than in a
+      {/* ⛔⛔ **Below the editor, in flow — NOT floating over its bottom-right
+          corner, which is where this lived until 2026-08-06 and what made the
+          velocity lane partly dead to the pointer.** Measured then: the lane
+          spanned y 748–843 and this column sat at 776–820, so
+          `document.elementFromPoint` over that region answered with a *control*
+          and a producer dragging a cap under one moved nothing at all. It was
+          invisible for a long time because the column is right-aligned — it
+          only reaches a given cap once it grows wide enough to — and it was
+          found by adding one small button to the seed chip.
+
+          ⚠ **The paint-order reason it used to be positioned is gone rather
+          than ignored.** `.genfx` is `position: absolute; inset: 0` over the
+          whole body, so a *static sibling of it* paints underneath — which is
+          why `.stage__error` was once invisible and why this column was made
+          `position: absolute` to escape. Out here it is no longer a sibling of
+          `.genfx` at all, so there is nothing to escape from.
+
+          ⚠ This row now costs the editor real height, and that is the honest
+          trade Mike chose: it was costing the same height before, except the
+          pixels looked usable. */}
+      <div className="stage__bottom">
+        {/* The error sits beside the control that caused it rather than in a
               toast that has to be chased across the screen. */}
-          {/* ⛔ The error belongs to the tab that is showing. `error ?? songError`
+        {/* ⛔ The error belongs to the tab that is showing. `error ?? songError`
               showed the *session's* error whenever one existed, so a stale
               "trap's 808 is the bassline" from a Bass request on another tab was
               presented as though it were about the song. */}
-          {(part === null ? songError : error) && (
-            <p className="stage__error" role="alert">
-              {part === null ? songError : error}
-            </p>
-          )}
+        {(part === null ? songError : error) && (
+          <p className="stage__error" role="alert">
+            {part === null ? songError : error}
+          </p>
+        )}
 
-          {/* Beside Generate rather than beside the chips it is about: the
+        {/* Beside Generate rather than beside the chips it is about: the
               right rail collapses under 1440px and behind K, and this must
               not. */}
-          <SessionSwitchPrompt />
+        <SessionSwitchPrompt />
 
-          <div className="stage__controls">
-            <SeedChip />
+        <div className="stage__controls">
+          <SeedChip />
 
-            <span className="chip chip--mono" role="group" aria-label={t('stage.barsLabel')}>
-              {BAR_CHOICES.map((choice) => (
-                <button
-                  key={choice}
-                  type="button"
-                  className="chip__option"
-                  aria-pressed={bars === choice}
-                  onClick={() => setBars(choice)}
-                >
-                  {choice}
-                </button>
-              ))}
-              {t('stage.bars')}
-            </span>
+          <span className="chip chip--mono" role="group" aria-label={t('stage.barsLabel')}>
+            {BAR_CHOICES.map((choice) => (
+              <button
+                key={choice}
+                type="button"
+                className="chip__option"
+                aria-pressed={bars === choice}
+                onClick={() => setBars(choice)}
+              >
+                {choice}
+              </button>
+            ))}
+            {t('stage.bars')}
+          </span>
 
-            {/* Clear this tab's own part, and all five (TASK-121). Hidden on
+          {/* Clear this tab's own part, and all five (TASK-121). Hidden on
                 Song, which is not a part — its clips are cleared from the
                 timeline's own controls. Disabled rather than absent when the
                 slot is empty, so the control does not move under the pointer as
                 parts fill in. */}
-            {part !== null && (
-              <span className="chip chip--mono" role="group" aria-label={t('stage.clearLabel')}>
-                <button
-                  type="button"
-                  className="chip__option"
-                  onClick={() => clearPart(part)}
-                  disabled={patterns[part] === undefined}
-                >
-                  {t('stage.clear')}
-                </button>
-                <button
-                  type="button"
-                  className="chip__option"
-                  onClick={clearAll}
-                  disabled={Object.keys(patterns).length === 0}
-                >
-                  {t('stage.clearAll')}
-                </button>
-              </span>
-            )}
-
-            {/* Fill all five from one seed (TASK-120). Not offered on Song,
-                which already generates every part as an arrangement. */}
-            {part !== null && (
+          {part !== null && (
+            <span className="chip chip--mono" role="group" aria-label={t('stage.clearLabel')}>
               <button
                 type="button"
-                className="btn-generate btn-generate--secondary"
-                onClick={() => void generateAll()}
-                disabled={!selectedId || generating || songGenerating}
+                className="chip__option"
+                onClick={() => clearPart(part)}
+                disabled={patterns[part] === undefined}
               >
-                {t('stage.generateAll')}
+                {t('stage.clear')}
               </button>
-            )}
+              <button
+                type="button"
+                className="chip__option"
+                onClick={clearAll}
+                disabled={Object.keys(patterns).length === 0}
+              >
+                {t('stage.clearAll')}
+              </button>
+            </span>
+          )}
 
-            {/* ⛔ Song generates a whole arrangement rather than a part, so it
+          {/* Fill all five from one seed (TASK-120). Not offered on Song,
+                which already generates every part as an arrangement. */}
+          {part !== null && (
+            <button
+              type="button"
+              className="btn-generate btn-generate--secondary"
+              onClick={() => void generateAll()}
+              disabled={!selectedId || generating || songGenerating}
+            >
+              {t('stage.generateAll')}
+            </button>
+          )}
+
+          {/* ⛔ Song generates a whole arrangement rather than a part, so it
                 cannot go through `session.generate` — that fills the pattern
                 slots the roll draws from, and a song is an arrangement of five.
                 The button was previously disabled here and said "a later
                 phase"; it now does the thing it names. */}
-            <button
-              type="button"
-              className="btn-generate"
-              onClick={() => (part !== null ? void generate(part) : void generateSong())}
-              disabled={!selectedId || generating || songGenerating}
-            >
-              {generating || songGenerating ? t('stage.generating') : t('stage.generate')}
-            </button>
-          </div>
+          <button
+            type="button"
+            className="btn-generate"
+            onClick={() => (part !== null ? void generate(part) : void generateSong())}
+            disabled={!selectedId || generating || songGenerating}
+          >
+            {generating || songGenerating ? t('stage.generating') : t('stage.generate')}
+          </button>
         </div>
       </div>
     </section>

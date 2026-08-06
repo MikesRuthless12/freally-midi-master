@@ -19,9 +19,10 @@ import { useTranslation } from 'react-i18next';
 import type { Part, Pattern as PatternType, Section, Song } from '../../lib/ipc-types';
 import { isTypingTarget } from '../../lib/keyboard';
 import { armCurrentPattern, useSession } from '../../state/session';
+import { THRESHOLD_PX } from '../../state/drag';
 import { lockKey, lockedRegions, useSong } from '../../state/song';
-import { isSelected, partsInUse, totalBars } from './clips';
-import { barLabel, barToSeconds, barToX, formatTime, gridFor } from './geometry';
+import { isSelected, partsInUse, sectionAtBar, totalBars } from './clips';
+import { barLabel, barToSeconds, barToX, formatTime, gridFor, xToBar } from './geometry';
 import { density, sketchGradient } from './sketch';
 import { StructureChips } from './StructureChips';
 import './SongTimeline.css';
@@ -53,6 +54,7 @@ export function SongTimeline({ song }: Props) {
   const clearSelection = useSong((s) => s.clearSelection);
   const resize = useSong((s) => s.resize);
   const clone = useSong((s) => s.clone);
+  const move = useSong((s) => s.move);
   const deleteSelection = useSong((s) => s.deleteSelection);
   const copy = useSong((s) => s.copy);
   const cut = useSong((s) => s.cut);
@@ -442,6 +444,24 @@ export function SongTimeline({ song }: Props) {
                       onLock={() => toggleLock({ sectionIndex: index, part })}
                       onAudition={() => auditionClip({ sectionIndex: index, part })}
                       onDrillIn={() => drillInto({ sectionIndex: index, part })}
+                      onGrab={() => {
+                        // Already part of the selection: leave it alone, so
+                        // dragging one of several moves all of them — which is
+                        // what selecting several was for.
+                        if (isSelected(selection, { sectionIndex: index, part })) return;
+                        select({ sectionIndex: index, part }, false);
+                      }}
+                      onMoveTo={(x) => {
+                        const target = sectionAtBar(song, xToBar(x, view));
+                        // ⚠ Dropped past the last section, or before the first.
+                        // Doing nothing is right: there is no section there to
+                        // hold a clip, and inventing one would be a different
+                        // gesture than the one the producer made.
+                        // ⚠ `index` is where *this* clip started, and the rest
+                        // of the selection moves by the same distance rather
+                        // than piling onto `target` — see `moveClips`.
+                        if (target !== null) move(target, index);
+                      }}
                     />
                   ) : null,
                 )}
@@ -606,6 +626,10 @@ type ClipProps = {
   onLock: () => void;
   onAudition: () => void;
   onDrillIn: () => void;
+  /** The drag has started: make sure this clip is part of what will move. */
+  onGrab: () => void;
+  /** Dropped at `x`, in the canvas's own coordinates. */
+  onMoveTo: (x: number) => void;
 };
 
 function Clip({
@@ -622,8 +646,20 @@ function Clip({
   onLock,
   onAudition,
   onDrillIn,
+  onGrab,
+  onMoveTo,
 }: ClipProps) {
   const { t } = useTranslation();
+  /**
+   * The press in progress, outside React because it changes on raw pointer
+   * events and must not cost a render — the same reasoning as the stem drag's
+   * `Gesture`.
+   *
+   * ⚠ `dragged` outlives the pointer-up on purpose: `click` fires *after* it,
+   * and without this a drag would also select whatever it landed on.
+   */
+  const press = useRef<{ x: number; moved: boolean } | null>(null);
+  const dragged = useRef(false);
   // Recomputed only when the clip itself changes: a re-roll or an edit replaces
   // the object, and a resize does not — so scrubbing a section's length does
   // not rebuild every sketch on the row.
@@ -640,7 +676,54 @@ function Clip({
       data-locked={locked ? 'true' : 'false'}
       data-auditioning={auditioning ? 'true' : 'false'}
       aria-pressed={selected}
-      onClick={(event) => onSelect(event.shiftKey || event.ctrlKey || event.metaKey)}
+      onClick={(event) => {
+        // ⛔ A drag is not a click. `click` fires after `pointerup`, so without
+        // this every move would also re-select at the far end and the producer
+        // would have to click away before the next gesture meant what it said.
+        if (dragged.current) {
+          dragged.current = false;
+          return;
+        }
+        onSelect(event.shiftKey || event.ctrlKey || event.metaKey);
+      }}
+      // ⛔⛔ **Drag to rearrange (TASK-130).** Mike, 2026-08-06: *"you should be
+      // able to rearrange or drag them and move them … like you would in a real
+      // DAW."* Pointer events rather than HTML5 drag: this stays inside the
+      // page, so there is no OS drag to start — and `state/drag.ts` explains at
+      // length why an HTML5 `dragstart` in a webview is the wrong tool even
+      // when the destination *is* outside.
+      onPointerDown={(event) => {
+        if (event.button !== 0) return;
+        press.current = { x: event.clientX, moved: false };
+      }}
+      onPointerMove={(event) => {
+        const start = press.current;
+        if (!start || start.moved) return;
+        if (Math.abs(event.clientX - start.x) <= THRESHOLD_PX) return;
+        start.moved = true;
+        // ⚠ Captured only once the press is known to be a drag, so an ordinary
+        // click never takes the pointer away from the controls on the clip.
+        event.currentTarget.setPointerCapture(event.pointerId);
+        // ⛔ The store moves *the selection*, so a clip dragged while something
+        // else is selected has to join it first — otherwise the producer drags
+        // one clip and a different one moves.
+        onGrab();
+      }}
+      onPointerUp={(event) => {
+        const start = press.current;
+        press.current = null;
+        if (!start?.moved) return;
+        dragged.current = true;
+        // ⚠ The canvas, not the row: `left` is measured from the canvas's
+        // origin, which is what `xToBar` expects. A row is offset by the
+        // gutter of part labels and would land every drop a few bars early.
+        const canvas = event.currentTarget.closest('.song__canvas');
+        if (!canvas) return;
+        onMoveTo(event.clientX - canvas.getBoundingClientRect().left);
+      }}
+      onPointerCancel={() => {
+        press.current = null;
+      }}
       // Double-click drills into the part's own editor with this clip loaded,
       // and the edits write back — see the subscriber in `song.ts`.
       onDoubleClick={onDrillIn}
@@ -660,6 +743,16 @@ function Clip({
         aria-label={t('song.lockClip', { part: t(`tabs.${part}`) })}
         aria-pressed={locked}
         title={t('song.lockHint')}
+        // ⛔⛔ **The POINTER press is stopped here too, not only the click.**
+        // The clip's drag-to-move handlers are `onPointerDown`/`Move`/`Up` on
+        // the button this sits inside, and stopping `click` does nothing about
+        // those: a press on the lock with a few pixels of hand travel — six is
+        // the threshold — crossed it, captured the pointer, called `onGrab`
+        // (which replaces the whole selection with this one clip) and then
+        // moved the clip if those pixels crossed a section boundary. One press
+        // on a padlock did all three, from a gesture the comment below says
+        // must do only the first.
+        onPointerDown={(event) => event.stopPropagation()}
         onClick={(event) => {
           // Selecting is what a click on the clip does; locking must not also
           // do it, or every lock would move the selection under the producer.
@@ -685,6 +778,8 @@ function Clip({
         className={`song__clip-audition${auditioning ? ' is-on' : ''}`}
         aria-label={t('song.auditionClip', { part: t(`tabs.${part}`) })}
         aria-pressed={auditioning}
+        // The same reason as the lock above: a press here must not become a drag.
+        onPointerDown={(event) => event.stopPropagation()}
         onClick={(event) => {
           event.stopPropagation();
           onAudition();

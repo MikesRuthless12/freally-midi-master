@@ -147,6 +147,109 @@ export function pasteClips(song: Song, clipboard: Clipboard, sectionIndex: numbe
 }
 
 /**
+ * Pick clips up and put them down on another section (TASK-130).
+ *
+ * ⛔⛔ **The one DAW verb the timeline did not have.** Mike, 2026-08-06: *"you
+ * should be able to rearrange or drag them and move them, delete them, copy and
+ * paste them, clone them, etc. like you would in a real DAW."* Every other verb
+ * in that list was already here — this was the gap, and without it rearranging
+ * meant copy, paste, then go back and delete the original.
+ *
+ * ⚠ **Composed from [`deleteClips`] and [`pasteClips`] rather than written
+ * out.** A move *is* those two, and re-implementing the walk would be a fourth
+ * place that has to know a clip is a `PatternRef` under a part key — which is
+ * exactly how `pasteClips` came to need its dangling-reference guard. Composing
+ * means this inherits that guard for free.
+ *
+ * ⚠ **The copy is taken before the delete**, and the delete before the paste.
+ * `deleteClips` clears a part inside its section and never removes the section
+ * itself, so section indices do not move underneath any of the three — which is
+ * what makes the composition safe rather than merely tidy.
+ *
+ * A move onto the section the clips already sit in returns the song unchanged,
+ * so a drag that goes nowhere records no undo step.
+ *
+ * ## ⛔⛔ Every clip keeps its own offset, and getting this wrong destroyed one
+ *
+ * `to` is where the clip **the producer grabbed** lands; `from` is the section
+ * it came from. Everything else in the selection moves by the same distance.
+ * That is what a DAW does, and it is also the only shape that is safe: the first
+ * cut dropped the *whole* selection onto `to`, and since a section holds at most
+ * one clip per part, two selected drums clips collapsed into one. `deleteClips`
+ * had already removed both, so the loser was **gone from the arrangement with
+ * nothing on screen saying so** — undo was the only way back. Selecting two
+ * whole sections and dragging them is enough to hit it, because selecting a
+ * section selects every part in it.
+ *
+ * ⚠ **The distance is clamped so nothing falls off either end**, rather than
+ * dropping the clips that would. A drag that would take the selection past the
+ * last section moves it as far as it goes — which is what the producer can see
+ * happening, and it cannot silently lose a clip.
+ */
+export function moveClips(song: Song, clips: ClipId[], to: number, from: number): Song {
+  // ⚠ A no-op distance returns the song itself, so a drag that goes nowhere
+  // records no undo step — the property the old identity check gave.
+  const shift = moveShift(song, clips, to, from);
+  if (shift === 0) return song;
+
+  // ⚠ Grouped by destination and pasted per group, which is what keeps this
+  // composed from `pasteClips` — and therefore keeps its refusal to write a
+  // reference the song no longer holds — rather than walking the sections a
+  // fourth time here.
+  const byTarget = new Map<number, Clipboard>();
+  for (const clip of clips) {
+    const reference = song.sections[clip.sectionIndex]?.patterns[clip.part];
+    if (!reference) continue;
+    const target = clip.sectionIndex + shift;
+    const already = byTarget.get(target);
+    const entry = already ?? { clips: [] };
+    entry.clips.push({ part: clip.part, patternId: reference.patternId });
+    if (!already) byTarget.set(target, entry);
+  }
+  // ⚠ Nothing to move — every named clip was already gone. Returning the song
+  // itself keeps this off the undo stack.
+  if (byTarget.size === 0) return song;
+
+  // ⛔ Deleted only once every destination is known, and all of them at once, so
+  // a clip landing on a section another selected clip is leaving does not read
+  // the vacated slot as occupied.
+  let next = deleteClips(song, clips);
+  for (const [target, clipboard] of byTarget) next = pasteClips(next, clipboard, target);
+  return next;
+}
+
+/**
+ * How far {@link moveClips} would actually shift, clamped to the arrangement.
+ *
+ * ⛔ **Exported because the selection has to follow the clips**, and the store
+ * cannot work the distance out for itself without restating the clamp — which
+ * is how the selection ring ends up on cells the clips are not in.
+ */
+export function moveShift(song: Song, clips: ClipId[], to: number, from: number): number {
+  if (!song.sections[to] || clips.length === 0) return 0;
+  const last = song.sections.length - 1;
+  const lowest = Math.min(...clips.map((clip) => clip.sectionIndex));
+  const highest = Math.max(...clips.map((clip) => clip.sectionIndex));
+  return Math.max(-lowest, Math.min(last - highest, to - from));
+}
+
+/**
+ * Which section covers `bar`, or `null` past either end (TASK-130).
+ *
+ * The drop half of a clip drag: the pointer lands on an x, `xToBar` turns that
+ * into a bar, and this says whose bar it is. Here rather than in the component
+ * because "the sections tile end to end" is this file's invariant, and a
+ * hand-rolled scan in the view would be a second reader of it.
+ */
+export function sectionAtBar(song: Song, bar: number): number | null {
+  if (bar < 0) return null;
+  const index = song.sections.findIndex(
+    (section) => bar >= section.startBar && bar < section.startBar + section.bars,
+  );
+  return index === -1 ? null : index;
+}
+
+/**
  * Every section kind the engine can produce, in running order.
  *
  * ⛔ Mirrors `SectionKind` in `engine/src/pattern.rs`, and the locale gate

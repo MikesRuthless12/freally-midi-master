@@ -132,17 +132,25 @@ test('the drag affordance appears on hover, not before', async ({ page }) => {
   const xOf = (tick: number) => box.x + gutter + (tick / ppq) * zoom;
   const y = box.y + (topPitch - first.pitch) * rowHeight + rowHeight / 2;
 
-  // Empty canvas: the crosshair, which says "draw here".
+  // ⚠ **Empty canvas: an ordinary pointer, and this line used to expect
+  // `crosshair` "which says draw here".** Mike, 2026-08-06: *"i do not want the
+  // '+' cursor for the piano rolls, only the '[' and ']' cursors for resizing
+  // notes and a regular mousepointer."* It was saying "draw here" over a
+  // surface where a plain click selects and does not draw — the promise was
+  // wrong, not the cursor.
   await page.mouse.move(box.x + gutter + 4, box.y + rowHeight / 2);
-  await expect(canvas).toHaveCSS('cursor', 'crosshair');
+  await expect(canvas).toHaveCSS('cursor', 'default');
 
   // The middle of a note: move.
   await page.mouse.move(xOf(first.tick + first.len / 2), y);
   await expect(canvas).toHaveCSS('cursor', 'move');
 
-  // Its right edge: resize. The affordance the roadmap asks to appear on hover.
+  // ⚠ **Its right edge: `e-resize`, where this expected `ew-resize`.** One
+  // double-headed arrow said "this resizes" and left which end to be discovered
+  // by trying it; the one-way bracket says the note's *end* is what moves. The
+  // left edge is covered in `piano-roll.spec.ts` alongside it.
   await page.mouse.move(xOf(first.tick + first.len) - 2, y);
-  await expect(canvas).toHaveCSS('cursor', 'ew-resize');
+  await expect(canvas).toHaveCSS('cursor', 'e-resize');
 });
 
 test('nothing in the editor animates under reduced motion', async ({ page }) => {

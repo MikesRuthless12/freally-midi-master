@@ -127,7 +127,18 @@ export function Ruler({
       ctx.fillRect(x, isBar ? 0 : height - 6, 1, isBar ? height : 6);
       if (isBar) {
         ctx.fillStyle = palette.text3;
-        ctx.fillText(String(Math.round(tick / bar) + 1), x + 3, 1);
+        // ⛔⛔ **The closing bar number is drawn INSIDE the ruler, not past its
+        // right edge.** Mike, 2026-08-06: *"it should show 1-5 for the 4 bar
+        // loop and 1-9 for the 8 bar loop just like you'd see in a DAW, so that
+        // way you are counting 1-2 = 1, 2-3 = 2, 3-4 = 3, and 4-5 = 4."* The
+        // loop above already reaches `total`, so bar 5 of a four-bar clip was
+        // computed and its line was drawn — but the label sat at `x + 3`, and
+        // for the last line that is three pixels off the end of the canvas. The
+        // number a producer counts the bars *between* was the one that never
+        // appeared.
+        const label = String(Math.round(tick / bar) + 1);
+        const room = ctx.measureText(label).width + 3;
+        ctx.fillText(label, x + room > width ? x - room : x + 3, 1);
       }
     }
 
