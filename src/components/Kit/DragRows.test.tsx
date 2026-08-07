@@ -97,6 +97,28 @@ function openMenu(rowLabel: string, format: string) {
 }
 
 describe('one part, one instrument at a time', () => {
+  // ⛔⛔ **BOTH formats, and the audio half is why this test exists.** Mike,
+  // 2026-08-06, after the MIDI menu was un-clipped: *"ensure that the menu is
+  // sitting above and doesn't get caught behind the other controls as well like
+  // the other one did early this morning for the midi drum lanes menu."*
+  //
+  // The clipping was never about z-order — `.drag__lanes` was `position:
+  // absolute` inside `.rail__content`, which is `overflow-y: auto`, and a
+  // scroll container crops a descendant whatever its z-index is. So the
+  // property that actually fixes it is **escaping the subtree**, and that is
+  // what is asserted here. ⚠ The helper above documents the portal but nothing
+  // pinned it, so re-parenting the menu back into the row would have gone
+  // unnoticed until a producer screenshotted it a second time.
+  it.each(['MIDI', 'Audio'])('opens the %s menu outside the scroll container', (format) => {
+    render(<DragRows />);
+    const row = screen.getByText('Drums').closest('li') as HTMLElement;
+    const menu = openMenu('Drums', format);
+
+    expect(menu).toBeTruthy();
+    expect(menu.parentElement).toBe(document.body);
+    expect(row.contains(menu)).toBe(false);
+  });
+
   it('lists every instrument that is playing, and none that are not', () => {
     render(<DragRows />);
     const menu = openMenu('Drums', 'MIDI');
@@ -138,32 +160,47 @@ describe('one part, one instrument at a time', () => {
   it('never offers the whole drum kit as one MIDI file', () => {
     // ⛔⛔ Mike's rule, pinned as a *refusal* rather than as an ordering, so it
     // survives someone reinstating the entry without reading the line above.
+    // Mike again, 2026-08-06: *"i just don't want an altogether midi file."*
     render(<DragRows />);
     const menu = openMenu('Drums', 'MIDI');
 
+    expect(within(menu).queryByRole('button', { name: 'All Tracks' })).toBeNull();
     expect(within(menu).queryByRole('button', { name: 'As one clip' })).toBeNull();
   });
 
-  it('does offer the whole drum kit as one AUDIO file, from the chip and the menu', () => {
-    // ⛔ The other half of the same rule: a bounced kit is one instrument on one
-    // track, which is exactly what a producer wants to receive.
+  it('offers the audio lanes separately, like MIDI, plus All Tracks as one file', () => {
+    // ⛔⛔ **INVERTED 2026-08-06, and the inversion is the fix.** This used to
+    // read `['As one clip', 'Closed hat', 'Snare', 'Kick', 'All Tracks']`, where
+    // "All Tracks" meant one SEPARATE file per lane and "As one clip" was the
+    // mix. Mike read the label the other way round — pressed the mix, got one
+    // track, and reported it: *"not just one track altogether and that's it."*
+    //
+    // ▶ His instruction: *"i want the separate audio drum lanes just like the
+    // midi lanes, and then an 'All Tracks' for all the tracks mixed for the
+    // audio lanes"* … *"i want all the clips in one file for 'All Tracks'."*
+    // So the separate half is the per-lane chips — identical to the MIDI menu —
+    // and "All Tracks" is now the single mixed file. "As one clip" is gone
+    // because "All Tracks" *is* it.
     render(<DragRows />);
     const menu = openMenu('Drums', 'Audio');
 
-    // ⛔ Both whole-kit entries live here and neither exists under MIDI, which
-    // is the asymmetry Mike asked for. Asserted as menu *contents* rather than
-    // by inspecting the opener's classes: `DragChip` and the plain MIDI button
-    // render identical `className`s, so a class check would pass either way and
-    // prove nothing.
+    // ⚠ Asserted as menu *contents* rather than by inspecting the opener's
+    // classes: `DragChip` and the plain MIDI button render identical
+    // `className`s, so a class check would pass either way and prove nothing.
     const entries = within(menu)
       .getAllByRole('listitem')
       .map((item) => item.textContent);
-    expect(entries).toEqual(['As one clip', 'Closed hat', 'Snare', 'Kick', 'All Tracks']);
+    // ⚠ The lanes ahead of "All Tracks" are the same three the MIDI menu
+    // offers — *"just like the midi lanes"* — and that half is pinned by
+    // `gives the MIDI menu the instruments and nothing else` above. Asserting it
+    // again here would mean opening both menus at once, and both portal into
+    // `document.body`, so `within` picks up whichever is still mounted.
+    expect(entries).toEqual(['Closed hat', 'Snare', 'Kick', 'All Tracks']);
 
     // A `<button>` inside the list, not the menu opener that sits outside it —
     // and "outside" is now a different subtree entirely, since the list is
     // portalled out of the scroll container that used to crop it.
-    const whole = within(menu).getByRole('button', { name: 'As one clip' });
+    const whole = within(menu).getByRole('button', { name: 'All Tracks' });
     expect(whole.closest('.drag__lane')).toBeTruthy();
     const row = screen.getByText('Drums').closest('li') as HTMLElement;
     expect(

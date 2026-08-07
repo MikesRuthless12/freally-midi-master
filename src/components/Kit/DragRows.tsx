@@ -435,28 +435,6 @@ function DragMenu({ row, format, label, lanes }: HandleProps) {
             // wrong place and jumps is worse than one that appears once.
             style={{ visibility: 'hidden' }}
           >
-            {/* ⛔⛔ **The whole part as ONE file — AUDIO ONLY.** Mike, 2026-08-06:
-              *"there should never be one single midi file with all parts of the
-              drums draggable."* So this entry, and the draggable chip above it,
-              exist for audio and are absent for MIDI: a bounced kit is one
-              instrument on one track, where the same kit as one `.mid` is eight
-              instruments stacked on a single track.
-              ⚠ It is also reachable by dragging the menu chip itself; kept as a
-              named entry because a producer who has opened the list should not
-              have to guess that the thing they opened is also the thing they
-              drag.
-              ⚠ First, because it is the whole thing, and All Tracks stays last
-              because it is the most granular. */}
-            {format === 'audio' && (
-              <li className="drag__lane drag__lane--one">
-                <DragChip
-                  subject={row.subject}
-                  format={format}
-                  label={t('stems.oneClip')}
-                  title={row.label}
-                />
-              </li>
-            )}
             {lanes.map((lane) => (
               <li key={lane} className="drag__lane">
                 <DragChip
@@ -467,18 +445,37 @@ function DragMenu({ row, format, label, lanes }: HandleProps) {
                 />
               </li>
             ))}
-            {/* ⛔ **Last, drags every lane as SEPARATE files, and AUDIO ONLY.**
-              Mike, 2026-08-06: *"the 'MIDI' should not have an 'All Tracks',
-              only the audio should because you can get the audio to come from
-              all tracks, i just don't want the midi to be altogether as one
-              complete clip for the drums."* So the MIDI menu is the individual
-              instruments and nothing else — no whole-kit entry of any kind, and
-              no draggable opener above it.
-              `lanes: true` is `Cut::EveryLane` on the other side. */}
+            {/* ⛔ **Last, and it is the whole kit MIXED INTO ONE FILE — AUDIO
+              ONLY.** Mike, 2026-08-06: *"i want the separate audio drum lanes
+              just like the midi lanes, and then an 'All Tracks' for all the
+              tracks mixed for the audio lanes"* and *"i want all the clips in
+              one file for 'All Tracks'"*.
+
+              ⛔⛔ **This reverses what "All Tracks" used to do, and the reversal
+              is the whole point.** It used to send `lanes: true` — one SEPARATE
+              file per lane — while a second entry, "As one clip", was the mix.
+              Mike read the label the other way round, pressed the mix, and
+              reported the drums coming out as one track: *"not just one track
+              altogether and that's it."* ▶ Measured before changing anything:
+              across all 20 audio drags ever spooled to `%TEMP%\Freally MIDI
+              Master\drag\`, **every single `.wav` is named for a part** and not
+              one is named for a lane — so the per-lane bulk entry had never once
+              been used. It was also the LAST row of a menu that was clipped from
+              the bottom until `ed659dc`, so it could not be reached.
+
+              ⚠ **The separate-file half did not go away, it moved to where he
+              expects it** — the individual lane chips above, exactly as the MIDI
+              menu does it. "As one clip" is gone because this entry *is* it.
+
+              ⛔ **MIDI still gets no whole-kit entry of any kind.** Mike:
+              *"there should never be one single midi file with all parts of the
+              drums draggable"* and *"i just don't want an altogether midi file"*
+              — one `.mid` of the kit is eight instruments stacked on one track.
+              No `lanes` flag means `Cut::Parts` on the other side. */}
             {format === 'audio' && (
               <li className="drag__lane drag__lane--all">
                 <DragChip
-                  subject={{ ...row.subject, lanes: true } as DragSubject}
+                  subject={row.subject}
                   format={format}
                   label={t('stems.allTracks')}
                   title={row.label}

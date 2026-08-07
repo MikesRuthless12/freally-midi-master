@@ -301,7 +301,6 @@
     "audio": "Audio",
     "perLane": "Par piste",
     "allTracks": "Toutes les pistes",
-    "oneClip": "En un seul clip",
     "allParts": "Toutes les parties",
     "hint": "Écrit chaque partie générée dans son propre fichier.",
     "choosing": "Choisissez un dossier…",

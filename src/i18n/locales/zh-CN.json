@@ -301,7 +301,6 @@
     "audio": "音频",
     "perLane": "按轨道",
     "allTracks": "全部音轨",
-    "oneClip": "作为一个片段",
     "allParts": "全部声部",
     "hint": "将每个生成的声部写入各自的文件。",
     "choosing": "请选择文件夹…",
