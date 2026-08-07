@@ -402,5 +402,8 @@
       7
     ],
     "susOrDimProb": 0.14
+  },
+  "kit": {
+    "preview": "phonk-default"
   }
 }

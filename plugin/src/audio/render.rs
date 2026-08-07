@@ -354,6 +354,7 @@ mod tests {
             part: Part::Drums,
             artist_id: "trap".into(),
             seed: 1,
+            song_seed: 1,
             bars: 1,
             bpm: 120.0,
             time_sig_num: 4,
@@ -407,7 +408,7 @@ mod tests {
             (Lane::Counter, 72),
             (Lane::Bass, 36),
             (Lane::Chords, 60),
-            (Lane::Bass808, 28),
+            (Lane::Sub, 28),
         ] {
             let rendered = to_stereo(&pattern_with(lane, pitch), kit)
                 .unwrap_or_else(|| panic!("{lane:?} rendered nothing"));
@@ -418,10 +419,21 @@ mod tests {
 
     #[test]
     fn a_lane_the_kit_cannot_play_is_none_rather_than_a_file_of_zeros() {
-        // `Snap` has no shipped pad. Writing it out would be the exact failure
-        // this module's header records.
-        let kit = crate::audio::preview_kit().unwrap();
-        assert!(to_stereo(&pattern_with(Lane::Snap, 39), kit).is_none());
+        // Writing out a lane the kit cannot play would be the exact failure
+        // this module's header records: a `.wav` of silence that looks like a
+        // successful export.
+        //
+        // ⚠ The kit has one pad removed rather than being trusted to lack a
+        // lane. This used to lean on `Snap` shipping with no pad; TASK-140 gave
+        // every lane a default, and a rule about `to_stereo` should never have
+        // depended on what the kit happened to omit.
+        let mut kit = crate::audio::preview_kit().unwrap().as_ref().clone();
+        kit.pads.retain(|pad| pad.lane != Lane::Snap);
+        assert!(to_stereo(&pattern_with(Lane::Snap, 39), &kit).is_none());
+
+        // The shipped kit does play it, so the export is real rather than empty.
+        let shipped = crate::audio::preview_kit().unwrap();
+        assert!(to_stereo(&pattern_with(Lane::Snap, 39), shipped).is_some());
     }
 
     #[test]

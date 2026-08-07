@@ -42,7 +42,7 @@ fn shipped() -> BTreeMap<String, StyleModel> {
 /// distinct and the measure would report perfect variety over one melody — the
 /// mistake the drum version of this made on its first attempt.
 fn shape(model: &StyleModel, ctx: &SessionContext, part: Part, seed: u64) -> Vec<(u32, u8)> {
-    let pattern = engine::parts::render(model, ctx, seed, part);
+    let pattern = engine::parts::render(model, ctx, engine::parts::Seeds::shared(seed), part);
     let mut out: Vec<(u32, u8)> = pattern
         .iter()
         .flat_map(|t| t.notes.iter())

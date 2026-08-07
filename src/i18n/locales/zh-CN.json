@@ -206,13 +206,21 @@
   "lanes": {
     "kick": "底鼓",
     "snare": "军鼓",
+    "offSnare": "副军鼓",
     "clap": "拍手",
     "closedHat": "闭镲",
     "openHat": "开镲",
+    "ride": "叮叮镲",
+    "crash": "强音镲",
+    "tom": "嗵鼓",
     "rim": "边击",
     "snap": "响指",
     "perc": "打击乐",
-    "bass808": "808",
+    "shaker": "沙锤",
+    "tambourine": "铃鼓",
+    "cowbell": "牛铃",
+    "woodblock": "木鱼",
+    "sub": "超低音",
     "melody": "旋律",
     "counter": "对位旋律",
     "bass": "贝斯线",
@@ -307,5 +315,39 @@
     "dragHint": "把某个部分直接拖到你的 DAW 轨道上。",
     "preparing": "正在准备…",
     "rendering": "正在渲染… {{percent}}%"
+  },
+  "shortcuts": {
+    "title": "键盘快捷键",
+    "groups": {
+      "transport": "走带控制",
+      "generate": "生成",
+      "editing": "编辑",
+      "notes": "音符",
+      "drums": "鼓组网格"
+    },
+    "keys": {
+      "toggleRail": "显示或隐藏右侧栏",
+      "search": "搜索艺术家库",
+      "reroll": "重新生成片段",
+      "selectAll": "全选",
+      "copy": "复制",
+      "cut": "剪切",
+      "paste": "粘贴",
+      "undo": "撤销",
+      "duplicate": "再制",
+      "delete": "删除",
+      "deselect": "取消选择",
+      "transpose": "移调一个半音",
+      "transposeOctave": "移调一个八度",
+      "nudge": "在时间上微调",
+      "stretch": "拉伸至两倍长度",
+      "compress": "压缩至一半长度",
+      "triplet": "此格三连音",
+      "quintuplet": "此格五连音",
+      "septuplet": "此格七连音",
+      "cloneBar": "将第1小节复制到本小节",
+      "shortcuts": "显示此面板",
+      "play": "播放或暂停"
+    }
   }
 }

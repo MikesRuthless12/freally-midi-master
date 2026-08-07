@@ -74,13 +74,40 @@ pub const PART_ORDER: [Part; 5] = [
 pub enum Lane {
     Kick,
     Snare,
+    /// A second snare voice on the off-beats, authored per model.
+    ///
+    /// Its own lane rather than extra hits in [`Lane::Snare`], on Mike's call:
+    /// he named it alongside claps, and a clap is a lane. Being separate is
+    /// also what makes it worth anything to `drum_variety` — a moved hit in an
+    /// existing lane is not a different beat, but a different voice is.
+    OffSnare,
     Clap,
     ClosedHat,
     OpenHat,
+    Ride,
+    Crash,
+    Tom,
     Rim,
     Snap,
     Perc,
-    Bass808,
+    Shaker,
+    Tambourine,
+    Cowbell,
+    Woodblock,
+    /// The pitched, sliding sub-bass — **not** the bass drum, which is
+    /// [`Lane::Kick`].
+    ///
+    /// Named for the role rather than the machine, on Mike's call: "you can
+    /// have a 606, a 707, an 808, or a 909". The dataset still authors it as
+    /// `drums.bass808` and that key is deliberately untouched — renaming a data
+    /// key would mean revisiting every model, which is exactly what TASK-140 is
+    /// sequenced before the roster to avoid.
+    ///
+    /// ⛔ **The alias is load-bearing.** `Lane` serializes *by name*, and
+    /// `PluginSession.muted_lanes` is a `Vec<Lane>`, so without it every saved
+    /// project with a muted 808 fails to open.
+    #[serde(alias = "bass808")]
+    Sub,
     Melody,
     Counter,
     Bass,
@@ -316,9 +343,26 @@ pub struct Pattern {
     pub part: Part,
     /// The style model this came from — an artist or a genre archetype.
     pub artist_id: String,
+    /// **The take's seed.** What rerolls on every press of Generate.
     #[serde(with = "seed_as_string")]
     #[ts(type = "string")]
     pub seed: u64,
+    /// **The record's seed** — the harmonic plan every part is written against
+    /// (TASK-141).
+    ///
+    /// ⛔ **The page has to hand this back on the next Generate**, or the five
+    /// parts stop agreeing. That is the whole mechanism: the take rerolls, the
+    /// record is carried. A caller that ignores it gets the pre-TASK-141
+    /// behaviour, where Generate on Drums and then Generate on Melody drew two
+    /// unrelated seeds and wrote the melody against a harmony the chords tab
+    /// had never seen.
+    ///
+    /// ⚠ Defaults to [`Self::seed`] when absent, so a project saved before this
+    /// existed reopens as one seed for everything — which is exactly what it
+    /// meant.
+    #[serde(with = "seed_as_string", default)]
+    #[ts(type = "string")]
+    pub song_seed: u64,
     pub bars: u16,
     pub bpm: f32,
     pub time_sig_num: u8,
@@ -478,6 +522,7 @@ impl Pattern {
             part: first.part,
             artist_id: first.artist_id.clone(),
             seed: first.seed,
+            song_seed: first.song_seed,
             // The longest part, so a short one does not truncate the record.
             bars: parts.iter().map(|p| p.bars).max().unwrap_or(first.bars),
             bpm: first.bpm,
@@ -488,7 +533,26 @@ impl Pattern {
             lanes,
             ppq,
             mood: None,
-            loop_region: None,
+            // ⛔ **Carried from the first clip, not dropped.** This was `None`,
+            // and nothing downstream put it back: the solo path returns the
+            // clip untouched and keeps its brace, while `session.ts` sends the
+            // parts and `editor.rs` arms the reply verbatim. So a dragged loop
+            // brace worked with one generator on and was **silently ignored the
+            // moment a second one was switched on** — which is the default.
+            // `voice.rs::a_dragged_brace_still_wins_over_the_button` asserts
+            // the brace wins and could not, because it never reached the
+            // schedule in the merged case.
+            //
+            // ⚠ First-clip-wins, which is the rule this function already
+            // applies to tempo, meter and key for the reason stated above: the
+            // brace is drawn against a timeline, and the timeline is the first
+            // clip's.
+            // ⛔ **The first clip that HAS one, not the first clip.** `first` is
+            // whatever `armedClips` listed first — always Drums, because that is
+            // GENERATED_PARTS order — while the brace is dragged onto whichever
+            // tab is open. So a brace drawn on the Melody roll was dropped, which
+            // is every case except drawing it on Drums.
+            loop_region: parts.iter().find_map(|clip| clip.loop_region),
             clip_region: None,
         })
     }
@@ -880,6 +944,11 @@ impl Song {
             },
             artist_id: self.artist_id.clone(),
             seed: self.seed,
+            // A song is generated from one seed and `render_section` shares it
+            // across every part, which is the coherent case the two-seed
+            // design exists to reach for single patterns. Song Mode was
+            // already there, so the record and the take are the same value.
+            song_seed: self.seed,
             // The whole song, so `Schedule::progress` is a position through the
             // arrangement rather than through whichever clip is playing.
             bars: u16::try_from(self.total_bars()).unwrap_or(u16::MAX),
@@ -915,6 +984,30 @@ impl Song {
 mod tests {
     use super::*;
 
+    #[test]
+    fn a_project_saved_before_the_sub_rename_still_opens() {
+        // ⛔ `Lane` serializes **by name**, and `PluginSession.muted_lanes` is a
+        // `Vec<Lane>`, so without the alias every saved project with a muted 808
+        // would fail to open — silently, on a producer's own session.
+        //
+        // ⚠ This test exists because `cargo clippy` prints "failed to parse
+        // serde attribute" for the alias. That is **ts-rs** not understanding
+        // `alias` while generating the TypeScript binding, not serde ignoring
+        // it. Reading that warning as "the alias does not work" would be wrong,
+        // and this is what tells the two apart rather than leaving it to
+        // somebody's judgement.
+        let old: Lane =
+            serde_json::from_str("\"bass808\"").expect("the pre-rename name must still parse");
+        assert_eq!(old, Lane::Sub);
+
+        // ...and the new name is what gets written from here on.
+        assert_eq!(serde_json::to_string(&Lane::Sub).unwrap(), "\"sub\"");
+
+        // The lane it is most often confused with is a different lane, and the
+        // rename was made precisely so that stays obvious.
+        assert_ne!(Lane::Sub, Lane::Kick);
+    }
+
     fn sample_pattern(seed: u64) -> Pattern {
         Pattern {
             loop_region: None,
@@ -923,6 +1016,7 @@ mod tests {
             part: Part::Drums,
             artist_id: "osamason".into(),
             seed,
+            song_seed: seed,
             bars: 4,
             bpm: 150.0,
             time_sig_num: 4,
@@ -930,7 +1024,7 @@ mod tests {
             key_root: 6,
             scale: Scale::NaturalMinor,
             lanes: vec![LaneTrack {
-                lane: Lane::Bass808,
+                lane: Lane::Sub,
                 notes: vec![
                     Note {
                         model_vel: None,
@@ -1200,7 +1294,7 @@ mod tests {
 
         assert_eq!(
             merged.lanes.iter().map(|l| l.lane).collect::<Vec<_>>(),
-            vec![Lane::Bass808, Lane::Melody],
+            vec![Lane::Sub, Lane::Melody],
             "lane order is the order the parts were handed over"
         );
         assert_eq!(
@@ -1222,11 +1316,7 @@ mod tests {
         });
         let merged = Pattern::merge(&[drums, melody_pattern(0)]).unwrap();
 
-        let kept = merged
-            .lanes
-            .iter()
-            .find(|l| l.lane == Lane::Bass808)
-            .unwrap();
+        let kept = merged.lanes.iter().find(|l| l.lane == Lane::Sub).unwrap();
         assert_eq!(kept.notes.len(), 1, "the note past the trim must not sound");
         assert!(
             merged.clip_region.is_none(),

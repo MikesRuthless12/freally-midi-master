@@ -62,6 +62,7 @@ const PATTERN: Pattern = {
   part: 'drums',
   artistId: 'trap',
   seed: '1',
+  songSeed: '1',
   bars: 4,
   bpm: 140,
   timeSigNum: 4,
@@ -76,12 +77,22 @@ const PATTERN: Pattern = {
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 /** The request `generate_pattern` was last called with. */
-function lastRequest(): { session?: Record<string, unknown>; seed?: string | null } {
+function lastRequest(): {
+  session?: Record<string, unknown>;
+  seed?: string | null;
+  songSeed?: string | null;
+} {
   const calls = invoke.mock.calls.filter((call: unknown[]) => call[0] === 'generate_pattern');
   expect(calls.length, 'generate_pattern should have been invoked').toBeGreaterThan(0);
   const [, args] = calls[calls.length - 1] as [
     string,
-    { request: { session?: Record<string, unknown>; seed?: string | null } },
+    {
+      request: {
+        session?: Record<string, unknown>;
+        seed?: string | null;
+        songSeed?: string | null;
+      };
+    },
   ];
   return args.request;
 }
@@ -111,6 +122,7 @@ beforeEach(() => {
     defaults: null,
     pendingArtist: null,
     seed: '',
+    songSeed: '',
     seedPinned: false,
     bars: 4,
     generating: false,
@@ -282,6 +294,48 @@ describe('going back to a seed', () => {
 
     expect(lastRequest().seed).toBeNull();
   });
+
+  // ── TASK-141: the record is carried, the take is not ────────────────────
+  it('starts a record on the first Generate and carries it to every part after', async () => {
+    // ⛔⛔ **This is the whole of TASK-141 seen from the page.** The engine
+    // guarantees five parts agree only when they share a harmonic plan, and the
+    // Defect 2 fix made every Generate roll a fresh seed — so the ordinary
+    // workflow (Generate on Drums, switch tab, Generate on Melody) wrote the
+    // melody against a progression the chords tab had never seen. Both clips
+    // looked individually correct, which is exactly why nothing caught it.
+    useSession.getState().select('trap');
+
+    // Nothing generated yet, so this one starts the record.
+    await useSession.getState().generate('drums');
+    expect(lastRequest().songSeed, 'the first Generate has no record to join').toBeNull();
+
+    const record = useSession.getState().songSeed;
+    expect(record, 'the engine answers with the record it chose').not.toBe('');
+
+    // Every part after it joins that record rather than starting its own.
+    for (const part of ['melody', 'chords', 'bass'] as const) {
+      await useSession.getState().generate(part);
+      expect(lastRequest().songSeed, `${part} must join the record`).toBe(record);
+    }
+    expect(useSession.getState().songSeed).toBe(record);
+  });
+
+  it('carries the record even while the take is unpinned and rerolling', async () => {
+    // ⚠ The two are deliberately independent: the seed lock is about the
+    // producer's typed *take*, and the record is carried whether or not
+    // anything is pinned. A producer should not have to know the song seed
+    // exists to get parts that belong together.
+    useSession.getState().select('trap');
+    useSession.getState().setSeed('');
+    await useSession.getState().generate('drums');
+
+    const record = useSession.getState().songSeed;
+    expect(useSession.getState().seedPinned, 'the take is not pinned').toBe(false);
+
+    await useSession.getState().generate('melody');
+    expect(lastRequest().seed, 'the take still rerolls').toBeNull();
+    expect(lastRequest().songSeed, 'the record still travels').toBe(record);
+  });
 });
 
 describe('session pins', () => {
@@ -437,6 +491,7 @@ describe('applyPreset', () => {
   const PRESET = {
     selectedId: 'uk-drill',
     seed: '99',
+    songSeed: '99',
     bars: 8,
     autoSync: false,
     pins: { bpm: 150, keyRoot: null, scale: null, swing: null },
@@ -492,6 +547,7 @@ describe('applyPreset', () => {
     useHistory.getState().arm({
       selectedId: 'trap',
       seed: '',
+      songSeed: '',
       seedPinned: false,
       bars: 4,
       pins: NO_PINS,
@@ -541,6 +597,7 @@ describe('each part keeps its own pattern', () => {
           id: `trap-${part}`,
           part,
           seed: seed ?? '77',
+          songSeed: seed ?? '77',
         } satisfies Pattern);
       }
       return Promise.resolve(null);
@@ -939,6 +996,7 @@ describe('the bar choices', () => {
     useSession.getState().applyPreset({
       selectedId: 'trap',
       seed: '99',
+      songSeed: '99',
       bars: 2,
       pins: null,
     });

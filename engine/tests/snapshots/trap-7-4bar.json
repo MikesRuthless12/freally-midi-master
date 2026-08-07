@@ -3,6 +3,7 @@
   "part": "drums",
   "artistId": "trap",
   "seed": "7",
+  "songSeed": "7",
   "bars": 4,
   "bpm": 140.0,
   "timeSigNum": 4,
@@ -789,7 +790,73 @@
       ]
     },
     {
-      "lane": "bass808",
+      "lane": "rim",
+      "notes": [
+        {
+          "startTick": 1219,
+          "lenTicks": 221,
+          "pitch": 37,
+          "vel": 74,
+          "modelVel": 86
+        },
+        {
+          "startTick": 5760,
+          "lenTicks": 259,
+          "pitch": 37,
+          "vel": 95,
+          "modelVel": 87
+        },
+        {
+          "startTick": 7459,
+          "lenTicks": 221,
+          "pitch": 37,
+          "vel": 77,
+          "modelVel": 88
+        }
+      ]
+    },
+    {
+      "lane": "snap",
+      "notes": [
+        {
+          "startTick": 3619,
+          "lenTicks": 221,
+          "pitch": 75,
+          "vel": 80,
+          "modelVel": 80
+        },
+        {
+          "startTick": 6240,
+          "lenTicks": 259,
+          "pitch": 75,
+          "vel": 82,
+          "modelVel": 80
+        },
+        {
+          "startTick": 8899,
+          "lenTicks": 221,
+          "pitch": 75,
+          "vel": 76,
+          "modelVel": 87
+        },
+        {
+          "startTick": 11299,
+          "lenTicks": 221,
+          "pitch": 75,
+          "vel": 77,
+          "modelVel": 81
+        },
+        {
+          "startTick": 13440,
+          "lenTicks": 259,
+          "pitch": 75,
+          "vel": 77,
+          "modelVel": 88
+        }
+      ]
+    },
+    {
+      "lane": "sub",
       "notes": [
         {
           "startTick": 0,

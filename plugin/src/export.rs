@@ -951,6 +951,7 @@ mod stem_name_tests {
             part: Part::Drums,
             artist_id: artist.into(),
             seed: 7,
+            song_seed: 7,
             bars: 4,
             bpm: 140.0,
             time_sig_num: 4,

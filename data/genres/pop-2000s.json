@@ -427,5 +427,8 @@
         2
       ]
     }
+  },
+  "kit": {
+    "preview": "pop-default"
   }
 }

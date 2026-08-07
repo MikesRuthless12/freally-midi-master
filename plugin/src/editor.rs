@@ -493,6 +493,152 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
         // already landed, so there is nothing for the page to do with a failure
         // (see `audition.ts`), and reporting one would put an error banner under
         // the Generate button for a preview a producer deliberately turned off.
+        // ── The sample explorer (TASK-132) ──────────────────────────────
+        //
+        // ⚠ Three commands rather than one, because they have three different
+        // costs: picking opens a modal on its own thread, opening is a cheap
+        // write, and reading is a filesystem walk the page asks for when it
+        // wants to redraw. Folding them together would make the page pay for a
+        // dialog every time it refreshed a list.
+        // ── The audition player (TASK-132) ──────────────────────────────
+        //
+        // ⛔ Six of Mike's eight preview items are ONE number — the read
+        // position. The playhead marker, the progress fill, the time readout,
+        // click-to-seek, reverse and loop all resolve to it, which is why
+        // `preview_position` is a poll rather than six channels.
+        "preview_load" => {
+            let path = request.args["path"].as_str().unwrap_or_default();
+            let file = std::path::Path::new(path);
+            // ⛔⛔ **The same two guards `waveform` has, and they must come
+            // before `is_file()`.** Without them this took a raw webview path
+            // and touched it: `is_file()` on a UNC string makes the SMB
+            // redirector resolve the host, connect out and authenticate, which
+            // `oneshot::refuse_remote` documents as a real vulnerability rather
+            // than hardening. And with no containment it would decode *any*
+            // audio file on disk, up to the 128 MB import bound.
+            if let Err(reason) = crate::oneshot::refuse_remote(file) {
+                return Some(Err(reason));
+            }
+            if !shared.explorer.contains(file) {
+                return Some(Err("that sample is not in your sample library".into()));
+            }
+            if !file.is_file() {
+                return Some(Err("that sample is not there".into()));
+            }
+            return Some(
+                match crate::audio::import::decode_file(std::path::Path::new(path)) {
+                    Ok(audio) => {
+                        shared.preview.load(audio.samples, audio.sample_rate);
+                        Ok(Value::Null)
+                    }
+                    Err(reason) => Err(reason),
+                },
+            );
+        }
+
+        "preview_play" => {
+            shared.preview.play();
+            return Some(Ok(Value::Null));
+        }
+
+        "preview_pause" => {
+            shared.preview.pause();
+            return Some(Ok(Value::Null));
+        }
+
+        // ⛔ Rewinds. Pause holds position; stop does not.
+        "preview_stop" => {
+            shared.preview.stop();
+            return Some(Ok(Value::Null));
+        }
+
+        "preview_seek" => {
+            let at = request.args["seconds"].as_f64().unwrap_or(0.0) as f32;
+            shared.preview.seek(at);
+            return Some(Ok(Value::Null));
+        }
+
+        "preview_loop" => {
+            shared
+                .preview
+                .set_looping(request.args["on"].as_bool().unwrap_or(false));
+            return Some(Ok(Value::Null));
+        }
+
+        "preview_reverse" => {
+            shared
+                .preview
+                .set_reverse(request.args["on"].as_bool().unwrap_or(false));
+            return Some(Ok(Value::Null));
+        }
+
+        // Polled while a sample is auditioning — the one number everything
+        // else is drawn from. `collect` rides along because this is the
+        // editor thread and it is what frees a buffer the callback parked.
+        "preview_position" => {
+            shared.preview.collect();
+            return Some(
+                serde_json::to_value(shared.preview.position()).map_err(|e| e.to_string()),
+            );
+        }
+
+        "explorer_pick" => return Some(shared.explorer.pick().map(|()| Value::Null)),
+
+        "explorer_remove" => {
+            let path = request.args["path"].as_str().unwrap_or_default();
+            shared.explorer.remove(path);
+            shared.store_sample_folders();
+            return Some(Ok(Value::Null));
+        }
+
+        // The waveform the preview player draws (TASK-132).
+        //
+        // ⚠ Peaks, never the audio: a four-second sample is megabytes as JSON,
+        // serialized on the editor thread inside somebody's DAW.
+        "explorer_waveform" => {
+            let path = request.args["path"].as_str().unwrap_or_default();
+            return Some(
+                crate::explorer::waveform(&shared.explorer, path)
+                    .and_then(|w| serde_json::to_value(w).map_err(|e| e.to_string())),
+            );
+        }
+
+        "explorer_open" => {
+            let dir = request.args["path"].as_str().unwrap_or_default();
+            return Some(shared.explorer.open(dir).map(|()| Value::Null));
+        }
+
+        "explorer_state" => {
+            // ⚠ Written back on every read, because the only thing that knows
+            // a dialog finished is the dialog thread — and it cannot touch the
+            // session. The page polls this after asking for a folder, so this
+            // is where a newly added root becomes something the host will save.
+            shared.store_sample_folders();
+            return Some(serde_json::to_value(shared.explorer.state()).map_err(|e| e.to_string()));
+        }
+
+        // Dropping a sample from the explorer onto a lane.
+        //
+        // ⛔ **Routed through `restore`, which is the no-dialog load a reopened
+        // project already uses.** It decodes, refuses a remote path, records a
+        // file that will not load, and rebuilds the kit — every one of which a
+        // second loader here would have to repeat and would eventually get
+        // wrong. This command is a name for an existing path, not a new one.
+        "explorer_drop" => {
+            let Some(lane) = request.args.get("lane").and_then(|lane| {
+                serde_json::from_value::<engine::pattern::Lane>(lane.clone()).ok()
+            }) else {
+                return Some(Err("that is not a lane".into()));
+            };
+            let path = request.args["path"].as_str().unwrap_or_default();
+            return Some(
+                shared
+                    .one_shots
+                    .restore(lane, path, &shared.kits, &shared.session)
+                    .map(|()| Value::Null),
+            );
+        }
+
         "audition_note" => {
             // Clamped once, in `request_audition`, which is where the test that
             // proves it lives. A second clamp here would be a second authority
@@ -559,6 +705,16 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
             return Some(Ok(json!({
                 "standalone": shared.standalone,
                 "reason": Value::Null,
+                // ⛔ **The page had no way to learn this and defaulted to `true`.**
+                // `Shared` outlives the webview, so turning Loop off and then
+                // closing and reopening the plugin window in a host left the
+                // button lit and `aria-pressed="true"` while the schedule was
+                // not looping — a control reporting the opposite of the truth.
+                //
+                // ⚠ One command carrying all three, which is the argument
+                // `standalone`/`reason` already make for each other: they are
+                // one fact about the transport, asked once on mount.
+                "looping": shared.looping(),
             })));
         }
 
@@ -610,7 +766,14 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
         // file would be the same defect with an extra step.
         "kit_state" => {
             let assigned = shared.one_shots.snapshot();
-            let base = crate::audio::preview_kit();
+            // ⚠ The **model's** kit, so the panel names the voices the producer
+            // is actually hearing. Reading the trap kit here would put this
+            // panel back to describing a kit that is not playing, which is the
+            // exact defect TASK-136 fixed one layer down.
+            let model_id = crate::state::with(&shared.session, |s| s.selected_id.clone())
+                .flatten()
+                .unwrap_or_default();
+            let base = crate::audio::kit_for_model(&model_id);
             let lanes: Vec<Value> = crate::shared::ALL_LANES
                 .iter()
                 .map(|lane| {
@@ -1634,11 +1797,20 @@ mod tests {
             assert_eq!(of("melody")["shipped"], json!(true));
             assert_eq!(of("melody")["name"], Value::Null);
 
-            // ⚠ And the one lane it has never covered. The drum generator can
-            // write `Snap` and no pad has ever played it, so it is silent — the
-            // panel has to be able to say that rather than drawing it like the
-            // others.
-            assert_eq!(of("snap")["shipped"], json!(false));
+            // ⛔ **`Snap` used to be the lane nothing played, and this asserted
+            // `false` for it.** TASK-140 gave every lane a default voice, so
+            // the honest assertion is now the stronger one: the panel reports
+            // the shipped kit as covering *everything*, with no lane left
+            // silent. A `false` here means a kit shipped with a hole in it.
+            for entry in lanes {
+                assert_eq!(
+                    entry["shipped"],
+                    json!(true),
+                    "lane {} has no shipped voice",
+                    entry["lane"]
+                );
+                assert_eq!(entry["name"], Value::Null, "nothing is assigned yet");
+            }
         }
 
         #[test]

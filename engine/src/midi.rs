@@ -36,13 +36,26 @@ pub fn gm_drum_note(lane: Lane) -> u8 {
         Lane::ClosedHat => 42, // Closed Hi-Hat
         Lane::OpenHat => 46,   // Open Hi-Hat
         Lane::Rim => 37,       // Side Stick
+        // Electric Snare, not a second Acoustic Snare: the off-snare is a
+        // separate voice on purpose, and sharing 38 with the main snare would
+        // collapse it back into the lane it was split out of.
+        Lane::OffSnare => 40,
         // Claves, not a second Hand Clap: GM has no finger snap, and 39 is
         // already the clap. A sharp, dry transient is the closest voice, and
         // being audibly separate from the clap is the point.
         Lane::Snap => 75, // Claves
         Lane::Perc => 47, // Low-Mid Tom
+        // ⚠ 45 rather than 47: `Perc` already holds Low-Mid Tom, and a tom lane
+        // that voices identically to the perc lane is not a second lane.
+        Lane::Tom => 45,        // Low Tom
+        Lane::Ride => 51,       // Ride Cymbal 1
+        Lane::Crash => 49,      // Crash Cymbal 1
+        Lane::Shaker => 82,     // Shaker
+        Lane::Tambourine => 54, // Tambourine
+        Lane::Cowbell => 56,    // Cowbell
+        Lane::Woodblock => 76,  // Hi Wood Block
         // Pitched lanes carry their own pitch; this is never consulted.
-        Lane::Bass808 | Lane::Melody | Lane::Counter | Lane::Bass | Lane::Chords => 0,
+        Lane::Sub | Lane::Melody | Lane::Counter | Lane::Bass | Lane::Chords => 0,
     }
 }
 
@@ -50,7 +63,7 @@ pub fn gm_drum_note(lane: Lane) -> u8 {
 fn is_pitched(lane: Lane) -> bool {
     matches!(
         lane,
-        Lane::Bass808 | Lane::Melody | Lane::Counter | Lane::Bass | Lane::Chords
+        Lane::Sub | Lane::Melody | Lane::Counter | Lane::Bass | Lane::Chords
     )
 }
 
@@ -75,7 +88,7 @@ const DRUM_CHANNEL: u8 = 9;
 fn pitched_channel(part: Part, lane: Lane) -> u8 {
     // The 808 is authored inside the drums part but is a bass instrument, so it
     // is keyed off the lane rather than the part it travels in.
-    if lane == Lane::Bass808 {
+    if lane == Lane::Sub {
         return 1;
     }
     match part {
@@ -83,7 +96,7 @@ fn pitched_channel(part: Part, lane: Lane) -> u8 {
         Part::Bass => 2,
         Part::Chords => 3,
         Part::Counter => 4,
-        // Only `Bass808` is pitched inside the drums part, and it returned above.
+        // Only `Sub` is pitched inside the drums part, and it returned above.
         Part::Drums => 1,
     }
 }
@@ -230,7 +243,7 @@ fn events_for(pattern: &Pattern, layout: Layout) -> Vec<Event> {
             // ⚠ The 808 keeps its own channel even alone, because it travels
             // inside the *drums* pattern beside unpitched lanes — on channel 10
             // its slides would be read as unrelated drum voices.
-            (true, Layout::Single) if lane.lane == Lane::Bass808 => 1,
+            (true, Layout::Single) if lane.lane == Lane::Sub => 1,
             (true, Layout::Single) => 0,
         };
 
@@ -713,6 +726,7 @@ pub fn drag_spike_pattern() -> Pattern {
         part: Part::Drums,
         artist_id: "spike".into(),
         seed: 0,
+        song_seed: 0,
         bars: 4,
         bpm: 140.0,
         time_sig_num: 4,
@@ -751,6 +765,7 @@ mod tests {
             part: Part::Drums,
             artist_id: "t".into(),
             seed: 1,
+            song_seed: 1,
             bars: 1,
             bpm: 140.0,
             time_sig_num: 4,
@@ -841,7 +856,7 @@ mod tests {
 
     #[test]
     fn pitched_lanes_keep_their_pitch_and_stay_off_the_drum_channel() {
-        let bytes = pattern_to_smf(&tiny(Lane::Bass808, vec![note(0, 960, 29)]));
+        let bytes = pattern_to_smf(&tiny(Lane::Sub, vec![note(0, 960, 29)]));
         let parsed = Smf::parse(&bytes).unwrap();
         for event in parsed.tracks[0].iter() {
             if let TrackEventKind::Midi {
@@ -886,7 +901,7 @@ mod tests {
     }
 
     fn written_key_signature(key_root: u8, scale: Scale) -> (i8, bool) {
-        let mut p = tiny(Lane::Bass808, vec![note(0, 240, 36)]);
+        let mut p = tiny(Lane::Sub, vec![note(0, 240, 36)]);
         p.key_root = key_root;
         p.scale = scale;
         let bytes = pattern_to_smf(&p);
@@ -1050,7 +1065,7 @@ mod tests {
             slide_to_pitch: Some(40),
             articulation: None,
         };
-        let events = events_for(&tiny(Lane::Bass808, vec![slide]), Layout::Single);
+        let events = events_for(&tiny(Lane::Sub, vec![slide]), Layout::Single);
 
         let on = |key: u8| {
             events
@@ -1096,7 +1111,7 @@ mod tests {
             articulation: None,
         };
         assert_eq!(
-            events_for(&tiny(Lane::Bass808, vec![flat]), Layout::Single).len(),
+            events_for(&tiny(Lane::Sub, vec![flat]), Layout::Single).len(),
             2
         );
     }

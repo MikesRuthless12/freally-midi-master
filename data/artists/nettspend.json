@@ -355,5 +355,8 @@
     "borrowed": {
       "V": 0.12
     }
+  },
+  "kit": {
+    "preview": "rage-default"
   }
 }

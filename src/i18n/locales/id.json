@@ -206,13 +206,21 @@
   "lanes": {
     "kick": "Bas drum",
     "snare": "Snar",
+    "offSnare": "Snare off",
     "clap": "Tepukan",
     "closedHat": "Hi-hat tertutup",
     "openHat": "Hi-hat terbuka",
+    "ride": "Ride",
+    "crash": "Crash",
+    "tom": "Tom",
     "rim": "Pinggiran",
     "snap": "Jentikan",
     "perc": "Perkusi",
-    "bass808": "808",
+    "shaker": "Shaker",
+    "tambourine": "Rebana",
+    "cowbell": "Kerincing sapi",
+    "woodblock": "Balok kayu",
+    "sub": "Sub",
     "melody": "Melodi",
     "counter": "Kontramelodi",
     "bass": "Garis bas",
@@ -307,5 +315,39 @@
     "dragHint": "Seret satu bagian langsung ke track di DAW kamu.",
     "preparing": "Sedang disiapkan…",
     "rendering": "Merender… {{percent}}%"
+  },
+  "shortcuts": {
+    "title": "Pintasan papan ketik",
+    "groups": {
+      "transport": "Transport",
+      "generate": "Hasilkan",
+      "editing": "Penyuntingan",
+      "notes": "Not",
+      "drums": "Kisi drum"
+    },
+    "keys": {
+      "toggleRail": "Tampilkan atau sembunyikan panel kanan",
+      "search": "Cari di katalog",
+      "reroll": "Buat ulang klip",
+      "selectAll": "Pilih semua",
+      "copy": "Salin",
+      "cut": "Potong",
+      "paste": "Tempel",
+      "undo": "Urungkan",
+      "duplicate": "Gandakan",
+      "delete": "Hapus",
+      "deselect": "Batalkan pilihan",
+      "transpose": "Transpos satu seminada",
+      "transposeOctave": "Transpos satu oktaf",
+      "nudge": "Geser dalam waktu",
+      "stretch": "Regangkan dua kali lipat",
+      "compress": "Mampatkan jadi separuh",
+      "triplet": "Triol di sel ini",
+      "quintuplet": "Kuintol di sel ini",
+      "septuplet": "Septol di sel ini",
+      "cloneBar": "Salin bar 1 ke bar ini",
+      "shortcuts": "Tampilkan panel ini",
+      "play": "Putar atau jeda"
+    }
   }
 }

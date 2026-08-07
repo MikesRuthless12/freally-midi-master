@@ -404,5 +404,8 @@
         1
       ]
     }
+  },
+  "kit": {
+    "preview": "rnb-default"
   }
 }

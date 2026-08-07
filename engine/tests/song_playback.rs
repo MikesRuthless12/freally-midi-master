@@ -239,6 +239,7 @@ fn one_bar_kick(id: &str) -> Pattern {
         part: Part::Drums,
         artist_id: "fixture".into(),
         seed: 1,
+        song_seed: 1,
         bars: 1,
         bpm: 140.0,
         time_sig_num: 4,
@@ -349,7 +350,7 @@ fn a_stem_and_its_track_in_the_multi_track_file_agree() {
     let mut clip = one_bar_kick("a");
     clip.bars = 4;
     clip.lanes = vec![engine::pattern::LaneTrack {
-        lane: Lane::Bass808,
+        lane: Lane::Sub,
         notes: (0..4)
             .map(|bar| Note {
                 start_tick: bar * PPQ * 4,

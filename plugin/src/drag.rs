@@ -949,6 +949,7 @@ mod tests {
             part: Part::Drums,
             artist_id: "trap".into(),
             seed: 7,
+            song_seed: 7,
             bars: 1,
             bpm: 140.0,
             time_sig_num: 4,

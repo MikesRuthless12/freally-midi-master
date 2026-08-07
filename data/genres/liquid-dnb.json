@@ -350,5 +350,8 @@
         1
       ]
     }
+  },
+  "kit": {
+    "preview": "dnb-default"
   }
 }

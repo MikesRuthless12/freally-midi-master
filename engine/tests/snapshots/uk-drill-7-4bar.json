@@ -3,6 +3,7 @@
   "part": "drums",
   "artistId": "uk-drill",
   "seed": "7",
+  "songSeed": "7",
   "bars": 4,
   "bpm": 140.0,
   "timeSigNum": 4,
@@ -652,7 +653,143 @@
       ]
     },
     {
-      "lane": "bass808",
+      "lane": "rim",
+      "notes": [
+        {
+          "startTick": 1440,
+          "lenTicks": 259,
+          "pitch": 37,
+          "vel": 19,
+          "modelVel": 22
+        },
+        {
+          "startTick": 2179,
+          "lenTicks": 221,
+          "pitch": 37,
+          "vel": 22,
+          "modelVel": 20
+        },
+        {
+          "startTick": 4579,
+          "lenTicks": 221,
+          "pitch": 37,
+          "vel": 19,
+          "modelVel": 22
+        },
+        {
+          "startTick": 5059,
+          "lenTicks": 221,
+          "pitch": 37,
+          "vel": 22,
+          "modelVel": 20
+        },
+        {
+          "startTick": 5280,
+          "lenTicks": 259,
+          "pitch": 37,
+          "vel": 23,
+          "modelVel": 22
+        },
+        {
+          "startTick": 10339,
+          "lenTicks": 221,
+          "pitch": 37,
+          "vel": 23,
+          "modelVel": 22
+        },
+        {
+          "startTick": 10819,
+          "lenTicks": 221,
+          "pitch": 37,
+          "vel": 22,
+          "modelVel": 21
+        },
+        {
+          "startTick": 11299,
+          "lenTicks": 221,
+          "pitch": 37,
+          "vel": 21,
+          "modelVel": 19
+        },
+        {
+          "startTick": 14659,
+          "lenTicks": 221,
+          "pitch": 37,
+          "vel": 21,
+          "modelVel": 22
+        },
+        {
+          "startTick": 14880,
+          "lenTicks": 259,
+          "pitch": 37,
+          "vel": 20,
+          "modelVel": 19
+        }
+      ]
+    },
+    {
+      "lane": "woodblock",
+      "notes": [
+        {
+          "startTick": 3139,
+          "lenTicks": 221,
+          "pitch": 76,
+          "vel": 24,
+          "modelVel": 22
+        },
+        {
+          "startTick": 3619,
+          "lenTicks": 221,
+          "pitch": 76,
+          "vel": 23,
+          "modelVel": 22
+        },
+        {
+          "startTick": 5539,
+          "lenTicks": 221,
+          "pitch": 76,
+          "vel": 20,
+          "modelVel": 21
+        },
+        {
+          "startTick": 6240,
+          "lenTicks": 259,
+          "pitch": 76,
+          "vel": 20,
+          "modelVel": 20
+        },
+        {
+          "startTick": 6979,
+          "lenTicks": 221,
+          "pitch": 76,
+          "vel": 19,
+          "modelVel": 20
+        },
+        {
+          "startTick": 9120,
+          "lenTicks": 259,
+          "pitch": 76,
+          "vel": 20,
+          "modelVel": 20
+        },
+        {
+          "startTick": 10339,
+          "lenTicks": 221,
+          "pitch": 76,
+          "vel": 21,
+          "modelVel": 22
+        },
+        {
+          "startTick": 13699,
+          "lenTicks": 221,
+          "pitch": 76,
+          "vel": 21,
+          "modelVel": 22
+        }
+      ]
+    },
+    {
+      "lane": "sub",
       "notes": [
         {
           "startTick": 1440,

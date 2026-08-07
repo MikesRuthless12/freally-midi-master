@@ -55,6 +55,12 @@ struct GenerateArgs {
     bars: Option<u16>,
     #[serde(default)]
     seed: Option<String>,
+    /// The **record's** seed, carried between parts (TASK-141).
+    ///
+    /// ⚠ Absent means "this generation is its own record", which is the
+    /// pre-TASK-141 behaviour and is what a preset or an old project sends.
+    #[serde(default)]
+    song_seed: Option<String>,
     /// The mood to generate in. Absent is "Any" — see [`generate`].
     #[serde(default)]
     mood: Option<String>,
@@ -418,6 +424,14 @@ pub fn dispatch(
             // knowing about them. Taking the page's word here would delete a
             // producer's whole kit on the next artist change.
             next.one_shots = state::with(session, |s| s.one_shots.clone()).unwrap_or_default();
+            // ⛔ **And the sample library, for exactly the same reason.** It was
+            // added beside `one_shots` and did not inherit this: the page never
+            // sends `sampleFolders` — nothing in `src/` mentions it — so every
+            // save wiped the producer's library, and it came back only if the
+            // explorer panel happened to be open and polling. Add a folder,
+            // close the panel, change artist, save: gone.
+            next.sample_folders =
+                state::with(session, |s| s.sample_folders.clone()).unwrap_or_default();
 
             state::write(session, next);
             Ok(Value::Null)
@@ -489,6 +503,22 @@ fn generate(args: &GenerateArgs, host: &HostSession, auto_sync: bool) -> Result<
         _ => fresh_seed(),
     };
 
+    // ⛔ **Resolved HERE, before anything else reads a seed.** The record
+    // decides the key, the scale and which authored mode is picked — all of
+    // which are properties of the song rather than of this take. It used to be
+    // resolved ten lines below the session context, so both were built from the
+    // take and the song seed reached only `parts::render`.
+    //
+    // An absent `songSeed` means "this generation is its own record", which is
+    // exactly the pre-TASK-141 behaviour — so an old project, a preset, or a
+    // hand-written payload all keep generating what they always did.
+    let song_seed = match &args.song_seed {
+        Some(text) if !text.is_empty() => text
+            .parse::<u64>()
+            .map_err(|_| format!("`{text}` is not a song seed"))?,
+        _ => seed,
+    };
+
     let model = dataset::model(&args.style_id)?;
 
     // ⛔ **The mode is applied before anything reads the model, and that
@@ -504,7 +534,11 @@ fn generate(args: &GenerateArgs, host: &HostSession, auto_sync: bool) -> Result<
     // was not re-rolled.
     let (model, mood) = match args.mood.as_deref().map(str::trim) {
         Some(name) if !name.is_empty() => (modes::apply(&model, name)?, Some(name.to_owned())),
-        _ => match modes::pick(&model, seed) {
+        // ⚠ The **record's** seed: a mode is a partial override of the model,
+        // including the `session` block it may retune the key or tempo in. A
+        // take that picked its own mode would put two parts of one record in
+        // two different kinds of record.
+        _ => match modes::pick(&model, song_seed) {
             Some(name) => (modes::apply(&model, &name)?, Some(name)),
             // The common case today: eleven of the shipped genres author no
             // modes at all, and a model with none generates exactly as before.
@@ -524,12 +558,30 @@ fn generate(args: &GenerateArgs, host: &HostSession, auto_sync: bool) -> Result<
         overrides.bars = Some(bars.clamp(1, MAX_BARS));
     }
 
-    let ctx = host.session_for(&model, &overrides, seed, auto_sync);
+    // ⛔⛔ **The session is built from the RECORD, not the take, and getting
+    // this wrong meant TASK-141 delivered nothing.** `session_for` samples
+    // `key_root` and `scale` off its seed — so with the take here, pressing
+    // Generate on the melody moved the key while the page dutifully carried the
+    // song seed, and the melody was written against a progression in a
+    // different key from the chords on screen. Eight of eight fresh takes moved
+    // key or scale. `parts.rs` says the song seed owns "key, tempo and the
+    // harmonic plan"; it owned none of them.
+    let ctx = host.session_for(&model, &overrides, song_seed, auto_sync);
 
     // The dependency order between the five parts lives in `engine::parts` —
     // Song Mode builds every section through the same function, so there is one
     // copy of it rather than two that can drift.
-    let lanes = parts::render(&model, &ctx, seed, part);
+    // ⛔ **Bound once and reused, never spelled twice.** The pattern below used
+    // to write `song_seed: seed` — the *take* into the *record* field — while
+    // rendering from the right pair. Press 1 worked by coincidence, press 2
+    // rendered correctly and reported the wrong record, and every press after
+    // that joined a different one. That is precisely the defect TASK-141
+    // exists to fix, reintroduced by two spellings of one pair.
+    let seeds = parts::Seeds {
+        song: song_seed,
+        part: seed,
+    };
+    let lanes = parts::render(&model, &ctx, seeds, part);
 
     if parts::is_silent(&lanes) {
         // A style whose 808 *is* the bassline authors no separate bass lane on
@@ -556,7 +608,10 @@ fn generate(args: &GenerateArgs, host: &HostSession, auto_sync: bool) -> Result<
         id: format!("{}-{seed}", model.id),
         part,
         artist_id: model.id.clone(),
-        seed,
+        // Both from the pair that was actually rendered from, so a pattern
+        // cannot claim seeds it was not built with.
+        seed: seeds.part,
+        song_seed: seeds.song,
         bars: ctx.bars,
         bpm: ctx.bpm,
         time_sig_num: ctx.time_sig_num,
@@ -1018,6 +1073,60 @@ mod tests {
 
     fn host() -> HostSession {
         HostSession::observed_for_test(Some(92.0), 4, 4)
+    }
+
+    #[test]
+    fn the_record_decides_the_key_and_the_scale_not_the_take() {
+        // ⛔⛔ **This is the defect that made TASK-141 deliver nothing, and no
+        // engine test could see it.** `session_for` samples `key_root` and
+        // `scale` off its seed, and the session was being built from the
+        // **take** — so pressing Generate on the melody moved the key out from
+        // under the chords while the page dutifully carried the song seed. The
+        // melody was then written against a progression in a different key from
+        // the clip on screen: individually correct, and never written against
+        // each other.
+        //
+        // ⚠ Every test in `engine/tests/arrange.rs` passes
+        // `SessionContext::default()`, so the context is never derived from a
+        // seed there. The bridge is the only place this is observable.
+        let ask = |part: &str, take: &str, record: Option<&str>| {
+            let mut args = json!({
+                "request": { "styleId": "trap", "part": part, "seed": take }
+            });
+            if let Some(record) = record {
+                args["request"]["songSeed"] = json!(record);
+            }
+            let reply =
+                dispatch(&request("generate_pattern", args), &host()).expect("trap generates");
+            serde_json::from_value::<Pattern>(reply).expect("a pattern")
+        };
+
+        // One record, four different takes: the key and the scale must not move.
+        let first = ask("chords", "111", None);
+        for take in ["222", "333", "444"] {
+            let joined = ask("melody", take, Some(&first.song_seed.to_string()));
+            assert_eq!(
+                (joined.key_root, joined.scale),
+                (first.key_root, first.scale),
+                "take {take} moved the key out from under the record"
+            );
+            assert_eq!(
+                joined.song_seed, first.song_seed,
+                "the record must survive the round trip"
+            );
+        }
+
+        // And a different record is allowed to be a different key — otherwise
+        // the above would pass with the song seed ignored entirely.
+        let mut moved = false;
+        for record in ["9001", "9002", "9003", "9004"] {
+            let other = ask("chords", "111", Some(record));
+            if (other.key_root, other.scale) != (first.key_root, first.scale) {
+                moved = true;
+                break;
+            }
+        }
+        assert!(moved, "a new record must be able to pick a new key");
     }
 
     /// The cases below predate session state and say nothing about it, so they

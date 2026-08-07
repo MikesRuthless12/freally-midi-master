@@ -67,13 +67,18 @@ describe('the sliders', () => {
     const stems = stemsFor(
       [
         { lane: 'kick', notes: [note(0, 36, 120)] },
-        { lane: 'bass808', notes: [note(0, 24, 90)] },
+        { lane: 'sub', notes: [note(0, 24, 90)] },
       ],
       xOf,
     );
     expect(new Set(stems.map((s) => s.x)).size).toBe(2);
     // Two lanes, two sliders, and each writes back to its own.
-    expect(stems.map((s) => s.lane)).toEqual(['bass808', 'kick']);
+    //
+    // ⚠ The order is `localeCompare` on the lane *identifier* — a determinism
+    // tiebreak so stems never jump between renders, not a musical ordering. It
+    // read `['bass808', 'kick']` until that lane was renamed `sub`, which sorts
+    // the other side of `kick`. Nothing about the behaviour changed.
+    expect(stems.map((s) => s.lane)).toEqual(['kick', 'sub']);
   });
 
   it('grabs the nearest cap, and nothing at all from far away', () => {

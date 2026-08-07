@@ -342,5 +342,8 @@
       ]
     },
     "susSubstitutionProb": 0.15
+  },
+  "kit": {
+    "preview": "club-default"
   }
 }

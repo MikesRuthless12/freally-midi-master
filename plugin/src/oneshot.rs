@@ -33,8 +33,8 @@ use std::sync::{Arc, Mutex};
 use engine::pattern::Lane;
 use serde::Serialize;
 
+use crate::audio::import;
 use crate::audio::kit::{Kit, OneShot};
-use crate::audio::{import, preview_kit};
 use crate::shared::KitHandoff;
 use crate::state::SessionStore;
 
@@ -175,8 +175,12 @@ impl OneShots {
     /// preview and got the stock one in the exported wav — the plugin telling
     /// them one thing and writing another, which is the readout-that-lies
     /// failure this project keeps finding.
-    pub fn current_kit(&self) -> Option<Arc<Kit>> {
-        let base = preview_kit()?;
+    /// ⚠ **Takes the model, because the base kit is the model's** (TASK-140/#23).
+    /// It used to resolve `preview_kit()` — the trap kit — for every artist
+    /// alive, so a drill or country producer exported trap samples. Same class
+    /// of bug as the one the doc above records, one layer further out.
+    pub fn current_kit(&self, model_id: &str) -> Option<Arc<Kit>> {
+        let base = crate::audio::kit_for_model(model_id)?;
         let map = self.assigned.lock().ok()?;
         Some(Arc::new(base.with_one_shots(&map)))
     }
@@ -287,7 +291,7 @@ fn pick_file() -> Option<std::path::PathBuf> {
 /// both can name remote resources and both bypass the normalisation that would
 /// otherwise make a UNC path visible. A mapped drive letter still works, which
 /// is how a producer with a network sample library actually refers to it.
-fn refuse_remote(path: &Path) -> Result<(), String> {
+pub(crate) fn refuse_remote(path: &Path) -> Result<(), String> {
     use std::path::{Component, Prefix};
 
     // ⛔ **Classified from the STRING as well as the components, because a
@@ -384,8 +388,14 @@ fn apply(
             .collect();
     });
 
-    let Some(base) = preview_kit() else {
-        // No shipped kit means nothing to build over, and the plugin is already
+    // ⛔ The **model's** kit, not the shipped trap one. This is the path that
+    // hands the audio thread what it plays, so resolving `preview_kit()` here
+    // is what made every artist sound like trap however they were authored.
+    let model_id = crate::state::with(session, |s| s.selected_id.clone())
+        .flatten()
+        .unwrap_or_default();
+    let Some(base) = crate::audio::kit_for_model(&model_id) else {
+        // No kit at all means nothing to build over, and the plugin is already
         // silent for that reason — `preview_kit` logs it once.
         return;
     };
@@ -397,6 +407,11 @@ fn apply(
 #[cfg(test)]
 mod tests {
     use super::*;
+    // ⚠ Imported here rather than at the top of the file: since the base kit
+    // became the *model's* (TASK-140/#23) nothing outside these tests resolves
+    // the shipped trap kit directly, and a top-level import fails
+    // `clippy -D warnings` on the lib build.
+    use crate::audio::preview_kit;
 
     pub(super) fn one_shot(name: &str, level: f32) -> OneShot {
         OneShot {
@@ -469,11 +484,18 @@ mod tests {
     }
 
     #[test]
-    fn a_lane_the_shipped_kit_never_covered_becomes_playable() {
-        // ⚠ `Lane::Snap` is in the drum generator's lane list and has never had
-        // a pad, so it has always rendered silence. Assigning one is the only
-        // way to hear it, and that falls out of this rather than being built.
-        let base = preview_kit().unwrap();
+    fn a_lane_the_kit_does_not_cover_becomes_playable() {
+        // Assigning a one-shot to a lane with **no base pad** is its own path:
+        // there is nothing to inherit gain or a root note from, so both take
+        // their defaults rather than the base pad's values.
+        //
+        // ⚠ The base kit has `Snap` removed rather than being assumed to lack
+        // it. This test used to read "a lane the shipped kit never covered",
+        // which was true until TASK-140 gave every lane a default — but the
+        // behaviour being tested was never about the shipped kit. A user kit,
+        // or a genre kit that omits a lane, reaches exactly this path.
+        let mut base = preview_kit().unwrap().as_ref().clone();
+        base.pads.retain(|pad| pad.lane != Lane::Snap);
         assert_eq!(base.pad_for(Lane::Snap), None, "the premise of this test");
 
         let assigned = BTreeMap::from([(Lane::Snap, one_shot("snap.wav", 0.5))]);

@@ -39,7 +39,7 @@ timingJitterMs?: { [key in Lane]?: number }, };
 /**
  * A voice within a pattern. Drum parts use several; melodic parts use one.
  */
-export type Lane = "kick" | "snare" | "clap" | "closedHat" | "openHat" | "rim" | "snap" | "perc" | "bass808" | "melody" | "counter" | "bass" | "chords";
+export type Lane = "kick" | "snare" | "offSnare" | "clap" | "closedHat" | "openHat" | "ride" | "crash" | "tom" | "rim" | "snap" | "perc" | "shaker" | "tambourine" | "cowbell" | "woodblock" | "sub" | "melody" | "counter" | "bass" | "chords";
 
 export type LaneTrack = { lane: Lane, notes: Array<Note>, };
 
@@ -92,7 +92,27 @@ export type Pattern = { id: string, part: Part,
 /**
  * The style model this came from — an artist or a genre archetype.
  */
-artistId: string, seed: string, bars: number, bpm: number, timeSigNum: number, timeSigDen: number, 
+artistId: string, 
+/**
+ * **The take's seed.** What rerolls on every press of Generate.
+ */
+seed: string, 
+/**
+ * **The record's seed** — the harmonic plan every part is written against
+ * (TASK-141).
+ *
+ * ⛔ **The page has to hand this back on the next Generate**, or the five
+ * parts stop agreeing. That is the whole mechanism: the take rerolls, the
+ * record is carried. A caller that ignores it gets the pre-TASK-141
+ * behaviour, where Generate on Drums and then Generate on Melody drew two
+ * unrelated seeds and wrote the melody against a harmony the chords tab
+ * had never seen.
+ *
+ * ⚠ Defaults to [`Self::seed`] when absent, so a project saved before this
+ * existed reopens as one seed for everything — which is exactly what it
+ * meant.
+ */
+songSeed: string, bars: number, bpm: number, timeSigNum: number, timeSigDen: number, 
 /**
  * Pitch class of the key root, 0 = C.
  */

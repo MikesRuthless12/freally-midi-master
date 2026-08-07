@@ -113,7 +113,13 @@ const handlers: Record<string, Handler> = {
   generate_pattern: (args): Pattern => {
     const request = (
       args as {
-        request?: { styleId?: string; bars?: number; seed?: string; part?: Part };
+        request?: {
+          styleId?: string;
+          bars?: number;
+          seed?: string;
+          songSeed?: string;
+          part?: Part;
+        };
       }
     )?.request;
     const bars = request?.bars ?? 4;
@@ -140,6 +146,16 @@ const handlers: Record<string, Handler> = {
       // The seed is echoed back so the chip shows what was used, and a fixed
       // one when none was asked for keeps the fixture reproducible.
       seed: request?.seed && request.seed !== '' ? request.seed : '424242',
+      // ⛔ **Echoes the requested *song* seed, not the take** (TASK-141), which
+      // is what the real bridge does. Mirroring `seed` here would have made the
+      // carry look like it worked no matter what the page sent — the mock
+      // agreeing with a bug is worse than no mock at all.
+      songSeed:
+        request?.songSeed && request.songSeed !== ''
+          ? request.songSeed
+          : request?.seed && request.seed !== ''
+            ? request.seed
+            : '424242',
       bars,
       bpm: 140,
       timeSigNum: 4,
@@ -393,6 +409,7 @@ const handlers: Record<string, Handler> = {
         id: patternId,
         // Something a spec can see, without a second note generator here.
         seed: `${Number(was.seed) + 1}`,
+        songSeed: `${Number(was.seed) + 1}`,
       };
       refs[part] = { patternId };
     }
@@ -508,6 +525,7 @@ const handlers: Record<string, Handler> = {
   preset_load: () => ({
     selectedId: 'trap',
     seed: '1404',
+    songSeed: '1404',
     bars: 8,
     pins: { bpm: null, keyRoot: null, scale: null, swing: null },
   }),

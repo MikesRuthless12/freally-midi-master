@@ -206,13 +206,21 @@
   "lanes": {
     "kick": "Trống bass",
     "snare": "Trống snare",
+    "offSnare": "Snare lệch",
     "clap": "Vỗ tay",
     "closedHat": "Hi-hat đóng",
     "openHat": "Hi-hat mở",
+    "ride": "Ride",
+    "crash": "Crash",
+    "tom": "Tom",
     "rim": "Vành trống",
     "snap": "Búng tay",
     "perc": "Bộ gõ",
-    "bass808": "808",
+    "shaker": "Shaker",
+    "tambourine": "Trống lục lạc",
+    "cowbell": "Chuông bò",
+    "woodblock": "Mõ gỗ",
+    "sub": "Sub",
     "melody": "Giai điệu",
     "counter": "Giai điệu đối",
     "bass": "Đường bass",
@@ -307,5 +315,39 @@
     "dragHint": "Kéo một phần thẳng vào track trong DAW của bạn.",
     "preparing": "Đang chuẩn bị…",
     "rendering": "Đang kết xuất… {{percent}}%"
+  },
+  "shortcuts": {
+    "title": "Phím tắt",
+    "groups": {
+      "transport": "Điều khiển",
+      "generate": "Tạo",
+      "editing": "Chỉnh sửa",
+      "notes": "Nốt",
+      "drums": "Lưới trống"
+    },
+    "keys": {
+      "toggleRail": "Hiện hoặc ẩn bảng bên phải",
+      "search": "Tìm trong danh sách",
+      "reroll": "Tạo lại đoạn clip",
+      "selectAll": "Chọn tất cả",
+      "copy": "Sao chép",
+      "cut": "Cắt",
+      "paste": "Dán",
+      "undo": "Hoàn tác",
+      "duplicate": "Nhân bản",
+      "delete": "Xoá",
+      "deselect": "Bỏ chọn",
+      "transpose": "Dịch giọng một nửa cung",
+      "transposeOctave": "Dịch giọng một quãng tám",
+      "nudge": "Dịch theo thời gian",
+      "stretch": "Kéo dài gấp đôi",
+      "compress": "Nén còn một nửa",
+      "triplet": "Chùm ba ở ô này",
+      "quintuplet": "Chùm năm ở ô này",
+      "septuplet": "Chùm bảy ở ô này",
+      "cloneBar": "Chép ô nhịp 1 sang ô nhịp này",
+      "shortcuts": "Hiện bảng này",
+      "play": "Phát hoặc tạm dừng"
+    }
   }
 }

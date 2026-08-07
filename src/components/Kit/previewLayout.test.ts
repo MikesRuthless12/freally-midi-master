@@ -33,6 +33,7 @@ function pattern(extra: Partial<Pattern> = {}): Pattern {
     part: 'drums',
     artistId: 'trap',
     seed: '7',
+    songSeed: '7',
     bars: 4,
     bpm: 140,
     timeSigNum: 4,

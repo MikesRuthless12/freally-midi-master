@@ -206,13 +206,21 @@
   "lanes": {
     "kick": "Basdrum",
     "snare": "Snaredrum",
+    "offSnare": "Off-snare",
     "clap": "Handklap",
     "closedHat": "Gesloten hi-hat",
     "openHat": "Open hi-hat",
+    "ride": "Ride",
+    "crash": "Crash",
+    "tom": "Tom",
     "rim": "Randslag",
     "snap": "Vingerknip",
     "perc": "Percussie",
-    "bass808": "808",
+    "shaker": "Shaker",
+    "tambourine": "Tamboerijn",
+    "cowbell": "Koebel",
+    "woodblock": "Houtblok",
+    "sub": "Sub",
     "melody": "Melodie",
     "counter": "Tegenmelodie",
     "bass": "Baslijn",
@@ -307,5 +315,39 @@
     "dragHint": "Sleep een part rechtstreeks naar een spoor in je DAW.",
     "preparing": "Wordt klaargemaakt…",
     "rendering": "Renderen… {{percent}}%"
+  },
+  "shortcuts": {
+    "title": "Sneltoetsen",
+    "groups": {
+      "transport": "Transport",
+      "generate": "Genereren",
+      "editing": "Bewerken",
+      "notes": "Noten",
+      "drums": "Drumraster"
+    },
+    "keys": {
+      "toggleRail": "Rechterpaneel tonen of verbergen",
+      "search": "Zoek in de catalogus",
+      "reroll": "Clip opnieuw genereren",
+      "selectAll": "Alles selecteren",
+      "copy": "Kopiëren",
+      "cut": "Knippen",
+      "paste": "Plakken",
+      "undo": "Ongedaan maken",
+      "duplicate": "Dupliceren",
+      "delete": "Verwijderen",
+      "deselect": "Selectie opheffen",
+      "transpose": "Een halve toon transponeren",
+      "transposeOctave": "Een octaaf transponeren",
+      "nudge": "In de tijd verschuiven",
+      "stretch": "Naar dubbele lengte rekken",
+      "compress": "Naar halve lengte comprimeren",
+      "triplet": "Triool in deze cel",
+      "quintuplet": "Kwintool in deze cel",
+      "septuplet": "Septool in deze cel",
+      "cloneBar": "Maat 1 over deze maat kopiëren",
+      "shortcuts": "Dit paneel tonen",
+      "play": "Afspelen of pauzeren"
+    }
   }
 }

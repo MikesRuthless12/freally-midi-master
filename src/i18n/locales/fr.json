@@ -206,13 +206,21 @@
   "lanes": {
     "kick": "Grosse caisse",
     "snare": "Caisse claire",
+    "offSnare": "Caisse claire off",
     "clap": "Claquement",
     "closedHat": "Charley fermé",
     "openHat": "Charley ouvert",
+    "ride": "Ride",
+    "crash": "Crash",
+    "tom": "Tom",
     "rim": "Cercle",
     "snap": "Claquement de doigts",
     "perc": "Percussion",
-    "bass808": "808",
+    "shaker": "Shaker",
+    "tambourine": "Tambourin",
+    "cowbell": "Cloche à vache",
+    "woodblock": "Bloc de bois",
+    "sub": "Sub",
     "melody": "Mélodie",
     "counter": "Contre-mélodie",
     "bass": "Ligne de basse",
@@ -307,5 +315,39 @@
     "dragHint": "Glissez une partie directement sur une piste de votre STAN.",
     "preparing": "Préparation…",
     "rendering": "Rendu… {{percent}} %"
+  },
+  "shortcuts": {
+    "title": "Raccourcis clavier",
+    "groups": {
+      "transport": "Transport",
+      "generate": "Générer",
+      "editing": "Édition",
+      "notes": "Notes",
+      "drums": "Grille de batterie"
+    },
+    "keys": {
+      "toggleRail": "Afficher ou masquer le panneau droit",
+      "search": "Rechercher dans le catalogue",
+      "reroll": "Regénérer le clip",
+      "selectAll": "Tout sélectionner",
+      "copy": "Copier",
+      "cut": "Couper",
+      "paste": "Coller",
+      "undo": "Annuler",
+      "duplicate": "Dupliquer",
+      "delete": "Supprimer",
+      "deselect": "Désélectionner",
+      "transpose": "Transposer d'un demi-ton",
+      "transposeOctave": "Transposer d'une octave",
+      "nudge": "Décaler dans le temps",
+      "stretch": "Étirer au double",
+      "compress": "Comprimer de moitié",
+      "triplet": "Triolet dans cette case",
+      "quintuplet": "Quintolet dans cette case",
+      "septuplet": "Septolet dans cette case",
+      "cloneBar": "Copier la mesure 1 sur celle-ci",
+      "shortcuts": "Afficher ce panneau",
+      "play": "Lire ou mettre en pause"
+    }
   }
 }

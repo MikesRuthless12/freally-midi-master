@@ -239,7 +239,15 @@ fn lane_domain(lane: Lane) -> &'static str {
         Lane::Rim => "humanize/rim",
         Lane::Snap => "humanize/snap",
         Lane::Perc => "humanize/perc",
-        Lane::Bass808 => "humanize/bass808",
+        Lane::OffSnare => "humanize/offSnare",
+        Lane::Ride => "humanize/ride",
+        Lane::Crash => "humanize/crash",
+        Lane::Tom => "humanize/tom",
+        Lane::Shaker => "humanize/shaker",
+        Lane::Tambourine => "humanize/tambourine",
+        Lane::Cowbell => "humanize/cowbell",
+        Lane::Woodblock => "humanize/woodblock",
+        Lane::Sub => "humanize/bass808",
         Lane::Melody => "humanize/melody",
         Lane::Counter => "humanize/counter",
         Lane::Bass => "humanize/bass",
@@ -786,7 +794,7 @@ mod tests {
             ..Default::default()
         };
         let mut lanes = vec![LaneTrack {
-            lane: Lane::Bass808,
+            lane: Lane::Sub,
             notes: vec![note(0, 240), note(240, 240)],
         }];
         humanize(&mut lanes, &ctx, 12);

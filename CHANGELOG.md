@@ -12,6 +12,58 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added — a real drum kit, a sample browser, and a kit per genre, 2026-08-07
+
+- **⛔ Your drums have more than five lanes now.** Off-snare, ride, crash, tom,
+  shaker, tambourine, cowbell and woodblock join the kick, snare, clap, hats,
+  rim, snap, perc and 808 — sixteen percussion voices, and which of them an
+  artist uses is part of that artist. Fifteen of the shipped models had already
+  been *written* with a percussion block; nothing had ever read it, so UK drill
+  had been asking for a woodblock since the day it was authored and getting
+  silence.
+- **⛔ Every genre gets its own kit.** Eleven families — trap, drill, rage,
+  plugg, boom-bap, country, R&B, club, phonk, drum & bass and pop — each with
+  its own tuning, top end and drive. Boom-bap's ceiling is 8 kHz because that is
+  what an SP-1200 could sample, and that missing top *is* the sound. Drill's sub
+  slides further; rage is distorted on purpose; country is open and undriven.
+  Eight artists had been naming the kit they wanted for months and all of them
+  were playing trap samples.
+- **The 808 lane is called Sub now**, because it is the pitched bass that
+  slides, not the bass drum — and you might load a 606, a 707 or a 909 into it.
+  Your saved projects open exactly as before.
+- **Finger snaps make a sound.** The lane has existed since one-shots shipped
+  and never had a voice.
+- **A keyboard-shortcuts panel**, on **?** or **F1**, grouped by what the
+  shortcuts do. **Space plays and pauses** — which it did not before, anywhere.
+- **⛔ Generate varies the take without changing the record.** Press Generate on
+  the drums, switch to the melody, press it again: you get a different melody,
+  written against the *same* key and chord progression as the drums. Before
+  this, the second press quietly drew an unrelated harmony and the two parts had
+  never been written against each other — they were each correct and did not
+  belong together.
+- **A sample browser** (the plugin's side of it). Add your sample folders once
+  and they come back with the project; browse them, and drop a sample straight
+  onto a drum lane. It reads the waveform for a preview player, and it will not
+  browse outside the folders you added.
+
+### Fixed — 2026-08-07
+
+- **A loop brace you dragged was ignored whenever a second generator was
+  switched on** — which is the default. It worked with one part playing and
+  silently did nothing with two.
+- **Play and Stop were lit or dark at the wrong times.** Generate drums, click
+  the Melody tab, and Play went dark while the drums were armed and would have
+  sounded. Switch every part off and Play stayed lit — pressing it reported
+  playing forever with a marker that never moved.
+- **Clicking a part switch on the Song tab silenced the whole arrangement**,
+  with the timeline still on screen and Play still lit.
+- **The position readout counted the wrong clip.** Four bars of drums beside
+  eight of melody read 1.1 to 5.1 across eight bars of real time.
+- **Loop came back on after reopening the plugin window**, whatever you had set
+  it to.
+- **The KIT and STEMS panels drew over each other in a short window** once the
+  kit grew past thirteen rows.
+
 ### Added — play the generators together, and the 808s slide, 2026-08-06
 
 - **Play several generators at once, or any one alone.** Each generated part

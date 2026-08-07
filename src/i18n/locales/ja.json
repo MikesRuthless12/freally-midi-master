@@ -206,13 +206,21 @@
   "lanes": {
     "kick": "キック",
     "snare": "スネア",
+    "offSnare": "オフスネア",
     "clap": "クラップ",
     "closedHat": "クローズドハット",
     "openHat": "オープンハット",
+    "ride": "ライド",
+    "crash": "クラッシュ",
+    "tom": "タム",
     "rim": "リム",
     "snap": "スナップ",
     "perc": "パーカッション",
-    "bass808": "808",
+    "shaker": "シェイカー",
+    "tambourine": "タンバリン",
+    "cowbell": "カウベル",
+    "woodblock": "ウッドブロック",
+    "sub": "サブ",
     "melody": "メロディ",
     "counter": "カウンターメロディ",
     "bass": "ベースライン",
@@ -307,5 +315,39 @@
     "dragHint": "パートを DAW のトラックへ直接ドラッグできます。",
     "preparing": "準備しています…",
     "rendering": "書き出し中… {{percent}}%"
+  },
+  "shortcuts": {
+    "title": "キーボードショートカット",
+    "groups": {
+      "transport": "トランスポート",
+      "generate": "生成",
+      "editing": "編集",
+      "notes": "ノート",
+      "drums": "ドラムグリッド"
+    },
+    "keys": {
+      "toggleRail": "右パネルの表示切替",
+      "search": "ロスターを検索",
+      "reroll": "クリップを再生成",
+      "selectAll": "すべて選択",
+      "copy": "コピー",
+      "cut": "切り取り",
+      "paste": "貼り付け",
+      "undo": "元に戻す",
+      "duplicate": "複製",
+      "delete": "削除",
+      "deselect": "選択解除",
+      "transpose": "半音移調",
+      "transposeOctave": "オクターブ移調",
+      "nudge": "時間をずらす",
+      "stretch": "2倍に伸ばす",
+      "compress": "半分に縮める",
+      "triplet": "このセルを3連符に",
+      "quintuplet": "このセルを5連符に",
+      "septuplet": "このセルを7連符に",
+      "cloneBar": "1小節目をこの小節に複製",
+      "shortcuts": "このパネルを表示",
+      "play": "再生または一時停止"
+    }
   }
 }

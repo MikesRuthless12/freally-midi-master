@@ -407,5 +407,8 @@
         1
       ]
     }
+  },
+  "kit": {
+    "preview": "plugg-default"
   }
 }

@@ -132,7 +132,7 @@ fn a_counter_riff_808_never_ratchets_out_of_its_register() {
             };
             for seed in 0..200u64 {
                 for track in generate(model, &ctx, seed) {
-                    if track.lane != engine::pattern::Lane::Bass808 {
+                    if track.lane != engine::pattern::Lane::Sub {
                         continue;
                     }
                     for n in &track.notes {

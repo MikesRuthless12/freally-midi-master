@@ -206,13 +206,21 @@
   "lanes": {
     "kick": "Bumbo",
     "snare": "Caixa",
+    "offSnare": "Caixa off",
     "clap": "Palma",
     "closedHat": "Chimbal fechado",
     "openHat": "Chimbal aberto",
+    "ride": "Ride",
+    "crash": "Crash",
+    "tom": "Tom",
     "rim": "Aro",
     "snap": "Estalo",
     "perc": "Percussão",
-    "bass808": "808",
+    "shaker": "Ganzá",
+    "tambourine": "Pandeiro",
+    "cowbell": "Cowbell",
+    "woodblock": "Bloco sonoro",
+    "sub": "Sub",
     "melody": "Melodia",
     "counter": "Contramelodia",
     "bass": "Linha de baixo",
@@ -307,5 +315,39 @@
     "dragHint": "Arraste uma parte direto para uma faixa da sua DAW.",
     "preparing": "Preparando…",
     "rendering": "Renderizando… {{percent}}%"
+  },
+  "shortcuts": {
+    "title": "Atalhos de teclado",
+    "groups": {
+      "transport": "Transporte",
+      "generate": "Gerar",
+      "editing": "Edição",
+      "notes": "Notas",
+      "drums": "Grade de bateria"
+    },
+    "keys": {
+      "toggleRail": "Mostrar ou ocultar o painel direito",
+      "search": "Buscar no catálogo",
+      "reroll": "Gerar o clipe novamente",
+      "selectAll": "Selecionar tudo",
+      "copy": "Copiar",
+      "cut": "Recortar",
+      "paste": "Colar",
+      "undo": "Desfazer",
+      "duplicate": "Duplicar",
+      "delete": "Excluir",
+      "deselect": "Desmarcar",
+      "transpose": "Transpor um semitom",
+      "transposeOctave": "Transpor uma oitava",
+      "nudge": "Deslocar no tempo",
+      "stretch": "Esticar ao dobro",
+      "compress": "Comprimir à metade",
+      "triplet": "Quiáltera de 3 nesta célula",
+      "quintuplet": "Quiáltera de 5 nesta célula",
+      "septuplet": "Quiáltera de 7 nesta célula",
+      "cloneBar": "Copiar o compasso 1 sobre este",
+      "shortcuts": "Mostrar este painel",
+      "play": "Tocar ou pausar"
+    }
   }
 }

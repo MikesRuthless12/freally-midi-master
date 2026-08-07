@@ -395,7 +395,7 @@
     ]
   },
   "kit": {
-    "preview": "trap-default"
+    "preview": "rnb-default"
   },
   "modes": [
     {

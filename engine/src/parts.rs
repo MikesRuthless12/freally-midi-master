@@ -44,10 +44,53 @@ use crate::pattern::{LaneTrack, Part};
 /// purpose. Deciding what an empty part means belongs to the caller — a pattern
 /// request says so to the producer, and Song Mode simply leaves the part out of
 /// the section.
-pub fn render(model: &StyleModel, ctx: &SessionContext, seed: u64, part: Part) -> Vec<LaneTrack> {
-    let mut lanes = generate(model, ctx, seed, part);
-    humanize(&mut lanes, ctx, seed);
+pub fn render(
+    model: &StyleModel,
+    ctx: &SessionContext,
+    seeds: Seeds,
+    part: Part,
+) -> Vec<LaneTrack> {
+    let mut lanes = generate(model, ctx, seeds, part);
+    // The *take's* feel, so two takes of one part breathe differently.
+    humanize(&mut lanes, ctx, seeds.part);
     lanes
+}
+
+/// The two seeds a part is generated from (TASK-141).
+///
+/// ⛔ **This exists because the Defect 2 fix had to give something up.** Defect 2
+/// was *"Generate returns the same beat every press"*, caused by the seed box
+/// echoing the engine's seed and the next press re-sending it. The fix was to
+/// send `null` unless the seed is pinned — but the five parts are only
+/// guaranteed to agree **when they share a seed**, so the ordinary workflow
+/// (Generate on Drums, switch tab, Generate on Melody) drew two unrelated seeds
+/// and wrote the melody against a *different harmonic plan* from the drums.
+///
+/// Two seeds buy both properties at once: a different take on every press, and
+/// every take written against the same record.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct Seeds {
+    /// **The record.** Key, tempo and the harmonic plan — everything the five
+    /// parts have to agree on. Changes when the producer asks for a new record.
+    pub song: u64,
+    /// **The take.** This part's own variation within that record, and its
+    /// feel. Rerolled on every press of Generate.
+    pub part: u64,
+}
+
+impl Seeds {
+    /// Both seeds the same — what a single-seed caller has always meant.
+    ///
+    /// ⚠ **This is the compatibility shape, and it is exactly correct.** Every
+    /// existing caller, every saved project written before TASK-141, and
+    /// `arrange::render_section` all mean "one seed for everything", which is
+    /// the case where the two-seed design collapses back to the old behaviour.
+    pub fn shared(seed: u64) -> Self {
+        Self {
+            song: seed,
+            part: seed,
+        }
+    }
 }
 
 /// The notes, before feel is applied.
@@ -56,25 +99,63 @@ pub fn render(model: &StyleModel, ctx: &SessionContext, seed: u64, part: Part) -
 /// lane. Private: Song Mode needs the *dependencies* shared across a section
 /// rather than one part at a time, so it has its own renderer
 /// (`arrange::render_section`) and this has exactly one caller.
-fn generate(model: &StyleModel, ctx: &SessionContext, seed: u64, part: Part) -> Vec<LaneTrack> {
+/// ⛔ **Which seed each line takes is the whole design, so read this before
+/// changing one.**
+///
+/// - **Dependencies take the song seed.** The harmony every part is written
+///   against, and the reference kit a melodic line phrases around, belong to
+///   the *record*. That is what makes five parts generated at five different
+///   moments still belong to one another.
+/// - **The part's own generator takes the part seed.** That is the take, and it
+///   is what rerolls on every press.
+///
+/// ⚠ **`Part::Chords` takes the SONG seed, and that is not an oversight.** The
+/// harmonic plan *is* the record — if it rolled per take, every other part
+/// would be written against a progression that is no longer on screen, which is
+/// the exact defect this task exists to fix. A new progression comes from
+/// asking for a new record, not from rerolling the chords tab.
+///
+/// ⛔ **The `kit` a melody phrases around is `drums::generate` at the SONG
+/// seed** — a canonical reference kit, deliberately *not* the drum pattern
+/// currently on screen (which was generated at its own part seed). Two other
+/// answers were considered and rejected: handing the session's real parts in
+/// would stop `render` being a pure function of its seeds, which is what makes
+/// it reproducible from a saved seed at all; and anchoring drums to the song
+/// seed would stop the drums varying per press, which is the defect Mike
+/// reported in the first place. Melodies key off the kick's *placement
+/// grammar*, which is a property of the model and the song seed rather than of
+/// one particular take.
+///
+/// ⚠ **`arrange::render_section` solves the same problem differently and must
+/// stay that way.** Song Mode renders all five parts together, so it can share
+/// one already-generated kit through `Carry` — the real one the section plays.
+/// Its own doc records what happened when an earlier cut called `parts::render`
+/// per part with a per-part seed: *"both clips were individually correct and
+/// the pair had never been written against each other."* That is the failure
+/// this must not reintroduce, and sharing the song seed is what prevents it.
+fn generate(model: &StyleModel, ctx: &SessionContext, seeds: Seeds, part: Part) -> Vec<LaneTrack> {
+    let Seeds { song, part: take } = seeds;
     match part {
-        Part::Drums => drums::generate(model, ctx, seed),
-        Part::Chords => vec![chords::generate(model, ctx, seed).track],
+        Part::Drums => drums::generate(model, ctx, take),
+        Part::Chords => vec![chords::generate(model, ctx, song).track],
         Part::Melody => {
-            let harmony = chords::generate(model, ctx, seed);
-            let kit = drums::generate(model, ctx, seed);
-            vec![melody::generate(model, ctx, seed, &harmony, &kit)]
+            let harmony = chords::generate(model, ctx, song);
+            let kit = drums::generate(model, ctx, song);
+            vec![melody::generate(model, ctx, take, &harmony, &kit)]
         }
         Part::Counter => {
-            let harmony = chords::generate(model, ctx, seed);
-            let kit = drums::generate(model, ctx, seed);
-            let lead = melody::generate(model, ctx, seed, &harmony, &kit);
-            vec![counter::generate(model, ctx, seed, &harmony, &lead)]
+            let harmony = chords::generate(model, ctx, song);
+            let kit = drums::generate(model, ctx, song);
+            // ⚠ The lead the counter answers is the **song's** lead, not this
+            // take's. A countermelody written against a melody nobody has
+            // generated yet still has to sit against the one they will.
+            let lead = melody::generate(model, ctx, song, &harmony, &kit);
+            vec![counter::generate(model, ctx, take, &harmony, &lead)]
         }
         Part::Bass => {
-            let harmony = chords::generate(model, ctx, seed);
-            let kit = drums::generate(model, ctx, seed);
-            vec![bass::generate(model, ctx, seed, &harmony, &kit)]
+            let harmony = chords::generate(model, ctx, song);
+            let kit = drums::generate(model, ctx, song);
+            vec![bass::generate(model, ctx, take, &harmony, &kit)]
         }
     }
 }

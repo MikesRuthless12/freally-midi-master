@@ -131,6 +131,14 @@ type UiState = {
   togglePart: (part: Part) => void;
   /** Turn the loop on or off (TASK-138). */
   toggleLooping: () => void;
+  /**
+   * Set it outright, for hydrating from the plugin on mount.
+   *
+   * ⚠ A toggle cannot hydrate: it flips whatever the page happened to default
+   * to, so restoring a known value needs to state it. The plugin outlives the
+   * webview and Loop is its state, not the page.
+   */
+  setLooping: (on: boolean) => void;
   toggleRightRail: () => void;
   /** Called when the viewport crosses WIDE_BREAKPOINT. */
   setWide: (wide: boolean) => void;
@@ -254,6 +262,7 @@ export const useUi = create<UiState>((set) => ({
 
   setActiveTab: (activeTab) => set({ activeTab }),
   toggleLooping: () => set((s) => ({ looping: !s.looping })),
+  setLooping: (on) => set({ looping: on }),
   togglePart: (part) =>
     set((s) => ({
       partsOff: s.partsOff.includes(part)

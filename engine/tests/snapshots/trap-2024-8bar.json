@@ -3,6 +3,7 @@
   "part": "drums",
   "artistId": "trap",
   "seed": "2024",
+  "songSeed": "2024",
   "bars": 8,
   "bpm": 140.0,
   "timeSigNum": 4,
@@ -1413,7 +1414,94 @@
       ]
     },
     {
-      "lane": "bass808",
+      "lane": "rim",
+      "notes": [
+        {
+          "startTick": 4800,
+          "lenTicks": 259,
+          "pitch": 37,
+          "vel": 93,
+          "modelVel": 83
+        },
+        {
+          "startTick": 10560,
+          "lenTicks": 259,
+          "pitch": 37,
+          "vel": 76,
+          "modelVel": 84
+        },
+        {
+          "startTick": 19939,
+          "lenTicks": 221,
+          "pitch": 37,
+          "vel": 84,
+          "modelVel": 81
+        },
+        {
+          "startTick": 25699,
+          "lenTicks": 221,
+          "pitch": 37,
+          "vel": 79,
+          "modelVel": 79
+        },
+        {
+          "startTick": 26880,
+          "lenTicks": 259,
+          "pitch": 37,
+          "vel": 75,
+          "modelVel": 88
+        }
+      ]
+    },
+    {
+      "lane": "snap",
+      "notes": [
+        {
+          "startTick": 1920,
+          "lenTicks": 259,
+          "pitch": 75,
+          "vel": 86,
+          "modelVel": 83
+        },
+        {
+          "startTick": 13920,
+          "lenTicks": 259,
+          "pitch": 75,
+          "vel": 80,
+          "modelVel": 80
+        },
+        {
+          "startTick": 14659,
+          "lenTicks": 221,
+          "pitch": 75,
+          "vel": 82,
+          "modelVel": 79
+        },
+        {
+          "startTick": 18979,
+          "lenTicks": 221,
+          "pitch": 75,
+          "vel": 76,
+          "modelVel": 81
+        },
+        {
+          "startTick": 26400,
+          "lenTicks": 259,
+          "pitch": 75,
+          "vel": 94,
+          "modelVel": 86
+        },
+        {
+          "startTick": 29059,
+          "lenTicks": 221,
+          "pitch": 75,
+          "vel": 74,
+          "modelVel": 82
+        }
+      ]
+    },
+    {
+      "lane": "sub",
       "notes": [
         {
           "startTick": 0,

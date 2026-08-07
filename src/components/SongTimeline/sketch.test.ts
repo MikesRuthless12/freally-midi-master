@@ -20,6 +20,7 @@ function clip(over: Partial<Pattern> = {}): Pattern {
     part: 'drums',
     artistId: 'trap',
     seed: '1',
+    songSeed: '1',
     bars: 1,
     bpm: 140,
     timeSigNum: 4,

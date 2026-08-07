@@ -206,13 +206,21 @@
   "lanes": {
     "kick": "Kick",
     "snare": "Snare",
+    "offSnare": "Off snare",
     "clap": "Clap",
     "closedHat": "Closed hat",
     "openHat": "Open hat",
+    "ride": "Ride",
+    "crash": "Crash",
+    "tom": "Tom",
     "rim": "Rim",
     "snap": "Snap",
     "perc": "Perc",
-    "bass808": "808",
+    "shaker": "Shaker",
+    "tambourine": "Tambourine",
+    "cowbell": "Cowbell",
+    "woodblock": "Woodblock",
+    "sub": "Sub",
     "melody": "Melody",
     "counter": "Countermelody",
     "bass": "Bassline",
@@ -307,5 +315,39 @@
     "dragHint": "Drag a part straight onto a track in your DAW.",
     "preparing": "Getting it ready…",
     "rendering": "Rendering… {{percent}}%"
+  },
+  "shortcuts": {
+    "title": "Keyboard shortcuts",
+    "groups": {
+      "transport": "Transport",
+      "generate": "Generate",
+      "editing": "Editing",
+      "notes": "Notes",
+      "drums": "Drum grid"
+    },
+    "keys": {
+      "toggleRail": "Show or hide the right rail",
+      "search": "Search the roster",
+      "reroll": "Re-roll the selected clip",
+      "selectAll": "Select all",
+      "copy": "Copy",
+      "cut": "Cut",
+      "paste": "Paste",
+      "undo": "Undo",
+      "duplicate": "Duplicate",
+      "delete": "Delete",
+      "deselect": "Deselect",
+      "transpose": "Transpose a semitone",
+      "transposeOctave": "Transpose an octave",
+      "nudge": "Nudge in time",
+      "stretch": "Stretch to double length",
+      "compress": "Compress to half length",
+      "triplet": "Triplet in this cell",
+      "quintuplet": "Quintuplet in this cell",
+      "septuplet": "Septuplet in this cell",
+      "cloneBar": "Copy bar 1 over this bar",
+      "shortcuts": "Show this panel",
+      "play": "Play or pause"
+    }
   }
 }

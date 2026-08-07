@@ -432,5 +432,8 @@
     "borrowed": {
       "V": 0.2
     }
+  },
+  "kit": {
+    "preview": "trap-default"
   }
 }

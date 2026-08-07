@@ -348,5 +348,8 @@
       8
     ],
     "susOrDimProb": 0.1
+  },
+  "kit": {
+    "preview": "trap-default"
   }
 }

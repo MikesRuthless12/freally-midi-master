@@ -180,5 +180,8 @@
       4
     ],
     "susSubstitutionProb": 0.26
+  },
+  "kit": {
+    "preview": "rnb-default"
   }
 }

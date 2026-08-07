@@ -27,10 +27,12 @@ pub mod dataset;
 pub mod drag;
 mod editor;
 pub mod eula;
+pub mod explorer;
 pub mod export;
 pub mod host;
 pub mod oneshot;
 pub mod presets;
+pub mod preview;
 pub mod shared;
 pub mod state;
 pub mod voice;
@@ -350,6 +352,8 @@ impl Plugin for FreallyMidiMaster {
         // known — and `initialize` is off the audio thread, which is where
         // reading files from disk has to happen.
         self.shared.restore_one_shots();
+        // The sample library comes back with the project too (TASK-132).
+        self.shared.restore_sample_folders();
         true
     }
 
@@ -584,6 +588,38 @@ impl FreallyMidiMaster {
         );
     }
 
+    /// Render only the File Explorer's audition into `buffer`.
+    ///
+    /// ⛔ **The path taken when nothing is armed**, which is the state the
+    /// sample browser is used from. `render_preview` returns early with no kit
+    /// and again when the sampler is idle — both correct for a *pattern*, both
+    /// fatal for an audition, which needs neither.
+    ///
+    /// Same audio-thread rules: it borrows the pre-allocated scratch, adds into
+    /// it, limits and de-interleaves, and allocates nothing.
+    fn render_preview_only(&mut self, buffer: &mut Buffer) {
+        let frames = buffer.samples();
+        let channels = buffer.channels().clamp(1, 2);
+        let needed = frames * channels;
+        if needed > self.scratch.len() {
+            return;
+        }
+
+        let scratch = &mut self.scratch[..needed];
+        scratch.fill(0.0);
+        self.shared
+            .preview
+            .render(scratch, channels, self.shared.sample_rate());
+        audio::sampler::limit(scratch);
+
+        for (channel, samples) in buffer.as_slice().iter_mut().enumerate() {
+            let source = channel.min(channels - 1);
+            for (frame, sample) in samples.iter_mut().enumerate().take(frames) {
+                *sample += scratch[frame * channels + source];
+            }
+        }
+    }
+
     fn render_preview(&mut self, buffer: &mut Buffer) {
         // ⛔ **MIDI-only, checked before anything else.** The notes have
         // already gone out by the time this runs, so returning here silences
@@ -594,7 +630,22 @@ impl FreallyMidiMaster {
             return;
         }
 
+        // ⛔⛔ **The audition is checked BEFORE the kit and the idle gate, and
+        // it has to be.** `Preview` is the File Explorer's sample player: it
+        // needs no kit and no armed pattern, and the state a producer is in
+        // when they open the browser and press Play on a sample is *exactly*
+        // the state both gates return on. So the audition was silent in the
+        // only situation it exists for — nothing sounded, the handoff never
+        // picked the buffer up, and `preview_position` reported
+        // `playing: true, seconds: 0.0` forever.
+        let auditioning = self.shared.preview.is_active();
+
         let Some(kit) = self.kit.as_ref() else {
+            // ⚠ A kit that failed to decode must not silence a sample preview;
+            // the two have nothing to do with each other.
+            if auditioning {
+                self.render_preview_only(buffer);
+            }
             return;
         };
 
@@ -616,6 +667,9 @@ impl FreallyMidiMaster {
         // de-interleaving add over every sample, ~94 times a second, to write
         // silence on top of silence.
         if self.fired.as_slice().is_empty() && self.sampler.is_silent() {
+            if auditioning {
+                self.render_preview_only(buffer);
+            }
             return;
         }
 
@@ -700,6 +754,13 @@ impl FreallyMidiMaster {
             self.sampler.render(kit, segment, channels);
             at = until;
         }
+
+        // The File Explorer audition, mixed in before limiting (TASK-132) so a
+        // preview over a loud pattern is caught by the same limiter rather
+        // than clipping the host output.
+        self.shared
+            .preview
+            .render(scratch, channels, self.shared.sample_rate());
 
         audio::sampler::limit(scratch);
 

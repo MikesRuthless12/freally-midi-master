@@ -37,6 +37,7 @@ function song(): Song {
     part: 'drums' as Part,
     artistId: 'trap',
     seed: '7',
+    songSeed: '7',
     bars: 4,
     bpm: 140,
     timeSigNum: 4,
@@ -147,6 +148,7 @@ function armedWith(current = song()) {
   useHistory.getState().arm({
     selectedId: 'trap',
     seed: '7',
+    songSeed: '7',
     seedPinned: true,
     bars: 4,
     pins: {
@@ -518,6 +520,7 @@ it('the snapshot taken on an artist change does not carry the old artist’s son
   useHistory.getState().arm({
     selectedId: 'trap',
     seed: '7',
+    songSeed: '7',
     seedPinned: true,
     bars: 4,
     pins: {
@@ -768,6 +771,7 @@ it('a preset load does not leave a snapshot naming the arrangement it deleted', 
   useSession.getState().applyPreset({
     selectedId: 'trap',
     seed: '99',
+    songSeed: '99',
     bars: 4,
     pins: null,
   });

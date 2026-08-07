@@ -307,5 +307,8 @@
       ]
     },
     "susSubstitutionProb": 0.2
+  },
+  "kit": {
+    "preview": "plugg-default"
   }
 }

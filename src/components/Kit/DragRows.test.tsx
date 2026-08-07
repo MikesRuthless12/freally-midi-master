@@ -28,6 +28,7 @@ const DRUMS: Pattern = {
   part: 'drums',
   artistId: 'trap',
   seed: '1',
+  songSeed: '1',
   bars: 4,
   bpm: 140,
   timeSigNum: 4,

@@ -58,14 +58,31 @@
   border-bottom: 1px solid var(--color-border);
 }
 
-/* ⛔ **`flex: 1` is `1 1 0%` — flex-basis ZERO**, and that is what collapsed
-   this section to nothing the moment the rail ran out of room: with no leftover
-   space to distribute, a zero-basis item gets zero while `flex: 0 1 auto`
-   siblings keep their content height and shrink only as needed. `auto` makes
-   the basis its own content, so KIT shrinks alongside its neighbours instead of
-   vanishing under them, and still takes the slack when there is any. */
+/* ⛔ **This has now failed in BOTH directions, and the fix is the pair.**
+
+   `flex: 1` is `1 1 0%` — flex-basis ZERO — and that collapsed this section to
+   nothing the moment the rail ran out of room (TASK-136/18b): with no leftover
+   space to distribute a zero-basis item gets zero, while `flex: 0 1 auto`
+   siblings keep their content height. KIT became one pixel and painted its
+   contents straight out over STEMS.
+
+   `flex: 1 1 auto` fixed that and caused the opposite: the basis becomes this
+   section's *own content height*, so when TASK-140 took the KIT panel from 13
+   lanes to 21 it claimed far more of a short rail than its share and starved
+   its neighbours — `stems` spilled 5px and `session` 3px, which is the same
+   defect one panel over.
+
+   ▶ So: a zero basis **with a floor**. Zero means a taller KIT cannot take
+   space from anyone; `min-height` means it can never vanish either. The floor
+   is a header plus a couple of rows — enough to be recognisably a panel with
+   something in it, and `.rail__content` scrolls the rest.
+
+   ⚠ **The floor must stay smaller than the shortest supported rail can give
+   this section**, or it becomes the new starvation. `e2e/rail-layout.spec.ts`
+   is what holds that, at the SHORT viewport. */
 .rail__section--grow {
-  flex: 1 1 auto;
+  flex: 1 1 0;
+  min-height: 6rem;
 }
 
 .rail__content {

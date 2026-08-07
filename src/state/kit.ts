@@ -15,30 +15,10 @@ import { invoke } from '../lib/ipc';
 import { reason } from './session';
 import type { Lane } from '../lib/ipc-types';
 
-/**
- * Every lane the plugin has, in the order the KIT panel shows them.
- *
- * ⚠ **Not what the panel iterates.** It draws whatever `kit_state` answers
- * with, so the plugin stays the one authority on which lanes exist. This is
- * here for the two things that cannot ask the plugin: the browser mock's
- * fixture, and `locales.test.ts`, which has to know that `lanes.chords` is a
- * string somebody has to translate. Mirrors `shared::ALL_LANES`.
- */
-export const ALL_LANES: Lane[] = [
-  'kick',
-  'snare',
-  'clap',
-  'closedHat',
-  'openHat',
-  'rim',
-  'snap',
-  'perc',
-  'bass808',
-  'melody',
-  'counter',
-  'bass',
-  'chords',
-];
+// ⚠ Re-exported so every existing importer keeps working; the list itself
+// lives in a leaf module that a Playwright spec can also import. See
+// `state/lanes.ts` for why that mattered.
+export { ALL_LANES } from './lanes';
 
 /**
  * Can this lane actually make a sound?

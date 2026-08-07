@@ -409,5 +409,8 @@
         1
       ]
     }
+  },
+  "kit": {
+    "preview": "drill-default"
   }
 }

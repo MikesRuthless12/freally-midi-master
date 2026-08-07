@@ -206,13 +206,21 @@
   "lanes": {
     "kick": "킥",
     "snare": "스네어",
+    "offSnare": "오프 스네어",
     "clap": "클랩",
     "closedHat": "클로즈 하이햇",
     "openHat": "오픈 하이햇",
+    "ride": "라이드",
+    "crash": "크래시",
+    "tom": "톰",
     "rim": "림",
     "snap": "스냅",
     "perc": "퍼커션",
-    "bass808": "808",
+    "shaker": "셰이커",
+    "tambourine": "탬버린",
+    "cowbell": "카우벨",
+    "woodblock": "우드블록",
+    "sub": "서브",
     "melody": "멜로디",
     "counter": "대선율",
     "bass": "베이스라인",
@@ -307,5 +315,39 @@
     "dragHint": "파트를 DAW 트랙으로 바로 끌어다 놓으세요.",
     "preparing": "준비 중…",
     "rendering": "렌더링 중… {{percent}}%"
+  },
+  "shortcuts": {
+    "title": "키보드 단축키",
+    "groups": {
+      "transport": "트랜스포트",
+      "generate": "생성",
+      "editing": "편집",
+      "notes": "노트",
+      "drums": "드럼 그리드"
+    },
+    "keys": {
+      "toggleRail": "오른쪽 패널 표시/숨김",
+      "search": "로스터 검색",
+      "reroll": "클립 다시 생성",
+      "selectAll": "모두 선택",
+      "copy": "복사",
+      "cut": "잘라내기",
+      "paste": "붙여넣기",
+      "undo": "실행 취소",
+      "duplicate": "복제",
+      "delete": "삭제",
+      "deselect": "선택 해제",
+      "transpose": "반음 조옮김",
+      "transposeOctave": "옥타브 조옮김",
+      "nudge": "시간 이동",
+      "stretch": "두 배로 늘이기",
+      "compress": "절반으로 줄이기",
+      "triplet": "이 셀에 셋잇단음표",
+      "quintuplet": "이 셀에 다섯잇단음표",
+      "septuplet": "이 셀에 일곱잇단음표",
+      "cloneBar": "1마디를 이 마디에 복사",
+      "shortcuts": "이 패널 표시",
+      "play": "재생 또는 일시정지"
+    }
   }
 }

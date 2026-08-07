@@ -250,6 +250,14 @@ pub struct Shared {
     /// another's result. The kit a producer builds on one track is also simply
     /// not the kit they want on the next.
     pub one_shots: crate::oneshot::OneShots,
+    /// The sample browser (TASK-132).
+    ///
+    /// ⚠ Per instance, for the same reason `one_shots` is: the folder a
+    /// producer is working from on one track is not the one they want on the
+    /// next, and a process global would let one instance move another's view.
+    pub explorer: crate::explorer::Explorer,
+    /// The File Explorer's audition voice (TASK-132).
+    pub preview: crate::preview::Preview,
     /// What the host saves with the project, and what the editor restores from.
     ///
     /// The same `Arc` as the persisted field on
@@ -380,6 +388,8 @@ impl Shared {
             handoff: Handoff::default(),
             kits: Arc::new(KitHandoff::default()),
             one_shots: crate::oneshot::OneShots::default(),
+            explorer: crate::explorer::Explorer::default(),
+            preview: crate::preview::Preview::default(),
             exports: crate::export::Exports::default(),
             drags: crate::drag::Drags::default(),
             armed_clip: Mutex::new(None),
@@ -655,6 +665,29 @@ impl Shared {
         }
     }
 
+    /// Put the saved sample-library folders back (TASK-132).
+    ///
+    /// ⚠ **A folder that no longer resolves is kept rather than skipped**,
+    /// which is the opposite of `restore_one_shots` above and deliberately so.
+    /// A one-shot that will not load has an audible fallback — the shipped
+    /// voice — so dropping it costs the producer nothing they cannot see. A
+    /// *library folder* has no fallback: silently forgetting it because an
+    /// external drive was unplugged means they have to remember what was in the
+    /// list, and there is nowhere to look it up.
+    pub fn restore_sample_folders(&self) {
+        let stored =
+            crate::state::with(&self.session, |s| s.sample_folders.clone()).unwrap_or_default();
+        self.explorer.restore(&stored);
+    }
+
+    /// Write the sample library into the session, so the host saves it.
+    pub fn store_sample_folders(&self) {
+        let folders = self.explorer.snapshot();
+        crate::state::update(&self.session, |session| {
+            session.sample_folders = folders;
+        });
+    }
+
     /// Ask the producer for a sample and play it on `lane` (TASK-131B).
     ///
     /// ⛔ **Here rather than at the call site, so the three things an
@@ -667,8 +700,15 @@ impl Shared {
     }
 
     /// The kit the preview is playing right now, one-shots included.
+    ///
+    /// ⚠ **Resolved from this instance's own session**, so two tracks on two
+    /// artists get two kits. A process-global would be the same mistake
+    /// `one_shots` documents at its own field.
     pub fn current_kit(&self) -> Option<Arc<Kit>> {
-        self.one_shots.current_kit()
+        let model_id = crate::state::with(&self.session, |s| s.selected_id.clone())
+            .flatten()
+            .unwrap_or_default();
+        self.one_shots.current_kit(&model_id)
     }
 
     /// Put a lane back on the shipped voice.
@@ -727,13 +767,21 @@ const AUDITION_PENDING: u32 = 1 << 31;
 pub(crate) const ALL_LANES: &[Lane] = &[
     Lane::Kick,
     Lane::Snare,
+    Lane::OffSnare,
     Lane::Clap,
     Lane::ClosedHat,
     Lane::OpenHat,
+    Lane::Ride,
+    Lane::Crash,
+    Lane::Tom,
     Lane::Rim,
     Lane::Snap,
     Lane::Perc,
-    Lane::Bass808,
+    Lane::Shaker,
+    Lane::Tambourine,
+    Lane::Cowbell,
+    Lane::Woodblock,
+    Lane::Sub,
     Lane::Melody,
     Lane::Counter,
     Lane::Bass,
@@ -759,11 +807,24 @@ fn lane_bit(lane: Lane) -> u32 {
         Lane::Rim => 1 << 5,
         Lane::Snap => 1 << 6,
         Lane::Perc => 1 << 7,
-        Lane::Bass808 => 1 << 8,
+        Lane::Sub => 1 << 8,
         Lane::Melody => 1 << 9,
         Lane::Counter => 1 << 10,
         Lane::Bass => 1 << 11,
         Lane::Chords => 1 << 12,
+        // ⚠ Appended at 13 rather than slotted into kit order, so no existing
+        // lane's bit moves. Nothing persists these — the comment above explains
+        // why that is safe either way — but a mask in flight between the editor
+        // and the audio thread during a reload should not have to be right
+        // about which build wrote it.
+        Lane::OffSnare => 1 << 13,
+        Lane::Ride => 1 << 14,
+        Lane::Crash => 1 << 15,
+        Lane::Tom => 1 << 16,
+        Lane::Shaker => 1 << 17,
+        Lane::Tambourine => 1 << 18,
+        Lane::Cowbell => 1 << 19,
+        Lane::Woodblock => 1 << 20,
     }
 }
 
@@ -1006,7 +1067,7 @@ mod bypass_tests {
         shared.set_lane_muted(Lane::Snare, true);
 
         assert!(shared.lane_muted(Lane::Snare));
-        for lane in [Lane::Kick, Lane::ClosedHat, Lane::Bass808, Lane::Chords] {
+        for lane in [Lane::Kick, Lane::ClosedHat, Lane::Sub, Lane::Chords] {
             assert!(!shared.lane_muted(lane), "{lane:?} should be untouched");
         }
 
@@ -1033,11 +1094,11 @@ mod bypass_tests {
         // What is saved has to come back as the same lanes, or reopening a
         // project silences a different part of the kit than it did on save.
         let shared = Shared::default();
-        shared.set_muted_lanes(&[Lane::OpenHat, Lane::Bass808, Lane::Chords]);
+        shared.set_muted_lanes(&[Lane::OpenHat, Lane::Sub, Lane::Chords]);
 
         let mut back = shared.muted_lanes();
         back.sort();
-        let mut expected = vec![Lane::OpenHat, Lane::Bass808, Lane::Chords];
+        let mut expected = vec![Lane::OpenHat, Lane::Sub, Lane::Chords];
         expected.sort();
         assert_eq!(back, expected);
 

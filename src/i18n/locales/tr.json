@@ -206,13 +206,21 @@
   "lanes": {
     "kick": "Bas davul",
     "snare": "Trampet",
+    "offSnare": "Off trampet",
     "clap": "Alkış",
     "closedHat": "Kapalı hi-hat",
     "openHat": "Açık hi-hat",
+    "ride": "Ride",
+    "crash": "Crash",
+    "tom": "Tom",
     "rim": "Kenar vuruşu",
     "snap": "Parmak şıklatma",
     "perc": "Perküsyon",
-    "bass808": "808",
+    "shaker": "Shaker",
+    "tambourine": "Tef",
+    "cowbell": "Çan",
+    "woodblock": "Ağaç blok",
+    "sub": "Sub",
     "melody": "Melodi",
     "counter": "Karşı melodi",
     "bass": "Bas hattı",
@@ -307,5 +315,39 @@
     "dragHint": "Bir partı doğrudan DAW’ındaki bir kanala sürükle.",
     "preparing": "Hazırlanıyor…",
     "rendering": "İşleniyor… %{{percent}}"
+  },
+  "shortcuts": {
+    "title": "Klavye kısayolları",
+    "groups": {
+      "transport": "Transport",
+      "generate": "Üretim",
+      "editing": "Düzenleme",
+      "notes": "Notalar",
+      "drums": "Davul ızgarası"
+    },
+    "keys": {
+      "toggleRail": "Sağ paneli göster veya gizle",
+      "search": "Kataloğda ara",
+      "reroll": "Klibi yeniden üret",
+      "selectAll": "Tümünü seç",
+      "copy": "Kopyala",
+      "cut": "Kes",
+      "paste": "Yapıştır",
+      "undo": "Geri al",
+      "duplicate": "Çoğalt",
+      "delete": "Sil",
+      "deselect": "Seçimi kaldır",
+      "transpose": "Bir yarım ses aktar",
+      "transposeOctave": "Bir oktav aktar",
+      "nudge": "Zamanda kaydır",
+      "stretch": "İki katına uzat",
+      "compress": "Yarıya sıkıştır",
+      "triplet": "Bu hücrede triole",
+      "quintuplet": "Bu hücrede kentole",
+      "septuplet": "Bu hücrede septole",
+      "cloneBar": "1. ölçüyü buraya kopyala",
+      "shortcuts": "Bu paneli göster",
+      "play": "Çal veya duraklat"
+    }
   }
 }

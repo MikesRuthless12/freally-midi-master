@@ -206,13 +206,21 @@
   "lanes": {
     "kick": "Cassa",
     "snare": "Rullante",
+    "offSnare": "Rullante off",
     "clap": "Battito di mani",
     "closedHat": "Charleston chiuso",
     "openHat": "Charleston aperto",
+    "ride": "Ride",
+    "crash": "Crash",
+    "tom": "Tom",
     "rim": "Bordo",
     "snap": "Schiocco",
     "perc": "Percussioni",
-    "bass808": "808",
+    "shaker": "Shaker",
+    "tambourine": "Tamburello",
+    "cowbell": "Campanaccio",
+    "woodblock": "Blocchetto di legno",
+    "sub": "Sub",
     "melody": "Melodia",
     "counter": "Contromelodia",
     "bass": "Linea di basso",
@@ -307,5 +315,39 @@
     "dragHint": "Trascina una parte direttamente su una traccia della tua DAW.",
     "preparing": "Preparazione…",
     "rendering": "Rendering… {{percent}} %"
+  },
+  "shortcuts": {
+    "title": "Scorciatoie da tastiera",
+    "groups": {
+      "transport": "Trasporto",
+      "generate": "Genera",
+      "editing": "Modifica",
+      "notes": "Note",
+      "drums": "Griglia batteria"
+    },
+    "keys": {
+      "toggleRail": "Mostra o nascondi il pannello destro",
+      "search": "Cerca nel catalogo",
+      "reroll": "Rigenera la clip",
+      "selectAll": "Seleziona tutto",
+      "copy": "Copia",
+      "cut": "Taglia",
+      "paste": "Incolla",
+      "undo": "Annulla",
+      "duplicate": "Duplica",
+      "delete": "Elimina",
+      "deselect": "Deseleziona",
+      "transpose": "Trasporta di un semitono",
+      "transposeOctave": "Trasporta di un'ottava",
+      "nudge": "Sposta nel tempo",
+      "stretch": "Allunga al doppio",
+      "compress": "Comprimi a metà",
+      "triplet": "Terzina in questa cella",
+      "quintuplet": "Quintina in questa cella",
+      "septuplet": "Settimina in questa cella",
+      "cloneBar": "Copia la battuta 1 su questa",
+      "shortcuts": "Mostra questo pannello",
+      "play": "Riproduci o metti in pausa"
+    }
   }
 }

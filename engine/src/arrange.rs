@@ -923,7 +923,7 @@ fn render_section(
         };
 
         if request.only_low_end {
-            lanes.retain(|lane| lane.lane == Lane::Bass808);
+            lanes.retain(|lane| lane.lane == Lane::Sub);
         }
 
         // ⛔ Humanized here, once per part, rather than inside the shared renders
@@ -981,6 +981,7 @@ fn pattern_for(
         part,
         artist_id: model.id.clone(),
         seed,
+        song_seed: seed,
         bars: ctx.bars,
         bpm: ctx.bpm,
         time_sig_num: ctx.time_sig_num,

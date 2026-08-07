@@ -374,5 +374,8 @@
         2
       ]
     }
+  },
+  "kit": {
+    "preview": "club-default"
   }
 }

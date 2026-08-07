@@ -391,5 +391,8 @@
         2
       ]
     }
+  },
+  "kit": {
+    "preview": "country-default"
   }
 }

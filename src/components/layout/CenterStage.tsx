@@ -54,6 +54,7 @@ const TAB_ICONS: Record<GeneratorTab, LucideIcon> = {
 function PartToggles() {
   const { t } = useTranslation();
   const patterns = useSession((s) => s.patterns);
+  const activeTab = useUi((s) => s.activeTab);
   const partsOff = useUi((s) => s.partsOff);
   const togglePart = useUi((s) => s.togglePart);
 
@@ -81,7 +82,19 @@ function PartToggles() {
               // one merged clip, so a switch that changed only the UI would
               // leave Play sounding the previous combination — a control that
               // looks like it did something and did not.
-              armCurrentPattern();
+              //
+              // ⛔⛔ **Never on the Song tab.** `TAB_PART.song` is `null`, so
+              // `armCurrentPattern` falls through to *disarm* — and these
+              // toggles are still drawn there, because the header is
+              // tab-independent and the clips still exist. Generate a song,
+              // click a part switch, and the whole arrangement goes silent with
+              // the timeline still on screen and Play still lit.
+              //
+              // `session.ts` already excludes `'song'` from the tab-change
+              // re-arm for the same reason — *"SongTimeline's own mount effect
+              // arms the arrangement and its cleanup hands the transport back"*
+              // — and this call site did not inherit the rule.
+              if (activeTab !== 'song') armCurrentPattern();
             }}
           >
             {t(`tabs.${part}`)}

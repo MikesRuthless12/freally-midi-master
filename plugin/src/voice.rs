@@ -430,8 +430,18 @@ impl Schedule {
         match self.loop_span {
             Some(span) => Some(span),
             None if looping => {
-                let end = self.length();
-                (end > 0).then_some((0, end))
+                // ⛔ **Floored for exactly the reason the brace branch is**, and
+                // it was not. `arm` bounds a dragged region with
+                // `MIN_LOOP_SAMPLES` because "the bridge is not the UI"; a
+                // whole-clip loop reaches the same code from the same untrusted
+                // door and skipped it. `check_patterns` validates meter, bars
+                // and part count but never their product, so a pattern of
+                // `{time_sig_den: 128, bars: 1, bpm: 999}` yields a clip of
+                // ~90 samples at 48 kHz — eleven times under the floor, which
+                // is ~6 turnovers per 512-frame block and ~180 per offline
+                // block, each one an `emit_span` walk and a `rewind_to` search.
+                let end = self.length().max(MIN_LOOP_SAMPLES);
+                (self.length() > 0).then_some((0, end))
             }
             None => None,
         }
@@ -568,6 +578,7 @@ mod tests {
             part: Part::Drums,
             artist_id: "trap".into(),
             seed: 1,
+            song_seed: 1,
             bars: 4,
             bpm,
             time_sig_num: 4,
@@ -733,6 +744,7 @@ mod transport_tests {
             part: Part::Drums,
             artist_id: "t".into(),
             seed: 1,
+            song_seed: 1,
             bars: 4,
             bpm: 120.0,
             time_sig_num: 4,

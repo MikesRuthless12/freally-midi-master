@@ -307,5 +307,8 @@
       4,
       8
     ]
+  },
+  "kit": {
+    "preview": "trap-default"
   }
 }

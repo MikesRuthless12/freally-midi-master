@@ -14,17 +14,35 @@ import { patternTicks } from '../PianoRoll/notes';
  * one column late is a beat that looks right and plays wrong.
  */
 
-/** The order lanes are drawn in, top to bottom: the kit from the top down. */
+/**
+ * The order lanes are drawn in, top to bottom: the kit from the top down.
+ *
+ * ⚠ **Every lane the drum generator can write must appear here**, or a model
+ * that authors it produces notes with no row to draw them in. That is the
+ * frontend half of the guard `every_lane_the_drum_generator_writes_has_a_pad_to
+ * _play_it` keeps on the audio side — this list and `drums.rs`'s `LANE_ORDER`
+ * are the same set in a different order, deliberately: the engine builds
+ * kick-first because the grammar hangs off it, and the grid draws
+ * brightest-first because that is how a producer reads a kit.
+ */
 export const LANE_ORDER: Lane[] = [
   'closedHat',
   'openHat',
+  'ride',
+  'crash',
+  'shaker',
+  'tambourine',
   'snap',
   'clap',
   'snare',
+  'offSnare',
   'rim',
+  'woodblock',
+  'cowbell',
   'perc',
+  'tom',
   'kick',
-  'bass808',
+  'sub',
 ];
 
 /** Ticks per 16th note. `PPQ` is 960 in the engine, so a 16th is a quarter of it. */

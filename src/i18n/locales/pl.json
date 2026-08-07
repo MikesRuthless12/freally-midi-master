@@ -206,13 +206,21 @@
   "lanes": {
     "kick": "Stopa",
     "snare": "Werbel",
+    "offSnare": "Werbel off",
     "clap": "Klaśnięcie",
     "closedHat": "Zamknięty hi-hat",
     "openHat": "Otwarty hi-hat",
+    "ride": "Ride",
+    "crash": "Crash",
+    "tom": "Tom",
     "rim": "Obręcz",
     "snap": "Pstryknięcie",
     "perc": "Perkusjonalia",
-    "bass808": "808",
+    "shaker": "Shaker",
+    "tambourine": "Tamburyn",
+    "cowbell": "Krowi dzwonek",
+    "woodblock": "Klocek drewniany",
+    "sub": "Sub",
     "melody": "Melodia",
     "counter": "Kontrmelodia",
     "bass": "Linia basu",
@@ -307,5 +315,39 @@
     "dragHint": "Przeciągnij partię prosto na ścieżkę w Twoim DAW.",
     "preparing": "Przygotowywanie…",
     "rendering": "Renderowanie… {{percent}}%"
+  },
+  "shortcuts": {
+    "title": "Skróty klawiszowe",
+    "groups": {
+      "transport": "Transport",
+      "generate": "Generowanie",
+      "editing": "Edycja",
+      "notes": "Nuty",
+      "drums": "Siatka perkusji"
+    },
+    "keys": {
+      "toggleRail": "Pokaż lub ukryj prawy panel",
+      "search": "Szukaj w katalogu",
+      "reroll": "Wylosuj klip ponownie",
+      "selectAll": "Zaznacz wszystko",
+      "copy": "Kopiuj",
+      "cut": "Wytnij",
+      "paste": "Wklej",
+      "undo": "Cofnij",
+      "duplicate": "Powiel",
+      "delete": "Usuń",
+      "deselect": "Odznacz",
+      "transpose": "Transponuj o półton",
+      "transposeOctave": "Transponuj o oktawę",
+      "nudge": "Przesuń w czasie",
+      "stretch": "Rozciągnij dwukrotnie",
+      "compress": "Skróć o połowę",
+      "triplet": "Triola w tej komórce",
+      "quintuplet": "Kwintola w tej komórce",
+      "septuplet": "Septola w tej komórce",
+      "cloneBar": "Skopiuj takt 1 na ten takt",
+      "shortcuts": "Pokaż ten panel",
+      "play": "Odtwórz lub wstrzymaj"
+    }
   }
 }

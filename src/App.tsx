@@ -5,16 +5,19 @@ import { LeftRail } from './components/layout/LeftRail';
 import { RightRail } from './components/layout/RightRail';
 import { AboutModal } from './components/Settings/About';
 import { SettingsModal } from './components/Settings/Settings';
+import { ShortcutsModal } from './components/Shortcuts/Shortcuts';
 import { TransportBar } from './components/layout/TransportBar';
 import { isTypingTarget } from './lib/keyboard';
 import { useDrag } from './state/drag';
-import { subscribeToPlayhead, useSession } from './state/session';
+import { useSong } from './state/song';
+import { canDrive, subscribeToPlayhead, useSession } from './state/session';
 import { isWide, useUi } from './state/ui';
 import './components/layout/layout.css';
 
 function Studio() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const rightRailOpen = useUi((s) => s.rightRailOpen);
   const setWide = useUi((s) => s.setWide);
   const toggleRightRail = useUi((s) => s.toggleRightRail);
@@ -85,6 +88,73 @@ function Studio() {
     return () => window.removeEventListener('keydown', onKey);
   }, [toggleRightRail]);
 
+  // Space plays and pauses (TASK-131I).
+  //
+  // ⛔ **Added because the shortcuts panel could not honestly list it.**
+  // `catalog.test.ts` refuses to document a key no handler listens for, and
+  // Space was the first thing it caught: play and pause were wired to the
+  // transport buttons alone, in a tool whose entire audience presses Space to
+  // hear something.
+  //
+  // ⚠ **`event.code`, not `event.key`.** `key` for the space bar is `' '`,
+  // which is easy to compare wrongly and differs under some IMEs; `code` is the
+  // physical key and is stable everywhere.
+  //
+  // ⚠ **The guard is the same one the transport button uses.** Pressing Space
+  // when the host owns the transport must do nothing rather than fight the DAW
+  // for it — `canDriveTransport` is the one predicate that answers that, and
+  // duplicating the rule here is how the two would drift.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.code !== 'Space') return;
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      // ⛔ Never steal it from a text field — and never from a focused button
+      // either, where Space is the browser's own "activate", so intercepting it
+      // would double-fire whatever the producer had tabbed to.
+      if (isTypingTarget(e.target)) return;
+      if (e.target instanceof HTMLElement && e.target.closest('button, a, [role="button"]')) {
+        return;
+      }
+      const session = useSession.getState();
+      const ui = useUi.getState();
+      // ⛔ **The SAME predicate the button uses, not half of it.** This checked
+      // only `canDriveTransport()`, so Space with nothing generated set
+      // `running` over an empty schedule — the app then reported playing
+      // forever, Play rendered as a disabled Pause, Stop went disabled with it,
+      // and only a second Space got out. That is the second bullet in
+      // `armedClips`' own doc, arriving through the keyboard instead.
+      if (!session.canDriveTransport()) return;
+      if (!canDrive(session.patterns, ui.partsOff, ui.activeTab, useSong.getState().song)) {
+        return;
+      }
+      e.preventDefault();
+      void (session.playing ? session.pause() : session.play());
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  // The keyboard-shortcuts panel (TASK-131I).
+  //
+  // ⚠ **`?` and F1, because the two audiences press different things.** `?` is
+  // what every editor uses and what a producer already knows; F1 is what a
+  // Windows user reaches for and costs nothing to also accept. `?` is Shift+/
+  // on most layouts, so the modifier is *not* excluded here the way it is for
+  // `K` above — requiring an unshifted `?` would make the panel unreachable on
+  // a US keyboard.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const asked = e.key === '?' || e.key === 'F1';
+      if (!asked) return;
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      if (isTypingTarget(e.target)) return;
+      e.preventDefault();
+      setShortcutsOpen((open) => !open);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
   // Undo and redo (FMM-U01). Both the Windows/Linux and the macOS spellings,
   // plus Ctrl+Y, which is what a Windows producer's hands already do.
   useEffect(() => {
@@ -141,6 +211,7 @@ function Studio() {
 
       {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
       {aboutOpen && <AboutModal onClose={() => setAboutOpen(false)} />}
+      {shortcutsOpen && <ShortcutsModal onClose={() => setShortcutsOpen(false)} />}
     </div>
   );
 }

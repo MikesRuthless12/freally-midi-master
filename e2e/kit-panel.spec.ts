@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { ALL_LANES } from '../src/state/lanes';
 
 /**
  * The KIT panel, end to end (TASK-131B, TASK-136).
@@ -29,10 +30,11 @@ test('the panel draws a row per lane instead of eight numbered placeholders', as
   page,
 }) => {
   const lanes = page.locator('.kit-lane');
-  // Thirteen: the nine percussion lanes the drum grid draws, plus melody,
-  // countermelody, bassline and chords. The panel this replaced showed eight
-  // buttons labelled 1..8 — a count that matched nothing.
-  await expect(lanes).toHaveCount(13);
+  // ⚠ **Derived, never a number typed here.** This read 13 and TASK-140 took
+  // the engine to 21 lanes — a hardcoded count in a test is the same failure
+  // the panel itself had before TASK-136, where a list written in the UI
+  // stopped matching the kit that was actually loaded.
+  await expect(lanes).toHaveCount(ALL_LANES.length);
 
   // Named, not numbered. This is the whole difference.
   await expect(page.locator('.kit-lane[data-lane="kick"]')).toContainText('Kick');

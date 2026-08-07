@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import { useUi } from '../../state/ui';
 import { invoke } from '../../lib/ipc';
-import { useSession, useActivePattern } from '../../state/session';
+import { useSession, armedClips, canDrive } from '../../state/session';
 import { useSong } from '../../state/song';
 import { ViewMenu } from './ViewMenu';
 import { WindowSize } from './WindowSize';
@@ -86,13 +86,26 @@ function ThemeToggle() {
  * three digits.
  */
 function Position() {
-  const pattern = useActivePattern();
+  const patterns = useSession((s) => s.patterns);
+  const partsOff = useUi((s) => s.partsOff);
+  const activeTab = useUi((s) => s.activeTab);
   const playhead = useSession((s) => s.playhead);
+
+  // ⛔ **Normalised against the ARMED length, not the visible clip.**
+  // `playhead` is a fraction of what the audio thread is playing, and
+  // `Pattern::merge` sets the merged length to the MAX bars across the armed
+  // parts. Reading the active tab's own `bars` meant 4-bar drums beside an
+  // 8-bar melody counted 1.1 -> 5.1 across eight bars of real time, on the
+  // Drums tab — the readout-that-lies failure, in the one control whose whole
+  // job is to say where you are.
+  const armed = armedClips(patterns, partsOff, activeTab);
+  const bars = armed.reduce((most, clip) => Math.max(most, clip.bars), 0);
+  const pattern = armed.length > 0;
 
   // Bars and beats from the fraction the audio thread publishes. 4/4 is the
   // only signature the generators write, which is why this can be arithmetic
   // rather than another field on the wire.
-  const totalBeats = (pattern?.bars ?? 0) * 4;
+  const totalBeats = bars * 4;
   const beat = playhead * totalBeats;
   const position = pattern
     ? `${Math.floor(beat / 4) + 1}.${Math.floor(beat % 4) + 1}.${String(
@@ -121,7 +134,9 @@ export function TransportControls() {
   const looping = useUi((s) => s.looping);
   const toggleLooping = useUi((s) => s.toggleLooping);
 
-  const pattern = useActivePattern();
+  const patterns = useSession((s) => s.patterns);
+  const partsOff = useUi((s) => s.partsOff);
+  const activeTab = useUi((s) => s.activeTab);
   // Song is not a part, so it has no slot — the arrangement is what is armed.
   const song = useSong((s) => s.song);
   const playing = useSession((s) => s.playing);
@@ -162,7 +177,11 @@ export function TransportControls() {
   // and there is no other control in the app, so the record could not be
   // auditioned. Before the five slots, `session.pattern` held whatever had been
   // generated regardless of the visible tab, which is why this worked then.
-  const canPress = canDriveTransport && (pattern !== null || song !== null);
+  // ⛔ **What is ARMED, not what is on screen.** See armedClips: the old
+  // predicate was the pre-TASK-127 rule and disagreed with arming in both
+  // directions — a dark button over an armed clip, and a live button over a
+  // disarmed transport.
+  const canPress = canDriveTransport && canDrive(patterns, partsOff, activeTab, song);
   // ⛔ **Stop is not gated on `playing`, and that is the whole difference
   // between it and Pause.** Pause holds the marker where it is; Stop returns it
   // to the beginning — so Stop has to stay reachable *from* a pause, which is

@@ -21,6 +21,7 @@ import { describe, expect, it } from 'vitest';
 
 import { CATEGORIES } from '../components/Settings/categories';
 import { ALL_LANES } from '../state/kit';
+import { SHORTCUT_GROUPS } from '../components/Shortcuts/catalog';
 import { SCALES } from '../components/SessionChips/values';
 import { THEME_PREFERENCES } from '../state/theme';
 import { SECTION_KINDS } from '../components/SongTimeline/clips';
@@ -198,6 +199,11 @@ describe('locale catalogs', () => {
     // missing and render as its own key in the panel (TASK-131B).
     ['lanes', ALL_LANES],
     ['scales', SCALES],
+    // The shortcuts panel (TASK-131I). Driven off the panel's own catalog
+    // rather than a list restated here, so a shortcut added to the app without
+    // a string fails this instead of rendering its own key at the producer.
+    ['shortcuts.groups', SHORTCUT_GROUPS.map((group) => group.id)],
+    ['shortcuts.keys', SHORTCUT_GROUPS.flatMap((group) => group.items.map((item) => item.id))],
   ] as const;
 
   it.each(TEMPLATED_GROUPS)(

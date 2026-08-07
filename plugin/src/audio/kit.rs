@@ -198,8 +198,20 @@ impl Kit {
     /// with no recorded material and so no third-party rights riding along
     /// inside the binary.
     pub fn embedded(dir: &Dir<'_>) -> Result<Kit, String> {
-        let text = dir
-            .get_file("kit.json")
+        // ⛔ **Looked up under the dir's own path first, and this is not
+        // defensive coding.** `include_dir`'s `get_file` matches on paths
+        // relative to the *macro root*, so a `Dir` obtained through `get_dir`
+        // holds entries named `boom-bap-default/kit.json` while a `Dir` that
+        // *is* the macro root holds plain `kit.json`. `PREVIEW_KIT` is the
+        // second kind and `ALL_KITS.get_dir(..)` is the first, so a single
+        // spelling works for exactly one of them — which is how the family
+        // kits decoded as "no readable kit.json" the first time.
+        let find = |name: &str| {
+            dir.get_file(dir.path().join(name))
+                .or_else(|| dir.get_file(name))
+        };
+
+        let text = find("kit.json")
             .and_then(|file| file.contents_utf8())
             .ok_or("the embedded kit has no readable kit.json")?;
         let manifest: Manifest =
@@ -207,8 +219,7 @@ impl Kit {
 
         let mut pads = Vec::with_capacity(manifest.pads.len());
         for pad in manifest.pads {
-            let bytes = dir
-                .get_file(&pad.file)
+            let bytes = find(&pad.file)
                 .map(|file| file.contents())
                 .ok_or_else(|| format!("the kit names {} and does not carry it", pad.file))?;
             let audio =
@@ -387,11 +398,26 @@ mod tests {
         Kit::embedded(&crate::audio::PREVIEW_KIT).expect("the shipped kit must load")
     }
 
+    /// The shipped kit with one lane's pad taken out.
+    ///
+    /// ⛔ **Built rather than found, and TASK-140 is why.** The refusal rule
+    /// below used to be tested against `Lane::Snap`, which happened to ship
+    /// with no pad. Every lane has a default now, so that premise is gone —
+    /// and it was never a good one: it tied a rule about `pad_for` to an
+    /// *accident* of what the kit happened to cover, so filling the gap looked
+    /// like breaking the rule. A user kit or a future genre kit can still lack
+    /// a lane, and this is what keeps that path honest.
+    fn shipped_without(lane: Lane) -> Kit {
+        let mut kit = shipped();
+        kit.pads.retain(|pad| pad.lane != lane);
+        kit
+    }
+
     #[test]
     fn the_shipped_kit_loads_with_every_pad_audible() {
         let kit = shipped();
         assert_eq!(kit.id, "trap-default");
-        assert_eq!(kit.pads.len(), 12);
+        assert_eq!(kit.pads.len(), crate::shared::ALL_LANES.len());
 
         for pad in &kit.pads {
             assert!(!pad.samples.is_empty(), "{} decoded to nothing", pad.id);
@@ -432,7 +458,7 @@ mod tests {
         let pad = |lane: Lane| &kit.pads[kit.pad_for(lane).unwrap()];
 
         // E1: the low end of the trap 808 register, and what kitgen renders.
-        assert_eq!(pad(Lane::Bass808).root_note, Some(28));
+        assert_eq!(pad(Lane::Sub).root_note, Some(28));
         for lane in [Lane::Kick, Lane::Snare, Lane::ClosedHat, Lane::Perc] {
             assert_eq!(pad(lane).root_note, None, "{lane:?} has no pitch to play");
         }
@@ -440,13 +466,23 @@ mod tests {
 
     #[test]
     fn a_lane_the_kit_has_no_pad_for_is_none_rather_than_the_nearest_drum() {
-        let kit = shipped();
+        // A lane the kit does not cover must answer `None` rather than the
+        // nearest drum: a wrong drum is harder to notice than silence, and
+        // harder to explain once it is noticed.
+        //
+        // ⚠ The kit is built without `Snap` rather than relying on the shipped
+        // one to lack it — see `shipped_without`. Every lane has a default
+        // since TASK-140, so the old premise no longer holds and the rule is
+        // now stated directly instead of borrowed from a gap.
+        let kit = shipped_without(Lane::Snap);
         assert!(kit.pad_for(Lane::Kick).is_some());
-        // ⚠ `Snap` rather than `Melody`: the melodic lanes gained pads in
-        // TASK-131, and this test is about the *refusal* — a lane the kit does
-        // not cover must answer `None` rather than the nearest drum, because a
-        // wrong drum is harder to notice than silence and harder to explain.
         assert_eq!(kit.pad_for(Lane::Snap), None);
+
+        // And the shipped kit genuinely does cover it now.
+        assert!(
+            shipped().pad_for(Lane::Snap).is_some(),
+            "snap shipped silent for the whole of TASK-131; TASK-140 gave it a voice"
+        );
     }
 
     #[test]
@@ -458,7 +494,7 @@ mod tests {
         let kit = shipped();
         for lane in [
             Lane::Kick,
-            Lane::Bass808,
+            Lane::Sub,
             Lane::Melody,
             Lane::Counter,
             Lane::Bass,

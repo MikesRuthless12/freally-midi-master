@@ -127,6 +127,17 @@ pub struct PluginSession {
     /// order, so a project file does not reorder its own keys between saves.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub one_shots: BTreeMap<Lane, String>,
+    /// The producer's saved sample-library folders (TASK-132).
+    ///
+    /// ⚠ **The same exception `one_shots` above is**: a folder on somebody's
+    /// disk cannot be derived from a seed, so there is no version of this that
+    /// stores less. Mike, 2026-08-07, choosing saved folders over a single
+    /// picked one — a library is set up once, not once per project.
+    ///
+    /// ⚠ A `Vec` rather than a set, because the **order is the producer's**:
+    /// they added them in the order they think about them.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub sample_folders: Vec<String>,
     /// The clips as the producer edited them, once the seed stops describing
     /// them — one per part (TASK-119).
     ///
@@ -265,6 +276,7 @@ impl Default for PluginSession {
             audio_enabled: true,
             muted_lanes: Vec::new(),
             one_shots: BTreeMap::new(),
+            sample_folders: Vec::new(),
             patterns: BTreeMap::new(),
             pattern: None,
             edited: false,
@@ -341,6 +353,7 @@ mod tests {
             part: Part::Melody,
             artist_id: "trap".into(),
             seed: 7,
+            song_seed: 7,
             bars: 4,
             bpm: 140.0,
             time_sig_num: 4,
@@ -388,6 +401,8 @@ mod tests {
             audio_enabled: false,
             muted_lanes: vec![Lane::Snare],
             one_shots: BTreeMap::from([(Lane::Melody, "C:/samples/lead.wav".to_owned())]),
+            // The sample library rides with the project too (TASK-132).
+            sample_folders: vec!["C:/samples".to_owned()],
             patterns: BTreeMap::new(),
             pattern: None,
             edited: false,
@@ -521,6 +536,7 @@ mod tests {
             part: engine::pattern::Part::Drums,
             artist_id: "trap".into(),
             seed: 9,
+            song_seed: 9,
             bars: 4,
             bpm: 140.0,
             time_sig_num: 4,

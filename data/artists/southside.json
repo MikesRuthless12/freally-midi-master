@@ -343,5 +343,8 @@
       3,
       7
     ]
+  },
+  "kit": {
+    "preview": "trap-default"
   }
 }
