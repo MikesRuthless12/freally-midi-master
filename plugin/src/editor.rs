@@ -127,12 +127,32 @@ fn preset(name: &str) -> Option<((u32, u32), f32)> {
 /// change nothing at all on one press, while still flipping its icon as though
 /// it had. Comparing what the window will actually be is the only way to know.
 fn next_scale(name: &str) -> (&'static str, bool) {
+    next_among(name, |factor| physical(factor).0)
+}
+
+/// The choice behind [`next_scale`], with the display taken out of it.
+///
+/// Separated for the same reason [`fit`] is, and the separation was paid for in
+/// a red CI run. The tests below called [`next_scale`] and [`physical`], both of
+/// which read the real desktop through [`work_area`] — so they asserted a
+/// property of whatever machine ran them. They passed on Mike's monitor and
+/// **failed on CI's `windows-latest` runner**, whose work area is about
+/// 1040x650: every preset clamps to that same window, so the `stay put` branch
+/// below fired and the cycle answered `large` where the test wanted `xl`.
+///
+/// ⚠ **Nothing was wrong with the sizing** — that branch is the documented
+/// behaviour and the runner is simply a small screen. Taking the window in as
+/// an argument is what lets a test say which screen it means instead of
+/// inheriting one. ⛔ The Windows leg was the only one that could ever catch
+/// this: [`work_area`] answers `None` off Windows, so the ubuntu and macOS
+/// `quality` jobs clamp nothing and were green throughout.
+fn next_among(name: &str, window: impl Fn(f32) -> (u32, u32)) -> (&'static str, bool) {
     let at = SCALES.iter().position(|(id, _)| *id == name).unwrap_or(0);
-    let here = physical(SCALES[at].1).0;
+    let here = window(SCALES[at].1);
 
     for step in 1..=SCALES.len() {
         let (id, factor) = SCALES[(at + step) % SCALES.len()];
-        if physical(factor).0 != here {
+        if window(factor) != here {
             return (id, factor < SCALES[at].1);
         }
     }
@@ -290,9 +310,16 @@ mod sizing {
     /// ⛔ One press bigger, the next press back — never bigger twice. Mike,
     /// 2026-08-06: *"ensure that the app gets bigger one time and not smaller
     /// then back to bigger."*
+    /// A display with room for every preset, stated rather than inherited from
+    /// whatever machine is running the suite. ⛔ See `next_among`: reading the
+    /// real desktop here is what passed on Mike's monitor and failed on CI.
+    fn roomy(factor: f32) -> (u32, u32) {
+        fit(LAYOUT, 1.0, factor, SCREEN).0
+    }
+
     #[test]
     fn the_button_grows_the_window_then_returns_it_to_the_default() {
-        let (next, shrinks) = next_scale(DEFAULT_SCALE);
+        let (next, shrinks) = next_among(DEFAULT_SCALE, roomy);
         assert_eq!(next, "xl");
         assert!(
             !shrinks,
@@ -307,7 +334,7 @@ mod sizing {
             "a preset below 1:1 reintroduces the zoom rounding that hid the Stems panel"
         );
 
-        let (back, shrinks_back) = next_scale("xl");
+        let (back, shrinks_back) = next_among("xl", roomy);
         assert_eq!(back, DEFAULT_SCALE);
         assert!(
             shrinks_back,
@@ -324,7 +351,11 @@ mod sizing {
         // DPI-aware and 1.5 after, so `medium` was 1224 at open and 1836 at the
         // first press — two windows from one preset. It is pinned now, so a
         // preset resolves to one size however many times it is asked.
-        let sizes: Vec<(u32, u32)> = SCALES.iter().map(|(_, f)| physical(*f).0).collect();
+        //
+        // ⚠ On a screen with room for both. A display too small for either
+        // legitimately collapses them onto one window — CI's runner does
+        // exactly that — so this claim has to name the screen it holds on.
+        let sizes: Vec<(u32, u32)> = SCALES.iter().map(|(_, f)| roomy(*f)).collect();
         let mut distinct = sizes.clone();
         distinct.sort_unstable();
         distinct.dedup();
@@ -335,7 +366,9 @@ mod sizing {
         );
 
         // And asking twice must answer the same, which is the property that
-        // actually broke — the cycle read it once per press.
+        // actually broke — the cycle read it once per press. ⚠ This half reads
+        // the real display on purpose: it is what pins the `OnceLock`, and it
+        // holds on any screen, small or large.
         for (name, _) in SCALES {
             assert_eq!(
                 preset(name),
@@ -343,6 +376,33 @@ mod sizing {
                 "`{name}` must be one window for the whole session"
             );
         }
+    }
+
+    /// ⛔ The branch CI found, on a machine rather than in review: a screen too
+    /// small for any preset. `windows-latest` reports a work area of about
+    /// 1040x650, both presets clamp to exactly that, and the button then has no
+    /// second window to offer.
+    ///
+    /// It must **stay put** rather than flip its icon while changing nothing —
+    /// see `next_among`. Untested until the runner exercised it, and the two
+    /// tests above could not cover it because they now state a roomy screen.
+    #[test]
+    fn a_screen_too_small_for_either_preset_leaves_the_button_where_it_is() {
+        let cramped = |factor: f32| fit(LAYOUT, 1.0, factor, (1040, 650)).0;
+
+        // The premise: every preset really does collapse onto one window here.
+        let sizes: Vec<(u32, u32)> = SCALES.iter().map(|(_, f)| cramped(*f)).collect();
+        assert!(
+            sizes.windows(2).all(|p| p[0] == p[1]),
+            "this test is only meaningful if the presets collapse, got {sizes:?}"
+        );
+
+        let (next, shrinks) = next_among(DEFAULT_SCALE, cramped);
+        assert_eq!(
+            next, DEFAULT_SCALE,
+            "with no distinct window to move to, the button must not move"
+        );
+        assert!(!shrinks, "and it must not claim it is shrinking anything");
     }
 
     #[test]
