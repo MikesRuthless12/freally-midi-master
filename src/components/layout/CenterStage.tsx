@@ -2,7 +2,13 @@ import { useMemo } from 'react';
 import { AudioWaveform, Drum, ListMusic, Music2, Piano, Waves } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { GENERATOR_TABS, useUi, type GeneratorTab } from '../../state/ui';
-import { BAR_CHOICES, TAB_PART, useSession } from '../../state/session';
+import {
+  armCurrentPattern,
+  BAR_CHOICES,
+  GENERATED_PARTS,
+  TAB_PART,
+  useSession,
+} from '../../state/session';
 import { DrumGrid } from '../DrumGrid/DrumGrid';
 import { PianoRoll } from '../PianoRoll/PianoRoll';
 import { SongTimeline } from '../SongTimeline/SongTimeline';
@@ -12,6 +18,7 @@ import { sectionDensity } from '../SongTimeline/sketch';
 import { GenFx } from '../GenFx/GenFx';
 import { SeedChip } from '../SeedChip/SeedChip';
 import { SessionSwitchPrompt } from '../SessionChips/SessionChips';
+import { TransportControls } from './TransportBar';
 import { useTranslation } from 'react-i18next';
 
 /** Density buckets handed to the ripple. Matches the columns it draws. */
@@ -26,6 +33,64 @@ const TAB_ICONS: Record<GeneratorTab, LucideIcon> = {
   chords: Piano,
   song: ListMusic,
 };
+
+/**
+ * Which generators sound when Play is pressed (TASK-127).
+ *
+ * ⛔⛔ **Mike, 2026-08-06:** *"i want to be able to play the generators all at
+ * once or separately, they should be able to be toggled on and off for each
+ * generator."* So this is a set of independent switches, not a solo radio: any
+ * combination is legal, and all of them on is the default.
+ *
+ * ⛔ **Beside the tablist rather than inside each tab, and that is a
+ * requirement rather than a preference.** A `role="tab"` may not contain a
+ * second button — nesting interactive controls breaks both the keyboard model
+ * and every screen reader — so the switches are their own group.
+ *
+ * ⚠ **Only parts that exist are offered.** A switch for a bassline nobody has
+ * generated would be a control that changes nothing, which is the shape of
+ * defect this codebase records more than any other.
+ */
+function PartToggles() {
+  const { t } = useTranslation();
+  const patterns = useSession((s) => s.patterns);
+  const partsOff = useUi((s) => s.partsOff);
+  const togglePart = useUi((s) => s.togglePart);
+
+  const generated = GENERATED_PARTS.filter((part) => patterns[part]);
+  if (generated.length === 0) return null;
+
+  return (
+    // ⚠ **No new catalog keys, deliberately.** The part names already exist and
+    // `aria-pressed` is what carries on/off — inventing three strings here would
+    // have meant eighteen translations of them, and `locales.test.ts` rightly
+    // refuses a catalog with a missing or empty key.
+    <div className="parttoggles">
+      {generated.map((part) => {
+        const on = !partsOff.includes(part);
+        return (
+          <button
+            key={part}
+            type="button"
+            className="parttoggle"
+            aria-pressed={on}
+            data-on={on}
+            onClick={() => {
+              togglePart(part);
+              // ⛔ Re-arm here rather than from the store: the schedule holds
+              // one merged clip, so a switch that changed only the UI would
+              // leave Play sounding the previous combination — a control that
+              // looks like it did something and did not.
+              armCurrentPattern();
+            }}
+          >
+            {t(`tabs.${part}`)}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
 
 function GeneratorTabs() {
   const { t } = useTranslation();
@@ -54,6 +119,26 @@ function GeneratorTabs() {
           </button>
         );
       })}
+    </div>
+  );
+}
+
+/**
+ * The tab strip, the play switches, and the transport (TASK-127 / TASK-138).
+ *
+ * ⛔ Mike, 2026-08-06: *"the play/pause and stop buttons and loop button need to
+ * be moved to the top of the app to the right of the generators tabs, so that
+ * way you can play the generators from there."* The switches sit between the
+ * two because they are what Play acts on.
+ */
+function StageHeader() {
+  return (
+    <div className="stage__header">
+      <GeneratorTabs />
+      <div className="stage__header-controls">
+        <PartToggles />
+        <TransportControls />
+      </div>
     </div>
   );
 }
@@ -133,7 +218,7 @@ export function CenterStage() {
 
   return (
     <section className="stage">
-      <GeneratorTabs />
+      <StageHeader />
 
       <div
         className="stage__body"

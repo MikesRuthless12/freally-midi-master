@@ -162,10 +162,27 @@ pub fn dispatch(
         // inputs, not its notes, and the page owns the edited document until the
         // materialisation decision is built (see the roadmap, above Phase 4).
         // Arming is a *playback* concern and is all this needs to do.
+        // ⛔ **`patterns`, plural, since TASK-127.** It took one clip and echoed
+        // it, so Play could only ever sound the part on the visible tab. Mike,
+        // 2026-08-06: *"i want to be able to play the generators all at once or
+        // separately, they should be able to be toggled on and off for each
+        // generator."* The page sends the parts that are toggled on and this
+        // merges them into the one `Pattern` a schedule can hold; one part is
+        // the ordinary solo case and comes back untouched.
+        //
+        // ⚠ **`check_patterns` for the same reason the export and the drag call
+        // it**: these arrive as JSON from the webview, and merging allocates a
+        // note per note across every part handed over.
         "arm_pattern" => {
-            let pattern: Pattern = Pattern::deserialize(&request.args["pattern"])
-                .map_err(|e| format!("bad pattern: {e}"))?;
-            serde_json::to_value(pattern).map_err(|e| e.to_string())
+            let patterns: Vec<Pattern> = Vec::<Pattern>::deserialize(&request.args["patterns"])
+                .map_err(|e| format!("bad patterns: {e}"))?;
+            check_patterns(&patterns)?;
+            // ⛔ An error, not an empty clip. Arming nothing would leave the
+            // transport running over silence while the UI insisted something was
+            // playing — and the page can reach this by toggling every part off.
+            let merged = Pattern::merge(&patterns)
+                .ok_or("nothing is toggled on, so there is nothing to play")?;
+            serde_json::to_value(merged).map_err(|e| e.to_string())
         }
 
         "generate_pattern" => {
@@ -1195,6 +1212,54 @@ mod tests {
             count(&drums) < count(&all),
             "soloing one part armed as many notes as the whole song"
         );
+    }
+
+    // ---- Playing several generators at once (TASK-127) --------------------
+
+    fn arm_patterns(patterns: Vec<Value>) -> Result<Value, String> {
+        dispatch(
+            &request("arm_pattern", json!({ "patterns": patterns })),
+            &host(),
+        )
+    }
+
+    #[test]
+    fn arming_two_generators_sounds_both_rather_than_the_last_one() {
+        // ⛔⛔ **The whole of TASK-127 in one assertion.** A schedule holds one
+        // `Pattern`, so before the merge the second part simply replaced the
+        // first and Play could only ever sound the visible tab. Mike,
+        // 2026-08-06: *"i want to be able to play the generators all at once or
+        // separately."*
+        let drums = generate_part("trap", "drums").unwrap();
+        let melody = generate_part("trap", "melody").unwrap();
+
+        let both = arm_patterns(vec![drums.clone(), melody.clone()]).unwrap();
+        assert_eq!(
+            note_count(&both),
+            note_count(&drums) + note_count(&melody),
+            "arming both parts must sound every note of each"
+        );
+    }
+
+    #[test]
+    fn arming_one_generator_is_that_generator_alone() {
+        // The toggle's other end: one part on is a solo, and it must come back
+        // untouched rather than through the merge's stand-in fields.
+        let melody = generate_part("trap", "melody").unwrap();
+        let armed = arm_patterns(vec![melody.clone()]).unwrap();
+
+        assert_eq!(armed["part"], "melody", "a soloed part keeps its own name");
+        assert_eq!(note_count(&armed), note_count(&melody));
+    }
+
+    #[test]
+    fn toggling_every_generator_off_is_refused_rather_than_arming_silence() {
+        // ⛔ Reachable from the UI by turning them all off. An empty clip would
+        // leave the transport running over nothing while the page insisted
+        // something was playing — a readout that lies, which is the failure this
+        // codebase records more than any other.
+        let err = arm_patterns(vec![]).unwrap_err();
+        assert!(err.contains("nothing"), "{err}");
     }
 
     #[test]

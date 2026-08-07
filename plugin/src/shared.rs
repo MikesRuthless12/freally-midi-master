@@ -305,6 +305,17 @@ pub struct Shared {
     /// preview kit doubling every hit — that was the plugin's only behaviour
     /// before the sampler existed, and it has to stay reachable in one switch.
     audio_enabled: AtomicBool,
+    /// Whether the clip repeats when it reaches its end (TASK-138).
+    ///
+    /// ⛔ **Read every block by the schedule, so it is atomic rather than a
+    /// session field the audio thread would have to lock for.** Mike,
+    /// 2026-08-06: *"can you have the 'Loop' button toggle off and on and either
+    /// loop every time it plays to the end of the 4 or 8 bars or stop at the end
+    /// of the 4 or 8 bars."*
+    ///
+    /// ⚠ **Defaults to on**, which is what the button has always claimed —
+    /// `transport.loopAlways` read *"Playback always loops in this phase."*
+    looping: AtomicBool,
     /// Lanes whose *audio* is muted, as a bitmask (FMM-S02).
     ///
     /// ⛔ The MIDI keeps flowing for a muted lane — that is the whole feature.
@@ -384,21 +395,32 @@ impl Shared {
             // none can be surprised by it. A generator nobody can hear without
             // wiring an instrument up first is the problem P17 exists to fix.
             audio_enabled: AtomicBool::new(true),
+            looping: AtomicBool::new(true),
             muted_lanes: AtomicU32::new(0),
             playhead_bits: AtomicU32::new(0),
             seek_request: AtomicU32::new(0),
             audition_request: AtomicU32::new(0),
             standalone,
-            // ⛔ **True in a host, false in the standalone, and the asymmetry is
-            // the point.** In a host this term must never be the one that
-            // decides — the DAW's transport is, and a `false` here would silence
-            // a playing project with nothing on screen to explain it. In the
-            // standalone nih-plug's cpal backend claims a running transport on
-            // every block, so `true` here means the editor comes up already
-            // "playing": Pause and Stop offered for a pattern that does not
-            // exist, and a 30 Hz playhead poll running forever on an idle
-            // window. Nothing should advance there until someone presses Play.
-            running: AtomicBool::new(!standalone),
+            // ⛔⛔ **FALSE IN BOTH SHELLS SINCE TASK-138, and the `!standalone`
+            // that stood here would now be a live defect.** This used to be
+            // `true` in a host because the gate was `host AND ours`: our term had
+            // to be a constant that never decided, since a `false` would have
+            // silenced a playing project.
+            //
+            // The gate is `host OR preview` now, so the same `true` would mean
+            // **the preview is running from the moment the plugin loads** — the
+            // pattern sounding continuously with the DAW stopped, which is
+            // precisely the failure `process` records in its own comment
+            // ("played the whole pattern out loud with the transport stopped").
+            // An inverted default is not a tuning choice here; it is the
+            // difference between a preview and a plugin that will not shut up.
+            //
+            // ⚠ The standalone's reason for `false` is unchanged and still
+            // holds: cpal claims a running transport on every block, so a `true`
+            // would bring the editor up already "playing" — Pause and Stop
+            // offered for a pattern that does not exist, and a 30 Hz playhead
+            // poll on an idle window.
+            running: AtomicBool::new(false),
         }
     }
 
@@ -524,18 +546,25 @@ impl Shared {
         self.running.load(Ordering::Relaxed)
     }
 
-    /// Start or hold our own transport.
+    /// Start or hold our own **preview** transport (TASK-138).
     ///
-    /// ⛔ **Self-gating, so the rule lives here rather than at every caller.**
-    /// A host owns whether time runs; letting one reach this would hand a DAW a
-    /// second transport that can silence the plugin permanently with nothing on
-    /// screen to explain it. Written as a no-op rather than an error because
-    /// the callers that *can* reach it already refuse first — this is the
-    /// backstop, and a backstop that panics is worse than the bug.
+    /// ⛔⛔ **The standalone gate that used to be here is GONE, deliberately,
+    /// and the old reasoning must not be re-applied.** It read: *"a host owns
+    /// whether time runs; letting one reach this would hand a DAW a second
+    /// transport that can silence the plugin permanently."* That is right about
+    /// the **host's timeline** and wrong about **auditioning**. Mike, 2026-08-04:
+    /// *"i do not want to just use Ableton's transpose play button."* A producer
+    /// choosing a beat wants to hear the loop without arming a track and rolling
+    /// the whole project, which is what every comparable plugin offers.
+    ///
+    /// ▶ **What keeps it from being a second transport the DAW cannot move:**
+    /// `lib.rs`'s gate is `host_playing || preview`, and the host **wins** — when
+    /// its transport starts, `process` clears this flag on the same block. So
+    /// the two can never both drive the schedule, and a DAW that starts rolling
+    /// always takes it back. The failure the old gate feared — a plugin stuck
+    /// silent because our flag said stop — cannot happen, because our flag can
+    /// only ever *add* playback in a host, never subtract it.
     pub fn set_running(&self, running: bool) {
-        if !self.standalone {
-            return;
-        }
         self.running.store(running, Ordering::Relaxed);
     }
 
@@ -546,6 +575,20 @@ impl Shared {
 
     pub fn set_audio_enabled(&self, on: bool) {
         self.audio_enabled.store(on, Ordering::Relaxed);
+    }
+
+    /// Whether the clip repeats at its end (TASK-138). Read every block.
+    pub fn looping(&self) -> bool {
+        self.looping.load(Ordering::Relaxed)
+    }
+
+    /// ⛔ **Not gated on the standalone, unlike [`set_running`].** Looping is a
+    /// property of *our* clip inside *our* schedule, not a claim on the host's
+    /// timeline — a DAW that is rolling still expects a plugin's own loop to
+    /// turn over. That is exactly the distinction `set_running`'s comment draws
+    /// and the reason it does not apply here.
+    pub fn set_looping(&self, on: bool) {
+        self.looping.store(on, Ordering::Relaxed);
     }
 
     /// Whether this lane's *audio* is muted. Its notes go out regardless.
@@ -1028,18 +1071,24 @@ mod transport_tests {
     }
 
     #[test]
-    fn a_host_cannot_be_handed_a_second_transport() {
-        // ⛔ The backstop for the rule the callers already enforce. A DAW owns
-        // whether time runs; letting one reach `set_running` would silence the
-        // plugin for the rest of the session with nothing on screen to explain
-        // it. `Shared::default()` is not the standalone, so this must not take.
+    /// ⛔⛔ **INVERTED at TASK-138.** This asserted that a host *could not* reach
+    /// `set_running` — the backstop for "a DAW owns whether time runs". The
+    /// plugin drives its own **preview** transport now, so a host must be able
+    /// to move it. `Shared::set_running` records why the old reasoning does not
+    /// apply, and `lib.rs`'s gate is what keeps the two from colliding.
+    fn a_host_drives_its_own_preview_transport() {
         let shared = Shared::default();
         assert!(!shared.standalone);
+        // ⛔ Stopped on load, in a host as well as the standalone. A `true` here
+        // and the gate `host || preview` would sound the pattern the moment the
+        // plugin was inserted — see `Shared::new`.
+        assert!(!shared.running(), "a freshly loaded plugin is not playing");
+
+        shared.set_running(true);
+        assert!(shared.running(), "a host may start its own preview");
+
         shared.set_running(false);
-        assert!(
-            shared.running(),
-            "a host must not be able to hold our transport"
-        );
+        assert!(!shared.running(), "and may hold it again");
     }
 
     #[test]

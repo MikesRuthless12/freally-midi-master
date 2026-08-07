@@ -22,7 +22,7 @@
 use engine::pattern::{Pattern, PPQ};
 
 use super::kit::Kit;
-use super::sampler::{self, Sampler};
+use super::sampler::{self, Glide, Sampler};
 
 /// The rate stems are written at. 44.1 kHz because that is what the kit is, so
 /// the common case resamples nothing.
@@ -117,7 +117,7 @@ pub fn to_stereo(pattern: &Pattern, kit: &Kit) -> Option<Vec<f32>> {
     // Every note in the pattern, in time order, with the frame it starts on.
     // Collected first so the render is one pass over a sorted list rather than
     // a search per frame.
-    let mut hits: Vec<(usize, usize, f32, f32)> = Vec::new();
+    let mut hits: Vec<(usize, usize, f32, f32, Option<Glide>)> = Vec::new();
     for track in &pattern.lanes {
         let Some(pad_index) = kit.pad_for(track.lane) else {
             // ⛔ Skipped, never defaulted to a nearby pad — `pad_for` refuses to
@@ -135,13 +135,33 @@ pub fn to_stereo(pattern: &Pattern, kit: &Kit) -> Option<Vec<f32>> {
             // pad from its root — the same rule `render_preview` follows, so a
             // stem sounds like the preview did (TASK-131D).
             let semis = Kit::semitones_for(pad, track.lane, note.pitch);
-            hits.push((at, pad_index, f32::from(note.vel) / 127.0, semis));
+            // ⛔ **The 808 slide, which this rendered as a flat note until
+            // 2026-08-06.** The engine has written `slide_to_pitch` for as long
+            // as `glideProb` and `slideProb` have existed and `midi.rs` has
+            // encoded it for as long — so a producer got a gliding `.mid` and a
+            // dead-flat `.wav` out of the same drag. Mike: *"ensure i have 808
+            // slides … for my audio being dragged into the DAW or audio being
+            // exported."*
+            let glide = note.slide_to_pitch.map(|target| {
+                let frames =
+                    (f64::from(note.len_ticks) * seconds_per_tick * f64::from(RATE)) as u32;
+                Glide {
+                    // Travel measured the same way the pitch was, so a pad with
+                    // its own root or offset cannot make the two disagree.
+                    semis: Kit::semitones_for(pad, track.lane, target) - semis,
+                    // ⚠ Half the note each, matching where `midi.rs` puts the
+                    // destination note-on — the origin is held, then it moves.
+                    delay: frames / 2,
+                    frames: frames - frames / 2,
+                }
+            });
+            hits.push((at, pad_index, f32::from(note.vel) / 127.0, semis, glide));
         }
     }
     if hits.is_empty() {
         return None;
     }
-    hits.sort_by_key(|(at, _, _, _)| *at);
+    hits.sort_by_key(|(at, _, _, _, _)| *at);
 
     let mut out = vec![0.0f32; frames * 2];
     let mut sampler = Sampler::default();
@@ -149,8 +169,8 @@ pub fn to_stereo(pattern: &Pattern, kit: &Kit) -> Option<Vec<f32>> {
     let mut at = 0usize;
     while at < frames {
         while next < hits.len() && hits[next].0 <= at {
-            let (_, pad, velocity, semis) = hits[next];
-            sampler.trigger(kit, pad, velocity, semis, f64::from(RATE));
+            let (_, pad, velocity, semis, glide) = hits[next];
+            sampler.trigger_with(kit, pad, velocity, semis, f64::from(RATE), glide);
             next += 1;
         }
         // Render up to the next trigger, so a hit lands on its own frame rather
@@ -158,7 +178,7 @@ pub fn to_stereo(pattern: &Pattern, kit: &Kit) -> Option<Vec<f32>> {
         // splits its block.
         let until = hits
             .get(next)
-            .map(|(frame, _, _, _)| (*frame).min(frames))
+            .map(|(frame, _, _, _, _)| (*frame).min(frames))
             .unwrap_or(frames)
             .max(at + 1);
         sampler.render(kit, &mut out[at * 2..until * 2], 2);

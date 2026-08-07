@@ -93,6 +93,12 @@ pub struct FreallyMidiMaster {
     /// `audio::preview_kit` already logs.
     kit: Option<Arc<audio::kit::Kit>>,
     fired: voice::FiredNotes,
+    /// Whether the host's transport was rolling on the previous block.
+    ///
+    /// ⛔ Only so the *start* of the host's playback can be noticed (TASK-138).
+    /// The preview transport yields to the host on that edge; see the gate in
+    /// `process`, which explains why an edge and not a level.
+    host_was_playing: bool,
     /// Interleaved scratch the sampler renders into before it is added to the
     /// host's buffer.
     ///
@@ -139,8 +145,97 @@ impl Default for FreallyMidiMaster {
             // Decoded lazily by `initialize`, off the audio thread.
             kit: None,
             fired: voice::FiredNotes::default(),
+            // ⚠ `false`, so a plugin loaded into an already-rolling project sees
+            // the host start on its first block and takes the preview flag down
+            // rather than letting a stale one through.
+            host_was_playing: false,
             scratch: Vec::new(),
         }
+    }
+}
+
+/// Whether the host's transport has just *started* (TASK-138).
+///
+/// ⛔ **An edge, not a level, and the difference is the whole design.** The
+/// preview yields to the host so the two can never both drive the schedule —
+/// but yielding on the *level* (`host_playing`) would clear the flag on every
+/// block a DAW rolls, making Play unpressable while a project plays. On the
+/// edge, the host takes it back once and the producer can start a preview again
+/// afterwards.
+fn host_takes_over(host_playing: bool, host_was_playing: bool) -> bool {
+    host_playing && !host_was_playing
+}
+
+/// Whether the schedule advances this block.
+///
+/// ⛔⛔ **`host OR preview` in a plugin — reversed from `host AND ours` at
+/// TASK-138**, which made Play inside a DAW impossible by construction.
+/// `crate::shared::Shared::set_running` carries the full reasoning.
+///
+/// ⚠ **The standalone is a separate branch and must stay one.** nih-plug's cpal
+/// backend hardcodes `transport.playing = true` on every block whatever the user
+/// pressed, so `host_playing` is a constant `true` there — an `||` would make
+/// Pause impossible.
+///
+/// ⚠ Extracted from `process` purely so it can be tested, the same reason
+/// `editor::fit` is a free function: the rule is four lines and the failure it
+/// prevents is a DAW that will not stop.
+fn transport_runs(standalone: bool, host_playing: bool, preview: bool) -> bool {
+    if standalone {
+        preview
+    } else {
+        host_playing || preview
+    }
+}
+
+#[cfg(test)]
+mod transport_gate {
+    use super::*;
+
+    #[test]
+    fn a_plugin_plays_when_the_host_does_even_with_no_preview() {
+        // Unchanged from before TASK-138 and the case that must never regress:
+        // a DAW rolling plays the pattern whatever our own flag says.
+        assert!(transport_runs(false, true, false));
+    }
+
+    #[test]
+    fn a_plugin_plays_its_preview_with_the_host_stopped() {
+        // ⛔⛔ The whole of TASK-138. Mike, 2026-08-04: *"i do not want to just
+        // use Ableton's transpose play button."* This was impossible before —
+        // the gate was a conjunction, so a stopped host meant silence.
+        assert!(transport_runs(false, false, true));
+    }
+
+    #[test]
+    fn a_plugin_with_neither_is_silent() {
+        assert!(!transport_runs(false, false, false));
+    }
+
+    #[test]
+    fn the_standalone_ignores_the_backend_s_hardcoded_playing_flag() {
+        // ⛔ cpal claims `playing = true` on every block. An `||` here would make
+        // Pause do nothing at all, which is the defect the old conjunction was
+        // written to avoid and this branch preserves.
+        assert!(!transport_runs(true, true, false), "Pause must hold");
+        assert!(transport_runs(true, true, true));
+    }
+
+    #[test]
+    fn the_host_takes_the_transport_back_when_it_starts_and_only_then() {
+        // ⛔ The safety property: exactly one of the two drives the schedule.
+        // Leaving a preview running and then rolling the DAW would otherwise
+        // sound the pattern twice.
+        assert!(host_takes_over(true, false), "the block the host starts on");
+
+        // ⚠ And not afterwards — otherwise Play could never be pressed again
+        // while the project rolls.
+        assert!(
+            !host_takes_over(true, true),
+            "already rolling is not an edge"
+        );
+        assert!(!host_takes_over(false, true), "stopping is not a takeover");
+        assert!(!host_takes_over(false, false));
     }
 }
 
@@ -295,7 +390,25 @@ impl Plugin for FreallyMidiMaster {
         // user pressed, so publishing that raw left Pause looking like it did
         // nothing — the flag flipped back on the next 500 ms poll and the marker
         // carried on.
-        let running = self.session.playing() && self.shared.running();
+        // ⛔⛔ **`host OR preview` in a plugin, and the host WINS (TASK-138).**
+        // This used to be `host AND ours`, which made Play inside a DAW
+        // impossible by construction — `Shared::set_running` records why that
+        // was reversed. A producer auditioning a beat must not have to arm a
+        // track and roll the whole project.
+        //
+        // ⛔ **The host taking over is an *edge*, not a level.** Clearing our
+        // flag whenever the host is playing would make Play unpressable while a
+        // DAW rolls; clearing it on the transition is what stops the preview
+        // outliving the host's own playback. After this, exactly one of the two
+        // is driving the schedule, which is the property the old gate was
+        // protecting and this keeps.
+        let host_playing = self.session.playing();
+        if host_takes_over(host_playing, self.host_was_playing) {
+            self.shared.set_running(false);
+        }
+        self.host_was_playing = host_playing;
+
+        let running = transport_runs(self.shared.standalone, host_playing, self.shared.running());
         self.shared.host.publish(&self.session, running);
 
         // Take a newly generated pattern if one is waiting. The schedule this
@@ -371,8 +484,12 @@ impl Plugin for FreallyMidiMaster {
         // ⛔ The block length is what advances the schedule. Passing it is not
         // bookkeeping: without it `emit` replays the first block forever and
         // nothing past ~170 ms of a pattern is ever heard.
-        self.pending
-            .emit(context, buffer.samples() as u32, &mut self.fired);
+        self.pending.emit(
+            context,
+            buffer.samples() as u32,
+            self.shared.looping(),
+            &mut self.fired,
+        );
 
         // Where the marker goes (TASK-041T). Published every block, so it moves
         // with the tempo for free: the schedule is placed in samples against the
@@ -545,12 +662,29 @@ impl FreallyMidiMaster {
                     // snares, etc. in actual song arrangements."
                     let semis =
                         audio::kit::Kit::semitones_for(&kit.pads[pad_index], note.lane, note.note);
-                    self.sampler.trigger(
+                    // ⛔ **The 808 slide, heard live (2026-08-06).** Mike asked
+                    // for it *"for my generator playback"* as well as for the
+                    // export and the drag. The same `semitones_for` the offline
+                    // renderer uses, so a preview and a rendered stem cannot
+                    // disagree about the interval; and the same half-and-half
+                    // window, so both match where `midi.rs` puts the
+                    // destination note-on.
+                    let glide = note.slide_to.map(|target| audio::sampler::Glide {
+                        semis: audio::kit::Kit::semitones_for(
+                            &kit.pads[pad_index],
+                            note.lane,
+                            target,
+                        ) - semis,
+                        delay: note.frames / 2,
+                        frames: note.frames - note.frames / 2,
+                    });
+                    self.sampler.trigger_with(
                         kit,
                         pad_index,
                         note.velocity,
                         semis,
                         f64::from(self.shared.sample_rate()),
+                        glide,
                     );
                 }
                 next += 1;

@@ -1305,9 +1305,18 @@ export const useSession = create<SessionState>((set, get) => ({
     set({ pins: NO_PINS, pendingArtist: null });
   },
 
+  // ⛔⛔ **`standalone` dropped from this, deliberately (TASK-138).** It read
+  // `standalone && playbackFailure === null`, which is what disabled Play inside
+  // a DAW. The plugin drives its own *preview* transport now — `lib.rs` gates on
+  // `host_playing || preview` and the host wins the moment its transport starts
+  // — so a plugin window can offer Play like any other. Mike, 2026-08-04: *"i do
+  // not want to just use Ableton's transpose play button."*
+  //
+  // ⚠ **`playbackFailure` still decides**, and it is now the only thing that
+  // does: a missing output device or a kit that failed to decode is a real
+  // refusal and the button must stay dark with the reason in its tooltip.
   canDriveTransport() {
-    const { standalone, playbackFailure } = get();
-    return standalone && playbackFailure === null;
+    return get().playbackFailure === null;
   },
 
   async generate(part = 'drums') {
@@ -1758,10 +1767,32 @@ useSession.subscribe((state, prev) => {
  */
 export function armCurrentPattern(): void {
   if (!isPlugin()) return;
-  const pattern = patternForTab(useSession.getState(), useUi.getState().activeTab);
-  if (pattern !== null) {
-    void invoke('arm_pattern', { pattern }).catch(() => {});
-    return;
+  // ⛔⛔ **Every generator that is switched on, not the visible tab's clip
+  // (TASK-127).** Mike, 2026-08-06: *"i want to be able to play the generators
+  // all at once or separately, they should be able to be toggled on and off for
+  // each generator."* The bridge merges these into the one `Pattern` a schedule
+  // can hold; one part on is the ordinary solo case.
+  //
+  // ⚠ **This replaces "arm whatever tab you are looking at", deliberately.**
+  // That rule existed because one clip could be armed at a time, so the visible
+  // one was the only defensible choice. With toggles the producer says which
+  // parts sound, and switching tabs no longer changes what Play does — which is
+  // the point: they can watch the melody while hearing it over the drums.
+  //
+  // ⚠ Song Mode is untouched and falls through to the disarm below:
+  // `TAB_PART.song` is `null`, and `SongTimeline` arms the arrangement itself.
+  if (TAB_PART[useUi.getState().activeTab] !== null) {
+    const { patterns } = useSession.getState();
+    const off = useUi.getState().partsOff;
+    const on = GENERATED_PARTS.filter((part) => !off.includes(part))
+      .map((part) => patterns[part])
+      .filter((clip): clip is Pattern => clip !== undefined && clip !== null);
+    if (on.length > 0) {
+      void invoke('arm_pattern', { patterns: on }).catch(() => {});
+      return;
+    }
+    // Everything generated is switched off, or nothing is generated. Fall
+    // through: the transport must have nothing rather than the last thing.
   }
   // ⛔ **A null pattern must *disarm*, not return.** This is the common case,
   // not an edge one: a session that has only ever used Song Mode has no clip at

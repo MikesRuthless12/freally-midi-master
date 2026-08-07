@@ -11,6 +11,7 @@ import {
   Sun,
 } from 'lucide-react';
 import { useUi } from '../../state/ui';
+import { invoke } from '../../lib/ipc';
 import { useSession, useActivePattern } from '../../state/session';
 import { useSong } from '../../state/song';
 import { ViewMenu } from './ViewMenu';
@@ -57,19 +58,23 @@ function ThemeToggle() {
 }
 
 /**
- * Bottom transport (TASK-041T).
+ * The bottom bar — everything that is *not* transport (TASK-041T).
  *
- * ⛔ **Who owns Play depends on whether there is a host, and the difference is
- * not cosmetic.** Inside a DAW the project's transport is the transport: our
- * Play would be a second one that cannot move the first, so it is disabled and
- * wears the reason `playback_status` gives as its tooltip — never merely styled
- * that way, so keyboard and screen-reader users are told rather than left
- * clicking a control that does nothing. In the standalone there is no host and
- * these are the only transport controls there are, so Play and Pause work.
+ * ⛔⛔ **The rule that used to be written here is REVERSED and must not be
+ * restored.** It read: *"inside a DAW the project's transport is the transport:
+ * our Play would be a second one that cannot move the first, so it is
+ * disabled."* That was right about the DAW's timeline and wrong about
+ * auditioning — the plugin drives its own **preview** transport now (TASK-138),
+ * and `plugin/src/shared.rs::set_running` carries the full reasoning.
  *
- * Stop belongs here in both: the host owns *whether* time runs, and the plugin
- * owns *where in the pattern* it is. Pause holds that position; Stop returns it
- * to the beginning.
+ * ⚠ **Play is still refused when it genuinely cannot work**, and that is the
+ * part worth keeping: `playbackFailure` — no output device, a kit that failed to
+ * decode, or a browser with no audio thread at all — disables the button and
+ * wears its reason as a tooltip. Never merely styled that way, so keyboard and
+ * screen-reader users are told rather than left clicking something inert.
+ *
+ * ▶ The controls themselves moved to `TransportControls`, at the top beside the
+ * generator tabs, on Mike's instruction.
  */
 /**
  * The bar/beat readout.
@@ -98,16 +103,23 @@ function Position() {
   return <span className="transport__position">{position}</span>;
 }
 
-export function TransportBar({
-  onOpenSettings,
-  onOpenAbout,
-}: {
-  onOpenSettings: () => void;
-  onOpenAbout: () => void;
-}) {
+/**
+ * Play / Pause, Stop and Loop — at the top of the app, beside the tabs.
+ *
+ * ⛔⛔ **Moved out of the footer on Mike's instruction, 2026-08-06:** *"the
+ * play/pause and stop buttons and loop button need to be moved to the top of the
+ * app to the right of the generators tabs, so that way you can play the
+ * generators from there."* They are the controls for the generator switches
+ * beside them (TASK-127), so they belong in the same row as the thing they act
+ * on rather than at the far end of the window.
+ *
+ * ⚠ **The rest of the footer stays** — the meter, the theme and view controls,
+ * the rail toggle, Settings and About are not transport and were not asked for.
+ */
+export function TransportControls() {
   const { t } = useTranslation();
-  const rightRailOpen = useUi((s) => s.rightRailOpen);
-  const toggleRightRail = useUi((s) => s.toggleRightRail);
+  const looping = useUi((s) => s.looping);
+  const toggleLooping = useUi((s) => s.toggleLooping);
 
   const pattern = useActivePattern();
   // Song is not a part, so it has no slot — the arrangement is what is armed.
@@ -159,7 +171,7 @@ export function TransportBar({
   const canStop = canPress && (playing || playhead > 0);
 
   return (
-    <footer className="transport">
+    <div className="transport__controls">
       <button
         type="button"
         className="btn-ghost"
@@ -183,17 +195,49 @@ export function TransportBar({
       >
         <Square size={14} aria-hidden="true" />
       </button>
+      {/* ⛔⛔ **Live now, and it was the last dead control in the app** — which
+          is TASK-137's whole complaint. Mike, 2026-08-06: *"can you have the
+          'Loop' button toggle off and on and either loop every time it plays to
+          the end of the 4 or 8 bars or stop at the end of the 4 or 8 bars…and
+          can you have it toggled a different background color?"*
+          ⚠ **Not gated on `canDriveTransport`.** Play is a claim on the host's
+          timeline and is refused inside a DAW; looping is a property of our own
+          schedule over our own clip, so it is ours to answer anywhere — see
+          `Shared::set_looping`, which deliberately lacks `set_running`'s
+          standalone gate. */}
       <button
         type="button"
-        className="btn-ghost"
+        className="btn-ghost btn-toggle"
         aria-label={t('transport.loop')}
-        aria-pressed
-        disabled
-        title={t('transport.loopAlways')}
+        aria-pressed={looping}
+        data-on={looping}
+        title={t('transport.loop')}
+        onClick={() => {
+          toggleLooping();
+          // The plugin is the authority; this keeps its copy in step. Ignored
+          // in a browser, which has no schedule to loop.
+          void invoke('transport_loop', { on: !looping }).catch(() => {});
+        }}
       >
         <Repeat size={14} aria-hidden="true" />
       </button>
+    </div>
+  );
+}
 
+export function TransportBar({
+  onOpenSettings,
+  onOpenAbout,
+}: {
+  onOpenSettings: () => void;
+  onOpenAbout: () => void;
+}) {
+  const { t } = useTranslation();
+  const rightRailOpen = useUi((s) => s.rightRailOpen);
+  const toggleRightRail = useUi((s) => s.toggleRightRail);
+
+  return (
+    <footer className="transport">
       <Position />
 
       <div className="transport__spacer" />

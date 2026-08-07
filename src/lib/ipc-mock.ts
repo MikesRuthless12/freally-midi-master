@@ -430,7 +430,16 @@ const handlers: Record<string, Handler> = {
   // there is to do — and echoing rather than returning `undefined` keeps the
   // fixture the same shape as the command, which is what `app_info` above is a
   // cautionary tale about.
-  arm_pattern: (args) => (args as { pattern?: unknown } | undefined)?.pattern,
+  // ⚠ Accepted and forgotten. A browser has no schedule to loop, and the real
+  // one keeps this on `Shared` for the audio thread — a fixture holding its own
+  // copy would be a second answer to "is looping on" that nothing reconciles.
+  transport_loop: () => undefined,
+
+  // ⚠ Answers with the FIRST of the parts handed over, not a merge: the real
+  // bridge merges them (TASK-127) and a fixture that reimplemented that would be
+  // a second, drifting copy of the rule. What a browser needs is a clip back.
+  arm_pattern: (args) =>
+    (args as { patterns?: unknown[] } | undefined)?.patterns?.[0] ?? undefined,
 
   // Scale intervals for the roll's row tinting and folding (TASK-041B). The
   // real command reads `engine::theory::scale_semitones`; the fixture answers
@@ -466,19 +475,24 @@ const handlers: Record<string, Handler> = {
   seek: () => undefined,
   set_looping: () => undefined,
 
-  // The standalone's own transport (TASK-041T).
+  // The preview transport (TASK-041T, TASK-138).
   //
-  // ⛔ **Rejected, because the plugin rejects them.** `playback_status` above
-  // reports this shell as not-the-standalone, and `editor.rs` treats a
-  // `transport_play` arriving in that state as the page and the plugin
-  // disagreeing about which shell they are in — an error rather than a no-op.
-  // A mock that resolved them would keep the e2e suite green through exactly
-  // the wiring bug the bridge refuses in order to catch.
+  // ⛔ **Still rejected here, but for a different reason since TASK-138, and
+  // the old one must not be re-quoted.** It threw *"the host owns the transport
+  // — press play in your DAW"* because `editor.rs` refused a hosted
+  // `transport_play` outright. It no longer does: the plugin drives its own
+  // preview transport in a host now.
+  //
+  // ⚠ **What is still true is that a BROWSER cannot play** — there is no audio
+  // thread behind the mock — which is exactly what `playback_status` above
+  // reports, and what keeps `canDriveTransport` false and the button disabled
+  // here. A fixture that resolved these would let the suite go green over a
+  // page that thinks it is playing something.
   transport_play: () => {
-    throw new Error('the host owns the transport — press play in your DAW');
+    throw new Error('Playback needs the plugin.');
   },
   transport_pause: () => {
-    throw new Error('the host owns the transport — press play in your DAW');
+    throw new Error('Playback needs the plugin.');
   },
 
   // Presets (TASK-P13). The real ones are files the plugin owns; a browser has

@@ -502,16 +502,16 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
             return Some(Ok(Value::Null));
         }
 
-        // ⛔ Stop is a seek to zero, and inside a DAW Pause is *nothing at
-        // all* — which is the whole distinction. The host owns whether time is
-        // running; the plugin only owns where in the pattern it is. So Pause
-        // has nothing to do there (the host stops calling `process` with a
-        // moving transport, and the marker simply stays where it was), while
-        // Stop has to move the marker back itself.
+        // ⛔ Stop is a seek to zero **and** a hold, in both shells since
+        // TASK-138. It used to be a seek alone in a host, because there was no
+        // transport of ours to hold there; the preview transport is ours to
+        // hold everywhere, and without this Stop would rewind the marker and
+        // leave the preview playing on from the top (TASK-041T).
         //
-        // The standalone has no host to own it, so it owns it here: Stop also
-        // holds the transport, or the marker snaps to zero and the pattern
-        // carries straight on playing from the top (TASK-041T).
+        // ⚠ **This still cannot stop a DAW, and does not try.** `lib.rs` gates
+        // on `host_playing || preview`: taking the preview down leaves the
+        // host's own playback exactly as it was, which is the separation the
+        // old standalone-only behaviour was protecting.
         // ⛔ `stop_playback`, not `transport_stop`. The name is the one the
         // frontend already invokes and the one the mock answers — and a bridge
         // that answers a *different* name fails in the quietest possible way:
@@ -521,8 +521,6 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
         // stopped.
         "stop_playback" => {
             shared.request_seek(0.0);
-            // `set_running` is itself gated on being the standalone, so this
-            // needs no guard of its own.
             shared.set_running(false);
             return Some(Ok(Value::Null));
         }
@@ -547,32 +545,50 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
         // wrong, so it is null — and if that ever stops being true (no output
         // device, a kit that failed to decode) it can say so without the page
         // mistaking it for "this is a plugin".
+        // ⛔⛔ **`reason` is null in a host too now (TASK-138).** It used to read
+        // *"Press play in your DAW — the plugin puts the notes on the track"*,
+        // and that string was the whole reason Play was disabled there. The
+        // plugin drives its own preview transport now, so nothing is wrong in a
+        // host and there is nothing to explain.
+        //
+        // ⚠ **The field stays**, and so does `standalone`. `reason` was always a
+        // string for a human rather than a decision, and it still has real work:
+        // no output device, or a kit that failed to decode, are refusals the page
+        // must be able to show without mistaking them for "this is a plugin".
         "playback_status" => {
             return Some(Ok(json!({
                 "standalone": shared.standalone,
-                "reason": if shared.standalone {
-                    Value::Null
-                } else {
-                    Value::String(
-                        "Press play in your DAW — the plugin puts the notes on the track."
-                            .into(),
-                    )
-                },
+                "reason": Value::Null,
             })));
         }
 
-        // ⛔ Both refused outside the standalone, rather than silently doing
-        // nothing. In a host these controls are not ours to offer — the UI
-        // does not render them — so a call arriving here means the page and
-        // the plugin disagree about which shell they are in, and that is worth
-        // an error rather than a no-op that looks like a broken button.
+        // ⛔⛔ **Answered in a host now, and the refusal that stood here is gone
+        // (TASK-138).** It read *"the host owns the transport — press play in
+        // your DAW"*, which was right about the DAW's timeline and wrong about
+        // auditioning. Mike, 2026-08-04: *"i do not want to just use Ableton's
+        // transpose play button."*
+        //
+        // ▶ This drives a **preview** transport that is explicitly not the
+        // host's: `lib.rs` gates on `host_playing || preview` and drops the
+        // preview the moment the host's transport starts, so the two can never
+        // both drive the schedule. `Shared::set_running` carries the full
+        // reasoning and the reason the old gate does not apply.
         "transport_play" | "transport_pause" => {
-            if !shared.standalone {
-                return Some(Err(
-                    "the host owns the transport — press play in your DAW".into()
-                ));
-            }
             shared.set_running(request.command == "transport_play");
+            return Some(Ok(Value::Null));
+        }
+
+        // Whether the clip repeats at its end (TASK-138).
+        //
+        // ⛔ **Answered in a host too, unlike `transport_play` above, and the
+        // difference is the point.** Play is a claim on the *host's* timeline
+        // and is refused there. Looping is a property of our own schedule over
+        // our own clip — a DAW that is rolling still expects a plugin's loop to
+        // turn over — so this is ours to answer wherever it is asked. Mike,
+        // 2026-08-06: *"can you have the 'Loop' button toggle off and on."*
+        "transport_loop" => {
+            let on = request.args["on"].as_bool().unwrap_or(true);
+            shared.set_looping(on);
             return Some(Ok(Value::Null));
         }
 
@@ -1433,17 +1449,25 @@ mod tests {
         use crate::shared::Shared;
         use std::sync::Arc;
 
+        /// ⛔⛔ **INVERTED at TASK-138.** This asserted that a host is told
+        /// *"Press play in your DAW"* — the string that disabled Play there. The
+        /// plugin drives its own preview transport now, so nothing is wrong in a
+        /// host and there is nothing to explain. Mike, 2026-08-04: *"i do not
+        /// want to just use Ableton's transpose play button."*
         #[test]
-        fn a_host_is_told_who_owns_the_transport() {
+        fn a_host_is_given_no_reason_now_that_it_has_a_transport_of_its_own() {
             let shared: SharedState = Arc::new(Shared::default());
             let reply = window_command(&command("playback_status"), &shared)
                 .expect("playback_status is a window command")
                 .expect("it answers rather than failing");
 
+            // ⚠ Still reported: the page uses it for the standalone-only bits of
+            // the UI, and it is not the same question as "may I press Play".
             assert_eq!(reply["standalone"], json!(false));
-            assert!(
-                reply["reason"].as_str().unwrap_or_default().contains("DAW"),
-                "a host needs a reason a human can act on: {reply}"
+            assert_eq!(
+                reply["reason"],
+                Value::Null,
+                "a host has its own preview transport, so nothing is refused: {reply}"
             );
         }
 
@@ -1462,19 +1486,26 @@ mod tests {
             );
         }
 
+        /// ⛔⛔ **INVERTED at TASK-138.** It asserted a host was *refused* Play
+        /// with "the host owns the transport". That is right about the DAW's
+        /// timeline and wrong about auditioning, which is what
+        /// `Shared::set_running` now records at length.
         #[test]
-        fn a_host_is_refused_the_transport_rather_than_quietly_ignored() {
-            // ⛔ An error, not a no-op. A `transport_play` arriving here means the
-            // page and the plugin disagree about which shell they are in, and a
-            // silent success would leave that disagreement invisible.
+        fn a_host_drives_its_own_preview_transport_rather_than_being_refused() {
             let shared: SharedState = Arc::new(Shared::default());
-            for name in ["transport_play", "transport_pause"] {
-                let error = window_command(&command(name), &shared)
-                    .expect("the command is known")
-                    .expect_err("a host must be refused");
-                assert!(error.contains("host owns the transport"), "{name}: {error}");
-            }
-            assert!(shared.running(), "a refusal must not have moved anything");
+            // ⛔ Starts stopped. A `true` here would mean the preview sounds from
+            // the moment the plugin loads — see `Shared::new`.
+            assert!(!shared.running(), "a freshly loaded plugin is not playing");
+
+            window_command(&command("transport_play"), &shared)
+                .expect("the command is known")
+                .expect("a host may drive its own preview");
+            assert!(shared.running(), "Play must start the preview in a host");
+
+            window_command(&command("transport_pause"), &shared)
+                .expect("the command is known")
+                .expect("a host may hold its own preview");
+            assert!(!shared.running(), "Pause must hold it");
         }
 
         #[test]
@@ -1493,28 +1524,35 @@ mod tests {
             assert!(!shared.running());
         }
 
+        /// ⛔⛔ **INVERTED at TASK-138.** Stop used to leave a host's flag alone,
+        /// because that flag was a constant the DAW's transport overrode. It is
+        /// the *preview* flag now, so Stop must hold it in both shells or the
+        /// preview carries straight on playing from the top.
+        ///
+        /// ⚠ **Stop still cannot stop a DAW, and nothing here claims it can.**
+        /// `lib.rs` gates on `host_playing || preview`: taking the preview down
+        /// leaves the host's own playback untouched, which is exactly the
+        /// separation the old test was protecting.
         #[test]
-        fn stop_rewinds_and_holds_in_the_standalone_but_only_rewinds_in_a_host() {
-            // The two halves of Stop. In a host the DAW owns whether time runs,
-            // so Stop may only move the marker; in the standalone it must also
-            // hold, or the pattern carries straight on playing from the top.
-            let standalone: SharedState = Arc::new(Shared::standalone_for_test());
-            standalone.set_running(true);
-            window_command(&command("stop_playback"), &standalone)
-                .expect("known")
-                .expect("answers");
-            assert_eq!(standalone.take_seek(), Some(0.0));
-            assert!(
-                !standalone.running(),
-                "stop holds the standalone's transport"
-            );
+        fn stop_rewinds_and_holds_the_preview_in_both_shells() {
+            let shells: [SharedState; 2] = [
+                Arc::new(Shared::default()),
+                Arc::new(Shared::standalone_for_test()),
+            ];
+            for shared in shells {
+                let standalone = shared.standalone;
+                shared.set_running(true);
 
-            let hosted: SharedState = Arc::new(Shared::default());
-            window_command(&command("stop_playback"), &hosted)
-                .expect("known")
-                .expect("answers");
-            assert_eq!(hosted.take_seek(), Some(0.0));
-            assert!(hosted.running(), "stop must not stop a DAW");
+                window_command(&command("stop_playback"), &shared)
+                    .expect("known")
+                    .expect("answers");
+
+                assert_eq!(shared.take_seek(), Some(0.0), "standalone={standalone}");
+                assert!(
+                    !shared.running(),
+                    "stop must hold the preview transport (standalone={standalone})"
+                );
+            }
         }
     }
 

@@ -3,6 +3,7 @@ import { readStored, writeStored } from './storage';
 import { applyLanguage, loadLanguagePreference } from '../i18n';
 import { type LocaleCode } from '../i18n/locales';
 import { applyThemePreference, loadThemePreference, type ThemePreference } from './theme';
+import type { Part } from '../lib/ipc-types';
 
 /** The six generators. Order matches the tab strip in PRD § 8. */
 export const GENERATOR_TABS = ['drums', 'melody', 'counter', 'bass', 'chords', 'song'] as const;
@@ -94,8 +95,42 @@ type UiState = {
    * and a one-shot nothing can re-arm is a one-shot nothing can prove.
    */
   stemsRevealed: boolean;
+  /**
+   * Generators switched OFF for playback (TASK-127).
+   *
+   * ⛔⛔ **Mike, 2026-08-06:** *"i want to be able to play the generators all at
+   * once or separately, they should be able to be toggled on and off for each
+   * generator."* Play sounds every generated part that is not in here, merged
+   * into the one clip a schedule can hold.
+   *
+   * ⚠ **OFF is what is stored, so ON is the default and stays the default.**
+   * Holding the on-set instead would mean a part generated after the toggles
+   * were last touched arrives silent, with nothing on screen saying why — a
+   * producer would press Generate on the bassline and hear nothing.
+   *
+   * ⚠ Not persisted. It is an audition choice about this sitting, like solo on a
+   * mixer, rather than a property of the record.
+   */
+  partsOff: Part[];
+  /**
+   * Whether the clip repeats at its end (TASK-138).
+   *
+   * ⛔ Mike, 2026-08-06: *"can you have the 'Loop' button toggle off and on and
+   * either loop every time it plays to the end of the 4 or 8 bars or stop at the
+   * end of the 4 or 8 bars."* On by default, which is what the button has always
+   * claimed — its tooltip read *"Playback always loops in this phase."*
+   *
+   * ⚠ **The plugin holds the authority**, on `Shared`, where the audio thread
+   * reads it every block. This is the page's copy for drawing the button, and
+   * `transport_loop` is what keeps them in step.
+   */
+  looping: boolean;
 
   setActiveTab: (tab: GeneratorTab) => void;
+  /** Switch one generator's playback on or off (TASK-127). */
+  togglePart: (part: Part) => void;
+  /** Turn the loop on or off (TASK-138). */
+  toggleLooping: () => void;
   toggleRightRail: () => void;
   /** Called when the viewport crosses WIDE_BREAKPOINT. */
   setWide: (wide: boolean) => void;
@@ -214,8 +249,17 @@ export const useUi = create<UiState>((set) => ({
   reduceMotion: loadReduceMotion(),
   language: loadLanguagePreference(),
   stemsRevealed: false,
+  partsOff: [],
+  looping: true,
 
   setActiveTab: (activeTab) => set({ activeTab }),
+  toggleLooping: () => set((s) => ({ looping: !s.looping })),
+  togglePart: (part) =>
+    set((s) => ({
+      partsOff: s.partsOff.includes(part)
+        ? s.partsOff.filter((off) => off !== part)
+        : [...s.partsOff, part],
+    })),
   toggleRightRail: () => set((s) => ({ rightRailOpen: !s.rightRailOpen })),
   // ⛔ Only on a *crossing* — see [`lastBreakpoint`]. Called with the same
   // answer as last time this does nothing, so a manual K toggle survives.

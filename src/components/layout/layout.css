@@ -268,12 +268,101 @@
   min-height: 0;
 }
 
+/* ⚠ **The rule moved off `.tabs` onto this** when the play switches joined the
+   strip (TASK-127): the border has to run the full width of the stage, and a
+   border on the tablist alone stopped under the switches. */
+.stage__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
 .tabs {
   display: flex;
   gap: var(--space-1);
   padding: 0 var(--space-4);
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface);
+  /* Wide tab strips scroll rather than squeezing the switches off the edge. */
+  min-width: 0;
+  overflow-x: auto;
+}
+
+/* ── Which generators sound on Play (TASK-127) ──────────────────────────── */
+/* Mike, 2026-08-06: "i want to be able to play the generators all at once or
+   separately, they should be able to be toggled on and off for each generator."
+   Independent switches, not a solo radio — any combination is legal. */
+/* The switches and the transport share the trailing end of the header row. */
+.stage__header-controls {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-3);
+  padding-inline-end: var(--space-4);
+}
+
+.parttoggles {
+  display: flex;
+  flex: none;
+  gap: var(--space-1);
+}
+
+/* Play / Pause, Stop and Loop, moved up beside the tabs (TASK-138). */
+.transport__controls {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* ⛔ **A background, on Mike's instruction, 2026-08-06:** *"can you have it
+   toggled a different background color?"* A pressed icon button previously
+   showed its state only through `aria-pressed`, which is correct for a screen
+   reader and invisible to everyone else.
+   ⚠ **Colour is not the only cue** — the text colour lifts with it, so the
+   switch still reads as on where the background is hard to tell apart. */
+/* ⚠ **A tint, not solid `--color-primary`.** `Settings.css` already established
+   this for an active control, and it is the shape that survives both themes:
+   solid purple would need a paired foreground token this palette does not
+   define, and `--color-text` on it fails contrast in the light theme. */
+.btn-toggle[data-on='true'] {
+  background: color-mix(in srgb, var(--color-primary) 22%, transparent);
+  border-color: var(--color-primary);
+  color: var(--color-text);
+}
+
+.btn-toggle[data-on='true']:hover {
+  background: color-mix(in srgb, var(--color-primary) 32%, transparent);
+}
+
+.parttoggle {
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-text-3);
+  font-family: var(--font-ui);
+  font-size: var(--text-micro);
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--ease-standard);
+}
+
+/* ⛔ **Off must read as off without relying on colour alone.** The border goes
+   too, so the switch reads as absent rather than merely dim — the same state a
+   producer would expect from a muted channel. */
+.parttoggle[data-on='true'] {
+  border-color: var(--color-primary);
+  color: var(--color-text);
+}
+
+.parttoggle[data-on='false'] {
+  border-style: dashed;
+  opacity: 0.55;
+}
+
+.parttoggle:hover {
+  color: var(--color-text);
 }
 
 .tab {

@@ -19,6 +19,35 @@ pub const MAX_VOICES: usize = 48;
 /// untouched, so ordinary playback is not coloured at all.
 const LIMIT_KNEE: f32 = 0.6;
 
+/// An 808 slide: where the pitch is going, and how long it takes to get there.
+///
+/// ⛔⛔ **The audio half of `Note::slide_to_pitch`, which nothing rendered until
+/// TASK-138's follow-up.** The engine has written slides since the bassline
+/// generator gained `glideProb` and the drum 808 lane gained `slideProb`, and
+/// MIDI export has encoded them as overlapping notes for as long — but the
+/// sampler held **one constant rate per voice**, so every exported WAV, every
+/// clip dragged into a DAW and every preview played the slide as a flat note.
+/// Mike, 2026-08-06: *"ensure i have 808 slides that can be activated as well
+/// for my audio being dragged into the DAW or audio being exported and for my
+/// generator playback."*
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Glide {
+    /// Semitones to travel from the note's starting pitch. Signed: 808s slide
+    /// down at least as often as up.
+    pub semis: f32,
+    /// How many output frames the travel takes.
+    pub frames: u32,
+    /// Frames to hold the starting pitch before the travel begins.
+    ///
+    /// ⛔ **So the audio matches the MIDI rather than merely being a glide.**
+    /// `midi.rs` puts the destination note-on at `start + len/2` — the origin is
+    /// held for half the note and then moves — and this codebase's own rule is
+    /// that a rendered stem sounds like what the DAW receives. A glide that
+    /// began at the note-on would be a different performance from the `.mid`
+    /// beside it in the same folder.
+    pub delay: u32,
+}
+
 #[derive(Clone, Copy)]
 struct Voice {
     /// Index into `Kit::pads`, and `usize::MAX` when the voice is free.
@@ -28,6 +57,21 @@ struct Voice {
     /// Samples advanced per output frame — device rate against pad rate, times
     /// the pitch ratio.
     step: f64,
+    /// What `step` is multiplied by each frame while a slide is running, and
+    /// `1.0` when it is not.
+    ///
+    /// ⛔ **Multiplied, not added, and that is the whole reason a slide sounds
+    /// like a slide.** Pitch is logarithmic in playback rate: moving `step`
+    /// linearly from one rate to another sweeps *fast* at the start and crawls
+    /// at the end, which reads as a pitch envelope rather than a glide. One
+    /// precomputed factor per frame is exponential in rate, so it is linear in
+    /// semitones — and it costs a single multiply on the audio thread instead of
+    /// a `powf` per sample.
+    glide_mul: f64,
+    /// Frames of slide left to run.
+    glide_left: u32,
+    /// Frames still to hold the starting pitch before the slide begins.
+    glide_wait: u32,
     gain_l: f32,
     gain_r: f32,
     /// What a mono bus gets: the pad gain *before* the pan split.
@@ -52,6 +96,9 @@ impl Voice {
             pad: Self::FREE,
             pos: 0.0,
             step: 1.0,
+            glide_mul: 1.0,
+            glide_left: 0,
+            glide_wait: 0,
             gain_l: 0.0,
             gain_r: 0.0,
             gain_mono: 0.0,
@@ -83,6 +130,24 @@ impl Default for Sampler {
 impl Sampler {
     /// Start a pad. `velocity` is 0–1; `semis` is added to the pad's own offset.
     pub fn trigger(&mut self, kit: &Kit, pad_index: usize, velocity: f32, semis: f32, rate: f64) {
+        self.trigger_with(kit, pad_index, velocity, semis, rate, None);
+    }
+
+    /// Start a pad that slides (TASK-138 follow-up).
+    ///
+    /// ⚠ **A sibling rather than a wider `trigger`**: the plain form has a dozen
+    /// call sites, most of them tests that say nothing about pitch, and widening
+    /// it would have put `None` in all of them to serve two real callers — the
+    /// offline renderer and the live preview.
+    pub fn trigger_with(
+        &mut self,
+        kit: &Kit,
+        pad_index: usize,
+        velocity: f32,
+        semis: f32,
+        rate: f64,
+        glide: Option<Glide>,
+    ) {
         let Some(pad) = kit.pads.get(pad_index) else {
             return;
         };
@@ -104,11 +169,23 @@ impl Sampler {
         let angle = (pad.pan.clamp(-1.0, 1.0) + 1.0) * (std::f32::consts::FRAC_PI_4);
         let gain = pad.gain * velocity.clamp(0.0, 1.0);
 
+        // ⛔ **A slide of no frames is not a slide**, and dividing by it would
+        // be an infinity in `step` on the audio thread. A slide of no semitones
+        // is a no-op that would cost a multiply per frame for nothing.
+        let glide = glide.filter(|g| g.frames > 0 && g.semis != 0.0);
+
         self.voices[slot] = Voice {
             pad: pad_index,
             pos: 0.0,
             step: f64::from(pad.sample_rate) / rate
                 * 2f64.powf(f64::from(pad.pitch_semis as f32 + semis) / 12.0),
+            // The whole travel spread evenly across the window, in semitones —
+            // see `Voice::glide_mul` for why that is a constant factor.
+            glide_mul: glide.map_or(1.0, |g| {
+                2f64.powf(f64::from(g.semis) / 12.0 / f64::from(g.frames))
+            }),
+            glide_left: glide.map_or(0, |g| g.frames),
+            glide_wait: glide.map_or(0, |g| g.delay),
             gain_l: gain * angle.cos(),
             gain_r: gain * angle.sin(),
             gain_mono: gain,
@@ -197,6 +274,17 @@ impl Sampler {
                 // centre and the rears at once.
 
                 voice.pos += voice.step;
+
+                // The slide (TASK-138 follow-up). The hold comes first, so the
+                // note sits at its own pitch and *then* moves — matching where
+                // `midi.rs` puts the destination note-on. A voice that is not
+                // sliding pays one predictable branch per frame.
+                if voice.glide_wait > 0 {
+                    voice.glide_wait -= 1;
+                } else if voice.glide_left > 0 {
+                    voice.step *= voice.glide_mul;
+                    voice.glide_left -= 1;
+                }
             }
         }
     }
@@ -263,6 +351,182 @@ mod tests {
         let mut out = vec![0.0; frames * 2];
         sampler.render(kit, &mut out, 2);
         out
+    }
+
+    /// The playback rate of the one sounding voice.
+    ///
+    /// ⚠ The slide *is* the rate moving, so this is the property under test.
+    /// Asserting on rendered samples instead would be asserting on a test kit
+    /// of constant 1.0s, which sounds identical at every pitch.
+    fn step(sampler: &Sampler) -> f64 {
+        sampler
+            .voices
+            .iter()
+            .find(|v| v.active())
+            .expect("a voice should still be sounding")
+            .step
+    }
+
+    #[test]
+    fn a_slide_arrives_at_exactly_the_pitch_it_was_asked_for() {
+        // ⛔⛔ The audio half of `Note::slide_to_pitch`, which rendered as a flat
+        // note until this existed. An octave down over 32 frames must land on
+        // half the rate — no more, no less, or the slide ends out of tune.
+        let kit = test_kit();
+        let mut sampler = Sampler::default();
+        sampler.trigger_with(
+            &kit,
+            0,
+            1.0,
+            0.0,
+            48_000.0,
+            Some(Glide {
+                semis: -12.0,
+                frames: 32,
+                delay: 0,
+            }),
+        );
+
+        assert!(
+            (step(&sampler) - 1.0).abs() < 1e-9,
+            "a slide starts at the note's own pitch"
+        );
+        render_block(&mut sampler, &kit, 32);
+        assert!(
+            (step(&sampler) - 0.5).abs() < 1e-6,
+            "an octave down must be half the rate, got {}",
+            step(&sampler)
+        );
+    }
+
+    #[test]
+    fn a_slide_is_even_in_semitones_rather_than_in_rate() {
+        // ⛔ The reason `glide_mul` multiplies. Halfway through an octave slide
+        // the pitch must be a tritone down — rate 2^(-6/12) ≈ 0.7071 — not the
+        // arithmetic midpoint 0.75, which would sweep fast then crawl and read
+        // as a pitch envelope rather than a glide.
+        let kit = test_kit();
+        let mut sampler = Sampler::default();
+        sampler.trigger_with(
+            &kit,
+            0,
+            1.0,
+            0.0,
+            48_000.0,
+            Some(Glide {
+                semis: -12.0,
+                frames: 32,
+                delay: 0,
+            }),
+        );
+
+        render_block(&mut sampler, &kit, 16);
+        let half = step(&sampler);
+        assert!(
+            (half - 0.5f64.sqrt()).abs() < 1e-6,
+            "halfway must be a tritone (~0.7071), got {half}"
+        );
+    }
+
+    #[test]
+    fn a_slide_stops_when_it_arrives_rather_than_running_away() {
+        // ⛔ Without the `glide_left` countdown the factor would keep compounding
+        // and the note would slide off the bottom of hearing.
+        let kit = test_kit();
+        let mut sampler = Sampler::default();
+        sampler.trigger_with(
+            &kit,
+            0,
+            1.0,
+            0.0,
+            48_000.0,
+            Some(Glide {
+                semis: -12.0,
+                frames: 16,
+                delay: 0,
+            }),
+        );
+
+        render_block(&mut sampler, &kit, 16);
+        let arrived = step(&sampler);
+        render_block(&mut sampler, &kit, 16);
+        assert!(
+            (step(&sampler) - arrived).abs() < 1e-12,
+            "the rate must hold once the slide has arrived"
+        );
+    }
+
+    #[test]
+    fn a_slide_holds_its_own_pitch_before_it_moves() {
+        // ⛔ So the WAV matches the `.mid` written beside it: `midi.rs` puts the
+        // destination note-on at the note's midpoint, so the audio must sit at
+        // the origin pitch until then rather than gliding from the note-on.
+        let kit = test_kit();
+        let mut sampler = Sampler::default();
+        sampler.trigger_with(
+            &kit,
+            0,
+            1.0,
+            0.0,
+            48_000.0,
+            Some(Glide {
+                semis: -12.0,
+                frames: 16,
+                delay: 16,
+            }),
+        );
+
+        render_block(&mut sampler, &kit, 16);
+        assert!(
+            (step(&sampler) - 1.0).abs() < 1e-12,
+            "the hold must leave the pitch alone, got {}",
+            step(&sampler)
+        );
+
+        render_block(&mut sampler, &kit, 16);
+        assert!(
+            (step(&sampler) - 0.5).abs() < 1e-6,
+            "and then it must still arrive, got {}",
+            step(&sampler)
+        );
+    }
+
+    #[test]
+    fn a_note_with_no_slide_holds_one_rate() {
+        let kit = test_kit();
+        let mut sampler = Sampler::default();
+        sampler.trigger(&kit, 0, 1.0, 0.0, 48_000.0);
+
+        render_block(&mut sampler, &kit, 16);
+        assert!((step(&sampler) - 1.0).abs() < 1e-12);
+    }
+
+    #[test]
+    fn a_slide_of_nothing_is_refused_rather_than_dividing_by_zero() {
+        // ⛔ `frames: 0` divides in the factor. This is reachable from real data:
+        // a slide whose window rounds to nothing at a fast tempo.
+        let kit = test_kit();
+        for glide in [
+            Glide {
+                semis: -12.0,
+                frames: 0,
+                delay: 0,
+            },
+            Glide {
+                semis: 0.0,
+                frames: 32,
+                delay: 0,
+            },
+        ] {
+            let mut sampler = Sampler::default();
+            sampler.trigger_with(&kit, 0, 1.0, 0.0, 48_000.0, Some(glide));
+            render_block(&mut sampler, &kit, 8);
+            let rate = step(&sampler);
+            assert!(
+                rate.is_finite() && (rate - 1.0).abs() < 1e-12,
+                "{glide:?} must leave the rate alone, got {rate}"
+            );
+        }
     }
 
     #[test]

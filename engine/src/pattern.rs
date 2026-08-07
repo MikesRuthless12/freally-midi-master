@@ -394,6 +394,104 @@ impl Pattern {
     pub fn ticks_per_bar(&self) -> u32 {
         ticks_per_bar_of(self.time_sig_num, self.time_sig_den)
     }
+
+    /// Several parts as one clip, so a single schedule can sound them together
+    /// (TASK-127).
+    ///
+    /// ⛔ **One schedule holds one `Pattern`, and that is the whole reason this
+    /// exists.** `arm_pattern` took a single clip and echoed it back, so Play
+    /// could only ever sound the part on the visible tab — Mike, 2026-08-06:
+    /// *"you should be able to play one generator at a time by toggling it on or
+    /// off, or play all generators together at the same time if you want to."*
+    /// Toggling is the caller's job: it passes the parts that are on, and one of
+    /// them is the ordinary "solo" case.
+    ///
+    /// ⚠ **The first clip's timing wins**, because a schedule has one tempo and
+    /// one meter. Parts are generated one at a time and a producer can change
+    /// the tempo between two of them, so the alternative is refusing to play a
+    /// perfectly ordinary session. ▶ Ticks *are* reconciled — a clip written at a
+    /// different `ppq` is rebased rather than played at the wrong speed, which
+    /// would be silent corruption rather than a visible refusal.
+    ///
+    /// ⚠ `clip_region` is applied here and not carried: the trim says which
+    /// notes exist, so a merged clip that kept it would trim twice, once against
+    /// its own bar 1. `loop_region` is a transport instruction about the result
+    /// and belongs to whoever arms it.
+    pub fn merge(parts: &[Pattern]) -> Option<Pattern> {
+        let first = parts.first()?;
+        if parts.len() == 1 {
+            return Some(first.clone());
+        }
+        // A zero would divide below. `normalise_meter`'s reasoning, applied to
+        // the other field a project file can carry a nonsense value in.
+        let ppq = first.ppq.max(1);
+
+        // Lane order is the order lanes are first met, matching `flatten_parts`
+        // so a merged clip draws and mutes the way an arranged one does.
+        let mut lanes: Vec<LaneTrack> = Vec::new();
+        for clip in parts {
+            let from = clip.ppq.max(1);
+            let rebase = |tick: u32| {
+                if from == ppq {
+                    tick
+                } else {
+                    u32::try_from(u64::from(tick) * u64::from(ppq) / u64::from(from))
+                        .unwrap_or(u32::MAX)
+                }
+            };
+            for track in &clip.lanes {
+                let slot = match lanes.iter().position(|l| l.lane == track.lane) {
+                    Some(index) => index,
+                    None => {
+                        lanes.push(LaneTrack {
+                            lane: track.lane,
+                            notes: Vec::new(),
+                        });
+                        lanes.len() - 1
+                    }
+                };
+                for note in track.notes.iter().filter(|note| clip.within_clip(note)) {
+                    lanes[slot].notes.push(Note {
+                        start_tick: rebase(note.start_tick),
+                        // ⚠ Rebased too. Scaling the start and not the length
+                        // would stretch or crush every note against the grid.
+                        len_ticks: rebase(note.len_ticks).max(1),
+                        ..*note
+                    });
+                }
+            }
+        }
+
+        for track in &mut lanes {
+            track
+                .notes
+                .sort_by_key(|note| (note.start_tick, note.pitch));
+        }
+
+        Some(Pattern {
+            id: format!("{}-merged", first.id),
+            // ⛔ **A stand-in, and `flatten_parts` records why in full**: this
+            // field names the track `pattern_to_smf` writes, so a fabricated
+            // part puts the wrong name *inside* a correctly named file. Merged
+            // clips are armed for playback and never written, and the one-part
+            // case returned above keeps its own name.
+            part: first.part,
+            artist_id: first.artist_id.clone(),
+            seed: first.seed,
+            // The longest part, so a short one does not truncate the record.
+            bars: parts.iter().map(|p| p.bars).max().unwrap_or(first.bars),
+            bpm: first.bpm,
+            time_sig_num: first.time_sig_num,
+            time_sig_den: first.time_sig_den,
+            key_root: first.key_root,
+            scale: first.scale,
+            lanes,
+            ppq,
+            mood: None,
+            loop_region: None,
+            clip_region: None,
+        })
+    }
 }
 
 /// A meter with the values a project file can actually carry made safe.
@@ -1052,5 +1150,147 @@ mod tests {
         for div in [4, 6, 8, 12, 16, 24] {
             assert_eq!(PPQ % div, 0, "PPQ {PPQ} is not divisible by {div}");
         }
+    }
+
+    /// A melodic clip beside `sample_pattern`'s drums, for the merge (TASK-127).
+    fn melody_pattern(start_tick: u32) -> Pattern {
+        Pattern {
+            id: "p2".into(),
+            part: Part::Melody,
+            lanes: vec![LaneTrack {
+                lane: Lane::Melody,
+                notes: vec![Note {
+                    model_vel: None,
+                    start_tick,
+                    len_ticks: PPQ,
+                    pitch: 64,
+                    vel: 100,
+                    slide_to_pitch: None,
+                    articulation: None,
+                }],
+            }],
+            ..sample_pattern(7)
+        }
+    }
+
+    #[test]
+    fn merging_nothing_is_nothing_rather_than_an_empty_clip() {
+        // ⛔ `None`, not a `Pattern` with no lanes. Arming a clip of nothing
+        // would leave a transport running over silence with the UI insisting
+        // something is playing — the shape of failure this file keeps recording.
+        assert!(Pattern::merge(&[]).is_none());
+    }
+
+    #[test]
+    fn one_part_merges_to_itself_including_its_name() {
+        // ⛔ The solo case, and it must not go through the stand-in `part` that
+        // the many-part case uses: `pattern_to_smf` writes its track name from
+        // that field, so a soloed melody has to still say Melody.
+        let only = melody_pattern(0);
+        let merged = Pattern::merge(std::slice::from_ref(&only)).unwrap();
+        assert_eq!(merged, only);
+    }
+
+    #[test]
+    fn several_parts_become_one_clip_holding_every_lane() {
+        // The whole point: one schedule, one `Pattern`, both parts sounding.
+        let drums = sample_pattern(1);
+        let melody = melody_pattern(PPQ);
+        let merged = Pattern::merge(&[drums.clone(), melody.clone()]).unwrap();
+
+        assert_eq!(
+            merged.lanes.iter().map(|l| l.lane).collect::<Vec<_>>(),
+            vec![Lane::Bass808, Lane::Melody],
+            "lane order is the order the parts were handed over"
+        );
+        assert_eq!(
+            merged.note_count(),
+            drums.note_count() + melody.note_count(),
+            "no note may be dropped, and none invented"
+        );
+    }
+
+    #[test]
+    fn a_trimmed_clip_contributes_only_the_notes_it_still_has() {
+        // ⛔ `clip_region` is honoured here or the trim is a lie — the same rule
+        // `within_clip` exists for, applied at the merge. And it is NOT carried
+        // onto the result: keeping it would trim the merged clip a second time.
+        let mut drums = sample_pattern(1);
+        drums.clip_region = Some(Region {
+            from_tick: 0,
+            to_tick: PPQ,
+        });
+        let merged = Pattern::merge(&[drums, melody_pattern(0)]).unwrap();
+
+        let kept = merged
+            .lanes
+            .iter()
+            .find(|l| l.lane == Lane::Bass808)
+            .unwrap();
+        assert_eq!(kept.notes.len(), 1, "the note past the trim must not sound");
+        assert!(
+            merged.clip_region.is_none(),
+            "the trim must not apply twice"
+        );
+    }
+
+    #[test]
+    fn a_clip_written_at_another_resolution_is_rebased_rather_than_played_fast() {
+        // ⛔⛔ Silent corruption if this is skipped: a clip at half the ticks per
+        // beat would play at double speed with nothing on screen to say so. The
+        // start AND the length both move, or every note is stretched or crushed.
+        let drums = sample_pattern(1);
+        let mut half = melody_pattern(PPQ / 2);
+        half.ppq = PPQ / 2;
+        half.lanes[0].notes[0].len_ticks = PPQ / 2;
+
+        let merged = Pattern::merge(&[drums, half]).unwrap();
+        let note = &merged
+            .lanes
+            .iter()
+            .find(|l| l.lane == Lane::Melody)
+            .unwrap()
+            .notes[0];
+
+        assert_eq!(merged.ppq, PPQ, "the first clip's resolution wins");
+        assert_eq!(
+            note.start_tick, PPQ,
+            "half a beat in, at the new resolution"
+        );
+        assert_eq!(note.len_ticks, PPQ, "and one beat long, not half of one");
+    }
+
+    #[test]
+    fn the_merged_clip_is_as_long_as_its_longest_part() {
+        // A four-bar drum loop under an eight-bar melody is eight bars of
+        // record; taking the first part's length would cut the melody in half.
+        let drums = sample_pattern(1);
+        let mut long = melody_pattern(0);
+        long.bars = 8;
+        assert_eq!(Pattern::merge(&[drums, long]).unwrap().bars, 8);
+    }
+
+    #[test]
+    fn notes_come_out_in_time_order_within_each_lane() {
+        // The schedule walks a lane forwards; two parts writing the same lane
+        // interleave, and an unsorted lane would drop or reorder events.
+        let mut early = melody_pattern(0);
+        early.lanes[0].notes[0].pitch = 60;
+        let late = melody_pattern(PPQ * 3);
+        let earlier = melody_pattern(PPQ);
+
+        let merged = Pattern::merge(&[early, late, earlier]).unwrap();
+        let notes = &merged
+            .lanes
+            .iter()
+            .find(|l| l.lane == Lane::Melody)
+            .unwrap()
+            .notes;
+
+        assert_eq!(
+            notes.iter().map(|n| n.start_tick).collect::<Vec<_>>(),
+            vec![0, PPQ, PPQ * 3],
+            "three parts writing one lane must interleave in time"
+        );
     }
 }
