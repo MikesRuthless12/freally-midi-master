@@ -1103,6 +1103,57 @@ mod tests {
         remove(&prepared.dir);
     }
 
+    /// ⛔⛔ **The AUDIO half of the test above, which had none at all.** Mike,
+    /// 2026-08-06: *"i want the separate audio drum lanes just like the midi
+    /// lanes."*
+    ///
+    /// ⚠ **Every single-lane test passed `None` for the kit**, so the per-lane
+    /// *audio* path was entirely unasserted — and his own spool folders say it
+    /// had never once run: across all 20 audio drags in `%TEMP%\Freally MIDI
+    /// Master\drag\`, every `.wav` is named for a part and not one for a lane,
+    /// while the MIDI spools beside them hold `Snare.mid` and `Kick.mid`. A
+    /// capability nothing exercises and nobody has used is one nobody can say
+    /// works, which is the shape of failure this file keeps recording.
+    #[test]
+    fn one_drum_lane_spools_one_wav_of_that_lane_alone() {
+        let _spool = spool_guard();
+        if !supported_in(false) {
+            return;
+        }
+        // ⛔ `expect`, never a silent skip — `the_preview_kit_is_in_the_binary_
+        // and_decodes` already pins that this is always `Some`, and a test that
+        // quietly does nothing is the "124 passed with 32 never executed"
+        // readout this project has been burned by.
+        let kit = crate::audio::preview_kit().expect("the preview kit is compiled in");
+
+        let mut both = pattern(Lane::Kick);
+        both.lanes.push(engine::pattern::LaneTrack {
+            lane: Lane::ClosedHat,
+            notes: both.lanes[0].notes.clone(),
+        });
+
+        let prepared = render_and_spool(
+            Subject::Patterns {
+                patterns: vec![both],
+                cut: crate::export::Cut::OneLane(Lane::ClosedHat),
+            },
+            Some(kit.as_ref()),
+            &Progress::detached(),
+        )
+        .expect("a hat lane must spool as audio");
+
+        assert_eq!(
+            prepared
+                .paths
+                .iter()
+                .map(|p| p.file_name().unwrap().to_string_lossy().into_owned())
+                .collect::<Vec<_>>(),
+            ["trap - ClosedHat - 140 BPM - C# Minor.wav"],
+            "one audio lane must be one .wav named for that lane, not the part"
+        );
+        remove(&prepared.dir);
+    }
+
     #[test]
     fn two_drags_do_not_write_over_each_other() {
         let _spool = spool_guard();
