@@ -40,15 +40,32 @@
   border-inline-start: 1px solid var(--color-border);
 }
 
+/* ⛔⛔ **`overflow: hidden` is the guarantee that a squashed panel CLIPS rather
+   than painting over its neighbour, and it was missing.** Measured at 1440x620
+   with parts
+   generated: the KIT section was **one pixel tall** while its header and
+   content still drew at their natural size — `overflow: visible` let them
+   render straight out of the collapsed box and on top of STEMS, so
+   `kit.assignHint` and `stems.hint` overlapped by 287x15 px. Mike screenshotted
+   exactly that on 2026-08-06 and said it is there "all the time".
+   ⚠ Safe for the drag menu: `.drag__lanes` is portalled into `document.body`,
+   so it is not a descendant of any section and cannot be clipped by this. */
 .rail__section {
   display: flex;
   flex-direction: column;
   min-height: 0;
+  overflow: hidden;
   border-bottom: 1px solid var(--color-border);
 }
 
+/* ⛔ **`flex: 1` is `1 1 0%` — flex-basis ZERO**, and that is what collapsed
+   this section to nothing the moment the rail ran out of room: with no leftover
+   space to distribute, a zero-basis item gets zero while `flex: 0 1 auto`
+   siblings keep their content height and shrink only as needed. `auto` makes
+   the basis its own content, so KIT shrinks alongside its neighbours instead of
+   vanishing under them, and still takes the slack when there is any. */
 .rail__section--grow {
-  flex: 1;
+  flex: 1 1 auto;
 }
 
 .rail__content {
