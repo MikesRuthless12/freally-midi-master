@@ -12,6 +12,51 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added — play the generators together, and the 808s slide, 2026-08-06
+
+- **Play several generators at once, or any one alone.** Each generated part
+  gets a switch beside the tab strip; Play sounds every one that is on. A
+  schedule holds a single clip, so the parts are merged into one before it —
+  which is why this could not be done by pressing Play on each tab in turn.
+- **⛔ The transport moved to the top of the app**, to the right of the
+  generator tabs, beside the switches it acts on. The bottom bar keeps the
+  position readout, the meter and the view controls.
+- **⛔ The plugin plays without the DAW rolling.** Play, Stop and Pause now
+  drive the plugin's *own* preview transport inside a host — auditioning a beat
+  no longer means arming a track and starting the whole project. Starting the
+  DAW's transport takes it straight back, so the two can never both play at
+  once. Previously Play was disabled in a plugin window and said to press play
+  in your DAW instead.
+- **⛔ The Loop button works.** It was permanently pressed and disabled, with a
+  tooltip claiming playback always looped — which was not even true unless a
+  loop brace had been dragged on the roll. It toggles now: on repeats the 4 or 8
+  bars, off runs to the end and stops. A brace you have dragged still wins. It
+  lights up when it is on, rather than announcing its state only to a screen
+  reader.
+- **⛔808 slides are audible.** The generators have written slides for a long
+  time and the exported MIDI has always carried them, but every rendered
+  WAV — exported, dragged into a DAW, or heard in the plugin's own
+  playback — played them as flat notes. The pitch now travels, holding the
+  starting note for the first half and gliding across the second, which is
+  exactly where the MIDI puts the change. The same code serves the preview, the
+  export and the drag, so a stem sounds like the `.mid` beside it.
+
+### Fixed — the drum lanes, the KIT panel, and a short right rail, 2026-08-06
+
+- **⛔ "All Tracks" for drum audio was labelled the opposite of how it reads.**
+  It gave one separate file per lane, while a second entry called "As one clip"
+  gave the mix — so choosing "All Tracks" to get everything together produced
+  the opposite. There is now one entry per drum lane, exactly as the MIDI menu
+  has, and **"All Tracks" is every lane mixed into a single file**. MIDI still
+  offers no whole-kit file, deliberately.
+- **⛔ The KIT panel stopped drawing on top of the STEMS panel.** In a short
+  window the KIT section collapsed to nothing while its contents kept their full
+  height, so its text was painted straight over the panel below it as an
+  unreadable smear.
+- **The KIT panel is guarded against telling you there is no kit while one is
+  playing** — the fault was fixed earlier, but nothing tested it, which is how it
+  shipped the first time.
+
 ### Fixed — the editor window sizes itself correctly, 2026-08-06
 
 - **⛔ The black band around the UI is gone.** A larger window left dead space
