@@ -23,6 +23,9 @@
     "seedCopied": "已复制种子。",
     "seedLabel": "种子 — 粘贴即可得到相同的节奏",
     "seedAuto": "随机",
+    "seedLocked": "种子已锁定 — 生成时会重复使用",
+    "seedRolls": "每次生成都会更换种子",
+    "seedLock": "锁定种子",
     "generating": "生成中…",
     "readyBody": "{{name}} 已就绪。点击生成。",
     "generateAll": "全部生成",
@@ -34,16 +37,27 @@
     "searchPlaceholder": "搜索艺人…",
     "searchLabel": "搜索艺人",
     "noDataset": "尚未加载数据集。",
-    "noKit": "还没有鼓组。把你的单击采样拖到本面板任意位置。",
     "noMatch": "没有与“{{query}}”匹配的项。",
     "results": "搜索结果"
+  },
+  "kit": {
+    "loading": "正在读取音色组…",
+    "noneLoaded": "音色组加载失败，因此插件没有声音。",
+    "lanesLabel": "音色组轨道",
+    "assignHint": "点击某个轨道，即可用你自己的单击采样演奏它。",
+    "shipped": "内置",
+    "silent": "无声音",
+    "choosing": "选择中…",
+    "clearOne": "清除 {{lane}} 上的单击采样"
   },
   "sections": {
     "genres": "曲风",
     "roster": "艺人名单",
     "kit": "鼓组",
     "session": "会话",
-    "presets": "预设"
+    "presets": "预设",
+    "stems": "分轨",
+    "explorer": "浏览器"
   },
   "readouts": {
     "bpm": "BPM",
@@ -179,7 +193,8 @@
   "grid": {
     "label": "生成的节奏型",
     "summary": "{{bars}} 小节 · {{steps}} 步 · {{notes}} 音符",
-    "muteLane": "在预览中静音{{lane}}"
+    "muteLane": "在预览中静音{{lane}}",
+    "cell": "{{lane}}，第 {{step}} 步"
   },
   "roster": {
     "artists": "艺人",
@@ -192,13 +207,25 @@
   "lanes": {
     "kick": "底鼓",
     "snare": "军鼓",
+    "offSnare": "副军鼓",
     "clap": "拍手",
     "closedHat": "闭镲",
     "openHat": "开镲",
+    "ride": "叮叮镲",
+    "crash": "强音镲",
+    "tom": "嗵鼓",
     "rim": "边击",
     "snap": "响指",
     "perc": "打击乐",
-    "bass808": "808"
+    "shaker": "沙锤",
+    "tambourine": "铃鼓",
+    "cowbell": "牛铃",
+    "woodblock": "木鱼",
+    "sub": "超低音",
+    "melody": "旋律",
+    "counter": "对位旋律",
+    "bass": "贝斯线",
+    "chords": "和弦"
   },
   "presets": {
     "factory": "出厂",
@@ -276,6 +303,70 @@
       "hook": "副歌",
       "bridge": "桥段",
       "outro": "尾奏"
+    },
+    "resizeClip": "{{part}} 循环的小节数",
+    "resizeClipHint": "按 {{bars}} 小节循环 — 拖动可更改"
+  },
+  "stems": {
+    "midi": "MIDI",
+    "audio": "音频",
+    "perLane": "按轨道",
+    "allTracks": "全部音轨",
+    "allParts": "全部声部",
+    "hint": "将每个生成的声部写入各自的文件。",
+    "choosing": "请选择文件夹…",
+    "dragHint": "把某个部分直接拖到你的 DAW 轨道上。",
+    "preparing": "正在准备…",
+    "rendering": "正在渲染… {{percent}}%"
+  },
+  "shortcuts": {
+    "title": "键盘快捷键",
+    "groups": {
+      "transport": "走带控制",
+      "generate": "生成",
+      "editing": "编辑",
+      "notes": "音符",
+      "drums": "鼓组网格",
+      "browser": "采样浏览器"
+    },
+    "keys": {
+      "toggleRail": "显示或隐藏右侧栏",
+      "search": "搜索艺术家库",
+      "reroll": "重新生成片段",
+      "selectAll": "全选",
+      "copy": "复制",
+      "cut": "剪切",
+      "paste": "粘贴",
+      "undo": "撤销",
+      "duplicate": "再制",
+      "delete": "删除",
+      "deselect": "取消选择",
+      "transpose": "移调一个半音",
+      "transposeOctave": "移调一个八度",
+      "nudge": "在时间上微调",
+      "stretch": "拉伸至两倍长度",
+      "compress": "压缩至一半长度",
+      "triplet": "此格三连音",
+      "quintuplet": "此格五连音",
+      "septuplet": "此格七连音",
+      "cloneBar": "将第1小节复制到本小节",
+      "shortcuts": "显示此面板",
+      "play": "播放或暂停",
+      "previewDirection": "倒放 / 正放采样"
     }
+  },
+  "explorer": {
+    "addFolder": "添加文件夹",
+    "removeFolder": "从库中移除 {{name}}",
+    "noRoots": "添加文件夹以浏览你的采样。",
+    "listLabel": "采样列表",
+    "up": "上一级",
+    "empty": "此文件夹中没有采样。",
+    "truncated": "此文件夹中的文件多于所显示的数量。",
+    "pickAFile": "选择一个采样即可试听。",
+    "decoding": "正在读取…",
+    "waveformOf": "{{name}} 的波形",
+    "reverse": "倒放",
+    "resize": "调整浏览器宽度"
   }
 }

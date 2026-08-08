@@ -28,6 +28,25 @@ import type { Pattern, Scale, Song } from '../lib/ipc-types';
 export type Snapshot = {
   selectedId: string | null;
   seed: string;
+  /**
+   * The record every part is written against (TASK-141).
+   *
+   * ⛔ **Restored with the clips, or undo puts them back under a plan they were
+   * not written to.** Generate on Drake (record A), switch to Future and
+   * generate (record B), then Ctrl+Z: the clips come back as Drake's, and
+   * without this the record stays B — so the next Generate on Drake joins
+   * Future's harmonic plan with nothing on screen saying so.
+   */
+  songSeed: string;
+  /**
+   * Whether `seed` is the producer's choice or the engine's echo.
+   *
+   * ⛔ In here because it is in `SAVED_FIELDS`, and this module's own notes on
+   * `audioEnabled` and `mutedLanes` record what happens when a saved field
+   * misses the snapshot: the change persists when made and is lost when undone.
+   * Locking a seed and pressing Ctrl+Z has to hand it back.
+   */
+  seedPinned: boolean;
   bars: number;
   pins: {
     bpm: number | null;

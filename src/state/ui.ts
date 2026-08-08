@@ -3,6 +3,7 @@ import { readStored, writeStored } from './storage';
 import { applyLanguage, loadLanguagePreference } from '../i18n';
 import { type LocaleCode } from '../i18n/locales';
 import { applyThemePreference, loadThemePreference, type ThemePreference } from './theme';
+import type { Part } from '../lib/ipc-types';
 
 /** The six generators. Order matches the tab strip in PRD § 8. */
 export const GENERATOR_TABS = ['drums', 'melody', 'counter', 'bass', 'chords', 'song'] as const;
@@ -14,7 +15,15 @@ export const WIDE_BREAKPOINT = 1440;
 
 /** Individually collapsible panels. The right rail as a whole is separate — it
  *  is driven by the viewport breakpoint and the K shortcut. */
-export const SECTIONS = ['genres', 'roster', 'kit', 'session', 'presets'] as const;
+export const SECTIONS = [
+  'genres',
+  'roster',
+  'explorer',
+  'kit',
+  'stems',
+  'session',
+  'presets',
+] as const;
 export type SectionId = (typeof SECTIONS)[number];
 
 export type SectionState = Record<SectionId, boolean>;
@@ -38,7 +47,9 @@ function loadReduceMotion(): boolean {
 const ALL_OPEN: SectionState = {
   genres: true,
   roster: true,
+  explorer: true,
   kit: true,
+  stems: true,
   session: true,
   presets: true,
 };
@@ -82,12 +93,94 @@ type UiState = {
    */
   reduceMotion: boolean;
   language: LocaleCode;
+  /**
+   * Whether this session has already shown the Stems panel (TASK-063C).
+   *
+   * ⛔ **Store state rather than a module flag, and not persisted.** Not
+   * persisted because the rule is "the first generation of a *session*" — a
+   * producer who collapsed it yesterday still needs to be shown it once today,
+   * which is the whole complaint. In the store rather than a `let` beside the
+   * subscriber because a hidden module variable cannot be reset between tests,
+   * and a one-shot nothing can re-arm is a one-shot nothing can prove.
+   */
+  stemsRevealed: boolean;
+  /**
+   * Generators switched OFF for playback (TASK-127).
+   *
+   * ⛔⛔ **Mike, 2026-08-06:** *"i want to be able to play the generators all at
+   * once or separately, they should be able to be toggled on and off for each
+   * generator."* Play sounds every generated part that is not in here, merged
+   * into the one clip a schedule can hold.
+   *
+   * ⚠ **OFF is what is stored, so ON is the default and stays the default.**
+   * Holding the on-set instead would mean a part generated after the toggles
+   * were last touched arrives silent, with nothing on screen saying why — a
+   * producer would press Generate on the bassline and hear nothing.
+   *
+   * ⚠ Not persisted. It is an audition choice about this sitting, like solo on a
+   * mixer, rather than a property of the record.
+   */
+  partsOff: Part[];
+  /**
+   * Whether the clip repeats at its end (TASK-138).
+   *
+   * ⛔ Mike, 2026-08-06: *"can you have the 'Loop' button toggle off and on and
+   * either loop every time it plays to the end of the 4 or 8 bars or stop at the
+   * end of the 4 or 8 bars."* On by default, which is what the button has always
+   * claimed — its tooltip read *"Playback always loops in this phase."*
+   *
+   * ⚠ **The plugin holds the authority**, on `Shared`, where the audio thread
+   * reads it every block. This is the page's copy for drawing the button, and
+   * `transport_loop` is what keeps them in step.
+   */
+  looping: boolean;
 
   setActiveTab: (tab: GeneratorTab) => void;
+  /** Switch one generator's playback on or off (TASK-127). */
+  togglePart: (part: Part) => void;
+  /** Turn the loop on or off (TASK-138). */
+  toggleLooping: () => void;
+  /**
+   * Set it outright, for hydrating from the plugin on mount.
+   *
+   * ⚠ A toggle cannot hydrate: it flips whatever the page happened to default
+   * to, so restoring a known value needs to state it. The plugin outlives the
+   * webview and Loop is its state, not the page.
+   */
+  setLooping: (on: boolean) => void;
   toggleRightRail: () => void;
   /** Called when the viewport crosses WIDE_BREAKPOINT. */
   setWide: (wide: boolean) => void;
   toggleSection: (id: SectionId) => void;
+  /**
+   * Put the Stems panel in front of someone who has just generated something.
+   *
+   * ⛔⛔ **Mike, 2026-08-06:** *"the stems panel should be visible if you have
+   * done a generation so that way you can ensure that you can drag it in no
+   * matter what right away."* Panels remember their collapsed state across
+   * reloads, so a producer who once collapsed this one would never see the drag
+   * rows again — and nothing anywhere else in the UI says they exist. The panel
+   * holds the only way to get a pattern out of the plugin.
+   *
+   * ⛔⛔ **The section only — this must NOT force the right rail open, and the
+   * first cut of it did.** `e2e/piano-roll.spec.ts:380` caught it: opening the
+   * rail re-lays the stage, the velocity lane loses height, and a drag to
+   * velocity 96 landed on 85. That is the third time this project has been
+   * bitten by growing something near the pattern, and `StemsPanel`'s own header
+   * records the other two.
+   *
+   * ⚠ **And it buys nothing in the plugin, which is where the complaint came
+   * from.** The page always lays out at `LAYOUT` (1440) whatever size the window
+   * is drawn at — that is the whole point of the editor's scaling — and
+   * `WIDE_BREAKPOINT` is the same 1440, so `isWide()` is true and the rail is
+   * already open. Forcing it would only ever have affected a narrow browser
+   * window, at the cost of the editor above it.
+   *
+   * Idempotent, and that is load-bearing: it is called on every write that
+   * leaves a pattern in the store, so a producer who closes the panel after it
+   * has been shown must not have it reopened under them on the next Generate.
+   */
+  revealStems: () => void;
   setAllSections: (open: boolean) => void;
   setTheme: (theme: ThemePreference) => void;
   setReduceMotion: (reduce: boolean) => void;
@@ -111,12 +204,59 @@ type UiState = {
  * 1224px viewport with `zoom: 0.85`, `innerWidth` stays 1224 and the 1440 media
  * query stays false, while this returns 1440.
  */
+/**
+ * ⛔ **The slack is not a fudge — the layout width IS the breakpoint.**
+ *
+ * `LAYOUT` in `plugin/src/editor.rs` is 1440 wide and [`WIDE_BREAKPOINT`] is
+ * 1440, so the rail sits exactly on the edge at every scale, with nothing to
+ * spare. The width then arrives through a floating-point round trip: the window
+ * is `1440 * factor` **rounded to whole pixels**, and the page divides by that
+ * same factor to get back. At `factor: 1.0` that is exact; at anything else it
+ * can land a pixel low — `1224 / 0.85` is `1439.999…` — and one pixel was the
+ * difference between the rail being there and not.
+ *
+ * ▶ **Mike, 2026-08-06:** *"how come the smaller default size doesn't show the
+ * stems panel when it is supposed to be shown, but the bigger size does."* That
+ * is this: the larger preset zoomed by 1.0 and kept the rail, every other preset
+ * lost it.
+ *
+ * ⚠ Wide enough to also absorb a scrollbar gutter, which `clientWidth` excludes
+ * and which is the other way this measurement comes up short of the layout the
+ * page was given. Still far narrower than any real step down — the next honest
+ * reason to collapse the rail is a host window hundreds of pixels smaller.
+ */
+const BREAKPOINT_SLACK = 24;
+
 export function isWide(): boolean {
   if (typeof document === 'undefined') return true;
-  return (document.documentElement.clientWidth || window.innerWidth) >= WIDE_BREAKPOINT;
+  const layout = document.documentElement.clientWidth || window.innerWidth;
+  return layout >= WIDE_BREAKPOINT - BREAKPOINT_SLACK;
 }
 
 const startsWide = typeof window === 'undefined' ? true : isWide();
+
+/**
+ * The last answer the breakpoint gave, so repeating it cannot undo a K toggle.
+ *
+ * ⛔⛔ **The crossing check belongs here, because more than one caller has it to
+ * get right and one of them did not.** `setWide` used to be an unconditional
+ * `set({ rightRailOpen: wide })`, and `App.tsx`'s resize listener guarded it by
+ * hand — a guard `WindowSize.tsx::applyZoom` did not have. Once `applyZoom`
+ * started running on every `resize` (so the zoom could be re-derived when a
+ * queued editor resize finally landed), every resize wrote the breakpoint's
+ * answer back over the producer's own choice: press K to collapse the rail, let
+ * the host resize the window, and the rail snapped open again — re-laying the
+ * stage and taking height off the velocity lane, which is the exact regression
+ * `e2e/piano-roll.spec.ts:380` exists to catch. In the plugin it is guaranteed,
+ * not occasional: the page always lays out at `LAYOUT` 1440 and
+ * `WIDE_BREAKPOINT` is also 1440, so `isWide()` is *always* true there.
+ *
+ * ⚠ **Module-level rather than store state**, because nothing renders from it
+ * and there is exactly one window per page. `toggleRightRail` deliberately does
+ * not touch it: a manual toggle is not the breakpoint changing its mind, and
+ * recording it as one would let the next resize "restore" the wrong thing.
+ */
+let lastBreakpoint = startsWide;
 
 export const useUi = create<UiState>((set) => ({
   activeTab: 'drums',
@@ -125,16 +265,45 @@ export const useUi = create<UiState>((set) => ({
   theme: loadThemePreference(),
   reduceMotion: loadReduceMotion(),
   language: loadLanguagePreference(),
+  stemsRevealed: false,
+  partsOff: [],
+  looping: true,
 
   setActiveTab: (activeTab) => set({ activeTab }),
+  toggleLooping: () => set((s) => ({ looping: !s.looping })),
+  setLooping: (on) => set({ looping: on }),
+  togglePart: (part) =>
+    set((s) => ({
+      partsOff: s.partsOff.includes(part)
+        ? s.partsOff.filter((off) => off !== part)
+        : [...s.partsOff, part],
+    })),
   toggleRightRail: () => set((s) => ({ rightRailOpen: !s.rightRailOpen })),
-  setWide: (wide) => set({ rightRailOpen: wide }),
+  // ⛔ Only on a *crossing* — see [`lastBreakpoint`]. Called with the same
+  // answer as last time this does nothing, so a manual K toggle survives.
+  setWide: (wide) => {
+    if (wide === lastBreakpoint) return;
+    lastBreakpoint = wide;
+    set({ rightRailOpen: wide });
+  },
 
   toggleSection: (id) =>
     set((s) => {
       const sections = { ...s.sections, [id]: !s.sections[id] };
       saveSections(sections);
       return { sections };
+    }),
+
+  revealStems: () =>
+    set((s) => {
+      if (s.stemsRevealed) return s;
+      const sections = { ...s.sections, stems: true };
+      saveSections(sections);
+      // ⚠ Just the fields that changed, like `toggleSection` and
+      // `setAllSections` above and below. `set` merges shallowly, so spreading
+      // the whole store read as though something about this setter were
+      // different from its neighbours.
+      return { stemsRevealed: true, sections };
     }),
 
   setAllSections: (open) =>

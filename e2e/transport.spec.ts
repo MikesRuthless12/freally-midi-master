@@ -71,3 +71,71 @@ test('a click at the far left seeks to the start rather than doing nothing', asy
   if (!line) throw new Error('the playhead should be laid out');
   expect(Math.abs(line.x - box.x)).toBeLessThan(6);
 });
+
+/**
+ * ⛔⛔ **Where the transport lives, which changed on 2026-08-06.** Mike: *"the
+ * play/pause and stop buttons and loop button need to be moved to the top of the
+ * app to the right of the generators tabs, so that way you can play the
+ * generators from there."*
+ *
+ * ⚠ Pinned as *position*, not as existence: the buttons were always there and
+ * every existing spec passed with them in the footer, so nothing would have
+ * caught them sliding back down.
+ */
+test('play, stop and loop sit at the top, right of the generator tabs', async ({ page }) => {
+  const header = page.locator('.stage__header');
+  const controls = header.locator('.transport__controls');
+  await expect(controls).toHaveCount(1);
+
+  for (const name of ['Play', 'Stop', 'Loop']) {
+    await expect(controls.getByRole('button', { name })).toHaveCount(1);
+    // ⛔ And nowhere else — two Play buttons is worse than one in the wrong place.
+    await expect(page.getByRole('button', { name })).toHaveCount(1);
+  }
+
+  // To the RIGHT of the tabs, which is the half of the instruction a "is it in
+  // the header" check would miss.
+  const tabs = await page.locator('.tabs').boundingBox();
+  const box = await controls.boundingBox();
+  expect(tabs && box).toBeTruthy();
+  if (!tabs || !box) return;
+  expect(box.x).toBeGreaterThan(tabs.x);
+
+  // The footer keeps everything that is not transport.
+  await expect(page.locator('.transport .transport__controls')).toHaveCount(0);
+  await expect(page.locator('.transport .meter')).toHaveCount(1);
+});
+
+/**
+ * ⛔⛔ **The Loop button is a real toggle now.** Mike, 2026-08-06: *"can you have
+ * the 'Loop' button toggle off and on and either loop every time it plays to the
+ * end of the 4 or 8 bars or stop at the end of the 4 or 8 bars…and can you have
+ * it toggled a different background color?"*
+ *
+ * ⚠ Whether the clip actually repeats is the schedule's, and
+ * `voice.rs::transport_tests` owns it —
+ * `the_loop_button_repeats_the_whole_clip_when_no_brace_was_dragged` and
+ * `switching_the_loop_button_off_runs_to_the_end_and_stays_there`. What only a
+ * browser shows is that the control is live and that its state is *visible*
+ * rather than only announced.
+ */
+test('Loop toggles, and shows it with a background rather than only to a screen reader', async ({
+  page,
+}) => {
+  const loop = page.getByRole('button', { name: 'Loop' });
+
+  // ⛔ It used to be `disabled` with a permanent `aria-pressed` — the last dead
+  // control in the app, which is TASK-137's complaint.
+  await expect(loop).toBeEnabled();
+  await expect(loop).toHaveAttribute('aria-pressed', 'true');
+
+  const lit = await loop.evaluate((el) => getComputedStyle(el).backgroundColor);
+
+  await loop.click();
+  await expect(loop).toHaveAttribute('aria-pressed', 'false');
+  const dark = await loop.evaluate((el) => getComputedStyle(el).backgroundColor);
+  expect(dark).not.toBe(lit);
+
+  await loop.click();
+  await expect(loop).toHaveAttribute('aria-pressed', 'true');
+});

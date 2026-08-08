@@ -19,6 +19,7 @@ use std::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering};
 use engine::pattern::Lane;
 use std::sync::{Arc, Mutex};
 
+use crate::audio::kit::Kit;
 use crate::host::HostSession;
 use crate::state::SessionStore;
 use crate::voice::Schedule;
@@ -152,11 +153,111 @@ impl Handoff {
     }
 }
 
+/// A rebuilt preview kit on its way to the audio thread (TASK-131B).
+///
+/// The same shape as [`Handoff`] and for the same two reasons — one slot,
+/// because a second assignment before the first was picked up is simply the
+/// newer kit; and the replaced one is *parked* rather than dropped, because
+/// freeing a kit's samples on the audio thread takes the allocator's lock.
+///
+/// ⛔ **Separate from `Handoff` rather than generic over it.** They are handed
+/// over on different events and the audio thread has to do something different
+/// on each: a new schedule keeps the sounding voices, a new kit **must cut
+/// them**. Sharing the type would have hidden that difference behind a type
+/// parameter, and it is the whole reason a kit swap is not free.
+#[derive(Debug, Default)]
+pub struct KitHandoff {
+    incoming: Mutex<Option<Arc<Kit>>>,
+    spent: Mutex<Option<Arc<Kit>>>,
+}
+
+impl KitHandoff {
+    /// Hand a finished kit to the audio thread. Loader/UI thread only —
+    /// building it is what allocates, and that happens before this is called.
+    pub fn send(&self, kit: Arc<Kit>) {
+        if let Ok(mut slot) = self.incoming.lock() {
+            *slot = Some(kit);
+        }
+    }
+
+    /// Swap in whatever is waiting, parking what it replaces.
+    ///
+    /// **Audio thread.** `try_lock` for the same reason [`Handoff::receive`]
+    /// uses one: a loader thread mid-write must never stall the callback.
+    ///
+    /// Answers **whether it swapped**, because the caller owes something on a
+    /// swap that it does not owe otherwise. ⛔ The sampler holds pad *indices*
+    /// inside its sounding voices, and the new kit may have a different pad at
+    /// that index — so every voice has to be cut, or the note that was playing
+    /// a hi-hat finishes as somebody's vocal chop.
+    #[must_use = "a swapped kit means the sounding voices must be cut"]
+    pub fn receive(&self, current: &mut Option<Arc<Kit>>) -> bool {
+        let Ok(mut slot) = self.incoming.try_lock() else {
+            return false;
+        };
+        let Some(next) = slot.take() else {
+            return false;
+        };
+        drop(slot);
+
+        let previous = current.replace(next);
+        // Parked, not dropped: this may be the last reference, and freeing a
+        // megabyte of samples here would take the allocator's lock.
+        //
+        // ⛔ **The `else` is not optional, and its absence was the exact bug
+        // this type exists to prevent.** `collect()` runs on every editor
+        // redraw, so `try_lock` genuinely loses races — and with no else branch
+        // `previous` was simply dropped at the end of the function. On a second
+        // assignment that `Arc` is the sole reference to a one-shot kit, so the
+        // drop freed megabytes of `Arc<[f32]>` *inside the audio callback*.
+        //
+        // ⚠ **Leaking is the correct loser's move here.** A kit is ~1.2 MB, the
+        // race is rare, and the plugin holds at most a handful over a session —
+        // whereas taking the allocator's lock on the callback is a dropout the
+        // producer hears. Bounded waste beats an audible failure.
+        match self.spent.try_lock() {
+            Ok(mut spent) => *spent = previous,
+            Err(_) => std::mem::forget(previous),
+        }
+        true
+    }
+
+    /// Free anything the audio thread parked. UI thread only.
+    pub fn collect(&self) {
+        if let Ok(mut spent) = self.spent.lock() {
+            spent.take();
+        }
+    }
+}
+
 /// Everything both threads reach.
 #[derive(Debug)]
 pub struct Shared {
     pub host: SharedHost,
     pub handoff: Handoff,
+    /// A rebuilt preview kit on its way to the audio thread (TASK-131B).
+    ///
+    /// ⚠ An `Arc` where [`Self::handoff`] is a plain field, because a kit is
+    /// sent from a *detached loader thread* rather than from the bridge — that
+    /// thread outlives the call that started it and so has to own a handle.
+    pub kits: Arc<KitHandoff>,
+    /// The one-shots the producer has assigned, and the dialog that assigns
+    /// them (TASK-131B).
+    ///
+    /// ⛔ **Per instance, for the reason [`crate::export::Exports`] spells out
+    /// at length** — its status mailbox is polled and taken destructively, so a
+    /// process global would let one instance in a twenty-track session steal
+    /// another's result. The kit a producer builds on one track is also simply
+    /// not the kit they want on the next.
+    pub one_shots: crate::oneshot::OneShots,
+    /// The sample browser (TASK-132).
+    ///
+    /// ⚠ Per instance, for the same reason `one_shots` is: the folder a
+    /// producer is working from on one track is not the one they want on the
+    /// next, and a process global would let one instance move another's view.
+    pub explorer: crate::explorer::Explorer,
+    /// The File Explorer's audition voice (TASK-132).
+    pub preview: crate::preview::Preview,
     /// What the host saves with the project, and what the editor restores from.
     ///
     /// The same `Arc` as the persisted field on
@@ -169,6 +270,14 @@ pub struct Shared {
     /// `take_status` is destructive — a shared slot means one instance's poll
     /// steals another's result. `crate::export::Exports` has the full write-up.
     pub exports: crate::export::Exports,
+    /// The one prepared drag-out and its spooled files (TASK-063C).
+    ///
+    /// ⛔ **Per instance for the same reason `exports` is, and the consequence
+    /// is worse here.** A shared slot would let instance B's `drag_start` hand
+    /// the OS the files instance A prepared — the producer drops a loop from
+    /// one track and gets a different track's loop, with nothing anywhere
+    /// saying so.
+    pub drags: crate::drag::Drags,
     /// The id of the clip the editor last handed over.
     ///
     /// ⛔ **`Schedule::arm`'s own resume path cannot work without this.** That
@@ -204,6 +313,17 @@ pub struct Shared {
     /// preview kit doubling every hit — that was the plugin's only behaviour
     /// before the sampler existed, and it has to stay reachable in one switch.
     audio_enabled: AtomicBool,
+    /// Whether the clip repeats when it reaches its end (TASK-138).
+    ///
+    /// ⛔ **Read every block by the schedule, so it is atomic rather than a
+    /// session field the audio thread would have to lock for.** Mike,
+    /// 2026-08-06: *"can you have the 'Loop' button toggle off and on and either
+    /// loop every time it plays to the end of the 4 or 8 bars or stop at the end
+    /// of the 4 or 8 bars."*
+    ///
+    /// ⚠ **Defaults to on**, which is what the button has always claimed —
+    /// `transport.loopAlways` read *"Playback always loops in this phase."*
+    looping: AtomicBool,
     /// Lanes whose *audio* is muted, as a bitmask (FMM-S02).
     ///
     /// ⛔ The MIDI keeps flowing for a muted lane — that is the whole feature.
@@ -266,7 +386,12 @@ impl Shared {
         Self {
             host: SharedHost::default(),
             handoff: Handoff::default(),
+            kits: Arc::new(KitHandoff::default()),
+            one_shots: crate::oneshot::OneShots::default(),
+            explorer: crate::explorer::Explorer::default(),
+            preview: crate::preview::Preview::default(),
             exports: crate::export::Exports::default(),
+            drags: crate::drag::Drags::default(),
             armed_clip: Mutex::new(None),
             session,
             resize_request: AtomicU64::new(0),
@@ -280,21 +405,32 @@ impl Shared {
             // none can be surprised by it. A generator nobody can hear without
             // wiring an instrument up first is the problem P17 exists to fix.
             audio_enabled: AtomicBool::new(true),
+            looping: AtomicBool::new(true),
             muted_lanes: AtomicU32::new(0),
             playhead_bits: AtomicU32::new(0),
             seek_request: AtomicU32::new(0),
             audition_request: AtomicU32::new(0),
             standalone,
-            // ⛔ **True in a host, false in the standalone, and the asymmetry is
-            // the point.** In a host this term must never be the one that
-            // decides — the DAW's transport is, and a `false` here would silence
-            // a playing project with nothing on screen to explain it. In the
-            // standalone nih-plug's cpal backend claims a running transport on
-            // every block, so `true` here means the editor comes up already
-            // "playing": Pause and Stop offered for a pattern that does not
-            // exist, and a 30 Hz playhead poll running forever on an idle
-            // window. Nothing should advance there until someone presses Play.
-            running: AtomicBool::new(!standalone),
+            // ⛔⛔ **FALSE IN BOTH SHELLS SINCE TASK-138, and the `!standalone`
+            // that stood here would now be a live defect.** This used to be
+            // `true` in a host because the gate was `host AND ours`: our term had
+            // to be a constant that never decided, since a `false` would have
+            // silenced a playing project.
+            //
+            // The gate is `host OR preview` now, so the same `true` would mean
+            // **the preview is running from the moment the plugin loads** — the
+            // pattern sounding continuously with the DAW stopped, which is
+            // precisely the failure `process` records in its own comment
+            // ("played the whole pattern out loud with the transport stopped").
+            // An inverted default is not a tuning choice here; it is the
+            // difference between a preview and a plugin that will not shut up.
+            //
+            // ⚠ The standalone's reason for `false` is unchanged and still
+            // holds: cpal claims a running transport on every block, so a `true`
+            // would bring the editor up already "playing" — Pause and Stop
+            // offered for a pattern that does not exist, and a 30 Hz playhead
+            // poll on an idle window.
+            running: AtomicBool::new(false),
         }
     }
 
@@ -420,18 +556,25 @@ impl Shared {
         self.running.load(Ordering::Relaxed)
     }
 
-    /// Start or hold our own transport.
+    /// Start or hold our own **preview** transport (TASK-138).
     ///
-    /// ⛔ **Self-gating, so the rule lives here rather than at every caller.**
-    /// A host owns whether time runs; letting one reach this would hand a DAW a
-    /// second transport that can silence the plugin permanently with nothing on
-    /// screen to explain it. Written as a no-op rather than an error because
-    /// the callers that *can* reach it already refuse first — this is the
-    /// backstop, and a backstop that panics is worse than the bug.
+    /// ⛔⛔ **The standalone gate that used to be here is GONE, deliberately,
+    /// and the old reasoning must not be re-applied.** It read: *"a host owns
+    /// whether time runs; letting one reach this would hand a DAW a second
+    /// transport that can silence the plugin permanently."* That is right about
+    /// the **host's timeline** and wrong about **auditioning**. Mike, 2026-08-04:
+    /// *"i do not want to just use Ableton's transpose play button."* A producer
+    /// choosing a beat wants to hear the loop without arming a track and rolling
+    /// the whole project, which is what every comparable plugin offers.
+    ///
+    /// ▶ **What keeps it from being a second transport the DAW cannot move:**
+    /// `lib.rs`'s gate is `host_playing || preview`, and the host **wins** — when
+    /// its transport starts, `process` clears this flag on the same block. So
+    /// the two can never both drive the schedule, and a DAW that starts rolling
+    /// always takes it back. The failure the old gate feared — a plugin stuck
+    /// silent because our flag said stop — cannot happen, because our flag can
+    /// only ever *add* playback in a host, never subtract it.
     pub fn set_running(&self, running: bool) {
-        if !self.standalone {
-            return;
-        }
         self.running.store(running, Ordering::Relaxed);
     }
 
@@ -442,6 +585,20 @@ impl Shared {
 
     pub fn set_audio_enabled(&self, on: bool) {
         self.audio_enabled.store(on, Ordering::Relaxed);
+    }
+
+    /// Whether the clip repeats at its end (TASK-138). Read every block.
+    pub fn looping(&self) -> bool {
+        self.looping.load(Ordering::Relaxed)
+    }
+
+    /// ⛔ **Not gated on the standalone, unlike [`set_running`].** Looping is a
+    /// property of *our* clip inside *our* schedule, not a claim on the host's
+    /// timeline — a DAW that is rolling still expects a plugin's own loop to
+    /// turn over. That is exactly the distinction `set_running`'s comment draws
+    /// and the reason it does not apply here.
+    pub fn set_looping(&self, on: bool) {
+        self.looping.store(on, Ordering::Relaxed);
     }
 
     /// Whether this lane's *audio* is muted. Its notes go out regardless.
@@ -480,6 +637,83 @@ impl Shared {
         let session = crate::state::read(&self.session);
         self.set_audio_enabled(session.audio_enabled);
         self.set_muted_lanes(&session.muted_lanes);
+    }
+
+    /// Reload the one-shots a restored project asked for (TASK-131B).
+    ///
+    /// ⛔ **Separate from [`Self::adopt_session`] because it does I/O.** That
+    /// one is four atomic stores and is safe anywhere; this one reads and
+    /// decodes files off disk, so it is `initialize`-only and never on a path a
+    /// host might call at speed.
+    ///
+    /// A path that no longer resolves is **logged and skipped**, not fatal: a
+    /// producer who moved their sample folder must still get their project
+    /// back, with four of five one-shots and a line saying which one is gone.
+    /// The lane falls back to the shipped voice, which is audibly different and
+    /// therefore self-explaining once they look at the panel.
+    pub fn restore_one_shots(&self) {
+        let stored = crate::state::with(&self.session, |s| s.one_shots.clone()).unwrap_or_default();
+        for (lane, path) in stored {
+            if let Err(reason) = self
+                .one_shots
+                .restore(lane, &path, &self.kits, &self.session)
+            {
+                nih_plug::nih_log!(
+                    "the one-shot saved for {lane:?} could not be reloaded: {reason}"
+                );
+            }
+        }
+    }
+
+    /// Put the saved sample-library folders back (TASK-132).
+    ///
+    /// ⚠ **A folder that no longer resolves is kept rather than skipped**,
+    /// which is the opposite of `restore_one_shots` above and deliberately so.
+    /// A one-shot that will not load has an audible fallback — the shipped
+    /// voice — so dropping it costs the producer nothing they cannot see. A
+    /// *library folder* has no fallback: silently forgetting it because an
+    /// external drive was unplugged means they have to remember what was in the
+    /// list, and there is nowhere to look it up.
+    pub fn restore_sample_folders(&self) {
+        let stored =
+            crate::state::with(&self.session, |s| s.sample_folders.clone()).unwrap_or_default();
+        self.explorer.restore(&stored);
+    }
+
+    /// Write the sample library into the session, so the host saves it.
+    pub fn store_sample_folders(&self) {
+        let folders = self.explorer.snapshot();
+        crate::state::update(&self.session, |session| {
+            session.sample_folders = folders;
+        });
+    }
+
+    /// Ask the producer for a sample and play it on `lane` (TASK-131B).
+    ///
+    /// ⛔ **Here rather than at the call site, so the three things an
+    /// assignment touches cannot come apart.** It needs the kit handoff to
+    /// reach the audio thread and the session store to survive a reopen, and a
+    /// bridge command that passed one and forgot the other would be an
+    /// assignment that plays and is never saved — or is saved and never heard.
+    pub fn assign_one_shot(&self, lane: Lane) -> Result<(), String> {
+        self.one_shots.assign(lane, &self.kits, &self.session)
+    }
+
+    /// The kit the preview is playing right now, one-shots included.
+    ///
+    /// ⚠ **Resolved from this instance's own session**, so two tracks on two
+    /// artists get two kits. A process-global would be the same mistake
+    /// `one_shots` documents at its own field.
+    pub fn current_kit(&self) -> Option<Arc<Kit>> {
+        let model_id = crate::state::with(&self.session, |s| s.selected_id.clone())
+            .flatten()
+            .unwrap_or_default();
+        self.one_shots.current_kit(&model_id)
+    }
+
+    /// Put a lane back on the shipped voice.
+    pub fn clear_one_shot(&self, lane: Lane) {
+        self.one_shots.clear(lane, &self.kits, &self.session);
     }
 
     /// Which lanes are muted, for saving with the project.
@@ -525,16 +759,29 @@ const SEEK_PENDING: u32 = 1 << 31;
 const AUDITION_PENDING: u32 = 1 << 31;
 
 /// Every lane, so the mask can be read back out as names.
-const ALL_LANES: &[Lane] = &[
+///
+/// ⚠ **Also what the KIT panel enumerates** (TASK-131B). It is `pub(crate)`
+/// rather than private for that reason and only that reason: a second list of
+/// lanes in `editor.rs` would be a second thing to remember on the day the
+/// engine gains one, and the panel would quietly stop offering it.
+pub(crate) const ALL_LANES: &[Lane] = &[
     Lane::Kick,
     Lane::Snare,
+    Lane::OffSnare,
     Lane::Clap,
     Lane::ClosedHat,
     Lane::OpenHat,
+    Lane::Ride,
+    Lane::Crash,
+    Lane::Tom,
     Lane::Rim,
     Lane::Snap,
     Lane::Perc,
-    Lane::Bass808,
+    Lane::Shaker,
+    Lane::Tambourine,
+    Lane::Cowbell,
+    Lane::Woodblock,
+    Lane::Sub,
     Lane::Melody,
     Lane::Counter,
     Lane::Bass,
@@ -560,11 +807,24 @@ fn lane_bit(lane: Lane) -> u32 {
         Lane::Rim => 1 << 5,
         Lane::Snap => 1 << 6,
         Lane::Perc => 1 << 7,
-        Lane::Bass808 => 1 << 8,
+        Lane::Sub => 1 << 8,
         Lane::Melody => 1 << 9,
         Lane::Counter => 1 << 10,
         Lane::Bass => 1 << 11,
         Lane::Chords => 1 << 12,
+        // ⚠ Appended at 13 rather than slotted into kit order, so no existing
+        // lane's bit moves. Nothing persists these — the comment above explains
+        // why that is safe either way — but a mask in flight between the editor
+        // and the audio thread during a reload should not have to be right
+        // about which build wrote it.
+        Lane::OffSnare => 1 << 13,
+        Lane::Ride => 1 << 14,
+        Lane::Crash => 1 << 15,
+        Lane::Tom => 1 << 16,
+        Lane::Shaker => 1 << 17,
+        Lane::Tambourine => 1 << 18,
+        Lane::Cowbell => 1 << 19,
+        Lane::Woodblock => 1 << 20,
     }
 }
 
@@ -714,6 +974,74 @@ mod tests {
             "one receive should have drained it"
         );
     }
+
+    /// A kit with one nameable pad, so a swap can be told from a no-op.
+    fn kit_named(id: &str) -> Arc<Kit> {
+        Arc::new(Kit {
+            id: id.to_owned(),
+            pads: Vec::new(),
+        })
+    }
+
+    #[test]
+    fn an_empty_kit_handoff_leaves_the_current_kit_alone() {
+        let kits = KitHandoff::default();
+        let mut current = Some(kit_named("shipped"));
+        assert!(!kits.receive(&mut current), "nothing was waiting");
+        assert_eq!(current.as_ref().unwrap().id, "shipped");
+    }
+
+    #[test]
+    fn a_sent_kit_is_swapped_in_and_reported_as_a_swap() {
+        // ⛔ The bool is what makes `process` cut its voices. A swap that
+        // reported `false` would leave every sounding voice addressing a pad
+        // index in the *old* kit — a hi-hat finishing as somebody's vocal chop.
+        let kits = KitHandoff::default();
+        let mut current = Some(kit_named("shipped"));
+        kits.send(kit_named("with-one-shots"));
+
+        assert!(kits.receive(&mut current), "a swap must report itself");
+        assert_eq!(current.as_ref().unwrap().id, "with-one-shots");
+    }
+
+    #[test]
+    fn the_replaced_kit_is_parked_rather_than_freed_on_the_audio_thread() {
+        // ⛔ **The rule this whole type exists for.** A kit is megabytes of
+        // samples, and dropping the last reference to it inside the callback
+        // takes the allocator's lock — the one thing a process callback must
+        // never do. It has to stay alive until the editor thread collects it.
+        let kits = KitHandoff::default();
+        let mut current = Some(kit_named("shipped"));
+        let outgoing = Arc::downgrade(current.as_ref().unwrap());
+        kits.send(kit_named("with-one-shots"));
+
+        assert!(kits.receive(&mut current));
+        assert!(
+            outgoing.upgrade().is_some(),
+            "the outgoing kit was freed on the audio thread"
+        );
+
+        kits.collect();
+        assert!(
+            outgoing.upgrade().is_none(),
+            "the editor thread must be what actually frees it"
+        );
+    }
+
+    #[test]
+    fn a_second_assignment_replaces_an_unclaimed_first() {
+        // Assigning twice before the audio thread looked means the producer
+        // wanted the second sample — the same rule `Handoff` follows for a
+        // second Generate, and for the same reason.
+        let kits = KitHandoff::default();
+        kits.send(kit_named("first"));
+        kits.send(kit_named("second"));
+
+        let mut current = Some(kit_named("shipped"));
+        assert!(kits.receive(&mut current));
+        assert_eq!(current.as_ref().unwrap().id, "second");
+        assert!(!kits.receive(&mut current), "one receive drains the slot");
+    }
 }
 
 #[cfg(test)]
@@ -739,7 +1067,7 @@ mod bypass_tests {
         shared.set_lane_muted(Lane::Snare, true);
 
         assert!(shared.lane_muted(Lane::Snare));
-        for lane in [Lane::Kick, Lane::ClosedHat, Lane::Bass808, Lane::Chords] {
+        for lane in [Lane::Kick, Lane::ClosedHat, Lane::Sub, Lane::Chords] {
             assert!(!shared.lane_muted(lane), "{lane:?} should be untouched");
         }
 
@@ -766,11 +1094,11 @@ mod bypass_tests {
         // What is saved has to come back as the same lanes, or reopening a
         // project silences a different part of the kit than it did on save.
         let shared = Shared::default();
-        shared.set_muted_lanes(&[Lane::OpenHat, Lane::Bass808, Lane::Chords]);
+        shared.set_muted_lanes(&[Lane::OpenHat, Lane::Sub, Lane::Chords]);
 
         let mut back = shared.muted_lanes();
         back.sort();
-        let mut expected = vec![Lane::OpenHat, Lane::Bass808, Lane::Chords];
+        let mut expected = vec![Lane::OpenHat, Lane::Sub, Lane::Chords];
         expected.sort();
         assert_eq!(back, expected);
 
@@ -804,18 +1132,24 @@ mod transport_tests {
     }
 
     #[test]
-    fn a_host_cannot_be_handed_a_second_transport() {
-        // ⛔ The backstop for the rule the callers already enforce. A DAW owns
-        // whether time runs; letting one reach `set_running` would silence the
-        // plugin for the rest of the session with nothing on screen to explain
-        // it. `Shared::default()` is not the standalone, so this must not take.
+    /// ⛔⛔ **INVERTED at TASK-138.** This asserted that a host *could not* reach
+    /// `set_running` — the backstop for "a DAW owns whether time runs". The
+    /// plugin drives its own **preview** transport now, so a host must be able
+    /// to move it. `Shared::set_running` records why the old reasoning does not
+    /// apply, and `lib.rs`'s gate is what keeps the two from colliding.
+    fn a_host_drives_its_own_preview_transport() {
         let shared = Shared::default();
         assert!(!shared.standalone);
+        // ⛔ Stopped on load, in a host as well as the standalone. A `true` here
+        // and the gate `host || preview` would sound the pattern the moment the
+        // plugin was inserted — see `Shared::new`.
+        assert!(!shared.running(), "a freshly loaded plugin is not playing");
+
+        shared.set_running(true);
+        assert!(shared.running(), "a host may start its own preview");
+
         shared.set_running(false);
-        assert!(
-            shared.running(),
-            "a host must not be able to hold our transport"
-        );
+        assert!(!shared.running(), "and may hold it again");
     }
 
     #[test]

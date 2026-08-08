@@ -3,6 +3,7 @@
   "part": "drums",
   "artistId": "rage",
   "seed": "7",
+  "songSeed": "7",
   "bars": 4,
   "bpm": 140.0,
   "timeSigNum": 4,
@@ -139,34 +140,66 @@
         },
         {
           "startTick": 14399,
-          "lenTicks": 259,
+          "lenTicks": 130,
           "pitch": 38,
-          "vel": 60,
-          "modelVel": 64,
+          "vel": 59,
+          "modelVel": 63,
           "articulation": "roll"
         },
         {
-          "startTick": 14659,
-          "lenTicks": 221,
-          "pitch": 38,
-          "vel": 55,
-          "modelVel": 60,
+          "startTick": 14530,
+          "lenTicks": 129,
+          "pitch": 39,
+          "vel": 65,
+          "modelVel": 71,
           "articulation": "roll"
         },
         {
-          "startTick": 14881,
-          "lenTicks": 259,
-          "pitch": 38,
-          "vel": 79,
-          "modelVel": 73,
+          "startTick": 14660,
+          "lenTicks": 111,
+          "pitch": 40,
+          "vel": 86,
+          "modelVel": 80,
           "articulation": "roll"
         },
         {
-          "startTick": 15138,
-          "lenTicks": 221,
-          "pitch": 38,
-          "vel": 97,
-          "modelVel": 86,
+          "startTick": 14769,
+          "lenTicks": 110,
+          "pitch": 41,
+          "vel": 99,
+          "modelVel": 88,
+          "articulation": "roll"
+        },
+        {
+          "startTick": 14879,
+          "lenTicks": 130,
+          "pitch": 43,
+          "vel": 86,
+          "modelVel": 97,
+          "articulation": "roll"
+        },
+        {
+          "startTick": 15011,
+          "lenTicks": 129,
+          "pitch": 44,
+          "vel": 117,
+          "modelVel": 105,
+          "articulation": "roll"
+        },
+        {
+          "startTick": 15139,
+          "lenTicks": 111,
+          "pitch": 45,
+          "vel": 106,
+          "modelVel": 114,
+          "articulation": "roll"
+        },
+        {
+          "startTick": 15251,
+          "lenTicks": 110,
+          "pitch": 46,
+          "vel": 127,
+          "modelVel": 122,
           "articulation": "roll"
         }
       ]
@@ -376,7 +409,7 @@
       ]
     },
     {
-      "lane": "bass808",
+      "lane": "sub",
       "notes": [
         {
           "startTick": 0,

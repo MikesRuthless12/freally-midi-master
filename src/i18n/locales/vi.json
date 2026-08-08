@@ -23,6 +23,9 @@
     "seedCopied": "Đã sao chép seed.",
     "seedLabel": "Seed — dán vào để có cùng một beat",
     "seedAuto": "ngẫu nhiên",
+    "seedLocked": "Đã khóa seed — Tạo sẽ dùng lại",
+    "seedRolls": "Seed đổi mỗi lần Tạo",
+    "seedLock": "Khóa seed",
     "generating": "Đang tạo…",
     "readyBody": "{{name}} đã sẵn sàng. Nhấn Tạo.",
     "generateAll": "Tạo tất cả",
@@ -34,16 +37,27 @@
     "searchPlaceholder": "Tìm nghệ sĩ…",
     "searchLabel": "Tìm nghệ sĩ",
     "noDataset": "Chưa nạp bộ dữ liệu nào.",
-    "noKit": "Chưa có bộ trống. Thả các one-shot của bạn vào bất kỳ đâu trên bảng này.",
     "noMatch": "Không có gì khớp với “{{query}}”.",
     "results": "Kết quả tìm kiếm"
+  },
+  "kit": {
+    "loading": "Đang đọc bộ kit…",
+    "noneLoaded": "Không tải được bộ kit nên plugin không phát ra tiếng.",
+    "lanesLabel": "Các làn của bộ kit",
+    "assignHint": "Nhấp vào một làn để phát one-shot của riêng bạn trên đó.",
+    "shipped": "Có sẵn",
+    "silent": "Không có tiếng",
+    "choosing": "Đang chọn…",
+    "clearOne": "Xoá one-shot trên {{lane}}"
   },
   "sections": {
     "genres": "Thể loại",
     "roster": "Nghệ sĩ",
     "kit": "Bộ trống",
     "session": "Phiên",
-    "presets": "Cài đặt sẵn"
+    "presets": "Cài đặt sẵn",
+    "stems": "Stem",
+    "explorer": "Trình duyệt"
   },
   "readouts": {
     "bpm": "BPM",
@@ -179,7 +193,8 @@
   "grid": {
     "label": "Mẫu đã tạo",
     "summary": "{{bars}} ô nhịp · {{steps}} bước · {{notes}} nốt",
-    "muteLane": "Tắt tiếng {{lane}} trong bản nghe thử"
+    "muteLane": "Tắt tiếng {{lane}} trong bản nghe thử",
+    "cell": "{{lane}}, bước {{step}}"
   },
   "roster": {
     "artists": "Nghệ sĩ",
@@ -192,13 +207,25 @@
   "lanes": {
     "kick": "Trống bass",
     "snare": "Trống snare",
+    "offSnare": "Snare lệch",
     "clap": "Vỗ tay",
     "closedHat": "Hi-hat đóng",
     "openHat": "Hi-hat mở",
+    "ride": "Ride",
+    "crash": "Crash",
+    "tom": "Tom",
     "rim": "Vành trống",
     "snap": "Búng tay",
     "perc": "Bộ gõ",
-    "bass808": "808"
+    "shaker": "Shaker",
+    "tambourine": "Trống lục lạc",
+    "cowbell": "Chuông bò",
+    "woodblock": "Mõ gỗ",
+    "sub": "Sub",
+    "melody": "Giai điệu",
+    "counter": "Giai điệu đối",
+    "bass": "Đường bass",
+    "chords": "Hợp âm"
   },
   "presets": {
     "factory": "Mặc định",
@@ -276,6 +303,70 @@
       "hook": "Điệp khúc",
       "bridge": "Đoạn nối",
       "outro": "Kết"
+    },
+    "resizeClip": "{{part}} lặp trên bao nhiêu ô nhịp",
+    "resizeClipHint": "Lặp trên {{bars}} ô nhịp — kéo để thay đổi"
+  },
+  "stems": {
+    "midi": "MIDI",
+    "audio": "Âm thanh",
+    "perLane": "Theo làn",
+    "allTracks": "Tất cả các track",
+    "allParts": "Tất cả các phần",
+    "hint": "Ghi từng phần đã tạo ra tệp riêng của nó.",
+    "choosing": "Chọn một thư mục…",
+    "dragHint": "Kéo một phần thẳng vào track trong DAW của bạn.",
+    "preparing": "Đang chuẩn bị…",
+    "rendering": "Đang kết xuất… {{percent}}%"
+  },
+  "shortcuts": {
+    "title": "Phím tắt",
+    "groups": {
+      "transport": "Điều khiển",
+      "generate": "Tạo",
+      "editing": "Chỉnh sửa",
+      "notes": "Nốt",
+      "drums": "Lưới trống",
+      "browser": "Trình duyệt sample"
+    },
+    "keys": {
+      "toggleRail": "Hiện hoặc ẩn bảng bên phải",
+      "search": "Tìm trong danh sách",
+      "reroll": "Tạo lại đoạn clip",
+      "selectAll": "Chọn tất cả",
+      "copy": "Sao chép",
+      "cut": "Cắt",
+      "paste": "Dán",
+      "undo": "Hoàn tác",
+      "duplicate": "Nhân bản",
+      "delete": "Xoá",
+      "deselect": "Bỏ chọn",
+      "transpose": "Dịch giọng một nửa cung",
+      "transposeOctave": "Dịch giọng một quãng tám",
+      "nudge": "Dịch theo thời gian",
+      "stretch": "Kéo dài gấp đôi",
+      "compress": "Nén còn một nửa",
+      "triplet": "Chùm ba ở ô này",
+      "quintuplet": "Chùm năm ở ô này",
+      "septuplet": "Chùm bảy ở ô này",
+      "cloneBar": "Chép ô nhịp 1 sang ô nhịp này",
+      "shortcuts": "Hiện bảng này",
+      "play": "Phát hoặc tạm dừng",
+      "previewDirection": "Phát sample ngược / xuôi"
     }
+  },
+  "explorer": {
+    "addFolder": "Thêm thư mục",
+    "removeFolder": "Xoá {{name}} khỏi thư viện",
+    "noRoots": "Thêm một thư mục để duyệt các sample của bạn.",
+    "listLabel": "Danh sách sample",
+    "up": "Lên",
+    "empty": "Không có sample nào trong thư mục này.",
+    "truncated": "Thư mục này có nhiều tệp hơn số được hiển thị.",
+    "pickAFile": "Chọn một sample để nghe thử.",
+    "decoding": "Đang đọc…",
+    "waveformOf": "Dạng sóng của {{name}}",
+    "reverse": "Phát ngược",
+    "resize": "Thay đổi chiều rộng trình duyệt"
   }
 }

@@ -44,15 +44,33 @@ test.describe('Phase gate — UI contract', () => {
     // Still the rule; the line has moved. Search is live and Generate becomes
     // live once an artist is chosen (TASK-028), so the controls that must stay
     // disabled are the ones with nothing behind them yet: transport with no
-    // pattern and no device, and a loop toggle that has nothing to toggle.
+    // pattern and no device.
     // ⚠ `exact` matters here: "Generate all" (TASK-120) shares a prefix with
     // "Generate", and Playwright matches an accessible name by substring by
     // default — so the unqualified form resolves to two buttons and fails
     // strict mode rather than asserting anything.
-    for (const name of ['Generate', 'Play', 'Stop', 'Loop']) {
+    for (const name of ['Generate', 'Play', 'Stop']) {
       await expect(page.getByRole('button', { name, exact: true })).toBeDisabled();
     }
     await expect(page.getByLabel('Search an artist')).toBeEnabled();
+  });
+
+  test('Loop is live, because it now has something to toggle', async ({ page }) => {
+    // ⛔⛔ **INVERTED 2026-08-06, and the inversion is the fix.** Loop was in the
+    // sweep above, on the reasoning that it was "a loop toggle that has nothing
+    // to toggle" — true while it was permanently pressed and inert. Mike asked
+    // for it to work: *"can you have the 'Loop' button toggle off and on and
+    // either loop every time it plays to the end of the 4 or 8 bars or stop at
+    // the end of the 4 or 8 bars."*
+    //
+    // ⚠ **Live with nothing generated, deliberately.** It is a mode switch, not
+    // an action on a clip — it says what the schedule should do *when* something
+    // plays, so there is no state in which setting it early is meaningless.
+    // That is exactly why it does not belong in the sweep above, rather than
+    // being an exception to it.
+    const loop = page.getByRole('button', { name: 'Loop', exact: true });
+    await expect(loop).toBeEnabled();
+    await expect(loop).toHaveAttribute('aria-pressed', 'true');
   });
 
   test('a control becomes live exactly when it can do something', async ({ page }) => {

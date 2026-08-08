@@ -9,7 +9,24 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use engine::context::SessionContext;
-use engine::generators::drums::{generate, SnarePlacement};
+use engine::generators::drums::{can_read_perc_placement, generate, SnarePlacement, PERC_LANES};
+
+/// The perc lanes spelled the way the dataset spells them.
+///
+/// ⛔ **Derived from `PERC_LANES`, never retyped.** `Lane` serializes by name,
+/// which is exactly the string a model writes in `drums.percs.lanes` — so this
+/// is the one conversion rather than a second list to keep in step.
+fn perc_lane_names() -> Vec<String> {
+    PERC_LANES
+        .iter()
+        .map(|lane| {
+            serde_json::to_value(lane)
+                .ok()
+                .and_then(|value| value.as_str().map(str::to_owned))
+                .unwrap_or_else(|| panic!("{lane:?} has no serialized name"))
+        })
+        .collect()
+}
 use engine::generators::grid;
 use engine::pattern::{Articulation, Lane, LaneTrack};
 use engine::StyleModel;
@@ -159,38 +176,142 @@ fn the_drill_two_bar_kick_form_reproduces_exactly() {
     let bar_one = vec![0, beat + eighth, beat * 3];
     let bar_two = vec![eighth, beat * 2];
 
-    for seed in [0u64, 1, 7, 99, 12_345] {
+    // ⚠ **Was "this exact form, on every seed"; it is now "one of the authored
+    // forms, exactly, and the described one is among them" (TASK-131C).** The
+    // model gained `grammarVariants` because pinning it to a single form meant
+    // uk-drill wrote **exactly one kick pattern across 200 seeds** — measured
+    // after Mike reported the roster sounding the same in Ableton. What the
+    // research fixes is the *vocabulary*, not that there is one sentence in it:
+    // ch. 1 §2 describes the form below, and every variant is built from the
+    // same tresillo (see the test after this one, which is what actually holds
+    // that line).
+    //
+    // ⛔ The reproduction half is unchanged and is still the point: whichever
+    // form a seed picks, it must come out identical every time and must repeat
+    // on the two-bar cycle. A grammar that drifted within a pattern would not be
+    // a grammar.
+    let mut saw_described = false;
+    for seed in 0..200u64 {
         let lanes = generate(&drill, &context, seed);
         let kicks = positions(&lanes, Lane::Kick, &context);
-
-        for bar in 0..4u32 {
-            let in_bar: Vec<u32> = kicks
+        let in_bar = |bar: u32| -> Vec<u32> {
+            kicks
                 .iter()
                 .filter(|(b, _)| *b == bar)
                 .map(|(_, tick)| *tick)
-                .collect();
-            let expected = if bar % 2 == 0 { &bar_one } else { &bar_two };
-            assert_eq!(&in_bar, expected, "seed {seed}, bar {bar}");
+                .collect()
+        };
+
+        // ⛔ **Against the authored data, not against itself.** The first cut of
+        // this asserted `in_bar(0) == in_bar(2)`, which `kick_bar` satisfies by
+        // construction — it returns `grammar[bar % len].clone()`, so bar 0 and
+        // bar 2 are literally the same cloned `Vec` and the assertion could not
+        // fail. Weakening a gate into something that cannot fail, while fixing
+        // gates that could not fail, is the exact regression this session was
+        // called to end.
+        //
+        // Every bar must therefore match one of the forms `uk-drill.json`
+        // actually authors, read from the dataset rather than restated here.
+        let authored = drill
+            .blocks
+            .get("drums")
+            .and_then(|d| d.get("kick"))
+            .and_then(|k| k.get("grammarVariants"))
+            .and_then(|v| v.as_array())
+            .expect("uk-drill must author grammarVariants");
+        let rows: Vec<Vec<u32>> = authored
+            .iter()
+            .flat_map(|form| form.as_array().cloned().unwrap_or_default())
+            .map(|row| {
+                let mut ticks: Vec<u32> = row
+                    .as_array()
+                    .map(|positions| {
+                        positions
+                            .iter()
+                            .filter_map(|p| p.as_str())
+                            .filter_map(|p| grid::position_ticks(p, &context))
+                            .collect()
+                    })
+                    .unwrap_or_default();
+                ticks.sort_unstable();
+                ticks.dedup();
+                ticks
+            })
+            .collect();
+        for bar in 0..4u32 {
+            assert!(
+                rows.contains(&in_bar(bar)),
+                "seed {seed} bar {bar}: {:?} is not a row uk-drill authors",
+                in_bar(bar)
+            );
+        }
+
+        // ...and it still repeats on the two-bar cycle the form encodes.
+        assert_eq!(in_bar(0), in_bar(2), "seed {seed}: bar 3 left the form");
+        assert_eq!(in_bar(1), in_bar(3), "seed {seed}: bar 4 left the form");
+
+        // ...and generating again reproduces it, which is what "exactly" means.
+        let again = positions(&generate(&drill, &context, seed), Lane::Kick, &context);
+        assert_eq!(kicks, again, "seed {seed} did not reproduce");
+
+        if in_bar(0) == bar_one && in_bar(1) == bar_two {
+            saw_described = true;
         }
     }
+    assert!(
+        saw_described,
+        "the form the research actually describes must still be reachable"
+    );
 }
 
 #[test]
 fn drills_kick_form_is_the_tresillo_it_is_described_as() {
     // Bar 1 of that grammar is 3-3-2 spelled in grid positions. Naming the
     // relationship keeps the two facts from drifting apart.
+    // ⛔ **This is the test that actually holds the genre's line, and it got
+    // stricter rather than looser when the grammar gained variants
+    // (TASK-131C).** It used to check one seed against one hardcoded list; it
+    // now sweeps 200 and demands that *every* form uk-drill can produce is
+    // built from the tresillo. The first attempt at variants invented rows like
+    // `["1","3&"]` — 16ths 0 and 10 — which is not a tresillo and therefore not
+    // drill, and this is what caught it. Variety is only worth having inside
+    // the style.
     let drill = model("uk-drill");
     let context = ctx(&drill, 2);
-    let lanes = generate(&drill, &context, 3);
 
-    let first_bar: Vec<u32> = positions(&lanes, Lane::Kick, &context)
-        .iter()
-        .filter(|(bar, _)| *bar == 0)
-        .map(|(_, tick)| tick / grid::SIXTEENTH)
-        .collect();
+    let mut forms = std::collections::BTreeSet::new();
+    for seed in 0..200u64 {
+        let first_bar: Vec<u32> =
+            positions(&generate(&drill, &context, seed), Lane::Kick, &context)
+                .iter()
+                .filter(|(bar, _)| *bar == 0)
+                .map(|(_, tick)| tick / grid::SIXTEENTH)
+                .collect();
 
-    assert_eq!(first_bar, vec![0, 6, 12]);
-    assert!(first_bar.iter().all(|i| grid::is_tresillo(*i)));
+        assert!(
+            first_bar.iter().all(|i| grid::is_tresillo(*i)),
+            "seed {seed}: {first_bar:?} leaves the tresillo, so it is not drill"
+        );
+        // Beat one is the anchor every form shares; a bar that does not start
+        // there is a different genre's kick.
+        assert_eq!(
+            first_bar.first(),
+            Some(&0),
+            "seed {seed}: no kick on beat 1"
+        );
+        forms.insert(first_bar);
+    }
+
+    // The full 3-3-2 must be among them — the variants widen the vocabulary,
+    // they do not replace it.
+    assert!(
+        forms.contains(&vec![0, 6, 12]),
+        "the described 3-3-2 must still be reachable, saw {forms:?}"
+    );
+    assert!(
+        forms.len() > 1,
+        "the grammar should offer more than one form"
+    );
 }
 
 #[test]
@@ -342,7 +463,7 @@ fn trap_and_drill_do_not_come_out_sounding_the_same() {
         let (mut offbeat, mut total) = (0.0, 0.0);
         for seed in 0..60u64 {
             for (_, tick) in positions(&generate(m, &context, seed), Lane::Kick, &context) {
-                if grid::is_offbeat_eighth(tick / grid::SIXTEENTH) {
+                if grid::is_offbeat_eighth(tick / grid::SIXTEENTH, &context) {
                     offbeat += 1.0;
                 }
                 total += 1.0;
@@ -384,6 +505,137 @@ fn every_shipped_model_states_a_snare_placement_the_engine_knows() {
     assert!(
         checked > 0,
         "no model declared a placement — nothing checked"
+    );
+}
+
+#[test]
+fn every_shipped_model_states_a_perc_placement_the_engine_knows() {
+    // ⛔ The same hole as the snare's, one block over, and it was open: this
+    // was a bare `== Some("offbeat")`, so every other word — a typo, or the
+    // perfectly reasonable `"downbeat"` — meant "anywhere" with nothing saying
+    // so. A model asking for an accent layer would get a sprinkle.
+    let mut checked = 0;
+    for (id, model) in shipped() {
+        let Some(placement) = model
+            .blocks
+            .get("drums")
+            .and_then(|d| d.get("percs"))
+            .and_then(|p| p.get("placement"))
+            .and_then(Value::as_str)
+        else {
+            continue;
+        };
+        checked += 1;
+        assert!(
+            can_read_perc_placement(placement),
+            "{id}: `{placement}` is not a perc placement the engine knows"
+        );
+    }
+    assert!(
+        checked > 0,
+        "no model declared a perc placement — nothing checked"
+    );
+}
+
+#[test]
+fn every_percussion_lane_the_engine_ships_is_reachable_from_the_dataset() {
+    // ⛔⛔ **Six of these shipped with no way to reach them.** The lanes, the GM
+    // notes, the humanize streams and the kit pads all landed; no model named
+    // `ride`, `crash`, `tom`, `shaker` or `cowbell` in `percs.lanes`, and none
+    // authored `snare.offSnare`. Every other gate stayed green because each one
+    // asks "does what is authored work", and nothing asked "is what shipped
+    // authored". This is that question.
+    //
+    // ⚠ The tambourine is reachable through its own two flags rather than
+    // through `lanes` — see `percs` — so both spellings count.
+    let mut named: BTreeMap<String, usize> = BTreeMap::new();
+    let mut off_snare = 0;
+
+    for (_, model) in shipped() {
+        let drums = model.blocks.get("drums");
+        let percs = drums.and_then(|d| d.get("percs"));
+
+        for lane in percs
+            .and_then(|p| p.get("lanes"))
+            .and_then(Value::as_array)
+            .map(|a| a.iter().filter_map(Value::as_str).collect::<Vec<_>>())
+            .unwrap_or_default()
+        {
+            *named.entry(lane.to_owned()).or_default() += 1;
+        }
+        for flag in ["tambourine", "tambourineMirrorsClap"] {
+            if percs.and_then(|p| p.get(flag)).and_then(Value::as_bool) == Some(true) {
+                *named.entry("tambourine".into()).or_default() += 1;
+            }
+        }
+        if drums
+            .and_then(|d| d.get("snare"))
+            .and_then(|s| s.get("offSnare"))
+            .is_some()
+        {
+            off_snare += 1;
+        }
+    }
+
+    // ⛔ **`PERC_LANES` itself, never a list retyped here.** This test exists
+    // because the lane-pad guard iterated a hand-written list of eight and
+    // stayed green through eight new silent lanes — so spelling the ten out
+    // again would rebuild the very defect it is written against: an eleventh
+    // perc lane would leave this passing.
+    let missing: Vec<String> = perc_lane_names()
+        .into_iter()
+        .filter(|lane| !named.contains_key(lane))
+        .collect();
+
+    assert!(
+        missing.is_empty(),
+        "these percussion lanes ship with no model that can play them: {missing:?}"
+    );
+    assert!(
+        off_snare > 0,
+        "`Lane::OffSnare` ships with no model authoring `drums.snare.offSnare`"
+    );
+}
+
+#[test]
+fn every_percussion_lane_the_engine_ships_is_actually_heard() {
+    // ⛔⛔ **Named in the data is not the same as heard, and this project has
+    // already been bitten by exactly that distinction twice** — `drums.percs`
+    // was authored by 15 models with no reader, and the lane-pad guard iterated
+    // a hand-written list of eight while eight new lanes stayed silent. A
+    // density of `[0, 2]` can round to nothing, a `prob` can never fire, and a
+    // placement can filter every candidate out; each of those leaves the
+    // dataset gate above perfectly green and the lane inaudible.
+    //
+    // ⚠ **A sweep, not a spot check.** These layers are sampled per bar, so one
+    // seed says nothing — the same trap the collision gate was rewritten for.
+    let mut heard: BTreeMap<Lane, usize> = BTreeMap::new();
+
+    for (_, model) in shipped() {
+        let context = ctx(&model, 4);
+        for seed in 0..40u64 {
+            for track in generate(&model, &context, seed) {
+                if !track.notes.is_empty() {
+                    *heard.entry(track.lane).or_default() += track.notes.len();
+                }
+            }
+        }
+    }
+
+    // ⛔ `PERC_LANES` itself, plus the off-snare — which is not a perc lane (it
+    // has its own authored block under `snare`) but ships in the same batch and
+    // has the same "authored, unread, silent" failure mode.
+    let silent: Vec<Lane> = PERC_LANES
+        .iter()
+        .copied()
+        .chain(std::iter::once(Lane::OffSnare))
+        .filter(|lane| !heard.contains_key(lane))
+        .collect();
+
+    assert!(
+        silent.is_empty(),
+        "no shipped model plays a single note in {silent:?} across the whole \
+         roster and 40 seeds — the lanes ship, the sound does not"
     );
 }
 

@@ -70,6 +70,7 @@ fn render(model: &StyleModel, seed: u64, bars: u16) -> Pattern {
         part: Part::Drums,
         artist_id: model.id.clone(),
         seed,
+        song_seed: seed,
         bars: ctx.bars,
         bpm: ctx.bpm,
         time_sig_num: ctx.time_sig_num,
@@ -152,7 +153,7 @@ fn every_drum_hit_reaches_the_file_on_the_percussion_channel() {
             .filter(|track| {
                 !matches!(
                     track.lane,
-                    Lane::Bass808 | Lane::Melody | Lane::Counter | Lane::Bass | Lane::Chords
+                    Lane::Sub | Lane::Melody | Lane::Counter | Lane::Bass | Lane::Chords
                 )
             })
             .map(|track| track.notes.len())
@@ -272,6 +273,7 @@ fn a_six_eight_clip_says_six_eight_in_the_file() {
         part: Part::Drums,
         artist_id: model.id.clone(),
         seed: 7,
+        song_seed: 7,
         bars: ctx.bars,
         bpm: ctx.bpm,
         time_sig_num: ctx.time_sig_num,

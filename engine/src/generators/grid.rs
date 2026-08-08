@@ -116,19 +116,44 @@ pub fn is_tresillo(sixteenth_index: u32) -> bool {
     matches!(sixteenth_index % 16, 0 | 6 | 12)
 }
 
+/// How many 16ths make one beat in this meter.
+///
+/// ⛔ **Four only in x/4, and the three predicates below all hard-coded it.** A
+/// 6/8 beat is an eighth note — *two* 16ths — so `index % 4 == 0` called 16ths
+/// 2, 6 and 10 offbeats when they are beats. `percs`' `placement: "offbeat"`
+/// filters on exactly that, and `uk-drill`, `ny-drill` and `pop-smoke` all
+/// author it, so the layer meant to sit between the pulse landed squarely on it
+/// in every x/8 meter the meter chip offers.
+///
+/// Floors at 1 rather than reaching 0: in x/32 a beat is shorter than the 16th
+/// grid these are indexed on, so every 16th does land on a beat, and a modulus
+/// of zero would panic.
+pub fn sixteenths_per_beat(ctx: &SessionContext) -> u32 {
+    (ticks_per_beat(ctx) / SIXTEENTH).max(1)
+}
+
 /// Is this 16th one of the beats — 1, 2, 3, 4?
-pub fn is_downbeat(sixteenth_index: u32) -> bool {
-    sixteenth_index.is_multiple_of(4)
+pub fn is_downbeat(sixteenth_index: u32, ctx: &SessionContext) -> bool {
+    sixteenth_index.is_multiple_of(sixteenths_per_beat(ctx))
 }
 
 /// Is this 16th an offbeat 8th — an "&"?
-pub fn is_offbeat_eighth(sixteenth_index: u32) -> bool {
-    sixteenth_index % 4 == 2
+///
+/// The half-way point of a beat, whatever a beat is here. A meter whose beat is
+/// a single 16th has no "&" at all, which is why this can answer `false` for
+/// every index rather than picking one.
+pub fn is_offbeat_eighth(sixteenth_index: u32, ctx: &SessionContext) -> bool {
+    let per_beat = sixteenths_per_beat(ctx);
+    per_beat >= 2 && sixteenth_index % per_beat == per_beat / 2
 }
 
 /// Is this 16th one of the in-between "e" and "a" positions?
-pub fn is_sixteenth_offbeat(sixteenth_index: u32) -> bool {
-    sixteenth_index % 2 == 1
+///
+/// Stated as "neither of the other two" rather than as its own modulus, so the
+/// three cannot drift into overlapping or leaving a gap — which is what
+/// `the_grid_predicates_partition_the_bar` checks, now in every meter.
+pub fn is_sixteenth_offbeat(sixteenth_index: u32, ctx: &SessionContext) -> bool {
+    !is_downbeat(sixteenth_index, ctx) && !is_offbeat_eighth(sixteenth_index, ctx)
 }
 
 #[cfg(test)]
@@ -259,18 +284,81 @@ mod tests {
     }
 
     #[test]
-    fn the_grid_predicates_partition_the_bar() {
-        // Every 16th is exactly one of: a beat, an offbeat 8th, or an e/a.
+    fn the_grid_predicates_partition_the_bar_in_every_meter() {
+        // Every 16th is exactly one of: a beat, an offbeat 8th, or an e/a —
+        // and that has to hold in the meters the chip offers, not only in 4/4.
+        for den in TIME_SIG_DENOMINATORS {
+            let c = SessionContext {
+                time_sig_num: 6,
+                time_sig_den: den,
+                ..Default::default()
+            };
+            for i in 0..sixteenths_per_bar(&c) {
+                let kinds = [
+                    is_downbeat(i, &c),
+                    is_offbeat_eighth(i, &c),
+                    is_sixteenth_offbeat(i, &c),
+                ]
+                .iter()
+                .filter(|x| **x)
+                .count();
+                assert_eq!(kinds, 1, "6/{den}: 16th {i} belongs to {kinds} categories");
+            }
+        }
+    }
+
+    /// The denominators [`crate::context`] accepts, which is what the predicates
+    /// have to hold for.
+    const TIME_SIG_DENOMINATORS: [u8; 6] = [1, 2, 4, 8, 16, 32];
+
+    #[test]
+    fn a_beat_in_an_x_over_8_meter_is_two_sixteenths_not_four() {
+        // ⛔ The bug the `% 4` cost: in 6/8 a beat is an eighth note, so 16ths
+        // 2, 6 and 10 *are* beats — and `index % 4 == 0` called them offbeats.
+        // `percs`' "offbeat" placement filters on this, so the layer that is
+        // supposed to sit between the pulse played straight on top of it.
+        let six_eight = SessionContext {
+            time_sig_num: 6,
+            time_sig_den: 8,
+            ..Default::default()
+        };
+        assert_eq!(sixteenths_per_beat(&six_eight), 2);
+        for beat in [0, 2, 4, 6, 8, 10] {
+            assert!(
+                is_downbeat(beat, &six_eight),
+                "16th {beat} is a beat in 6/8"
+            );
+        }
+        for between in [1, 3, 5, 7, 9, 11] {
+            assert!(!is_downbeat(between, &six_eight));
+            assert!(is_offbeat_eighth(between, &six_eight));
+        }
+    }
+
+    #[test]
+    fn four_four_still_reads_the_way_it_always_did() {
+        let c = ctx();
+        assert_eq!(sixteenths_per_beat(&c), 4);
         for i in 0..16 {
-            let kinds = [
-                is_downbeat(i),
-                is_offbeat_eighth(i),
-                is_sixteenth_offbeat(i),
-            ]
-            .iter()
-            .filter(|x| **x)
-            .count();
-            assert_eq!(kinds, 1, "16th {i} belongs to {kinds} categories");
+            assert_eq!(is_downbeat(i, &c), i % 4 == 0);
+            assert_eq!(is_offbeat_eighth(i, &c), i % 4 == 2);
+            assert_eq!(is_sixteenth_offbeat(i, &c), i % 2 == 1);
+        }
+    }
+
+    #[test]
+    fn a_meter_whose_beat_is_shorter_than_the_grid_puts_every_sixteenth_on_a_beat() {
+        // x/32: a beat is half a 16th, so every position on this grid is one.
+        // The floor matters — a modulus of zero would panic rather than answer.
+        let fast = SessionContext {
+            time_sig_num: 8,
+            time_sig_den: 32,
+            ..Default::default()
+        };
+        assert_eq!(sixteenths_per_beat(&fast), 1);
+        for i in 0..sixteenths_per_bar(&fast).max(1) {
+            assert!(is_downbeat(i, &fast));
+            assert!(!is_offbeat_eighth(i, &fast), "there is no '&' to land on");
         }
     }
 }

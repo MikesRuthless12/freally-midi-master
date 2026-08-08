@@ -49,6 +49,14 @@ struct Placed {
     velocity: f32,
     /// The matching note-off, so a pattern can never leave a note hanging.
     off_at: u32,
+    /// Where an 808 slide is heading, as a raw pitch.
+    ///
+    /// ⛔ **The pitch, not the semitone travel, because only the kit can convert
+    /// it.** `Kit::semitones_for` transposes a percussion pad from the lane's GM
+    /// note and a pitched pad from its root, and the schedule has no kit —
+    /// `render_preview` does, and it is the same call `audio::render` makes, so
+    /// the preview and a rendered stem cannot disagree about the interval.
+    slide_to: Option<u8>,
 }
 
 /// A note that went out in this block, for the preview sampler to play.
@@ -60,6 +68,10 @@ pub struct Fired {
     pub lane: Lane,
     pub note: u8,
     pub velocity: f32,
+    /// Where an 808 slide is heading, as a raw pitch — see `Placed::slide_to`.
+    pub slide_to: Option<u8>,
+    /// How long the note lasts in frames, which is the slide's whole window.
+    pub frames: u32,
 }
 
 /// The note-ons of one block, in a fixed array.
@@ -85,6 +97,8 @@ impl Default for FiredNotes {
                 lane: Lane::Kick,
                 note: 0,
                 velocity: 0.0,
+                slide_to: None,
+                frames: 0,
             }; Self::CAPACITY],
             len: 0,
         }
@@ -178,11 +192,30 @@ impl Schedule {
                 events.push(Placed {
                     at,
                     lane: track.lane,
-                    note: note.pitch,
+                    // ⛔ **A drum lane goes out on its own GM note, never on the
+                    // walked pitch** (TASK-131D). In MIDI a drum's note number
+                    // *is* which drum it is — there is no way to say "the same
+                    // snare, a tone higher". This emitted `note.pitch` verbatim,
+                    // so a rage snare roll with `pitchWalk: 8` climbed 38, 39,
+                    // 41, 43, 46 and fired Hand Clap, Low Floor Tom, High Floor
+                    // Tom and Open Hi-Hat in the producer's drum rack — a
+                    // different instrument on every hit of one roll.
+                    //
+                    // ⚠ The walk is therefore an *audio-domain* effect: the
+                    // plugin's own sampler and the rendered wav stems repitch
+                    // the pad, and MIDI — live and exported — carries the drum.
+                    // `engine::midi::events_for` already made the same choice
+                    // for the exported file, so all three now agree.
+                    note: if crate::midi_note_for(track.lane) == 0 {
+                        note.pitch
+                    } else {
+                        crate::midi_note_for(track.lane)
+                    },
                     velocity: f32::from(note.vel) / 127.0,
                     // A zero-length note is inaudible and, in some hosts,
                     // invisible. One sample is the floor.
                     off_at: off.max(at.saturating_add(1)),
+                    slide_to: note.slide_to_pitch,
                 });
             }
         }
@@ -350,10 +383,15 @@ impl Schedule {
     /// time a host relocated. Overflow is dropped rather than grown — this runs
     /// on the audio thread and may not allocate — and a block carrying more
     /// note-ons than the sampler has voices was going to steal voices anyway.
+    /// `looping` is whether the clip repeats at its end (TASK-138). Read from
+    /// [`crate::shared::Shared::looping`] every block rather than stored here,
+    /// so pressing the button takes effect on the next block instead of on the
+    /// next re-arm.
     pub fn emit<P: Plugin>(
         &mut self,
         context: &mut impl ProcessContext<P>,
         samples: u32,
+        looping: bool,
         fired: &mut FiredNotes,
     ) {
         fired.clear();
@@ -366,12 +404,46 @@ impl Schedule {
         // one extra walk of an already-sorted list and no allocation.
         let mut offset = 0;
         let mut remaining = samples;
+        let span = self.repeat_span(looping);
         while remaining > 0 {
-            let chunk = self.next_span(remaining);
+            let chunk = self.next_span(span, remaining);
             self.emit_span(context, offset, chunk, samples, fired);
             offset += chunk;
             remaining -= chunk;
-            self.turn_over();
+            self.turn_over(span);
+        }
+    }
+
+    /// What the playhead repeats over, or `None` if it runs to the end and stops.
+    ///
+    /// ⛔ **Two different loops, and only one of them is the producer's brace.**
+    /// `loop_span` is the *clip's* region, dragged on the roll (TASK-041E), and
+    /// it wins whenever it is set. The Loop button is the coarser question — does
+    /// the clip repeat at all — so with no brace it repeats the whole thing.
+    /// Mike, 2026-08-06: *"either loop every time it plays to the end of the 4 or
+    /// 8 bars or stop at the end of the 4 or 8 bars."*
+    ///
+    /// ⚠ **A zero-length clip never repeats**, whatever the button says: a span
+    /// of `(0, 0)` would rewind on every block and hold the playhead at the
+    /// start forever, which reads as a hung transport rather than a loop.
+    fn repeat_span(&self, looping: bool) -> Option<(u32, u32)> {
+        match self.loop_span {
+            Some(span) => Some(span),
+            None if looping => {
+                // ⛔ **Floored for exactly the reason the brace branch is**, and
+                // it was not. `arm` bounds a dragged region with
+                // `MIN_LOOP_SAMPLES` because "the bridge is not the UI"; a
+                // whole-clip loop reaches the same code from the same untrusted
+                // door and skipped it. `check_patterns` validates meter, bars
+                // and part count but never their product, so a pattern of
+                // `{time_sig_den: 128, bars: 1, bpm: 999}` yields a clip of
+                // ~90 samples at 48 kHz — eleven times under the floor, which
+                // is ~6 turnovers per 512-frame block and ~180 per offline
+                // block, each one an `emit_span` walk and a `rewind_to` search.
+                let end = self.length().max(MIN_LOOP_SAMPLES);
+                (self.length() > 0).then_some((0, end))
+            }
+            None => None,
         }
     }
 
@@ -381,16 +453,16 @@ impl Schedule {
     /// ⛔ Floored at one sample. Without it a playhead already at or past the
     /// loop's end would ask for a zero-length span forever and hang the audio
     /// thread — which is a locked-up DAW, not a dropout.
-    fn next_span(&self, remaining: u32) -> u32 {
-        match self.loop_span {
+    fn next_span(&self, span: Option<(u32, u32)>, remaining: u32) -> u32 {
+        match span {
             Some((_, to)) => remaining.min(to.saturating_sub(self.elapsed).max(1)),
             None => remaining,
         }
     }
 
     /// Send the playhead back to the top of the loop, if it has reached the end.
-    fn turn_over(&mut self) {
-        if let Some((from, to)) = self.loop_span {
+    fn turn_over(&mut self, span: Option<(u32, u32)>) {
+        if let Some((from, to)) = span {
             if self.elapsed >= to {
                 self.rewind_to(from);
             }
@@ -447,6 +519,11 @@ impl Schedule {
                 lane: event.lane,
                 note: event.note,
                 velocity: event.velocity,
+                slide_to: event.slide_to,
+                // The note's own length, which is the slide's whole window.
+                // ⚠ From the schedule's own samples, so it follows the host's
+                // tempo for free — the same reason the placement does.
+                frames: event.off_at.saturating_sub(event.at),
             });
             context.send_event(NoteEvent::NoteOff {
                 // Clamped into this block. A note longer than one block still
@@ -501,6 +578,7 @@ mod tests {
             part: Part::Drums,
             artist_id: "trap".into(),
             seed: 1,
+            song_seed: 1,
             bars: 4,
             bpm,
             time_sig_num: 4,
@@ -625,6 +703,17 @@ mod transport_tests {
 
     /// Four bars of quarter notes at 120 BPM, so a position is easy to reason
     /// about: one beat is half a second, and the pattern is eight seconds long.
+    /// The brace-only span, with the Loop button **off**.
+    ///
+    /// ⛔ The cases below are about `loop_span` — the region dragged on the roll
+    /// (TASK-041E) — so Loop is off in them and the brace is the only thing that
+    /// can turn the playhead over. `the_loop_button_repeats_the_whole_clip…`
+    /// covers the button's own behaviour, and keeping the two apart is what makes
+    /// each failure name its own cause.
+    fn brace(schedule: &Schedule) -> Option<(u32, u32)> {
+        schedule.repeat_span(false)
+    }
+
     fn armed() -> Schedule {
         armed_with(None)
     }
@@ -655,6 +744,7 @@ mod transport_tests {
             part: Part::Drums,
             artist_id: "t".into(),
             seed: 1,
+            song_seed: 1,
             bars: 4,
             bpm: 120.0,
             time_sig_num: 4,
@@ -777,14 +867,16 @@ mod transport_tests {
 
         // Just short of the turnover, the playhead is where the clip says.
         schedule.advance_for_test(half - 1000);
-        schedule.turn_over();
+        let span = brace(&schedule);
+        schedule.turn_over(span);
         assert!(schedule.progress() < 0.5);
 
         // Past it, and it is back at the top of the loop rather than at the
         // top of the clip — which for this region happen to be the same tick,
         // so the next case is the one that tells them apart.
         schedule.advance_for_test(2000);
-        schedule.turn_over();
+        let span = brace(&schedule);
+        schedule.turn_over(span);
         assert_eq!(schedule.progress(), 0.0);
     }
 
@@ -798,7 +890,8 @@ mod transport_tests {
         let (_, length) = schedule.placement();
 
         schedule.seek(0.5);
-        schedule.turn_over();
+        let span = brace(&schedule);
+        schedule.turn_over(span);
         let after = schedule.progress();
         assert!(
             (after - 0.25).abs() < 0.01,
@@ -822,13 +915,14 @@ mod transport_tests {
 
         schedule.advance_for_test(quarter - 100);
         assert_eq!(
-            schedule.next_span(512),
+            schedule.next_span(brace(&schedule), 512),
             100,
             "the span stops exactly at the loop's end, not one block past it"
         );
 
         // And with no loop set, a block is never split.
-        assert_eq!(armed().next_span(512), 512);
+        let bare = armed();
+        assert_eq!(bare.next_span(brace(&bare), 512), 512);
     }
 
     #[test]
@@ -838,13 +932,86 @@ mod transport_tests {
             to_tick: 0,
         }));
         assert_eq!(
-            schedule.next_span(512),
+            schedule.next_span(brace(&schedule), 512),
             512,
             "an unusable region leaves the transport exactly as it was"
         );
         schedule.advance_for_test(512);
-        schedule.turn_over();
+        let span = brace(&schedule);
+        schedule.turn_over(span);
         assert!(schedule.progress() > 0.0);
+    }
+
+    // ---- The Loop button (TASK-138) ---------------------------------------
+
+    /// ⛔⛔ Mike, 2026-08-06: *"can you have the 'Loop' button toggle off and on
+    /// and either loop every time it plays to the end of the 4 or 8 bars or stop
+    /// at the end of the 4 or 8 bars."* With no brace dragged, the whole clip is
+    /// what repeats.
+    #[test]
+    fn the_loop_button_repeats_the_whole_clip_when_no_brace_was_dragged() {
+        let mut schedule = armed();
+        let (_, length) = schedule.placement();
+
+        // On, and the span is the clip — so a block is split at its end.
+        assert_eq!(schedule.repeat_span(true), Some((0, length)));
+
+        schedule.advance_for_test(length);
+        let span = schedule.repeat_span(true);
+        schedule.turn_over(span);
+        assert_eq!(
+            schedule.progress(),
+            0.0,
+            "with Loop on, reaching the end must return to the start"
+        );
+    }
+
+    #[test]
+    fn switching_the_loop_button_off_runs_to_the_end_and_stays_there() {
+        // The other half of the instruction: *"or stop at the end of the 4 or 8
+        // bars."* The playhead parks rather than wrapping, which is what
+        // `progress()` saturating at 1.0 has always described.
+        let mut schedule = armed();
+        let (_, length) = schedule.placement();
+
+        assert_eq!(schedule.repeat_span(false), None);
+
+        schedule.advance_for_test(length);
+        let span = schedule.repeat_span(false);
+        schedule.turn_over(span);
+        assert_eq!(
+            schedule.progress(),
+            1.0,
+            "with Loop off, the playhead must stay at the end rather than wrap"
+        );
+    }
+
+    #[test]
+    fn a_dragged_brace_still_wins_over_the_button() {
+        // ⛔ Two different loops. The brace is the *clip's* region and is the
+        // finer instruction, so Loop on must not silently widen it back out to
+        // the whole clip — that would throw away what the producer dragged.
+        let bar = 4 * PPQ;
+        let schedule = armed_with(Some(Region {
+            from_tick: 0,
+            to_tick: bar,
+        }));
+        let (_, length) = schedule.placement();
+
+        let span = schedule.repeat_span(true).expect("a brace is a span");
+        assert!(
+            span.1 < length,
+            "Loop on widened a dragged brace back to the whole clip: {span:?} of {length}"
+        );
+        assert_eq!(schedule.repeat_span(true), schedule.repeat_span(false));
+    }
+
+    #[test]
+    fn an_empty_schedule_never_repeats_however_the_button_is_set() {
+        // ⛔ A span of `(0, 0)` would rewind on every block and hold the playhead
+        // at the start forever — a hung transport, not a loop.
+        assert_eq!(Schedule::default().repeat_span(true), None);
+        assert_eq!(Schedule::default().repeat_span(false), None);
     }
 
     #[test]

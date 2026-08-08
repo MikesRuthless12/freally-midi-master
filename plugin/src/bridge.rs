@@ -37,7 +37,7 @@ pub struct Request {
 /// Well above the 8 the UI offers, so it never binds in normal use; it exists
 /// so a value from a file, a preset or devtools cannot ask for a pattern that
 /// takes minutes to build on the thread the host draws its window from.
-const MAX_BARS: u16 = 128;
+pub(crate) const MAX_BARS: u16 = 128;
 
 /// What the UI asks for when the user presses Generate.
 ///
@@ -55,6 +55,20 @@ struct GenerateArgs {
     bars: Option<u16>,
     #[serde(default)]
     seed: Option<String>,
+    /// The **record's** seed, carried between parts (TASK-141).
+    ///
+    /// ⚠ Absent means "this generation is its own record", which is the
+    /// pre-TASK-141 behaviour and is what a preset or an old project sends.
+    #[serde(default)]
+    song_seed: Option<String>,
+    /// The seed the **drum pattern already on screen** was generated at.
+    ///
+    /// ⛔ Read only by `Part::Bass`, and it is what stops a `mirror_kick`
+    /// bassline landing on kicks nobody is playing — see `parts::Seeds::drums`.
+    /// Absent means "no drums have been generated", which is what a fresh
+    /// session, a preset and an old project all mean.
+    #[serde(default)]
+    drums_seed: Option<String>,
     /// The mood to generate in. Absent is "Any" — see [`generate`].
     #[serde(default)]
     mood: Option<String>,
@@ -162,10 +176,27 @@ pub fn dispatch(
         // inputs, not its notes, and the page owns the edited document until the
         // materialisation decision is built (see the roadmap, above Phase 4).
         // Arming is a *playback* concern and is all this needs to do.
+        // ⛔ **`patterns`, plural, since TASK-127.** It took one clip and echoed
+        // it, so Play could only ever sound the part on the visible tab. Mike,
+        // 2026-08-06: *"i want to be able to play the generators all at once or
+        // separately, they should be able to be toggled on and off for each
+        // generator."* The page sends the parts that are toggled on and this
+        // merges them into the one `Pattern` a schedule can hold; one part is
+        // the ordinary solo case and comes back untouched.
+        //
+        // ⚠ **`check_patterns` for the same reason the export and the drag call
+        // it**: these arrive as JSON from the webview, and merging allocates a
+        // note per note across every part handed over.
         "arm_pattern" => {
-            let pattern: Pattern = Pattern::deserialize(&request.args["pattern"])
-                .map_err(|e| format!("bad pattern: {e}"))?;
-            serde_json::to_value(pattern).map_err(|e| e.to_string())
+            let patterns: Vec<Pattern> = Vec::<Pattern>::deserialize(&request.args["patterns"])
+                .map_err(|e| format!("bad patterns: {e}"))?;
+            check_patterns(&patterns)?;
+            // ⛔ An error, not an empty clip. Arming nothing would leave the
+            // transport running over silence while the UI insisted something was
+            // playing — and the page can reach this by toggling every part off.
+            let merged = Pattern::merge(&patterns)
+                .ok_or("nothing is toggled on, so there is nothing to play")?;
+            serde_json::to_value(merged).map_err(|e| e.to_string())
         }
 
         "generate_pattern" => {
@@ -202,11 +233,10 @@ pub fn dispatch(
             let song: engine::pattern::Song =
                 engine::pattern::Song::deserialize(&request.args["song"])
                     .map_err(|e| format!("bad song: {e}"))?;
-            check_refs(&song)?;
             // The same trust boundary `song_smf` documents, and it has to be
             // here too: this path reaches `song_to_smf` with a `Song` that came
             // from the webview.
-            check_song(&song)?;
+            check_song_for_export(&song)?;
             let suggested = format!("{}-{}.mid", song.artist_id, song.seed);
             exports
                 .start_song_midi(song, &suggested)
@@ -228,14 +258,22 @@ pub fn dispatch(
             // draws as an empty row and writes as silence — so without this, a
             // stem folder came back looking complete with one part quietly
             // empty, which is exactly the failure the check exists to name.
-            check_refs(&song)?;
-            check_song(&song)?;
+            check_song_for_export(&song)?;
             let folder = format!("{}-{}-stems", song.artist_id, song.seed);
             exports
                 .start_song_stems(song, &folder)
                 .map(|()| Value::Null)
         }
 
+        // The parts on screen, one file each, as MIDI or as audio (TASK-131F).
+        //
+        // ⛔ **Separate from `export_stems`, which is a whole *song*.** This is
+        // the four- or eight-bar loop a producer is actually looking at, and it
+        // is the one they want to drop a hi-hat pattern out of.
+        //
+        // `lanes: true` splits a drum pattern into one file per lane — the
+        // "drag just the hihats out" case Mike asked for on 2026-08-05.
+        // `audio: true` renders through the preview kit; false writes MIDI.
         // How the export that is running ended, if it has.
         //
         // ⚠ Polled, and the outcome is *taken* — see `export::take_status`. A
@@ -325,7 +363,6 @@ pub fn dispatch(
             let song: engine::pattern::Song =
                 engine::pattern::Song::deserialize(&request.args["song"])
                     .map_err(|e| format!("bad song: {e}"))?;
-            check_refs(&song)?;
             // ⛔ **Bounded before the engine sees it, because this is a trust
             // boundary.** A `Song` arrives here as JSON from the webview — a
             // project file somebody else saved, or devtools — and every field is
@@ -334,7 +371,7 @@ pub fn dispatch(
             // to hand unbounded ones to the tick arithmetic in `engine::midi`.
             // `generate_pattern` has clamped `bars` for this reason since the
             // meter work; a song has three more axes that multiply with it.
-            check_song(&song)?;
+            check_song_for_export(&song)?;
             Ok(json!({ "bytes": engine::midi::song_to_smf(&song) }))
         }
 
@@ -386,6 +423,24 @@ pub fn dispatch(
             // insist the lane was on while the preview stayed silent. The page
             // sends the field on every save instead (`send()` in session.ts).
 
+            // ⛔ **`one_shots` is carried over unconditionally, like
+            // `window_size` and unlike `muted_lanes` — because the page never
+            // authors it.** An assignment is made by `one_shot_assign` and
+            // undone by `one_shot_clear`, both of which write the store
+            // directly; the page has no message that *means* "there are no
+            // one-shots", so an absent field can only ever be the page not
+            // knowing about them. Taking the page's word here would delete a
+            // producer's whole kit on the next artist change.
+            next.one_shots = state::with(session, |s| s.one_shots.clone()).unwrap_or_default();
+            // ⛔ **And the sample library, for exactly the same reason.** It was
+            // added beside `one_shots` and did not inherit this: the page never
+            // sends `sampleFolders` — nothing in `src/` mentions it — so every
+            // save wiped the producer's library, and it came back only if the
+            // explorer panel happened to be open and polling. Add a folder,
+            // close the panel, change artist, save: gone.
+            next.sample_folders =
+                state::with(session, |s| s.sample_folders.clone()).unwrap_or_default();
+
             state::write(session, next);
             Ok(Value::Null)
         }
@@ -423,6 +478,11 @@ pub fn dispatch(
             "version": env!("CARGO_PKG_VERSION"),
             "platform": std::env::consts::OS,
             "arch": std::env::consts::ARCH,
+            // ⚠ **Whether a drag is possible is deliberately NOT here.** It
+            // depends on the *shell* as well as the platform — the standalone
+            // pumps its own message queue and a drag there aborts the process —
+            // and this function cannot see `Shared`. `drag_supported` in
+            // `editor.rs` answers it, in the one place that can.
         })),
 
         other => Err(format!(
@@ -451,6 +511,22 @@ fn generate(args: &GenerateArgs, host: &HostSession, auto_sync: bool) -> Result<
         _ => fresh_seed(),
     };
 
+    // ⛔ **Resolved HERE, before anything else reads a seed.** The record
+    // decides the key, the scale and which authored mode is picked — all of
+    // which are properties of the song rather than of this take. It used to be
+    // resolved ten lines below the session context, so both were built from the
+    // take and the song seed reached only `parts::render`.
+    //
+    // An absent `songSeed` means "this generation is its own record", which is
+    // exactly the pre-TASK-141 behaviour — so an old project, a preset, or a
+    // hand-written payload all keep generating what they always did.
+    let song_seed = match &args.song_seed {
+        Some(text) if !text.is_empty() => text
+            .parse::<u64>()
+            .map_err(|_| format!("`{text}` is not a song seed"))?,
+        _ => seed,
+    };
+
     let model = dataset::model(&args.style_id)?;
 
     // ⛔ **The mode is applied before anything reads the model, and that
@@ -466,7 +542,11 @@ fn generate(args: &GenerateArgs, host: &HostSession, auto_sync: bool) -> Result<
     // was not re-rolled.
     let (model, mood) = match args.mood.as_deref().map(str::trim) {
         Some(name) if !name.is_empty() => (modes::apply(&model, name)?, Some(name.to_owned())),
-        _ => match modes::pick(&model, seed) {
+        // ⚠ The **record's** seed: a mode is a partial override of the model,
+        // including the `session` block it may retune the key or tempo in. A
+        // take that picked its own mode would put two parts of one record in
+        // two different kinds of record.
+        _ => match modes::pick(&model, song_seed) {
             Some(name) => (modes::apply(&model, &name)?, Some(name)),
             // The common case today: eleven of the shipped genres author no
             // modes at all, and a model with none generates exactly as before.
@@ -486,12 +566,43 @@ fn generate(args: &GenerateArgs, host: &HostSession, auto_sync: bool) -> Result<
         overrides.bars = Some(bars.clamp(1, MAX_BARS));
     }
 
-    let ctx = host.session_for(&model, &overrides, seed, auto_sync);
+    // ⛔⛔ **The session is built from the RECORD, not the take, and getting
+    // this wrong meant TASK-141 delivered nothing.** `session_for` samples
+    // `key_root` and `scale` off its seed — so with the take here, pressing
+    // Generate on the melody moved the key while the page dutifully carried the
+    // song seed, and the melody was written against a progression in a
+    // different key from the chords on screen. Eight of eight fresh takes moved
+    // key or scale. `parts.rs` says the song seed owns "key, tempo and the
+    // harmonic plan"; it owned none of them.
+    let ctx = host.session_for(&model, &overrides, song_seed, auto_sync);
 
     // The dependency order between the five parts lives in `engine::parts` —
     // Song Mode builds every section through the same function, so there is one
     // copy of it rather than two that can drift.
-    let lanes = parts::render(&model, &ctx, seed, part);
+    // ⛔ **Bound once and reused, never spelled twice.** The pattern below used
+    // to write `song_seed: seed` — the *take* into the *record* field — while
+    // rendering from the right pair. Press 1 worked by coincidence, press 2
+    // rendered correctly and reported the wrong record, and every press after
+    // that joined a different one. That is precisely the defect TASK-141
+    // exists to fix, reintroduced by two spellings of one pair.
+    // ⚠ **Unparseable is absent, not an error, and that is the one place this
+    // differs from `seed` and `songSeed`.** Those two are the producer's own
+    // input and a bad one has to be reported. This is the page telling the
+    // engine what it happens to have on screen — refusing the whole generation
+    // over it would turn a stale slot into a Generate button that does nothing,
+    // when the right answer is the record's own kit.
+    let drums_seed = args
+        .drums_seed
+        .as_deref()
+        .filter(|text| !text.is_empty())
+        .and_then(|text| text.parse::<u64>().ok());
+
+    let seeds = parts::Seeds {
+        song: song_seed,
+        part: seed,
+        drums: drums_seed,
+    };
+    let lanes = parts::render(&model, &ctx, seeds, part);
 
     if parts::is_silent(&lanes) {
         // A style whose 808 *is* the bassline authors no separate bass lane on
@@ -518,7 +629,10 @@ fn generate(args: &GenerateArgs, host: &HostSession, auto_sync: bool) -> Result<
         id: format!("{}-{seed}", model.id),
         part,
         artist_id: model.id.clone(),
-        seed,
+        // Both from the pair that was actually rendered from, so a pattern
+        // cannot claim seeds it was not built with.
+        seed: seeds.part,
+        song_seed: seeds.song,
         bars: ctx.bars,
         bpm: ctx.bpm,
         time_sig_num: ctx.time_sig_num,
@@ -679,6 +793,66 @@ fn check_refs(song: &engine::pattern::Song) -> Result<(), String> {
         dangling.len(),
         dangling.join(", ")
     ))
+}
+
+/// Both refusals a song has to survive before its notes are written anywhere.
+///
+/// ⛔ **The pair, not one of them.** `export_stems` shipped making only the
+/// second check, and the gap was not theoretical: a dangling reference draws as
+/// an empty row and *writes as silence*, so the folder came back looking
+/// complete with one part quietly empty. Anything that turns a `Song` into
+/// bytes — the exports, and now the drag-out — goes through here so a third
+/// caller cannot repeat that omission by forgetting a line.
+pub(crate) fn check_song_for_export(song: &engine::pattern::Song) -> Result<(), String> {
+    check_refs(song)?;
+    check_song(song)
+}
+
+/// Refuse a set of on-screen patterns whose numbers cannot describe real music.
+///
+/// ⛔ **Bounded before anything is rendered, for the reason [`check_song`]
+/// exists**: a `Pattern` arrives as JSON from the webview, so its bar count and
+/// its meter are whatever that JSON said, and rendering audio allocates a
+/// buffer sized from both.
+///
+/// ⛔ **A cap on the COUNT as well as on each one.** `check_song` records that
+/// "an axis-at-a-time bound cannot see what happens when the legal maxima are
+/// combined", and the first cut of this reproduced only the bars half — the
+/// caller then holds every rendered stem in memory at once, so the product is
+/// what matters.
+///
+/// ⚠ **Shared by the export and the drag-out (TASK-063C), which is why it moved
+/// out of `editor.rs`.** Both reach `stem_files` with patterns off the same
+/// untrusted channel; a second copy of this check is how one of them quietly
+/// stops making it.
+pub(crate) fn check_patterns(patterns: &[Pattern]) -> Result<(), String> {
+    if patterns.is_empty() {
+        return Err("there is nothing generated to write".to_owned());
+    }
+    if patterns.len() > engine::pattern::PART_ORDER.len() {
+        return Err(format!(
+            "{} parts is more than a pattern has",
+            patterns.len()
+        ));
+    }
+    for pattern in patterns {
+        // A meter of 0/0 divides the tick arithmetic by nothing and a huge
+        // numerator multiplies the render length; both are the same class
+        // `check_song` bounds for a song.
+        if pattern.time_sig_num == 0 || pattern.time_sig_num > 32 {
+            return Err("that meter is outside what can be written".to_owned());
+        }
+        if pattern.time_sig_den == 0 || !pattern.time_sig_den.is_power_of_two() {
+            return Err("that meter is outside what can be written".to_owned());
+        }
+        if pattern.bars == 0 || pattern.bars > MAX_BARS {
+            return Err(format!(
+                "a pattern of {} bars is outside what can be written",
+                pattern.bars
+            ));
+        }
+    }
+    Ok(())
 }
 
 /// Refuse a song whose numbers cannot describe real music.
@@ -922,6 +1096,125 @@ mod tests {
         HostSession::observed_for_test(Some(92.0), 4, 4)
     }
 
+    #[test]
+    fn the_record_decides_the_key_and_the_scale_not_the_take() {
+        // ⛔⛔ **This is the defect that made TASK-141 deliver nothing, and no
+        // engine test could see it.** `session_for` samples `key_root` and
+        // `scale` off its seed, and the session was being built from the
+        // **take** — so pressing Generate on the melody moved the key out from
+        // under the chords while the page dutifully carried the song seed. The
+        // melody was then written against a progression in a different key from
+        // the clip on screen: individually correct, and never written against
+        // each other.
+        //
+        // ⚠ Every test in `engine/tests/arrange.rs` passes
+        // `SessionContext::default()`, so the context is never derived from a
+        // seed there. The bridge is the only place this is observable.
+        let ask = |part: &str, take: &str, record: Option<&str>| {
+            let mut args = json!({
+                "request": { "styleId": "trap", "part": part, "seed": take }
+            });
+            if let Some(record) = record {
+                args["request"]["songSeed"] = json!(record);
+            }
+            let reply =
+                dispatch(&request("generate_pattern", args), &host()).expect("trap generates");
+            serde_json::from_value::<Pattern>(reply).expect("a pattern")
+        };
+
+        // One record, four different takes: the key and the scale must not move.
+        let first = ask("chords", "111", None);
+        for take in ["222", "333", "444"] {
+            let joined = ask("melody", take, Some(&first.song_seed.to_string()));
+            assert_eq!(
+                (joined.key_root, joined.scale),
+                (first.key_root, first.scale),
+                "take {take} moved the key out from under the record"
+            );
+            assert_eq!(
+                joined.song_seed, first.song_seed,
+                "the record must survive the round trip"
+            );
+        }
+
+        // And a different record is allowed to be a different key — otherwise
+        // the above would pass with the song seed ignored entirely.
+        let mut moved = false;
+        for record in ["9001", "9002", "9003", "9004"] {
+            let other = ask("chords", "111", Some(record));
+            if (other.key_root, other.scale) != (first.key_root, first.scale) {
+                moved = true;
+                break;
+            }
+        }
+        assert!(moved, "a new record must be able to pick a new key");
+    }
+
+    #[test]
+    fn the_bass_mirrors_the_drums_the_page_says_are_on_screen() {
+        // ⛔ **The seam, not the engine.** `engine/tests/arrange.rs` proves the
+        // renderer honours `Seeds::drums`; nothing there can see whether the
+        // bridge ever fills it in. A `drumsSeed` silently dropped in
+        // deserialization would leave a `mirror_kick` bass landing on kicks the
+        // drums do not play, with every engine test still green.
+        //
+        // ⚠ `boom-bap` deliberately: its 808 is not the bassline, so it has a
+        // separate bass part to be wrong about. On the trap roster the bass is
+        // refused by design (FR-007) and this could not fail.
+        let ask = |part: &str, take: &str, drums: Option<&str>| {
+            let mut args = json!({
+                "request": {
+                    "styleId": "boom-bap", "part": part, "seed": take, "songSeed": "7",
+                }
+            });
+            if let Some(drums) = drums {
+                args["request"]["drumsSeed"] = json!(drums);
+            }
+            let reply =
+                dispatch(&request("generate_pattern", args), &host()).expect("boom-bap generates");
+            serde_json::from_value::<Pattern>(reply).expect("a pattern")
+        };
+
+        // The take the producer is looking at, and a bass generated after it at
+        // a take of its own — which is what "Generate on Drums, switch tab,
+        // Generate" sends.
+        let drums = ask("drums", "3141", None);
+        let kicks: Vec<u32> = drums
+            .lanes
+            .iter()
+            .filter(|track| track.lane == engine::pattern::Lane::Kick)
+            .flat_map(|track| track.notes.iter().map(|note| note.start_tick))
+            .collect();
+        assert!(!kicks.is_empty(), "boom-bap's drums must have kicks");
+
+        let told = ask("bass", "2718", Some("3141"));
+        let not_told = ask("bass", "2718", None);
+        assert!(!told.lanes.is_empty() && !not_told.lanes.is_empty());
+
+        // Not an exact-tick assertion: the bridge humanizes, so this counts how
+        // many bass notes sit within a 16th of a kick and requires that knowing
+        // the drums' take is *better*. Equal would mean the field never arrived.
+        let near_a_kick = |pattern: &Pattern| {
+            pattern
+                .lanes
+                .iter()
+                .flat_map(|track| track.notes.iter())
+                .filter(|note| {
+                    kicks.iter().any(|kick| {
+                        note.start_tick.abs_diff(*kick) < engine::generators::grid::SIXTEENTH / 2
+                    })
+                })
+                .count()
+        };
+
+        assert!(
+            near_a_kick(&told) > near_a_kick(&not_told),
+            "telling the engine which drums are on screen changed nothing — \
+             {} notes on a kick either way, so `drumsSeed` is not reaching it",
+            near_a_kick(&told)
+        );
+    }
+
     /// The cases below predate session state and say nothing about it, so they
     /// get a throwaway store. The session commands use [`super::dispatch`]
     /// directly with one they can inspect.
@@ -1114,6 +1407,54 @@ mod tests {
             count(&drums) < count(&all),
             "soloing one part armed as many notes as the whole song"
         );
+    }
+
+    // ---- Playing several generators at once (TASK-127) --------------------
+
+    fn arm_patterns(patterns: Vec<Value>) -> Result<Value, String> {
+        dispatch(
+            &request("arm_pattern", json!({ "patterns": patterns })),
+            &host(),
+        )
+    }
+
+    #[test]
+    fn arming_two_generators_sounds_both_rather_than_the_last_one() {
+        // ⛔⛔ **The whole of TASK-127 in one assertion.** A schedule holds one
+        // `Pattern`, so before the merge the second part simply replaced the
+        // first and Play could only ever sound the visible tab. Mike,
+        // 2026-08-06: *"i want to be able to play the generators all at once or
+        // separately."*
+        let drums = generate_part("trap", "drums").unwrap();
+        let melody = generate_part("trap", "melody").unwrap();
+
+        let both = arm_patterns(vec![drums.clone(), melody.clone()]).unwrap();
+        assert_eq!(
+            note_count(&both),
+            note_count(&drums) + note_count(&melody),
+            "arming both parts must sound every note of each"
+        );
+    }
+
+    #[test]
+    fn arming_one_generator_is_that_generator_alone() {
+        // The toggle's other end: one part on is a solo, and it must come back
+        // untouched rather than through the merge's stand-in fields.
+        let melody = generate_part("trap", "melody").unwrap();
+        let armed = arm_patterns(vec![melody.clone()]).unwrap();
+
+        assert_eq!(armed["part"], "melody", "a soloed part keeps its own name");
+        assert_eq!(note_count(&armed), note_count(&melody));
+    }
+
+    #[test]
+    fn toggling_every_generator_off_is_refused_rather_than_arming_silence() {
+        // ⛔ Reachable from the UI by turning them all off. An empty clip would
+        // leave the transport running over nothing while the page insisted
+        // something was playing — a readout that lies, which is the failure this
+        // codebase records more than any other.
+        let err = arm_patterns(vec![]).unwrap_err();
+        assert!(err.contains("nothing"), "{err}");
     }
 
     #[test]
@@ -1405,6 +1746,49 @@ mod tests {
         // The bounds must not bind on anything the app itself produces.
         let song = generate_song("trap", "7").unwrap();
         assert!(dispatch(&request("song_smf", json!({ "song": song })), &host()).is_ok());
+    }
+
+    /// A pattern with whatever meter and length the caller wants.
+    fn sized_pattern(bars: u16, num: u8, den: u8) -> Pattern {
+        let mut pattern = generate(
+            &GenerateArgs {
+                style_id: "trap".into(),
+                ..Default::default()
+            },
+            &host(),
+            false,
+        )
+        .expect("trap must generate");
+        pattern.bars = bars;
+        pattern.time_sig_num = num;
+        pattern.time_sig_den = den;
+        pattern
+    }
+
+    #[test]
+    fn a_pattern_whose_numbers_cannot_describe_music_is_refused_before_it_is_rendered() {
+        // ⛔ **The sole guard on two paths that allocate from these numbers** —
+        // the pattern-stem export and the drag-out both size an audio buffer
+        // from `bars` and the meter, and both take them from webview JSON. It
+        // had no test at all until the drag-out made it load-bearing twice.
+        assert!(check_patterns(&[]).is_err(), "nothing to write is refused");
+        assert!(check_patterns(&[sized_pattern(4, 4, 4)]).is_ok());
+
+        // A meter of 0/0 divides the tick arithmetic by nothing.
+        assert!(check_patterns(&[sized_pattern(4, 0, 4)]).is_err());
+        assert!(check_patterns(&[sized_pattern(4, 4, 0)]).is_err());
+        // A denominator no MIDI file can express.
+        assert!(check_patterns(&[sized_pattern(4, 4, 3)]).is_err());
+        // A numerator that multiplies the render length.
+        assert!(check_patterns(&[sized_pattern(4, 33, 4)]).is_err());
+        // Bars past what the UI can ask for.
+        assert!(check_patterns(&[sized_pattern(0, 4, 4)]).is_err());
+        assert!(check_patterns(&[sized_pattern(MAX_BARS + 1, 4, 4)]).is_err());
+
+        // ⛔ And the count, not just each one: the caller holds every rendered
+        // stem in memory at once, so it is the product that matters.
+        let many = vec![sized_pattern(4, 4, 4); engine::pattern::PART_ORDER.len() + 1];
+        assert!(check_patterns(&many).is_err());
     }
 
     #[test]
@@ -1712,6 +2096,50 @@ mod tests {
         let saved = state::read(&store);
         assert_eq!(saved.selected_id.as_deref(), Some("trap"));
         assert_eq!(saved.window_size.as_deref(), Some("small"));
+    }
+
+    #[test]
+    fn saving_the_session_does_not_delete_the_producers_one_shots() {
+        // ⛔ **The same trap as the window size, and worse if it lands.** The
+        // page writes the whole session on every change and knows nothing about
+        // one-shots — they are assigned through `one_shot_assign` and cleared
+        // through `one_shot_clear`, both of which write the store directly. So
+        // an absent field can only mean "the page did not mention them", never
+        // "there are none", and taking the page's word would wipe a producer's
+        // whole kit the next time they picked an artist.
+        let store = SessionStore::default();
+        state::write(
+            &store,
+            PluginSession {
+                one_shots: std::collections::BTreeMap::from([(
+                    engine::pattern::Lane::Melody,
+                    "C:/samples/glass.wav".to_owned(),
+                )]),
+                ..PluginSession::default()
+            },
+        );
+
+        super::dispatch(
+            &request(
+                "save_session_state",
+                json!({ "session": { "selectedId": "trap", "seed": "7" } }),
+            ),
+            &host(),
+            &store,
+            &crate::export::Exports::default(),
+        )
+        .unwrap();
+
+        let saved = state::read(&store);
+        assert_eq!(saved.selected_id.as_deref(), Some("trap"));
+        assert_eq!(
+            saved
+                .one_shots
+                .get(&engine::pattern::Lane::Melody)
+                .map(String::as_str),
+            Some("C:/samples/glass.wav"),
+            "the page's silence is not a request to clear them"
+        );
     }
 
     #[test]

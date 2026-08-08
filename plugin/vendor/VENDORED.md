@@ -77,8 +77,8 @@ carried across whole.
   a `linux::WebViewHandle` on the third, with the same method names, so nothing
   below the construction site has a `cfg` in it.
 - **`own_message_queue` and the `windows_pump` module (new, TASK-P16).** A
-  Windows message pump driven from `on_frame`, **off unless the process opts in**,
-  which fixes the blank standalone window diagnosed below. `plugin/src/bin/standalone.rs`
+  Windows message pump, **off unless the process opts in**, which fixes the blank
+  standalone window diagnosed below. `plugin/src/bin/standalone.rs`
   is the only caller and a DAW never runs it, so the host's queue is never touched.
   ⛔ The pump **skips messages belonging to the editor window and its children** —
   see the doc comment on `windows_pump::drain`. Dispatching those re-enters
@@ -87,6 +87,63 @@ carried across whole.
   observed, not theorised: the first cut of this fix drained everything and died
   with `RefCell already borrowed` at `baseview/src/platform/win/window.rs:513` the
   moment the window was clicked.
+- **The pump moved off `on_frame` onto a child window (TASK-063D).** It used to
+  drain directly from `on_frame`. That works for rendering but puts *everything
+  the drain dispatches* — WebView2's COM completions, and therefore
+  `plugin/src/editor.rs`'s RPC handler — on a stack that is already inside
+  baseview's window procedure with the `RefCell` borrow live. Harmless until
+  something on that path runs a modal loop, and `DoDragDrop` is exactly that: it
+  dispatched a `WM_TIMER` back into the procedure and **the standalone aborted on
+  every drag**. So `on_frame` now calls `windows_pump::request`, which does
+  nothing but `PostMessageW` to a 0×0 invisible `WS_CHILD` window of the editor;
+  `baseview`'s own `open_blocking` loop retrieves that post — because
+  `GetMessageW(&mut msg, hwnd, 0, 0)` returns messages for `hwnd` **and its
+  children** — and dispatches it from *outside* the window procedure, where
+  `drain` then runs with nothing borrowed.
+  - ⚠ **A message-only (`HWND_MESSAGE`) window is the obvious shape and it is
+    wrong**, which is worth knowing before "simplifying" this. It is not in the
+    editor's subtree, so the filtered `GetMessageW` never retrieves it: the post
+    would either sit unread forever or come back to `drain` — the very stack
+    being escaped. The parenting is the mechanism, not a detail.
+  - ⚠ `request` falls back to draining in place when the child window cannot be
+    created. That reinstates the old abort risk, and it is the right trade: no
+    pump at all is a blank window every time, where the abort needs the producer
+    to start a drag.
+  - ✅ This is what let `drag/windows.rs` set `STANDALONE_SAFE = true`, which is
+    the one-line revert if a standalone drag ever aborts again.
+- **The pump also revokes `baseview`'s OLE drop target (TASK-063D).** Moving the
+  pump fixed the abort and revealed a *second*, unrelated crash underneath it:
+  every standalone drag died with `STATUS_ACCESS_VIOLATION` — no panic, no
+  message. The captured stack:
+
+  ```text
+  DragQueryFileW
+  baseview::win::drop_target::DropTarget::parse_drop_data   drop_target.rs:140
+  baseview::win::drop_target::DropTarget::drag_enter        drop_target.rs:209
+  DoDragDrop
+  freally_midi_master_plugin::drag::platform::drag
+  ```
+
+  A drag starts with the cursor over the window it came from, so `DoDragDrop`
+  calls `IDropTarget::DragEnter` on **us** before anything else, and `baseview`
+  registers a drop target on every window it opens (`win/window.rs:764`). Its
+  parser does `*(*medium.u).hGlobal()` — dereferencing the `STGMEDIUM` union
+  twice — which yields the *data pointer* of a movable block where
+  `DragQueryFileW` needs the *handle*; `GlobalLock` of that is `NULL` and the
+  shell faults. ⛔ **It is `baseview`'s bug and no allocation choice on the
+  source side repairs it**: with `GMEM_FIXED` the same double-dereference reads
+  `pFiles` and hands *that* to the shell instead. Our `DROPFILES` is well-formed
+  and Ableton accepts it.
+  - So `windows_pump::stop_being_a_drop_target` calls `RevokeDragDrop` once, on
+    the window `on_frame` handed it. ⚠ **In the pump and not in the drag code:**
+    an earlier cut revoked from `drag/windows.rs` using a handle fetched across
+    the seam, it came back null, and the crash was unchanged. The pump has the
+    real handle. It logs either way — a silent failure here is a crash later.
+  - ⚠ Nothing consumes drops in this application (`DropData` appears once, as a
+    `pub use`), so it is not restored afterwards — which also avoids needing the
+    undocumented `OleDropTargetInterface` window property to get it back.
+  - ⛔ Standalone only, because `request` returns early when the pump is off. A
+    host's drop target must never be revoked.
 
 `src/linux.rs` (**new, TASK-P12**): the X11 + WebKitGTK editor. Upstream is
 macOS/Windows only and this is the whole of the difference.

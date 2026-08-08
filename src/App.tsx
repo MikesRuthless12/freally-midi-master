@@ -5,20 +5,27 @@ import { LeftRail } from './components/layout/LeftRail';
 import { RightRail } from './components/layout/RightRail';
 import { AboutModal } from './components/Settings/About';
 import { SettingsModal } from './components/Settings/Settings';
+import { ShortcutsModal } from './components/Shortcuts/Shortcuts';
 import { TransportBar } from './components/layout/TransportBar';
 import { isTypingTarget } from './lib/keyboard';
-import { subscribeToPlayhead, useSession } from './state/session';
+import { useDrag } from './state/drag';
+import { subscribeToPreview, useExplorer } from './state/explorer';
+import { useSong } from './state/song';
+import { canDrive, subscribeToPlayhead, useSession } from './state/session';
 import { isWide, useUi } from './state/ui';
 import './components/layout/layout.css';
 
 function Studio() {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
+  const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const rightRailOpen = useUi((s) => s.rightRailOpen);
+  const railWidth = useExplorer((s) => s.railWidth);
   const setWide = useUi((s) => s.setWide);
   const toggleRightRail = useUi((s) => s.toggleRightRail);
   const init = useSession((s) => s.init);
   const refreshHost = useSession((s) => s.refreshHost);
+  const loadDragCapability = useDrag((s) => s.loadCapability);
 
   // The roster and the playback status, once per launch. Everything the rail
   // and the search bar draw comes from this, and the console line it logs is
@@ -27,6 +34,15 @@ function Studio() {
   useEffect(() => {
     void init();
   }, [init]);
+
+  // Whether this build has a native drag source (TASK-063C). Once per launch,
+  // because it is a fact about what was compiled in rather than about the
+  // session. ⛔ Asked rather than inferred from the platform name: the day a
+  // macOS build ships without `NSFilePromiseProvider`, a page that guessed
+  // would offer a handle that drops nothing.
+  useEffect(() => {
+    void loadDragCapability();
+  }, [loadDragCapability]);
 
   // Follow the DAW's tempo. Polled rather than pushed: the plugin's bridge is
   // drained on the editor's event loop, and a host that changes tempo does not
@@ -46,19 +62,44 @@ function Studio() {
   // outside the plugin, where there is no audio thread behind it.
   useEffect(() => subscribeToPlayhead(), []);
 
+  // The same, for the sample the browser is auditioning (TASK-132). A separate
+  // subscription rather than a branch inside the one above, because the two
+  // read different atomics at different rates and neither should be able to
+  // stall the other — and because this one also drives `Preview::collect`, the
+  // editor-thread half of the audition buffer handoff.
+  useEffect(() => subscribeToPreview(), []);
+
+  // The browser rail's width (TASK-132).
+  //
+  // ⛔ **A custom property rather than a class**, because the width is a
+  // continuous drag: a class per step is not expressible, and re-writing
+  // `grid-template-columns` from JS would put the whole track list in an inline
+  // style where the stylesheet could no longer own the other two columns. The
+  // stage is `minmax(0, 1fr)`, so this is also what makes the centre shrink as
+  // the browser widens — Mike asked for both halves.
+  //
+  // ⛔⛔ **On the ROOT, not as an inline style on `.studio`, and that is the
+  // whole reason this is an effect.** `RailResizer` writes the same property
+  // while a drag is in flight — so the store is not touched sixty times a second
+  // and the tree is not reconciled — and an inline style here would have *won*
+  // over the root during every one of those frames, pinning the rail at whatever
+  // the store last committed. One property, one place, two writers that cannot
+  // fight.
+  useEffect(() => {
+    document.documentElement.style.setProperty('--rail-left-width', `${railWidth}px`);
+  }, [railWidth]);
+
   // A resize listener rather than `matchMedia`, because a media query cannot
   // see the plugin's root zoom: it evaluates against the viewport, which stays
   // at the *window's* width while the page lays out at the full breakpoint
-  // inside it. `isWide` measures the layout. The crossing check is kept so a
-  // manual K toggle is not undone by an unrelated resize.
+  // inside it. `isWide` measures the layout.
+  //
+  // ⚠ **The crossing check is `setWide`'s own now**, and it had to move: this
+  // was not the only caller — `WindowSize.tsx::applyZoom` calls it too, without
+  // a guard, on every resize. Two callers of one rule is one caller too many,
+  // and the one that forgot it reopened the rail under the producer.
   useEffect(() => {
-    let wasWide = isWide();
-    const onResize = () => {
-      const nowWide = isWide();
-      if (nowWide === wasWide) return;
-      wasWide = nowWide;
-      setWide(nowWide);
-    };
+    const onResize = () => setWide(isWide());
     window.addEventListener('resize', onResize);
     return () => window.removeEventListener('resize', onResize);
   }, [setWide]);
@@ -75,6 +116,73 @@ function Studio() {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [toggleRightRail]);
+
+  // Space plays and pauses (TASK-131I).
+  //
+  // ⛔ **Added because the shortcuts panel could not honestly list it.**
+  // `catalog.test.ts` refuses to document a key no handler listens for, and
+  // Space was the first thing it caught: play and pause were wired to the
+  // transport buttons alone, in a tool whose entire audience presses Space to
+  // hear something.
+  //
+  // ⚠ **`event.code`, not `event.key`.** `key` for the space bar is `' '`,
+  // which is easy to compare wrongly and differs under some IMEs; `code` is the
+  // physical key and is stable everywhere.
+  //
+  // ⚠ **The guard is the same one the transport button uses.** Pressing Space
+  // when the host owns the transport must do nothing rather than fight the DAW
+  // for it — `canDriveTransport` is the one predicate that answers that, and
+  // duplicating the rule here is how the two would drift.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.code !== 'Space') return;
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      // ⛔ Never steal it from a text field — and never from a focused button
+      // either, where Space is the browser's own "activate", so intercepting it
+      // would double-fire whatever the producer had tabbed to.
+      if (isTypingTarget(e.target)) return;
+      if (e.target instanceof HTMLElement && e.target.closest('button, a, [role="button"]')) {
+        return;
+      }
+      const session = useSession.getState();
+      const ui = useUi.getState();
+      // ⛔ **The SAME predicate the button uses, not half of it.** This checked
+      // only `canDriveTransport()`, so Space with nothing generated set
+      // `running` over an empty schedule — the app then reported playing
+      // forever, Play rendered as a disabled Pause, Stop went disabled with it,
+      // and only a second Space got out. That is the second bullet in
+      // `armedClips`' own doc, arriving through the keyboard instead.
+      if (!session.canDriveTransport()) return;
+      if (!canDrive(session.patterns, ui.partsOff, ui.activeTab, useSong.getState().song)) {
+        return;
+      }
+      e.preventDefault();
+      void (session.playing ? session.pause() : session.play());
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  // The keyboard-shortcuts panel (TASK-131I).
+  //
+  // ⚠ **`?` and F1, because the two audiences press different things.** `?` is
+  // what every editor uses and what a producer already knows; F1 is what a
+  // Windows user reaches for and costs nothing to also accept. `?` is Shift+/
+  // on most layouts, so the modifier is *not* excluded here the way it is for
+  // `K` above — requiring an unshifted `?` would make the panel unreachable on
+  // a US keyboard.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const asked = e.key === '?' || e.key === 'F1';
+      if (!asked) return;
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      if (isTypingTarget(e.target)) return;
+      e.preventDefault();
+      setShortcutsOpen((open) => !open);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
 
   // Undo and redo (FMM-U01). Both the Windows/Linux and the macOS spellings,
   // plus Ctrl+Y, which is what a Windows producer's hands already do.
@@ -132,6 +240,7 @@ function Studio() {
 
       {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
       {aboutOpen && <AboutModal onClose={() => setAboutOpen(false)} />}
+      {shortcutsOpen && <ShortcutsModal onClose={() => setShortcutsOpen(false)} />}
     </div>
   );
 }

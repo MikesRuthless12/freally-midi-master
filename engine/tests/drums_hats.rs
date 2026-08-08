@@ -145,7 +145,7 @@ fn beats_and_offbeat_eighths_are_louder_than_the_sixteenths_between_them() {
         // the accents had moved off the beat entirely.
         let (mains, ghosts): (Vec<&Note>, Vec<&Note>) = hats.iter().partition(|n| {
             let index = n.start_tick / grid::SIXTEENTH;
-            grid::is_downbeat(index) || grid::is_offbeat_eighth(index)
+            grid::is_downbeat(index, &ctx(1)) || grid::is_offbeat_eighth(index, &ctx(1))
         });
 
         assert_eq!(mains.len(), 8, "seed {seed}: beats and &s");

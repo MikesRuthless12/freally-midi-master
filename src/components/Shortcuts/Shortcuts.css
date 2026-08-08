@@ -1,0 +1,71 @@
+/* The keyboard-shortcuts panel (TASK-131I). */
+
+.shortcuts__panel {
+  /* Wider than About: two columns of shortcuts read far better than one long
+     scroll, and the panel is reference material rather than prose. */
+  max-width: 46rem;
+}
+
+.shortcuts__body {
+  /* ⚠ `auto-fill` with a min, not a fixed column count. The plugin editor is
+     resizable and the hosted VST3 can be narrower than the standalone, so a
+     hardcoded two-up would clip a whole column in Ableton at 1.0 scale. */
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
+  gap: 1rem 2rem;
+  padding: 0.75rem 1rem 1rem;
+  /* The panel is taller than a short editor, so it scrolls inside itself
+     rather than pushing the dialog past the window. */
+  overflow-y: auto;
+  max-height: 60vh;
+}
+
+.shortcuts__group {
+  min-width: 0;
+}
+
+.shortcuts__groupName {
+  margin: 0 0 0.35rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-text-2);
+}
+
+.shortcuts__list {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.shortcuts__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.2rem 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-border) 60%, transparent);
+}
+
+.shortcuts__what {
+  margin: 0;
+  font-size: 0.82rem;
+  /* Long descriptions wrap rather than pushing the keys off the row. */
+  min-width: 0;
+}
+
+.shortcuts__keys {
+  margin: 0;
+  flex: none;
+}
+
+.shortcuts__keys kbd {
+  font-family: inherit;
+  font-size: 0.72rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  border: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+  white-space: nowrap;
+}

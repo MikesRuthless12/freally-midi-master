@@ -46,6 +46,7 @@ fn generate_in_host(host: &HostSession, id: &str, seed: u64) -> Pattern {
         part: Part::Drums,
         artist_id: model.id.clone(),
         seed,
+        song_seed: seed,
         bars: ctx.bars,
         bpm: ctx.bpm,
         time_sig_num: ctx.time_sig_num,

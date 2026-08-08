@@ -201,7 +201,12 @@
           <tbody>
             <tr>
               <td><strong>Drums</strong></td>
-              <td>Kick, snare/clap, hats with roll grammar, percussion, and the 808 line</td>
+              <td>
+                Kick, snare and off-snare, clap, closed and open hats with roll grammar,
+                ride, crash, tom, rim, snap, perc, shaker, tambourine, cowbell and
+                woodblock — plus the sliding sub. Which of them an artist uses is part
+                of that artist.
+              </td>
             </tr>
             <tr>
               <td><strong>Melody</strong></td>
@@ -216,7 +221,7 @@
             </tr>
             <tr>
               <td><strong>Bassline</strong></td>
-              <td>The low end, locked to the drums' 808 behaviour</td>
+              <td>The low end, locked to the drums' sub behaviour</td>
             </tr>
             <tr>
               <td><strong>Chords</strong></td>
@@ -312,11 +317,32 @@
           leaves every other section, including a clone of the one you re-rolled, exactly as it was.
         </p>
         <p class="note">
-          <strong>Stems are MIDI, not audio, for now.</strong> The preview kit is a drum kit, so the
-          four melodic parts have no voice to render through yet; writing four silent
-          <code>.wav</code>s and calling them stems would be worse than not offering them. Dragging a
-          song out to the desktop is not built either — an HTML5 drag inside a plugin's webview is
-          not an operating-system file drag.
+          <strong>Stems come out as MIDI or as audio, per part or per lane.</strong> The audio half
+          used to be impossible and the reason was measured rather than assumed: the shipped kit had
+          no voice for the four melodic parts, so rendering them would have written four silent
+          <code>.wav</code>s and called them stems. The kit covers every generated lane now, and
+          your own one-shots cover the rest. A whole <em>song</em> still writes one
+          <code>.mid</code> per part — rendering minutes of audio needs progress you can watch and a
+          cancel you can press, which is a different job from rendering a four-bar loop.
+        </p>
+        <p class="note">
+          <strong>You can drag a part straight onto a DAW track.</strong> Every generated part has a
+          MIDI and an Audio handle in the right rail; turn on <strong>Per lane</strong> and the drum
+          part becomes one handle per lane, so just the hats can go out on their own. The whole
+          arrangement drags too, as MIDI. Files arrive named
+          <code>trap - Snare - 140 BPM - C# Minor</code>, and the clip's own notes ride on the cursor
+          so you can see what you picked up.
+          <strong>Windows only so far</strong> — an HTML5 drag inside a plugin's webview is not an
+          operating-system file drag, so each platform needs its own native drag source. macOS and
+          Linux keep Export until theirs is written, and show no drag handle rather than one that
+          drops nothing.
+        </p>
+        <p class="note">
+          <strong>Where a dropped file lives.</strong> Dragging spools the file to your temp folder
+          and hands your DAW the path. A dropped <code>.mid</code> is copied into your project by
+          every DAW, so those are cleaned up after a week; a dropped <code>.wav</code> is
+          <em>referenced</em> by path, so those are never deleted — use your DAW's Collect All and
+          Save to keep one for good.
         </p>
       </article>
 

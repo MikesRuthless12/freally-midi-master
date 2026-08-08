@@ -283,9 +283,32 @@ fn the_ladder_flag_decides_what_the_big_fill_is_made_of() {
         ladder_gaps.first() > ladder_gaps.last(),
         "the ladder should accelerate: {ladder_gaps:?}"
     );
+    // ⛔ **A multiple of one subdivision, not all equal — and the difference is
+    // TASK-131C.** A plain fill used to be a hardcoded, gapless 16th run, which
+    // is why every model on the roster wrote one to four distinct fills and six
+    // flagship trap artists wrote a byte-identical one. It now cuts a hole
+    // (`gapProb`), so a gap of 480 appears in a 240 run — the roll is still on
+    // *one grid*, which is the thing separating it from the ladder, but it is no
+    // longer a machine.
+    //
+    // ⚠ The ladder is still distinguished by the assertion above: its
+    // subdivision genuinely accelerates, so its first gap exceeds its last. A
+    // hole cannot produce that, because a hole makes a gap *larger* later in the
+    // run rather than smaller.
+    // ⛔ **`step` or exactly `2 × step`, not "any multiple".** The first cut
+    // asserted `g % step == 0` with `step` taken as the *minimum* gap — which is
+    // true of almost any set of gaps and so gated nothing. `with_gaps` removes
+    // at most one note, so a plain fill has one grid and at most one doubled
+    // gap; a run that changed subdivision, or dropped two notes, would show a
+    // gap this rejects.
+    let step = *flat_gaps.iter().min().expect("a fill has gaps");
     assert!(
-        flat_gaps.iter().all(|g| *g == flat_gaps[0]),
-        "a plain fill is one subdivision throughout: {flat_gaps:?}"
+        flat_gaps.iter().all(|g| *g == step || *g == step * 2),
+        "a plain fill is one grid with at most one hole: {flat_gaps:?} (step {step})"
+    );
+    assert!(
+        flat_gaps.iter().filter(|g| **g == step * 2).count() <= 1,
+        "at most one hole is cut: {flat_gaps:?}"
     );
 }
 

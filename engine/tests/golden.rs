@@ -84,7 +84,7 @@ fn golden_context(bars: u16) -> SessionContext {
                 (Lane::Kick, 2.0),
                 (Lane::Snare, 4.0),
                 (Lane::ClosedHat, 3.0),
-                (Lane::Bass808, 1.0),
+                (Lane::Sub, 1.0),
             ]
             .into_iter()
             .collect(),
@@ -106,6 +106,7 @@ fn render(model: &StyleModel, seed: u64, bars: u16) -> Pattern {
         part: Part::Drums,
         artist_id: model.id.clone(),
         seed,
+        song_seed: seed,
         bars: ctx.bars,
         bpm: ctx.bpm,
         time_sig_num: ctx.time_sig_num,

@@ -102,19 +102,15 @@ impl SessionContext {
     /// A tick is a fraction of a *quarter note*, so a bar of 6/8 is three
     /// quarter notes long, not six.
     pub fn ticks_per_bar(&self) -> u32 {
-        // A zero denominator is malformed, and `.max(1)` is the wrong guard for
-        // it: 1 is a legal denominator meaning whole notes, so it turns the bar
-        // into four 4/4 bars rather than rejecting the value. Fall back to 4,
-        // which is what `pattern_to_smf` already writes for an unrecognised
-        // denominator — the two must agree or the file says one thing and the
-        // tick arithmetic another.
-        let den = if self.time_sig_den == 0 {
-            4
-        } else {
-            u32::from(self.time_sig_den)
-        };
-        let per_beat = PPQ * 4 / den;
-        per_beat * u32::from(self.time_sig_num.max(1))
+        // ⚠ **The reasoning that used to be written out here now lives in
+        // `pattern::normalise_meter`, and only there.** A zero denominator is
+        // malformed, and `.max(1)` is the wrong guard for it: 1 is a legal
+        // denominator meaning whole notes, so it would turn the bar into four
+        // 4/4 bars rather than rejecting the value. Falling back to 4 is what
+        // `pattern_to_smf` already writes for an unrecognised denominator — and
+        // the two must agree, or the file says one thing and the tick
+        // arithmetic another. That agreement is now structural.
+        crate::pattern::ticks_per_bar_of(self.time_sig_num, self.time_sig_den)
     }
 
     /// Total ticks for the whole generation.

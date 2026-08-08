@@ -322,7 +322,15 @@ pub fn generate_with(
                     pattern_for(model, ctx, pattern_seed, part, &id, lanes.clone()),
                 );
             }
-            refs.insert(part, PatternRef { pattern_id: id });
+            refs.insert(
+                part,
+                PatternRef {
+                    pattern_id: id,
+                    // A fresh arrangement plays the whole clip; TASK-142's resize
+                    // is a producer edit, so it is absent rather than defaulted.
+                    bars: None,
+                },
+            );
         }
 
         sections.push(Section {
@@ -516,7 +524,22 @@ pub fn reroll_section(
             id.clone(),
             pattern_for(model, ctx, section_seed, *part, &id, lanes.clone()),
         );
-        refs.insert(*part, PatternRef { pattern_id: id });
+        // ⛔ **The producer's clip resize survives a re-roll** (TASK-142).
+        // `refs` starts as a clone of what the section already had, so the
+        // length this row loops on is sitting right here — and writing
+        // `bars: None` threw it away: resize a verse's drums to two bars, press
+        // `R`, and the clip sprang back to the pattern's full length with
+        // nothing saying why. A re-roll asks for different *notes*; it is not a
+        // request to undo the arrangement around them, which is the same reason
+        // the locks, the loop brace and the audition are carried across it.
+        let bars = refs.get(part).and_then(|existing| existing.bars);
+        refs.insert(
+            *part,
+            PatternRef {
+                pattern_id: id,
+                bars,
+            },
+        );
     }
     next.sections[index].patterns = refs;
     prune_patterns(&mut next);
@@ -923,7 +946,7 @@ fn render_section(
         };
 
         if request.only_low_end {
-            lanes.retain(|lane| lane.lane == Lane::Bass808);
+            lanes.retain(|lane| lane.lane == Lane::Sub);
         }
 
         // ⛔ Humanized here, once per part, rather than inside the shared renders
@@ -981,6 +1004,7 @@ fn pattern_for(
         part,
         artist_id: model.id.clone(),
         seed,
+        song_seed: seed,
         bars: ctx.bars,
         bpm: ctx.bpm,
         time_sig_num: ctx.time_sig_num,

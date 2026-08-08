@@ -23,6 +23,9 @@
     "seedCopied": "Tohum kopyalandı.",
     "seedLabel": "Tohum — aynı ritmi almak için yapıştır",
     "seedAuto": "rastgele",
+    "seedLocked": "Tohum kilitli — Oluştur onu yeniden kullanır",
+    "seedRolls": "Her Oluştur işleminde tohum değişir",
+    "seedLock": "Tohumu kilitle",
     "generating": "Oluşturuluyor…",
     "readyBody": "{{name}} hazır. Oluştur’a bas.",
     "generateAll": "Tümünü üret",
@@ -34,16 +37,27 @@
     "searchPlaceholder": "Sanatçı ara…",
     "searchLabel": "Sanatçı ara",
     "noDataset": "Henüz veri seti yüklenmedi.",
-    "noKit": "Henüz kit yok. One-shot'larını bu panelin herhangi bir yerine bırak.",
     "noMatch": "“{{query}}” ile eşleşen bir şey yok.",
     "results": "Arama sonuçları"
+  },
+  "kit": {
+    "loading": "Kit okunuyor…",
+    "noneLoaded": "Kit yüklenemedi, bu yüzden eklenti sessiz.",
+    "lanesLabel": "Kit kanalları",
+    "assignHint": "Kendi one-shot örneğinizi çalmak için bir kanala tıklayın.",
+    "shipped": "Yerleşik",
+    "silent": "Ses yok",
+    "choosing": "Seçiliyor…",
+    "clearOne": "{{lane}} kanalındaki one-shot örneğini kaldır"
   },
   "sections": {
     "genres": "Türler",
     "roster": "Sanatçılar",
     "kit": "Davul kiti",
     "session": "Oturum",
-    "presets": "Ön ayarlar"
+    "presets": "Ön ayarlar",
+    "stems": "Parçalar",
+    "explorer": "Tarayıcı"
   },
   "readouts": {
     "bpm": "BPM",
@@ -179,7 +193,8 @@
   "grid": {
     "label": "Oluşturulan desen",
     "summary": "{{bars}} ölçü · {{steps}} adım · {{notes}} nota",
-    "muteLane": "Önizlemede {{lane}} sesini kapat"
+    "muteLane": "Önizlemede {{lane}} sesini kapat",
+    "cell": "{{lane}}, adım {{step}}"
   },
   "roster": {
     "artists": "Sanatçılar",
@@ -192,13 +207,25 @@
   "lanes": {
     "kick": "Bas davul",
     "snare": "Trampet",
+    "offSnare": "Off trampet",
     "clap": "Alkış",
     "closedHat": "Kapalı hi-hat",
     "openHat": "Açık hi-hat",
+    "ride": "Ride",
+    "crash": "Crash",
+    "tom": "Tom",
     "rim": "Kenar vuruşu",
     "snap": "Parmak şıklatma",
     "perc": "Perküsyon",
-    "bass808": "808"
+    "shaker": "Shaker",
+    "tambourine": "Tef",
+    "cowbell": "Çan",
+    "woodblock": "Ağaç blok",
+    "sub": "Sub",
+    "melody": "Melodi",
+    "counter": "Karşı melodi",
+    "bass": "Bas hattı",
+    "chords": "Akorlar"
   },
   "presets": {
     "factory": "Fabrika",
@@ -276,6 +303,70 @@
       "hook": "Nakarat",
       "bridge": "Köprü",
       "outro": "Çıkış"
+    },
+    "resizeClip": "{{part}} kaç ölçüde döngüye giriyor",
+    "resizeClipHint": "{{bars}} ölçüde döngüye giriyor — değiştirmek için sürükleyin"
+  },
+  "stems": {
+    "midi": "MIDI",
+    "audio": "Ses",
+    "perLane": "Kanal başına",
+    "allTracks": "Tüm Parçalar",
+    "allParts": "Tüm Bölümler",
+    "hint": "Üretilen her bölümü kendi dosyasına yazar.",
+    "choosing": "Bir klasör seçin…",
+    "dragHint": "Bir partı doğrudan DAW’ındaki bir kanala sürükle.",
+    "preparing": "Hazırlanıyor…",
+    "rendering": "İşleniyor… %{{percent}}"
+  },
+  "shortcuts": {
+    "title": "Klavye kısayolları",
+    "groups": {
+      "transport": "Transport",
+      "generate": "Üretim",
+      "editing": "Düzenleme",
+      "notes": "Notalar",
+      "drums": "Davul ızgarası",
+      "browser": "Örnek tarayıcısı"
+    },
+    "keys": {
+      "toggleRail": "Sağ paneli göster veya gizle",
+      "search": "Kataloğda ara",
+      "reroll": "Klibi yeniden üret",
+      "selectAll": "Tümünü seç",
+      "copy": "Kopyala",
+      "cut": "Kes",
+      "paste": "Yapıştır",
+      "undo": "Geri al",
+      "duplicate": "Çoğalt",
+      "delete": "Sil",
+      "deselect": "Seçimi kaldır",
+      "transpose": "Bir yarım ses aktar",
+      "transposeOctave": "Bir oktav aktar",
+      "nudge": "Zamanda kaydır",
+      "stretch": "İki katına uzat",
+      "compress": "Yarıya sıkıştır",
+      "triplet": "Bu hücrede triole",
+      "quintuplet": "Bu hücrede kentole",
+      "septuplet": "Bu hücrede septole",
+      "cloneBar": "1. ölçüyü buraya kopyala",
+      "shortcuts": "Bu paneli göster",
+      "play": "Çal veya duraklat",
+      "previewDirection": "Örneği geriye / ileriye doğru çal"
     }
+  },
+  "explorer": {
+    "addFolder": "Klasör ekle",
+    "removeFolder": "{{name}} klasörünü kitaplıktan kaldır",
+    "noRoots": "Örneklerinize göz atmak için bir klasör ekleyin.",
+    "listLabel": "Örnek listesi",
+    "up": "Yukarı",
+    "empty": "Bu klasörde örnek yok.",
+    "truncated": "Bu klasörde gösterilenden daha fazla dosya var.",
+    "pickAFile": "Dinlemek için bir örnek seçin.",
+    "decoding": "Okunuyor…",
+    "waveformOf": "{{name}} dalga biçimi",
+    "reverse": "Geriye doğru çal",
+    "resize": "Tarayıcı genişliğini değiştir"
   }
 }

@@ -8,6 +8,7 @@
  * bugs E2E exists to catch.
  */
 
+import { ALL_LANES } from '../state/kit';
 import type { InvokeArgs } from './ipc';
 import type {
   Note,
@@ -112,7 +113,13 @@ const handlers: Record<string, Handler> = {
   generate_pattern: (args): Pattern => {
     const request = (
       args as {
-        request?: { styleId?: string; bars?: number; seed?: string; part?: Part };
+        request?: {
+          styleId?: string;
+          bars?: number;
+          seed?: string;
+          songSeed?: string;
+          part?: Part;
+        };
       }
     )?.request;
     const bars = request?.bars ?? 4;
@@ -139,6 +146,16 @@ const handlers: Record<string, Handler> = {
       // The seed is echoed back so the chip shows what was used, and a fixed
       // one when none was asked for keeps the fixture reproducible.
       seed: request?.seed && request.seed !== '' ? request.seed : '424242',
+      // ⛔ **Echoes the requested *song* seed, not the take** (TASK-141), which
+      // is what the real bridge does. Mirroring `seed` here would have made the
+      // carry look like it worked no matter what the page sent — the mock
+      // agreeing with a bug is worse than no mock at all.
+      songSeed:
+        request?.songSeed && request.songSeed !== ''
+          ? request.songSeed
+          : request?.seed && request.seed !== ''
+            ? request.seed
+            : '424242',
       bars,
       bpm: 140,
       timeSigNum: 4,
@@ -274,6 +291,109 @@ const handlers: Record<string, Handler> = {
   export_stems: () => undefined,
   export_status: () => ({ state: 'cancelled' }),
 
+  // Stems for the parts on screen (TASK-131F). Cancelled, like the exports
+  // above and for the same reason: a browser has no native folder picker, and
+  // a fixture reporting `done` would let a spec assert a file was written in a
+  // shell that cannot write files.
+  export_pattern_stems: () => undefined,
+
+  // Dragging a part out into the DAW (TASK-063C). ⚠ **Reachable but inert**,
+  // and both halves of that are deliberate: `bridge_names.rs` asserts every
+  // command the page invokes is answered, so these must exist here — and
+  // `drag_supported` says `false`, so no handle is ever rendered to call them
+  // and a browser cannot pretend to have started an OS drag.
+  //
+  // ⛔ **`false` is the honest answer, not a convenience.** A browser has no
+  // `DoDragDrop`; a fixture saying `true` would let a spec assert the drag
+  // works somewhere it never can. The same rule the export fixtures follow.
+  drag_supported: () => ({ supported: false }),
+  drag_prepare: () => undefined,
+  drag_status: () => ({ state: 'idle' }),
+  drag_start: () => 'cancelled',
+  drag_cancel: () => undefined,
+
+  // The KIT panel (TASK-131B, TASK-136). The shape `kit_state` answers with,
+  // for every lane the engine has — because that is what the panel enumerates,
+  // and a fixture listing only the eight drum lanes would let the four melodic
+  // rows go missing without a spec noticing.
+  //
+  // ⚠ `snap` is `shipped: false` here because it is `false` in the real kit:
+  // the drum generator can write that lane and no shipped pad has ever played
+  // it. A fixture that quietly made it `true` would hide the one state the
+  // panel exists to be able to show.
+  kit_state: () => ({
+    id: 'trap-default',
+    lanes: ALL_LANES.map((lane) => ({
+      lane,
+      shipped: lane !== 'snap',
+      name: null,
+      path: null,
+    })),
+  }),
+
+  // Assigning one. A browser has no native Open dialog and no filesystem, so
+  // the mock reports a *cancelled* assignment for exactly the reason
+  // `export_status` above reports a cancelled export: `done` would claim a file
+  // was read in a shell that cannot read files, and cancelled is the one
+  // outcome that is true here.
+  one_shot_assign: () => undefined,
+  one_shot_clear: () => undefined,
+  one_shot_status: () => ({ state: 'cancelled' }),
+
+  // The sample browser (TASK-132). A browser has no filesystem, so this is a
+  // fixture with one library folder and a handful of rows — enough to exercise
+  // the listing, the selection and the drag source. ⚠ It does not pretend a
+  // dialog can open: `explorer_pick` adds nothing, which is what a shell with
+  // no native picker honestly does.
+  explorer_state: () => ({
+    roots: [{ name: 'Samples', path: '/library/Samples', isDir: true }],
+    folder: '/library/Samples',
+    parent: null,
+    entries: [
+      { name: 'Kicks', path: '/library/Samples/Kicks', isDir: true },
+      { name: 'clap-01.wav', path: '/library/Samples/clap-01.wav', isDir: false },
+      { name: 'kick-808.wav', path: '/library/Samples/kick-808.wav', isDir: false },
+    ],
+    truncated: false,
+    // No native picker in a browser, so a dialog is never open — which is what
+    // stops  polling for one.
+    picking: false,
+  }),
+  explorer_pick: () => undefined,
+  explorer_remove: () => undefined,
+  explorer_open: () => undefined,
+  explorer_drop: () => undefined,
+  // ⚠ Both bounds per column, like the real command — a fixture returning one
+  // amplitude would draw the half-waveform the Rust test exists to refuse, and
+  // the mock would be the thing hiding it.
+  explorer_waveform: (args?: InvokeArgs) => ({
+    path: String((args as { path?: unknown } | undefined)?.path ?? ''),
+    name: 'kick-808.wav',
+    peaks: Array.from({ length: 64 }, (_, i) => {
+      const amplitude = Math.abs(Math.sin(i / 6)) * (1 - i / 80);
+      return [-amplitude, amplitude] as [number, number];
+    }),
+    seconds: 1.5,
+  }),
+
+  // The audition voice. No audio thread here, so the position never advances —
+  // a mock that animated one would make a broken transport look like a working
+  // one, which is the rule this whole file is written to.
+  preview_load: () => undefined,
+  preview_play: () => undefined,
+  preview_pause: () => undefined,
+  preview_stop: () => undefined,
+  preview_seek: () => undefined,
+  preview_loop: () => undefined,
+  preview_reverse: () => undefined,
+  preview_position: () => ({
+    playing: false,
+    seconds: 0,
+    total: 1.5,
+    looping: false,
+    reverse: false,
+  }),
+
   // The forms this artist writes, for the structure picker (TASK-070).
   //
   // Two, because the picker only renders with more than one — a model that
@@ -343,6 +463,7 @@ const handlers: Record<string, Handler> = {
         id: patternId,
         // Something a spec can see, without a second note generator here.
         seed: `${Number(was.seed) + 1}`,
+        songSeed: `${Number(was.seed) + 1}`,
       };
       refs[part] = { patternId };
     }
@@ -380,7 +501,16 @@ const handlers: Record<string, Handler> = {
   // there is to do — and echoing rather than returning `undefined` keeps the
   // fixture the same shape as the command, which is what `app_info` above is a
   // cautionary tale about.
-  arm_pattern: (args) => (args as { pattern?: unknown } | undefined)?.pattern,
+  // ⚠ Accepted and forgotten. A browser has no schedule to loop, and the real
+  // one keeps this on `Shared` for the audio thread — a fixture holding its own
+  // copy would be a second answer to "is looping on" that nothing reconciles.
+  transport_loop: () => undefined,
+
+  // ⚠ Answers with the FIRST of the parts handed over, not a merge: the real
+  // bridge merges them (TASK-127) and a fixture that reimplemented that would be
+  // a second, drifting copy of the rule. What a browser needs is a clip back.
+  arm_pattern: (args) =>
+    (args as { patterns?: unknown[] } | undefined)?.patterns?.[0] ?? undefined,
 
   // Scale intervals for the roll's row tinting and folding (TASK-041B). The
   // real command reads `engine::theory::scale_semitones`; the fixture answers
@@ -416,19 +546,24 @@ const handlers: Record<string, Handler> = {
   seek: () => undefined,
   set_looping: () => undefined,
 
-  // The standalone's own transport (TASK-041T).
+  // The preview transport (TASK-041T, TASK-138).
   //
-  // ⛔ **Rejected, because the plugin rejects them.** `playback_status` above
-  // reports this shell as not-the-standalone, and `editor.rs` treats a
-  // `transport_play` arriving in that state as the page and the plugin
-  // disagreeing about which shell they are in — an error rather than a no-op.
-  // A mock that resolved them would keep the e2e suite green through exactly
-  // the wiring bug the bridge refuses in order to catch.
+  // ⛔ **Still rejected here, but for a different reason since TASK-138, and
+  // the old one must not be re-quoted.** It threw *"the host owns the transport
+  // — press play in your DAW"* because `editor.rs` refused a hosted
+  // `transport_play` outright. It no longer does: the plugin drives its own
+  // preview transport in a host now.
+  //
+  // ⚠ **What is still true is that a BROWSER cannot play** — there is no audio
+  // thread behind the mock — which is exactly what `playback_status` above
+  // reports, and what keeps `canDriveTransport` false and the button disabled
+  // here. A fixture that resolved these would let the suite go green over a
+  // page that thinks it is playing something.
   transport_play: () => {
-    throw new Error('the host owns the transport — press play in your DAW');
+    throw new Error('Playback needs the plugin.');
   },
   transport_pause: () => {
-    throw new Error('the host owns the transport — press play in your DAW');
+    throw new Error('Playback needs the plugin.');
   },
 
   // Presets (TASK-P13). The real ones are files the plugin owns; a browser has
@@ -444,6 +579,7 @@ const handlers: Record<string, Handler> = {
   preset_load: () => ({
     selectedId: 'trap',
     seed: '1404',
+    songSeed: '1404',
     bars: 8,
     pins: { bpm: null, keyRoot: null, scale: null, swing: null },
   }),

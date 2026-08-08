@@ -23,6 +23,9 @@
     "seedCopied": "시드를 복사했습니다.",
     "seedLabel": "시드 — 붙여넣으면 같은 비트가 나옵니다",
     "seedAuto": "무작위",
+    "seedLocked": "시드 잠금 — 생성할 때 다시 사용합니다",
+    "seedRolls": "생성할 때마다 시드가 바뀝니다",
+    "seedLock": "시드 잠그기",
     "generating": "생성 중…",
     "readyBody": "{{name}} 준비 완료. 생성을 누르세요.",
     "generateAll": "전체 생성",
@@ -34,16 +37,27 @@
     "searchPlaceholder": "아티스트 검색…",
     "searchLabel": "아티스트 검색",
     "noDataset": "불러온 데이터셋이 없습니다.",
-    "noKit": "아직 킷이 없습니다. 원샷 샘플을 이 패널 아무 곳에나 놓으세요.",
     "noMatch": "“{{query}}”에 해당하는 항목이 없습니다.",
     "results": "검색 결과"
+  },
+  "kit": {
+    "loading": "킷을 읽는 중…",
+    "noneLoaded": "킷을 불러오지 못해 플러그인이 소리를 내지 않습니다.",
+    "lanesLabel": "킷 레인",
+    "assignHint": "레인을 클릭하면 직접 준비한 원샷을 재생할 수 있습니다.",
+    "shipped": "기본 제공",
+    "silent": "소리 없음",
+    "choosing": "선택 중…",
+    "clearOne": "{{lane}}의 원샷 해제"
   },
   "sections": {
     "genres": "장르",
     "roster": "로스터",
     "kit": "킷",
     "session": "세션",
-    "presets": "프리셋"
+    "presets": "프리셋",
+    "stems": "스템",
+    "explorer": "브라우저"
   },
   "readouts": {
     "bpm": "BPM",
@@ -179,7 +193,8 @@
   "grid": {
     "label": "생성된 패턴",
     "summary": "{{bars}}마디 · {{steps}}스텝 · {{notes}}노트",
-    "muteLane": "미리듣기에서 {{lane}} 음소거"
+    "muteLane": "미리듣기에서 {{lane}} 음소거",
+    "cell": "{{lane}}, {{step}}단계"
   },
   "roster": {
     "artists": "아티스트",
@@ -192,13 +207,25 @@
   "lanes": {
     "kick": "킥",
     "snare": "스네어",
+    "offSnare": "오프 스네어",
     "clap": "클랩",
     "closedHat": "클로즈 하이햇",
     "openHat": "오픈 하이햇",
+    "ride": "라이드",
+    "crash": "크래시",
+    "tom": "톰",
     "rim": "림",
     "snap": "스냅",
     "perc": "퍼커션",
-    "bass808": "808"
+    "shaker": "셰이커",
+    "tambourine": "탬버린",
+    "cowbell": "카우벨",
+    "woodblock": "우드블록",
+    "sub": "서브",
+    "melody": "멜로디",
+    "counter": "대선율",
+    "bass": "베이스라인",
+    "chords": "코드"
   },
   "presets": {
     "factory": "기본 제공",
@@ -276,6 +303,70 @@
       "hook": "후렴",
       "bridge": "브리지",
       "outro": "아웃트로"
+    },
+    "resizeClip": "{{part}}이(가) 반복되는 마디 수",
+    "resizeClipHint": "{{bars}}마디로 반복 — 끌어서 변경"
+  },
+  "stems": {
+    "midi": "MIDI",
+    "audio": "오디오",
+    "perLane": "레인별",
+    "allTracks": "모든 트랙",
+    "allParts": "모든 파트",
+    "hint": "생성한 각 파트를 개별 파일로 저장합니다.",
+    "choosing": "폴더를 선택하세요…",
+    "dragHint": "파트를 DAW 트랙으로 바로 끌어다 놓으세요.",
+    "preparing": "준비 중…",
+    "rendering": "렌더링 중… {{percent}}%"
+  },
+  "shortcuts": {
+    "title": "키보드 단축키",
+    "groups": {
+      "transport": "트랜스포트",
+      "generate": "생성",
+      "editing": "편집",
+      "notes": "노트",
+      "drums": "드럼 그리드",
+      "browser": "샘플 브라우저"
+    },
+    "keys": {
+      "toggleRail": "오른쪽 패널 표시/숨김",
+      "search": "로스터 검색",
+      "reroll": "클립 다시 생성",
+      "selectAll": "모두 선택",
+      "copy": "복사",
+      "cut": "잘라내기",
+      "paste": "붙여넣기",
+      "undo": "실행 취소",
+      "duplicate": "복제",
+      "delete": "삭제",
+      "deselect": "선택 해제",
+      "transpose": "반음 조옮김",
+      "transposeOctave": "옥타브 조옮김",
+      "nudge": "시간 이동",
+      "stretch": "두 배로 늘이기",
+      "compress": "절반으로 줄이기",
+      "triplet": "이 셀에 셋잇단음표",
+      "quintuplet": "이 셀에 다섯잇단음표",
+      "septuplet": "이 셀에 일곱잇단음표",
+      "cloneBar": "1마디를 이 마디에 복사",
+      "shortcuts": "이 패널 표시",
+      "play": "재생 또는 일시정지",
+      "previewDirection": "샘플을 거꾸로 / 앞으로 재생"
     }
+  },
+  "explorer": {
+    "addFolder": "폴더 추가",
+    "removeFolder": "라이브러리에서 {{name}} 제거",
+    "noRoots": "샘플을 탐색하려면 폴더를 추가하세요.",
+    "listLabel": "샘플 목록",
+    "up": "위로",
+    "empty": "이 폴더에는 샘플이 없습니다.",
+    "truncated": "이 폴더에는 표시된 것보다 많은 파일이 있습니다.",
+    "pickAFile": "미리 들으려면 샘플을 선택하세요.",
+    "decoding": "읽는 중…",
+    "waveformOf": "{{name}}의 파형",
+    "reverse": "거꾸로 재생",
+    "resize": "브라우저 너비 조절"
   }
 }

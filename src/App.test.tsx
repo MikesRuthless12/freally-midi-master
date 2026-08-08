@@ -34,7 +34,15 @@ beforeEach(() => {
     activeTab: 'drums',
     rightRailOpen: true,
     theme: 'system',
-    sections: { genres: true, roster: true, kit: true, session: true, presets: true },
+    sections: {
+      genres: true,
+      roster: true,
+      explorer: true,
+      kit: true,
+      stems: true,
+      session: true,
+      presets: true,
+    },
   });
 });
 
@@ -124,17 +132,22 @@ describe('Studio shell', () => {
 
   it('collapses an individual panel from its header', () => {
     stubMatchMedia(1600);
-    render(<App />);
+    const { container } = render(<App />);
 
     const kit = screen.getByRole('button', { name: /Kit/i });
     expect(kit.getAttribute('aria-expanded')).toBe('true');
-    expect(screen.getByText(/No kit yet/)).toBeDefined();
+    // ⚠ The panel's *container*, not a string inside it. This used to assert on
+    // "No kit yet" — which was the hardcoded placeholder TASK-136 removed, and
+    // asserting on it meant this test would have kept passing however wrong the
+    // panel's contents got. What is under test here is that collapsing unmounts
+    // the content, and the content is what `Section` gives an id to.
+    expect(container.querySelector('#section-kit')).not.toBeNull();
 
     fireEvent.click(kit);
 
     expect(kit.getAttribute('aria-expanded')).toBe('false');
     // Collapsed content is unmounted, not merely hidden.
-    expect(screen.queryByText(/No kit yet/)).toBeNull();
+    expect(container.querySelector('#section-kit')).toBeNull();
     // Collapsing one panel must not disturb its neighbours.
     expect(screen.getByRole('button', { name: /Session/i }).getAttribute('aria-expanded')).toBe(
       'true',
@@ -150,7 +163,15 @@ describe('Studio shell', () => {
     first.unmount();
     // Rehydrate the way a fresh launch would.
     useUi.setState({
-      sections: { genres: false, roster: true, kit: true, session: true, presets: true },
+      sections: {
+        genres: false,
+        roster: true,
+        explorer: true,
+        kit: true,
+        stems: true,
+        session: true,
+        presets: true,
+      },
     });
     render(<App />);
 
@@ -169,7 +190,9 @@ describe('Studio shell', () => {
       'Right rail',
       'Genres',
       'Roster',
+      'Browser',
       'Kit',
+      'Stems',
       'Session',
       'Presets',
     ]);

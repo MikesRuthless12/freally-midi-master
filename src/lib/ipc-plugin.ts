@@ -45,6 +45,23 @@ export function isPlugin(): boolean {
   return typeof window.sendToPlugin === 'function';
 }
 
+/**
+ * Commands that are allowed to take as long as a person takes.
+ *
+ * ⛔ **`drag_start` blocks for the entire drag**, by design: the plugin is
+ * inside `DoDragDrop`'s modal loop from the moment the producer picks a clip up
+ * until they let go. A producer scrolling a large Ableton set to find the right
+ * track passes {@link TIMEOUT_MS} routinely, and the abort would fire on a drag
+ * that then *succeeds* — reporting a red failure for a clip that landed, and
+ * stranding the store out of `idle` so the next press does nothing.
+ *
+ * ⚠ The general timeout exists because a command the plugin never answers
+ * leaves a spinner forever. That reasoning does not reach a command whose whole
+ * job is to not answer yet — here the OS owns the gesture, and the gesture ends
+ * when the hand does.
+ */
+const UNTIMED: readonly string[] = ['drag_start'];
+
 export async function pluginInvoke<T>(command: string, args?: unknown): Promise<T> {
   const id = counter++;
 
@@ -65,7 +82,7 @@ export async function pluginInvoke<T>(command: string, args?: unknown): Promise<
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, command, args: args ?? {} }),
-      signal: AbortSignal.timeout(TIMEOUT_MS),
+      signal: UNTIMED.includes(command) ? undefined : AbortSignal.timeout(TIMEOUT_MS),
     });
   } catch (error) {
     // Both the message and the `cause`. A bare "the plugin did not answer"

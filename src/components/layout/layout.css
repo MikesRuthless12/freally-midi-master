@@ -1,9 +1,16 @@
 /* Studio layout — PRD § 8. Colour comes only from tokens; never a literal hex,
  * so both themes work without a single branch in here. */
 
+/* ⛔ **The left column is a variable because the browser rail is draggable**
+   (TASK-132). Mike: *"the center panel shrinks as you expand file explorer."*
+   That falls out of the grid rather than needing any code — the stage track is
+   `minmax(0, 1fr)`, so every pixel this track takes is one the stage gives up.
+   The fallback is the width the rail has always been, so a page rendered before
+   `App` sets the property (or in a test that mounts a rail on its own) lays out
+   exactly as it used to. */
 .studio {
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr) 320px;
+  grid-template-columns: var(--rail-left-width, 280px) minmax(0, 1fr) 320px;
   grid-template-rows: minmax(0, 1fr) 56px;
   grid-template-areas:
     'left center right'
@@ -13,7 +20,7 @@
 }
 
 .studio[data-right-rail='closed'] {
-  grid-template-columns: 280px minmax(0, 1fr);
+  grid-template-columns: var(--rail-left-width, 280px) minmax(0, 1fr);
   grid-template-areas:
     'left center'
     'transport transport';
@@ -33,6 +40,33 @@
   /* Logical, not `border-right`: under dir="rtl" the left rail is drawn on the
      right, and a physical border leaves the separator on the wrong edge. */
   border-inline-end: 1px solid var(--color-border);
+  /* The resize handle is absolutely positioned against this. */
+  position: relative;
+}
+
+/* ── The browser rail's resize handle (TASK-132) ─────────────────────────── */
+/* ⛔ **On the trailing edge, so it works under `dir="rtl"` too**: in Arabic the
+   "left" rail is drawn on the right and a `right: 0` handle would sit in the
+   middle of the stage. */
+.rail__resizer {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  /* Wide enough to hit without hunting, narrow enough not to eat clicks meant
+     for the list beside it. */
+  width: 6px;
+  z-index: 5;
+  cursor: col-resize;
+  /* ⚠ `touch-action: none` for the same reason the drag chips have it: without
+     it the WebView claims the pointer stream for a pan gesture and the drag
+     never reaches the move handler. */
+  touch-action: none;
+}
+
+.rail__resizer:hover,
+.rail__resizer:focus-visible {
+  background: var(--color-primary);
+  outline: none;
 }
 
 .rail--right {
@@ -40,15 +74,49 @@
   border-inline-start: 1px solid var(--color-border);
 }
 
+/* ⛔⛔ **`overflow: hidden` is the guarantee that a squashed panel CLIPS rather
+   than painting over its neighbour, and it was missing.** Measured at 1440x620
+   with parts
+   generated: the KIT section was **one pixel tall** while its header and
+   content still drew at their natural size — `overflow: visible` let them
+   render straight out of the collapsed box and on top of STEMS, so
+   `kit.assignHint` and `stems.hint` overlapped by 287x15 px. Mike screenshotted
+   exactly that on 2026-08-06 and said it is there "all the time".
+   ⚠ Safe for the drag menu: `.drag__lanes` is portalled into `document.body`,
+   so it is not a descendant of any section and cannot be clipped by this. */
 .rail__section {
   display: flex;
   flex-direction: column;
   min-height: 0;
+  overflow: hidden;
   border-bottom: 1px solid var(--color-border);
 }
 
+/* ⛔ **This has now failed in BOTH directions, and the fix is the pair.**
+
+   `flex: 1` is `1 1 0%` — flex-basis ZERO — and that collapsed this section to
+   nothing the moment the rail ran out of room (TASK-136/18b): with no leftover
+   space to distribute a zero-basis item gets zero, while `flex: 0 1 auto`
+   siblings keep their content height. KIT became one pixel and painted its
+   contents straight out over STEMS.
+
+   `flex: 1 1 auto` fixed that and caused the opposite: the basis becomes this
+   section's *own content height*, so when TASK-140 took the KIT panel from 13
+   lanes to 21 it claimed far more of a short rail than its share and starved
+   its neighbours — `stems` spilled 5px and `session` 3px, which is the same
+   defect one panel over.
+
+   ▶ So: a zero basis **with a floor**. Zero means a taller KIT cannot take
+   space from anyone; `min-height` means it can never vanish either. The floor
+   is a header plus a couple of rows — enough to be recognisably a panel with
+   something in it, and `.rail__content` scrolls the rest.
+
+   ⚠ **The floor must stay smaller than the shortest supported rail can give
+   this section**, or it becomes the new starvation. `e2e/rail-layout.spec.ts`
+   is what holds that, at the SHORT viewport. */
 .rail__section--grow {
-  flex: 1;
+  flex: 1 1 0;
+  min-height: 6rem;
 }
 
 .rail__content {
@@ -251,12 +319,101 @@
   min-height: 0;
 }
 
+/* ⚠ **The rule moved off `.tabs` onto this** when the play switches joined the
+   strip (TASK-127): the border has to run the full width of the stage, and a
+   border on the tablist alone stopped under the switches. */
+.stage__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
 .tabs {
   display: flex;
   gap: var(--space-1);
   padding: 0 var(--space-4);
-  border-bottom: 1px solid var(--color-border);
-  background: var(--color-surface);
+  /* Wide tab strips scroll rather than squeezing the switches off the edge. */
+  min-width: 0;
+  overflow-x: auto;
+}
+
+/* ── Which generators sound on Play (TASK-127) ──────────────────────────── */
+/* Mike, 2026-08-06: "i want to be able to play the generators all at once or
+   separately, they should be able to be toggled on and off for each generator."
+   Independent switches, not a solo radio — any combination is legal. */
+/* The switches and the transport share the trailing end of the header row. */
+.stage__header-controls {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-3);
+  padding-inline-end: var(--space-4);
+}
+
+.parttoggles {
+  display: flex;
+  flex: none;
+  gap: var(--space-1);
+}
+
+/* Play / Pause, Stop and Loop, moved up beside the tabs (TASK-138). */
+.transport__controls {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+/* ⛔ **A background, on Mike's instruction, 2026-08-06:** *"can you have it
+   toggled a different background color?"* A pressed icon button previously
+   showed its state only through `aria-pressed`, which is correct for a screen
+   reader and invisible to everyone else.
+   ⚠ **Colour is not the only cue** — the text colour lifts with it, so the
+   switch still reads as on where the background is hard to tell apart. */
+/* ⚠ **A tint, not solid `--color-primary`.** `Settings.css` already established
+   this for an active control, and it is the shape that survives both themes:
+   solid purple would need a paired foreground token this palette does not
+   define, and `--color-text` on it fails contrast in the light theme. */
+.btn-toggle[data-on='true'] {
+  background: color-mix(in srgb, var(--color-primary) 22%, transparent);
+  border-color: var(--color-primary);
+  color: var(--color-text);
+}
+
+.btn-toggle[data-on='true']:hover {
+  background: color-mix(in srgb, var(--color-primary) 32%, transparent);
+}
+
+.parttoggle {
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-text-3);
+  font-family: var(--font-ui);
+  font-size: var(--text-micro);
+  cursor: pointer;
+  transition: color var(--duration-fast) var(--ease-standard);
+}
+
+/* ⛔ **Off must read as off without relying on colour alone.** The border goes
+   too, so the switch reads as absent rather than merely dim — the same state a
+   producer would expect from a muted channel. */
+.parttoggle[data-on='true'] {
+  border-color: var(--color-primary);
+  color: var(--color-text);
+}
+
+.parttoggle[data-on='false'] {
+  border-style: dashed;
+  opacity: 0.55;
+}
+
+.parttoggle:hover {
+  color: var(--color-text);
 }
 
 .tab {
@@ -321,22 +478,37 @@
   color: var(--color-text-2);
 }
 
-/* The error, the keep-or-adopt prompt and the controls, as one column above the
-   bottom-right corner.
-   The column is what has to be positioned, not the controls inside it: `.genfx`
+/* The error, the keep-or-adopt prompt and the controls, as one column **below**
+   the editor.
+
+   ⛔⛔ **In flow, and it must stay in flow.** This was `position: absolute` in
+   the body's bottom-right corner until 2026-08-06, floating over the editor —
+   and because it is right-aligned it lay across the velocity lane, which is
+   full-width at the bottom. Measured: the lane spanned y 748–843 and this
+   column sat at 776–820, so `document.elementFromPoint` there returned a
+   *control* rather than the lane and a producer dragging a velocity cap under
+   one moved nothing. Nothing reported it for months because the column only
+   reaches a given cap once it grows wide enough to; adding one small button to
+   the seed chip is what pushed its edge over a cap the tests happened to use.
+
+   ⚠ **The reason it was positioned is gone rather than overridden.** `.genfx`
    is `position: absolute; inset: 0` over the whole body, and a *static* sibling
-   of a positioned element paints underneath it. That is why `.stage__error` was
-   never visible — it had no rule of its own and sat in flow behind the ripple
-   layer. */
+   of a positioned element paints underneath it — that is why `.stage__error`
+   was once invisible, and why this column was absolutely positioned to escape.
+   It is no longer inside the body, so it is not that sibling any more.
+
+   ⚠ **`.genfx` still needs a positioned sibling rule if anything moves back in
+   there.** Do not "tidy" a future overlay into the body without re-reading the
+   above. */
 .stage__bottom {
-  position: absolute;
-  inset-inline-end: var(--space-5);
-  bottom: var(--space-5);
   display: flex;
   flex-direction: column;
   align-items: flex-end;
   gap: var(--space-3);
-  max-width: calc(100% - var(--space-5) * 2);
+  padding: var(--space-3) var(--space-5);
+  /* ⛔ It may not be squeezed by the editor above it, and it may not grow into
+     it either: the body is `flex: 1` and this is its own content height. */
+  flex: none;
 }
 
 .stage__error {
@@ -349,16 +521,42 @@
   font-size: var(--text-small);
 }
 
+/* ⛔ **This row must never get taller, and that is not a style preference.**
+   `.stage__bottom` sits below `.stage__body`, which is `flex: 1` — so every
+   pixel this row grows is a pixel the editor above it loses, and the velocity
+   lane is what loses it. A drag to velocity 96 landed on 85 and
+   `e2e/piano-roll.spec.ts:380` caught it; that assertion has now reverted three
+   attempts at styling this row.
+
+   `nowrap` is the fix for the *class* rather than the instance. The row grew by
+   **wrapping to a second line** once a third control group was added
+   (TASK-131F's stem chips), not by any one control being taller — so pinning the
+   height or shaving padding would only postpone it until the next control.
+
+   ⚠ **What is no longer true:** growing this row *wider* used to be the real
+   danger, because the column floated over the editor and reached further across
+   the velocity lane as it grew. It is in flow below the editor now, so width is
+   free again and only height costs anything. See `.stage__bottom`. */
 .stage__controls {
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  /* ⚠ `nowrap` only. An `overflow-x: auto` was tried here and made it *worse*:
+     the scrollbar it adds is itself height, and the velocity lane lost exactly
+     as much. */
+  flex-wrap: nowrap;
 }
 
 /* ── Buttons ────────────────────────────────────────────────────────────── */
 .btn-generate {
   height: 44px;
   padding: 0 var(--space-6);
+  /* ⛔ "Generate All" broke to two lines — "Generate" over "All" — inside a
+     44px button. As a flex item in `.stage__controls` its `min-width: auto`
+     resolves to the *longest word*, so the row could shrink it until the label
+     wrapped. Widening it is free: that row is in flow below the editor and only
+     its height costs the velocity lane anything. See `.stage__controls`. */
+  white-space: nowrap;
   border: none;
   border-radius: var(--radius-control);
   background: var(--color-primary);
@@ -413,22 +611,123 @@
 }
 
 /* ── Kit pads ───────────────────────────────────────────────────────────── */
-.pads {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: var(--space-2);
+/* The KIT panel: a row per lane (TASK-131B, TASK-136).
+   ⚠ Replaced a `.pads` grid of eight square `.pad` buttons that were `disabled`
+   and numbered 1..8 — they were numbered because there was no data behind them
+   to name. Both rules are gone rather than left orphaned. */
+.kit-hint {
+  margin: 0 0 var(--space-2);
+  color: var(--color-text-3);
+  font-size: var(--text-small);
 }
 
-.pad {
-  aspect-ratio: 1;
-  min-height: 44px;
+.kit-lanes {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.kit-lane {
+  display: flex;
+  align-items: stretch;
+  gap: var(--space-1);
+}
+
+.kit-lane__pad {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-2);
+  color: var(--color-text-2);
+  font-size: var(--text-small);
+  text-align: left;
+  cursor: pointer;
+}
+
+.kit-lane__pad:hover:not(:disabled) {
+  border-color: var(--color-primary);
+}
+
+.kit-lane__pad:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.kit-lane__name {
+  flex: none;
+}
+
+/* The file name, which is the part that can be arbitrarily long. It gets the
+   overflow so the lane name — the thing that identifies the row — is never the
+   half that gets cut. */
+.kit-lane__source {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-text-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  direction: rtl;
+}
+
+/* Assigned rows read as the producer's, so "is this mine or the shipped one"
+   is answerable at a glance rather than by reading every file name. */
+.kit-lane[data-assigned='true'] .kit-lane__source {
+  color: var(--color-text);
+}
+
+.kit-lane[data-assigned='true'] .kit-lane__pad {
+  border-color: var(--color-primary);
+}
+
+/* A lane with no voice at all. Dashed rather than dimmed: dimming reads as
+   "disabled", and this row is the one most worth clicking. */
+.kit-lane[data-silent='true'] .kit-lane__pad {
+  border-style: dashed;
+}
+
+/* The row a sample is being dragged over (TASK-132). ⛔ Filled rather than
+   merely outlined: an assigned row is *already* outlined in the same colour, so
+   an outline-only cue would be invisible on exactly the rows a producer is most
+   likely to be replacing. */
+.kit-lane[data-over='true'] .kit-lane__pad {
+  border-color: var(--color-primary);
+  border-style: solid;
+  background: color-mix(in srgb, var(--color-primary) 22%, var(--color-surface-2));
+  color: var(--color-text);
+}
+
+.kit-lane__clear {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
   border: 1px solid var(--color-border);
   border-radius: var(--radius-control);
   background: var(--color-surface-2);
   color: var(--color-text-3);
-  font-family: var(--font-mono);
+  cursor: pointer;
+}
+
+.kit-lane__clear:hover:not(:disabled) {
+  color: var(--color-text);
+}
+
+.kit-error {
+  margin: var(--space-2) 0 0;
+  color: var(--color-error);
   font-size: var(--text-micro);
-  cursor: not-allowed;
 }
 
 .kit-drop {
@@ -480,4 +779,182 @@
   width: 0%;
   height: 100%;
   background: var(--color-success);
+}
+
+/* Stem export (TASK-131F). In the right rail, never the stage toolbar — see
+   `StemsPanel` for why that is not a layout preference. */
+.stems {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.stems__action {
+  flex: 1;
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-2);
+  color: var(--color-text-2);
+  font-family: var(--font-ui);
+  font-size: var(--text-small);
+  cursor: pointer;
+}
+
+.stems__action:hover:not(:disabled) {
+  border-color: var(--color-primary);
+  color: var(--color-text);
+}
+
+.stems__action:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.stems__toggle {
+  width: 100%;
+  margin-top: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-text-3);
+  font-family: var(--font-ui);
+  font-size: var(--text-micro);
+  cursor: pointer;
+}
+
+.stems__toggle[aria-pressed='true'] {
+  border-color: var(--color-primary);
+  color: var(--color-text);
+}
+
+/* Drag-out (TASK-063C). One row per thing that can be picked up, each with the
+   formats it can be dropped as. Rendered only where a native drag source
+   exists — see `DragRows`. */
+.drag {
+  margin-top: var(--space-3);
+}
+
+.drag__list {
+  margin: var(--space-2) 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.drag__row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.drag__label {
+  flex: 1;
+  color: var(--color-text-2);
+  font-family: var(--font-ui);
+  font-size: var(--text-micro);
+  /* A lane name that does not fit truncates rather than wrapping the row onto
+     two lines — the rail is narrow and a two-line row reads as two rows. */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.drag__chip {
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-2);
+  color: var(--color-text-3);
+  font-family: var(--font-ui);
+  font-size: var(--text-micro);
+  /* ⛔ `grab`, not `pointer`. This is picked up, not pressed, and the cursor is
+     the only thing that says so before the producer tries it. */
+  cursor: grab;
+  /* ⛔ **Both are load-bearing on a drag source.** Without them the webview
+     starts its own text selection or panning gesture on `pointerdown`, which
+     eats the pointer stream `DragChip` needs and swallows the drag. */
+  user-select: none;
+  touch-action: none;
+}
+
+.drag__chip:hover {
+  border-color: var(--color-primary);
+  color: var(--color-text);
+}
+
+.drag__chip:active {
+  cursor: grabbing;
+}
+
+/* The instruments inside one part (2026-08-06). The opener is pressed, not
+   picked up, so it does not wear the `grab` cursor its siblings do. */
+.drag__menu {
+  position: relative;
+}
+
+.drag__chip--menu {
+  cursor: pointer;
+}
+
+.drag__chip--menu[aria-expanded='true'] {
+  border-color: var(--color-primary);
+  color: var(--color-text);
+}
+
+/* ⛔ **Positioned out of flow, because the rail is short and this list is not.**
+   A drum kit can play nine instruments, so in flow this would push every row
+   below it down and grow the panel by a couple of hundred pixels the moment
+   anyone opened it — with the rows they were reaching for moving under the
+   cursor. `inset-inline-end: 0` hangs it off the chip that opened it. */
+.drag__lanes {
+  /* ⛔ **Fixed, and rendered into `document.body`, because absolute was cropped.**
+     This list used to sit inside `.rail__content`, which is `overflow-y: auto` —
+     so the scroll container cut it off partway down and the lower drum lanes
+     could not be reached at all. Mike screenshotted that on 2026-08-06. The
+     coordinates are set inline by `DragMenu`, measured from the chip, and it
+     still opens *below* the chip because he asked for it below. */
+  position: fixed;
+  z-index: 40;
+  margin: 0;
+  padding: var(--space-1);
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-2);
+  /* Lifted off the panel, so it reads as being above it rather than as more of
+     it — the only cue that these are one part's instruments and not new rows. */
+  box-shadow: 0 4px 16px rgb(0 0 0 / 45%);
+}
+
+.drag__lane {
+  display: flex;
+}
+
+.drag__lane .drag__chip {
+  flex: 1;
+  text-align: start;
+  white-space: nowrap;
+}
+
+/* "All Tracks" is a different kind of thing from the eight above it — every one
+   of them at once — so it is ruled off rather than left as a ninth lane. */
+.drag__lane--all {
+  margin-top: var(--space-1);
+  padding-top: var(--space-1);
+  border-top: 1px solid var(--color-border);
+}
+
+/* The folder that was written. Mono, because it is a path. */
+.stems__done {
+  margin: var(--space-2) 0 0;
+  color: var(--color-text-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  overflow-wrap: anywhere;
 }

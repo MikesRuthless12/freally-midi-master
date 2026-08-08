@@ -35,6 +35,7 @@ function pattern(lanes: { lane: Lane; notes: Note[] }[], bars = 1): Pattern {
     part: 'melody',
     artistId: 't',
     seed: '1',
+    songSeed: '1',
     bars,
     bpm: 140,
     timeSigNum: 4,

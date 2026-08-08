@@ -23,6 +23,9 @@
     "seedCopied": "Skopiowano ziarno.",
     "seedLabel": "Ziarno — wklej je, aby uzyskać ten sam beat",
     "seedAuto": "losowe",
+    "seedLocked": "Ziarno zablokowane — Generuj użyje go ponownie",
+    "seedRolls": "Ziarno zmienia się przy każdym Generuj",
+    "seedLock": "Zablokuj ziarno",
     "generating": "Generowanie…",
     "readyBody": "{{name}} gotowy. Naciśnij Generuj.",
     "generateAll": "Generuj wszystko",
@@ -34,16 +37,27 @@
     "searchPlaceholder": "Szukaj artysty…",
     "searchLabel": "Szukaj artysty",
     "noDataset": "Nie wczytano jeszcze żadnego zbioru danych.",
-    "noKit": "Nie ma jeszcze zestawu. Upuść swoje one-shoty w dowolnym miejscu tego panelu.",
     "noMatch": "Nic nie pasuje do „{{query}}”.",
     "results": "Wyniki wyszukiwania"
+  },
+  "kit": {
+    "loading": "Wczytywanie zestawu…",
+    "noneLoaded": "Nie udało się wczytać zestawu, więc wtyczka milczy.",
+    "lanesLabel": "Ścieżki zestawu",
+    "assignHint": "Kliknij ścieżkę, aby odtwarzać na niej własny one-shot.",
+    "shipped": "Wbudowany",
+    "silent": "Brak dźwięku",
+    "choosing": "Wybieranie…",
+    "clearOne": "Usuń one-shot ze ścieżki {{lane}}"
   },
   "sections": {
     "genres": "Gatunki",
     "roster": "Artyści",
     "kit": "Zestaw",
     "session": "Sesja",
-    "presets": "Ustawienia wstępne"
+    "presets": "Ustawienia wstępne",
+    "stems": "Ścieżki",
+    "explorer": "Przeglądarka"
   },
   "readouts": {
     "bpm": "BPM",
@@ -179,7 +193,8 @@
   "grid": {
     "label": "Wygenerowany wzór",
     "summary": "{{bars}} taktów · {{steps}} kroków · {{notes}} nut",
-    "muteLane": "Wycisz {{lane}} w podglądzie"
+    "muteLane": "Wycisz {{lane}} w podglądzie",
+    "cell": "{{lane}}, krok {{step}}"
   },
   "roster": {
     "artists": "Artyści",
@@ -192,13 +207,25 @@
   "lanes": {
     "kick": "Stopa",
     "snare": "Werbel",
+    "offSnare": "Werbel off",
     "clap": "Klaśnięcie",
     "closedHat": "Zamknięty hi-hat",
     "openHat": "Otwarty hi-hat",
+    "ride": "Ride",
+    "crash": "Crash",
+    "tom": "Tom",
     "rim": "Obręcz",
     "snap": "Pstryknięcie",
     "perc": "Perkusjonalia",
-    "bass808": "808"
+    "shaker": "Shaker",
+    "tambourine": "Tamburyn",
+    "cowbell": "Krowi dzwonek",
+    "woodblock": "Klocek drewniany",
+    "sub": "Sub",
+    "melody": "Melodia",
+    "counter": "Kontrmelodia",
+    "bass": "Linia basu",
+    "chords": "Akordy"
   },
   "presets": {
     "factory": "Fabryczne",
@@ -276,6 +303,70 @@
       "hook": "Refren",
       "bridge": "Most",
       "outro": "Zakończenie"
+    },
+    "resizeClip": "Na ilu taktach zapętla się {{part}}",
+    "resizeClipHint": "Zapętla się co {{bars}} taktów — przeciągnij, aby zmienić"
+  },
+  "stems": {
+    "midi": "MIDI",
+    "audio": "Audio",
+    "perLane": "Na ścieżkę",
+    "allTracks": "Wszystkie ścieżki",
+    "allParts": "Wszystkie partie",
+    "hint": "Zapisuje każdą wygenerowaną partię do osobnego pliku.",
+    "choosing": "Wybierz folder…",
+    "dragHint": "Przeciągnij partię prosto na ścieżkę w Twoim DAW.",
+    "preparing": "Przygotowywanie…",
+    "rendering": "Renderowanie… {{percent}}%"
+  },
+  "shortcuts": {
+    "title": "Skróty klawiszowe",
+    "groups": {
+      "transport": "Transport",
+      "generate": "Generowanie",
+      "editing": "Edycja",
+      "notes": "Nuty",
+      "drums": "Siatka perkusji",
+      "browser": "Przeglądarka sampli"
+    },
+    "keys": {
+      "toggleRail": "Pokaż lub ukryj prawy panel",
+      "search": "Szukaj w katalogu",
+      "reroll": "Wylosuj klip ponownie",
+      "selectAll": "Zaznacz wszystko",
+      "copy": "Kopiuj",
+      "cut": "Wytnij",
+      "paste": "Wklej",
+      "undo": "Cofnij",
+      "duplicate": "Powiel",
+      "delete": "Usuń",
+      "deselect": "Odznacz",
+      "transpose": "Transponuj o półton",
+      "transposeOctave": "Transponuj o oktawę",
+      "nudge": "Przesuń w czasie",
+      "stretch": "Rozciągnij dwukrotnie",
+      "compress": "Skróć o połowę",
+      "triplet": "Triola w tej komórce",
+      "quintuplet": "Kwintola w tej komórce",
+      "septuplet": "Septola w tej komórce",
+      "cloneBar": "Skopiuj takt 1 na ten takt",
+      "shortcuts": "Pokaż ten panel",
+      "play": "Odtwórz lub wstrzymaj",
+      "previewDirection": "Odtwórz sampel wstecz / do przodu"
     }
+  },
+  "explorer": {
+    "addFolder": "Dodaj folder",
+    "removeFolder": "Usuń {{name}} z biblioteki",
+    "noRoots": "Dodaj folder, aby przeglądać swoje sample.",
+    "listLabel": "Lista sampli",
+    "up": "W górę",
+    "empty": "Brak sampli w tym folderze.",
+    "truncated": "Ten folder zawiera więcej plików, niż jest pokazanych.",
+    "pickAFile": "Wybierz sampel, aby go odsłuchać.",
+    "decoding": "Odczytywanie…",
+    "waveformOf": "Kształt fali {{name}}",
+    "reverse": "Odtwórz wstecz",
+    "resize": "Zmień szerokość przeglądarki"
   }
 }

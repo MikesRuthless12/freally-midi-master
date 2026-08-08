@@ -93,12 +93,21 @@ test('the View menu lists every panel', async ({ page }) => {
   await page.getByRole('button', { name: /View/i }).click();
   const items = page.getByRole('menuitemcheckbox');
   // The right rail plus one per `SECTIONS` in `src/state/ui.ts`: genres, roster,
-  // kit, session, presets. The menu is built from that list, so adding a panel
-  // is meant to land here — this count is the reminder to check the new one
-  // actually appears rather than a number to bump.
-  await expect(items).toHaveCount(6);
+  // browser, kit, stems, session, presets. The menu is built from that list, so
+  // adding a panel is meant to land here — this count is the reminder to check
+  // the new one actually appears rather than a number to bump.
+  await expect(items).toHaveCount(8);
   await expect(items.first()).toContainText('Right rail');
   await expect(items.last()).toContainText('Presets');
+  // ⚠ Named, not just counted. `Stems` arrived with TASK-131F and had to go in
+  // the rail rather than the stage toolbar — a control in `stage__controls`
+  // costs the velocity lane height and fails `piano-roll.spec.ts`, which is how
+  // this panel ended up here.
+  await expect(page.getByRole('menuitemcheckbox', { name: /Stems/i })).toBeVisible();
+  // ...and `Browser` arrived with TASK-132, in the *left* rail for the opposite
+  // reason: it is a place you go before generating rather than after, and the
+  // panel that gets widened cannot be the one sharing a column with the kit.
+  await expect(page.getByRole('menuitemcheckbox', { name: /Browser/i })).toBeVisible();
 });
 
 test('the theme toggle switches the document theme', async ({ page }) => {

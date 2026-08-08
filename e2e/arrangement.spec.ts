@@ -387,19 +387,50 @@ test('generating a song drops a loop set on the previous one', async ({ page }) 
 // Thumbnails, locks and the structure row (TASK-070).
 // ---------------------------------------------------------------------------
 
-test('every clip carries a note-density sketch', async ({ page }) => {
-  // ⛔ Painted as a gradient rather than mounted as a canvas or one element per
-  // bucket — see `sketch.ts`. A painted surface has no geometry to count, so
-  // what is asserted is that each clip really has one and that it is not the
-  // same flat fill for every clip.
+test('every clip draws its own notes rather than a label on a box', async ({ page }) => {
+  // ⛔⛔ **TASK-142's first finding: *"a clip does not look like a clip"*.** What
+  // this replaced was a note-*density* gradient — sixteen buckets of "how busy
+  // is this bar" — which cannot tell two clips apart and which no DAW draws.
+  //
+  // ⚠ **The paths are compared, not merely counted.** A renderer that emitted
+  // the same `d` for every clip would pass "each clip has notes" while drawing
+  // one picture five times, which is the readout-that-lies shape this whole
+  // view keeps guarding against.
   await openSong(page);
 
-  const fills = await page
-    .locator('.song__sketch')
-    .evaluateAll((nodes) => nodes.map((n) => (n as HTMLElement).style.backgroundImage));
-  expect(fills.length).toBeGreaterThan(1);
-  for (const fill of fills) expect(fill).toContain('linear-gradient');
-  expect(new Set(fills).size).toBeGreaterThan(1);
+  const paths = await page
+    .locator('.song__note')
+    .evaluateAll((nodes) => nodes.map((n) => n.getAttribute('d') ?? ''));
+  expect(paths.length).toBeGreaterThan(1);
+  for (const path of paths) expect(path).toMatch(/^M[\d.]+ [\d.]+h/);
+  expect(new Set(paths).size).toBeGreaterThan(1);
+});
+
+test('a clip says which formats it can be handed over as', async ({ page }) => {
+  // ⛔ TASK-142's second finding: *"MIDI and audio are indistinguishable — an
+  // arrangement clip has no format at all."* Every clip is notes, so MIDI is
+  // always offered; audio only where something in it has a sample behind it.
+  await openSong(page);
+
+  const clip = page.locator('.song__clip').first();
+  await expect(clip.locator('.song__format[data-format="midi"]')).toBeVisible();
+});
+
+test('a clip can be resized to loop on fewer bars than its section', async ({ page }) => {
+  // ⛔ TASK-142's third finding: *"there is no clip resize."* The section
+  // handles move every row; this moves one. Driven from the keyboard because
+  // the slider is a real `role="slider"` — a resize that only answered the
+  // mouse would be unreachable to anyone not using one.
+  await openSong(page);
+
+  const handle = page.locator('.song__clip-resize').first();
+  const before = Number(await handle.getAttribute('aria-valuenow'));
+  await handle.focus();
+  await page.keyboard.press('ArrowLeft');
+
+  await expect(handle).toHaveAttribute('aria-valuenow', String(before - 1));
+  // ...and the section it sits in is untouched, which is the whole distinction.
+  await expect(page.getByTestId('song-section-0')).toHaveAttribute('data-bars', /\d+/);
 });
 
 test('locking a section locks every clip in it, and unlocks as one', async ({ page }) => {
@@ -575,4 +606,76 @@ test('clicking the empty grid clears the selection rather than doing nothing', a
   await page.mouse.click(box.x + 30, box.y + box.height / 2);
 
   await expect(clip).toHaveAttribute('aria-pressed', 'false');
+});
+
+/**
+ * Dragging a clip onto another section (TASK-130).
+ *
+ * ⛔⛔ **The one DAW verb the timeline did not have.** Mike, 2026-08-06: *"you
+ * should be able to rearrange or drag them and move them, delete them, copy and
+ * paste them, clone them, etc. like you would in a real DAW."* Every other verb
+ * in that sentence already worked and had a test above; rearranging meant copy,
+ * paste, then go back and delete the original — three gestures and three undo
+ * steps for one thing a producer thinks of as a drag.
+ */
+test('a clip can be dragged onto another section, and leaves the first one', async ({
+  page,
+}) => {
+  await openSong(page);
+
+  const drums = page.locator('[data-testid="song-clip-drums"]');
+  const melody = page.locator('[data-testid="song-clip-melody"]');
+  const before = await drums.count();
+  const layout = await sections(page);
+
+  // The first drum clip, onto the section the *last* melody clip sits in — a
+  // section that is certainly somewhere else along the timeline.
+  const from = await drums.first().boundingBox();
+  const to = await melody.last().boundingBox();
+  if (!from || !to) throw new Error('the clips have no box');
+
+  await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2);
+  await page.mouse.down();
+  // ⚠ Stepped, because the move only becomes a drag past a 6px threshold — a
+  // single jump would still cross it, but stepping is what a hand does and it
+  // exercises the same path.
+  await page.mouse.move(to.x + to.width / 2, to.y + from.height / 2, { steps: 8 });
+  await page.mouse.up();
+
+  // ⚠ **A move never *adds* a clip.** Not "the count is unchanged": a cell holds
+  // one clip per part, so landing on a section that already has drums replaces
+  // it and the count drops by one. That is the same rule paste follows, and
+  // refusing the drop instead would make the gesture fail silently on what is
+  // probably the commonest case.
+  await expect(drums).not.toHaveCount(before + 1);
+  const boxes = await drums.evaluateAll((nodes) =>
+    nodes.map((n) => Math.round(n.getBoundingClientRect().x)),
+  );
+  expect(boxes, 'the clip did not leave the section it came from').not.toContain(
+    Math.round(from.x),
+  );
+
+  // ⚠ And the sections themselves are untouched — moving a clip out of one is
+  // not deleting it, the same rule `deleteClips` already holds, and the
+  // arrangement must not re-tile under the producer mid-gesture.
+  expect(await sections(page)).toEqual(layout);
+});
+
+test('a drag that goes nowhere is still just a click', async ({ page }) => {
+  // ⛔ `click` fires after `pointerup`, so the move path has to suppress it —
+  // otherwise every drag would also re-select at the far end. The inverse
+  // matters just as much: a press that never travelled must still select.
+  await openSong(page);
+
+  const first = page.locator('[data-testid="song-clip-drums"]').first();
+  const box = await first.boundingBox();
+  if (!box) throw new Error('no box');
+
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down();
+  // Two pixels — under the threshold, so this is a click with a shaky hand.
+  await page.mouse.move(box.x + box.width / 2 + 2, box.y + box.height / 2);
+  await page.mouse.up();
+
+  await expect(first).toHaveAttribute('aria-pressed', 'true');
 });

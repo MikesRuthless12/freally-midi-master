@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { Section } from './Section';
+import { RailResizer } from './RailResizer';
 import { SearchBar } from '../SearchBar/SearchBar';
 import { RosterList } from '../RosterList/RosterList';
+import { ExplorerPanel } from '../Explorer/ExplorerPanel';
 import { crossFilter } from '../../lib/cross-filter';
 import { useSession } from '../../state/session';
 import { useTranslation } from 'react-i18next';
@@ -102,6 +104,15 @@ export function LeftRail() {
           <p className="rail__hint">{t('rails.noDataset')}</p>
         )}
       </Section>
+
+      {/* The sample browser and its audition player (TASK-132). Below the
+          roster because it is where a producer goes *after* choosing an artist,
+          and because it is the panel worth having the extra width. */}
+      <Section id="explorer" grow>
+        <ExplorerPanel />
+      </Section>
+
+      <RailResizer />
     </aside>
   );
 }

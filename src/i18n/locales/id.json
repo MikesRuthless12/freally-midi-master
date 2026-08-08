@@ -23,6 +23,9 @@
     "seedCopied": "Seed disalin.",
     "seedLabel": "Seed — tempel untuk mendapatkan beat yang sama",
     "seedAuto": "acak",
+    "seedLocked": "Seed dikunci — Buat memakainya lagi",
+    "seedRolls": "Seed berubah setiap kali Buat",
+    "seedLock": "Kunci seed",
     "generating": "Membuat…",
     "readyBody": "{{name}} siap. Tekan Buat.",
     "generateAll": "Buat semua",
@@ -34,16 +37,27 @@
     "searchPlaceholder": "Cari artis…",
     "searchLabel": "Cari artis",
     "noDataset": "Belum ada dataset yang dimuat.",
-    "noKit": "Belum ada kit. Jatuhkan one-shot di mana saja pada panel ini.",
     "noMatch": "Tidak ada yang cocok dengan “{{query}}”.",
     "results": "Hasil pencarian"
+  },
+  "kit": {
+    "loading": "Membaca kit…",
+    "noneLoaded": "Kit tidak dapat dimuat, jadi plugin ini tidak bersuara.",
+    "lanesLabel": "Jalur kit",
+    "assignHint": "Klik sebuah jalur untuk memainkan one-shot milikmu di sana.",
+    "shipped": "Bawaan",
+    "silent": "Tanpa suara",
+    "choosing": "Memilih…",
+    "clearOne": "Hapus one-shot pada {{lane}}"
   },
   "sections": {
     "genres": "Genre",
     "roster": "Artis",
     "kit": "Kit",
     "session": "Sesi",
-    "presets": "Prasetel"
+    "presets": "Prasetel",
+    "stems": "Stem",
+    "explorer": "Berkas"
   },
   "readouts": {
     "bpm": "BPM",
@@ -179,7 +193,8 @@
   "grid": {
     "label": "Pola yang dihasilkan",
     "summary": "{{bars}} bar · {{steps}} langkah · {{notes}} not",
-    "muteLane": "Bisukan {{lane}} di pratinjau"
+    "muteLane": "Bisukan {{lane}} di pratinjau",
+    "cell": "{{lane}}, langkah {{step}}"
   },
   "roster": {
     "artists": "Artis",
@@ -192,13 +207,25 @@
   "lanes": {
     "kick": "Bas drum",
     "snare": "Snar",
+    "offSnare": "Snare off",
     "clap": "Tepukan",
     "closedHat": "Hi-hat tertutup",
     "openHat": "Hi-hat terbuka",
+    "ride": "Ride",
+    "crash": "Crash",
+    "tom": "Tom",
     "rim": "Pinggiran",
     "snap": "Jentikan",
     "perc": "Perkusi",
-    "bass808": "808"
+    "shaker": "Shaker",
+    "tambourine": "Rebana",
+    "cowbell": "Kerincing sapi",
+    "woodblock": "Balok kayu",
+    "sub": "Sub",
+    "melody": "Melodi",
+    "counter": "Kontramelodi",
+    "bass": "Garis bas",
+    "chords": "Akor"
   },
   "presets": {
     "factory": "Bawaan",
@@ -276,6 +303,70 @@
       "hook": "Refrein",
       "bridge": "Jembatan",
       "outro": "Penutup"
+    },
+    "resizeClip": "Berapa bar {{part}} berulang",
+    "resizeClipHint": "Berulang setiap {{bars}} bar — seret untuk mengubah"
+  },
+  "stems": {
+    "midi": "MIDI",
+    "audio": "Audio",
+    "perLane": "Per jalur",
+    "allTracks": "Semua Trek",
+    "allParts": "Semua Bagian",
+    "hint": "Menulis setiap bagian yang dihasilkan ke berkasnya sendiri.",
+    "choosing": "Pilih sebuah folder…",
+    "dragHint": "Seret satu bagian langsung ke track di DAW kamu.",
+    "preparing": "Sedang disiapkan…",
+    "rendering": "Merender… {{percent}}%"
+  },
+  "shortcuts": {
+    "title": "Pintasan papan ketik",
+    "groups": {
+      "transport": "Transport",
+      "generate": "Hasilkan",
+      "editing": "Penyuntingan",
+      "notes": "Not",
+      "drums": "Kisi drum",
+      "browser": "Peramban sampel"
+    },
+    "keys": {
+      "toggleRail": "Tampilkan atau sembunyikan panel kanan",
+      "search": "Cari di katalog",
+      "reroll": "Buat ulang klip",
+      "selectAll": "Pilih semua",
+      "copy": "Salin",
+      "cut": "Potong",
+      "paste": "Tempel",
+      "undo": "Urungkan",
+      "duplicate": "Gandakan",
+      "delete": "Hapus",
+      "deselect": "Batalkan pilihan",
+      "transpose": "Transpos satu seminada",
+      "transposeOctave": "Transpos satu oktaf",
+      "nudge": "Geser dalam waktu",
+      "stretch": "Regangkan dua kali lipat",
+      "compress": "Mampatkan jadi separuh",
+      "triplet": "Triol di sel ini",
+      "quintuplet": "Kuintol di sel ini",
+      "septuplet": "Septol di sel ini",
+      "cloneBar": "Salin bar 1 ke bar ini",
+      "shortcuts": "Tampilkan panel ini",
+      "play": "Putar atau jeda",
+      "previewDirection": "Putar sampel mundur / maju"
     }
+  },
+  "explorer": {
+    "addFolder": "Tambah folder",
+    "removeFolder": "Hapus {{name}} dari pustaka",
+    "noRoots": "Tambahkan folder untuk menjelajahi sampel Anda.",
+    "listLabel": "Daftar sampel",
+    "up": "Naik",
+    "empty": "Tidak ada sampel di folder ini.",
+    "truncated": "Folder ini berisi lebih banyak berkas daripada yang ditampilkan.",
+    "pickAFile": "Pilih sampel untuk mendengarkannya.",
+    "decoding": "Membaca…",
+    "waveformOf": "Bentuk gelombang {{name}}",
+    "reverse": "Putar mundur",
+    "resize": "Ubah lebar peramban"
   }
 }

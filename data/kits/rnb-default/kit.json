@@ -1,0 +1,243 @@
+{
+  "bitDepth": 24,
+  "generatedBy": "kitgen",
+  "id": "rnb-default",
+  "license": "CC0-1.0",
+  "name": "R&B Default",
+  "notice": "Every sample here is synthesized from oscillators and filtered noise by tools/kitgen. No recorded material is used, so the kit carries no third-party rights. Regenerate with `cargo run -p kitgen`.",
+  "pads": [
+    {
+      "chokeGroup": null,
+      "file": "kick.wav",
+      "gainDb": 0.0,
+      "id": "kick",
+      "lane": "kick",
+      "padIndex": 0,
+      "pan": 0.0,
+      "pitchSemis": 0,
+      "rootNote": null
+    },
+    {
+      "chokeGroup": 2,
+      "file": "808.wav",
+      "gainDb": 0.0,
+      "id": "808",
+      "lane": "sub",
+      "padIndex": 1,
+      "pan": 0.0,
+      "pitchSemis": 0,
+      "rootNote": 28
+    },
+    {
+      "chokeGroup": null,
+      "file": "snare.wav",
+      "gainDb": 0.0,
+      "id": "snare",
+      "lane": "snare",
+      "padIndex": 2,
+      "pan": 0.0,
+      "pitchSemis": 0,
+      "rootNote": null
+    },
+    {
+      "chokeGroup": null,
+      "file": "clap.wav",
+      "gainDb": 0.0,
+      "id": "clap",
+      "lane": "clap",
+      "padIndex": 3,
+      "pan": 0.0,
+      "pitchSemis": 0,
+      "rootNote": null
+    },
+    {
+      "chokeGroup": 1,
+      "file": "closed-hat.wav",
+      "gainDb": 0.0,
+      "id": "closed-hat",
+      "lane": "closedHat",
+      "padIndex": 4,
+      "pan": 0.0,
+      "pitchSemis": 0,
+      "rootNote": null
+    },
+    {
+      "chokeGroup": 1,
+      "file": "open-hat.wav",
+      "gainDb": 0.0,
+      "id": "open-hat",
+      "lane": "openHat",
+      "padIndex": 5,
+      "pan": 0.0,
+      "pitchSemis": 0,
+      "rootNote": null
+    },
+    {
+      "chokeGroup": null,
+      "file": "rim.wav",
+      "gainDb": 0.0,
+      "id": "rim",
+      "lane": "rim",
+      "padIndex": 6,
+      "pan": 0.0,
+      "pitchSemis": 0,
+      "rootNote": null
+    },
+    {
+      "chokeGroup": null,
+      "file": "perc.wav",
+      "gainDb": 0.0,
+      "id": "perc",
+      "lane": "perc",
+      "padIndex": 7,
+      "pan": 0.0,
+      "pitchSemis": 0,
+      "rootNote": null
+    },
+    {
+      "chokeGroup": null,
+      "file": "off-snare.wav",
+      "gainDb": 0.0,
+      "id": "off-snare",
+      "lane": "offSnare",
+      "padIndex": 8,
+      "pan": 0.0,
+      "pitchSemis": 0,
+      "rootNote": null
+    },
+    {
+      "chokeGroup": null,
+      "file": "snap.wav",
+      "gainDb": 0.0,
+      "id": "snap",
+      "lane": "snap",
+      "padIndex": 9,
+      "pan": 0.0,
+      "pitchSemis": 0,
+      "rootNote": null
+    },
+    {
+      "chokeGroup": 3,
+      "file": "ride.wav",
+      "gainDb": 0.0,
+      "id": "ride",
+      "lane": "ride",
+      "padIndex": 10,
+      "pan": 0.0,
+      "pitchSemis": 0,
+      "rootNote": null
+    },
+    {
+      "chokeGroup": 3,
+      "file": "crash.wav",
+      "gainDb": 0.0,
+      "id": "crash",
+      "lane": "crash",
+      "padIndex": 11,
+      "pan": 0.0,
+      "pitchSemis": 0,
+      "rootNote": null
+    },
+    {
+      "chokeGroup": null,
+      "file": "tom.wav",
+      "gainDb": 0.0,
+      "id": "tom",
+      "lane": "tom",
+      "padIndex": 12,
+      "pan": 0.0,
+      "pitchSemis": 0,
+      "rootNote": null
+    },
+    {
+      "chokeGroup": null,
+      "file": "shaker.wav",
+      "gainDb": 0.0,
+      "id": "shaker",
+      "lane": "shaker",
+      "padIndex": 13,
+      "pan": 0.0,
+      "pitchSemis": 0,
+      "rootNote": null
+    },
+    {
+      "chokeGroup": null,
+      "file": "tambourine.wav",
+      "gainDb": 0.0,
+      "id": "tambourine",
+      "lane": "tambourine",
+      "padIndex": 14,
+      "pan": 0.0,
+      "pitchSemis": 0,
+      "rootNote": null
+    },
+    {
+      "chokeGroup": null,
+      "file": "cowbell.wav",
+      "gainDb": 0.0,
+      "id": "cowbell",
+      "lane": "cowbell",
+      "padIndex": 15,
+      "pan": 0.0,
+      "pitchSemis": 0,
+      "rootNote": null
+    },
+    {
+      "chokeGroup": null,
+      "file": "woodblock.wav",
+      "gainDb": 0.0,
+      "id": "woodblock",
+      "lane": "woodblock",
+      "padIndex": 16,
+      "pan": 0.0,
+      "pitchSemis": 0,
+      "rootNote": null
+    },
+    {
+      "chokeGroup": null,
+      "file": "lead.wav",
+      "gainDb": 0.0,
+      "id": "lead",
+      "lane": "melody",
+      "padIndex": 17,
+      "pan": 0.0,
+      "pitchSemis": 0,
+      "rootNote": 84
+    },
+    {
+      "chokeGroup": null,
+      "file": "bell.wav",
+      "gainDb": 0.0,
+      "id": "bell",
+      "lane": "counter",
+      "padIndex": 18,
+      "pan": 0.0,
+      "pitchSemis": 0,
+      "rootNote": 72
+    },
+    {
+      "chokeGroup": null,
+      "file": "bass.wav",
+      "gainDb": 0.0,
+      "id": "bass",
+      "lane": "bass",
+      "padIndex": 19,
+      "pan": 0.0,
+      "pitchSemis": 0,
+      "rootNote": 36
+    },
+    {
+      "chokeGroup": null,
+      "file": "keys.wav",
+      "gainDb": 0.0,
+      "id": "keys",
+      "lane": "chords",
+      "padIndex": 20,
+      "pan": 0.0,
+      "pitchSemis": 0,
+      "rootNote": 60
+    }
+  ],
+  "sampleRate": 44100,
+  "seed": "5787764708023293767"
+}

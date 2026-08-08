@@ -14,6 +14,7 @@ use std::collections::BTreeMap;
 
 use engine::arrange::{self, ArrangeError};
 use engine::context::SessionContext;
+use engine::generators::grid;
 use engine::pattern::{Part, SectionKind};
 use engine::{parts, StyleModel};
 
@@ -82,10 +83,286 @@ fn a_part_renders_the_same_notes_for_the_same_seed() {
         Part::Counter,
         Part::Bass,
     ] {
-        let a = parts::render(&trap, &ctx(), 7, part);
-        let b = parts::render(&trap, &ctx(), 7, part);
+        let a = parts::render(&trap, &ctx(), parts::Seeds::shared(7), part);
+        let b = parts::render(&trap, &ctx(), parts::Seeds::shared(7), part);
         assert_eq!(a, b, "{part:?} is not reproducible from its seed");
     }
+}
+
+// ---------------------------------------------------------------------------
+// TASK-141 — the two-seed design
+// ---------------------------------------------------------------------------
+
+#[test]
+fn a_new_take_changes_the_part_and_leaves_the_record_alone() {
+    // ⛔ **Both halves at once, which is the entire claim of TASK-141.** The
+    // Defect 2 fix made Generate reroll — and in doing so made the ordinary
+    // workflow (Generate on Drums, switch tab, Generate on Melody) draw two
+    // unrelated seeds, so the melody was written against a harmony the chords
+    // tab had never seen. One seed could give variation *or* coherence, never
+    // both.
+    let trap = model("trap");
+
+    // Half one: a different take is a different part.
+    let take_a = parts::render(
+        &trap,
+        &ctx(),
+        parts::Seeds {
+            song: 7,
+            part: 1,
+            drums: None,
+        },
+        Part::Drums,
+    );
+    let take_b = parts::render(
+        &trap,
+        &ctx(),
+        parts::Seeds {
+            song: 7,
+            part: 2,
+            drums: None,
+        },
+        Part::Drums,
+    );
+    assert_ne!(
+        take_a, take_b,
+        "rerolling the take must change the drums — this is Defect 2"
+    );
+
+    // Half two: the record survives it. Chords are the harmonic plan, so they
+    // are a property of the song seed and must not move when a take rerolls.
+    //
+    // ⛔ **Compared as harmony — pitch and time — not as whole notes, and the
+    // distinction is the design rather than a weakened assertion.** `humanize`
+    // runs on the **part** seed, so a new take genuinely does play the same
+    // chords with a different velocity shape. That is what a take *is*: same
+    // record, different performance. Asserting on the full `Note` made this
+    // fail on `vel` alone while every pitch and tick matched exactly.
+    let harmony_of = |seeds| {
+        parts::render(&trap, &ctx(), seeds, Part::Chords)
+            .iter()
+            .flat_map(|track| track.notes.iter())
+            .map(|note| (note.start_tick, note.len_ticks, note.pitch))
+            .collect::<Vec<_>>()
+    };
+
+    let chords_a = harmony_of(parts::Seeds {
+        song: 7,
+        part: 1,
+        drums: None,
+    });
+    let chords_b = harmony_of(parts::Seeds {
+        song: 7,
+        part: 99,
+        drums: None,
+    });
+    assert_eq!(
+        chords_a, chords_b,
+        "the harmonic plan belongs to the record, not to a take"
+    );
+
+    // And a different record really is a different record.
+    let other = harmony_of(parts::Seeds {
+        song: 8,
+        part: 1,
+        drums: None,
+    });
+    assert_ne!(chords_a, other, "a new song seed must write new harmony");
+}
+
+#[test]
+fn every_part_of_one_record_is_written_against_the_same_harmony() {
+    // ⛔ **The property `arrange::render_section`'s own doc records losing.**
+    // An earlier cut called `parts::render` per part with a per-part seed and
+    // every melody's internal harmony came out a different voicing from the
+    // chords beside it — "both clips were individually correct and the pair had
+    // never been written against each other".
+    //
+    // Five parts, five *different* takes, one song seed. The melodic parts are
+    // each written against `chords::generate(model, ctx, song)`, so generating
+    // them at different moments cannot put them on different progressions.
+    let trap = model("trap");
+    let song = 4_242;
+
+    let melody_now = parts::render(
+        &trap,
+        &ctx(),
+        parts::Seeds {
+            song,
+            part: 11,
+            drums: None,
+        },
+        Part::Melody,
+    );
+    // The same take, asked for again after four other parts have been
+    // generated at their own take seeds. Nothing about the order may matter.
+    for take in [12, 13, 14, 15] {
+        let _ = parts::render(
+            &trap,
+            &ctx(),
+            parts::Seeds {
+                song,
+                part: take,
+                drums: None,
+            },
+            Part::Counter,
+        );
+    }
+    let melody_again = parts::render(
+        &trap,
+        &ctx(),
+        parts::Seeds {
+            song,
+            part: 11,
+            drums: None,
+        },
+        Part::Melody,
+    );
+    assert_eq!(
+        melody_now, melody_again,
+        "a part is a pure function of its two seeds, whatever was generated between"
+    );
+}
+
+#[test]
+fn one_seed_for_both_is_exactly_what_it_always_was() {
+    // ⚠ The compatibility claim, and it is load-bearing: every saved project
+    // written before TASK-141 carries one seed, and `Seeds::shared` is what it
+    // means. If this drifts, reopening an old project stops reproducing the
+    // beat it was saved with — which is US-004, the promise the seed chip makes.
+    let trap = model("trap");
+    for part in [Part::Drums, Part::Chords, Part::Melody, Part::Bass] {
+        let shared = parts::render(&trap, &ctx(), parts::Seeds::shared(7), part);
+        let spelled = parts::render(
+            &trap,
+            &ctx(),
+            parts::Seeds {
+                song: 7,
+                part: 7,
+                drums: None,
+            },
+            part,
+        );
+        assert_eq!(shared, spelled, "{part:?}");
+    }
+}
+
+/// A session with the feel switched off, so a tick is a tick.
+///
+/// `quantize_strength: 1.0` scales the per-lane jitter to nothing and swing at
+/// 0.5 is straight, which is what lets the assertion below be about *positions*
+/// rather than about a tolerance. The kick and the bass are humanized on
+/// different streams, so with the shipped defaults they drift a millisecond or
+/// two apart and "is this note on that kick" stops having an exact answer.
+fn on_the_grid() -> SessionContext {
+    SessionContext {
+        humanize: engine::Humanize {
+            quantize_strength: 1.0,
+            velocity_var: 0.0,
+            timing_jitter_ms: BTreeMap::new(),
+        },
+        ..Default::default()
+    }
+}
+
+#[test]
+fn a_mirrored_bass_lands_on_the_kick_the_drums_are_actually_playing() {
+    // ⛔⛔ **The two parts that are supposed to read as one instrument played
+    // twice were landing in different places.** `bassline.rhythm =
+    // "mirror_kick"` is the roster default and it copies the kick's ticks
+    // *verbatim* — but the reference kit it copied was generated at the SONG
+    // seed, while the drums the producer can see came from their own take. With
+    // one seed, 13 of 13 boom-bap bass notes sat on a real kick; with the two
+    // seeds the ordinary workflow produces, 9 of 13, and `uk-drill` fell to 1
+    // of 14.
+    //
+    // ⚠ **Split seeds on purpose.** `Seeds::shared` cannot fail this — the
+    // record and the take being one number is precisely the case that always
+    // worked. The take numbers below are arbitrary and unequal, which is what
+    // "Generate on Drums, switch tab, Generate on Bass" actually sends.
+    const RECORD: u64 = 7;
+    const DRUMS_TAKE: u64 = 3141;
+    const BASS_TAKE: u64 = 2718;
+
+    let ctx = on_the_grid();
+    let mut measured: Vec<String> = Vec::new();
+
+    for (id, model) in shipped_models() {
+        // Only the models this rule is about: a bass that mirrors, and that is
+        // not deferring to an 808 (FR-007). Read off the resolved model, so a
+        // roster edit changes what is covered rather than what is asserted.
+        let mirrors = model
+            .blocks
+            .get("bassline")
+            .and_then(|b| b.get("rhythm"))
+            .and_then(|r| r.as_str())
+            // Absent is `mirror_kick` — `bass::generate`'s own default, and
+            // what most of the roster inherits rather than states.
+            .unwrap_or("mirror_kick")
+            == "mirror_kick";
+        if !mirrors {
+            continue;
+        }
+
+        // The drums on screen: their own take, exactly as the Drums tab sent.
+        let drums = parts::render(
+            &model,
+            &ctx,
+            parts::Seeds {
+                song: RECORD,
+                part: DRUMS_TAKE,
+                drums: None,
+            },
+            Part::Drums,
+        );
+        let kicks: Vec<u32> = drums
+            .iter()
+            .filter(|track| track.lane == engine::pattern::Lane::Kick)
+            .flat_map(|track| track.notes.iter().map(|note| note.start_tick))
+            .collect();
+        if kicks.is_empty() {
+            continue;
+        }
+
+        // ...and the bass generated afterwards, told which take to mirror.
+        let bass = parts::render(
+            &model,
+            &ctx,
+            parts::Seeds {
+                song: RECORD,
+                part: BASS_TAKE,
+                drums: Some(DRUMS_TAKE),
+            },
+            Part::Bass,
+        );
+        if parts::is_silent(&bass) {
+            continue;
+        }
+
+        measured.push(id.clone());
+        for note in bass.iter().flat_map(|track| track.notes.iter()) {
+            // ⚠ Two legal positions, not one. `anticipationProb` pushes a note
+            // one 16th early on purpose — that is drill's lean — so "on the
+            // kick" means the kick's tick or the 16th before it. Asserting only
+            // the first would fail on a genre that is behaving correctly.
+            let on_kick = kicks.contains(&note.start_tick);
+            let anticipating = kicks.contains(&(note.start_tick + grid::SIXTEENTH));
+            assert!(
+                on_kick || anticipating,
+                "{id}: a mirrored bass note at tick {} is on no kick the drums play \
+                 — the kicks are {kicks:?}",
+                note.start_tick
+            );
+        }
+    }
+
+    // The filter above is data-driven, so it could quietly select nothing and
+    // report success. This is what stops that.
+    assert!(
+        measured.len() >= 3,
+        "only {} shipped model(s) exercised the mirror — {measured:?}",
+        measured.len()
+    );
 }
 
 #[test]
@@ -96,11 +373,21 @@ fn a_style_whose_808_is_the_bassline_renders_a_silent_bass() {
     // not ask for.
     let trap = model("trap");
     assert!(
-        parts::is_silent(&parts::render(&trap, &ctx(), 7, Part::Bass)),
+        parts::is_silent(&parts::render(
+            &trap,
+            &ctx(),
+            parts::Seeds::shared(7),
+            Part::Bass
+        )),
         "trap authors no separate bass part"
     );
     assert!(
-        !parts::is_silent(&parts::render(&trap, &ctx(), 7, Part::Drums)),
+        !parts::is_silent(&parts::render(
+            &trap,
+            &ctx(),
+            parts::Seeds::shared(7),
+            Part::Drums
+        )),
         "its drums are where the 808 is"
     );
 }
@@ -421,7 +708,7 @@ fn a_density_of_one_generates_the_same_notes_as_a_plain_request() {
     let reference = hook.patterns.get(&Part::Drums).expect("the hook has drums");
     let built = song.pattern(reference).expect("resolves");
 
-    let direct = parts::render(&trap, &ctx(), built.seed, Part::Drums);
+    let direct = parts::render(&trap, &ctx(), parts::Seeds::shared(built.seed), Part::Drums);
     assert_eq!(
         built.lanes, direct,
         "a full-density section did not match a plain request for the same seed"
@@ -460,7 +747,7 @@ fn a_section_that_asks_for_the_low_end_gets_it_even_when_the_808_is_the_bass() {
         .values()
         .filter_map(|r| song.pattern(r))
         .flat_map(|p| p.lanes.iter())
-        .filter(|lane| lane.lane == engine::pattern::Lane::Bass808)
+        .filter(|lane| lane.lane == engine::pattern::Lane::Sub)
         .map(|lane| lane.notes.len())
         .sum();
 
@@ -499,7 +786,7 @@ fn a_section_never_carries_a_drum_kit_it_did_not_ask_for() {
         for lane in &pattern.lanes {
             assert_eq!(
                 lane.lane,
-                engine::pattern::Lane::Bass808,
+                engine::pattern::Lane::Sub,
                 "the bridge asked for the 808 and got a {:?} lane too",
                 lane.lane
             );
@@ -923,7 +1210,12 @@ fn a_sections_melody_is_written_against_the_chords_playing_beside_it() {
     );
 
     // And the stronger form: the melody really is the one that seed produces.
-    let expected = parts::render(&trap, &ctx(), chords.seed, Part::Melody);
+    let expected = parts::render(
+        &trap,
+        &ctx(),
+        parts::Seeds::shared(chords.seed),
+        Part::Melody,
+    );
     assert_eq!(
         melody.lanes, expected,
         "the melody is not what the section's own seed generates against its chords"

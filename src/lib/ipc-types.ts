@@ -39,7 +39,7 @@ timingJitterMs?: { [key in Lane]?: number }, };
 /**
  * A voice within a pattern. Drum parts use several; melodic parts use one.
  */
-export type Lane = "kick" | "snare" | "clap" | "closedHat" | "openHat" | "rim" | "snap" | "perc" | "bass808" | "melody" | "counter" | "bass" | "chords";
+export type Lane = "kick" | "snare" | "offSnare" | "clap" | "closedHat" | "openHat" | "ride" | "crash" | "tom" | "rim" | "snap" | "perc" | "shaker" | "tambourine" | "cowbell" | "woodblock" | "sub" | "melody" | "counter" | "bass" | "chords";
 
 export type LaneTrack = { lane: Lane, notes: Array<Note>, };
 
@@ -92,7 +92,27 @@ export type Pattern = { id: string, part: Part,
 /**
  * The style model this came from — an artist or a genre archetype.
  */
-artistId: string, seed: string, bars: number, bpm: number, timeSigNum: number, timeSigDen: number, 
+artistId: string, 
+/**
+ * **The take's seed.** What rerolls on every press of Generate.
+ */
+seed: string, 
+/**
+ * **The record's seed** — the harmonic plan every part is written against
+ * (TASK-141).
+ *
+ * ⛔ **The page has to hand this back on the next Generate**, or the five
+ * parts stop agreeing. That is the whole mechanism: the take rerolls, the
+ * record is carried. A caller that ignores it gets the pre-TASK-141
+ * behaviour, where Generate on Drums and then Generate on Melody drew two
+ * unrelated seeds and wrote the melody against a harmony the chords tab
+ * had never seen.
+ *
+ * ⚠ Defaults to [`Self::seed`] when absent, so a project saved before this
+ * existed reopens as one seed for everything — which is exactly what it
+ * meant.
+ */
+songSeed: string, bars: number, bpm: number, timeSigNum: number, timeSigDen: number, 
 /**
  * Pitch class of the key root, 0 = C.
  */
@@ -121,7 +141,29 @@ loopRegion?: Region | null,
  */
 clipRegion?: Region | null, };
 
-export type PatternRef = { patternId: string, };
+export type PatternRef = { patternId: string, 
+/**
+ * How many bars of the clip this row plays before it repeats (TASK-142).
+ *
+ * ⛔ **This is what "resize a clip" means in an arrangement, and it had to
+ * live on the *reference* rather than on the pattern.** Sections of the
+ * same kind share one [`Pattern`] — that is [`crate::arrange`]'s second
+ * stated decision, and the whole reason this is an id — so shortening the
+ * pattern would shorten every verse in the song at once. On the reference
+ * it is what a producer means: *this* row, in *this* section, loops on two
+ * bars instead of four.
+ *
+ * ⚠ **`None` is the pattern's own length**, which is what every song built
+ * before this field meant and what a fresh arrangement still means. It is
+ * not "zero" and not "one bar": a default here would silently retile every
+ * saved project on the first reopen.
+ *
+ * ⛔ Read only through [`SectionTiling::of`], which is the one place the
+ * exporter and the transport both go — see that type's own note on why
+ * two walks over these fields is a bug this project has already shipped
+ * twice.
+ */
+bars?: number | null, };
 
 /**
  * A span of a clip, in absolute ticks (TASK-041E).

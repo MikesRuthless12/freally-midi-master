@@ -23,6 +23,9 @@
     "seedCopied": "Seed gekopieerd.",
     "seedLabel": "Seed — plak er een voor dezelfde beat",
     "seedAuto": "willekeurig",
+    "seedLocked": "Seed vergrendeld — Genereren gebruikt hem opnieuw",
+    "seedRolls": "Seed verandert bij elke keer genereren",
+    "seedLock": "Seed vergrendelen",
     "generating": "Genereren…",
     "readyBody": "{{name}} staat klaar. Klik op Genereren.",
     "generateAll": "Alles genereren",
@@ -34,16 +37,27 @@
     "searchPlaceholder": "Zoek een artiest…",
     "searchLabel": "Zoek een artiest",
     "noDataset": "Nog geen dataset geladen.",
-    "noKit": "Nog geen kit. Sleep je one-shots ergens op dit paneel.",
     "noMatch": "Niets komt overeen met ‘{{query}}’.",
     "results": "Zoekresultaten"
+  },
+  "kit": {
+    "loading": "Kit wordt gelezen…",
+    "noneLoaded": "De kit kon niet worden geladen, dus de plug-in blijft stil.",
+    "lanesLabel": "Kitsporen",
+    "assignHint": "Klik op een spoor om je eigen one-shot erop af te spelen.",
+    "shipped": "Meegeleverd",
+    "silent": "Geen geluid",
+    "choosing": "Kiezen…",
+    "clearOne": "One-shot op {{lane}} wissen"
   },
   "sections": {
     "genres": "Genres",
     "roster": "Artiesten",
     "kit": "Drumkit",
     "session": "Sessie",
-    "presets": "Voorinstellingen"
+    "presets": "Voorinstellingen",
+    "stems": "Stems",
+    "explorer": "Bestanden"
   },
   "readouts": {
     "bpm": "BPM",
@@ -179,7 +193,8 @@
   "grid": {
     "label": "Gegenereerd patroon",
     "summary": "{{bars}} maten · {{steps}} stappen · {{notes}} noten",
-    "muteLane": "{{lane}} dempen in de preview"
+    "muteLane": "{{lane}} dempen in de preview",
+    "cell": "{{lane}}, stap {{step}}"
   },
   "roster": {
     "artists": "Artiesten",
@@ -192,13 +207,25 @@
   "lanes": {
     "kick": "Basdrum",
     "snare": "Snaredrum",
+    "offSnare": "Off-snare",
     "clap": "Handklap",
     "closedHat": "Gesloten hi-hat",
     "openHat": "Open hi-hat",
+    "ride": "Ride",
+    "crash": "Crash",
+    "tom": "Tom",
     "rim": "Randslag",
     "snap": "Vingerknip",
     "perc": "Percussie",
-    "bass808": "808"
+    "shaker": "Shaker",
+    "tambourine": "Tamboerijn",
+    "cowbell": "Koebel",
+    "woodblock": "Houtblok",
+    "sub": "Sub",
+    "melody": "Melodie",
+    "counter": "Tegenmelodie",
+    "bass": "Baslijn",
+    "chords": "Akkoorden"
   },
   "presets": {
     "factory": "Fabriek",
@@ -276,6 +303,70 @@
       "hook": "Refrein",
       "bridge": "Brug",
       "outro": "Outro"
+    },
+    "resizeClip": "Over hoeveel maten {{part}} loopt",
+    "resizeClipHint": "Loopt over {{bars}} maten — sleep om te wijzigen"
+  },
+  "stems": {
+    "midi": "MIDI",
+    "audio": "Audio",
+    "perLane": "Per spoor",
+    "allTracks": "Alle sporen",
+    "allParts": "Alle parts",
+    "hint": "Schrijft elk gegenereerd onderdeel naar een eigen bestand.",
+    "choosing": "Kies een map…",
+    "dragHint": "Sleep een part rechtstreeks naar een spoor in je DAW.",
+    "preparing": "Wordt klaargemaakt…",
+    "rendering": "Renderen… {{percent}}%"
+  },
+  "shortcuts": {
+    "title": "Sneltoetsen",
+    "groups": {
+      "transport": "Transport",
+      "generate": "Genereren",
+      "editing": "Bewerken",
+      "notes": "Noten",
+      "drums": "Drumraster",
+      "browser": "Samplebrowser"
+    },
+    "keys": {
+      "toggleRail": "Rechterpaneel tonen of verbergen",
+      "search": "Zoek in de catalogus",
+      "reroll": "Clip opnieuw genereren",
+      "selectAll": "Alles selecteren",
+      "copy": "Kopiëren",
+      "cut": "Knippen",
+      "paste": "Plakken",
+      "undo": "Ongedaan maken",
+      "duplicate": "Dupliceren",
+      "delete": "Verwijderen",
+      "deselect": "Selectie opheffen",
+      "transpose": "Een halve toon transponeren",
+      "transposeOctave": "Een octaaf transponeren",
+      "nudge": "In de tijd verschuiven",
+      "stretch": "Naar dubbele lengte rekken",
+      "compress": "Naar halve lengte comprimeren",
+      "triplet": "Triool in deze cel",
+      "quintuplet": "Kwintool in deze cel",
+      "septuplet": "Septool in deze cel",
+      "cloneBar": "Maat 1 over deze maat kopiëren",
+      "shortcuts": "Dit paneel tonen",
+      "play": "Afspelen of pauzeren",
+      "previewDirection": "Sample achterstevoren / vooruit afspelen"
     }
+  },
+  "explorer": {
+    "addFolder": "Map toevoegen",
+    "removeFolder": "{{name}} uit de bibliotheek verwijderen",
+    "noRoots": "Voeg een map toe om je samples te bekijken.",
+    "listLabel": "Samplelijst",
+    "up": "Omhoog",
+    "empty": "Geen samples in deze map.",
+    "truncated": "Deze map bevat meer bestanden dan er worden getoond.",
+    "pickAFile": "Kies een sample om het te beluisteren.",
+    "decoding": "Bezig met lezen…",
+    "waveformOf": "Golfvorm van {{name}}",
+    "reverse": "Achterstevoren afspelen",
+    "resize": "Breedte van de browser aanpassen"
   }
 }

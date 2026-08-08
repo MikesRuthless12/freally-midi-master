@@ -23,6 +23,9 @@
     "seedCopied": "Semente copiada.",
     "seedLabel": "Semente — cole uma para obter o mesmo beat",
     "seedAuto": "aleatória",
+    "seedLocked": "Semente travada: Gerar a reutiliza",
+    "seedRolls": "A semente muda a cada Gerar",
+    "seedLock": "Travar a semente",
     "generating": "Gerando…",
     "readyBody": "{{name}} está pronto. Toque em Gerar.",
     "generateAll": "Gerar tudo",
@@ -34,16 +37,27 @@
     "searchPlaceholder": "Buscar um artista…",
     "searchLabel": "Buscar um artista",
     "noDataset": "Nenhum conjunto de dados carregado ainda.",
-    "noKit": "Nenhum kit ainda. Solte seus one-shots em qualquer lugar deste painel.",
     "noMatch": "Nada corresponde a “{{query}}”.",
     "results": "Resultados da busca"
+  },
+  "kit": {
+    "loading": "Lendo o kit…",
+    "noneLoaded": "Não foi possível carregar o kit, então o plugin está mudo.",
+    "lanesLabel": "Faixas do kit",
+    "assignHint": "Clique em uma faixa para tocar seu próprio one-shot nela.",
+    "shipped": "Incluído",
+    "silent": "Sem som",
+    "choosing": "Escolhendo…",
+    "clearOne": "Remover o one-shot de {{lane}}"
   },
   "sections": {
     "genres": "Gêneros",
     "roster": "Artistas",
     "kit": "Kit",
     "session": "Sessão",
-    "presets": "Predefinições"
+    "presets": "Predefinições",
+    "stems": "Faixas",
+    "explorer": "Navegador"
   },
   "readouts": {
     "bpm": "BPM",
@@ -179,7 +193,8 @@
   "grid": {
     "label": "Padrão gerado",
     "summary": "{{bars}} compassos · {{steps}} passos · {{notes}} notas",
-    "muteLane": "Silenciar {{lane}} na prévia"
+    "muteLane": "Silenciar {{lane}} na prévia",
+    "cell": "{{lane}}, passo {{step}}"
   },
   "roster": {
     "artists": "Artistas",
@@ -192,13 +207,25 @@
   "lanes": {
     "kick": "Bumbo",
     "snare": "Caixa",
+    "offSnare": "Caixa off",
     "clap": "Palma",
     "closedHat": "Chimbal fechado",
     "openHat": "Chimbal aberto",
+    "ride": "Ride",
+    "crash": "Crash",
+    "tom": "Tom",
     "rim": "Aro",
     "snap": "Estalo",
     "perc": "Percussão",
-    "bass808": "808"
+    "shaker": "Ganzá",
+    "tambourine": "Pandeiro",
+    "cowbell": "Cowbell",
+    "woodblock": "Bloco sonoro",
+    "sub": "Sub",
+    "melody": "Melodia",
+    "counter": "Contramelodia",
+    "bass": "Linha de baixo",
+    "chords": "Acordes"
   },
   "presets": {
     "factory": "De fábrica",
@@ -276,6 +303,70 @@
       "hook": "Refrão",
       "bridge": "Ponte",
       "outro": "Encerramento"
+    },
+    "resizeClip": "Em quantos compassos {{part}} se repete",
+    "resizeClipHint": "Repete a cada {{bars}} compassos — arraste para mudar"
+  },
+  "stems": {
+    "midi": "MIDI",
+    "audio": "Áudio",
+    "perLane": "Por faixa",
+    "allTracks": "Todas as faixas",
+    "allParts": "Todas as partes",
+    "hint": "Grava cada parte gerada em seu próprio arquivo.",
+    "choosing": "Escolha uma pasta…",
+    "dragHint": "Arraste uma parte direto para uma faixa da sua DAW.",
+    "preparing": "Preparando…",
+    "rendering": "Renderizando… {{percent}}%"
+  },
+  "shortcuts": {
+    "title": "Atalhos de teclado",
+    "groups": {
+      "transport": "Transporte",
+      "generate": "Gerar",
+      "editing": "Edição",
+      "notes": "Notas",
+      "drums": "Grade de bateria",
+      "browser": "Navegador de samples"
+    },
+    "keys": {
+      "toggleRail": "Mostrar ou ocultar o painel direito",
+      "search": "Buscar no catálogo",
+      "reroll": "Gerar o clipe novamente",
+      "selectAll": "Selecionar tudo",
+      "copy": "Copiar",
+      "cut": "Recortar",
+      "paste": "Colar",
+      "undo": "Desfazer",
+      "duplicate": "Duplicar",
+      "delete": "Excluir",
+      "deselect": "Desmarcar",
+      "transpose": "Transpor um semitom",
+      "transposeOctave": "Transpor uma oitava",
+      "nudge": "Deslocar no tempo",
+      "stretch": "Esticar ao dobro",
+      "compress": "Comprimir à metade",
+      "triplet": "Quiáltera de 3 nesta célula",
+      "quintuplet": "Quiáltera de 5 nesta célula",
+      "septuplet": "Quiáltera de 7 nesta célula",
+      "cloneBar": "Copiar o compasso 1 sobre este",
+      "shortcuts": "Mostrar este painel",
+      "play": "Tocar ou pausar",
+      "previewDirection": "Reproduzir o sample de trás para frente / normalmente"
     }
+  },
+  "explorer": {
+    "addFolder": "Adicionar pasta",
+    "removeFolder": "Remover {{name}} da biblioteca",
+    "noRoots": "Adicione uma pasta para navegar pelos seus samples.",
+    "listLabel": "Lista de samples",
+    "up": "Acima",
+    "empty": "Nenhum sample nesta pasta.",
+    "truncated": "Esta pasta tem mais arquivos do que os exibidos.",
+    "pickAFile": "Escolha um sample para ouvi-lo.",
+    "decoding": "Lendo…",
+    "waveformOf": "Forma de onda de {{name}}",
+    "reverse": "Reproduzir de trás para frente",
+    "resize": "Redimensionar o navegador"
   }
 }

@@ -38,6 +38,11 @@ CLAP · VST3 · AU — Windows · macOS
 > (CLAP). Reaper, Bitwig and Logic are not yet tested, and Linux has no editor
 > yet.
 >
+> It does pass both automated plugin validators — **`pluginval` at strictness
+> level 5** against the VST3 and **`clap-validator`** against the CLAP — which
+> checks the host contract (state save/restore, transport fuzzing, bus layouts)
+> without anybody watching. That is not the same as a producer having used it.
+>
 > The `engine` crate — the dataset, inheritance, the drum engine, the chords
 > generator, humanize, the MIDI writer — carried across unchanged. That was the
 > point of keeping it free of shell types from day one.
@@ -91,10 +96,20 @@ the result into FL Studio, Ableton, Logic, Reaper, or anything else.
 - **Edit what you got.** Piano-roll editor and a pad-grid drum sequencer. Lock what
   you like, reroll the rest.
 - **Export.** The whole arranged song as one multi-track Standard MIDI file, or
-  one file per part into a folder, through your platform's own Save As. ⚠ *Drag*
-  out to the desktop is not built yet: an HTML5 drag inside a plugin's webview is
-  not an operating-system file drag, and rendered audio waits on the pitched
-  instrument voices.
+  one file per part into a folder, through your platform's own Save As.
+- **Drag it out.** Pick a part up and drop it straight onto a DAW track, as MIDI
+  or as audio — or turn on **Per lane** and drag just the hats out. The whole
+  arrangement drags too. Files arrive named the way you would name them
+  (`trap - Snare - 140 BPM - C# Minor`), and the clip's own notes ride on the
+  cursor so you can see what you picked up. Click a part's **MIDI** or **Audio**
+  chip and you get a menu of every instrument playing in it — drag just the hats,
+  or **All Tracks** to take every lane out at once as separate files. Hold
+  **Ctrl** as you drop to stack them instead of laying them end to end.
+  ⚠ **Windows is the one a human has actually dropped into Ableton.** An HTML5
+  drag inside a plugin's webview is not an operating-system file drag, so each
+  platform needs its own native drag source; macOS (`NSDraggingSession`) and
+  Linux (GTK, `text/uri-list`) are written and switched on, but **neither has
+  been dropped into a real DAW yet.** Export works everywhere regardless.
 - **Reproducible.** Every generation has a seed. Copy it, paste it, get it back.
 - **Unlimited undo/redo.** `Ctrl`/`Cmd`+`Z` steps back through every change —
   artist, seed, bars, pins and each generation — with no depth limit, because an

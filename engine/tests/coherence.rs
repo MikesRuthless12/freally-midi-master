@@ -233,7 +233,7 @@ fn the_low_end_is_played_by_one_part_or_the_other() {
         let eight_o_eight_notes = art
             .kit
             .iter()
-            .filter(|track| track.lane == Lane::Bass808)
+            .filter(|track| track.lane == Lane::Sub)
             .map(|track| track.notes.len())
             .sum::<usize>();
 
@@ -255,7 +255,7 @@ fn the_low_end_is_played_by_one_part_or_the_other() {
                 .filter(|note| {
                     art.kit
                         .iter()
-                        .filter(|t| t.lane == Lane::Bass808)
+                        .filter(|t| t.lane == Lane::Sub)
                         .any(|t| t.notes.iter().any(|o| o.start_tick == note.start_tick))
                 })
                 .count();
