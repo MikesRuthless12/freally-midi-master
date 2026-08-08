@@ -76,6 +76,28 @@ pub struct Seeds {
     /// **The take.** This part's own variation within that record, and its
     /// feel. Rerolled on every press of Generate.
     pub part: u64,
+    /// **The drums' take**, when a drum pattern is already on screen.
+    ///
+    /// ⛔ **This exists because a bass that mirrors the kick has to mirror the
+    /// kick the producer can hear.** `Rhythm::MirrorKick` — the trap and drill
+    /// default — copies the kick's ticks verbatim, and the reference kit it read
+    /// was generated at the *song* seed while the drums on screen came from
+    /// their own take. Measured on the shipped roster: with one seed 13 of 13
+    /// boom-bap bass notes landed on a real kick; with split seeds, 9 of 13, and
+    /// `uk-drill` fell to 1 of 14. Two parts that are supposed to read as one
+    /// instrument played twice were landing in different places.
+    ///
+    /// ⚠ **`None` is a real answer, not a missing value**: no drums have been
+    /// generated yet, so there is no take to mirror and the song seed's
+    /// canonical kit is the right kit. That is also what every pre-existing
+    /// caller and every project saved before this field means.
+    ///
+    /// ⛔ **A seed rather than the lanes themselves, deliberately.** Handing the
+    /// session's real notes in would stop [`render`] being a pure function of
+    /// its seeds, which is the property that lets a saved seed rebuild a
+    /// pattern at all. `drums::generate` is pure in `(model, ctx, seed)`, so the
+    /// take seed reconstructs the same kick byte for byte.
+    pub drums: Option<u64>,
 }
 
 impl Seeds {
@@ -85,11 +107,22 @@ impl Seeds {
     /// existing caller, every saved project written before TASK-141, and
     /// `arrange::render_section` all mean "one seed for everything", which is
     /// the case where the two-seed design collapses back to the old behaviour.
+    /// `drums` is `None` for the same reason: one seed means the reference kit
+    /// *is* the kit on screen, so there is nothing separate to point at.
     pub fn shared(seed: u64) -> Self {
         Self {
             song: seed,
             part: seed,
+            drums: None,
         }
+    }
+
+    /// The kit a part written against the drums should read.
+    ///
+    /// The drums' own take when there is one, and the record's canonical kit
+    /// when there is not.
+    fn drum_seed(self) -> u64 {
+        self.drums.unwrap_or(self.song)
     }
 }
 
@@ -126,6 +159,15 @@ impl Seeds {
 /// grammar*, which is a property of the model and the song seed rather than of
 /// one particular take.
 ///
+/// ⛔⛔ **The BASS is the exception, and the difference is literal versus
+/// grammatical.** `bassline.rhythm = "mirror_kick"` — the default, and what
+/// most of the trap and drill roster authors — copies the kick's ticks one for
+/// one. A reference kit is the right input for "phrase around the kick" and the
+/// wrong one for "play exactly where the kick plays": it put bass notes on
+/// kicks that are not in the pattern. So `Part::Bass` reads
+/// [`Seeds::drum_seed`] instead, which is still a *seed* — purity is kept, and
+/// only the number changes.
+///
 /// ⚠ **`arrange::render_section` solves the same problem differently and must
 /// stay that way.** Song Mode renders all five parts together, so it can share
 /// one already-generated kit through `Carry` — the real one the section plays.
@@ -134,7 +176,12 @@ impl Seeds {
 /// the pair had never been written against each other."* That is the failure
 /// this must not reintroduce, and sharing the song seed is what prevents it.
 fn generate(model: &StyleModel, ctx: &SessionContext, seeds: Seeds, part: Part) -> Vec<LaneTrack> {
-    let Seeds { song, part: take } = seeds;
+    // `drums` is deliberately not destructured: only one arm reads it, and it
+    // reads it through `drum_seed` so the "or the record's kit" fallback is
+    // spelled once rather than at the call site.
+    let Seeds {
+        song, part: take, ..
+    } = seeds;
     match part {
         Part::Drums => drums::generate(model, ctx, take),
         Part::Chords => vec![chords::generate(model, ctx, song).track],
@@ -154,7 +201,13 @@ fn generate(model: &StyleModel, ctx: &SessionContext, seeds: Seeds, part: Part) 
         }
         Part::Bass => {
             let harmony = chords::generate(model, ctx, song);
-            let kit = drums::generate(model, ctx, song);
+            // ⛔ **The drums' own take, not the record's reference kit** — see
+            // [`Seeds::drums`]. The bass is the one part that reads the kick
+            // *literally*: `mirror_kick` copies its ticks, so a kit generated
+            // at a different seed puts the bass on kicks nobody is playing.
+            // Melody and Counter are directly below and deliberately do not do
+            // this; they phrase around the kick's grammar rather than copy it.
+            let kit = drums::generate(model, ctx, seeds.drum_seed());
             vec![bass::generate(model, ctx, take, &harmony, &kit)]
         }
     }

@@ -9,7 +9,24 @@ use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
 use engine::context::SessionContext;
-use engine::generators::drums::{generate, SnarePlacement};
+use engine::generators::drums::{can_read_perc_placement, generate, SnarePlacement, PERC_LANES};
+
+/// The perc lanes spelled the way the dataset spells them.
+///
+/// ⛔ **Derived from `PERC_LANES`, never retyped.** `Lane` serializes by name,
+/// which is exactly the string a model writes in `drums.percs.lanes` — so this
+/// is the one conversion rather than a second list to keep in step.
+fn perc_lane_names() -> Vec<String> {
+    PERC_LANES
+        .iter()
+        .map(|lane| {
+            serde_json::to_value(lane)
+                .ok()
+                .and_then(|value| value.as_str().map(str::to_owned))
+                .unwrap_or_else(|| panic!("{lane:?} has no serialized name"))
+        })
+        .collect()
+}
 use engine::generators::grid;
 use engine::pattern::{Articulation, Lane, LaneTrack};
 use engine::StyleModel;
@@ -446,7 +463,7 @@ fn trap_and_drill_do_not_come_out_sounding_the_same() {
         let (mut offbeat, mut total) = (0.0, 0.0);
         for seed in 0..60u64 {
             for (_, tick) in positions(&generate(m, &context, seed), Lane::Kick, &context) {
-                if grid::is_offbeat_eighth(tick / grid::SIXTEENTH) {
+                if grid::is_offbeat_eighth(tick / grid::SIXTEENTH, &context) {
                     offbeat += 1.0;
                 }
                 total += 1.0;
@@ -488,6 +505,137 @@ fn every_shipped_model_states_a_snare_placement_the_engine_knows() {
     assert!(
         checked > 0,
         "no model declared a placement — nothing checked"
+    );
+}
+
+#[test]
+fn every_shipped_model_states_a_perc_placement_the_engine_knows() {
+    // ⛔ The same hole as the snare's, one block over, and it was open: this
+    // was a bare `== Some("offbeat")`, so every other word — a typo, or the
+    // perfectly reasonable `"downbeat"` — meant "anywhere" with nothing saying
+    // so. A model asking for an accent layer would get a sprinkle.
+    let mut checked = 0;
+    for (id, model) in shipped() {
+        let Some(placement) = model
+            .blocks
+            .get("drums")
+            .and_then(|d| d.get("percs"))
+            .and_then(|p| p.get("placement"))
+            .and_then(Value::as_str)
+        else {
+            continue;
+        };
+        checked += 1;
+        assert!(
+            can_read_perc_placement(placement),
+            "{id}: `{placement}` is not a perc placement the engine knows"
+        );
+    }
+    assert!(
+        checked > 0,
+        "no model declared a perc placement — nothing checked"
+    );
+}
+
+#[test]
+fn every_percussion_lane_the_engine_ships_is_reachable_from_the_dataset() {
+    // ⛔⛔ **Six of these shipped with no way to reach them.** The lanes, the GM
+    // notes, the humanize streams and the kit pads all landed; no model named
+    // `ride`, `crash`, `tom`, `shaker` or `cowbell` in `percs.lanes`, and none
+    // authored `snare.offSnare`. Every other gate stayed green because each one
+    // asks "does what is authored work", and nothing asked "is what shipped
+    // authored". This is that question.
+    //
+    // ⚠ The tambourine is reachable through its own two flags rather than
+    // through `lanes` — see `percs` — so both spellings count.
+    let mut named: BTreeMap<String, usize> = BTreeMap::new();
+    let mut off_snare = 0;
+
+    for (_, model) in shipped() {
+        let drums = model.blocks.get("drums");
+        let percs = drums.and_then(|d| d.get("percs"));
+
+        for lane in percs
+            .and_then(|p| p.get("lanes"))
+            .and_then(Value::as_array)
+            .map(|a| a.iter().filter_map(Value::as_str).collect::<Vec<_>>())
+            .unwrap_or_default()
+        {
+            *named.entry(lane.to_owned()).or_default() += 1;
+        }
+        for flag in ["tambourine", "tambourineMirrorsClap"] {
+            if percs.and_then(|p| p.get(flag)).and_then(Value::as_bool) == Some(true) {
+                *named.entry("tambourine".into()).or_default() += 1;
+            }
+        }
+        if drums
+            .and_then(|d| d.get("snare"))
+            .and_then(|s| s.get("offSnare"))
+            .is_some()
+        {
+            off_snare += 1;
+        }
+    }
+
+    // ⛔ **`PERC_LANES` itself, never a list retyped here.** This test exists
+    // because the lane-pad guard iterated a hand-written list of eight and
+    // stayed green through eight new silent lanes — so spelling the ten out
+    // again would rebuild the very defect it is written against: an eleventh
+    // perc lane would leave this passing.
+    let missing: Vec<String> = perc_lane_names()
+        .into_iter()
+        .filter(|lane| !named.contains_key(lane))
+        .collect();
+
+    assert!(
+        missing.is_empty(),
+        "these percussion lanes ship with no model that can play them: {missing:?}"
+    );
+    assert!(
+        off_snare > 0,
+        "`Lane::OffSnare` ships with no model authoring `drums.snare.offSnare`"
+    );
+}
+
+#[test]
+fn every_percussion_lane_the_engine_ships_is_actually_heard() {
+    // ⛔⛔ **Named in the data is not the same as heard, and this project has
+    // already been bitten by exactly that distinction twice** — `drums.percs`
+    // was authored by 15 models with no reader, and the lane-pad guard iterated
+    // a hand-written list of eight while eight new lanes stayed silent. A
+    // density of `[0, 2]` can round to nothing, a `prob` can never fire, and a
+    // placement can filter every candidate out; each of those leaves the
+    // dataset gate above perfectly green and the lane inaudible.
+    //
+    // ⚠ **A sweep, not a spot check.** These layers are sampled per bar, so one
+    // seed says nothing — the same trap the collision gate was rewritten for.
+    let mut heard: BTreeMap<Lane, usize> = BTreeMap::new();
+
+    for (_, model) in shipped() {
+        let context = ctx(&model, 4);
+        for seed in 0..40u64 {
+            for track in generate(&model, &context, seed) {
+                if !track.notes.is_empty() {
+                    *heard.entry(track.lane).or_default() += track.notes.len();
+                }
+            }
+        }
+    }
+
+    // ⛔ `PERC_LANES` itself, plus the off-snare — which is not a perc lane (it
+    // has its own authored block under `snare`) but ships in the same batch and
+    // has the same "authored, unread, silent" failure mode.
+    let silent: Vec<Lane> = PERC_LANES
+        .iter()
+        .copied()
+        .chain(std::iter::once(Lane::OffSnare))
+        .filter(|lane| !heard.contains_key(lane))
+        .collect();
+
+    assert!(
+        silent.is_empty(),
+        "no shipped model plays a single note in {silent:?} across the whole \
+         roster and 40 seeds — the lanes ship, the sound does not"
     );
 }
 

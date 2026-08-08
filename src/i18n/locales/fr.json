@@ -56,7 +56,8 @@
     "kit": "Kit",
     "session": "Session",
     "presets": "Préréglages",
-    "stems": "Pistes"
+    "stems": "Pistes",
+    "explorer": "Navigateur"
   },
   "readouts": {
     "bpm": "BPM",
@@ -302,7 +303,9 @@
       "hook": "Refrain",
       "bridge": "Pont",
       "outro": "Outro"
-    }
+    },
+    "resizeClip": "Sur combien de mesures {{part}} boucle",
+    "resizeClipHint": "Boucle sur {{bars}} mesures — faites glisser pour changer"
   },
   "stems": {
     "midi": "MIDI",
@@ -323,7 +326,8 @@
       "generate": "Générer",
       "editing": "Édition",
       "notes": "Notes",
-      "drums": "Grille de batterie"
+      "drums": "Grille de batterie",
+      "browser": "Navigateur de samples"
     },
     "keys": {
       "toggleRail": "Afficher ou masquer le panneau droit",
@@ -347,7 +351,22 @@
       "septuplet": "Septolet dans cette case",
       "cloneBar": "Copier la mesure 1 sur celle-ci",
       "shortcuts": "Afficher ce panneau",
-      "play": "Lire ou mettre en pause"
+      "play": "Lire ou mettre en pause",
+      "previewDirection": "Lire le sample à l’envers / à l’endroit"
     }
+  },
+  "explorer": {
+    "addFolder": "Ajouter un dossier",
+    "removeFolder": "Retirer {{name}} de la bibliothèque",
+    "noRoots": "Ajoutez un dossier pour parcourir vos samples.",
+    "listLabel": "Liste des samples",
+    "up": "Remonter",
+    "empty": "Aucun sample dans ce dossier.",
+    "truncated": "Ce dossier contient plus de fichiers que ceux affichés.",
+    "pickAFile": "Choisissez un sample pour l’écouter.",
+    "decoding": "Lecture du fichier…",
+    "waveformOf": "Forme d’onde de {{name}}",
+    "reverse": "Lire à l’envers",
+    "resize": "Redimensionner le navigateur"
   }
 }

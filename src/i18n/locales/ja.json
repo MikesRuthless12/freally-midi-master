@@ -56,7 +56,8 @@
     "kit": "キット",
     "session": "セッション",
     "presets": "プリセット",
-    "stems": "ステム"
+    "stems": "ステム",
+    "explorer": "ブラウザー"
   },
   "readouts": {
     "bpm": "BPM",
@@ -302,7 +303,9 @@
       "hook": "フック",
       "bridge": "ブリッジ",
       "outro": "アウトロ"
-    }
+    },
+    "resizeClip": "{{part}} がループする小節数",
+    "resizeClipHint": "{{bars}} 小節でループ — ドラッグで変更"
   },
   "stems": {
     "midi": "MIDI",
@@ -323,7 +326,8 @@
       "generate": "生成",
       "editing": "編集",
       "notes": "ノート",
-      "drums": "ドラムグリッド"
+      "drums": "ドラムグリッド",
+      "browser": "サンプルブラウザー"
     },
     "keys": {
       "toggleRail": "右パネルの表示切替",
@@ -347,7 +351,22 @@
       "septuplet": "このセルを7連符に",
       "cloneBar": "1小節目をこの小節に複製",
       "shortcuts": "このパネルを表示",
-      "play": "再生または一時停止"
+      "play": "再生または一時停止",
+      "previewDirection": "サンプルを逆再生 / 順再生"
     }
+  },
+  "explorer": {
+    "addFolder": "フォルダーを追加",
+    "removeFolder": "ライブラリから {{name}} を削除",
+    "noRoots": "サンプルを閲覧するにはフォルダーを追加してください。",
+    "listLabel": "サンプル一覧",
+    "up": "上へ",
+    "empty": "このフォルダーにサンプルはありません。",
+    "truncated": "このフォルダーには表示されているより多くのファイルがあります。",
+    "pickAFile": "サンプルを選ぶと試聴できます。",
+    "decoding": "読み込み中…",
+    "waveformOf": "{{name}} の波形",
+    "reverse": "逆再生",
+    "resize": "ブラウザーの幅を変更"
   }
 }

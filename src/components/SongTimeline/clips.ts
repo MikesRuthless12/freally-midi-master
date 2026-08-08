@@ -13,7 +13,7 @@
  * there — are testable without mounting anything.
  */
 
-import type { Part, Section, SectionKind, Song } from '../../lib/ipc-types';
+import type { Part, PatternRef, Section, SectionKind, Song } from '../../lib/ipc-types';
 
 /** Which clip: the section it belongs to, and the part row it sits on. */
 export type ClipId = { sectionIndex: number; part: Part };
@@ -71,6 +71,77 @@ export function resizeSection(song: Song, index: number, bars: number): Song {
 }
 
 /**
+ * Resize one clip — how many bars it loops on inside its section (TASK-142).
+ *
+ * ⛔ **Not the same gesture as resizing a section, and that is the whole point.**
+ * A section's length is how long that part of the record runs and it moves every
+ * row; a clip's length is how much of its loop this one row plays before it
+ * repeats. Mike's finding was that the timeline only had the first of those, so
+ * *"there is no clip resize"* — the clip always filled whatever its section was.
+ *
+ * ⛔ **Written on the reference rather than on the pattern**, because sections of
+ * the same kind share one pattern: shortening the pattern would shorten every
+ * verse in the song at once. `PatternRef.bars` carries it, and the engine reads
+ * it in exactly one place — `SectionTiling::of` — so what plays and what exports
+ * cannot disagree about it.
+ *
+ * ⚠ **Back to `null` at the clip's own length**, rather than storing the number.
+ * `null` means "the whole clip", so a producer who drags a clip back out to full
+ * length gets a song that is byte-identical to one that was never resized — and
+ * a later edit that lengthens the pattern still fills the section.
+ */
+export function resizeClip(song: Song, clip: ClipId, bars: number): Song {
+  const section = song.sections[clip.sectionIndex];
+  const reference = section?.patterns[clip.part];
+  if (!section || !reference) return song;
+
+  const pattern = song.patterns[reference.patternId];
+  const full = pattern?.bars ?? 0;
+  // ⛔ **Floored at one bar and capped at the clip's own length.** Zero would
+  // ask the engine to lay the clip down once per tick — its own guard refuses
+  // that, and a UI that can send it is a UI relying on a guard. Longer than the
+  // pattern is not a longer loop: there are no notes out there, so it would read
+  // as the clip having gone quiet.
+  const wanted = Math.max(1, Math.round(bars));
+  const clamped = full > 0 ? Math.min(full, wanted) : wanted;
+  const next = full > 0 && clamped === full ? null : clamped;
+  if ((reference.bars ?? null) === next) return song;
+
+  return withSections(
+    song,
+    song.sections.map((s, index) =>
+      index === clip.sectionIndex
+        ? {
+            ...s,
+            patterns: {
+              ...s.patterns,
+              [clip.part]: { ...reference, bars: next },
+            },
+          }
+        : s,
+    ),
+  );
+}
+
+/**
+ * How many bars this clip loops on — its resize, or the pattern's own length.
+ *
+ * ⚠ **One reader, so the timeline and the engine agree.** `SectionTiling::of`
+ * applies the identical rule in Rust; two spellings of "how long is this clip"
+ * is how a drawn width comes to disagree with a played one.
+ */
+export function clipBars(song: Song, clip: ClipId): number {
+  const reference = song.sections[clip.sectionIndex]?.patterns[clip.part];
+  if (!reference) return 0;
+  const full = song.patterns[reference.patternId]?.bars ?? 0;
+  // ⚠ No `?? null` dance: `undefined > 0` is already false. The one in
+  // `resizeClip` above does earn its place — there `next` is `number | null` and
+  // the comparison is against a real null.
+  const own = reference.bars ?? 0;
+  return own > 0 ? own : full;
+}
+
+/**
  * Duplicate a section, placing the copy directly after it (TASK-063B).
  *
  * The clone shares its `PatternRef`s rather than copying the patterns: two
@@ -107,14 +178,24 @@ export function deleteClips(song: Song, clips: ClipId[]): Song {
 
 /** What a cut or copy put on the clipboard. */
 export type Clipboard = {
-  /** The pattern each copied clip pointed at, by part. */
-  clips: { part: Part; patternId: string }[];
+  /**
+   * The whole reference each copied clip held, by part.
+   *
+   * ⛔ **The reference, not just its `patternId`.** This carried the id alone
+   * until TASK-142 gave a `PatternRef` a second field — and then every copy,
+   * cut, paste and drag-move silently discarded the producer's clip resize,
+   * because `move` is composed from copy + delete + paste. Resize a clip to loop
+   * on two bars, drag it one section along, and it came back at the pattern's
+   * full length. Carrying the reference whole means the next field added to it
+   * cannot go missing the same way.
+   */
+  clips: { part: Part; reference: PatternRef }[];
 };
 
 export function copyClips(song: Song, clips: ClipId[]): Clipboard | null {
   const entries = clips.flatMap((clip) => {
     const reference = song.sections[clip.sectionIndex]?.patterns[clip.part];
-    return reference ? [{ part: clip.part, patternId: reference.patternId }] : [];
+    return reference ? [{ part: clip.part, reference: { ...reference } }] : [];
   });
   return entries.length > 0 ? { clips: entries } : null;
 }
@@ -134,8 +215,9 @@ export function pasteClips(song: Song, clipboard: Clipboard, sectionIndex: numbe
   const patterns = { ...section.patterns };
   let pasted = 0;
   for (const clip of clipboard.clips) {
-    if (!song.patterns[clip.patternId]) continue;
-    patterns[clip.part] = { patternId: clip.patternId };
+    if (!song.patterns[clip.reference.patternId]) continue;
+    // Copied whole, so the clip's own loop length lands with it.
+    patterns[clip.part] = { ...clip.reference };
     pasted += 1;
   }
   if (pasted === 0) return song;
@@ -203,7 +285,8 @@ export function moveClips(song: Song, clips: ClipId[], to: number, from: number)
     const target = clip.sectionIndex + shift;
     const already = byTarget.get(target);
     const entry = already ?? { clips: [] };
-    entry.clips.push({ part: clip.part, patternId: reference.patternId });
+    // The reference whole, so a drag-move carries the clip resize with it.
+    entry.clips.push({ part: clip.part, reference: { ...reference } });
     if (!already) byTarget.set(target, entry);
   }
   // ⚠ Nothing to move — every named clip was already gone. Returning the song

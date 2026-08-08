@@ -12,7 +12,7 @@
  * up showing something the exported file does not contain.
  */
 
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Dices, Headphones, Lock, LockOpen, Repeat, Volume2, VolumeX } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -21,14 +21,24 @@ import { isTypingTarget } from '../../lib/keyboard';
 import { armCurrentPattern, useSession } from '../../state/session';
 import { THRESHOLD_PX } from '../../state/drag';
 import { lockKey, lockedRegions, useSong } from '../../state/song';
-import { isSelected, partsInUse, sectionAtBar, totalBars } from './clips';
+import { clipBars, isSelected, partsInUse, sectionAtBar, totalBars } from './clips';
+import { CLIP_H, CLIP_W, clipFormat, notesPath, type ClipFormat } from './clipArt';
 import { barLabel, barToSeconds, barToX, formatTime, gridFor, xToBar } from './geometry';
-import { density, sketchGradient } from './sketch';
+import { DragChip } from '../Kit/DragRows';
+import { soundableLanes, useKit } from '../../state/kit';
+import type { DragFormat } from '../../state/drag';
 import { StructureChips } from './StructureChips';
 import './SongTimeline.css';
 
-/** Height of one part row, in pixels. Matches `--song-row` in the CSS. */
-const ROW_HEIGHT = 44;
+/**
+ * Height of one part row, in pixels.
+ *
+ * ⛔ **The only definition, and it has to stay that way.** It lays out the clip
+ * rows inside the scrolling canvas *and* the track headers in the gutter beside
+ * them; a second copy in the CSS would drift, and by the fifth row the header
+ * would name a different part from the clips next to it.
+ */
+const ROW_HEIGHT = 60;
 
 /**
  * The playhead is read from the session store rather than passed in, because
@@ -53,6 +63,7 @@ export function SongTimeline({ song }: Props) {
   const selectSection = useSong((s) => s.selectSection);
   const clearSelection = useSong((s) => s.clearSelection);
   const resize = useSong((s) => s.resize);
+  const resizeClip = useSong((s) => s.resizeClip);
   const clone = useSong((s) => s.clone);
   const move = useSong((s) => s.move);
   const deleteSelection = useSong((s) => s.deleteSelection);
@@ -91,6 +102,14 @@ export function SongTimeline({ song }: Props) {
   const togglePartMute = useSong((s) => s.togglePartMute);
   const togglePartSolo = useSong((s) => s.togglePartSolo);
 
+  // ⚠ **Which lanes can actually make a sound**, so a clip only claims it can
+  // be dragged as audio when something in it has a sample behind it. The same
+  // predicate `DragRows` uses, from the same store — and `DragRows` also
+  // records why an *unread* kit has to answer "yes" rather than "no".
+  const kitLanes = useKit((s) => s.lanes);
+  const kitLoaded = useKit((s) => s.loaded);
+  const soundable = useMemo(() => soundableLanes(kitLanes), [kitLanes]);
+
   // ⛔ **The visible tab decides what plays, and there is only one schedule.**
   // Arriving here arms the arrangement; leaving gives the transport back the
   // clip the generator tabs are showing. Without the cleanup a producer could
@@ -115,6 +134,9 @@ export function SongTimeline({ song }: Props) {
   // keydown never reaches this handler, so the *next* shortcut silently did
   // nothing: Ctrl+X worked and the Ctrl+V after it went nowhere.
   const rootRef = useRef<HTMLDivElement>(null);
+
+  /** The track-header column, so it can be scrolled to match the timeline. */
+  const gutterRef = useRef<HTMLDivElement>(null);
 
   const beatsPerBar = Math.max(1, song.timeSigNum);
   const bars = totalBars(song);
@@ -300,173 +322,225 @@ export function SongTimeline({ song }: Props) {
         onPick={setStructure}
       />
 
-      <div className="song__scroller">
-        <div className="song__canvas" style={{ width }}>
-          {/* ── The ruler: bar numbers and timestamps over the grid. */}
-          <div className="song__ruler" data-testid="song-ruler">
-            {ticks.map((tick) => (
-              <div
-                key={tick.bar}
-                className="song__tick"
-                style={{ left: barToX(tick.bar, view) }}
-              >
-                <span className="song__bar-number">{tick.label}</span>
-                <span className="song__time">{tick.time}</span>
-              </div>
-            ))}
-          </div>
+      {/* ⛔⛔ **A track gutter beside a scrolling timeline — the shape every DAW
+          uses** (TASK-142's UI half). The row headers used to be
+          `position: sticky` *inside* the scrolling canvas, so they floated over
+          the clips: at bar 1 the words "DRUMS ⏵ S 🔒" sat on top of the first
+          clip of every row, and scrolling dragged them across whatever was
+          underneath. A DAW puts the track controls in a column of their own and
+          scrolls only the time axis past them, which is what this grid is.
 
-          {/* ── The section headers: name, kind and bar count (TASK-063A). */}
-          <div className="song__sections">
-            {song.sections.map((section, index) => (
-              <SectionHeader
-                key={`${section.type}-${index}`}
-                section={section}
-                index={index}
-                left={barToX(section.startBar, view)}
-                width={section.bars * view.zoom}
-                selected={selection.some((c) => c.sectionIndex === index)}
-                looping={loopSection === index}
-                locked={locked.sections[index] ?? false}
-                onSelect={(additive) => selectSection(index, additive)}
-                onResize={(barsNext) => resize(index, barsNext)}
-                onClone={() => clone(index)}
-                onLoop={() => setLoopSection(loopSection === index ? null : index)}
-                onLock={() => toggleSectionLock(index)}
-                onReroll={() => void reroll(index, mood)}
-              />
-            ))}
-          </div>
+          ⚠ **The gutter does not scroll horizontally and must not.** That is the
+          whole point — and it is also why the ruler and the section band are
+          inside the scroller rather than beside it: they are the time axis, so
+          they move with the clips or they stop lining up with them. */}
+      <div className="song__panel">
+        {/* ⛔⛔ **The gutter follows the timeline's vertical scroll, and without
+            this it did not.** It is `overflow: hidden` — deliberately, so it
+            cannot grow a second scrollbar — which meant that once there were
+            more part rows than fit, scrolling the clips left the track headers
+            where they were. The mute, solo and lock buttons beside a row then
+            acted on a *different* part from the one drawn next to them, which is
+            worse than them being missing.
+            ⚠ Written straight onto the node rather than held in state: this
+            fires on every scroll frame, and a `set` per frame would reconcile
+            the whole timeline to move one column by a few pixels. */}
+        <div className="song__gutter" ref={gutterRef}>
+          {/* Blank, and exactly as tall as the ruler plus the section band, so
+              the first track header lines up with the first row of clips. */}
+          <div className="song__gutter-top" aria-hidden="true" />
+          {rows.map((part) => (
+            <div className="song__track" key={part} style={{ height: ROW_HEIGHT }}>
+              {/* ⚠ The row header says *preview*: muting and soloing here change
+                  what is auditioned and not the song or the exported file, which
+                  is the same distinction the per-lane audio mute already
+                  draws. */}
+              <span className="song__track-name">{t(`tabs.${part}`)}</span>
+              <span className="song__track-controls">
+                <button
+                  type="button"
+                  className={`song__row-mute${mutedParts.includes(part) ? ' is-on' : ''}`}
+                  aria-pressed={mutedParts.includes(part)}
+                  aria-label={t('song.mutePart', { part: t(`tabs.${part}`) })}
+                  title={t('song.previewOnly')}
+                  onClick={() => togglePartMute(part)}
+                >
+                  {mutedParts.includes(part) ? <VolumeX size={13} /> : <Volume2 size={13} />}
+                </button>
+                <button
+                  type="button"
+                  className={`song__row-solo${soloParts.includes(part) ? ' is-on' : ''}`}
+                  aria-pressed={soloParts.includes(part)}
+                  aria-label={t('song.soloPart', { part: t(`tabs.${part}`) })}
+                  title={t('song.previewOnly')}
+                  onClick={() => togglePartSolo(part)}
+                >
+                  S
+                </button>
+                {/* Lock the whole row: this part is pinned in every section that
+                    plays it, so a re-roll leaves it alone (TASK-070). */}
+                <button
+                  type="button"
+                  className={`song__row-lock${(locked.rows[part] ?? false) ? ' is-on' : ''}`}
+                  aria-pressed={locked.rows[part] ?? false}
+                  aria-label={t('song.lockRow', { part: t(`tabs.${part}`) })}
+                  title={t('song.lockHint')}
+                  onClick={() => toggleRowLock(part)}
+                >
+                  {(locked.rows[part] ?? false) ? <Lock size={12} /> : <LockOpen size={12} />}
+                </button>
+              </span>
+            </div>
+          ))}
+        </div>
 
-          {/* ── The transport marker (TASK-041T in this view, TASK-072).
+        <div
+          className="song__scroller"
+          onScroll={(event) => {
+            const gutter = gutterRef.current;
+            if (gutter) gutter.scrollTop = event.currentTarget.scrollTop;
+          }}
+        >
+          <div className="song__canvas" style={{ width }}>
+            {/* ── The ruler: bar numbers and timestamps over the grid. */}
+            <div className="song__ruler" data-testid="song-ruler">
+              {ticks.map((tick) => (
+                <div
+                  key={tick.bar}
+                  className="song__tick"
+                  style={{ left: barToX(tick.bar, view) }}
+                >
+                  <span className="song__bar-number">{tick.label}</span>
+                  <span className="song__time">{tick.time}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* ── The section headers: name, kind and bar count (TASK-063A). */}
+            <div className="song__sections">
+              {song.sections.map((section, index) => (
+                <SectionHeader
+                  key={`${section.type}-${index}`}
+                  section={section}
+                  index={index}
+                  left={barToX(section.startBar, view)}
+                  width={section.bars * view.zoom}
+                  selected={selection.some((c) => c.sectionIndex === index)}
+                  looping={loopSection === index}
+                  locked={locked.sections[index] ?? false}
+                  onSelect={(additive) => selectSection(index, additive)}
+                  onResize={(barsNext) => resize(index, barsNext)}
+                  onClone={() => clone(index)}
+                  onLoop={() => setLoopSection(loopSection === index ? null : index)}
+                  onLock={() => toggleSectionLock(index)}
+                  onReroll={() => void reroll(index, mood)}
+                />
+              ))}
+            </div>
+
+            {/* ── The transport marker (TASK-041T in this view, TASK-072).
               Drawn over the whole canvas so it crosses the ruler and every row,
               and translated rather than laid out so following it costs no
               layout — the same trick the roll's marker uses at 30 Hz. */}
-          <Playhead width={width} />
+            <Playhead width={width} />
 
-          {/* ── The clip grid. */}
-          <div
-            className="song__rows"
-            style={{ height: rows.length * ROW_HEIGHT }}
-            onMouseDown={(event) => {
-              // ⛔ **`closest('.song__clip')`, not `target !== currentTarget`.**
-              // That guard could never pass: every pixel of `.song__rows` is
-              // covered by a `.song__row` child which is a live hit-test target
-              // (only the grid, the labels, the sketches and the playhead are
-              // `pointer-events: none`), so `event.target` was always a row and
-              // the handler returned on its first line. Click-to-seek — the
-              // thing TASK-072 advertises — and the background clear it replaced
-              // were both dead, and no gate covered either.
-              //
-              // What the gesture actually means is "not on a clip": clicking a
-              // clip selects it, and one that also moved the transport would
-              // make selecting anything mid-playback jump the record.
-              if ((event.target as HTMLElement).closest('.song__clip')) return;
-              clearSelection();
-              // Measured against the row box, which spans the same width the
-              // clips and the playhead are laid out in, so the marker lands
-              // under the pointer at any zoom.
-              const track = event.currentTarget.getBoundingClientRect();
-              if (track.width > 0) {
-                void seek((event.clientX - track.left) / track.width);
-              }
-            }}
-          >
-            {/* Gridlines sit under the clips and take no pointer events, so a
-                click between two clips reaches the background above. */}
+            {/* ── The clip grid. */}
             <div
-              className="song__grid"
-              style={gridStyle}
-              data-bar-step={grid.barStep}
-              data-beat-step={grid.beatStep}
-              aria-hidden="true"
-            />
-
-            {rows.map((part, row) => (
+              className="song__rows"
+              style={{ height: rows.length * ROW_HEIGHT }}
+              onMouseDown={(event) => {
+                // ⛔ **`closest('.song__clip')`, not `target !== currentTarget`.**
+                // That guard could never pass: every pixel of `.song__rows` is
+                // covered by a `.song__row` child which is a live hit-test target
+                // (only the grid, the labels, the sketches and the playhead are
+                // `pointer-events: none`), so `event.target` was always a row and
+                // the handler returned on its first line. Click-to-seek — the
+                // thing TASK-072 advertises — and the background clear it replaced
+                // were both dead, and no gate covered either.
+                //
+                // What the gesture actually means is "not on a clip": clicking a
+                // clip selects it, and one that also moved the transport would
+                // make selecting anything mid-playback jump the record.
+                if ((event.target as HTMLElement).closest('.song__clip')) return;
+                clearSelection();
+                // Measured against the row box, which spans the same width the
+                // clips and the playhead are laid out in, so the marker lands
+                // under the pointer at any zoom.
+                const track = event.currentTarget.getBoundingClientRect();
+                if (track.width > 0) {
+                  void seek((event.clientX - track.left) / track.width);
+                }
+              }}
+            >
+              {/* Gridlines sit under the clips and take no pointer events, so a
+                click between two clips reaches the background above. */}
               <div
-                className="song__row"
-                key={part}
-                style={{ top: row * ROW_HEIGHT, height: ROW_HEIGHT }}
-              >
-                {/* ⚠ The row header says *preview*: muting and soloing here
-                    change what is auditioned and not the song or the exported
-                    file, which is the same distinction the per-lane audio mute
-                    already draws. */}
-                <span className="song__row-label">
-                  {t(`tabs.${part}`)}
-                  <button
-                    type="button"
-                    className={`song__row-mute${mutedParts.includes(part) ? ' is-on' : ''}`}
-                    aria-pressed={mutedParts.includes(part)}
-                    aria-label={t('song.mutePart', { part: t(`tabs.${part}`) })}
-                    title={t('song.previewOnly')}
-                    onClick={() => togglePartMute(part)}
-                  >
-                    {mutedParts.includes(part) ? <VolumeX size={13} /> : <Volume2 size={13} />}
-                  </button>
-                  <button
-                    type="button"
-                    className={`song__row-solo${soloParts.includes(part) ? ' is-on' : ''}`}
-                    aria-pressed={soloParts.includes(part)}
-                    aria-label={t('song.soloPart', { part: t(`tabs.${part}`) })}
-                    title={t('song.previewOnly')}
-                    onClick={() => togglePartSolo(part)}
-                  >
-                    S
-                  </button>
-                  {/* Lock the whole row: this part is pinned in every section
-                      that plays it, so a re-roll leaves it alone (TASK-070). */}
-                  <button
-                    type="button"
-                    className={`song__row-lock${(locked.rows[part] ?? false) ? ' is-on' : ''}`}
-                    aria-pressed={locked.rows[part] ?? false}
-                    aria-label={t('song.lockRow', { part: t(`tabs.${part}`) })}
-                    title={t('song.lockHint')}
-                    onClick={() => toggleRowLock(part)}
-                  >
-                    {(locked.rows[part] ?? false) ? <Lock size={12} /> : <LockOpen size={12} />}
-                  </button>
-                </span>
-                {song.sections.map((section, index) =>
-                  section.patterns[part] ? (
-                    <Clip
-                      key={`${part}-${index}`}
-                      part={part}
-                      section={section}
-                      clip={song.patterns[section.patterns[part].patternId] ?? null}
-                      left={barToX(section.startBar, view)}
-                      width={section.bars * view.zoom}
-                      selected={isSelected(selection, { sectionIndex: index, part })}
-                      locked={locks.includes(lockKey({ sectionIndex: index, part }))}
-                      auditioning={audition?.sectionIndex === index && audition?.part === part}
-                      beatsPerBar={beatsPerBar}
-                      onSelect={(additive) => select({ sectionIndex: index, part }, additive)}
-                      onLock={() => toggleLock({ sectionIndex: index, part })}
-                      onAudition={() => auditionClip({ sectionIndex: index, part })}
-                      onDrillIn={() => drillInto({ sectionIndex: index, part })}
-                      onGrab={() => {
-                        // Already part of the selection: leave it alone, so
-                        // dragging one of several moves all of them — which is
-                        // what selecting several was for.
-                        if (isSelected(selection, { sectionIndex: index, part })) return;
-                        select({ sectionIndex: index, part }, false);
-                      }}
-                      onMoveTo={(x) => {
-                        const target = sectionAtBar(song, xToBar(x, view));
-                        // ⚠ Dropped past the last section, or before the first.
-                        // Doing nothing is right: there is no section there to
-                        // hold a clip, and inventing one would be a different
-                        // gesture than the one the producer made.
-                        // ⚠ `index` is where *this* clip started, and the rest
-                        // of the selection moves by the same distance rather
-                        // than piling onto `target` — see `moveClips`.
-                        if (target !== null) move(target, index);
-                      }}
-                    />
-                  ) : null,
-                )}
-              </div>
-            ))}
+                className="song__grid"
+                style={gridStyle}
+                data-bar-step={grid.barStep}
+                data-beat-step={grid.beatStep}
+                aria-hidden="true"
+              />
+
+              {rows.map((part, row) => (
+                <div
+                  className="song__row"
+                  key={part}
+                  style={{ top: row * ROW_HEIGHT, height: ROW_HEIGHT }}
+                >
+                  {song.sections.map((section, index) => {
+                    const reference = section.patterns[part];
+                    if (!reference) return null;
+                    const clip = song.patterns[reference.patternId] ?? null;
+                    // ⚠ **The same rule the engine applies**, read through
+                    // `clipBars` so the drawn loop and the played one cannot
+                    // disagree — see `SectionTiling::of`, which spells it in Rust.
+                    const loopBars = clipBars(song, { sectionIndex: index, part });
+                    return (
+                      <Clip
+                        key={`${part}-${index}`}
+                        part={part}
+                        section={section}
+                        clip={clip}
+                        left={barToX(section.startBar, view)}
+                        width={section.bars * view.zoom}
+                        selected={isSelected(selection, { sectionIndex: index, part })}
+                        locked={locks.includes(lockKey({ sectionIndex: index, part }))}
+                        auditioning={
+                          audition?.sectionIndex === index && audition?.part === part
+                        }
+                        beatsPerBar={beatsPerBar}
+                        format={clipFormat(clip, soundable, kitLoaded)}
+                        loopBars={loopBars}
+                        onResize={(bars) => resizeClip({ sectionIndex: index, part }, bars)}
+                        onSelect={(additive) => select({ sectionIndex: index, part }, additive)}
+                        onLock={() => toggleLock({ sectionIndex: index, part })}
+                        onAudition={() => auditionClip({ sectionIndex: index, part })}
+                        onDrillIn={() => drillInto({ sectionIndex: index, part })}
+                        onGrab={() => {
+                          // Already part of the selection: leave it alone, so
+                          // dragging one of several moves all of them — which is
+                          // what selecting several was for.
+                          if (isSelected(selection, { sectionIndex: index, part })) return;
+                          select({ sectionIndex: index, part }, false);
+                        }}
+                        onMoveTo={(x) => {
+                          const target = sectionAtBar(song, xToBar(x, view));
+                          // ⚠ Dropped past the last section, or before the first.
+                          // Doing nothing is right: there is no section there to
+                          // hold a clip, and inventing one would be a different
+                          // gesture than the one the producer made.
+                          // ⚠ `index` is where *this* clip started, and the rest
+                          // of the selection moves by the same distance rather
+                          // than piling onto `target` — see `moveClips`.
+                          if (target !== null) move(target, index);
+                        }}
+                      />
+                    );
+                  })}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </div>
@@ -622,6 +696,10 @@ type ClipProps = {
   auditioning: boolean;
   /** The song's own beats per bar — the drop-out is measured in them. */
   beatsPerBar: number;
+  /** What this clip can be handed to a DAW as (TASK-142). */
+  format: ClipFormat;
+  /** How many bars it loops on — its resize, or the pattern's own length. */
+  loopBars: number;
   onSelect: (additive: boolean) => void;
   onLock: () => void;
   onAudition: () => void;
@@ -630,6 +708,8 @@ type ClipProps = {
   onGrab: () => void;
   /** Dropped at `x`, in the canvas's own coordinates. */
   onMoveTo: (x: number) => void;
+  /** Dragged the trailing edge to `bars` (TASK-142). */
+  onResize: (bars: number) => void;
 };
 
 function Clip({
@@ -642,12 +722,15 @@ function Clip({
   locked,
   auditioning,
   beatsPerBar,
+  format,
+  loopBars,
   onSelect,
   onLock,
   onAudition,
   onDrillIn,
   onGrab,
   onMoveTo,
+  onResize,
 }: ClipProps) {
   const { t } = useTranslation();
   /**
@@ -660,10 +743,37 @@ function Clip({
    */
   const press = useRef<{ x: number; moved: boolean } | null>(null);
   const dragged = useRef(false);
-  // Recomputed only when the clip itself changes: a re-roll or an edit replaces
-  // the object, and a resize does not — so scrubbing a section's length does
-  // not rebuild every sketch on the row.
-  const sketch = useMemo(() => (clip ? sketchGradient(density(clip)) : 'none'), [clip]);
+  /**
+   * The clip's own notes, as one SVG path (TASK-142).
+   *
+   * ⛔ **This replaces the note-density gradient**, which is what Mike's review
+   * meant by *"a clip does not look like a clip"*: sixteen buckets of "how busy
+   * is this bar" cannot tell two clips apart, and no DAW draws one. See
+   * `clipArt.ts` for why it is still a single node per clip.
+   *
+   * Recomputed only when the clip itself changes: a re-roll or an edit replaces
+   * the object, and a resize does not — so scrubbing a section's length does
+   * not rebuild every path on the row.
+   */
+  const notes = useMemo(() => notesPath(clip, loopBars), [clip, loopBars]);
+
+  // ⚠ **Derived here rather than passed in**, from props this component already
+  // holds. Ceil, matching `repeats: sounding.div_ceil(clip_len)` in
+  // `SectionTiling` — a section that is not a whole number of loops long plays a
+  // partial last one, and the art has to show it.
+  const repeats = loopBars > 0 ? Math.ceil(section.bars / loopBars) : 1;
+
+  /**
+   * Whether the pointer is over this clip.
+   *
+   * ⛔ **The drag handles are mounted on demand, not hidden with CSS.** They used
+   * to render for every clip and be `display: none` until hover — which pays the
+   * full mount: two `useDrag` subscriptions and three refs each, so a 64-section
+   * song carried ~640 components and ~1,280 store listeners that existed to be
+   * invisible, reconciled on every timeline render and walked on every drag
+   * progress write.
+   */
+  const [hovered, setHovered] = useState(false);
 
   return (
     <button
@@ -724,15 +834,55 @@ function Clip({
       onPointerCancel={() => {
         press.current = null;
       }}
+      // ⚠ **`pointerenter`/`pointerleave`, not `mouseover`** — they do not fire
+      // for descendants, so moving across the clip's own badges cannot flicker
+      // the drag handles in and out from under the cursor.
+      onPointerEnter={() => setHovered(true)}
+      onPointerLeave={() => setHovered(false)}
       // Double-click drills into the part's own editor with this clip loaded,
       // and the edits write back — see the subscriber in `song.ts`.
       onDoubleClick={onDrillIn}
       title={t('song.clipHint')}
     >
-      {/* The note-density sketch (TASK-070). Painted rather than mounted — see
-          `sketch.ts`, and the grid above, which made the same call. */}
-      <span className="song__sketch" style={{ backgroundImage: sketch }} aria-hidden="true" />
-      <span className="song__clip-label">{t(`tabs.${part}`)}</span>
+      {/* ⛔ **The clip's actual notes**, tiled across however many times its
+          loop repeats inside the section — which is what makes a shortened clip
+          visibly a shortened clip rather than the same picture stretched. */}
+      <span className="song__notes" aria-hidden="true">
+        {Array.from({ length: repeats }, (_, repeat) => (
+          <svg
+            key={repeat}
+            className="song__notes-tile"
+            style={{ left: `${(repeat * 100) / repeats}%`, width: `${100 / repeats}%` }}
+            viewBox={`0 0 ${CLIP_W} ${CLIP_H}`}
+            preserveAspectRatio="none"
+          >
+            <path className="song__note" d={notes} />
+          </svg>
+        ))}
+      </span>
+      <span className="song__clip-label">
+        {t(`tabs.${part}`)}
+        {/* ⛔ **What this clip can be handed over as** (TASK-142). The review's
+            words: *"MIDI and audio are indistinguishable — an arrangement clip
+            has no format at all."* Every clip is notes, so MIDI is always
+            offered; audio only when something in it has a sample behind it,
+            which is the same question the Stems panel's two handles ask. */}
+        <span className="song__formats">
+          {/* ⚠ Gated, so the field is not merely decorative: a dangling
+              `PatternRef` resolves to a null clip, and an unconditional badge
+              claimed MIDI for a cell holding nothing. */}
+          {format.midi && (
+            <span className="song__format" data-format="midi">
+              {t('stems.midi')}
+            </span>
+          )}
+          {format.audio && (
+            <span className="song__format" data-format="audio">
+              {t('stems.audio')}
+            </span>
+          )}
+        </span>
+      </span>
       {/* ⛔ A `<span role="button">` rather than a nested `<button>`: a button
           inside a button is invalid HTML and React will not render it. The clip
           itself is the button, because clicking anywhere on a clip selects it. */}
@@ -804,6 +954,98 @@ function Clip({
         />
       )}
       {section.decay && <span className="song__decay" title={t('song.decay')} />}
+
+      {/* ⛔⛔ **Resize the CLIP, not the section** (TASK-142). Mike's review:
+          *"there is no clip resize."* Dragging this edge changes how many bars
+          this one row loops on inside its section; the section's own handles
+          are on its header and move every row at once. `PatternRef.bars` is
+          where it lands, and `SectionTiling::of` is the single place the
+          exporter and the transport both read it.
+
+          ⚠ **Its own pointer handlers, and they stop propagation**, exactly as
+          the lock and the audition badge do: without that the six-pixel travel
+          of a resize crosses the move threshold on the button underneath, and
+          one gesture both re-loops the clip and drags it into another section. */}
+      <span
+        role="slider"
+        tabIndex={0}
+        className="song__clip-resize"
+        aria-label={t('song.resizeClip', { part: t(`tabs.${part}`) })}
+        aria-valuenow={loopBars}
+        aria-valuemin={1}
+        aria-valuemax={clip?.bars ?? loopBars}
+        title={t('song.resizeClipHint', { bars: loopBars })}
+        onPointerDown={(event) => {
+          event.stopPropagation();
+          event.currentTarget.setPointerCapture(event.pointerId);
+        }}
+        onPointerMove={(event) => {
+          if (!event.currentTarget.hasPointerCapture(event.pointerId)) return;
+          const box = event.currentTarget.parentElement?.getBoundingClientRect();
+          if (!box || box.width <= 0) return;
+          // ⚠ Measured from the clip's leading edge against the *section's*
+          // width, so one bar of drag is one bar of loop at every zoom. Rounded
+          // rather than floored: half a bar of travel should reach the next
+          // bar, not sit a bar behind the cursor all the way across.
+          const bars = Math.round(((event.clientX - box.left) / box.width) * section.bars);
+          if (bars !== loopBars) onResize(bars);
+        }}
+        onPointerUp={(event) => event.currentTarget.releasePointerCapture(event.pointerId)}
+        onPointerCancel={(event) => event.currentTarget.releasePointerCapture(event.pointerId)}
+        onKeyDown={(event) => {
+          if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
+          event.stopPropagation();
+          event.preventDefault();
+          onResize(loopBars + (event.key === 'ArrowRight' ? 1 : -1));
+        }}
+      />
+
+      {/* ⛔⛔ **TASK-128's other half: drag ONE clip out to the DAW.** The Stems
+          panel could hand over a whole part or a whole arrangement; a single
+          clip out of the timeline — the thing a producer actually reaches for
+          while arranging — had no gesture at all.
+
+          ⚠ **The same `DragChip` the Stems panel uses**, handed this clip's own
+          pattern. It is a real `DoDragDrop` through `plugin/src/drag.rs`, not an
+          HTML5 drag: `state/drag.ts` records at length why a `dragstart` inside
+          a webview never reaches the DAW. Reusing the chip is what stops this
+          becoming a second drag implementation to keep in agreement — and the
+          format handles then ask the same two questions the panel does. */}
+      {clip && (selected || hovered) && (
+        <span className="song__clip-drags" onPointerDown={(event) => event.stopPropagation()}>
+          {format.midi && <ClipDrag clip={clip} part={part} format="midi" />}
+          {format.audio && <ClipDrag clip={clip} part={part} format="audio" />}
+        </span>
+      )}
     </button>
+  );
+}
+
+/**
+ * One clip's drag-out handle.
+ *
+ * ⚠ **A thin wrapper, and deliberately so.** Everything about starting an OS
+ * drag — the press/threshold split, the pointer capture, the preview bitmap, the
+ * "a drag is not a click" flag — lives in `DragChip`, and this project's own
+ * record is that the second copy of a gesture is the one that drifts. What is
+ * new here is only *which* pattern is being picked up.
+ */
+function ClipDrag({
+  clip,
+  part,
+  format,
+}: {
+  clip: PatternType;
+  part: Part;
+  format: DragFormat;
+}) {
+  const { t } = useTranslation();
+  return (
+    <DragChip
+      subject={{ kind: 'patterns', patterns: [clip] }}
+      format={format}
+      label={format === 'midi' ? t('stems.midi') : t('stems.audio')}
+      title={t(`tabs.${part}`)}
+    />
   );
 }

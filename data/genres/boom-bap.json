@@ -167,12 +167,15 @@
     "percs": {
       "lanes": [
         "rim",
-        "perc"
+        "perc",
+        "ride",
+        "tom"
       ],
       "densityPerBar": [
         0,
         2
-      ]
+      ],
+      "gainOffsetDb": -6
     },
     "fills": {
       "smallEveryBars": 4,

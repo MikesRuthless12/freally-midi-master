@@ -56,7 +56,8 @@
     "kit": "킷",
     "session": "세션",
     "presets": "프리셋",
-    "stems": "스템"
+    "stems": "스템",
+    "explorer": "브라우저"
   },
   "readouts": {
     "bpm": "BPM",
@@ -302,7 +303,9 @@
       "hook": "후렴",
       "bridge": "브리지",
       "outro": "아웃트로"
-    }
+    },
+    "resizeClip": "{{part}}이(가) 반복되는 마디 수",
+    "resizeClipHint": "{{bars}}마디로 반복 — 끌어서 변경"
   },
   "stems": {
     "midi": "MIDI",
@@ -323,7 +326,8 @@
       "generate": "생성",
       "editing": "편집",
       "notes": "노트",
-      "drums": "드럼 그리드"
+      "drums": "드럼 그리드",
+      "browser": "샘플 브라우저"
     },
     "keys": {
       "toggleRail": "오른쪽 패널 표시/숨김",
@@ -347,7 +351,22 @@
       "septuplet": "이 셀에 일곱잇단음표",
       "cloneBar": "1마디를 이 마디에 복사",
       "shortcuts": "이 패널 표시",
-      "play": "재생 또는 일시정지"
+      "play": "재생 또는 일시정지",
+      "previewDirection": "샘플을 거꾸로 / 앞으로 재생"
     }
+  },
+  "explorer": {
+    "addFolder": "폴더 추가",
+    "removeFolder": "라이브러리에서 {{name}} 제거",
+    "noRoots": "샘플을 탐색하려면 폴더를 추가하세요.",
+    "listLabel": "샘플 목록",
+    "up": "위로",
+    "empty": "이 폴더에는 샘플이 없습니다.",
+    "truncated": "이 폴더에는 표시된 것보다 많은 파일이 있습니다.",
+    "pickAFile": "미리 들으려면 샘플을 선택하세요.",
+    "decoding": "읽는 중…",
+    "waveformOf": "{{name}}의 파형",
+    "reverse": "거꾸로 재생",
+    "resize": "브라우저 너비 조절"
   }
 }

@@ -37,6 +37,7 @@ beforeEach(() => {
     sections: {
       genres: true,
       roster: true,
+      explorer: true,
       kit: true,
       stems: true,
       session: true,
@@ -165,6 +166,7 @@ describe('Studio shell', () => {
       sections: {
         genres: false,
         roster: true,
+        explorer: true,
         kit: true,
         stems: true,
         session: true,
@@ -188,6 +190,7 @@ describe('Studio shell', () => {
       'Right rail',
       'Genres',
       'Roster',
+      'Browser',
       'Kit',
       'Stems',
       'Session',

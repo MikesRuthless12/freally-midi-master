@@ -387,19 +387,50 @@ test('generating a song drops a loop set on the previous one', async ({ page }) 
 // Thumbnails, locks and the structure row (TASK-070).
 // ---------------------------------------------------------------------------
 
-test('every clip carries a note-density sketch', async ({ page }) => {
-  // ⛔ Painted as a gradient rather than mounted as a canvas or one element per
-  // bucket — see `sketch.ts`. A painted surface has no geometry to count, so
-  // what is asserted is that each clip really has one and that it is not the
-  // same flat fill for every clip.
+test('every clip draws its own notes rather than a label on a box', async ({ page }) => {
+  // ⛔⛔ **TASK-142's first finding: *"a clip does not look like a clip"*.** What
+  // this replaced was a note-*density* gradient — sixteen buckets of "how busy
+  // is this bar" — which cannot tell two clips apart and which no DAW draws.
+  //
+  // ⚠ **The paths are compared, not merely counted.** A renderer that emitted
+  // the same `d` for every clip would pass "each clip has notes" while drawing
+  // one picture five times, which is the readout-that-lies shape this whole
+  // view keeps guarding against.
   await openSong(page);
 
-  const fills = await page
-    .locator('.song__sketch')
-    .evaluateAll((nodes) => nodes.map((n) => (n as HTMLElement).style.backgroundImage));
-  expect(fills.length).toBeGreaterThan(1);
-  for (const fill of fills) expect(fill).toContain('linear-gradient');
-  expect(new Set(fills).size).toBeGreaterThan(1);
+  const paths = await page
+    .locator('.song__note')
+    .evaluateAll((nodes) => nodes.map((n) => n.getAttribute('d') ?? ''));
+  expect(paths.length).toBeGreaterThan(1);
+  for (const path of paths) expect(path).toMatch(/^M[\d.]+ [\d.]+h/);
+  expect(new Set(paths).size).toBeGreaterThan(1);
+});
+
+test('a clip says which formats it can be handed over as', async ({ page }) => {
+  // ⛔ TASK-142's second finding: *"MIDI and audio are indistinguishable — an
+  // arrangement clip has no format at all."* Every clip is notes, so MIDI is
+  // always offered; audio only where something in it has a sample behind it.
+  await openSong(page);
+
+  const clip = page.locator('.song__clip').first();
+  await expect(clip.locator('.song__format[data-format="midi"]')).toBeVisible();
+});
+
+test('a clip can be resized to loop on fewer bars than its section', async ({ page }) => {
+  // ⛔ TASK-142's third finding: *"there is no clip resize."* The section
+  // handles move every row; this moves one. Driven from the keyboard because
+  // the slider is a real `role="slider"` — a resize that only answered the
+  // mouse would be unreachable to anyone not using one.
+  await openSong(page);
+
+  const handle = page.locator('.song__clip-resize').first();
+  const before = Number(await handle.getAttribute('aria-valuenow'));
+  await handle.focus();
+  await page.keyboard.press('ArrowLeft');
+
+  await expect(handle).toHaveAttribute('aria-valuenow', String(before - 1));
+  // ...and the section it sits in is untouched, which is the whole distinction.
+  await expect(page.getByTestId('song-section-0')).toHaveAttribute('data-bars', /\d+/);
 });
 
 test('locking a section locks every clip in it, and unlocks as one', async ({ page }) => {

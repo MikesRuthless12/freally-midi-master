@@ -180,7 +180,11 @@ describe('copy and paste', () => {
     // pattern the producer deleted three actions ago. The store is the
     // authority on what exists.
     const before = song();
-    const result = pasteClips(before, { clips: [{ part: 'bass', patternId: 'gone' }] }, 0);
+    const result = pasteClips(
+      before,
+      { clips: [{ part: 'bass', reference: { patternId: 'gone' } }] },
+      0,
+    );
     expect(result).toBe(before);
     expect(result.sections[0].patterns.bass).toBeUndefined();
   });

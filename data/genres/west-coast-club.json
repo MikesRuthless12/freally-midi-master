@@ -209,12 +209,14 @@
     "percs": {
       "lanes": [
         "snap",
-        "perc"
+        "perc",
+        "cowbell"
       ],
       "densityPerBar": [
         1,
         3
       ],
+      "gainOffsetDb": -6,
       "tambourineMirrorsClap": true
     },
     "fills": {

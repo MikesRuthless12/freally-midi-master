@@ -340,6 +340,60 @@ const handlers: Record<string, Handler> = {
   one_shot_clear: () => undefined,
   one_shot_status: () => ({ state: 'cancelled' }),
 
+  // The sample browser (TASK-132). A browser has no filesystem, so this is a
+  // fixture with one library folder and a handful of rows — enough to exercise
+  // the listing, the selection and the drag source. ⚠ It does not pretend a
+  // dialog can open: `explorer_pick` adds nothing, which is what a shell with
+  // no native picker honestly does.
+  explorer_state: () => ({
+    roots: [{ name: 'Samples', path: '/library/Samples', isDir: true }],
+    folder: '/library/Samples',
+    parent: null,
+    entries: [
+      { name: 'Kicks', path: '/library/Samples/Kicks', isDir: true },
+      { name: 'clap-01.wav', path: '/library/Samples/clap-01.wav', isDir: false },
+      { name: 'kick-808.wav', path: '/library/Samples/kick-808.wav', isDir: false },
+    ],
+    truncated: false,
+    // No native picker in a browser, so a dialog is never open — which is what
+    // stops  polling for one.
+    picking: false,
+  }),
+  explorer_pick: () => undefined,
+  explorer_remove: () => undefined,
+  explorer_open: () => undefined,
+  explorer_drop: () => undefined,
+  // ⚠ Both bounds per column, like the real command — a fixture returning one
+  // amplitude would draw the half-waveform the Rust test exists to refuse, and
+  // the mock would be the thing hiding it.
+  explorer_waveform: (args?: InvokeArgs) => ({
+    path: String((args as { path?: unknown } | undefined)?.path ?? ''),
+    name: 'kick-808.wav',
+    peaks: Array.from({ length: 64 }, (_, i) => {
+      const amplitude = Math.abs(Math.sin(i / 6)) * (1 - i / 80);
+      return [-amplitude, amplitude] as [number, number];
+    }),
+    seconds: 1.5,
+  }),
+
+  // The audition voice. No audio thread here, so the position never advances —
+  // a mock that animated one would make a broken transport look like a working
+  // one, which is the rule this whole file is written to.
+  preview_load: () => undefined,
+  preview_play: () => undefined,
+  preview_pause: () => undefined,
+  preview_stop: () => undefined,
+  preview_seek: () => undefined,
+  preview_loop: () => undefined,
+  preview_reverse: () => undefined,
+  preview_position: () => ({
+    playing: false,
+    seconds: 0,
+    total: 1.5,
+    looping: false,
+    reverse: false,
+  }),
+
   // The forms this artist writes, for the structure picker (TASK-070).
   //
   // Two, because the picker only renders with more than one — a model that

@@ -9,6 +9,7 @@ import { ShortcutsModal } from './components/Shortcuts/Shortcuts';
 import { TransportBar } from './components/layout/TransportBar';
 import { isTypingTarget } from './lib/keyboard';
 import { useDrag } from './state/drag';
+import { subscribeToPreview, useExplorer } from './state/explorer';
 import { useSong } from './state/song';
 import { canDrive, subscribeToPlayhead, useSession } from './state/session';
 import { isWide, useUi } from './state/ui';
@@ -19,6 +20,7 @@ function Studio() {
   const [aboutOpen, setAboutOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const rightRailOpen = useUi((s) => s.rightRailOpen);
+  const railWidth = useExplorer((s) => s.railWidth);
   const setWide = useUi((s) => s.setWide);
   const toggleRightRail = useUi((s) => s.toggleRightRail);
   const init = useSession((s) => s.init);
@@ -59,6 +61,33 @@ function Studio() {
   // Follow the playhead the audio thread publishes at 30 Hz. Returns a no-op
   // outside the plugin, where there is no audio thread behind it.
   useEffect(() => subscribeToPlayhead(), []);
+
+  // The same, for the sample the browser is auditioning (TASK-132). A separate
+  // subscription rather than a branch inside the one above, because the two
+  // read different atomics at different rates and neither should be able to
+  // stall the other — and because this one also drives `Preview::collect`, the
+  // editor-thread half of the audition buffer handoff.
+  useEffect(() => subscribeToPreview(), []);
+
+  // The browser rail's width (TASK-132).
+  //
+  // ⛔ **A custom property rather than a class**, because the width is a
+  // continuous drag: a class per step is not expressible, and re-writing
+  // `grid-template-columns` from JS would put the whole track list in an inline
+  // style where the stylesheet could no longer own the other two columns. The
+  // stage is `minmax(0, 1fr)`, so this is also what makes the centre shrink as
+  // the browser widens — Mike asked for both halves.
+  //
+  // ⛔⛔ **On the ROOT, not as an inline style on `.studio`, and that is the
+  // whole reason this is an effect.** `RailResizer` writes the same property
+  // while a drag is in flight — so the store is not touched sixty times a second
+  // and the tree is not reconciled — and an inline style here would have *won*
+  // over the root during every one of those frames, pinning the rail at whatever
+  // the store last committed. One property, one place, two writers that cannot
+  // fight.
+  useEffect(() => {
+    document.documentElement.style.setProperty('--rail-left-width', `${railWidth}px`);
+  }, [railWidth]);
 
   // A resize listener rather than `matchMedia`, because a media query cannot
   // see the plugin's root zoom: it evaluates against the viewport, which stays

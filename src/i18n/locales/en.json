@@ -56,7 +56,8 @@
     "kit": "Kit",
     "session": "Session",
     "presets": "Presets",
-    "stems": "Stems"
+    "stems": "Stems",
+    "explorer": "Browser"
   },
   "readouts": {
     "bpm": "BPM",
@@ -302,7 +303,9 @@
       "hook": "Hook",
       "bridge": "Bridge",
       "outro": "Outro"
-    }
+    },
+    "resizeClip": "How many bars {{part}} loops on",
+    "resizeClipHint": "Loops on {{bars}} bars — drag to change"
   },
   "stems": {
     "midi": "MIDI",
@@ -323,7 +326,8 @@
       "generate": "Generate",
       "editing": "Editing",
       "notes": "Notes",
-      "drums": "Drum grid"
+      "drums": "Drum grid",
+      "browser": "Sample browser"
     },
     "keys": {
       "toggleRail": "Show or hide the right rail",
@@ -347,7 +351,22 @@
       "septuplet": "Septuplet in this cell",
       "cloneBar": "Copy bar 1 over this bar",
       "shortcuts": "Show this panel",
-      "play": "Play or pause"
+      "play": "Play or pause",
+      "previewDirection": "Play the sample backwards / forwards"
     }
+  },
+  "explorer": {
+    "addFolder": "Add folder",
+    "removeFolder": "Remove {{name}} from the library",
+    "noRoots": "Add a folder to browse your samples.",
+    "listLabel": "Sample list",
+    "up": "Up",
+    "empty": "No samples in this folder.",
+    "truncated": "This folder has more files than are shown.",
+    "pickAFile": "Pick a sample to preview it.",
+    "decoding": "Reading…",
+    "waveformOf": "Waveform of {{name}}",
+    "reverse": "Play backwards",
+    "resize": "Resize the browser"
   }
 }

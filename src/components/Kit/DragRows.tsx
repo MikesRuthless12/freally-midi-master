@@ -12,7 +12,7 @@ import {
   type Gesture,
 } from '../../state/drag';
 import { useSession } from '../../state/session';
-import { canSound, useKit } from '../../state/kit';
+import { soundableLanes, useKit } from '../../state/kit';
 import { useSong } from '../../state/song';
 import type { Lane, Pattern } from '../../lib/ipc-types';
 
@@ -104,10 +104,7 @@ export function DragRows() {
    * A shipped voice, or the producer's own one-shot over it — either is a
    * sample, and `audio/render.rs` will write a file for either.
    */
-  const soundable = useMemo(
-    () => new Set(kitLanes.filter(canSound).map((lane) => lane.lane)),
-    [kitLanes],
-  );
+  const soundable = useMemo(() => soundableLanes(kitLanes), [kitLanes]);
 
   /**
    * Can this lane be heard — or do we simply not know yet?
@@ -498,7 +495,7 @@ function DragMenu({ row, format, label, lanes }: HandleProps) {
  * and the drag beginning, and starting the drag on the press alone would turn
  * every click into one.
  */
-function DragChip({
+export function DragChip({
   subject,
   format,
   label,

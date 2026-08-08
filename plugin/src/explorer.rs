@@ -93,6 +93,16 @@ pub struct State {
     /// added and into their home directory.
     pub parent: Option<String>,
     pub entries: Vec<Entry>,
+    /// Whether a folder dialog is open right now.
+    ///
+    /// ⛔ **The page has no other way to know, and without it the poll is a
+    /// guess.** Adding a folder opens a modal on its own thread — see
+    /// [`Explorer::pick`] — so the only way the page learns it finished is by
+    /// asking again. It used to ask 301 times at 400 ms whatever happened, so a
+    /// *cancelled* dialog cost two minutes of `read_dir` over a folder that may
+    /// hold [`MAX_ENTRIES`] entries, serialized and re-rendered each time. This
+    /// makes the poll last exactly as long as the dialog does.
+    pub picking: bool,
     /// Set when the folder held more than [`MAX_ENTRIES`].
     ///
     /// ⚠ **Reported rather than silently truncated.** A list that stops at 2000
@@ -355,14 +365,22 @@ impl Explorer {
             .ok()
             .and_then(|slot| slot.as_ref().cloned());
 
+        // ⚠ `try_lock` is not needed — this is the editor thread and the only
+        // other holder is the dialog thread, which takes it twice for a couple
+        // of instructions each. A poisoned lock reads as "no dialog", which is
+        // the answer that lets the page stop polling rather than spin forever.
+        let picking = self.picking.lock().map(|open| *open).unwrap_or(false);
+
         let Some(dir) = at else {
             return State {
                 roots: named,
+                picking,
                 ..State::default()
             };
         };
 
         let mut state = list(&dir);
+        state.picking = picking;
         // ⛔ **"Up" stops at a root.** Without this the producer can walk out of
         // the folder they added, up through their home directory, and browse
         // the whole disk from inside a plugin — which is both a surprise and a
@@ -437,6 +455,9 @@ fn list(dir: &Path) -> State {
         parent: dir.parent().and_then(|p| p.to_str()).map(str::to_owned),
         entries: folders,
         truncated,
+        // Filled in by `Explorer::state`, which is the only thing that knows —
+        // `list` reads one folder and nothing else.
+        picking: false,
     }
 }
 

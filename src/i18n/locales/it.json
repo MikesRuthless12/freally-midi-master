@@ -56,7 +56,8 @@
     "kit": "Kit",
     "session": "Sessione",
     "presets": "Preimpostazioni",
-    "stems": "Tracce"
+    "stems": "Tracce",
+    "explorer": "Esplora"
   },
   "readouts": {
     "bpm": "BPM",
@@ -302,7 +303,9 @@
       "hook": "Ritornello",
       "bridge": "Ponte",
       "outro": "Finale"
-    }
+    },
+    "resizeClip": "Su quante battute va in loop {{part}}",
+    "resizeClipHint": "Va in loop su {{bars}} battute — trascina per cambiare"
   },
   "stems": {
     "midi": "MIDI",
@@ -323,7 +326,8 @@
       "generate": "Genera",
       "editing": "Modifica",
       "notes": "Note",
-      "drums": "Griglia batteria"
+      "drums": "Griglia batteria",
+      "browser": "Browser dei sample"
     },
     "keys": {
       "toggleRail": "Mostra o nascondi il pannello destro",
@@ -347,7 +351,22 @@
       "septuplet": "Settimina in questa cella",
       "cloneBar": "Copia la battuta 1 su questa",
       "shortcuts": "Mostra questo pannello",
-      "play": "Riproduci o metti in pausa"
+      "play": "Riproduci o metti in pausa",
+      "previewDirection": "Riproduci il sample al contrario / in avanti"
     }
+  },
+  "explorer": {
+    "addFolder": "Aggiungi cartella",
+    "removeFolder": "Rimuovi {{name}} dalla libreria",
+    "noRoots": "Aggiungi una cartella per sfogliare i tuoi sample.",
+    "listLabel": "Elenco dei sample",
+    "up": "Su",
+    "empty": "Nessun sample in questa cartella.",
+    "truncated": "Questa cartella contiene più file di quelli mostrati.",
+    "pickAFile": "Scegli un sample per ascoltarlo.",
+    "decoding": "Lettura…",
+    "waveformOf": "Forma d’onda di {{name}}",
+    "reverse": "Riproduci al contrario",
+    "resize": "Ridimensiona il browser"
   }
 }

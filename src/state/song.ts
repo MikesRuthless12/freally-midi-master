@@ -24,6 +24,7 @@ import {
   moveClips,
   moveShift,
   pasteClips,
+  resizeClip as resizeClipIn,
   resizeSection,
   sameClip,
   type Clipboard,
@@ -194,6 +195,15 @@ export type SongState = {
   clearSelection: () => void;
 
   resize: (index: number, bars: number) => void;
+  /**
+   * Resize one clip — how many bars it loops on inside its section (TASK-142).
+   *
+   * ⛔ A different gesture from `resize` above, which moves every row: this is
+   * one row's loop length, which is what a producer means by dragging a clip's
+   * edge in a DAW. The timeline had only the section one, which is why Mike's
+   * review recorded "there is no clip resize".
+   */
+  resizeClip: (clip: ClipId, bars: number) => void;
   clone: (index: number) => void;
   deleteSelection: () => void;
   copy: () => void;
@@ -598,6 +608,12 @@ export const useSong = create<SongState>((set, get) => ({
 
   resize(index, bars) {
     apply(set, get, (song) => resizeSection(song, index, bars));
+  },
+  resizeClip(clip, bars) {
+    // Straight through `apply`, like every other edit here: it is what re-arms
+    // the transport and pushes the undo entry, so a resized clip is heard and
+    // can be taken back exactly as a moved one can.
+    apply(set, get, (song) => resizeClipIn(song, clip, bars));
   },
   clone(index) {
     // ⛔ The selection is dropped rather than carried: every section after the

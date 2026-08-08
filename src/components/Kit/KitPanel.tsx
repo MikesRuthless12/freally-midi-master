@@ -1,8 +1,27 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
 
 import { canSound, useKit } from '../../state/kit';
+import { useExplorer } from '../../state/explorer';
+import type { Lane } from '../../lib/ipc-types';
+
+/**
+ * The type a browser row carries while it is being dragged.
+ *
+ * ⚠ **Private, and checked rather than assumed.** `text/plain` is also set —
+ * some WebView2 builds refuse to start a drag that carries only an unrecognised
+ * MIME type — but accepting *any* plain text here would make every stray drag
+ * from outside the page look like a sample and fail at the loader instead of at
+ * the drop.
+ */
+const SAMPLE_TYPE = 'application/x-freally-sample';
+
+/** The path a drop is carrying, or `null` when it is not one of ours. */
+function droppedSample(transfer: DataTransfer): string | null {
+  const path = transfer.getData(SAMPLE_TYPE);
+  return path === '' ? null : path;
+}
 
 /**
  * The KIT panel: what each lane plays, and how to put your own sample on it.
@@ -29,6 +48,11 @@ export function KitPanel() {
   const refresh = useKit((s) => s.refresh);
   const assign = useKit((s) => s.assign);
   const clear = useKit((s) => s.clear);
+  const dropOn = useExplorer((s) => s.dropOn);
+  // Which row the pointer is currently over, so the target is visible before
+  // the producer lets go. Local: it is a property of this gesture, not of the
+  // kit, and nothing outside this panel can act on it.
+  const [over, setOver] = useState<Lane | null>(null);
 
   // Read once when the panel mounts. `Section` unmounts a collapsed panel's
   // content, so reopening it re-reads — which is what keeps it in step with an
@@ -79,6 +103,35 @@ export function KitPanel() {
               // menu, and no test could catch the disagreement because neither
               // file knew about the other.
               data-silent={!canSound(entry)}
+              data-over={over === entry.lane}
+              // ⛔ **The third door into one assignment model** (TASK-132). The
+              // combobox and the file dialog already led here; Mike, 2026-08-06:
+              // *"when we do the 'File Explorer' then we will be able to drop
+              // samples on the generators and drum lanes."* All three end at
+              // `OneShots::restore`, which is the tested no-dialog load a
+              // reopened project already uses — a second loader for the drop
+              // would be a second set of the same rules to keep in agreement.
+              //
+              // ⚠ **`preventDefault` on dragOver is what makes a drop legal at
+              // all.** Without it the browser's default is "not a drop target"
+              // and the release does nothing, silently.
+              onDragOver={(event) => {
+                if (!event.dataTransfer.types.includes(SAMPLE_TYPE)) return;
+                event.preventDefault();
+                event.dataTransfer.dropEffect = 'copy';
+                if (over !== entry.lane) setOver(entry.lane);
+              }}
+              onDragLeave={() => setOver((lane) => (lane === entry.lane ? null : lane))}
+              onDrop={(event) => {
+                const path = droppedSample(event.dataTransfer);
+                setOver(null);
+                if (path === null) return;
+                event.preventDefault();
+                // ⚠ Refreshed after, because the row's own label is what says
+                // whether the drop landed — the panel is the only feedback the
+                // producer gets, and it would otherwise still read "Shipped".
+                void dropOn(entry.lane, path).then(() => refresh());
+              }}
             >
               <button
                 type="button"

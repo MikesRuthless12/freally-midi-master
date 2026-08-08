@@ -56,7 +56,8 @@
     "kit": "Kit",
     "session": "Session",
     "presets": "Voreinstellungen",
-    "stems": "Stems"
+    "stems": "Stems",
+    "explorer": "Dateien"
   },
   "readouts": {
     "bpm": "BPM",
@@ -302,7 +303,9 @@
       "hook": "Refrain",
       "bridge": "Bridge",
       "outro": "Outro"
-    }
+    },
+    "resizeClip": "Über wie viele Takte {{part}} loopt",
+    "resizeClipHint": "Loopt über {{bars}} Takte — zum Ändern ziehen"
   },
   "stems": {
     "midi": "MIDI",
@@ -323,7 +326,8 @@
       "generate": "Erzeugen",
       "editing": "Bearbeiten",
       "notes": "Noten",
-      "drums": "Drum-Raster"
+      "drums": "Drum-Raster",
+      "browser": "Sample-Browser"
     },
     "keys": {
       "toggleRail": "Rechte Leiste ein-/ausblenden",
@@ -347,7 +351,22 @@
       "septuplet": "Septole in dieser Zelle",
       "cloneBar": "Takt 1 über diesen Takt kopieren",
       "shortcuts": "Dieses Fenster anzeigen",
-      "play": "Abspielen oder pausieren"
+      "play": "Abspielen oder pausieren",
+      "previewDirection": "Sample rückwärts / vorwärts abspielen"
     }
+  },
+  "explorer": {
+    "addFolder": "Ordner hinzufügen",
+    "removeFolder": "{{name}} aus der Bibliothek entfernen",
+    "noRoots": "Fügen Sie einen Ordner hinzu, um Ihre Samples zu durchsuchen.",
+    "listLabel": "Sample-Liste",
+    "up": "Nach oben",
+    "empty": "Keine Samples in diesem Ordner.",
+    "truncated": "Dieser Ordner enthält mehr Dateien als angezeigt werden.",
+    "pickAFile": "Wählen Sie ein Sample, um es anzuhören.",
+    "decoding": "Wird gelesen…",
+    "waveformOf": "Wellenform von {{name}}",
+    "reverse": "Rückwärts abspielen",
+    "resize": "Breite des Browsers ändern"
   }
 }

@@ -141,7 +141,29 @@ loopRegion?: Region | null,
  */
 clipRegion?: Region | null, };
 
-export type PatternRef = { patternId: string, };
+export type PatternRef = { patternId: string, 
+/**
+ * How many bars of the clip this row plays before it repeats (TASK-142).
+ *
+ * ⛔ **This is what "resize a clip" means in an arrangement, and it had to
+ * live on the *reference* rather than on the pattern.** Sections of the
+ * same kind share one [`Pattern`] — that is [`crate::arrange`]'s second
+ * stated decision, and the whole reason this is an id — so shortening the
+ * pattern would shorten every verse in the song at once. On the reference
+ * it is what a producer means: *this* row, in *this* section, loops on two
+ * bars instead of four.
+ *
+ * ⚠ **`None` is the pattern's own length**, which is what every song built
+ * before this field meant and what a fresh arrangement still means. It is
+ * not "zero" and not "one bar": a default here would silently retile every
+ * saved project on the first reopen.
+ *
+ * ⛔ Read only through [`SectionTiling::of`], which is the one place the
+ * exporter and the transport both go — see that type's own note on why
+ * two walks over these fields is a bug this project has already shipped
+ * twice.
+ */
+bars?: number | null, };
 
 /**
  * A span of a clip, in absolute ticks (TASK-041E).

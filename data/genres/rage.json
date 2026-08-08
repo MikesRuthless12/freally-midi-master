@@ -140,11 +140,15 @@
       "pitchBendProb": 0.1
     },
     "percs": {
-      "lanes": [],
+      "lanes": [
+        "crash"
+      ],
       "densityPerBar": [
         0,
         1
-      ]
+      ],
+      "placement": "downbeat",
+      "gainOffsetDb": -4
     },
     "fills": {
       "smallEveryBars": 4,

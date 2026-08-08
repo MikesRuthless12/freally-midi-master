@@ -92,7 +92,10 @@ fn chicago_drill_is_straighter_than_the_uk_strain() {
         let offbeat = kicks
             .iter()
             .filter(|(_, n)| {
-                grid::is_offbeat_eighth((n.start_tick % context.ticks_per_bar()) / grid::SIXTEENTH)
+                grid::is_offbeat_eighth(
+                    (n.start_tick % context.ticks_per_bar()) / grid::SIXTEENTH,
+                    &context,
+                )
             })
             .count();
         offbeat as f64 / kicks.len() as f64
@@ -420,7 +423,7 @@ fn boom_bap_fills_the_e_and_a_slots_with_ghosts() {
     assert!(!ghosts.is_empty(), "boom bap produced no ghost snares");
     for index in &ghosts {
         assert!(
-            grid::is_sixteenth_offbeat(*index),
+            grid::is_sixteenth_offbeat(*index, &ctx(4)),
             "a ghost landed on 16th {index}, which is not an e or an a"
         );
     }
@@ -621,7 +624,10 @@ fn bouncy_trap_keeps_its_kick_moving_more_than_the_dark_lane() {
         let offbeat = kicks
             .iter()
             .filter(|(_, n)| {
-                grid::is_offbeat_eighth((n.start_tick % context.ticks_per_bar()) / grid::SIXTEENTH)
+                grid::is_offbeat_eighth(
+                    (n.start_tick % context.ticks_per_bar()) / grid::SIXTEENTH,
+                    &context,
+                )
             })
             .count();
         offbeat as f64 / kicks.len() as f64

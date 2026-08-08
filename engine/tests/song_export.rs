@@ -241,6 +241,7 @@ fn a_looping_clip_is_tiled_across_the_section_it_fills() {
                 Part::Drums,
                 engine::pattern::PatternRef {
                     pattern_id: id.clone(),
+                    bars: None,
                 },
             )]),
             drop_out_beats: 0,
@@ -310,6 +311,7 @@ fn a_drop_out_removes_the_notes_it_covers() {
                 Part::Drums,
                 engine::pattern::PatternRef {
                     pattern_id: id.clone(),
+                    bars: None,
                 },
             )]),
             drop_out_beats: 0,
@@ -373,6 +375,7 @@ fn a_decaying_section_gets_quieter_and_never_reaches_silence() {
                 Part::Drums,
                 engine::pattern::PatternRef {
                     pattern_id: id.clone(),
+                    bars: None,
                 },
             )]),
             drop_out_beats: 0,
@@ -486,6 +489,7 @@ fn a_song_built_to_wrap_the_tiling_counter_terminates() {
                 Part::Drums,
                 engine::pattern::PatternRef {
                     pattern_id: id.clone(),
+                    bars: None,
                 },
             )]),
             drop_out_beats: 0,
@@ -561,6 +565,7 @@ fn one_section(id: &str, pattern: &Pattern, bars: u16, drop_out_beats: u8, decay
                 Part::Drums,
                 engine::pattern::PatternRef {
                     pattern_id: id.to_owned(),
+                    bars: None,
                 },
             )]),
             drop_out_beats,

@@ -606,6 +606,27 @@ pub enum SectionKind {
 #[ts(export, export_to = "../../src/lib/ipc-types.ts")]
 pub struct PatternRef {
     pub pattern_id: String,
+    /// How many bars of the clip this row plays before it repeats (TASK-142).
+    ///
+    /// ⛔ **This is what "resize a clip" means in an arrangement, and it had to
+    /// live on the *reference* rather than on the pattern.** Sections of the
+    /// same kind share one [`Pattern`] — that is [`crate::arrange`]'s second
+    /// stated decision, and the whole reason this is an id — so shortening the
+    /// pattern would shorten every verse in the song at once. On the reference
+    /// it is what a producer means: *this* row, in *this* section, loops on two
+    /// bars instead of four.
+    ///
+    /// ⚠ **`None` is the pattern's own length**, which is what every song built
+    /// before this field meant and what a fresh arrangement still means. It is
+    /// not "zero" and not "one bar": a default here would silently retile every
+    /// saved project on the first reopen.
+    ///
+    /// ⛔ Read only through [`SectionTiling::of`], which is the one place the
+    /// exporter and the transport both go — see that type's own note on why
+    /// two walks over these fields is a bug this project has already shipped
+    /// twice.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub bars: Option<u16>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, TS)]
@@ -723,7 +744,29 @@ pub struct SectionTiling {
 
 impl SectionTiling {
     /// Work out where `clip` falls inside `section`.
-    pub fn of(song: &Song, section: &Section, clip_bars: u16) -> Self {
+    ///
+    /// ⛔ **Takes the reference as well as the pattern, so "how long is one
+    /// repeat" is decided here and nowhere else.** It used to take a bare
+    /// `clip_bars: u16`, which meant each of the two callers spelled the answer
+    /// out — and once [`PatternRef::bars`] existed (TASK-142) that would have
+    /// been two places to remember it. This type's own header records what
+    /// happens when the exporter and the transport each walk these fields: they
+    /// disagreed twice, and both times what a producer heard was not what they
+    /// exported.
+    ///
+    /// ⚠ A resize of `0` is refused rather than honoured. `repeats` is
+    /// `div_ceil(clip_len)` and `clip_len` is floored at 1, so a zero would not
+    /// divide by zero — it would lay the clip down `sounding` times, which for a
+    /// sixteen-bar section is 61,440 copies of every note.
+    ///
+    /// ⚠ **There is deliberately no `of_bars(…, clip_bars: u16)` beside this.**
+    /// The first cut added one "for the tests" and nothing ever called it — a
+    /// second `pub` way to resolve a tiling that *skips* [`PatternRef::bars`],
+    /// which is precisely the two-walks-over-one-set-of-fields hazard this
+    /// type's header records having shipped twice. If a test ever genuinely
+    /// needs a bare bar count, make it private then.
+    pub fn of(song: &Song, section: &Section, reference: &PatternRef, clip: &Pattern) -> Self {
+        let clip_bars = reference.bars.filter(|bars| *bars > 0).unwrap_or(clip.bars);
         let ticks_per_bar = song.ticks_per_bar();
         let beat_ticks = (ticks_per_bar / u32::from(song.time_sig_num.max(1))).max(1);
 
@@ -755,6 +798,32 @@ impl SectionTiling {
         repeat.saturating_mul(self.clip_len)
     }
 
+    /// How long a note that starts at `origin` may ring before the loop turns
+    /// over.
+    ///
+    /// ⛔⛔ **A resized clip must not ring into its own next repeat.** `sounds`
+    /// keeps or drops a note by its *onset*, which is right — the two halves of
+    /// one note have to be kept or dropped together — but it says nothing about
+    /// length. So with `clip_len` shortened by TASK-142's resize, a note longer
+    /// than the new loop kept its full length: repeat 0's two-bar pad was still
+    /// two bars long while repeat 1 had already re-struck the same pitch on the
+    /// same channel a bar earlier, and a DAW pairs that stale note-off with the
+    /// live note and cuts it dead. The last repeat's tail could land in the
+    /// *next section* and kill its note of the same pitch. That is precisely the
+    /// orphan-note-off failure [`Self::sounds`]'s own note says the design
+    /// exists to prevent, reopened by making `clip_len` shrinkable.
+    ///
+    /// ⚠ **A no-op for a clip nobody resized.** `clip_len` is then the pattern's
+    /// own length and every generator already clamps its notes inside that, so
+    /// nothing an unresized song plays or exports changes. It is also what a DAW
+    /// does with a loop brace: the loop point cuts the note.
+    ///
+    /// ⚠ Floors at 1, because a zero-length note is not a rest — it is a note
+    /// event some hosts drop and others hold forever.
+    pub fn held_within(&self, origin: u32, len: u32) -> u32 {
+        self.clip_len.saturating_sub(origin).min(len).max(1)
+    }
+
     /// Whether a note whose onset is `origin` within the clip sounds at all.
     ///
     /// ⛔ **Judged on the *onset*, so both ends of a note are kept or dropped
@@ -765,6 +834,20 @@ impl SectionTiling {
     /// rings past the end is allowed to finish, exactly as one does at a clip
     /// boundary.
     pub fn sounds(&self, repeat: u32, origin: u32) -> bool {
+        // ⛔⛔ **A note past the end of one repeat does not sound, and this line
+        // is what makes TASK-142's clip resize mean anything.** Every repeat
+        // lays the *whole* clip down at `offset`, so with `clip_len` shortened
+        // below the pattern's own length the copies overlap: a four-bar clip
+        // looped on two bars played bars 3 and 4 on top of the next repeat's
+        // bars 1 and 2. Measured on the fixture — 14 notes where 8 were asked
+        // for, at ticks nothing in the arrangement lines up with.
+        //
+        // ⚠ **A no-op when nothing has been resized**, which is why it can be
+        // added here rather than guarded: `clip_len` is then the pattern's own
+        // length and every note it holds is inside it by construction.
+        if origin >= self.clip_len {
+            return false;
+        }
         self.offset(repeat).saturating_add(origin) < self.sounding
     }
 
@@ -888,7 +971,7 @@ impl Song {
                     // a substitute would hide the problem behind sound.
                     continue;
                 };
-                let tiling = SectionTiling::of(self, section, clip.bars);
+                let tiling = SectionTiling::of(self, section, reference, clip);
 
                 for track in &clip.lanes {
                     let slot = match lanes.iter().position(|l| l.lane == track.lane) {
@@ -913,6 +996,12 @@ impl Song {
                                     .section_start
                                     .saturating_add(offset)
                                     .saturating_add(note.start_tick),
+                                // ⛔ Trimmed at the loop point — see
+                                // `SectionTiling::held_within`. Without it a
+                                // resized clip's long note rings into the next
+                                // repeat, where the same pitch has already been
+                                // re-struck.
+                                len_ticks: tiling.held_within(note.start_tick, note.len_ticks),
                                 vel,
                                 ..*note
                             });
@@ -1130,6 +1219,7 @@ mod tests {
                 Part::Drums,
                 PatternRef {
                     pattern_id: "p1".into(),
+                    bars: None,
                 },
             )]),
             drop_out_beats: 0,
@@ -1171,6 +1261,7 @@ mod tests {
                         Part::Melody,
                         PatternRef {
                             pattern_id: "p2".into(),
+                            bars: None,
                         },
                     )]),
                     drop_out_beats: 0,
@@ -1202,12 +1293,14 @@ mod tests {
                     Part::Melody,
                     PatternRef {
                         pattern_id: "held".into(),
+                        bars: None,
                     },
                 ),
                 (
                     Part::Drums,
                     PatternRef {
                         pattern_id: "gone".into(),
+                        bars: None,
                     },
                 ),
             ]),

@@ -56,7 +56,8 @@
     "kit": "Kit de batería",
     "session": "Sesión",
     "presets": "Preajustes",
-    "stems": "Pistas"
+    "stems": "Pistas",
+    "explorer": "Explorador"
   },
   "readouts": {
     "bpm": "BPM",
@@ -302,7 +303,9 @@
       "hook": "Estribillo",
       "bridge": "Puente",
       "outro": "Cierre"
-    }
+    },
+    "resizeClip": "Cuántos compases repite {{part}}",
+    "resizeClipHint": "Se repite cada {{bars}} compases — arrastra para cambiarlo"
   },
   "stems": {
     "midi": "MIDI",
@@ -323,7 +326,8 @@
       "generate": "Generar",
       "editing": "Edición",
       "notes": "Notas",
-      "drums": "Rejilla de batería"
+      "drums": "Rejilla de batería",
+      "browser": "Explorador de samples"
     },
     "keys": {
       "toggleRail": "Mostrar u ocultar el panel derecho",
@@ -347,7 +351,22 @@
       "septuplet": "Septillo en esta celda",
       "cloneBar": "Copiar el compás 1 sobre este",
       "shortcuts": "Mostrar este panel",
-      "play": "Reproducir o pausar"
+      "play": "Reproducir o pausar",
+      "previewDirection": "Reproducir el sample al revés / hacia delante"
     }
+  },
+  "explorer": {
+    "addFolder": "Añadir carpeta",
+    "removeFolder": "Quitar {{name}} de la biblioteca",
+    "noRoots": "Añade una carpeta para explorar tus samples.",
+    "listLabel": "Lista de samples",
+    "up": "Subir",
+    "empty": "No hay samples en esta carpeta.",
+    "truncated": "Esta carpeta tiene más archivos de los que se muestran.",
+    "pickAFile": "Elige un sample para escucharlo.",
+    "decoding": "Leyendo…",
+    "waveformOf": "Forma de onda de {{name}}",
+    "reverse": "Reproducir al revés",
+    "resize": "Cambiar el tamaño del explorador"
   }
 }

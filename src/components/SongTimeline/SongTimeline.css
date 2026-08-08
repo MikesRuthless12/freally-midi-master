@@ -6,16 +6,53 @@
  */
 
 .song {
-  --song-row: 44px;
+  /* ⛔⛔ **EVERY COLOUR IN THIS FILE WAS UNDEFINED, AND THE WHOLE VIEW HAD BEEN
+     RENDERING UNSTYLED.** It was written against `--accent`, `--line`,
+     `--surface`, `--text`, `--text-dim`, `--line-strong` and `--danger`; this
+     app defines `--color-primary`, `--color-border`, `--color-surface`,
+     `--color-text`, `--color-text-2` and `--color-text-3`. A bare `var()` naming
+     nothing makes its declaration invalid at computed-value time, and a
+     `color-mix()` holding one is dropped outright — so the clips had no fill and
+     no border, the section band had no background, the grid lines were invisible
+     and the playhead was a 2px transparent strip.
+     ▶ **This is why Mike's review reads *"a clip does not look like a clip"*.**
+     It was never a styling judgement that was wrong; the styles were never
+     applied.
+
+     ⛔⛔ **Renamed at every call site rather than aliased here, and the first cut
+     WAS an alias block — which quietly disarmed the gate shipped with it.**
+     `styles/tokens.defined.test.ts` builds one set of defined names from every
+     stylesheet with no scope awareness, so declaring `--text-dim` here made it
+     "defined" *globally* — and `Shortcuts/Shortcuts.css`, which has a bare
+     `var(--text-dim)` and mounts nowhere near `.song`, went from failing that
+     gate to passing it while still being unstyled. A local convenience turned a
+     working repo-wide check into a false green.
+     ⚠ An alias also cannot tell "never resolved" from "deliberately fell back":
+     `--line-strong` and `--danger` had **no** bare uses, only
+     `var(--line-strong, var(--line))` and `var(--danger, var(--accent))`. Both
+     chains ended in undefined, so both were invalid too — and renaming forced
+     each to be a stated decision rather than inheriting whatever the alias
+     happened to say. The ruler tick takes `--color-text-3` (a *strong* line, as
+     its name asks) and the export error takes `--color-error`. */
+
+  /* ⚠ **There is no `--song-row` here, and there was never a reader for one.**
+     `ROW_HEIGHT` in `SongTimeline.tsx` sizes both the clip rows and the gutter's
+     track headers inline — one constant, one writer — so a variable restating it
+     would be a second altitude for the same number with nothing keeping the two
+     honest. It went to 60px with TASK-142: a clip that draws its own notes needs
+     room to read as a clip rather than as a coloured bar with words in it. */
   --song-ruler: 34px;
   --song-header: 30px;
+  /* The track-header column. Wide enough for the longest part name plus mute,
+     solo and lock, and no wider — every pixel here is one the timeline loses. */
+  --song-gutter: 116px;
 
   /* The grid is painted as a repeating gradient rather than mounted as one
      element per line, so the two weights are variables it can reference.
      A bar line is heavier than a beat line — that is what lets the eye read
      the meter without counting. */
-  --song-bar-line: var(--line);
-  --song-beat-line: color-mix(in srgb, var(--line) 45%, transparent);
+  --song-bar-line: var(--color-border);
+  --song-beat-line: color-mix(in srgb, var(--color-border) 45%, transparent);
 
   display: flex;
   flex-direction: column;
@@ -25,7 +62,7 @@
 }
 
 .song:focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--color-primary);
   outline-offset: -2px;
 }
 
@@ -35,9 +72,9 @@
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.35rem 0.6rem;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--color-border);
   font-size: 0.78rem;
-  color: var(--text-dim);
+  color: var(--color-text-2);
 }
 
 .song__zoom {
@@ -48,17 +85,80 @@
 .song__zoom button {
   width: 1.6rem;
   height: 1.6rem;
-  border: 1px solid var(--line);
+  border: 1px solid var(--color-border);
   border-radius: 4px;
-  background: var(--surface);
-  color: var(--text);
+  background: var(--color-surface);
+  color: var(--color-text);
   cursor: pointer;
   font-size: 0.95rem;
   line-height: 1;
 }
 
 .song__zoom button:hover {
-  border-color: var(--accent);
+  border-color: var(--color-primary);
+}
+
+/* ⛔⛔ **The DAW shape: a fixed track column, and only time scrolls past it.**
+   The row headers used to be `position: sticky` *inside* the scrolling canvas,
+   which is not the same thing at all — they floated over the clips, so at bar 1
+   the words "DRUMS ⏵ S 🔒" sat on top of the first clip of every row, and
+   scrolling dragged them across whatever happened to be underneath. Ableton and
+   FL both put the track controls in a column of their own; this is that column.
+
+   ⚠ **The ruler and the section band stay inside the scroller**, because they
+   are the time axis: moved into the gutter they would stop lining up with the
+   clips the moment anything scrolled. */
+.song__panel {
+  display: grid;
+  grid-template-columns: var(--song-gutter) minmax(0, 1fr);
+  flex: 1;
+  min-height: 0;
+}
+
+.song__gutter {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border-inline-end: 1px solid var(--color-border);
+  background: var(--color-surface);
+  /* ⚠ Vertical scroll is the scroller's, and this column has to follow it —
+     but its own overflow must stay hidden, or a second scrollbar appears
+     beside the timeline's and the two disagree by its width. */
+  overflow: hidden;
+}
+
+/* Exactly as tall as the ruler plus the section band, so the first track header
+   lines up with the first row of clips rather than a few pixels above it. */
+.song__gutter-top {
+  flex: none;
+  height: calc(var(--song-ruler) + var(--song-header));
+  border-bottom: 1px solid var(--color-border);
+}
+
+.song__track {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  padding: 0 0.5rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-border) 40%, transparent);
+}
+
+.song__track-name {
+  color: var(--color-text);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.song__track-controls {
+  display: flex;
+  gap: 3px;
 }
 
 .song__scroller {
@@ -77,7 +177,7 @@
 .song__ruler {
   position: relative;
   height: var(--song-ruler);
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--color-border);
   cursor: pointer;
   user-select: none;
 }
@@ -88,7 +188,7 @@
   display: flex;
   flex-direction: column;
   padding-left: 3px;
-  border-left: 1px solid var(--line-strong, var(--line));
+  border-left: 1px solid var(--color-text-3);
   height: 100%;
   font-variant-numeric: tabular-nums;
   pointer-events: none;
@@ -96,12 +196,12 @@
 
 .song__bar-number {
   font-size: 0.72rem;
-  color: var(--text);
+  color: var(--color-text);
 }
 
 .song__time {
   font-size: 0.62rem;
-  color: var(--text-dim);
+  color: var(--color-text-2);
 }
 
 /* ---- Section headers --------------------------------------------------- */
@@ -109,20 +209,20 @@
 .song__sections {
   position: relative;
   height: var(--song-header);
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .song__section {
   position: absolute;
   top: 0;
   height: 100%;
-  border-left: 2px solid var(--accent);
-  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border-left: 2px solid var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
   overflow: hidden;
 }
 
 .song__section.is-selected {
-  background: color-mix(in srgb, var(--accent) 26%, transparent);
+  background: color-mix(in srgb, var(--color-primary) 26%, transparent);
 }
 
 .song__section-name {
@@ -134,7 +234,7 @@
   padding: 0 0.35rem;
   border: 0;
   background: none;
-  color: var(--text);
+  color: var(--color-text);
   cursor: pointer;
   font: inherit;
   font-size: 0.72rem;
@@ -149,7 +249,7 @@
 }
 
 .song__section-bars {
-  color: var(--text-dim);
+  color: var(--color-text-2);
 }
 
 .song__handle {
@@ -164,7 +264,7 @@
 }
 
 .song__handle:hover {
-  background: color-mix(in srgb, var(--accent) 45%, transparent);
+  background: color-mix(in srgb, var(--color-primary) 45%, transparent);
 }
 
 .song__handle--start {
@@ -191,50 +291,45 @@
   position: absolute;
   left: 0;
   right: 0;
-  border-bottom: 1px solid color-mix(in srgb, var(--line) 40%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--color-border) 40%, transparent);
 }
 
-.song__row-label {
-  position: sticky;
-  left: 0;
-  z-index: 2;
-  display: inline-block;
-  padding: 0.15rem 0.4rem;
-  background: var(--surface);
-  color: var(--text-dim);
-  font-size: 0.66rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  pointer-events: none;
-}
-
+/* ⛔ **The clip fills its row now**, rather than leaving the top four pixels to
+   a label floating over it. `align-items: flex-start` with the notes behind is
+   what makes the name read as a caption on the clip instead of as a row header
+   — which is the difference between this and what it replaced. */
 .song__clip {
   position: absolute;
-  top: 4px;
-  bottom: 5px;
+  top: 3px;
+  bottom: 4px;
   display: flex;
-  align-items: center;
-  padding: 0 0.4rem;
-  border: 1px solid color-mix(in srgb, var(--accent) 55%, transparent);
-  border-radius: 3px;
-  background: color-mix(in srgb, var(--accent) 22%, var(--surface));
-  color: var(--text);
+  align-items: flex-start;
+  padding: 2px 0.35rem;
+  /* ⛔ **Solid enough to read as a block on the grid.** At 22% over the surface
+     a clip was barely distinguishable from the gridlines behind it, so an
+     arrangement read as a field of faint text rather than as blocks laid out in
+     time — which is half of what "a clip does not look like a clip" meant. A
+     DAW's clips are opaque; these are too. */
+  border: 1px solid color-mix(in srgb, var(--color-primary) 70%, transparent);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--color-primary) 34%, var(--color-surface));
+  color: var(--color-text);
   cursor: pointer;
   font: inherit;
-  font-size: 0.68rem;
+  font-size: 0.64rem;
   overflow: hidden;
   text-align: left;
   white-space: nowrap;
 }
 
 .song__clip:hover {
-  border-color: var(--accent);
+  border-color: var(--color-primary);
 }
 
 .song__clip.is-selected {
-  border-color: var(--accent);
-  box-shadow: inset 0 0 0 1px var(--accent);
-  background: color-mix(in srgb, var(--accent) 40%, var(--surface));
+  border-color: var(--color-primary);
+  box-shadow: inset 0 0 0 1px var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 40%, var(--color-surface));
 }
 
 .song__clip-label {
@@ -252,8 +347,8 @@
     -45deg,
     transparent,
     transparent 3px,
-    color-mix(in srgb, var(--text) 22%, transparent) 3px,
-    color-mix(in srgb, var(--text) 22%, transparent) 6px
+    color-mix(in srgb, var(--color-text) 22%, transparent) 3px,
+    color-mix(in srgb, var(--color-text) 22%, transparent) 6px
   );
   pointer-events: none;
 }
@@ -264,7 +359,7 @@
   background: linear-gradient(
     to right,
     transparent,
-    color-mix(in srgb, var(--surface) 70%, transparent)
+    color-mix(in srgb, var(--color-surface) 70%, transparent)
   );
   pointer-events: none;
 }
@@ -286,8 +381,8 @@
   inset-block: 0;
   inset-inline-start: 0;
   width: 2px;
-  background: var(--accent);
-  box-shadow: 0 0 8px var(--accent);
+  background: var(--color-primary);
+  box-shadow: 0 0 8px var(--color-primary);
   pointer-events: none;
   z-index: 3;
 }
@@ -302,7 +397,7 @@
   width: 18px;
   height: 18px;
   padding: 0;
-  color: var(--text-dim);
+  color: var(--color-text-2);
   background: transparent;
   border: 0;
   border-radius: 4px;
@@ -317,21 +412,25 @@
 }
 
 .song__loop.is-on {
-  color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 20%, transparent);
 }
 
 .song__section.is-looping {
-  outline: 1px solid var(--accent);
+  outline: 1px solid var(--color-primary);
   outline-offset: -1px;
 }
 
-/* ── Per-part audition controls.
+/* ── Per-part audition controls, in the track gutter.
  *
- * ⛔ `pointer-events: auto`, because `.song__row-label` sets `none` so a click
- * between two clips reaches the background and seeks. These are the exception:
- * they are controls rather than a label, and without this they resolve, look
- * enabled, and silently cannot be clicked. */
+ * ⚠ **`pointer-events: auto` was dropped with the row label it existed for.**
+ * These buttons used to sit inside `.song__row-label`, which set
+ * `pointer-events: none` so a click between two clips could fall through to the
+ * background and seek — and without the exception the controls resolved, looked
+ * enabled, and silently could not be pressed. They live in the gutter now, where
+ * nothing above them refuses the pointer, so the declaration did nothing. Kept
+ * as a comment rather than as an inert rule: the *reason* is worth having if
+ * these ever move back over the canvas. */
 .song__row-mute,
 .song__row-solo {
   display: inline-grid;
@@ -343,24 +442,23 @@
   font-size: 0.66rem;
   font-weight: 600;
   line-height: 1;
-  color: var(--text-dim);
+  color: var(--color-text-2);
   background: transparent;
   border: 0;
   border-radius: 3px;
   cursor: pointer;
-  pointer-events: auto;
   vertical-align: middle;
 }
 
 .song__row-mute:hover,
 .song__row-solo:hover {
-  color: var(--text);
+  color: var(--color-text);
 }
 
 .song__row-mute.is-on,
 .song__row-solo.is-on {
-  color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 20%, transparent);
 }
 
 /* ── The structure chip row and the model-structure picker (TASK-070). */
@@ -369,7 +467,7 @@
   align-items: center;
   gap: 0.6rem;
   padding: 0.25rem 0.6rem;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid var(--color-border);
   overflow-x: auto;
 }
 
@@ -383,12 +481,12 @@
 
 .song__structure-chip {
   padding: 0.1rem 0.4rem;
-  border: 1px solid var(--line);
+  border: 1px solid var(--color-border);
   border-radius: 999px;
   font-size: 0.66rem;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: var(--text-dim);
+  color: var(--color-text-2);
   white-space: nowrap;
 }
 
@@ -398,7 +496,7 @@
   gap: 0.3rem;
   margin-inline-start: auto;
   font-size: 0.7rem;
-  color: var(--text-dim);
+  color: var(--color-text-2);
 }
 
 .song__structure-pick select {
@@ -406,13 +504,102 @@
   font-size: 0.7rem;
 }
 
-/* ── The note-density sketch, behind the clip's own label. */
-.song__sketch {
+/* ── The clip's own notes, behind its label (TASK-142).
+ *
+ * ⛔ **This replaced a note-*density* gradient**, which is what Mike's review
+ * called "a clip does not look like a clip": sixteen buckets of "how busy is
+ * this bar" cannot tell two clips apart and no DAW draws one. See `clipArt.ts`
+ * for why the notes are still a single node per repeat. */
+/* ⚠ **Inset from the top**, so the caption row — the part name and its format
+   badges — sits on the clip rather than over its first notes. */
+.song__notes {
   position: absolute;
-  inset: 0;
-  border-radius: inherit;
+  inset: 1.05rem 2px 3px;
   pointer-events: none;
-  opacity: 0.55;
+}
+
+/* One tile per repeat of the loop, so a clip resized to half its length draws
+   its notes twice — which is what makes the resize visible rather than a number
+   in a tooltip. */
+.song__notes-tile {
+  position: absolute;
+  inset-block: 0;
+  height: 100%;
+}
+
+/* Opaque, because these are the clip's content rather than a wash behind it —
+   a note that has to be squinted at is a note the producer reads as noise. */
+.song__note {
+  fill: var(--color-text);
+  opacity: 0.9;
+}
+
+/* ── What this clip can be handed over as (TASK-142). */
+.song__formats {
+  display: inline-flex;
+  gap: 2px;
+  margin-inline-start: 0.3rem;
+}
+
+.song__format {
+  padding: 0 3px;
+  border: 1px solid color-mix(in srgb, var(--color-text) 30%, transparent);
+  border-radius: 2px;
+  font-size: 0.55rem;
+  letter-spacing: 0.04em;
+  line-height: 1.5;
+  opacity: 0.85;
+}
+
+/* ⚠ **Not colour alone.** The audio badge is filled and the MIDI one is
+   outlined, so the two read apart in a screenshot, in both themes, and to
+   anyone who cannot tell the two hues apart. */
+.song__format[data-format='audio'] {
+  border-color: transparent;
+  background: color-mix(in srgb, var(--color-text) 26%, transparent);
+}
+
+/* ── Resize the clip's loop, from its trailing edge (TASK-142).
+ *
+ * ⛔ A *different* gesture from the section handles on the header above: this
+ * changes how many bars this one row loops on, and the section's move every
+ * row. Kept narrow so it cannot swallow presses meant for the clip itself. */
+.song__clip-resize {
+  position: absolute;
+  inset-block: 0;
+  right: 0;
+  width: 7px;
+  cursor: ew-resize;
+  touch-action: none;
+}
+
+.song__clip-resize:hover,
+.song__clip-resize:focus-visible {
+  background: var(--color-primary);
+  outline: none;
+}
+
+/* ── Drag one clip out to the DAW — TASK-128's other half.
+ *
+ * ⚠ **Mounted only while the clip is hovered or selected, in the TSX** — a chip
+ * on all 320 clips at once is a wall of badges, and this is a deliberate reach
+ * rather than a thing to trip over while arranging. It used to be rendered
+ * always and hidden here with `display: none`, which shows nothing and still
+ * pays the mount: each handle takes two store subscriptions, so a 64-section
+ * song carried ~640 components and ~1,280 listeners that existed to be
+ * invisible. There is no hover rule here any more because there is nothing to
+ * hide. */
+.song__clip-drags {
+  position: absolute;
+  right: 10px;
+  display: inline-flex;
+  gap: 2px;
+}
+
+.song__clip-drags .drag__chip {
+  padding: 0 3px;
+  font-size: 0.55rem;
+  line-height: 1.6;
 }
 
 /* ── Locks. A locked clip is left alone by a re-roll. */
@@ -424,7 +611,7 @@
   width: 16px;
   height: 16px;
   padding: 0;
-  color: var(--text-dim);
+  color: var(--color-text-2);
   background: transparent;
   border: 0;
   border-radius: 3px;
@@ -451,9 +638,15 @@
   margin-inline-start: 2px;
 }
 
+/* ⛔ **`.song__track`, not `.song__row`, and getting this wrong made the row
+   lock unreachable.** These are `opacity: 0` until revealed, and the row's
+   padlock moved into the gutter when the track headers did — so a rule keyed on
+   hovering the *clip row* left it permanently invisible while still occupying
+   its 16px and still being focusable. A control that is there, tabbable and
+   never drawn is worse than one that was removed. */
 .song__clip:hover .song__clip-lock,
 .song__section:hover .song__section-lock,
-.song__row:hover .song__row-lock,
+.song__track:hover .song__row-lock,
 .song__clip-lock:focus-visible,
 .song__section-lock:focus-visible,
 .song__row-lock:focus-visible,
@@ -466,7 +659,7 @@
 .song__clip-lock.is-on,
 .song__section-lock.is-on,
 .song__row-lock.is-on {
-  color: var(--accent);
+  color: var(--color-primary);
 }
 
 /* A locked clip reads as pinned at a glance, without hovering it. */
@@ -482,7 +675,7 @@
   width: 16px;
   height: 16px;
   padding: 0;
-  color: var(--text-dim);
+  color: var(--color-text-2);
   background: transparent;
   border: 0;
   border-radius: 3px;
@@ -513,22 +706,22 @@
 }
 
 .song__clip-audition.is-on {
-  color: var(--accent);
+  color: var(--color-primary);
 }
 
 /* An auditioning clip is unmistakable, because the transport is playing it
    alone and the loop badge is not what says so. */
 .song__clip.is-auditioning {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--color-primary);
   outline-offset: -2px;
 }
 
 .song__audition-stop {
   padding: 0.15rem 0.5rem;
   font-size: 0.7rem;
-  color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 15%, transparent);
-  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-primary) 45%, transparent);
   border-radius: 999px;
   cursor: pointer;
 }
@@ -537,15 +730,15 @@
 .song__export {
   padding: 0.15rem 0.5rem;
   font-size: 0.7rem;
-  color: var(--text);
-  background: var(--surface);
-  border: 1px solid var(--line);
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
   border-radius: 999px;
   cursor: pointer;
 }
 
 .song__export:hover:not(:disabled) {
-  border-color: var(--accent);
+  border-color: var(--color-primary);
 }
 
 .song__export:disabled {
@@ -555,7 +748,7 @@
 
 .song__export-note {
   font-size: 0.68rem;
-  color: var(--text-dim);
+  color: var(--color-text-2);
   /* The path can be long, and truncating the *start* keeps the file name — the
      part a producer is looking for — visible. */
   direction: rtl;
@@ -567,6 +760,6 @@
 }
 
 .song__export-note.is-error {
-  color: var(--danger, var(--accent));
+  color: var(--color-error);
   direction: ltr;
 }

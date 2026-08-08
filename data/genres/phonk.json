@@ -206,12 +206,15 @@
     },
     "percs": {
       "lanes": [
-        "rim"
+        "rim",
+        "cowbell",
+        "tom"
       ],
       "densityPerBar": [
         0,
         2
-      ]
+      ],
+      "gainOffsetDb": -5
     },
     "fills": {
       "smallEveryBars": 4,

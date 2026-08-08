@@ -56,7 +56,8 @@
     "kit": "Drumkit",
     "session": "Sessie",
     "presets": "Voorinstellingen",
-    "stems": "Stems"
+    "stems": "Stems",
+    "explorer": "Bestanden"
   },
   "readouts": {
     "bpm": "BPM",
@@ -302,7 +303,9 @@
       "hook": "Refrein",
       "bridge": "Brug",
       "outro": "Outro"
-    }
+    },
+    "resizeClip": "Over hoeveel maten {{part}} loopt",
+    "resizeClipHint": "Loopt over {{bars}} maten — sleep om te wijzigen"
   },
   "stems": {
     "midi": "MIDI",
@@ -323,7 +326,8 @@
       "generate": "Genereren",
       "editing": "Bewerken",
       "notes": "Noten",
-      "drums": "Drumraster"
+      "drums": "Drumraster",
+      "browser": "Samplebrowser"
     },
     "keys": {
       "toggleRail": "Rechterpaneel tonen of verbergen",
@@ -347,7 +351,22 @@
       "septuplet": "Septool in deze cel",
       "cloneBar": "Maat 1 over deze maat kopiëren",
       "shortcuts": "Dit paneel tonen",
-      "play": "Afspelen of pauzeren"
+      "play": "Afspelen of pauzeren",
+      "previewDirection": "Sample achterstevoren / vooruit afspelen"
     }
+  },
+  "explorer": {
+    "addFolder": "Map toevoegen",
+    "removeFolder": "{{name}} uit de bibliotheek verwijderen",
+    "noRoots": "Voeg een map toe om je samples te bekijken.",
+    "listLabel": "Samplelijst",
+    "up": "Omhoog",
+    "empty": "Geen samples in deze map.",
+    "truncated": "Deze map bevat meer bestanden dan er worden getoond.",
+    "pickAFile": "Kies een sample om het te beluisteren.",
+    "decoding": "Bezig met lezen…",
+    "waveformOf": "Golfvorm van {{name}}",
+    "reverse": "Achterstevoren afspelen",
+    "resize": "Breedte van de browser aanpassen"
   }
 }

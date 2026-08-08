@@ -575,6 +575,7 @@ mod tests {
                     engine::pattern::Part::Drums,
                     PatternRef {
                         pattern_id: "trap-hook-drums".into(),
+                        bars: None,
                     },
                 )]),
                 drop_out_beats: 0,

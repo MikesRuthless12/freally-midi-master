@@ -69,7 +69,7 @@ const LANE_ORDER: &[Lane] = &[
 /// hats have their own authored blocks and their own placement grammar, so
 /// naming one here would put two stages in charge of the same voice. These are
 /// the ones whose whole behaviour is "sprinkle hits at this density".
-const PERC_LANES: &[Lane] = &[
+pub const PERC_LANES: &[Lane] = &[
     Lane::Ride,
     Lane::Crash,
     Lane::Tom,
@@ -272,9 +272,9 @@ impl Pools {
             } else {
                 1.0
             };
-            if grid::is_downbeat(i) {
+            if grid::is_downbeat(i, ctx) {
                 pools.downbeats.push((tick, weight));
-            } else if grid::is_offbeat_eighth(i) {
+            } else if grid::is_offbeat_eighth(i, ctx) {
                 pools.offbeat_eighths.push((tick, weight));
             } else {
                 pools.sixteenths.push((tick, weight));
@@ -706,14 +706,30 @@ fn hat_base_onsets(base: &str, grouping: &[u32], ctx: &SessionContext) -> Vec<u3
         .collect()
 }
 
-/// Is this position one the hand accents — a beat or an offbeat 8th?
+/// Is this position one the hand accents — on the 8th-note grid?
 ///
 /// The main/ghost split in a hat stream is positional, not random: the beats
 /// and the "&"s carry the pulse and the 16ths between them fill it in
 /// (research ch. 1 §1, mains 80–100% against ghosts 40–60%).
+///
+/// ⛔⛔ **Deliberately NOT `is_downbeat || is_offbeat_eighth`, and writing it
+/// that way silently deleted every ghost hat outside 4/4.** Those two predicates
+/// became meter-aware (TASK-142's grid fix), and their union covers *every* 16th
+/// the moment a beat is two 16ths or fewer: in 6/8 `is_downbeat` is `i % 2 == 0`
+/// and `is_offbeat_eighth` is `i % 2 == 1`. So every hat answered "main", the
+/// `Articulation::Ghost` tier became unreachable, and every model's authored
+/// `hihat.velocities.ghost` band went with it — a machine-gun hat at one flat
+/// velocity in 6/8, 12/8 and every x/16 meter. 4/4 was unaffected, which is why
+/// nothing caught it.
+///
+/// ⚠ **The 8th-note grid is the right unit here and it does not depend on the
+/// meter.** A 16th is a 16th and an 8th is an 8th whatever the time signature
+/// says — that is [`grid::SIXTEENTH`]'s own note — and what the research
+/// describes is a hand alternating down-up on 8ths with the in-between 16ths
+/// filled in quietly. In 6/8 the 8th *is* the beat, so the ghosts are the 16ths
+/// between the beats, which is exactly what this now answers.
 fn is_main_position(tick: u32) -> bool {
-    let index = tick / grid::SIXTEENTH;
-    grid::is_downbeat(index) || grid::is_offbeat_eighth(index)
+    (tick / grid::SIXTEENTH).is_multiple_of(2)
 }
 
 /// Resolve an open-hat position, including the symbolic `"_pre"` form.
@@ -1131,6 +1147,73 @@ fn lane_by_name(name: &str) -> Option<Lane> {
     serde_json::from_value(Value::String(name.to_owned())).ok()
 }
 
+/// Where in the bar a perc layer is allowed to land.
+///
+/// ⛔ **This was a bare string compared against `"offbeat"`, and the fallback
+/// was silent.** Any other word — including a typo, and including `"downbeat"`,
+/// which reads like it ought to work — meant "anywhere", so a model could ask
+/// for an accent layer and get a sprinkle with nothing saying so. That is the
+/// same class of hole `snare.placement` has a shipped-roster gate for, and
+/// [`can_read_perc_placement`] is what gives this one the same gate.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+enum PercPlacement {
+    /// Anywhere on the 16th grid — what a sprinkle means, and the default.
+    #[default]
+    Anywhere,
+    /// Between the beats. The layer that answers the pulse rather than doubling
+    /// it — drill's rim, and `uk-drill`'s woodblock.
+    Offbeat,
+    /// On the beats only.
+    ///
+    /// ⛔ **What makes a crash authorable at all.** A cymbal accent is a
+    /// *position*, not a density: sprinkled across the 16ths it lands between
+    /// the beats and reads as a mistake rather than as an accent. Without this
+    /// the only honest way to ship `Lane::Crash` was not to ship it.
+    Downbeat,
+}
+
+impl PercPlacement {
+    fn parse(name: &str) -> Option<Self> {
+        match name {
+            "any" => Some(Self::Anywhere),
+            "offbeat" => Some(Self::Offbeat),
+            "downbeat" => Some(Self::Downbeat),
+            _ => None,
+        }
+    }
+
+    /// May a hit land on this 16th?
+    ///
+    /// ⛔⛔ **A meter with no in-between positions honours neither filter, and
+    /// the alternative was a silent lane.** `sixteenths_per_beat` floors at 1,
+    /// so in x/16 and x/32 *every* 16th is a beat — which made `Offbeat` refuse
+    /// all of them and collect an empty pool. `uk-drill`, `ny-drill` and
+    /// `pop-smoke` all author `placement: "offbeat"`, so a producer whose host
+    /// project is in 5/16 got a rim lane that emitted nothing at all: absent
+    /// from the grid, from playback and from the exported stem, with nothing on
+    /// screen saying why. The old `index % 4 == 0` left 12 of 16 open in any
+    /// meter and never had to face this.
+    ///
+    /// ⚠ **A layer the model asked for sounds.** Where the meter cannot express
+    /// the placement, the placement is what gives way — the readout-that-lies
+    /// rule this project keeps writing down cuts the other way round.
+    fn allows(self, index: u32, ctx: &SessionContext) -> bool {
+        if grid::sixteenths_per_beat(ctx) < 2 {
+            return true;
+        }
+        match self {
+            Self::Anywhere => true,
+            Self::Offbeat => !grid::is_downbeat(index, ctx),
+            Self::Downbeat => grid::is_downbeat(index, ctx),
+        }
+    }
+}
+
+/// Is this `percs.placement` one the generator can act on?
+pub fn can_read_perc_placement(name: &str) -> bool {
+    PercPlacement::parse(name).is_some()
+}
+
 /// The percussion lanes a model names in `drums.percs` (TASK-140).
 ///
 /// ⛔ **15 of the 30 shipped models authored this block before anything read
@@ -1181,7 +1264,9 @@ fn percs(
         .unwrap_or(1.0);
     let scaled = |vel: u8| ((f64::from(vel) * gain).round() as u8).clamp(1, 127);
 
-    let offbeat_only = text(percs, "placement") == Some("offbeat");
+    let placement = text(percs, "placement")
+        .and_then(PercPlacement::parse)
+        .unwrap_or_default();
     let (low, high) = pair(percs, "densityPerBar").unwrap_or((0.0, 2.0));
     let (low, high) = (low.max(0.0), high.max(0.0));
 
@@ -1217,7 +1302,7 @@ fn percs(
             // The candidate positions, drawn without replacement so two hits of
             // one voice never land on the same 16th and read as one.
             let mut pool: Vec<(u32, f64)> = (0..per_bar)
-                .filter(|index| !offbeat_only || !grid::is_downbeat(*index))
+                .filter(|index| placement.allows(*index, ctx))
                 .map(|index| (index, 1.0))
                 .collect();
 
@@ -1567,7 +1652,16 @@ mod tests {
     }
 
     #[test]
-    fn an_offbeat_placement_never_lands_on_a_beat() {
+    fn an_offbeat_placement_never_lands_on_a_beat_in_any_meter() {
+        // ⛔ **The meters are the test.** In 4/4 this passed while
+        // `grid::is_downbeat` was `index % 4 == 0`, because there four 16ths
+        // *are* a beat. In 6/8 a beat is two 16ths, so 2, 6 and 10 are beats
+        // that the `% 4` waved through — and `uk-drill`, `ny-drill` and
+        // `pop-smoke` all author `placement: "offbeat"`, so the layer meant to
+        // sit between the pulse played on top of it. Asserted against
+        // `ticks_per_beat` arithmetic spelled out here rather than against the
+        // predicate under test, so a predicate that goes wrong again cannot
+        // agree with the assertion about it.
         let m = model(json!({
             "percs": {
                 "lanes": ["perc"],
@@ -1575,16 +1669,83 @@ mod tests {
                 "placement": "offbeat",
             }
         }));
-        let lanes = generate(&m, &ctx(4), 11);
-        let hits = starts(&lanes, Lane::Perc);
-        assert!(!hits.is_empty(), "three a bar were asked for");
 
-        for tick in hits {
-            let index = (tick % ctx(4).ticks_per_bar()) / grid::SIXTEENTH;
+        // ⚠ **x/16 and x/32 are in here now**, and they are the two the first
+        // cut of this list left out — which is exactly where the placement
+        // filter emptied the pool and silenced the lane.
+        for (num, den) in [(4, 4), (3, 4), (6, 8), (12, 8), (5, 4), (5, 16), (8, 32)] {
+            let c = SessionContext {
+                bars: 4,
+                time_sig_num: num,
+                time_sig_den: den,
+                ..Default::default()
+            };
+            let beat = grid::ticks_per_beat(&c);
+            let hits = starts(&generate(&m, &c, 11), Lane::Perc);
+            // ⛔ **The lane sounds in every meter, and this half is the one that
+            // was missing.** In x/16 and x/32 a beat is a 16th or shorter, so
+            // *every* position on this grid is a beat and "offbeat" cannot be
+            // honoured — the filter collected nothing and the lane went silent.
+            assert!(!hits.is_empty(), "{num}/{den}: three a bar were asked for");
+
+            // ...and where the meter *can* express an offbeat, none of them
+            // lands on a beat.
+            if grid::sixteenths_per_beat(&c) < 2 {
+                continue;
+            }
+            for tick in hits {
+                assert!(
+                    !(tick % c.ticks_per_bar()).is_multiple_of(beat),
+                    "{num}/{den}: an offbeat perc landed on beat {} (tick {tick})",
+                    (tick % c.ticks_per_bar()) / beat + 1
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn a_hat_stream_keeps_its_ghost_notes_in_every_meter() {
+        // ⛔⛔ **`is_main_position` was `is_downbeat || is_offbeat_eighth`, and
+        // once those became meter-aware their union covered every 16th.** In
+        // 6/8 that made every hat a "main", so the `Articulation::Ghost` tier
+        // and every model's authored `hihat.velocities.ghost` band became
+        // unreachable — a machine-gun hat at one flat velocity. 4/4 was
+        // unaffected, which is why only a meter sweep can see it.
+        let m = model(json!({
+            "hihat": {
+                "base": "16th",
+                "continuous": true,
+                "fillDensity": 1.0,
+                "velocities": { "main": [0.9, 1.0], "ghost": [0.2, 0.3] }
+            }
+        }));
+
+        for (num, den) in [(4, 4), (6, 8), (12, 8), (3, 4)] {
+            let c = SessionContext {
+                bars: 2,
+                time_sig_num: num,
+                time_sig_den: den,
+                ..Default::default()
+            };
+            let lanes = generate(&m, &c, 5);
+            let hats: Vec<&Note> = lanes
+                .iter()
+                .filter(|track| track.lane == Lane::ClosedHat)
+                .flat_map(|track| track.notes.iter())
+                .collect();
+            assert!(!hats.is_empty(), "{num}/{den}: no hats at all");
+
+            let ghosts = hats
+                .iter()
+                .filter(|note| note.articulation == Some(Articulation::Ghost))
+                .count();
             assert!(
-                !grid::is_downbeat(index),
-                "offbeat placement put a hit on beat {} (tick {tick})",
-                index / 4 + 1
+                ghosts > 0,
+                "{num}/{den}: every hat came out a main — the ghost tier is unreachable"
+            );
+            assert!(
+                ghosts < hats.len(),
+                "{num}/{den}: every hat came out a ghost"
             );
         }
     }
@@ -1958,7 +2119,7 @@ mod tests {
         for seed in 0..200 {
             for tick in starts(&generate(&m, &ctx(2), seed), Lane::Kick) {
                 let index = (tick % 3840) / grid::SIXTEENTH;
-                if grid::is_offbeat_eighth(index) {
+                if grid::is_offbeat_eighth(index, &ctx(2)) {
                     offbeat += 1;
                 }
                 total += 1;
@@ -1981,7 +2142,7 @@ mod tests {
         for seed in 0..30 {
             for tick in starts(&generate(&m, &ctx(1), seed), Lane::Kick) {
                 assert!(
-                    grid::is_downbeat(tick / grid::SIXTEENTH),
+                    grid::is_downbeat(tick / grid::SIXTEENTH, &ctx(1)),
                     "seed {seed}: {tick} is off the beat"
                 );
             }

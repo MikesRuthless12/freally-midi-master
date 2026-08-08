@@ -1,9 +1,16 @@
 /* Studio layout — PRD § 8. Colour comes only from tokens; never a literal hex,
  * so both themes work without a single branch in here. */
 
+/* ⛔ **The left column is a variable because the browser rail is draggable**
+   (TASK-132). Mike: *"the center panel shrinks as you expand file explorer."*
+   That falls out of the grid rather than needing any code — the stage track is
+   `minmax(0, 1fr)`, so every pixel this track takes is one the stage gives up.
+   The fallback is the width the rail has always been, so a page rendered before
+   `App` sets the property (or in a test that mounts a rail on its own) lays out
+   exactly as it used to. */
 .studio {
   display: grid;
-  grid-template-columns: 280px minmax(0, 1fr) 320px;
+  grid-template-columns: var(--rail-left-width, 280px) minmax(0, 1fr) 320px;
   grid-template-rows: minmax(0, 1fr) 56px;
   grid-template-areas:
     'left center right'
@@ -13,7 +20,7 @@
 }
 
 .studio[data-right-rail='closed'] {
-  grid-template-columns: 280px minmax(0, 1fr);
+  grid-template-columns: var(--rail-left-width, 280px) minmax(0, 1fr);
   grid-template-areas:
     'left center'
     'transport transport';
@@ -33,6 +40,33 @@
   /* Logical, not `border-right`: under dir="rtl" the left rail is drawn on the
      right, and a physical border leaves the separator on the wrong edge. */
   border-inline-end: 1px solid var(--color-border);
+  /* The resize handle is absolutely positioned against this. */
+  position: relative;
+}
+
+/* ── The browser rail's resize handle (TASK-132) ─────────────────────────── */
+/* ⛔ **On the trailing edge, so it works under `dir="rtl"` too**: in Arabic the
+   "left" rail is drawn on the right and a `right: 0` handle would sit in the
+   middle of the stage. */
+.rail__resizer {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-end: 0;
+  /* Wide enough to hit without hunting, narrow enough not to eat clicks meant
+     for the list beside it. */
+  width: 6px;
+  z-index: 5;
+  cursor: col-resize;
+  /* ⚠ `touch-action: none` for the same reason the drag chips have it: without
+     it the WebView claims the pointer stream for a pan gesture and the drag
+     never reaches the move handler. */
+  touch-action: none;
+}
+
+.rail__resizer:hover,
+.rail__resizer:focus-visible {
+  background: var(--color-primary);
+  outline: none;
 }
 
 .rail--right {
@@ -660,6 +694,17 @@
    "disabled", and this row is the one most worth clicking. */
 .kit-lane[data-silent='true'] .kit-lane__pad {
   border-style: dashed;
+}
+
+/* The row a sample is being dragged over (TASK-132). ⛔ Filled rather than
+   merely outlined: an assigned row is *already* outlined in the same colour, so
+   an outline-only cue would be invisible on exactly the rows a producer is most
+   likely to be replacing. */
+.kit-lane[data-over='true'] .kit-lane__pad {
+  border-color: var(--color-primary);
+  border-style: solid;
+  background: color-mix(in srgb, var(--color-primary) 22%, var(--color-surface-2));
+  color: var(--color-text);
 }
 
 .kit-lane__clear {

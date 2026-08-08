@@ -190,6 +190,25 @@ impl Preview {
         // two writers to one cursor is a click at best and a skipped block at
         // worst.
         self.seek.store(frame, Ordering::Relaxed);
+
+        // ⛔⛔ **...but a seek while PAUSED has to move the readout too, and
+        // this is the half that was missing.** `render` returns early when
+        // nothing is playing, so the request just sat there and `position` went
+        // on reporting the old cursor. The page writes the new position
+        // optimistically when the producer clicks — and the very next
+        // `preview_position` poll, at most half a second later, overwrote it
+        // with the stale one. Clicking a paused waveform moved the playhead and
+        // then visibly undid itself.
+        //
+        // ⚠ **Safe for exactly the reason `stop` gives**: a block that is not
+        // playing returns without touching `position`, so there is no second
+        // writer. If Play is pressed concurrently the worst case is that the
+        // one block already in flight overwrites this — and it consumed the same
+        // seek request on its way, so it lands in the same place regardless.
+        if !self.playing.load(Ordering::Relaxed) {
+            self.position
+                .store((frame as f64).to_bits(), Ordering::Relaxed);
+        }
     }
 
     pub fn set_looping(&self, on: bool) {
@@ -353,7 +372,7 @@ impl Preview {
 }
 
 #[cfg(test)]
-mod tests {
+pub(crate) mod tests {
     use super::*;
 
     /// The device rate the tests render at.
@@ -534,6 +553,440 @@ mod tests {
             p.position().seconds.is_finite(),
             "a zero device rate must not produce NaN"
         );
+    }
+
+    // ───────────────────────────────────────────────────────────────────────
+    // What is actually heard.
+    //
+    // ⛔ **Everything above asserts a *position*, and a position is not a
+    // sound.** A render that advanced the cursor and wrote silence, or wrote
+    // the right samples in the wrong order, passes every one of them. These
+    // assert the buffer — the ramp fixture is `i / n`, so a sample value names
+    // the frame it came from, and the whole point of a ramp is that a reversed
+    // pass is visibly the mirror of a forward one.
+    // ───────────────────────────────────────────────────────────────────────
+
+    /// The frame each output sample came from, given the `0.7` attenuation and
+    /// the `i / n` ramp. Rounded, because interpolation lands between frames.
+    fn frames_heard(out: &[f32], n: usize) -> Vec<i64> {
+        out.iter()
+            .map(|s| ((s / 0.7) * n as f32).round() as i64)
+            .collect()
+    }
+
+    #[test]
+    fn playing_forward_reads_the_sample_from_the_front() {
+        let p = preview(100);
+        p.play();
+        let mut out = [0.0; 8];
+        p.render(&mut out, 1, RATE);
+
+        assert_eq!(
+            frames_heard(&out, 100),
+            vec![0, 1, 2, 3, 4, 5, 6, 7],
+            "forward playback must walk the sample in order"
+        );
+    }
+
+    #[test]
+    fn playing_backwards_reads_the_same_sample_in_reverse() {
+        // ⛔ **The claim Mike's "play backwards" actually makes**, and the one
+        // nothing checked: the position going down is not the same thing as the
+        // audio coming out reversed. A render that decremented the cursor and
+        // read `samples[index]` with a stale `frac` would pass the position
+        // test above and produce a stuttering mess.
+        let p = preview(100);
+        p.set_reverse(true);
+        p.play(); // rewinds to the last frame, because that is where a pass begins
+        let mut out = [0.0; 8];
+        p.render(&mut out, 1, RATE);
+
+        assert_eq!(
+            frames_heard(&out, 100),
+            vec![99, 98, 97, 96, 95, 94, 93, 92],
+            "backwards playback must walk the sample in reverse"
+        );
+    }
+
+    #[test]
+    fn a_backwards_pass_is_the_mirror_of_the_forward_one() {
+        // The property, rather than a hand-written list: whatever forward
+        // plays, backwards plays the same values in the opposite order.
+        let forward = preview(64);
+        forward.play();
+        let mut ahead = [0.0; 64];
+        forward.render(&mut ahead, 1, RATE);
+
+        let back = preview(64);
+        back.set_reverse(true);
+        back.play();
+        let mut behind = [0.0; 64];
+        back.render(&mut behind, 1, RATE);
+        behind.reverse();
+
+        // ⚠ The two passes read the same 64 frames from opposite ends, so they
+        // are equal frame for frame once one is flipped.
+        for (index, (a, b)) in ahead.iter().zip(behind.iter()).enumerate() {
+            assert!(
+                (a - b).abs() < 1e-6,
+                "frame {index}: forward {a} against reversed {b}"
+            );
+        }
+    }
+
+    #[test]
+    fn looping_wraps_to_the_top_and_keeps_sounding() {
+        // ⛔ `the_end_stops_it_unless_it_is_looping` only asks whether the flag
+        // is still set. A loop that wrapped the cursor and stopped writing
+        // samples — or wrapped to the wrong end — passes it.
+        let p = preview(8);
+        p.set_looping(true);
+        p.play();
+        let mut out = [0.0; 20];
+        p.render(&mut out, 1, RATE);
+
+        let heard = frames_heard(&out, 8);
+        assert_eq!(
+            heard,
+            vec![0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3, 4, 5, 6, 7, 0, 1, 2, 3],
+            "a loop plays the sample over and over from the top"
+        );
+        assert!(p.position().playing, "a loop never runs out");
+    }
+
+    #[test]
+    fn looping_backwards_wraps_to_the_end_rather_than_the_start() {
+        // ⚠ The other end, and it is the one a `step > 0.0` check gets wrong in
+        // the quiet direction: wrapping a backwards pass to frame 0 leaves it
+        // immediately out of travel again, so the loop plays one frame per
+        // block forever.
+        let p = preview(8);
+        p.set_reverse(true);
+        p.set_looping(true);
+        p.play();
+        let mut out = [0.0; 20];
+        p.render(&mut out, 1, RATE);
+
+        assert_eq!(
+            frames_heard(&out, 8),
+            vec![7, 6, 5, 4, 3, 2, 1, 0, 7, 6, 5, 4, 3, 2, 1, 0, 7, 6, 5, 4],
+        );
+        assert!(p.position().playing);
+    }
+
+    #[test]
+    fn a_loop_survives_a_rate_ratio_that_never_lands_on_a_frame() {
+        // ⛔ **The wrap is `at = 0.0`, not `at -= len`**, so a fractional step
+        // cannot accumulate an offset across repeats — but it also must not
+        // stall: at a ratio where every position is fractional, a wrap that
+        // compared `at > last` against a stale bound would either drop a repeat
+        // or spin. Rendered long enough to wrap many times.
+        let p = preview(7);
+        p.set_looping(true);
+        p.play();
+        let mut out = [0.0; 512];
+        p.render(&mut out, 1, RATE * 3.0 / 7.0);
+
+        assert!(p.position().playing, "it must still be going");
+        assert!(
+            out.iter().any(|s| *s > 0.3),
+            "a loop has to reach the loud end of the ramp, not creep along the quiet one"
+        );
+        let at = p.position();
+        assert!(at.seconds.is_finite() && at.seconds >= 0.0 && at.seconds <= at.total);
+    }
+
+    #[test]
+    fn a_click_lands_on_the_frame_it_names_at_any_device_rate() {
+        // ⛔ The seek is in *seconds* and the cursor is in frames, so the two
+        // conversions have to agree — and the device rate must not enter into
+        // it at all. A seek that went through the device rate would land in a
+        // different place in a 48 kHz session than in a 44.1 kHz one.
+        for device in [RATE, RATE * 2.0, RATE / 2.0] {
+            let p = preview(100);
+            p.seek(0.25); // a quarter of a second at 100 Hz is frame 25
+            p.play();
+            let mut out = [0.0; 1];
+            p.render(&mut out, 1, device);
+            assert_eq!(
+                frames_heard(&out, 100),
+                vec![25],
+                "a click at 0.25s must start on frame 25 whatever the device rate"
+            );
+        }
+    }
+
+    #[test]
+    fn a_click_moves_the_readout_even_while_it_is_paused() {
+        // ⛔⛔ **The marker used to snap back.** `render` returns early when
+        // nothing is playing, so a paused seek sat in the request atomic and
+        // `position` still held the old cursor — and the page's own optimistic
+        // write was then overwritten by the very next `preview_position` poll,
+        // half a second later. Clicking a paused waveform moved the playhead and
+        // then visibly undid itself.
+        let p = preview(100);
+        p.play();
+        p.render(&mut [0.0; 10], 1, RATE);
+        p.pause();
+
+        p.seek(0.6);
+        assert!(
+            (p.position().seconds - 0.6).abs() < 0.02,
+            "a paused seek must be visible immediately, got {:?}",
+            p.position()
+        );
+
+        // ...and it is still where the click put it once playback resumes.
+        p.play();
+        let mut out = [0.0; 1];
+        p.render(&mut out, 1, RATE);
+        assert_eq!(frames_heard(&out, 100), vec![60]);
+    }
+
+    #[test]
+    fn a_seek_while_playing_takes_effect_on_the_next_block() {
+        let p = preview(100);
+        p.play();
+        p.render(&mut [0.0; 10], 1, RATE);
+
+        p.seek(0.8);
+        let mut out = [0.0; 2];
+        p.render(&mut out, 1, RATE);
+        assert_eq!(frames_heard(&out, 100), vec![80, 81]);
+    }
+
+    #[test]
+    fn play_after_it_ran_out_starts_over_rather_than_doing_nothing() {
+        // A sample that finished is parked at the end it reached on purpose, so
+        // Play has to rewind or it renders one frame and stops — which reads as
+        // the player being broken.
+        let p = preview(8);
+        p.play();
+        p.render(&mut [0.0; 32], 1, RATE);
+        assert!(!p.position().playing, "it ran out");
+
+        p.play();
+        let mut out = [0.0; 3];
+        p.render(&mut out, 1, RATE);
+        assert_eq!(frames_heard(&out, 8), vec![0, 1, 2], "Play starts it over");
+    }
+
+    #[test]
+    fn reverse_rewinds_to_the_end_only_when_there_is_nowhere_left_to_go_back_to() {
+        // ⛔ **Two different situations, and they must not be conflated — this
+        // test was written asserting they were, and the code was right.**
+        //
+        // Pressing ← *part way through* a sample means "go back from here",
+        // which is a scrub and is what a producer expects from a direction
+        // toggle. Pressing it on a sample that is parked at frame 0 — freshly
+        // selected, or just stopped — means "play it backwards", and there is
+        // no travel left in that direction, so it rewinds to the end.
+        let mid = preview(8);
+        mid.play();
+        mid.render(&mut [0.0; 3], 1, RATE); // now sitting on frame 3
+        mid.set_reverse(true);
+        mid.play();
+        let mut out = [0.0; 3];
+        mid.render(&mut out, 1, RATE);
+        assert_eq!(
+            frames_heard(&out, 8),
+            vec![3, 2, 1],
+            "mid-sample, ← walks back from where the playhead is"
+        );
+
+        // Parked at the start — the common case, since `load` parks at 0 and
+        // Mike's ask is "select a file and press left arrow".
+        let fresh = preview(8);
+        fresh.set_reverse(true);
+        fresh.play();
+        let mut back = [0.0; 3];
+        fresh.render(&mut back, 1, RATE);
+        assert_eq!(
+            frames_heard(&back, 8),
+            vec![7, 6, 5],
+            "from the start, ← has to rewind to the end or it plays one frame"
+        );
+
+        // ...and a sample that ran out forwards is already at the far end, so ←
+        // walks straight back from there without rewinding anywhere.
+        let done = preview(8);
+        done.play();
+        done.render(&mut [0.0; 32], 1, RATE);
+        done.set_reverse(true);
+        done.play();
+        let mut after = [0.0; 3];
+        done.render(&mut after, 1, RATE);
+        assert_eq!(frames_heard(&after, 8), vec![7, 6, 5]);
+    }
+
+    #[test]
+    fn a_one_frame_sample_plays_once_and_stops_without_panicking() {
+        // The degenerate end of every bound in `render`: `last` is 0.0, so the
+        // forward and backward "out of travel" tests are both true immediately.
+        let p = preview(1);
+        p.play();
+        let mut out = [0.0; 4];
+        p.render(&mut out, 1, RATE);
+        assert!(out.iter().all(|s| s.is_finite()));
+        assert!(!p.position().playing);
+
+        p.set_reverse(true);
+        p.play();
+        p.render(&mut [0.0; 4], 1, RATE);
+        assert!(p.position().seconds.is_finite());
+    }
+
+    #[test]
+    fn a_second_sample_replaces_the_first_rather_than_playing_over_it() {
+        // ⚠ One at a time, which is what a browser preview means. The handoff
+        // slot is the thing that can go wrong here — `load` drains the park slot
+        // itself precisely so a second load is not silently ignored.
+        let p = preview(100);
+        p.play();
+        p.render(&mut [0.0; 10], 1, RATE);
+
+        // A flat sample, so its value cannot be confused with the ramp's.
+        p.load(vec![0.5; 100], 100);
+        p.play();
+        let mut out = [0.0; 4];
+        p.render(&mut out, 1, RATE);
+        for sample in out {
+            assert!(
+                (sample - 0.5 * 0.7).abs() < 1e-6,
+                "the second sample must be what is heard, got {sample}"
+            );
+        }
+    }
+
+    // ───────────────────────────────────────────────────────────────────────
+    // The seams the fixtures above skip: a real file, and the two commands the
+    // panel maps a click through.
+    // ───────────────────────────────────────────────────────────────────────
+
+    /// A 16-bit PCM WAV of `frames` frames at `rate`, one channel, ramping.
+    ///
+    /// ⚠ **`pub(crate)` so `editor.rs`'s end-to-end test uses this one.** That
+    /// test needs the identical fixture, and this crate already carries four
+    /// near-identical RIFF writers across its test modules — a fifth and sixth
+    /// would mean finding six places the day a header field or an accepted rate
+    /// has to change.
+    pub(crate) fn wav_bytes(frames: usize, rate: u32) -> Vec<u8> {
+        let pcm: Vec<i16> = (0..frames)
+            .map(|i| ((i as f32 / frames as f32) * 30_000.0) as i16)
+            .collect();
+        let data: Vec<u8> = pcm.iter().flat_map(|s| s.to_le_bytes()).collect();
+        let mut out = Vec::new();
+        out.extend(b"RIFF");
+        out.extend(((36 + data.len()) as u32).to_le_bytes());
+        out.extend(b"WAVEfmt ");
+        out.extend(16u32.to_le_bytes());
+        out.extend(1u16.to_le_bytes());
+        out.extend(1u16.to_le_bytes());
+        out.extend(rate.to_le_bytes());
+        out.extend((rate * 2).to_le_bytes());
+        out.extend(2u16.to_le_bytes());
+        out.extend(16u16.to_le_bytes());
+        out.extend(b"data");
+        out.extend((data.len() as u32).to_le_bytes());
+        out.extend(data);
+        out
+    }
+
+    #[test]
+    fn a_real_decoded_file_plays_forwards_and_backwards() {
+        // ⛔ **Every fixture above hands `load` a `Vec<f32>` it built itself**,
+        // so none of them can see the seam that actually matters: what
+        // `audio::import` returns. If the decoder ever handed back *interleaved*
+        // frames rather than the mono fold it promises, `frames` would be double
+        // the truth — the sample would play at half speed, the total time would
+        // read double, and every click in the waveform would land in the wrong
+        // place. All of it silently.
+        // ⚠ A real rate, because `import` refuses one no device could run —
+        // which is itself a guard worth not defeating with a fixture.
+        let dir = std::env::temp_dir().join(format!("fmm-preview-{}", std::process::id()));
+        let _ = std::fs::create_dir_all(&dir);
+        let path = dir.join("ramp.wav");
+        std::fs::write(&path, wav_bytes(4_410, 44_100)).expect("a temp wav");
+
+        let audio = crate::audio::import::decode_file(&path).expect("it decodes");
+        assert_eq!(audio.samples.len(), 4_410, "mono frames, not interleaved");
+
+        let p = Preview::default();
+        p.load(audio.samples, audio.sample_rate);
+        p.render(&mut [], 1, 44_100.0);
+
+        // 4,410 frames at 44.1 kHz is a tenth of a second.
+        assert!(
+            (p.position().total - 0.1).abs() < 1e-4,
+            "{:?}",
+            p.position()
+        );
+
+        p.play();
+        let mut forward = [0.0; 8];
+        p.render(&mut forward, 1, 44_100.0);
+        assert!(
+            forward.windows(2).all(|w| w[1] >= w[0]),
+            "a ramp read forwards climbs: {forward:?}"
+        );
+
+        p.stop();
+        p.set_reverse(true);
+        p.play();
+        let mut back = [0.0; 8];
+        p.render(&mut back, 1, 44_100.0);
+        assert!(
+            back.windows(2).all(|w| w[1] <= w[0]),
+            "the same ramp read backwards falls: {back:?}"
+        );
+
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn the_waveform_and_the_player_agree_about_how_long_the_sample_is() {
+        // ⛔⛔ **This is the seam a click in the waveform is mapped through, and
+        // the two halves are computed in different modules.** The panel turns a
+        // pixel into a fraction of the drawn wave, multiplies by the *total* the
+        // player reports, and sends that to `seek`. If `explorer::waveform`'s
+        // `seconds` and `Preview`'s `total` ever disagreed, every click would
+        // land proportionally wrong — furthest out at the end of the sample,
+        // which is the hardest place to notice and the easiest to blame on the
+        // file.
+        let dir = std::env::temp_dir().join(format!("fmm-preview-agree-{}", std::process::id()));
+        let _ = std::fs::create_dir_all(&dir);
+        let path = dir.join("ramp.wav");
+        std::fs::write(&path, wav_bytes(4_410, 44_100)).expect("a temp wav");
+
+        let explorer = crate::explorer::Explorer::default();
+        explorer.restore(&[dir.to_str().unwrap().to_owned()]);
+        let wave =
+            crate::explorer::waveform(&explorer, path.to_str().unwrap()).expect("it describes");
+
+        let audio = crate::audio::import::decode_file(&path).expect("it decodes");
+        let p = Preview::default();
+        p.load(audio.samples, audio.sample_rate);
+
+        assert!(
+            (wave.seconds - p.position().total).abs() < 1e-4,
+            "the drawn wave is {}s and the player says {}s",
+            wave.seconds,
+            p.position().total
+        );
+
+        // ...and a click at the half-way point of the drawing lands half way
+        // through the audio, which is what the panel actually computes.
+        p.seek(wave.seconds / 2.0);
+        p.play();
+        p.render(&mut [0.0; 1], 1, RATE);
+        let at = p.position();
+        assert!(
+            (at.seconds - at.total / 2.0).abs() < 0.01,
+            "a click at the middle landed at {:?}",
+            at
+        );
+
+        let _ = std::fs::remove_dir_all(&dir);
     }
 
     #[test]

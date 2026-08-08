@@ -225,12 +225,15 @@
     },
     "percs": {
       "lanes": [
-        "perc"
+        "perc",
+        "ride",
+        "shaker"
       ],
       "densityPerBar": [
         1,
         2
       ],
+      "gainOffsetDb": -6,
       "tambourine": true
     },
     "fills": {

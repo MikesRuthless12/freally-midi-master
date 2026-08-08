@@ -56,7 +56,8 @@
     "kit": "Davul kiti",
     "session": "Oturum",
     "presets": "Ön ayarlar",
-    "stems": "Parçalar"
+    "stems": "Parçalar",
+    "explorer": "Tarayıcı"
   },
   "readouts": {
     "bpm": "BPM",
@@ -302,7 +303,9 @@
       "hook": "Nakarat",
       "bridge": "Köprü",
       "outro": "Çıkış"
-    }
+    },
+    "resizeClip": "{{part}} kaç ölçüde döngüye giriyor",
+    "resizeClipHint": "{{bars}} ölçüde döngüye giriyor — değiştirmek için sürükleyin"
   },
   "stems": {
     "midi": "MIDI",
@@ -323,7 +326,8 @@
       "generate": "Üretim",
       "editing": "Düzenleme",
       "notes": "Notalar",
-      "drums": "Davul ızgarası"
+      "drums": "Davul ızgarası",
+      "browser": "Örnek tarayıcısı"
     },
     "keys": {
       "toggleRail": "Sağ paneli göster veya gizle",
@@ -347,7 +351,22 @@
       "septuplet": "Bu hücrede septole",
       "cloneBar": "1. ölçüyü buraya kopyala",
       "shortcuts": "Bu paneli göster",
-      "play": "Çal veya duraklat"
+      "play": "Çal veya duraklat",
+      "previewDirection": "Örneği geriye / ileriye doğru çal"
     }
+  },
+  "explorer": {
+    "addFolder": "Klasör ekle",
+    "removeFolder": "{{name}} klasörünü kitaplıktan kaldır",
+    "noRoots": "Örneklerinize göz atmak için bir klasör ekleyin.",
+    "listLabel": "Örnek listesi",
+    "up": "Yukarı",
+    "empty": "Bu klasörde örnek yok.",
+    "truncated": "Bu klasörde gösterilenden daha fazla dosya var.",
+    "pickAFile": "Dinlemek için bir örnek seçin.",
+    "decoding": "Okunuyor…",
+    "waveformOf": "{{name}} dalga biçimi",
+    "reverse": "Geriye doğru çal",
+    "resize": "Tarayıcı genişliğini değiştir"
   }
 }

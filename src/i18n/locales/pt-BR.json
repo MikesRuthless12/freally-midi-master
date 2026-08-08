@@ -56,7 +56,8 @@
     "kit": "Kit",
     "session": "Sessão",
     "presets": "Predefinições",
-    "stems": "Faixas"
+    "stems": "Faixas",
+    "explorer": "Navegador"
   },
   "readouts": {
     "bpm": "BPM",
@@ -302,7 +303,9 @@
       "hook": "Refrão",
       "bridge": "Ponte",
       "outro": "Encerramento"
-    }
+    },
+    "resizeClip": "Em quantos compassos {{part}} se repete",
+    "resizeClipHint": "Repete a cada {{bars}} compassos — arraste para mudar"
   },
   "stems": {
     "midi": "MIDI",
@@ -323,7 +326,8 @@
       "generate": "Gerar",
       "editing": "Edição",
       "notes": "Notas",
-      "drums": "Grade de bateria"
+      "drums": "Grade de bateria",
+      "browser": "Navegador de samples"
     },
     "keys": {
       "toggleRail": "Mostrar ou ocultar o painel direito",
@@ -347,7 +351,22 @@
       "septuplet": "Quiáltera de 7 nesta célula",
       "cloneBar": "Copiar o compasso 1 sobre este",
       "shortcuts": "Mostrar este painel",
-      "play": "Tocar ou pausar"
+      "play": "Tocar ou pausar",
+      "previewDirection": "Reproduzir o sample de trás para frente / normalmente"
     }
+  },
+  "explorer": {
+    "addFolder": "Adicionar pasta",
+    "removeFolder": "Remover {{name}} da biblioteca",
+    "noRoots": "Adicione uma pasta para navegar pelos seus samples.",
+    "listLabel": "Lista de samples",
+    "up": "Acima",
+    "empty": "Nenhum sample nesta pasta.",
+    "truncated": "Esta pasta tem mais arquivos do que os exibidos.",
+    "pickAFile": "Escolha um sample para ouvi-lo.",
+    "decoding": "Lendo…",
+    "waveformOf": "Forma de onda de {{name}}",
+    "reverse": "Reproduzir de trás para frente",
+    "resize": "Redimensionar o navegador"
   }
 }

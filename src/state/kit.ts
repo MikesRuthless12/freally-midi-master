@@ -38,6 +38,19 @@ export function canSound(lane: KitLane): boolean {
   return lane.shipped || lane.path !== null;
 }
 
+/**
+ * Every lane the loaded kit can actually make a sound with.
+ *
+ * ⚠ **Here rather than memoised twice**, for the same reason [`canSound`] is one
+ * predicate: `DragRows` builds this to decide whether a part offers an Audio
+ * handle and `SongTimeline` builds it to decide whether a clip does, and two
+ * copies of "which lanes are audible" is how the Stems panel and the arrangement
+ * come to disagree about one kit. Both memoise the call on `lanes`.
+ */
+export function soundableLanes(lanes: KitLane[]): Set<Lane> {
+  return new Set(lanes.filter(canSound).map((lane) => lane.lane));
+}
+
 /** One row of the KIT panel. Mirrors what `kit_state` answers with. */
 export type KitLane = {
   lane: Lane;

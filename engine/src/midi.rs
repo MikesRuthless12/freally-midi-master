@@ -472,7 +472,7 @@ fn song_events_for(song: &Song, part: Part) -> Vec<Event> {
         // second time by the code that plays the song rather than exports it.
         // Two walks over the same fields are free to disagree, and then what a
         // producer hears is not what they exported.
-        let tiling = SectionTiling::of(song, section, pattern.bars);
+        let tiling = SectionTiling::of(song, section, reference, pattern);
 
         // Computed once and reused for every repeat: `events_for` allocates,
         // walks every note and sorts, and it is a pure function of the pattern —
@@ -487,10 +487,23 @@ fn song_events_for(song: &Song, part: Part) -> Vec<Event> {
                 if !tiling.sounds(repeat, event.origin) {
                     continue;
                 }
+                // ⛔ **Trimmed at the loop point, exactly as `flatten_parts`
+                // trims the note length** — see `SectionTiling::held_within`.
+                // These events are already split into on and off, so the rule
+                // lands on the *tick* here rather than on a length: an off (or a
+                // slide's destination on) that would fall past the end of a
+                // resized repeat is pulled back to the loop point instead of
+                // being written inside the next one, where the same pitch has
+                // been re-struck. Without this the file and the transport
+                // disagree, which is the one thing this module shares
+                // `SectionTiling` to prevent.
+                let within = event.origin.saturating_add(
+                    tiling.held_within(event.origin, event.tick.saturating_sub(event.origin)),
+                );
                 let tick = tiling
                     .section_start
                     .saturating_add(offset)
-                    .saturating_add(event.tick);
+                    .saturating_add(if event.is_on { event.tick } else { within });
                 // ⚠ Only the note-*on* carries the fade. A note-off's velocity
                 // is a release value no sampler reads as loudness, and scaling
                 // it would ramp a number that means nothing.

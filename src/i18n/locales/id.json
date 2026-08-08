@@ -56,7 +56,8 @@
     "kit": "Kit",
     "session": "Sesi",
     "presets": "Prasetel",
-    "stems": "Stem"
+    "stems": "Stem",
+    "explorer": "Berkas"
   },
   "readouts": {
     "bpm": "BPM",
@@ -302,7 +303,9 @@
       "hook": "Refrein",
       "bridge": "Jembatan",
       "outro": "Penutup"
-    }
+    },
+    "resizeClip": "Berapa bar {{part}} berulang",
+    "resizeClipHint": "Berulang setiap {{bars}} bar — seret untuk mengubah"
   },
   "stems": {
     "midi": "MIDI",
@@ -323,7 +326,8 @@
       "generate": "Hasilkan",
       "editing": "Penyuntingan",
       "notes": "Not",
-      "drums": "Kisi drum"
+      "drums": "Kisi drum",
+      "browser": "Peramban sampel"
     },
     "keys": {
       "toggleRail": "Tampilkan atau sembunyikan panel kanan",
@@ -347,7 +351,22 @@
       "septuplet": "Septol di sel ini",
       "cloneBar": "Salin bar 1 ke bar ini",
       "shortcuts": "Tampilkan panel ini",
-      "play": "Putar atau jeda"
+      "play": "Putar atau jeda",
+      "previewDirection": "Putar sampel mundur / maju"
     }
+  },
+  "explorer": {
+    "addFolder": "Tambah folder",
+    "removeFolder": "Hapus {{name}} dari pustaka",
+    "noRoots": "Tambahkan folder untuk menjelajahi sampel Anda.",
+    "listLabel": "Daftar sampel",
+    "up": "Naik",
+    "empty": "Tidak ada sampel di folder ini.",
+    "truncated": "Folder ini berisi lebih banyak berkas daripada yang ditampilkan.",
+    "pickAFile": "Pilih sampel untuk mendengarkannya.",
+    "decoding": "Membaca…",
+    "waveformOf": "Bentuk gelombang {{name}}",
+    "reverse": "Putar mundur",
+    "resize": "Ubah lebar peramban"
   }
 }

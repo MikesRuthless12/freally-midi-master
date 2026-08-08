@@ -631,6 +631,28 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
                 return Some(Err("that is not a lane".into()));
             };
             let path = request.args["path"].as_str().unwrap_or_default();
+            // ⛔⛔ **Contained, like its two siblings.** `restore` refuses a
+            // remote path — that is the SMB-authentication guard — but it does
+            // *not* ask whether the file is in the producer's library, because
+            // its other caller is a reopened project restoring a one-shot the
+            // producer picked through a native dialog from anywhere on disk.
+            // `preview_load` and `explorer_waveform` both apply this check and
+            // this arm did not, so of the three commands that take a raw path
+            // from the webview, one would decode any local file it was named —
+            // and `decode_file`'s error strings tell missing from unreadable,
+            // which is the filesystem oracle `explorer::waveform`'s own comment
+            // exists to close.
+            //
+            // ⚠ Nothing legitimate is refused by this: the only thing that
+            // sends `explorer_drop` is a row the explorer listed, and the
+            // explorer only lists what is inside a saved root. Assigning a
+            // sample from outside the library is `one_shot_assign`'s job, which
+            // opens a dialog and is therefore the producer choosing rather than
+            // the page naming.
+            let file = std::path::Path::new(path);
+            if !shared.explorer.contains(file) {
+                return Some(Err("that sample is not in your sample library".into()));
+            }
             return Some(
                 shared
                     .one_shots
@@ -1525,6 +1547,219 @@ mod tests {
             );
         }
         assert!(referenced > 0, "index.html references no scripts or styles");
+    }
+
+    /// The shared fixture, so this crate does not carry a sixth RIFF writer.
+    use crate::preview::tests::wav_bytes;
+
+    fn ramp_wav(frames: usize) -> Vec<u8> {
+        wav_bytes(frames, 44_100)
+    }
+
+    fn ask(shared: &SharedState, command: &str, args: Value) -> Value {
+        let request = Request {
+            id: 1,
+            command: command.into(),
+            args,
+        };
+        window_command(&request, shared)
+            .unwrap_or_else(|| panic!("`{command}` is not a command the editor answers"))
+            .unwrap_or_else(|error| panic!("`{command}` was refused: {error}"))
+    }
+
+    #[test]
+    fn the_audition_plays_through_the_commands_the_panel_actually_sends() {
+        // ⛔⛔ **The end-to-end gate for TASK-132's player.** `preview.rs` proves
+        // the voice reads a buffer correctly and `explorer.rs` proves the
+        // library is safe; neither can see whether the *commands the page sends*
+        // reach them. Every one of these was written, tested from Rust and
+        // called by nothing until this session, so "does the command surface
+        // work" is exactly the question nothing was asking.
+        //
+        // ⚠ Driven through `window_command` with the same argument shapes
+        // `src/state/explorer.ts` sends, so a renamed key fails here rather than
+        // in somebody's DAW.
+        let dir = std::env::temp_dir().join(format!("fmm-editor-preview-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).expect("a temp dir");
+        let path = dir.join("ramp.wav");
+        std::fs::write(&path, ramp_wav(44_100)).expect("a temp wav");
+        let path = path.to_str().unwrap().to_owned();
+
+        let shared: SharedState = std::sync::Arc::new(crate::shared::Shared::default());
+        // The producer added this folder to their library; without it every
+        // read is refused, which is the containment boundary doing its job.
+        shared.explorer.restore(&[dir.to_str().unwrap().to_owned()]);
+
+        // ── The waveform the panel draws, and the sample it loads.
+        let wave = ask(&shared, "explorer_waveform", json!({ "path": path }));
+        assert!(
+            wave["peaks"].as_array().is_some_and(|p| !p.is_empty()),
+            "the panel has nothing to draw: {wave}"
+        );
+        ask(&shared, "preview_load", json!({ "path": path }));
+
+        // ⚠ One render to pick the handoff up, exactly as a block would.
+        let mut out = vec![0.0f32; 64];
+        shared.preview.render(&mut out, 1, 44_100.0);
+
+        // Loading is browsing, not auditioning.
+        let at = ask(&shared, "preview_position", json!({}));
+        assert_eq!(at["playing"], json!(false), "clicking a row must be silent");
+        assert!(
+            (at["total"].as_f64().unwrap() - 1.0).abs() < 0.01,
+            "a second of audio: {at}"
+        );
+
+        // ── Play sounds.
+        ask(&shared, "preview_play", json!({}));
+        out.fill(0.0);
+        shared.preview.render(&mut out, 1, 44_100.0);
+        assert!(
+            out.iter().any(|s| *s != 0.0),
+            "Play produced silence — the audition never reached the callback"
+        );
+        assert!(
+            out.windows(2).all(|w| w[1] >= w[0]),
+            "a ramp played forwards climbs: {:?}",
+            &out[..8]
+        );
+
+        // ── Backwards.
+        ask(&shared, "preview_stop", json!({}));
+        ask(&shared, "preview_reverse", json!({ "on": true }));
+        ask(&shared, "preview_play", json!({}));
+        out.fill(0.0);
+        shared.preview.render(&mut out, 1, 44_100.0);
+        assert!(
+            out.windows(2).all(|w| w[1] <= w[0]),
+            "the same ramp played backwards falls: {:?}",
+            &out[..8]
+        );
+        assert_eq!(
+            ask(&shared, "preview_position", json!({}))["reverse"],
+            json!(true)
+        );
+
+        // ── A click in the waveform, while it is playing.
+        //
+        // ⚠ **Applied by the next block, not by the command**, and that is the
+        // design rather than a delay worth removing: the audio thread owns the
+        // cursor while it renders, so the seek is published as a request and
+        // consumed at the top of the next callback. The page covers the gap by
+        // writing the clicked position optimistically.
+        ask(&shared, "preview_reverse", json!({ "on": false }));
+        ask(&shared, "preview_seek", json!({ "seconds": 0.5 }));
+        out.fill(0.0);
+        shared.preview.render(&mut out, 1, 44_100.0);
+        let at = ask(&shared, "preview_position", json!({}));
+        assert!(
+            (at["seconds"].as_f64().unwrap() - 0.5).abs() < 0.01,
+            "a click has to land where it was clicked: {at}"
+        );
+
+        // ...and while it is paused, where nothing renders, the readout still
+        // has to move — otherwise the marker snaps back on the next poll.
+        ask(&shared, "preview_pause", json!({}));
+        ask(&shared, "preview_seek", json!({ "seconds": 0.25 }));
+        let at = ask(&shared, "preview_position", json!({}));
+        assert!(
+            (at["seconds"].as_f64().unwrap() - 0.25).abs() < 0.01,
+            "a paused click must be visible immediately: {at}"
+        );
+
+        // ── Loop, which is the difference between running out and not.
+        ask(&shared, "preview_loop", json!({ "on": true }));
+        ask(&shared, "preview_play", json!({}));
+        // Far more frames than the sample has.
+        let mut long = vec![0.0f32; 44_100 * 3];
+        shared.preview.render(&mut long, 1, 44_100.0);
+        let at = ask(&shared, "preview_position", json!({}));
+        assert_eq!(at["playing"], json!(true), "a loop never runs out: {at}");
+        assert_eq!(at["looping"], json!(true));
+
+        // ...and off, it stops at the end.
+        ask(&shared, "preview_loop", json!({ "on": false }));
+        ask(&shared, "preview_stop", json!({}));
+        ask(&shared, "preview_play", json!({}));
+        shared.preview.render(&mut long, 1, 44_100.0);
+        assert_eq!(
+            ask(&shared, "preview_position", json!({}))["playing"],
+            json!(false),
+            "without a loop it has to finish"
+        );
+
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn all_three_commands_that_take_a_raw_path_apply_the_same_containment() {
+        // ⛔⛔ **Asserted as a set, because the defect was one of three missing
+        // it.** `preview_load` and `explorer_waveform` both refused a file
+        // outside the library; `explorer_drop` refused only a *remote* path and
+        // would decode any local file the page named. Naming them together is
+        // what stops the next command from being added with two guards instead
+        // of three.
+        let dir = std::env::temp_dir().join(format!("fmm-editor-contain-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(dir.join("library")).expect("a temp dir");
+        let outside = dir.join("secret.wav");
+        std::fs::write(&outside, ramp_wav(64)).expect("a temp wav");
+        let outside = outside.to_str().unwrap().to_owned();
+
+        let shared: SharedState = std::sync::Arc::new(crate::shared::Shared::default());
+        shared
+            .explorer
+            .restore(&[dir.join("library").to_str().unwrap().to_owned()]);
+
+        for (command, args) in [
+            ("preview_load", json!({ "path": outside })),
+            ("explorer_waveform", json!({ "path": outside })),
+            ("explorer_drop", json!({ "lane": "kick", "path": outside })),
+        ] {
+            let request = Request {
+                id: 1,
+                command: command.into(),
+                args,
+            };
+            let error = window_command(&request, &shared)
+                .unwrap_or_else(|| panic!("`{command}` is not a command the editor answers"))
+                .expect_err("a file outside the library must be refused");
+            assert!(
+                error.contains("sample library"),
+                "`{command}` let a file outside the library through: {error}"
+            );
+        }
+
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    #[test]
+    fn a_sample_outside_the_library_is_refused_by_the_loader_too() {
+        // ⚠ The same boundary `explorer_waveform` has. Both take a raw path from
+        // the webview, and the browser must only *play* what it would list.
+        let dir = std::env::temp_dir().join(format!("fmm-editor-guard-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(dir.join("library")).expect("a temp dir");
+        let outside = dir.join("secret.wav");
+        std::fs::write(&outside, ramp_wav(64)).expect("a temp wav");
+
+        let shared: SharedState = std::sync::Arc::new(crate::shared::Shared::default());
+        shared
+            .explorer
+            .restore(&[dir.join("library").to_str().unwrap().to_owned()]);
+
+        let request = Request {
+            id: 1,
+            command: "preview_load".into(),
+            args: json!({ "path": outside.to_str().unwrap() }),
+        };
+        let error = window_command(&request, &shared)
+            .expect("the command exists")
+            .expect_err("a sample outside the library must be refused");
+        assert!(error.contains("sample library"), "{error}");
+
+        let _ = std::fs::remove_dir_all(&dir);
     }
 
     #[test]

@@ -621,24 +621,44 @@ impl FreallyMidiMaster {
     }
 
     fn render_preview(&mut self, buffer: &mut Buffer) {
-        // ⛔ **MIDI-only, checked before anything else.** The notes have
-        // already gone out by the time this runs, so returning here silences
-        // the plugin without silencing the pattern — which is exactly what a
-        // producer routing into their own drum sampler wants (FMM-S02).
+        // ⛔⛔ **The audition is checked BEFORE the kit, the idle gate AND the
+        // MIDI-only switch, and it has to be all three.** `Preview` is the File
+        // Explorer's sample player: it needs no kit and no armed pattern, and
+        // the state a producer is in when they open the browser and press Play
+        // on a sample is *exactly* the state those gates return on. So the
+        // audition was silent in the only situation it exists for — nothing
+        // sounded, the handoff never picked the buffer up, and
+        // `preview_position` reported `playing: true, seconds: 0.0` forever.
+        let auditioning = self.shared.preview.is_active();
+
+        // ⛔ **MIDI-only, checked before anything else *about the pattern*.**
+        // The notes have already gone out by the time this runs, so returning
+        // here silences the plugin without silencing the pattern — which is
+        // exactly what a producer routing into their own drum sampler wants
+        // (FMM-S02).
+        //
+        // ⛔⛔ **The audition is NOT gated on it, and that is a deliberate
+        // change rather than an oversight.** This gate is older than the sample
+        // browser and nobody revisited it when `Preview` landed — its own doc
+        // still says "whether the *preview sampler* may sound", which is
+        // `self.sampler`, the kit. FMM-S02 is about the plugin not doubling the
+        // producer's own drum sampler on the *generated pattern*; a file
+        // browser that cannot play the file you just clicked is not a file
+        // browser. And the failure it produced was the readout-that-lies shape
+        // this file guards against everywhere else: Play lit, `playing: true`,
+        // the playhead frozen at 0:00 because `render` was never reached, and
+        // nothing on screen saying why.
+        //
+        // ⚠ The piano roll's keyboard gutter *is* still gated — see
+        // `audition()`. That one plays the kit, which is the thing MIDI-only is
+        // switching off.
         if !self.shared.audio_enabled() {
             self.sampler.stop_all();
+            if auditioning {
+                self.render_preview_only(buffer);
+            }
             return;
         }
-
-        // ⛔⛔ **The audition is checked BEFORE the kit and the idle gate, and
-        // it has to be.** `Preview` is the File Explorer's sample player: it
-        // needs no kit and no armed pattern, and the state a producer is in
-        // when they open the browser and press Play on a sample is *exactly*
-        // the state both gates return on. So the audition was silent in the
-        // only situation it exists for — nothing sounded, the handoff never
-        // picked the buffer up, and `preview_position` reported
-        // `playing: true, seconds: 0.0` forever.
-        let auditioning = self.shared.preview.is_active();
 
         let Some(kit) = self.kit.as_ref() else {
             // ⚠ A kit that failed to decode must not silence a sample preview;

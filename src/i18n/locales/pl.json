@@ -56,7 +56,8 @@
     "kit": "Zestaw",
     "session": "Sesja",
     "presets": "Ustawienia wstępne",
-    "stems": "Ścieżki"
+    "stems": "Ścieżki",
+    "explorer": "Przeglądarka"
   },
   "readouts": {
     "bpm": "BPM",
@@ -302,7 +303,9 @@
       "hook": "Refren",
       "bridge": "Most",
       "outro": "Zakończenie"
-    }
+    },
+    "resizeClip": "Na ilu taktach zapętla się {{part}}",
+    "resizeClipHint": "Zapętla się co {{bars}} taktów — przeciągnij, aby zmienić"
   },
   "stems": {
     "midi": "MIDI",
@@ -323,7 +326,8 @@
       "generate": "Generowanie",
       "editing": "Edycja",
       "notes": "Nuty",
-      "drums": "Siatka perkusji"
+      "drums": "Siatka perkusji",
+      "browser": "Przeglądarka sampli"
     },
     "keys": {
       "toggleRail": "Pokaż lub ukryj prawy panel",
@@ -347,7 +351,22 @@
       "septuplet": "Septola w tej komórce",
       "cloneBar": "Skopiuj takt 1 na ten takt",
       "shortcuts": "Pokaż ten panel",
-      "play": "Odtwórz lub wstrzymaj"
+      "play": "Odtwórz lub wstrzymaj",
+      "previewDirection": "Odtwórz sampel wstecz / do przodu"
     }
+  },
+  "explorer": {
+    "addFolder": "Dodaj folder",
+    "removeFolder": "Usuń {{name}} z biblioteki",
+    "noRoots": "Dodaj folder, aby przeglądać swoje sample.",
+    "listLabel": "Lista sampli",
+    "up": "W górę",
+    "empty": "Brak sampli w tym folderze.",
+    "truncated": "Ten folder zawiera więcej plików, niż jest pokazanych.",
+    "pickAFile": "Wybierz sampel, aby go odsłuchać.",
+    "decoding": "Odczytywanie…",
+    "waveformOf": "Kształt fali {{name}}",
+    "reverse": "Odtwórz wstecz",
+    "resize": "Zmień szerokość przeglądarki"
   }
 }

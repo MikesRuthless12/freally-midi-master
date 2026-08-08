@@ -56,7 +56,8 @@
     "kit": "鼓组",
     "session": "会话",
     "presets": "预设",
-    "stems": "分轨"
+    "stems": "分轨",
+    "explorer": "浏览器"
   },
   "readouts": {
     "bpm": "BPM",
@@ -302,7 +303,9 @@
       "hook": "副歌",
       "bridge": "桥段",
       "outro": "尾奏"
-    }
+    },
+    "resizeClip": "{{part}} 循环的小节数",
+    "resizeClipHint": "按 {{bars}} 小节循环 — 拖动可更改"
   },
   "stems": {
     "midi": "MIDI",
@@ -323,7 +326,8 @@
       "generate": "生成",
       "editing": "编辑",
       "notes": "音符",
-      "drums": "鼓组网格"
+      "drums": "鼓组网格",
+      "browser": "采样浏览器"
     },
     "keys": {
       "toggleRail": "显示或隐藏右侧栏",
@@ -347,7 +351,22 @@
       "septuplet": "此格七连音",
       "cloneBar": "将第1小节复制到本小节",
       "shortcuts": "显示此面板",
-      "play": "播放或暂停"
+      "play": "播放或暂停",
+      "previewDirection": "倒放 / 正放采样"
     }
+  },
+  "explorer": {
+    "addFolder": "添加文件夹",
+    "removeFolder": "从库中移除 {{name}}",
+    "noRoots": "添加文件夹以浏览你的采样。",
+    "listLabel": "采样列表",
+    "up": "上一级",
+    "empty": "此文件夹中没有采样。",
+    "truncated": "此文件夹中的文件多于所显示的数量。",
+    "pickAFile": "选择一个采样即可试听。",
+    "decoding": "正在读取…",
+    "waveformOf": "{{name}} 的波形",
+    "reverse": "倒放",
+    "resize": "调整浏览器宽度"
   }
 }

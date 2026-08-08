@@ -88,4 +88,15 @@ export const SHORTCUT_GROUPS: ShortcutGroup[] = [
       { keys: 'Alt + click', id: 'cloneBar' },
     ],
   },
+  {
+    id: 'browser',
+    items: [
+      // ⚠ **The same keys as `notes/nudge`, and that is not a clash.** The
+      // browser's handler is bound on its own panel rather than on `window`
+      // precisely so the piano roll keeps ← and → for nudging — see
+      // `ExplorerPanel`. Two rows for two scopes is what the panel has to say,
+      // because a producer reading one row would not know which one they get.
+      { keys: '← / →', id: 'previewDirection' },
+    ],
+  },
 ];

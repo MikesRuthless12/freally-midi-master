@@ -211,6 +211,48 @@ it('a resize that changes nothing is not an edit and is not saved as one', () =>
   expect(lastSave()).toBeNull();
 });
 
+it('resizing a clip loops that one row without touching its section', () => {
+  // ⛔⛔ **TASK-142's clip resize, and the two gestures must stay apart.** Mike's
+  // review: *"there is no clip resize"* — the timeline could only change a
+  // *section's* length, which moves every row at once. This changes how many
+  // bars one row loops on, and the section it sits in is untouched.
+  useSong.setState({ song: song() });
+  useSong.getState().resizeClip({ sectionIndex: 0, part: 'drums' }, 2);
+
+  const after = useSong.getState().song!;
+  expect(after.sections[0].patterns.drums?.bars).toBe(2);
+  expect(after.sections[0].bars).toBe(song().sections[0].bars);
+  // ...and only that clip: the second section plays the same pattern id, and
+  // writing the length on the *pattern* rather than the reference would have
+  // shortened it too. That is the whole reason the field lives where it does.
+  expect(after.sections[1].patterns.drums?.bars ?? null).toBeNull();
+});
+
+it('a clip dragged back out to full length stops claiming a length at all', () => {
+  // ⚠ `null`, not the number. A song resized and un-resized has to come out
+  // byte-identical to one that was never touched — otherwise every project
+  // carries a field saying "four bars" that a later edit to the pattern would
+  // then silently contradict.
+  useSong.setState({ song: song() });
+  useSong.getState().resizeClip({ sectionIndex: 0, part: 'drums' }, 2);
+  useSong.getState().resizeClip({ sectionIndex: 0, part: 'drums' }, 4);
+
+  expect(useSong.getState().song!.sections[0].patterns.drums?.bars ?? null).toBeNull();
+});
+
+it('a clip cannot be resized to nothing, or past its own notes', () => {
+  // ⛔ Zero would ask the engine to lay the clip down once per tick — its own
+  // guard refuses that, and a UI that can send it is a UI relying on a guard.
+  // Longer than the pattern is not a longer loop: there are no notes out there,
+  // so it would read as the clip having gone quiet.
+  useSong.setState({ song: song() });
+  useSong.getState().resizeClip({ sectionIndex: 0, part: 'drums' }, 0);
+  expect(useSong.getState().song!.sections[0].patterns.drums?.bars).toBe(1);
+
+  useSong.getState().resizeClip({ sectionIndex: 0, part: 'drums' }, 99);
+  expect(useSong.getState().song!.sections[0].patterns.drums?.bars ?? null).toBeNull();
+});
+
 it('a re-roll resolves the producer’s locks into the parts the engine wants', async () => {
   // The engine is deliberately lock-agnostic — it takes a list of parts to
   // leave alone — so everything about *how* a lock was expressed is resolved on

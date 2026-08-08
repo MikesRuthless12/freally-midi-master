@@ -16,7 +16,7 @@ vi.mock('../lib/ipc', () => ({
   invoke: (command: string, args?: unknown) => invoke(command, args),
 }));
 
-const { BAR_CHOICES, NO_PINS, useSession } = await import('./session');
+const { BAR_CHOICES, NO_PINS, mirrorableDrumsSeed, useSession } = await import('./session');
 
 const TRAP: SessionDefaults = {
   bpm: 140,
@@ -1002,5 +1002,55 @@ describe('the bar choices', () => {
     });
 
     expect(useSession.getState().bars).toBe(2);
+  });
+});
+
+describe('the drums seed a mirrored bass is told to copy', () => {
+  // ⛔⛔ **A seed alone does not name a pattern — `(model, ctx, seed)` does.**
+  // `Part::Bass` rebuilds its reference kit by re-running the drum generator at
+  // this seed, so it only reproduces the clip on screen while the session that
+  // built it still applies. Sending it regardless is the narrower form of the
+  // very defect the field was added to close: the kick comes back on different
+  // ticks and a `mirror_kick` bass lands on kicks nobody is playing.
+  const drums: Pattern = { ...PATTERN, seed: '3141', songSeed: '7', bars: 4 };
+  const now = { bars: 4, songSeed: '7', pins: NO_PINS, mood: null };
+
+  it('is sent while the session still matches the drums on screen', () => {
+    expect(mirrorableDrumsSeed(drums, now)).toBe('3141');
+  });
+
+  it('is withheld when there are no drums yet', () => {
+    // Not a failure: there is no take to mirror, and the record's own canonical
+    // kit is the right answer.
+    expect(mirrorableDrumsSeed(undefined, now)).toBeNull();
+  });
+
+  it('is withheld once the bar count has moved under them', () => {
+    // Generate drums at 4 bars, drag the chip to 8, generate the bass: the kick
+    // would be rebuilt across 8 bars and land on different ticks entirely.
+    expect(mirrorableDrumsSeed(drums, { ...now, bars: 8 })).toBeNull();
+  });
+
+  it('is withheld when the drums belong to a different record', () => {
+    expect(mirrorableDrumsSeed(drums, { ...now, songSeed: '99' })).toBeNull();
+  });
+
+  it('is withheld when the mood has changed', () => {
+    // A mode is a partial override of the model, including its session block —
+    // so it can retune the key and the tempo the kick was written against.
+    expect(mirrorableDrumsSeed(drums, { ...now, mood: 'dark' })).toBeNull();
+  });
+
+  it('is withheld when a pin moves the grid the kick sits on', () => {
+    expect(mirrorableDrumsSeed(drums, { ...now, pins: { ...NO_PINS, bpm: 90 } })).toBeNull();
+    expect(
+      mirrorableDrumsSeed(drums, { ...now, pins: { ...NO_PINS, timeSigDen: 8 } }),
+    ).toBeNull();
+  });
+
+  it('is sent when a pin merely agrees with what the drums already are', () => {
+    // Pinning the tempo the drums were built at changes nothing about the kick,
+    // so withholding there would give up the fix for no reason.
+    expect(mirrorableDrumsSeed(drums, { ...now, pins: { ...NO_PINS, bpm: 140 } })).toBe('3141');
   });
 });

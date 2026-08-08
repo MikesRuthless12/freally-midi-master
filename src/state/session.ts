@@ -739,6 +739,46 @@ function applySnapshot(
   }
 }
 
+/**
+ * The drums' take seed, but only while it still names the drums on screen.
+ *
+ * ⛔⛔ **A seed alone does not identify a pattern — `(model, ctx, seed)` does.**
+ * `Part::Bass` rebuilds its reference kit by re-running `drums::generate` at
+ * this seed, which reproduces the clip the producer is looking at *only* while
+ * the session it was built in still applies. Change the bars chip, pin a tempo,
+ * pick a different mood, or start a new record between the two Generates and the
+ * rebuilt kick lands on different ticks — so a `mirror_kick` bass mirrors kicks
+ * nobody is playing, which is the narrower form of the defect `drumsSeed` was
+ * added to close.
+ *
+ * ⚠ **`null` is a real answer, not a failure.** It falls back to the record's
+ * own canonical kit, which is coherent — the melodic parts use it deliberately —
+ * rather than confidently wrong.
+ *
+ * ⚠ Only the fields that reach `SessionContext` are compared. `key_root` and
+ * `scale` are sampled from the *song* seed, so `songSeed` covers them; `mood`
+ * picks the mode, which can retune the whole session block.
+ */
+export function mirrorableDrumsSeed(
+  drums: Pattern | undefined,
+  now: { bars: number; songSeed: string; pins: SessionPins; mood: string | null },
+): string | null {
+  if (!drums) return null;
+  if (drums.bars !== now.bars) return null;
+  // A fresh record means the drums belong to a different song entirely.
+  if (now.songSeed !== '' && drums.songSeed !== now.songSeed) return null;
+  // ⚠ Normalised: `mood` is `skip_serializing_if = "Option::is_none"` on the
+  // Rust side, so a pattern generated without one arrives with the field
+  // *absent* rather than null — and `undefined !== null` would withhold the seed
+  // on the commonest case there is, silently giving up the fix.
+  if ((drums.mood ?? null) !== now.mood) return null;
+  // A pinned tempo or meter moves the grid the kick is written on.
+  if (now.pins.bpm !== null && drums.bpm !== now.pins.bpm) return null;
+  if (now.pins.timeSigNum !== null && drums.timeSigNum !== now.pins.timeSigNum) return null;
+  if (now.pins.timeSigDen !== null && drums.timeSigDen !== now.pins.timeSigDen) return null;
+  return drums.seed;
+}
+
 /** The message an IPC rejection carries, without leaking `[object Object]`. */
 export function reason(error: unknown): string {
   if (typeof error === 'string') return error;
@@ -1437,7 +1477,8 @@ export const useSession = create<SessionState>((set, get) => ({
   },
 
   async generate(part = 'drums') {
-    const { selectedId, seed, seedPinned, songSeed, bars, generating, pins, mood } = get();
+    const { selectedId, seed, seedPinned, songSeed, bars, generating, pins, mood, patterns } =
+      get();
     if (!selectedId || generating) return;
 
     set({ generating: true, error: null });
@@ -1467,6 +1508,29 @@ export const useSession = create<SessionState>((set, get) => ({
           // Generate of a session means "this one starts the record", and the
           // engine answers with the seed it chose.
           songSeed: songSeed !== '' ? songSeed : null,
+          // ⛔ **Which drums are on screen, so a mirrored bass mirrors those.**
+          // `bassline.rhythm = "mirror_kick"` — the roster default — copies the
+          // kick's ticks one for one, and the engine was rebuilding a reference
+          // kit at the *record's* seed while the drums the producer can see came
+          // from their own take. Boom-bap went from 13 of 13 bass notes on a
+          // real kick to 9 of 13; uk-drill to 1 of 14.
+          // ⚠ Sent on every part, not only bass: only `Part::Bass` reads it, and
+          // a conditional here would be one more thing to keep in agreement with
+          // the engine. Null before the drums have been generated, which is the
+          // honest answer — there is no take to mirror yet.
+          //
+          // ⛔⛔ **...and null again once the session has moved under them.** The
+          // engine rebuilds the kick from `(model, ctx, seed)`, so the seed only
+          // reproduces the drums on screen while the *context* still matches.
+          // Generate drums at 4 bars, drag the bars chip to 8, then generate the
+          // bass: the kick is rebuilt over 8 bars, its ticks differ from the
+          // clip the producer is looking at, and the mirrored bass lands on
+          // kicks nobody is playing — the narrower form of the very defect this
+          // field was added to close. `mirrorable` compares what the drums were
+          // built with against what this generation will use, and sending null
+          // falls back to the record's canonical kit, which is at least a
+          // coherent answer rather than a confidently wrong one.
+          drumsSeed: mirrorableDrumsSeed(patterns.drums, { bars, songSeed, pins, mood }),
           // Every unpinned field goes as null, which serde reads as absent —
           // the artist's own value then stands (FR-002).
           session: pins,
@@ -1569,6 +1633,22 @@ export const useSession = create<SessionState>((set, get) => ({
             bars,
             seed: seed === '' ? null : seed,
             songSeed: record === '' ? null : record,
+            // `GENERATED_PARTS` puts drums first, so by the time this loop
+            // reaches the bass the take it must mirror is already in `filled`.
+            // ⚠ Today every part of one "Generate all" shares a seed, so this is
+            // the same number the bass is being generated at — it is sent
+            // anyway, because the loop's order is what makes that true and a
+            // silent dependency on it is how the single-Generate path came to
+            // disagree with this one in the first place.
+            // ⚠ Through the same guard the single path uses: the drums in
+            // `filled` may be left over from a previous run under a different
+            // session, in which case their seed no longer names them.
+            drumsSeed: mirrorableDrumsSeed(filled.drums, {
+              bars,
+              songSeed: record,
+              pins,
+              mood,
+            }),
             session: pins,
             mood,
           },

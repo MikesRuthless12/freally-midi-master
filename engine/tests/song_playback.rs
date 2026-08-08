@@ -229,6 +229,202 @@ fn a_dangling_reference_is_silence_rather_than_a_panic() {
     assert_eq!(song.dangling_refs(), vec!["a".to_owned()]);
 }
 
+#[test]
+fn a_resized_clip_loops_on_its_own_length_in_what_plays_and_in_what_exports() {
+    // ⛔⛔ **TASK-142's clip resize, checked on BOTH sides of the seam.** The
+    // whole reason `PatternRef::bars` is read through `SectionTiling` is that
+    // the exporter and the transport are two walks over these fields, and this
+    // module's own header records that they have disagreed twice and shipped
+    // both times. A resize that retiled the playback and not the file would be
+    // the third.
+    let mut clip = one_bar_kick("a");
+    clip.bars = 4;
+    // Four kicks, one per bar, so a tick reads as a bar number.
+    clip.lanes[0].notes = (0..4)
+        .map(|bar| Note {
+            start_tick: bar * clip.ticks_per_bar(),
+            len_ticks: PPQ / 4,
+            pitch: 36,
+            vel: 120,
+            model_vel: None,
+            slide_to_pitch: None,
+            articulation: None,
+        })
+        .collect();
+
+    // One eight-bar section over a four-bar clip: two repeats, eight kicks.
+    let mut song = two_sections(clip, 8, 0);
+    song.sections.truncate(1);
+    assert_eq!(
+        kick_ticks(&song).len(),
+        8,
+        "the clip's own length, untouched"
+    );
+
+    // ...and asked to loop on two bars instead, it lays down four repeats of
+    // the clip's *first two* bars — eight kicks again, but at different ticks.
+    let resized = kick_ticks(&resize_drums(&song, 2));
+    assert_eq!(resized.len(), 8);
+    let bar = song.ticks_per_bar();
+    assert_eq!(
+        resized,
+        vec![0, bar, 2 * bar, 3 * bar, 4 * bar, 5 * bar, 6 * bar, 7 * bar],
+        "a two-bar loop repeats every two bars"
+    );
+
+    // ⛔ And the exported file agrees, note for note.
+    for bars in [None, Some(2), Some(1)] {
+        let song = match bars {
+            None => song.clone(),
+            Some(bars) => resize_drums(&song, bars),
+        };
+        assert_eq!(
+            kick_ticks(&song),
+            exported_kick_ticks(&song),
+            "what plays and what exports disagree at clipBars {bars:?}"
+        );
+    }
+}
+
+#[test]
+fn a_resized_clip_does_not_ring_into_its_own_next_repeat() {
+    // ⛔⛔ **The orphan note-off, reopened by making the loop shrinkable.**
+    // `sounds` keeps or drops a note by its *onset* — right, because the two
+    // halves of one note must go together — but it says nothing about length.
+    // So a note longer than a shortened loop kept its full length: repeat 0's
+    // long note was still sounding when repeat 1 re-struck the same pitch on the
+    // same channel, and a DAW pairs the stale off with the live note and cuts it
+    // dead. `SectionTiling::sounds`'s own note says the design exists to prevent
+    // exactly this.
+    let mut clip = one_bar_kick("a");
+    clip.bars = 4;
+    // ⚠ **Notes LONGER than the loop they will be resized to**, or there is
+    // nothing to trim and the test cannot fail: two-bar notes at bars 0 and 2,
+    // which sit end to end in the clip's own four bars and overhang a one-bar
+    // loop by a whole bar each.
+    let bar = clip.ticks_per_bar();
+    clip.lanes[0].notes = [0, 2]
+        .into_iter()
+        .map(|index| Note {
+            start_tick: index * bar,
+            len_ticks: bar * 2,
+            pitch: 36,
+            vel: 120,
+            model_vel: None,
+            slide_to_pitch: None,
+            articulation: None,
+        })
+        .collect();
+
+    let mut song = two_sections(clip, 8, 0);
+    song.sections.truncate(1);
+    let resized = resize_drums(&song, 1);
+
+    // Nothing may still be sounding when the next repeat starts.
+    let flat = resized.flatten();
+    for lane in &flat.lanes {
+        for note in &lane.notes {
+            assert!(
+                note.len_ticks <= bar,
+                "a note held {} ticks rings past a {bar}-tick loop",
+                note.len_ticks
+            );
+        }
+    }
+
+    // ⛔ And the exported file agrees: every note-on is closed before the next
+    // one on the same key. Read as a running count, which is what a DAW does.
+    let bytes = song_to_smf(&resized);
+    let smf = Smf::parse(&bytes).expect("a parseable file");
+    for track in &smf.tracks {
+        let mut sounding = 0i32;
+        for event in track {
+            if let TrackEventKind::Midi { message, .. } = event.kind {
+                match message {
+                    MidiMessage::NoteOn { key, vel } if key.as_int() == 36 && vel.as_int() > 0 => {
+                        sounding += 1;
+                        assert!(
+                            sounding <= 1,
+                            "two overlapping note-ons on one key — the previous \
+                             repeat never closed"
+                        );
+                    }
+                    MidiMessage::NoteOff { key, .. } if key.as_int() == 36 => sounding -= 1,
+                    MidiMessage::NoteOn { key, .. } if key.as_int() == 36 => sounding -= 1,
+                    _ => {}
+                }
+            }
+        }
+        assert_eq!(
+            sounding, 0,
+            "a note was left hanging at the end of the track"
+        );
+    }
+}
+
+#[test]
+fn a_clip_resized_to_nothing_is_refused_rather_than_laid_down_forever() {
+    // ⚠ `repeats` is `sounding.div_ceil(clip_len)`. A zero would not divide by
+    // zero — `clip_len` is floored at 1 — it would lay the clip down once per
+    // *tick*, which for an eight-bar section is 30,720 copies of every note,
+    // built synchronously on the thread the host draws its window from.
+    let mut clip = one_bar_kick("a");
+    clip.bars = 4;
+    let mut song = two_sections(clip, 8, 0);
+    song.sections.truncate(1);
+
+    assert_eq!(
+        kick_ticks(&resize_drums(&song, 0)),
+        kick_ticks(&song),
+        "a zero-bar resize falls back to the clip's own length"
+    );
+}
+
+/// The same song with its drum row looping on `bars` instead.
+fn resize_drums(song: &Song, bars: u16) -> Song {
+    let mut out = song.clone();
+    for section in &mut out.sections {
+        if let Some(reference) = section.patterns.get_mut(&Part::Drums) {
+            reference.bars = Some(bars);
+        }
+    }
+    out
+}
+
+/// Every kick onset in the flattened song, in order.
+fn kick_ticks(song: &Song) -> Vec<u32> {
+    song.flatten()
+        .lanes
+        .iter()
+        .filter(|lane| lane.lane == Lane::Kick)
+        .flat_map(|lane| lane.notes.iter().map(|note| note.start_tick))
+        .collect()
+}
+
+/// The same, read back out of the exported MIDI file.
+fn exported_kick_ticks(song: &Song) -> Vec<u32> {
+    let bytes = song_to_smf(song);
+    let smf = Smf::parse(&bytes).expect("a parseable file");
+    let mut out = Vec::new();
+    for track in &smf.tracks {
+        let mut at = 0u32;
+        for event in track {
+            at += event.delta.as_int();
+            if let TrackEventKind::Midi {
+                message: MidiMessage::NoteOn { key, vel },
+                ..
+            } = event.kind
+            {
+                if key.as_int() == 36 && vel.as_int() > 0 {
+                    out.push(at);
+                }
+            }
+        }
+    }
+    out.sort_unstable();
+    out
+}
+
 // ---------------------------------------------------------------------------
 // Fixtures: one note per bar, so a tick is readable as a bar number.
 // ---------------------------------------------------------------------------
@@ -271,6 +467,7 @@ fn two_sections(clip: Pattern, first_bars: u16, second_bars: u16) -> Song {
             Part::Drums,
             PatternRef {
                 pattern_id: "a".into(),
+                bars: None,
             },
         )])
     };

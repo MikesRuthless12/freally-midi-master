@@ -61,6 +61,14 @@ struct GenerateArgs {
     /// pre-TASK-141 behaviour and is what a preset or an old project sends.
     #[serde(default)]
     song_seed: Option<String>,
+    /// The seed the **drum pattern already on screen** was generated at.
+    ///
+    /// ⛔ Read only by `Part::Bass`, and it is what stops a `mirror_kick`
+    /// bassline landing on kicks nobody is playing — see `parts::Seeds::drums`.
+    /// Absent means "no drums have been generated", which is what a fresh
+    /// session, a preset and an old project all mean.
+    #[serde(default)]
+    drums_seed: Option<String>,
     /// The mood to generate in. Absent is "Any" — see [`generate`].
     #[serde(default)]
     mood: Option<String>,
@@ -577,9 +585,22 @@ fn generate(args: &GenerateArgs, host: &HostSession, auto_sync: bool) -> Result<
     // rendered correctly and reported the wrong record, and every press after
     // that joined a different one. That is precisely the defect TASK-141
     // exists to fix, reintroduced by two spellings of one pair.
+    // ⚠ **Unparseable is absent, not an error, and that is the one place this
+    // differs from `seed` and `songSeed`.** Those two are the producer's own
+    // input and a bad one has to be reported. This is the page telling the
+    // engine what it happens to have on screen — refusing the whole generation
+    // over it would turn a stale slot into a Generate button that does nothing,
+    // when the right answer is the record's own kit.
+    let drums_seed = args
+        .drums_seed
+        .as_deref()
+        .filter(|text| !text.is_empty())
+        .and_then(|text| text.parse::<u64>().ok());
+
     let seeds = parts::Seeds {
         song: song_seed,
         part: seed,
+        drums: drums_seed,
     };
     let lanes = parts::render(&model, &ctx, seeds, part);
 
@@ -1127,6 +1148,71 @@ mod tests {
             }
         }
         assert!(moved, "a new record must be able to pick a new key");
+    }
+
+    #[test]
+    fn the_bass_mirrors_the_drums_the_page_says_are_on_screen() {
+        // ⛔ **The seam, not the engine.** `engine/tests/arrange.rs` proves the
+        // renderer honours `Seeds::drums`; nothing there can see whether the
+        // bridge ever fills it in. A `drumsSeed` silently dropped in
+        // deserialization would leave a `mirror_kick` bass landing on kicks the
+        // drums do not play, with every engine test still green.
+        //
+        // ⚠ `boom-bap` deliberately: its 808 is not the bassline, so it has a
+        // separate bass part to be wrong about. On the trap roster the bass is
+        // refused by design (FR-007) and this could not fail.
+        let ask = |part: &str, take: &str, drums: Option<&str>| {
+            let mut args = json!({
+                "request": {
+                    "styleId": "boom-bap", "part": part, "seed": take, "songSeed": "7",
+                }
+            });
+            if let Some(drums) = drums {
+                args["request"]["drumsSeed"] = json!(drums);
+            }
+            let reply =
+                dispatch(&request("generate_pattern", args), &host()).expect("boom-bap generates");
+            serde_json::from_value::<Pattern>(reply).expect("a pattern")
+        };
+
+        // The take the producer is looking at, and a bass generated after it at
+        // a take of its own — which is what "Generate on Drums, switch tab,
+        // Generate" sends.
+        let drums = ask("drums", "3141", None);
+        let kicks: Vec<u32> = drums
+            .lanes
+            .iter()
+            .filter(|track| track.lane == engine::pattern::Lane::Kick)
+            .flat_map(|track| track.notes.iter().map(|note| note.start_tick))
+            .collect();
+        assert!(!kicks.is_empty(), "boom-bap's drums must have kicks");
+
+        let told = ask("bass", "2718", Some("3141"));
+        let not_told = ask("bass", "2718", None);
+        assert!(!told.lanes.is_empty() && !not_told.lanes.is_empty());
+
+        // Not an exact-tick assertion: the bridge humanizes, so this counts how
+        // many bass notes sit within a 16th of a kick and requires that knowing
+        // the drums' take is *better*. Equal would mean the field never arrived.
+        let near_a_kick = |pattern: &Pattern| {
+            pattern
+                .lanes
+                .iter()
+                .flat_map(|track| track.notes.iter())
+                .filter(|note| {
+                    kicks.iter().any(|kick| {
+                        note.start_tick.abs_diff(*kick) < engine::generators::grid::SIXTEENTH / 2
+                    })
+                })
+                .count()
+        };
+
+        assert!(
+            near_a_kick(&told) > near_a_kick(&not_told),
+            "telling the engine which drums are on screen changed nothing — \
+             {} notes on a kick either way, so `drumsSeed` is not reaching it",
+            near_a_kick(&told)
+        );
     }
 
     /// The cases below predate session state and say nothing about it, so they

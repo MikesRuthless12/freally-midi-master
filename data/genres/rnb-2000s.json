@@ -250,12 +250,15 @@
       "lanes": [
         "rim",
         "snap",
-        "perc"
+        "perc",
+        "ride",
+        "shaker"
       ],
       "densityPerBar": [
         1,
         3
-      ]
+      ],
+      "gainOffsetDb": -6
     },
     "fills": {
       "smallEveryBars": 4,

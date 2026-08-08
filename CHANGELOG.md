@@ -12,6 +12,95 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added — the sample browser you can actually use, and clips that look like clips, 2026-08-07
+
+- **⛔ The sample browser is on screen.** Add your folders once and they come
+  back with the project. Browse them, click a sample to see its waveform, and
+  **drag it straight onto a drum lane**. The whole panel resizes — drag its edge
+  and the arrangement shrinks to match, so you can read long file names without
+  giving up the middle of the app. Everything behind this shipped last session
+  with no way to reach it.
+- **An audition player under the browser.** Play, pause and stop — stop goes
+  back to the beginning, pause holds where it is. **Click anywhere in the
+  waveform to play from there.** The part you have already heard is filled in
+  behind the wave, a marker follows the playhead, the time reads out of the
+  total, and there is a loop toggle. **Left arrow plays the sample backwards**,
+  right arrow puts it forward again.
+- **⛔ A clip in the arrangement looks like a clip.** Every one now draws its own
+  notes — where they land and how high they sit — instead of a name over a
+  shaded box. Two clips of the same part no longer look identical.
+- **Each clip says what it can be handed over as**, MIDI or audio, and **can be
+  dragged into your DAW on its own**. Before this you could drag a whole part or
+  a whole arrangement, and the one clip you were looking at had no handle.
+- **⛔ Clips resize.** Drag a clip's right-hand edge and that row loops on fewer
+  bars inside its section — a four-bar idea played as a two-bar loop — without
+  moving the section or any other part. What you hear and what you export agree.
+- **⛔ The arrangement view is laid out like a DAW.** The track names, mute, solo
+  and lock sit in a fixed column down the left, and only time scrolls past them.
+  They used to float on top of the clips: at bar 1 the words "DRUMS" sat over
+  the first clip of every row, and scrolling dragged them across whatever was
+  underneath. The rows are taller, and the clips are solid enough to read as
+  blocks laid out in time.
+
+### Fixed — what three reviews found, 2026-08-07 (later still)
+
+- **⛔ A resized clip's longer notes rang into its own next repeat**, so a DAW
+  cut them dead against the note that had already re-struck — and the last
+  repeat's tail could kill a note in the following section.
+- **⛔ Hi-hats lost every ghost note outside 4/4.** In 6/8, 12/8 and any x/16
+  meter the whole stream came out at one flat velocity, ignoring the quiet
+  in-between hits every artist is written with.
+- **⛔ Percussion set to "offbeat" went completely silent** in x/16 and x/32
+  meters — no notes in the grid, in playback or in the exported stem.
+- **A resized clip drew notes it does not play.** The timeline showed the whole
+  pattern squeezed into every repeat.
+- **The track names, mute, solo and lock stopped lining up with their rows**
+  once the arrangement scrolled far enough to need it.
+- **Re-rolling a section, or copying, pasting or dragging a clip, threw away the
+  loop length you had set on it.**
+- **Removing the folder you were browsing left the preview player still showing
+  a sample it could no longer reach** (Windows only).
+- **The bassline could still mirror the wrong kick** if you changed the bars,
+  pinned a tempo or switched mood between generating the drums and the bass.
+- **The selected language in Settings had no highlight**, and the shortcuts
+  panel was partly unstyled.
+
+### Fixed — the audition player, 2026-08-07 (later)
+
+- **⛔ Auditioning a sample was silent whenever the Audio switch was off.** Play
+  lit up, the player said it was playing, and the playhead sat frozen at 0:00
+  with nothing saying why. Turning off audio means "send MIDI to my own sampler,
+  don't double it" — it was never meant to stop the file browser playing the file
+  you just clicked.
+- **Clicking a paused waveform moved the playhead and then undid itself** half a
+  second later.
+- **Pressing Play left the playhead sitting still for up to half a second**,
+  while the sample was already sounding. On a one-shot shorter than that the
+  whole audition could finish before the marker moved at all.
+
+### Fixed — 2026-08-07 (later)
+
+- **⛔ The entire arrangement view was drawing unstyled**, and had been since it
+  was written. Every colour it asked for was a name this app does not define, so
+  the clips had no fill and no border, the section band had no background, the
+  grid lines were invisible and the playhead was a transparent strip. It looked
+  like a design nobody had finished.
+- **The bassline landed on kicks the drums were not playing.** A bass that
+  mirrors the kick — which is most of the trap and drill roster — was copying a
+  kick pattern rebuilt from the wrong seed. On boom-bap 13 of 13 bass notes used
+  to sit on a real kick; with the ordinary Generate-drums-then-Generate-bass
+  workflow that had fallen to 9, and on UK drill to 1 of 14.
+- **Percussion set to play "offbeat" played straight on the beat** in 6/8, 12/8
+  and every other x/8 meter — the layer meant to sit between the pulse doubled
+  it. UK drill, NY drill and Pop Smoke all ask for it.
+- **Six drum voices shipped with no way to hear them.** Ride, crash, tom, shaker
+  and cowbell were in the kit and in the lane list, and no artist had ever been
+  written to play one; the off-snare had the same problem. Boom-bap and liquid
+  drum & bass ride now, phonk and west-coast club have cowbells, the drill
+  family answers its snare, and country and 2000s R&B have shakers.
+- **The language you have selected in Settings had no highlight**, and its tick
+  was invisible.
+
 ### Added — a real drum kit, a sample browser, and a kit per genre, 2026-08-07
 
 - **⛔ Your drums have more than five lanes now.** Off-snare, ride, crash, tom,
