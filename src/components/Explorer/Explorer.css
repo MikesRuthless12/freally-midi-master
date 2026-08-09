@@ -1,0 +1,296 @@
+/* The sample browser and its audition player (TASK-132).
+   Colour comes only from tokens, so both themes work with no branch in here. */
+
+.browser {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-height: 0;
+}
+
+/* ⛔ **`browser__hint`, not the shared `rail__hint`, and this is the second time
+   this repo has paid for it.** `KitPanel` records the first: the roster's
+   "nobody works in this genre" hint uses `.rail__hint` and
+   `e2e/cross-filter.spec.ts` locates it *by class alone*, so a second one in the
+   same rail makes that locator ambiguous and fails two specs that have nothing
+   to do with this panel. Building the browser into the left rail — the same rail
+   the roster is in — reintroduced it exactly, and two specs went red for it. */
+.browser__hint {
+  margin: 0;
+  color: var(--color-text-3);
+  font-size: var(--text-small);
+}
+
+/* ── The saved library folders ───────────────────────────────────────────── */
+.browser__roots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.browser__root {
+  display: inline-flex;
+  align-items: stretch;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-2);
+  /* The name inside can be long; the chip truncates rather than pushing the
+     remove button off the rail. */
+  max-width: 100%;
+}
+
+.browser__root[data-current='true'] {
+  border-color: var(--color-primary);
+}
+
+.browser__root-open,
+.browser__add {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+  padding: var(--space-1) var(--space-2);
+  border: none;
+  background: none;
+  color: var(--color-text-2);
+  font-family: var(--font-ui);
+  font-size: var(--text-micro);
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.browser__add {
+  border: 1px dashed var(--color-border);
+  border-radius: var(--radius-control);
+  color: var(--color-text-3);
+}
+
+.browser__root-open:hover,
+.browser__add:hover {
+  color: var(--color-text);
+}
+
+.browser__root-remove {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 var(--space-1);
+  border: none;
+  border-inline-start: 1px solid var(--color-border);
+  background: none;
+  color: var(--color-text-3);
+  cursor: pointer;
+}
+
+.browser__root-remove:hover {
+  color: var(--color-error);
+}
+
+/* ── Where we are ───────────────────────────────────────────────────────── */
+.browser__crumb {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+/* ⚠ **Rides `.btn-ghost` and overrides only what differs**, the same way
+   `.preview__button` does two rules down. Restating the app's ghost-button
+   border, radius, surface and text colour here would give them a second
+   definition that no token change or button restyle would ever reach. */
+.browser__up {
+  flex: none;
+  gap: var(--space-1);
+  height: auto;
+  min-width: 0;
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--text-micro);
+}
+
+/* ⚠ Disabled at a root, which is the containment boundary rather than a
+   styling state — dimmed, not hidden, so "up" does not appear and disappear as
+   the producer walks the tree. */
+.browser__up:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.browser__here {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-text-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── The listing ────────────────────────────────────────────────────────── */
+/* ⛔ **This is the part that scrolls, not the whole panel.** The preview player
+   below it must stay put while the list moves: a transport that scrolls out of
+   view is a transport nobody can reach while browsing, which is the one thing
+   the panel is for. */
+.browser__list {
+  flex: 1 1 0;
+  min-height: 5rem;
+  max-height: 18rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-y: auto;
+}
+
+.browser__row {
+  display: flex;
+}
+
+.browser__entry {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 0;
+  padding: 2px var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-control);
+  background: none;
+  color: var(--color-text-2);
+  font-family: var(--font-ui);
+  font-size: var(--text-small);
+  text-align: start;
+  cursor: pointer;
+}
+
+/* ⛔ `grab` on the files, for the reason `.drag__chip` gives: a row that can be
+   picked up and shows a `pointer` says "press me", and nobody discovers the
+   drag. Folders keep `pointer` — they really are pressed. */
+.browser__entry[data-kind='file'] {
+  cursor: grab;
+  /* Both load-bearing on a drag source: without them the WebView starts its own
+     text selection on `pointerdown` and swallows the gesture. */
+  user-select: none;
+}
+
+.browser__entry[data-kind='file']:active {
+  cursor: grabbing;
+}
+
+.browser__entry[data-kind='dir'] {
+  color: var(--color-text);
+}
+
+.browser__entry:hover {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+.browser__entry[data-selected='true'] {
+  border-color: var(--color-primary);
+  color: var(--color-text);
+}
+
+/* The file name is the half that can be arbitrarily long — and widening the
+   rail to read it is exactly what the resize handle is for. */
+.browser__name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── The audition player ────────────────────────────────────────────────── */
+.preview {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+}
+
+.preview__idle {
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+}
+
+.preview__wave {
+  position: relative;
+  height: 56px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-2);
+  overflow: hidden;
+  /* "Click anywhere in the waveform to play from there" — the cursor is the
+     only thing that says so before the producer tries it. */
+  cursor: crosshair;
+  touch-action: none;
+}
+
+.preview__svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  /* Pointer events belong to the container, which is what maps a click to a
+     position; letting the path take them would make the hit depend on whether
+     the click landed on a loud part of the sample. */
+  pointer-events: none;
+}
+
+/* ⛔ **The played part, clipped rather than redrawn.** Mike: *"the waveform's
+   back colour differs for the part already played."* `--preview-progress` is
+   written by React on each polled position, and only this one declaration
+   changes — the 800-point path underneath is untouched, which is what keeps a
+   30 Hz playhead off the layout path. */
+.preview__svg--played {
+  clip-path: inset(0 calc(100% - var(--preview-progress, 0%)) 0 0);
+}
+
+.preview__outline {
+  fill: var(--color-text-3);
+}
+
+.preview__outline--played {
+  fill: var(--color-primary);
+}
+
+/* The playhead marker, on the same one variable. */
+.preview__head {
+  position: absolute;
+  inset-block: 0;
+  left: var(--preview-progress, 0%);
+  width: 1px;
+  background: var(--color-text);
+  pointer-events: none;
+}
+
+.preview__decoding {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-3);
+  font-size: var(--text-micro);
+}
+
+.preview__bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.preview__button {
+  height: 26px;
+  min-width: 26px;
+  padding: 0 var(--space-2);
+}
+
+.preview__time {
+  margin-inline-start: auto;
+  color: var(--color-text-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-micro);
+  white-space: nowrap;
+}

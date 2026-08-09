@@ -502,7 +502,7 @@ fn rhythm(
             onsets.push(Onset {
                 tick,
                 len: next.saturating_sub(tick).max(sixteenth),
-                strong: grid::is_downbeat(*slot),
+                strong: grid::is_downbeat(*slot, ctx),
             });
         }
     }

@@ -1,0 +1,135 @@
+/* The pattern library (TASK-045A). Shaped like the presets panel beside it —
+   a list of rows with a delete on the end and a name box under them — because
+   they are the same gesture over different things, and two layouts for one
+   shape is a second thing to learn. */
+.patterns {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.patterns__filters {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.patterns__filter {
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-1);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control, 4px);
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  font-size: var(--text-micro);
+}
+
+.patterns__list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.patterns__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.patterns__load {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: var(--space-1) var(--space-2);
+  border: 0;
+  border-radius: var(--radius-control, 4px);
+  background: none;
+  color: var(--color-text);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+
+.patterns__load:hover,
+.patterns__load:focus-visible {
+  background: var(--color-surface-2);
+}
+
+.patterns__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-micro);
+}
+
+/* The mini grid. One column per sixteenth, opacity carrying the density — the
+   same reading the drum grid's cells use, so a producer already knows it. */
+.patterns__preview {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 1px;
+  height: 8px;
+  min-width: 0;
+}
+
+.patterns__step {
+  background: var(--color-primary);
+  border-radius: 1px;
+}
+
+.patterns__meta,
+.patterns__empty,
+.patterns__error {
+  font-size: var(--text-micro);
+  color: var(--color-text-3);
+}
+
+.patterns__error {
+  color: var(--color-warning);
+}
+
+.patterns__empty {
+  margin: 0;
+}
+
+.patterns__delete {
+  flex: none;
+  display: inline-flex;
+  padding: var(--space-1);
+  border: 0;
+  background: none;
+  color: var(--color-text-3);
+  cursor: pointer;
+}
+
+.patterns__delete:hover {
+  color: var(--color-warning);
+}
+
+.patterns__save {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.patterns__input {
+  flex: 1;
+  min-width: 0;
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control, 4px);
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  font-size: var(--text-micro);
+}
+
+.patterns__savebtn {
+  flex: none;
+}

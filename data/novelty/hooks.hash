@@ -1,0 +1,128 @@
+# Freally MIDI Master — the novelty guard's reference table (FR-011, TASK-039)
+#
+# ⛔ HASHES ONLY. Each line is a 64-bit fingerprint of a *contour* — a run of
+# (interval, onset-gap) steps — and there is no way back from one to a note.
+# Nothing here names a pitch, a key, a tempo or a title. That is the point:
+# this table ships inside a product that must never carry somebody else's
+# notes.
+#
+# ⛔ DO NOT HAND-EDIT. Rebuild it:
+#
+#     cargo run -p datasetc -- novelty <contours>/ > data/novelty/hooks.hash
+#
+# where <contours>/ holds one `*.contour` listing per melody. Those listings
+# are an input and are deliberately NOT in this repo — see
+# docs/dataset-protocol.md § The novelty table, which records the format, the
+# melody list this file was built from, and why the inputs stay out.
+#
+# Built at fingerprint scheme 1, at both widths the guard looks up: n = 8
+# (the screen every take must pass) and n = 12 (the loosened screen).
+#
+# The set below is a public-domain starter set — seven traditional and
+# classical melodies — and it is expected to grow. It is what makes the guard
+# a working mechanism today rather than a switch waiting to be wired.
+
+0x0075953f60c71036
+0x024b81d78a38db94
+0x02b881d78a3ea8b2
+0x07af1789899e9a8a
+0x083f5b229199f8f9
+0x08ff22c443dbd51c
+0x0c7d054f524dcf13
+0x0d554d4f011e6887
+0x10fafb12b2a6078f
+0x1284999ff69084c9
+0x130a07e3eb3d5759
+0x18f2c1b2f9851327
+0x1aaad1800dc07d17
+0x1fd40551360bd4bc
+0x2120a910874a0e67
+0x2153ffea1f494101
+0x233911cdc86b281d
+0x23a5664165f3f920
+0x25ed8053b6a4df09
+0x2d07da02fcbda37f
+0x319d9b411087653d
+0x320d9e6537d94000
+0x33f6dab56564eaa7
+0x34a3588b5db958a5
+0x355a04c33aee1d4c
+0x35f74769a6fcff2f
+0x386a65a6a43b21e1
+0x39b1228536d7714f
+0x39b403e4f06b35d8
+0x3aafb6cfde0ce83e
+0x3b50833f62e622fc
+0x4029d8872f4e0996
+0x416c93dfff90c2e7
+0x4213648ac01e32cc
+0x48ed21bd44f0359a
+0x4be6e40551596357
+0x4e86e70ed4c4970e
+0x4f58117f9f61d06f
+0x58054d80ee897b8e
+0x59ffb66c46d28797
+0x5d65892e501eaf35
+0x5f142938b3e35d60
+0x5f3add702f267aab
+0x64bed8ebf77d5baa
+0x65b8edbe9417509e
+0x6bf8e30aadc9ddc1
+0x6c19ab5bcfad5c47
+0x71266e2a42e4196b
+0x74507cd21d9a02e5
+0x79244c7fd504832f
+0x79ad9f87aa8f681d
+0x7e93b290c795e218
+0x803ceafba9e4a0b2
+0x83be1870e729bfd4
+0x862ac02df4c91013
+0x863e7223eb28a4d5
+0x86ee450c55651e2b
+0x891d11d6a71ce646
+0x8bb90485d96d6b0c
+0x8c7b9bb1252e670c
+0x92711ceca06f121f
+0x93df49e760391e34
+0x9615843d1f3a6128
+0x9a8c71a487021e28
+0x9f9c5ac7f1616959
+0xa072ee67c681d433
+0xa1a3440c3453fa95
+0xa3506aa414e821ef
+0xa96fa47b67713109
+0xa9baccc49697919a
+0xb2aa63217c2244a0
+0xb36eb9b7cee836dd
+0xb5284630f56decc3
+0xb85fab5e24de2478
+0xc1981ceca2f008e1
+0xc20796b7410a43dc
+0xc41e8770a2e6d3ed
+0xc6e160787a5227d5
+0xc8b9d0a531ec53a8
+0xcb58c8db8f5dd0ae
+0xcc860ec66d226822
+0xcf642c6d1eeb5b9b
+0xd149cc68c5e0adb2
+0xd33ada858b50e26d
+0xd3f44f7c218d31f3
+0xd896ec6b43997050
+0xd998d1c83676c200
+0xdc5fcb9e9729744f
+0xe5a5cf878e91eb6c
+0xe6a9873a02d9285c
+0xe84654015386dc5c
+0xe8f62eff3840c43b
+0xee877bc31557cf16
+0xeee66c31c182c055
+0xf0baa16a1b1d5ccc
+0xf10f04c2d2c2643a
+0xf4fb93c086255b7d
+0xf513d0f19b1c37c6
+0xf53e31dd0f752682
+0xf604d68c6405a367
+0xf62bb8b529587453
+0xfb0475d268027062
+0xfbcc074ce515719d
+0xfdd6671a1c66871d

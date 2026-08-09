@@ -71,3 +71,150 @@ test('a click at the far left seeks to the start rather than doing nothing', asy
   if (!line) throw new Error('the playhead should be laid out');
   expect(Math.abs(line.x - box.x)).toBeLessThan(6);
 });
+
+/**
+ * ⛔ **The four melodic generators, which had no way to move the playhead at
+ * all.** The drum grid and the song timeline both seek on click; the piano
+ * roll's ruler did not, so TASK-041T's *"in all five generators"* was true of
+ * one of them. The strip carries the loop brace as well, so the two gestures
+ * are split by whether the pointer moved a snap step.
+ *
+ * Asserted through the footer's bar/beat readout rather than through a stored
+ * variable: the roll draws its marker on a canvas, and reading the value back
+ * off the handler that wrote it would stay green with the whole readout
+ * unwired. The position display is what a producer actually looks at.
+ */
+async function openRollAndRuler(page: import('@playwright/test').Page) {
+  await page.goto('/');
+  const search = page.getByLabel('Search an artist');
+  await search.fill('trap');
+  await search.press('Enter');
+  await page.getByRole('tab', { name: 'Melody' }).click();
+  await page.getByRole('button', { name: 'Generate', exact: true }).click();
+  await expect(page.locator('[data-testid="roll-notes"] li').first()).toBeAttached();
+
+  const ruler = page.locator('[data-testid="roll-ruler"]');
+  const box = await ruler.boundingBox();
+  if (!box) throw new Error('the ruler should be laid out');
+  const roll = page.locator('.roll__canvas');
+  const read = async (el: import('@playwright/test').Locator, name: string) =>
+    Number(await el.getAttribute(name));
+  const gutter = await read(roll, 'data-gutter');
+  const zoom = await read(roll, 'data-zoom');
+  const scrollTick = await read(roll, 'data-scroll-tick');
+  const ppq = await read(roll, 'data-ppq');
+
+  return {
+    ruler,
+    y: box.y + 4,
+    bar: ppq * 4,
+    at: (tick: number) => box.x + gutter + ((tick - scrollTick) / ppq) * zoom,
+    loopFrom: () => read(ruler, 'data-loop-from'),
+    loopTo: () => read(ruler, 'data-loop-to'),
+  };
+}
+
+test('clicking the roll’s ruler moves the playhead rather than laying down a loop', async ({
+  page,
+}) => {
+  const r = await openRollAndRuler(page);
+  const position = page.locator('.transport__position');
+  await expect(position).toHaveText('1.1.00');
+
+  const before = { from: await r.loopFrom(), to: await r.loopTo() };
+
+  // Bar 3 of a four-bar clip — halfway, so the readout is unambiguous.
+  await page.mouse.click(r.at(r.bar * 2), r.y);
+
+  await expect(position).toHaveText(/^3\.1\./);
+
+  // ⛔ And the brace did not move. A click used to lay down a one-step loop
+  // (`regionBetween(t, t)` floors the width at one snap step), which is a
+  // region the producer never asked for sitting on their clip.
+  expect(await r.loopFrom()).toBe(before.from);
+  expect(await r.loopTo()).toBe(before.to);
+});
+
+test('a drag on the ruler still sets a loop, and does not seek', async ({ page }) => {
+  const r = await openRollAndRuler(page);
+  const position = page.locator('.transport__position');
+
+  await page.mouse.move(r.at(r.bar), r.y);
+  await page.mouse.down();
+  await page.mouse.move(r.at(r.bar * 3), r.y, { steps: 8 });
+  await page.mouse.up();
+
+  expect(await r.loopFrom()).toBe(r.bar);
+  expect(await r.loopTo()).toBe(r.bar * 3);
+  // The gesture that draws a brace is not also a seek, or every loop the
+  // producer set would rewind the transport under them.
+  await expect(position).toHaveText('1.1.00');
+});
+
+/**
+ * ⛔⛔ **Where the transport lives, which changed on 2026-08-06.** Mike: *"the
+ * play/pause and stop buttons and loop button need to be moved to the top of the
+ * app to the right of the generators tabs, so that way you can play the
+ * generators from there."*
+ *
+ * ⚠ Pinned as *position*, not as existence: the buttons were always there and
+ * every existing spec passed with them in the footer, so nothing would have
+ * caught them sliding back down.
+ */
+test('play, stop and loop sit at the top, right of the generator tabs', async ({ page }) => {
+  const header = page.locator('.stage__header');
+  const controls = header.locator('.transport__controls');
+  await expect(controls).toHaveCount(1);
+
+  for (const name of ['Play', 'Stop', 'Loop']) {
+    await expect(controls.getByRole('button', { name })).toHaveCount(1);
+    // ⛔ And nowhere else — two Play buttons is worse than one in the wrong place.
+    await expect(page.getByRole('button', { name })).toHaveCount(1);
+  }
+
+  // To the RIGHT of the tabs, which is the half of the instruction a "is it in
+  // the header" check would miss.
+  const tabs = await page.locator('.tabs').boundingBox();
+  const box = await controls.boundingBox();
+  expect(tabs && box).toBeTruthy();
+  if (!tabs || !box) return;
+  expect(box.x).toBeGreaterThan(tabs.x);
+
+  // The footer keeps everything that is not transport.
+  await expect(page.locator('.transport .transport__controls')).toHaveCount(0);
+  await expect(page.locator('.transport .meter')).toHaveCount(1);
+});
+
+/**
+ * ⛔⛔ **The Loop button is a real toggle now.** Mike, 2026-08-06: *"can you have
+ * the 'Loop' button toggle off and on and either loop every time it plays to the
+ * end of the 4 or 8 bars or stop at the end of the 4 or 8 bars…and can you have
+ * it toggled a different background color?"*
+ *
+ * ⚠ Whether the clip actually repeats is the schedule's, and
+ * `voice.rs::transport_tests` owns it —
+ * `the_loop_button_repeats_the_whole_clip_when_no_brace_was_dragged` and
+ * `switching_the_loop_button_off_runs_to_the_end_and_stays_there`. What only a
+ * browser shows is that the control is live and that its state is *visible*
+ * rather than only announced.
+ */
+test('Loop toggles, and shows it with a background rather than only to a screen reader', async ({
+  page,
+}) => {
+  const loop = page.getByRole('button', { name: 'Loop' });
+
+  // ⛔ It used to be `disabled` with a permanent `aria-pressed` — the last dead
+  // control in the app, which is TASK-137's complaint.
+  await expect(loop).toBeEnabled();
+  await expect(loop).toHaveAttribute('aria-pressed', 'true');
+
+  const lit = await loop.evaluate((el) => getComputedStyle(el).backgroundColor);
+
+  await loop.click();
+  await expect(loop).toHaveAttribute('aria-pressed', 'false');
+  const dark = await loop.evaluate((el) => getComputedStyle(el).backgroundColor);
+  expect(dark).not.toBe(lit);
+
+  await loop.click();
+  await expect(loop).toHaveAttribute('aria-pressed', 'true');
+});

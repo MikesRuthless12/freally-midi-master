@@ -16,7 +16,8 @@ vi.mock('../lib/ipc', () => ({
   invoke: (command: string, args?: unknown) => invoke(command, args),
 }));
 
-const { NO_PINS, useSession } = await import('./session');
+const { BAR_CHOICES, NO_PINS, mirrorableDrumsSeed, useSession } = await import('./session');
+const { useVariations } = await import('./variations');
 
 const TRAP: SessionDefaults = {
   bpm: 140,
@@ -62,6 +63,7 @@ const PATTERN: Pattern = {
   part: 'drums',
   artistId: 'trap',
   seed: '1',
+  songSeed: '1',
   bars: 4,
   bpm: 140,
   timeSigNum: 4,
@@ -76,12 +78,22 @@ const PATTERN: Pattern = {
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 /** The request `generate_pattern` was last called with. */
-function lastRequest(): { session?: Record<string, unknown>; seed?: string | null } {
+function lastRequest(): {
+  session?: Record<string, unknown>;
+  seed?: string | null;
+  songSeed?: string | null;
+} {
   const calls = invoke.mock.calls.filter((call: unknown[]) => call[0] === 'generate_pattern');
   expect(calls.length, 'generate_pattern should have been invoked').toBeGreaterThan(0);
   const [, args] = calls[calls.length - 1] as [
     string,
-    { request: { session?: Record<string, unknown>; seed?: string | null } },
+    {
+      request: {
+        session?: Record<string, unknown>;
+        seed?: string | null;
+        songSeed?: string | null;
+      };
+    },
   ];
   return args.request;
 }
@@ -106,11 +118,15 @@ beforeEach(() => {
     mood: null,
     audioEnabled: true,
     mutedLanes: [],
+    soloedLanes: [],
+    lockedLanes: [],
     edited: false,
     pins: NO_PINS,
     defaults: null,
     pendingArtist: null,
     seed: '',
+    songSeed: '',
+    seedPinned: false,
     bars: 4,
     generating: false,
     error: null,
@@ -197,6 +213,261 @@ describe('auto-sync', () => {
     });
   });
 
+  describe('per-lane locks and reroll (TASK-044)', () => {
+    /** A drum pattern whose kick and hat both differ per seed. */
+    const take = (seed: string): Pattern => ({
+      id: `p-${seed}`,
+      part: 'drums',
+      artistId: 'trap',
+      seed,
+      songSeed: seed,
+      bars: 4,
+      bpm: 140,
+      timeSigNum: 4,
+      timeSigDen: 4,
+      keyRoot: 6,
+      scale: 'natural_minor',
+      ppq: 960,
+      lanes: [
+        {
+          lane: 'kick',
+          notes: [{ startTick: Number(seed), lenTicks: 120, pitch: 36, vel: 100 }],
+        },
+        {
+          lane: 'closedHat',
+          notes: [{ startTick: Number(seed) + 5, lenTicks: 120, pitch: 42, vel: 90 }],
+        },
+      ],
+    });
+
+    // ⛔ `generate` returns early with no artist selected, which is the
+    // production guard rather than scaffolding — a Generate with nothing chosen
+    // is not a thing to answer.
+    beforeEach(() => {
+      useSession.setState({ selectedId: 'trap', patterns: {}, lockedLanes: [] });
+    });
+
+    async function generateReturning(seed: string) {
+      invoke.mockImplementation((command: string) =>
+        command === 'generate_pattern' ? Promise.resolve(take(seed)) : Promise.resolve(null),
+      );
+      await useSession.getState().generate('drums');
+    }
+
+    it('holds a locked lane byte-for-byte across ten rerolls', async () => {
+      // ⛔ The roadmap's verify line: lock the kick lane, reroll 10x, kick
+      // identical. Ten *different* answers from the engine, so a splice that
+      // did nothing would fail on the first one.
+      await generateReturning('100');
+      const kick = useSession.getState().patterns.drums?.lanes.find((l) => l.lane === 'kick');
+      expect(kick).toBeDefined();
+
+      useSession.getState().setLaneLocked('kick', true);
+
+      for (let i = 0; i < 10; i += 1) {
+        await generateReturning(String(200 + i * 37));
+        const pattern = useSession.getState().patterns.drums;
+        // Byte-identical, and the *same object* — the splice keeps the track
+        // rather than rebuilding an equal one, which is what makes it exact.
+        expect(pattern?.lanes.find((l) => l.lane === 'kick')).toBe(kick);
+        // ...while the unlocked lane really did reroll.
+        expect(pattern?.lanes.find((l) => l.lane === 'closedHat')?.notes[0].startTick).toBe(
+          200 + i * 37 + 5,
+        );
+      }
+    });
+
+    it('lets the lane go again when it is unlocked', async () => {
+      await generateReturning('100');
+      useSession.getState().setLaneLocked('kick', true);
+      await generateReturning('300');
+      expect(
+        useSession.getState().patterns.drums?.lanes.find((l) => l.lane === 'kick')?.notes[0]
+          .startTick,
+      ).toBe(100);
+
+      useSession.getState().setLaneLocked('kick', false);
+      await generateReturning('400');
+      expect(
+        useSession.getState().patterns.drums?.lanes.find((l) => l.lane === 'kick')?.notes[0]
+          .startTick,
+      ).toBe(400);
+    });
+
+    it('holds a locked lane through Generate All, not just Generate', async () => {
+      // ⛔⛔ **The regression this exists for.** `withLocks` was spliced inside
+      // `generate`'s updater only, so locking a lane and pressing Shift+G —
+      // `generateAll`, a gesture added in the same session — threw the lock
+      // away without a word. A rule installed at one door rather than at the
+      // seam both doors go through.
+      //
+      // ⚠ **Proved here rather than in Playwright, and that is the finding.**
+      // The first attempt was an e2e, and it **passed with the fix reverted**:
+      // the browser mock answers with one fixed seed, so the kick is identical
+      // whether the lock applied or not. Only a mock that varies per call can
+      // tell a held lane from an unchanged one.
+      await generateReturning('100');
+      const kick = useSession.getState().patterns.drums?.lanes.find((l) => l.lane === 'kick');
+      useSession.getState().setLaneLocked('kick', true);
+
+      // Every part answers with a *different* take, so an unheld kick moves.
+      let call = 0;
+      invoke.mockImplementation((command: string) => {
+        if (command !== 'generate_pattern') return Promise.resolve(null);
+        call += 1;
+        return Promise.resolve(take(String(500 + call * 11)));
+      });
+      await useSession.getState().generateAll();
+
+      expect(useSession.getState().patterns.drums?.lanes.find((l) => l.lane === 'kick')).toBe(
+        kick,
+      );
+      // ...and the unlocked lane in the same clip really did reroll, so this
+      // cannot pass by Generate All having done nothing at all.
+      expect(
+        useSession.getState().patterns.drums?.lanes.find((l) => l.lane === 'closedHat')
+          ?.notes[0].startTick,
+      ).not.toBe(105);
+    });
+
+    it('keeps a held part in the project, because the seed can no longer make it', async () => {
+      // ⛔⛔ **The lock survived the reroll and then vanished from the file.**
+      // `generate` cleared the part from `editedParts` unconditionally — "a
+      // fresh generation *is* the seed's own output again" — which stopped
+      // being true the moment `withLocks` began splicing a previous take's lane
+      // into it. `send()` reads `edited` to decide whether *any* clip is
+      // written, so a producer who drew hats, locked them and pressed Generate
+      // saved a project holding no clips at all: reopening regenerated from the
+      // seed and the lane they had deliberately kept was gone, silently.
+      await generateReturning('100');
+      useSession.getState().setLaneLocked('kick', true);
+      await generateReturning('300');
+
+      expect(useSession.getState().editedParts).toContain('drums');
+      expect(useSession.getState().edited).toBe(true);
+
+      // ...and it goes back to being reproducible once the lock comes off, or
+      // every project from then on would carry clips it does not need.
+      useSession.getState().setLaneLocked('kick', false);
+      await generateReturning('400');
+      expect(useSession.getState().editedParts).not.toContain('drums');
+      expect(useSession.getState().edited).toBe(false);
+    });
+
+    it('does not carry a locked lane past the end of a shorter clip', async () => {
+      // ⛔⛔ **Invisible on screen and audible in the export.** `setBars` does
+      // not clear `patterns`, so locking the kick on eight bars and generating
+      // at four spliced the whole eight-bar track into a four-bar clip.
+      // `toCells` and `columnDensity` both bounds-check, so the grid drew a
+      // clean four bars while the notes were still in `lanes` — and went to the
+      // host, to `to_midi` and to `stem_files`. The stem played in bars five to
+      // eight, and nothing on screen ever showed it.
+      const long = take('0');
+      long.bars = 8;
+      long.lanes[0].notes = [
+        { startTick: 0, lenTicks: 120, pitch: 36, vel: 100 },
+        // Bar 5 of eight: inside the long clip, past the end of a four-bar one.
+        { startTick: 960 * 16, lenTicks: 120, pitch: 36, vel: 100 },
+      ];
+      invoke.mockImplementation((command: string) =>
+        command === 'generate_pattern' ? Promise.resolve(long) : Promise.resolve(null),
+      );
+      await useSession.getState().generate('drums');
+      useSession.getState().setLaneLocked('kick', true);
+
+      await generateReturning('300'); // `take` is four bars.
+      const kick = useSession.getState().patterns.drums?.lanes.find((l) => l.lane === 'kick');
+      expect(kick?.notes.map((n) => n.startTick)).toEqual([0]);
+    });
+
+    it('recalls the take that was made, not a hybrid of it and the current locks', async () => {
+      // ⛔⛔ **A clip that never existed, labelled as one that did.** Recall
+      // regenerates — that is what makes an entry tens of bytes — but it went
+      // through `generate`, which splices whatever is locked *now* into the
+      // answer. So going back three takes returned take 1's hats under take 3's
+      // kick, while `VariationNav` read "1 / 3". A history that reports a take
+      // it did not give you is worse than no history.
+      await generateReturning('100');
+      const first = useVariations.getState().entries.drums[0];
+
+      await generateReturning('700');
+      useSession.getState().setLaneLocked('kick', true);
+
+      // Recall asks the engine again; answer with the original take, as a
+      // deterministic engine would for the same seed.
+      invoke.mockImplementation((command: string) =>
+        command === 'generate_pattern' ? Promise.resolve(take('100')) : Promise.resolve(null),
+      );
+      await useSession.getState().recallVariation(first);
+
+      const kick = useSession.getState().patterns.drums?.lanes.find((l) => l.lane === 'kick');
+      expect(kick?.notes[0].startTick).toBe(100);
+    });
+
+    it('recalls the tempo and key the take was actually written at', async () => {
+      // ⛔⛔ **The readout and the notes disagreeing about the same take.** The
+      // entry stores the *pins* and, separately, the `bpm`/`keyRoot`/`scale`/
+      // meter that were **resolved** — which is the whole reason it stores
+      // both. Recall restored only the pins, so a take made at 140 came back at
+      // whatever the session had drifted to while the nav went on displaying
+      // 140 off the entry.
+      await generateReturning('100');
+      const entry = useVariations.getState().entries.drums[0];
+      expect(entry.bpm).toBe(140);
+
+      // The producer moves on and changes the tempo.
+      useSession.getState().setPin('bpm', 90);
+      await useSession.getState().recallVariation(entry);
+
+      const pins = useSession.getState().pins;
+      expect(pins.bpm).toBe(entry.bpm);
+      expect(pins.keyRoot).toBe(entry.keyRoot);
+      expect(pins.scale).toBe(entry.scale);
+      expect(pins.timeSigNum).toBe(entry.timeSigNum);
+      expect(pins.timeSigDen).toBe(entry.timeSigDen);
+    });
+
+    it('reloads the artist’s own defaults when a recall changes artists', async () => {
+      // ⛔⛔ **The roster highlighted one artist and the pane described
+      // another.** Recall wrote `selectedId` with a bare `set`, so `defaults` —
+      // what the ARTIST pane's "tends to" line reads, and what every unpinned
+      // field falls back on — still held the previous artist's. The other four
+      // part slots were left up too, showing that artist's clips under this
+      // one's name.
+      await generateReturning('100');
+      const trapTake = useVariations.getState().entries.drums[0];
+
+      useSession.setState({
+        selectedId: 'uk-drill',
+        defaults: DRILL,
+        patterns: { melody: take('9') },
+      });
+
+      invoke.mockImplementation((command: string) => {
+        if (command === 'generate_pattern') return Promise.resolve(take('100'));
+        if (command === 'session_defaults') return Promise.resolve(TRAP);
+        return Promise.resolve(null);
+      });
+      await useSession.getState().recallVariation(trapTake);
+
+      expect(useSession.getState().selectedId).toBe('trap');
+      expect(useSession.getState().defaults).toEqual(TRAP);
+      // The other artist's clips are gone rather than sitting under this name.
+      expect(useSession.getState().patterns.melody).toBeUndefined();
+    });
+
+    it('is saved with the project, sorted, and records no step for a no-op', () => {
+      useSession.getState().setLaneLocked('closedHat', true);
+      useSession.getState().setLaneLocked('kick', true);
+      vi.advanceTimersByTime(400);
+      expect(lastSaved().lockedLanes).toEqual(['closedHat', 'kick']);
+
+      const before = useSession.getState().lockedLanes;
+      useSession.getState().setLaneLocked('kick', true);
+      expect(useSession.getState().lockedLanes).toBe(before);
+    });
+  });
+
   /**
    * TASK-041's persist gate: an edited clip becomes document state.
    *
@@ -280,6 +551,48 @@ describe('going back to a seed', () => {
     await useSession.getState().generate();
 
     expect(lastRequest().seed).toBeNull();
+  });
+
+  // ── TASK-141: the record is carried, the take is not ────────────────────
+  it('starts a record on the first Generate and carries it to every part after', async () => {
+    // ⛔⛔ **This is the whole of TASK-141 seen from the page.** The engine
+    // guarantees five parts agree only when they share a harmonic plan, and the
+    // Defect 2 fix made every Generate roll a fresh seed — so the ordinary
+    // workflow (Generate on Drums, switch tab, Generate on Melody) wrote the
+    // melody against a progression the chords tab had never seen. Both clips
+    // looked individually correct, which is exactly why nothing caught it.
+    useSession.getState().select('trap');
+
+    // Nothing generated yet, so this one starts the record.
+    await useSession.getState().generate('drums');
+    expect(lastRequest().songSeed, 'the first Generate has no record to join').toBeNull();
+
+    const record = useSession.getState().songSeed;
+    expect(record, 'the engine answers with the record it chose').not.toBe('');
+
+    // Every part after it joins that record rather than starting its own.
+    for (const part of ['melody', 'chords', 'bass'] as const) {
+      await useSession.getState().generate(part);
+      expect(lastRequest().songSeed, `${part} must join the record`).toBe(record);
+    }
+    expect(useSession.getState().songSeed).toBe(record);
+  });
+
+  it('carries the record even while the take is unpinned and rerolling', async () => {
+    // ⚠ The two are deliberately independent: the seed lock is about the
+    // producer's typed *take*, and the record is carried whether or not
+    // anything is pinned. A producer should not have to know the song seed
+    // exists to get parts that belong together.
+    useSession.getState().select('trap');
+    useSession.getState().setSeed('');
+    await useSession.getState().generate('drums');
+
+    const record = useSession.getState().songSeed;
+    expect(useSession.getState().seedPinned, 'the take is not pinned').toBe(false);
+
+    await useSession.getState().generate('melody');
+    expect(lastRequest().seed, 'the take still rerolls').toBeNull();
+    expect(lastRequest().songSeed, 'the record still travels').toBe(record);
   });
 });
 
@@ -436,6 +749,7 @@ describe('applyPreset', () => {
   const PRESET = {
     selectedId: 'uk-drill',
     seed: '99',
+    songSeed: '99',
     bars: 8,
     autoSync: false,
     pins: { bpm: 150, keyRoot: null, scale: null, swing: null },
@@ -458,12 +772,41 @@ describe('applyPreset', () => {
     expect(useSession.getState().pins.bpm).toBe(150);
   });
 
+  /**
+   * What a stored seed means when the project does not say (2026-08-06).
+   *
+   * ⛔ **Absent has to mean pinned, and the direction matters.** Every project
+   * written before the seed could be unpinned re-sent its stored seed on every
+   * Generate, so reading absence as *unpinned* would reopen all of them rolling
+   * a new beat — US-004's promise broken by an upgrade, silently, on work
+   * somebody saved. A stored `false` is honoured as itself, because that
+   * session genuinely never chose the seed it is showing.
+   */
+  it('treats a seed stored before the pin existed as the producer’s own', () => {
+    useSession.getState().applyPreset(PRESET);
+    expect(useSession.getState().seedPinned).toBe(true);
+  });
+
+  it('honours a stored unpinned seed rather than re-pinning it', () => {
+    useSession.getState().applyPreset({ ...PRESET, seedPinned: false });
+    expect(useSession.getState().seedPinned).toBe(false);
+    // Still shown, so it can be read and copied — it is a readout, not a choice.
+    expect(useSession.getState().seed).toBe('99');
+  });
+
+  it('never pins an empty seed, whatever the project claims', () => {
+    useSession.getState().applyPreset({ ...PRESET, seed: '', seedPinned: true });
+    expect(useSession.getState().seedPinned).toBe(false);
+  });
+
   it('lands as one undo step, not two', async () => {
     const { useHistory } = await import('./history');
     useSession.getState().select('trap');
     useHistory.getState().arm({
       selectedId: 'trap',
       seed: '',
+      songSeed: '',
+      seedPinned: false,
       bars: 4,
       pins: NO_PINS,
       autoSync: true,
@@ -472,6 +815,8 @@ describe('applyPreset', () => {
       mood: null,
       audioEnabled: true,
       mutedLanes: [],
+      soloedLanes: [],
+      lockedLanes: [],
       edited: false,
       song: null,
       songEdited: false,
@@ -512,6 +857,7 @@ describe('each part keeps its own pattern', () => {
           id: `trap-${part}`,
           part,
           seed: seed ?? '77',
+          songSeed: seed ?? '77',
         } satisfies Pattern);
       }
       return Promise.resolve(null);
@@ -554,16 +900,84 @@ describe('each part keeps its own pattern', () => {
     expect(after.chords).toBe(before.chords);
   });
 
-  it('reuses the seed across parts, because coherence depends on it', async () => {
+  it('reuses a PINNED seed across parts, because coherence depends on it', async () => {
     // ⛔ `engine/src/parts.rs` guarantees five parts agree only when they share
     // a seed. With one slot nobody could tell; with five, drawing a fresh seed
     // per part would produce five clips in the same key that fit nothing.
+    //
+    // ⚠ **The pin is what carries this now, and that is the deliberate change
+    // of 2026-08-06.** It used to ride on the seed the engine echoed back —
+    // which also meant a second press of Generate on *one* part reproduced the
+    // beat it had just made, forever. The mechanism is the same; what changed
+    // is that the producer says when they want it.
+    useSession.getState().setSeed('4242');
     await useSession.getState().generate('melody');
-    const first = useSession.getState().seed;
-    expect(first).not.toBe('');
+    expect(lastRequest().seed).toBe('4242');
 
     await useSession.getState().generate('bass');
-    expect(lastRequest().seed).toBe(first);
+    expect(lastRequest().seed).toBe('4242');
+  });
+
+  it('asks for a fresh seed on every press while the seed is unpinned', async () => {
+    // ⛔⛔ **The defect Mike found in Ableton on 2026-08-06**, at the level it
+    // was caused: *"the seed stayed the same and there was no variation"*. The
+    // engine's reply is echoed into the box so it can be read and copied, and
+    // the old code then re-sent it — so the second press and every press after
+    // it regenerated the first beat.
+    //
+    // ⚠ Asserted on what was **sent**, not on what came back. The mock answers
+    // with whatever it is given, so a test that only compared the resulting
+    // patterns would pass against the broken code.
+    await useSession.getState().generate('drums');
+    expect(useSession.getState().seed, 'the engine picked and it was shown').toBe('77');
+
+    await useSession.getState().generate('drums');
+    expect(
+      lastRequest().seed,
+      'the echoed seed was re-sent, so Generate reproduced its own beat',
+    ).toBeNull();
+  });
+
+  it('does not pin the seed it echoes back, however many times it is pressed', async () => {
+    for (let press = 0; press < 3; press += 1) {
+      await useSession.getState().generate('drums');
+    }
+    expect(useSession.getState().seedPinned).toBe(false);
+
+    const sent = invoke.mock.calls
+      .filter((call: unknown[]) => call[0] === 'generate_pattern')
+      .map((call: unknown[]) => (call[1] as { request: { seed: string | null } }).request.seed);
+    expect(sent, 'a press after the first named a seed instead of asking for one').toEqual([
+      null,
+      null,
+      null,
+    ]);
+  });
+
+  it('holds the seed once the producer locks what came back', async () => {
+    // The other half of the affordance: like what you just got, keep it —
+    // without retyping the twenty digits already on screen.
+    await useSession.getState().generate('drums');
+    const got = useSession.getState().seed;
+
+    useSession.getState().setSeedPinned(true);
+    await useSession.getState().generate('drums');
+
+    expect(lastRequest().seed).toBe(got);
+  });
+
+  it('refuses to lock an empty box, so the flag cannot contradict the seed', () => {
+    useSession.getState().setSeed('');
+    useSession.getState().setSeedPinned(true);
+    expect(useSession.getState().seedPinned).toBe(false);
+  });
+
+  it('unpins when the box is cleared, which is how you ask for a surprise', () => {
+    useSession.getState().setSeed('4242');
+    expect(useSession.getState().seedPinned).toBe(true);
+
+    useSession.getState().setSeed('');
+    expect(useSession.getState().seedPinned).toBe(false);
   });
 
   // ── Generate all five at once (TASK-120) ────────────────────────────────
@@ -603,7 +1017,10 @@ describe('each part keeps its own pattern', () => {
   });
 
   it('honours a seed the producer typed, without asking for a new one', async () => {
-    useSession.setState({ seed: '4242' });
+    // ⚠ Through `setSeed`, not a bare `setState`: typing is what pins, and a
+    // seed the store merely *holds* is the engine's echo, which `generateAll`
+    // must roll past rather than rebuild the same record from.
+    useSession.getState().setSeed('4242');
     await useSession.getState().generateAll();
 
     const sent = invoke.mock.calls
@@ -611,6 +1028,30 @@ describe('each part keeps its own pattern', () => {
       .map((call: unknown[]) => (call[1] as { request: { seed: string | null } }).request.seed);
 
     expect(sent).toEqual(['4242', '4242', '4242', '4242', '4242']);
+  });
+
+  it('draws a fresh seed for the set on every unpinned press of Generate all', async () => {
+    // ⛔ The same defect as the single-part case, one document up: the first run
+    // echoes its seed into the box, and starting the second run from that box
+    // rebuilt the identical five-part record. Mike asked for a new one *"every
+    // time i click 'Generate' or 'Generate All'"*, and named both.
+    await useSession.getState().generateAll();
+    const after = invoke.mock.calls.filter(
+      (call: unknown[]) => call[0] === 'generate_pattern',
+    ).length;
+
+    await useSession.getState().generateAll();
+
+    const second = invoke.mock.calls
+      .filter((call: unknown[]) => call[0] === 'generate_pattern')
+      .slice(after)
+      .map((call: unknown[]) => (call[1] as { request: { seed: string | null } }).request.seed);
+
+    // ⚠ First asks, and the remaining four still share what it answered — the
+    // `parts.rs` rule is untouched. What must not happen is the *first* one
+    // naming the seed the previous run ended on.
+    expect(second[0], 'the second run rebuilt the first run’s record').toBeNull();
+    expect(new Set(second.slice(1)).size).toBe(1);
   });
 
   // ── Clear, per part and for all (TASK-121) ──────────────────────────────
@@ -721,5 +1162,155 @@ describe('each part keeps its own pattern', () => {
     useSession.getState().clearAll();
     useSession.getState().clearAll();
     expect(useSession.getState().patterns).toEqual({});
+  });
+});
+
+/**
+ * The Stems panel puts itself in front of a producer who has generated
+ * something (Mike, 2026-08-06).
+ *
+ * ⛔ **The defect was that the panel remembers being collapsed across reloads**,
+ * and it holds the only way to get a pattern out of the plugin. Collapse it
+ * once and the drag rows are unreachable, with nothing on screen saying they
+ * exist — which is exactly how Mike came to report that the drums could not be
+ * dragged out per instrument when half of that was already built.
+ */
+describe('the Stems panel reveals itself once anything is generated', () => {
+  let useUi: typeof import('./ui').useUi;
+
+  beforeEach(async () => {
+    ({ useUi } = await import('./ui'));
+    // Collapsed and hidden — the state a returning producer is actually in,
+    // and the one the fix has to survive.
+    useUi.setState({
+      stemsRevealed: false,
+      rightRailOpen: false,
+      sections: { ...useUi.getState().sections, stems: false },
+    });
+    useSession.setState({ selectedId: 'trap', patterns: {} });
+  });
+
+  it('opens the panel on the first generation of the session', async () => {
+    expect(useUi.getState().sections.stems).toBe(false);
+
+    await useSession.getState().generate('drums');
+
+    expect(useUi.getState().sections.stems).toBe(true);
+  });
+
+  it('leaves the right rail alone, because opening it costs the editor height', async () => {
+    // ⛔⛔ **The first cut of this forced the rail open and `e2e/piano-roll.
+    // spec.ts:380` caught it** — the stage re-lays, the velocity lane loses
+    // height, and a drag to velocity 96 lands on 85. `StemsPanel`'s header
+    // records the two earlier times something near the pattern grew.
+    //
+    // ⚠ Nothing is lost by leaving it: the plugin's page always lays out at
+    // 1440, which is `WIDE_BREAKPOINT`, so the rail is already open there.
+    await useSession.getState().generate('drums');
+
+    expect(useUi.getState().rightRailOpen).toBe(false);
+  });
+
+  it('does not reopen it after the producer has closed it again', async () => {
+    await useSession.getState().generate('drums');
+    useUi.getState().toggleSection('stems');
+    expect(useUi.getState().sections.stems).toBe(false);
+
+    // ⚠ The subscriber runs on every write that leaves a pattern in the store,
+    // so without the one-shot this would fight the producer on every press.
+    await useSession.getState().generate('melody');
+    await useSession.getState().generateAll();
+
+    expect(useUi.getState().sections.stems).toBe(false);
+  });
+
+  it('stays shut while nothing has been generated', () => {
+    // Selecting an artist is not generating, and a panel that opened on
+    // browsing would be back to being noise.
+    useSession.getState().select('uk-drill');
+
+    expect(useUi.getState().sections.stems).toBe(false);
+    expect(useUi.getState().stemsRevealed).toBe(false);
+  });
+});
+
+/**
+ * What lengths a generation is offered at (Mike, 2026-08-06).
+ *
+ * *"bars for the generators should be able to be 4 or 8 only, not 2 … every new
+ * generation should generate 4/8 bars only and you should be able to see all 8
+ * bars."* Two bars has no room for the fills and turnarounds the models author,
+ * so generating at it made every artist sound the same.
+ */
+describe('the bar choices', () => {
+  it('offers four and eight, and nothing shorter', () => {
+    expect([...BAR_CHOICES]).toEqual([4, 8]);
+  });
+
+  it('still opens a project that was saved at a length no longer offered', () => {
+    // ⛔ **The compatibility half, and it is the one that could bite somebody.**
+    // Nothing here validates a restored value against `BAR_CHOICES` — the
+    // engine clamps to `1..=MAX_BARS` on every path — so a session saved at two
+    // bars must come back at two bars rather than being silently rounded up
+    // into a pattern the producer did not arrange.
+    useSession.getState().applyPreset({
+      selectedId: 'trap',
+      seed: '99',
+      songSeed: '99',
+      bars: 2,
+      pins: null,
+    });
+
+    expect(useSession.getState().bars).toBe(2);
+  });
+});
+
+describe('the drums seed a mirrored bass is told to copy', () => {
+  // ⛔⛔ **A seed alone does not name a pattern — `(model, ctx, seed)` does.**
+  // `Part::Bass` rebuilds its reference kit by re-running the drum generator at
+  // this seed, so it only reproduces the clip on screen while the session that
+  // built it still applies. Sending it regardless is the narrower form of the
+  // very defect the field was added to close: the kick comes back on different
+  // ticks and a `mirror_kick` bass lands on kicks nobody is playing.
+  const drums: Pattern = { ...PATTERN, seed: '3141', songSeed: '7', bars: 4 };
+  const now = { bars: 4, songSeed: '7', pins: NO_PINS, mood: null };
+
+  it('is sent while the session still matches the drums on screen', () => {
+    expect(mirrorableDrumsSeed(drums, now)).toBe('3141');
+  });
+
+  it('is withheld when there are no drums yet', () => {
+    // Not a failure: there is no take to mirror, and the record's own canonical
+    // kit is the right answer.
+    expect(mirrorableDrumsSeed(undefined, now)).toBeNull();
+  });
+
+  it('is withheld once the bar count has moved under them', () => {
+    // Generate drums at 4 bars, drag the chip to 8, generate the bass: the kick
+    // would be rebuilt across 8 bars and land on different ticks entirely.
+    expect(mirrorableDrumsSeed(drums, { ...now, bars: 8 })).toBeNull();
+  });
+
+  it('is withheld when the drums belong to a different record', () => {
+    expect(mirrorableDrumsSeed(drums, { ...now, songSeed: '99' })).toBeNull();
+  });
+
+  it('is withheld when the mood has changed', () => {
+    // A mode is a partial override of the model, including its session block —
+    // so it can retune the key and the tempo the kick was written against.
+    expect(mirrorableDrumsSeed(drums, { ...now, mood: 'dark' })).toBeNull();
+  });
+
+  it('is withheld when a pin moves the grid the kick sits on', () => {
+    expect(mirrorableDrumsSeed(drums, { ...now, pins: { ...NO_PINS, bpm: 90 } })).toBeNull();
+    expect(
+      mirrorableDrumsSeed(drums, { ...now, pins: { ...NO_PINS, timeSigDen: 8 } }),
+    ).toBeNull();
+  });
+
+  it('is sent when a pin merely agrees with what the drums already are', () => {
+    // Pinning the tempo the drums were built at changes nothing about the kick,
+    // so withholding there would give up the fix for no reason.
+    expect(mirrorableDrumsSeed(drums, { ...now, pins: { ...NO_PINS, bpm: 140 } })).toBe('3141');
   });
 });

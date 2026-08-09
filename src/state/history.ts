@@ -28,6 +28,25 @@ import type { Pattern, Scale, Song } from '../lib/ipc-types';
 export type Snapshot = {
   selectedId: string | null;
   seed: string;
+  /**
+   * The record every part is written against (TASK-141).
+   *
+   * ⛔ **Restored with the clips, or undo puts them back under a plan they were
+   * not written to.** Generate on Drake (record A), switch to Future and
+   * generate (record B), then Ctrl+Z: the clips come back as Drake's, and
+   * without this the record stays B — so the next Generate on Drake joins
+   * Future's harmonic plan with nothing on screen saying so.
+   */
+  songSeed: string;
+  /**
+   * Whether `seed` is the producer's choice or the engine's echo.
+   *
+   * ⛔ In here because it is in `SAVED_FIELDS`, and this module's own notes on
+   * `audioEnabled` and `mutedLanes` record what happens when a saved field
+   * misses the snapshot: the change persists when made and is lost when undone.
+   * Locking a seed and pressing Ctrl+Z has to hand it back.
+   */
+  seedPinned: boolean;
   bars: number;
   pins: {
     bpm: number | null;
@@ -81,6 +100,23 @@ export type Snapshot = {
    */
   mutedLanes: string[];
   /**
+   * Lanes soloed in the preview (TASK-043).
+   *
+   * ⛔ Here for the reason the two fields above spell out, and it is the rule
+   * rather than a case: **every field `send()` carries belongs in all three
+   * places** — `SAVED_FIELDS`, this type and `snapshotOf`. Miss one and the
+   * change is saved when made and lost when undone, which is worse than not
+   * being undoable at all because the project and the screen then disagree.
+   */
+  soloedLanes: string[];
+  /**
+   * Lanes held across a reroll (TASK-044).
+   *
+   * Here for the rule the two fields above spell out: every field `send()`
+   * carries belongs in `SAVED_FIELDS`, this type and `snapshotOf` alike.
+   */
+  lockedLanes: string[];
+  /**
    * The arrangement (TASK-063B).
    *
    * ⛔ **In the session's own snapshot rather than in a second stack, and that
@@ -119,7 +155,13 @@ export type Field = keyof Snapshot;
  * merging them made "kick muted, snare audible" unreachable by undo — one
  * Ctrl+Z un-muted both.
  */
-const DISCRETE: readonly Field[] = ['patterns', 'mutedLanes', 'song'];
+const DISCRETE: readonly Field[] = [
+  'patterns',
+  'mutedLanes',
+  'soloedLanes',
+  'lockedLanes',
+  'song',
+];
 
 /**
  * How long a run of edits to one field stays one undo step.

@@ -3,88 +3,446 @@
   "id": "pop-2000s",
   "type": "genre",
   "name": "Pop (2000s)",
-  "aliases": ["mainstream pop", "max martin", "radio pop"],
+  "aliases": [
+    "mainstream pop",
+    "max martin",
+    "radio pop"
+  ],
   "tier": "standard",
-  "extends": ["_defaults"],
+  "extends": [
+    "_defaults"
+  ],
   "era": "1999–2012",
-  "genres": ["pop"],
+  "genres": [
+    "pop"
+  ],
   "confidence": "high",
-  "sources": ["style-research ch.1 §12 Mainstream pop (2000s Max Martin era → 2020s)"],
+  "sources": [
+    "style-research ch.1 §12 Mainstream pop (2000s Max Martin era → 2020s)"
+  ],
   "arrangement": {
     "structures": [
       {
-        "sections": ["intro", "verse", "prechorus", "chorus", "verse", "prechorus", "chorus", "bridge", "chorus"],
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "verse",
+          "prechorus",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
         "weight": 4
       },
       {
-        "sections": ["intro", "verse", "prechorus", "chorus", "verse", "prechorus", "chorus", "outro"],
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "verse",
+          "prechorus",
+          "chorus",
+          "outro"
+        ],
         "weight": 2
       }
     ],
-    "sectionBars": { "intro": [4, 8], "verse": 16, "prechorus": 8, "chorus": 8, "bridge": 8, "outro": 8 },
-    "sectionRules": {
-      "intro": { "parts": ["chords", "melody"], "density": 0.6 },
-      "verse": { "parts": ["drums", "melody", "bass", "chords"], "density": 0.7 },
-      "prechorus": { "parts": ["drums", "melody", "bass", "chords"], "density": 0.9 },
-      "chorus": { "parts": "all", "density": 1, "addLayers": ["countermelody"] },
-      "bridge": { "parts": ["chords", "melody"], "density": 0.5 },
-      "outro": { "parts": ["chords", "melody", "drums"], "density": 0.6, "decay": true }
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": 8
     },
-    "transitions": { "fillBeforeSection": true, "dropOutBeats": { "prob": 0.85, "beats": 2 }, "switchUpProb": 0.1 }
+    "sectionRules": {
+      "intro": {
+        "parts": [
+          "chords",
+          "melody"
+        ],
+        "density": 0.6
+      },
+      "verse": {
+        "parts": [
+          "drums",
+          "melody",
+          "bass",
+          "chords"
+        ],
+        "density": 0.7
+      },
+      "prechorus": {
+        "parts": [
+          "drums",
+          "melody",
+          "bass",
+          "chords"
+        ],
+        "density": 0.9
+      },
+      "chorus": {
+        "parts": "all",
+        "density": 1,
+        "addLayers": [
+          "countermelody"
+        ]
+      },
+      "bridge": {
+        "parts": [
+          "chords",
+          "melody"
+        ],
+        "density": 0.5
+      },
+      "outro": {
+        "parts": [
+          "chords",
+          "melody",
+          "drums"
+        ],
+        "density": 0.6,
+        "decay": true
+      }
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.85,
+        "beats": 2
+      },
+      "switchUpProb": 0.1
+    }
   },
   "notes": "Verse kick sparse and syncopated — 1 and the and-of-2 — against a hard 2-and-4 backbone, with claps stacked on the snare and the whole thing quantized tight. Straight, never swung: the pocket is the grid, and the interest comes from the layering and the arrangement rather than the feel.",
-
   "session": {
-    "bpm": { "min": 100, "max": 125, "mode": 116 },
+    "bpm": {
+      "min": 100,
+      "max": 125,
+      "mode": 116
+    },
     "halfTime": false,
-    "keys": { "values": ["C", "G", "Am", "F", "Em"], "weights": [3, 3, 3, 2, 2] },
-    "scales": { "values": ["major", "natural_minor", "mixolydian"], "weights": [5, 3, 2] },
-    "swing": { "grid": "16th", "amount": 0.5 },
+    "keys": {
+      "values": [
+        "C",
+        "G",
+        "Am",
+        "F",
+        "Em"
+      ],
+      "weights": [
+        3,
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor",
+        "mixolydian"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.5
+    },
     "humanize": {
       "quantizeStrength": 0.96,
       "velocityVar": 0.1,
-      "timingJitterMs": { "kick": 1, "snare": 1, "clap": 2, "closedHat": 2, "perc": 2 }
+      "timingJitterMs": {
+        "kick": 1,
+        "snare": 1,
+        "clap": 2,
+        "closedHat": 2,
+        "perc": 2
+      }
     }
   },
-
   "drums": {
     "kick": {
-      "densityPerBar": [2, 4],
-      "anchors": ["1"],
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
       "secondaryAnchor": "2&",
       "syncopation": 0.35,
       "tresilloBias": 0.1,
       "fourOnFloorInChorus": true,
-      "lockTo808": 0.0
+      "lockTo808": 0
     },
     "snare": {
       "placement": "backbeat_24",
-      "layerClapOffsetMs": [1, 4],
-      "stack": ["clap"],
-      "ghost": { "prob": 0.15, "pos": ["4a"], "vel": [0.25, 0.4] },
+      "layerClapOffsetMs": [
+        1,
+        4
+      ],
+      "stack": [
+        "clap"
+      ],
+      "ghost": {
+        "prob": 0.15,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.25,
+          0.4
+        ]
+      },
       "offGridMs": 0
     },
     "hihat": {
-      "base": "16th",
+      "base": {
+        "values": [
+          "16th",
+          "8th"
+        ],
+        "weights": [
+          3,
+          2
+        ]
+      },
       "continuous": true,
-      "fillDensity": 0.5,
-      "velocities": { "main": [0.75, 0.95], "ghost": [0.4, 0.6] },
+      "fillDensity": 0.52,
+      "velocities": {
+        "main": [
+          0.75,
+          0.95
+        ],
+        "ghost": [
+          0.4,
+          0.6
+        ]
+      },
       "rolls": {
-        "vocab": { "values": ["16", "32"], "weights": [3, 1] },
-        "positions": ["phrase_end", "bar_4"],
+        "vocab": {
+          "values": [
+            "16",
+            "32"
+          ],
+          "weights": [
+            3,
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
         "freqPerBar": 0.25,
         "velocityRamp": true
       },
-      "openHat": { "prob": 0.35, "pos": ["2&", "4&"], "perBar": [1, 1] },
-      "pitchBendProb": 0.0
+      "openHat": {
+        "prob": 0.35,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      },
+      "pitchBendProb": 0
     },
-    "percs": { "lanes": ["snap", "perc"], "densityPerBar": [1, 2] },
-    "fills": { "smallEveryBars": 4, "bigEveryBars": 8, "snareRollLadder": true },
+    "percs": {
+      "lanes": [
+        "snap",
+        "perc"
+      ],
+      "densityPerBar": [
+        1,
+        2
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8,
+      "snareRollLadder": true
+    },
     "snareRoll": {
-      "ladder": ["8", "16"],
-      "velocityRampRange": [40, 120],
-      "grouping": "strong_weak_weak_weak"
+      "ladder": [
+        "8",
+        "16"
+      ],
+      "velocityRampRange": [
+        60,
+        112
+      ],
+      "grouping": [
+        "even"
+      ],
+      "subdivisions": [
+        "16th",
+        "8th"
+      ],
+      "rampJitter": 10,
+      "descendProb": 0.24,
+      "gapProb": 0.3,
+      "pitchWalk": 2
     },
     "bass808": null
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "vi",
+          "IV",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "IV",
+          "I",
+          "V",
+          "vi"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "iii",
+          "vi",
+          "IV"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.7,
+      "seventh": 0.25,
+      "ninth": 0.05
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        76
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    },
+    "susSubstitutionProb": 0.18
+  },
+  "melody": {
+    "register": [
+      70,
+      94
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "intervals": {
+      "step": 0.62,
+      "third": 0.26,
+      "leap": 0.12
+    },
+    "contour": {
+      "riff": 0.4,
+      "descend": 0.3,
+      "arch": 0.3
+    },
+    "chordToneBias": 0.72,
+    "octaveJumpProb": 0.14,
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.5,
+    "styles": {
+      "values": [
+        "arp",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.92,
+    "rhythm": "mirror_kick",
+    "register": [
+      36,
+      55
+    ],
+    "glideProb": 0.05,
+    "passingTones": [
+      "P5",
+      "M2"
+    ],
+    "anticipationProb": 0.35
+  },
+  "kit": {
+    "preview": "pop-default"
   }
 }

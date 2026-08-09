@@ -11,12 +11,25 @@
 /* ⛔ Fills the chip, and wide enough for a u64's 20 digits.
    The comment here used to claim exactly that while setting `width: 12ch`, so a
    long seed was cut off on screen — and a seed you cannot read all of is a seed
-   you cannot check or type back in, which is the whole of US-004. `flex: 1`
-   takes the room the visible label used to occupy. */
+   you cannot check or type back in, which is the whole of US-004.
+
+   ⛔⛔ **`flex-basis: 20ch` with `min-width: 0`, NOT `min-width: 20ch`, and the
+   difference is a whole class of layout bug.** `.stage__controls` is
+   `flex-wrap: nowrap` and sits *under* `stage__body`, so anything that makes
+   that row wider than the stage costs the editor above it height — and the
+   velocity lane is what loses it. A hard `min-width` here made the chip an
+   immovable object: adding the lock button widened the row, the row could not
+   give, and a drag to velocity 96 landed on 85 with
+   `e2e/piano-roll.spec.ts:380` catching it. That assertion has now reverted
+   three attempts at growing this row, and `layout.css` says so at length.
+
+   As a *basis* the input still asks for its 20 characters and gets them
+   whenever there is room, and gives them back a character at a time when there
+   is not — instead of pushing the whole row past the stage. */
 .seed__input {
-  flex: 1;
+  flex: 1 1 20ch;
   width: 100%;
-  min-width: 20ch;
+  min-width: 0;
   padding: 0;
   border: 0;
   background: transparent;
@@ -39,7 +52,28 @@
   padding: 2px;
 }
 
+/* ⛔ **An unpinned seed is dimmed, and that is the whole point of the state.**
+   The box shows the number the engine last picked, which reads exactly like a
+   number the producer typed — and treating those two as the same thing is the
+   defect this closes. Dim means "this is a readout; the next Generate rolls
+   again". Colour is not carrying it alone: the tooltip and the accessible name
+   both say which mode the box is in, so this reads without relying on being
+   able to tell two greys apart. */
+.seed[data-pinned='false'] .seed__input {
+  color: var(--color-text-3);
+}
+
 /* `.visually-hidden` used to live here and now lives in `styles/tokens.css`.
    It was defined in this component's stylesheet and used from two others, so a
    second copy had already appeared in the piano roll's — with a stray extra
    `clip` property, diverged on the day it was written. */
+
+/* The lock, beside Copy. Same size, same treatment — it is the second of two
+   small controls on this chip, not a feature of its own. */
+.seed__lock {
+  padding: 2px;
+}
+
+.seed[data-pinned='true'] .seed__lock {
+  color: var(--color-primary);
+}

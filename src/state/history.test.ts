@@ -14,6 +14,8 @@ import { canRedo, canUndo, useHistory, type Snapshot } from './history';
 const BASE: Snapshot = {
   selectedId: null,
   seed: '',
+  songSeed: '',
+  seedPinned: false,
   bars: 4,
   pins: {
     bpm: null,
@@ -29,6 +31,8 @@ const BASE: Snapshot = {
   mood: null,
   audioEnabled: true,
   mutedLanes: [],
+  soloedLanes: [],
+  lockedLanes: [],
   edited: false,
   song: null,
   songEdited: false,

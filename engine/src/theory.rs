@@ -598,3 +598,79 @@ mod scale_tests {
     /// here is exactly how a gate ends up silently covering twelve of forty-one.
     const ALL_SCALES: [Scale; 41] = Scale::ALL;
 }
+
+/// A key as a producer would write it on a file: `"C# Minor"`, `"F Major"`.
+///
+/// ⛔ **The inverse of [`key_pitch_class`], and it exists for file names**
+/// (TASK-131F). Mike, 2026-08-05: an exported stem should be labelled
+/// *"Artist/Genre - Snares - 140 BPM - C# Minor"* — a folder of those is
+/// readable without opening any of them, which is the same argument the
+/// suggested-name logic in `export.rs` already makes.
+///
+/// ⚠ **Sharps, not flats, and one spelling per pitch class.** A key signature
+/// has a correct spelling that depends on the key — Eb minor is not D# minor to
+/// a musician — but a file name is an identifier, and two spellings for one
+/// pitch class means two names for one file. The dataset authors both
+/// (`rnb-2000s` writes `Ebm`, most models write sharps) and they resolve to the
+/// same number here, so this picks the one spelling that covers all twelve.
+pub fn key_label(root: u8, scale: crate::pattern::Scale) -> String {
+    const NAMES: [&str; 12] = [
+        "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B",
+    ];
+    let name = NAMES[usize::from(root % 12)];
+    format!("{name} {}", scale_label(scale))
+}
+
+/// A scale's name with spaces in it: `NaturalMinor` → `"Natural Minor"`.
+///
+/// ⚠ **Derived from the variant rather than a table**, so a scale added to the
+/// enum cannot arrive here unnamed. A hand-written table is a second list of the
+/// 41 scales, and the one thing this codebase has learned about second lists is
+/// that they fall behind.
+fn scale_label(scale: crate::pattern::Scale) -> String {
+    // ⚠ The two scales a producer names differently from the enum. Everything
+    // else reads correctly split.
+    let debug = match scale {
+        crate::pattern::Scale::NaturalMinor | crate::pattern::Scale::Aeolian => "Minor".to_owned(),
+        other => format!("{other:?}"),
+    };
+    let mut out = String::with_capacity(debug.len() + 2);
+    for (index, character) in debug.chars().enumerate() {
+        if index > 0 && character.is_uppercase() {
+            out.push(' ');
+        }
+        out.push(character);
+    }
+    out
+}
+
+#[cfg(test)]
+mod key_label_tests {
+    use super::*;
+    use crate::pattern::Scale;
+
+    #[test]
+    fn a_key_reads_the_way_a_producer_would_write_it() {
+        assert_eq!(key_label(1, Scale::NaturalMinor), "C# Minor");
+        assert_eq!(key_label(0, Scale::Major), "C Major");
+        assert_eq!(key_label(6, Scale::NaturalMinor), "F# Minor");
+    }
+
+    #[test]
+    fn every_root_has_a_name_and_none_of_them_panics() {
+        // ⛔ `root` reaches here from a `Pattern` that arrived as JSON from the
+        // webview, so it is not guaranteed to be 0..12.
+        for root in 0..=255u8 {
+            let label = key_label(root, Scale::NaturalMinor);
+            assert!(!label.is_empty(), "root {root} produced no name");
+        }
+    }
+
+    #[test]
+    fn a_multi_word_scale_gets_its_spaces() {
+        assert_eq!(scale_label(Scale::HarmonicMinor), "Harmonic Minor");
+        assert_eq!(scale_label(Scale::MinorPentatonic), "Minor Pentatonic");
+        // A single-word one is left alone.
+        assert_eq!(scale_label(Scale::Dorian), "Dorian");
+    }
+}

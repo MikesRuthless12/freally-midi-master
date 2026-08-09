@@ -12,7 +12,9 @@ import type {
   SessionDefaults,
   Song,
 } from '../lib/ipc-types';
+import { patternTicks } from '../components/PianoRoll/notes';
 import { useHistory, type Snapshot } from './history';
+import { entryFor, useVariations, type Variation } from './variations';
 import { useUi, type GeneratorTab } from './ui';
 
 /**
@@ -33,8 +35,24 @@ type HostSessionInfo = {
   playing: boolean;
 };
 
-/** Bar counts the UI offers. Four is the default a pattern is demonstrated at. */
-export const BAR_CHOICES = [2, 4, 8] as const;
+/**
+ * Bar counts the UI offers. Four is the default a pattern is demonstrated at.
+ *
+ * ⛔ **Two was removed on Mike's instruction, 2026-08-06:** *"bars for the
+ * generators should be able to be 4 or 8 only, not 2"*, and then, clarifying
+ * what replaces it: *"every new generation should generate 4/8 bars only and
+ * you should be able to see all 8 bars."* A two-bar loop is a *view* of a
+ * pattern rather than a length worth generating at — there is not enough room
+ * in two bars for the fills and turnarounds the models author, so it made every
+ * artist sound the same.
+ *
+ * ⚠ **A project saved at two bars still opens.** Nothing here validates a
+ * restored value: `bridge.rs` clamps `bars` to `1..=MAX_BARS` on every path
+ * into the engine, so a stored 2 generates a two-bar pattern exactly as before
+ * — it simply is not offered as a new choice. Refusing it instead would break
+ * sessions somebody already has.
+ */
+export const BAR_CHOICES = [4, 8] as const;
 
 /**
  * Snapshot fields that are **not** read out of this store.
@@ -78,12 +96,21 @@ void SAVED_FIELDS_MATCH_SNAPSHOT;
 export const SAVED_FIELDS = [
   'selectedId',
   'seed',
+  // ⛔ The record, saved beside the take. Without it a reopened project — or an
+  // undo across an artist change — restored the five clips and lost the plan
+  // they were written against, so the next Generate started a new record and
+  // that part no longer belonged with the rest. TASK-141 behaviour surviving
+  // exactly until the first reload is not the feature.
+  'songSeed',
+  'seedPinned',
   'bars',
   'pins',
   'autoSync',
   'mood',
   'audioEnabled',
   'mutedLanes',
+  'soloedLanes',
+  'lockedLanes',
   'edited',
   'editedParts',
 ] as const;
@@ -193,6 +220,61 @@ export function patternForTab(state: SessionState, tab: GeneratorTab): Pattern |
 }
 
 /**
+ * The clips that would actually be armed right now (TASK-127).
+ *
+ * ⛔ **One predicate, because the transport was answering an older question.**
+ * `armCurrentPattern` arms *every generated part that is switched on, whatever
+ * tab you are looking at*, while `TransportBar` still gated Play and Stop on
+ * `useActivePattern() !== null` — the pre-TASK-127 rule. The two disagreed in
+ * both directions:
+ *
+ * - Generate drums only, then click the Melody tab: drums are armed and would
+ *   sound, and Play is **dark** because the melody slot is empty.
+ * - Switch every part off on a generated tab: `armCurrentPattern` disarms, and
+ *   Play stays **lit** — pressing it sets `running` over an empty schedule, so
+ *   the UI reports playing forever with a marker that never moves. The bridge
+ *   already refuses this (`toggling_every_generator_off_is_refused_rather_than
+ *   _arming_silence`); the button simply had not been told.
+ *
+ * ⚠ Empty on the Song tab by design: `TAB_PART.song` is `null` because the
+ * arrangement is not a part, and `SongTimeline` arms it itself.
+ */
+/**
+ * Can the transport be driven right now?
+ *
+ * ⛔ **One predicate, exported, because it was being restated.** The Play
+ * button and the Space handler each carried their own half of it: Space checked
+ * only `canDriveTransport()`, so pressing it with nothing generated set
+ * `running` over an empty schedule — the app then reported playing forever,
+ * Play rendered as a disabled Pause, Stop was disabled with it, and only a
+ * second Space got out.
+ *
+ * ⚠ The Song tab asks a different question: the arrangement is not a part, so
+ * there is nothing in `armedClips` to count and the song itself is the answer.
+ * Reading `song !== null` on *every* tab lit Play on a part tab whose transport
+ * `armCurrentPattern` had just disarmed.
+ */
+export function canDrive(
+  patterns: PatternsByPart,
+  partsOff: readonly Part[],
+  tab: GeneratorTab,
+  song: unknown,
+): boolean {
+  return tab === 'song' ? song !== null : armedClips(patterns, partsOff, tab).length > 0;
+}
+
+export function armedClips(
+  patterns: PatternsByPart,
+  partsOff: readonly Part[],
+  tab: GeneratorTab,
+): Pattern[] {
+  if (TAB_PART[tab] === null) return [];
+  return GENERATED_PARTS.filter((part) => !partsOff.includes(part))
+    .map((part) => patterns[part])
+    .filter((clip): clip is Pattern => clip !== undefined && clip !== null);
+}
+
+/**
  * The clip on screen — the active tab's, or `null` on Song and on a part that
  * has not been generated.
  *
@@ -253,8 +335,56 @@ type SessionState = {
   /**
    * The seed to generate with, as typed. A string because a u64 does not
    * survive a JSON number, which is the same reason `Pattern.seed` is one.
+   *
+   * ⚠ **This box holds two different things and [`seedPinned`] is what tells
+   * them apart** — a seed the producer chose, and the seed the engine last
+   * picked and echoed back for them to read. Never decide from `seed` alone.
    */
   seed: string;
+  /**
+   * The **record's** seed — what the five parts agree on (TASK-141).
+   *
+   * ⛔ **This is what buys back what the Defect 2 fix gave up.** `seed` above is
+   * the *take*, and it rerolls on every press by design. But `engine/parts.rs`
+   * only guarantees the five parts belong together when they share a harmonic
+   * plan — so before this existed, the ordinary workflow (Generate on Drums,
+   * switch tab, Generate on Melody) drew two unrelated seeds and wrote the
+   * melody against a progression the chords tab had never seen.
+   *
+   * Carried back on every Generate, so the take varies and the record does not.
+   * Empty means "the next Generate starts a new record", which is what a fresh
+   * session and a newly selected artist both mean.
+   *
+   * ⚠ Deliberately **not** pinned by the seed lock. The lock is about the
+   * producer's typed take; the record is carried automatically because a
+   * producer should not have to know this exists to get coherent parts.
+   */
+  songSeed: string;
+  /**
+   * Whether [`seed`] is the producer's choice rather than the engine's echo.
+   *
+   * ⛔⛔ **The whole of the defect Mike found in Ableton on 2026-08-06:**
+   * *"when i clicked to generate seeds for Drake and did it over and over
+   * again, the seed stayed the same and there was no variation"*. `generate`
+   * echoes the seed the engine used back into the box — which it must, see
+   * below — and the old code then re-sent it on the next press. So the first
+   * Generate rolled a seed and **every press after that regenerated it**,
+   * making the product look like it held one beat per artist.
+   *
+   * ⛔ **Deleting the echo is not the fix, and that was the tempting one.**
+   * `engine/src/parts.rs` guarantees the five parts agree *only* when they
+   * share a seed, and US-004 ("paste a seed, get the same beat") needs a typed
+   * seed to survive. Both of those are the echo. What was missing is the
+   * distinction the session already draws for tempo, key and scale: a value the
+   * *user* pinned is reused, a value the *engine* chose is displayed.
+   *
+   * So: pinned means every Generate reuses it; unpinned means every Generate
+   * asks for a fresh one and the box shows what came back, to read and to copy.
+   * Typing pins, clearing unpins, and the lock in `SeedChip` says which it is —
+   * a box that silently pinned itself after the first Generate is what caused
+   * this, so the mode is never left to be inferred.
+   */
+  seedPinned: boolean;
 
   generating: boolean;
   /** What went wrong last, for the user rather than the console. */
@@ -334,6 +464,35 @@ type SessionState = {
    */
   mutedLanes: string[];
   /**
+   * Lanes soloed in the preview (TASK-043).
+   *
+   * ⛔ **Its own list rather than a rewrite of `mutedLanes`**, because solo is
+   * *'everything except these, for now'*. Folding it into the mutes would make
+   * the routing the producer had chosen before soloing unrecoverable — clicking
+   * S and clicking it again would silently rewrite it. The audio thread combines
+   * the two into one mask; both sides of the bridge keep them apart.
+   *
+   * Empty means **no solo**, never 'solo nothing'.
+   */
+  soloedLanes: string[];
+  /**
+   * Lanes held across a reroll (TASK-044).
+   *
+   * ⛔ **A lock is about what the next Generate may touch, not about editing.**
+   * Locking the kick and pressing Generate has to give back a new hat pattern
+   * over *that* kick, byte for byte — which is why the splice happens after the
+   * engine answers rather than as a mask sent to it. The engine is
+   * deterministic, so keeping the lane the producer is looking at is exact by
+   * construction and needs no cooperation from the generator.
+   *
+   * ⚠ **What it cannot do, said out loud:** a locked *kick* does not
+   * retro-influence a rerolled bass. `bassline.rhythm = "mirror_kick"` reads
+   * the kit the engine rebuilds from the seed, not the one on screen, so a bass
+   * generated after a kick was locked mirrors the engine's kick. `Seeds::drums`
+   * is the existing seam for that and is TASK-141's, not this one's.
+   */
+  lockedLanes: string[];
+  /**
    * Whether the clip on screen is an edit rather than the seed's own output.
    *
    * ⛔ **This is what makes an edited clip survive closing the project.**
@@ -364,7 +523,16 @@ type SessionState = {
 
   init: () => Promise<void>;
   select: (id: string) => void;
+  /** Type or paste a seed. Anything non-empty pins it; clearing the box unpins. */
   setSeed: (seed: string) => void;
+  /**
+   * Hold the seed the engine just picked, or hand it back (the lock button).
+   *
+   * The other half of "typing pins it": a producer who likes what they just
+   * generated wants *that* seed held without retyping the twenty digits already
+   * in front of them.
+   */
+  setSeedPinned: (pinned: boolean) => void;
   setBars: (bars: number) => void;
   setPin: <K extends keyof SessionPins>(field: K, value: SessionPins[K]) => void;
   setAutoSync: (on: boolean) => void;
@@ -374,6 +542,22 @@ type SessionState = {
   setAudioEnabled: (on: boolean) => void;
   /** Silence one lane in the preview, or let it back in (FMM-S02). */
   setLaneMuted: (lane: string, muted: boolean) => void;
+  /**
+   * Hold one lane across the next Generate, or let it reroll (TASK-044).
+   *
+   * ⛔ **View state that changes what generation *keeps*, never what it
+   * writes.** Nothing about a lock reaches the engine; the splice happens on
+   * the answer.
+   */
+  setLaneLocked: (lane: string, locked: boolean) => void;
+  /**
+   * Solo one lane in the preview, or take it out of the solo set (TASK-043).
+   *
+   * ⛔ **View and playback state, never an edit.** Like the mutes, this changes
+   * what the preview sampler sounds and nothing about the notes — what is
+   * exported and what reaches the host is identical either way.
+   */
+  setLaneSolo: (lane: string, solo: boolean) => void;
   /**
    * Move the playhead, as a fraction of the pattern (TASK-041T).
    *
@@ -463,6 +647,15 @@ type SessionState = {
   pause: () => Promise<void>;
   stop: () => Promise<void>;
 
+  /**
+   * Go back to a generation, whole (TASK-045).
+   *
+   * ⛔ **Artist, mood, seed, bars and pins together — never the seed alone.**
+   * A recall that restored the number only would regenerate a *different* beat
+   * whenever the artist had changed since, which is the readout lying about how
+   * you got there.
+   */
+  recallVariation: (entry: Variation) => Promise<void>;
   /** Step back through the operation log (FMM-U01). No-op at the baseline. */
   undo: () => void;
   redo: () => void;
@@ -475,6 +668,78 @@ type SessionState = {
  * host (`hostTempo`), or transient (`generating`, `error`, the transport) — and
  * restoring any of those would undo something the user did not do.
  */
+/**
+ * Put the locked lanes back, exactly as they were (TASK-044).
+ *
+ * ⛔⛔ **This is the whole lock mechanism, and it is deliberately *not* a mask
+ * sent to the engine.** Generation is a pure function of `(model, ctx, seeds)`,
+ * so the take the producer is looking at cannot be preserved by asking the
+ * generator to preserve it — it would have to be told which notes, which means
+ * sending the notes, which is exactly what `Seeds` exists to avoid. Keeping the
+ * track object the page already holds is byte-identical by construction and
+ * needs no cooperation from anything.
+ *
+ * ⚠ **A lane locked before it existed is not invented.** If the previous
+ * pattern has no track for it — the producer locked a lane the last take did
+ * not write — the new one's is kept, because there is nothing to hold.
+ *
+ * ⚠ **And the limit, said out loud rather than discovered:** a locked *kick*
+ * does not retro-influence a rerolled bass. `bassline.rhythm = "mirror_kick"`
+ * reads the kit the engine rebuilds from the seed, not the one on screen, so
+ * the bass mirrors the engine's kick and not the held one. `Seeds::drums` is
+ * the seam that would fix it and belongs to TASK-141.
+ */
+function withLocks(next: Pattern, previous: Pattern | undefined, locked: string[]): Pattern {
+  if (locked.length === 0 || previous === undefined) return next;
+  // ⛔⛔ **Clipped to the *new* clip, and it was not.** The held track was
+  // spliced in whole, so locking the kick on eight bars, dragging the bars chip
+  // down to four and pressing Generate put an eight-bar kick inside a clip whose
+  // `bars` says four. `toCells` and `columnDensity` both bounds-check, so the
+  // grid drew a clean four bars — while the notes were still in `lanes` and went
+  // to the host, to `to_midi` and to `stem_files`. The producer dragged out a
+  // four-bar clip and got a kick stem playing in bars five to eight that nothing
+  // on screen had ever shown them.
+  //
+  // ⚠ **The track object survives when nothing needed clipping**, which the
+  // ten-reroll test asserts with `toBe`: keeping the reference is what makes a
+  // held lane exact rather than merely equal, and it is what lets `generate`
+  // tell "a lock landed" from "nothing changed" by identity.
+  const end = patternTicks(next);
+  const held = previous.lanes
+    .filter((track) => locked.includes(track.lane))
+    .map((track) => {
+      const inside = track.notes.filter((note) => note.startTick < end);
+      return inside.length === track.notes.length ? track : { ...track, notes: inside };
+    });
+  if (held.length === 0) return next;
+
+  const byLane = new Map(held.map((track) => [track.lane, track]));
+  const lanes = next.lanes.map((track) => byLane.get(track.lane) ?? track);
+  // A locked lane the *new* take did not write still has to come back, or
+  // rerolling into a sparser pattern would silently drop it.
+  for (const track of held) {
+    if (!lanes.some((existing) => existing.lane === track.lane)) lanes.push(track);
+  }
+  return { ...next, lanes };
+}
+
+/**
+ * Turn `lane` on or off in one of the three lane lists, or answer `null` when
+ * the list already says what the caller is asking for.
+ *
+ * ⛔ **Sorted, so each list is a set rather than a history of the order the
+ * rows were clicked in.** Two projects that mute the same two lanes must save
+ * the same bytes, or an undo entry and a project diff both record a change
+ * nobody made. This was written out three times — once per list — and the
+ * copies had already begun to drift in their variable names; the rule belongs
+ * in one place, and each setter keeps only what is actually different about it,
+ * which is *when it persists*.
+ */
+function toggledLanes(current: string[], lane: string, on: boolean): string[] | null {
+  if (current.includes(lane) === on) return null;
+  return on ? [...current, lane].sort() : current.filter((held) => held !== lane);
+}
+
 function snapshotOf(state: SessionState): Snapshot {
   // ⛔ `SAVED_FIELDS` plus `pattern`. The undo stack and the saved session
   // carry the same fields for the same reason — an undone change that never
@@ -486,8 +751,21 @@ function snapshotOf(state: SessionState): Snapshot {
   // exactly what would stop the compiler noticing a field added to `Snapshot`
   // and forgotten here — the drift this whole arrangement exists to prevent.
   // `SAVED_FIELDS_MATCH_SNAPSHOT` below keeps the two lists honest instead.
-  const { selectedId, seed, bars, pins, autoSync, mood, audioEnabled, mutedLanes, edited } =
-    state;
+  const {
+    selectedId,
+    seed,
+    songSeed,
+    seedPinned,
+    bars,
+    pins,
+    autoSync,
+    mood,
+    audioEnabled,
+    mutedLanes,
+    soloedLanes,
+    lockedLanes,
+    edited,
+  } = state;
   // The arrangement lives in its own store and is read through the seam, for
   // the same reason `send()` reads it there — see `registerSongDocument`.
   //
@@ -512,12 +790,16 @@ function snapshotOf(state: SessionState): Snapshot {
   return {
     selectedId,
     seed,
+    songSeed,
+    seedPinned,
     bars,
     pins,
     autoSync,
     mood,
     audioEnabled,
     mutedLanes,
+    soloedLanes,
+    lockedLanes,
     edited,
     editedParts: state.editedParts,
     patterns: state.patterns,
@@ -535,6 +817,20 @@ function snapshotOf(state: SessionState): Snapshot {
  * inside `set`, so it is only ever true for the duration of one call.
  */
 let applying = false;
+
+/**
+ * True while [`recallVariation`](SessionState) is regenerating.
+ *
+ * ⛔⛔ **A recall is not a generation, and without this the history logged
+ * itself.** Stepping back regenerates the take — that is what makes an entry
+ * tens of bytes instead of a clip — and `generate` records every pattern it
+ * lands. So walking back three takes appended three more, the counter climbed
+ * while the producer moved *backwards*, and the log stopped being a record of
+ * what they pressed. The same shape and the same reason as `applying` above:
+ * zustand calls subscribers synchronously inside `set`, so this is only ever
+ * true for the duration of one call.
+ */
+let recalling = false;
 
 function applySnapshot(
   snapshot: Snapshot,
@@ -591,6 +887,46 @@ function applySnapshot(
   }
 }
 
+/**
+ * The drums' take seed, but only while it still names the drums on screen.
+ *
+ * ⛔⛔ **A seed alone does not identify a pattern — `(model, ctx, seed)` does.**
+ * `Part::Bass` rebuilds its reference kit by re-running `drums::generate` at
+ * this seed, which reproduces the clip the producer is looking at *only* while
+ * the session it was built in still applies. Change the bars chip, pin a tempo,
+ * pick a different mood, or start a new record between the two Generates and the
+ * rebuilt kick lands on different ticks — so a `mirror_kick` bass mirrors kicks
+ * nobody is playing, which is the narrower form of the defect `drumsSeed` was
+ * added to close.
+ *
+ * ⚠ **`null` is a real answer, not a failure.** It falls back to the record's
+ * own canonical kit, which is coherent — the melodic parts use it deliberately —
+ * rather than confidently wrong.
+ *
+ * ⚠ Only the fields that reach `SessionContext` are compared. `key_root` and
+ * `scale` are sampled from the *song* seed, so `songSeed` covers them; `mood`
+ * picks the mode, which can retune the whole session block.
+ */
+export function mirrorableDrumsSeed(
+  drums: Pattern | undefined,
+  now: { bars: number; songSeed: string; pins: SessionPins; mood: string | null },
+): string | null {
+  if (!drums) return null;
+  if (drums.bars !== now.bars) return null;
+  // A fresh record means the drums belong to a different song entirely.
+  if (now.songSeed !== '' && drums.songSeed !== now.songSeed) return null;
+  // ⚠ Normalised: `mood` is `skip_serializing_if = "Option::is_none"` on the
+  // Rust side, so a pattern generated without one arrives with the field
+  // *absent* rather than null — and `undefined !== null` would withhold the seed
+  // on the commonest case there is, silently giving up the fix.
+  if ((drums.mood ?? null) !== now.mood) return null;
+  // A pinned tempo or meter moves the grid the kick is written on.
+  if (now.pins.bpm !== null && drums.bpm !== now.pins.bpm) return null;
+  if (now.pins.timeSigNum !== null && drums.timeSigNum !== now.pins.timeSigNum) return null;
+  if (now.pins.timeSigDen !== null && drums.timeSigDen !== now.pins.timeSigDen) return null;
+  return drums.seed;
+}
+
 /** The message an IPC rejection carries, without leaking `[object Object]`. */
 export function reason(error: unknown): string {
   if (typeof error === 'string') return error;
@@ -634,6 +970,23 @@ async function loadDefaults(
 export type SavedSession = {
   selectedId: string | null;
   seed: string;
+  /**
+   * The record every part was written against (TASK-141).
+   *
+   * ⚠ **Optional, because every project written before this exists without
+   * it** — and absent means 'start a new record on the next Generate', which
+   * is exactly the pre-TASK-141 behaviour those projects already had.
+   */
+  songSeed?: string;
+  /**
+   * Whether `seed` was the producer's choice rather than the engine's echo.
+   *
+   * ⚠ **Absent means "this project predates the distinction", and it is read as
+   * pinned** — see `put()`. Every project written before the seed could be
+   * unpinned reused its stored seed on every Generate, so that is what those
+   * projects reopen doing.
+   */
+  seedPinned?: boolean | null;
   bars: number | null;
   pins: Partial<SessionPins> | null;
   /**
@@ -681,6 +1034,10 @@ export type SavedSession = {
    * express, because an empty set and an unmentioned field looked identical.
    */
   mutedLanes?: string[];
+  /** Lanes held across a reroll (TASK-044). */
+  lockedLanes?: string[];
+  /** Lanes soloed in the preview (TASK-043). Sent on every save, like the mutes. */
+  soloedLanes?: string[];
   /**
    * The arrangement, when the producer has edited it (TASK-067).
    *
@@ -898,8 +1255,31 @@ function put(
   // subscriber, so splitting the selection out of the rest made a single preset
   // load land as *two* undo entries — the first `Ctrl`+`Z` then stepped back to
   // a half-applied preset that was never on screen.
+  const seed = saved.seed ?? '';
+
   set({
-    seed: saved.seed ?? '',
+    seed,
+    // ⛔ **The record comes back with the clips it belongs to.** Without this a
+    // reopened project restored five parts and lost the harmonic plan they were
+    // written against, so the first Generate afterwards started a *new* record
+    // and that part no longer belonged with the four on screen — TASK-141
+    // surviving exactly until the first reload.
+    //
+    // ⚠ Absent is `''`, which means "the next Generate starts a record". That
+    // is right for a project written before this existed: those five clips were
+    // generated from one seed anyway, so there is no record to recover.
+    songSeed: saved.songSeed ?? '',
+    // ⛔ **Absent means pinned, and the fallback is the whole compatibility
+    // story.** Before the pin existed a stored seed *was* re-sent on every
+    // Generate, so a project written then reopens reproducing its own beat —
+    // which is US-004 at its strongest, since a project file is the most
+    // deliberate way anyone ever keeps a seed. A stored `false` is honoured as
+    // itself: that session never chose the seed it happens to be showing, so
+    // acting on it would reintroduce exactly the defect this closes.
+    // ⚠ An empty seed can never be pinned — there is nothing to reuse, and
+    // `generate` would send `null` regardless. Deriving it here keeps the two
+    // from disagreeing.
+    seedPinned: seed !== '' && (saved.seedPinned ?? true),
     bars: saved.bars ?? get().bars,
     // Absent means on, matching the plugin's `auto_sync_default`: a project
     // written before the toggle existed must keep following its DAW.
@@ -907,6 +1287,8 @@ function put(
     mood: saved.mood ?? null,
     audioEnabled: saved.audioEnabled ?? true,
     mutedLanes: saved.mutedLanes ?? [],
+    soloedLanes: saved.soloedLanes ?? [],
+    lockedLanes: saved.lockedLanes ?? [],
     pins: {
       bpm: saved.pins?.bpm ?? null,
       keyRoot: saved.pins?.keyRoot ?? null,
@@ -989,6 +1371,9 @@ export const useSession = create<SessionState>((set, get) => ({
   editedParts: [],
   bars: 4,
   seed: '',
+  songSeed: '',
+  // Nothing has been chosen, so nothing is held: the first Generate rolls.
+  seedPinned: false,
 
   generating: false,
   error: null,
@@ -1004,6 +1389,8 @@ export const useSession = create<SessionState>((set, get) => ({
   mood: null,
   audioEnabled: true,
   mutedLanes: [],
+  soloedLanes: [],
+  lockedLanes: [],
   edited: false,
   defaults: null,
   pendingArtist: null,
@@ -1033,10 +1420,20 @@ export const useSession = create<SessionState>((set, get) => ({
     // page two flags that could drift into an enabled Play button whose tooltip
     // told the user to press play in their DAW.
     try {
-      const status = await invoke<{ standalone: boolean; reason: string | null }>(
-        'playback_status',
-      );
+      const status = await invoke<{
+        standalone: boolean;
+        reason: string | null;
+        looping?: boolean;
+      }>('playback_status');
       set({ standalone: status.standalone === true, playbackFailure: status.reason ?? null });
+      // The plugin outlives the webview, so Loop is ITS state, not the page's.
+      // The button defaulted to on and was never told otherwise: turn Loop off,
+      // close the plugin window in a host, reopen it, and the control read lit
+      // while the schedule was not looping.
+      //
+      // Optional because a browser mock and an older plugin both answer without
+      // it; absent means keep the default rather than force one.
+      if (typeof status.looping === 'boolean') useUi.getState().setLooping(status.looping);
     } catch (error) {
       // A shell with no transport commands at all is a dev-mode browser
       // session. Not a standalone either — there is no audio thread behind the
@@ -1086,6 +1483,12 @@ export const useSession = create<SessionState>((set, get) => ({
       // show one artist's clips under another artist's name.
       patterns: {},
       editedParts: [],
+      // ⛔ **The record belongs to the artist it was written for** (TASK-141).
+      // The five clips above are being cleared precisely because they are the
+      // old artist's; the harmonic plan they were written against is the same
+      // fact one level down. Carrying it would make the next Generate join a
+      // record whose other parts no longer exist — coherence with nothing.
+      songSeed: '',
       error: null,
       defaults: null,
       pendingArtist:
@@ -1098,7 +1501,20 @@ export const useSession = create<SessionState>((set, get) => ({
   },
 
   setSeed(seed) {
-    set({ seed: seed.trim() });
+    // ⛔ **Typing pins and clearing unpins**, so the common way in and the
+    // common way out both work without anyone finding the lock. Pasting a seed
+    // to get a beat back is US-004 and is meaningless unpinned; emptying the
+    // box is the plainest possible way to say "surprise me", and it is what
+    // the `random` placeholder already promises.
+    const typed = seed.trim();
+    set({ seed: typed, seedPinned: typed !== '' });
+  },
+
+  setSeedPinned(pinned) {
+    // ⚠ There is nothing to hold when the box is empty. Refusing here rather
+    // than in the button keeps the flag from ever contradicting the seed.
+    if (pinned && get().seed === '') return;
+    set({ seedPinned: pinned });
   },
 
   setBars(bars) {
@@ -1131,16 +1547,31 @@ export const useSession = create<SessionState>((set, get) => ({
     persist();
   },
 
+  setLaneLocked(lane, locked) {
+    const next = toggledLanes(get().lockedLanes, lane, locked);
+    if (next === null) return;
+    set({ lockedLanes: next });
+    // ⚠ **The debounce is fine here, unlike the mute and the solo.** A lock
+    // changes nothing the audio thread reads — it is consulted by `generate`,
+    // on the page, at the moment the producer presses the button. There is no
+    // window in which the plugin and the screen can disagree about it.
+    persist();
+  },
+
+  setLaneSolo(lane, solo) {
+    const next = toggledLanes(get().soloedLanes, lane, solo);
+    if (next === null) return;
+    set({ soloedLanes: next });
+    // ⛔ **Now, not on the 300 ms debounce** — the same argument
+    // `setLaneMuted` makes, and it bites harder here: a solo that arrives half a beat late
+    // leaves every *other* lane audible after the row has visibly dimmed, so
+    // the control looks like it did nothing at all.
+    persistNow();
+  },
+
   setLaneMuted(lane, muted) {
-    const current = get().mutedLanes;
-    if (current.includes(lane) === muted) return;
-    // ⛔ Sorted, so the list is a set rather than a history of the order they
-    // were clicked in. Two projects that mute the same two lanes must save the
-    // same bytes, or an undo entry and a project diff both record a change
-    // nobody made.
-    const next = muted
-      ? [...current, lane].sort()
-      : current.filter((muted_lane) => muted_lane !== lane);
+    const next = toggledLanes(get().mutedLanes, lane, muted);
+    if (next === null) return;
     set({ mutedLanes: next });
     // ⛔ **Sent now, not on the 300 ms debounce.** The mask only reaches the
     // audio thread when the plugin adopts a saved session, so a debounced write
@@ -1202,13 +1633,23 @@ export const useSession = create<SessionState>((set, get) => ({
     set({ pins: NO_PINS, pendingArtist: null });
   },
 
+  // ⛔⛔ **`standalone` dropped from this, deliberately (TASK-138).** It read
+  // `standalone && playbackFailure === null`, which is what disabled Play inside
+  // a DAW. The plugin drives its own *preview* transport now — `lib.rs` gates on
+  // `host_playing || preview` and the host wins the moment its transport starts
+  // — so a plugin window can offer Play like any other. Mike, 2026-08-04: *"i do
+  // not want to just use Ableton's transpose play button."*
+  //
+  // ⚠ **`playbackFailure` still decides**, and it is now the only thing that
+  // does: a missing output device or a kit that failed to decode is a real
+  // refusal and the button must stay dark with the reason in its tooltip.
   canDriveTransport() {
-    const { standalone, playbackFailure } = get();
-    return standalone && playbackFailure === null;
+    return get().playbackFailure === null;
   },
 
   async generate(part = 'drums') {
-    const { selectedId, seed, bars, generating, pins, mood } = get();
+    const { selectedId, seed, seedPinned, songSeed, bars, generating, pins, mood, patterns } =
+      get();
     if (!selectedId || generating) return;
 
     set({ generating: true, error: null });
@@ -1223,9 +1664,44 @@ export const useSession = create<SessionState>((set, get) => ({
           // question, not the engine's.
           part,
           bars,
-          // An empty box means "pick one for me". Sending "" would be a seed
-          // that fails to parse rather than an absent one.
-          seed: seed === '' ? null : seed,
+          // ⛔⛔ **The pin decides, never the box's contents.** An unpinned box
+          // is showing the seed the *engine* last picked, and re-sending that
+          // is precisely the defect: press Generate twice, get the same beat
+          // twice, forever. `null` means "pick one for me", which is what an
+          // unpinned session is asking for every single time.
+          // ⚠ Sending `""` would be a seed that fails to parse rather than an
+          // absent one, which is why this is null and not the empty string.
+          seed: seedPinned && seed !== '' ? seed : null,
+          // ⛔ **The record, carried (TASK-141).** Unlike the seed above this is
+          // sent whether or not anything is pinned, because it is not the
+          // producer's choice — it is what makes the part being generated now
+          // belong with the four generated before it. Null on the first
+          // Generate of a session means "this one starts the record", and the
+          // engine answers with the seed it chose.
+          songSeed: songSeed !== '' ? songSeed : null,
+          // ⛔ **Which drums are on screen, so a mirrored bass mirrors those.**
+          // `bassline.rhythm = "mirror_kick"` — the roster default — copies the
+          // kick's ticks one for one, and the engine was rebuilding a reference
+          // kit at the *record's* seed while the drums the producer can see came
+          // from their own take. Boom-bap went from 13 of 13 bass notes on a
+          // real kick to 9 of 13; uk-drill to 1 of 14.
+          // ⚠ Sent on every part, not only bass: only `Part::Bass` reads it, and
+          // a conditional here would be one more thing to keep in agreement with
+          // the engine. Null before the drums have been generated, which is the
+          // honest answer — there is no take to mirror yet.
+          //
+          // ⛔⛔ **...and null again once the session has moved under them.** The
+          // engine rebuilds the kick from `(model, ctx, seed)`, so the seed only
+          // reproduces the drums on screen while the *context* still matches.
+          // Generate drums at 4 bars, drag the bars chip to 8, then generate the
+          // bass: the kick is rebuilt over 8 bars, its ticks differ from the
+          // clip the producer is looking at, and the mirrored bass lands on
+          // kicks nobody is playing — the narrower form of the very defect this
+          // field was added to close. `mirrorable` compares what the drums were
+          // built with against what this generation will use, and sending null
+          // falls back to the record's canonical kit, which is at least a
+          // coherent answer rather than a confidently wrong one.
+          drumsSeed: mirrorableDrumsSeed(patterns.drums, { bars, songSeed, pins, mood }),
           // Every unpinned field goes as null, which serde reads as absent —
           // the artist's own value then stands (FR-002).
           session: pins,
@@ -1237,13 +1713,23 @@ export const useSession = create<SessionState>((set, get) => ({
       // Show the seed that was actually used, so the chip can be copied even
       // when the user never typed one (US-004).
       //
-      // ⛔ **Echoing the seed back is what makes the five parts agree**, and
-      // since TASK-119 that is load-bearing rather than a convenience. An empty
-      // box sends `null`, the engine picks, and the picked seed lands here — so
-      // the *next* part generates from the same one. `parts.rs` guarantees the
-      // five agree only on a shared seed; drawing a fresh one per part would
-      // give five clips in the same key that were never written against each
-      // other. With one slot nobody could have noticed.
+      // ⛔ **The echo is a readout, and `seedPinned` is deliberately not set.**
+      // It was the absence of that distinction that made Generate return one
+      // beat per artist forever — see `seedPinned` on the state type. A
+      // producer who wants to keep what just came back presses the lock, or
+      // copies the number; what they must never get is the app quietly
+      // deciding for them that they meant to.
+      //
+      // ⚠ **Coherence across parts is now the pin's job, and that is a real
+      // change in behaviour.** `parts.rs` guarantees the five agree only on a
+      // shared seed, and generating drums and then a melody separately used to
+      // share one *because* of this echo. Unpinned, each press now rolls, so
+      // the two are written against different records. The two ways to get a
+      // matching set are `generateAll` — which shares one fresh seed across all
+      // five on purpose — and pinning the seed after the part you want to build
+      // around. Anything cleverer (reuse across *different* parts, roll on the
+      // *same* one) makes the rule depend on what you pressed last, which is
+      // not a rule anybody can hold in their head while making a beat.
       //
       // ⚠ **Only this part's slot is replaced.** The other four keep their
       // existing object references, so their editors do not re-render and the
@@ -1256,10 +1742,50 @@ export const useSession = create<SessionState>((set, get) => ({
         // cleared outright here, and because `send()` uses it to decide whether
         // *any* clip is saved, regenerating one part wrote the project with no
         // clips at all — silently deleting every other part's hand edits.
-        const editedParts = withoutEdit(state.editedParts, part);
+        // ⛔ **The locks are applied here, against the slot this generation is
+        // replacing.** Not against `get()` outside the updater — zustand hands
+        // the current state in, and reading it separately would race a second
+        // Generate that landed between the request and its answer.
+        //
+        // ⚠ **Not during a recall.** `recallVariation` regenerates in order to
+        // *reproduce* a take, and splicing whatever is locked right now into it
+        // returns a hybrid of that take and this one — while the nav goes on
+        // reporting the take the producer asked for. A clip that never existed,
+        // labelled as one that did.
+        const held = recalling
+          ? pattern
+          : withLocks(pattern, state.patterns[part], state.lockedLanes);
+        // ⛔⛔ **A held lane is an edit, and clearing the flag lost it.** This
+        // said `withoutEdit` unconditionally — a fresh generation *is* the
+        // seed's own output again — which stopped being true the moment
+        // `withLocks` began splicing a previous take's lane in. `send()` reads
+        // `edited` to decide whether any clip is written at all, so locking the
+        // hats you drew and pressing Generate saved a project with no clips in
+        // it: reopening regenerated from the seed and the locked lane was gone
+        // with no message. Identity is the test — `withLocks` returns `next`
+        // unchanged when no lock landed — so the flag follows what actually
+        // happened rather than what was asked for.
+        const editedParts =
+          held === pattern
+            ? withoutEdit(state.editedParts, part)
+            : withEdit(state.editedParts, part);
+        // ⛔ **The variation history is appended here, inside the updater, for
+        // the reason the locks are: this is where the generation *lands*.**
+        // Recording it outside would let a second Generate that resolved first
+        // write its entry second, so the log would disagree with the order the
+        // producer pressed things in — which is the one thing a history is for.
+        if (!recalling) {
+          useVariations
+            .getState()
+            .record(entryFor(pattern, { mood: state.mood, pins: state.pins }, Date.now()));
+        }
         return {
-          patterns: { ...state.patterns, [part]: pattern },
+          patterns: { ...state.patterns, [part]: held },
           seed: pattern.seed,
+          // ⚠ Held so the *next* part joins this record rather than starting
+          // its own. Nothing shows it and nothing asks the producer about it —
+          // coherent parts should not need a control to switch on.
+          songSeed: pattern.songSeed,
           generating: false,
           editedParts,
           edited: editedParts.length > 0,
@@ -1271,7 +1797,7 @@ export const useSession = create<SessionState>((set, get) => ({
   },
 
   async generateAll() {
-    const { selectedId, bars, generating, pins, mood } = get();
+    const { selectedId, bars, generating, pins, mood, seedPinned } = get();
     if (!selectedId || generating) return;
 
     set({ generating: true, error: null });
@@ -1280,11 +1806,33 @@ export const useSession = create<SessionState>((set, get) => ({
     // five history entries for one deliberate act, five arms of the audio
     // thread, and four renders of a half-filled session.
     const filled: PatternsByPart = { ...get().patterns };
-    // Empty means "pick one for me" — and once the engine has, every remaining
-    // part must be given the same one. See `generateAll` on the type above for
-    // why that is correctness rather than tidiness.
-    let seed = get().seed;
+    // Starts from what is already edited rather than from empty, so a part this
+    // run never touches — one the style refuses — keeps the hand edits it has.
+    let editedAfter: Part[] = get().editedParts;
+    // ⛔ **One fresh seed for the set, unless the producer pinned one.** Empty
+    // means "pick one for me", and once the engine has, every remaining part
+    // must be given the same one — see `generateAll` on the type above for why
+    // that is correctness rather than tidiness. Starting from the *unpinned*
+    // box instead would hand every press the seed the last run echoed back,
+    // so "Generate all" would rebuild the identical record every time.
+    //
+    // ⚠ Local, and it does not touch `seedPinned`. The shared seed is how these
+    // five agree with each other; it is not a choice the producer made.
+    let seed = seedPinned ? get().seed : '';
+    // ⛔ **The record is carried through the loop too, and it was not.**
+    // `generateAll` was written before TASK-141 and never learned about it: it
+    // neither sent `songSeed` nor wrote it back. Two failures fell out of that,
+    // and "Generate all, then reroll one part" is the commonest workflow there
+    // is. (a) After Generate All the store's record was still `''`, so the next
+    // single Generate started a *new* record and that one part no longer
+    // belonged with the other four. (b) A record left over from an earlier
+    // single Generate survived the run — the engine rolled a fresh one for the
+    // five, the store kept the stale one, and every press after that joined a
+    // record nothing on screen belonged to.
+    let record = get().songSeed;
     const refused: string[] = [];
+    // ⚠ Tracked by identity rather than by counting keys — see the write below.
+    let landed = false;
 
     for (const part of GENERATED_PARTS) {
       try {
@@ -1294,6 +1842,23 @@ export const useSession = create<SessionState>((set, get) => ({
             part,
             bars,
             seed: seed === '' ? null : seed,
+            songSeed: record === '' ? null : record,
+            // `GENERATED_PARTS` puts drums first, so by the time this loop
+            // reaches the bass the take it must mirror is already in `filled`.
+            // ⚠ Today every part of one "Generate all" shares a seed, so this is
+            // the same number the bass is being generated at — it is sent
+            // anyway, because the loop's order is what makes that true and a
+            // silent dependency on it is how the single-Generate path came to
+            // disagree with this one in the first place.
+            // ⚠ Through the same guard the single path uses: the drums in
+            // `filled` may be left over from a previous run under a different
+            // session, in which case their seed no longer names them.
+            drumsSeed: mirrorableDrumsSeed(filled.drums, {
+              bars,
+              songSeed: record,
+              pins,
+              mood,
+            }),
             session: pins,
             mood,
           },
@@ -1309,8 +1874,32 @@ export const useSession = create<SessionState>((set, get) => ({
           return;
         }
 
-        filled[part] = pattern;
+        // ⛔⛔ **The locks, here too.** They were applied in `generate` only,
+        // so locking the kick and pressing Shift+G lost the lock without a
+        // word — a rule installed at one door rather than at the seam. Both
+        // doors now go through `withLocks`, and the e2e asserts the Shift+G
+        // path specifically because that is the one that was wrong.
+        const held = withLocks(pattern, get().patterns[part], get().lockedLanes);
+        filled[part] = held;
+        // ⛔ **And the same identity test `generate` uses.** A part whose lock
+        // landed is no longer reproducible from the seed, so it has to keep
+        // being written into the project; one that generated cleanly stops
+        // being an edit. Tracked here and applied once at the end, because a
+        // `set` per part is five history entries for one deliberate act.
+        editedAfter =
+          held === pattern ? withoutEdit(editedAfter, part) : withEdit(editedAfter, part);
         seed = pattern.seed;
+        record = pattern.songSeed;
+        landed = true;
+        // ⛔ **A take is a take however it was made.** `generateAll` does not
+        // go through `generate`, so until TASK-046's keyboard test noticed, one
+        // press of Generate All produced five takes the variation history had
+        // never heard of — and stepping back afterwards skipped straight past
+        // them to whatever came before. Recorded per part, because the counter
+        // is per part.
+        useVariations
+          .getState()
+          .record(entryFor(pattern, { mood: get().mood, pins: get().pins }, Date.now()));
       } catch (error) {
         // ⛔ **A refused part is not a failed run, and treating it as one was
         // the defect.** A style whose 808 *is* the bassline authors no separate
@@ -1331,7 +1920,14 @@ export const useSession = create<SessionState>((set, get) => ({
     // Nothing came back at all — that is a real failure and keeps the error it
     // reported. Anything else is a partial success, and the parts that
     // generated are worth more than the tidiness of refusing all five.
-    const landed = Object.keys(filled).length > Object.keys(get().patterns).length;
+    //
+    // ⛔ **Identity, not a key count.** `filled` starts as a copy of the
+    // existing slots, so once every generatable part has one the count can
+    // never grow — and the *second* press of Generate All on a style that
+    // refuses a part (Drake, and most of the trap roster, whose 808 is the
+    // bassline) compared 4 against 4, decided nothing had landed, and threw
+    // away four freshly generated clips with an error banner. Which is the
+    // exact symptom the comment below says was fixed, returning on press two.
     if (!landed && refused.length > 0) {
       set({ generating: false, error: refused[0] });
       return;
@@ -1340,11 +1936,13 @@ export const useSession = create<SessionState>((set, get) => ({
     set({
       patterns: filled,
       seed,
+      songSeed: record,
       generating: false,
-      // Every part that landed is the seed's own output again, and the ones
-      // that were refused hold nothing to have edited.
-      editedParts: [],
-      edited: false,
+      // Every part that landed cleanly is the seed's own output again — but a
+      // part whose lock landed is not, and a part that was refused keeps
+      // whatever edit state it already had. `editedAfter` carries both.
+      editedParts: editedAfter,
+      edited: editedAfter.length > 0,
       // ⚠ The refusals are still worth saying — a producer who asked for five
       // parts and got four should be told which one the style does not have,
       // rather than left to notice the empty tab later.
@@ -1484,6 +2082,69 @@ export const useSession = create<SessionState>((set, get) => ({
     set({ playing: false, playhead: 0 });
   },
 
+  async recallVariation(entry) {
+    // ⛔ **The seed is *pinned* on the way in.** `generate` sends `null`
+    // unless the seed is pinned — that is the fix for "Generate returns the same
+    // beat every press" — so recalling without pinning would draw a fresh seed
+    // and land somewhere the producer has never been.
+    //
+    // ⛔⛔ **And so is everything else the take was written against.** This
+    // restored the artist, seed, bars, mood and *pins* — but the pins are what
+    // was asked for, and `bpm`/`keyRoot`/`scale`/`timeSig` on the entry are what
+    // was actually **used**, which is not the same thing and is exactly why the
+    // entry stores both. Unpinned, a take made at 140 came back at whatever the
+    // session had drifted to while `VariationNav` went on displaying 140 off the
+    // entry: the readout and the notes disagreeing about the take the producer
+    // had just asked for. The resolved values are pinned here so the clip that
+    // comes back is the clip the nav is describing — and being pins, the session
+    // chips show every one of them, so the state a recall leaves behind is on
+    // screen rather than hidden.
+    const previous = get().selectedId;
+    set({
+      selectedId: entry.artistId,
+      seed: entry.seed,
+      songSeed: entry.songSeed,
+      seedPinned: true,
+      bars: entry.bars,
+      pins: {
+        ...entry.pins,
+        bpm: entry.bpm,
+        keyRoot: entry.keyRoot,
+        scale: entry.scale,
+        timeSigNum: entry.timeSigNum,
+        timeSigDen: entry.timeSigDen,
+      },
+      mood: entry.mood,
+    });
+
+    // ⛔⛔ **A different artist needs everything a `select` does.** This wrote
+    // `selectedId` with a bare `set`, so `defaults` still held the *previous*
+    // artist's — and `defaults` is what the ARTIST pane's "tends to" line reads
+    // and what every unpinned field falls back on. The roster highlighted one
+    // artist while the panel beside it described another. The other four slots
+    // were left up too, showing that artist's clips under this one's name.
+    //
+    // ⚠ **Not `select()` itself**, which raises the keep-or-adopt prompt when
+    // pins are set — and they always are here, because the line above just set
+    // them. Asking "which artist's session wins?" in the middle of stepping
+    // backwards through your own history is a question with no meaning.
+    if (previous !== entry.artistId) {
+      set({ patterns: {}, editedParts: [], edited: false, defaults: null, error: null });
+      void loadDefaults(entry.artistId, set, get);
+    }
+    // ⚠ **Regenerated rather than restored from stored notes**, which is what
+    // makes an entry tens of bytes: the engine is deterministic, so the same
+    // artist, seed, bars and pins rebuild the take exactly.
+    recalling = true;
+    try {
+      await get().generate(entry.part);
+    } finally {
+      // ⛔ `finally`, so a generation that throws does not leave the flag set
+      // and silently stop logging every take from then on.
+      recalling = false;
+    }
+  },
+
   undo() {
     const snapshot = useHistory.getState().undo();
     if (snapshot !== null) applySnapshot(snapshot, set, get);
@@ -1579,6 +2240,31 @@ if (isPlugin()) {
   });
 }
 
+/**
+ * Show the Stems panel once this session has generated something.
+ *
+ * ⛔⛔ **Mike found this in Ableton, 2026-08-06:** *"the stems panel should be
+ * visible if you have done a generation so that way you can ensure that you can
+ * drag it in no matter what right away."* The panel remembers being collapsed
+ * across reloads, and it holds the only way to get a pattern out of the plugin —
+ * so a producer who collapsed it once had no route to the drag rows and nothing
+ * on screen suggesting they existed.
+ *
+ * ⛔ **Not gated on `isPlugin()`, unlike the save below.** This is a UI rule, and
+ * gating it would make it untestable in exactly the place it is tested. The
+ * browser build has no drag source, but it has the Export buttons in the same
+ * panel and the same reason to show them.
+ *
+ * ⚠ Fires on any write that leaves a pattern in the store rather than on
+ * `generate` alone — restoring a project and drilling into a song clip both
+ * arrive here without going through it. `revealStems` is idempotent, so the
+ * repetition costs nothing and a deliberate collapse afterwards survives.
+ */
+useSession.subscribe((state) => {
+  if (Object.keys(state.patterns).length === 0) return;
+  useUi.getState().revealStems();
+});
+
 useSession.subscribe((state, prev) => {
   if (state.patterns === prev.patterns || !isPlugin()) return;
   // ⛔ **Arm the tab that is showing, not "the pattern that changed".** There
@@ -1609,10 +2295,32 @@ useSession.subscribe((state, prev) => {
  */
 export function armCurrentPattern(): void {
   if (!isPlugin()) return;
-  const pattern = patternForTab(useSession.getState(), useUi.getState().activeTab);
-  if (pattern !== null) {
-    void invoke('arm_pattern', { pattern }).catch(() => {});
-    return;
+  // ⛔⛔ **Every generator that is switched on, not the visible tab's clip
+  // (TASK-127).** Mike, 2026-08-06: *"i want to be able to play the generators
+  // all at once or separately, they should be able to be toggled on and off for
+  // each generator."* The bridge merges these into the one `Pattern` a schedule
+  // can hold; one part on is the ordinary solo case.
+  //
+  // ⚠ **This replaces "arm whatever tab you are looking at", deliberately.**
+  // That rule existed because one clip could be armed at a time, so the visible
+  // one was the only defensible choice. With toggles the producer says which
+  // parts sound, and switching tabs no longer changes what Play does — which is
+  // the point: they can watch the melody while hearing it over the drums.
+  //
+  // ⚠ Song Mode is untouched and falls through to the disarm below:
+  // `TAB_PART.song` is `null`, and `SongTimeline` arms the arrangement itself.
+  if (TAB_PART[useUi.getState().activeTab] !== null) {
+    const on = armedClips(
+      useSession.getState().patterns,
+      useUi.getState().partsOff,
+      useUi.getState().activeTab,
+    );
+    if (on.length > 0) {
+      void invoke('arm_pattern', { patterns: on }).catch(() => {});
+      return;
+    }
+    // Everything generated is switched off, or nothing is generated. Fall
+    // through: the transport must have nothing rather than the last thing.
   }
   // ⛔ **A null pattern must *disarm*, not return.** This is the common case,
   // not an edge one: a session that has only ever used Song Mode has no clip at

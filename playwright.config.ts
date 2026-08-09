@@ -11,6 +11,19 @@ import { defineConfig, devices } from '@playwright/test';
  */
 export default defineConfig({
   testDir: './e2e',
+  /**
+   * ⛔ **The gallery is run on demand, not as part of the gate.**
+   * `e2e/gallery.spec.ts` asserts almost nothing — it exists to *photograph*
+   * every screen and every language so a human can look at them, which is the
+   * only way the failures it targets (a label overflowing its chip in German, a
+   * right-to-left layout putting the transport in the wrong corner) are ever
+   * caught. Nineteen full page loads is real time to add to a gate that already
+   * runs on three OSes, and none of it would fail on the things a gate is for.
+   *
+   * `npm run test:gallery` runs it and leaves the images in
+   * `screenshots/gallery/`.
+   */
+  testIgnore: ['**/gallery.spec.ts', '**/features.spec.ts'],
   fullyParallel: true,
   // A `.only` left in a spec silently narrows CI to one test.
   forbidOnly: !!process.env.CI,

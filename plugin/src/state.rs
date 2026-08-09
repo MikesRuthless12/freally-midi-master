@@ -49,6 +49,21 @@ pub struct PluginSession {
     /// The seed exactly as typed. A string because a `u64` does not survive a
     /// JSON number — the same reason `Pattern.seed` is one.
     pub seed: String,
+    /// Whether [`Self::seed`] is the producer's choice or the engine's echo.
+    ///
+    /// ⛔ **`Option<bool>`, and the third state is the point.** `None` means the
+    /// project was written before the seed could be *unpinned* — and back then
+    /// a stored seed was re-sent on every Generate, so those projects must
+    /// reopen holding theirs or they stop reproducing the beat they were saved
+    /// with (US-004). A plain `bool` with `#[serde(default)]` would give
+    /// `false` and quietly reroll every one of them; the same trap
+    /// [`auto_sync_default`] exists for, one field over.
+    ///
+    /// ⚠ The frontend is what resolves `None`, in `put()` — it is the side that
+    /// also knows whether the seed is empty, and two answers to one question is
+    /// the drift this file's header warns about.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub seed_pinned: Option<bool>,
     pub bars: Option<u16>,
     /// What the user pinned. Absent fields mean "the artist chooses", which is
     /// the distinction `SessionOverrides` exists to keep.
@@ -91,6 +106,62 @@ pub struct PluginSession {
     /// Lanes whose *audio* is muted. Their notes still reach the host.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub muted_lanes: Vec<Lane>,
+    /// Lanes soloed in the preview (TASK-043). Empty means "no solo".
+    ///
+    /// ⛔ **Kept separate from [`Self::muted_lanes`] rather than folded into
+    /// it**, and the reason is what a producer expects when they un-solo. Solo
+    /// is *"everything except these, for now"* — collapsing it into the mute set
+    /// would make the mutes they had chosen before soloing unrecoverable, so
+    /// clicking S and clicking it again would silently rewrite their routing.
+    /// The audio thread combines the two into one mask
+    /// ([`crate::shared::Shared::adopt_session`]); the store keeps them apart.
+    ///
+    /// ⚠ Persisted like the mutes, because reopening a project should give back
+    /// the state it was left in, and a solo left on with no record of it is a
+    /// lane that has gone silent for no visible reason.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub soloed_lanes: Vec<Lane>,
+    /// Lanes held across a reroll (TASK-044). Empty means nothing is locked.
+    ///
+    /// ⚠ **Stored but never read by the plugin**, and that is correct rather
+    /// than an oversight: a lock decides what the *page* keeps when the engine
+    /// answers, so no audio-thread state follows from it. It is here so the
+    /// project reopens with the producer's locks still on — losing them would
+    /// silently make the next Generate overwrite a part they had held.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub locked_lanes: Vec<Lane>,
+    /// The producer's own one-shots, as **paths** to the files (TASK-131B).
+    ///
+    /// ⛔ **A path, not the audio, and that is a deliberate trade rather than a
+    /// shortcut.** Embedding the samples would make a project file carrying five
+    /// one-shots tens of megabytes, inside a `#[persist]` blob the host has to
+    /// serialize on every save — and it would quietly copy somebody's sample
+    /// pack into a file they may hand to someone else. Every DAW references
+    /// samples by path for both reasons, and every DAW therefore has a
+    /// "missing sample" state; so does this. [`crate::shared::Shared::restore_one_shots`]
+    /// logs and skips a path that no longer resolves, and the lane falls back to
+    /// the shipped voice rather than going silent.
+    ///
+    /// ⚠ **This is the exception to the module header's rule with no engine
+    /// behind it.** A clip can be regenerated from its seed and a song from its
+    /// artist; a sample on somebody's disk cannot be derived from anything, so
+    /// there is no version of this that stores less.
+    ///
+    /// `BTreeMap` for the reason [`Self::patterns`] is one: a stable serialized
+    /// order, so a project file does not reorder its own keys between saves.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub one_shots: BTreeMap<Lane, String>,
+    /// The producer's saved sample-library folders (TASK-132).
+    ///
+    /// ⚠ **The same exception `one_shots` above is**: a folder on somebody's
+    /// disk cannot be derived from a seed, so there is no version of this that
+    /// stores less. Mike, 2026-08-07, choosing saved folders over a single
+    /// picked one — a library is set up once, not once per project.
+    ///
+    /// ⚠ A `Vec` rather than a set, because the **order is the producer's**:
+    /// they added them in the order they think about them.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub sample_folders: Vec<String>,
     /// The clips as the producer edited them, once the seed stops describing
     /// them — one per part (TASK-119).
     ///
@@ -216,6 +287,9 @@ impl Default for PluginSession {
         Self {
             selected_id: None,
             seed: String::new(),
+            // Nothing stored says nothing was chosen. See the field's own note
+            // for why this is `None` rather than `Some(false)`.
+            seed_pinned: None,
             bars: None,
             pins: SessionOverrides::default(),
             window_size: None,
@@ -225,6 +299,10 @@ impl Default for PluginSession {
             mood: None,
             audio_enabled: true,
             muted_lanes: Vec::new(),
+            soloed_lanes: Vec::new(),
+            locked_lanes: Vec::new(),
+            one_shots: BTreeMap::new(),
+            sample_folders: Vec::new(),
             patterns: BTreeMap::new(),
             pattern: None,
             edited: false,
@@ -301,6 +379,7 @@ mod tests {
             part: Part::Melody,
             artist_id: "trap".into(),
             seed: 7,
+            song_seed: 7,
             bars: 4,
             bpm: 140.0,
             time_sig_num: 4,
@@ -335,6 +414,7 @@ mod tests {
         let session = PluginSession {
             selected_id: Some("trap".into()),
             seed: "2024".into(),
+            seed_pinned: Some(true),
             bars: Some(8),
             pins: SessionOverrides {
                 bpm: Some(150.0),
@@ -346,6 +426,11 @@ mod tests {
             mood: Some("dark".into()),
             audio_enabled: false,
             muted_lanes: vec![Lane::Snare],
+            soloed_lanes: vec![Lane::Kick],
+            locked_lanes: vec![Lane::ClosedHat],
+            one_shots: BTreeMap::from([(Lane::Melody, "C:/samples/lead.wav".to_owned())]),
+            // The sample library rides with the project too (TASK-132).
+            sample_folders: vec!["C:/samples".to_owned()],
             patterns: BTreeMap::new(),
             pattern: None,
             edited: false,
@@ -479,6 +564,7 @@ mod tests {
             part: engine::pattern::Part::Drums,
             artist_id: "trap".into(),
             seed: 9,
+            song_seed: 9,
             bars: 4,
             bpm: 140.0,
             time_sig_num: 4,
@@ -517,6 +603,7 @@ mod tests {
                     engine::pattern::Part::Drums,
                     PatternRef {
                         pattern_id: "trap-hook-drums".into(),
+                        bars: None,
                     },
                 )]),
                 drop_out_beats: 0,
@@ -560,6 +647,50 @@ mod tests {
     }
 
     #[test]
+    fn assigned_one_shots_survive_the_round_trip_and_an_unassigned_project_stores_none() {
+        // ⛔ TASK-131B's own gate. A sample on somebody's disk is the one thing
+        // in this struct that cannot be derived from anything — there is no
+        // seed that regenerates it — so losing it on a reopen loses the kit the
+        // producer built, with nothing to explain where it went.
+        let assigned = PluginSession {
+            selected_id: Some("trap".into()),
+            one_shots: BTreeMap::from([
+                (Lane::Melody, "C:/samples/leads/glass.wav".to_owned()),
+                (Lane::Kick, "/home/mike/kicks/808 kick.aiff".to_owned()),
+            ]),
+            ..PluginSession::default()
+        };
+
+        let json = serde_json::to_string(&assigned).unwrap();
+        let back: PluginSession = serde_json::from_str(&json).unwrap();
+        assert_eq!(back, assigned, "every path, keyed by its lane");
+
+        // Serialized by lane *name*, so reordering the enum cannot remap a
+        // saved project onto a different pad — the same property
+        // `muted_lanes` relies on.
+        assert!(json.contains("\"melody\""), "{json}");
+
+        // And a project nobody assigned anything in carries no key at all,
+        // which is what keeps an ordinary session a few hundred bytes.
+        let plain = serde_json::to_string(&PluginSession::default()).unwrap();
+        assert!(
+            !plain.contains("oneShots"),
+            "an unassigned session must store nothing: {plain}"
+        );
+    }
+
+    #[test]
+    fn a_project_saved_before_one_shots_existed_still_opens() {
+        // The `#[serde(default)]` rule applied to the new field, which is the
+        // rule this struct's header calls load-bearing.
+        let old = r#"{"selectedId":"trap","seed":"7","edited":true}"#;
+        let session: PluginSession = serde_json::from_str(old).unwrap();
+
+        assert_eq!(session.selected_id.as_deref(), Some("trap"));
+        assert!(session.one_shots.is_empty());
+    }
+
+    #[test]
     fn a_project_saved_before_song_mode_existed_still_opens() {
         // The `#[serde(default)]` rule applied to the two new fields. A project
         // written before this shipped must reopen on its artist and seed rather
@@ -579,6 +710,9 @@ mod tests {
         // and restores as empty, with nothing reporting it.
         let json = serde_json::to_value(PluginSession {
             selected_id: Some("uk-drill".into()),
+            // ⚠ Set, because the field is skipped when `None` — a default
+            // session would prove nothing about its name.
+            seed_pinned: Some(true),
             ..PluginSession::default()
         })
         .unwrap();
@@ -586,6 +720,10 @@ mod tests {
         assert_eq!(json["selectedId"], "uk-drill");
         assert!(json.get("seed").is_some());
         assert!(json.get("pins").is_some());
+        // ⛔ `seedPinned`, not `seed_pinned`. The frontend reads this key by
+        // name in `put()`, and a mismatch presents as a seed that silently
+        // stops being held — which is the defect it was added to close.
+        assert_eq!(json["seedPinned"], true);
     }
 
     #[test]
@@ -646,6 +784,43 @@ mod tests {
         let newer = r#"{"selectedId":"trap","seed":"7","somethingFromTheFuture":42}"#;
         let session: PluginSession = serde_json::from_str(newer).unwrap();
         assert_eq!(session.selected_id.as_deref(), Some("trap"));
+    }
+
+    /// A project saved before the seed could be *unpinned* must not start
+    /// rolling one (2026-08-06).
+    ///
+    /// ⛔ **The `Option` is the whole point, and a `bool` here would be silently
+    /// wrong.** `#[serde(default)]` on a `bool` gives `false`, which the
+    /// frontend reads as "the producer never chose this seed" and answers by
+    /// asking the engine for a new one — so every project anybody had already
+    /// saved would reopen generating a different beat. `None` is the third
+    /// state that lets `put()` tell "unpinned" from "written before the
+    /// question existed", the same trap `auto_sync_default` exists for.
+    #[test]
+    fn a_project_saved_before_the_seed_pin_existed_does_not_claim_to_be_unpinned() {
+        let old = r#"{"selectedId":"trap","seed":"7"}"#;
+        let session: PluginSession = serde_json::from_str(old).unwrap();
+
+        assert_eq!(session.seed, "7");
+        assert_eq!(
+            session.seed_pinned, None,
+            "an absent pin was read as a deliberate `false`, which rerolls every saved project"
+        );
+    }
+
+    #[test]
+    fn an_unpinned_seed_survives_the_round_trip_as_itself() {
+        // The other direction: a session that really did leave the seed to the
+        // engine must reopen that way, not be re-pinned by the fallback above.
+        let session = PluginSession {
+            seed: "7".into(),
+            seed_pinned: Some(false),
+            ..PluginSession::default()
+        };
+        let json = serde_json::to_string(&session).unwrap();
+        let back: PluginSession = serde_json::from_str(&json).unwrap();
+
+        assert_eq!(back.seed_pinned, Some(false));
     }
 
     #[test]

@@ -3,68 +3,372 @@
   "id": "liquid-dnb",
   "type": "genre",
   "name": "Liquid Drum & Bass",
-  "aliases": ["liquid dnb", "liquid funk", "dnb"],
+  "aliases": [
+    "liquid dnb",
+    "liquid funk",
+    "dnb"
+  ],
   "tier": "standard",
-  "extends": ["_defaults"],
+  "extends": [
+    "_defaults"
+  ],
   "era": "2000s–present",
-  "genres": ["dnb", "electronic"],
+  "genres": [
+    "dnb",
+    "electronic"
+  ],
   "confidence": "high",
-  "sources": ["style-research ch.1 §10 Drum & Bass (liquid / jump-up / neuro / 2-step pop)"],
+  "sources": [
+    "style-research ch.1 §10 Drum & Bass (liquid / jump-up / neuro / 2-step pop)"
+  ],
   "arrangement": {
     "structures": [
-      { "sections": ["intro", "verse", "hook", "bridge", "hook", "outro"], "weight": 3 },
-      { "sections": ["intro", "hook", "verse", "hook", "outro"], "weight": 2 }
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "hook",
+          "bridge",
+          "hook",
+          "outro"
+        ],
+        "weight": 3
+      },
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 2
+      }
     ],
-    "sectionBars": { "intro": 16, "verse": 16, "hook": 16, "bridge": 8, "outro": 16 },
-    "transitions": { "fillBeforeSection": true, "dropOutBeats": { "prob": 0.8, "beats": 2 }, "switchUpProb": 0.15 }
+    "sectionBars": {
+      "intro": 16,
+      "verse": 16,
+      "hook": 16,
+      "bridge": 8,
+      "outro": 16
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.8,
+        "beats": 2
+      },
+      "switchUpProb": 0.15
+    }
   },
   "notes": "The two-step core at 174: snares locked to 2 and 4, kick on 1, and the second kick on the and-of-3 — the classic step, as opposed to neuro's 2a. Ghost snares sit six to twelve dB under the mains around 2a and 3e, and the closed hats fill every 8th gap.",
-
   "session": {
-    "bpm": { "min": 165, "max": 178, "mode": 174 },
+    "bpm": {
+      "min": 165,
+      "max": 178,
+      "mode": 174
+    },
     "halfTime": false,
-    "keys": { "values": ["Am", "Em", "Dm", "F#m"], "weights": [3, 3, 2, 2] },
-    "scales": { "values": ["natural_minor", "dorian", "minor_pentatonic"], "weights": [4, 3, 2] },
-    "swing": { "grid": "16th", "amount": 0.53 },
+    "keys": {
+      "values": [
+        "Am",
+        "Em",
+        "Dm",
+        "F#m"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.53
+    },
     "humanize": {
       "quantizeStrength": 0.9,
       "velocityVar": 0.14,
-      "timingJitterMs": { "kick": 2, "snare": 2, "closedHat": 4, "openHat": 4, "perc": 4 }
+      "timingJitterMs": {
+        "kick": 2,
+        "snare": 2,
+        "closedHat": 4,
+        "openHat": 4,
+        "perc": 4
+      }
     }
   },
-
   "drums": {
     "kick": {
-      "densityPerBar": [2, 3],
-      "anchors": ["1"],
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
       "secondaryAnchor": "3&",
       "syncopation": 0.35,
       "tresilloBias": 0.1,
-      "lockTo808": 0.0
+      "lockTo808": 0
     },
     "snare": {
       "placement": "backbeat_24",
       "lockedBackbeat": true,
-      "ghost": { "prob": 0.5, "pos": ["2a", "3e"], "vel": [0.25, 0.45] },
+      "ghost": {
+        "prob": 0.5,
+        "pos": [
+          "2a",
+          "3e"
+        ],
+        "vel": [
+          0.25,
+          0.45
+        ]
+      },
       "offGridMs": 0
     },
     "hihat": {
       "base": "8th",
       "continuous": true,
       "fillDensity": 0.75,
-      "velocities": { "main": [0.7, 0.9], "ghost": [0.35, 0.55] },
+      "velocities": {
+        "main": [
+          0.7,
+          0.9
+        ],
+        "ghost": [
+          0.35,
+          0.55
+        ]
+      },
       "rolls": {
-        "vocab": { "values": ["16", "32"], "weights": [3, 1] },
-        "positions": ["phrase_end", "bar_4"],
+        "vocab": {
+          "values": [
+            "16",
+            "32"
+          ],
+          "weights": [
+            3,
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
         "freqPerBar": 0.3,
         "velocityRamp": true
       },
-      "openHat": { "prob": 0.35, "pos": ["1&", "3&"], "perBar": [1, 2] },
-      "pitchBendProb": 0.0
+      "openHat": {
+        "prob": 0.35,
+        "pos": [
+          "1&",
+          "3&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "pitchBendProb": 0
     },
-    "percs": { "lanes": ["perc", "snap"], "densityPerBar": [1, 3] },
-    "fills": { "smallEveryBars": 4, "bigEveryBars": 8, "snareRollLadder": false },
-    "build": { "riserBars": 8, "snareStreamSubdivision": "16", "velocityRampRange": [16, 127] },
-    "bass808": null
+    "percs": {
+      "lanes": [
+        "perc",
+        "snap",
+        "ride",
+        "shaker"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "gainOffsetDb": -7
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8,
+      "snareRollLadder": false
+    },
+    "build": {
+      "riserBars": 8,
+      "snareStreamSubdivision": "16",
+      "velocityRampRange": [
+        16,
+        127
+      ]
+    },
+    "bass808": null,
+    "snareRoll": {
+      "subdivisions": [
+        "32nd",
+        "16th",
+        "16t"
+      ],
+      "velocityRampRange": [
+        44,
+        112
+      ],
+      "rampJitter": 14,
+      "descendProb": 0.3,
+      "gapProb": 0.32,
+      "grouping": [
+        "even",
+        "strong_weak_weak_weak"
+      ],
+      "pitchWalk": 5
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII",
+          "III"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "VI",
+          "VII",
+          "i"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "III",
+          "VII"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "ii",
+          "v",
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.28,
+      "seventh": 0.46,
+      "ninth": 0.26
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        46,
+        78
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      68,
+      92
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "intervals": {
+      "step": 0.72,
+      "third": 0.22,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.2,
+      "descend": 0.35,
+      "arch": 0.45
+    },
+    "chordToneBias": 0.78,
+    "octaveJumpProb": 0.08,
+    "phraseBars": {
+      "values": [
+        4
+      ],
+      "weights": [
+        1
+      ]
+    }
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.45,
+    "styles": {
+      "values": [
+        "arp"
+      ],
+      "weights": [
+        1
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.85,
+    "rhythm": "mirror_kick",
+    "register": [
+      27,
+      39
+    ],
+    "glideProb": 0.35,
+    "passingTones": [
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.2
+  },
+  "kit": {
+    "preview": "dnb-default"
   }
 }

@@ -27,6 +27,57 @@ crate-type = ["cdylib", "lib"]
 [target.'cfg(windows)'.build-dependencies]
 winresource = "=0.1.31"
 
+# The Windows half of the drag-out (TASK-063C / FMM-S03). See `plugin/src/drag`.
+#
+# ⛔ **Not a new crate in the build.** `wry` already pulls `windows` 0.61
+# through `webview2-com`, so this unifies with the copy that is here rather
+# than adding one — the reason `windows_pump` in the vendored adapter declared
+# its two `user32` functions by hand no longer applies once the crate is in the
+# graph regardless.
+#
+# ⚠ **`windows::core::implement` is why this is the `windows` crate and not two
+# more `extern "system"` declarations.** `IDropSource` has to be a real COM
+# object, and hand-rolled vtables with hand-rolled reference counting run
+# **inside Ableton's process** — a refcount slip there is a use-after-free in
+# somebody else's DAW. The generated implementation is the safe half of a job
+# whose unsafe half is unavoidable. (It needs no feature flag: the macro comes
+# through `windows-core`, which is always present.)
+#
+# MIT OR Apache-2.0, already on `deny.toml`'s allowlist, and it links no HTTP
+# client, so `scripts/check-denylist.mjs` is unaffected.
+[target.'cfg(windows)'.dependencies.windows]
+version = "0.61"
+features = [
+    "Win32_Foundation",
+    # The drag image is a 32-bit DIB section the shell's drag helper blends.
+    "Win32_Graphics_Gdi",
+    "Win32_System_Com",
+    # ⛔ **`STGMEDIUM` and `STGMEDIUM_0` are gated on this**, and `drag/windows.rs`
+    # constructs both by hand. Neither `Win32_System_Com` nor `Win32_System_Ole`
+    # implies it. The build worked without it only because `wry` happens to
+    # enable it and Cargo unifies features — so a `wry` bump that dropped it, or
+    # any configuration without `wry` in the graph, would have broken the one
+    # platform this feature ships on, from an unrelated dependency change.
+    "Win32_System_Com_StructuredStorage",
+    "Win32_System_Memory",
+    "Win32_System_Ole",
+    "Win32_System_SystemServices",
+    "Win32_UI_Input_KeyboardAndMouse",
+    "Win32_UI_Shell",
+    "Win32_UI_Shell_Common",
+]
+
+# ⚠ **Named, because `#[implement]` expands to absolute `::windows_core::`
+# paths** — the macro cannot be used without the crate being in scope under
+# that exact name, and a `use windows::core as windows_core` alias does not
+# satisfy an absolute path. It resolves to the same 0.61.2 `windows` 0.61.3
+# already depends on, so this adds a name to the manifest and nothing to the
+# build. ⛔ Keep the two in step: a `windows` bump that moves `windows-core`
+# with it will produce a second copy and the macro will fail on a trait bound
+# from "a different version of the same crate", which reads as nonsense.
+[target.'cfg(windows)'.dependencies.windows-core]
+version = "0.61"
+
 [dependencies]
 engine = { path = "../engine" }
 serde = { version = "1", features = ["derive"] }
@@ -66,6 +117,41 @@ clap-wrapper = { version = "0.3.1", features = ["vst3"] }
 # passes with an empty allowlist — the gate's whole point is that no HTTP client
 # is linked, and this adds none.
 rfd = { version = "0.17.2", default-features = false, features = ["xdg-portal"] }
+
+# Decoding the one-shots a producer assigns to a part (TASK-131B).
+#
+# ⛔ **Not for the shipped kit.** `audio::kit::decode_wav` still reads that, and
+# deliberately: those bytes are `kitgen`'s own output in a format this repo
+# controls exactly, and its decoder is the gate that catches a kit shipping
+# broken. This is for the other case — a file off somebody's disk, in whatever
+# their sample pack happened to use.
+#
+# `default-features = false` and every format named explicitly, because the
+# default set pulls video and subtitle codecs a sampler has no use for. What is
+# here is what a one-shot actually arrives as: WAV and AIFF uncompressed, FLAC
+# and ALAC lossless, MP3, Vorbis and AAC lossy, in their MP4/Ogg containers.
+# `id3v2` is not a format — it is what lets an MP3 carrying cover art be read
+# at all rather than failing on its own tag.
+#
+# ⚠ Pure Rust with no `unsafe`-heavy C decoder behind it, which matters more
+# than usual here: this parses **untrusted files** inside somebody else's DAW
+# process, where a memory-safety bug in a decoder is a crash in Ableton.
+# MPL-2.0, which `deny.toml` already allows and already explains; it links no
+# HTTP client, so `scripts/check-denylist.mjs` is unaffected.
+symphonia = { version = "0.6.0", default-features = false, features = [
+    "wav",
+    "pcm",
+    "adpcm",
+    "aiff",
+    "flac",
+    "mp3",
+    "id3v2",
+    "isomp4",
+    "aac",
+    "alac",
+    "ogg",
+    "vorbis",
+] }
 
 # Git rather than crates.io because that is the only place nih-plug is
 # published. Pinned to a revision for the same reason `rust-toolchain.toml`
@@ -110,3 +196,33 @@ features = ["standalone"]
 # happen for it to go away.
 [dependencies.nih_plug_webview]
 path = "vendor/nih-plug-webview"
+
+# The Linux half of the drag-out (TASK-063C / FMM-S03). See `plugin/src/drag/linux.rs`.
+#
+# ⛔ **Must stay the same minor as the vendored adapter's `gtk`, which is 0.18,
+# which is in turn wry's.** Two gtk crates in one build are two sets of
+# `IS_MAIN_THREAD` thread-locals — so the `gtk::is_initialized()` this asks
+# would not be the initialisation the adapter's GTK thread performed, and every
+# call would fail an assert that reads as though GTK had never started.
+#
+# ⚠ **Not a new crate in the build.** wry already pulls gtk 0.18 on Linux, so
+# this unifies with the copy that is already here rather than adding one.
+[target.'cfg(target_os = "linux")'.dependencies]
+gtk = "0.18"
+
+# The macOS half of the drag-out (TASK-063C / FMM-S03). See `plugin/src/drag/macos.rs`.
+#
+# ⚠ **Not new crates in the build.** wry already pulls all three on macOS, so
+# these unify with the copies that are here rather than adding any — the same
+# reasoning the `windows` and `gtk` blocks above give. Versions match
+# `Cargo.lock`'s existing entries exactly for that reason.
+#
+# ⛔ `objc2`'s `define_class!` is why this is the crate and not a pile of
+# `msg_send!`: `NSDraggingSource` is a real protocol AppKit calls back into, so
+# there has to be a real Objective-C class to receive `draggingSession:
+# endedAtPoint:operation:` — which is the callback that says whether anything
+# took the files.
+[target.'cfg(target_os = "macos")'.dependencies]
+objc2 = "0.6"
+objc2-app-kit = "0.3"
+objc2-foundation = "0.3"

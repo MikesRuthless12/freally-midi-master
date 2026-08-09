@@ -45,6 +45,7 @@ use crate::dataset::StyleModel;
 use crate::generators::bass;
 use crate::generators::chords::Chords;
 use crate::generators::read;
+use crate::novelty;
 use crate::parts;
 use crate::pattern::{
     Lane, LaneTrack, Part, Pattern, PatternRef, Section, SectionKind, Song, PART_ORDER, PPQ,
@@ -322,7 +323,15 @@ pub fn generate_with(
                     pattern_for(model, ctx, pattern_seed, part, &id, lanes.clone()),
                 );
             }
-            refs.insert(part, PatternRef { pattern_id: id });
+            refs.insert(
+                part,
+                PatternRef {
+                    pattern_id: id,
+                    // A fresh arrangement plays the whole clip; TASK-142's resize
+                    // is a producer edit, so it is absent rather than defaulted.
+                    bars: None,
+                },
+            );
         }
 
         sections.push(Section {
@@ -516,7 +525,22 @@ pub fn reroll_section(
             id.clone(),
             pattern_for(model, ctx, section_seed, *part, &id, lanes.clone()),
         );
-        refs.insert(*part, PatternRef { pattern_id: id });
+        // ⛔ **The producer's clip resize survives a re-roll** (TASK-142).
+        // `refs` starts as a clone of what the section already had, so the
+        // length this row loops on is sitting right here — and writing
+        // `bars: None` threw it away: resize a verse's drums to two bars, press
+        // `R`, and the clip sprang back to the pattern's full length with
+        // nothing saying why. A re-roll asks for different *notes*; it is not a
+        // request to undo the arrangement around them, which is the same reason
+        // the locks, the loop brace and the audition are carried across it.
+        let bars = refs.get(part).and_then(|existing| existing.bars);
+        refs.insert(
+            *part,
+            PatternRef {
+                pattern_id: id,
+                bars,
+            },
+        );
     }
     next.sections[index].patterns = refs;
     prune_patterns(&mut next);
@@ -896,8 +920,28 @@ fn render_section(
         None if needs_kit => drums::generate(model, ctx, seed),
         None => Vec::new(),
     };
+    // ⛔⛔ **Screened, because Song Mode was the one path that was not.**
+    // TASK-039 put the novelty guard in `parts::render`, which is what the
+    // Melody tab goes through — and Song Mode calls these generators directly,
+    // so every melody and countermelody in every section of every arrangement
+    // shipped unscreened. The changelog for that task says the screen runs on
+    // "every melody and countermelody… before you ever hear it", and Song Mode
+    // is the headline way a producer gets either.
+    //
+    // ⚠ **Only the take varies on a retry, so nothing else in the section
+    // moves.** `harmony` and `kit` are already built and handed in, so a
+    // redrawn melody is written against the same record — and the counter is
+    // written against whichever lead survived, because the lead is resolved
+    // first.
     let lead = match (needs_lead, &harmony) {
-        (true, Some(harmony)) => Some(melody::generate(model, ctx, seed, harmony, &kit)),
+        (true, Some(harmony)) => {
+            let (lanes, _, report) =
+                novelty::screen(novelty::bundled(), Part::Melody, seed, |take| {
+                    vec![melody::generate(model, ctx, take, harmony, &kit)]
+                });
+            novelty::log(Part::Melody, &report);
+            lanes.into_iter().next()
+        }
         _ => None,
     };
 
@@ -912,7 +956,13 @@ fn render_section(
             Part::Melody => lead.clone().map(|l| vec![l]).unwrap_or_default(),
             Part::Counter => match (&harmony, &lead) {
                 (Some(harmony), Some(lead)) => {
-                    vec![counter::generate(model, ctx, seed, harmony, lead)]
+                    // Screened for the same reason the lead above is.
+                    let (lanes, _, report) =
+                        novelty::screen(novelty::bundled(), Part::Counter, seed, |take| {
+                            vec![counter::generate(model, ctx, take, harmony, lead)]
+                        });
+                    novelty::log(Part::Counter, &report);
+                    lanes
                 }
                 _ => Vec::new(),
             },
@@ -923,7 +973,7 @@ fn render_section(
         };
 
         if request.only_low_end {
-            lanes.retain(|lane| lane.lane == Lane::Bass808);
+            lanes.retain(|lane| lane.lane == Lane::Sub);
         }
 
         // ⛔ Humanized here, once per part, rather than inside the shared renders
@@ -981,6 +1031,7 @@ fn pattern_for(
         part,
         artist_id: model.id.clone(),
         seed,
+        song_seed: seed,
         bars: ctx.bars,
         bpm: ctx.bpm,
         time_sig_num: ctx.time_sig_num,

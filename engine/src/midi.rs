@@ -36,13 +36,53 @@ pub fn gm_drum_note(lane: Lane) -> u8 {
         Lane::ClosedHat => 42, // Closed Hi-Hat
         Lane::OpenHat => 46,   // Open Hi-Hat
         Lane::Rim => 37,       // Side Stick
+        // Electric Snare, not a second Acoustic Snare: the off-snare is a
+        // separate voice on purpose, and sharing 38 with the main snare would
+        // collapse it back into the lane it was split out of.
+        Lane::OffSnare => 40,
         // Claves, not a second Hand Clap: GM has no finger snap, and 39 is
         // already the clap. A sharp, dry transient is the closest voice, and
         // being audibly separate from the clap is the point.
         Lane::Snap => 75, // Claves
         Lane::Perc => 47, // Low-Mid Tom
+        // ⚠ 45 rather than 47: `Perc` already holds Low-Mid Tom, and a tom lane
+        // that voices identically to the perc lane is not a second lane.
+        Lane::Tom => 45,        // Low Tom
+        Lane::Ride => 51,       // Ride Cymbal 1
+        Lane::Crash => 49,      // Crash Cymbal 1
+        Lane::Shaker => 82,     // Shaker
+        Lane::Tambourine => 54, // Tambourine
+        Lane::Cowbell => 56,    // Cowbell
+        Lane::Woodblock => 76,  // Hi Wood Block
+        // ── The lanes TASK-043A added ────────────────────────────────────
+        //
+        // ⛔ **Every one is a *distinct* GM note, and that is the rule this
+        // table is checked against.** Two lanes sharing a note export to the
+        // same drum, so the second lane is a lane the producer can see, edit
+        // and drag out — and cannot hear apart from the first.
+        Lane::SubKick => 35,    // Acoustic Bass Drum, the second kick
+        Lane::GhostSnare => 34, // ⚠ GM has no ghost snare; 34 is unassigned in
+        // the standard kit, which is better than sharing 38 with the snare it
+        // answers — see the rule above.
+        Lane::PedalHat => 44,  // Pedal Hi-Hat
+        Lane::RideBell => 53,  // Ride Bell
+        Lane::TomHigh => 50,   // High Tom
+        Lane::TomLow => 41,    // Low Floor Tom
+        Lane::Perc2 => 43,     // High Floor Tom — a second generic body
+        Lane::Clave => 76 + 1, // Low Wood Block (77); `Snap` already holds 75
+        Lane::Conga => 63,     // Open Hi Conga
+        Lane::Bongo => 60,     // Hi Bongo
+        Lane::Timbale => 65,   // High Timbale
+        Lane::Triangle => 81,  // Open Triangle
+        // ⚠ **The FX lanes get notes GM leaves to the kit's own devices.**
+        // 27–29 are unassigned in the GM percussion map and are where every
+        // modern kit puts its record-scratch and effect slots, so exporting
+        // them cannot land on a real drum.
+        Lane::Riser => 27,
+        Lane::Impact => 28,
+        Lane::Reverse => 29,
         // Pitched lanes carry their own pitch; this is never consulted.
-        Lane::Bass808 | Lane::Melody | Lane::Counter | Lane::Bass | Lane::Chords => 0,
+        Lane::Sub | Lane::SubLow | Lane::Melody | Lane::Counter | Lane::Bass | Lane::Chords => 0,
     }
 }
 
@@ -50,7 +90,7 @@ pub fn gm_drum_note(lane: Lane) -> u8 {
 fn is_pitched(lane: Lane) -> bool {
     matches!(
         lane,
-        Lane::Bass808 | Lane::Melody | Lane::Counter | Lane::Bass | Lane::Chords
+        Lane::Sub | Lane::SubLow | Lane::Melody | Lane::Counter | Lane::Bass | Lane::Chords
     )
 }
 
@@ -73,17 +113,29 @@ const DRUM_CHANNEL: u8 = 9;
 /// pitched: on channel 10 its notes would be read as drum voices and a sliding
 /// 808 line would come out as a rattle of unrelated percussion.
 fn pitched_channel(part: Part, lane: Lane) -> u8 {
-    // The 808 is authored inside the drums part but is a bass instrument, so it
-    // is keyed off the lane rather than the part it travels in.
-    if lane == Lane::Bass808 {
-        return 1;
+    // The 808s are authored inside the drums part but are bass instruments, so
+    // they are keyed off the lane rather than the part they travel in.
+    //
+    // ⛔ **`SubLow` gets 5, not 1.** It was added to `is_pitched` and not here,
+    // so it fell through to the drums arm and landed on channel 1 — the same
+    // channel as `Sub`. Two pitched basses on one channel is precisely the
+    // collision the paragraph above describes: a host that splits by channel
+    // merges the 808 and its sub layer into one instrument, their note-offs cut
+    // each other on shared keys, and the producer cannot route them apart. It
+    // is also the rule the rest of TASK-043A followed — every new lane took a
+    // *distinct* GM note so that no two could arrive as one.
+    match lane {
+        Lane::Sub => return 1,
+        Lane::SubLow => return 5,
+        _ => {}
     }
     match part {
         Part::Melody => 0,
         Part::Bass => 2,
         Part::Chords => 3,
         Part::Counter => 4,
-        // Only `Bass808` is pitched inside the drums part, and it returned above.
+        // The two pitched lanes inside the drums part returned above; anything
+        // else reaching here is unpitched and never asks for this function.
         Part::Drums => 1,
     }
 }
@@ -230,7 +282,7 @@ fn events_for(pattern: &Pattern, layout: Layout) -> Vec<Event> {
             // ⚠ The 808 keeps its own channel even alone, because it travels
             // inside the *drums* pattern beside unpitched lanes — on channel 10
             // its slides would be read as unrelated drum voices.
-            (true, Layout::Single) if lane.lane == Lane::Bass808 => 1,
+            (true, Layout::Single) if lane.lane == Lane::Sub => 1,
             (true, Layout::Single) => 0,
         };
 
@@ -459,7 +511,7 @@ fn song_events_for(song: &Song, part: Part) -> Vec<Event> {
         // second time by the code that plays the song rather than exports it.
         // Two walks over the same fields are free to disagree, and then what a
         // producer hears is not what they exported.
-        let tiling = SectionTiling::of(song, section, pattern.bars);
+        let tiling = SectionTiling::of(song, section, reference, pattern);
 
         // Computed once and reused for every repeat: `events_for` allocates,
         // walks every note and sorts, and it is a pure function of the pattern —
@@ -474,10 +526,23 @@ fn song_events_for(song: &Song, part: Part) -> Vec<Event> {
                 if !tiling.sounds(repeat, event.origin) {
                     continue;
                 }
+                // ⛔ **Trimmed at the loop point, exactly as `flatten_parts`
+                // trims the note length** — see `SectionTiling::held_within`.
+                // These events are already split into on and off, so the rule
+                // lands on the *tick* here rather than on a length: an off (or a
+                // slide's destination on) that would fall past the end of a
+                // resized repeat is pulled back to the loop point instead of
+                // being written inside the next one, where the same pitch has
+                // been re-struck. Without this the file and the transport
+                // disagree, which is the one thing this module shares
+                // `SectionTiling` to prevent.
+                let within = event.origin.saturating_add(
+                    tiling.held_within(event.origin, event.tick.saturating_sub(event.origin)),
+                );
                 let tick = tiling
                     .section_start
                     .saturating_add(offset)
-                    .saturating_add(event.tick);
+                    .saturating_add(if event.is_on { event.tick } else { within });
                 // ⚠ Only the note-*on* carries the fade. A note-off's velocity
                 // is a release value no sampler reads as loudness, and scaling
                 // it would ramp a number that means nothing.
@@ -713,6 +778,7 @@ pub fn drag_spike_pattern() -> Pattern {
         part: Part::Drums,
         artist_id: "spike".into(),
         seed: 0,
+        song_seed: 0,
         bars: 4,
         bpm: 140.0,
         time_sig_num: 4,
@@ -751,6 +817,7 @@ mod tests {
             part: Part::Drums,
             artist_id: "t".into(),
             seed: 1,
+            song_seed: 1,
             bars: 1,
             bpm: 140.0,
             time_sig_num: 4,
@@ -841,7 +908,7 @@ mod tests {
 
     #[test]
     fn pitched_lanes_keep_their_pitch_and_stay_off_the_drum_channel() {
-        let bytes = pattern_to_smf(&tiny(Lane::Bass808, vec![note(0, 960, 29)]));
+        let bytes = pattern_to_smf(&tiny(Lane::Sub, vec![note(0, 960, 29)]));
         let parsed = Smf::parse(&bytes).unwrap();
         for event in parsed.tracks[0].iter() {
             if let TrackEventKind::Midi {
@@ -853,6 +920,38 @@ mod tests {
                 assert_eq!(key.as_int(), 29);
             }
         }
+    }
+
+    #[test]
+    fn every_pitched_lane_gets_a_channel_of_its_own() {
+        // ⛔⛔ **`SubLow` shared channel 1 with `Sub`.** It was added to
+        // `is_pitched` and not to `pitched_channel`, so it fell through to the
+        // drums arm and onto the 808's channel — and a host that splits an
+        // imported SMF by channel (FL Studio does) merges the 808 and its sub
+        // layer into one instrument whose note-offs cut each other. Asserted
+        // over the whole set rather than on the one lane, because this is the
+        // failure that arrives every time a pitched lane is added.
+        let pitched = [
+            (Part::Drums, Lane::Sub),
+            (Part::Drums, Lane::SubLow),
+            (Part::Melody, Lane::Melody),
+            (Part::Counter, Lane::Counter),
+            (Part::Bass, Lane::Bass),
+            (Part::Chords, Lane::Chords),
+        ];
+        let mut seen: Vec<u8> = pitched
+            .iter()
+            .map(|(part, lane)| {
+                assert!(is_pitched(*lane), "{lane:?} must be pitched to be here");
+                let channel = pitched_channel(*part, *lane);
+                assert_ne!(channel, DRUM_CHANNEL, "{lane:?} landed on the drum channel");
+                channel
+            })
+            .collect();
+        let total = seen.len();
+        seen.sort_unstable();
+        seen.dedup();
+        assert_eq!(seen.len(), total, "two pitched lanes shared a channel");
     }
 
     #[test]
@@ -886,7 +985,7 @@ mod tests {
     }
 
     fn written_key_signature(key_root: u8, scale: Scale) -> (i8, bool) {
-        let mut p = tiny(Lane::Bass808, vec![note(0, 240, 36)]);
+        let mut p = tiny(Lane::Sub, vec![note(0, 240, 36)]);
         p.key_root = key_root;
         p.scale = scale;
         let bytes = pattern_to_smf(&p);
@@ -1050,7 +1149,7 @@ mod tests {
             slide_to_pitch: Some(40),
             articulation: None,
         };
-        let events = events_for(&tiny(Lane::Bass808, vec![slide]), Layout::Single);
+        let events = events_for(&tiny(Lane::Sub, vec![slide]), Layout::Single);
 
         let on = |key: u8| {
             events
@@ -1096,7 +1195,7 @@ mod tests {
             articulation: None,
         };
         assert_eq!(
-            events_for(&tiny(Lane::Bass808, vec![flat]), Layout::Single).len(),
+            events_for(&tiny(Lane::Sub, vec![flat]), Layout::Single).len(),
             2
         );
     }

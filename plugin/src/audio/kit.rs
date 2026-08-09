@@ -12,6 +12,7 @@
 //! Decoding *imported* samples is a different problem with its own crate
 //! (`symphonia`) and arrives with sample import.
 
+use std::collections::BTreeMap;
 use std::sync::Arc;
 
 use engine::pattern::Lane;
@@ -19,6 +20,12 @@ use include_dir::Dir;
 use serde::Deserialize;
 
 /// One pad: a sample plus how it should be played.
+///
+/// `Clone` is cheap and has to be: [`Kit::with_one_shots`] rebuilds the whole
+/// kit every time a producer assigns a sample, and `samples` is an `Arc<[f32]>`
+/// precisely so that copying a pad copies a reference count rather than a
+/// megabyte of audio.
+#[derive(Clone)]
 pub struct Pad {
     pub id: String,
     pub lane: Lane,
@@ -40,9 +47,53 @@ pub struct Pad {
     pub root_note: Option<u8>,
 }
 
+#[derive(Clone)]
 pub struct Kit {
     pub id: String,
     pub pads: Vec<Pad>,
+}
+
+/// ⚠ **Written out rather than derived, because a derived one would print the
+/// audio.** A kit is megabytes of samples; `{:?}` on the struct that holds it —
+/// which `Shared` does derive — would dump every one of them into a log.
+impl std::fmt::Debug for Kit {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Kit")
+            .field("id", &self.id)
+            .field("pads", &self.pads.len())
+            .finish()
+    }
+}
+
+/// A sample the producer assigned to a lane (TASK-131B).
+///
+/// Decoded once, on the loader thread, and then only ever cloned — `samples` is
+/// an `Arc<[f32]>` so rebuilding the kit after a *second* assignment does not
+/// re-copy the audio of the first.
+#[derive(Clone)]
+pub struct OneShot {
+    /// Where the file came from. This is what the project file stores, and it
+    /// is what a reopen reloads from — see [`crate::state::PluginSession`].
+    pub path: String,
+    /// The file's own name, which is what the KIT panel shows. Held rather than
+    /// derived from `path` on every read, because a panel that shows a full
+    /// path shows nothing useful in the width a rail has.
+    pub name: String,
+    pub samples: Arc<[f32]>,
+    pub sample_rate: u32,
+}
+
+/// Written out for the same reason [`Kit`]'s is: a derived one would print the
+/// whole sample.
+impl std::fmt::Debug for OneShot {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("OneShot")
+            .field("path", &self.path)
+            .field("name", &self.name)
+            .field("samples", &self.samples.len())
+            .field("sample_rate", &self.sample_rate)
+            .finish()
+    }
 }
 
 impl Kit {
@@ -53,6 +104,84 @@ impl Kit {
     /// and harder still to explain.
     pub fn pad_for(&self, lane: Lane) -> Option<usize> {
         self.pads.iter().position(|pad| pad.lane == lane)
+    }
+
+    /// How far to transpose `pitch` when it is played on `lane`.
+    ///
+    /// ⛔ **One definition, because there were two and they were already
+    /// diverging.** `render_preview` and the offline stem renderer each spelled
+    /// this rule out separately, and `render.rs` asserted the invariant in prose
+    /// — "the same rule `render_preview` follows, so a stem sounds like the
+    /// preview did" — with nothing holding it. Two spellings of one rule is how
+    /// an exported stem quietly stops matching what the producer auditioned.
+    ///
+    /// ⛔ **A `0` on an unpitched lane means "as sampled", not "36 semitones
+    /// down".** The drum grid places a hand-drawn hit with the pitch of a note
+    /// already in that lane, and has none to copy when the lane was just
+    /// emptied. Treating that as a real MIDI note transposed a kick down by its
+    /// own GM number — sub-rumble instead of a drum. MIDI note 0 is not a drum
+    /// any lane maps to, so it is safe to read as "no opinion".
+    pub fn semitones_for(pad: &Pad, lane: Lane, pitch: u8) -> f32 {
+        match pad.root_note {
+            Some(root) => f32::from(pitch) - f32::from(root),
+            None if pitch == 0 => 0.0,
+            None => f32::from(pitch) - f32::from(crate::midi_note_for(lane)),
+        }
+    }
+
+    /// This kit with the producer's own one-shots played instead of its own
+    /// (TASK-131B).
+    ///
+    /// ⛔ **A whole new kit, built off the audio thread, never a mutation of a
+    /// live one.** The sampler addresses pads *by index* and holds those indices
+    /// inside sounding voices, so editing a kit underneath the callback is how a
+    /// voice ends up playing a sample that is not the one it was triggered with.
+    /// The finished kit is handed over through [`crate::shared::KitHandoff`],
+    /// which is also what cuts the voices that were addressing the old one.
+    ///
+    /// ## What is inherited, and why
+    ///
+    /// Everything except the audio: gain, pan, the pitch offset, the choke
+    /// group and — the one that matters — **the root note**.
+    ///
+    /// ⛔ **Inheriting the root is what makes a one-shot on a melodic part play
+    /// at roughly its own pitch.** The lead pad is rooted at MIDI 84 because
+    /// that is where the melody generator writes; a sample assigned there is
+    /// therefore transposed by the *interval* the melody moves, not shifted into
+    /// another octave. Rooting a new sample at a fixed C3 instead would pitch it
+    /// two octaves up under that same melody, which is the chipmunk failure, and
+    /// the producer would have no control that fixes it. Detecting the sample's
+    /// real pitch is TASK-052 and is what makes this exact rather than sensible.
+    ///
+    /// A lane the shipped kit has **no** pad for gets a plain percussion pad:
+    /// unity gain, centred, and no root, so its notes play as sampled. Today
+    /// `Lane::Snap` is the only such lane — the drum generator can write it and
+    /// the kit has never carried it, so assigning one is the only way to hear
+    /// that lane at all.
+    pub fn with_one_shots(&self, assigned: &BTreeMap<Lane, OneShot>) -> Kit {
+        let mut kit = self.clone();
+        for (lane, one_shot) in assigned {
+            let replacement = |base: Option<&Pad>| Pad {
+                id: one_shot.name.clone(),
+                lane: *lane,
+                samples: Arc::clone(&one_shot.samples),
+                sample_rate: one_shot.sample_rate,
+                gain: base.map_or(1.0, |pad| pad.gain),
+                pan: base.map_or(0.0, |pad| pad.pan),
+                pitch_semis: base.map_or(0, |pad| pad.pitch_semis),
+                choke_group: base.and_then(|pad| pad.choke_group),
+                root_note: base.and_then(|pad| pad.root_note),
+            };
+
+            match kit.pad_for(*lane) {
+                Some(index) => {
+                    let pad = replacement(Some(&kit.pads[index]));
+                    kit.pads[index] = pad;
+                }
+                None => kit.pads.push(replacement(None)),
+            }
+        }
+        kit
     }
 
     /// Load `<dir>/kit.json` and every sample it names, out of the binary.
@@ -69,8 +198,20 @@ impl Kit {
     /// with no recorded material and so no third-party rights riding along
     /// inside the binary.
     pub fn embedded(dir: &Dir<'_>) -> Result<Kit, String> {
-        let text = dir
-            .get_file("kit.json")
+        // ⛔ **Looked up under the dir's own path first, and this is not
+        // defensive coding.** `include_dir`'s `get_file` matches on paths
+        // relative to the *macro root*, so a `Dir` obtained through `get_dir`
+        // holds entries named `boom-bap-default/kit.json` while a `Dir` that
+        // *is* the macro root holds plain `kit.json`. `PREVIEW_KIT` is the
+        // second kind and `ALL_KITS.get_dir(..)` is the first, so a single
+        // spelling works for exactly one of them — which is how the family
+        // kits decoded as "no readable kit.json" the first time.
+        let find = |name: &str| {
+            dir.get_file(dir.path().join(name))
+                .or_else(|| dir.get_file(name))
+        };
+
+        let text = find("kit.json")
             .and_then(|file| file.contents_utf8())
             .ok_or("the embedded kit has no readable kit.json")?;
         let manifest: Manifest =
@@ -78,8 +219,7 @@ impl Kit {
 
         let mut pads = Vec::with_capacity(manifest.pads.len());
         for pad in manifest.pads {
-            let bytes = dir
-                .get_file(&pad.file)
+            let bytes = find(&pad.file)
                 .map(|file| file.contents())
                 .ok_or_else(|| format!("the kit names {} and does not carry it", pad.file))?;
             let audio =
@@ -258,11 +398,26 @@ mod tests {
         Kit::embedded(&crate::audio::PREVIEW_KIT).expect("the shipped kit must load")
     }
 
+    /// The shipped kit with one lane's pad taken out.
+    ///
+    /// ⛔ **Built rather than found, and TASK-140 is why.** The refusal rule
+    /// below used to be tested against `Lane::Snap`, which happened to ship
+    /// with no pad. Every lane has a default now, so that premise is gone —
+    /// and it was never a good one: it tied a rule about `pad_for` to an
+    /// *accident* of what the kit happened to cover, so filling the gap looked
+    /// like breaking the rule. A user kit or a future genre kit can still lack
+    /// a lane, and this is what keeps that path honest.
+    fn shipped_without(lane: Lane) -> Kit {
+        let mut kit = shipped();
+        kit.pads.retain(|pad| pad.lane != lane);
+        kit
+    }
+
     #[test]
     fn the_shipped_kit_loads_with_every_pad_audible() {
         let kit = shipped();
         assert_eq!(kit.id, "trap-default");
-        assert_eq!(kit.pads.len(), 12);
+        assert_eq!(kit.pads.len(), crate::shared::ALL_LANES.len());
 
         for pad in &kit.pads {
             assert!(!pad.samples.is_empty(), "{} decoded to nothing", pad.id);
@@ -303,7 +458,7 @@ mod tests {
         let pad = |lane: Lane| &kit.pads[kit.pad_for(lane).unwrap()];
 
         // E1: the low end of the trap 808 register, and what kitgen renders.
-        assert_eq!(pad(Lane::Bass808).root_note, Some(28));
+        assert_eq!(pad(Lane::Sub).root_note, Some(28));
         for lane in [Lane::Kick, Lane::Snare, Lane::ClosedHat, Lane::Perc] {
             assert_eq!(pad(lane).root_note, None, "{lane:?} has no pitch to play");
         }
@@ -311,13 +466,23 @@ mod tests {
 
     #[test]
     fn a_lane_the_kit_has_no_pad_for_is_none_rather_than_the_nearest_drum() {
-        let kit = shipped();
+        // A lane the kit does not cover must answer `None` rather than the
+        // nearest drum: a wrong drum is harder to notice than silence, and
+        // harder to explain once it is noticed.
+        //
+        // ⚠ The kit is built without `Snap` rather than relying on the shipped
+        // one to lack it — see `shipped_without`. Every lane has a default
+        // since TASK-140, so the old premise no longer holds and the rule is
+        // now stated directly instead of borrowed from a gap.
+        let kit = shipped_without(Lane::Snap);
         assert!(kit.pad_for(Lane::Kick).is_some());
-        // ⚠ `Snap` rather than `Melody`: the melodic lanes gained pads in
-        // TASK-131, and this test is about the *refusal* — a lane the kit does
-        // not cover must answer `None` rather than the nearest drum, because a
-        // wrong drum is harder to notice than silence and harder to explain.
         assert_eq!(kit.pad_for(Lane::Snap), None);
+
+        // And the shipped kit genuinely does cover it now.
+        assert!(
+            shipped().pad_for(Lane::Snap).is_some(),
+            "snap shipped silent for the whole of TASK-131; TASK-140 gave it a voice"
+        );
     }
 
     #[test]
@@ -329,7 +494,7 @@ mod tests {
         let kit = shipped();
         for lane in [
             Lane::Kick,
-            Lane::Bass808,
+            Lane::Sub,
             Lane::Melody,
             Lane::Counter,
             Lane::Bass,

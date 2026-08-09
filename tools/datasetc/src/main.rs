@@ -9,6 +9,7 @@
 //! datasetc lint     data/     semantic lints only, no schema
 //! datasetc stats    data/     counts by type, tier and genre
 //! datasetc coverage data/     which part blocks each model actually defines
+//! datasetc novelty  contours/ build the FR-011 reference table, to stdout
 //! ```
 
 use std::collections::BTreeMap;
@@ -30,9 +31,12 @@ COMMANDS:
     lint        semantic lints only
     stats       counts by type, tier and genre
     coverage    which part blocks each model defines, and what it inherits
+    novelty     build the FR-011 reference table from *.contour listings,
+                writing the hashes to stdout
 
 ARGS:
-    DIR         dataset directory (default: data)
+    DIR         dataset directory, or the contour directory for `novelty`
+                (default: data)
 
 Exit code is 1 if anything fails, so this can gate CI directly.
 ";
@@ -55,6 +59,7 @@ fn main() -> ExitCode {
         "lint" => run_lint(&dir),
         "stats" => run_stats(&dir),
         "coverage" => run_coverage(&dir),
+        "novelty" => run_novelty(&dir),
         other => {
             eprintln!("unknown command `{other}`\n\n{USAGE}");
             return ExitCode::FAILURE;
@@ -87,6 +92,62 @@ fn load(dir: &Path) -> Result<(Registry, Vec<(PathBuf, String)>), String> {
         return Err(format!("no model files found under {}", dir.display()));
     }
     Ok((registry_from(scan.files.clone()), scan.files))
+}
+
+/// Build the novelty guard's reference table from a directory of contour
+/// listings, writing it to stdout (FR-011, TASK-039).
+///
+/// ⛔ **The contours are an input, not an artifact — they are never committed.**
+/// FR-011's rule is "hashes, not note data", and a contour listing is note data
+/// with the key filed off. The process is documented in
+/// `docs/dataset-protocol.md` § The novelty table so the table can be rebuilt
+/// from the same public listings without this repo ever holding a melody.
+///
+/// One melody per file, so an n-gram can never straddle two of them — which
+/// would fingerprint a phrase nobody ever wrote.
+fn run_novelty(dir: &Path) -> Result<bool, String> {
+    let mut listings: Vec<PathBuf> = fs::read_dir(dir)
+        .map_err(|e| format!("{}: {e}", dir.display()))?
+        .filter_map(Result::ok)
+        .map(|entry| entry.path())
+        .filter(|path| path.extension().is_some_and(|e| e == "contour"))
+        .collect();
+    listings.sort();
+
+    if listings.is_empty() {
+        return Err(format!("no *.contour files under {}", dir.display()));
+    }
+
+    let mut melodies = Vec::new();
+    let mut ok = true;
+    for path in &listings {
+        let text = fs::read_to_string(path).map_err(|e| format!("{}: {e}", path.display()))?;
+        match engine::novelty::contour(&text) {
+            Ok(steps) => {
+                eprintln!("{:>4} steps  {}", steps.len(), path.display());
+                melodies.push(steps);
+            }
+            Err(e) => {
+                eprintln!("FAIL {}", path.display());
+                eprintln!("     {e}");
+                ok = false;
+            }
+        }
+    }
+    if !ok {
+        return Ok(false);
+    }
+
+    let table = engine::novelty::Table::from_melodies(&melodies);
+    eprintln!(
+        "{} melodies → {} hashes at n = {} and {}",
+        melodies.len(),
+        table.len(),
+        engine::novelty::N_TIGHT,
+        engine::novelty::N_LOOSE
+    );
+    print!("{}", table.to_text());
+    Ok(true)
 }
 
 /// Report parse-time rejections. Returns false if there were any.

@@ -6,25 +6,25 @@
 //! producer's own one-shots; it exists so a fresh install can be auditioned
 //! before anyone imports anything.
 
-use engine::rng::stream;
+pub(crate) use engine::rng::stream;
 use rand::Rng;
 use rand_chacha::ChaCha8Rng;
 
 use crate::wav::SAMPLE_RATE;
 
-const SR: f32 = SAMPLE_RATE as f32;
+pub(crate) const SR: f32 = SAMPLE_RATE as f32;
 
-fn seconds(n: f32) -> usize {
+pub(crate) fn seconds(n: f32) -> usize {
     (SR * n) as usize
 }
 
 /// Exponential decay to `-60 dB` over `secs`.
-fn decay(t: f32, secs: f32) -> f32 {
+pub(crate) fn decay(t: f32, secs: f32) -> f32 {
     (-6.907 * t / secs).exp()
 }
 
 /// A short fade at the very start, so a sample never begins on a discontinuity.
-fn declick(samples: &mut [f32]) {
+pub(crate) fn declick(samples: &mut [f32]) {
     let n = (SR * 0.002) as usize; // 2 ms
     for (i, s) in samples.iter_mut().take(n).enumerate() {
         *s *= i as f32 / n as f32;
@@ -37,12 +37,12 @@ fn declick(samples: &mut [f32]) {
 }
 
 /// Soft saturation. `drive` of 1.0 is clean; higher values fatten and clip.
-fn saturate(x: f32, drive: f32) -> f32 {
+pub(crate) fn saturate(x: f32, drive: f32) -> f32 {
     (x * drive).tanh() / drive.tanh()
 }
 
 /// Normalize to a target peak so the pads feel level against each other.
-fn normalize(samples: &mut [f32], peak: f32) {
+pub(crate) fn normalize(samples: &mut [f32], peak: f32) {
     let max = samples.iter().fold(0.0f32, |m, s| m.max(s.abs()));
     if max > 1e-9 {
         let gain = peak / max;
@@ -53,7 +53,7 @@ fn normalize(samples: &mut [f32], peak: f32) {
 }
 
 /// One-pole low-pass. `cutoff` in Hz.
-fn low_pass(samples: &mut [f32], cutoff: f32) {
+pub(crate) fn low_pass(samples: &mut [f32], cutoff: f32) {
     let dt = 1.0 / SR;
     let rc = 1.0 / (2.0 * std::f32::consts::PI * cutoff);
     let alpha = dt / (rc + dt);
@@ -65,7 +65,7 @@ fn low_pass(samples: &mut [f32], cutoff: f32) {
 }
 
 /// One-pole high-pass.
-fn high_pass(samples: &mut [f32], cutoff: f32) {
+pub(crate) fn high_pass(samples: &mut [f32], cutoff: f32) {
     let dt = 1.0 / SR;
     let rc = 1.0 / (2.0 * std::f32::consts::PI * cutoff);
     let alpha = rc / (rc + dt);
@@ -79,8 +79,123 @@ fn high_pass(samples: &mut [f32], cutoff: f32) {
     }
 }
 
-fn noise(rng: &mut ChaCha8Rng, n: usize) -> Vec<f32> {
+pub(crate) fn noise(rng: &mut ChaCha8Rng, n: usize) -> Vec<f32> {
     (0..n).map(|_| rng.random_range(-1.0f32..1.0f32)).collect()
+}
+
+/// A **resonant** two-pole band-pass (state-variable form).
+///
+/// ⛔ **The one-pole pair above cannot do this, and metal is why it matters.**
+/// `high_pass` then `low_pass` carves a broad shelf with no peak, which turns a
+/// square-oscillator bank into a buzzer. A cymbal is a set of *ringing* modes,
+/// so the filter has to resonate — that is what leaves the partials sounding
+/// struck rather than merely present.
+///
+/// ⚠ **`q` at or below 1.0 has no resonance at all** — damping is `1/q`, and it
+/// is clamped at 1.0 to keep the filter stable. Only `q` above 1 peaks, and
+/// above ~2 it starts to sing. A call site passing 0.8 or 0.9 is asking for a
+/// plain band shape, which is a legitimate thing to want and worth knowing is
+/// what it gets.
+pub(crate) fn band_pass(samples: &mut [f32], centre_hz: f32, q: f32) {
+    // ⛔ **Capped at SR/6, because this is a Chamberlin state-variable filter
+    // and its `f = 2 sin(pi fc / SR)` mapping is only accurate below roughly
+    // that.** Above it the poles drift and then go real: the shaker asked for
+    // 6.8 kHz and peaked at 16 kHz, and the tambourine's 9 kHz stopped
+    // resonating altogether. Clamping keeps every centre in the range where the
+    // number in the source is the frequency you get.
+    let f = 2.0 * (std::f32::consts::PI * centre_hz.clamp(20.0, SR / 6.0) / SR).sin();
+    let damp = (1.0 / q.max(0.5)).min(1.0);
+    let (mut low, mut band) = (0.0f32, 0.0f32);
+    for s in samples.iter_mut() {
+        let high = *s - low - damp * band;
+        band += f * high;
+        low += f * band;
+        *s = band;
+    }
+}
+
+/// A square oscillator, which is what the classic drum machines actually used.
+fn square(phase: f32) -> f32 {
+    if phase.sin() >= 0.0 {
+        1.0
+    } else {
+        -1.0
+    }
+}
+
+/// A rising edge over `secs`, so a voice does not begin on a click.
+///
+/// ⚠ **A shaker and a tambourine live or die on this.** Both are many small
+/// objects picked up by the hand rather than one struck surface, so the energy
+/// *swells* over ~10 ms. Given the instant attack every other voice here wants,
+/// they read as a hi-hat instead — same spectrum, wrong instrument.
+pub(crate) fn attack(t: f32, secs: f32) -> f32 {
+    (t / secs.max(1e-6)).min(1.0)
+}
+
+/// The TR-808's six square oscillators, in Hz.
+///
+/// ⛔ **The real ratios, and they are deliberately inharmonic.** The 808 built
+/// every metal voice — cymbal, cowbell, open and closed hat — from this one bank
+/// and separated them by filtering and envelope alone. Non-integer ratios are
+/// precisely why it reads as struck metal instead of as a chord: no partial is a
+/// harmonic of another, so the ear hears a plate rather than a pitch.
+const METAL_PARTIALS: [f32; 6] = [205.3, 304.4, 369.6, 522.7, 540.0, 800.0];
+
+/// The metal bank at time `t`, optionally transposed.
+pub(crate) fn metal(t: f32, transpose: f32) -> f32 {
+    METAL_PARTIALS
+        .iter()
+        .map(|hz| square(std::f32::consts::TAU * hz * transpose * t))
+        .sum::<f32>()
+        / METAL_PARTIALS.len() as f32
+}
+
+/// Give a finished percussion voice a kit family's character.
+///
+/// ⛔ **This is what makes a drill kit sound like a drill kit rather than trap
+/// at a different tempo.** The voices above are one set of recipes; a family is
+/// that set heard through a different room and a different converter. Three
+/// controls carry almost all of the audible difference between real kit
+/// families:
+///
+/// - `brightness_hz` — where the top ends. A boom-bap kit sampled at 26 kHz on
+///   an SP-1200 simply has no air above ~8 kHz, and that missing top *is* the
+///   sound. A club kit keeps all of it.
+/// - `drive` — how hard it was pushed. Phonk and rage are distorted on purpose;
+///   country and R&B are not.
+/// - `body_hz` — a gentle low shelf via a resonant lift, so a family can sit
+///   fat or lean without retuning every voice.
+///
+/// ⚠ **Applied after `normalize`, then normalized again**, because saturation
+/// changes the peak and a family that came out quieter than its neighbours
+/// would read as a worse kit rather than a different one.
+pub fn shape(samples: &mut [f32], brightness_hz: f32, drive: f32, body_hz: f32) {
+    // ⛔ **The voice's own level is captured and restored.** This ended with a
+    // flat `normalize(samples, 0.82)`, which threw away every per-voice target
+    // the recipes set — kick asks for 0.92 and shaker for 0.55, a deliberate
+    // 4.5 dB gap, and on disk all seventeen percussion voices measured exactly
+    // 0.820 while the five unshaped pitched voices kept theirs. So the drums
+    // came out level with each other and out of level with everything else,
+    // which is the opposite of what `normalize`'s own doc says it is for.
+    let peak = samples.iter().fold(0.0f32, |m, s| m.max(s.abs()));
+    if brightness_hz < 20_000.0 {
+        low_pass(samples, brightness_hz);
+    }
+    if body_hz > 0.0 {
+        let mut body: Vec<f32> = samples.to_vec();
+        band_pass(&mut body, body_hz, 0.8);
+        for (s, b) in samples.iter_mut().zip(body) {
+            *s += b * 0.35;
+        }
+    }
+    if drive > 1.0 {
+        for s in samples.iter_mut() {
+            *s = saturate(*s, drive);
+        }
+    }
+    declick(samples);
+    normalize(samples, if peak > 1e-9 { peak } else { 0.82 });
 }
 
 /// The 808: a sine with a fast downward pitch envelope into a long body, then
@@ -435,17 +550,306 @@ pub fn perc(seed: u64) -> Vec<f32> {
     out
 }
 
+// ──────────────────────────────────────────── the percussion lanes (TASK-140)
+//
+// ⛔ **Why these exist**: `drums.rs` gained eight lanes and 15 models were
+// already authoring a `percs` block that nothing read. Without a pad each of
+// them generates *silence*, and silence is the failure this project keeps
+// recording — every test stays green while the producer hears nothing.
+//
+// ⚠ **Each voice is a recipe, not filtered noise.** `sweep_low_pass`'s comment
+// above is the standard this file already set: a static filter pass over noise
+// is why a preview reads as a toy. The metal voices below use the TR-808's own
+// inharmonic square bank through a *resonant* band-pass, the membranes use pitch
+// envelopes, and the hand percussion uses a real attack ramp.
+//
+// ⚠ **They must be tellable apart from their neighbours**, which is the same
+// rule `rim` and `perc` already follow. A tambourine that sounds like an open
+// hat has not been added, it has been duplicated.
+
+/// Off-snare: the backbeat's answer, brighter and tighter than the main snare.
+///
+/// ⚠ **Deliberately not `snare()` with a tweak.** The two play in the same bar
+/// and often a 16th apart, so they have to read as two drums: the shell sits a
+/// fifth higher, the wires are shorter, and there is less body under it.
+pub fn off_snare(seed: u64) -> Vec<f32> {
+    let mut rng = stream(seed, "kit/off_snare");
+    let n = seconds(0.16);
+    let mut wires = noise(&mut rng, n);
+
+    high_pass(&mut wires, 1_400.0);
+    low_pass(&mut wires, 12_500.0);
+
+    let mut out = Vec::with_capacity(n);
+    for (i, wire) in wires.iter().enumerate() {
+        let t = i as f32 / SR;
+        // A fifth above the main snare's 185/331, and decaying faster.
+        let body = (std::f32::consts::TAU * 278.0 * t).sin() * decay(t, 0.055) * 0.38
+            + (std::f32::consts::TAU * 496.0 * t).sin() * decay(t, 0.032) * 0.22;
+        out.push(body + wire * decay(t, 0.085));
+    }
+
+    declick(&mut out);
+    normalize(&mut out, 0.80);
+    out
+}
+
+/// Snap: fingers. Almost pure transient with one resonant pop.
+///
+/// ⛔ **This lane shipped with no pad at all and generated silence** — the
+/// handoff recorded it as "No sound" and `trap.json` has been asking for it the
+/// whole time. A snap is short, dry and mid-forward: the resonance around 2.2
+/// kHz is the flesh-and-bone pop, and nothing rings after it.
+pub fn snap(seed: u64) -> Vec<f32> {
+    let mut rng = stream(seed, "kit/snap");
+    let n = seconds(0.07);
+    let mut out = noise(&mut rng, n);
+
+    // The pop, before the envelope, so the filter rings rather than being cut.
+    band_pass(&mut out, 2_200.0, 2.6);
+    for (i, s) in out.iter_mut().enumerate() {
+        let t = i as f32 / SR;
+        *s *= decay(t, 0.018);
+    }
+    high_pass(&mut out, 700.0);
+
+    declick(&mut out);
+    normalize(&mut out, 0.72);
+    out
+}
+
+/// Ride: a defined stick ping over a shimmering bed.
+///
+/// ⚠ **The ping is what separates a ride from a crash**, and it is a *pitched*
+/// transient rather than a louder one — the stick striking near the bell excites
+/// the bank an octave up for a few tens of milliseconds. Without it the two
+/// cymbals are one sound at two lengths.
+pub fn ride(seed: u64) -> Vec<f32> {
+    let mut rng = stream(seed, "kit/ride");
+    let n = seconds(1.30);
+    let source = noise(&mut rng, n);
+
+    let mut out = Vec::with_capacity(n);
+    for (i, hiss) in source.iter().enumerate() {
+        let t = i as f32 / SR;
+        // The bed: the bank, ringing long.
+        let bed = metal(t, 1.0) * decay(t, 0.95);
+        // The ping: the same bank an octave up, gone in 60 ms.
+        let ping = metal(t, 2.0) * decay(t, 0.06) * 0.9;
+        out.push(bed * 0.55 + ping + hiss * decay(t, 0.10) * 0.22);
+    }
+
+    band_pass(&mut out, 7_200.0, 1.2);
+    high_pass(&mut out, 3_000.0);
+    declick(&mut out);
+    normalize(&mut out, 0.62);
+    out
+}
+
+/// Crash: a broad wash with no defined ping and a long, slow tail.
+pub fn crash(seed: u64) -> Vec<f32> {
+    let mut rng = stream(seed, "kit/crash");
+    let n = seconds(2.20);
+    let source = noise(&mut rng, n);
+
+    let mut out = Vec::with_capacity(n);
+    for (i, hiss) in source.iter().enumerate() {
+        let t = i as f32 / SR;
+        // Two transpositions of the bank an augmented fourth apart, which is
+        // the least consonant interval available — a crash should not imply a
+        // pitch the way the ride's bell does.
+        let plate = (metal(t, 1.0) + metal(t, 1.414) * 0.8) * decay(t, 1.70);
+        // Noise carries most of a crash; the bank is what stops it being a hiss.
+        out.push(plate * 0.40 + hiss * decay(t, 1.35) * 0.75);
+    }
+
+    // A brief swell: a crash blooms rather than clicking.
+    for (i, s) in out.iter_mut().enumerate() {
+        *s *= attack(i as f32 / SR, 0.006);
+    }
+    high_pass(&mut out, 2_400.0);
+    // Opening downward as it decays — the highs die first on a real cymbal.
+    sweep_low_pass(&mut out, 17_000.0, 6_500.0, 1.8);
+    declick(&mut out);
+    normalize(&mut out, 0.66);
+    out
+}
+
+/// Tom: a tuned membrane. A pitch drop, but a gentle one.
+///
+/// ⚠ **Nothing like the 808's four-octave dive.** A drum head falls roughly a
+/// major third as the skin relaxes; sweeping it further is what makes a
+/// synthesized tom sound like a laser instead of a drum.
+pub fn tom(seed: u64) -> Vec<f32> {
+    let mut rng = stream(seed, "kit/tom");
+    let n = seconds(0.45);
+    let source = noise(&mut rng, n);
+
+    let mut out = Vec::with_capacity(n);
+    let mut phase = 0.0f32;
+    for (i, stick) in source.iter().enumerate() {
+        let t = i as f32 / SR;
+        // 155 Hz settling to ~124 — about a major third, over 90 ms.
+        let freq = 124.0 * (1.0 + 0.25 * (-t / 0.09).exp());
+        phase += std::f32::consts::TAU * freq / SR;
+        let head = phase.sin() * decay(t, 0.30);
+        // The second mode of a circular membrane, which is inharmonic.
+        let mode = (std::f32::consts::TAU * freq * 1.59 * t).sin() * decay(t, 0.11) * 0.28;
+        out.push(head + mode + stick * decay(t, 0.004) * 0.35);
+    }
+
+    low_pass(&mut out, 5_200.0);
+    declick(&mut out);
+    normalize(&mut out, 0.84);
+    out
+}
+
+/// Shaker: many small beads, so it swells rather than strikes.
+///
+/// ⛔ **The attack is the whole instrument.** Identical noise with an instant
+/// attack is a closed hat; given ~12 ms to build it becomes a shaker. That one
+/// envelope is the difference, and it is why [`attack`] exists.
+pub fn shaker(seed: u64) -> Vec<f32> {
+    let mut rng = stream(seed, "kit/shaker");
+    let n = seconds(0.11);
+    let mut out = noise(&mut rng, n);
+
+    band_pass(&mut out, 6_800.0, 0.9);
+    for (i, s) in out.iter_mut().enumerate() {
+        let t = i as f32 / SR;
+        *s *= attack(t, 0.012) * decay(t, 0.055);
+    }
+    high_pass(&mut out, 3_800.0);
+
+    declick(&mut out);
+    normalize(&mut out, 0.55);
+    out
+}
+
+/// Tambourine: a handful of jingles, which is metal *and* scatter.
+///
+/// ⚠ **The scatter is not decoration.** Every jingle is a pair of loose discs
+/// and they do not land together; without a few milliseconds of spread they sum
+/// into one hit and the voice reads as a bright closed hat. Same reasoning as
+/// `clap`'s three bursts, and the same trap avoided — each burst reads its own
+/// slice of noise rather than a delayed copy of one slice, which would comb.
+pub fn tambourine(seed: u64) -> Vec<f32> {
+    let mut rng = stream(seed, "kit/tambourine");
+    let n = seconds(0.34);
+    let source = noise(&mut rng, n);
+    let mut out = vec![0.0f32; n];
+
+    // Six jingles over ~11 ms, quieter as they trail.
+    for jingle in 0..6 {
+        let offset = seconds(jingle as f32 * 0.0022);
+        let level = 1.0 - jingle as f32 * 0.11;
+        for i in 0..seconds(0.05) {
+            if offset + i < n {
+                let t = i as f32 / SR;
+                // ⛔ **Absolute time, not the intra-burst index.** With `t`
+                // the ring was bit-identical in all six jingles, offset by a
+                // fixed number of samples — a comb, notching every ~455 Hz,
+                // which is exactly what the note above says this avoids. The
+                // noise half already read absolutely; the metal half did not.
+                let ring = metal((offset + i) as f32 / SR, 3.1) * decay(t, 0.030);
+                out[offset + i] += (ring * 0.5 + source[offset + i] * decay(t, 0.012)) * level;
+            }
+        }
+    }
+
+    // The shimmer left hanging after the strike.
+    let tail = seconds(0.05);
+    for i in tail..n {
+        let t = (i - tail) as f32 / SR;
+        out[i] += (metal(t, 3.1) * 0.3 + source[i] * 0.5) * decay(t, 0.16) * 0.30;
+    }
+
+    band_pass(&mut out, 9_000.0, 1.1);
+    high_pass(&mut out, 4_500.0);
+    declick(&mut out);
+    normalize(&mut out, 0.64);
+    out
+}
+
+/// Cowbell: the 808's, which is two of the six squares and nothing else.
+///
+/// ⛔ **This is the actual recipe, not an approximation.** The TR-808 cowbell is
+/// the 540 Hz and 800 Hz oscillators from [`METAL_PARTIALS`], band-passed, with
+/// a fast decay. Their ratio is 1.481 — close to a fifth and audibly not one,
+/// which is exactly why the sound is unmistakable.
+pub fn cowbell(seed: u64) -> Vec<f32> {
+    // ⚠ Seeded only to break the tie between families. The bank is two square
+    // oscillators with no noise in it, so the seed moves the strike's tiny
+    // noise floor rather than the tone — without it `trap-default/cowbell.wav`
+    // and `country-default/cowbell.wav` were the same file, byte for byte.
+    let mut rng = stream(seed, "kit/cowbell");
+    let n = seconds(0.40);
+    let source = noise(&mut rng, n);
+    let mut out = Vec::with_capacity(n);
+
+    for (i, strike_noise) in source.iter().enumerate().take(n) {
+        let t = i as f32 / SR;
+        let two =
+            square(std::f32::consts::TAU * 540.0 * t) + square(std::f32::consts::TAU * 800.0 * t);
+        // A short body under a longer ring, which is the enclosure resonating
+        // after the strike stops driving it.
+        let strike = strike_noise * decay(t, 0.003) * 0.04;
+        out.push(two * 0.5 * (decay(t, 0.30) * 0.7 + decay(t, 0.020) * 0.5) + strike);
+    }
+
+    band_pass(&mut out, 2_640.0, 1.6);
+    high_pass(&mut out, 500.0);
+    declick(&mut out);
+    normalize(&mut out, 0.68);
+    out
+}
+
+/// Woodblock: a hard, dry, high knock with almost no tail.
+///
+/// ⚠ **Kept clearly above `perc`'s 840 Hz.** `uk-drill` authors `rim` and
+/// `woodblock` together, so those two land in the same bar and must not be the
+/// same click at two volumes.
+pub fn woodblock(seed: u64) -> Vec<f32> {
+    let mut rng = stream(seed, "kit/woodblock");
+    let n = seconds(0.10);
+    let source = noise(&mut rng, n);
+
+    let mut out = Vec::with_capacity(n);
+    for (i, knock) in source.iter().enumerate() {
+        let t = i as f32 / SR;
+        // Two inharmonic modes: a block is a bar, not a string.
+        let tone = (std::f32::consts::TAU * 2_360.0 * t).sin() * decay(t, 0.026)
+            + (std::f32::consts::TAU * 3_640.0 * t).sin() * decay(t, 0.014) * 0.45;
+        out.push(tone * 0.85 + knock * decay(t, 0.0035) * 0.30);
+    }
+
+    high_pass(&mut out, 900.0);
+    low_pass(&mut out, 11_000.0);
+    declick(&mut out);
+    normalize(&mut out, 0.71);
+    out
+}
+
 /// Kick: a short, tight sine drop, separate from the 808's long body.
-pub fn kick() -> Vec<f32> {
+pub fn kick(seed: u64) -> Vec<f32> {
+    // ⚠ Same reason as `cowbell`: a pure sine drop is identical in every
+    // family, so the beater noise carries the family's seed.
+    let mut rng = stream(seed, "kit/kick");
     let n = seconds(0.35);
+    let source = noise(&mut rng, n);
     let mut out = Vec::with_capacity(n);
     let mut phase = 0.0f32;
 
-    for i in 0..n {
+    for (i, beater_noise) in source.iter().enumerate().take(n) {
         let t = i as f32 / SR;
         let freq = 52.0 * (1.0 + 5.0 * (-t / 0.018).exp());
         phase += std::f32::consts::TAU * freq / SR;
-        out.push(saturate(phase.sin() * decay(t, 0.22), 1.8));
+        // The beater against the head: a few milliseconds of noise over the
+        // sine drop. It is what a kick's attack actually is, and it is also
+        // what carries the family's seed — without it a pure sine drop is
+        // byte-identical in every kit.
+        let beater = beater_noise * decay(t, 0.0025) * 0.18;
+        out.push(saturate(phase.sin() * decay(t, 0.22) + beater, 1.8));
     }
 
     declick(&mut out);
@@ -465,7 +869,7 @@ mod tests {
     fn every_voice_produces_audio_within_full_scale() {
         let voices: Vec<(&str, Vec<f32>)> = vec![
             ("808", eight_o_eight(41.2, 1.4, 2.2)),
-            ("kick", kick()),
+            ("kick", kick(1)),
             ("closed_hat", closed_hat(1)),
             ("open_hat", open_hat(1)),
             ("clap", clap(1)),
@@ -487,7 +891,7 @@ mod tests {
         // produced different audio would show up as a spurious diff forever.
         assert_eq!(clap(7), clap(7));
         assert_eq!(snare(7), snare(7));
-        assert_eq!(kick(), kick());
+        assert_eq!(kick(1), kick(1));
     }
 
     #[test]
@@ -544,7 +948,7 @@ mod tests {
     #[test]
     fn voices_start_and_end_at_silence() {
         // A sample that begins or ends mid-waveform clicks on every trigger.
-        for v in [closed_hat(3), snare(3), clap(3), kick()] {
+        for v in [closed_hat(3), snare(3), clap(3), kick(1)] {
             assert!(v[0].abs() < 1e-4, "starts at {}", v[0]);
             assert!(v[v.len() - 1].abs() < 1e-4, "ends at {}", v[v.len() - 1]);
         }
@@ -561,6 +965,6 @@ mod tests {
     #[test]
     fn the_808_holds_while_the_kick_is_short() {
         // The 808 carries the bassline; the kick is a transient under it.
-        assert!(eight_o_eight(41.2, 1.4, 2.2).len() > kick().len() * 3);
+        assert!(eight_o_eight(41.2, 1.4, 2.2).len() > kick(1).len() * 3);
     }
 }

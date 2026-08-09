@@ -73,7 +73,7 @@ fn the_808_rides_the_kick() {
             .iter()
             .map(|n| n.start_tick)
             .collect();
-        let bass: Vec<u32> = notes(&lanes, Lane::Bass808)
+        let bass: Vec<u32> = notes(&lanes, Lane::Sub)
             .iter()
             .map(|n| n.start_tick)
             .collect();
@@ -91,7 +91,7 @@ fn a_looser_lock_follows_the_kick_less_often() {
         let (mut bass, mut kick) = (0.0, 0.0);
         for seed in 0..SEEDS {
             let lanes = generate(&m, &ctx(4), seed);
-            bass += notes(&lanes, Lane::Bass808).len() as f64;
+            bass += notes(&lanes, Lane::Sub).len() as f64;
             kick += notes(&lanes, Lane::Kick).len() as f64;
         }
         bass / kick
@@ -119,7 +119,7 @@ fn the_808_is_legato_with_no_gaps_and_no_overlaps() {
 
     for seed in 0..SEEDS {
         let context = ctx(4);
-        let bass = notes(&generate(&m, &context, seed), Lane::Bass808);
+        let bass = notes(&generate(&m, &context, seed), Lane::Sub);
         for pair in bass.windows(2) {
             assert_eq!(
                 pair[0].start_tick + pair[0].len_ticks,
@@ -150,7 +150,7 @@ fn the_root_comes_from_the_session_key_and_stays_in_the_register() {
             ..Default::default()
         };
         for seed in 0..20 {
-            for note in notes(&generate(&m, &context, seed), Lane::Bass808) {
+            for note in notes(&generate(&m, &context, seed), Lane::Sub) {
                 assert_eq!(note.pitch, expected, "key {key_root}, seed {seed}");
                 assert!((17..=31).contains(&note.pitch));
             }
@@ -169,7 +169,7 @@ fn a_slide_names_a_target_inside_the_register() {
 
     let mut slides = 0;
     for seed in 0..SEEDS {
-        for note in notes(&generate(&m, &ctx(4), seed), Lane::Bass808) {
+        for note in notes(&generate(&m, &ctx(4), seed), Lane::Sub) {
             let Some(target) = note.slide_to_pitch else {
                 continue;
             };
@@ -214,11 +214,11 @@ fn a_counter_riff_stays_where_it_slid_and_a_bassline_goes_home() {
     for seed in 0..SEEDS {
         let riff = notes(
             &generate(&model(block("counter_riff")), &ctx(4), seed),
-            Lane::Bass808,
+            Lane::Sub,
         );
         let bassline = notes(
             &generate(&model(block("bassline")), &ctx(4), seed),
-            Lane::Bass808,
+            Lane::Sub,
         );
 
         // A bassline only ever plays the root.
@@ -257,7 +257,7 @@ fn drill_slides_two_to_three_times_every_four_bars() {
 
     let counts: Vec<usize> = (0..SEEDS)
         .map(|seed| {
-            notes(&generate(&drill, &context, seed), Lane::Bass808)
+            notes(&generate(&drill, &context, seed), Lane::Sub)
                 .iter()
                 .filter(|n| n.slide_to_pitch.is_some())
                 .count()
@@ -302,7 +302,7 @@ fn drills_808_stops_under_the_snare() {
             .map(|n| n.start_tick)
             .collect();
 
-        for note in notes(&lanes, Lane::Bass808) {
+        for note in notes(&lanes, Lane::Sub) {
             let end = note.start_tick + note.len_ticks;
             for snare in &snares {
                 assert!(
@@ -330,7 +330,7 @@ fn trap_lets_its_808_ring_through_because_it_does_not_ask_for_the_mute() {
             .filter(|n| n.articulation != Some(Articulation::Ghost))
             .map(|n| n.start_tick)
             .collect();
-        for note in notes(&lanes, Lane::Bass808) {
+        for note in notes(&lanes, Lane::Sub) {
             let end = note.start_tick + note.len_ticks;
             if snares.iter().any(|s| note.start_tick < *s && end > *s) {
                 rang_through = true;
@@ -353,7 +353,7 @@ fn a_generated_slide_exports_as_two_overlapping_notes() {
 
     let lanes: Vec<LaneTrack> = generate(&m, &context, 3)
         .into_iter()
-        .filter(|l| l.lane == Lane::Bass808)
+        .filter(|l| l.lane == Lane::Sub)
         .collect();
     assert!(
         lanes[0].notes.iter().any(|n| n.slide_to_pitch.is_some()),
@@ -367,6 +367,7 @@ fn a_generated_slide_exports_as_two_overlapping_notes() {
         part: Part::Drums,
         artist_id: "test".into(),
         seed: 3,
+        song_seed: 3,
         bars: context.bars,
         bpm: context.bpm,
         time_sig_num: context.time_sig_num,
@@ -437,7 +438,7 @@ fn every_shipped_model_with_an_808_produces_a_playable_line() {
 
         let context = ctx(4);
         for seed in 0..20u64 {
-            let bass = notes(&generate(&model, &context, seed), Lane::Bass808);
+            let bass = notes(&generate(&model, &context, seed), Lane::Sub);
             assert!(!bass.is_empty(), "{id} seed {seed}: no 808 at all");
             for note in &bass {
                 assert!(note.len_ticks > 0, "{id}: a zero-length 808");

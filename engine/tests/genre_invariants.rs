@@ -92,7 +92,10 @@ fn chicago_drill_is_straighter_than_the_uk_strain() {
         let offbeat = kicks
             .iter()
             .filter(|(_, n)| {
-                grid::is_offbeat_eighth((n.start_tick % context.ticks_per_bar()) / grid::SIXTEENTH)
+                grid::is_offbeat_eighth(
+                    (n.start_tick % context.ticks_per_bar()) / grid::SIXTEENTH,
+                    &context,
+                )
             })
             .count();
         offbeat as f64 / kicks.len() as f64
@@ -109,7 +112,7 @@ fn chicago_drill_is_straighter_than_the_uk_strain() {
 #[test]
 fn chicago_drills_808_mostly_holds_one_pitch() {
     // "808 mostly static pitch, few slides" — the opposite of the UK marker.
-    let chicago = sweep(&model("chicago-drill"), Lane::Bass808, 4);
+    let chicago = sweep(&model("chicago-drill"), Lane::Sub, 4);
     let slides = chicago
         .iter()
         .filter(|(_, n)| n.slide_to_pitch.is_some())
@@ -176,7 +179,7 @@ fn plugg_lets_the_open_hats_carry_the_pattern() {
 fn pluggs_808_bounces_rather_than_sustains() {
     // The "Light 808": 0 ms attack, ~200 ms release — staccato, not legato.
     // Running it legato is what would make plugg sound like trap.
-    for (seed, note) in sweep(&model("plugg"), Lane::Bass808, 4) {
+    for (seed, note) in sweep(&model("plugg"), Lane::Sub, 4) {
         assert_eq!(
             note.articulation,
             Some(Articulation::Staccato),
@@ -315,11 +318,11 @@ fn phonks_808_doubles_every_kick_and_glides_by_octaves() {
     for seed in 0..SEEDS {
         let lanes = generate(&phonk, &context, seed);
         let kicks = notes(&lanes, Lane::Kick).len();
-        let bass = notes(&lanes, Lane::Bass808).len();
+        let bass = notes(&lanes, Lane::Sub).len();
         assert_eq!(bass, kicks, "seed {seed}: the 808 left a kick undoubled");
     }
 
-    let slides: Vec<i16> = sweep(&phonk, Lane::Bass808, 4)
+    let slides: Vec<i16> = sweep(&phonk, Lane::Sub, 4)
         .iter()
         .filter_map(|(_, n)| {
             n.slide_to_pitch
@@ -400,11 +403,11 @@ fn boom_bap_is_a_kit_and_not_a_sub() {
     // "bass808": null — a sampled break with a sub under it is a different
     // record. The null has to survive inheritance from `_defaults`, which does
     // define an 808.
-    assert!(sweep(&model("boom-bap"), Lane::Bass808, 4).is_empty());
-    assert!(sweep(&model("rnb-2000s"), Lane::Bass808, 4).is_empty());
-    assert!(sweep(&model("country-train"), Lane::Bass808, 4).is_empty());
+    assert!(sweep(&model("boom-bap"), Lane::Sub, 4).is_empty());
+    assert!(sweep(&model("rnb-2000s"), Lane::Sub, 4).is_empty());
+    assert!(sweep(&model("country-train"), Lane::Sub, 4).is_empty());
     // ...while the genres that do want one still have it.
-    assert!(!sweep(&model("trap"), Lane::Bass808, 4).is_empty());
+    assert!(!sweep(&model("trap"), Lane::Sub, 4).is_empty());
 }
 
 #[test]
@@ -420,7 +423,7 @@ fn boom_bap_fills_the_e_and_a_slots_with_ghosts() {
     assert!(!ghosts.is_empty(), "boom bap produced no ghost snares");
     for index in &ghosts {
         assert!(
-            grid::is_sixteenth_offbeat(*index),
+            grid::is_sixteenth_offbeat(*index, &ctx(4)),
             "a ghost landed on 16th {index}, which is not an e or an a"
         );
     }
@@ -621,7 +624,10 @@ fn bouncy_trap_keeps_its_kick_moving_more_than_the_dark_lane() {
         let offbeat = kicks
             .iter()
             .filter(|(_, n)| {
-                grid::is_offbeat_eighth((n.start_tick % context.ticks_per_bar()) / grid::SIXTEENTH)
+                grid::is_offbeat_eighth(
+                    (n.start_tick % context.ticks_per_bar()) / grid::SIXTEENTH,
+                    &context,
+                )
             })
             .count();
         offbeat as f64 / kicks.len() as f64
@@ -707,7 +713,7 @@ fn emo_rap_glides_its_808_more_than_the_dark_lane_does() {
     // **glides for emotion** — which is the opposite use of the same device from
     // dark trap, where a slide is an accent rather than the feeling.
     let slide_share = |id: &str| {
-        let notes = sweep(&model(id), Lane::Bass808, 4);
+        let notes = sweep(&model(id), Lane::Sub, 4);
         let slid = notes
             .iter()
             .filter(|(_, n)| n.slide_to_pitch.is_some())

@@ -12,6 +12,7 @@
 //! kitgen [OUTPUT_DIR]     default: data/kits
 //! ```
 
+mod extra;
 mod voices;
 mod wav;
 
@@ -42,64 +43,480 @@ struct Voice {
     root_note: Option<u8>,
 }
 
-fn build_trap_kit() -> Vec<Voice> {
+/// A kit family: one set of recipes heard through one studio.
+///
+/// ⛔ **Families, not one kit per genre, and the reason is musical rather than
+/// budgetary.** The sample character that separates records is family-level —
+/// drill and trap share a lineage and differ in tuning and tightness; boom-bap
+/// and country differ from both in the same way. Twenty near-identical kits
+/// would be twenty things to keep in tune with each other for a difference
+/// nobody could name.
+///
+/// ⚠ **Every family carries every lane.** `ALL_LANES` is what the pad guard
+/// checks, so a family that skipped `cowbell` because "country has no cowbell"
+/// would generate silence the moment a model authored one.
+struct Family {
+    /// The id a model names in `kit.preview`.
+    id: &'static str,
+    name: &'static str,
+    /// ⛔ **Its own seed, so the noise-based voices genuinely differ.** Two
+    /// families sharing a seed would have bit-identical hats and snares with
+    /// only the tone shaping between them, which is a preset rather than a kit.
+    seed: u64,
+    /// Where the top ends — see [`voices::shape`].
+    brightness_hz: f32,
+    drive: f32,
+    body_hz: f32,
+    /// The sub's root, in Hz, and how long it rings.
+    sub_hz: f32,
+    sub_len: f32,
+    sub_drive: f32,
+}
+
+/// The families, and which records each one is for.
+///
+/// ⚠ Every model's `kit.preview` must name one of these — `datasetc` refuses a
+/// name that is not here, because a typo used to mean silently playing trap.
+const FAMILIES: &[Family] = &[
+    Family {
+        id: "trap-default",
+        name: "Trap Default",
+        seed: KIT_SEED,
+        brightness_hz: 20_000.0,
+        drive: 1.0,
+        body_hz: 0.0,
+        sub_hz: 41.2,
+        sub_len: 1.4,
+        sub_drive: 2.2,
+    },
+    Family {
+        // Drier and tighter than trap, and the sub slides further — the whole
+        // point of the drill 808 is that it moves.
+        id: "drill-default",
+        name: "Drill Default",
+        seed: KIT_SEED ^ 0x11,
+        brightness_hz: 15_000.0,
+        drive: 1.4,
+        body_hz: 90.0,
+        sub_hz: 38.9,
+        sub_len: 1.7,
+        sub_drive: 2.6,
+    },
+    Family {
+        // Distorted on purpose. Rage is the loudest thing in this list.
+        id: "rage-default",
+        name: "Rage Default",
+        seed: KIT_SEED ^ 0x22,
+        brightness_hz: 18_000.0,
+        drive: 3.2,
+        body_hz: 70.0,
+        sub_hz: 43.7,
+        sub_len: 1.2,
+        sub_drive: 4.0,
+    },
+    Family {
+        // Soft, warm and slightly dull — plugg is a lullaby with 808s under it.
+        id: "plugg-default",
+        name: "Plugg Default",
+        seed: KIT_SEED ^ 0x33,
+        brightness_hz: 11_000.0,
+        drive: 1.0,
+        body_hz: 120.0,
+        sub_hz: 40.0,
+        sub_len: 1.6,
+        sub_drive: 1.6,
+    },
+    Family {
+        // ⚠ 8 kHz is not a guess: the SP-1200 sampled at 26 kHz, so there is
+        // nothing above ~8 kHz on a record made on one. That ceiling IS the
+        // boom-bap drum sound, more than any single sample choice.
+        id: "boom-bap-default",
+        name: "Boom Bap Default",
+        seed: KIT_SEED ^ 0x44,
+        brightness_hz: 8_000.0,
+        drive: 1.9,
+        body_hz: 110.0,
+        sub_hz: 49.0,
+        sub_len: 0.8,
+        sub_drive: 1.8,
+    },
+    Family {
+        // Acoustic and open: nothing driven, full top, and a real ride.
+        id: "country-default",
+        name: "Country Default",
+        seed: KIT_SEED ^ 0x55,
+        brightness_hz: 20_000.0,
+        drive: 1.0,
+        body_hz: 0.0,
+        sub_hz: 55.0,
+        sub_len: 0.7,
+        sub_drive: 1.0,
+    },
+    Family {
+        // Smooth and rounded. R&B keeps the air but never bites.
+        id: "rnb-default",
+        name: "R&B Default",
+        seed: KIT_SEED ^ 0x66,
+        brightness_hz: 16_000.0,
+        drive: 1.0,
+        body_hz: 100.0,
+        sub_hz: 46.2,
+        sub_len: 1.1,
+        sub_drive: 1.3,
+    },
+    Family {
+        // Bright and punchy — jerk and west-coast club records are all transient.
+        id: "club-default",
+        name: "Club Default",
+        seed: KIT_SEED ^ 0x77,
+        brightness_hz: 20_000.0,
+        drive: 1.6,
+        body_hz: 80.0,
+        sub_hz: 48.0,
+        sub_len: 0.9,
+        sub_drive: 2.0,
+    },
+    Family {
+        // Lo-fi and crushed, cowbell forward. Phonk is a cassette.
+        id: "phonk-default",
+        name: "Phonk Default",
+        seed: KIT_SEED ^ 0x88,
+        brightness_hz: 9_500.0,
+        drive: 3.6,
+        body_hz: 95.0,
+        sub_hz: 41.2,
+        sub_len: 1.3,
+        sub_drive: 3.4,
+    },
+    Family {
+        // Fast and tight: everything short, nothing woolly.
+        id: "dnb-default",
+        name: "Drum & Bass Default",
+        seed: KIT_SEED ^ 0x99,
+        brightness_hz: 18_000.0,
+        drive: 1.5,
+        body_hz: 60.0,
+        sub_hz: 36.7,
+        sub_len: 2.0,
+        sub_drive: 1.7,
+    },
+    Family {
+        // Clean and polished, nothing driven at all.
+        id: "pop-default",
+        name: "Pop Default",
+        seed: KIT_SEED ^ 0xAA,
+        brightness_hz: 19_000.0,
+        drive: 1.0,
+        body_hz: 0.0,
+        sub_hz: 55.0,
+        sub_len: 0.9,
+        sub_drive: 1.2,
+    },
+];
+
+/// Every percussion voice for a family, shaped by its tone.
+fn shaped(family: &Family, mut samples: Vec<f32>) -> Vec<f32> {
+    voices::shape(
+        &mut samples,
+        family.brightness_hz,
+        family.drive,
+        family.body_hz,
+    );
+    samples
+}
+
+fn build_kit(family: &Family) -> Vec<Voice> {
+    let seed = family.seed;
+    let mut kit = build_trap_kit_at(seed, family);
+    for voice in &mut kit {
+        // ⚠ The pitched voices are left alone. Shaping is a *drum* room; running
+        // a lead or a chord pad through boom-bap's 8 kHz ceiling would not read
+        // as an era, it would read as a broken instrument.
+        // ⚠ `subLow` joins the list for the same reason `sub` is on it: it is
+        // the 808's clean sine layer, and a room's high shelf applied to it
+        // would take the fundamental it exists to preserve.
+        if matches!(
+            voice.lane,
+            "melody" | "counter" | "bass" | "chords" | "sub" | "subLow"
+        ) {
+            continue;
+        }
+        voice.samples = shaped(family, std::mem::take(&mut voice.samples));
+    }
+    kit
+}
+
+fn build_trap_kit_at(seed: u64, family: &Family) -> Vec<Voice> {
     vec![
         Voice {
             name: "kick",
             lane: "kick",
-            samples: voices::kick(),
+            samples: voices::kick(seed),
             choke_group: None,
             root_note: None,
         },
         Voice {
             // E1 — the low end of the trap 808 register in research ch. 2.
             name: "808",
-            lane: "bass808",
-            samples: voices::eight_o_eight(41.2, 1.4, 2.2),
+            // The lane is `sub` since TASK-140 — it is the pitched sliding
+            // sub-bass, not the bass drum. The *file* stays `808.wav` because
+            // that is what the sound is called, whichever machine it came from.
+            lane: "sub",
+            samples: voices::eight_o_eight(family.sub_hz, family.sub_len, family.sub_drive),
             choke_group: Some(2),
             root_note: Some(28),
         },
         Voice {
             name: "snare",
             lane: "snare",
-            samples: voices::snare(KIT_SEED),
+            samples: voices::snare(seed),
             choke_group: None,
             root_note: None,
         },
         Voice {
             name: "clap",
             lane: "clap",
-            samples: voices::clap(KIT_SEED),
+            samples: voices::clap(seed),
             choke_group: None,
             root_note: None,
         },
         Voice {
             name: "closed-hat",
             lane: "closedHat",
-            samples: voices::closed_hat(KIT_SEED),
+            samples: voices::closed_hat(seed),
             choke_group: Some(1),
             root_note: None,
         },
         Voice {
             name: "open-hat",
             lane: "openHat",
-            samples: voices::open_hat(KIT_SEED),
+            samples: voices::open_hat(seed),
             choke_group: Some(1),
             root_note: None,
         },
         Voice {
             name: "rim",
             lane: "rim",
-            samples: voices::rim(KIT_SEED),
+            samples: voices::rim(seed),
             choke_group: None,
             root_note: None,
         },
         Voice {
             name: "perc",
             lane: "perc",
-            samples: voices::perc(KIT_SEED),
+            samples: voices::perc(seed),
             choke_group: None,
             root_note: None,
+        },
+        // ── The percussion lanes (TASK-140) ──────────────────────────────
+        //
+        // ⛔ **Without these the new lanes are silent, and every test still
+        // passes.** `drums.rs` gained eight lanes; `uk-drill` writes
+        // `woodblock`, `country-train` and `west-coast-club` write
+        // `tambourine`, and `trap` has been asking for `snap` since it
+        // shipped. `Kit::pad_for` answers `None` for a lane with no pad and
+        // the trigger is simply skipped — which is the readout-that-lies
+        // failure this project keeps recording.
+        //
+        // ⚠ **These are defaults.** A sample dropped on a lane replaces the
+        // one below it and this must not sound underneath — see TASK-22.
+        Voice {
+            name: "off-snare",
+            lane: "offSnare",
+            samples: voices::off_snare(seed),
+            choke_group: None,
+            root_note: None,
+        },
+        Voice {
+            name: "snap",
+            lane: "snap",
+            samples: voices::snap(seed),
+            choke_group: None,
+            root_note: None,
+        },
+        // ⚠ The cymbals share choke group 3 rather than the hats' group 1: a
+        // ride and a crash ring into each other on a real kit, but neither is
+        // closed by a hi-hat pedal and choking them with the hats would cut
+        // every cymbal the moment a closed hat lands — which, on a 16th hat
+        // stream, is always.
+        Voice {
+            name: "ride",
+            lane: "ride",
+            samples: voices::ride(seed),
+            choke_group: Some(3),
+            root_note: None,
+        },
+        Voice {
+            name: "crash",
+            lane: "crash",
+            samples: voices::crash(seed),
+            choke_group: Some(3),
+            root_note: None,
+        },
+        Voice {
+            name: "tom",
+            lane: "tom",
+            samples: voices::tom(seed),
+            choke_group: None,
+            root_note: None,
+        },
+        Voice {
+            name: "shaker",
+            lane: "shaker",
+            samples: voices::shaker(seed),
+            choke_group: None,
+            root_note: None,
+        },
+        Voice {
+            name: "tambourine",
+            lane: "tambourine",
+            samples: voices::tambourine(seed),
+            choke_group: None,
+            root_note: None,
+        },
+        Voice {
+            name: "cowbell",
+            lane: "cowbell",
+            samples: voices::cowbell(seed),
+            choke_group: None,
+            root_note: None,
+        },
+        Voice {
+            name: "woodblock",
+            lane: "woodblock",
+            samples: voices::woodblock(seed),
+            choke_group: None,
+            root_note: None,
+        },
+        // ── The lanes TASK-043A added ────────────────────────────────────
+        //
+        // ⛔ **All sixteen, because `every_lane_the_drum_generator_writes_has_
+        // a_pad_to_play_it` walks `ALL_LANES` and a lane with no pad is
+        // silence.** That test is the reason this block exists at all: TASK-140
+        // added eight lanes without pads and every one of them generated
+        // nothing while the suite stayed green.
+        //
+        // ⚠ **Defaults, as the block above says.** A sample dropped on a lane
+        // replaces the one here and this must not sound underneath.
+        Voice {
+            name: "sub-kick",
+            lane: "subKick",
+            samples: extra::sub_kick(seed),
+            choke_group: None,
+            root_note: None,
+        },
+        Voice {
+            name: "ghost-snare",
+            lane: "ghostSnare",
+            samples: extra::ghost_snare(seed),
+            choke_group: None,
+            root_note: None,
+        },
+        // ⚠ **The pedal hat joins the hats' choke group, and the other two
+        // hat voices are why.** A real hi-hat is one instrument: closing it
+        // with the foot has to cut an open hat, and an open hat has to cut it.
+        Voice {
+            name: "pedal-hat",
+            lane: "pedalHat",
+            samples: extra::pedal_hat(seed),
+            choke_group: Some(1),
+            root_note: None,
+        },
+        // The bell is part of the ride, so it shares the cymbals' group.
+        Voice {
+            name: "ride-bell",
+            lane: "rideBell",
+            samples: extra::ride_bell(seed),
+            choke_group: Some(3),
+            root_note: None,
+        },
+        Voice {
+            name: "tom-high",
+            lane: "tomHigh",
+            samples: extra::tom_high(seed),
+            choke_group: None,
+            root_note: None,
+        },
+        Voice {
+            name: "tom-low",
+            lane: "tomLow",
+            samples: extra::tom_low(seed),
+            choke_group: None,
+            root_note: None,
+        },
+        Voice {
+            name: "perc-2",
+            lane: "perc2",
+            samples: extra::perc2(seed),
+            choke_group: None,
+            root_note: None,
+        },
+        Voice {
+            name: "clave",
+            lane: "clave",
+            samples: extra::clave(seed),
+            choke_group: None,
+            root_note: None,
+        },
+        Voice {
+            name: "conga",
+            lane: "conga",
+            samples: extra::conga(seed),
+            choke_group: None,
+            root_note: None,
+        },
+        Voice {
+            name: "bongo",
+            lane: "bongo",
+            samples: extra::bongo(seed),
+            choke_group: None,
+            root_note: None,
+        },
+        Voice {
+            name: "timbale",
+            lane: "timbale",
+            samples: extra::timbale(seed),
+            choke_group: None,
+            root_note: None,
+        },
+        Voice {
+            name: "triangle",
+            lane: "triangle",
+            samples: extra::triangle(seed),
+            choke_group: None,
+            root_note: None,
+        },
+        Voice {
+            name: "riser",
+            lane: "riser",
+            samples: extra::riser(seed),
+            choke_group: None,
+            root_note: None,
+        },
+        Voice {
+            name: "impact",
+            lane: "impact",
+            samples: extra::impact(seed),
+            choke_group: None,
+            root_note: None,
+        },
+        Voice {
+            name: "reverse",
+            lane: "reverse",
+            samples: extra::reverse(seed),
+            choke_group: None,
+            root_note: None,
+        },
+        // ⛔ **Pitched, so it sits with the pads below rather than the drums
+        // above.** `subLow` is the clean sine under the distorted 808 and it
+        // follows the session key; a drum pad with no root would play it at one
+        // fixed frequency whatever the song was in.
+        Voice {
+            name: "sub-low",
+            lane: "subLow",
+            samples: extra::sub_low(family.sub_hz, family.sub_len),
+            choke_group: None,
+            root_note: Some(28),
         },
         // ── The pitched pads (TASK-131) ──────────────────────────────────
         //
@@ -121,7 +538,7 @@ fn build_trap_kit() -> Vec<Voice> {
             // C6 — the middle of the 72–96 lead register.
             name: "lead",
             lane: "melody",
-            samples: voices::pluck(1046.5, 1.1, KIT_SEED),
+            samples: voices::pluck(1046.5, 1.1, seed),
             choke_group: None,
             root_note: Some(84),
         },
@@ -152,7 +569,13 @@ fn build_trap_kit() -> Vec<Voice> {
     ]
 }
 
-fn write_kit(out_dir: &Path, id: &str, name: &str, voices: Vec<Voice>) -> std::io::Result<()> {
+fn write_kit(
+    out_dir: &Path,
+    id: &str,
+    name: &str,
+    seed: u64,
+    voices: Vec<Voice>,
+) -> std::io::Result<()> {
     let dir = out_dir.join(id);
     fs::create_dir_all(&dir)?;
 
@@ -188,7 +611,7 @@ fn write_kit(out_dir: &Path, id: &str, name: &str, voices: Vec<Voice>) -> std::i
         "sampleRate": wav::SAMPLE_RATE,
         "bitDepth": 24,
         "generatedBy": "kitgen",
-        "seed": KIT_SEED.to_string(),
+        "seed": seed.to_string(),
         "license": "CC0-1.0",
         "notice": "Every sample here is synthesized from oscillators and filtered \
     noise by tools/kitgen. No recorded material is used, so the kit carries no \
@@ -213,12 +636,26 @@ fn main() -> ExitCode {
             .unwrap_or_else(|| "data/kits".to_string()),
     );
 
-    println!("trap-default -> {}", out_dir.join("trap-default").display());
-    match write_kit(&out_dir, "trap-default", "Trap Default", build_trap_kit()) {
+    for family in FAMILIES {
+        println!("\n{} -> {}", family.id, out_dir.join(family.id).display());
+        if let Err(error) = write_kit(
+            &out_dir,
+            family.id,
+            family.name,
+            family.seed,
+            build_kit(family),
+        ) {
+            eprintln!("kitgen: {}: {error}", family.id);
+            return ExitCode::FAILURE;
+        }
+    }
+
+    match Ok::<(), std::io::Error>(()) {
         Ok(()) => {
             println!(
-                "\nok: kit written. Audition before committing — these are the sounds a \
-new user hears first."
+                "\nok: {} kits written. Audition before committing — these are the sounds a \
+new user hears first.",
+                FAMILIES.len()
             );
             ExitCode::SUCCESS
         }

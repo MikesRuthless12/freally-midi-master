@@ -81,7 +81,14 @@
      instead of the notes is the first thing anyone hits otherwise. */
   user-select: none;
   touch-action: none;
-  cursor: crosshair;
+  /* ⛔ **A plain pointer, not `crosshair`.** Mike, 2026-08-06: *"i do not want
+     the '+' cursor for the piano rolls, only the '[' and ']' cursors for
+     resizing notes and a regular mousepointer."* A crosshair over empty grid is
+     the cursor a *drawing* tool wears, and it promised an interaction this roll
+     does not offer — clicking empty space selects nothing, it does not add a
+     note. The hover handler in `PianoRoll.tsx` sets the other three; this is
+     what shows before the pointer has been anywhere. */
+  cursor: default;
 }
 
 /* The canvas's text alternative uses the shared `.visually-hidden` in

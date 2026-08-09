@@ -12,7 +12,609 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added — the melody stops quoting other people, every genre gets its own voice, and the hats talk, 2026-08-08
+
+- **⛔ A novelty guard, so a generated melody is not a hook somebody already
+  owns.** Every melody and countermelody is screened against a bundled table of
+  well-known contours before you ever hear it, and a take that matches is thrown
+  away and drawn again — up to three times, then the screen loosens rather than
+  refusing to give you notes. It costs under a millisecond and you will normally
+  never know it ran. **Nothing in the table is a melody**: it holds one-way
+  fingerprints of *contours* — where a line moved and how long it waited — and
+  there is no way back from one to a note. Transposing a hook does not hide it,
+  and playing it staccato does not either.
+- **Every genre now has its own melody, countermelody and chords**, instead of
+  five of them falling back on a shared default. NY drill's bells, phonk's
+  cowbell lead with its minor-second menace, pluggnb's chord-tone arps and west
+  coast's four-note plucky riff are each written from the research rather than
+  inherited. Six genres that have no 808 — boom bap, country, liquid DnB, NY
+  drill, 2000s pop and 2000s R&B — got a real bassline to go with it.
+- **⛔ Hi-hat fills.** The hat is where trap, drill and plugg do their talking,
+  and now it does: a phrase-end figure that breaks the stream and hands over to
+  the next bar. Five figures — a roll, a stutter, a triplet burst, a rising ramp,
+  or a **gap**, the hat stopping dead — landing where the genre says, every two,
+  four or eight bars. And a one-press **add fill** on the hat lane in the grid,
+  which writes the same figure in the same place the generator would have.
+- **Click the piano roll's ruler to move the playhead.** The drum grid and the
+  song timeline already did; the four melodic generators had no way to move the
+  transport at all. Dragging on the ruler still sets the loop brace — a click is
+  a seek, a drag is a brace, and a click no longer leaves a one-step loop behind
+  it.
+- **⛔ Solo, on every drum lane.** Beside the mute, and it does what solo does:
+  everything else goes quiet while your notes still reach your DAW untouched. A
+  lane you muted stays muted through it, so switching solo off cannot leave
+  something audible you had deliberately silenced.
+- **Click a lane's name to hear that drum on its own** — which pad am I about to
+  edit — without soloing anything or pressing play.
+- **A roll palette on every step.** Right-click any cell in the drum grid and
+  pick 2, 3, 4, 6 or 8 hits inside it. The keyboard chords were already there;
+  nothing on screen said so.
+
+- **⛔ Lock a drum so a re-roll cannot touch it.** Click the padlock on any
+  lane — or press `L` with the row focused — and Generate rebuilds everything
+  else around it, note for note. `R` re-rolls, `G` generates, `Shift+G`
+  generates every part, and `1`–`6` pick a generator.
+- **⛔ A pattern library that outlives the project.** Name something you made
+  and it is there next time, in any song and any DAW — **saved as notes, with no
+  kit**, so you can load it and put whatever sounds you like under it. Each one
+  is its own file, so a bad save costs one loop rather than the shelf.
+- **⛔ Every take you have made this session, and a way back to any of them.**
+  ◀ and ▶ walk your generations — per generator, counted from the first, with no
+  cap — and stepping back brings the **whole setup**: the artist, the mood, the
+  seed, the bars and the pins. It shows the tempo and key that were actually
+  used, which is not always what you pinned.
+- **⛔ Sixteen more drums.** Sub kick, ghost snare, pedal hat, ride bell, high
+  and low toms, clave, conga, bongo, timbale, triangle, a second perc, an 808
+  sub layer, and riser / impact / reverse. Every row now names its instrument
+  and **can be switched to any drum the kit is not already using**.
+- **The roster tells you what something is before you generate.** A badge says
+  artist or genre, and a pane under the list gives the era, the genres and what
+  that artist *tends to* — tempo, key, half-time, how many moods.
+
+### Changed
+
+- Three golden snapshots moved (`trap-7-4bar`, `trap-2024-8bar`,
+  `uk-drill-7-4bar`): trap and UK drill now author a hi-hat fill, so their
+  patterns changed on purpose. Diff read before regenerating.
+- `ny-drill`, `liquid-dnb`, `country-train` and `boom-bap` play different
+  basslines than they did, because they now author their own instead of
+  inheriting one. `pop-smoke` gets its own on top of NY drill's.
+- A fourth golden snapshot moved (`trap-2024-8bar`): one closed hat sat on top
+  of an open hat and is gone, and every hat after it in the lane draws a
+  different velocity because `humanize` walks a lane in note order. Diff read —
+  the removed note is at tick 14880, where the open hat is.
+
+### Fixed — what the review found, 2026-08-09
+
+Fifteen findings survived independent verification. The ones a producer would
+have hit, worst first:
+
+- **⛔⛔ Opening the pattern library could take the whole DAW down.** The preview
+  histogram divided by a clip length computed from the saved file's own `ppq`
+  and meter, and those numbers arrive as whatever survived being backed up,
+  synced or copied between machines — an unlucky pair divided by zero, and the
+  plugin aborts rather than unwinds. One unreadable file now costs you that
+  file, which is the entire reason each pattern is its own file.
+- **⛔⛔ Saving a pattern could silently delete a different one.** "Take 1" and
+  "Take-1" became the same filename, so the second save replaced the first with
+  no warning and no way back. Saving over *your own* name still replaces it —
+  that is the point — but two different names now keep two different files.
+- **⛔⛔ A locked lane could vanish from the saved project.** Lock the hats you
+  drew, press Generate, save, reopen: the clip was rebuilt from the seed and
+  your hats were gone. A generation with a lock in it is no longer the seed's
+  own output, so it is written into the project like any other edit.
+- **⛔ A locked lane carried notes past the end of a shorter clip.** Lock the
+  kick on eight bars, drag down to four, Generate — the grid drew four clean
+  bars while the export played hits in bars five to eight that nothing on
+  screen had ever shown you.
+- **⛔ Soloing a drum row silenced the melody, countermelody, bass and chords.**
+  Solo is offered on the drum grid; none of those four editors has a mute or a
+  solo on it, so the preview went quiet with nothing to explain it and nothing
+  to undo it. A solo silences what it is a solo among.
+- **⛔ A hi-hat fill could put a closed hat on top of a sounding open hat.** One
+  hi-hat cannot be open and shut at the same instant — the hat engine has always
+  removed the closed hit underneath an open one, and both the roll and the fill
+  wrote fresh hats over that decision afterwards. The rule now lives where the
+  hat lane is finished rather than inside each thing that decorates it.
+- **⛔ Song Mode never ran the novelty guard.** It was installed on the path the
+  Melody tab uses, and Song Mode calls the generators directly — so every melody
+  and countermelody in every arrangement went unscreened while the note above
+  said otherwise. It is screened now, and a test asserts the wiring rather than
+  the output, because with the shipped roster screened and unscreened output are
+  identical and the obvious test could not fail.
+- **⛔ A hand-added hi-hat fill landed 40 ticks early — ahead of the beat, every
+  time.** "Add a fill" reached for the same window the grid uses to decide which
+  cell a *humanized* note belongs to, and that window deliberately starts a
+  little before the beat so a hit nudged early still reads as on it. Right for
+  reading, wrong for writing.
+- **And it cleared the wrong amount of the bar in any meter that is not x/4.**
+  A beat is four sixteenths in 4/4 and two in 6/8; the fill always took four, so
+  in 6/8 it destroyed a beat of hats nobody asked it to touch.
+- **Stepping back through your takes gives you that take.** Recall regenerated
+  through the ordinary Generate path, so it spliced in whatever was locked *now*
+  and rebuilt at whatever tempo the session had drifted to — while the counter
+  beside it displayed the take you asked for. It now restores the tempo, key and
+  meter the take was actually written at, and reloads the artist's own defaults
+  when the recall crosses artists.
+- **The 808's sub layer exports on its own MIDI channel**, instead of sharing
+  the 808's and arriving in the DAW as one merged instrument.
+- **The lane picker no longer offers the two pitched 808 lanes as drum slots** —
+  moving a perc row onto one sent its hits out as bass notes.
+- **A locked lane survives Generate All.** The lock was consulted by Generate
+  but not by Shift+G.
+- **Auditioning a drum row plays that row.** Six lanes — including `sub` and
+  `sub low`, which are two different rows on the grid — shared one General MIDI
+  note, so clicking one could sound another.
+- **`L` no longer toggles a lane lock while you are typing**, and neither do the
+  variation arrows.
+- **A saved pattern and a saved preset agree on what a file is called.** Their
+  two name-to-filename functions carried identical comments and different
+  constants.
+
+Two gates were reporting success over less than they claimed, and are fixed
+rather than merely noted: the TypeScript lane list had drifted to 21 of the
+engine's 37, so the check that every lane has a name in all 18 languages had
+been passing over sixteen it never saw; and the solo test *required* the
+melodic parts to go silent, which is how that behaviour survived review. Both
+now derive their list from the generated bindings or from the engine itself.
+
+### Added — the sample browser you can actually use, and clips that look like clips, 2026-08-07
+
+- **⛔ The sample browser is on screen.** Add your folders once and they come
+  back with the project. Browse them, click a sample to see its waveform, and
+  **drag it straight onto a drum lane**. The whole panel resizes — drag its edge
+  and the arrangement shrinks to match, so you can read long file names without
+  giving up the middle of the app. Everything behind this shipped last session
+  with no way to reach it.
+- **An audition player under the browser.** Play, pause and stop — stop goes
+  back to the beginning, pause holds where it is. **Click anywhere in the
+  waveform to play from there.** The part you have already heard is filled in
+  behind the wave, a marker follows the playhead, the time reads out of the
+  total, and there is a loop toggle. **Left arrow plays the sample backwards**,
+  right arrow puts it forward again.
+- **⛔ A clip in the arrangement looks like a clip.** Every one now draws its own
+  notes — where they land and how high they sit — instead of a name over a
+  shaded box. Two clips of the same part no longer look identical.
+- **Each clip says what it can be handed over as**, MIDI or audio, and **can be
+  dragged into your DAW on its own**. Before this you could drag a whole part or
+  a whole arrangement, and the one clip you were looking at had no handle.
+- **⛔ Clips resize.** Drag a clip's right-hand edge and that row loops on fewer
+  bars inside its section — a four-bar idea played as a two-bar loop — without
+  moving the section or any other part. What you hear and what you export agree.
+- **⛔ The arrangement view is laid out like a DAW.** The track names, mute, solo
+  and lock sit in a fixed column down the left, and only time scrolls past them.
+  They used to float on top of the clips: at bar 1 the words "DRUMS" sat over
+  the first clip of every row, and scrolling dragged them across whatever was
+  underneath. The rows are taller, and the clips are solid enough to read as
+  blocks laid out in time.
+
+### Fixed — what three reviews found, 2026-08-07 (later still)
+
+- **⛔ A resized clip's longer notes rang into its own next repeat**, so a DAW
+  cut them dead against the note that had already re-struck — and the last
+  repeat's tail could kill a note in the following section.
+- **⛔ Hi-hats lost every ghost note outside 4/4.** In 6/8, 12/8 and any x/16
+  meter the whole stream came out at one flat velocity, ignoring the quiet
+  in-between hits every artist is written with.
+- **⛔ Percussion set to "offbeat" went completely silent** in x/16 and x/32
+  meters — no notes in the grid, in playback or in the exported stem.
+- **A resized clip drew notes it does not play.** The timeline showed the whole
+  pattern squeezed into every repeat.
+- **The track names, mute, solo and lock stopped lining up with their rows**
+  once the arrangement scrolled far enough to need it.
+- **Re-rolling a section, or copying, pasting or dragging a clip, threw away the
+  loop length you had set on it.**
+- **Removing the folder you were browsing left the preview player still showing
+  a sample it could no longer reach** (Windows only).
+- **The bassline could still mirror the wrong kick** if you changed the bars,
+  pinned a tempo or switched mood between generating the drums and the bass.
+- **The selected language in Settings had no highlight**, and the shortcuts
+  panel was partly unstyled.
+
+### Fixed — the audition player, 2026-08-07 (later)
+
+- **⛔ Auditioning a sample was silent whenever the Audio switch was off.** Play
+  lit up, the player said it was playing, and the playhead sat frozen at 0:00
+  with nothing saying why. Turning off audio means "send MIDI to my own sampler,
+  don't double it" — it was never meant to stop the file browser playing the file
+  you just clicked.
+- **Clicking a paused waveform moved the playhead and then undid itself** half a
+  second later.
+- **Pressing Play left the playhead sitting still for up to half a second**,
+  while the sample was already sounding. On a one-shot shorter than that the
+  whole audition could finish before the marker moved at all.
+
+### Fixed — 2026-08-07 (later)
+
+- **⛔ The entire arrangement view was drawing unstyled**, and had been since it
+  was written. Every colour it asked for was a name this app does not define, so
+  the clips had no fill and no border, the section band had no background, the
+  grid lines were invisible and the playhead was a transparent strip. It looked
+  like a design nobody had finished.
+- **The bassline landed on kicks the drums were not playing.** A bass that
+  mirrors the kick — which is most of the trap and drill roster — was copying a
+  kick pattern rebuilt from the wrong seed. On boom-bap 13 of 13 bass notes used
+  to sit on a real kick; with the ordinary Generate-drums-then-Generate-bass
+  workflow that had fallen to 9, and on UK drill to 1 of 14.
+- **Percussion set to play "offbeat" played straight on the beat** in 6/8, 12/8
+  and every other x/8 meter — the layer meant to sit between the pulse doubled
+  it. UK drill, NY drill and Pop Smoke all ask for it.
+- **Six drum voices shipped with no way to hear them.** Ride, crash, tom, shaker
+  and cowbell were in the kit and in the lane list, and no artist had ever been
+  written to play one; the off-snare had the same problem. Boom-bap and liquid
+  drum & bass ride now, phonk and west-coast club have cowbells, the drill
+  family answers its snare, and country and 2000s R&B have shakers.
+- **The language you have selected in Settings had no highlight**, and its tick
+  was invisible.
+
+### Added — a real drum kit, a sample browser, and a kit per genre, 2026-08-07
+
+- **⛔ Your drums have more than five lanes now.** Off-snare, ride, crash, tom,
+  shaker, tambourine, cowbell and woodblock join the kick, snare, clap, hats,
+  rim, snap, perc and 808 — sixteen percussion voices, and which of them an
+  artist uses is part of that artist. Fifteen of the shipped models had already
+  been *written* with a percussion block; nothing had ever read it, so UK drill
+  had been asking for a woodblock since the day it was authored and getting
+  silence.
+- **⛔ Every genre gets its own kit.** Eleven families — trap, drill, rage,
+  plugg, boom-bap, country, R&B, club, phonk, drum & bass and pop — each with
+  its own tuning, top end and drive. Boom-bap's ceiling is 8 kHz because that is
+  what an SP-1200 could sample, and that missing top *is* the sound. Drill's sub
+  slides further; rage is distorted on purpose; country is open and undriven.
+  Eight artists had been naming the kit they wanted for months and all of them
+  were playing trap samples.
+- **The 808 lane is called Sub now**, because it is the pitched bass that
+  slides, not the bass drum — and you might load a 606, a 707 or a 909 into it.
+  Your saved projects open exactly as before.
+- **Finger snaps make a sound.** The lane has existed since one-shots shipped
+  and never had a voice.
+- **A keyboard-shortcuts panel**, on **?** or **F1**, grouped by what the
+  shortcuts do. **Space plays and pauses** — which it did not before, anywhere.
+- **⛔ Generate varies the take without changing the record.** Press Generate on
+  the drums, switch to the melody, press it again: you get a different melody,
+  written against the *same* key and chord progression as the drums. Before
+  this, the second press quietly drew an unrelated harmony and the two parts had
+  never been written against each other — they were each correct and did not
+  belong together.
+- **A sample browser** (the plugin's side of it). Add your sample folders once
+  and they come back with the project; browse them, and drop a sample straight
+  onto a drum lane. It reads the waveform for a preview player, and it will not
+  browse outside the folders you added.
+
+### Fixed — 2026-08-07
+
+- **A loop brace you dragged was ignored whenever a second generator was
+  switched on** — which is the default. It worked with one part playing and
+  silently did nothing with two.
+- **Play and Stop were lit or dark at the wrong times.** Generate drums, click
+  the Melody tab, and Play went dark while the drums were armed and would have
+  sounded. Switch every part off and Play stayed lit — pressing it reported
+  playing forever with a marker that never moved.
+- **Clicking a part switch on the Song tab silenced the whole arrangement**,
+  with the timeline still on screen and Play still lit.
+- **The position readout counted the wrong clip.** Four bars of drums beside
+  eight of melody read 1.1 to 5.1 across eight bars of real time.
+- **Loop came back on after reopening the plugin window**, whatever you had set
+  it to.
+- **The KIT and STEMS panels drew over each other in a short window** once the
+  kit grew past thirteen rows.
+
+### Added — play the generators together, and the 808s slide, 2026-08-06
+
+- **Play several generators at once, or any one alone.** Each generated part
+  gets a switch beside the tab strip; Play sounds every one that is on. A
+  schedule holds a single clip, so the parts are merged into one before it —
+  which is why this could not be done by pressing Play on each tab in turn.
+- **⛔ The transport moved to the top of the app**, to the right of the
+  generator tabs, beside the switches it acts on. The bottom bar keeps the
+  position readout, the meter and the view controls.
+- **⛔ The plugin plays without the DAW rolling.** Play, Stop and Pause now
+  drive the plugin's *own* preview transport inside a host — auditioning a beat
+  no longer means arming a track and starting the whole project. Starting the
+  DAW's transport takes it straight back, so the two can never both play at
+  once. Previously Play was disabled in a plugin window and said to press play
+  in your DAW instead.
+- **⛔ The Loop button works.** It was permanently pressed and disabled, with a
+  tooltip claiming playback always looped — which was not even true unless a
+  loop brace had been dragged on the roll. It toggles now: on repeats the 4 or 8
+  bars, off runs to the end and stops. A brace you have dragged still wins. It
+  lights up when it is on, rather than announcing its state only to a screen
+  reader.
+- **⛔808 slides are audible.** The generators have written slides for a long
+  time and the exported MIDI has always carried them, but every rendered
+  WAV — exported, dragged into a DAW, or heard in the plugin's own
+  playback — played them as flat notes. The pitch now travels, holding the
+  starting note for the first half and gliding across the second, which is
+  exactly where the MIDI puts the change. The same code serves the preview, the
+  export and the drag, so a stem sounds like the `.mid` beside it.
+
+### Fixed — the drum lanes, the KIT panel, and a short right rail, 2026-08-06
+
+- **⛔ "All Tracks" for drum audio was labelled the opposite of how it reads.**
+  It gave one separate file per lane, while a second entry called "As one clip"
+  gave the mix — so choosing "All Tracks" to get everything together produced
+  the opposite. There is now one entry per drum lane, exactly as the MIDI menu
+  has, and **"All Tracks" is every lane mixed into a single file**. MIDI still
+  offers no whole-kit file, deliberately.
+- **⛔ The KIT panel stopped drawing on top of the STEMS panel.** In a short
+  window the KIT section collapsed to nothing while its contents kept their full
+  height, so its text was painted straight over the panel below it as an
+  unreadable smear.
+- **The KIT panel is guarded against telling you there is no kit while one is
+  playing** — the fault was fixed earlier, but nothing tested it, which is how it
+  shipped the first time.
+
+### Fixed — the editor window sizes itself correctly, 2026-08-06
+
+- **⛔ The black band around the UI is gone.** A larger window left dead space
+  around the app, in the standalone and in a hosted VST3 alike. The editor's own
+  window was being sized from a display scale read at a different moment from the
+  one the rest of the geometry used, so the app ended up two-thirds of the window
+  that framed it and the frame's background painted the difference.
+- **⛔ The size button offers two sizes, not four.** Pressing it grew the window
+  *twice* before coming back, out of a list that has only ever held two entries.
+  The display scale was read fresh on every press, and it changes underneath the
+  editor: it reads 100% until the window system has been told the process is
+  DPI-aware, which happens *after* the editor has already been sized. So each of
+  the two presets quietly meant two different windows. The scale and the usable
+  desktop are now each read once and pinned together for the session, so a preset
+  is one window for as long as the plugin is open.
+- **The editor opens larger, and the button makes it larger still.** The two
+  sizes are now 1:1 and a step above it, so the first press grows the window and
+  the second returns it — rather than the only choice being *smaller* than the
+  default.
+- **⛔ The Stems panel no longer disappears at the default window size.** The
+  right rail opens at 1440px and the page lays out at exactly 1440px, so the two
+  numbers were equal and the rail had no margin at all: the width arrives through
+  a zoom round-trip that landed a single pixel short, and the whole rail — Stems,
+  Kit, Session, Presets — was gone at every size except the one that happened to
+  zoom by exactly 1. It now has room to spare, and neither size zooms the page.
+- **⛔ The per-lane drag-out menu is no longer cut in half.** Opening MIDI on the
+  Drums row showed a list that ran into the panel below it and stopped, so the
+  lower drum lanes could not be dragged out at all. The menu was being clipped by
+  the scrolling panel it lived in; it now escapes it, still opening downward, and
+  lifts only if it would otherwise run off the bottom of the screen.
+
+### Fixed — six defects Mike found running the plugin in Ableton, 2026-08-06
+
+- **⛔ Generate really does generate now.** Pressing Generate repeatedly returned
+  the *same beat* forever, which made the product look like it held one loop per
+  artist. The engine's chosen seed was echoed back into the seed box and then
+  re-sent on the next press. The box now distinguishes **a seed you chose** from
+  **a seed the engine picked and is showing you** — typing pins it, clearing
+  unpins it, and the padlock says which mode it is in. Unpinned, every press
+  rolls a new one; **Generate all** draws one fresh seed and shares it across all
+  five parts, because `parts.rs` only guarantees the parts agree on a shared one.
+- **⛔ Dropped audio no longer plays at the wrong tempo.** A dragged `.wav`
+  carried no tempo at all, so Ableton warped it by guess — a 140 BPM loop played
+  at 96 in a 120 project. WAVs now carry an `acid` chunk with the tempo, the beat
+  count and the meter, which is what loop libraries use and what both Ableton and
+  FL read. MIDI was always fine.
+- **The Stems panel opens itself** the first time a session generates anything.
+  It remembered being collapsed across reloads, and it holds the only way to get
+  a pattern out of the plugin — so collapsing it once hid the drag rows for good.
+- **Two window sizes, not three.** The largest left dead black space around the
+  UI. The deeper cause is fixed too: the window size and the page zoom are one
+  number applied by two different routes, and the page now measures the window it
+  actually got rather than trusting the one it asked for.
+- **⛔ The controls stopped sitting on top of the velocity lane.** Found while
+  fixing the above, and live for months: the Generate/seed/bars row was an
+  absolutely-positioned column floating over the editor, so a velocity cap
+  underneath it could not be dragged at all. It is below the editor now.
+- **The piano roll's closing bar number is visible.** A four-bar clip is ruled
+  1–5 and an eight-bar clip 1–9, the way a DAW counts. The line was always drawn;
+  its *number* was painted three pixels past the edge of the canvas.
+
+### Added
+
+- **Drag each instrument out on its own.** Clicking a part's **MIDI** or
+  **Audio** chip opens a menu of every instrument actually playing in it, each
+  its own drag handle, with **All Tracks** last — every lane at once, as separate
+  files, in one gesture. Mike, 2026-08-06: *"just dragging the hihats out like
+  Drum Monkey"*. **All Parts** does the same for melody, bass, counter and chords
+  together.
+  - ⚠ **MIDI and Audio offer different lists, deliberately.** A lane that was
+    written but that the kit cannot play drags as MIDI — the notes are real, and
+    a producer routing them into Battery wants them — but not as audio, which
+    would render silence.
+  - **Ctrl decides the layout** on All Tracks: held, the clips stack; released,
+    they land one after another. The modifier is read at the *drop*, so pressing
+    it during the drag counts.
+- **The whole arrangement drags out as audio**, which the plugin used to refuse
+  outright. Rendering a record is seconds of work, so it now reports how far it
+  has got and stops the moment the gesture is abandoned — that was the missing
+  piece, not the rendering.
+- **Clips can be dragged around the arrangement.** Every other DAW verb was
+  already there — delete, copy, cut, paste, clone, resize — and rearranging meant
+  copy, paste, then go back and delete the original.
+- **The plugin window comes back after a drag.** Dragging into Ableton's
+  Arrangement view made it disappear until you switched views and reopened it
+  by hand.
+- **Ctrl + ↑/↓ transposes a semitone, Shift + ↑/↓ an octave**, on one note or a
+  whole selection.
+- **A drag source for macOS and Linux.** Linux uses GTK with `text/uri-list`;
+  macOS uses `NSDraggingSession`. ⚠ **Neither has been dropped into a real DAW
+  yet** — Linux compiles and macOS has only ever been compiled by CI. They are
+  switched on so they can be tested, not because they are proven.
+
+- **Drag a part straight out of the plugin and onto a DAW track
+  (TASK-063C / FMM-S03).** Mike, 2026-08-05: *"you need to be able to drag each
+  generator's midi or audio from the generator to the DAW and ensure it shows a
+  preview of what you are dragging"* … *"same with the song arrangement"*. Every
+  generated part has a **MIDI** and an **Audio** handle in the right rail; with
+  **Per lane** on, the drum part becomes one handle per lane, so just the hats
+  or just the snares can go out on their own. The whole arrangement drags too.
+  Files carry the name a producer would give them —
+  `trap - Snare - 140 BPM - C# Minor` — and a picture of the clip's own notes
+  rides on the cursor the whole way into the DAW.
+  - ⚠ **This shipped Windows-only and no longer is** — see the macOS and Linux
+    drag sources further up this release. Windows is the one a human has
+    actually dropped into Ableton.
+  - ⚠ **This shipped MIDI-only for arrangements and no longer is.** The reason
+    given — that a song needs progress to watch and a cancel to press — was
+    right, and it is now built rather than avoided.
+  - ⚠ Dropped files are spooled to your temp folder. **MIDI is copied into your
+    project by every DAW, so those are swept after a week — audio is
+    *referenced* by path, so those are never deleted.** Use your DAW's Collect
+    All and Save to keep a dropped loop for good.
+- **The drum grid is an editor (TASK-131G).** It was read-only and its own
+  header said so. Click a cell to place a hit or clear it; **Alt+click** clones
+  the previous bar of that lane; **Ctrl+2 … Ctrl+9** turn a cell into a tuplet —
+  a triplet, a quintuplet, whatever the digit says; **Delete** clears it. Edits
+  go through the same path the piano roll uses, so undo, arming and saving with
+  the project all come for free.
+  ⚠ The edits work on **ticks, never on cells**: a cell has already thrown away
+  where inside the 16th a hit sat, which is exactly what a tuplet is made of.
+- **Export the generated parts on their own, as MIDI or audio (TASK-131F).**
+  One file per part, or **one per lane** — so just the hats, or just the snares.
+  Files are named the way a producer would name them:
+  `trap - Snare - 140 BPM - C# Minor`.
+  ⚠ This is the *export* half — writing the files into a folder you pick. The
+  drag half landed alongside it (TASK-063C above) and shares the same naming
+  and the same bytes, deliberately: a loop you drag and the same loop you
+  export must be the same file.
+- **Every genre has its own harmony (TASK-040).** Twelve genres inherited their
+  chords from `_defaults` wholesale and all reached exactly 121 distinct chord
+  parts in 200 seeds. Each now authors its own progression families, harmonic
+  rhythms and voicings from the style research.
+
+
+- **Your own one-shot on any part (TASK-131B).** Click a lane in the KIT panel,
+  pick a sample, and that part plays it — drums lane by lane, plus melody,
+  countermelody, bassline and chords. WAV, AIFF, FLAC, MP3, M4A and OGG, decoded
+  by `symphonia`. The assignment is stored in the project as a **path**, the way
+  every DAW stores a sample reference, and is reloaded when the project reopens;
+  a file that has moved is reported rather than silently reverting.
+  ⚠ A one-shot on a melodic part inherits the placeholder's root note, so it
+  plays near its own pitch and moves by the melody's intervals rather than
+  jumping octaves. Detecting a sample's real pitch is TASK-052.
+  ⚠ `Lane::Snap` has never had a shipped pad, so it has always rendered silence;
+  assigning a one-shot to it is now the only way to hear that lane.
+- **Drum hits move in pitch (TASK-131D).** Rolls climb and fall in chromatic
+  semitones, by a span each artist authors — rage travels eight, Drake two, and
+  `country-train` none at all, because a train beat does not pitch its snare.
+  The plugin's own sampler now transposes percussion to match, so what the grid
+  shows is what you hear.
+
+### Changed
+
+- **Generation offers 4 or 8 bars.** Two is gone — there is not enough room in
+  two bars for the fills and turnarounds the models author, so it made every
+  artist sound the same. ⚠ A project saved at two bars still opens at two bars.
+- **The piano roll wears a plain pointer**, not a `+`. A crosshair is what a
+  drawing tool wears, and clicking empty grid selects rather than draws. Note
+  edges now show which end will move rather than one two-headed arrow.
+
+### Fixed — an xhigh code review of the above, 2026-08-06
+
+Fifteen verified defects in the work described on this page, all but one closed.
+Four of them would have shipped something broken to somebody.
+
+- **⛔ Dragging a clip in the arrangement could delete another one.** Select two
+  clips of the same part — two drums clips, or simply two whole sections, since
+  selecting a section selects every part in it — drag them, and only one
+  arrived: a section holds one clip per part, so the second overwrote the first
+  after both had already been lifted. The clip was gone with nothing on screen
+  saying so, and undo was the only way back. **A selection now keeps its shape**:
+  the clip you grabbed lands where you dropped it and the rest move with it, the
+  way a DAW does, clamped so nothing is pushed off the end.
+- **⛔ The Audio drag chips disappeared if you had ever collapsed the KIT panel.**
+  The panel was the only thing that loaded the kit, and a collapsed panel is not
+  rendered — so with KIT closed the Stems panel decided nothing could be played
+  and hid every Audio handle, permanently, while Export went on offering audio.
+- **⛔ A drum part could no longer be dragged out as one file.** Adding the
+  per-instrument menu turned the MIDI and Audio buttons into menu openers, and a
+  menu opener cannot be dragged. **"As one clip" is the first entry in the menu
+  now** — the whole kit on one DAW track, which is what those buttons used to do.
+- **⛔ Dropped audio played at the wrong tempo in 6/8, 9/8, 12/8 and 7/8.** The
+  tempo chunk counted a bar's beats with the numerator, but the audio is
+  measured in quarter notes: four bars of 6/8 declared 24 beats for 12 beats of
+  music, so Ableton warped the stem to half speed. That is the same defect the
+  chunk was added to fix, arriving through the meter picker instead.
+- **A trimmed clip dragged as "All Tracks" wrote silent files.** Every lane after
+  the first was pushed past the clip's own trim marks, so its notes fell outside
+  and the file arrived empty — eight files dropped into the DAW, seven of them
+  containing nothing.
+- **Pressing the padlock on a clip could move the clip.** With a few pixels of
+  hand movement the press became a drag: it locked, threw away the rest of your
+  selection, and could relocate the clip across a section boundary.
+- **The right rail reopened by itself.** Collapsing it with **K** and then
+  resizing the plugin window put it straight back, taking height off the
+  velocity lane.
+- **A second drag attempt was killed as "stopped making progress".** An
+  abandoned render kept reporting into the next one's progress bar, so the real
+  render's honest figures looked like no progress at all and the page cancelled
+  it ten seconds later — every time.
+- **A long render is refused everywhere, not just in one place.** Rendering past
+  fifteen minutes of audio is refused with a message; before, only the
+  arrangement drag said so and every other route quietly truncated.
+
+### Verified
+
+- **⛔ The macOS drag source is now checked by a compiler, from Windows.** It is
+  the one file no local build compiles, and it had **four errors and two
+  lint failures** — every one of which CI's macOS runner would have found one
+  push at a time. `cargo check --target aarch64-apple-darwin` type-checks Rust
+  for macOS without an Apple toolchain, because only *linking* needs one.
+  `docs/runbooks/macos-typecheck.md` is how. ⚠ It still proves nothing about
+  behaviour: no code here has spoken to a window server.
+- **The macOS and Linux drags no longer freeze the host.** Both started a drag
+  and then blocked the very event loop that had to run it — ten minutes of
+  frozen DAW and no file dropped. Windows was never affected; its drag is
+  genuinely modal, which is what made the mistake easy to make twice.
+- **The plugin passes both automated plugin validators, for the first time.**
+  `pluginval` at strictness level 5 (the maximum) against the VST3, and
+  `clap-validator` against the CLAP — **33 passed, 10 skipped, 1 failed**. The
+  skips are things this plugin genuinely does not implement (preset discovery,
+  64-bit audio, automatable parameters); the one failure is the validator's own
+  divide-by-zero, which it reports as "a bug in the validator".
+- **Linux is verified locally**, in Docker: the full Rust suite passes and the UI
+  suite is 155 of 156, the one failure being the first navigation against a
+  cold Vite server rather than anything in the app.
+- **Every feature is driven, asserted and photographed.** `npm run test:gallery`
+  writes `screenshots/gallery/` with an image per screen, per language, and per
+  feature — plus `FEATURES.md`, which lists what was proved and, just as
+  importantly, the seven things a browser structurally cannot reach.
 ### Fixed
+
+- **The KIT panel no longer lies (TASK-136).** It rendered eight hardcoded
+  disabled buttons and a static "No kit yet" while a twelve-pad kit was loaded
+  and audibly playing. It now draws a row per lane, read from the plugin: what
+  plays it, whether that is your sample or the shipped one, and which lanes have
+  no sound at all.
+- **Every artist wrote the same snare roll.** The fill was built from a
+  hardcoded `Roll::new(..).ramp(64, 120)` that read neither the model nor the
+  seed, so it was a pure function of the fill's length. Measured across the
+  roster: **six of the ten flagship trap artists produced a byte-identical
+  roll**, and every model reached only one to four distinct rolls in forty
+  seeds. Each artist now authors its own subdivisions, ramp range, jitter,
+  descent and gap probability, and the generator samples inside them. Every
+  model now clears twenty-five distinct fills, and no two artists collide on
+  more than one seed in two hundred.
+- **UK drill, NY drill and Pop Smoke wrote exactly one kick pattern, ever.** An
+  explicit `fourBarGrammar` returned `grammar[bar % len]` and never touched the
+  seed. A model may now author `grammarVariants` — several complete multi-bar
+  forms, one chosen per pattern — so the signature still reproduces exactly and
+  there is more than one of it. ⚠ Every variant stays inside the tresillo the
+  research describes; `drills_kick_form_is_the_tresillo_it_is_described_as`
+  sweeps two hundred seeds and holds that line.
+- **An 808 could ring straight through a fill.** The mute list held only the
+  backbeat, so a kick landing on the beat a fill starts on let the 808 sustain
+  across the whole roll — the thing drill is defined against. It now stops at the
+  first snare it reaches, fills included, while still only *skipping* the
+  backbeat, so a roll does not shred the line. ⚠ The length clamp also used
+  `find` over the lane's insertion order rather than `min` over time, so it could
+  clamp to a later snare and leave an earlier one rung through.
+- **rage and osamason wrote four distinct chord parts in two hundred seeds.**
+  Both authored a single `harmonicRhythm` value and four mostly-one-chord
+  families — which is not harmonically static, it is four. Widened within the
+  style: rage now reaches 79, osamason 131.
+- **Two sibling models were too close to tell apart.** `pop-smoke` extends
+  `ny-drill` and differed from it by 0.05 on four numbers, producing an identical
+  beat on 16 seeds of 200. Pulled apart on kick density, hat density and the open
+  hat, along with `osamason`/`rage` and `metro-boomin`/`travis-scott`. Beat
+  collisions across the whole roster are now **zero**.
+
 
 - **An exported song no longer arrives as one instrument playing everything at
   once.** Every pitched part was written on MIDI channel 0 — melody,

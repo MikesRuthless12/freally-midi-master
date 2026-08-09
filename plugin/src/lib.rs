@@ -24,11 +24,16 @@ use nih_plug::prelude::*;
 pub mod audio;
 pub mod bridge;
 pub mod dataset;
+pub mod drag;
 mod editor;
 pub mod eula;
+pub mod explorer;
 pub mod export;
 pub mod host;
+pub mod oneshot;
+pub mod patterns;
 pub mod presets;
+pub mod preview;
 pub mod shared;
 pub mod state;
 pub mod voice;
@@ -58,6 +63,12 @@ pub fn is_standalone() -> bool {
     STANDALONE.load(std::sync::atomic::Ordering::Relaxed)
 }
 
+/// The GM note a drum lane sounds at. One hop to the engine, so the audio
+/// module has a single name for it rather than reaching across inline.
+pub fn midi_note_for(lane: engine::pattern::Lane) -> u8 {
+    engine::midi::gm_drum_note(lane)
+}
+
 /// The plugin's own state, held across the process callbacks.
 pub struct FreallyMidiMaster {
     params: Arc<FreallyParams>,
@@ -75,7 +86,22 @@ pub struct FreallyMidiMaster {
     /// exist without being allocated on the audio thread: voices persist across
     /// blocks by definition, and the fired-note array is reused every block.
     sampler: audio::sampler::Sampler,
+    /// The kit the preview plays right now.
+    ///
+    /// ⛔ **Owned here rather than reached for statically, because since
+    /// TASK-131B it can change.** It starts as the shipped kit and is replaced,
+    /// whole, whenever the producer assigns one of their own one-shots —
+    /// `shared.kits` is the handoff and `process` is the only place the swap
+    /// happens. `None` only while the shipped kit failed to decode, which
+    /// `audio::preview_kit` already logs.
+    kit: Option<Arc<audio::kit::Kit>>,
     fired: voice::FiredNotes,
+    /// Whether the host's transport was rolling on the previous block.
+    ///
+    /// ⛔ Only so the *start* of the host's playback can be noticed (TASK-138).
+    /// The preview transport yields to the host on that edge; see the gate in
+    /// `process`, which explains why an edge and not a level.
+    host_was_playing: bool,
     /// Interleaved scratch the sampler renders into before it is added to the
     /// host's buffer.
     ///
@@ -119,9 +145,100 @@ impl Default for FreallyMidiMaster {
             pending: Schedule::default(),
             shared,
             sampler: audio::sampler::Sampler::default(),
+            // Decoded lazily by `initialize`, off the audio thread.
+            kit: None,
             fired: voice::FiredNotes::default(),
+            // ⚠ `false`, so a plugin loaded into an already-rolling project sees
+            // the host start on its first block and takes the preview flag down
+            // rather than letting a stale one through.
+            host_was_playing: false,
             scratch: Vec::new(),
         }
+    }
+}
+
+/// Whether the host's transport has just *started* (TASK-138).
+///
+/// ⛔ **An edge, not a level, and the difference is the whole design.** The
+/// preview yields to the host so the two can never both drive the schedule —
+/// but yielding on the *level* (`host_playing`) would clear the flag on every
+/// block a DAW rolls, making Play unpressable while a project plays. On the
+/// edge, the host takes it back once and the producer can start a preview again
+/// afterwards.
+fn host_takes_over(host_playing: bool, host_was_playing: bool) -> bool {
+    host_playing && !host_was_playing
+}
+
+/// Whether the schedule advances this block.
+///
+/// ⛔⛔ **`host OR preview` in a plugin — reversed from `host AND ours` at
+/// TASK-138**, which made Play inside a DAW impossible by construction.
+/// `crate::shared::Shared::set_running` carries the full reasoning.
+///
+/// ⚠ **The standalone is a separate branch and must stay one.** nih-plug's cpal
+/// backend hardcodes `transport.playing = true` on every block whatever the user
+/// pressed, so `host_playing` is a constant `true` there — an `||` would make
+/// Pause impossible.
+///
+/// ⚠ Extracted from `process` purely so it can be tested, the same reason
+/// `editor::fit` is a free function: the rule is four lines and the failure it
+/// prevents is a DAW that will not stop.
+fn transport_runs(standalone: bool, host_playing: bool, preview: bool) -> bool {
+    if standalone {
+        preview
+    } else {
+        host_playing || preview
+    }
+}
+
+#[cfg(test)]
+mod transport_gate {
+    use super::*;
+
+    #[test]
+    fn a_plugin_plays_when_the_host_does_even_with_no_preview() {
+        // Unchanged from before TASK-138 and the case that must never regress:
+        // a DAW rolling plays the pattern whatever our own flag says.
+        assert!(transport_runs(false, true, false));
+    }
+
+    #[test]
+    fn a_plugin_plays_its_preview_with_the_host_stopped() {
+        // ⛔⛔ The whole of TASK-138. Mike, 2026-08-04: *"i do not want to just
+        // use Ableton's transpose play button."* This was impossible before —
+        // the gate was a conjunction, so a stopped host meant silence.
+        assert!(transport_runs(false, false, true));
+    }
+
+    #[test]
+    fn a_plugin_with_neither_is_silent() {
+        assert!(!transport_runs(false, false, false));
+    }
+
+    #[test]
+    fn the_standalone_ignores_the_backend_s_hardcoded_playing_flag() {
+        // ⛔ cpal claims `playing = true` on every block. An `||` here would make
+        // Pause do nothing at all, which is the defect the old conjunction was
+        // written to avoid and this branch preserves.
+        assert!(!transport_runs(true, true, false), "Pause must hold");
+        assert!(transport_runs(true, true, true));
+    }
+
+    #[test]
+    fn the_host_takes_the_transport_back_when_it_starts_and_only_then() {
+        // ⛔ The safety property: exactly one of the two drives the schedule.
+        // Leaving a preview running and then rolling the DAW would otherwise
+        // sound the pattern twice.
+        assert!(host_takes_over(true, false), "the block the host starts on");
+
+        // ⚠ And not afterwards — otherwise Play could never be pressed again
+        // while the project rolls.
+        assert!(
+            !host_takes_over(true, true),
+            "already rolling is not an edge"
+        );
+        assert!(!host_takes_over(false, true), "stopping is not a takeover");
+        assert!(!host_takes_over(false, false));
     }
 }
 
@@ -212,7 +329,32 @@ impl Plugin for FreallyMidiMaster {
         // Decode the preview kit now, off the audio thread. The first `process`
         // would otherwise be the first caller and would allocate inside the
         // host's callback.
-        let _ = audio::preview_kit();
+        //
+        // ⛔ **And take a reference to it, rather than only warming the cache.**
+        // Since TASK-131B the callback plays whatever kit it was last handed,
+        // so it needs one to start from — without this the plugin is silent
+        // until the producer assigns a one-shot, which is the four-silent-parts
+        // failure of TASK-131A wearing a different hat.
+        // ⛔ **Only when there is nothing to keep.** This assigned
+        // unconditionally, and nih-plug calls `initialize` on every buffer or
+        // sample-rate change — so changing the buffer size threw away whatever
+        // kit `process` had been handed and reverted the producer to the stock
+        // samples. `restore_one_shots` below only puts them back if every path
+        // still resolves; when one does not it returns early, no rebuilt kit is
+        // sent, and the KIT panel goes on naming their files while they hear
+        // the shipped ones. A readout that lies, in the panel built to end that.
+        if self.kit.is_none() {
+            self.kit = audio::preview_kit().cloned();
+        }
+
+        // ⛔ **The one-shots a reopened project asked for, reloaded here.** The
+        // host has already deserialized the session by now (see
+        // `adopt_session` above), so this is the first moment their paths are
+        // known — and `initialize` is off the audio thread, which is where
+        // reading files from disk has to happen.
+        self.shared.restore_one_shots();
+        // The sample library comes back with the project too (TASK-132).
+        self.shared.restore_sample_folders();
         true
     }
 
@@ -253,7 +395,25 @@ impl Plugin for FreallyMidiMaster {
         // user pressed, so publishing that raw left Pause looking like it did
         // nothing — the flag flipped back on the next 500 ms poll and the marker
         // carried on.
-        let running = self.session.playing() && self.shared.running();
+        // ⛔⛔ **`host OR preview` in a plugin, and the host WINS (TASK-138).**
+        // This used to be `host AND ours`, which made Play inside a DAW
+        // impossible by construction — `Shared::set_running` records why that
+        // was reversed. A producer auditioning a beat must not have to arm a
+        // track and roll the whole project.
+        //
+        // ⛔ **The host taking over is an *edge*, not a level.** Clearing our
+        // flag whenever the host is playing would make Play unpressable while a
+        // DAW rolls; clearing it on the transition is what stops the preview
+        // outliving the host's own playback. After this, exactly one of the two
+        // is driving the schedule, which is the property the old gate was
+        // protecting and this keeps.
+        let host_playing = self.session.playing();
+        if host_takes_over(host_playing, self.host_was_playing) {
+            self.shared.set_running(false);
+        }
+        self.host_was_playing = host_playing;
+
+        let running = transport_runs(self.shared.standalone, host_playing, self.shared.running());
         self.shared.host.publish(&self.session, running);
 
         // Take a newly generated pattern if one is waiting. The schedule this
@@ -264,14 +424,25 @@ impl Plugin for FreallyMidiMaster {
             .handoff
             .receive(std::mem::take(&mut self.pending));
 
+        // A kit the producer just assigned a one-shot into (TASK-131B).
+        //
+        // ⛔ **Every voice is cut on a swap, and it is not optional.** A voice
+        // holds the *index* of the pad it is playing, and the new kit may have a
+        // different pad at that index — so a note that started as a hi-hat would
+        // finish as somebody's vocal chop. Cutting them is also what a producer
+        // expects: changing the sound under a sounding note is not a crossfade.
+        if self.shared.kits.receive(&mut self.kit) {
+            self.sampler.stop_all();
+        }
+
         // The keyboard gutter's click-to-audition (TASK-041).
         //
         // ⛔ **Before the transport gate, because an audition is not playback.**
         // A producer clicks a key to find a register *while the DAW is stopped*,
         // which is the normal case — putting this after the `!running` early
         // return would make the gutter silent exactly when it is most used.
-        if let Some(pitch) = self.shared.take_audition() {
-            self.audition(pitch);
+        if let Some(asked) = self.shared.take_audition() {
+            self.audition(asked);
         }
 
         // ⛔ **Nothing advances unless the host's transport is running.**
@@ -318,8 +489,12 @@ impl Plugin for FreallyMidiMaster {
         // ⛔ The block length is what advances the schedule. Passing it is not
         // bookkeeping: without it `emit` replays the first block forever and
         // nothing past ~170 ms of a pattern is ever heard.
-        self.pending
-            .emit(context, buffer.samples() as u32, &mut self.fired);
+        self.pending.emit(
+            context,
+            buffer.samples() as u32,
+            self.shared.looping(),
+            &mut self.fired,
+        );
 
         // Where the marker goes (TASK-041T). Published every block, so it moves
         // with the tempo for free: the schedule is placed in samples against the
@@ -367,13 +542,46 @@ impl FreallyMidiMaster {
     ///
     /// Silent when the preview is switched off, because that switch means
     /// MIDI-only and an audition is not MIDI (FMM-S02).
-    fn audition(&mut self, pitch: u8) {
+    fn audition(&mut self, asked: crate::shared::Audition) {
         if !self.shared.audio_enabled() {
             return;
         }
-        let Some(kit) = audio::preview_kit() else {
+        let Some(kit) = self.kit.as_ref() else {
             return;
         };
+        let pitch = match asked {
+            crate::shared::Audition::Pitch(pitch) => pitch,
+            crate::shared::Audition::Lane(_) => 0,
+        };
+
+        // ⛔ **A lane audition resolves by lane and never falls back** (TASK-043).
+        // Clicking `Kick` in the grid's row header is not a question about
+        // pitch, so the nearest-tuned-pad rule below is exactly wrong for it —
+        // it would sound the 808 transposed to the kick's GM note. The lane
+        // arrives as that GM note because `gm_drum_note` is the mapping the
+        // engine already owns; matching each pad through the same function is
+        // what keeps there from being a second one. A kit with no pad for the
+        // lane stays **silent**, which is the honest answer: there is nothing
+        // loaded to hear, and a stand-in would be a preview of the wrong drum.
+        if let crate::shared::Audition::Lane(lane) = asked {
+            // ⛔ **By lane, not by note.** `gm_drum_note` is not injective — six
+            // lanes answer 0 — so matching on the note sounded the wrong pad
+            // for `sub` and `subLow`. `pad_for` is the kit's own lookup.
+            if let Some(index) = kit.pad_for(lane) {
+                self.sampler.trigger(
+                    kit,
+                    index,
+                    0.8,
+                    // As sampled. A drum pad has no root to transpose against,
+                    // and `semitones_for` reads 0 as "no opinion" for exactly
+                    // this case.
+                    0.0,
+                    f64::from(self.shared.sample_rate()),
+                );
+            }
+            return;
+        }
+
         // The tuned pad, found by the property that makes it usable rather than
         // by name: a kit that renamed its 808 would still audition correctly,
         // and one with no tuned pad at all stays silent rather than guessing.
@@ -414,28 +622,98 @@ impl FreallyMidiMaster {
         );
     }
 
-    fn render_preview(&mut self, buffer: &mut Buffer) {
-        // ⛔ **MIDI-only, checked before anything else.** The notes have
-        // already gone out by the time this runs, so returning here silences
-        // the plugin without silencing the pattern — which is exactly what a
-        // producer routing into their own drum sampler wants (FMM-S02).
-        if !self.shared.audio_enabled() {
-            self.sampler.stop_all();
+    /// Render only the File Explorer's audition into `buffer`.
+    ///
+    /// ⛔ **The path taken when nothing is armed**, which is the state the
+    /// sample browser is used from. `render_preview` returns early with no kit
+    /// and again when the sampler is idle — both correct for a *pattern*, both
+    /// fatal for an audition, which needs neither.
+    ///
+    /// Same audio-thread rules: it borrows the pre-allocated scratch, adds into
+    /// it, limits and de-interleaves, and allocates nothing.
+    fn render_preview_only(&mut self, buffer: &mut Buffer) {
+        let frames = buffer.samples();
+        let channels = buffer.channels().clamp(1, 2);
+        let needed = frames * channels;
+        if needed > self.scratch.len() {
             return;
         }
 
-        let Some(kit) = audio::preview_kit() else {
+        let scratch = &mut self.scratch[..needed];
+        scratch.fill(0.0);
+        self.shared
+            .preview
+            .render(scratch, channels, self.shared.sample_rate());
+        audio::sampler::limit(scratch);
+
+        for (channel, samples) in buffer.as_slice().iter_mut().enumerate() {
+            let source = channel.min(channels - 1);
+            for (frame, sample) in samples.iter_mut().enumerate().take(frames) {
+                *sample += scratch[frame * channels + source];
+            }
+        }
+    }
+
+    fn render_preview(&mut self, buffer: &mut Buffer) {
+        // ⛔⛔ **The audition is checked BEFORE the kit, the idle gate AND the
+        // MIDI-only switch, and it has to be all three.** `Preview` is the File
+        // Explorer's sample player: it needs no kit and no armed pattern, and
+        // the state a producer is in when they open the browser and press Play
+        // on a sample is *exactly* the state those gates return on. So the
+        // audition was silent in the only situation it exists for — nothing
+        // sounded, the handoff never picked the buffer up, and
+        // `preview_position` reported `playing: true, seconds: 0.0` forever.
+        let auditioning = self.shared.preview.is_active();
+
+        // ⛔ **MIDI-only, checked before anything else *about the pattern*.**
+        // The notes have already gone out by the time this runs, so returning
+        // here silences the plugin without silencing the pattern — which is
+        // exactly what a producer routing into their own drum sampler wants
+        // (FMM-S02).
+        //
+        // ⛔⛔ **The audition is NOT gated on it, and that is a deliberate
+        // change rather than an oversight.** This gate is older than the sample
+        // browser and nobody revisited it when `Preview` landed — its own doc
+        // still says "whether the *preview sampler* may sound", which is
+        // `self.sampler`, the kit. FMM-S02 is about the plugin not doubling the
+        // producer's own drum sampler on the *generated pattern*; a file
+        // browser that cannot play the file you just clicked is not a file
+        // browser. And the failure it produced was the readout-that-lies shape
+        // this file guards against everywhere else: Play lit, `playing: true`,
+        // the playhead frozen at 0:00 because `render` was never reached, and
+        // nothing on screen saying why.
+        //
+        // ⚠ The piano roll's keyboard gutter *is* still gated — see
+        // `audition()`. That one plays the kit, which is the thing MIDI-only is
+        // switching off.
+        if !self.shared.audio_enabled() {
+            self.sampler.stop_all();
+            if auditioning {
+                self.render_preview_only(buffer);
+            }
+            return;
+        }
+
+        let Some(kit) = self.kit.as_ref() else {
+            // ⚠ A kit that failed to decode must not silence a sample preview;
+            // the two have nothing to do with each other.
+            if auditioning {
+                self.render_preview_only(buffer);
+            }
             return;
         };
 
-        // ⚠ **The preview kit is a drum kit, so the four melodic parts render
-        // silence.** `pad_for` returns `None` for Melody, Counter, Bass and
-        // Chords, which this same change made reachable through the bridge — so
-        // a producer picks Melody, sees the Audio chip on, and hears nothing.
-        // That is indistinguishable from a broken sampler, and the honest fix
-        // is pitched instrument voices (FMM-N15/N16), not a silent fallback:
-        // playing a melody through the kick pad would be worse than silence.
-        // Tracked rather than hidden — see the module doc.
+        // ⚠ **`kit` is whatever was last handed over, not a constant.** It is
+        // the shipped kit until the producer assigns one of their own one-shots
+        // (TASK-131B), and the swap happens in `process` rather than here — a
+        // kit must never change part way through a block, or the segment loop
+        // below would trigger half its notes on one kit and render them on
+        // another.
+        //
+        // ⚠ A lane the current kit has no pad for still renders silence, which
+        // is `pad_for` refusing to guess rather than a gap: `Lane::Snap` is the
+        // one lane the shipped kit has never covered, and assigning a one-shot
+        // to it is now how that gets a sound.
 
         // ⛔ Idle is this plugin's *normal* state — nothing is armed until
         // someone presses Generate, and nothing sounds between patterns. Without
@@ -443,6 +721,9 @@ impl FreallyMidiMaster {
         // de-interleaving add over every sample, ~94 times a second, to write
         // silence on top of silence.
         if self.fired.as_slice().is_empty() && self.sampler.is_silent() {
+            if auditioning {
+                self.render_preview_only(buffer);
+            }
             return;
         }
 
@@ -475,19 +756,43 @@ impl FreallyMidiMaster {
                     continue;
                 }
                 if let Some(pad_index) = kit.pad_for(note.lane) {
-                    // Percussion ignores pitch; a pad with a root note is
-                    // transposed to what was actually played, without which an
-                    // 808 line comes out monotone.
-                    let semis = match kit.pads[pad_index].root_note {
-                        Some(root) => f32::from(note.note) - f32::from(root),
-                        None => 0.0,
-                    };
-                    self.sampler.trigger(
+                    // A pad with a root note is transposed to what was actually
+                    // played, without which an 808 line comes out monotone.
+                    //
+                    // ⛔ **Percussion transposes too, from the lane's own GM
+                    // note (TASK-131D).** It used to be pinned at 0, which was
+                    // right while every drum note in a pattern carried the same
+                    // pitch — and became a readout that lies the moment the
+                    // generator learned to walk a roll's pitch. The producer
+                    // would have seen the movement in the grid and in the
+                    // exported file, and heard a flat roll. Mike, 2026-08-05:
+                    // "hihat rolls can go up and down so can kicks, 808s,
+                    // snares, etc. in actual song arrangements."
+                    let semis =
+                        audio::kit::Kit::semitones_for(&kit.pads[pad_index], note.lane, note.note);
+                    // ⛔ **The 808 slide, heard live (2026-08-06).** Mike asked
+                    // for it *"for my generator playback"* as well as for the
+                    // export and the drag. The same `semitones_for` the offline
+                    // renderer uses, so a preview and a rendered stem cannot
+                    // disagree about the interval; and the same half-and-half
+                    // window, so both match where `midi.rs` puts the
+                    // destination note-on.
+                    let glide = note.slide_to.map(|target| audio::sampler::Glide {
+                        semis: audio::kit::Kit::semitones_for(
+                            &kit.pads[pad_index],
+                            note.lane,
+                            target,
+                        ) - semis,
+                        delay: note.frames / 2,
+                        frames: note.frames - note.frames / 2,
+                    });
+                    self.sampler.trigger_with(
                         kit,
                         pad_index,
                         note.velocity,
                         semis,
                         f64::from(self.shared.sample_rate()),
+                        glide,
                     );
                 }
                 next += 1;
@@ -503,6 +808,13 @@ impl FreallyMidiMaster {
             self.sampler.render(kit, segment, channels);
             at = until;
         }
+
+        // The File Explorer audition, mixed in before limiting (TASK-132) so a
+        // preview over a loud pattern is caught by the same limiter rather
+        // than clipping the host output.
+        self.shared
+            .preview
+            .render(scratch, channels, self.shared.sample_rate());
 
         audio::sampler::limit(scratch);
 

@@ -3,39 +3,238 @@
   "id": "pluggnb",
   "type": "genre",
   "name": "PluggnB",
-  "aliases": ["plugg n b", "pluggnb"],
+  "aliases": [
+    "plugg n b",
+    "pluggnb"
+  ],
   "tier": "standard",
-  "extends": ["plugg"],
+  "extends": [
+    "plugg"
+  ],
   "era": "2020–present",
-  "genres": ["rap", "rnb", "plugg"],
+  "genres": [
+    "rap",
+    "rnb",
+    "plugg"
+  ],
   "confidence": "high",
-  "sources": ["style-research ch.1 §4 Plugg / Pluggnb"],
+  "sources": [
+    "style-research ch.1 §4 Plugg / Pluggnb"
+  ],
   "notes": "Plugg's dreamy palette on an R&B backbone: the full-time variant, so the kick sits on 1 and 3, the snare answers on 2 and 4, and the hats move to the offbeats. Everything else — the soft clap, the light 808, the open-hat chains — is inherited from plugg.",
-
   "session": {
-    "bpm": { "min": 130, "max": 150, "mode": 140 },
+    "bpm": {
+      "min": 130,
+      "max": 150,
+      "mode": 140
+    },
     "halfTime": false,
-    "swing": { "grid": "16th", "amount": 0.56 }
+    "swing": {
+      "grid": "16th",
+      "amount": 0.56
+    }
   },
-
   "drums": {
     "kick": {
-      "densityPerBar": [2, 4],
-      "anchors": ["1", "3"],
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
       "syncopation": 0.35,
       "tresilloBias": 0.15,
-      "lockTo808": 1.0
+      "lockTo808": 1
     },
     "snare": {
       "placement": "backbeat_24",
       "lowPassedClap": true,
-      "ghost": { "prob": 0.25, "pos": ["2a", "4a"], "vel": [0.35, 0.5] }
+      "ghost": {
+        "prob": 0.25,
+        "pos": [
+          "2a",
+          "4a"
+        ],
+        "vel": [
+          0.35,
+          0.5
+        ]
+      }
     },
     "hihat": {
       "base": "8th",
       "continuous": true,
       "fillDensity": 0.35,
-      "openHat": { "prob": 0.6, "pos": ["1&", "3&"], "perBar": [1, 2] }
+      "openHat": {
+        "prob": 0.6,
+        "pos": [
+          "1&",
+          "3&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t",
+        "16th",
+        "8t"
+      ],
+      "velocityRampRange": [
+        38,
+        92
+      ],
+      "rampJitter": 12,
+      "descendProb": 0.38,
+      "gapProb": 0.46,
+      "grouping": [
+        "even"
+      ],
+      "pitchWalk": 2
     }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "III",
+          "VI",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "iv",
+          "i",
+          "v"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "VI",
+          "VII",
+          "i"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "v",
+          "iv"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.24,
+      "seventh": 0.48,
+      "ninth": 0.28
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        50,
+        76
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "syncopated_cell",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      2,
+      4
+    ],
+    "susSubstitutionProb": 0.26
+  },
+  "melody": {
+    "register": [
+      69,
+      93
+    ],
+    "phraseBars": {
+      "values": [
+        1,
+        2,
+        4
+      ],
+      "weights": [
+        2,
+        3,
+        1
+      ]
+    },
+    "densityPerBar": [
+      4,
+      8
+    ],
+    "structure": "call_response",
+    "intervals": {
+      "step": 0.55,
+      "third": 0.35,
+      "leap": 0.1
+    },
+    "contour": {
+      "riff": 0.45,
+      "descend": 0.25,
+      "arch": 0.3
+    },
+    "chordToneBias": 0.8,
+    "halfStepDissonance": 0.03,
+    "endVariation": true,
+    "octaveJumpProb": 0.12,
+    "timbreHint": "bright_bell"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.45,
+    "fillGapsOnly": true,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "kit": {
+    "preview": "rnb-default"
   }
 }

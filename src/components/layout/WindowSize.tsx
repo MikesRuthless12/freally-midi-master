@@ -38,6 +38,8 @@ type SizeReply = {
   width: number;
   height: number;
   zoom: number;
+  /** What the page must lay out in — `LAYOUT` in `plugin/src/editor.rs`. */
+  layoutWidth: number;
 };
 
 /**
@@ -56,6 +58,43 @@ function applyZoom(zoom: number): void {
   useUi.getState().setWide(isWide());
 }
 
+/**
+ * The zoom the window we **actually got** needs, rather than the one the plugin
+ * hoped for.
+ *
+ * ⛔⛔ **Mike, 2026-08-06:** *"when you go to a larger vst view, it has a bunch
+ * of black, blank space outside of the VST3 itself's own main app window, that
+ * should not happen."* The window size and the page zoom are one number that
+ * has to be applied in two places, and they travel by different routes: the
+ * zoom rides back on this reply and is applied at once, while the resize is
+ * queued for the editor's frame loop and applied whenever that next runs. If
+ * the window ends up any size other than the one the reply assumed — the loop
+ * has not ticked yet, the host clamped it, or the display is a second monitor
+ * at a different DPI, which `system_scale`'s own doc records as an unfixed
+ * limit — the two disagree. Window larger than the layout is dead space around
+ * the UI; smaller is a cropped app.
+ *
+ * ⚠ **`innerWidth` is deliberately the measurement, and it is the one that
+ * works.** It is the *window's* CSS width and does not move when the root's
+ * zoom changes (`state/ui.ts::isWide` records the measurement: at `zoom: 0.85`
+ * in a 1224px window it stays 1224 while `clientWidth` reads 1440). So this is
+ * idempotent — applying the result cannot change the next answer — and there is
+ * no feedback loop to damp.
+ *
+ * `null` when there is nothing trustworthy to measure, and the caller then falls
+ * back to the plugin's own figure.
+ */
+function measuredZoom(layoutWidth: number): number | null {
+  const css = window.innerWidth;
+  if (!Number.isFinite(css) || css <= 0) return null;
+  if (!Number.isFinite(layoutWidth) || layoutWidth <= 0) return null;
+  // ⚠ Bounded. A window reported as one pixel wide during a host's own resize
+  // would otherwise set a zoom that makes the UI invisible, and the next honest
+  // measurement is a whole frame away.
+  const zoom = css / layoutWidth;
+  return zoom >= 0.2 && zoom <= 4 ? zoom : null;
+}
+
 export function WindowSize() {
   const { t } = useTranslation();
   // `null` until the plugin answers, which is also what keeps the button from
@@ -69,15 +108,37 @@ export function WindowSize() {
   // inside a scaled window and is cropped until the button is pressed.
   useEffect(() => {
     if (!isPlugin()) return;
+    let live = true;
+    let layout = 0;
+
     void invoke<SizeReply>('editor_size')
       .then((reply) => {
+        if (!live) return;
+        layout = reply.layoutWidth;
         setSizing(reply);
-        applyZoom(reply.zoom);
+        applyZoom(measuredZoom(layout) ?? reply.zoom);
       })
       .catch(() => {
         // A shell with no such command leaves the page at 1:1, which is what
         // it already was.
       });
+
+    // ⛔ **The resize arrives after the reply does, so the zoom has to be
+    // re-derived when it lands.** `set_editor_size` queues the resize for the
+    // editor's frame loop and answers immediately; the window changes some
+    // frames later, if it changes at all. Correcting only at the moment of the
+    // press would leave the page zoomed for a window it did not yet have —
+    // which is the dead space this whole path exists to remove.
+    const onResize = () => {
+      if (layout === 0) return;
+      const zoom = measuredZoom(layout);
+      if (zoom !== null) applyZoom(zoom);
+    };
+    window.addEventListener('resize', onResize);
+    return () => {
+      live = false;
+      window.removeEventListener('resize', onResize);
+    };
   }, []);
 
   // Nothing is drawn until the plugin has said what size it is. A button that
@@ -101,7 +162,12 @@ export function WindowSize() {
         void invoke<SizeReply>('set_editor_size', { size: sizing.next })
           .then((reply) => {
             setSizing(reply);
-            applyZoom(reply.zoom);
+            // ⚠ The plugin's figure is the fallback, not the answer. The window
+            // has almost certainly not resized yet at this point — the `resize`
+            // listener above corrects it when it does — but applying the
+            // measured value now keeps the page filling whatever it has in the
+            // meantime rather than flashing dead space for a few frames.
+            applyZoom(measuredZoom(reply.layoutWidth) ?? reply.zoom);
           })
           .catch(() => {
             // No such command in this shell; the window stays as it is.

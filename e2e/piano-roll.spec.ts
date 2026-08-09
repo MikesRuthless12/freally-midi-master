@@ -313,6 +313,61 @@ async function stems(page: Page) {
   );
 }
 
+/**
+ * The whole lane takes clicks — including under the controls (2026-08-06).
+ *
+ * ⛔⛔ **The bug this closes was live for months and nothing reported it.** The
+ * error, the session prompt and the Generate row lived in a `position: absolute`
+ * column pinned to the body's bottom-right corner, floating *over* the editor —
+ * and the velocity lane is full width along that same bottom edge. Measured at
+ * the time: the lane spanned y 748–843 and the column sat at 776–820, so
+ * `document.elementFromPoint` over that region answered with a control and a cap
+ * dragged under one did not move at all.
+ *
+ * ⚠ **It hid because the column is right-aligned.** It only covers a given cap
+ * once it is wide enough to reach it, so the dead region grew silently with
+ * every control added — and the test that eventually caught it
+ * (`the lane and the roll never disagree about a velocity`) only did so because
+ * one more button pushed the column's edge past the cap it happened to use.
+ * That is luck, not coverage. This aims at the **last** cap in the lane, which
+ * is the one nearest the corner the column used to occupy.
+ */
+test('a cap under the controls can still be dragged', async ({ page }) => {
+  await openRoll(page);
+  const { box, gutter } = await lane(page);
+  const before = await stems(page);
+  // ⚠ The rightmost cap that is actually *drawn*. The lane windows the clip, so
+  // the last entry in the list can sit past the visible edge — a drag there
+  // misses for an ordinary reason and would make this test look like the bug it
+  // is meant to catch.
+  const visible = before.filter((stem) => gutter + stem.x < box.width - 4);
+  const target = visible[visible.length - 1];
+  expect(target, 'no cap is drawn, so this asserts nothing').toBeDefined();
+
+  const x = box.x + gutter + target.x;
+  const y = box.y + capY(target.vel, box.height);
+
+  // ⚠ Asserted before the drag, because a drag that lands on a control fails in
+  // exactly the same way as one that lands on nothing — the note simply keeps
+  // its velocity — and that is indistinguishable from the edit being refused.
+  const covering = await page.evaluate(
+    ([px, py]) => {
+      const el = document.elementFromPoint(px as number, py as number);
+      return el?.closest('.stage__bottom') === null ? 'lane' : 'controls';
+    },
+    [x, y],
+  );
+  expect(covering, 'the controls are lying over the velocity lane again').toBe('lane');
+
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.move(x, box.y + capY(64, box.height), { steps: 4 });
+  await page.mouse.up();
+
+  const after = await stems(page);
+  expect(after.find((stem) => stem.tick === target.tick)?.vel).toBe(64);
+});
+
 test('dragging a cap sets that note’s velocity and leaves the rest alone', async ({ page }) => {
   await openRoll(page);
   const { box, gutter } = await lane(page);
@@ -571,4 +626,121 @@ test('the meter picker changes the clip and the bars drawn under it', async ({ p
   const roll = page.locator('.roll__canvas');
   const v = await view(roll);
   expect(await r.read('data-clip-to')).toBe(v.ppq * 3 * 4);
+});
+
+/**
+ * The cursors, and what a plain click does (Mike, 2026-08-06).
+ *
+ * *"i do not want the '+' cursor for the piano rolls, only the '[' and ']'
+ * cursors for resizing notes and a regular mousepointer, also, just clicking on
+ * any single note should select that note"* … *"can you also ensure that we
+ * have this for extending/shortening a note for the left and right sides of all
+ * generators."*
+ */
+test('the roll wears a plain pointer over empty grid, never a crosshair', async ({ page }) => {
+  // ⛔ A "+" is the cursor a *drawing* tool wears. It promised an interaction
+  // this roll does not offer — clicking empty space selects nothing, it does
+  // not add a note — so it was answering the producer's question wrongly.
+  const canvas = await openRoll(page);
+  const box = await canvas.boundingBox();
+  if (!box) throw new Error('no canvas');
+
+  // Well below the notes, where nothing is drawn.
+  await page.mouse.move(box.x + box.width * 0.5, box.y + box.height - 8);
+  await expect(canvas).toHaveCSS('cursor', 'default');
+});
+
+test('each edge of a note wears the cursor for the end it would move', async ({ page }) => {
+  // ⛔ `w-resize` and `e-resize`, not one `ew-resize` for both. Which way the
+  // bracket faces says which end is about to move: the left edge changes where
+  // the note starts, the right edge changes how long it is.
+  const canvas = await openRoll(page);
+  const first = (await notes(page))[0];
+
+  const left = await pointFor(canvas, first.tick, first.pitch);
+  await page.mouse.move(left.x + 2, left.y);
+  await expect(canvas).toHaveCSS('cursor', 'w-resize');
+
+  const right = await pointFor(canvas, first.tick + first.len, first.pitch);
+  await page.mouse.move(right.x - 2, right.y);
+  await expect(canvas).toHaveCSS('cursor', 'e-resize');
+
+  // The body between them moves the note rather than resizing it.
+  const middle = await pointFor(canvas, first.tick + first.len / 2, first.pitch);
+  await page.mouse.move(middle.x, middle.y);
+  await expect(canvas).toHaveCSS('cursor', 'move');
+});
+
+test('one plain click selects a note, with no modifier held', async ({ page }) => {
+  // ⚠ Mike reported having to Ctrl+click. The code already did this, so what
+  // was missing was a gate saying so — and probably the crosshair above, which
+  // made the roll read as a tool that draws rather than one that selects.
+  const canvas = await openRoll(page);
+  const first = (await notes(page))[0];
+
+  const at = await pointFor(canvas, first.tick + first.len / 2, first.pitch);
+  await page.mouse.click(at.x, at.y);
+
+  const selected = (await notes(page)).filter((n) => n.selected);
+  expect(selected).toHaveLength(1);
+  expect(selected[0].pitch).toBe(first.pitch);
+});
+
+/**
+ * Transposing the selection (Mike, 2026-08-06).
+ *
+ * *"if you have a single note or multiple notes selected, then 'Ctrl+up arrow'
+ * should move the note/notes up a single half step, and if you press 'Shift+up
+ * arrow' then it should move them up a whole octave, the same goes with
+ * 'Ctrl+down arrow' or 'Shift+down arrow'."*
+ *
+ * ⚠ The bindings already behaved this way — nothing guards the arrows on Ctrl,
+ * so it falls through to the semitone step — but nothing proved it either, and
+ * a binding that works by not being excluded is one a later guard could take
+ * away silently.
+ */
+test('Ctrl and Shift with the arrows move by a semitone and an octave', async ({ page }) => {
+  const canvas = await openRoll(page);
+  const first = (await notes(page))[0];
+  const at = await pointFor(canvas, first.tick + first.len / 2, first.pitch);
+  await page.mouse.click(at.x, at.y);
+
+  await page.keyboard.press('Control+ArrowUp');
+  expect(
+    (await notes(page)).some((n) => n.pitch === first.pitch + 1 && n.tick === first.tick),
+    'Ctrl+Up should be one half step',
+  ).toBe(true);
+
+  await page.keyboard.press('Control+ArrowDown');
+  expect((await notes(page)).some((n) => n.pitch === first.pitch)).toBe(true);
+
+  await page.keyboard.press('Shift+ArrowUp');
+  expect(
+    (await notes(page)).some((n) => n.pitch === first.pitch + 12),
+    'Shift+Up should be a whole octave',
+  ).toBe(true);
+
+  await page.keyboard.press('Shift+ArrowDown');
+  expect((await notes(page)).some((n) => n.pitch === first.pitch)).toBe(true);
+});
+
+test('the arrows move every selected note, not just one', async ({ page }) => {
+  // "a single note or multiple notes selected" — his words, and the case that
+  // would break if the handler ever read a single anchor instead of the set.
+  const canvas = await openRoll(page);
+  await canvas.click();
+  await page.keyboard.press('Control+a');
+
+  const before = await notes(page);
+  expect(before.length, 'the fixture needs more than one note').toBeGreaterThan(1);
+
+  await page.keyboard.press('Control+ArrowUp');
+  const after = await notes(page);
+
+  for (const note of before) {
+    expect(
+      after.some((n) => n.tick === note.tick && n.pitch === note.pitch + 1),
+      `the note at tick ${note.tick} did not move`,
+    ).toBe(true);
+  }
 });

@@ -13,7 +13,7 @@
  * there — are testable without mounting anything.
  */
 
-import type { Part, Section, SectionKind, Song } from '../../lib/ipc-types';
+import type { Part, PatternRef, Section, SectionKind, Song } from '../../lib/ipc-types';
 
 /** Which clip: the section it belongs to, and the part row it sits on. */
 export type ClipId = { sectionIndex: number; part: Part };
@@ -71,6 +71,77 @@ export function resizeSection(song: Song, index: number, bars: number): Song {
 }
 
 /**
+ * Resize one clip — how many bars it loops on inside its section (TASK-142).
+ *
+ * ⛔ **Not the same gesture as resizing a section, and that is the whole point.**
+ * A section's length is how long that part of the record runs and it moves every
+ * row; a clip's length is how much of its loop this one row plays before it
+ * repeats. Mike's finding was that the timeline only had the first of those, so
+ * *"there is no clip resize"* — the clip always filled whatever its section was.
+ *
+ * ⛔ **Written on the reference rather than on the pattern**, because sections of
+ * the same kind share one pattern: shortening the pattern would shorten every
+ * verse in the song at once. `PatternRef.bars` carries it, and the engine reads
+ * it in exactly one place — `SectionTiling::of` — so what plays and what exports
+ * cannot disagree about it.
+ *
+ * ⚠ **Back to `null` at the clip's own length**, rather than storing the number.
+ * `null` means "the whole clip", so a producer who drags a clip back out to full
+ * length gets a song that is byte-identical to one that was never resized — and
+ * a later edit that lengthens the pattern still fills the section.
+ */
+export function resizeClip(song: Song, clip: ClipId, bars: number): Song {
+  const section = song.sections[clip.sectionIndex];
+  const reference = section?.patterns[clip.part];
+  if (!section || !reference) return song;
+
+  const pattern = song.patterns[reference.patternId];
+  const full = pattern?.bars ?? 0;
+  // ⛔ **Floored at one bar and capped at the clip's own length.** Zero would
+  // ask the engine to lay the clip down once per tick — its own guard refuses
+  // that, and a UI that can send it is a UI relying on a guard. Longer than the
+  // pattern is not a longer loop: there are no notes out there, so it would read
+  // as the clip having gone quiet.
+  const wanted = Math.max(1, Math.round(bars));
+  const clamped = full > 0 ? Math.min(full, wanted) : wanted;
+  const next = full > 0 && clamped === full ? null : clamped;
+  if ((reference.bars ?? null) === next) return song;
+
+  return withSections(
+    song,
+    song.sections.map((s, index) =>
+      index === clip.sectionIndex
+        ? {
+            ...s,
+            patterns: {
+              ...s.patterns,
+              [clip.part]: { ...reference, bars: next },
+            },
+          }
+        : s,
+    ),
+  );
+}
+
+/**
+ * How many bars this clip loops on — its resize, or the pattern's own length.
+ *
+ * ⚠ **One reader, so the timeline and the engine agree.** `SectionTiling::of`
+ * applies the identical rule in Rust; two spellings of "how long is this clip"
+ * is how a drawn width comes to disagree with a played one.
+ */
+export function clipBars(song: Song, clip: ClipId): number {
+  const reference = song.sections[clip.sectionIndex]?.patterns[clip.part];
+  if (!reference) return 0;
+  const full = song.patterns[reference.patternId]?.bars ?? 0;
+  // ⚠ No `?? null` dance: `undefined > 0` is already false. The one in
+  // `resizeClip` above does earn its place — there `next` is `number | null` and
+  // the comparison is against a real null.
+  const own = reference.bars ?? 0;
+  return own > 0 ? own : full;
+}
+
+/**
  * Duplicate a section, placing the copy directly after it (TASK-063B).
  *
  * The clone shares its `PatternRef`s rather than copying the patterns: two
@@ -107,14 +178,24 @@ export function deleteClips(song: Song, clips: ClipId[]): Song {
 
 /** What a cut or copy put on the clipboard. */
 export type Clipboard = {
-  /** The pattern each copied clip pointed at, by part. */
-  clips: { part: Part; patternId: string }[];
+  /**
+   * The whole reference each copied clip held, by part.
+   *
+   * ⛔ **The reference, not just its `patternId`.** This carried the id alone
+   * until TASK-142 gave a `PatternRef` a second field — and then every copy,
+   * cut, paste and drag-move silently discarded the producer's clip resize,
+   * because `move` is composed from copy + delete + paste. Resize a clip to loop
+   * on two bars, drag it one section along, and it came back at the pattern's
+   * full length. Carrying the reference whole means the next field added to it
+   * cannot go missing the same way.
+   */
+  clips: { part: Part; reference: PatternRef }[];
 };
 
 export function copyClips(song: Song, clips: ClipId[]): Clipboard | null {
   const entries = clips.flatMap((clip) => {
     const reference = song.sections[clip.sectionIndex]?.patterns[clip.part];
-    return reference ? [{ part: clip.part, patternId: reference.patternId }] : [];
+    return reference ? [{ part: clip.part, reference: { ...reference } }] : [];
   });
   return entries.length > 0 ? { clips: entries } : null;
 }
@@ -134,8 +215,9 @@ export function pasteClips(song: Song, clipboard: Clipboard, sectionIndex: numbe
   const patterns = { ...section.patterns };
   let pasted = 0;
   for (const clip of clipboard.clips) {
-    if (!song.patterns[clip.patternId]) continue;
-    patterns[clip.part] = { patternId: clip.patternId };
+    if (!song.patterns[clip.reference.patternId]) continue;
+    // Copied whole, so the clip's own loop length lands with it.
+    patterns[clip.part] = { ...clip.reference };
     pasted += 1;
   }
   if (pasted === 0) return song;
@@ -144,6 +226,110 @@ export function pasteClips(song: Song, clipboard: Clipboard, sectionIndex: numbe
     song,
     song.sections.map((s, i) => (i === sectionIndex ? { ...s, patterns } : s)),
   );
+}
+
+/**
+ * Pick clips up and put them down on another section (TASK-130).
+ *
+ * ⛔⛔ **The one DAW verb the timeline did not have.** Mike, 2026-08-06: *"you
+ * should be able to rearrange or drag them and move them, delete them, copy and
+ * paste them, clone them, etc. like you would in a real DAW."* Every other verb
+ * in that list was already here — this was the gap, and without it rearranging
+ * meant copy, paste, then go back and delete the original.
+ *
+ * ⚠ **Composed from [`deleteClips`] and [`pasteClips`] rather than written
+ * out.** A move *is* those two, and re-implementing the walk would be a fourth
+ * place that has to know a clip is a `PatternRef` under a part key — which is
+ * exactly how `pasteClips` came to need its dangling-reference guard. Composing
+ * means this inherits that guard for free.
+ *
+ * ⚠ **The copy is taken before the delete**, and the delete before the paste.
+ * `deleteClips` clears a part inside its section and never removes the section
+ * itself, so section indices do not move underneath any of the three — which is
+ * what makes the composition safe rather than merely tidy.
+ *
+ * A move onto the section the clips already sit in returns the song unchanged,
+ * so a drag that goes nowhere records no undo step.
+ *
+ * ## ⛔⛔ Every clip keeps its own offset, and getting this wrong destroyed one
+ *
+ * `to` is where the clip **the producer grabbed** lands; `from` is the section
+ * it came from. Everything else in the selection moves by the same distance.
+ * That is what a DAW does, and it is also the only shape that is safe: the first
+ * cut dropped the *whole* selection onto `to`, and since a section holds at most
+ * one clip per part, two selected drums clips collapsed into one. `deleteClips`
+ * had already removed both, so the loser was **gone from the arrangement with
+ * nothing on screen saying so** — undo was the only way back. Selecting two
+ * whole sections and dragging them is enough to hit it, because selecting a
+ * section selects every part in it.
+ *
+ * ⚠ **The distance is clamped so nothing falls off either end**, rather than
+ * dropping the clips that would. A drag that would take the selection past the
+ * last section moves it as far as it goes — which is what the producer can see
+ * happening, and it cannot silently lose a clip.
+ */
+export function moveClips(song: Song, clips: ClipId[], to: number, from: number): Song {
+  // ⚠ A no-op distance returns the song itself, so a drag that goes nowhere
+  // records no undo step — the property the old identity check gave.
+  const shift = moveShift(song, clips, to, from);
+  if (shift === 0) return song;
+
+  // ⚠ Grouped by destination and pasted per group, which is what keeps this
+  // composed from `pasteClips` — and therefore keeps its refusal to write a
+  // reference the song no longer holds — rather than walking the sections a
+  // fourth time here.
+  const byTarget = new Map<number, Clipboard>();
+  for (const clip of clips) {
+    const reference = song.sections[clip.sectionIndex]?.patterns[clip.part];
+    if (!reference) continue;
+    const target = clip.sectionIndex + shift;
+    const already = byTarget.get(target);
+    const entry = already ?? { clips: [] };
+    // The reference whole, so a drag-move carries the clip resize with it.
+    entry.clips.push({ part: clip.part, reference: { ...reference } });
+    if (!already) byTarget.set(target, entry);
+  }
+  // ⚠ Nothing to move — every named clip was already gone. Returning the song
+  // itself keeps this off the undo stack.
+  if (byTarget.size === 0) return song;
+
+  // ⛔ Deleted only once every destination is known, and all of them at once, so
+  // a clip landing on a section another selected clip is leaving does not read
+  // the vacated slot as occupied.
+  let next = deleteClips(song, clips);
+  for (const [target, clipboard] of byTarget) next = pasteClips(next, clipboard, target);
+  return next;
+}
+
+/**
+ * How far {@link moveClips} would actually shift, clamped to the arrangement.
+ *
+ * ⛔ **Exported because the selection has to follow the clips**, and the store
+ * cannot work the distance out for itself without restating the clamp — which
+ * is how the selection ring ends up on cells the clips are not in.
+ */
+export function moveShift(song: Song, clips: ClipId[], to: number, from: number): number {
+  if (!song.sections[to] || clips.length === 0) return 0;
+  const last = song.sections.length - 1;
+  const lowest = Math.min(...clips.map((clip) => clip.sectionIndex));
+  const highest = Math.max(...clips.map((clip) => clip.sectionIndex));
+  return Math.max(-lowest, Math.min(last - highest, to - from));
+}
+
+/**
+ * Which section covers `bar`, or `null` past either end (TASK-130).
+ *
+ * The drop half of a clip drag: the pointer lands on an x, `xToBar` turns that
+ * into a bar, and this says whose bar it is. Here rather than in the component
+ * because "the sections tile end to end" is this file's invariant, and a
+ * hand-rolled scan in the view would be a second reader of it.
+ */
+export function sectionAtBar(song: Song, bar: number): number | null {
+  if (bar < 0) return null;
+  const index = song.sections.findIndex(
+    (section) => bar >= section.startBar && bar < section.startBar + section.bars,
+  );
+  return index === -1 ? null : index;
 }
 
 /**

@@ -327,7 +327,7 @@ fn a_full_pattern_survives_a_hundred_seeds() {
                 (Lane::Kick, 2.0),
                 (Lane::Snare, 4.0),
                 (Lane::ClosedHat, 6.0),
-                (Lane::Bass808, 2.0),
+                (Lane::Sub, 2.0),
             ]
             .into_iter()
             .collect(),
@@ -352,7 +352,7 @@ fn a_full_pattern_survives_a_hundred_seeds() {
                 notes: (0..64).map(|i| note(i * 240, 90, 80)).collect(),
             },
             LaneTrack {
-                lane: Lane::Bass808,
+                lane: Lane::Sub,
                 notes: (0..8).map(|i| note(i * 480, 480, 100)).collect(),
             },
         ];

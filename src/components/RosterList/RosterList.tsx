@@ -40,8 +40,17 @@ export function RosterList({
                 onClick={() => select(entry.id)}
               >
                 <span className="roster__name">{entry.name}</span>
-                {entry.tier === 'flagship' && (
-                  <span className="badge badge--flagship">{t('roster.flagship')}</span>
+                {/* ⛔ **A GENRE badge as well as the flagship one** (TASK-047).
+                    It earns its place in *search results* rather than in this
+                    list: there the two kinds are mixed together with no heading
+                    above them, so the row is the only thing that can say
+                    whether "Trap" is an artist or the archetype under one. */}
+                {entry.type === 'genre' ? (
+                  <span className="badge badge--genre">{t('roster.genre')}</span>
+                ) : (
+                  entry.tier === 'flagship' && (
+                    <span className="badge badge--flagship">{t('roster.flagship')}</span>
+                  )
                 )}
               </button>
             </li>

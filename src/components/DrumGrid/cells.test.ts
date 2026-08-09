@@ -1,6 +1,20 @@
 import { describe, expect, it } from 'vitest';
 
-import { columnDensity, LANE_ORDER, TICKS_PER_16TH, toCells } from './cells';
+import {
+  columnDensity,
+  LANE_ORDER,
+  TICKS_PER_16TH,
+  toCells,
+  toggleHit,
+  tuplet,
+  cloneBar,
+  clearCell,
+  columnOf,
+  reassignLane,
+  unusedLanes,
+  addFill,
+  PITCHED_LANES,
+} from './cells';
 import type { Lane, Note, Pattern } from '../../lib/ipc-types';
 
 function pattern(lanes: { lane: Lane; notes: Note[] }[], bars = 1): Pattern {
@@ -9,6 +23,7 @@ function pattern(lanes: { lane: Lane; notes: Note[] }[], bars = 1): Pattern {
     part: 'drums',
     artistId: 't',
     seed: '1',
+    songSeed: '1',
     bars,
     bpm: 140,
     timeSigNum: 4,
@@ -96,13 +111,38 @@ describe('toCells', () => {
     const everyLane: Lane[] = [
       'kick',
       'snare',
+      'offSnare',
       'clap',
       'closedHat',
       'openHat',
+      'ride',
+      'crash',
+      'tom',
       'rim',
       'snap',
       'perc',
-      'bass808',
+      'shaker',
+      'tambourine',
+      'cowbell',
+      'woodblock',
+      'sub',
+      // ── TASK-043A ──────────────────────────────────────────────────────
+      'subKick',
+      'ghostSnare',
+      'pedalHat',
+      'rideBell',
+      'tomHigh',
+      'tomLow',
+      'perc2',
+      'clave',
+      'conga',
+      'bongo',
+      'timbale',
+      'triangle',
+      'riser',
+      'impact',
+      'reverse',
+      'subLow',
     ];
     expect([...LANE_ORDER].sort()).toEqual([...everyLane].sort());
   });
@@ -149,5 +189,353 @@ describe('columnDensity', () => {
   it('returns all zeroes for a pattern with no notes rather than dividing by none', () => {
     const density = columnDensity(pattern([{ lane: 'kick', notes: [] }]), 4);
     expect(density).toEqual([0, 0, 0, 0]);
+  });
+});
+
+describe('editing the grid (TASK-131G)', () => {
+  const clip = (notes: { startTick: number; vel?: number; pitch?: number }[]): Pattern => ({
+    id: 't',
+    part: 'drums',
+    artistId: 'trap',
+    seed: '1',
+    songSeed: '1',
+    bars: 2,
+    bpm: 140,
+    timeSigNum: 4,
+    timeSigDen: 4,
+    keyRoot: 0,
+    scale: 'natural_minor',
+    lanes: [
+      {
+        lane: 'closedHat',
+        notes: notes.map((n) => ({
+          startTick: n.startTick,
+          lenTicks: 240,
+          pitch: n.pitch ?? 42,
+          vel: n.vel ?? 100,
+          modelVel: null,
+          slideToPitch: null,
+          articulation: null,
+        })),
+      },
+    ],
+    ppq: 960,
+    mood: null,
+    loopRegion: null,
+    clipRegion: null,
+  });
+
+  const hats = (p: Pattern) => p.lanes.find((l) => l.lane === 'closedHat')?.notes ?? [];
+
+  it('places a hit in an empty cell and clears one that has any', () => {
+    const empty = clip([]);
+    const placed = toggleHit(empty, 'closedHat', 3);
+    expect(hats(placed).map((n) => n.startTick)).toEqual([720]);
+
+    // ⚠ Clearing removes *every* hit in the cell, roll included — leaving two of
+    // three would be a state the grid cannot show, since the cell would still
+    // read as occupied.
+    const roll = clip([{ startTick: 720 }, { startTick: 800 }, { startTick: 880 }]);
+    expect(hats(toggleHit(roll, 'closedHat', 3))).toEqual([]);
+  });
+
+  it('adds the lane when the pattern has no track for it yet', () => {
+    // Otherwise the first hat placed on a pattern that only has a kick goes
+    // nowhere and the click reads as broken.
+    const placed = toggleHit(clip([]), 'kick', 0);
+    expect(placed.lanes.find((l) => l.lane === 'kick')?.notes).toHaveLength(1);
+  });
+
+  it('splits a cell into a triplet at real sub-16th ticks', () => {
+    // ⛔ **The control Mike named: Ctrl+3.** 240 ticks / 3 is 80, which is not a
+    // 16th boundary — this is the whole reason the edits work on ticks and not
+    // on cells.
+    const split = tuplet(clip([{ startTick: 480, pitch: 46, vel: 77 }]), 'closedHat', 2, 3);
+    expect(
+      hats(split)
+        .map((n) => n.startTick)
+        .sort((a, b) => a - b),
+    ).toEqual([480, 560, 640]);
+    // The cell's own sound carries over, so a triplet of *open* hats stays open
+    // hats rather than becoming three of the default.
+    expect(hats(split).every((n) => n.pitch === 46 && n.vel === 77)).toBe(true);
+  });
+
+  it('makes a quintuplet too, and never a zero-length note', () => {
+    const five = tuplet(clip([]), 'closedHat', 0, 5);
+    expect(hats(five)).toHaveLength(5);
+    // ⚠ A zero-length note is what `pattern_to_smf` cannot pair a note-off
+    // against — the collision class this repo has already been bitten by.
+    expect(hats(five).every((n) => n.lenTicks >= 1)).toBe(true);
+  });
+
+  it('still draws a tuplet as a multi-hit cell rather than losing it', () => {
+    // ⚠ The claim that the 16th bucketing had to be replaced before tuplets
+    // could exist was wrong: `toCells` counts hits per cell, so three notes
+    // inside one 16th draw as a three-hit cell — the same way the 32nd rolls the
+    // generator already writes have always drawn.
+    const rows = toCells(tuplet(clip([]), 'closedHat', 1, 3));
+    const cells = rows.find((r) => r.lane === 'closedHat')!.cells;
+    expect(cells[1].hits).toBe(3);
+  });
+
+  it('clones a bar over another and does not double what is already there', () => {
+    // ⚠ Merging would double every hit the two bars share, which reads as the
+    // clone having worked and sounds like a flam.
+    const source = clip([{ startTick: 0 }, { startTick: 480 }, { startTick: 3840 }]);
+    const cloned = cloneBar(source, 'closedHat', 0, 1);
+    const inBarTwo = hats(cloned)
+      .filter((n) => n.startTick >= 3840)
+      .map((n) => n.startTick)
+      .sort((a, b) => a - b);
+    expect(inBarTwo).toEqual([3840, 4320]);
+  });
+
+  it('clears a cell and returns the same object when there is nothing there', () => {
+    // `editPattern` reference-compares and drops a no-op, so returning the
+    // pattern itself is what makes Delete on an empty cell free.
+    const source = clip([{ startTick: 0 }]);
+    const cleared = clearCell(source, 'closedHat', 0);
+    expect(hats(cleared)).toEqual([]);
+    // The row survives: `toCells` only draws lanes the pattern has, so dropping
+    // the track would make it vanish under the producer's cursor mid-edit.
+    expect(cleared.lanes.some((l) => l.lane === 'closedHat')).toBe(true);
+    expect(clearCell(cleared, 'closedHat', 0)).toBe(cleared);
+  });
+});
+
+describe('editing a humanized pattern (the case the first tests missed)', () => {
+  // ⛔ The unit tests for TASK-131G all used notes exactly on the grid — the one
+  // shape the engine never produces. `humanize` jitters every hit, so roughly
+  // half of them sit a few ticks EARLY, and `toCells` buckets those forward with
+  // EARLY_TOLERANCE while the edit functions used an exact 16th span. The cell a
+  // producer saw lit and the cell an edit targeted disagreed.
+  const jittered = (startTick: number): Pattern => ({
+    id: 't',
+    part: 'drums',
+    artistId: 'trap',
+    seed: '1',
+    songSeed: '1',
+    bars: 2,
+    bpm: 140,
+    timeSigNum: 4,
+    timeSigDen: 4,
+    keyRoot: 0,
+    scale: 'natural_minor',
+    lanes: [
+      {
+        lane: 'closedHat',
+        notes: [
+          {
+            startTick,
+            lenTicks: 240,
+            pitch: 42,
+            vel: 100,
+            modelVel: null,
+            slideToPitch: null,
+            articulation: null,
+          },
+        ],
+      },
+    ],
+    ppq: 960,
+    mood: null,
+    loopRegion: null,
+    clipRegion: null,
+  });
+
+  const hats = (p: Pattern) => p.lanes.find((l) => l.lane === 'closedHat')?.notes ?? [];
+
+  it('clears the cell the hit is DRAWN in, not the one its raw tick falls in', () => {
+    // A hat written at 960 but nudged to 953 draws in column 4.
+    const early = jittered(953);
+    const drawn = toCells(early).find((r) => r.lane === 'closedHat')!.cells;
+    expect(drawn[4].hits).toBe(1);
+    expect(drawn[3].hits).toBe(0);
+
+    // Clicking the lit cell must clear it — it used to append a second hit and
+    // play an audible flam.
+    expect(hats(toggleHit(early, 'closedHat', 4))).toEqual([]);
+    // Delete on it used to be a silent no-op.
+    expect(hats(clearCell(early, 'closedHat', 4))).toEqual([]);
+    // And the visually empty cell to its left must not touch it.
+    expect(hats(clearCell(early, 'closedHat', 3))).toHaveLength(1);
+  });
+
+  it('does not double a humanized downbeat when a bar is cloned over it', () => {
+    // Bar 2's kick written at 3840 but jittered to 3834 sits just BELOW the bar
+    // line, so an exact boundary left it in place while the copy landed on the
+    // line — two hits a few ticks apart, which is a flam from the one gesture
+    // whose contract is that the destination is cleared first.
+    const source = jittered(3834);
+    source.lanes[0].notes.push({
+      startTick: 0,
+      lenTicks: 240,
+      pitch: 42,
+      vel: 100,
+      modelVel: null,
+      slideToPitch: null,
+      articulation: null,
+    });
+
+    const cloned = cloneBar(source, 'closedHat', 0, 1);
+    const inBarTwo = hats(cloned).filter((n) => n.startTick >= 3800);
+    expect(inBarTwo).toHaveLength(1);
+    expect(inBarTwo[0].startTick).toBe(3840);
+  });
+
+  it('leaves a sextuplet spill clearable from the cell it is drawn in', () => {
+    // A tuplet keeps its TRUE subdivision — a 16th triplet is 80 ticks, and
+    // squeezing it to fit one column would make it not a triplet. Sizes of six
+    // and up therefore put their last note in the next column; what matters is
+    // that clicking that column finds it.
+    const six = tuplet(jittered(960), 'closedHat', 4, 6);
+    const strayColumn = columnOf(
+      hats(six)
+        .map((n) => n.startTick)
+        .sort((a, b) => b - a)[0],
+    );
+    expect(strayColumn).toBe(5);
+    // Clicking cell 5 used to append yet another hit instead of clearing it.
+    const after = clearCell(six, 'closedHat', strayColumn);
+    expect(hats(after).length).toBeLessThan(hats(six).length);
+  });
+});
+
+describe('reassignLane (TASK-043A)', () => {
+  const base = pattern([
+    { lane: 'kick', notes: [{ startTick: 0, lenTicks: 120, pitch: 36, vel: 100 }] },
+    { lane: 'snare', notes: [{ startTick: 960, lenTicks: 120, pitch: 38, vel: 100 }] },
+  ]);
+
+  it('offers only the lanes the kit is not already using', () => {
+    const free = unusedLanes(base);
+    expect(free).not.toContain('kick');
+    expect(free).not.toContain('snare');
+    expect(free).toContain('cowbell');
+    // ⛔ Two slots on one lane is a row the producer edits and cannot hear, so
+    // the picker never offers a taken lane rather than validating afterwards.
+    expect(new Set(free).size).toBe(free.length);
+  });
+
+  it('never offers a pitched lane as a drum slot', () => {
+    // ⛔⛔ **The 808s got through the melodic-parts argument.** `sub` and
+    // `subLow` are rows of this grid, so `LANE_ORDER` holds them — but they are
+    // pitched, and `reassignLane` moves notes unchanged on purpose. Picking a
+    // perc row over to "808" therefore exported unpitched drum hits down the
+    // pitched channel as bass notes at whatever pitch they carried.
+    for (const lane of PITCHED_LANES) {
+      expect(LANE_ORDER).toContain(lane);
+      expect(unusedLanes(base)).not.toContain(lane);
+    }
+  });
+
+  it('never offers the four melodic parts as a drum slot', () => {
+    // ⛔ **This passed vacuously once.**  filtered the melodic
+    // lanes out explicitly, which read as a safeguard over a list that has
+    // never contained one — so the assertion could not fail whatever the code
+    // did. The filter is gone; what actually guarantees it is ,
+    // and this now asserts that instead.
+    for (const part of ['melody', 'counter', 'bass', 'chords']) {
+      expect(LANE_ORDER).not.toContain(part);
+      expect(unusedLanes(base)).not.toContain(part);
+    }
+  });
+
+  it('moves the notes and leaves them exactly as they were', () => {
+    const moved = reassignLane(base, 'snare', 'cowbell');
+    expect(moved.lanes.map((l) => l.lane).sort()).toEqual(['cowbell', 'kick']);
+    // ⚠ The notes are untouched — re-pitching them to the new lane's GM note is
+    // the exporter's job, and doing it here would bake a drum map into the clip.
+    expect(moved.lanes.find((l) => l.lane === 'cowbell')?.notes).toEqual(
+      base.lanes.find((l) => l.lane === 'snare')?.notes,
+    );
+  });
+
+  it('refuses a lane already in use rather than merging two slots', () => {
+    // Merging would silently destroy one of them, which is the failure the
+    // picker's "unused only" rule exists to make unreachable.
+    expect(reassignLane(base, 'snare', 'kick')).toBe(base);
+    expect(reassignLane(base, 'snare', 'snare')).toBe(base);
+    expect(reassignLane(base, 'conga', 'cowbell')).toBe(base);
+  });
+});
+
+describe('addFill (TASK-043H)', () => {
+  // A one-bar clip at 4/4: 3840 ticks, sixteen 16ths of 240.
+  const hats = pattern([
+    {
+      lane: 'closedHat',
+      notes: Array.from({ length: 16 }, (_, i) => ({
+        startTick: i * 240,
+        lenTicks: 120,
+        pitch: 42,
+        vel: 90,
+      })),
+    },
+  ]);
+
+  it('writes the fill into the last beat and leaves the rest of the bar alone', () => {
+    // ⛔ **The last beat, and only it.** `rolls::hat_fills` puts its window at
+    // `bar_ticks - ticks_per_beat`; a hand-added fill that landed anywhere else
+    // would be a figure the generator would never write, so a producer who then
+    // pressed Generate would watch theirs move.
+    const filled = addFill(hats, 'closedHat');
+    const notes = filled.lanes.find((l) => l.lane === 'closedHat')!.notes;
+
+    const before = notes.filter((n) => n.startTick < 2880);
+    expect(before).toEqual(hats.lanes[0].notes.slice(0, 12));
+
+    const inFill = notes.filter((n) => n.startTick >= 2880);
+    // Four 16ths at two hits each — a 32nd stream, 120 ticks apart.
+    expect(inFill.map((n) => n.startTick)).toEqual([
+      2880, 3000, 3120, 3240, 3360, 3480, 3600, 3720,
+    ]);
+    // ⛔ Nothing past the end of the bar: the filter that drops those is what
+    // keeps a fill from writing notes the clip has no room to play.
+    expect(notes.every((n) => n.startTick < 3840)).toBe(true);
+  });
+
+  it('ramps once across the whole figure rather than per cell', () => {
+    // ⛔ A fill is one gesture. Four cells each ramping 45→100 would read as
+    // four little crescendos — busy, not a hand-over.
+    const notes = addFill(hats, 'closedHat').lanes[0].notes.filter((n) => n.startTick >= 2880);
+    const vels = notes.map((n) => n.vel);
+    expect(vels).toEqual([...vels].sort((a, b) => a - b));
+    expect(vels[0]).toBeLessThan(vels[vels.length - 1]);
+    expect(vels[vels.length - 1]).toBe(127);
+  });
+
+  it('takes the pitch the lane already plays, so a fill on the hats is hats', () => {
+    const notes = addFill(hats, 'closedHat').lanes[0].notes;
+    expect(new Set(notes.map((n) => n.pitch))).toEqual(new Set([42]));
+  });
+
+  it('takes the last beat, not four sixteenths, when a beat is not a quarter', () => {
+    // ⛔⛔ **`FILL_SIXTEENTHS` was the constant 4 and a beat is not always
+    // four sixteenths.** In 6/8 it is two — `PPQ * 4 / 8` — so the fill cleared
+    // and rewrote *two beats* of hats, destroying a beat the producer never
+    // asked to lose and writing a figure twice as long as any the engine would
+    // produce. The comment promising this matched `rolls::hat_fills` was false
+    // for every meter but x/4.
+    const eight = { ...hats, timeSigNum: 6, timeSigDen: 8 };
+    const filled = addFill(eight, 'closedHat');
+    const notes = filled.lanes.find((l) => l.lane === 'closedHat')!.notes;
+
+    // One bar of 6/8 is 6 × (960 * 4 / 8) = 2880 ticks; the last beat starts at
+    // 2400, which is column 10 of twelve.
+    const inFill = notes.filter((n) => n.startTick >= 2400);
+    expect(inFill.map((n) => n.startTick)).toEqual([2400, 2520, 2640, 2760]);
+    // ⛔ And the beat before it is untouched — this is the half the bug ate.
+    expect(notes.filter((n) => n.startTick >= 1920 && n.startTick < 2400)).toHaveLength(2);
+  });
+
+  it('still writes a fill on a lane that is empty in the bar so far', () => {
+    // No note before the window means no template to copy a pitch from. The
+    // producer still asked for a fill, so it has to arrive — silently doing
+    // nothing is the readout-that-lies shape: the button reports success.
+    const empty = pattern([{ lane: 'openHat', notes: [] }]);
+    const notes = addFill(empty, 'openHat').lanes.find((l) => l.lane === 'openHat')!.notes;
+    expect(notes.length).toBe(8);
   });
 });

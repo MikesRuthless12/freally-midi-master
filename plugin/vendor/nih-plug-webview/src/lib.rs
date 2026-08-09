@@ -228,6 +228,22 @@ pub fn own_message_queue() {
     windows_pump::enable();
 }
 
+/// The editor window of a process that pumps its own queue, or null.
+///
+/// ⛔ **The honest test for "am I the standalone?" from below the seam**, and
+/// the handle is one the caller can trust: `on_frame` hands it over every frame.
+/// `plugin/src/drag/windows.rs` needs it because `GetFocus()` answers `NULL`
+/// when the focused window belongs to another thread's queue — which is what
+/// WebView2 arranges — and a drag that cannot name our window cannot put it back
+/// in front afterwards.
+///
+/// ⚠ Per thread, and only non-null on the editor thread. That is the only
+/// thread allowed to ask, since it is the one a drag runs on.
+#[cfg(target_os = "windows")]
+pub fn own_queue_editor_window() -> *mut std::ffi::c_void {
+    windows_pump::editor_window()
+}
+
 /// The pump itself. Windows-only, and inert unless [`own_message_queue`] ran.
 #[cfg(target_os = "windows")]
 mod windows_pump {
@@ -246,12 +262,78 @@ mod windows_pump {
         fn DispatchMessageW(msg: *const Msg) -> isize;
         fn IsChild(parent: *mut c_void, child: *mut c_void) -> i32;
         fn PostQuitMessage(exit_code: i32);
+        fn RegisterClassW(class: *const WndClassW) -> u16;
+        #[allow(clippy::too_many_arguments)]
+        fn CreateWindowExW(
+            ex_style: u32,
+            class_name: *const u16,
+            window_name: *const u16,
+            style: u32,
+            x: i32,
+            y: i32,
+            width: i32,
+            height: i32,
+            parent: *mut c_void,
+            menu: *mut c_void,
+            instance: *mut c_void,
+            param: *mut c_void,
+        ) -> *mut c_void;
+        fn DefWindowProcW(hwnd: *mut c_void, msg: u32, w_param: usize, l_param: isize) -> isize;
+        fn PostMessageW(hwnd: *mut c_void, msg: u32, w_param: usize, l_param: isize) -> i32;
+        fn GetParent(hwnd: *mut c_void) -> *mut c_void;
+        fn GetWindowLongPtrW(hwnd: *mut c_void, index: i32) -> isize;
+        fn SetWindowLongPtrW(hwnd: *mut c_void, index: i32, new_long: isize) -> isize;
+        fn GetClientRect(hwnd: *mut c_void, rect: *mut Rect) -> i32;
+        fn AdjustWindowRectEx(rect: *mut Rect, style: u32, menu: i32, ex_style: u32) -> i32;
+        fn SetWindowPos(
+            hwnd: *mut c_void,
+            insert_after: *mut c_void,
+            x: i32,
+            y: i32,
+            cx: i32,
+            cy: i32,
+            flags: u32,
+        ) -> i32;
+    }
+
+    #[link(name = "kernel32")]
+    unsafe extern "system" {
+        fn GetModuleHandleW(name: *const u16) -> *mut c_void;
+    }
+
+    #[link(name = "ole32")]
+    unsafe extern "system" {
+        fn RevokeDragDrop(hwnd: *mut c_void) -> i32;
+    }
+
+    /// Win32 `WNDCLASSW`. `repr(C)` for the same reason [`Msg`] is.
+    #[repr(C)]
+    struct WndClassW {
+        style: u32,
+        wnd_proc: Option<unsafe extern "system" fn(*mut c_void, u32, usize, isize) -> isize>,
+        cls_extra: i32,
+        wnd_extra: i32,
+        instance: *mut c_void,
+        icon: *mut c_void,
+        cursor: *mut c_void,
+        background: *mut c_void,
+        menu_name: *const u16,
+        class_name: *const u16,
     }
 
     #[repr(C)]
     struct Point {
         x: i32,
         y: i32,
+    }
+
+    /// Win32 `RECT`.
+    #[repr(C)]
+    struct Rect {
+        left: i32,
+        top: i32,
+        right: i32,
+        bottom: i32,
     }
 
     /// Win32 `MSG`. `repr(C)` so the padding matches what `PeekMessageW` writes.
@@ -290,21 +372,380 @@ mod windows_pump {
         }
     }
 
+    /// Our own message id, on our own window class, so it collides with nothing.
+    const WM_PUMP: u32 = 0x0400 + 42; // WM_USER + 42
+    const WS_CHILD: u32 = 0x4000_0000;
+
+    thread_local! {
+        /// The window [`request`] posts to, and whose procedure runs [`drain`].
+        /// Created once, on the thread that owns the queue.
+        static PUMP_WINDOW: Cell<*mut c_void> = const { Cell::new(std::ptr::null_mut()) };
+        /// The editor handle [`drain`] needs, handed over by [`request`] because
+        /// a window procedure is given no context of its own.
+        static PUMP_EDITOR: Cell<*mut c_void> = const { Cell::new(std::ptr::null_mut()) };
+        /// One posted `WM_PUMP` in flight at a time. `on_frame` runs at frame
+        /// rate and would otherwise queue a pump per frame faster than they are
+        /// consumed, which is a queue that only grows.
+        static PUMP_POSTED: Cell<bool> = const { Cell::new(false) };
+    }
+
+    /// ⛔⛔ **THE WHOLE POINT OF THIS WINDOW, AND IT IS NOT AN OPTIMISATION.**
+    ///
+    /// `on_frame` is called from *inside* `baseview`'s window procedure, which is
+    /// holding a `RefCell` borrow on its own window state for the duration. Any
+    /// message dispatched from there re-enters that procedure and panics with
+    /// `RefCell already borrowed`, inside an `extern "system"` frame where the
+    /// panic cannot unwind — **the process aborts**. That is why [`drain`] has to
+    /// leave the editor's own messages alone, and it is why a drag started from
+    /// the standalone used to abort: `DoDragDrop` runs a modal loop that
+    /// dispatches a `WM_TIMER` straight back into that procedure.
+    ///
+    /// ▶ **The escape is that `GetMessageW(&mut msg, hwnd, 0, 0)` retrieves
+    /// messages for `hwnd` AND ITS CHILDREN.** `baseview`'s `open_blocking` loop
+    /// is *outside* the window procedure, so anything it dispatches runs with no
+    /// borrow live. So the pump moves onto **a child window of the editor**:
+    /// `on_frame` only posts (which is safe inside the procedure), `open_blocking`
+    /// retrieves the post because the window is in the editor's subtree, and
+    /// [`drain`] then runs from [`pump_proc`] one stack frame below the loop
+    /// rather than three frames inside baseview's procedure.
+    ///
+    /// ⚠ **A message-only window (`HWND_MESSAGE`) does NOT work here**, and it is
+    /// the obvious thing to reach for. It is not in the editor's subtree, so
+    /// `open_blocking`'s filtered `GetMessageW` never retrieves it and the post
+    /// would sit in the queue forever — or be dispatched by `drain`, which is
+    /// exactly the stack being escaped.
+    ///
+    /// ⛔ Inert unless [`own_message_queue`] ran, so a host never creates this.
+    pub fn request(editor: *mut c_void) {
+        if !ENABLED.load(Ordering::Relaxed) || editor.is_null() {
+            return;
+        }
+        PUMP_EDITOR.with(|e| e.set(editor));
+
+        let window = PUMP_WINDOW.with(|w| w.get());
+        let window = if window.is_null() {
+            let created = create_pump_window(editor);
+            PUMP_WINDOW.with(|w| w.set(created));
+            stop_being_a_drop_target(editor);
+            pin_the_frame(editor);
+            created
+        } else {
+            window
+        };
+        if window.is_null() {
+            // ⛔ **Fall back to draining in place rather than not at all.** A
+            // standalone that cannot create a child window is a standalone whose
+            // webview never renders, which is a blank window — strictly worse
+            // than the abort this indirection exists to avoid, and that abort
+            // only happens if the producer then starts a drag.
+            drain(editor);
+            return;
+        }
+
+        if PUMP_POSTED.with(|p| p.replace(true)) {
+            return;
+        }
+        // SAFETY: `window` is a live HWND owned by this thread, and `WM_PUMP` is
+        // our own id on our own class.
+        if unsafe { PostMessageW(window, WM_PUMP, 0, 0) } == 0 {
+            PUMP_POSTED.with(|p| p.set(false));
+        }
+    }
+
+    /// Give up `baseview`'s OLE drop target on our own window.
+    ///
+    /// ⛔⛔ **A CRASH FIX, AND THE CRASH IS IN `baseview`.** TASK-063D. A drag
+    /// begins with the cursor over the window it started from, so `DoDragDrop`
+    /// calls `IDropTarget::DragEnter` on **us** first — and `baseview` registers
+    /// one on every window it opens (`win/window.rs:764`). Its parser then does
+    /// `*(*medium.u).hGlobal()`, which dereferences the `STGMEDIUM` union twice:
+    /// that yields the *data pointer* of a movable block where `DragQueryFileW`
+    /// wants the *handle*. `GlobalLock` of a data pointer is `NULL` and the
+    /// shell faults reading it. Captured stack:
+    ///
+    /// ```text
+    /// DragQueryFileW
+    /// baseview::win::drop_target::DropTarget::parse_drop_data  drop_target.rs:140
+    /// baseview::win::drop_target::DropTarget::drag_enter       drop_target.rs:209
+    /// DoDragDrop
+    /// ```
+    ///
+    /// ⚠ **No allocation choice on the source side fixes it** — with `GMEM_FIXED`
+    /// the same double-dereference reads `pFiles` and hands *that* to the shell.
+    /// It is `baseview`'s bug, and short of a third fork we cannot repair it.
+    ///
+    /// ▶ **Here, and not in the drag code, because here the handle is certain.**
+    /// This is the window `baseview` registered — the pump was handed it by
+    /// `on_frame`. An earlier cut revoked from `drag/windows.rs` using a handle
+    /// fetched across the seam, it came back null, and nothing changed.
+    ///
+    /// ⛔⛔ **THE EDITOR ALONE IS NOT ENOUGH — WALK THE PARENTS.** OLE looks for
+    /// a drop target on the window under the cursor and then **up its parent
+    /// chain**, and there are *two* `baseview` windows in the standalone:
+    /// `nih_plug`'s wrapper opens a top-level one with `open_blocking`, and this
+    /// adapter opens the editor as a **child** of it with `open_parented`. Both
+    /// get a drop target. Revoking only the editor's was measured to change
+    /// nothing: the drag simply found the parent's and faulted there instead,
+    /// with a stack identical to the first.
+    ///
+    /// ⛔⛔ **Only reachable when this process owns its queue**, i.e. the
+    /// standalone: [`request`] returns before this if `ENABLED` is false. ⚠ That
+    /// guard is what makes walking *upwards* safe — in a host the chain above
+    /// our editor is the DAW's own windows, and revoking their drop targets
+    /// would break drag-and-drop across the whole application.
+    ///
+    /// ⚠ Safe to give up: nothing in this application reads dropped files —
+    /// `DropData` appears once in the tree, as a `pub use` nobody consumes.
+    fn stop_being_a_drop_target(editor: *mut c_void) {
+        let mut window = editor;
+        // ⚠ Bounded rather than `while !null`. A parent chain is three windows
+        // deep here; anything longer means the assumption is wrong, and looping
+        // forever inside a frame handler is worse than missing a revoke.
+        for _ in 0..8 {
+            if window.is_null() {
+                return;
+            }
+            // SAFETY: documented entry points on windows this process owns,
+            // called from the thread that created them.
+            let hr = unsafe { RevokeDragDrop(window) };
+            // ⚠ `DRAGDROP_E_NOTREGISTERED` (0x80040100) is the ordinary answer
+            // for the ancestors that never had one, and is not worth reporting.
+            if hr == 0 {
+                eprintln!("[pump] released baseview's drop target on {window:?}");
+            } else if hr != 0x8004_0100u32 as i32 {
+                // ⛔ Not silent. A failure here is a crash on the next drag, and
+                // a quiet one is what made this look like a drag bug for an hour.
+                eprintln!(
+                    "[pump] could NOT release a drop target on {window:?}: 0x{hr:08X} \
+                     — a drag from the standalone may crash"
+                );
+            }
+            window = unsafe { GetParent(window) };
+        }
+    }
+
+    /// The editor window this thread pumps for, or null if it does not pump.
+    ///
+    /// Recorded by [`request`] on every frame, so it is always the handle
+    /// `baseview` is actually using. [`super::own_queue_editor_window`] is the
+    /// only caller and its doc says what for.
+    pub fn editor_window() -> *mut c_void {
+        PUMP_EDITOR.with(|e| e.get())
+    }
+
+    /// The outermost window above `from`, or `from` if it is already top level.
+    fn top_level(from: *mut c_void) -> *mut c_void {
+        let mut window = from;
+        // ⚠ Bounded for the same reason the revoke walk is: a chain this deep
+        // means the assumption is wrong, and spinning inside a frame handler is
+        // worse than stopping early.
+        for _ in 0..8 {
+            // SAFETY: a documented entry point on a window this process owns.
+            let parent = unsafe { GetParent(window) };
+            if parent.is_null() {
+                break;
+            }
+            window = parent;
+        }
+        window
+    }
+
+    /// Give the standalone a fixed frame: no maximise, no sizing border.
+    ///
+    /// ⛔⛔ **Mike asked for this by name** (2026-08-06): *"can you ensure that
+    /// the maximize/restore button is disabled like you can with C# WinForms?
+    /// that would fix it and ensure it is fixed border for the form."* It is the
+    /// WinForms `FormBorderStyle = FixedSingle` + `MaximizeBox = false` pair,
+    /// spelled in Win32.
+    ///
+    /// ▶ **Why it is the right fix and not a dodge.** Maximising or dragging the
+    /// frame left a black margin down the right and along the bottom: the window
+    /// grew and the page did not. An earlier attempt answered
+    /// `WindowEvent::Resized` by re-bounding the webview, and Mike reported the
+    /// dead space unchanged — so either that event does not arrive here or the
+    /// bounds are not the whole story. ⛔ **A window that cannot be resized
+    /// cannot disagree with its contents**, which removes the failure rather
+    /// than tracking it. The editor already offers real size presets through
+    /// `set_editor_size`, and those go through the path that resizes *both*.
+    ///
+    /// ⛔ **Standalone only.** [`request`] returns before this when the pump is
+    /// off, so a host is never touched — restyling a DAW's window would be an
+    /// appalling thing to do.
+    fn pin_the_frame(editor: *mut c_void) {
+        const GWL_STYLE: i32 = -16;
+        const WS_THICKFRAME: isize = 0x0004_0000;
+        const WS_MAXIMIZEBOX: isize = 0x0001_0000;
+        const SWP_NOSIZE: u32 = 0x0001;
+        const SWP_NOMOVE: u32 = 0x0002;
+        const SWP_NOZORDER: u32 = 0x0004;
+        const SWP_NOACTIVATE: u32 = 0x0010;
+        const SWP_FRAMECHANGED: u32 = 0x0020;
+
+        // ⚠ The top-level window, not the editor. The editor is a `WS_CHILD` of
+        // nih_plug's wrapper window, and a child has no caption buttons and no
+        // sizing border to take away.
+        let frame = top_level(editor);
+        if frame.is_null() {
+            return;
+        }
+
+        const GWL_EXSTYLE: i32 = -20;
+
+        // SAFETY: documented entry points on a window this process owns, called
+        // from the thread that created it.
+        unsafe {
+            let style = GetWindowLongPtrW(frame, GWL_STYLE);
+            let fixed = style & !(WS_THICKFRAME | WS_MAXIMIZEBOX);
+            if fixed == style {
+                return;
+            }
+
+            // ⛔⛔ **MEASURE THE CLIENT AREA FIRST, AND PUT IT BACK AFTERWARDS.**
+            // Dropping `WS_THICKFRAME` makes the non-client border thinner, so
+            // the *client* area grows by a few pixels on every edge while the
+            // window stays the same size. Nothing tells `baseview`'s child or
+            // the webview, and those pixels paint as the window's background —
+            // Mike, 2026-08-06: *"when i drag it down and to the right, it ends
+            // up showing my black dead parts down and to the right."* The first
+            // cut of this function skipped this and caused exactly that.
+            let mut client = Rect {
+                left: 0,
+                top: 0,
+                right: 0,
+                bottom: 0,
+            };
+            let measured = GetClientRect(frame, &mut client) != 0;
+            let (width, height) = (client.right - client.left, client.bottom - client.top);
+
+            SetWindowLongPtrW(frame, GWL_STYLE, fixed);
+
+            // Ask Win32 what outer size now yields the client area we had.
+            let mut want = Rect {
+                left: 0,
+                top: 0,
+                right: width,
+                bottom: height,
+            };
+            let ex_style = GetWindowLongPtrW(frame, GWL_EXSTYLE) as u32;
+            let adjusted =
+                measured && AdjustWindowRectEx(&mut want, fixed as u32, 0, ex_style) != 0;
+
+            // ⛔ `SWP_FRAMECHANGED` is not optional: without it the style is
+            // stored but the frame is never recalculated, so the grab border
+            // keeps working until something else happens to invalidate it.
+            let flags = SWP_NOMOVE | SWP_NOZORDER | SWP_NOACTIVATE | SWP_FRAMECHANGED;
+            if adjusted {
+                SetWindowPos(
+                    frame,
+                    std::ptr::null_mut(),
+                    0,
+                    0,
+                    want.right - want.left,
+                    want.bottom - want.top,
+                    flags,
+                );
+            } else {
+                SetWindowPos(frame, std::ptr::null_mut(), 0, 0, 0, 0, flags | SWP_NOSIZE);
+            }
+
+            // ⛔ **DO NOT stretch `baseview`'s child to fill the client here.**
+            // Tried on 2026-08-06 and reverted the same hour: it makes the child
+            // cover the gap, so the dead margin turns from the frame's black to
+            // the child's white and nothing is actually fixed — the *webview*
+            // inside the child still has its old bounds. Whatever is leaving a
+            // gap has to be fixed where the two numbers are decided, in
+            // `editor.rs::fit`, not painted over from here.
+        }
+        eprintln!("[pump] fixed the standalone frame on {frame:?} — no maximise, no resize");
+    }
+
+    /// Register the class once per process, then make the window per thread.
+    fn create_pump_window(editor: *mut c_void) -> *mut c_void {
+        let class: Vec<u16> = "FreallyWebviewPump\0".encode_utf16().collect();
+
+        // SAFETY: both calls are documented Win32 entry points given arguments
+        // this function owns. `RegisterClassW` copies the name, and a second
+        // registration of the same class simply fails — which is why the return
+        // is ignored rather than checked: another instance in the same process
+        // may have registered it already, and the `CreateWindowExW` below is the
+        // real test of whether the class exists.
+        unsafe {
+            let mut spec: WndClassW = std::mem::zeroed();
+            spec.wnd_proc = Some(pump_proc);
+            spec.instance = GetModuleHandleW(std::ptr::null());
+            spec.class_name = class.as_ptr();
+            let _ = RegisterClassW(&spec);
+
+            CreateWindowExW(
+                0,
+                class.as_ptr(),
+                std::ptr::null(),
+                // ⚠ `WS_CHILD` without `WS_VISIBLE`, and 0×0. It must be a child
+                // so `open_blocking`'s filter retrieves its messages; it must be
+                // invisible and empty so it never hit-tests, never paints and
+                // never takes a click away from the webview above it.
+                WS_CHILD,
+                0,
+                0,
+                0,
+                0,
+                editor,
+                std::ptr::null_mut(),
+                spec.instance,
+                std::ptr::null_mut(),
+            )
+        }
+    }
+
+    /// Runs [`drain`], one frame below `open_blocking` and outside every borrow.
+    unsafe extern "system" fn pump_proc(
+        hwnd: *mut c_void,
+        msg: u32,
+        w_param: usize,
+        l_param: isize,
+    ) -> isize {
+        if msg == WM_PUMP {
+            // ⛔ Cleared **before** draining, not after. Draining dispatches the
+            // webview's completions, which is where the RPC handler — and
+            // therefore a drag — runs, and a drag blocks here for the whole
+            // gesture. Clearing afterwards would mean no pump could be queued
+            // for the entire drag, and the webview would freeze while the
+            // producer held the button.
+            PUMP_POSTED.with(|p| p.set(false));
+            drain(PUMP_EDITOR.with(|e| e.get()));
+            return 0;
+        }
+        // SAFETY: the standard fall-through every window procedure owes Win32.
+        unsafe { DefWindowProcW(hwnd, msg, w_param, l_param) }
+    }
+
     /// Drain what `baseview`'s loop cannot see, and **only** that.
     ///
+    /// ⚠ **Normally reached from [`pump_proc`], which is outside baseview's
+    /// window procedure** — that is what [`request`] buys, and it is what lets a
+    /// drag run from here at all. But [`request`] still falls back to calling
+    /// this *in place* when no pump window could be made, and that call is
+    /// inside the procedure. So the rule below is written for the worse caller
+    /// and holds for both.
+    ///
     /// ⛔ **Messages belonging to `editor` or its children are deliberately left
-    /// in the queue.** `on_frame` is called from *inside* baseview's window
+    /// in the queue.** In the fallback, `on_frame` is inside baseview's window
     /// procedure, which is holding a `RefCell` borrow on its own window state
     /// for the duration — so dispatching another message to that same procedure
     /// re-enters it and panics with `RefCell already borrowed`
     /// (`baseview/src/platform/win/window.rs:513`). That panic then crosses an
     /// `extern "system"` frame, where it cannot unwind, and aborts the process.
     ///
-    /// Leaving them is also simply correct: baseview's `GetMessageW` filter
-    /// retrieves messages for that window and its children perfectly well. The
-    /// **only** things it cannot retrieve are thread messages (`hwnd == NULL`)
-    /// and messages for windows outside that subtree — which is exactly where
-    /// WebView2's COM completions live, and exactly what this drains.
+    /// Leaving them is also simply correct on either path: baseview's
+    /// `GetMessageW` filter retrieves messages for that window and its children
+    /// perfectly well, in order. The **only** things it cannot retrieve are
+    /// thread messages (`hwnd == NULL`) and messages for windows outside that
+    /// subtree — which is exactly where WebView2's COM completions live, and
+    /// exactly what this drains.
+    ///
+    /// ⚠ The pump window is itself a child of `editor`, so it passes the `ours`
+    /// test and is never re-dispatched from here. Its own `WM_PUMP` has already
+    /// been taken off the queue by `open_blocking` before this runs.
     pub fn drain(editor: *mut c_void) {
         if !ENABLED.load(Ordering::Relaxed) {
             return;
@@ -413,6 +854,14 @@ impl baseview::WindowHandler for WindowHandler {
         // TASK-P16. Off unless this process asked for it; see `own_message_queue`.
         // The handle is passed so the pump can leave this window's own messages
         // to baseview — see `windows_pump::drain` for why that is not optional.
+        //
+        // ⛔⛔ **`request`, NOT `drain`, and TASK-063D is why.** This function
+        // runs inside baseview's window procedure with a `RefCell` borrow live,
+        // so draining *here* dispatches the webview's completions — and therefore
+        // the RPC handler, and therefore `DoDragDrop` — on a stack that cannot
+        // survive being re-entered. `request` only posts to a child window, which
+        // `open_blocking` then dispatches from *outside* the procedure.
+        // `windows_pump::request` carries the full mechanism.
         #[cfg(target_os = "windows")]
         {
             use raw_window_handle::{HasRawWindowHandle, RawWindowHandle};
@@ -420,7 +869,7 @@ impl baseview::WindowHandler for WindowHandler {
                 RawWindowHandle::Win32(handle) => handle.hwnd,
                 _ => std::ptr::null_mut(),
             };
-            windows_pump::drain(editor);
+            windows_pump::request(editor);
         }
 
         let setter = ParamSetter::new(&*self.context);
@@ -437,6 +886,23 @@ impl baseview::WindowHandler for WindowHandler {
                 }
             }
             Event::Mouse(mouse_event) => (self.mouse_handler)(mouse_event),
+
+            // ⛔⛔ **`Event::Window(Resized)` IS DELIBERATELY NOT HANDLED, AND AN
+            // ATTEMPT TO HANDLE IT WAS REVERTED ON 2026-08-06.** It is tempting:
+            // maximising left black dead space, and re-bounding the webview here
+            // looks like the fix. It is not, and `plugin/src/editor.rs` says why
+            // in the doc on `SCALES` and `physical` — **the window size and the
+            // page zoom are one number**. The window is `LAYOUT * system_scale *
+            // factor` and the page is zoomed by `factor`, so the CSS viewport
+            // comes back out at `LAYOUT` whatever the window is. Re-bounding the
+            // webview without also moving the zoom breaks that invariant, and
+            // the symptom is the app cropping and the right rail collapsing —
+            // the exact failure the design exists to prevent.
+            //
+            // ▶ **The answer is that the standalone cannot be resized at all**:
+            // `windows_pump::pin_the_frame` takes away the sizing border and the
+            // maximise box, so the only route to a different size is
+            // `set_editor_size`, which moves *both* numbers together.
             _ => EventStatus::Ignored,
         }
     }

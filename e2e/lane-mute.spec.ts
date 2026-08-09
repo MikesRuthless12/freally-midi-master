@@ -120,3 +120,201 @@ test('the kit’s velocity lane edits the drum note it sits under', async ({ pag
   expect(after[0]).toMatchObject({ lane: target.lane, vel: 50 });
   expect(after.slice(1).map((s) => s.vel)).toEqual(before.slice(1).map((s) => s.vel));
 });
+
+/**
+ * Solo, the audition and the roll palette (TASK-043).
+ *
+ * `plugin/src/shared.rs::set_lane_audio` owns what solo *means* to the audio
+ * thread — that it silences every lane it does not name, that an empty set is
+ * "no solo" rather than "solo nothing", and that a mute outranks it. What only
+ * a browser shows is that the control is on the row it claims to be on, and
+ * that the row's dimming follows what a producer can actually hear rather than
+ * what its own buttons say.
+ */
+
+test('soloing a lane dims every other row without pressing their mutes', async ({ page }) => {
+  const rows = page.locator('.grid__row');
+  const kick = rows.first();
+  const snare = rows.nth(1);
+
+  await kick.locator('.grid__solo').click();
+
+  await expect(kick.locator('.grid__solo')).toHaveAttribute('aria-pressed', 'true');
+  await expect(kick).not.toHaveAttribute('data-muted', 'true');
+
+  // ⛔ The row next door is silent — but its *mute* is still off. Reading the
+  // dimming off `mutedLanes` alone would have left every un-soloed row looking
+  // live while playing nothing, which is the readout-that-lies failure in the
+  // one control that says what you can hear.
+  await expect(snare).toHaveAttribute('data-muted', 'true');
+  await expect(snare.locator('.grid__mute')).toHaveAttribute('aria-pressed', 'false');
+
+  // And un-soloing puts everything back, rather than leaving the rows it dimmed
+  // muted for good.
+  await kick.locator('.grid__solo').click();
+  await expect(snare).not.toHaveAttribute('data-muted', 'true');
+});
+
+test('a muted lane stays muted through a solo that names it', async ({ page }) => {
+  // Mute wins, both here and on the audio thread. A solo that could un-mute
+  // would leave the lane audible once the solo came off, with the mute lit.
+  const kick = page.locator('.grid__row').first();
+
+  await kick.locator('.grid__mute').click();
+  await kick.locator('.grid__solo').click();
+
+  await expect(kick.locator('.grid__mute')).toHaveAttribute('aria-pressed', 'true');
+  await expect(kick.locator('.grid__solo')).toHaveAttribute('aria-pressed', 'true');
+  await expect(kick).toHaveAttribute('data-muted', 'true');
+});
+
+test('the lane’s name is the audition button, and says so', async ({ page }) => {
+  // Mike's ask was that clicking a lane's *header* plays that pad on its own,
+  // so the target is the name — the largest thing in the header — rather than a
+  // fourth icon nobody would find. ⚠ The mock has no audio thread, so what is
+  // asserted is that the control exists, is reachable and is labelled; the
+  // sound is `plugin/src/editor.rs`'s.
+  const name = page.locator('.grid__row').first().locator('.grid__lanename');
+  await expect(name).toHaveRole('button');
+  await expect(name).toHaveAttribute('aria-label', /Hear /);
+  await name.click();
+  // Clicking it is not an edit: the pattern is untouched.
+  await expect(page.locator('.grid__row').first()).not.toHaveAttribute('data-muted', 'true');
+});
+
+test('right-clicking a cell offers the roll palette, and picking one fills the step', async ({
+  page,
+}) => {
+  const cell = page.locator('.grid__row').first().locator('.grid__cell').first();
+  await cell.click({ button: 'right' });
+
+  const palette = page.getByRole('menu', { name: 'Roll this step' });
+  await expect(palette).toBeVisible();
+
+  // ⛔ The count is what the palette promises, and `data-hits` is what the cell
+  // reports — so this is the gesture end to end rather than a menu that opens.
+  await palette.getByRole('menuitem', { name: '4 hits' }).click();
+  await expect(palette).toBeHidden();
+  await expect(cell).toHaveAttribute('data-hits', '4');
+
+  // One press of Ctrl+Z takes the whole roll back, not four.
+  await page.keyboard.press('Control+z');
+  await expect(cell).not.toHaveAttribute('data-hits', '4');
+});
+
+test('Escape dismisses the roll palette without changing the step', async ({ page }) => {
+  const cell = page.locator('.grid__row').first().locator('.grid__cell').first();
+  const before = await cell.getAttribute('data-hits');
+
+  await cell.click({ button: 'right' });
+  await expect(page.getByRole('menu', { name: 'Roll this step' })).toBeVisible();
+  await page.keyboard.press('Escape');
+
+  await expect(page.getByRole('menu', { name: 'Roll this step' })).toBeHidden();
+  expect(await cell.getAttribute('data-hits')).toBe(before);
+});
+
+test('the hat lane offers an add-fill, and it writes one at the phrase end', async ({
+  page,
+}) => {
+  // TASK-043H's UI half. ⛔ **The hats only** — `hihat.fill` is authored on the
+  // hi-hat block alone, so a button on the kick would offer a gesture the
+  // generator has no counterpart for, and pressing Generate would erase it.
+  const rows = page.locator('.grid__row');
+  const hat = rows.filter({ has: page.locator('.grid__fill') }).first();
+  await expect(hat).toBeVisible();
+  await expect(hat.locator('.grid__lanename')).toHaveText(/hat/i);
+
+  const cells = hat.locator('.grid__cell');
+  const total = await cells.count();
+  const last = cells.nth(total - 1);
+
+  await hat.locator('.grid__fill').click();
+
+  // A 32nd stream through the last beat: every one of the last four cells now
+  // holds two hits.
+  for (let step = total - 4; step < total; step += 1) {
+    await expect(cells.nth(step)).toHaveAttribute('data-hits', '2');
+  }
+  // ⚠ And it is one edit, so one Ctrl+Z takes the whole figure back rather than
+  // eight presses for eight notes.
+  await page.keyboard.press('Control+z');
+  await expect(last).not.toHaveAttribute('data-hits', '2');
+});
+
+test('a slot can be switched to a drum the kit is not already using', async ({ page }) => {
+  // TASK-043A. ⛔ **The picker offers the unused lanes only** — two slots
+  // claiming one lane is a row the producer edits and cannot hear.
+  const rows = page.locator('.grid__row');
+  const before = await rows.count();
+  const first = rows.first();
+  const picker = first.locator('.grid__slot');
+
+  await expect(picker).toHaveAttribute('aria-label', /Change /);
+
+  // Every lane already drawn is absent from the list, bar this row's own.
+  const drawn = await rows.locator('.grid__lanename').allInnerTexts();
+  const offered = await picker.locator('option').allInnerTexts();
+  const own = offered[0];
+  for (const name of drawn.filter((n) => n !== own)) {
+    expect(offered).not.toContain(name);
+  }
+  expect(offered).toContain('Conga');
+
+  await picker.selectOption({ label: 'Conga' });
+
+  // The row is a conga now — the same count of rows, one of them renamed.
+  await expect(rows).toHaveCount(before);
+  await expect(page.locator('.grid__lanename', { hasText: 'Conga' })).toHaveCount(1);
+  await expect(page.locator('.grid__lanename', { hasText: own })).toHaveCount(0);
+
+  // ⚠ And it is one edit, so it steps back like any other.
+  await page.keyboard.press('Control+z');
+  await expect(page.locator('.grid__lanename', { hasText: own })).toHaveCount(1);
+});
+
+test('a locked lane survives a re-roll, and R is what re-rolls', async ({ page }) => {
+  // TASK-044. ⛔ **The lock is applied to the engine's *answer*, not sent to
+  // it** — generation is a pure function of its seeds, so the only exact way to
+  // keep the take on screen is to keep it.
+  const kick = page.locator('.grid__row').first();
+  const cells = () =>
+    kick
+      .locator('.grid__cell')
+      .evaluateAll((els) => els.map((e) => e.getAttribute('data-hits')));
+
+  await kick.locator('.grid__lock').click();
+  await expect(kick.locator('.grid__lock')).toHaveAttribute('aria-pressed', 'true');
+  await expect(kick).toHaveAttribute('data-locked', 'true');
+
+  const held = await cells();
+
+  // R rerolls — and it is Generate, so the whole clip is redrawn around the
+  // lane that is held.
+  await page.keyboard.press('r');
+  await expect.poll(cells).toEqual(held);
+
+  // Unlocking lets it go: press R again and it may move. ⚠ Asserted as "the
+  // lock is off" rather than "the notes changed", because a seed is entitled to
+  // land on the same kick twice and a flake here would be worse than the gap.
+  await kick.locator('.grid__lock').click();
+  await expect(kick).not.toHaveAttribute('data-locked', 'true');
+});
+
+test('L locks the row that has focus', async ({ page }) => {
+  // ⛔ **On the row, not on the window.** The grid has no selection model and
+  // seventeen rows, so a global L would have to guess which lane was meant.
+  const snare = page.locator('.grid__row').nth(1);
+  await snare.locator('.grid__mute').focus();
+  await page.keyboard.press('l');
+
+  await expect(snare.locator('.grid__lock')).toHaveAttribute('aria-pressed', 'true');
+  // And only that row.
+  await expect(page.locator('.grid__row').first().locator('.grid__lock')).toHaveAttribute(
+    'aria-pressed',
+    'false',
+  );
+
+  await page.keyboard.press('l');
+  await expect(snare.locator('.grid__lock')).toHaveAttribute('aria-pressed', 'false');
+});

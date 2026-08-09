@@ -287,3 +287,124 @@ node scripts/roster-ledger.mjs --check # fail if it is stale (the CI gate)
 
 The ledger is derived, so it is regenerated rather than maintained. `--check` is
 what stops it drifting from `data/`.
+
+---
+
+## 8. The novelty table
+
+`data/novelty/hooks.hash` is the reference table the novelty guard (FR-011,
+TASK-039) screens every generated melody against. This section is the documented
+process the task asks for: what the file is, how it is rebuilt, and why its
+inputs are not in this repo.
+
+### What is in the file, and what is deliberately not
+
+**Hashes, and nothing else.** Each line is one `0x`-prefixed 64-bit fingerprint
+of a *contour* — a run of `(interval, onset-gap)` steps — and there is no way
+back from one to a note. Nothing in the file names a pitch, a key, a tempo or a
+title. That is the whole point: the table has to ship inside a product that must
+never carry somebody else's notes.
+
+**A fingerprint is transposition- and articulation-blind by construction.** The
+interval side is the semitone step between consecutive notes, so a hook moved to
+another key fingerprints identically. The rhythm side is the *gap between
+onsets*, not the note's length, so the same line played staccato and legato
+fingerprints identically — and a humanised 478-tick eighth quantises onto the
+same rung as an exact 480, which is what lets the guard run before or after the
+humanizer and get the same answer.
+
+Each melody contributes hashes at **both** widths the guard looks up: `n = 8`,
+the screen every take must pass, and `n = 12`, the loosened screen it falls back
+to after four refusals. A lookup at one width can only ever find a hash written
+at that width.
+
+### The contour listing format
+
+One melody per file, `*.contour`, so an n-gram can never straddle two of them
+and fingerprint a phrase nobody wrote. A file is whitespace-separated tokens:
+
+```
+<interval>:<note value>
+```
+
+- **`<interval>`** — semitones from the previous note, signed (`+2`, `-5`, `0`).
+  Clamped to ±24, because a two-octave leap and a three-octave one are the same
+  event to a contour.
+- **`<note value>`** — the gap to the next note, spelled the way the rest of the
+  dataset spells a note value: `4`, `8`, `8th`, `16`, `16T`, `1/8`. It is read by
+  `grid::note_value_ticks`, not by a second parser.
+- `#` starts a comment. Newlines are whitespace — break a listing across lines
+  by phrase, it makes no difference to the output.
+
+A melody of *k* notes is *k − 1* tokens. ⚠ **The ladder has no dotted values**,
+so a dotted quarter is written as the rung it quantises to (`2`). That coarsens
+the screen, which errs towards catching more than it should rather than less —
+the safe direction for a guard whose bad outcome is letting a known hook
+through.
+
+### Rebuilding the table
+
+```sh
+cargo run -p datasetc -- novelty <contours>/ > data/novelty/hooks.hash
+```
+
+The command prints one line per listing with its step count, then the totals, to
+stderr; the table itself goes to stdout. It **fails rather than skips** on a
+listing it cannot read, because a mistyped note value would otherwise cost that
+melody its entry in silence.
+
+Then re-add the file's header comment — the command emits hashes only — or copy
+it from the previous version.
+
+### ⛔ Why the contour listings are not in this repo
+
+FR-011's rule is "hashes, not note data", and a contour listing *is* note data
+with the key filed off: transposition-invariant, but still a melody. So the
+listings are an **input**, authored at research time from public melodic-contour
+listings, and never committed. What is committed is the irreversible output.
+
+That has a cost worth naming: rebuilding the table means re-deriving the
+contours, not re-running a script over checked-in files. The list below is what
+makes that possible.
+
+### What the shipped table was built from
+
+A **public-domain starter set** — seven traditional and classical melodies.
+It exists so the guard is a working mechanism today rather than a switch waiting
+to be wired, and it is expected to grow as the research-time listings are
+encoded.
+
+| Melody | Steps | Status |
+|---|---|---|
+| Frère Jacques | 31 | traditional, public domain |
+| Ode to Joy — Beethoven, Symphony No. 9 | 29 | public domain |
+| Twinkle, Twinkle, Little Star (*Ah! vous dirai-je, maman*) | 13 | traditional, public domain |
+| Mary Had a Little Lamb | 12 | traditional, public domain |
+| London Bridge Is Falling Down | 12 | traditional, public domain |
+| Jingle Bells — J. L. Pierpont, 1857 | 10 | public domain |
+| Für Elise — Beethoven, WoO 59 (opening figure) | 8 | public domain |
+
+104 distinct hashes across both widths. A melody shorter than 12 steps
+contributes at the tight width only, and one of exactly 8 — Für Elise's opening
+figure — contributes a single hash; that is correct rather than a shortfall.
+
+### The gates on it
+
+- `the_bundled_table_parses_and_is_not_empty` (`engine/src/novelty.rs`) — the
+  table is compiled in with `include_str!`, and a malformed one degrades to an
+  empty table rather than panicking inside a DAW. This test is what makes that
+  degraded path unreachable.
+- `the_shipped_roster_walks_past_the_bundled_table` (`engine/tests/novelty.rs`)
+  — every shipped model, both screened parts, five seeds. ⛔ A failure here is
+  **news, not necessarily a bug**: it means a shipped artist's melody collides
+  with a reference contour, and without the test every generation of that artist
+  would silently be a retry.
+- `screening_costs_less_than_the_five_millisecond_budget` — FR-011's stated
+  overhead.
+
+### Changing the fingerprint
+
+`SCHEME` in `engine/src/novelty.rs` is mixed into every hash. **Bump it whenever
+a step's meaning changes** — the ladder, the clamp, the choice of onset gap over
+note length — and rebuild the table. Without that the two schemes share a number
+space, and a stale table goes on matching things it never described.

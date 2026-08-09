@@ -54,7 +54,22 @@ fn hats(lanes: &[LaneTrack]) -> Vec<Note> {
 /// cut in it — trap authors `insertGaps` — leaves two notes twice the
 /// subdivision apart, and counting that gap as a subdivision of its own
 /// reported an 8th-note triplet the model never authored.
-fn roll_subdivisions(notes: &[Note]) -> BTreeSet<u32> {
+///
+/// ⛔ **A gap an open hat sits in is a hole with a known cause, not a
+/// subdivision.** One hi-hat cannot be open and shut at the same instant, so
+/// `drums::close_over_open` drops the closed hit under every open one — and it
+/// does that after the rolls are written, so it can take a note out of the
+/// middle of a run. Reading that widened gap as the roll's subdivision made
+/// this report an 8th on `emo-rap`: the measurement being wrong, not the
+/// engine.
+///
+/// ⚠ **Skipped, not treated as a run boundary**, and the difference is a whole
+/// second failure. Ending the run there splits it, and each half is then
+/// min'd on its own — so on `dark-trap` an ordinary `insertGaps` hole in the
+/// first half, which the run's real 120s had always covered, became that half's
+/// minimum and was reported as a subdivision. The roll did not stop; a note was
+/// taken out of it, and the run carries on across the hole.
+fn roll_subdivisions(notes: &[Note], open_hats: &[u32]) -> BTreeSet<u32> {
     let rolls: Vec<&Note> = notes
         .iter()
         .filter(|n| n.articulation == Some(Articulation::Roll))
@@ -72,10 +87,24 @@ fn roll_subdivisions(notes: &[Note]) -> BTreeSet<u32> {
             found.extend(run.take());
             continue;
         }
+        let span = pair[0].start_tick..pair[1].start_tick;
+        if open_hats.iter().any(|tick| span.contains(tick)) {
+            continue;
+        }
         run = Some(run.map_or(gap, |smallest: u32| smallest.min(gap)));
     }
     found.extend(run);
     found
+}
+
+/// Where the open hats are, so a hole one of them punched can be told apart
+/// from a subdivision.
+fn open_hat_ticks(lanes: &[LaneTrack]) -> Vec<u32> {
+    lanes
+        .iter()
+        .find(|l| l.lane == Lane::OpenHat)
+        .map(|l| l.notes.iter().map(|n| n.start_tick).collect())
+        .unwrap_or_default()
 }
 
 #[test]
@@ -99,23 +128,49 @@ fn every_roll_is_written_at_a_subdivision_its_model_authored() {
             continue;
         };
 
-        let authored: BTreeSet<u32> = rolls
-            .get("vocab")
-            .and_then(|v| v.get("values").or(Some(v)))
-            .and_then(Value::as_array)
-            .map(|values| {
-                values
-                    .iter()
-                    .filter_map(Value::as_str)
-                    .filter_map(grid::note_value_ticks)
-                    .collect()
-            })
-            .unwrap_or_default();
+        let values_of = |block: Option<&Value>, key: &str| -> Vec<u32> {
+            block
+                .and_then(|b| b.get(key))
+                .map(|v| v.get("values").unwrap_or(v))
+                .map(|v| match v {
+                    Value::Array(many) => many.clone(),
+                    one => vec![one.clone()],
+                })
+                .map(|values| {
+                    values
+                        .iter()
+                        .filter_map(Value::as_str)
+                        .filter_map(grid::note_value_ticks)
+                        .collect()
+                })
+                .unwrap_or_default()
+        };
+
+        let mut authored: BTreeSet<u32> = values_of(Some(rolls), "vocab").into_iter().collect();
         assert!(!authored.is_empty(), "{id}: an empty roll vocabulary");
 
+        // ⛔ **The hat *fill* writes roll-articulated notes too** (TASK-043H),
+        // at its own authored subdivision — and at that value's triplet when
+        // the figure is `triplet_burst`. Both belong in the authored set: they
+        // are a subdivision the model asked for, arrived at through the other
+        // hat device. Leaving them out made this fail on `bouncy-trap`, which
+        // was the test being right about a real off-grid bug and then wrong
+        // about the legitimate values beside it.
+        let fill = model
+            .blocks
+            .get("drums")
+            .and_then(|d| d.pointer("/hihat/fill"));
+        for value in values_of(fill, "subdivision") {
+            authored.insert(value);
+            if (value * 2).is_multiple_of(3) {
+                authored.insert((value * 2 / 3).max(1));
+            }
+        }
+
         for seed in 0..SEEDS {
-            let notes = hats(&generate(&model, &ctx(4), seed));
-            for subdivision in roll_subdivisions(&notes) {
+            let lanes = generate(&model, &ctx(4), seed);
+            let notes = hats(&lanes);
+            for subdivision in roll_subdivisions(&notes, &open_hat_ticks(&lanes)) {
                 assert!(
                     authored.contains(&subdivision),
                     "{id} seed {seed}: rolled at {subdivision} ticks, which is not in {authored:?}"

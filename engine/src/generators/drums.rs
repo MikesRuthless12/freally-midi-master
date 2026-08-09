@@ -43,16 +43,89 @@ const MUTE_TOLERANCE: u32 = grid::SIXTEENTH / 2;
 ///
 /// Kick first because the whole grammar hangs off it — the 808 locks to it and
 /// the snare gap rule is measured against it.
+///
+/// ⛔⛔ **A lane missing from here is a lane whose notes are thrown away**, and
+/// TASK-043A hit it: eleven lanes were added to [`PERC_LANES`], authored by nine
+/// shipped models, and produced *nothing* — `Kit` accumulates per lane in this
+/// order and drops what it has no slot for. The two lists are not
+/// interchangeable (see [`PERC_LANES`]), but **every** `PERC_LANES` entry must
+/// appear here, which is what `every_perc_lane_can_be_built` holds.
 const LANE_ORDER: &[Lane] = &[
     Lane::Kick,
+    Lane::SubKick,
     Lane::Snare,
+    Lane::OffSnare,
+    Lane::GhostSnare,
     Lane::Clap,
     Lane::ClosedHat,
     Lane::OpenHat,
+    Lane::PedalHat,
+    Lane::Ride,
+    Lane::RideBell,
+    Lane::Crash,
+    Lane::Tom,
+    Lane::TomHigh,
+    Lane::TomLow,
+    Lane::Clave,
+    Lane::Conga,
+    Lane::Bongo,
+    Lane::Timbale,
+    Lane::Triangle,
+    Lane::Perc2,
+    Lane::Riser,
+    Lane::Impact,
+    Lane::Reverse,
     Lane::Rim,
     Lane::Snap,
     Lane::Perc,
-    Lane::Bass808,
+    Lane::Shaker,
+    Lane::Tambourine,
+    Lane::Cowbell,
+    Lane::Woodblock,
+    Lane::Sub,
+];
+
+/// The lanes a model may name in `drums.percs.lanes`.
+///
+/// Deliberately not every lane in [`LANE_ORDER`]: the kick, the snare and the
+/// hats have their own authored blocks and their own placement grammar, so
+/// naming one here would put two stages in charge of the same voice. These are
+/// the ones whose whole behaviour is "sprinkle hits at this density".
+pub const PERC_LANES: &[Lane] = &[
+    Lane::Ride,
+    Lane::Crash,
+    Lane::Tom,
+    Lane::Rim,
+    Lane::Snap,
+    Lane::Perc,
+    Lane::Shaker,
+    Lane::Tambourine,
+    Lane::Cowbell,
+    Lane::Woodblock,
+    // ── TASK-043A ────────────────────────────────────────────────────────
+    //
+    // ⛔ **The hand and Latin percussion the genres actually describe.**
+    // Research ch. 1 names a vibraslap and a triangle in west coast, claves
+    // and cowbell in Memphis, and congas across the afrobeats work Phase 5
+    // will author. Until now a model asking for any of them had nowhere to
+    // put it — `uk-drill` asked for a `woodblock` before there was a lane and
+    // the request vanished twice over, which is what TASK-140 records.
+    //
+    // ⚠ **The FX lanes are here too**, because a riser and an impact are
+    // placed exactly like a perc — a density and a placement — and giving
+    // them their own authoring block would be a second scheduler for the same
+    // job.
+    Lane::TomHigh,
+    Lane::TomLow,
+    Lane::Perc2,
+    Lane::Clave,
+    Lane::Conga,
+    Lane::Bongo,
+    Lane::Timbale,
+    Lane::Triangle,
+    Lane::Riser,
+    Lane::Impact,
+    Lane::Reverse,
 ];
 
 /// Where the snare lands, bar by bar (PRD § 3, research ch. 1).
@@ -245,9 +318,9 @@ impl Pools {
             } else {
                 1.0
             };
-            if grid::is_downbeat(i) {
+            if grid::is_downbeat(i, ctx) {
                 pools.downbeats.push((tick, weight));
-            } else if grid::is_offbeat_eighth(i) {
+            } else if grid::is_offbeat_eighth(i, ctx) {
                 pools.offbeat_eighths.push((tick, weight));
             } else {
                 pools.sixteenths.push((tick, weight));
@@ -257,9 +330,82 @@ impl Pools {
     }
 }
 
+/// The multi-bar kick form this pattern will play, resolved once.
+///
+/// ⛔ **"Exactly" used to mean "only", and that was a defect.** `kick_bar`
+/// returned `grammar[bar % len]` and never touched the rng, so **uk-drill,
+/// ny-drill and pop-smoke wrote exactly one kick pattern across 200 seeds** —
+/// measured 2026-08-05, after Mike reported the roster sounding the same in
+/// Ableton. A signature that cannot vary is not a signature; it is a loop.
+///
+/// ⚠ **The fix is not to make the grammar statistical.** That would throw away
+/// the thing it exists to protect — drill's two-bar form is the genre, and an
+/// approximation of it is a different genre. A model may instead author
+/// `grammarVariants`: several complete multi-bar forms, one chosen per pattern
+/// from the seed. Every row still reproduces exactly; there are simply more than
+/// one of them. Mike, 2026-08-05: "as many distinct drum patterns as possible
+/// per artist/producer **as long as it follows that artist's type of
+/// workflow**" — for a grammar, this is what that sentence means.
+///
+/// ⛔ **Resolved here rather than inside `kick_bar`, and that is load-bearing.**
+/// `kick_bar` runs once per bar off one rng stream, so drawing there would pick
+/// a different form every bar — cutting between two two-bar shapes mid-phrase
+/// and destroying the very thing the grammar encodes.
+///
+/// ⚠ `fourBarGrammar` still works and still means exactly what it meant. An
+/// artist authoring one form gets one form; nothing already in the dataset
+/// changes behaviour.
+fn kick_grammar(
+    kick: Option<&Value>,
+    ctx: &SessionContext,
+    rng: &mut impl Rng,
+) -> Option<Vec<Vec<u32>>> {
+    let rows = |form: &Value| -> Vec<Vec<u32>> {
+        form.as_array()
+            .map(|bars| {
+                bars.iter()
+                    .map(|row| {
+                        let mut ticks: Vec<u32> = row
+                            .as_array()
+                            .map(|positions| {
+                                positions
+                                    .iter()
+                                    .filter_map(Value::as_str)
+                                    .filter_map(|p| grid::position_ticks(p, ctx))
+                                    .collect()
+                            })
+                            .unwrap_or_default();
+                        ticks.sort_unstable();
+                        ticks.dedup();
+                        ticks
+                    })
+                    .collect()
+            })
+            .unwrap_or_default()
+    };
+
+    let variants = kick
+        .and_then(|k| k.get("grammarVariants"))
+        .and_then(Value::as_array)
+        .filter(|v| !v.is_empty());
+
+    if let Some(variants) = variants {
+        let choice = rng.random_range(0..variants.len());
+        let form = rows(&variants[choice]);
+        if !form.is_empty() {
+            return Some(form);
+        }
+    }
+
+    let single = kick.and_then(|k| k.get("fourBarGrammar"))?;
+    let form = rows(single);
+    (!form.is_empty()).then_some(form)
+}
+
 /// One bar of kick, placed from the grammar in the model.
 fn kick_bar(
     kick: Option<&Value>,
+    grammar: Option<&Vec<Vec<u32>>>,
     ctx: &SessionContext,
     bar: u32,
     snares: &[u32],
@@ -267,25 +413,10 @@ fn kick_bar(
 ) -> Vec<u32> {
     // An explicit multi-bar grammar wins over everything statistical: drill's
     // `[["1","2&","4"], ["1&","3"]]` is the genre's signature two-bar form and
-    // must reproduce exactly, not approximately.
-    let grammar = kick
-        .and_then(|k| k.get("fourBarGrammar"))
-        .and_then(Value::as_array);
+    // must reproduce exactly, not approximately. Which *form* is in play was
+    // decided once for the whole pattern — see [`kick_grammar`].
     if let Some(grammar) = grammar.filter(|g| !g.is_empty()) {
-        let row = &grammar[(bar as usize) % grammar.len()];
-        let mut ticks: Vec<u32> = row
-            .as_array()
-            .map(|positions| {
-                positions
-                    .iter()
-                    .filter_map(Value::as_str)
-                    .filter_map(|p| grid::position_ticks(p, ctx))
-                    .collect()
-            })
-            .unwrap_or_default();
-        ticks.sort_unstable();
-        ticks.dedup();
-        return ticks;
+        return grammar[(bar as usize) % grammar.len()].clone();
     }
 
     let syncopation = number(kick, "syncopation", 0.3, rng).clamp(0.0, 1.0);
@@ -385,6 +516,10 @@ pub fn generate(model: &StyleModel, ctx: &SessionContext, seed: u64) -> Vec<Lane
     let mut snare_rng = rng::stream(seed, "drums/snare");
     let mut kick_rng = rng::stream(seed, "drums/kick");
 
+    // ⛔ Drawn once, before the bar loop, for the reason `kick_grammar` gives:
+    // a form chosen per bar cuts between two two-bar shapes mid-phrase.
+    let kick_form = kick_grammar(kick_block, ctx, &mut kick_rng);
+
     // Placement is decided once for the whole pattern, not per bar: a snare
     // that changes its mind halfway through is not a style, it is a glitch.
     let mut placement = snare_block
@@ -440,6 +575,18 @@ pub fn generate(model: &StyleModel, ctx: &SessionContext, seed: u64) -> Vec<Lane
             }
         }
 
+        // The off-snare, on the snare's own stream and inside the bar loop for
+        // the same reason the ghosts are: it is a positional rule per bar.
+        off_snares(
+            &mut kit,
+            snare_block,
+            ctx,
+            &tiers,
+            bar_start,
+            off_grid_ticks,
+            &mut snare_rng,
+        );
+
         // Ghost snares: the drill "and-of-4" that answers the backbeat.
         let ghost_chance = number(ghost, "prob", 0.0, &mut snare_rng).clamp(0.0, 1.0);
         for position in &ghost_positions {
@@ -460,7 +607,14 @@ pub fn generate(model: &StyleModel, ctx: &SessionContext, seed: u64) -> Vec<Lane
         // The kick reads this bar's snares, so it can leave the gap before them.
         let snares: Vec<u32> = hits.iter().map(|(tick, _)| *tick).collect();
         snares_by_bar.push(snares.clone());
-        for tick in kick_bar(kick_block, ctx, bar, &snares, &mut kick_rng) {
+        for tick in kick_bar(
+            kick_block,
+            kick_form.as_ref(),
+            ctx,
+            bar,
+            &snares,
+            &mut kick_rng,
+        ) {
             kit.hit(
                 Lane::Kick,
                 bar_start + tick,
@@ -489,6 +643,30 @@ pub fn generate(model: &StyleModel, ctx: &SessionContext, seed: u64) -> Vec<Lane
     let mut roll_rng = rng::stream(seed, "drums/hatRolls");
     rolls::hat_rolls(&mut closed, hihat, ctx, &snares_by_bar, &mut roll_rng);
 
+    // The hat's *fill* — the phrase-end figure that hands one bar to the next
+    // (TASK-043H). ⛔ **After the rolls, and on its own stream.** After,
+    // because a fill's whole job is to break the stream and it has to be able
+    // to break a roll too; on its own stream, so re-rolling the fill cannot
+    // move the hats it interrupts.
+    let mut hat_fill_rng = rng::stream(seed, "drums/hats/fill");
+    rolls::hat_fills(&mut closed, hihat, ctx, &mut hat_fill_rng);
+
+    // ⛔⛔ **The open-hat exclusion, re-applied once both decorators are done.**
+    // `hats()` deletes the closed hit underneath every open hat it places — one
+    // hi-hat cannot be open and shut at the same instant — and then two things
+    // write fresh closed notes over the top of that decision: `hat_rolls` puts
+    // a roll wherever its positions land, and `hat_fills` clears a whole window
+    // and redraws it. Either one could put a closed hat straight back on an
+    // open hat's tick, and GM 42 and 46 firing together is not a hat sound, it
+    // is two of them ringing over each other.
+    //
+    // ⛔ **Here rather than inside each of them, and that is the point.** The
+    // rule belongs to the hat lane, not to any one thing that decorates it —
+    // installed at each door, the *next* decorator would arrive without it, the
+    // way the fill did. `no_hat_is_open_and_shut_at_the_same_instant` holds it
+    // over every shipped model and every seed for the same reason.
+    close_over_open(&mut closed, &open);
+
     // The 808 last, because it rides the kick and stops for the snare — it
     // needs both lanes finished before it can be placed.
     let kicks: Vec<u32> = kit.notes(Lane::Kick).iter().map(|n| n.start_tick).collect();
@@ -506,13 +684,43 @@ pub fn generate(model: &StyleModel, ctx: &SessionContext, seed: u64) -> Vec<Lane
         })
         .map(|n| n.start_tick)
         .collect();
+    // ⛔ **Every snare, fills included, for the length clamp only.** The list
+    // above is what the 808 *skips*, and it is the backbeat on purpose. This is
+    // what it must not *ring through*, and the two are genuinely different
+    // rules: a fill is a wall of snares, so dropping the 808 under each one
+    // shreds the line — but letting it sustain across the whole wall is the
+    // thing drill is defined against.
+    //
+    // ⚠ **They only ever agreed by luck, and TASK-131C's data change broke the
+    // luck.** `drills_808_stops_under_the_snare` filters ghosts and *not* rolls,
+    // so it has always asserted this stricter rule — it passed because no kick
+    // grammar had yet put an 808 across a fill. The moment uk-drill gained a
+    // variant with a kick on beat 4, seed 0 rang an 808 from 6720 through the
+    // roll note at 6960. The test was right and the code was one list short.
+    let ringing_snares: Vec<u32> = kit
+        .notes(Lane::Snare)
+        .iter()
+        .filter(|n| n.articulation != Some(Articulation::Ghost))
+        .map(|n| n.start_tick)
+        .collect();
     let mut bass_rng = rng::stream(seed, "drums/bass808");
     kit.extend(
-        Lane::Bass808,
-        bass808(drums, ctx, &kicks, &snares, &mut bass_rng),
+        Lane::Sub,
+        bass808(drums, ctx, &kicks, &snares, &ringing_snares, &mut bass_rng),
     );
     kit.extend(Lane::ClosedHat, closed);
     kit.extend(Lane::OpenHat, open);
+
+    // Percussion last, on its own stream, so adding a shaker to a model cannot
+    // move a single kick, snare, hat or 808 note in any pattern that already
+    // exists. ⚠ That is the property that makes TASK-140 safe to land before
+    // the roster: 15 models already author `percs`, and if this stage shared a
+    // stream with anything above it, reading their block for the first time
+    // would silently rewrite every beat they produce.
+    //
+    // It runs after the clap exists because `tambourineMirrorsClap` reads it.
+    let mut perc_rng = rng::stream(seed, "drums/percs");
+    percs(&mut kit, drums, ctx, &tiers, &mut perc_rng);
 
     kit.into_lanes()
 }
@@ -568,14 +776,30 @@ fn hat_base_onsets(base: &str, grouping: &[u32], ctx: &SessionContext) -> Vec<u3
         .collect()
 }
 
-/// Is this position one the hand accents — a beat or an offbeat 8th?
+/// Is this position one the hand accents — on the 8th-note grid?
 ///
 /// The main/ghost split in a hat stream is positional, not random: the beats
 /// and the "&"s carry the pulse and the 16ths between them fill it in
 /// (research ch. 1 §1, mains 80–100% against ghosts 40–60%).
+///
+/// ⛔⛔ **Deliberately NOT `is_downbeat || is_offbeat_eighth`, and writing it
+/// that way silently deleted every ghost hat outside 4/4.** Those two predicates
+/// became meter-aware (TASK-142's grid fix), and their union covers *every* 16th
+/// the moment a beat is two 16ths or fewer: in 6/8 `is_downbeat` is `i % 2 == 0`
+/// and `is_offbeat_eighth` is `i % 2 == 1`. So every hat answered "main", the
+/// `Articulation::Ghost` tier became unreachable, and every model's authored
+/// `hihat.velocities.ghost` band went with it — a machine-gun hat at one flat
+/// velocity in 6/8, 12/8 and every x/16 meter. 4/4 was unaffected, which is why
+/// nothing caught it.
+///
+/// ⚠ **The 8th-note grid is the right unit here and it does not depend on the
+/// meter.** A 16th is a 16th and an 8th is an 8th whatever the time signature
+/// says — that is [`grid::SIXTEENTH`]'s own note — and what the research
+/// describes is a hand alternating down-up on 8ths with the in-between 16ths
+/// filled in quietly. In 6/8 the 8th *is* the beat, so the ghosts are the 16ths
+/// between the beats, which is exactly what this now answers.
 fn is_main_position(tick: u32) -> bool {
-    let index = tick / grid::SIXTEENTH;
-    grid::is_downbeat(index) || grid::is_offbeat_eighth(index)
+    (tick / grid::SIXTEENTH).is_multiple_of(2)
 }
 
 /// Resolve an open-hat position, including the symbolic `"_pre"` form.
@@ -649,10 +873,12 @@ fn fills(kit: &mut DrumKit, drums: Option<&Value>, ctx: &SessionContext, rng: &m
         let notes = if big && use_ladder {
             rolls::snare_ladder(snare_roll, ctx, lane, start, length, rng)
         } else {
-            rolls::Roll::new(lane, start, start + length, grid::SIXTEENTH)
-                .ramp(64, 120)
-                .grouped(rolls::Grouping::StrongWeakWeakWeak)
-                .render(rng)
+            // ⛔ **Was a hardcoded `Roll::new(..).ramp(64,120)` written inline
+            // here, and that was the defect Mike reported on 2026-08-05: six of
+            // the ten flagship trap artists wrote a byte-identical roll.**
+            // `rolls::snare_fill` reads the artist's own block and samples
+            // inside it; its doc comment carries the measurement.
+            rolls::snare_fill(snare_roll, lane, start, length, rng)
         };
 
         // The ghosts `clear_for_fill` keeps live on the same 16th grid the
@@ -693,7 +919,11 @@ fn bass808(
     drums: Option<&Value>,
     ctx: &SessionContext,
     kicks: &[u32],
+    // The backbeat: where the 808 does not play at all.
     snares: &[u32],
+    // Every snare including a fill's, which the 808 may start on but must not
+    // ring past. See the call site for why these are two lists.
+    ringing_snares: &[u32],
     rng: &mut impl Rng,
 ) -> Vec<Note> {
     // `read::block` treats an explicit `null` as absent, which is how a
@@ -912,11 +1142,24 @@ fn bass808(
     // And a note that merely *reaches* a snare stops there. Nothing starts
     // within the tolerance of one any more, so the cut always leaves a real
     // note behind rather than a click.
+    //
+    // ⛔ **`ringing_snares`, not `snares` — a fill's notes count here and do
+    // not count above.** Dropping the 808 under every note of a roll shreds the
+    // line; sustaining it across the whole roll is what drill is defined
+    // against. Stopping at the first one it reaches is both rules at once.
     if mute {
         for note in &mut notes {
-            if let Some(snare) = snares
+            // ⛔ **`min`, not `find`.** The lane's notes are in insertion order —
+            // backbeat, then ghosts, then the fill's roll appended last — so
+            // `find` returned whichever happened to come first in the *vector*
+            // and clamped to it, leaving an earlier snare still rung through.
+            // "The first snare it reaches" is a fact about time, and only `min`
+            // says that. This was invisible while the list held nothing but a
+            // backbeat already in bar order.
+            if let Some(snare) = ringing_snares
                 .iter()
-                .find(|s| **s > note.start_tick && **s < note.start_tick + note.len_ticks)
+                .filter(|s| **s > note.start_tick && **s < note.start_tick + note.len_ticks)
+                .min()
             {
                 note.len_ticks = snare - note.start_tick;
             }
@@ -974,6 +1217,226 @@ fn lane_by_name(name: &str) -> Option<Lane> {
     serde_json::from_value(Value::String(name.to_owned())).ok()
 }
 
+/// Where in the bar a perc layer is allowed to land.
+///
+/// ⛔ **This was a bare string compared against `"offbeat"`, and the fallback
+/// was silent.** Any other word — including a typo, and including `"downbeat"`,
+/// which reads like it ought to work — meant "anywhere", so a model could ask
+/// for an accent layer and get a sprinkle with nothing saying so. That is the
+/// same class of hole `snare.placement` has a shipped-roster gate for, and
+/// [`can_read_perc_placement`] is what gives this one the same gate.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+enum PercPlacement {
+    /// Anywhere on the 16th grid — what a sprinkle means, and the default.
+    #[default]
+    Anywhere,
+    /// Between the beats. The layer that answers the pulse rather than doubling
+    /// it — drill's rim, and `uk-drill`'s woodblock.
+    Offbeat,
+    /// On the beats only.
+    ///
+    /// ⛔ **What makes a crash authorable at all.** A cymbal accent is a
+    /// *position*, not a density: sprinkled across the 16ths it lands between
+    /// the beats and reads as a mistake rather than as an accent. Without this
+    /// the only honest way to ship `Lane::Crash` was not to ship it.
+    Downbeat,
+}
+
+impl PercPlacement {
+    fn parse(name: &str) -> Option<Self> {
+        match name {
+            "any" => Some(Self::Anywhere),
+            "offbeat" => Some(Self::Offbeat),
+            "downbeat" => Some(Self::Downbeat),
+            _ => None,
+        }
+    }
+
+    /// May a hit land on this 16th?
+    ///
+    /// ⛔⛔ **A meter with no in-between positions honours neither filter, and
+    /// the alternative was a silent lane.** `sixteenths_per_beat` floors at 1,
+    /// so in x/16 and x/32 *every* 16th is a beat — which made `Offbeat` refuse
+    /// all of them and collect an empty pool. `uk-drill`, `ny-drill` and
+    /// `pop-smoke` all author `placement: "offbeat"`, so a producer whose host
+    /// project is in 5/16 got a rim lane that emitted nothing at all: absent
+    /// from the grid, from playback and from the exported stem, with nothing on
+    /// screen saying why. The old `index % 4 == 0` left 12 of 16 open in any
+    /// meter and never had to face this.
+    ///
+    /// ⚠ **A layer the model asked for sounds.** Where the meter cannot express
+    /// the placement, the placement is what gives way — the readout-that-lies
+    /// rule this project keeps writing down cuts the other way round.
+    fn allows(self, index: u32, ctx: &SessionContext) -> bool {
+        if grid::sixteenths_per_beat(ctx) < 2 {
+            return true;
+        }
+        match self {
+            Self::Anywhere => true,
+            Self::Offbeat => !grid::is_downbeat(index, ctx),
+            Self::Downbeat => grid::is_downbeat(index, ctx),
+        }
+    }
+}
+
+/// Is this `percs.placement` one the generator can act on?
+pub fn can_read_perc_placement(name: &str) -> bool {
+    PercPlacement::parse(name).is_some()
+}
+
+/// The percussion lanes a model names in `drums.percs` (TASK-140).
+///
+/// ⛔ **15 of the 30 shipped models authored this block before anything read
+/// it.** `lanes`, `densityPerBar`, `placement` and `gainOffsetDb` were being
+/// written by hand and thrown away, and `dataset:validate` could not say so
+/// because `drums` resolves to `$defs/partBlock`, which declares no properties
+/// at all. ▶ **The shape here is the one the dataset already uses, not a new
+/// one** — `uk-drill` asked for `["rim", "woodblock"]` at `[1, 3]`, offbeat,
+/// -12 dB, and this is what finally plays it. `woodblock` was not even a
+/// `Lane`, so `lane_by_name` answered `None` and the request vanished twice
+/// over.
+///
+/// Density is the whole grammar: these are the lanes whose behaviour is
+/// "sprinkle hits at this rate". That is why the kick, snare and hats are kept
+/// out of [`PERC_LANES`] — each has an authored block and a placement grammar
+/// of its own, and two stages writing one voice is how a lane doubles up.
+fn percs(
+    kit: &mut DrumKit,
+    drums: Option<&Value>,
+    ctx: &SessionContext,
+    tiers: &VelocityTiers,
+    rng: &mut impl Rng,
+) {
+    let percs = block(drums, "percs");
+
+    let lanes: Vec<Lane> = strings(percs, "lanes")
+        .iter()
+        .filter_map(|name| lane_by_name(name))
+        .filter(|lane| PERC_LANES.contains(lane))
+        .collect();
+
+    // ⚠ The tambourine is authored as its own flag rather than through `lanes`
+    // because neither of its two shipped forms is density-driven:
+    // `country-train` wants a steady stream and `west-coast-club` wants it
+    // doubling the clap. Folding them into `lanes` would have meant inventing a
+    // placement word for each and rewriting two models to say the same thing.
+    let steady_tambourine = flag(percs, "tambourine", false);
+    let tambourine_mirrors_clap = flag(percs, "tambourineMirrorsClap", false);
+
+    if lanes.is_empty() && !steady_tambourine && !tambourine_mirrors_clap {
+        return;
+    }
+
+    // Authored in dB because that is how a producer thinks about a perc layer
+    // sitting under the kit rather than beside it.
+    let gain = optional_number(percs, "gainOffsetDb", rng)
+        .map(|db| 10f64.powf(db / 20.0))
+        .unwrap_or(1.0);
+    let scaled = |vel: u8| ((f64::from(vel) * gain).round() as u8).clamp(1, 127);
+
+    let placement = text(percs, "placement")
+        .and_then(PercPlacement::parse)
+        .unwrap_or_default();
+    let (low, high) = pair(percs, "densityPerBar").unwrap_or((0.0, 2.0));
+    let (low, high) = (low.max(0.0), high.max(0.0));
+
+    let per_bar = grid::sixteenths_per_bar(ctx);
+    let bar_ticks = ctx.ticks_per_bar();
+
+    for bar in 0..u32::from(ctx.bars) {
+        let bar_start = bar * bar_ticks;
+
+        if steady_tambourine {
+            // Straight 8ths — the country backbeat's shaker-hand, which is a
+            // pulse rather than a sprinkle.
+            for index in (0..per_bar).step_by(2) {
+                kit.hit(
+                    Lane::Tambourine,
+                    bar_start + index * grid::SIXTEENTH,
+                    scaled(tiers.pick(None, rng)),
+                    None,
+                );
+            }
+        }
+
+        for lane in &lanes {
+            // Redrawn per bar so a two-bar phrase is not the same bar twice —
+            // the collision gate measures the skeleton, and a perc layer that
+            // repeats exactly adds nothing to it.
+            let count = if high <= low {
+                low.round() as u32
+            } else {
+                rng.random_range(low..=high).round() as u32
+            };
+
+            // The candidate positions, drawn without replacement so two hits of
+            // one voice never land on the same 16th and read as one.
+            let mut pool: Vec<(u32, f64)> = (0..per_bar)
+                .filter(|index| placement.allows(*index, ctx))
+                .map(|index| (index, 1.0))
+                .collect();
+
+            for _ in 0..count.min(pool.len() as u32) {
+                let Some(index) = take_weighted(&mut pool, rng) else {
+                    break;
+                };
+                kit.hit(
+                    *lane,
+                    bar_start + index * grid::SIXTEENTH,
+                    scaled(tiers.pick(None, rng)),
+                    None,
+                );
+            }
+        }
+    }
+
+    // Last, because it reads the clap lane the snare stage already wrote.
+    if tambourine_mirrors_clap {
+        let claps: Vec<u32> = kit.notes(Lane::Clap).iter().map(|n| n.start_tick).collect();
+        for tick in claps {
+            kit.hit(Lane::Tambourine, tick, scaled(tiers.pick(None, rng)), None);
+        }
+    }
+}
+
+/// The off-snare: a second snare voice on the off-beats (TASK-140).
+///
+/// Mike named it alongside claps, and a clap is a lane, so this is a lane — see
+/// [`Lane::OffSnare`]. Authored the same way the ghost snare is, with `pos` and
+/// `prob`, because it is the same kind of rule and a second vocabulary for
+/// "where does a snare-ish hit go" is one more thing to keep in agreement.
+fn off_snares(
+    kit: &mut DrumKit,
+    snare_block: Option<&Value>,
+    ctx: &SessionContext,
+    tiers: &VelocityTiers,
+    bar_start: u32,
+    off_grid_ticks: i64,
+    rng: &mut impl Rng,
+) {
+    let off = block(snare_block, "offSnare");
+    let positions = strings(off, "pos");
+    if positions.is_empty() {
+        return;
+    }
+    let chance = number(off, "prob", 1.0, rng).clamp(0.0, 1.0);
+
+    for position in &positions {
+        if !rng.random_bool(chance) {
+            continue;
+        }
+        let Some(offset) = grid::position_ticks(position, ctx) else {
+            continue;
+        };
+        kit.hit(
+            Lane::OffSnare,
+            displace(bar_start + offset, off_grid_ticks),
+            tiers.pick(None, rng),
+            None,
+        );
+    }
+}
+
 /// Where an 808 slide may go.
 ///
 /// Named separately from the roll positions because the vocabularies genuinely
@@ -1014,6 +1477,19 @@ impl RollLikePosition {
 }
 
 /// The hi-hat lanes: the base stream, its fill, and the open hats over it.
+/// Drop every closed hat that lands on a tick an open hat already occupies.
+///
+/// The rule `hats()` states when it places one: "one hi-hat cannot be open and
+/// shut at the same instant, so the closed hit underneath goes." Dropped rather
+/// than nudged, which is what `hats()` does — the stream keeps its grid and
+/// simply has a hole where the open hat is sounding.
+fn close_over_open(closed: &mut Vec<Note>, open: &[Note]) {
+    if open.is_empty() {
+        return;
+    }
+    closed.retain(|hit| !open.iter().any(|hat| hat.start_tick == hit.start_tick));
+}
+
 fn hats(
     hihat: Option<&Value>,
     ctx: &SessionContext,
@@ -1173,6 +1649,29 @@ mod tests {
     use super::*;
     use serde_json::json;
 
+    #[test]
+    fn every_perc_lane_can_be_built() {
+        // ⛔⛔ **The gate for the defect TASK-043A walked straight into.** Eleven
+        // lanes went into `PERC_LANES`, nine shipped models authored them, and
+        // every one produced *nothing* — `Kit` accumulates per lane in
+        // `LANE_ORDER` and silently drops whatever it has no slot for. The
+        // dataset said one thing, the output said another, and the only test
+        // that noticed was a roster-wide one two files away.
+        //
+        // ⚠ **One direction only.** `LANE_ORDER` is deliberately longer: the
+        // kick, the snare and the hats have their own grammar and must never be
+        // nameable as percs. What must hold is that nothing a model can *ask*
+        // for is unbuildable.
+        let missing: Vec<&Lane> = PERC_LANES
+            .iter()
+            .filter(|lane| !LANE_ORDER.contains(lane))
+            .collect();
+        assert!(
+            missing.is_empty(),
+            "a model can author these percs and the kit has nowhere to put them: {missing:?}"
+        );
+    }
+
     fn model(drums: Value) -> StyleModel {
         serde_json::from_value(json!({
             "id": "test", "type": "genre", "name": "Test",
@@ -1196,6 +1695,290 @@ mod tests {
         lane(lanes, want)
             .map(|l| l.notes.iter().map(|n| n.start_tick).collect())
             .unwrap_or_default()
+    }
+
+    // ── TASK-140: the percussion lanes ──────────────────────────────────────
+
+    #[test]
+    fn a_model_gets_the_perc_lanes_it_asked_for() {
+        // uk-drill's own authored block, verbatim. Before TASK-140 this wrote
+        // nothing at all: `rim` resolved to a lane no generator touched, and
+        // `woodblock` was not a `Lane` variant, so `lane_by_name` said `None`.
+        let m = model(json!({
+            "percs": {
+                "lanes": ["rim", "woodblock"],
+                "densityPerBar": [1, 3],
+                "placement": "offbeat",
+                "gainOffsetDb": -12,
+            }
+        }));
+        let lanes = generate(&m, &ctx(4), 7);
+
+        assert!(!starts(&lanes, Lane::Rim).is_empty(), "rim was asked for");
+        assert!(
+            !starts(&lanes, Lane::Woodblock).is_empty(),
+            "woodblock was asked for, and used not to be a lane at all"
+        );
+    }
+
+    #[test]
+    fn a_lane_the_model_did_not_name_stays_silent() {
+        let m = model(json!({
+            "percs": { "lanes": ["rim"], "densityPerBar": [2, 2] }
+        }));
+        let lanes = generate(&m, &ctx(2), 3);
+
+        assert!(!starts(&lanes, Lane::Rim).is_empty());
+        for quiet in [Lane::Shaker, Lane::Tambourine, Lane::Cowbell, Lane::Tom] {
+            assert!(
+                lane(&lanes, quiet).is_none(),
+                "{quiet:?} was never named and must not appear"
+            );
+        }
+    }
+
+    #[test]
+    fn only_percussion_lanes_can_be_named_as_percs() {
+        // Naming the kick here would put two stages in charge of one voice —
+        // the kick grammar writes it, and this would sprinkle over the top.
+        let m = model(json!({
+            "kick": { "grammar": ["1"] },
+            "percs": { "lanes": ["kick", "snare", "closedHat"], "densityPerBar": [4, 4] }
+        }));
+        let with_percs = generate(&m, &ctx(2), 5);
+
+        let without = model(json!({ "kick": { "grammar": ["1"] } }));
+        let plain = generate(&without, &ctx(2), 5);
+
+        assert_eq!(
+            starts(&with_percs, Lane::Kick),
+            starts(&plain, Lane::Kick),
+            "naming the kick as a perc must be ignored, not doubled"
+        );
+    }
+
+    #[test]
+    fn an_offbeat_placement_never_lands_on_a_beat_in_any_meter() {
+        // ⛔ **The meters are the test.** In 4/4 this passed while
+        // `grid::is_downbeat` was `index % 4 == 0`, because there four 16ths
+        // *are* a beat. In 6/8 a beat is two 16ths, so 2, 6 and 10 are beats
+        // that the `% 4` waved through — and `uk-drill`, `ny-drill` and
+        // `pop-smoke` all author `placement: "offbeat"`, so the layer meant to
+        // sit between the pulse played on top of it. Asserted against
+        // `ticks_per_beat` arithmetic spelled out here rather than against the
+        // predicate under test, so a predicate that goes wrong again cannot
+        // agree with the assertion about it.
+        let m = model(json!({
+            "percs": {
+                "lanes": ["perc"],
+                "densityPerBar": [3, 3],
+                "placement": "offbeat",
+            }
+        }));
+
+        // ⚠ **x/16 and x/32 are in here now**, and they are the two the first
+        // cut of this list left out — which is exactly where the placement
+        // filter emptied the pool and silenced the lane.
+        for (num, den) in [(4, 4), (3, 4), (6, 8), (12, 8), (5, 4), (5, 16), (8, 32)] {
+            let c = SessionContext {
+                bars: 4,
+                time_sig_num: num,
+                time_sig_den: den,
+                ..Default::default()
+            };
+            let beat = grid::ticks_per_beat(&c);
+            let hits = starts(&generate(&m, &c, 11), Lane::Perc);
+            // ⛔ **The lane sounds in every meter, and this half is the one that
+            // was missing.** In x/16 and x/32 a beat is a 16th or shorter, so
+            // *every* position on this grid is a beat and "offbeat" cannot be
+            // honoured — the filter collected nothing and the lane went silent.
+            assert!(!hits.is_empty(), "{num}/{den}: three a bar were asked for");
+
+            // ...and where the meter *can* express an offbeat, none of them
+            // lands on a beat.
+            if grid::sixteenths_per_beat(&c) < 2 {
+                continue;
+            }
+            for tick in hits {
+                assert!(
+                    !(tick % c.ticks_per_bar()).is_multiple_of(beat),
+                    "{num}/{den}: an offbeat perc landed on beat {} (tick {tick})",
+                    (tick % c.ticks_per_bar()) / beat + 1
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn a_hat_stream_keeps_its_ghost_notes_in_every_meter() {
+        // ⛔⛔ **`is_main_position` was `is_downbeat || is_offbeat_eighth`, and
+        // once those became meter-aware their union covered every 16th.** In
+        // 6/8 that made every hat a "main", so the `Articulation::Ghost` tier
+        // and every model's authored `hihat.velocities.ghost` band became
+        // unreachable — a machine-gun hat at one flat velocity. 4/4 was
+        // unaffected, which is why only a meter sweep can see it.
+        let m = model(json!({
+            "hihat": {
+                "base": "16th",
+                "continuous": true,
+                "fillDensity": 1.0,
+                "velocities": { "main": [0.9, 1.0], "ghost": [0.2, 0.3] }
+            }
+        }));
+
+        for (num, den) in [(4, 4), (6, 8), (12, 8), (3, 4)] {
+            let c = SessionContext {
+                bars: 2,
+                time_sig_num: num,
+                time_sig_den: den,
+                ..Default::default()
+            };
+            let lanes = generate(&m, &c, 5);
+            let hats: Vec<&Note> = lanes
+                .iter()
+                .filter(|track| track.lane == Lane::ClosedHat)
+                .flat_map(|track| track.notes.iter())
+                .collect();
+            assert!(!hats.is_empty(), "{num}/{den}: no hats at all");
+
+            let ghosts = hats
+                .iter()
+                .filter(|note| note.articulation == Some(Articulation::Ghost))
+                .count();
+            assert!(
+                ghosts > 0,
+                "{num}/{den}: every hat came out a main — the ghost tier is unreachable"
+            );
+            assert!(
+                ghosts < hats.len(),
+                "{num}/{den}: every hat came out a ghost"
+            );
+        }
+    }
+
+    #[test]
+    fn one_voice_never_lands_twice_on_the_same_sixteenth() {
+        // Drawn without replacement: two hits of one voice on one 16th read as
+        // a single hit, so the authored density would quietly under-deliver.
+        let m = model(json!({
+            "percs": { "lanes": ["shaker"], "densityPerBar": [6, 6] }
+        }));
+        let lanes = generate(&m, &ctx(4), 13);
+        let hits = starts(&lanes, Lane::Shaker);
+
+        let mut unique = hits.clone();
+        unique.sort_unstable();
+        unique.dedup();
+        assert_eq!(hits.len(), unique.len(), "a 16th was used twice");
+    }
+
+    #[test]
+    fn a_gain_offset_pulls_the_layer_under_the_kit() {
+        let loud = model(json!({
+            "percs": { "lanes": ["perc"], "densityPerBar": [4, 4] }
+        }));
+        let quiet = model(json!({
+            "percs": { "lanes": ["perc"], "densityPerBar": [4, 4], "gainOffsetDb": -12 }
+        }));
+
+        let peak = |m: &StyleModel| {
+            lane(&generate(m, &ctx(2), 4), Lane::Perc)
+                .map(|l| l.notes.iter().map(|n| n.vel).max().unwrap_or(0))
+                .unwrap_or(0)
+        };
+        assert!(
+            peak(&quiet) < peak(&loud),
+            "-12 dB must be audibly under the unattenuated layer"
+        );
+    }
+
+    #[test]
+    fn a_steady_tambourine_is_a_pulse_and_a_mirrored_one_doubles_the_clap() {
+        // country-train's form: straight 8ths.
+        let steady = model(json!({ "percs": { "tambourine": true } }));
+        let lanes = generate(&steady, &ctx(1), 2);
+        assert_eq!(
+            starts(&lanes, Lane::Tambourine),
+            vec![0, 480, 960, 1440, 1920, 2400, 2880, 3360],
+            "eight 8ths in a 4/4 bar"
+        );
+
+        // west-coast-club's form: wherever the clap went.
+        let mirrored = model(json!({
+            "snare": { "placement": "backbeat_24", "layerClapOffsetMs": 8 },
+            "percs": { "tambourineMirrorsClap": true }
+        }));
+        let lanes = generate(&mirrored, &ctx(2), 2);
+        assert_eq!(
+            starts(&lanes, Lane::Tambourine),
+            starts(&lanes, Lane::Clap),
+            "the tambourine must land exactly where the clap did"
+        );
+        assert!(!starts(&lanes, Lane::Clap).is_empty(), "there was a clap");
+    }
+
+    #[test]
+    fn the_off_snare_is_its_own_lane_and_not_more_main_snare() {
+        let m = model(json!({
+            "snare": {
+                "placement": "halftime_3",
+                "offSnare": { "pos": ["4&"], "prob": 1.0 }
+            }
+        }));
+        let lanes = generate(&m, &ctx(2), 9);
+
+        assert_eq!(
+            starts(&lanes, Lane::Snare),
+            vec![1920, 5760],
+            "the main snare is untouched"
+        );
+        assert_eq!(
+            starts(&lanes, Lane::OffSnare),
+            vec![3360, 7200],
+            "the off-snare is on 4& of each bar, in its own lane"
+        );
+    }
+
+    #[test]
+    fn percs_moves_no_note_in_any_other_lane() {
+        // ⛔ THE PROPERTY THAT MAKES TASK-140 SAFE TO LAND BEFORE THE ROSTER.
+        // 15 of the 30 shipped models already author a `percs` block. If this
+        // stage shared an RNG stream with anything above it, reading their
+        // block for the first time would silently rewrite every beat they
+        // produce — and the collision gate would then be measuring a roster
+        // that had changed underneath it for reasons nobody intended.
+        let base = json!({
+            "kick": { "grammar": ["1", "2&", "4"] },
+            "snare": { "placement": "halftime_3", "layerClapOffsetMs": 10 },
+            "hihat": { "base": "16th" },
+            "bassline": { "glideProb": 0.3 },
+        });
+
+        let mut with_percs = base.clone();
+        with_percs["percs"] = json!({
+            "lanes": ["rim", "shaker", "cowbell"],
+            "densityPerBar": [2, 4],
+        });
+
+        for seed in [0, 1, 7, 42, 1337] {
+            let plain = generate(&model(base.clone()), &ctx(4), seed);
+            let perced = generate(&model(with_percs.clone()), &ctx(4), seed);
+
+            for untouched in [
+                Lane::Kick,
+                Lane::Snare,
+                Lane::Clap,
+                Lane::ClosedHat,
+                Lane::OpenHat,
+                Lane::Sub,
+            ] {
+                assert_eq!(
+                    starts(&plain, untouched),
+                    starts(&perced, untouched),
+                    "seed {seed}: adding percs moved {untouched:?}"
+                );
+            }
+        }
     }
 
     #[test]
@@ -1442,7 +2225,7 @@ mod tests {
         for seed in 0..200 {
             for tick in starts(&generate(&m, &ctx(2), seed), Lane::Kick) {
                 let index = (tick % 3840) / grid::SIXTEENTH;
-                if grid::is_offbeat_eighth(index) {
+                if grid::is_offbeat_eighth(index, &ctx(2)) {
                     offbeat += 1;
                 }
                 total += 1;
@@ -1465,7 +2248,7 @@ mod tests {
         for seed in 0..30 {
             for tick in starts(&generate(&m, &ctx(1), seed), Lane::Kick) {
                 assert!(
-                    grid::is_downbeat(tick / grid::SIXTEENTH),
+                    grid::is_downbeat(tick / grid::SIXTEENTH, &ctx(1)),
                     "seed {seed}: {tick} is off the beat"
                 );
             }
