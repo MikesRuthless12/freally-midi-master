@@ -99,11 +99,12 @@ the result into FL Studio, Ableton, Logic, Reaper, or anything else.
   solo, mute and per-lane audition on every drum row — click a lane's name to
   hear that pad on its own. **Lock what you like and reroll the rest**: a locked
   lane comes back note for note however many times you press Generate.
-- **It will not hand you somebody else's hook.** Every melody is screened
-  against a table of well-known contours before you hear it, and a take that
-  matches is thrown away and drawn again. The table holds one-way fingerprints
-  and no note data at all — transposing a hook does not hide it from the screen,
-  and nothing anybody else wrote is in this repository.
+- **It will not hand you somebody else's hook.** Every melody and countermelody
+  is screened against a table of well-known contours before you hear it — on the
+  Melody tab and inside every section of a Song Mode arrangement — and a take
+  that matches is thrown away and drawn again. The table holds one-way
+  fingerprints and no note data at all — transposing a hook does not hide it from
+  the screen, and nothing anybody else wrote is in this repository.
 - **Keep the ones you like.** Name a pattern and it is there next time, in any
   song and any DAW — saved as *notes*, with no kit, so you can load it and put
   whatever sounds you like underneath. And every take of the session is kept:
