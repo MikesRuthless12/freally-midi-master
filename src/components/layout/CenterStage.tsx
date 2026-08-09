@@ -19,6 +19,7 @@ import { GenFx } from '../GenFx/GenFx';
 import { SeedChip } from '../SeedChip/SeedChip';
 import { SessionSwitchPrompt } from '../SessionChips/SessionChips';
 import { TransportControls } from './TransportBar';
+import { VariationNav } from '../VariationNav';
 import { useTranslation } from 'react-i18next';
 
 /** Density buckets handed to the ripple. Matches the columns it draws. */
@@ -112,7 +113,7 @@ function GeneratorTabs() {
 
   return (
     <div className="tabs" role="tablist" aria-label={t('tabs.group')}>
-      {GENERATOR_TABS.map((tab) => {
+      {GENERATOR_TABS.map((tab, index) => {
         const Icon = TAB_ICONS[tab];
         const selected = tab === activeTab;
         return (
@@ -125,6 +126,11 @@ function GeneratorTabs() {
             aria-controls="generator-panel"
             tabIndex={selected ? 0 : -1}
             className="tab"
+            // FR-018's "tooltips show keys everywhere". ⚠ The digit comes from
+            // the tab's *position*, the same way `App.tsx` binds it — a
+            // hardcoded number here would go wrong the day a generator is
+            // added, and it would go wrong silently.
+            title={`${t(`tabs.${tab}`)} — ${index + 1}`}
             onClick={() => setActiveTab(tab)}
           >
             <Icon size={16} aria-hidden="true" />
@@ -150,6 +156,12 @@ function StageHeader() {
       <GeneratorTabs />
       <div className="stage__header-controls">
         <PartToggles />
+        {/* ⛔ **Beside the transport, because the two are the same gesture.**
+            A producer choosing a take alternates between Generate and stepping
+            back to the one before it, and putting the history in a rail would
+            make "go back one" a trip across the window. */}
+        <VariationNav />
+
         <TransportControls />
       </div>
     </div>
@@ -376,6 +388,10 @@ export function CenterStage() {
             <button
               type="button"
               className="btn-generate btn-generate--secondary"
+              // FR-018: the key is on the control, so a producer learns it
+              // where they already are rather than from a panel they have to
+              // know exists.
+              title={`${t('stage.generateAll')} — Shift + G`}
               onClick={() => void generateAll()}
               disabled={!selectedId || generating || songGenerating}
             >
@@ -391,6 +407,7 @@ export function CenterStage() {
           <button
             type="button"
             className="btn-generate"
+            title={part !== null ? `${t('stage.generate')} — G` : t('stage.generate')}
             onClick={() => (part !== null ? void generate(part) : void generateSong())}
             disabled={!selectedId || generating || songGenerating}
           >

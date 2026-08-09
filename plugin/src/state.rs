@@ -106,6 +106,30 @@ pub struct PluginSession {
     /// Lanes whose *audio* is muted. Their notes still reach the host.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub muted_lanes: Vec<Lane>,
+    /// Lanes soloed in the preview (TASK-043). Empty means "no solo".
+    ///
+    /// ⛔ **Kept separate from [`Self::muted_lanes`] rather than folded into
+    /// it**, and the reason is what a producer expects when they un-solo. Solo
+    /// is *"everything except these, for now"* — collapsing it into the mute set
+    /// would make the mutes they had chosen before soloing unrecoverable, so
+    /// clicking S and clicking it again would silently rewrite their routing.
+    /// The audio thread combines the two into one mask
+    /// ([`crate::shared::Shared::adopt_session`]); the store keeps them apart.
+    ///
+    /// ⚠ Persisted like the mutes, because reopening a project should give back
+    /// the state it was left in, and a solo left on with no record of it is a
+    /// lane that has gone silent for no visible reason.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub soloed_lanes: Vec<Lane>,
+    /// Lanes held across a reroll (TASK-044). Empty means nothing is locked.
+    ///
+    /// ⚠ **Stored but never read by the plugin**, and that is correct rather
+    /// than an oversight: a lock decides what the *page* keeps when the engine
+    /// answers, so no audio-thread state follows from it. It is here so the
+    /// project reopens with the producer's locks still on — losing them would
+    /// silently make the next Generate overwrite a part they had held.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub locked_lanes: Vec<Lane>,
     /// The producer's own one-shots, as **paths** to the files (TASK-131B).
     ///
     /// ⛔ **A path, not the audio, and that is a deliberate trade rather than a
@@ -275,6 +299,8 @@ impl Default for PluginSession {
             mood: None,
             audio_enabled: true,
             muted_lanes: Vec::new(),
+            soloed_lanes: Vec::new(),
+            locked_lanes: Vec::new(),
             one_shots: BTreeMap::new(),
             sample_folders: Vec::new(),
             patterns: BTreeMap::new(),
@@ -400,6 +426,8 @@ mod tests {
             mood: Some("dark".into()),
             audio_enabled: false,
             muted_lanes: vec![Lane::Snare],
+            soloed_lanes: vec![Lane::Kick],
+            locked_lanes: vec![Lane::ClosedHat],
             one_shots: BTreeMap::from([(Lane::Melody, "C:/samples/lead.wav".to_owned())]),
             // The sample library rides with the project too (TASK-132).
             sample_folders: vec!["C:/samples".to_owned()],

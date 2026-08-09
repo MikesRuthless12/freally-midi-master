@@ -19,6 +19,7 @@ use serde_json::{json, Value};
 
 use crate::dataset;
 use crate::host::HostSession;
+use crate::patterns;
 use crate::presets;
 use crate::state::{self, PluginSession, SessionStore};
 
@@ -472,6 +473,41 @@ pub fn dispatch(
         "preset_delete" => {
             let id = request.args["id"].as_str().unwrap_or_default();
             presets::delete(id).map(|()| Value::Null)
+        }
+
+        // ── The pattern library (TASK-045A) ──────────────────────────────
+        //
+        // ⛔ **A pattern is passed in, unlike a preset.** `preset_save` copies
+        // the session store because the store IS the session; a *pattern* lives
+        // on the page — five slots, one per part, and the producer is saving the
+        // one they are looking at. Reading it from the store here would save
+        // whichever clip the plugin last had armed, which is not the same thing
+        // and is exactly the kind of near-miss that ships.
+        "patterns_list" => serde_json::to_value(patterns::list()).map_err(|e| e.to_string()),
+
+        "pattern_save" => {
+            let name = request.args["name"].as_str().unwrap_or_default();
+            // ⚠ The clock is the page's. Nothing in the engine or these stores
+            // may depend on the time, which is the same rule TASK-045's history
+            // follows — see `SavedPattern::saved_at`.
+            let saved_at = request.args["savedAt"].as_i64().unwrap_or_default();
+            let pattern: Pattern = serde_json::from_value(request.args["pattern"].clone())
+                .map_err(|e| format!("that is not a pattern: {e}"))?;
+            serde_json::to_value(patterns::save(name, saved_at, pattern)?)
+                .map_err(|e| e.to_string())
+        }
+
+        // Answers with the notes rather than installing them, for the reason
+        // `preset_load` gives: the page owns the five slots and the undo stack,
+        // and a second path into them would drift from the one an edit takes.
+        "pattern_load" => {
+            let id = request.args["id"].as_str().unwrap_or_default();
+            serde_json::to_value(patterns::load(id)?).map_err(|e| e.to_string())
+        }
+
+        "pattern_delete" => {
+            let id = request.args["id"].as_str().unwrap_or_default();
+            patterns::delete(id).map(|()| Value::Null)
         }
 
         "app_info" => Ok(json!({

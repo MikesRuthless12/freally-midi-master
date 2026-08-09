@@ -57,7 +57,8 @@
     "session": "会话",
     "presets": "预设",
     "stems": "分轨",
-    "explorer": "浏览器"
+    "explorer": "浏览器",
+    "patterns": "样式库"
   },
   "readouts": {
     "bpm": "BPM",
@@ -194,7 +195,15 @@
     "label": "生成的节奏型",
     "summary": "{{bars}} 小节 · {{steps}} 步 · {{notes}} 音符",
     "muteLane": "在预览中静音{{lane}}",
-    "cell": "{{lane}}，第 {{step}} 步"
+    "cell": "{{lane}}，第 {{step}} 步",
+    "soloLane": "在预览中独奏 {{lane}}",
+    "auditionLane": "试听 {{lane}}",
+    "rollLabel": "在此步添加滚奏",
+    "rollOff": "单击",
+    "rollCount": "{{count}} 击",
+    "addFill": "为 {{lane}} 添加加花",
+    "reassignLane": "将 {{lane}} 改为其他鼓",
+    "lockLane": "再次生成时保留 {{lane}}"
   },
   "roster": {
     "artists": "艺人",
@@ -202,7 +211,9 @@
     "genre": "流派",
     "filteredBy": "按 {{name}} 筛选",
     "showAll": "显示全部",
-    "noneInGenre": "{{name}} 中还没有艺人。"
+    "noneInGenre": "{{name}} 中还没有艺人。",
+    "standard": "标准",
+    "inherited": "继承"
   },
   "lanes": {
     "kick": "底鼓",
@@ -213,7 +224,7 @@
     "openHat": "开镲",
     "ride": "叮叮镲",
     "crash": "强音镲",
-    "tom": "嗵鼓",
+    "tom": "中音嗵鼓",
     "rim": "边击",
     "snap": "响指",
     "perc": "打击乐",
@@ -225,7 +236,23 @@
     "melody": "旋律",
     "counter": "对位旋律",
     "bass": "贝斯线",
-    "chords": "和弦"
+    "chords": "和弦",
+    "subKick": "副底鼓",
+    "ghostSnare": "幽灵军鼓",
+    "pedalHat": "踏板闭镲",
+    "rideBell": "叮叮镲铃",
+    "tomHigh": "高音嗵鼓",
+    "tomLow": "低音嗵鼓",
+    "perc2": "打击乐 2",
+    "clave": "响棒",
+    "conga": "康加鼓",
+    "bongo": "邦戈鼓",
+    "timbale": "天巴鼓",
+    "triangle": "三角铁",
+    "riser": "上升音效",
+    "impact": "撞击音效",
+    "reverse": "反向音效",
+    "subLow": "低频层"
   },
   "presets": {
     "factory": "出厂",
@@ -352,7 +379,13 @@
       "cloneBar": "将第1小节复制到本小节",
       "shortcuts": "显示此面板",
       "play": "播放或暂停",
-      "previewDirection": "倒放 / 正放采样"
+      "previewDirection": "倒放 / 正放采样",
+      "lockLane": "重掷时保留此鼓",
+      "variation": "浏览你的版本",
+      "generate": "生成此声部",
+      "generateAll": "生成全部声部",
+      "pickGenerator": "选择生成器",
+      "redo": "重做"
     }
   },
   "explorer": {
@@ -368,5 +401,33 @@
     "waveformOf": "{{name}} 的波形",
     "reverse": "倒放",
     "resize": "调整浏览器宽度"
+  },
+  "patterns": {
+    "name": "为此样式命名",
+    "save": "保存",
+    "none": "还没有保存任何内容。生成你喜欢的东西并命名，下次它就在这里。",
+    "load": "加载 {{name}}",
+    "delete": "删除 {{name}}",
+    "meta": "{{artist}} · {{bars}} 小节 · {{bpm}} BPM",
+    "filterArtist": "按艺人筛选",
+    "filterPart": "按声部筛选",
+    "allArtists": "所有艺人",
+    "allParts": "所有声部",
+    "panel": "样式库"
+  },
+  "variations": {
+    "label": "变体历史",
+    "back": "上一次生成",
+    "forward": "下一次生成",
+    "none": "还没有版本",
+    "made": "{{bpm}} BPM · {{scale}}"
+  },
+  "artist": {
+    "label": "关于此选择",
+    "tendsTo": "通常",
+    "tempo": "{{bpm}} BPM",
+    "key": "{{key}} {{scale}}",
+    "halfTime": "半速",
+    "moods": "{{count}} 种氛围"
   }
 }

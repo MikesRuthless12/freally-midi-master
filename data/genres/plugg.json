@@ -208,6 +208,30 @@
         "freqPerBar": 0.5,
         "velocityRamp": true
       },
+      "fill": {
+        "at": [
+          "every_4_bars"
+        ],
+        "figure": {
+          "values": [
+            "ramp",
+            "roll",
+            "gap"
+          ],
+          "weights": [
+            3,
+            2,
+            2
+          ]
+        },
+        "prob": 0.45,
+        "subdivision": "16",
+        "notes": 4,
+        "rampRange": [
+          0.35,
+          1
+        ]
+      },
       "openHat": {
         "prob": 0.85,
         "pos": [
@@ -226,7 +250,9 @@
     },
     "percs": {
       "lanes": [
-        "snap"
+        "snap",
+        "perc2",
+        "timbale"
       ],
       "densityPerBar": [
         1,

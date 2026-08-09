@@ -147,6 +147,18 @@
       },
       "pitchBendProb": 0
     },
+    "percs": {
+      "lanes": [
+        "reverse",
+        "crash"
+      ],
+      "densityPerBar": [
+        0,
+        1
+      ],
+      "placement": "downbeat",
+      "gainOffsetDb": -6
+    },
     "fills": {
       "smallEveryBars": 4,
       "bigEveryBars": 16

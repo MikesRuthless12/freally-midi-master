@@ -18,25 +18,51 @@ import type { Lane } from '../lib/ipc-types';
  * with, so the plugin stays the one authority on which lanes exist. This is
  * here for the things that cannot ask the plugin: the browser mock's fixture,
  * `locales.test.ts`, and the end-to-end specs. Mirrors `shared::ALL_LANES`.
+ *
+ * ⛔⛔ **"Mirrors" was a comment, and it went stale at 21 of 37.** TASK-043A
+ * took the engine to 37 lanes and this list stayed at TASK-140's 21 — so the
+ * two gates that count against it went on passing over sixteen lanes that did
+ * not exist here: `locales.test.ts` would not have noticed a missing name in
+ * any of the 18 catalogs for any new lane, and `kit-panel.spec.ts` would have
+ * stayed green with all sixteen new pads dropped. Two green readouts over a
+ * list 43% short is the worst shape a gate can take. `lanes.test.ts` now reads
+ * the **generated** `Lane` union out of `ipc-types.ts` and fails on any
+ * difference, so the comment is enforced rather than promised.
  */
 export const ALL_LANES: Lane[] = [
   'kick',
+  'subKick',
   'snare',
   'offSnare',
+  'ghostSnare',
   'clap',
   'closedHat',
   'openHat',
+  'pedalHat',
   'ride',
+  'rideBell',
   'crash',
   'tom',
+  'tomHigh',
+  'tomLow',
   'rim',
   'snap',
   'perc',
+  'perc2',
   'shaker',
   'tambourine',
   'cowbell',
+  'clave',
+  'conga',
+  'bongo',
+  'timbale',
+  'triangle',
   'woodblock',
+  'riser',
+  'impact',
+  'reverse',
   'sub',
+  'subLow',
   'melody',
   'counter',
   'bass',

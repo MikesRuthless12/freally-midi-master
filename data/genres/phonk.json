@@ -191,6 +191,37 @@
         "freqPerBar": 0.45,
         "velocityRamp": true
       },
+      "fill": {
+        "at": [
+          "every_2_bars"
+        ],
+        "figure": {
+          "values": [
+            "triplet_burst",
+            "roll"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "prob": 0.6,
+        "subdivision": {
+          "values": [
+            "16",
+            "32"
+          ],
+          "weights": [
+            2,
+            3
+          ]
+        },
+        "notes": 6,
+        "rampRange": [
+          0.5,
+          1
+        ]
+      },
       "openHat": {
         "prob": 0.25,
         "pos": [
@@ -208,7 +239,8 @@
       "lanes": [
         "rim",
         "cowbell",
-        "tom"
+        "tom",
+        "clave"
       ],
       "densityPerBar": [
         0,
@@ -405,6 +437,58 @@
       7
     ],
     "susOrDimProb": 0.14
+  },
+  "melody": {
+    "register": [
+      60,
+      84
+    ],
+    "phraseBars": {
+      "values": [
+        1,
+        2
+      ],
+      "weights": [
+        2,
+        3
+      ]
+    },
+    "densityPerBar": [
+      4,
+      8
+    ],
+    "structure": "riff_loop",
+    "intervals": {
+      "step": 0.5,
+      "third": 0.2,
+      "leap": 0.3
+    },
+    "contour": {
+      "riff": 0.6,
+      "descend": 0.25,
+      "arch": 0.15
+    },
+    "chordToneBias": 0.6,
+    "halfStepDissonance": 0.22,
+    "endVariation": true,
+    "octaveJumpProb": 0.2,
+    "straightEighthsProb": 0.45,
+    "timbreHint": "cowbell"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.3,
+    "fillGapsOnly": true,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
   },
   "kit": {
     "preview": "phonk-default"

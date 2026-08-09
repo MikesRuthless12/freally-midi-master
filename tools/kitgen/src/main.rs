@@ -12,6 +12,7 @@
 //! kitgen [OUTPUT_DIR]     default: data/kits
 //! ```
 
+mod extra;
 mod voices;
 mod wav;
 
@@ -231,7 +232,13 @@ fn build_kit(family: &Family) -> Vec<Voice> {
         // ⚠ The pitched voices are left alone. Shaping is a *drum* room; running
         // a lead or a chord pad through boom-bap's 8 kHz ceiling would not read
         // as an era, it would read as a broken instrument.
-        if matches!(voice.lane, "melody" | "counter" | "bass" | "chords" | "sub") {
+        // ⚠ `subLow` joins the list for the same reason `sub` is on it: it is
+        // the 808's clean sine layer, and a room's high shelf applied to it
+        // would take the fundamental it exists to preserve.
+        if matches!(
+            voice.lane,
+            "melody" | "counter" | "bass" | "chords" | "sub" | "subLow"
+        ) {
             continue;
         }
         voice.samples = shaped(family, std::mem::take(&mut voice.samples));
@@ -380,6 +387,136 @@ fn build_trap_kit_at(seed: u64, family: &Family) -> Vec<Voice> {
             samples: voices::woodblock(seed),
             choke_group: None,
             root_note: None,
+        },
+        // ── The lanes TASK-043A added ────────────────────────────────────
+        //
+        // ⛔ **All sixteen, because `every_lane_the_drum_generator_writes_has_
+        // a_pad_to_play_it` walks `ALL_LANES` and a lane with no pad is
+        // silence.** That test is the reason this block exists at all: TASK-140
+        // added eight lanes without pads and every one of them generated
+        // nothing while the suite stayed green.
+        //
+        // ⚠ **Defaults, as the block above says.** A sample dropped on a lane
+        // replaces the one here and this must not sound underneath.
+        Voice {
+            name: "sub-kick",
+            lane: "subKick",
+            samples: extra::sub_kick(seed),
+            choke_group: None,
+            root_note: None,
+        },
+        Voice {
+            name: "ghost-snare",
+            lane: "ghostSnare",
+            samples: extra::ghost_snare(seed),
+            choke_group: None,
+            root_note: None,
+        },
+        // ⚠ **The pedal hat joins the hats' choke group, and the other two
+        // hat voices are why.** A real hi-hat is one instrument: closing it
+        // with the foot has to cut an open hat, and an open hat has to cut it.
+        Voice {
+            name: "pedal-hat",
+            lane: "pedalHat",
+            samples: extra::pedal_hat(seed),
+            choke_group: Some(1),
+            root_note: None,
+        },
+        // The bell is part of the ride, so it shares the cymbals' group.
+        Voice {
+            name: "ride-bell",
+            lane: "rideBell",
+            samples: extra::ride_bell(seed),
+            choke_group: Some(3),
+            root_note: None,
+        },
+        Voice {
+            name: "tom-high",
+            lane: "tomHigh",
+            samples: extra::tom_high(seed),
+            choke_group: None,
+            root_note: None,
+        },
+        Voice {
+            name: "tom-low",
+            lane: "tomLow",
+            samples: extra::tom_low(seed),
+            choke_group: None,
+            root_note: None,
+        },
+        Voice {
+            name: "perc-2",
+            lane: "perc2",
+            samples: extra::perc2(seed),
+            choke_group: None,
+            root_note: None,
+        },
+        Voice {
+            name: "clave",
+            lane: "clave",
+            samples: extra::clave(seed),
+            choke_group: None,
+            root_note: None,
+        },
+        Voice {
+            name: "conga",
+            lane: "conga",
+            samples: extra::conga(seed),
+            choke_group: None,
+            root_note: None,
+        },
+        Voice {
+            name: "bongo",
+            lane: "bongo",
+            samples: extra::bongo(seed),
+            choke_group: None,
+            root_note: None,
+        },
+        Voice {
+            name: "timbale",
+            lane: "timbale",
+            samples: extra::timbale(seed),
+            choke_group: None,
+            root_note: None,
+        },
+        Voice {
+            name: "triangle",
+            lane: "triangle",
+            samples: extra::triangle(seed),
+            choke_group: None,
+            root_note: None,
+        },
+        Voice {
+            name: "riser",
+            lane: "riser",
+            samples: extra::riser(seed),
+            choke_group: None,
+            root_note: None,
+        },
+        Voice {
+            name: "impact",
+            lane: "impact",
+            samples: extra::impact(seed),
+            choke_group: None,
+            root_note: None,
+        },
+        Voice {
+            name: "reverse",
+            lane: "reverse",
+            samples: extra::reverse(seed),
+            choke_group: None,
+            root_note: None,
+        },
+        // ⛔ **Pitched, so it sits with the pads below rather than the drums
+        // above.** `subLow` is the clean sine under the distorted 808 and it
+        // follows the session key; a drum pad with no root would play it at one
+        // fixed frequency whatever the song was in.
+        Voice {
+            name: "sub-low",
+            lane: "subLow",
+            samples: extra::sub_low(family.sub_hz, family.sub_len),
+            choke_group: None,
+            root_note: Some(28),
         },
         // ── The pitched pads (TASK-131) ──────────────────────────────────
         //

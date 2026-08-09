@@ -181,6 +181,59 @@
     ],
     "susSubstitutionProb": 0.26
   },
+  "melody": {
+    "register": [
+      69,
+      93
+    ],
+    "phraseBars": {
+      "values": [
+        1,
+        2,
+        4
+      ],
+      "weights": [
+        2,
+        3,
+        1
+      ]
+    },
+    "densityPerBar": [
+      4,
+      8
+    ],
+    "structure": "call_response",
+    "intervals": {
+      "step": 0.55,
+      "third": 0.35,
+      "leap": 0.1
+    },
+    "contour": {
+      "riff": 0.45,
+      "descend": 0.25,
+      "arch": 0.3
+    },
+    "chordToneBias": 0.8,
+    "halfStepDissonance": 0.03,
+    "endVariation": true,
+    "octaveJumpProb": 0.12,
+    "timbreHint": "bright_bell"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.45,
+    "fillGapsOnly": true,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
   "kit": {
     "preview": "rnb-default"
   }

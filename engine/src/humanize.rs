@@ -247,6 +247,30 @@ fn lane_domain(lane: Lane) -> &'static str {
         Lane::Tambourine => "humanize/tambourine",
         Lane::Cowbell => "humanize/cowbell",
         Lane::Woodblock => "humanize/woodblock",
+        // ── TASK-043A ────────────────────────────────────────────────────
+        //
+        // ⛔ **Each one a new name, never a reuse of a neighbour's.** These
+        // strings are RNG domains: giving the high tom `"humanize/tom"` would
+        // make two lanes share a jitter stream, so a tom fill would breathe in
+        // lockstep with the mid tom instead of against it — and every existing
+        // pattern would move, because the mid tom's draws would no longer be
+        // its own.
+        Lane::SubKick => "humanize/subKick",
+        Lane::GhostSnare => "humanize/ghostSnare",
+        Lane::PedalHat => "humanize/pedalHat",
+        Lane::RideBell => "humanize/rideBell",
+        Lane::TomHigh => "humanize/tomHigh",
+        Lane::TomLow => "humanize/tomLow",
+        Lane::Perc2 => "humanize/perc2",
+        Lane::Clave => "humanize/clave",
+        Lane::Conga => "humanize/conga",
+        Lane::Bongo => "humanize/bongo",
+        Lane::Timbale => "humanize/timbale",
+        Lane::Triangle => "humanize/triangle",
+        Lane::Riser => "humanize/riser",
+        Lane::Impact => "humanize/impact",
+        Lane::Reverse => "humanize/reverse",
+        Lane::SubLow => "humanize/subLow",
         Lane::Sub => "humanize/bass808",
         Lane::Melody => "humanize/melody",
         Lane::Counter => "humanize/counter",

@@ -670,6 +670,26 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
             return Some(Ok(Value::Null));
         }
 
+        // Hear one drum lane on its own (TASK-043) — "which pad am I about to
+        // edit", answered without soloing and pressing play.
+        //
+        // ⛔ **The lane is resolved to its GM note *here*, on the editor
+        // thread, and never on the frontend.** `gm_drum_note` is the engine's,
+        // and a JavaScript copy of it would be a second authority on which pad
+        // is the rim — the drift class this project has been bitten by. An
+        // unknown lane name is refused rather than defaulted, because guessing
+        // would audition a drum the producer did not click.
+        "audition_lane" => {
+            let Some(name) = request.args["lane"].as_str() else {
+                return Some(Err("audition_lane needs a lane".into()));
+            };
+            let Ok(lane) = serde_json::from_value::<engine::pattern::Lane>(json!(name)) else {
+                return Some(Err(format!("`{name}` is not a lane")));
+            };
+            shared.request_lane_audition(lane);
+            return Some(Ok(Value::Null));
+        }
+
         // ⛔ Stop is a seek to zero **and** a hold, in both shells since
         // TASK-138. It used to be a seek alone in a host, because there was no
         // transport of ours to hold there; the preview transport is ours to
@@ -1565,6 +1585,54 @@ mod tests {
         window_command(&request, shared)
             .unwrap_or_else(|| panic!("`{command}` is not a command the editor answers"))
             .unwrap_or_else(|error| panic!("`{command}` was refused: {error}"))
+    }
+
+    #[test]
+    fn auditioning_a_lane_asks_for_that_lane_and_refuses_a_name_it_does_not_know() {
+        // TASK-043's "click a lane header to hear that pad". ⛔ The lane→GM
+        // mapping is resolved *here* rather than on the page, so this is what
+        // proves the page can send a lane name at all — and that an unknown one
+        // is refused rather than defaulted into auditioning some other drum.
+        let shared: SharedState = std::sync::Arc::new(crate::shared::Shared::default());
+
+        ask(&shared, "audition_lane", json!({ "lane": "kick" }));
+        assert_eq!(
+            shared.take_audition(),
+            Some(crate::shared::Audition::Lane(engine::pattern::Lane::Kick)),
+            "the request must name the kick, and must say it is a lane"
+        );
+
+        // The serde alias the saved-project format depends on still resolves.
+        ask(&shared, "audition_lane", json!({ "lane": "bass808" }));
+        assert_eq!(
+            shared.take_audition(),
+            Some(crate::shared::Audition::Lane(engine::pattern::Lane::Sub))
+        );
+
+        // ⛔ **`subLow` is a distinct request from `sub`, and it was not.** Both
+        // lanes are rows in the drum grid and both answer GM note 0, so while
+        // the lane travelled as a note these two were the same message.
+        ask(&shared, "audition_lane", json!({ "lane": "subLow" }));
+        assert_eq!(
+            shared.take_audition(),
+            Some(crate::shared::Audition::Lane(engine::pattern::Lane::SubLow))
+        );
+
+        for bad in [json!({ "lane": "trumpet" }), json!({})] {
+            let request = Request {
+                id: 1,
+                command: "audition_lane".into(),
+                args: bad.clone(),
+            };
+            assert!(
+                window_command(&request, &shared).is_some_and(|r| r.is_err()),
+                "{bad} should be refused rather than guessed at"
+            );
+        }
+        assert!(
+            shared.take_audition().is_none(),
+            "a refused request must not have queued a note"
+        );
     }
 
     #[test]

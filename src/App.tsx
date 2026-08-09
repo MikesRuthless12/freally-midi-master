@@ -11,8 +11,8 @@ import { isTypingTarget } from './lib/keyboard';
 import { useDrag } from './state/drag';
 import { subscribeToPreview, useExplorer } from './state/explorer';
 import { useSong } from './state/song';
-import { canDrive, subscribeToPlayhead, useSession } from './state/session';
-import { isWide, useUi } from './state/ui';
+import { canDrive, subscribeToPlayhead, TAB_PART, useSession } from './state/session';
+import { GENERATOR_TABS, isWide, useUi } from './state/ui';
 import './components/layout/layout.css';
 
 function Studio() {
@@ -158,6 +158,63 @@ function Studio() {
       }
       e.preventDefault();
       void (session.playing ? session.pause() : session.play());
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  // ⛔ **R rerolls, and it is Generate rather than a second code path**
+  // (TASK-044). The lock is applied by `generate` on the way in, so "reroll the
+  // unlocked lanes" *is* what Generate does once anything is locked — giving R
+  // a generator of its own would be two answers to one question, and they would
+  // drift the first time either changed.
+  //
+  // ⚠ **Nothing happens on the Song tab**, where R already means "reroll this
+  // section" and `SongTimeline` owns it. A window-level binding that fired too
+  // would reroll the section *and* the pattern behind it on one keypress.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const key = e.key.toLowerCase();
+      if (key !== 'r' && key !== 'g') return;
+      if (e.ctrlKey || e.metaKey || e.altKey) return;
+      if (isTypingTarget(e.target)) return;
+      // ⚠ `TAB_PART.song` is `null`, so this one check covers the Song tab
+      // too — where `SongTimeline` owns R for "reroll this section".
+      const part = TAB_PART[useUi.getState().activeTab];
+      if (part === null) return;
+      e.preventDefault();
+
+      // ⛔ **`Shift+G` is Generate All, and it is the only one of the three
+      // that does something different.** `G` and `R` are deliberately the same
+      // action: once anything is locked, "generate" *is* "reroll the unlocked
+      // lanes" (TASK-044), and giving them separate handlers would be two
+      // answers to one question. Both keys exist because both are already in a
+      // producer's hands.
+      if (key === 'g' && e.shiftKey) {
+        void useSession.getState().generateAll();
+        return;
+      }
+      void useSession.getState().generate(part);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  // ⛔ **1–6 pick a generator** (TASK-046, FR-018). Six tabs, six digits, in
+  // the order they are drawn — `GENERATOR_TABS` is the list both read, so a
+  // seventh generator lands here on the day it is added rather than being a
+  // tab the keyboard cannot reach.
+  //
+  // ⚠ **No modifier**, unlike the tuplet chords in the drum grid: those are
+  // `Ctrl+3`…`Ctrl+9` precisely so a bare digit stays free for this.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
+      if (isTypingTarget(e.target)) return;
+      const index = Number(e.key) - 1;
+      if (!Number.isInteger(index) || index < 0 || index >= GENERATOR_TABS.length) return;
+      e.preventDefault();
+      useUi.getState().setActiveTab(GENERATOR_TABS[index]);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);

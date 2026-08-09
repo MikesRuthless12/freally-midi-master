@@ -73,6 +73,14 @@ pub const PART_ORDER: [Part; 5] = [
 #[ts(export, export_to = "../../src/lib/ipc-types.ts")]
 pub enum Lane {
     Kick,
+    /// The second, lower kick layer — boom bap's "2-kick layering standard"
+    /// (research ch. 1 §8) and phonk's 808-doubled kick.
+    ///
+    /// ⛔ **Not [`Lane::Sub`].** The sub kick is an unpitched *drum* that
+    /// reinforces the kick's low end; `Sub` is the pitched, sliding 808 that
+    /// plays a bassline. Sharing a lane would make a country kit's kick layer
+    /// follow the session key.
+    SubKick,
     Snare,
     /// A second snare voice on the off-beats, authored per model.
     ///
@@ -81,19 +89,55 @@ pub enum Lane {
     /// also what makes it worth anything to `drum_variety` — a moved hit in an
     /// existing lane is not a different beat, but a different voice is.
     OffSnare,
+    /// The quiet answering snare on the e/a slots, at 20–40% in boom bap and
+    /// drill (research ch. 1 §§2, 8).
+    ///
+    /// ⚠ **A lane rather than an [`Articulation::Ghost`] on [`Lane::Snare`],
+    /// and the two coexist.** The articulation says *how* a note is played and
+    /// is what the humanizer's velocity tiers read; this says *which pad*, so a
+    /// producer can put a different sample under their ghosts — which is the
+    /// whole reason TASK-043A asks for it.
+    GhostSnare,
     Clap,
     ClosedHat,
     OpenHat,
+    /// The hat closed with the foot: shorter and duller than a stick-struck
+    /// closed hat, and the third voice of a real hi-hat.
+    PedalHat,
     Ride,
+    /// The ride struck on its bell — a pitched ping rather than a wash.
+    RideBell,
     Crash,
+    /// The **mid** tom. Named `Tom` since before there were three, and
+    /// deliberately left alone: every model that authors `"tom"` today means
+    /// this one, and renaming a data key to tidy an enum is how a genre loses
+    /// its percussion in silence.
     Tom,
+    TomHigh,
+    TomLow,
     Rim,
     Snap,
     Perc,
+    /// A second generic percussion voice, for the models that layer two.
+    Perc2,
     Shaker,
     Tambourine,
     Cowbell,
+    Clave,
+    Conga,
+    Bongo,
+    Timbale,
+    Triangle,
     Woodblock,
+    /// ── FX ──────────────────────────────────────────────────────────────
+    ///
+    /// ⚠ **Lanes, not effects.** They are triggered like any other pad and
+    /// carry no processing of their own — a riser is a sample that rises. What
+    /// makes them worth their own lanes is that a producer routes and replaces
+    /// them separately from the kit.
+    Riser,
+    Impact,
+    Reverse,
     /// The pitched, sliding sub-bass — **not** the bass drum, which is
     /// [`Lane::Kick`].
     ///
@@ -108,6 +152,9 @@ pub enum Lane {
     /// project with a muted 808 fails to open.
     #[serde(alias = "bass808")]
     Sub,
+    /// The 808's own sub layer — a sine under the distorted one, which is how
+    /// every phonk and drill 808 is actually built (research ch. 1 §7).
+    SubLow,
     Melody,
     Counter,
     Bass,

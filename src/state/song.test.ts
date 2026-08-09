@@ -166,6 +166,8 @@ function armedWith(current = song()) {
     mood: null,
     audioEnabled: true,
     mutedLanes: [],
+    soloedLanes: [],
+    lockedLanes: [],
     song: current,
     songEdited: false,
   });
@@ -580,6 +582,8 @@ it('the snapshot taken on an artist change does not carry the old artist’s son
     mood: null,
     audioEnabled: true,
     mutedLanes: [],
+    soloedLanes: [],
+    lockedLanes: [],
     song: current,
     songEdited: true,
   });

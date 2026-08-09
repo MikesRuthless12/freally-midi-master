@@ -163,6 +163,39 @@
         "insertGaps": true,
         "clusterOffsetSubdivisions": 1
       },
+      "fill": {
+        "at": [
+          "every_2_bars"
+        ],
+        "figure": {
+          "values": [
+            "roll",
+            "stutter",
+            "triplet_burst"
+          ],
+          "weights": [
+            4,
+            2,
+            1
+          ]
+        },
+        "prob": 0.55,
+        "subdivision": {
+          "values": [
+            "32",
+            "16T"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "notes": 5,
+        "rampRange": [
+          0.45,
+          1
+        ]
+      },
       "openHat": {
         "prob": 0.3,
         "pos": [

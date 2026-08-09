@@ -45,6 +45,7 @@ use crate::dataset::StyleModel;
 use crate::generators::bass;
 use crate::generators::chords::Chords;
 use crate::generators::read;
+use crate::novelty;
 use crate::parts;
 use crate::pattern::{
     Lane, LaneTrack, Part, Pattern, PatternRef, Section, SectionKind, Song, PART_ORDER, PPQ,
@@ -919,8 +920,28 @@ fn render_section(
         None if needs_kit => drums::generate(model, ctx, seed),
         None => Vec::new(),
     };
+    // ⛔⛔ **Screened, because Song Mode was the one path that was not.**
+    // TASK-039 put the novelty guard in `parts::render`, which is what the
+    // Melody tab goes through — and Song Mode calls these generators directly,
+    // so every melody and countermelody in every section of every arrangement
+    // shipped unscreened. The changelog for that task says the screen runs on
+    // "every melody and countermelody… before you ever hear it", and Song Mode
+    // is the headline way a producer gets either.
+    //
+    // ⚠ **Only the take varies on a retry, so nothing else in the section
+    // moves.** `harmony` and `kit` are already built and handed in, so a
+    // redrawn melody is written against the same record — and the counter is
+    // written against whichever lead survived, because the lead is resolved
+    // first.
     let lead = match (needs_lead, &harmony) {
-        (true, Some(harmony)) => Some(melody::generate(model, ctx, seed, harmony, &kit)),
+        (true, Some(harmony)) => {
+            let (lanes, _, report) =
+                novelty::screen(novelty::bundled(), Part::Melody, seed, |take| {
+                    vec![melody::generate(model, ctx, take, harmony, &kit)]
+                });
+            novelty::log(Part::Melody, &report);
+            lanes.into_iter().next()
+        }
         _ => None,
     };
 
@@ -935,7 +956,13 @@ fn render_section(
             Part::Melody => lead.clone().map(|l| vec![l]).unwrap_or_default(),
             Part::Counter => match (&harmony, &lead) {
                 (Some(harmony), Some(lead)) => {
-                    vec![counter::generate(model, ctx, seed, harmony, lead)]
+                    // Screened for the same reason the lead above is.
+                    let (lanes, _, report) =
+                        novelty::screen(novelty::bundled(), Part::Counter, seed, |take| {
+                            vec![counter::generate(model, ctx, take, harmony, lead)]
+                        });
+                    novelty::log(Part::Counter, &report);
+                    lanes
                 }
                 _ => Vec::new(),
             },

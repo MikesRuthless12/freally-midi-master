@@ -57,7 +57,8 @@
     "session": "الجلسة",
     "presets": "الإعدادات المسبقة",
     "stems": "المسارات",
-    "explorer": "المتصفح"
+    "explorer": "المتصفح",
+    "patterns": "مكتبة الأنماط"
   },
   "readouts": {
     "bpm": "BPM",
@@ -194,7 +195,15 @@
     "label": "النمط المُولَّد",
     "summary": "{{bars}} مازورة · {{steps}} خطوة · {{notes}} نوتة",
     "muteLane": "كتم معاينة {{lane}}",
-    "cell": "{{lane}}، الخطوة {{step}}"
+    "cell": "{{lane}}، الخطوة {{step}}",
+    "soloLane": "عزل {{lane}} في المعاينة",
+    "auditionLane": "استمع إلى {{lane}}",
+    "rollLabel": "رول لهذه الخطوة",
+    "rollOff": "ضربة واحدة",
+    "rollCount": "{{count}} ضربات",
+    "addFill": "أضف فيل إلى {{lane}}",
+    "reassignLane": "غيّر {{lane}} إلى طبل آخر",
+    "lockLane": "ثبّت {{lane}} عند التوليد مجددًا"
   },
   "roster": {
     "artists": "الفنانون",
@@ -202,7 +211,9 @@
     "genre": "نوع",
     "filteredBy": "مُصفّى حسب {{name}}",
     "showAll": "عرض الكل",
-    "noneInGenre": "لا يعمل أي فنان في {{name}} بعد."
+    "noneInGenre": "لا يعمل أي فنان في {{name}} بعد.",
+    "standard": "قياسي",
+    "inherited": "موروث"
   },
   "lanes": {
     "kick": "كيك",
@@ -213,7 +224,7 @@
     "openHat": "هاي هات مفتوح",
     "ride": "رايد",
     "crash": "كراش",
-    "tom": "توم",
+    "tom": "توم متوسط",
     "rim": "حافة",
     "snap": "طقطقة",
     "perc": "إيقاع",
@@ -225,7 +236,23 @@
     "melody": "اللحن",
     "counter": "اللحن المقابل",
     "bass": "خط الباس",
-    "chords": "الأوتار"
+    "chords": "الأوتار",
+    "subKick": "كيك منخفض",
+    "ghostSnare": "سنير شبح",
+    "pedalHat": "هاي هات بالدواسة",
+    "rideBell": "جرس الرايد",
+    "tomHigh": "توم عالٍ",
+    "tomLow": "توم منخفض",
+    "perc2": "إيقاع ٢",
+    "clave": "كلافي",
+    "conga": "كونجا",
+    "bongo": "بونجو",
+    "timbale": "تيمبالي",
+    "triangle": "مثلث",
+    "riser": "صعود",
+    "impact": "ارتطام",
+    "reverse": "معكوس",
+    "subLow": "طبقة الساب"
   },
   "presets": {
     "factory": "مصنعية",
@@ -352,7 +379,13 @@
       "cloneBar": "نسخ المازورة 1 هنا",
       "shortcuts": "إظهار هذه اللوحة",
       "play": "تشغيل أو إيقاف مؤقت",
-      "previewDirection": "تشغيل العيّنة عكسياً / للأمام"
+      "previewDirection": "تشغيل العيّنة عكسياً / للأمام",
+      "lockLane": "ثبّت هذا الطبل عبر إعادة التوليد",
+      "variation": "تنقّل بين نسخك",
+      "generate": "ولّد هذا الجزء",
+      "generateAll": "ولّد كل الأجزاء",
+      "pickGenerator": "اختر مولّدًا",
+      "redo": "إعادة"
     }
   },
   "explorer": {
@@ -368,5 +401,33 @@
     "waveformOf": "الشكل الموجي لـ {{name}}",
     "reverse": "تشغيل عكسي",
     "resize": "تغيير حجم المتصفح"
+  },
+  "patterns": {
+    "name": "سمِّ هذا النمط",
+    "save": "حفظ",
+    "none": "لا شيء محفوظ بعد. ولّد شيئًا يعجبك وسمِّه وسيكون هنا في المرة القادمة.",
+    "load": "تحميل {{name}}",
+    "delete": "حذف {{name}}",
+    "meta": "{{artist}} · {{bars}} مازورة · {{bpm}} ن/د",
+    "filterArtist": "تصفية حسب الفنان",
+    "filterPart": "تصفية حسب الجزء",
+    "allArtists": "كل الفنانين",
+    "allParts": "كل الأجزاء",
+    "panel": "مكتبة الأنماط"
+  },
+  "variations": {
+    "label": "سجل التنويعات",
+    "back": "التوليد السابق",
+    "forward": "التوليد التالي",
+    "none": "لا توجد نسخ بعد",
+    "made": "{{bpm}} ن/د · {{scale}}"
+  },
+  "artist": {
+    "label": "عن هذا الاختيار",
+    "tendsTo": "يميل إلى",
+    "tempo": "{{bpm}} ن/د",
+    "key": "{{key}} {{scale}}",
+    "halfTime": "نصف الإيقاع",
+    "moods": "{{count}} حالات"
   }
 }

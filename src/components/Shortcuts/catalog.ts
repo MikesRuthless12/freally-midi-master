@@ -53,7 +53,18 @@ export const SHORTCUT_GROUPS: ShortcutGroup[] = [
     id: 'generate',
     items: [
       { keys: 'Enter', id: 'search' },
+      { keys: 'G', id: 'generate' },
+      { keys: 'Shift + G', id: 'generateAll' },
+      { keys: '1 – 6', id: 'pickGenerator' },
       { keys: 'R', id: 'reroll' },
+      // ⚠ **On the row, not on the window** — see `DrumGrid`'s handler. The
+      // grid has seventeen rows and no selection model, so focus is what says
+      // which lane the producer meant.
+      { keys: 'L', id: 'lockLane' },
+      // ⚠ **Inside the history control**, not on the window — the roll nudges
+      // notes with these and the browser walks samples with them. Scope is what
+      // keeps all three, and it is the same answer `L` got.
+      { keys: '◀ / ▶', id: 'variation' },
     ],
   },
   {
@@ -64,6 +75,10 @@ export const SHORTCUT_GROUPS: ShortcutGroup[] = [
       { keys: `${ACCEL} + X`, id: 'cut' },
       { keys: `${ACCEL} + V`, id: 'paste' },
       { keys: `${ACCEL} + Z`, id: 'undo' },
+      // ⚠ Its own row rather than folded into undo's: Ctrl+Y is what a Windows
+      // producer's hands already do, and a panel that only listed Shift+Ctrl+Z
+      // would send them looking for a key they already have.
+      { keys: `${ACCEL} + Y`, id: 'redo' },
       { keys: `${ACCEL} + D`, id: 'duplicate' },
       { keys: 'Delete', id: 'delete' },
       { keys: 'Esc', id: 'deselect' },

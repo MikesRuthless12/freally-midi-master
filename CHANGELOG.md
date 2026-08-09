@@ -12,6 +12,152 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added — the melody stops quoting other people, every genre gets its own voice, and the hats talk, 2026-08-08
+
+- **⛔ A novelty guard, so a generated melody is not a hook somebody already
+  owns.** Every melody and countermelody is screened against a bundled table of
+  well-known contours before you ever hear it, and a take that matches is thrown
+  away and drawn again — up to three times, then the screen loosens rather than
+  refusing to give you notes. It costs under a millisecond and you will normally
+  never know it ran. **Nothing in the table is a melody**: it holds one-way
+  fingerprints of *contours* — where a line moved and how long it waited — and
+  there is no way back from one to a note. Transposing a hook does not hide it,
+  and playing it staccato does not either.
+- **Every genre now has its own melody, countermelody and chords**, instead of
+  five of them falling back on a shared default. NY drill's bells, phonk's
+  cowbell lead with its minor-second menace, pluggnb's chord-tone arps and west
+  coast's four-note plucky riff are each written from the research rather than
+  inherited. Six genres that have no 808 — boom bap, country, liquid DnB, NY
+  drill, 2000s pop and 2000s R&B — got a real bassline to go with it.
+- **⛔ Hi-hat fills.** The hat is where trap, drill and plugg do their talking,
+  and now it does: a phrase-end figure that breaks the stream and hands over to
+  the next bar. Five figures — a roll, a stutter, a triplet burst, a rising ramp,
+  or a **gap**, the hat stopping dead — landing where the genre says, every two,
+  four or eight bars. And a one-press **add fill** on the hat lane in the grid,
+  which writes the same figure in the same place the generator would have.
+- **Click the piano roll's ruler to move the playhead.** The drum grid and the
+  song timeline already did; the four melodic generators had no way to move the
+  transport at all. Dragging on the ruler still sets the loop brace — a click is
+  a seek, a drag is a brace, and a click no longer leaves a one-step loop behind
+  it.
+- **⛔ Solo, on every drum lane.** Beside the mute, and it does what solo does:
+  everything else goes quiet while your notes still reach your DAW untouched. A
+  lane you muted stays muted through it, so switching solo off cannot leave
+  something audible you had deliberately silenced.
+- **Click a lane's name to hear that drum on its own** — which pad am I about to
+  edit — without soloing anything or pressing play.
+- **A roll palette on every step.** Right-click any cell in the drum grid and
+  pick 2, 3, 4, 6 or 8 hits inside it. The keyboard chords were already there;
+  nothing on screen said so.
+
+- **⛔ Lock a drum so a re-roll cannot touch it.** Click the padlock on any
+  lane — or press `L` with the row focused — and Generate rebuilds everything
+  else around it, note for note. `R` re-rolls, `G` generates, `Shift+G`
+  generates every part, and `1`–`6` pick a generator.
+- **⛔ A pattern library that outlives the project.** Name something you made
+  and it is there next time, in any song and any DAW — **saved as notes, with no
+  kit**, so you can load it and put whatever sounds you like under it. Each one
+  is its own file, so a bad save costs one loop rather than the shelf.
+- **⛔ Every take you have made this session, and a way back to any of them.**
+  ◀ and ▶ walk your generations — per generator, counted from the first, with no
+  cap — and stepping back brings the **whole setup**: the artist, the mood, the
+  seed, the bars and the pins. It shows the tempo and key that were actually
+  used, which is not always what you pinned.
+- **⛔ Sixteen more drums.** Sub kick, ghost snare, pedal hat, ride bell, high
+  and low toms, clave, conga, bongo, timbale, triangle, a second perc, an 808
+  sub layer, and riser / impact / reverse. Every row now names its instrument
+  and **can be switched to any drum the kit is not already using**.
+- **The roster tells you what something is before you generate.** A badge says
+  artist or genre, and a pane under the list gives the era, the genres and what
+  that artist *tends to* — tempo, key, half-time, how many moods.
+
+### Changed
+
+- Three golden snapshots moved (`trap-7-4bar`, `trap-2024-8bar`,
+  `uk-drill-7-4bar`): trap and UK drill now author a hi-hat fill, so their
+  patterns changed on purpose. Diff read before regenerating.
+- `ny-drill`, `liquid-dnb`, `country-train` and `boom-bap` play different
+  basslines than they did, because they now author their own instead of
+  inheriting one. `pop-smoke` gets its own on top of NY drill's.
+- A fourth golden snapshot moved (`trap-2024-8bar`): one closed hat sat on top
+  of an open hat and is gone, and every hat after it in the lane draws a
+  different velocity because `humanize` walks a lane in note order. Diff read —
+  the removed note is at tick 14880, where the open hat is.
+
+### Fixed — what the review found, 2026-08-09
+
+Fifteen findings survived independent verification. The ones a producer would
+have hit, worst first:
+
+- **⛔⛔ Opening the pattern library could take the whole DAW down.** The preview
+  histogram divided by a clip length computed from the saved file's own `ppq`
+  and meter, and those numbers arrive as whatever survived being backed up,
+  synced or copied between machines — an unlucky pair divided by zero, and the
+  plugin aborts rather than unwinds. One unreadable file now costs you that
+  file, which is the entire reason each pattern is its own file.
+- **⛔⛔ Saving a pattern could silently delete a different one.** "Take 1" and
+  "Take-1" became the same filename, so the second save replaced the first with
+  no warning and no way back. Saving over *your own* name still replaces it —
+  that is the point — but two different names now keep two different files.
+- **⛔⛔ A locked lane could vanish from the saved project.** Lock the hats you
+  drew, press Generate, save, reopen: the clip was rebuilt from the seed and
+  your hats were gone. A generation with a lock in it is no longer the seed's
+  own output, so it is written into the project like any other edit.
+- **⛔ A locked lane carried notes past the end of a shorter clip.** Lock the
+  kick on eight bars, drag down to four, Generate — the grid drew four clean
+  bars while the export played hits in bars five to eight that nothing on
+  screen had ever shown you.
+- **⛔ Soloing a drum row silenced the melody, countermelody, bass and chords.**
+  Solo is offered on the drum grid; none of those four editors has a mute or a
+  solo on it, so the preview went quiet with nothing to explain it and nothing
+  to undo it. A solo silences what it is a solo among.
+- **⛔ A hi-hat fill could put a closed hat on top of a sounding open hat.** One
+  hi-hat cannot be open and shut at the same instant — the hat engine has always
+  removed the closed hit underneath an open one, and both the roll and the fill
+  wrote fresh hats over that decision afterwards. The rule now lives where the
+  hat lane is finished rather than inside each thing that decorates it.
+- **⛔ Song Mode never ran the novelty guard.** It was installed on the path the
+  Melody tab uses, and Song Mode calls the generators directly — so every melody
+  and countermelody in every arrangement went unscreened while the note above
+  said otherwise. It is screened now, and a test asserts the wiring rather than
+  the output, because with the shipped roster screened and unscreened output are
+  identical and the obvious test could not fail.
+- **⛔ A hand-added hi-hat fill landed 40 ticks early — ahead of the beat, every
+  time.** "Add a fill" reached for the same window the grid uses to decide which
+  cell a *humanized* note belongs to, and that window deliberately starts a
+  little before the beat so a hit nudged early still reads as on it. Right for
+  reading, wrong for writing.
+- **And it cleared the wrong amount of the bar in any meter that is not x/4.**
+  A beat is four sixteenths in 4/4 and two in 6/8; the fill always took four, so
+  in 6/8 it destroyed a beat of hats nobody asked it to touch.
+- **Stepping back through your takes gives you that take.** Recall regenerated
+  through the ordinary Generate path, so it spliced in whatever was locked *now*
+  and rebuilt at whatever tempo the session had drifted to — while the counter
+  beside it displayed the take you asked for. It now restores the tempo, key and
+  meter the take was actually written at, and reloads the artist's own defaults
+  when the recall crosses artists.
+- **The 808's sub layer exports on its own MIDI channel**, instead of sharing
+  the 808's and arriving in the DAW as one merged instrument.
+- **The lane picker no longer offers the two pitched 808 lanes as drum slots** —
+  moving a perc row onto one sent its hits out as bass notes.
+- **A locked lane survives Generate All.** The lock was consulted by Generate
+  but not by Shift+G.
+- **Auditioning a drum row plays that row.** Six lanes — including `sub` and
+  `sub low`, which are two different rows on the grid — shared one General MIDI
+  note, so clicking one could sound another.
+- **`L` no longer toggles a lane lock while you are typing**, and neither do the
+  variation arrows.
+- **A saved pattern and a saved preset agree on what a file is called.** Their
+  two name-to-filename functions carried identical comments and different
+  constants.
+
+Two gates were reporting success over less than they claimed, and are fixed
+rather than merely noted: the TypeScript lane list had drifted to 21 of the
+engine's 37, so the check that every lane has a name in all 18 languages had
+been passing over sixteen it never saw; and the solo test *required* the
+melodic parts to go silent, which is how that behaviour survived review. Both
+now derive their list from the generated bindings or from the engine itself.
+
 ### Added — the sample browser you can actually use, and clips that look like clips, 2026-08-07
 
 - **⛔ The sample browser is on screen.** Add your folders once and they come

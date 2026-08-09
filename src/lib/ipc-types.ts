@@ -39,7 +39,7 @@ timingJitterMs?: { [key in Lane]?: number }, };
 /**
  * A voice within a pattern. Drum parts use several; melodic parts use one.
  */
-export type Lane = "kick" | "snare" | "offSnare" | "clap" | "closedHat" | "openHat" | "ride" | "crash" | "tom" | "rim" | "snap" | "perc" | "shaker" | "tambourine" | "cowbell" | "woodblock" | "sub" | "melody" | "counter" | "bass" | "chords";
+export type Lane = "kick" | "subKick" | "snare" | "offSnare" | "ghostSnare" | "clap" | "closedHat" | "openHat" | "pedalHat" | "ride" | "rideBell" | "crash" | "tom" | "tomHigh" | "tomLow" | "rim" | "snap" | "perc" | "perc2" | "shaker" | "tambourine" | "cowbell" | "clave" | "conga" | "bongo" | "timbale" | "triangle" | "woodblock" | "riser" | "impact" | "reverse" | "sub" | "subLow" | "melody" | "counter" | "bass" | "chords";
 
 export type LaneTrack = { lane: Lane, notes: Array<Note>, };
 

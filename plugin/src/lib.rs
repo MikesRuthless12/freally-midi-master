@@ -31,6 +31,7 @@ pub mod explorer;
 pub mod export;
 pub mod host;
 pub mod oneshot;
+pub mod patterns;
 pub mod presets;
 pub mod preview;
 pub mod shared;
@@ -440,8 +441,8 @@ impl Plugin for FreallyMidiMaster {
         // A producer clicks a key to find a register *while the DAW is stopped*,
         // which is the normal case — putting this after the `!running` early
         // return would make the gutter silent exactly when it is most used.
-        if let Some(pitch) = self.shared.take_audition() {
-            self.audition(pitch);
+        if let Some(asked) = self.shared.take_audition() {
+            self.audition(asked);
         }
 
         // ⛔ **Nothing advances unless the host's transport is running.**
@@ -541,13 +542,46 @@ impl FreallyMidiMaster {
     ///
     /// Silent when the preview is switched off, because that switch means
     /// MIDI-only and an audition is not MIDI (FMM-S02).
-    fn audition(&mut self, pitch: u8) {
+    fn audition(&mut self, asked: crate::shared::Audition) {
         if !self.shared.audio_enabled() {
             return;
         }
         let Some(kit) = self.kit.as_ref() else {
             return;
         };
+        let pitch = match asked {
+            crate::shared::Audition::Pitch(pitch) => pitch,
+            crate::shared::Audition::Lane(_) => 0,
+        };
+
+        // ⛔ **A lane audition resolves by lane and never falls back** (TASK-043).
+        // Clicking `Kick` in the grid's row header is not a question about
+        // pitch, so the nearest-tuned-pad rule below is exactly wrong for it —
+        // it would sound the 808 transposed to the kick's GM note. The lane
+        // arrives as that GM note because `gm_drum_note` is the mapping the
+        // engine already owns; matching each pad through the same function is
+        // what keeps there from being a second one. A kit with no pad for the
+        // lane stays **silent**, which is the honest answer: there is nothing
+        // loaded to hear, and a stand-in would be a preview of the wrong drum.
+        if let crate::shared::Audition::Lane(lane) = asked {
+            // ⛔ **By lane, not by note.** `gm_drum_note` is not injective — six
+            // lanes answer 0 — so matching on the note sounded the wrong pad
+            // for `sub` and `subLow`. `pad_for` is the kit's own lookup.
+            if let Some(index) = kit.pad_for(lane) {
+                self.sampler.trigger(
+                    kit,
+                    index,
+                    0.8,
+                    // As sampled. A drum pad has no root to transpose against,
+                    // and `semitones_for` reads 0 as "no opinion" for exactly
+                    // this case.
+                    0.0,
+                    f64::from(self.shared.sample_rate()),
+                );
+            }
+            return;
+        }
+
         // The tuned pad, found by the property that makes it usable rather than
         // by name: a kit that renamed its 808 would still audition correctly,
         // and one with no tuned pad at all stays silent rather than guessing.

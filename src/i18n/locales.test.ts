@@ -113,6 +113,9 @@ function isOnlyPreservedTerms(text: string): boolean {
   return rest.replace(/[\s(){}[\].,:;—–-]/g, '') === '';
 }
 
+/** Every `Tier` the bindings define. A union has no runtime form to iterate. */
+const TIERS = ['flagship', 'standard', 'inherited'] as const;
+
 describe('locale catalogs', () => {
   it('contains exactly the canonical 18 and nothing else', () => {
     const onDisk = readdirSync(dir)
@@ -199,6 +202,11 @@ describe('locale catalogs', () => {
     // missing and render as its own key in the panel (TASK-131B).
     ['lanes', ALL_LANES],
     ['scales', SCALES],
+    // The roster's tier badges (TASK-047). `ArtistPane` templates the tier
+    // straight into the key, so a tier with no string renders as
+    // `roster.inherited` at the producer — which is how `inherited`, the one
+    // nothing in the UI had ever shown, was found.
+    ['roster', TIERS],
     // The shortcuts panel (TASK-131I). Driven off the panel's own catalog
     // rather than a list restated here, so a shortcut added to the app without
     // a string fails this instead of rendering its own key at the producer.

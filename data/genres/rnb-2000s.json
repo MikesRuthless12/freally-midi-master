@@ -252,7 +252,9 @@
         "snap",
         "perc",
         "ride",
-        "shaker"
+        "shaker",
+        "conga",
+        "bongo"
       ],
       "densityPerBar": [
         1,
@@ -407,6 +409,21 @@
         1
       ]
     }
+  },
+  "bassline": {
+    "followRootsProb": 0.8,
+    "rhythm": "independent_riff",
+    "register": [
+      31,
+      50
+    ],
+    "glideProb": 0.1,
+    "passingTones": [
+      "P5",
+      "m7",
+      "P8"
+    ],
+    "anticipationProb": 0.3
   },
   "kit": {
     "preview": "rnb-default"

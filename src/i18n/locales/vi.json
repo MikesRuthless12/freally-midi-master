@@ -57,7 +57,8 @@
     "session": "Phiên",
     "presets": "Cài đặt sẵn",
     "stems": "Stem",
-    "explorer": "Trình duyệt"
+    "explorer": "Trình duyệt",
+    "patterns": "Thư viện pattern"
   },
   "readouts": {
     "bpm": "BPM",
@@ -194,7 +195,15 @@
     "label": "Mẫu đã tạo",
     "summary": "{{bars}} ô nhịp · {{steps}} bước · {{notes}} nốt",
     "muteLane": "Tắt tiếng {{lane}} trong bản nghe thử",
-    "cell": "{{lane}}, bước {{step}}"
+    "cell": "{{lane}}, bước {{step}}",
+    "soloLane": "Solo {{lane}} trong bản nghe thử",
+    "auditionLane": "Nghe {{lane}}",
+    "rollLabel": "Roll ở bước này",
+    "rollOff": "Một tiếng",
+    "rollCount": "{{count}} tiếng",
+    "addFill": "Thêm fill vào {{lane}}",
+    "reassignLane": "Đổi {{lane}} sang trống khác",
+    "lockLane": "Giữ {{lane}} khi tạo lại"
   },
   "roster": {
     "artists": "Nghệ sĩ",
@@ -202,7 +211,9 @@
     "genre": "Thể loại",
     "filteredBy": "Đã lọc theo {{name}}",
     "showAll": "Hiện tất cả",
-    "noneInGenre": "Chưa có nghệ sĩ nào thuộc {{name}}."
+    "noneInGenre": "Chưa có nghệ sĩ nào thuộc {{name}}.",
+    "standard": "Tiêu chuẩn",
+    "inherited": "Kế thừa"
   },
   "lanes": {
     "kick": "Trống bass",
@@ -213,7 +224,7 @@
     "openHat": "Hi-hat mở",
     "ride": "Ride",
     "crash": "Crash",
-    "tom": "Tom",
+    "tom": "Tom giữa",
     "rim": "Vành trống",
     "snap": "Búng tay",
     "perc": "Bộ gõ",
@@ -225,7 +236,23 @@
     "melody": "Giai điệu",
     "counter": "Giai điệu đối",
     "bass": "Đường bass",
-    "chords": "Hợp âm"
+    "chords": "Hợp âm",
+    "subKick": "Kick sub",
+    "ghostSnare": "Snare mờ",
+    "pedalHat": "Hi-hat pedal",
+    "rideBell": "Chuông ride",
+    "tomHigh": "Tom cao",
+    "tomLow": "Tom thấp",
+    "perc2": "Perc 2",
+    "clave": "Clave",
+    "conga": "Conga",
+    "bongo": "Bongo",
+    "timbale": "Timbale",
+    "triangle": "Triangle",
+    "riser": "Riser",
+    "impact": "Impact",
+    "reverse": "Đảo ngược",
+    "subLow": "Lớp sub"
   },
   "presets": {
     "factory": "Mặc định",
@@ -352,7 +379,13 @@
       "cloneBar": "Chép ô nhịp 1 sang ô nhịp này",
       "shortcuts": "Hiện bảng này",
       "play": "Phát hoặc tạm dừng",
-      "previewDirection": "Phát sample ngược / xuôi"
+      "previewDirection": "Phát sample ngược / xuôi",
+      "lockLane": "Giữ trống này khi tạo lại",
+      "variation": "Duyệt các bản của bạn",
+      "generate": "Tạo phần này",
+      "generateAll": "Tạo tất cả các phần",
+      "pickGenerator": "Chọn bộ tạo",
+      "redo": "Làm lại"
     }
   },
   "explorer": {
@@ -368,5 +401,33 @@
     "waveformOf": "Dạng sóng của {{name}}",
     "reverse": "Phát ngược",
     "resize": "Thay đổi chiều rộng trình duyệt"
+  },
+  "patterns": {
+    "name": "Đặt tên cho pattern này",
+    "save": "Lưu",
+    "none": "Chưa lưu gì cả. Tạo thứ bạn thích, đặt tên, lần sau nó sẽ ở đây.",
+    "load": "Tải {{name}}",
+    "delete": "Xoá {{name}}",
+    "meta": "{{artist}} · {{bars}} ô nhịp · {{bpm}} BPM",
+    "filterArtist": "Lọc theo nghệ sĩ",
+    "filterPart": "Lọc theo phần",
+    "allArtists": "Tất cả nghệ sĩ",
+    "allParts": "Tất cả các phần",
+    "panel": "Thư viện pattern"
+  },
+  "variations": {
+    "label": "Lịch sử biến thể",
+    "back": "Lần tạo trước",
+    "forward": "Lần tạo sau",
+    "none": "Chưa có bản nào",
+    "made": "{{bpm}} BPM · {{scale}}"
+  },
+  "artist": {
+    "label": "Về lựa chọn này",
+    "tendsTo": "Thường",
+    "tempo": "{{bpm}} BPM",
+    "key": "{{key}} {{scale}}",
+    "halfTime": "half-time",
+    "moods": "{{count}} tâm trạng"
   }
 }

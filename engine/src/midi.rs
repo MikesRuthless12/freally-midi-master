@@ -54,8 +54,35 @@ pub fn gm_drum_note(lane: Lane) -> u8 {
         Lane::Tambourine => 54, // Tambourine
         Lane::Cowbell => 56,    // Cowbell
         Lane::Woodblock => 76,  // Hi Wood Block
+        // ── The lanes TASK-043A added ────────────────────────────────────
+        //
+        // ⛔ **Every one is a *distinct* GM note, and that is the rule this
+        // table is checked against.** Two lanes sharing a note export to the
+        // same drum, so the second lane is a lane the producer can see, edit
+        // and drag out — and cannot hear apart from the first.
+        Lane::SubKick => 35,    // Acoustic Bass Drum, the second kick
+        Lane::GhostSnare => 34, // ⚠ GM has no ghost snare; 34 is unassigned in
+        // the standard kit, which is better than sharing 38 with the snare it
+        // answers — see the rule above.
+        Lane::PedalHat => 44,  // Pedal Hi-Hat
+        Lane::RideBell => 53,  // Ride Bell
+        Lane::TomHigh => 50,   // High Tom
+        Lane::TomLow => 41,    // Low Floor Tom
+        Lane::Perc2 => 43,     // High Floor Tom — a second generic body
+        Lane::Clave => 76 + 1, // Low Wood Block (77); `Snap` already holds 75
+        Lane::Conga => 63,     // Open Hi Conga
+        Lane::Bongo => 60,     // Hi Bongo
+        Lane::Timbale => 65,   // High Timbale
+        Lane::Triangle => 81,  // Open Triangle
+        // ⚠ **The FX lanes get notes GM leaves to the kit's own devices.**
+        // 27–29 are unassigned in the GM percussion map and are where every
+        // modern kit puts its record-scratch and effect slots, so exporting
+        // them cannot land on a real drum.
+        Lane::Riser => 27,
+        Lane::Impact => 28,
+        Lane::Reverse => 29,
         // Pitched lanes carry their own pitch; this is never consulted.
-        Lane::Sub | Lane::Melody | Lane::Counter | Lane::Bass | Lane::Chords => 0,
+        Lane::Sub | Lane::SubLow | Lane::Melody | Lane::Counter | Lane::Bass | Lane::Chords => 0,
     }
 }
 
@@ -63,7 +90,7 @@ pub fn gm_drum_note(lane: Lane) -> u8 {
 fn is_pitched(lane: Lane) -> bool {
     matches!(
         lane,
-        Lane::Sub | Lane::Melody | Lane::Counter | Lane::Bass | Lane::Chords
+        Lane::Sub | Lane::SubLow | Lane::Melody | Lane::Counter | Lane::Bass | Lane::Chords
     )
 }
 
@@ -86,17 +113,29 @@ const DRUM_CHANNEL: u8 = 9;
 /// pitched: on channel 10 its notes would be read as drum voices and a sliding
 /// 808 line would come out as a rattle of unrelated percussion.
 fn pitched_channel(part: Part, lane: Lane) -> u8 {
-    // The 808 is authored inside the drums part but is a bass instrument, so it
-    // is keyed off the lane rather than the part it travels in.
-    if lane == Lane::Sub {
-        return 1;
+    // The 808s are authored inside the drums part but are bass instruments, so
+    // they are keyed off the lane rather than the part they travel in.
+    //
+    // ⛔ **`SubLow` gets 5, not 1.** It was added to `is_pitched` and not here,
+    // so it fell through to the drums arm and landed on channel 1 — the same
+    // channel as `Sub`. Two pitched basses on one channel is precisely the
+    // collision the paragraph above describes: a host that splits by channel
+    // merges the 808 and its sub layer into one instrument, their note-offs cut
+    // each other on shared keys, and the producer cannot route them apart. It
+    // is also the rule the rest of TASK-043A followed — every new lane took a
+    // *distinct* GM note so that no two could arrive as one.
+    match lane {
+        Lane::Sub => return 1,
+        Lane::SubLow => return 5,
+        _ => {}
     }
     match part {
         Part::Melody => 0,
         Part::Bass => 2,
         Part::Chords => 3,
         Part::Counter => 4,
-        // Only `Sub` is pitched inside the drums part, and it returned above.
+        // The two pitched lanes inside the drums part returned above; anything
+        // else reaching here is unpitched and never asks for this function.
         Part::Drums => 1,
     }
 }
@@ -881,6 +920,38 @@ mod tests {
                 assert_eq!(key.as_int(), 29);
             }
         }
+    }
+
+    #[test]
+    fn every_pitched_lane_gets_a_channel_of_its_own() {
+        // ⛔⛔ **`SubLow` shared channel 1 with `Sub`.** It was added to
+        // `is_pitched` and not to `pitched_channel`, so it fell through to the
+        // drums arm and onto the 808's channel — and a host that splits an
+        // imported SMF by channel (FL Studio does) merges the 808 and its sub
+        // layer into one instrument whose note-offs cut each other. Asserted
+        // over the whole set rather than on the one lane, because this is the
+        // failure that arrives every time a pitched lane is added.
+        let pitched = [
+            (Part::Drums, Lane::Sub),
+            (Part::Drums, Lane::SubLow),
+            (Part::Melody, Lane::Melody),
+            (Part::Counter, Lane::Counter),
+            (Part::Bass, Lane::Bass),
+            (Part::Chords, Lane::Chords),
+        ];
+        let mut seen: Vec<u8> = pitched
+            .iter()
+            .map(|(part, lane)| {
+                assert!(is_pitched(*lane), "{lane:?} must be pitched to be here");
+                let channel = pitched_channel(*part, *lane);
+                assert_ne!(channel, DRUM_CHANNEL, "{lane:?} landed on the drum channel");
+                channel
+            })
+            .collect();
+        let total = seen.len();
+        seen.sort_unstable();
+        seen.dedup();
+        assert_eq!(seen.len(), total, "two pitched lanes shared a channel");
     }
 
     #[test]

@@ -52,6 +52,18 @@ window.SEARCH_INDEX = [
     body: 'preset factory user save load delete named session data directory tempo pin',
   },
   {
+    id: 'patterns',
+    title: 'The pattern library',
+    words:
+      'pattern library save saved load notes kit sounds swap file json data directory backup share crash outlives project take keep named',
+  },
+  {
+    id: 'takes',
+    title: 'Your takes, and locking a drum',
+    words:
+      'takes history variation generations back forward step recall seed artist mood bars pins tempo key used lock locked padlock lane re-roll reroll hold L',
+  },
+  {
     id: 'session',
     title: 'Session state',
     body: 'session state save project file restore reopen window size persist inputs regeneration arrangement song edited stored',

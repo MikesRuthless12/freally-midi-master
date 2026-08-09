@@ -58,7 +58,7 @@ describe('the shortcut catalog', () => {
       for (const item of group.items) {
         const bare = item.keys
           .replace(ACCEL, '')
-          .replace(/Alt|\+|click|\s/g, '')
+          .replace(/Alt|Shift|\+|click|\s/g, '')
           .split('/')[0];
         if (bare === '') continue;
 
@@ -70,14 +70,18 @@ describe('the shortcut catalog', () => {
         // which is a coincidence rather than a check: the test was reporting
         // Ctrl+7 as phantom while all three work identically. A check that is
         // right by accident is the thing this file exists to prevent.
-        if (/^\d$/.test(bare)) continue;
+        // ⚠ A **range** too (`1 – 6`), added with TASK-046's generator
+        // picker. It indexes `GENERATOR_TABS` rather than matching any digit,
+        // so there is no `'4'` anywhere to grep — which is the same reason the
+        // tuplets are skipped and not a second exception.
+        if (/^\d$/.test(bare) || /^\d[–-]\d$/.test(bare)) continue;
 
         // Arrows and named keys are spelled in full by the handlers; single
         // letters are lower-cased there.
         const candidates =
           bare === '↑'
             ? ['ArrowUp']
-            : bare === '←'
+            : bare === '←' || bare === '◀'
               ? ['ArrowLeft']
               : bare === 'Esc'
                 ? ['Escape']

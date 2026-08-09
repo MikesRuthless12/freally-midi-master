@@ -4,6 +4,7 @@ import { RailResizer } from './RailResizer';
 import { SearchBar } from '../SearchBar/SearchBar';
 import { RosterList } from '../RosterList/RosterList';
 import { ExplorerPanel } from '../Explorer/ExplorerPanel';
+import { ArtistPane } from '../RosterList/ArtistPane';
 import { crossFilter } from '../../lib/cross-filter';
 import { useSession } from '../../state/session';
 import { useTranslation } from 'react-i18next';
@@ -99,6 +100,12 @@ export function LeftRail() {
               <p className="rail__hint">{t('roster.noneInGenre', { name: filteredBy.name })}</p>
             )}
             <RosterList artists={artists} genres={genres} />
+            {/* ⛔ **Under the list rather than beside it**, and the rail's width
+                is why: this column is ~280px and a two-pane layout inside it
+                would give the roster half of that. It reads as a footer to the
+                thing it describes, which is also the order a producer works in
+                — pick a row, then read it. */}
+            <ArtistPane entry={roster.find((entry) => entry.id === selectedId) ?? null} />
           </>
         ) : (
           <p className="rail__hint">{t('rails.noDataset')}</p>

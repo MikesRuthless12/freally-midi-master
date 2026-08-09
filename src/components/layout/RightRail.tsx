@@ -2,6 +2,7 @@ import { Section } from './Section';
 
 import { KitPanel } from '../Kit/KitPanel';
 import { StemsPanel } from '../Kit/StemsPanel';
+import { PatternBrowser } from '../PatternLibrary/PatternBrowser';
 import { Presets } from '../Presets/Presets';
 import { SessionChips } from '../SessionChips/SessionChips';
 
@@ -33,6 +34,14 @@ export function RightRail() {
 
       <Section id="presets">
         <Presets />
+      </Section>
+
+      {/* ⛔ **Under the presets, and next to them on purpose.** A preset is a
+          *starting point* — artist, seed, pins, no notes — and a saved pattern
+          is the notes themselves; putting them in one panel would make the
+          difference invisible at the moment a producer has to choose. */}
+      <Section id="patterns">
+        <PatternBrowser />
       </Section>
     </aside>
   );

@@ -341,3 +341,234 @@ fn every_shipped_genre_fills_at_the_cycle_it_authors() {
         }
     }
 }
+
+// ── The hi-hat's fill (TASK-043H) ────────────────────────────────────────────
+//
+// The hat is where trap, drill and plugg do their talking, and until this the
+// engine gave it rolls but no *fill* — a phrase-end figure that breaks the
+// stream and hands over to the next bar. These are the two questions that
+// matter: does it land where the model said, and is every string it names one
+// the engine can read.
+
+/// Every model that authors a hat fill, with the block.
+fn fill_models() -> Vec<(String, StyleModel, Value)> {
+    shipped()
+        .into_iter()
+        .filter_map(|(id, model)| {
+            let fill = model
+                .blocks
+                .get("drums")?
+                .get("hihat")?
+                .get("fill")
+                .filter(|value| !value.is_null())?
+                .clone();
+            Some((id, model, fill))
+        })
+        .collect()
+}
+
+#[test]
+fn the_hat_fill_vocabulary_is_one_the_engine_can_read() {
+    // ⛔ **The gate the roadmap asked for in the same breath as the feature:**
+    // `fill` is a new string vocabulary, and a typo costs that genre its fill
+    // in silence — an unknown figure falls back to a plain roll and an unknown
+    // landing point is dropped, so the model's authored intent simply stops
+    // happening with nothing to see.
+    let authored = fill_models();
+    assert!(
+        !authored.is_empty(),
+        "no model authors a hat fill, so this gate is asserting nothing"
+    );
+
+    for (id, _, fill) in authored {
+        for name in string_values(fill.get("at")) {
+            assert!(
+                engine::generators::rolls::can_read_fill_at(&name),
+                "{id}: `{name}` is not a landing point the fill generator knows"
+            );
+        }
+        for name in string_values(fill.get("figure")) {
+            assert!(
+                engine::generators::rolls::can_read_fill_figure(&name),
+                "{id}: `{name}` is not a figure the fill generator knows"
+            );
+        }
+        for name in string_values(fill.get("subdivision")) {
+            assert!(
+                grid::note_value_ticks(&name).is_some(),
+                "{id}: `{name}` is not a note value"
+            );
+        }
+    }
+}
+
+/// Every string in a value, in any of the dataset's three authoring forms.
+fn string_values(value: Option<&Value>) -> Vec<String> {
+    let Some(value) = value else {
+        return Vec::new();
+    };
+    match value {
+        Value::String(one) => vec![one.clone()],
+        Value::Array(many) => many
+            .iter()
+            .filter_map(Value::as_str)
+            .map(str::to_owned)
+            .collect(),
+        Value::Object(spec) => spec
+            .get("values")
+            .and_then(Value::as_array)
+            .map(|values| {
+                values
+                    .iter()
+                    .filter_map(Value::as_str)
+                    .map(str::to_owned)
+                    .collect()
+            })
+            .unwrap_or_default(),
+        _ => Vec::new(),
+    }
+}
+
+#[test]
+fn a_hat_fill_lands_at_the_phrase_end_and_nowhere_else() {
+    // The roadmap's verify line: generate 8 bars for a hat-led genre and assert
+    // a fill lands at the phrase end and nowhere else.
+    //
+    // ⛔ **Measured against the same model with the fill removed, not against a
+    // density threshold.** The first cut asked whether the last beat was busier
+    // than the rest, and that is the wrong question in two directions: a hat
+    // stream is dense there anyway, and `gap` — a real figure — makes the last
+    // beat *emptier*, which is the fill working rather than failing. An A/B
+    // says what actually happened.
+    //
+    // The other half of "and nowhere else" is
+    // `re_rolling_the_fill_does_not_move_the_hats_it_interrupts` below, which
+    // holds every tick outside the window byte-identical.
+    let ctx = SessionContext {
+        bars: 8,
+        ..Default::default()
+    };
+    let models = shipped();
+    let beat = grid::ticks_per_beat(&ctx);
+    let bar = ctx.ticks_per_bar();
+
+    for (id, _, _) in fill_models() {
+        let model = &models[&id];
+        let mut without = model.clone();
+        without
+            .blocks
+            .get_mut("drums")
+            .and_then(|d| d.get_mut("hihat"))
+            .and_then(Value::as_object_mut)
+            .expect("a model authoring a fill authors a hihat block")
+            .remove("fill");
+
+        let last_beats = |model: &StyleModel, seed: u64| -> Vec<u32> {
+            notes(&generate(model, &ctx, seed), Lane::ClosedHat)
+                .iter()
+                .map(|note| note.start_tick)
+                .filter(|tick| tick % bar >= bar.saturating_sub(beat))
+                .collect()
+        };
+
+        let changed = (0..SEEDS)
+            .filter(|seed| last_beats(model, *seed) != last_beats(&without, *seed))
+            .count();
+        assert!(
+            changed > 0,
+            "{id}: removing the authored fill changed nothing in any of {SEEDS} seeds,              so it is not reaching the pattern"
+        );
+    }
+}
+
+#[test]
+fn no_hat_is_open_and_shut_at_the_same_instant() {
+    // ⛔⛔ **The hat engine's one hard rule, and the fill was breaking it.**
+    // `hats()` deletes the closed hit underneath every open hat it places —
+    // "one hi-hat cannot be open and shut at the same instant" — and then
+    // `hat_fills` cleared its window and wrote a fresh stream across it, putting
+    // a closed hat straight back on the open hat's tick. Export fires GM 42 and
+    // 46 together at that instant, which is not a hat sound at all, and the
+    // regenerated trap golden carried it.
+    //
+    // ⚠ **Over every shipped model and every seed, not just the ones that
+    // author a fill.** The invariant belongs to the hat engine; the fill is only
+    // the way it was most recently broken, and the next way should fail here
+    // too.
+    let ctx = SessionContext {
+        bars: 8,
+        ..Default::default()
+    };
+
+    for (id, model) in shipped() {
+        for seed in 0..SEEDS {
+            let lanes = generate(&model, &ctx, seed);
+            let open: Vec<u32> = notes(&lanes, Lane::OpenHat)
+                .iter()
+                .map(|note| note.start_tick)
+                .collect();
+            if open.is_empty() {
+                continue;
+            }
+            for closed in notes(&lanes, Lane::ClosedHat) {
+                assert!(
+                    !open.contains(&closed.start_tick),
+                    "{id} seed {seed}: a closed hat sits on the open hat at tick {}",
+                    closed.start_tick
+                );
+            }
+        }
+    }
+}
+
+#[test]
+fn re_rolling_the_fill_does_not_move_the_hats_it_interrupts() {
+    // ⛔ **The reason the fill has its own `drums/hats/fill` stream.** A fill
+    // drawn from the hat stream would shift every hat after it, so changing a
+    // fill parameter would rewrite the whole hat part — which is the "rerolling
+    // one part leaves every other byte-identical" property `rng.rs` is built
+    // around, one level down.
+    //
+    // Proved by generating with and without the fill block and comparing the
+    // hats *outside* every fill window.
+    //
+    // ⚠ **Placement, not velocity, and the difference is honest rather than
+    // convenient.** `humanize` walks a lane in note order and draws per note,
+    // so removing or adding notes reshuffles every later draw — the velocities
+    // downstream of a fill do move, and the golden diff for `uk-drill` shows
+    // exactly that. This is not new: hat rolls have always had it, for the same
+    // reason. What the seeded stream buys is that no hat *changes position*,
+    // which is the part a producer would hear as the pattern being rewritten.
+    let ctx = SessionContext {
+        bars: 8,
+        ..Default::default()
+    };
+    let models = shipped();
+    let model = &models["trap"];
+    let beat = grid::ticks_per_beat(&ctx);
+    let bar = ctx.ticks_per_bar();
+
+    let mut without = model.clone();
+    without
+        .blocks
+        .get_mut("drums")
+        .and_then(|d| d.get_mut("hihat"))
+        .and_then(Value::as_object_mut)
+        .expect("trap authors a hihat block")
+        .remove("fill");
+
+    for seed in [1_u64, 7, 42] {
+        let outside = |lanes: &[LaneTrack]| -> Vec<u32> {
+            notes(lanes, Lane::ClosedHat)
+                .iter()
+                .map(|note| note.start_tick)
+                .filter(|tick| tick % bar < bar.saturating_sub(beat))
+                .collect()
+        };
+        assert_eq!(
+            outside(&generate(model, &ctx, seed)),
+            outside(&generate(&without, &ctx, seed)),
+            "seed {seed}: the fill moved hats outside its own window"
+        );
+    }
+}

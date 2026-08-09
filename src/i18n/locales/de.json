@@ -57,7 +57,8 @@
     "session": "Session",
     "presets": "Voreinstellungen",
     "stems": "Stems",
-    "explorer": "Dateien"
+    "explorer": "Dateien",
+    "patterns": "Pattern-Bibliothek"
   },
   "readouts": {
     "bpm": "BPM",
@@ -194,7 +195,15 @@
     "label": "Erzeugtes Pattern",
     "summary": "{{bars}} Takte · {{steps}} Schritte · {{notes}} Noten",
     "muteLane": "Vorschau von {{lane}} stummschalten",
-    "cell": "{{lane}}, Schritt {{step}}"
+    "cell": "{{lane}}, Schritt {{step}}",
+    "soloLane": "{{lane}} in der Vorschau solo schalten",
+    "auditionLane": "{{lane}} anhören",
+    "rollLabel": "Roll auf diesem Schritt",
+    "rollOff": "Einzelner Schlag",
+    "rollCount": "{{count}} Schläge",
+    "addFill": "Fill zu {{lane}} hinzufügen",
+    "reassignLane": "{{lane}} auf eine andere Trommel ändern",
+    "lockLane": "{{lane}} beim erneuten Generieren beibehalten"
   },
   "roster": {
     "artists": "Künstler",
@@ -202,7 +211,9 @@
     "genre": "Stil",
     "filteredBy": "Gefiltert nach {{name}}",
     "showAll": "Alle anzeigen",
-    "noneInGenre": "Noch arbeitet niemand in {{name}}."
+    "noneInGenre": "Noch arbeitet niemand in {{name}}.",
+    "standard": "Standard",
+    "inherited": "Vererbt"
   },
   "lanes": {
     "kick": "Bassdrum",
@@ -213,7 +224,7 @@
     "openHat": "Offene Hi-Hat",
     "ride": "Ride-Becken",
     "crash": "Crash-Becken",
-    "tom": "Tom-Tom",
+    "tom": "Mittleres Tom",
     "rim": "Rimshot",
     "snap": "Fingerschnippen",
     "perc": "Perkussion",
@@ -225,7 +236,23 @@
     "melody": "Melodie",
     "counter": "Gegenmelodie",
     "bass": "Basslinie",
-    "chords": "Akkorde"
+    "chords": "Akkorde",
+    "subKick": "Sub-Kick",
+    "ghostSnare": "Ghost-Snare",
+    "pedalHat": "Pedal-Hi-Hat",
+    "rideBell": "Ride-Glocke",
+    "tomHigh": "Hohes Tom",
+    "tomLow": "Tiefes Tom",
+    "perc2": "Perc 2",
+    "clave": "Clave",
+    "conga": "Conga",
+    "bongo": "Bongo",
+    "timbale": "Timbale",
+    "triangle": "Triangel",
+    "riser": "Riser",
+    "impact": "Impact",
+    "reverse": "Reverse",
+    "subLow": "Sub-Layer"
   },
   "presets": {
     "factory": "Werk",
@@ -352,7 +379,13 @@
       "cloneBar": "Takt 1 über diesen Takt kopieren",
       "shortcuts": "Dieses Fenster anzeigen",
       "play": "Abspielen oder pausieren",
-      "previewDirection": "Sample rückwärts / vorwärts abspielen"
+      "previewDirection": "Sample rückwärts / vorwärts abspielen",
+      "lockLane": "Diese Trommel beim Neu-Würfeln halten",
+      "variation": "Durch deine Takes blättern",
+      "generate": "Diesen Part generieren",
+      "generateAll": "Alle Parts generieren",
+      "pickGenerator": "Generator wählen",
+      "redo": "Wiederholen"
     }
   },
   "explorer": {
@@ -368,5 +401,33 @@
     "waveformOf": "Wellenform von {{name}}",
     "reverse": "Rückwärts abspielen",
     "resize": "Breite des Browsers ändern"
+  },
+  "patterns": {
+    "name": "Diesem Pattern einen Namen geben",
+    "save": "Speichern",
+    "none": "Noch nichts gespeichert. Generiere etwas, das dir gefällt, benenne es, und es ist beim nächsten Mal hier.",
+    "load": "{{name}} laden",
+    "delete": "{{name}} löschen",
+    "meta": "{{artist}} · {{bars}} Takte · {{bpm}} BPM",
+    "filterArtist": "Nach Artist filtern",
+    "filterPart": "Nach Part filtern",
+    "allArtists": "Alle Artists",
+    "allParts": "Alle Parts",
+    "panel": "Pattern-Bibliothek"
+  },
+  "variations": {
+    "label": "Variationsverlauf",
+    "back": "Vorherige Generierung",
+    "forward": "Nächste Generierung",
+    "none": "Noch keine Takes",
+    "made": "{{bpm}} BPM · {{scale}}"
+  },
+  "artist": {
+    "label": "Über diese Auswahl",
+    "tendsTo": "Neigt zu",
+    "tempo": "{{bpm}} BPM",
+    "key": "{{key}} {{scale}}",
+    "halfTime": "Half-Time",
+    "moods": "{{count}} Moods"
   }
 }

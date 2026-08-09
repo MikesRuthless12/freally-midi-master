@@ -57,7 +57,8 @@
     "session": "セッション",
     "presets": "プリセット",
     "stems": "ステム",
-    "explorer": "ブラウザー"
+    "explorer": "ブラウザー",
+    "patterns": "パターンライブラリ"
   },
   "readouts": {
     "bpm": "BPM",
@@ -194,7 +195,15 @@
     "label": "生成されたパターン",
     "summary": "{{bars}} 小節 · {{steps}} ステップ · {{notes}} ノート",
     "muteLane": "プレビューで{{lane}}をミュート",
-    "cell": "{{lane}}、ステップ {{step}}"
+    "cell": "{{lane}}、ステップ {{step}}",
+    "soloLane": "プレビューで{{lane}}をソロ",
+    "auditionLane": "{{lane}}を試聴",
+    "rollLabel": "このステップをロール",
+    "rollOff": "単発",
+    "rollCount": "{{count}} 打",
+    "addFill": "{{lane}}にフィルを追加",
+    "reassignLane": "{{lane}}を別の音色に変更",
+    "lockLane": "再生成しても{{lane}}を保持"
   },
   "roster": {
     "artists": "アーティスト",
@@ -202,7 +211,9 @@
     "genre": "ジャンル",
     "filteredBy": "{{name}} で絞り込み中",
     "showAll": "すべて表示",
-    "noneInGenre": "{{name}} のアーティストはまだいません。"
+    "noneInGenre": "{{name}} のアーティストはまだいません。",
+    "standard": "標準",
+    "inherited": "継承"
   },
   "lanes": {
     "kick": "キック",
@@ -213,7 +224,7 @@
     "openHat": "オープンハット",
     "ride": "ライド",
     "crash": "クラッシュ",
-    "tom": "タム",
+    "tom": "ミッドタム",
     "rim": "リム",
     "snap": "スナップ",
     "perc": "パーカッション",
@@ -225,7 +236,23 @@
     "melody": "メロディ",
     "counter": "カウンターメロディ",
     "bass": "ベースライン",
-    "chords": "コード"
+    "chords": "コード",
+    "subKick": "サブキック",
+    "ghostSnare": "ゴーストスネア",
+    "pedalHat": "ペダルハット",
+    "rideBell": "ライドベル",
+    "tomHigh": "ハイタム",
+    "tomLow": "ロータム",
+    "perc2": "パーカッション2",
+    "clave": "クラーベ",
+    "conga": "コンガ",
+    "bongo": "ボンゴ",
+    "timbale": "ティンバレス",
+    "triangle": "トライアングル",
+    "riser": "ライザー",
+    "impact": "インパクト",
+    "reverse": "リバース",
+    "subLow": "サブレイヤー"
   },
   "presets": {
     "factory": "工場出荷",
@@ -352,7 +379,13 @@
       "cloneBar": "1小節目をこの小節に複製",
       "shortcuts": "このパネルを表示",
       "play": "再生または一時停止",
-      "previewDirection": "サンプルを逆再生 / 順再生"
+      "previewDirection": "サンプルを逆再生 / 順再生",
+      "lockLane": "再抽選でもこの音色を保持",
+      "variation": "テイクを行き来する",
+      "generate": "このパートを生成",
+      "generateAll": "すべてのパートを生成",
+      "pickGenerator": "ジェネレーターを選ぶ",
+      "redo": "やり直す"
     }
   },
   "explorer": {
@@ -368,5 +401,33 @@
     "waveformOf": "{{name}} の波形",
     "reverse": "逆再生",
     "resize": "ブラウザーの幅を変更"
+  },
+  "patterns": {
+    "name": "このパターンに名前を付ける",
+    "save": "保存",
+    "none": "まだ何も保存されていません。気に入ったものを生成して名前を付ければ、次回もここにあります。",
+    "load": "{{name}}を読み込む",
+    "delete": "{{name}}を削除",
+    "meta": "{{artist}} · {{bars}}小節 · {{bpm}} BPM",
+    "filterArtist": "アーティストで絞り込む",
+    "filterPart": "パートで絞り込む",
+    "allArtists": "すべてのアーティスト",
+    "allParts": "すべてのパート",
+    "panel": "パターンライブラリ"
+  },
+  "variations": {
+    "label": "バリエーション履歴",
+    "back": "前の生成",
+    "forward": "次の生成",
+    "none": "テイクなし",
+    "made": "{{bpm}} BPM · {{scale}}"
+  },
+  "artist": {
+    "label": "この選択について",
+    "tendsTo": "傾向",
+    "tempo": "{{bpm}} BPM",
+    "key": "{{key}} {{scale}}",
+    "halfTime": "ハーフタイム",
+    "moods": "{{count}} ムード"
   }
 }

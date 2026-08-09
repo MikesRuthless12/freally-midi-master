@@ -22,8 +22,17 @@ import {
 import './Ruler.css';
 
 /**
- * The bar/beat ruler, the loop brace, the clip markers and the stretch handles
- * (TASK-041E, and 041D's handles).
+ * The bar/beat ruler, the loop brace, the clip markers, the stretch handles
+ * (TASK-041E, and 041D's handles) — and click-to-seek (TASK-041T).
+ *
+ * ⛔ **A click is a seek; a drag is a brace.** Both gestures live on this one
+ * strip, and every DAW separates them exactly this way. Before this, a click on
+ * empty ruler that moved a single pixel laid down a *one-step* loop brace —
+ * `regionBetween(t, t)` floors the width at one snap step — and a click that
+ * moved no pixels at all did nothing, because `pending` was still `null`. So
+ * the four melodic generators had no way to move the playhead: the drum grid
+ * and the song timeline both seek on click and the roll was the one editor that
+ * did not, which is the half of TASK-041T that was still missing.
  *
  * ⛔ **Its own canvas above the roll's, rather than a strip inside it.** The
  * roll's vertical arithmetic — `rowY`, `yToPitch`, the fold's row list — is
@@ -64,6 +73,7 @@ export function Ruler({
   const wrapRef = useRef<HTMLDivElement>(null);
   const paletteOf = useCanvasPalette(wrapRef);
   const editPattern = useSession((s) => s.editPattern);
+  const seek = useSession((s) => s.seek);
   const selection = useEditing((s) => s.selection);
   const snap = useEditing((s) => s.snap);
   const drag = useRef<Drag | null>(null);
@@ -279,10 +289,11 @@ export function Ruler({
       drag.current = null;
       setLive(null);
 
+      const at = snapTick(locate(event).tick, snap, pattern.ppq);
+
       if (current.grip.kind === 'stretch') {
         if (current.span === null) return;
-        const { tick } = locate(event);
-        const factor = stretchFactor(current.span, snapTick(tick, snap, pattern.ppq));
+        const factor = stretchFactor(current.span, at);
         if (factor === null || factor === 1) return;
         const next = stretch(pattern, lane, selection, factor);
         if (next === pattern) return;
@@ -291,10 +302,25 @@ export function Ruler({
         return;
       }
 
+      // ⛔ **The click/drag split, and it is measured in *snapped ticks* rather
+      // than pixels.** A pointer that wobbles within one snap step has not
+      // asked for a brace — at the roll's default zoom a 16th is wide enough
+      // that a firm click easily travels two or three pixels, and a pixel
+      // threshold would have made "did I just make a loop?" depend on how
+      // steady the producer's hand was. Comparing the value the gesture would
+      // *commit* is the only version of this that cannot surprise anyone.
+      if (current.grip.kind === 'new' && at === current.fromTick) {
+        // `total` is this clip's ticks, which is the same fraction the drum
+        // grid sends from its own track width — one meaning of "progress" on
+        // the wire, not two.
+        void seek(total === 0 ? 0 : at / total);
+        return;
+      }
+
       // One commit for the whole drag, so the brace is one step on the stack.
       if (current.pending !== null) editPattern({ ...pattern, ...current.pending });
     },
-    [locate, snap, pattern, lane, selection, editPattern],
+    [locate, snap, pattern, lane, selection, editPattern, seek, total],
   );
 
   /** Double-click clears the loop, which is how every DAW takes a brace off. */

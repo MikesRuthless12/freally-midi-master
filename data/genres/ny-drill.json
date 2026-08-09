@@ -250,6 +250,29 @@
           3
         ]
       },
+      "fill": {
+        "at": [
+          "every_4_bars",
+          "last_bar"
+        ],
+        "figure": {
+          "values": [
+            "roll",
+            "stutter"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "prob": 0.5,
+        "subdivision": "32",
+        "notes": 4,
+        "rampRange": [
+          0.5,
+          1
+        ]
+      },
       "openHat": {
         "prob": 0.35,
         "pos": [
@@ -416,6 +439,77 @@
         1
       ]
     }
+  },
+  "melody": {
+    "register": [
+      60,
+      84
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "structure": "riff_loop",
+    "twoBarCellRepeat": true,
+    "intervals": {
+      "step": 0.62,
+      "third": 0.28,
+      "leap": 0.1
+    },
+    "contour": {
+      "riff": 0.55,
+      "descend": 0.3,
+      "arch": 0.15
+    },
+    "chordToneBias": 0.62,
+    "halfStepDissonance": 0.13,
+    "monophonicBias": 0.8,
+    "mirrorSnareDisplacement": true,
+    "endVariation": true,
+    "octaveJumpProb": 0.08,
+    "timbreHint": "bright_bell"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.5,
+    "fillGapsOnly": true,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        2,
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.8,
+    "rhythm": "independent_riff",
+    "register": [
+      24,
+      36
+    ],
+    "glideProb": 0.55,
+    "passingTones": [
+      "P5",
+      "m7",
+      "P8"
+    ],
+    "anticipationProb": 0.3
   },
   "kit": {
     "preview": "drill-default"

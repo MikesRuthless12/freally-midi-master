@@ -1,0 +1,143 @@
+import { beforeEach, describe, expect, it } from 'vitest';
+
+import type { Pattern } from '../lib/ipc-types';
+import { counter, entryFor, madeAt, useVariations } from './variations';
+
+/**
+ * The variation history (TASK-045).
+ *
+ * ⛔ Three claims are worth testing and none of them is "it stores things":
+ * that the log has **no cap**, that an entry records what was *used* rather
+ * than what was pinned, and that generating after stepping back does not throw
+ * the entries ahead away.
+ */
+
+const clip = (part: Pattern['part'], seed: string, bpm: number): Pattern => ({
+  id: `p-${seed}`,
+  part,
+  artistId: 'trap',
+  seed,
+  songSeed: seed,
+  bars: 4,
+  bpm,
+  timeSigNum: 4,
+  timeSigDen: 4,
+  keyRoot: 6,
+  scale: 'natural_minor',
+  ppq: 960,
+  lanes: [],
+});
+
+const NO_PINS = {
+  bpm: null,
+  keyRoot: null,
+  scale: null,
+  swing: null,
+  timeSigNum: null,
+  timeSigDen: null,
+};
+
+describe('the variation history', () => {
+  beforeEach(() => useVariations.getState().reset());
+
+  it('keeps every generation of the session, with no cap', () => {
+    // ⛔ Mike's rescope: *"keep going sequentially through the seeds that you
+    // have generated since the beginning of the app."* The old "last 20" cap
+    // was there to bound memory and does not need to be — an entry is tens of
+    // bytes, because the notes are not stored.
+    for (let i = 0; i < 1_000; i += 1) {
+      useVariations
+        .getState()
+        .record(entryFor(clip('drums', String(i), 140), { mood: null, pins: NO_PINS }, i));
+    }
+    expect(counter('drums')).toEqual({ position: 1_000, total: 1_000 });
+    expect(useVariations.getState().entries.drums?.[0].seed).toBe('0');
+  });
+
+  it('counts each part separately', () => {
+    // Rerolling one lane advances that part and nothing else, so one global
+    // number would claim the chords changed when they did not.
+    useVariations
+      .getState()
+      .record(entryFor(clip('drums', '1', 140), { mood: null, pins: NO_PINS }, 1));
+    useVariations
+      .getState()
+      .record(entryFor(clip('drums', '2', 140), { mood: null, pins: NO_PINS }, 2));
+    useVariations
+      .getState()
+      .record(entryFor(clip('melody', '3', 140), { mood: null, pins: NO_PINS }, 3));
+
+    expect(counter('drums')).toEqual({ position: 2, total: 2 });
+    expect(counter('melody')).toEqual({ position: 1, total: 1 });
+    expect(counter('bass')).toEqual({ position: 0, total: 0 });
+  });
+
+  it('records the tempo that was used, not the one that was pinned', () => {
+    // ⛔ **The important half of the rescope.** A generation made while the DAW
+    // sat at 92 was made at 92, and the pins may say nothing about that —
+    // showing the pins would show blank. And tempo changes the notes, so an
+    // entry that recorded only the seed would not reproduce its own beat.
+    const entry = entryFor(clip('drums', '7', 92), { mood: 'dark', pins: NO_PINS }, 5);
+    expect(entry.bpm).toBe(92);
+    expect(entry.pins.bpm).toBeNull();
+    expect(entry.mood).toBe('dark');
+    // The whole setup, so stepping back restores how you got there.
+    expect(entry.artistId).toBe('trap');
+    expect(entry.bars).toBe(4);
+    expect(entry.scale).toBe('natural_minor');
+  });
+
+  it('steps without wrapping, and clamps at both ends', () => {
+    for (const seed of ['1', '2', '3']) {
+      useVariations
+        .getState()
+        .record(
+          entryFor(clip('drums', seed, 140), { mood: null, pins: NO_PINS }, Number(seed)),
+        );
+    }
+    expect(useVariations.getState().step('drums', -1)?.seed).toBe('2');
+    expect(useVariations.getState().step('drums', -1)?.seed).toBe('1');
+    // ⚠ Clamped, not wrapped: wrapping would take a producer stepping back
+    // through a thousand takes to the newest one with nothing saying so.
+    expect(useVariations.getState().step('drums', -1)).toBeNull();
+    expect(counter('drums')).toEqual({ position: 1, total: 3 });
+  });
+
+  it('generating after stepping back keeps the entries ahead', () => {
+    // ⛔ Mike: *"starts a new branch from there rather than silently discarding
+    // the entries ahead."* Losing forward history is what would cost someone a
+    // beat they liked, so the log is append-only and stepping back is browsing.
+    for (const seed of ['1', '2', '3']) {
+      useVariations
+        .getState()
+        .record(
+          entryFor(clip('drums', seed, 140), { mood: null, pins: NO_PINS }, Number(seed)),
+        );
+    }
+    useVariations.getState().step('drums', -2);
+    useVariations
+      .getState()
+      .record(entryFor(clip('drums', '4', 140), { mood: null, pins: NO_PINS }, 4));
+
+    expect(useVariations.getState().entries.drums?.map((e) => e.seed)).toEqual([
+      '1',
+      '2',
+      '3',
+      '4',
+    ]);
+    // ...and the producer is parked on the one they just made.
+    expect(counter('drums')).toEqual({ position: 4, total: 4 });
+  });
+
+  it('writes the date the way it was asked for, through Intl', () => {
+    // ⛔ Two formatters joined by " @", because `timeStyle` cannot be combined
+    // with `timeZoneName`. A literal `dddd, MMMM D, YYYY` would be right in one
+    // locale and wrong in the other seventeen — two of which are RTL.
+    const at = Date.UTC(2026, 7, 13, 21, 54);
+    const text = madeAt(at, 'en-US');
+    expect(text).toMatch(/^[A-Za-z]+day, August \d{1,2}, 2026 @\d{1,2}:\d{2}\s?[AP]M/);
+    expect(text).toContain(' @');
+    // Nothing to show for a pattern saved before the field existed.
+    expect(madeAt(0, 'en-US')).toBe('');
+  });
+});

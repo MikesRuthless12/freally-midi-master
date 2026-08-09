@@ -43,16 +43,38 @@ const MUTE_TOLERANCE: u32 = grid::SIXTEENTH / 2;
 ///
 /// Kick first because the whole grammar hangs off it — the 808 locks to it and
 /// the snare gap rule is measured against it.
+///
+/// ⛔⛔ **A lane missing from here is a lane whose notes are thrown away**, and
+/// TASK-043A hit it: eleven lanes were added to [`PERC_LANES`], authored by nine
+/// shipped models, and produced *nothing* — `Kit` accumulates per lane in this
+/// order and drops what it has no slot for. The two lists are not
+/// interchangeable (see [`PERC_LANES`]), but **every** `PERC_LANES` entry must
+/// appear here, which is what `every_perc_lane_can_be_built` holds.
 const LANE_ORDER: &[Lane] = &[
     Lane::Kick,
+    Lane::SubKick,
     Lane::Snare,
     Lane::OffSnare,
+    Lane::GhostSnare,
     Lane::Clap,
     Lane::ClosedHat,
     Lane::OpenHat,
+    Lane::PedalHat,
     Lane::Ride,
+    Lane::RideBell,
     Lane::Crash,
     Lane::Tom,
+    Lane::TomHigh,
+    Lane::TomLow,
+    Lane::Clave,
+    Lane::Conga,
+    Lane::Bongo,
+    Lane::Timbale,
+    Lane::Triangle,
+    Lane::Perc2,
+    Lane::Riser,
+    Lane::Impact,
+    Lane::Reverse,
     Lane::Rim,
     Lane::Snap,
     Lane::Perc,
@@ -80,6 +102,30 @@ pub const PERC_LANES: &[Lane] = &[
     Lane::Tambourine,
     Lane::Cowbell,
     Lane::Woodblock,
+    // ── TASK-043A ────────────────────────────────────────────────────────
+    //
+    // ⛔ **The hand and Latin percussion the genres actually describe.**
+    // Research ch. 1 names a vibraslap and a triangle in west coast, claves
+    // and cowbell in Memphis, and congas across the afrobeats work Phase 5
+    // will author. Until now a model asking for any of them had nowhere to
+    // put it — `uk-drill` asked for a `woodblock` before there was a lane and
+    // the request vanished twice over, which is what TASK-140 records.
+    //
+    // ⚠ **The FX lanes are here too**, because a riser and an impact are
+    // placed exactly like a perc — a density and a placement — and giving
+    // them their own authoring block would be a second scheduler for the same
+    // job.
+    Lane::TomHigh,
+    Lane::TomLow,
+    Lane::Perc2,
+    Lane::Clave,
+    Lane::Conga,
+    Lane::Bongo,
+    Lane::Timbale,
+    Lane::Triangle,
+    Lane::Riser,
+    Lane::Impact,
+    Lane::Reverse,
 ];
 
 /// Where the snare lands, bar by bar (PRD § 3, research ch. 1).
@@ -596,6 +642,30 @@ pub fn generate(model: &StyleModel, ctx: &SessionContext, seed: u64) -> Vec<Lane
     // the stream around it.
     let mut roll_rng = rng::stream(seed, "drums/hatRolls");
     rolls::hat_rolls(&mut closed, hihat, ctx, &snares_by_bar, &mut roll_rng);
+
+    // The hat's *fill* — the phrase-end figure that hands one bar to the next
+    // (TASK-043H). ⛔ **After the rolls, and on its own stream.** After,
+    // because a fill's whole job is to break the stream and it has to be able
+    // to break a roll too; on its own stream, so re-rolling the fill cannot
+    // move the hats it interrupts.
+    let mut hat_fill_rng = rng::stream(seed, "drums/hats/fill");
+    rolls::hat_fills(&mut closed, hihat, ctx, &mut hat_fill_rng);
+
+    // ⛔⛔ **The open-hat exclusion, re-applied once both decorators are done.**
+    // `hats()` deletes the closed hit underneath every open hat it places — one
+    // hi-hat cannot be open and shut at the same instant — and then two things
+    // write fresh closed notes over the top of that decision: `hat_rolls` puts
+    // a roll wherever its positions land, and `hat_fills` clears a whole window
+    // and redraws it. Either one could put a closed hat straight back on an
+    // open hat's tick, and GM 42 and 46 firing together is not a hat sound, it
+    // is two of them ringing over each other.
+    //
+    // ⛔ **Here rather than inside each of them, and that is the point.** The
+    // rule belongs to the hat lane, not to any one thing that decorates it —
+    // installed at each door, the *next* decorator would arrive without it, the
+    // way the fill did. `no_hat_is_open_and_shut_at_the_same_instant` holds it
+    // over every shipped model and every seed for the same reason.
+    close_over_open(&mut closed, &open);
 
     // The 808 last, because it rides the kick and stops for the snare — it
     // needs both lanes finished before it can be placed.
@@ -1407,6 +1477,19 @@ impl RollLikePosition {
 }
 
 /// The hi-hat lanes: the base stream, its fill, and the open hats over it.
+/// Drop every closed hat that lands on a tick an open hat already occupies.
+///
+/// The rule `hats()` states when it places one: "one hi-hat cannot be open and
+/// shut at the same instant, so the closed hit underneath goes." Dropped rather
+/// than nudged, which is what `hats()` does — the stream keeps its grid and
+/// simply has a hole where the open hat is sounding.
+fn close_over_open(closed: &mut Vec<Note>, open: &[Note]) {
+    if open.is_empty() {
+        return;
+    }
+    closed.retain(|hit| !open.iter().any(|hat| hat.start_tick == hit.start_tick));
+}
+
 fn hats(
     hihat: Option<&Value>,
     ctx: &SessionContext,
@@ -1565,6 +1648,29 @@ fn displace(tick: u32, ticks: i64) -> u32 {
 mod tests {
     use super::*;
     use serde_json::json;
+
+    #[test]
+    fn every_perc_lane_can_be_built() {
+        // ⛔⛔ **The gate for the defect TASK-043A walked straight into.** Eleven
+        // lanes went into `PERC_LANES`, nine shipped models authored them, and
+        // every one produced *nothing* — `Kit` accumulates per lane in
+        // `LANE_ORDER` and silently drops whatever it has no slot for. The
+        // dataset said one thing, the output said another, and the only test
+        // that noticed was a roster-wide one two files away.
+        //
+        // ⚠ **One direction only.** `LANE_ORDER` is deliberately longer: the
+        // kick, the snare and the hats have their own grammar and must never be
+        // nameable as percs. What must hold is that nothing a model can *ask*
+        // for is unbuildable.
+        let missing: Vec<&Lane> = PERC_LANES
+            .iter()
+            .filter(|lane| !LANE_ORDER.contains(lane))
+            .collect();
+        assert!(
+            missing.is_empty(),
+            "a model can author these percs and the kit has nowhere to put them: {missing:?}"
+        );
+    }
 
     fn model(drums: Value) -> StyleModel {
         serde_json::from_value(json!({

@@ -169,7 +169,8 @@
         "rim",
         "perc",
         "ride",
-        "tom"
+        "tom",
+        "tomLow"
       ],
       "densityPerBar": [
         0,
@@ -325,6 +326,21 @@
         3
       ]
     }
+  },
+  "bassline": {
+    "followRootsProb": 0.8,
+    "rhythm": "mirror_kick",
+    "register": [
+      28,
+      48
+    ],
+    "glideProb": 0.05,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2"
+    ],
+    "anticipationProb": 0.3
   },
   "kit": {
     "preview": "boom-bap-default"

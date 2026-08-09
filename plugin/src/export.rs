@@ -809,6 +809,66 @@ mod tests {
     use super::*;
 
     #[test]
+    fn a_muted_or_soloed_lane_still_exports_every_note() {
+        // ⛔ **TASK-043's rule, stated as bytes.** Mute and solo are *view and
+        // playback* state: the notes have already gone to the host's track by
+        // the time the sampler runs, so silencing a lane must never change what
+        // is written to a file. `Shared::lane_muted` has exactly one reader —
+        // `render_preview` — and this is what keeps it that way: if the mask
+        // ever reached the writer, the two byte strings below would differ.
+        use engine::pattern::{Lane, LaneTrack, Note, Part, Pattern, Scale, PPQ};
+
+        let note = |start_tick, pitch| Note {
+            start_tick,
+            len_ticks: 120,
+            pitch,
+            vel: 100,
+            model_vel: None,
+            slide_to_pitch: None,
+            articulation: None,
+        };
+        let pattern = Pattern {
+            id: "muted-export".into(),
+            part: Part::Drums,
+            artist_id: "trap".into(),
+            seed: 1,
+            song_seed: 1,
+            bars: 1,
+            bpm: 140.0,
+            time_sig_num: 4,
+            time_sig_den: 4,
+            key_root: 0,
+            scale: Scale::NaturalMinor,
+            ppq: PPQ,
+            lanes: vec![
+                LaneTrack {
+                    lane: Lane::Kick,
+                    notes: vec![note(0, 36), note(PPQ, 36)],
+                },
+                LaneTrack {
+                    lane: Lane::Snare,
+                    notes: vec![note(PPQ, 38)],
+                },
+            ],
+            mood: None,
+            loop_region: None,
+            clip_region: None,
+        };
+
+        let shared = crate::shared::Shared::default();
+        let clean = stem_files(std::slice::from_ref(&pattern), Cut::EveryLane, None);
+
+        shared.set_lane_audio(&[Lane::Kick], &[Lane::Snare]);
+        assert!(shared.lane_muted(Lane::Kick), "the fixture must be muting");
+        let silenced = stem_files(std::slice::from_ref(&pattern), Cut::EveryLane, None);
+
+        assert_eq!(
+            clean, silenced,
+            "muting and soloing changed what was exported"
+        );
+    }
+
+    #[test]
     fn a_name_that_could_be_a_path_is_reduced_to_a_name() {
         // ⛔ The artist id reaches here from the webview, so this is a trust
         // boundary in the same sense `check_song` is. A separator in a dialog's

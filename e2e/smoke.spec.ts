@@ -93,12 +93,19 @@ test('the View menu lists every panel', async ({ page }) => {
   await page.getByRole('button', { name: /View/i }).click();
   const items = page.getByRole('menuitemcheckbox');
   // The right rail plus one per `SECTIONS` in `src/state/ui.ts`: genres, roster,
-  // browser, kit, stems, session, presets. The menu is built from that list, so
-  // adding a panel is meant to land here — this count is the reminder to check
-  // the new one actually appears rather than a number to bump.
-  await expect(items).toHaveCount(8);
+  // browser, kit, stems, session, presets, pattern library. The menu is built
+  // from that list, so adding a panel is meant to land here — this count is the
+  // reminder to check the new one actually appears rather than a number to bump.
+  await expect(items).toHaveCount(9);
+  // ⚠ And the newest one by name, which is what the count is a reminder to do.
+  // A panel the View menu cannot reach is one a producer who collapsed it
+  // cannot get back.
+  await expect(page.getByRole('menuitemcheckbox', { name: 'Pattern library' })).toHaveCount(1);
   await expect(items.first()).toContainText('Right rail');
-  await expect(items.last()).toContainText('Presets');
+  // ⚠ The last row is the newest panel, which is the pattern library since
+  // TASK-045A — the menu is built from `SECTIONS` in order, so "last" tracks
+  // that list rather than naming a panel that happened to be at the end.
+  await expect(items.last()).toContainText('Pattern library');
   // ⚠ Named, not just counted. `Stems` arrived with TASK-131F and had to go in
   // the rail rather than the stage toolbar — a control in `stage__controls`
   // costs the velocity lane height and fails `piano-roll.spec.ts`, which is how

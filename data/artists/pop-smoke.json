@@ -381,6 +381,21 @@
       ]
     }
   },
+  "bassline": {
+    "followRootsProb": 0.9,
+    "rhythm": "independent_riff",
+    "register": [
+      24,
+      33
+    ],
+    "glideProb": 0.75,
+    "passingTones": [
+      "P5",
+      "P8",
+      "M2"
+    ],
+    "anticipationProb": 0.45
+  },
   "kit": {
     "preview": "drill-default"
   }

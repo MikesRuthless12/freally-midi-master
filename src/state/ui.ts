@@ -23,6 +23,7 @@ export const SECTIONS = [
   'stems',
   'session',
   'presets',
+  'patterns',
 ] as const;
 export type SectionId = (typeof SECTIONS)[number];
 
@@ -52,6 +53,7 @@ const ALL_OPEN: SectionState = {
   stems: true,
   session: true,
   presets: true,
+  patterns: true,
 };
 
 function loadSections(): SectionState {

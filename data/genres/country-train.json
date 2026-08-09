@@ -227,7 +227,9 @@
       "lanes": [
         "perc",
         "ride",
-        "shaker"
+        "shaker",
+        "tomHigh",
+        "tomLow"
       ],
       "densityPerBar": [
         1,
@@ -394,6 +396,21 @@
         2
       ]
     }
+  },
+  "bassline": {
+    "followRootsProb": 0.95,
+    "rhythm": "boom_chick",
+    "register": [
+      28,
+      48
+    ],
+    "glideProb": 0,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2"
+    ],
+    "anticipationProb": 0.05
   },
   "kit": {
     "preview": "country-default"

@@ -57,7 +57,8 @@
     "session": "Sessão",
     "presets": "Predefinições",
     "stems": "Faixas",
-    "explorer": "Navegador"
+    "explorer": "Navegador",
+    "patterns": "Biblioteca de padrões"
   },
   "readouts": {
     "bpm": "BPM",
@@ -194,7 +195,15 @@
     "label": "Padrão gerado",
     "summary": "{{bars}} compassos · {{steps}} passos · {{notes}} notas",
     "muteLane": "Silenciar {{lane}} na prévia",
-    "cell": "{{lane}}, passo {{step}}"
+    "cell": "{{lane}}, passo {{step}}",
+    "soloLane": "Isolar {{lane}} na prévia",
+    "auditionLane": "Ouvir {{lane}}",
+    "rollLabel": "Rufo neste passo",
+    "rollOff": "Uma batida",
+    "rollCount": "{{count}} batidas",
+    "addFill": "Adicionar uma virada a {{lane}}",
+    "reassignLane": "Trocar {{lane}} por outro instrumento",
+    "lockLane": "Manter {{lane}} ao gerar de novo"
   },
   "roster": {
     "artists": "Artistas",
@@ -202,7 +211,9 @@
     "genre": "Gênero",
     "filteredBy": "Filtrado por {{name}}",
     "showAll": "Mostrar tudo",
-    "noneInGenre": "Ainda não há artistas em {{name}}."
+    "noneInGenre": "Ainda não há artistas em {{name}}.",
+    "standard": "Padrão",
+    "inherited": "Herdado"
   },
   "lanes": {
     "kick": "Bumbo",
@@ -213,7 +224,7 @@
     "openHat": "Chimbal aberto",
     "ride": "Ride",
     "crash": "Crash",
-    "tom": "Tom",
+    "tom": "Tom médio",
     "rim": "Aro",
     "snap": "Estalo",
     "perc": "Percussão",
@@ -225,7 +236,23 @@
     "melody": "Melodia",
     "counter": "Contramelodia",
     "bass": "Linha de baixo",
-    "chords": "Acordes"
+    "chords": "Acordes",
+    "subKick": "Bumbo sub",
+    "ghostSnare": "Caixa fantasma",
+    "pedalHat": "Chimbal de pedal",
+    "rideBell": "Sino do ride",
+    "tomHigh": "Tom agudo",
+    "tomLow": "Tom grave",
+    "perc2": "Perc 2",
+    "clave": "Clave",
+    "conga": "Conga",
+    "bongo": "Bongô",
+    "timbale": "Timbale",
+    "triangle": "Triângulo",
+    "riser": "Riser",
+    "impact": "Impacto",
+    "reverse": "Invertido",
+    "subLow": "Camada sub"
   },
   "presets": {
     "factory": "De fábrica",
@@ -352,7 +379,13 @@
       "cloneBar": "Copiar o compasso 1 sobre este",
       "shortcuts": "Mostrar este painel",
       "play": "Tocar ou pausar",
-      "previewDirection": "Reproduzir o sample de trás para frente / normalmente"
+      "previewDirection": "Reproduzir o sample de trás para frente / normalmente",
+      "lockLane": "Manter este instrumento em um novo sorteio",
+      "variation": "Percorrer seus takes",
+      "generate": "Gerar esta parte",
+      "generateAll": "Gerar todas as partes",
+      "pickGenerator": "Escolher um gerador",
+      "redo": "Refazer"
     }
   },
   "explorer": {
@@ -368,5 +401,33 @@
     "waveformOf": "Forma de onda de {{name}}",
     "reverse": "Reproduzir de trás para frente",
     "resize": "Redimensionar o navegador"
+  },
+  "patterns": {
+    "name": "Dê um nome a este padrão",
+    "save": "Salvar",
+    "none": "Nada salvo ainda. Gere algo de que você goste, dê um nome, e estará aqui da próxima vez.",
+    "load": "Carregar {{name}}",
+    "delete": "Excluir {{name}}",
+    "meta": "{{artist}} · {{bars}} compassos · {{bpm}} BPM",
+    "filterArtist": "Filtrar por artista",
+    "filterPart": "Filtrar por parte",
+    "allArtists": "Todos os artistas",
+    "allParts": "Todas as partes",
+    "panel": "Biblioteca de padrões"
+  },
+  "variations": {
+    "label": "Histórico de variações",
+    "back": "Geração anterior",
+    "forward": "Próxima geração",
+    "none": "Nenhum take ainda",
+    "made": "{{bpm}} BPM · {{scale}}"
+  },
+  "artist": {
+    "label": "Sobre esta seleção",
+    "tendsTo": "Costuma",
+    "tempo": "{{bpm}} BPM",
+    "key": "{{key}} {{scale}}",
+    "halfTime": "half-time",
+    "moods": "{{count}} moods"
   }
 }

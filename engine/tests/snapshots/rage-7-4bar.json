@@ -409,6 +409,63 @@
       ]
     },
     {
+      "lane": "crash",
+      "notes": [
+        {
+          "startTick": 7680,
+          "lenTicks": 259,
+          "pitch": 49,
+          "vel": 44,
+          "modelVel": 50
+        }
+      ]
+    },
+    {
+      "lane": "riser",
+      "notes": [
+        {
+          "startTick": 10560,
+          "lenTicks": 259,
+          "pitch": 27,
+          "vel": 44,
+          "modelVel": 49
+        },
+        {
+          "startTick": 13440,
+          "lenTicks": 259,
+          "pitch": 27,
+          "vel": 53,
+          "modelVel": 52
+        }
+      ]
+    },
+    {
+      "lane": "impact",
+      "notes": [
+        {
+          "startTick": 5760,
+          "lenTicks": 259,
+          "pitch": 28,
+          "vel": 50,
+          "modelVel": 55
+        },
+        {
+          "startTick": 10560,
+          "lenTicks": 259,
+          "pitch": 28,
+          "vel": 55,
+          "modelVel": 51
+        },
+        {
+          "startTick": 11520,
+          "lenTicks": 259,
+          "pitch": 28,
+          "vel": 64,
+          "modelVel": 56
+        }
+      ]
+    },
+    {
       "lane": "sub",
       "notes": [
         {

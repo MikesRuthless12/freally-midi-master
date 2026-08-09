@@ -6,25 +6,25 @@
 //! producer's own one-shots; it exists so a fresh install can be auditioned
 //! before anyone imports anything.
 
-use engine::rng::stream;
+pub(crate) use engine::rng::stream;
 use rand::Rng;
 use rand_chacha::ChaCha8Rng;
 
 use crate::wav::SAMPLE_RATE;
 
-const SR: f32 = SAMPLE_RATE as f32;
+pub(crate) const SR: f32 = SAMPLE_RATE as f32;
 
-fn seconds(n: f32) -> usize {
+pub(crate) fn seconds(n: f32) -> usize {
     (SR * n) as usize
 }
 
 /// Exponential decay to `-60 dB` over `secs`.
-fn decay(t: f32, secs: f32) -> f32 {
+pub(crate) fn decay(t: f32, secs: f32) -> f32 {
     (-6.907 * t / secs).exp()
 }
 
 /// A short fade at the very start, so a sample never begins on a discontinuity.
-fn declick(samples: &mut [f32]) {
+pub(crate) fn declick(samples: &mut [f32]) {
     let n = (SR * 0.002) as usize; // 2 ms
     for (i, s) in samples.iter_mut().take(n).enumerate() {
         *s *= i as f32 / n as f32;
@@ -37,12 +37,12 @@ fn declick(samples: &mut [f32]) {
 }
 
 /// Soft saturation. `drive` of 1.0 is clean; higher values fatten and clip.
-fn saturate(x: f32, drive: f32) -> f32 {
+pub(crate) fn saturate(x: f32, drive: f32) -> f32 {
     (x * drive).tanh() / drive.tanh()
 }
 
 /// Normalize to a target peak so the pads feel level against each other.
-fn normalize(samples: &mut [f32], peak: f32) {
+pub(crate) fn normalize(samples: &mut [f32], peak: f32) {
     let max = samples.iter().fold(0.0f32, |m, s| m.max(s.abs()));
     if max > 1e-9 {
         let gain = peak / max;
@@ -53,7 +53,7 @@ fn normalize(samples: &mut [f32], peak: f32) {
 }
 
 /// One-pole low-pass. `cutoff` in Hz.
-fn low_pass(samples: &mut [f32], cutoff: f32) {
+pub(crate) fn low_pass(samples: &mut [f32], cutoff: f32) {
     let dt = 1.0 / SR;
     let rc = 1.0 / (2.0 * std::f32::consts::PI * cutoff);
     let alpha = dt / (rc + dt);
@@ -65,7 +65,7 @@ fn low_pass(samples: &mut [f32], cutoff: f32) {
 }
 
 /// One-pole high-pass.
-fn high_pass(samples: &mut [f32], cutoff: f32) {
+pub(crate) fn high_pass(samples: &mut [f32], cutoff: f32) {
     let dt = 1.0 / SR;
     let rc = 1.0 / (2.0 * std::f32::consts::PI * cutoff);
     let alpha = rc / (rc + dt);
@@ -79,7 +79,7 @@ fn high_pass(samples: &mut [f32], cutoff: f32) {
     }
 }
 
-fn noise(rng: &mut ChaCha8Rng, n: usize) -> Vec<f32> {
+pub(crate) fn noise(rng: &mut ChaCha8Rng, n: usize) -> Vec<f32> {
     (0..n).map(|_| rng.random_range(-1.0f32..1.0f32)).collect()
 }
 
@@ -96,7 +96,7 @@ fn noise(rng: &mut ChaCha8Rng, n: usize) -> Vec<f32> {
 /// above ~2 it starts to sing. A call site passing 0.8 or 0.9 is asking for a
 /// plain band shape, which is a legitimate thing to want and worth knowing is
 /// what it gets.
-fn band_pass(samples: &mut [f32], centre_hz: f32, q: f32) {
+pub(crate) fn band_pass(samples: &mut [f32], centre_hz: f32, q: f32) {
     // ⛔ **Capped at SR/6, because this is a Chamberlin state-variable filter
     // and its `f = 2 sin(pi fc / SR)` mapping is only accurate below roughly
     // that.** Above it the poles drift and then go real: the shaker asked for
@@ -129,7 +129,7 @@ fn square(phase: f32) -> f32 {
 /// objects picked up by the hand rather than one struck surface, so the energy
 /// *swells* over ~10 ms. Given the instant attack every other voice here wants,
 /// they read as a hi-hat instead — same spectrum, wrong instrument.
-fn attack(t: f32, secs: f32) -> f32 {
+pub(crate) fn attack(t: f32, secs: f32) -> f32 {
     (t / secs.max(1e-6)).min(1.0)
 }
 
@@ -143,7 +143,7 @@ fn attack(t: f32, secs: f32) -> f32 {
 const METAL_PARTIALS: [f32; 6] = [205.3, 304.4, 369.6, 522.7, 540.0, 800.0];
 
 /// The metal bank at time `t`, optionally transposed.
-fn metal(t: f32, transpose: f32) -> f32 {
+pub(crate) fn metal(t: f32, transpose: f32) -> f32 {
     METAL_PARTIALS
         .iter()
         .map(|hz| square(std::f32::consts::TAU * hz * transpose * t))

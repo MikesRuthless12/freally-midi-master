@@ -73,6 +73,85 @@ test('a click at the far left seeks to the start rather than doing nothing', asy
 });
 
 /**
+ * ⛔ **The four melodic generators, which had no way to move the playhead at
+ * all.** The drum grid and the song timeline both seek on click; the piano
+ * roll's ruler did not, so TASK-041T's *"in all five generators"* was true of
+ * one of them. The strip carries the loop brace as well, so the two gestures
+ * are split by whether the pointer moved a snap step.
+ *
+ * Asserted through the footer's bar/beat readout rather than through a stored
+ * variable: the roll draws its marker on a canvas, and reading the value back
+ * off the handler that wrote it would stay green with the whole readout
+ * unwired. The position display is what a producer actually looks at.
+ */
+async function openRollAndRuler(page: import('@playwright/test').Page) {
+  await page.goto('/');
+  const search = page.getByLabel('Search an artist');
+  await search.fill('trap');
+  await search.press('Enter');
+  await page.getByRole('tab', { name: 'Melody' }).click();
+  await page.getByRole('button', { name: 'Generate', exact: true }).click();
+  await expect(page.locator('[data-testid="roll-notes"] li').first()).toBeAttached();
+
+  const ruler = page.locator('[data-testid="roll-ruler"]');
+  const box = await ruler.boundingBox();
+  if (!box) throw new Error('the ruler should be laid out');
+  const roll = page.locator('.roll__canvas');
+  const read = async (el: import('@playwright/test').Locator, name: string) =>
+    Number(await el.getAttribute(name));
+  const gutter = await read(roll, 'data-gutter');
+  const zoom = await read(roll, 'data-zoom');
+  const scrollTick = await read(roll, 'data-scroll-tick');
+  const ppq = await read(roll, 'data-ppq');
+
+  return {
+    ruler,
+    y: box.y + 4,
+    bar: ppq * 4,
+    at: (tick: number) => box.x + gutter + ((tick - scrollTick) / ppq) * zoom,
+    loopFrom: () => read(ruler, 'data-loop-from'),
+    loopTo: () => read(ruler, 'data-loop-to'),
+  };
+}
+
+test('clicking the roll’s ruler moves the playhead rather than laying down a loop', async ({
+  page,
+}) => {
+  const r = await openRollAndRuler(page);
+  const position = page.locator('.transport__position');
+  await expect(position).toHaveText('1.1.00');
+
+  const before = { from: await r.loopFrom(), to: await r.loopTo() };
+
+  // Bar 3 of a four-bar clip — halfway, so the readout is unambiguous.
+  await page.mouse.click(r.at(r.bar * 2), r.y);
+
+  await expect(position).toHaveText(/^3\.1\./);
+
+  // ⛔ And the brace did not move. A click used to lay down a one-step loop
+  // (`regionBetween(t, t)` floors the width at one snap step), which is a
+  // region the producer never asked for sitting on their clip.
+  expect(await r.loopFrom()).toBe(before.from);
+  expect(await r.loopTo()).toBe(before.to);
+});
+
+test('a drag on the ruler still sets a loop, and does not seek', async ({ page }) => {
+  const r = await openRollAndRuler(page);
+  const position = page.locator('.transport__position');
+
+  await page.mouse.move(r.at(r.bar), r.y);
+  await page.mouse.down();
+  await page.mouse.move(r.at(r.bar * 3), r.y, { steps: 8 });
+  await page.mouse.up();
+
+  expect(await r.loopFrom()).toBe(r.bar);
+  expect(await r.loopTo()).toBe(r.bar * 3);
+  // The gesture that draws a brace is not also a seek, or every loop the
+  // producer set would rewind the transport under them.
+  await expect(position).toHaveText('1.1.00');
+});
+
+/**
  * ⛔⛔ **Where the transport lives, which changed on 2026-08-06.** Mike: *"the
  * play/pause and stop buttons and loop button need to be moved to the top of the
  * app to the right of the generators tabs, so that way you can play the

@@ -31,6 +31,8 @@ const BASE: Snapshot = {
   mood: null,
   audioEnabled: true,
   mutedLanes: [],
+  soloedLanes: [],
+  lockedLanes: [],
   edited: false,
   song: null,
   songEdited: false,

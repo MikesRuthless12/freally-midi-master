@@ -428,6 +428,20 @@
       ]
     }
   },
+  "bassline": {
+    "followRootsProb": 0.92,
+    "rhythm": "mirror_kick",
+    "register": [
+      36,
+      55
+    ],
+    "glideProb": 0.05,
+    "passingTones": [
+      "P5",
+      "M2"
+    ],
+    "anticipationProb": 0.35
+  },
   "kit": {
     "preview": "pop-default"
   }

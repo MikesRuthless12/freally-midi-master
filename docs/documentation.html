@@ -396,6 +396,47 @@
         </p>
       </article>
 
+      <article class="release" id="patterns">
+        <h2>The pattern library</h2>
+        <p class="summary">
+          Name a pattern you like and it is there next time — in any song, in any DAW. Each one is
+          its own JSON file in the platform's per-user data directory, so a bad save costs one loop
+          rather than the shelf, and you can back them up, sync them, or hand one to someone else by
+          copying a file.
+        </p>
+        <p class="note">
+          <strong>A saved pattern is notes, not sound.</strong> The kit is deliberately not stored,
+          which is what makes &ldquo;use it with any sounds you want&rdquo; true rather than a claim:
+          load the pattern, swap the kit, and the same performance plays through different samples.
+          It is also how a pattern survives a crash — a plugin lives in someone else's process and
+          dies with it.
+        </p>
+        <p class="note">
+          This is not a preset and not the project. A <em>preset</em> is a starting point and stores
+          no notes at all, because the engine regenerates them; the <em>project</em> remembers this
+          song. A saved pattern is the take you kept.
+        </p>
+      </article>
+
+      <article class="release" id="takes">
+        <h2>Your takes, and locking a drum</h2>
+        <p class="summary">
+          Every generation of the session is kept, from the first, counted separately per generator.
+          <kbd>&#9664;</kbd> and <kbd>&#9654;</kbd> walk them, and stepping back brings the whole
+          setup: the artist, the mood, the seed, the bars and the pins — not just the number.
+        </p>
+        <p class="note">
+          The readout shows the tempo and key that were <strong>actually used</strong>, which is not
+          always what you pinned: a beat made while your DAW sat at 92 was made at 92, and tempo
+          changes the notes.
+        </p>
+        <p class="note">
+          <strong>Lock a lane and a re-roll cannot touch it.</strong> Click the padlock on any drum
+          row, or press <kbd>L</kbd> with the row focused, and Generate rebuilds everything else
+          around it note for note. A lock changes nothing about what is exported.
+        </p>
+      </article>
+
       <article class="release" id="session">
         <h2>Session state</h2>
         <p class="summary">
@@ -421,6 +462,26 @@
           </thead>
           <tbody>
             <tr>
+              <td><kbd>G</kbd></td>
+              <td>Generate the part you are looking at</td>
+            </tr>
+            <tr>
+              <td><kbd>Shift</kbd> + <kbd>G</kbd></td>
+              <td>Generate every part from one seed</td>
+            </tr>
+            <tr>
+              <td><kbd>1</kbd>&ndash;<kbd>6</kbd></td>
+              <td>Pick a generator</td>
+            </tr>
+            <tr>
+              <td><kbd>L</kbd></td>
+              <td>Hold the focused drum lane across a re-roll</td>
+            </tr>
+            <tr>
+              <td><kbd>&#9664;</kbd> / <kbd>&#9654;</kbd></td>
+              <td>Step through your takes (in the history control)</td>
+            </tr>
+            <tr>
               <td><kbd>K</kbd></td>
               <td>Show or hide the right rail</td>
             </tr>
@@ -438,7 +499,7 @@
             </tr>
             <tr>
               <td><kbd>R</kbd></td>
-              <td>Re-roll the section you are in (Song tab)</td>
+              <td>Re-roll &mdash; the section you are in on the Song tab, the part you are looking at anywhere else. Anything you locked is kept.</td>
             </tr>
             <tr>
               <td><kbd>Ctrl</kbd>/<kbd>⌘</kbd> + <kbd>D</kbd></td>

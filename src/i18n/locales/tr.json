@@ -57,7 +57,8 @@
     "session": "Oturum",
     "presets": "Ön ayarlar",
     "stems": "Parçalar",
-    "explorer": "Tarayıcı"
+    "explorer": "Tarayıcı",
+    "patterns": "Pattern kütüphanesi"
   },
   "readouts": {
     "bpm": "BPM",
@@ -194,7 +195,15 @@
     "label": "Oluşturulan desen",
     "summary": "{{bars}} ölçü · {{steps}} adım · {{notes}} nota",
     "muteLane": "Önizlemede {{lane}} sesini kapat",
-    "cell": "{{lane}}, adım {{step}}"
+    "cell": "{{lane}}, adım {{step}}",
+    "soloLane": "Önizlemede {{lane}} solo",
+    "auditionLane": "{{lane}} dinle",
+    "rollLabel": "Bu adımda roll",
+    "rollOff": "Tek vuruş",
+    "rollCount": "{{count}} vuruş",
+    "addFill": "{{lane}} için fill ekle",
+    "reassignLane": "{{lane}} yerine başka bir davul seç",
+    "lockLane": "Yeniden üretirken {{lane}} korunsun"
   },
   "roster": {
     "artists": "Sanatçılar",
@@ -202,7 +211,9 @@
     "genre": "Tür",
     "filteredBy": "{{name}} ile filtrelendi",
     "showAll": "Tümünü göster",
-    "noneInGenre": "{{name}} türünde henüz sanatçı yok."
+    "noneInGenre": "{{name}} türünde henüz sanatçı yok.",
+    "standard": "Standart",
+    "inherited": "Devralınan"
   },
   "lanes": {
     "kick": "Bas davul",
@@ -213,7 +224,7 @@
     "openHat": "Açık hi-hat",
     "ride": "Ride",
     "crash": "Crash",
-    "tom": "Tom",
+    "tom": "Orta tom",
     "rim": "Kenar vuruşu",
     "snap": "Parmak şıklatma",
     "perc": "Perküsyon",
@@ -225,7 +236,23 @@
     "melody": "Melodi",
     "counter": "Karşı melodi",
     "bass": "Bas hattı",
-    "chords": "Akorlar"
+    "chords": "Akorlar",
+    "subKick": "Sub kick",
+    "ghostSnare": "Hayalet trampet",
+    "pedalHat": "Pedal hi-hat",
+    "rideBell": "Ride çanı",
+    "tomHigh": "Tiz tom",
+    "tomLow": "Pes tom",
+    "perc2": "Perc 2",
+    "clave": "Clave",
+    "conga": "Konga",
+    "bongo": "Bongo",
+    "timbale": "Timbale",
+    "triangle": "Üçgen",
+    "riser": "Riser",
+    "impact": "Impact",
+    "reverse": "Ters",
+    "subLow": "Sub katmanı"
   },
   "presets": {
     "factory": "Fabrika",
@@ -352,7 +379,13 @@
       "cloneBar": "1. ölçüyü buraya kopyala",
       "shortcuts": "Bu paneli göster",
       "play": "Çal veya duraklat",
-      "previewDirection": "Örneği geriye / ileriye doğru çal"
+      "previewDirection": "Örneği geriye / ileriye doğru çal",
+      "lockLane": "Yeniden atışta bu davulu koru",
+      "variation": "Almalarında gezin",
+      "generate": "Bu parçayı üret",
+      "generateAll": "Tüm parçaları üret",
+      "pickGenerator": "Üretici seç",
+      "redo": "Yinele"
     }
   },
   "explorer": {
@@ -368,5 +401,33 @@
     "waveformOf": "{{name}} dalga biçimi",
     "reverse": "Geriye doğru çal",
     "resize": "Tarayıcı genişliğini değiştir"
+  },
+  "patterns": {
+    "name": "Bu pattern’e ad ver",
+    "save": "Kaydet",
+    "none": "Henüz kayıtlı bir şey yok. Beğendiğin bir şey üret, ad ver; bir dahakine burada olacak.",
+    "load": "{{name}} yükle",
+    "delete": "{{name}} sil",
+    "meta": "{{artist}} · {{bars}} ölçü · {{bpm}} BPM",
+    "filterArtist": "Sanatçıya göre süz",
+    "filterPart": "Parçaya göre süz",
+    "allArtists": "Tüm sanatçılar",
+    "allParts": "Tüm parçalar",
+    "panel": "Pattern kütüphanesi"
+  },
+  "variations": {
+    "label": "Varyasyon geçmişi",
+    "back": "Önceki üretim",
+    "forward": "Sonraki üretim",
+    "none": "Henüz alma yok",
+    "made": "{{bpm}} BPM · {{scale}}"
+  },
+  "artist": {
+    "label": "Bu seçim hakkında",
+    "tendsTo": "Genelde",
+    "tempo": "{{bpm}} BPM",
+    "key": "{{key}} {{scale}}",
+    "halfTime": "half-time",
+    "moods": "{{count}} mod"
   }
 }

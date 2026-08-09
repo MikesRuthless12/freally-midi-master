@@ -19,6 +19,7 @@ pub mod dataset;
 pub mod generators;
 pub mod humanize;
 pub mod midi;
+pub mod novelty;
 pub mod parts;
 pub mod pattern;
 pub mod rng;

@@ -18,12 +18,24 @@ test.beforeEach(async ({ page }) => {
   await expect(page.getByRole('tablist', { name: 'Generator' })).toBeVisible();
 });
 
+/**
+ * The autosuggest's own options.
+ *
+ * ⛔ **Not `getByRole('option')` on the page.** A `<select>` contributes
+ * options to the accessibility tree, and since TASK-043A every drum row has one
+ * — so a bare role query counts the slot pickers as suggestions and "Escape
+ * closed the list" fails over a control on the other side of the window.
+ */
+function suggestions(page: import('@playwright/test').Page) {
+  return page.locator('.suggest').getByRole('option');
+}
+
 test('type, Enter, Generate — the grid fills', async ({ page }) => {
   const search = page.getByLabel('Search an artist');
   await search.fill('uk');
 
   // The autosuggest is a combobox, so the list is addressable by role.
-  const options = page.getByRole('option');
+  const options = suggestions(page);
   await expect(options.first()).toContainText('UK Drill');
 
   await search.press('Enter');
@@ -36,7 +48,11 @@ test('type, Enter, Generate — the grid fills', async ({ page }) => {
   // The grid is a table of lanes; the mock returns kick, snare and hats.
   const grid = page.getByRole('table', { name: 'Generated pattern' });
   await expect(grid).toBeVisible();
-  await expect(grid.getByRole('rowheader')).toHaveText(['Closed hat', 'Snare', 'Kick']);
+  // ⚠ **The lane names, not the row headers' whole text.** Since TASK-043A a
+  // header also holds the slot picker, and `toHaveText` reads `textContent` —
+  // which includes every one of that picker's thirty-odd options. This says
+  // what the test always meant.
+  await expect(grid.locator('.grid__lanename')).toHaveText(['Closed hat', 'Snare', 'Kick']);
 
   // Four bars of 16ths is 64 columns per lane, and cells that are *on* have to
   // actually exist — an all-empty grid would satisfy a visibility check alone.
@@ -56,7 +72,7 @@ test('the arrow keys move the highlight and Enter takes it', async ({ page }) =>
   const search = page.getByLabel('Search an artist');
   await search.fill('a');
 
-  const options = page.getByRole('option');
+  const options = suggestions(page);
   await expect(options.first()).toHaveAttribute('aria-selected', 'true');
 
   await search.press('ArrowDown');
@@ -76,10 +92,10 @@ test('the arrow keys move the highlight and Enter takes it', async ({ page }) =>
 test('Escape closes the suggestions without choosing anything', async ({ page }) => {
   const search = page.getByLabel('Search an artist');
   await search.fill('trap');
-  await expect(page.getByRole('option').first()).toBeVisible();
+  await expect(suggestions(page).first()).toBeVisible();
 
   await search.press('Escape');
-  await expect(page.getByRole('option')).toHaveCount(0);
+  await expect(suggestions(page)).toHaveCount(0);
   // Nothing was selected, so the stage still asks for someone.
   await expect(page.getByText('Search an artist. Cook.')).toBeVisible();
 });

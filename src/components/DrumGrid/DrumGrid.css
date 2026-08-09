@@ -36,11 +36,83 @@
    effect on a flex container, so once the lane header gained a mute button
    beside its name a long localised name hard-clipped mid-glyph instead of
    ellipsising — with nothing to signal it had been truncated. */
+/* ⛔ **A button since TASK-043**, because clicking the name auditions the lane.
+   It has to keep reading as a label rather than becoming a third icon, so the
+   button chrome is stripped and only the pointer and a hover colour say it is
+   live — the same treatment `.grid__mute` gets, one element over. */
 .grid__lanename {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+  text-align: start;
+  text-transform: inherit;
+  cursor: pointer;
+}
+
+.grid__lanename:hover {
+  color: var(--color-text);
+}
+
+/* The per-lane solo (TASK-043), beside the mute and styled with it. Lit in the
+   signal colour rather than the warning one: soloing is a thing you are doing
+   on purpose, and muting is a thing that will surprise you later. */
+.grid__solo {
+  flex: none;
+  display: inline-flex;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-text-3);
+  cursor: pointer;
+}
+
+.grid__solo:hover {
+  color: var(--color-text);
+}
+
+.grid__solo[aria-pressed='true'] {
+  color: var(--color-signal);
+}
+
+/* The roll palette (TASK-043). Absolutely positioned inside the grid's own
+   stacking context — `.grid` is already `position: relative` for the playhead —
+   so it does not need a portal and cannot be clipped by the track's overflow. */
+.grid__palette {
+  position: absolute;
+  z-index: 2;
+  inset-block-start: var(--space-3);
+  inset-inline-end: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  min-width: 8rem;
+  padding: var(--space-1);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-float);
+  box-shadow: var(--shadow-float, 0 8px 24px rgb(0 0 0 / 35%));
+}
+
+.grid__paletteitem {
+  padding: var(--space-1) var(--space-2);
+  border: 0;
+  border-radius: var(--radius-control, 4px);
+  background: none;
+  color: var(--color-text);
+  font-size: var(--text-micro);
+  text-align: start;
+  cursor: pointer;
+}
+
+.grid__paletteitem:hover,
+.grid__paletteitem:focus-visible {
+  background: var(--color-surface-3, var(--color-surface));
 }
 
 /* The per-lane preview mute (FMM-S02). Low-contrast until it is hovered or
@@ -167,4 +239,80 @@
    height, and the grid sits above the velocity lane. */
 .grid__cellwrap {
   display: contents;
+}
+
+/* The per-lane "add fill" (TASK-043H), on the hat lanes only. Styled with the
+   mute and solo beside it — three low-contrast glyphs that only step forward on
+   hover, so the gutter stays quieter than the pattern next to it. */
+.grid__fill {
+  flex: none;
+  display: inline-flex;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-text-3);
+  cursor: pointer;
+}
+
+.grid__fill:hover {
+  color: var(--color-text);
+}
+
+/* The slot picker (TASK-043A). ⛔ It sits *between* the name and the fill
+   button and must not push either out of a 5.5rem gutter, so it is a bare
+   glyph-width control that grows only its dropdown. The row's name is what a
+   producer reads; this is what they reach for to change it. */
+.grid__slot {
+  flex: none;
+  width: 1.1rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-text-3);
+  font: inherit;
+  cursor: pointer;
+  /* The native arrow is the affordance; the text behind it would be clipped to
+     nothing at this width and is deliberately not shown. */
+  text-indent: -100vw;
+}
+
+.grid__slot:hover {
+  color: var(--color-text);
+}
+
+/* The options themselves are drawn by the platform, which does not inherit the
+   control's colours — so they get the page's rather than the system's. */
+.grid__slot option {
+  color: var(--color-text);
+  background: var(--color-surface-2);
+  text-indent: 0;
+}
+
+/* The per-lane lock (TASK-044). ⛔ Lit in the primary colour rather than the
+   warning or the signal one, because a lock is neither a hazard nor a
+   temporary state — it is a decision that stays until it is taken back. */
+.grid__lock {
+  flex: none;
+  display: inline-flex;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-text-3);
+  cursor: pointer;
+}
+
+.grid__lock:hover {
+  color: var(--color-text);
+}
+
+.grid__lock[aria-pressed='true'] {
+  color: var(--color-primary);
+}
+
+/* The dimmed tint the task asks for. ⚠ Deliberately *lighter* than a mute's
+   0.45: a locked lane is still audible and still exported, so dimming it as
+   hard as a silenced one would say the wrong thing. The lit padlock is what
+   carries the state; this is a hint beside it. */
+.grid__row[data-locked] .grid__track {
+  opacity: 0.8;
 }

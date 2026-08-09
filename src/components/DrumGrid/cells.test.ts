@@ -10,6 +10,10 @@ import {
   cloneBar,
   clearCell,
   columnOf,
+  reassignLane,
+  unusedLanes,
+  addFill,
+  PITCHED_LANES,
 } from './cells';
 import type { Lane, Note, Pattern } from '../../lib/ipc-types';
 
@@ -122,6 +126,23 @@ describe('toCells', () => {
       'cowbell',
       'woodblock',
       'sub',
+      // ── TASK-043A ──────────────────────────────────────────────────────
+      'subKick',
+      'ghostSnare',
+      'pedalHat',
+      'rideBell',
+      'tomHigh',
+      'tomLow',
+      'perc2',
+      'clave',
+      'conga',
+      'bongo',
+      'timbale',
+      'triangle',
+      'riser',
+      'impact',
+      'reverse',
+      'subLow',
     ];
     expect([...LANE_ORDER].sort()).toEqual([...everyLane].sort());
   });
@@ -378,5 +399,143 @@ describe('editing a humanized pattern (the case the first tests missed)', () => 
     // Clicking cell 5 used to append yet another hit instead of clearing it.
     const after = clearCell(six, 'closedHat', strayColumn);
     expect(hats(after).length).toBeLessThan(hats(six).length);
+  });
+});
+
+describe('reassignLane (TASK-043A)', () => {
+  const base = pattern([
+    { lane: 'kick', notes: [{ startTick: 0, lenTicks: 120, pitch: 36, vel: 100 }] },
+    { lane: 'snare', notes: [{ startTick: 960, lenTicks: 120, pitch: 38, vel: 100 }] },
+  ]);
+
+  it('offers only the lanes the kit is not already using', () => {
+    const free = unusedLanes(base);
+    expect(free).not.toContain('kick');
+    expect(free).not.toContain('snare');
+    expect(free).toContain('cowbell');
+    // ⛔ Two slots on one lane is a row the producer edits and cannot hear, so
+    // the picker never offers a taken lane rather than validating afterwards.
+    expect(new Set(free).size).toBe(free.length);
+  });
+
+  it('never offers a pitched lane as a drum slot', () => {
+    // ⛔⛔ **The 808s got through the melodic-parts argument.** `sub` and
+    // `subLow` are rows of this grid, so `LANE_ORDER` holds them — but they are
+    // pitched, and `reassignLane` moves notes unchanged on purpose. Picking a
+    // perc row over to "808" therefore exported unpitched drum hits down the
+    // pitched channel as bass notes at whatever pitch they carried.
+    for (const lane of PITCHED_LANES) {
+      expect(LANE_ORDER).toContain(lane);
+      expect(unusedLanes(base)).not.toContain(lane);
+    }
+  });
+
+  it('never offers the four melodic parts as a drum slot', () => {
+    // ⛔ **This passed vacuously once.**  filtered the melodic
+    // lanes out explicitly, which read as a safeguard over a list that has
+    // never contained one — so the assertion could not fail whatever the code
+    // did. The filter is gone; what actually guarantees it is ,
+    // and this now asserts that instead.
+    for (const part of ['melody', 'counter', 'bass', 'chords']) {
+      expect(LANE_ORDER).not.toContain(part);
+      expect(unusedLanes(base)).not.toContain(part);
+    }
+  });
+
+  it('moves the notes and leaves them exactly as they were', () => {
+    const moved = reassignLane(base, 'snare', 'cowbell');
+    expect(moved.lanes.map((l) => l.lane).sort()).toEqual(['cowbell', 'kick']);
+    // ⚠ The notes are untouched — re-pitching them to the new lane's GM note is
+    // the exporter's job, and doing it here would bake a drum map into the clip.
+    expect(moved.lanes.find((l) => l.lane === 'cowbell')?.notes).toEqual(
+      base.lanes.find((l) => l.lane === 'snare')?.notes,
+    );
+  });
+
+  it('refuses a lane already in use rather than merging two slots', () => {
+    // Merging would silently destroy one of them, which is the failure the
+    // picker's "unused only" rule exists to make unreachable.
+    expect(reassignLane(base, 'snare', 'kick')).toBe(base);
+    expect(reassignLane(base, 'snare', 'snare')).toBe(base);
+    expect(reassignLane(base, 'conga', 'cowbell')).toBe(base);
+  });
+});
+
+describe('addFill (TASK-043H)', () => {
+  // A one-bar clip at 4/4: 3840 ticks, sixteen 16ths of 240.
+  const hats = pattern([
+    {
+      lane: 'closedHat',
+      notes: Array.from({ length: 16 }, (_, i) => ({
+        startTick: i * 240,
+        lenTicks: 120,
+        pitch: 42,
+        vel: 90,
+      })),
+    },
+  ]);
+
+  it('writes the fill into the last beat and leaves the rest of the bar alone', () => {
+    // ⛔ **The last beat, and only it.** `rolls::hat_fills` puts its window at
+    // `bar_ticks - ticks_per_beat`; a hand-added fill that landed anywhere else
+    // would be a figure the generator would never write, so a producer who then
+    // pressed Generate would watch theirs move.
+    const filled = addFill(hats, 'closedHat');
+    const notes = filled.lanes.find((l) => l.lane === 'closedHat')!.notes;
+
+    const before = notes.filter((n) => n.startTick < 2880);
+    expect(before).toEqual(hats.lanes[0].notes.slice(0, 12));
+
+    const inFill = notes.filter((n) => n.startTick >= 2880);
+    // Four 16ths at two hits each — a 32nd stream, 120 ticks apart.
+    expect(inFill.map((n) => n.startTick)).toEqual([
+      2880, 3000, 3120, 3240, 3360, 3480, 3600, 3720,
+    ]);
+    // ⛔ Nothing past the end of the bar: the filter that drops those is what
+    // keeps a fill from writing notes the clip has no room to play.
+    expect(notes.every((n) => n.startTick < 3840)).toBe(true);
+  });
+
+  it('ramps once across the whole figure rather than per cell', () => {
+    // ⛔ A fill is one gesture. Four cells each ramping 45→100 would read as
+    // four little crescendos — busy, not a hand-over.
+    const notes = addFill(hats, 'closedHat').lanes[0].notes.filter((n) => n.startTick >= 2880);
+    const vels = notes.map((n) => n.vel);
+    expect(vels).toEqual([...vels].sort((a, b) => a - b));
+    expect(vels[0]).toBeLessThan(vels[vels.length - 1]);
+    expect(vels[vels.length - 1]).toBe(127);
+  });
+
+  it('takes the pitch the lane already plays, so a fill on the hats is hats', () => {
+    const notes = addFill(hats, 'closedHat').lanes[0].notes;
+    expect(new Set(notes.map((n) => n.pitch))).toEqual(new Set([42]));
+  });
+
+  it('takes the last beat, not four sixteenths, when a beat is not a quarter', () => {
+    // ⛔⛔ **`FILL_SIXTEENTHS` was the constant 4 and a beat is not always
+    // four sixteenths.** In 6/8 it is two — `PPQ * 4 / 8` — so the fill cleared
+    // and rewrote *two beats* of hats, destroying a beat the producer never
+    // asked to lose and writing a figure twice as long as any the engine would
+    // produce. The comment promising this matched `rolls::hat_fills` was false
+    // for every meter but x/4.
+    const eight = { ...hats, timeSigNum: 6, timeSigDen: 8 };
+    const filled = addFill(eight, 'closedHat');
+    const notes = filled.lanes.find((l) => l.lane === 'closedHat')!.notes;
+
+    // One bar of 6/8 is 6 × (960 * 4 / 8) = 2880 ticks; the last beat starts at
+    // 2400, which is column 10 of twelve.
+    const inFill = notes.filter((n) => n.startTick >= 2400);
+    expect(inFill.map((n) => n.startTick)).toEqual([2400, 2520, 2640, 2760]);
+    // ⛔ And the beat before it is untouched — this is the half the bug ate.
+    expect(notes.filter((n) => n.startTick >= 1920 && n.startTick < 2400)).toHaveLength(2);
+  });
+
+  it('still writes a fill on a lane that is empty in the bar so far', () => {
+    // No note before the window means no template to copy a pitch from. The
+    // producer still asked for a fill, so it has to arrive — silently doing
+    // nothing is the readout-that-lies shape: the button reports success.
+    const empty = pattern([{ lane: 'openHat', notes: [] }]);
+    const notes = addFill(empty, 'openHat').lanes.find((l) => l.lane === 'openHat')!.notes;
+    expect(notes.length).toBe(8);
   });
 });

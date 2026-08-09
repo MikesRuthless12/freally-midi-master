@@ -57,7 +57,8 @@
     "session": "सेशन",
     "presets": "प्रीसेट",
     "stems": "स्टेम",
-    "explorer": "ब्राउज़र"
+    "explorer": "ब्राउज़र",
+    "patterns": "पैटर्न लाइब्रेरी"
   },
   "readouts": {
     "bpm": "BPM",
@@ -194,7 +195,15 @@
     "label": "उत्पन्न पैटर्न",
     "summary": "{{bars}} बार · {{steps}} स्टेप · {{notes}} नोट",
     "muteLane": "प्रीव्यू में {{lane}} म्यूट करें",
-    "cell": "{{lane}}, चरण {{step}}"
+    "cell": "{{lane}}, चरण {{step}}",
+    "soloLane": "प्रीव्यू में {{lane}} सोलो करें",
+    "auditionLane": "{{lane}} सुनें",
+    "rollLabel": "इस स्टेप पर रोल",
+    "rollOff": "एक हिट",
+    "rollCount": "{{count}} हिट",
+    "addFill": "{{lane}} में फिल जोड़ें",
+    "reassignLane": "{{lane}} को दूसरे ड्रम में बदलें",
+    "lockLane": "दोबारा जनरेट करते समय {{lane}} बनाए रखें"
   },
   "roster": {
     "artists": "कलाकार",
@@ -202,7 +211,9 @@
     "genre": "शैली",
     "filteredBy": "{{name}} से फ़िल्टर किया गया",
     "showAll": "सभी दिखाएँ",
-    "noneInGenre": "{{name}} में अभी कोई कलाकार नहीं है।"
+    "noneInGenre": "{{name}} में अभी कोई कलाकार नहीं है।",
+    "standard": "मानक",
+    "inherited": "विरासत"
   },
   "lanes": {
     "kick": "किक",
@@ -213,7 +224,7 @@
     "openHat": "खुला हैट",
     "ride": "राइड",
     "crash": "क्रैश",
-    "tom": "टॉम",
+    "tom": "मध्य टॉम",
     "rim": "रिम",
     "snap": "स्नैप",
     "perc": "पर्कशन",
@@ -225,7 +236,23 @@
     "melody": "मेलोडी",
     "counter": "प्रतिमेलोडी",
     "bass": "बासलाइन",
-    "chords": "कॉर्ड"
+    "chords": "कॉर्ड",
+    "subKick": "सब किक",
+    "ghostSnare": "घोस्ट स्नेयर",
+    "pedalHat": "पेडल हैट",
+    "rideBell": "राइड बेल",
+    "tomHigh": "ऊँचा टॉम",
+    "tomLow": "नीचा टॉम",
+    "perc2": "पर्क 2",
+    "clave": "क्लावे",
+    "conga": "कोंगा",
+    "bongo": "बोंगो",
+    "timbale": "टिम्बाले",
+    "triangle": "ट्रायंगल",
+    "riser": "राइज़र",
+    "impact": "इम्पैक्ट",
+    "reverse": "रिवर्स",
+    "subLow": "सब लेयर"
   },
   "presets": {
     "factory": "फ़ैक्टरी",
@@ -352,7 +379,13 @@
       "cloneBar": "बार 1 को इस बार पर कॉपी करें",
       "shortcuts": "यह पैनल दिखाएँ",
       "play": "चलाएँ या रोकें",
-      "previewDirection": "सैंपल को उल्टा / सीधा चलाएँ"
+      "previewDirection": "सैंपल को उल्टा / सीधा चलाएँ",
+      "lockLane": "री-रोल के दौरान यह ड्रम बनाए रखें",
+      "variation": "अपने टेक देखें",
+      "generate": "यह पार्ट जनरेट करें",
+      "generateAll": "सभी पार्ट जनरेट करें",
+      "pickGenerator": "जनरेटर चुनें",
+      "redo": "फिर से करें"
     }
   },
   "explorer": {
@@ -368,5 +401,33 @@
     "waveformOf": "{{name}} का तरंगरूप",
     "reverse": "उल्टा चलाएँ",
     "resize": "ब्राउज़र का आकार बदलें"
+  },
+  "patterns": {
+    "name": "इस पैटर्न को नाम दें",
+    "save": "सेव करें",
+    "none": "अभी कुछ सेव नहीं है। कुछ पसंद का जनरेट करें, नाम दें, अगली बार यहीं मिलेगा।",
+    "load": "{{name}} लोड करें",
+    "delete": "{{name}} हटाएँ",
+    "meta": "{{artist}} · {{bars}} बार · {{bpm}} BPM",
+    "filterArtist": "कलाकार से छाँटें",
+    "filterPart": "पार्ट से छाँटें",
+    "allArtists": "सभी कलाकार",
+    "allParts": "सभी पार्ट",
+    "panel": "पैटर्न लाइब्रेरी"
+  },
+  "variations": {
+    "label": "वेरिएशन इतिहास",
+    "back": "पिछला जनरेशन",
+    "forward": "अगला जनरेशन",
+    "none": "अभी कोई टेक नहीं",
+    "made": "{{bpm}} BPM · {{scale}}"
+  },
+  "artist": {
+    "label": "इस चयन के बारे में",
+    "tendsTo": "आम तौर पर",
+    "tempo": "{{bpm}} BPM",
+    "key": "{{key}} {{scale}}",
+    "halfTime": "हाफ-टाइम",
+    "moods": "{{count}} मूड"
   }
 }

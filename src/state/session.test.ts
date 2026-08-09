@@ -17,6 +17,7 @@ vi.mock('../lib/ipc', () => ({
 }));
 
 const { BAR_CHOICES, NO_PINS, mirrorableDrumsSeed, useSession } = await import('./session');
+const { useVariations } = await import('./variations');
 
 const TRAP: SessionDefaults = {
   bpm: 140,
@@ -117,6 +118,8 @@ beforeEach(() => {
     mood: null,
     audioEnabled: true,
     mutedLanes: [],
+    soloedLanes: [],
+    lockedLanes: [],
     edited: false,
     pins: NO_PINS,
     defaults: null,
@@ -207,6 +210,261 @@ describe('auto-sync', () => {
       // Reference equality: a fresh array would be a fresh undo entry and a
       // fresh save for a click that changed nothing.
       expect(useSession.getState().mutedLanes).toBe(before);
+    });
+  });
+
+  describe('per-lane locks and reroll (TASK-044)', () => {
+    /** A drum pattern whose kick and hat both differ per seed. */
+    const take = (seed: string): Pattern => ({
+      id: `p-${seed}`,
+      part: 'drums',
+      artistId: 'trap',
+      seed,
+      songSeed: seed,
+      bars: 4,
+      bpm: 140,
+      timeSigNum: 4,
+      timeSigDen: 4,
+      keyRoot: 6,
+      scale: 'natural_minor',
+      ppq: 960,
+      lanes: [
+        {
+          lane: 'kick',
+          notes: [{ startTick: Number(seed), lenTicks: 120, pitch: 36, vel: 100 }],
+        },
+        {
+          lane: 'closedHat',
+          notes: [{ startTick: Number(seed) + 5, lenTicks: 120, pitch: 42, vel: 90 }],
+        },
+      ],
+    });
+
+    // ⛔ `generate` returns early with no artist selected, which is the
+    // production guard rather than scaffolding — a Generate with nothing chosen
+    // is not a thing to answer.
+    beforeEach(() => {
+      useSession.setState({ selectedId: 'trap', patterns: {}, lockedLanes: [] });
+    });
+
+    async function generateReturning(seed: string) {
+      invoke.mockImplementation((command: string) =>
+        command === 'generate_pattern' ? Promise.resolve(take(seed)) : Promise.resolve(null),
+      );
+      await useSession.getState().generate('drums');
+    }
+
+    it('holds a locked lane byte-for-byte across ten rerolls', async () => {
+      // ⛔ The roadmap's verify line: lock the kick lane, reroll 10x, kick
+      // identical. Ten *different* answers from the engine, so a splice that
+      // did nothing would fail on the first one.
+      await generateReturning('100');
+      const kick = useSession.getState().patterns.drums?.lanes.find((l) => l.lane === 'kick');
+      expect(kick).toBeDefined();
+
+      useSession.getState().setLaneLocked('kick', true);
+
+      for (let i = 0; i < 10; i += 1) {
+        await generateReturning(String(200 + i * 37));
+        const pattern = useSession.getState().patterns.drums;
+        // Byte-identical, and the *same object* — the splice keeps the track
+        // rather than rebuilding an equal one, which is what makes it exact.
+        expect(pattern?.lanes.find((l) => l.lane === 'kick')).toBe(kick);
+        // ...while the unlocked lane really did reroll.
+        expect(pattern?.lanes.find((l) => l.lane === 'closedHat')?.notes[0].startTick).toBe(
+          200 + i * 37 + 5,
+        );
+      }
+    });
+
+    it('lets the lane go again when it is unlocked', async () => {
+      await generateReturning('100');
+      useSession.getState().setLaneLocked('kick', true);
+      await generateReturning('300');
+      expect(
+        useSession.getState().patterns.drums?.lanes.find((l) => l.lane === 'kick')?.notes[0]
+          .startTick,
+      ).toBe(100);
+
+      useSession.getState().setLaneLocked('kick', false);
+      await generateReturning('400');
+      expect(
+        useSession.getState().patterns.drums?.lanes.find((l) => l.lane === 'kick')?.notes[0]
+          .startTick,
+      ).toBe(400);
+    });
+
+    it('holds a locked lane through Generate All, not just Generate', async () => {
+      // ⛔⛔ **The regression this exists for.** `withLocks` was spliced inside
+      // `generate`'s updater only, so locking a lane and pressing Shift+G —
+      // `generateAll`, a gesture added in the same session — threw the lock
+      // away without a word. A rule installed at one door rather than at the
+      // seam both doors go through.
+      //
+      // ⚠ **Proved here rather than in Playwright, and that is the finding.**
+      // The first attempt was an e2e, and it **passed with the fix reverted**:
+      // the browser mock answers with one fixed seed, so the kick is identical
+      // whether the lock applied or not. Only a mock that varies per call can
+      // tell a held lane from an unchanged one.
+      await generateReturning('100');
+      const kick = useSession.getState().patterns.drums?.lanes.find((l) => l.lane === 'kick');
+      useSession.getState().setLaneLocked('kick', true);
+
+      // Every part answers with a *different* take, so an unheld kick moves.
+      let call = 0;
+      invoke.mockImplementation((command: string) => {
+        if (command !== 'generate_pattern') return Promise.resolve(null);
+        call += 1;
+        return Promise.resolve(take(String(500 + call * 11)));
+      });
+      await useSession.getState().generateAll();
+
+      expect(useSession.getState().patterns.drums?.lanes.find((l) => l.lane === 'kick')).toBe(
+        kick,
+      );
+      // ...and the unlocked lane in the same clip really did reroll, so this
+      // cannot pass by Generate All having done nothing at all.
+      expect(
+        useSession.getState().patterns.drums?.lanes.find((l) => l.lane === 'closedHat')
+          ?.notes[0].startTick,
+      ).not.toBe(105);
+    });
+
+    it('keeps a held part in the project, because the seed can no longer make it', async () => {
+      // ⛔⛔ **The lock survived the reroll and then vanished from the file.**
+      // `generate` cleared the part from `editedParts` unconditionally — "a
+      // fresh generation *is* the seed's own output again" — which stopped
+      // being true the moment `withLocks` began splicing a previous take's lane
+      // into it. `send()` reads `edited` to decide whether *any* clip is
+      // written, so a producer who drew hats, locked them and pressed Generate
+      // saved a project holding no clips at all: reopening regenerated from the
+      // seed and the lane they had deliberately kept was gone, silently.
+      await generateReturning('100');
+      useSession.getState().setLaneLocked('kick', true);
+      await generateReturning('300');
+
+      expect(useSession.getState().editedParts).toContain('drums');
+      expect(useSession.getState().edited).toBe(true);
+
+      // ...and it goes back to being reproducible once the lock comes off, or
+      // every project from then on would carry clips it does not need.
+      useSession.getState().setLaneLocked('kick', false);
+      await generateReturning('400');
+      expect(useSession.getState().editedParts).not.toContain('drums');
+      expect(useSession.getState().edited).toBe(false);
+    });
+
+    it('does not carry a locked lane past the end of a shorter clip', async () => {
+      // ⛔⛔ **Invisible on screen and audible in the export.** `setBars` does
+      // not clear `patterns`, so locking the kick on eight bars and generating
+      // at four spliced the whole eight-bar track into a four-bar clip.
+      // `toCells` and `columnDensity` both bounds-check, so the grid drew a
+      // clean four bars while the notes were still in `lanes` — and went to the
+      // host, to `to_midi` and to `stem_files`. The stem played in bars five to
+      // eight, and nothing on screen ever showed it.
+      const long = take('0');
+      long.bars = 8;
+      long.lanes[0].notes = [
+        { startTick: 0, lenTicks: 120, pitch: 36, vel: 100 },
+        // Bar 5 of eight: inside the long clip, past the end of a four-bar one.
+        { startTick: 960 * 16, lenTicks: 120, pitch: 36, vel: 100 },
+      ];
+      invoke.mockImplementation((command: string) =>
+        command === 'generate_pattern' ? Promise.resolve(long) : Promise.resolve(null),
+      );
+      await useSession.getState().generate('drums');
+      useSession.getState().setLaneLocked('kick', true);
+
+      await generateReturning('300'); // `take` is four bars.
+      const kick = useSession.getState().patterns.drums?.lanes.find((l) => l.lane === 'kick');
+      expect(kick?.notes.map((n) => n.startTick)).toEqual([0]);
+    });
+
+    it('recalls the take that was made, not a hybrid of it and the current locks', async () => {
+      // ⛔⛔ **A clip that never existed, labelled as one that did.** Recall
+      // regenerates — that is what makes an entry tens of bytes — but it went
+      // through `generate`, which splices whatever is locked *now* into the
+      // answer. So going back three takes returned take 1's hats under take 3's
+      // kick, while `VariationNav` read "1 / 3". A history that reports a take
+      // it did not give you is worse than no history.
+      await generateReturning('100');
+      const first = useVariations.getState().entries.drums[0];
+
+      await generateReturning('700');
+      useSession.getState().setLaneLocked('kick', true);
+
+      // Recall asks the engine again; answer with the original take, as a
+      // deterministic engine would for the same seed.
+      invoke.mockImplementation((command: string) =>
+        command === 'generate_pattern' ? Promise.resolve(take('100')) : Promise.resolve(null),
+      );
+      await useSession.getState().recallVariation(first);
+
+      const kick = useSession.getState().patterns.drums?.lanes.find((l) => l.lane === 'kick');
+      expect(kick?.notes[0].startTick).toBe(100);
+    });
+
+    it('recalls the tempo and key the take was actually written at', async () => {
+      // ⛔⛔ **The readout and the notes disagreeing about the same take.** The
+      // entry stores the *pins* and, separately, the `bpm`/`keyRoot`/`scale`/
+      // meter that were **resolved** — which is the whole reason it stores
+      // both. Recall restored only the pins, so a take made at 140 came back at
+      // whatever the session had drifted to while the nav went on displaying
+      // 140 off the entry.
+      await generateReturning('100');
+      const entry = useVariations.getState().entries.drums[0];
+      expect(entry.bpm).toBe(140);
+
+      // The producer moves on and changes the tempo.
+      useSession.getState().setPin('bpm', 90);
+      await useSession.getState().recallVariation(entry);
+
+      const pins = useSession.getState().pins;
+      expect(pins.bpm).toBe(entry.bpm);
+      expect(pins.keyRoot).toBe(entry.keyRoot);
+      expect(pins.scale).toBe(entry.scale);
+      expect(pins.timeSigNum).toBe(entry.timeSigNum);
+      expect(pins.timeSigDen).toBe(entry.timeSigDen);
+    });
+
+    it('reloads the artist’s own defaults when a recall changes artists', async () => {
+      // ⛔⛔ **The roster highlighted one artist and the pane described
+      // another.** Recall wrote `selectedId` with a bare `set`, so `defaults` —
+      // what the ARTIST pane's "tends to" line reads, and what every unpinned
+      // field falls back on — still held the previous artist's. The other four
+      // part slots were left up too, showing that artist's clips under this
+      // one's name.
+      await generateReturning('100');
+      const trapTake = useVariations.getState().entries.drums[0];
+
+      useSession.setState({
+        selectedId: 'uk-drill',
+        defaults: DRILL,
+        patterns: { melody: take('9') },
+      });
+
+      invoke.mockImplementation((command: string) => {
+        if (command === 'generate_pattern') return Promise.resolve(take('100'));
+        if (command === 'session_defaults') return Promise.resolve(TRAP);
+        return Promise.resolve(null);
+      });
+      await useSession.getState().recallVariation(trapTake);
+
+      expect(useSession.getState().selectedId).toBe('trap');
+      expect(useSession.getState().defaults).toEqual(TRAP);
+      // The other artist's clips are gone rather than sitting under this name.
+      expect(useSession.getState().patterns.melody).toBeUndefined();
+    });
+
+    it('is saved with the project, sorted, and records no step for a no-op', () => {
+      useSession.getState().setLaneLocked('closedHat', true);
+      useSession.getState().setLaneLocked('kick', true);
+      vi.advanceTimersByTime(400);
+      expect(lastSaved().lockedLanes).toEqual(['closedHat', 'kick']);
+
+      const before = useSession.getState().lockedLanes;
+      useSession.getState().setLaneLocked('kick', true);
+      expect(useSession.getState().lockedLanes).toBe(before);
     });
   });
 
@@ -557,6 +815,8 @@ describe('applyPreset', () => {
       mood: null,
       audioEnabled: true,
       mutedLanes: [],
+      soloedLanes: [],
+      lockedLanes: [],
       edited: false,
       song: null,
       songEdited: false,

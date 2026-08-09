@@ -1,0 +1,35 @@
+/* The variation history's controls (TASK-045), in the stage header beside the
+   transport — the two things a producer alternates between while choosing a
+   take are Generate and stepping back to the one before it. */
+.variations {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
+}
+
+.variations__count {
+  min-width: 4.5rem;
+  font-size: var(--text-micro);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-2);
+  text-align: center;
+  white-space: nowrap;
+}
+
+/* The resolved tempo and scale. Hidden on a narrow stage rather than wrapping:
+   the counter and the arrows are what the control is for, and the readout is
+   the detail behind them. */
+.variations__made {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--text-micro);
+  color: var(--color-text-3);
+}
+
+@media (max-width: 1200px) {
+  .variations__made {
+    display: none;
+  }
+}

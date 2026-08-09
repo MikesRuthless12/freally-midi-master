@@ -76,6 +76,16 @@ const MAX_SLUG: usize = 64;
 /// falls back to a hash of the name instead of being refused. The display name
 /// is unaffected either way.
 fn slug(name: &str) -> String {
+    slug_with(name, "preset")
+}
+
+/// [`slug`], with the caller's own fallback prefix.
+///
+/// ⛔ **Shared with `patterns.rs` rather than copied there**, because it is a
+/// security boundary — a name typed into a webview becoming a path — and the
+/// copy had already drifted to a different hash multiplier while carrying a doc
+/// comment claiming it was the same function.
+pub(crate) fn slug_with(name: &str, fallback_prefix: &str) -> String {
     let mut out = String::new();
     for ch in name.chars() {
         if ch.is_ascii_alphanumeric() {
@@ -89,7 +99,7 @@ fn slug(name: &str) -> String {
     let capped = capped.trim_matches('-').to_owned();
 
     if capped.is_empty() {
-        format!("preset-{:016x}", hash(name))
+        format!("{fallback_prefix}-{:016x}", hash(name))
     } else {
         capped
     }
@@ -100,7 +110,7 @@ fn slug(name: &str) -> String {
 /// Hand-rolled rather than `DefaultHasher`, whose output std explicitly does
 /// not promise to keep across releases — a preset whose filename changed with
 /// the compiler would go missing on upgrade.
-fn hash(text: &str) -> u64 {
+pub(crate) fn hash(text: &str) -> u64 {
     let mut acc: u64 = 0xcbf2_9ce4_8422_2325;
     for byte in text.as_bytes() {
         acc ^= u64::from(*byte);
@@ -114,7 +124,7 @@ fn hash(text: &str) -> u64 {
 /// Every path is built from an id that came back over the bridge, and the
 /// bridge is reachable from the page. This is the check that makes joining it
 /// to a directory safe, and it is deliberately a whitelist.
-fn is_safe_stem(stem: &str) -> bool {
+pub(crate) fn is_safe_stem(stem: &str) -> bool {
     !stem.is_empty()
         && stem.len() <= MAX_SLUG + 24
         && stem

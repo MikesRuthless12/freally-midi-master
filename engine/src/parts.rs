@@ -19,9 +19,11 @@ use crate::context::SessionContext;
 use crate::dataset::StyleModel;
 use crate::generators::{bass, chords, counter, drums, melody};
 use crate::humanize::humanize;
+use crate::novelty;
 use crate::pattern::{LaneTrack, Part};
 
-/// Generate `part` on the grid and apply feel, in the one order that is correct.
+/// Generate `part` on the grid, screen it, and apply feel — in the one order
+/// that is correct.
 ///
 /// The parts a caller does not ask for are still generated, because they are
 /// its inputs. That is not a wasted cache miss *on this path*: every generator
@@ -44,15 +46,41 @@ use crate::pattern::{LaneTrack, Part};
 /// purpose. Deciding what an empty part means belongs to the caller — a pattern
 /// request says so to the producer, and Song Mode simply leaves the part out of
 /// the section.
+///
+/// ⛔ **The novelty guard sits between the notes and the feel, and both sides
+/// of that are deliberate** (FR-011, TASK-039).
+///
+/// - **After generation**, because there is nothing to screen until there are
+///   notes.
+/// - **Before humanising**, because humanising is the expensive-to-throw-away
+///   half: a take the guard rejects would have had its feel computed for
+///   nothing, three times over.
+///
+/// A rejected take is redrawn at a *derived* seed, so [`render`] stays a pure
+/// function of its inputs and a saved seed still rebuilds the pattern the
+/// producer heard. `novelty::screen` hands back the seed that survived, and the
+/// feel is taken from **that** — humanising the fourth take with the first
+/// take's seed would give two different performances one shared set of jitter.
 pub fn render(
     model: &StyleModel,
     ctx: &SessionContext,
     seeds: Seeds,
     part: Part,
 ) -> Vec<LaneTrack> {
-    let mut lanes = generate(model, ctx, seeds, part);
+    let (mut lanes, take, report) = novelty::screen(novelty::bundled(), part, seeds.part, |take| {
+        generate(
+            model,
+            ctx,
+            Seeds {
+                part: take,
+                ..seeds
+            },
+            part,
+        )
+    });
+    novelty::log(part, &report);
     // The *take's* feel, so two takes of one part breathe differently.
-    humanize(&mut lanes, ctx, seeds.part);
+    humanize(&mut lanes, ctx, take);
     lanes
 }
 

@@ -85,16 +85,30 @@ the result into FL Studio, Ableton, Logic, Reaper, or anything else.
   section without touching the rest, and open any clip in its own editor. It
   plays, so the marker is a position through the record rather than through one
   loop.
-- **It makes a sound.** A sampler behind the generators, so every part is audible
-  before anything leaves the plugin — drums, and since the pitched voices landed,
-  melody, countermelody, bassline and chords too. ⚠ *Inside a DAW the host owns
-  the transport*, so press play in your DAW rather than in the plugin window; a
-  preview transport of its own is next.
-- **Audition with your own sounds.** ⚠ *Not built yet.* Importing `.wav`/`.mp3`
-  one-shots as drum pads *or* pitched instruments is the next build — today the
-  preview kit is the synthesized one that ships in the binary.
-- **Edit what you got.** Piano-roll editor and a pad-grid drum sequencer. Lock what
-  you like, reroll the rest.
+- **It makes a sound, without arming anything.** A sampler behind the
+  generators, so every part is audible before it leaves the plugin — drums,
+  melody, countermelody, bassline and chords. The plugin has its own preview
+  transport, so auditioning a beat does not mean rolling the whole project;
+  starting your DAW's transport takes it straight back.
+- **Audition with your own sounds.** Drop your own one-shot on any drum lane or
+  on melody, countermelody, bassline or chords — WAV, AIFF, FLAC, MP3, M4A or
+  OGG. A sample browser keeps your folders and brings them back with the
+  project. The synthesized kit that ships in the binary is the default, not the
+  ceiling.
+- **Edit what you got.** Piano-roll editor and a pad-grid drum sequencer, with
+  solo, mute and per-lane audition on every drum row — click a lane's name to
+  hear that pad on its own. **Lock what you like and reroll the rest**: a locked
+  lane comes back note for note however many times you press Generate.
+- **It will not hand you somebody else's hook.** Every melody is screened
+  against a table of well-known contours before you hear it, and a take that
+  matches is thrown away and drawn again. The table holds one-way fingerprints
+  and no note data at all — transposing a hook does not hide it from the screen,
+  and nothing anybody else wrote is in this repository.
+- **Keep the ones you like.** Name a pattern and it is there next time, in any
+  song and any DAW — saved as *notes*, with no kit, so you can load it and put
+  whatever sounds you like underneath. And every take of the session is kept:
+  step back through them and the whole setup comes with it — artist, mood, seed,
+  bars and pins, with the tempo and key that were actually used.
 - **Export.** The whole arranged song as one multi-track Standard MIDI file, or
   one file per part into a folder, through your platform's own Save As.
 - **Drag it out.** Pick a part up and drop it straight onto a DAW track, as MIDI

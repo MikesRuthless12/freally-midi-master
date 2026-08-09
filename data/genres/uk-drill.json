@@ -224,6 +224,40 @@
           3
         ]
       },
+      "fill": {
+        "at": [
+          "every_2_bars",
+          "last_bar"
+        ],
+        "figure": {
+          "values": [
+            "stutter",
+            "roll",
+            "gap"
+          ],
+          "weights": [
+            3,
+            3,
+            2
+          ]
+        },
+        "prob": 0.6,
+        "subdivision": {
+          "values": [
+            "32",
+            "32T"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "notes": 4,
+        "rampRange": [
+          0.4,
+          1
+        ]
+      },
       "openHat": {
         "prob": 0.4,
         "pos": [

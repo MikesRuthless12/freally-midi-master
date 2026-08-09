@@ -329,7 +329,7 @@ pub struct Shared {
     /// ⛔ The MIDI keeps flowing for a muted lane — that is the whole feature.
     /// It lets the plugin play the hats while the producer's own sampler in the
     /// DAW takes the snare, which muting the lane outright cannot express.
-    muted_lanes: AtomicU32,
+    muted_lanes: AtomicU64,
     /// Where the playhead is, 0.0–1.0 through the pattern (TASK-041T).
     ///
     /// Stored as the `f32`'s bits so the audio thread can publish it with one
@@ -406,7 +406,7 @@ impl Shared {
             // wiring an instrument up first is the problem P17 exists to fix.
             audio_enabled: AtomicBool::new(true),
             looping: AtomicBool::new(true),
-            muted_lanes: AtomicU32::new(0),
+            muted_lanes: AtomicU64::new(0),
             playhead_bits: AtomicU32::new(0),
             seek_request: AtomicU32::new(0),
             audition_request: AtomicU32::new(0),
@@ -545,10 +545,49 @@ impl Shared {
         );
     }
 
+    /// Ask the audio thread to sound one **drum lane** (TASK-043).
+    ///
+    /// ⛔⛔ **The lane travels as its index in [`ALL_LANES`], and the first cut
+    /// sent its General MIDI note instead — which was a real bug.** That form
+    /// assumed `gm_drum_note` was injective, and it is not: `Sub`, `SubLow`,
+    /// `Melody`, `Counter`, `Bass` and `Chords` all answer `0` because they
+    /// carry their own pitch. `sub` and `subLow` are *both* rows in the drum
+    /// grid, so clicking either header sounded whichever pitched pad the kit
+    /// happened to list first. An index assumes nothing, and `ALL_LANES` is
+    /// already the canonical enumeration the mute mask is read back through.
+    ///
+    /// A lane the list does not hold is refused rather than sent as index 0,
+    /// which would audition the kick.
+    pub fn request_lane_audition(&self, lane: Lane) {
+        let Some(index) = ALL_LANES.iter().position(|known| *known == lane) else {
+            return;
+        };
+        self.audition_request.store(
+            (index as u32) | AUDITION_PENDING | AUDITION_DRUM,
+            Ordering::Relaxed,
+        );
+    }
+
     /// Take a pending audition, if there is one. `process` is the caller.
-    pub fn take_audition(&self) -> Option<u8> {
+    ///
+    /// [`Audition::Pitch`] carries a MIDI note; [`Audition::Lane`] carries a
+    /// lane. See [`AUDITION_DRUM`] for why the two cannot share a resolution
+    /// rule, and [`Self::request_lane_audition`] for why the lane is not a note.
+    pub fn take_audition(&self) -> Option<Audition> {
         let packed = self.audition_request.swap(0, Ordering::Relaxed);
-        (packed & AUDITION_PENDING != 0).then_some((packed & 0x7f) as u8)
+        if packed & AUDITION_PENDING == 0 {
+            return None;
+        }
+        if packed & AUDITION_DRUM == 0 {
+            return Some(Audition::Pitch((packed & 0x7f) as u8));
+        }
+        // ⚠ A payload past the end of the list cannot happen — only
+        // `request_lane_audition` writes one — but answering `None` is better
+        // than indexing, because a panic here is on the audio thread.
+        ALL_LANES
+            .get((packed & 0x7f) as usize)
+            .copied()
+            .map(Audition::Lane)
     }
 
     /// Whether our own transport is running (TASK-041T). Read every block.
@@ -621,6 +660,47 @@ impl Shared {
         self.muted_lanes.store(mask, Ordering::Relaxed);
     }
 
+    /// Mute and solo, combined into the one mask the audio thread reads
+    /// (TASK-043).
+    ///
+    /// ⛔ **Solo silences every lane it does not name, and it cannot un-mute
+    /// one.** Both halves matter. Soloing the hats has to quieten the kick that
+    /// was never muted — that is what solo *is* — and it must not bring back a
+    /// lane the producer deliberately muted to route their own sampler into
+    /// (FMM-S02), because then un-soloing would leave that lane audible and the
+    /// mute button lit. Mute wins, always.
+    ///
+    /// An empty solo set means "no solo", not "solo nothing": a rule that
+    /// silenced everything would make the first click of S mute the whole
+    /// preview.
+    ///
+    /// ⚠ **The "everything else" term is derived from [`ALL_LANES`]**, the same
+    /// list [`Self::muted_lanes`] reads the mask back through. A hand-written
+    /// bit range would leave the newest lane audible through a solo, which is
+    /// the quietest possible way for this to be wrong.
+    ///
+    /// ⛔⛔ **…but only the kit's share of it, and that was the bug.** Solo is
+    /// offered on one surface — the drum grid's rows — and taking "everything
+    /// else" to mean the whole of `ALL_LANES` meant soloing the snare also
+    /// silenced the melody, countermelody, bass and chords. Nothing in those
+    /// four editors shows a mute or a solo, so the producer switched to the
+    /// Melody tab, pressed play, and heard nothing with no visible cause and no
+    /// control to undo it. A solo silences what it is a solo *among*.
+    pub fn set_lane_audio(&self, muted: &[Lane], soloed: &[Lane]) {
+        let bits = |lanes: &[Lane]| lanes.iter().fold(0, |mask, lane| mask | lane_bit(*lane));
+        let mut mask = bits(muted);
+        if !soloed.is_empty() {
+            let kept = bits(soloed);
+            mask |= ALL_LANES
+                .iter()
+                .filter(|lane| !MELODIC_LANES.contains(lane))
+                .map(|lane| lane_bit(*lane))
+                .filter(|bit| bit & kept == 0)
+                .fold(0, |mask, bit| mask | bit);
+        }
+        self.muted_lanes.store(mask, Ordering::Relaxed);
+    }
+
     /// Copy the stored session's audio settings into the atomics.
     ///
     /// ⛔ **The audio thread cannot read the session** — taking that lock in
@@ -636,7 +716,7 @@ impl Shared {
     pub fn adopt_session(&self) {
         let session = crate::state::read(&self.session);
         self.set_audio_enabled(session.audio_enabled);
-        self.set_muted_lanes(&session.muted_lanes);
+        self.set_lane_audio(&session.muted_lanes, &session.soloed_lanes);
     }
 
     /// Reload the one-shots a restored project asked for (TASK-131B).
@@ -758,6 +838,29 @@ const SEEK_PENDING: u32 = 1 << 31;
 /// needs seven bits, so the top one is free for the same reason.
 const AUDITION_PENDING: u32 = 1 << 31;
 
+/// What the editor asked to hear (TASK-043).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Audition {
+    /// A MIDI note, from the roll's keyboard gutter. Resolves to the nearest
+    /// *tuned* pad.
+    Pitch(u8),
+    /// One drum lane, from the grid's row header. Resolves by lane, exactly.
+    Lane(Lane),
+}
+
+/// Marks an audition as a **drum lane's** rather than a pitch's (TASK-043).
+///
+/// ⛔ **The two resolve to different pads and cannot share a rule.** A pitch
+/// audition finds the nearest *tuned* pad, because the question a producer asks
+/// by clicking the keyboard gutter is "what does this note sound like" and the
+/// answer has to track the register. A lane audition is asking to hear one
+/// specific voice — the kick, that kick — so it resolves by lane and must never
+/// fall back to the nearest anything. Without the distinction, clicking `Kick`
+/// would have sounded the 808 transposed to the kick's GM note, which is the
+/// "a kick pitched up forty semitones is not a preview of anything" failure
+/// `audition` already warns about, arrived at from the other direction.
+const AUDITION_DRUM: u32 = 1 << 30;
+
 /// Every lane, so the mask can be read back out as names.
 ///
 /// ⚠ **Also what the KIT panel enumerates** (TASK-131B). It is `pub(crate)`
@@ -766,27 +869,52 @@ const AUDITION_PENDING: u32 = 1 << 31;
 /// engine gains one, and the panel would quietly stop offering it.
 pub(crate) const ALL_LANES: &[Lane] = &[
     Lane::Kick,
+    Lane::SubKick,
     Lane::Snare,
     Lane::OffSnare,
+    Lane::GhostSnare,
     Lane::Clap,
     Lane::ClosedHat,
     Lane::OpenHat,
+    Lane::PedalHat,
     Lane::Ride,
+    Lane::RideBell,
     Lane::Crash,
     Lane::Tom,
+    Lane::TomHigh,
+    Lane::TomLow,
     Lane::Rim,
     Lane::Snap,
     Lane::Perc,
+    Lane::Perc2,
     Lane::Shaker,
     Lane::Tambourine,
     Lane::Cowbell,
+    Lane::Clave,
+    Lane::Conga,
+    Lane::Bongo,
+    Lane::Timbale,
+    Lane::Triangle,
     Lane::Woodblock,
+    Lane::Riser,
+    Lane::Impact,
+    Lane::Reverse,
     Lane::Sub,
+    Lane::SubLow,
     Lane::Melody,
     Lane::Counter,
     Lane::Bass,
     Lane::Chords,
 ];
+
+/// The four lanes that are whole generators rather than rows of the kit.
+///
+/// ⛔ **Not "the pitched lanes".** `Sub` and `SubLow` are pitched too, and they
+/// are drawn as rows of the drum grid with their own mute, solo and padlock —
+/// so a drum solo is a solo among them. What separates these four is that they
+/// each have their own editor with no mute or solo control on it at all, which
+/// is what makes silencing them from the drum grid unexplainable on screen.
+pub(crate) const MELODIC_LANES: &[Lane] = &[Lane::Melody, Lane::Counter, Lane::Bass, Lane::Chords];
 
 /// This lane's bit in the mute mask.
 ///
@@ -797,7 +925,13 @@ pub(crate) const ALL_LANES: &[Lane] = &[
 /// An earlier version of this comment claimed the opposite and used it to
 /// justify the table; the table is still the clearer form, but it is a
 /// readability choice rather than a persistence guarantee.
-fn lane_bit(lane: Lane) -> u32 {
+/// ⛔⛔ **A `u64`, and it had to become one.** TASK-043A took the vocabulary
+/// past 32 lanes, so a `u32` mask could not hold the kit any more — and the
+/// failure mode of overflowing it is the worst kind this file has: `1 << 33`
+/// wraps to bit 1, so muting a conga would have silenced the snare, quietly,
+/// on the audio thread. `every_lane_has_its_own_bit` is what would have caught
+/// it, and widening the word is what makes it pass.
+fn lane_bit(lane: Lane) -> u64 {
     match lane {
         Lane::Kick => 1 << 0,
         Lane::Snare => 1 << 1,
@@ -825,6 +959,23 @@ fn lane_bit(lane: Lane) -> u32 {
         Lane::Tambourine => 1 << 18,
         Lane::Cowbell => 1 << 19,
         Lane::Woodblock => 1 << 20,
+        // ── TASK-043A, appended for the reason the note above gives ──────
+        Lane::SubKick => 1 << 21,
+        Lane::GhostSnare => 1 << 22,
+        Lane::PedalHat => 1 << 23,
+        Lane::RideBell => 1 << 24,
+        Lane::TomHigh => 1 << 25,
+        Lane::TomLow => 1 << 26,
+        Lane::Perc2 => 1 << 27,
+        Lane::Clave => 1 << 28,
+        Lane::Conga => 1 << 29,
+        Lane::Bongo => 1 << 30,
+        Lane::Timbale => 1 << 31,
+        Lane::Triangle => 1 << 32,
+        Lane::Riser => 1 << 33,
+        Lane::Impact => 1 << 34,
+        Lane::Reverse => 1 << 35,
+        Lane::SubLow => 1 << 36,
     }
 }
 
@@ -1079,7 +1230,13 @@ mod bypass_tests {
     fn every_lane_has_its_own_bit() {
         // Two lanes sharing a bit would mute in pairs, which is the kind of
         // mistake a hand-written mapping exists to make findable.
-        let mut seen = 0u32;
+        //
+        // ⛔ **`u64`, and TASK-043A is why it had to change.** The vocabulary
+        // went past 32 lanes, and `1 << 33` on a `u32` wraps to bit 1 — so
+        // muting a conga would have silenced the snare. Widening the
+        // accumulator is not cosmetic: a `u32` here would go on passing while
+        // `lane_bit` overflowed, because both sides would wrap together.
+        let mut seen = 0u64;
         for lane in ALL_LANES {
             let bit = lane_bit(*lane);
             assert_eq!(bit.count_ones(), 1, "{lane:?} is not a single bit");
@@ -1105,6 +1262,72 @@ mod bypass_tests {
         // Replacing the set clears what was there rather than adding to it.
         shared.set_muted_lanes(&[Lane::Kick]);
         assert_eq!(shared.muted_lanes(), vec![Lane::Kick]);
+    }
+
+    #[test]
+    fn solo_silences_every_other_row_of_the_kit_and_no_whole_generator() {
+        // TASK-043. Soloing the closed hat has to quieten the kick that nobody
+        // muted — that is what solo *is* — and it must reach every drum lane in
+        // `ALL_LANES`, not only the ones a kit happens to hold.
+        //
+        // ⛔⛔ **This test used to say "every lane" and that was the bug.** It
+        // walked the whole of `ALL_LANES`, so it *required* the melody,
+        // countermelody, bass and chords to go silent when a producer soloed a
+        // drum row — with no mute or solo control in any of those four editors
+        // to show why, and none to undo it. A gate can be wrong about what the
+        // right answer is, and this one was.
+        let shared = Shared::default();
+        shared.set_lane_audio(&[], &[Lane::ClosedHat]);
+
+        assert!(
+            !shared.lane_muted(Lane::ClosedHat),
+            "the soloed lane sounds"
+        );
+        for lane in ALL_LANES
+            .iter()
+            .filter(|lane| **lane != Lane::ClosedHat && !MELODIC_LANES.contains(lane))
+        {
+            assert!(shared.lane_muted(*lane), "{lane:?} should be soloed away");
+        }
+        for lane in MELODIC_LANES {
+            assert!(
+                !shared.lane_muted(*lane),
+                "{lane:?} has no solo control of its own, so a drum solo must not silence it"
+            );
+        }
+        // ⚠ The 808 and its sub layer *are* rows of the grid, with their own
+        // mute and solo, so they go quiet with the rest of the kit.
+        assert!(shared.lane_muted(Lane::Sub));
+        assert!(shared.lane_muted(Lane::SubLow));
+    }
+
+    #[test]
+    fn an_empty_solo_set_means_no_solo_rather_than_solo_nothing() {
+        // The distinction the first click of S depends on: a rule that read an
+        // empty set as "keep nothing" would mute the whole preview the moment
+        // solo was switched off again.
+        let shared = Shared::default();
+        shared.set_lane_audio(&[Lane::Snare], &[]);
+
+        assert!(shared.lane_muted(Lane::Snare));
+        for lane in ALL_LANES.iter().filter(|lane| **lane != Lane::Snare) {
+            assert!(!shared.lane_muted(*lane), "{lane:?} should still sound");
+        }
+    }
+
+    #[test]
+    fn a_mute_survives_a_solo_that_names_the_muted_lane() {
+        // ⛔ **Mute wins.** A producer mutes our kick because they routed the
+        // MIDI into their own sampler (FMM-S02); if solo could un-mute it, the
+        // moment they soloed the kick to check it they would hear ours *and*
+        // theirs — and switching solo off again would leave it audible with the
+        // mute button still lit.
+        let shared = Shared::default();
+        shared.set_lane_audio(&[Lane::Kick], &[Lane::Kick, Lane::Snare]);
+
+        assert!(shared.lane_muted(Lane::Kick), "the mute outranks the solo");
+        assert!(!shared.lane_muted(Lane::Snare));
+        assert!(shared.lane_muted(Lane::ClosedHat));
     }
 }
 
@@ -1185,7 +1408,7 @@ mod transport_tests {
         assert!(shared.take_audition().is_none(), "nothing asked for yet");
 
         shared.request_audition(0);
-        assert_eq!(shared.take_audition(), Some(0));
+        assert_eq!(shared.take_audition(), Some(Audition::Pitch(0)));
     }
 
     #[test]
@@ -1196,7 +1419,7 @@ mod transport_tests {
         let shared = Shared::default();
         shared.request_audition(64);
 
-        assert_eq!(shared.take_audition(), Some(64));
+        assert_eq!(shared.take_audition(), Some(Audition::Pitch(64)));
         assert!(shared.take_audition().is_none(), "one click, one note");
     }
 
@@ -1209,7 +1432,53 @@ mod transport_tests {
         shared.request_audition(60);
         shared.request_audition(72);
 
-        assert_eq!(shared.take_audition(), Some(72));
+        assert_eq!(shared.take_audition(), Some(Audition::Pitch(72)));
+    }
+
+    #[test]
+    fn a_lane_audition_is_told_apart_from_a_pitch_one() {
+        // ⛔ The two resolve to different pads (see `AUDITION_DRUM`), so the
+        // flag is the whole mechanism: without it, clicking `Kick` would reach
+        // `audition`'s nearest-tuned-pad rule and sound the 808 pitched to the
+        // kick's GM note.
+        let shared = Shared::default();
+
+        shared.request_lane_audition(Lane::Kick);
+        assert_eq!(shared.take_audition(), Some(Audition::Lane(Lane::Kick)));
+
+        // And the flag does not leak into the next request through the shared
+        // word — a pitch audition after a lane one is still a pitch audition.
+        shared.request_audition(36);
+        assert_eq!(shared.take_audition(), Some(Audition::Pitch(36)));
+    }
+
+    #[test]
+    fn a_lane_audition_survives_lanes_that_share_a_gm_note() {
+        // ⛔⛔ **The regression this exists for.** The first cut sent the lane's
+        // General MIDI note, which assumed `gm_drum_note` was injective — and
+        // it is not: `Sub`, `SubLow`, `Melody`, `Counter`, `Bass` and `Chords`
+        // all answer 0, because they carry their own pitch. `sub` and `subLow`
+        // are *both* rows in the drum grid, so clicking either header asked for
+        // note 0 and sounded whichever pitched pad the kit happened to list
+        // first. The lane travels as an index now, which assumes nothing.
+        let shared = Shared::default();
+
+        shared.request_lane_audition(Lane::Sub);
+        assert_eq!(shared.take_audition(), Some(Audition::Lane(Lane::Sub)));
+
+        shared.request_lane_audition(Lane::SubLow);
+        assert_eq!(shared.take_audition(), Some(Audition::Lane(Lane::SubLow)));
+
+        // And every lane, so this cannot regress for one while passing for the
+        // two named above.
+        for lane in ALL_LANES {
+            shared.request_lane_audition(*lane);
+            assert_eq!(
+                shared.take_audition(),
+                Some(Audition::Lane(*lane)),
+                "{lane:?} did not survive the round trip"
+            );
+        }
     }
 
     #[test]
@@ -1220,7 +1489,7 @@ mod transport_tests {
         let shared = Shared::default();
         shared.request_audition(200);
 
-        assert_eq!(shared.take_audition(), Some(127));
+        assert_eq!(shared.take_audition(), Some(Audition::Pitch(127)));
     }
 }
 

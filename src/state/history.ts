@@ -100,6 +100,23 @@ export type Snapshot = {
    */
   mutedLanes: string[];
   /**
+   * Lanes soloed in the preview (TASK-043).
+   *
+   * ⛔ Here for the reason the two fields above spell out, and it is the rule
+   * rather than a case: **every field `send()` carries belongs in all three
+   * places** — `SAVED_FIELDS`, this type and `snapshotOf`. Miss one and the
+   * change is saved when made and lost when undone, which is worse than not
+   * being undoable at all because the project and the screen then disagree.
+   */
+  soloedLanes: string[];
+  /**
+   * Lanes held across a reroll (TASK-044).
+   *
+   * Here for the rule the two fields above spell out: every field `send()`
+   * carries belongs in `SAVED_FIELDS`, this type and `snapshotOf` alike.
+   */
+  lockedLanes: string[];
+  /**
    * The arrangement (TASK-063B).
    *
    * ⛔ **In the session's own snapshot rather than in a second stack, and that
@@ -138,7 +155,13 @@ export type Field = keyof Snapshot;
  * merging them made "kick muted, snare audible" unreachable by undo — one
  * Ctrl+Z un-muted both.
  */
-const DISCRETE: readonly Field[] = ['patterns', 'mutedLanes', 'song'];
+const DISCRETE: readonly Field[] = [
+  'patterns',
+  'mutedLanes',
+  'soloedLanes',
+  'lockedLanes',
+  'song',
+];
 
 /**
  * How long a run of edits to one field stays one undo step.

@@ -1,0 +1,60 @@
+/* The artist detail mini-pane (TASK-047). Under the roster in the left rail —
+   what you are about to generate from, said before you press Generate. */
+.artistpane {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  border-top: 1px solid var(--color-border);
+}
+
+.artistpane__name {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin: 0;
+  font-size: var(--text-body, 0.85rem);
+  color: var(--color-text);
+}
+
+.artistpane__era,
+.artistpane__tends {
+  margin: 0;
+  font-size: var(--text-micro);
+  color: var(--color-text-3);
+}
+
+.artistpane__label {
+  color: var(--color-text-2);
+}
+
+.artistpane__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* The free-text genre tags — `rap`, `drill`, `club`. Deliberately quieter than
+   the filter chips beside them: these describe, the chips act. */
+.artistpane__tag {
+  padding: 0 var(--space-1);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  font-size: var(--text-micro);
+  color: var(--color-text-3);
+}
+
+/* The GENRE badge, and the tiers. `badge--flagship` already exists; these are
+   the rest of the set so a row can always say what kind of thing it is. */
+.badge--genre {
+  background: var(--color-surface-3, var(--color-surface-2));
+  color: var(--color-text-2);
+}
+
+.badge--standard {
+  background: var(--color-surface-2);
+  color: var(--color-text-3);
+}

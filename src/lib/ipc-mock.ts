@@ -589,7 +589,86 @@ const handlers: Record<string, Handler> = {
     factory: false,
   }),
   preset_delete: () => undefined,
+
+  // The pattern library (TASK-045A). ⛔ **This one really does store**, unlike
+  // the preset mock above, and the difference is what the panel is for: saving
+  // a pattern and finding it in the list is the whole gesture, so a fixture
+  // that reported success without keeping it would make the feature look
+  // broken in `vite dev` and untestable in Playwright. It lives for the
+  // lifetime of the page, which is exactly as long as a browser has anywhere
+  // to put it.
+  patterns_list: () => [...savedPatterns.values()].sort((a, b) => b.savedAt - a.savedAt),
+  pattern_save: (args?: InvokeArgs) => {
+    const { name, savedAt, pattern } = (args ?? {}) as {
+      name?: string;
+      savedAt?: number;
+      pattern?: Pattern;
+    };
+    if (pattern === undefined) throw new Error('that is not a pattern');
+    const id = String(name ?? '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '');
+    const summary = {
+      id: id === '' ? 'pattern' : id,
+      name: String(name ?? ''),
+      artistId: pattern.artistId,
+      part: pattern.part,
+      bars: pattern.bars,
+      bpm: pattern.bpm,
+      savedAt: savedAt ?? 0,
+      density: mockDensity(pattern),
+    };
+    savedPatterns.set(summary.id, summary);
+    savedClips.set(summary.id, pattern);
+    return summary;
+  },
+  pattern_load: (args?: InvokeArgs) => {
+    const id = String((args as { id?: unknown } | undefined)?.id ?? '');
+    const clip = savedClips.get(id);
+    if (clip === undefined) throw new Error(`no pattern \`${id}\``);
+    return clip;
+  },
+  pattern_delete: (args?: InvokeArgs) => {
+    const id = String((args as { id?: unknown } | undefined)?.id ?? '');
+    savedPatterns.delete(id);
+    savedClips.delete(id);
+    return undefined;
+  },
 };
+
+/** The mock library, for the lifetime of the page. */
+const savedPatterns = new Map<string, PatternSummaryLike>();
+const savedClips = new Map<string, Pattern>();
+
+type PatternSummaryLike = {
+  id: string;
+  name: string;
+  artistId: string;
+  part: string;
+  bars: number;
+  bpm: number;
+  savedAt: number;
+  density: number[];
+};
+
+/** The same histogram `plugin/src/patterns.rs` computes, in 32 columns. */
+function mockDensity(pattern: Pattern): number[] {
+  const columns = 32;
+  const total = Math.max(
+    1,
+    pattern.bars * pattern.timeSigNum * ((pattern.ppq * 4) / pattern.timeSigDen),
+  );
+  const counts = new Array<number>(columns).fill(0);
+  for (const track of pattern.lanes) {
+    for (const note of track.notes) {
+      const column = Math.min(columns - 1, Math.floor((note.startTick / total) * columns));
+      counts[column] += 1;
+    }
+  }
+  const busiest = Math.max(...counts);
+  return busiest <= 0 ? counts : counts.map((count) => count / busiest);
+}
 
 export async function mockInvoke<T>(command: string, args?: InvokeArgs): Promise<T> {
   const handler = handlers[command];

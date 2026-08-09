@@ -42,6 +42,7 @@ beforeEach(() => {
       stems: true,
       session: true,
       presets: true,
+      patterns: true,
     },
   });
 });
@@ -171,6 +172,7 @@ describe('Studio shell', () => {
         stems: true,
         session: true,
         presets: true,
+        patterns: true,
       },
     });
     render(<App />);
@@ -195,6 +197,10 @@ describe('Studio shell', () => {
       'Stems',
       'Session',
       'Presets',
+      // TASK-045A. ⚠ Listed here as well as mounted, because a panel the View
+      // menu cannot reach is a panel a producer who collapsed it cannot get
+      // back — which is what this test exists to catch.
+      'Pattern library',
     ]);
   });
 

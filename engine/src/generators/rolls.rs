@@ -413,6 +413,237 @@ pub fn hat_rolls(
     closed.sort_by_key(|n| n.start_tick);
 }
 
+/// Where a hat fill lands (TASK-043H).
+///
+/// ⛔ **Not [`RollPosition`], and the difference is what makes this a fill.** A
+/// roll's positions answer *"somewhere in this bar"* — phrase end, before a
+/// snare, on beat 4 — and the hat rolls draw one per bar at a frequency. A fill
+/// is a **phrase-level** event: it hands one bar over to the next, so it is
+/// picked by counting bars rather than by looking inside one.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum FillAt {
+    /// The last beat of every bar.
+    LastBeat,
+    /// The whole last bar of the pattern.
+    LastBar,
+    /// The last beat of every 2nd, 4th or 8th bar.
+    EveryBars(u32),
+}
+
+impl FillAt {
+    fn parse(text: &str) -> Option<Self> {
+        Some(match text {
+            "last_beat" => Self::LastBeat,
+            "last_bar" => Self::LastBar,
+            "every_2_bars" => Self::EveryBars(2),
+            "every_4_bars" => Self::EveryBars(4),
+            "every_8_bars" => Self::EveryBars(8),
+            _ => return None,
+        })
+    }
+
+    /// The window this fill occupies in `bar`, or `None` when it does not fire
+    /// there.
+    ///
+    /// ⚠ **`bars` is the pattern's length, and `LastBar` needs it.** A fill that
+    /// hands over to the next bar has nothing to hand over to at the end of a
+    /// clip that loops — but a producer asking for `last_bar` on a 4-bar loop
+    /// means the fourth bar, which is exactly where the loop turns around.
+    fn window(self, bar: u32, bars: u32, ctx: &SessionContext) -> Option<(u32, u32)> {
+        let bar_ticks = ctx.ticks_per_bar();
+        let start_of_bar = bar * bar_ticks;
+        let beat = grid::ticks_per_beat(ctx).max(1);
+        let last_beat = || {
+            (
+                start_of_bar + bar_ticks.saturating_sub(beat),
+                start_of_bar + bar_ticks,
+            )
+        };
+        match self {
+            Self::LastBeat => Some(last_beat()),
+            Self::LastBar => (bar + 1 == bars).then(|| (start_of_bar, start_of_bar + bar_ticks)),
+            // ⛔ **1-based bar counting, so `every_2_bars` fires on bars 2 and
+            // 4 rather than 1 and 3.** A fill on the *first* bar of a phrase is
+            // a fill that hands over to the bar it just came from.
+            Self::EveryBars(n) => ((bar + 1).is_multiple_of(n)).then(last_beat),
+        }
+    }
+}
+
+/// What a hat fill plays (TASK-043H).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum FillFigure {
+    /// The window filled at the authored subdivision, ramping up.
+    Roll,
+    /// A short off-grid burst — [`stutter_cluster`], which had no production
+    /// caller until this.
+    Stutter,
+    /// The same, at a triplet subdivision.
+    TripletBurst,
+    /// **Silence.** The stream stops and the next bar arrives into a hole.
+    Gap,
+    /// A rising stream across the window — [`riser`]'s shape, per bar rather
+    /// than across eight.
+    Ramp,
+}
+
+impl FillFigure {
+    fn parse(text: &str) -> Option<Self> {
+        Some(match text {
+            "roll" => Self::Roll,
+            "stutter" => Self::Stutter,
+            "triplet_burst" => Self::TripletBurst,
+            "gap" => Self::Gap,
+            "ramp" => Self::Ramp,
+            _ => return None,
+        })
+    }
+}
+
+/// The triplet of a note value — or the value itself when it already is one.
+///
+/// ⛔⛔ **The guard is what keeps every note on a whole tick, and it was found
+/// by a shipped model rather than by reasoning.** `bouncy-trap` inherits trap's
+/// fill, whose subdivision is a weighted choice between `32` and `16T`, and
+/// `160 * 2 / 3` is 106.67 — so a triplet burst on the triplet arm wrote notes
+/// at 106 ticks, off every grid in the project. PPQ 960 exists precisely so the
+/// roll vocabulary never rounds (`grid`'s own header says so), and this is the
+/// one place that could have broken it.
+///
+/// A value is already a triplet when two thirds of it is not a whole number,
+/// which is the same test as "the arithmetic would round".
+fn triplet_of(subdivision: u32) -> u32 {
+    if (subdivision * 2).is_multiple_of(3) {
+        (subdivision * 2 / 3).max(1)
+    } else {
+        subdivision
+    }
+}
+
+/// Is this a figure the hat fill generator can act on?
+///
+/// Exposed for the dataset gate. An unknown figure would fall back to a plain
+/// roll, so the fill the model asked for would silently not be the one played —
+/// the same failure `counter::can_read_style` exists to catch.
+pub fn can_read_fill_figure(name: &str) -> bool {
+    FillFigure::parse(name).is_some()
+}
+
+/// Is this a landing point the hat fill generator can act on?
+pub fn can_read_fill_at(name: &str) -> bool {
+    FillAt::parse(name).is_some()
+}
+
+/// The hi-hat's **fill**: a phrase-end figure that breaks the stream and hands
+/// over to the next bar (TASK-043H).
+///
+/// ⛔ **Its own device, not another roll.** The hat engine already has rolls —
+/// `hihat.rolls` — and they decorate *inside* a bar at an authored frequency.
+/// A fill is the thing that ends a phrase: it clears the stream in its window
+/// and puts one figure there, so the ear hears the bar being handed over.
+///
+/// ⛔ **It calls [`stutter_cluster`] rather than reimplementing it**, which is
+/// what a third copy of "a burst of notes with a velocity ramp" would have
+/// been — the duplication this module was built around one `Roll` primitive to
+/// avoid.
+///
+/// ⚠ **It does *not* call [`riser`], and an earlier draft of this comment
+/// claimed it did.** `riser` renders across its own authored `riserBars` — an
+/// eight-bar build — and a fill occupies one beat, so calling it would need the
+/// window overridden to the point that nothing of it was left. `Ramp` is the
+/// same *shape* through `Roll::ramp`. `riser` therefore still has no production
+/// caller, which is worth knowing rather than papering over.
+///
+/// The `rng` is expected to come from `drums/hats/fill`, so re-rolling the fill
+/// cannot move the hats it interrupts.
+///
+/// ⚠ **It writes closed hats without regard for the open ones**, as
+/// [`hat_rolls`] does — `drums::close_over_open` re-applies that exclusion once
+/// after both have run. See its comment for why it is there and not here.
+pub fn hat_fills(
+    closed: &mut Vec<Note>,
+    hihat: Option<&Value>,
+    ctx: &SessionContext,
+    rng: &mut impl Rng,
+) {
+    // Stays an `Option` — every reader below (`strings`, `number`, `pair`) takes
+    // one. Absent or explicitly null means this genre asked for no hat fills,
+    // and those readers would answer with defaults rather than nothing, so the
+    // early return is what keeps a fill out of a genre that never wanted one.
+    let fill = hihat.and_then(|h| h.get("fill")).filter(|v| !v.is_null());
+    if fill.is_none() {
+        return;
+    }
+
+    let at: Vec<FillAt> = strings(fill, "at")
+        .iter()
+        .filter_map(|name| FillAt::parse(name))
+        .collect();
+    if at.is_empty() {
+        return;
+    }
+
+    // A frequency, like the rolls': how often a landing point that *could* take
+    // a fill actually does. 1.0 means every one of them.
+    let probability = number(fill, "prob", 1.0, rng).clamp(0.0, 1.0);
+    let subdivision = string_spec(fill, "subdivision", rng)
+        .as_deref()
+        .and_then(grid::note_value_ticks)
+        .unwrap_or(grid::SIXTEENTH / 2);
+    let burst = number(fill, "notes", 4.0, rng).round().clamp(2.0, 16.0) as usize;
+    let (from_fraction, to_fraction) = pair(fill, "rampRange").unwrap_or((0.45, 1.0));
+    let velocity = |fraction: f64| (fraction * 127.0).clamp(1.0, 127.0) as u8;
+
+    let bars = u32::from(ctx.bars);
+    for bar in 0..bars {
+        // ⛔ **One fill per bar at most.** Two landing points can name the same
+        // bar — `last_beat` and `every_2_bars` both do on bar 2 — and firing
+        // both would stack two figures in one window, which is a smear rather
+        // than a hand-over.
+        let Some((start, end)) = at.iter().find_map(|point| point.window(bar, bars, ctx)) else {
+            continue;
+        };
+        if !rng.random_bool(probability) {
+            continue;
+        }
+
+        let figure = string_spec(fill, "figure", rng)
+            .as_deref()
+            .and_then(FillFigure::parse)
+            .unwrap_or(FillFigure::Roll);
+
+        // The stream in the window steps aside whatever the figure is — that
+        // clearing *is* the break, and it is what makes `Gap` a real figure
+        // rather than a no-op.
+        closed.retain(|n| !(start..end).contains(&n.start_tick));
+
+        let notes = match figure {
+            FillFigure::Gap => Vec::new(),
+            FillFigure::Roll => Roll::new(Lane::ClosedHat, start, end, subdivision)
+                .ramp(velocity(from_fraction), velocity(to_fraction))
+                .render(rng),
+            FillFigure::Ramp => {
+                // `riser`'s shape over this window rather than its own eight
+                // bars: one bar of stream, ramping into the hand-over.
+                Roll::new(Lane::ClosedHat, start, end, subdivision)
+                    .ramp(velocity(from_fraction.min(to_fraction)), 127)
+                    .render(rng)
+            }
+            FillFigure::Stutter => stutter_cluster(Lane::ClosedHat, start, subdivision, burst, rng),
+            FillFigure::TripletBurst => {
+                stutter_cluster(Lane::ClosedHat, start, triplet_of(subdivision), burst, rng)
+            }
+        };
+
+        // ⚠ Clipped to the window. `stutter_cluster` sizes its own span from
+        // the note count, so a long burst would otherwise run past the barline
+        // and play over the next bar's downbeat — the opposite of handing over.
+        closed.extend(notes.into_iter().filter(|n| n.start_tick < end));
+    }
+
+    closed.sort_by_key(|n| n.start_tick);
+}
+
 /// The accent grouping a block asks for, sampled when it names more than one.
 ///
 /// ⛔ **One reader, because there were two and they disagreed.**
