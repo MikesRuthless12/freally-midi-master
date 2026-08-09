@@ -12,6 +12,52 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added — every artist gets moods, you can build and train a style of your own, and nothing copies your samples without asking, 2026-08-09
+
+- **Every artist and genre now has moods.** Twelve genres had none — boom bap,
+  Chicago drill, country, jerk, liquid DnB, NY drill, phonk, plugg, pluggnb,
+  2000s pop, 2000s R&B and west coast club — and each now offers three: boom
+  bap's *dusty / jazzy / hard*, phonk's *cowbell / memphis / brazilian*, country's
+  *shuffle / ballad / barnburner*, and so on. Pressing Generate walks an artist's
+  range instead of returning one sound with a different seed on it. **96
+  (artist, mood) pairs across all thirty models**, up from 33 across nine, and
+  84 of them reach a thousand different melodies in a thousand seeds.
+- **Original Workflow — build a style of your own.** A pinned row above the
+  roster opens a style editor: name it, base it on any artist or genre, set the
+  tempo range, swing, hat density, melody density and scales, and save. It
+  appears in the roster marked **Yours** and generates, locks, re-rolls and
+  exports exactly like a shipped one, because it *is* one — the same format the
+  shipped models use. It inherits everything you did not change, including
+  improvements the base gets later. A new style opens seeded from the beat on
+  screen rather than blank.
+- **Train a workflow from the takes you keep.** A star on the take counter marks
+  a generation to train on; at thirty the Train button fits a style to what you
+  kept — density, register and phrase shape — and it will not save one that
+  repeats itself. **There is no machine learning in it**: it measures your takes
+  and writes the numbers back, and the app stays entirely offline.
+- **Your own MIDI can train it too.** The plugin can now *read* Standard MIDI
+  Files, not only write them, so a `.mid` you already have becomes a training
+  source measured by the same code as a generation.
+- **Nothing copies your samples without asking.** A style can keep the one-shots
+  you assigned so they survive you moving or deleting the originals — and
+  because that means a second copy on your drive, the editor tells you **how
+  many files and how many megabytes** before anything happens, with the box
+  unticked. Saving a style copies nothing on its own.
+- **Your samples sound better.** A sample recorded at a different rate from the
+  kit around it used to be stretched to fit on every single note; it is now
+  converted once, properly filtered, when you load it.
+
+### Fixed — 2026-08-09
+
+- **The genre chips said they could not be clicked.** The Genres row in the left
+  rail showed a "no entry" cursor over controls that worked perfectly, and had
+  since the layout was first drawn. They also could not show which genre was
+  selected. Both fixed.
+- **Training could have frozen your DAW.** The check that a trained style does
+  not repeat itself ran thousands of generations on the thread your host draws
+  its window from, and would have hung it long enough for the request to time
+  out and throw the work away.
+
 ### Added — the melody stops quoting other people, every genre gets its own voice, and the hats talk, 2026-08-08
 
 - **⛔ A novelty guard, so a generated melody is not a hook somebody already

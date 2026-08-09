@@ -48,7 +48,9 @@
     "shipped": "Meegeleverd",
     "silent": "Geen geluid",
     "choosing": "Kiezen…",
-    "clearOne": "One-shot op {{lane}} wissen"
+    "clearOne": "One-shot op {{lane}} wissen",
+    "randomize": "Elke niet-vergrendelde pad opnieuw loten uit deze map",
+    "randomizeOne": "{{lane}} opnieuw loten uit deze map"
   },
   "sections": {
     "genres": "Genres",
@@ -429,5 +431,44 @@
     "key": "{{key}} {{scale}}",
     "halfTime": "half-time",
     "moods": "{{count}} moods"
+  },
+  "styles": {
+    "original": "Eigen workflow",
+    "originalHint": "Bouw je eigen stijl",
+    "mine": "Van jou",
+    "title": "Stijl-editor",
+    "name": "Naam",
+    "namePlaceholder": "Mijn donkere trap",
+    "basedOn": "Gebaseerd op",
+    "basedOnHint": "Je stijl erft alles wat je niet overschrijft, inclusief latere verbeteringen.",
+    "tempo": "Tempo",
+    "swing": "Swing",
+    "hats": "Hi-hat-dichtheid",
+    "melody": "Melodiedichtheid",
+    "scales": "Toonladders",
+    "scalesHint": "Alleen de toonladders waarin {{name}} opneemt.",
+    "save": "Stijl opslaan",
+    "delete": "{{name}} verwijderen",
+    "export": "Exporteren",
+    "import": "Importeren",
+    "nameNeeded": "Geef je stijl een naam.",
+    "saved": "Opgeslagen als {{name}}",
+    "keep": "Deze take bewaren om te trainen",
+    "kept": "{{count}} / {{needed}} bewaard",
+    "train": "Trainen",
+    "trained": "Getraind op {{count}} generaties",
+    "samplesHeading": "De klanken ervan",
+    "samplesNote": "Je stijl kan de toegewezen one-shots bewaren. Ze worden naar deze computer gekopieerd, dus ze blijven werken als je de originelen verplaatst of verwijdert — en ze nemen die extra ruimte op je schijf in. Zonder dit vinkje wordt er niets gekopieerd.",
+    "samplesCopy": "{{count}} samples ({{size}}) naar deze computer kopiëren",
+    "samplesCopied": "{{count}} samples gekopieerd",
+    "edit": "{{name}} bewerken"
+  },
+  "kits": {
+    "heading": "Opgeslagen kits",
+    "name": "Kitnaam",
+    "save": "Kit opslaan",
+    "none": "Nog geen opgeslagen kits. Wijs samples toe, geef ze een naam, en ze staan hier de volgende keer.",
+    "delete": "{{name}} verwijderen",
+    "duplicate": "{{name}} kopiëren onder de ingetypte naam"
   }
 }

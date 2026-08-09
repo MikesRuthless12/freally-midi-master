@@ -48,7 +48,9 @@
     "shipped": "Incluso",
     "silent": "Nessun suono",
     "choosing": "Selezione…",
-    "clearOne": "Rimuovi il one-shot da {{lane}}"
+    "clearOne": "Rimuovi il one-shot da {{lane}}",
+    "randomize": "Rilancia ogni pad non bloccato da questa cartella",
+    "randomizeOne": "Rilancia {{lane}} da questa cartella"
   },
   "sections": {
     "genres": "Generi",
@@ -429,5 +431,44 @@
     "key": "{{key}} {{scale}}",
     "halfTime": "half-time",
     "moods": "{{count}} mood"
+  },
+  "styles": {
+    "original": "Flusso originale",
+    "originalHint": "Crea uno stile tutto tuo",
+    "mine": "Tuo",
+    "title": "Editor di stile",
+    "name": "Nome",
+    "namePlaceholder": "Il mio trap cupo",
+    "basedOn": "Basato su",
+    "basedOnHint": "Il tuo stile eredita tutto ciò che non sovrascrivi, inclusi i miglioramenti futuri.",
+    "tempo": "Tempo",
+    "swing": "Swing",
+    "hats": "Densità di hi-hat",
+    "melody": "Densità della melodia",
+    "scales": "Scale",
+    "scalesHint": "Solo le scale in cui incide {{name}}.",
+    "save": "Salva stile",
+    "delete": "Elimina {{name}}",
+    "export": "Esporta",
+    "import": "Importa",
+    "nameNeeded": "Dai un nome al tuo stile.",
+    "saved": "Salvato come {{name}}",
+    "keep": "Tieni questa take per l’addestramento",
+    "kept": "{{count}} / {{needed}} tenute",
+    "train": "Addestra",
+    "trained": "Addestrato su {{count}} generazioni",
+    "samplesHeading": "I suoi suoni",
+    "samplesNote": "Il tuo stile può conservare i one-shot che hai assegnato. Vengono copiati su questo computer, quindi funzioneranno anche se sposti o elimini gli originali, e occuperanno altrettanto spazio sul disco. Senza questa spunta non viene copiato nulla.",
+    "samplesCopy": "Copia {{count}} campioni ({{size}}) su questo computer",
+    "samplesCopied": "Copiati {{count}} campioni",
+    "edit": "Modifica {{name}}"
+  },
+  "kits": {
+    "heading": "Kit salvati",
+    "name": "Nome del kit",
+    "save": "Salva kit",
+    "none": "Nessun kit salvato. Assegna dei campioni, dai loro un nome e saranno qui la prossima volta.",
+    "delete": "Elimina {{name}}",
+    "duplicate": "Copia {{name}} con il nome inserito"
   }
 }

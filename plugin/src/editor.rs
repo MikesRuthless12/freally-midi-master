@@ -603,6 +603,149 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
             );
         }
 
+        // ⛔ **A `.mid` the producer already has, as a trainable pattern**
+        // (TASK-040T). Mike: *"you should be able to drag in MIDI from the file
+        // explorer to train your original artist/workflow."* It answers a
+        // `Pattern` and nothing else, which is the requirement rather than a
+        // convenience: the fit reads `Pattern`, so a model trained from files
+        // cannot drift from one trained from generations.
+        "explorer_midi" => {
+            let path = request.args["path"].as_str().unwrap_or_default();
+            let part = match serde_json::from_value(request.args["part"].clone()) {
+                Ok(part) => part,
+                Err(_) => return Some(Err("that is not a part".to_owned())),
+            };
+            return Some(
+                crate::explorer::midi_pattern(&shared.explorer, path, part)
+                    .and_then(|p| serde_json::to_value(p).map_err(|e| e.to_string())),
+            );
+        }
+
+        // ⛔⛔ **The sample-copy pair, and the paths come from the PLUGIN.**
+        // These two shipped in `bridge.rs` for an afternoon taking a page-supplied
+        // list of arbitrary filesystem paths, with `refuse_remote` applied and
+        // **containment not** — which a security review found. That is a clean
+        // per-path existence-and-exact-size oracle over the whole disk handed
+        // straight back to an untrusted page, and then an arbitrary local file
+        // read into a known folder. It is the same defect `explorer_drop` was
+        // found with, arriving through two more doors.
+        //
+        // ▶ **The fix is also the simpler design**: the plugin already holds the
+        // assignments, and the page was fetching them from `kit_state` only to
+        // hand them straight back. Sourced here, there is no path to validate
+        // because none crosses the boundary — the same rule `kits_save` states
+        // below.
+        //
+        // ⚠ The two stay **separate commands**, because that split is the
+        // consent: asking what a copy would cost cannot copy anything, and
+        // `user_model_save` calls neither.
+        "user_model_sample_cost" => {
+            return Some(
+                serde_json::to_value(crate::models::sample_cost(&assigned_paths(shared)))
+                    .map_err(|e| e.to_string()),
+            );
+        }
+
+        "user_model_copy_samples" => {
+            let id = request.args["id"].as_str().unwrap_or_default();
+            return Some(
+                crate::models::copy_samples(id, &assigned_paths(shared))
+                    .and_then(|landed| serde_json::to_value(landed).map_err(|e| e.to_string())),
+            );
+        }
+
+        // Named kits (TASK-051). ⛔ **`kits_save` reads the assignments from the
+        // plugin rather than taking them from the page**, because the plugin is
+        // what holds them — `OneShots::snapshot` is the truth, and a page that
+        // sent its own idea of the kit could save one that never played.
+        "kits_list" => {
+            return Some(serde_json::to_value(crate::kits::list()).map_err(|e| e.to_string()))
+        }
+
+        "kits_save" => {
+            let name = request.args["name"].as_str().unwrap_or_default();
+            let lanes = shared
+                .one_shots
+                .snapshot()
+                .into_iter()
+                .map(|(lane, (path, _))| (lane, path))
+                .collect();
+            return Some(
+                crate::kits::save(name, lanes)
+                    .and_then(|k| serde_json::to_value(k).map_err(|e| e.to_string())),
+            );
+        }
+
+        "kits_load" => {
+            let id = request.args["id"].as_str().unwrap_or_default();
+            return Some(crate::kits::load(id).and_then(|pairs| {
+                shared
+                    .one_shots
+                    .load_kit(pairs, &shared.kits, &shared.session)
+                    .map(|()| Value::Null)
+            }));
+        }
+
+        "kits_rename" => {
+            let id = request.args["id"].as_str().unwrap_or_default();
+            let name = request.args["name"].as_str().unwrap_or_default();
+            return Some(
+                crate::kits::rename(id, name)
+                    .and_then(|k| serde_json::to_value(k).map_err(|e| e.to_string())),
+            );
+        }
+
+        "kits_duplicate" => {
+            let id = request.args["id"].as_str().unwrap_or_default();
+            let name = request.args["name"].as_str().unwrap_or_default();
+            return Some(
+                crate::kits::duplicate(id, name)
+                    .and_then(|k| serde_json::to_value(k).map_err(|e| e.to_string())),
+            );
+        }
+
+        "kits_delete" => {
+            let id = request.args["id"].as_str().unwrap_or_default();
+            return Some(crate::kits::delete(id).map(|()| Value::Null));
+        }
+
+        // ⛔ **Re-roll pads from the folder being browsed** (TASK-050A). The
+        // page sends the lanes, because it is what knows which pads are locked —
+        // TASK-044's rule applied to pads, kept in one place rather than
+        // mirrored here where the two could disagree. It sends the seed too, for
+        // the same reason `variations.ts` sends a timestamp: nothing below the
+        // page may read a clock.
+        "kit_randomize" => {
+            let lanes: Vec<engine::pattern::Lane> =
+                match serde_json::from_value(request.args["lanes"].clone()) {
+                    Ok(lanes) => lanes,
+                    Err(_) => return Some(Err("those are not lanes".to_owned())),
+                };
+            let seed = request.args["seed"]
+                .as_str()
+                .and_then(|text| text.parse::<u64>().ok())
+                .unwrap_or(0);
+
+            // The folder the producer is looking at, as filenames. `state()` is
+            // what the panel already draws, so a re-roll can only ever reach
+            // what they can see — the containment rule, for free.
+            let files: Vec<String> = shared
+                .explorer
+                .state()
+                .entries
+                .into_iter()
+                .filter(|entry| !entry.is_dir)
+                .map(|entry| entry.path)
+                .collect();
+
+            return Some(
+                shared
+                    .one_shots
+                    .randomize(lanes, files, seed, &shared.kits, &shared.session)
+                    .map(|()| Value::Null),
+            );
+        }
+
         "explorer_open" => {
             let dir = request.args["path"].as_str().unwrap_or_default();
             return Some(shared.explorer.open(dir).map(|()| Value::Null));
@@ -1394,6 +1537,22 @@ const BEFORE_ACCEPTANCE: &[&str] = &[
 /// It sits here rather than in [`bridge::dispatch`] because this is the single
 /// door the webview comes through: `window_command` and `dispatch` are both
 /// behind it, so one check covers both and neither has to know a gate exists.
+/// The sample paths this instance has assigned, from the plugin's own map.
+///
+/// ⛔ **The only source of paths for the copy pair, deliberately.** They used to
+/// arrive from the page; see the note on `user_model_sample_cost`. Reading them
+/// here means there is no untrusted path to validate, which is a stronger
+/// position than validating one — the guard that cannot be forgotten is the one
+/// that has nothing to guard.
+fn assigned_paths(shared: &SharedState) -> Vec<String> {
+    shared
+        .one_shots
+        .snapshot()
+        .into_iter()
+        .map(|(_, (path, _))| path)
+        .collect()
+}
+
 fn licence_blocks(command: &str) -> bool {
     !BEFORE_ACCEPTANCE.contains(&command) && !crate::eula::accepted()
 }

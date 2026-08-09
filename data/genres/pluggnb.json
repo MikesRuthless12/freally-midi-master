@@ -236,5 +236,147 @@
   },
   "kit": {
     "preview": "rnb-default"
-  }
+  },
+  "modes": [
+    {
+      "name": "romantic",
+      "weight": 4,
+      "melody": {
+        "register": [
+          71,
+          95
+        ],
+        "densityPerBar": [
+          4,
+          9
+        ],
+        "contour": {
+          "riff": 0.35,
+          "descend": 0.25,
+          "arch": 0.4
+        },
+        "chordToneBias": 0.86
+      },
+      "chords": {
+        "extensions": {
+          "triad": 0.14,
+          "seventh": 0.46,
+          "ninth": 0.4
+        },
+        "susSubstitutionProb": 0.34
+      },
+      "countermelody": {
+        "densityRatio": 0.5,
+        "styles": {
+          "values": [
+            "sustain_pad",
+            "arp"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        }
+      }
+    },
+    {
+      "name": "guitar",
+      "weight": 3,
+      "melody": {
+        "structure": "call_response",
+        "densityPerBar": [
+          3,
+          8
+        ],
+        "intervals": {
+          "step": 0.62,
+          "third": 0.3,
+          "leap": 0.08
+        },
+        "contour": {
+          "riff": 0.3,
+          "descend": 0.35,
+          "arch": 0.35
+        }
+      },
+      "chords": {
+        "harmonicRhythm": {
+          "values": [
+            "1_per_bar",
+            "2_bars_per_chord"
+          ],
+          "weights": [
+            4,
+            2
+          ]
+        },
+        "voicing": {
+          "style": "open"
+        }
+      },
+      "countermelody": {
+        "densityRatio": 0.55,
+        "styles": {
+          "values": [
+            "answer_lick"
+          ],
+          "weights": [
+            1
+          ]
+        }
+      }
+    },
+    {
+      "name": "uptempo",
+      "weight": 2,
+      "session": {
+        "bpm": {
+          "min": 148,
+          "max": 162,
+          "mode": 154
+        }
+      },
+      "melody": {
+        "structure": "riff_loop",
+        "densityPerBar": [
+          5,
+          10
+        ],
+        "octaveJumpProb": 0.18,
+        "phraseBars": {
+          "values": [
+            1,
+            2
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        }
+      },
+      "chords": {
+        "harmonicRhythm": {
+          "values": [
+            "syncopated_cell"
+          ],
+          "weights": [
+            1
+          ]
+        }
+      },
+      "drums": {
+        "kick": {
+          "densityPerBar": [
+            3,
+            5
+          ],
+          "syncopation": 0.5
+        },
+        "hihat": {
+          "base": "16th",
+          "fillDensity": 0.5
+        }
+      }
+    }
+  ]
 }

@@ -414,5 +414,207 @@
   },
   "kit": {
     "preview": "country-default"
-  }
+  },
+  "modes": [
+    {
+      "name": "shuffle",
+      "weight": 4,
+      "session": {
+        "swing": {
+          "amount": 0.62
+        }
+      },
+      "melody": {
+        "densityPerBar": [
+          3,
+          8
+        ],
+        "intervals": {
+          "step": 0.72,
+          "third": 0.22,
+          "leap": 0.06
+        },
+        "contour": {
+          "riff": 0.3,
+          "descend": 0.35,
+          "arch": 0.35
+        }
+      },
+      "chords": {
+        "progressionFamilies": [
+          {
+            "roman": [
+              "I",
+              "IV",
+              "V",
+              "IV"
+            ],
+            "weight": 4
+          },
+          {
+            "roman": [
+              "I",
+              "IV",
+              "I",
+              "V"
+            ],
+            "weight": 4
+          },
+          {
+            "roman": [
+              "I",
+              "V",
+              "IV"
+            ],
+            "weight": 3
+          },
+          {
+            "roman": [
+              "I",
+              "bVII",
+              "IV"
+            ],
+            "weight": 2
+          }
+        ]
+      },
+      "countermelody": {
+        "densityRatio": 0.5,
+        "styles": {
+          "values": [
+            "answer_lick"
+          ],
+          "weights": [
+            1
+          ]
+        }
+      }
+    },
+    {
+      "name": "ballad",
+      "weight": 3,
+      "session": {
+        "bpm": {
+          "min": 68,
+          "max": 88,
+          "mode": 78
+        },
+        "scales": {
+          "values": [
+            "major",
+            "major_pentatonic"
+          ],
+          "weights": [
+            4,
+            2
+          ]
+        }
+      },
+      "melody": {
+        "register": [
+          62,
+          86
+        ],
+        "densityPerBar": [
+          3,
+          6
+        ],
+        "contour": {
+          "riff": 0.15,
+          "descend": 0.4,
+          "arch": 0.45
+        },
+        "chordToneBias": 0.88
+      },
+      "chords": {
+        "extensions": {
+          "triad": 0.62,
+          "seventh": 0.33,
+          "ninth": 0.05
+        },
+        "harmonicRhythm": {
+          "values": [
+            "2_bars_per_chord",
+            "1_per_bar"
+          ],
+          "weights": [
+            4,
+            3
+          ]
+        },
+        "susSubstitutionProb": 0.3
+      },
+      "drums": {
+        "kick": {
+          "densityPerBar": [
+            2,
+            3
+          ],
+          "anchors": [
+            "1",
+            "3"
+          ]
+        },
+        "snare": {
+          "placement": "backbeat_24"
+        },
+        "hihat": {
+          "fillDensity": 0.12
+        }
+      }
+    },
+    {
+      "name": "barnburner",
+      "weight": 2,
+      "session": {
+        "bpm": {
+          "min": 125,
+          "max": 150,
+          "mode": 138
+        },
+        "scales": {
+          "values": [
+            "major",
+            "mixolydian"
+          ],
+          "weights": [
+            4,
+            3
+          ]
+        }
+      },
+      "melody": {
+        "densityPerBar": [
+          5,
+          10
+        ],
+        "intervals": {
+          "step": 0.7,
+          "third": 0.24,
+          "leap": 0.06
+        },
+        "contour": {
+          "riff": 0.4,
+          "descend": 0.3,
+          "arch": 0.3
+        },
+        "octaveJumpProb": 0.08
+      },
+      "chords": {
+        "harmonicRhythm": {
+          "values": [
+            "1_per_bar"
+          ],
+          "weights": [
+            1
+          ]
+        }
+      },
+      "drums": {
+        "hihat": {
+          "fillDensity": 0.35
+        }
+      }
+    }
+  ]
 }

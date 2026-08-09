@@ -444,5 +444,223 @@
   },
   "kit": {
     "preview": "pop-default"
-  }
+  },
+  "modes": [
+    {
+      "name": "anthem",
+      "weight": 4,
+      "melody": {
+        "register": [
+          72,
+          96
+        ],
+        "densityPerBar": [
+          5,
+          10
+        ],
+        "contour": {
+          "riff": 0.35,
+          "descend": 0.25,
+          "arch": 0.4
+        },
+        "chordToneBias": 0.78,
+        "octaveJumpProb": 0.18
+      },
+      "chords": {
+        "progressionFamilies": [
+          {
+            "roman": [
+              "I",
+              "V",
+              "vi",
+              "IV"
+            ],
+            "weight": 5
+          },
+          {
+            "roman": [
+              "vi",
+              "IV",
+              "I",
+              "V"
+            ],
+            "weight": 4
+          },
+          {
+            "roman": [
+              "I",
+              "vi",
+              "IV",
+              "V"
+            ],
+            "weight": 3
+          }
+        ],
+        "harmonicRhythm": {
+          "values": [
+            "1_per_bar"
+          ],
+          "weights": [
+            1
+          ]
+        }
+      },
+      "countermelody": {
+        "densityRatio": 0.6,
+        "styles": {
+          "values": [
+            "octave_echo",
+            "arp"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        }
+      }
+    },
+    {
+      "name": "ballad",
+      "weight": 3,
+      "session": {
+        "bpm": {
+          "min": 70,
+          "max": 92,
+          "mode": 82
+        },
+        "scales": {
+          "values": [
+            "major",
+            "natural_minor"
+          ],
+          "weights": [
+            4,
+            3
+          ]
+        }
+      },
+      "melody": {
+        "register": [
+          67,
+          91
+        ],
+        "densityPerBar": [
+          3,
+          7
+        ],
+        "intervals": {
+          "step": 0.72,
+          "third": 0.22,
+          "leap": 0.06
+        },
+        "contour": {
+          "riff": 0.2,
+          "descend": 0.4,
+          "arch": 0.4
+        },
+        "chordToneBias": 0.82
+      },
+      "chords": {
+        "extensions": {
+          "triad": 0.42,
+          "seventh": 0.44,
+          "ninth": 0.14
+        },
+        "harmonicRhythm": {
+          "values": [
+            "2_bars_per_chord",
+            "1_per_bar"
+          ],
+          "weights": [
+            4,
+            3
+          ]
+        },
+        "susSubstitutionProb": 0.28
+      },
+      "drums": {
+        "kick": {
+          "densityPerBar": [
+            2,
+            3
+          ]
+        },
+        "hihat": {
+          "base": "8th",
+          "fillDensity": 0.3
+        }
+      }
+    },
+    {
+      "name": "club",
+      "weight": 2,
+      "session": {
+        "bpm": {
+          "min": 120,
+          "max": 132,
+          "mode": 126
+        }
+      },
+      "melody": {
+        "densityPerBar": [
+          4,
+          9
+        ],
+        "contour": {
+          "riff": 0.5,
+          "descend": 0.25,
+          "arch": 0.25
+        },
+        "phraseBars": {
+          "values": [
+            2,
+            4
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        }
+      },
+      "chords": {
+        "harmonicRhythm": {
+          "values": [
+            "1_per_bar"
+          ],
+          "weights": [
+            1
+          ]
+        }
+      },
+      "drums": {
+        "kick": {
+          "densityPerBar": 4,
+          "anchors": [
+            "1",
+            "2",
+            "3",
+            "4"
+          ],
+          "syncopation": 0.1
+        },
+        "hihat": {
+          "base": "16th",
+          "fillDensity": 0.6,
+          "openHat": {
+            "prob": 0.6,
+            "pos": [
+              "1&",
+              "2&",
+              "3&",
+              "4&"
+            ],
+            "perBar": [
+              2,
+              4
+            ]
+          }
+        }
+      }
+    }
+  ]
 }

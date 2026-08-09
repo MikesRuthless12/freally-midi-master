@@ -48,7 +48,9 @@
     "shipped": "Yerleşik",
     "silent": "Ses yok",
     "choosing": "Seçiliyor…",
-    "clearOne": "{{lane}} kanalındaki one-shot örneğini kaldır"
+    "clearOne": "{{lane}} kanalındaki one-shot örneğini kaldır",
+    "randomize": "Bu klasörden kilitli olmayan her pad’i yeniden çek",
+    "randomizeOne": "{{lane}} pad’ini bu klasörden yeniden çek"
   },
   "sections": {
     "genres": "Türler",
@@ -429,5 +431,44 @@
     "key": "{{key}} {{scale}}",
     "halfTime": "half-time",
     "moods": "{{count}} mod"
+  },
+  "styles": {
+    "original": "Kendi akışın",
+    "originalHint": "Kendi tarzını oluştur",
+    "mine": "Senin",
+    "title": "Tarz düzenleyici",
+    "name": "Ad",
+    "namePlaceholder": "Karanlık trap’im",
+    "basedOn": "Şunu temel alır",
+    "basedOnHint": "Tarzın, geçersiz kılmadığın her şeyi devralır — sonraki iyileştirmeler dâhil.",
+    "tempo": "Tempo",
+    "swing": "Swing",
+    "hats": "Hi-hat yoğunluğu",
+    "melody": "Melodi yoğunluğu",
+    "scales": "Diziler",
+    "scalesHint": "Yalnızca {{name}} adlı sanatçının kaydettiği diziler.",
+    "save": "Tarzı kaydet",
+    "delete": "{{name}} sil",
+    "export": "Dışa aktar",
+    "import": "İçe aktar",
+    "nameNeeded": "Tarzına bir ad ver.",
+    "saved": "{{name}} olarak kaydedildi",
+    "keep": "Bu kaydı eğitim için sakla",
+    "kept": "{{count}} / {{needed}} saklandı",
+    "train": "Eğit",
+    "trained": "{{count}} üretimle eğitildi",
+    "samplesHeading": "Sesleri",
+    "samplesNote": "Tarzın atadığın one-shot’ları saklayabilir. Bu bilgisayara kopyalanırlar; böylece orijinalleri taşısan ya da silsen de çalışmaya devam ederler ve diskinde o kadar daha fazla yer kaplarlar. Bunu işaretlemezsen hiçbir şey kopyalanmaz.",
+    "samplesCopy": "{{count}} örneği ({{size}}) bu bilgisayara kopyala",
+    "samplesCopied": "{{count}} örnek kopyalandı",
+    "edit": "{{name}} düzenle"
+  },
+  "kits": {
+    "heading": "Kayıtlı kitler",
+    "name": "Kit adı",
+    "save": "Kiti kaydet",
+    "none": "Henüz kayıtlı kit yok. Birkaç örnek ata, ad ver, bir dahakine burada olsunlar.",
+    "delete": "{{name}} sil",
+    "duplicate": "{{name}} kitini yazdığın adla kopyala"
   }
 }

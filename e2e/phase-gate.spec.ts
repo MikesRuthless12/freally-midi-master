@@ -30,7 +30,13 @@ test.describe('Phase gate — UI contract', () => {
     await expect(page.getByLabel('Search an artist')).toBeVisible();
     await expect(page.getByRole('tablist', { name: 'Generator' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Generate', exact: true })).toBeVisible();
-    await expect(page.getByRole('button', { name: /Kit/i })).toBeVisible();
+    // ⚠ **The panel *header*, located as one.** This asked for any button
+    // matching /Kit/i, which was unique until the KIT panel gained a "Save kit"
+    // control (TASK-051) — and then the locator resolved to two elements
+    // whenever that panel happened to be expanded, so the gate failed on the
+    // state of a collapsed section rather than on anything it is about. The
+    // claim is "the right rail is present"; `.rail__toggle` is what says so.
+    await expect(page.locator('.rail__toggle', { hasText: /Kit/i })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Play' })).toBeVisible();
   });
 
@@ -145,7 +151,11 @@ test.describe('Phase gate — accessibility', () => {
 
   test('collapsible panels expose aria-expanded', async ({ page }) => {
     for (const name of [/Genres/i, /Roster/i, /Kit/i, /Session/i]) {
-      await expect(page.getByRole('button', { name })).toHaveAttribute(
+      // ⚠ Scoped to the rail's own toggles rather than to any button whose
+      // label happens to contain the word. See the note in "every region" — the
+      // unscoped version broke the moment a panel gained a control named after
+      // the panel, which is a thing panels do.
+      await expect(page.locator('.rail__toggle', { hasText: name })).toHaveAttribute(
         'aria-expanded',
         /true|false/,
       );

@@ -48,7 +48,9 @@
     "shipped": "Incluido",
     "silent": "Sin sonido",
     "choosing": "Eligiendo…",
-    "clearOne": "Quitar el one-shot de {{lane}}"
+    "clearOne": "Quitar el one-shot de {{lane}}",
+    "randomize": "Volver a tirar cada pad no bloqueado desde esta carpeta",
+    "randomizeOne": "Volver a tirar {{lane}} desde esta carpeta"
   },
   "sections": {
     "genres": "Géneros",
@@ -429,5 +431,44 @@
     "key": "{{key}} {{scale}}",
     "halfTime": "medio tiempo",
     "moods": "{{count}} moods"
+  },
+  "styles": {
+    "original": "Flujo original",
+    "originalHint": "Crea un estilo propio",
+    "mine": "Tuyo",
+    "title": "Editor de estilos",
+    "name": "Nombre",
+    "namePlaceholder": "Mi trap oscuro",
+    "basedOn": "Basado en",
+    "basedOnHint": "Tu estilo hereda todo lo que no sobrescribas, incluidas las mejoras futuras.",
+    "tempo": "Tempo",
+    "swing": "Swing",
+    "hats": "Densidad de hi-hats",
+    "melody": "Densidad de melodía",
+    "scales": "Escalas",
+    "scalesHint": "Solo las escalas en las que graba {{name}}.",
+    "save": "Guardar estilo",
+    "delete": "Eliminar {{name}}",
+    "export": "Exportar",
+    "import": "Importar",
+    "nameNeeded": "Ponle un nombre a tu estilo.",
+    "saved": "Guardado como {{name}}",
+    "keep": "Guardar esta toma para entrenar",
+    "kept": "{{count}} / {{needed}} guardadas",
+    "train": "Entrenar",
+    "trained": "Entrenado con {{count}} generaciones",
+    "samplesHeading": "Sus sonidos",
+    "samplesNote": "Tu estilo puede conservar los one-shots que asignaste. Se copian a este ordenador, así que seguirán funcionando si mueves o borras los originales, y ocuparán ese espacio adicional en tu disco. No se copia nada si no marcas esto.",
+    "samplesCopy": "Copiar {{count}} muestras ({{size}}) a este ordenador",
+    "samplesCopied": "Se copiaron {{count}} muestras",
+    "edit": "Editar {{name}}"
+  },
+  "kits": {
+    "heading": "Kits guardados",
+    "name": "Nombre del kit",
+    "save": "Guardar kit",
+    "none": "Aún no hay kits guardados. Asigna algunas muestras, ponles nombre y estarán aquí la próxima vez.",
+    "delete": "Eliminar {{name}}",
+    "duplicate": "Copiar {{name}} con el nombre escrito"
   }
 }

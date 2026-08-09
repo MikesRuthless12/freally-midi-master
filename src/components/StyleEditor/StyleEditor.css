@@ -1,0 +1,275 @@
+/* Tokens only — both themes work with no branch in here, the same rule the
+   Settings overlay follows and for the same reason. */
+
+.styleeditor {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6) var(--space-4);
+  background: rgb(0 0 0 / 0.5);
+}
+
+.styleeditor__panel {
+  display: flex;
+  flex-direction: column;
+  width: min(560px, 100%);
+  max-height: min(640px, 100%);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-float);
+  background: var(--color-surface-2);
+  box-shadow: var(--shadow-float);
+  overflow: hidden;
+}
+
+.styleeditor__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--space-4) var(--space-5);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.styleeditor__head h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-h2);
+  color: var(--color-text);
+}
+
+.styleeditor__body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5);
+  overflow-y: auto;
+}
+
+.styleeditor__field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  border: none;
+  color: var(--color-text-2);
+  font-family: var(--font-ui);
+  font-size: var(--text-small);
+}
+
+.styleeditor__field > span,
+.styleeditor__field > legend {
+  padding: 0;
+  color: var(--color-text);
+}
+
+.styleeditor__field input[type='text'],
+.styleeditor__field input[type='number'],
+.styleeditor__field select {
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--font-ui);
+  font-size: var(--text-body);
+}
+
+.styleeditor__field small {
+  color: var(--color-text-3);
+}
+
+/* ⛔ **The base picker, drawn by this dialog rather than by the OS.** A native
+   `<select>` popup inside WebView2 is positioned against the *window* and scaled
+   by the OS: with thirty models in it, it filled most of the screen and floated
+   away from the field. Anchored here, the same width as the control, and bounded
+   in height so a long roster scrolls instead of growing. */
+.styleeditor__combo {
+  position: relative;
+}
+
+.styleeditor__combo-button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-family: var(--font-ui);
+  font-size: var(--text-body);
+  text-align: start;
+  cursor: pointer;
+}
+
+.styleeditor__combo-button:hover {
+  border-color: var(--color-text-3);
+}
+
+.styleeditor__menu {
+  position: absolute;
+  /* Under the label *and* the button, which is what "underneath the combobox"
+     means — the label is the first child of the field. */
+  top: calc(100% - 1.2rem);
+  inset-inline: 0;
+  z-index: 10;
+  max-height: 240px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-2);
+  box-shadow: var(--shadow-float);
+}
+
+.styleeditor__menu button {
+  display: block;
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: none;
+  background: transparent;
+  color: var(--color-text-2);
+  font-family: var(--font-ui);
+  font-size: var(--text-small);
+  text-align: start;
+  cursor: pointer;
+}
+
+.styleeditor__menu button:hover {
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+.styleeditor__menu button[aria-selected='true'] {
+  color: var(--color-primary);
+}
+
+/* The two ends of a range sit side by side; everything else stacks. */
+.styleeditor__field input[type='number'] {
+  display: inline-block;
+  width: 6rem;
+  margin-inline-end: var(--space-2);
+}
+
+.styleeditor__scales {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: var(--space-2) var(--space-4);
+  align-items: center;
+}
+
+.styleeditor__scales legend {
+  width: 100%;
+}
+
+.styleeditor__scales label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-text-2);
+}
+
+.styleeditor__scales small {
+  width: 100%;
+}
+
+.styleeditor__error {
+  margin: 0;
+  padding: 0 var(--space-5) var(--space-3);
+  color: var(--color-error);
+  font-family: var(--font-ui);
+  font-size: var(--text-small);
+}
+
+.styleeditor__saved {
+  margin: 0;
+  padding: 0 var(--space-5) var(--space-3);
+  color: var(--color-text-3);
+  font-family: var(--font-ui);
+  font-size: var(--text-small);
+}
+
+/* The sample-copy consent. Set apart from the form with a rule and the accent
+   border, because it is the one control here that spends something of the
+   producer's — disk space — rather than describing a sound. */
+.styleeditor__samples {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0 var(--space-5) var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-inline-start: 2px solid var(--color-primary);
+  border-radius: var(--radius-control);
+  color: var(--color-text-2);
+  font-family: var(--font-ui);
+  font-size: var(--text-small);
+}
+
+.styleeditor__samples strong {
+  color: var(--color-text);
+}
+
+.styleeditor__samples label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.styleeditor__samples small {
+  color: var(--color-text-3);
+}
+
+/* `18 / 30 kept` — shown rather than the Train button being greyed out with no
+   explanation. A count is something a producer can act on; a dead control is
+   not. */
+.styleeditor__kept {
+  margin: 0;
+  padding: 0 var(--space-5) var(--space-3);
+  color: var(--color-text-3);
+  font-family: var(--font-mono);
+  font-size: var(--text-small);
+}
+
+.styleeditor__foot {
+  display: flex;
+  gap: var(--space-2);
+  justify-content: flex-end;
+  padding: var(--space-4) var(--space-5);
+  border-top: 1px solid var(--color-border);
+}
+
+/* The pinned row that opens all this. It sits above the search box and every
+   rail section, because it is the way in to building your own and cannot be
+   something you scroll to find (TASK-040U). */
+.rail__original {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-control);
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+  color: var(--color-text);
+  font-family: var(--font-ui);
+  font-size: var(--text-small);
+  text-align: start;
+  cursor: pointer;
+}
+
+.rail__original:hover {
+  background: color-mix(in srgb, var(--color-primary) 20%, transparent);
+}
+
+.rail__original small {
+  color: var(--color-text-3);
+}

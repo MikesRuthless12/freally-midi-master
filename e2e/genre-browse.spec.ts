@@ -64,3 +64,31 @@ test('the pane says what the selection tends to do, before you generate', async 
   await genre.first().click();
   await expect(pane.locator('.artistpane__name')).toContainText(genreName);
 });
+
+test('a genre chip does not tell you it cannot be clicked', async ({ page }) => {
+  // ⛔⛔ **`.chip` carried `cursor: not-allowed` from TASK-004 until 2026-08-09,
+  // and Mike found it.** The layout shell drew these as inert placeholders;
+  // TASK-028 wired every one to `select(genre.id)` and left the cursor behind.
+  // So the product's only genre picker showed a "no entry" symbol over a control
+  // that worked perfectly.
+  //
+  // ⚠ **The first test in this file was green for every one of those months**,
+  // which is the point of this one: `click()` does not consult the cursor and
+  // neither does the DOM, so a control can be fully wired, fully asserted, and
+  // still be telling the producer it is dead. Only the computed style says what
+  // they are actually being shown.
+  const chip = page.locator('.chips .chip').first();
+  await expect(chip).toBeVisible();
+  await expect(chip).toHaveCSS('cursor', 'pointer');
+
+  // ⚠ The other half of the same defect: the button has always set
+  // `aria-pressed`, and nothing drew it — so the chips could not say which
+  // genre was selected either. Compared against this chip's own idle border
+  // rather than a sibling's, because selecting a genre cross-filters the row
+  // and there may be no sibling left to compare with.
+  const idle = await chip.evaluate((el) => getComputedStyle(el).borderColor);
+  await chip.click();
+  await expect(chip).toHaveAttribute('aria-pressed', 'true');
+  const pressed = await chip.evaluate((el) => getComputedStyle(el).borderColor);
+  expect(pressed).not.toBe(idle);
+});

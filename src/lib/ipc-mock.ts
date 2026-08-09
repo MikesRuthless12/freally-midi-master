@@ -24,6 +24,36 @@ import type {
 
 type Handler = (args?: InvokeArgs) => unknown;
 
+/**
+ * Styles saved during this page's life, so the roster can show them.
+ *
+ * ⚠ Deliberately not persisted. The real store writes to the platform data
+ * directory and the browser has none; a fake that survived a reload would be a
+ * second implementation of the thing `plugin/src/models.rs` already tests.
+ */
+const userModels = new Map<
+  string,
+  { entry: RosterSummary['entries'][number]; model: Record<string, unknown> }
+>();
+
+/**
+ * Every sample path the page has asked to copy this page load.
+ *
+ * ⛔ Exposed on `window` so a Playwright spec can assert the **negative** —
+ * that saving with the consent box unticked copies nothing. A test that can
+ * only see what did happen cannot check a gate.
+ */
+const copiedSamples: string[] = [];
+
+/** The mock kit's assigned samples, as the plugin would source them. */
+const assignedSamplePaths = (): string[] =>
+  (handlers.kit_state() as { lanes: { path: string | null }[] }).lanes
+    .map((lane) => lane.path)
+    .filter((path): path is string => path !== null);
+
+/** Kits saved during this page life, so the panel has something to list. */
+const savedKits = new Map<string, { id: string; name: string; lanes: number }>();
+
 const handlers: Record<string, Handler> = {
   // Exactly the shape `app_info` returns in plugin/src/bridge.rs — no more, no
   // fewer. It used to omit `arch` and invent two fields the command has never
@@ -54,6 +84,7 @@ const handlers: Record<string, Handler> = {
         genres: ['trap'],
         relatedGenres: [],
         era: '2010s',
+        mine: false,
       },
       {
         id: 'uk-drill',
@@ -64,6 +95,7 @@ const handlers: Record<string, Handler> = {
         genres: ['drill'],
         relatedGenres: [],
         era: '2018-',
+        mine: false,
       },
       {
         id: 'mock-artist',
@@ -78,7 +110,11 @@ const handlers: Record<string, Handler> = {
         // uncurated-dataset path, which is the one that does nothing.
         relatedGenres: ['trap'],
         era: null,
+        mine: false,
       },
+      // Appended rather than sorted in, exactly as `dataset::roster()` does it:
+      // the rail decides where a producer's own styles appear, not the loader.
+      ...[...userModels.values()].map((saved) => saved.entry),
     ],
     problems: [],
   }),
@@ -105,6 +141,94 @@ const handlers: Record<string, Handler> = {
     swing: { grid: 'sixteenth', amount: 0.54 },
     halfTime: true,
   }),
+
+  // The producer's own styles (TASK-040U). ⛔ **In memory and per page load**,
+  // not a fake filesystem: the store, its slug rules and its refusals are Rust
+  // and are tested there. What a browser can test is the screen — that saving
+  // puts a row in the roster marked as yours, that reopening it shows what was
+  // saved, and that deleting takes it away — so the mock does exactly enough to
+  // let those be asserted, and no more.
+  user_model_save: (args?: InvokeArgs) => {
+    const model = (args as { model?: Record<string, unknown> } | undefined)?.model ?? {};
+    const id = String(model.id ?? '');
+    if (id === '') throw new Error('a model needs an `id`');
+
+    const entry = {
+      id,
+      name: String(model.name ?? id),
+      aliases: [],
+      type: 'artist' as const,
+      tier: null,
+      genres: Array.isArray(model.genres) ? (model.genres as string[]) : [],
+      relatedGenres: Array.isArray(model.relatedGenres)
+        ? (model.relatedGenres as string[])
+        : [],
+      era: null,
+      mine: true,
+    };
+    userModels.set(id, { entry, model });
+    return entry;
+  },
+
+  user_model_delete: (args?: InvokeArgs) => {
+    userModels.delete(String((args as { id?: string } | undefined)?.id ?? ''));
+    return undefined;
+  },
+
+  // The sample-copy consent (TASK-049, on the owner's instruction 2026-08-09).
+  // ⚠ **Two handlers, mirroring the two commands**, because the split *is* the
+  // gate: a save can never copy, and only an explicit call does. The mock
+  // records what it was asked to copy so a spec can assert that an unticked box
+  // asks for nothing.
+  user_model_sample_cost: () => {
+    // ⚠ No `paths` argument, and that is the security fix rather than a
+    // simplification: the plugin sources the assignments itself, so the page
+    // cannot name a file to be measured.
+    const paths = assignedSamplePaths();
+    return { count: paths.length, bytes: paths.length * 1_500_000 };
+  },
+
+  user_model_copy_samples: () => {
+    const paths = assignedSamplePaths();
+    copiedSamples.push(...paths);
+    return paths.map((_, at) => `copied-${at}.wav`);
+  },
+
+  user_model_export: (args?: InvokeArgs) => {
+    const id = String((args as { id?: string } | undefined)?.id ?? '');
+    const found = userModels.get(id);
+    if (found === undefined) throw new Error(`no model \`${id}\``);
+    return JSON.stringify(found.model, null, 2);
+  },
+
+  user_model_import: (args?: InvokeArgs) => {
+    const text = String((args as { text?: string } | undefined)?.text ?? '');
+    return handlers.user_model_save({ model: JSON.parse(text) as Record<string, unknown> });
+  },
+
+  // Training (TASK-040T). ⛔ **The floor is echoed, not re-implemented.** The
+  // fit, its constraints and the variety gate are `engine/src/fit.rs` and are
+  // measured there over a thousand seeds — a browser fixture that pretended to
+  // do any of that would be a second, worse trainer. What the page needs from
+  // this is the one behaviour it draws: enough kept, or a refusal that names the
+  // shortfall.
+  user_model_train: (args?: InvokeArgs) => {
+    const request = args as
+      { id?: string; name?: string; base?: string; kept?: unknown[] } | undefined;
+    const kept = request?.kept?.length ?? 0;
+    if (kept < 30)
+      throw new Error(`${kept} of 30 kept — keep more generations before training`);
+
+    return handlers.user_model_save({
+      model: {
+        id: request?.id ?? '',
+        name: request?.name ?? '',
+        extends: [request?.base ?? 'trap'],
+        genres: [],
+        notes: `Trained on ${kept} kept generations.`,
+      },
+    });
+  },
 
   // Generation. A real four-bar pattern rather than an empty one, because the
   // grid is the thing under test: kick on every beat, a backbeat snare, and
@@ -321,13 +445,18 @@ const handlers: Record<string, Handler> = {
   // the drum generator can write that lane and no shipped pad has ever played
   // it. A fixture that quietly made it `true` would hide the one state the
   // panel exists to be able to show.
+  // ⚠ **One lane carries a producer's own sample**, and it is `kick` rather than
+  // `melody` because `kit-panel.spec.ts` asserts `melody` reads "Built in". A
+  // fixture with no assignment at all could never exercise the sample-copy
+  // consent, which is a gate — and a gate with no test is the thing this
+  // codebase keeps writing down.
   kit_state: () => ({
     id: 'trap-default',
     lanes: ALL_LANES.map((lane) => ({
       lane,
       shipped: lane !== 'snap',
-      name: null,
-      path: null,
+      name: lane === 'kick' ? 'my-kick.wav' : null,
+      path: lane === 'kick' ? 'C:/samples/my-kick.wav' : null,
     })),
   }),
 
@@ -336,6 +465,32 @@ const handlers: Record<string, Handler> = {
   // `export_status` above reports a cancelled export: `done` would claim a file
   // was read in a shell that cannot read files, and cancelled is the one
   // outcome that is true here.
+  // TASK-050A. The pick rule, the seeding and the threading are Rust and are
+  // tested there; what the page needs from this is that the command exists and
+  // that a kit with every pad locked never reaches it.
+  kit_randomize: () => undefined,
+
+  // Named kits (TASK-051). ⚠ In memory and per page load, like the user
+  // models above: the store, its slug rule and its refusals are Rust and are
+  // tested there. What a browser can show is the panel.
+  kits_list: () => [...savedKits.values()],
+  kits_save: (args?: InvokeArgs) => {
+    const name = String((args as { name?: string } | undefined)?.name ?? '');
+    const id = name
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+    const summary = { id, name, lanes: 1 };
+    savedKits.set(id, summary);
+    return summary;
+  },
+  kits_load: () => undefined,
+  kits_rename: () => undefined,
+  kits_duplicate: (args?: InvokeArgs) => handlers.kits_save(args),
+  kits_delete: (args?: InvokeArgs) => {
+    savedKits.delete(String((args as { id?: string } | undefined)?.id ?? ''));
+    return undefined;
+  },
   one_shot_assign: () => undefined,
   one_shot_clear: () => undefined,
   one_shot_status: () => ({ state: 'cancelled' }),
@@ -670,7 +825,22 @@ function mockDensity(pattern: Pattern): number[] {
   return busiest <= 0 ? counts : counts.map((count) => count / busiest);
 }
 
+/**
+ * What the page has asked to copy, for a spec to assert the negative.
+ *
+ * ⛔ A gate is only tested by checking that nothing happened when it was shut.
+ * `window.__freallyCopiedSamples` is how Playwright can see that.
+ */
+declare global {
+  interface Window {
+    __freallyCopiedSamples?: string[];
+  }
+}
+
 export async function mockInvoke<T>(command: string, args?: InvokeArgs): Promise<T> {
+  if (typeof window !== 'undefined') {
+    window.__freallyCopiedSamples = copiedSamples;
+  }
   const handler = handlers[command];
   if (!handler) {
     throw new Error(

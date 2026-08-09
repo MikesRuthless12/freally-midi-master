@@ -575,6 +575,60 @@ fn is_audio(path: &Path) -> bool {
         .unwrap_or(false)
 }
 
+/// The longest MIDI file this will read, in bytes.
+///
+/// A four-bar loop is a couple of kilobytes; a megabyte is a type-1 orchestral
+/// score, and reading one into a training set is not what anybody meant. Bounded
+/// before the read rather than after, so an enormous file costs a `metadata`
+/// call rather than the memory.
+const MAX_MIDI_BYTES: u64 = 1 << 20;
+
+/// Read a `.mid` from the producer's own library as a trainable pattern
+/// (TASK-040T).
+///
+/// ⛔ **The same two guards `waveform` needs, and for the same reasons.** The
+/// path arrives from the page: `refuse_remote` first, because a UNC path makes
+/// the SMB redirector authenticate outward before any containment check could
+/// refuse it; then containment, because the module's claim is that browsing
+/// cannot leave the folders the producer added, and a reader that ignored it
+/// would be a second door out of the library.
+pub fn midi_pattern(
+    explorer: &Explorer,
+    path: &str,
+    part: engine::pattern::Part,
+) -> Result<engine::pattern::Pattern, String> {
+    let file = Path::new(path);
+    crate::oneshot::refuse_remote(file)?;
+
+    // ⚠ **One error for every outcome**, as `open` does: distinct messages
+    // would let a page map the disk one probe at a time.
+    let refused = || String::from("that is not a MIDI file in your sample library");
+    if !explorer.contains(file) {
+        return Err(refused());
+    }
+    if !file
+        .extension()
+        .and_then(|e| e.to_str())
+        .is_some_and(|e| e.eq_ignore_ascii_case("mid") || e.eq_ignore_ascii_case("midi"))
+    {
+        return Err(refused());
+    }
+
+    let size = std::fs::metadata(file)
+        .map(|meta| meta.len())
+        .map_err(|_| refused())?;
+    if size > MAX_MIDI_BYTES {
+        return Err("that MIDI file is too large to train from".into());
+    }
+
+    let bytes = std::fs::read(file).map_err(|_| refused())?;
+    let name = file
+        .file_stem()
+        .map(|stem| stem.to_string_lossy().into_owned())
+        .unwrap_or_else(|| "imported".to_owned());
+    engine::smf_read::smf_to_pattern(&bytes, part, &name)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -842,6 +896,52 @@ mod tests {
             explorer.snapshot().is_empty(),
             "a remote root must not survive a restore: {:?}",
             explorer.snapshot()
+        );
+    }
+
+    #[test]
+    fn reading_midi_applies_the_same_two_guards_as_every_other_path_command() {
+        // ⛔⛔ **Asserted together, because the last time this file grew a
+        // command it grew with only one of them.** `explorer_drop` applied
+        // `refuse_remote` and not containment, and a security review had to
+        // find it. A third door — this one — is exactly where that repeats, so
+        // both halves are pinned here rather than trusted.
+        use engine::pattern::Part;
+
+        let explorer = Explorer::default();
+
+        // The remote guard, and it must fire *before* containment — a UNC
+        // string makes the SMB redirector authenticate outward on the first
+        // syscall, so refusing afterwards is cold comfort.
+        let remote = midi_pattern(
+            &explorer,
+            "\\\\evil.example.com\\share\\a.mid",
+            Part::Melody,
+        )
+        .unwrap_err();
+        assert!(
+            !remote.contains("sample library"),
+            "a UNC path must be refused by the remote guard first: {remote}"
+        );
+
+        // And containment: a real, readable file outside the library is refused
+        // in the same words as one that does not exist, so the page cannot use
+        // this to map the disk.
+        let dir = temp("midi-outside");
+        let outside = dir.join("loop.mid");
+        std::fs::write(&outside, b"MThd").unwrap();
+
+        let uncontained =
+            midi_pattern(&explorer, outside.to_str().unwrap(), Part::Melody).unwrap_err();
+        let missing = midi_pattern(
+            &explorer,
+            dir.join("nope.mid").to_str().unwrap(),
+            Part::Melody,
+        )
+        .unwrap_err();
+        assert_eq!(
+            uncontained, missing,
+            "existing and missing must be indistinguishable outside the library"
         );
     }
 

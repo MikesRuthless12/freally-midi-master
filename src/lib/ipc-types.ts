@@ -194,7 +194,20 @@ export type RosterEntry = { id: string, name: string, aliases: Array<string>, ty
  * own — `rap`, `drill` — that name no model at all. Every id here has been
  * checked to name a real `genre`; see [`unknown_related_genres`].
  */
-relatedGenres: Array<string>, era: string | null, };
+relatedGenres: Array<string>, era: string | null, 
+/**
+ * The producer's own model rather than a shipped one (TASK-040U).
+ *
+ * ⛔ **Set by whoever loaded it, not by the loader.** The engine has no idea
+ * where a file came from — `load` is handed `(path, text)` pairs and its
+ * rules are the same for all of them, which is exactly what makes a user
+ * model first-class. The app knows which half it read from disk, so the app
+ * is what marks them; this defaults to `false` and the plugin flips it.
+ *
+ * It carries no behaviour. A user model searches, generates, locks and
+ * re-rolls identically — this is only so the roster can *say* it is yours.
+ */
+mine: boolean, };
 
 /**
  * What `roster_summary` returns (PRD § 4).

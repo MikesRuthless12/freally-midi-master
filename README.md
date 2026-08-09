@@ -76,6 +76,23 @@ the result into FL Studio, Ableton, Logic, Reaper, or anything else.
 - **Search an artist, not a genre.** Instant fuzzy autosuggest across a mainstream
   roster and an underground roster. Genres exist as a browse filter, not the unit of
   generation.
+- **Every artist has moods, not one sound.** Pick a mood beside the artist and
+  stay there, or leave it on *Any* and let each press walk their range —
+  boom bap's *dusty / jazzy / hard*, phonk's *cowbell / memphis / brazilian*,
+  trap's *dark / bounce / melodic / minimal*. One artist writes more than one kind
+  of record, and the seed alone could never cross between them.
+- **Build a style of your own, and train it on what you keep.** Start from any
+  artist or genre, adjust the tempo range, swing, hat density, melody density and
+  scales, and save it — it appears in the roster marked *Yours* and generates,
+  locks, re-rolls and exports exactly like a shipped one, because it is one. Star
+  the takes you like and Train fits a style to them. **No machine learning
+  anywhere in it**: it measures your generations and writes the numbers back, and
+  a style that would only repeat itself is refused rather than saved. Your own
+  `.mid` files can train it too.
+- **Nothing copies your samples without asking.** A style can keep the one-shots
+  you assigned so they survive you moving the originals — and because that is a
+  second copy on your drive, it tells you how many files and how many megabytes
+  first, unticked.
 - **Five generators, plus Song Mode.** Drums · Melody · Countermelody · Bassline ·
   Chords — plus Song Mode, which is not a sixth generator but an arrangement that
   fills all five in. Drums has a pad grid; the other four have a piano roll.
@@ -94,7 +111,15 @@ the result into FL Studio, Ableton, Logic, Reaper, or anything else.
   on melody, countermelody, bassline or chords — WAV, AIFF, FLAC, MP3, M4A or
   OGG. A sample browser keeps your folders and brings them back with the
   project. The synthesized kit that ships in the binary is the default, not the
-  ceiling.
+  ceiling. A sample recorded at a different rate from the kit around it is
+  converted once, properly filtered, when you load it — rather than stretched to
+  fit on every note.
+- **Re-roll a pad from the folder you are browsing.** A dice on any lane pulls a
+  new sample from the folder open in the browser, matched to what that lane is —
+  a snare gets snares — and one dice re-rolls the whole kit. Locked pads are left
+  alone. **Name a kit and it is there next time**, in any song: save, load,
+  duplicate or delete it, and it stores the paths rather than copying anybody's
+  audio around.
 - **Edit what you got.** Piano-roll editor and a pad-grid drum sequencer, with
   solo, mute and per-lane audition on every drum row — click a lane's name to
   hear that pad on its own. **Lock what you like and reroll the rest**: a locked
@@ -153,6 +178,15 @@ that half-works inside somebody's session is worse than one that is not there.
 There is **no AI in this product**. No models, no training data, no inference, no
 network calls during generation. The engine is deterministic procedural code reading
 hand-authored style parameters derived from published research.
+
+⛔ **This holds for "train your own style" too, and the word is worth being exact
+about.** Training here is **parameter fitting**: the app measures the takes you
+kept — how many onsets a bar, what register, what shape the line made — and
+writes those ranges back as an ordinary style model, the same kind of file the
+shipped artists are. There is no model, nothing is learned from anybody else's
+music, and nothing leaves your machine. A build with an AI or an HTTP client
+anywhere in its dependency graph fails CI: `scripts/check-denylist.mjs` walks
+every resolved crate and every production npm package on every push.
 
 That is a legal architecture as much as a technical one: nothing here is copied MIDI,
 sampled audio, or a transcription of anyone's record, and there is no feature that

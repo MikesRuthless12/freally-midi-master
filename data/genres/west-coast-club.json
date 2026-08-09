@@ -403,5 +403,184 @@
   },
   "kit": {
     "preview": "club-default"
-  }
+  },
+  "modes": [
+    {
+      "name": "mustard",
+      "weight": 4,
+      "melody": {
+        "densityPerBar": [
+          2,
+          5
+        ],
+        "motifPitchCount": [
+          2,
+          4
+        ],
+        "contour": {
+          "riff": 0.7,
+          "descend": 0.2,
+          "arch": 0.1
+        },
+        "chordToneBias": 0.8
+      },
+      "chords": {
+        "extensions": {
+          "triad": 0.82,
+          "seventh": 0.16,
+          "ninth": 0.02
+        },
+        "harmonicRhythm": {
+          "values": [
+            "1_per_bar"
+          ],
+          "weights": [
+            1
+          ]
+        }
+      },
+      "countermelody": {
+        "densityRatio": 0.3,
+        "styles": {
+          "values": [
+            "answer_lick"
+          ],
+          "weights": [
+            1
+          ]
+        }
+      },
+      "drums": {
+        "hihat": {
+          "fillDensity": 0.25,
+          "openHat": {
+            "prob": 0.7,
+            "perBar": [
+              2,
+              3
+            ]
+          }
+        }
+      }
+    },
+    {
+      "name": "ratchet",
+      "weight": 3,
+      "session": {
+        "bpm": {
+          "min": 100,
+          "max": 114,
+          "mode": 106
+        }
+      },
+      "melody": {
+        "densityPerBar": [
+          3,
+          7
+        ],
+        "motifPitchCount": [
+          3,
+          5
+        ],
+        "octaveJumpProb": 0.18,
+        "phraseBars": {
+          "values": [
+            1,
+            2
+          ],
+          "weights": [
+            2,
+            3
+          ]
+        }
+      },
+      "chords": {
+        "harmonicRhythm": {
+          "values": [
+            "1_per_bar",
+            "2_bars_per_chord"
+          ],
+          "weights": [
+            4,
+            2
+          ]
+        }
+      },
+      "drums": {
+        "kick": {
+          "densityPerBar": [
+            3,
+            5
+          ],
+          "syncopation": 0.55,
+          "offbeat8thShare": 0.4
+        },
+        "hihat": {
+          "base": "16th",
+          "fillDensity": 0.42,
+          "rolls": {
+            "freqPerBar": 0.35
+          }
+        }
+      }
+    },
+    {
+      "name": "smooth",
+      "weight": 2,
+      "session": {
+        "scales": {
+          "values": [
+            "dorian",
+            "natural_minor"
+          ],
+          "weights": [
+            3,
+            3
+          ]
+        }
+      },
+      "melody": {
+        "register": [
+          62,
+          86
+        ],
+        "densityPerBar": [
+          3,
+          8
+        ],
+        "intervals": {
+          "step": 0.68,
+          "third": 0.26,
+          "leap": 0.06
+        },
+        "contour": {
+          "riff": 0.35,
+          "descend": 0.3,
+          "arch": 0.35
+        },
+        "chordToneBias": 0.84
+      },
+      "chords": {
+        "extensions": {
+          "triad": 0.3,
+          "seventh": 0.5,
+          "ninth": 0.2
+        },
+        "susSubstitutionProb": 0.28
+      },
+      "countermelody": {
+        "densityRatio": 0.5,
+        "styles": {
+          "values": [
+            "sustain_pad",
+            "arp"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        }
+      }
+    }
+  ]
 }

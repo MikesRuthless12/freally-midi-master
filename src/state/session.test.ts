@@ -45,6 +45,7 @@ const ROSTER: RosterEntry[] = [
     genres: [],
     relatedGenres: [],
     era: null,
+    mine: false,
   },
   {
     id: 'uk-drill',
@@ -55,6 +56,7 @@ const ROSTER: RosterEntry[] = [
     genres: [],
     relatedGenres: [],
     era: null,
+    mine: false,
   },
 ];
 

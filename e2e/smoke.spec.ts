@@ -63,7 +63,10 @@ test('controls that cannot work yet are disabled rather than merely inert', asyn
 });
 
 test('K toggles the right rail', async ({ page }) => {
-  const kit = page.getByRole('button', { name: /Kit/i });
+  // ⚠ The KIT panel's *header*, not any button named after it: the panel gained
+  // a "Save kit" control (TASK-051), and an unscoped /Kit/i locator resolves to
+  // two elements whenever the panel is expanded.
+  const kit = page.locator('.rail__toggle', { hasText: /Kit/i });
   await expect(kit).toBeVisible();
 
   await page.keyboard.press('k');

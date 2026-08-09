@@ -48,7 +48,9 @@
     "shipped": "Có sẵn",
     "silent": "Không có tiếng",
     "choosing": "Đang chọn…",
-    "clearOne": "Xoá one-shot trên {{lane}}"
+    "clearOne": "Xoá one-shot trên {{lane}}",
+    "randomize": "Bốc lại mọi pad chưa khoá từ thư mục này",
+    "randomizeOne": "Bốc lại {{lane}} từ thư mục này"
   },
   "sections": {
     "genres": "Thể loại",
@@ -429,5 +431,44 @@
     "key": "{{key}} {{scale}}",
     "halfTime": "half-time",
     "moods": "{{count}} tâm trạng"
+  },
+  "styles": {
+    "original": "Quy trình riêng",
+    "originalHint": "Tạo phong cách của riêng bạn",
+    "mine": "Của bạn",
+    "title": "Trình soạn phong cách",
+    "name": "Tên",
+    "namePlaceholder": "Trap tối của tôi",
+    "basedOn": "Dựa trên",
+    "basedOnHint": "Phong cách của bạn kế thừa mọi thứ bạn không ghi đè, kể cả các cải tiến về sau.",
+    "tempo": "Nhịp độ",
+    "swing": "Swing",
+    "hats": "Mật độ hi-hat",
+    "melody": "Mật độ giai điệu",
+    "scales": "Thang âm",
+    "scalesHint": "Chỉ những thang âm mà {{name}} thu âm.",
+    "save": "Lưu phong cách",
+    "delete": "Xoá {{name}}",
+    "export": "Xuất",
+    "import": "Nhập",
+    "nameNeeded": "Hãy đặt tên cho phong cách của bạn.",
+    "saved": "Đã lưu thành {{name}}",
+    "keep": "Giữ bản này để huấn luyện",
+    "kept": "Đã giữ {{count}} / {{needed}}",
+    "train": "Huấn luyện",
+    "trained": "Đã huấn luyện trên {{count}} lần tạo",
+    "samplesHeading": "Âm thanh của nó",
+    "samplesNote": "Phong cách của bạn có thể giữ các one-shot bạn đã gán. Chúng được sao chép vào máy này, nên vẫn kêu nếu bạn di chuyển hay xoá bản gốc — và chiếm thêm chừng ấy dung lượng ổ đĩa. Không sao chép gì nếu bạn không đánh dấu mục này.",
+    "samplesCopy": "Sao chép {{count}} mẫu ({{size}}) vào máy này",
+    "samplesCopied": "Đã sao chép {{count}} mẫu",
+    "edit": "Sửa {{name}}"
+  },
+  "kits": {
+    "heading": "Bộ kit đã lưu",
+    "name": "Tên kit",
+    "save": "Lưu kit",
+    "none": "Chưa có kit nào được lưu. Gán vài mẫu, đặt tên, lần sau chúng sẽ ở đây.",
+    "delete": "Xoá {{name}}",
+    "duplicate": "Sao chép {{name}} theo tên đã nhập"
   }
 }

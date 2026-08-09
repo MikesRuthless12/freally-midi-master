@@ -370,5 +370,158 @@
   },
   "kit": {
     "preview": "dnb-default"
-  }
+  },
+  "modes": [
+    {
+      "name": "rolling",
+      "weight": 4,
+      "melody": {
+        "densityPerBar": [
+          5,
+          10
+        ],
+        "contour": {
+          "riff": 0.3,
+          "descend": 0.3,
+          "arch": 0.4
+        },
+        "octaveJumpProb": 0.1
+      },
+      "chords": {
+        "harmonicRhythm": {
+          "values": [
+            "2_bars_per_chord",
+            "1_per_bar"
+          ],
+          "weights": [
+            3,
+            3
+          ]
+        }
+      },
+      "drums": {
+        "hihat": {
+          "fillDensity": 0.85
+        },
+        "snare": {
+          "ghost": {
+            "prob": 0.6
+          }
+        }
+      }
+    },
+    {
+      "name": "soulful",
+      "weight": 3,
+      "session": {
+        "scales": {
+          "values": [
+            "dorian",
+            "natural_minor"
+          ],
+          "weights": [
+            3,
+            3
+          ]
+        }
+      },
+      "melody": {
+        "register": [
+          64,
+          88
+        ],
+        "densityPerBar": [
+          3,
+          8
+        ],
+        "intervals": {
+          "step": 0.76,
+          "third": 0.2,
+          "leap": 0.04
+        },
+        "chordToneBias": 0.85
+      },
+      "chords": {
+        "extensions": {
+          "triad": 0.16,
+          "seventh": 0.44,
+          "ninth": 0.4
+        },
+        "voicing": {
+          "style": "open",
+          "register": [
+            46,
+            80
+          ]
+        }
+      },
+      "countermelody": {
+        "densityRatio": 0.55,
+        "styles": {
+          "values": [
+            "arp",
+            "sustain_pad"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        }
+      }
+    },
+    {
+      "name": "atmospheric",
+      "weight": 2,
+      "melody": {
+        "densityPerBar": [
+          2,
+          6
+        ],
+        "emptyBarBias": 0.35,
+        "contour": {
+          "riff": 0.15,
+          "descend": 0.4,
+          "arch": 0.45
+        },
+        "phraseBars": {
+          "values": [
+            4,
+            8
+          ],
+          "weights": [
+            2,
+            3
+          ]
+        }
+      },
+      "chords": {
+        "harmonicRhythm": {
+          "values": [
+            "vamp",
+            "2_bars_per_chord"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        }
+      },
+      "countermelody": {
+        "densityRatio": 0.3,
+        "styles": {
+          "values": [
+            "sustain_pad"
+          ],
+          "weights": [
+            1
+          ]
+        }
+      },
+      "drums": {
+        "hihat": {
+          "fillDensity": 0.55
+        }
+      }
+    }
+  ]
 }

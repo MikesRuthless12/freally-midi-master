@@ -344,5 +344,150 @@
   },
   "kit": {
     "preview": "boom-bap-default"
-  }
+  },
+  "modes": [
+    {
+      "name": "dusty",
+      "weight": 4,
+      "session": {
+        "swing": {
+          "amount": 0.62
+        }
+      },
+      "melody": {
+        "densityPerBar": [
+          2,
+          6
+        ],
+        "contour": {
+          "riff": 0.35,
+          "descend": 0.45,
+          "arch": 0.2
+        },
+        "octaveJumpProb": 0.08
+      },
+      "chords": {
+        "extensions": {
+          "triad": 0.28,
+          "seventh": 0.56,
+          "ninth": 0.16
+        }
+      },
+      "countermelody": {
+        "densityRatio": 0.4,
+        "styles": {
+          "values": [
+            "answer_lick"
+          ],
+          "weights": [
+            1
+          ]
+        }
+      }
+    },
+    {
+      "name": "jazzy",
+      "weight": 3,
+      "session": {
+        "scales": {
+          "values": [
+            "dorian",
+            "natural_minor"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        }
+      },
+      "melody": {
+        "register": [
+          64,
+          88
+        ],
+        "densityPerBar": [
+          4,
+          9
+        ],
+        "intervals": {
+          "step": 0.66,
+          "third": 0.28,
+          "leap": 0.06
+        },
+        "contour": {
+          "riff": 0.25,
+          "descend": 0.3,
+          "arch": 0.45
+        },
+        "chordToneBias": 0.62
+      },
+      "chords": {
+        "extensions": {
+          "triad": 0.18,
+          "seventh": 0.5,
+          "ninth": 0.32
+        },
+        "voicing": {
+          "style": "open"
+        }
+      },
+      "countermelody": {
+        "densityRatio": 0.6,
+        "styles": {
+          "values": [
+            "arp",
+            "answer_lick"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        }
+      }
+    },
+    {
+      "name": "hard",
+      "weight": 2,
+      "session": {
+        "swing": {
+          "amount": 0.52
+        }
+      },
+      "melody": {
+        "densityPerBar": [
+          4,
+          9
+        ],
+        "contour": {
+          "riff": 0.6,
+          "descend": 0.28,
+          "arch": 0.12
+        },
+        "chordToneBias": 0.76
+      },
+      "chords": {
+        "extensions": {
+          "triad": 0.68,
+          "seventh": 0.28,
+          "ninth": 0.04
+        },
+        "harmonicRhythm": {
+          "values": [
+            "1_per_bar",
+            "vamp"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        }
+      },
+      "drums": {
+        "hihat": {
+          "base": "16th",
+          "fillDensity": 0.6
+        }
+      }
+    }
+  ]
 }

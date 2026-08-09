@@ -43,6 +43,8 @@ function shippedRoster(): RosterEntry[] {
         // not worth loading the fixture with.
         relatedGenres: [],
         era: model.era ?? null,
+        // The fixture is the shipped dataset, so none of it is the user's.
+        mine: false,
       });
     }
   }
@@ -163,6 +165,7 @@ describe('search', () => {
       genres: ['trap', 'drill'],
       relatedGenres: [],
       era: null,
+      mine: false,
     }));
 
     const started = performance.now();

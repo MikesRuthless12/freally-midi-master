@@ -38,6 +38,34 @@
   background: var(--color-surface-2);
 }
 
+/* A row that carries an edit control becomes the flex container, so the pencil
+   sits beside the name rather than under it. Only the producer's own styles
+   have one, so every other row is untouched. */
+.roster__items li:has(.roster__edit) {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.roster__edit {
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-text-3);
+  cursor: pointer;
+}
+
+.roster__edit:hover {
+  color: var(--color-text);
+  border-color: var(--color-text-3);
+}
+
 .roster__item--selected {
   background: var(--color-surface-2);
   box-shadow: inset 2px 0 0 var(--color-primary);

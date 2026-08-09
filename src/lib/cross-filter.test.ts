@@ -15,6 +15,7 @@ const model = (
   genres: [],
   relatedGenres,
   era: null,
+  mine: false,
 });
 
 // Two artists over three genres, shaped like the shipped dataset: one artist in

@@ -436,5 +436,148 @@
   },
   "kit": {
     "preview": "plugg-default"
-  }
+  },
+  "modes": [
+    {
+      "name": "zaytoven",
+      "weight": 4,
+      "melody": {
+        "register": [
+          72,
+          96
+        ],
+        "densityPerBar": [
+          5,
+          10
+        ],
+        "intervals": {
+          "step": 0.5,
+          "third": 0.36,
+          "leap": 0.14
+        },
+        "contour": {
+          "riff": 0.6,
+          "descend": 0.2,
+          "arch": 0.2
+        },
+        "octaveJumpProb": 0.2
+      },
+      "chords": {
+        "extensions": {
+          "triad": 0.24,
+          "seventh": 0.46,
+          "ninth": 0.3
+        }
+      },
+      "countermelody": {
+        "densityRatio": 0.6,
+        "styles": {
+          "values": [
+            "arp"
+          ],
+          "weights": [
+            1
+          ]
+        }
+      }
+    },
+    {
+      "name": "dreamy",
+      "weight": 3,
+      "melody": {
+        "densityPerBar": [
+          3,
+          7
+        ],
+        "emptyBarBias": 0.3,
+        "contour": {
+          "riff": 0.35,
+          "descend": 0.35,
+          "arch": 0.3
+        },
+        "chordToneBias": 0.82
+      },
+      "chords": {
+        "harmonicRhythm": {
+          "values": [
+            "vamp",
+            "1_per_bar"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "susSubstitutionProb": 0.42
+      },
+      "drums": {
+        "kick": {
+          "densityPerBar": [
+            2,
+            3
+          ]
+        },
+        "hihat": {
+          "fillDensity": 0.18,
+          "openHat": {
+            "prob": 0.9
+          }
+        }
+      }
+    },
+    {
+      "name": "hyper",
+      "weight": 2,
+      "session": {
+        "bpm": {
+          "min": 145,
+          "max": 160,
+          "mode": 152
+        }
+      },
+      "melody": {
+        "densityPerBar": [
+          6,
+          11
+        ],
+        "octaveJumpProb": 0.22,
+        "phraseBars": {
+          "values": [
+            2,
+            1
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        }
+      },
+      "chords": {
+        "harmonicRhythm": {
+          "values": [
+            "syncopated_cell",
+            "1_per_bar"
+          ],
+          "weights": [
+            4,
+            2
+          ]
+        }
+      },
+      "drums": {
+        "kick": {
+          "densityPerBar": [
+            3,
+            5
+          ]
+        },
+        "hihat": {
+          "fillDensity": 0.45,
+          "rolls": {
+            "freqPerBar": 0.7
+          }
+        }
+      }
+    }
+  ]
 }

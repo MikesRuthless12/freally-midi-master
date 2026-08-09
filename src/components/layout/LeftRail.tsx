@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { Section } from './Section';
+import { StyleEditor } from '../StyleEditor/StyleEditor';
+import '../StyleEditor/StyleEditor.css';
 import { RailResizer } from './RailResizer';
 import { SearchBar } from '../SearchBar/SearchBar';
 import { RosterList } from '../RosterList/RosterList';
@@ -32,6 +34,10 @@ export function LeftRail() {
   // visit. Holding the id alone made that one entry permanently unfilterable:
   // select it, Show all, select something else, select it again — and the rail
   // silently refused to narrow, with nothing on screen explaining why.
+  // `null` is closed; a string is the id of the style being edited, and the
+  // empty string is a new one. Three states rather than two booleans, because
+  // "open" and "which" cannot disagree if there is only one of them.
+  const [editing, setEditing] = useState<string | null>(null);
   const [showAllFor, setShowAllFor] = useState<string | null>(null);
   const [lastSelected, setLastSelected] = useState<string | null>(selectedId);
   if (lastSelected !== selectedId) {
@@ -56,6 +62,22 @@ export function LeftRail() {
 
   return (
     <aside className="rail rail--left">
+      {/* ⛔ **Above the search box and every section, always** (TASK-040U).
+          Mike's rule is that this pins to the top of the roster above every
+          artist and producer, whoever is selected and whatever the search
+          says — it is the way in to building your own, so it cannot be
+          something you scroll to find. It sits outside the roster list rather
+          than inside it for exactly that reason: no alias, tier or filter can
+          reach it. */}
+      <div className="rail__section">
+        <div className="rail__content">
+          <button type="button" className="rail__original" onClick={() => setEditing('')}>
+            {t('styles.original')}
+            <small>{t('styles.originalHint')}</small>
+          </button>
+        </div>
+      </div>
+
       <div className="rail__section">
         <div className="rail__content">
           <SearchBar />
@@ -99,7 +121,7 @@ export function LeftRail() {
             {filteredBy?.type === 'genre' && artists.length === 0 && (
               <p className="rail__hint">{t('roster.noneInGenre', { name: filteredBy.name })}</p>
             )}
-            <RosterList artists={artists} genres={genres} />
+            <RosterList artists={artists} genres={genres} onEdit={setEditing} />
             {/* ⛔ **Under the list rather than beside it**, and the rail's width
                 is why: this column is ~280px and a two-pane layout inside it
                 would give the roster half of that. It reads as a footer to the
@@ -120,6 +142,13 @@ export function LeftRail() {
       </Section>
 
       <RailResizer />
+
+      {editing !== null && (
+        <StyleEditor
+          editing={editing === '' ? null : editing}
+          onClose={() => setEditing(null)}
+        />
+      )}
     </aside>
   );
 }

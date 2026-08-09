@@ -58,3 +58,12 @@
   background: var(--color-surface-2);
   color: var(--color-text-3);
 }
+
+/* A style the producer built themselves (TASK-040U). The one badge in the set
+   drawn in the accent, because it is the only one that is about *them* rather
+   than about the dataset — and it replaces the tier badge rather than joining
+   it, so an inherited FLAGSHIP cannot claim a provenance the style never had. */
+.badge--mine {
+  background: color-mix(in srgb, var(--color-primary) 22%, transparent);
+  color: var(--color-text);
+}

@@ -1,10 +1,10 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Star } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { isTypingTarget } from '../lib/keyboard';
 import { TAB_PART, useSession } from '../state/session';
 import { useUi } from '../state/ui';
-import { counter, madeAt, useVariations } from '../state/variations';
+import { counter, keptKey, madeAt, useVariations } from '../state/variations';
 import './VariationNav.css';
 
 /**
@@ -35,6 +35,8 @@ export function VariationNav() {
   // component re-render when a take lands or the cursor moves.
   useVariations((s) => s.position);
   const step = useVariations((s) => s.step);
+  const kept = useVariations((s) => s.kept);
+  const keep = useVariations((s) => s.keep);
   const recall = useSession((s) => s.recallVariation);
   const generating = useSession((s) => s.generating);
 
@@ -50,6 +52,7 @@ export function VariationNav() {
   const { position: shown, total } = counter(part);
   const at = shown - 1;
   const here = (entries[part] ?? [])[at] ?? null;
+  const isKept = here !== null && kept[keptKey(part, here.seed)] === true;
 
   const go = (delta: number) => {
     const landed = step(part, delta);
@@ -102,6 +105,24 @@ export function VariationNav() {
       >
         <ChevronRight size={14} aria-hidden="true" />
       </button>
+
+      {here !== null && (
+        // ⛔ **Keeping is per take, and it is the input to training**
+        // (TASK-040T). It sits with the arrows because this is where a producer
+        // is when they decide — auditioning one generation against the last —
+        // and a separate panel would mean marking a take somewhere other than
+        // where you heard it.
+        <button
+          type="button"
+          className="btn-ghost variations__keep"
+          aria-pressed={isKept}
+          aria-label={t('styles.keep')}
+          title={t('styles.keep')}
+          onClick={() => keep(part, here.seed, !isKept)}
+        >
+          <Star size={14} aria-hidden="true" />
+        </button>
+      )}
 
       {here !== null && (
         // ⛔ **The tempo and key that were *used*, with the timestamp.** The

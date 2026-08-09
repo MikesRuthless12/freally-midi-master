@@ -285,6 +285,15 @@
   gap: var(--space-2);
 }
 
+/* ⛔ **These were `cursor: not-allowed` until 2026-08-09, and had been live for
+   months.** TASK-004 drew them as inert placeholders in the layout shell;
+   TASK-028 wired every one to `select(genre.id)` and left the cursor behind. So
+   the one genre picker in the product told a producer, in the most direct
+   language a UI has, that it could not be clicked — while clicking it worked.
+   ⚠ **The pressed state is the other half of the same defect.** The button sets
+   `aria-pressed` and nothing drew it, so the chip could not say which genre was
+   selected either. Same treatment as `.btn-ghost`, which is the same shape and
+   already had both. */
 .chip {
   padding: var(--space-1) var(--space-3);
   border: 1px solid var(--color-border);
@@ -293,7 +302,28 @@
   color: var(--color-text-2);
   font-family: var(--font-ui);
   font-size: var(--text-small);
-  cursor: not-allowed;
+  cursor: default;
+}
+
+/* ⚠ **Scoped to `.chips`, because `.chip` is not only the genre picker.** The
+   seed, the session readouts and the sync toggles all wear it, and a bare
+   `.chip:hover` would light up a readout nobody can click — trading one lie for
+   another. `.chips` is the genre row and nothing else. */
+.chips .chip {
+  cursor: pointer;
+  transition:
+    color var(--duration-fast) var(--ease-standard),
+    border-color var(--duration-fast) var(--ease-standard);
+}
+
+.chips .chip:hover {
+  color: var(--color-text);
+  border-color: var(--color-text-3);
+}
+
+.chips .chip[aria-pressed='true'] {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
 }
 
 /* Mono chips carrying a value (seed, BPM, key). */
@@ -707,6 +737,9 @@
   color: var(--color-text);
 }
 
+/* The per-pad dice (TASK-050A). Same 24px square as the clear button beside it,
+   because they are the same kind of thing — a small action on this one row. */
+.kit-lane__dice,
 .kit-lane__clear {
   flex: none;
   display: flex;
@@ -720,8 +753,18 @@
   cursor: pointer;
 }
 
+.kit-lane__dice:hover:not(:disabled),
 .kit-lane__clear:hover:not(:disabled) {
   color: var(--color-text);
+}
+
+/* The kit-wide dice, above the rows: one gesture for every unlocked pad. */
+.kit-dice {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-bottom: var(--space-2);
 }
 
 .kit-error {

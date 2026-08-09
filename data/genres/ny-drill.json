@@ -513,5 +513,172 @@
   },
   "kit": {
     "preview": "drill-default"
-  }
+  },
+  "modes": [
+    {
+      "name": "aggressive",
+      "weight": 4,
+      "melody": {
+        "register": [
+          58,
+          80
+        ],
+        "densityPerBar": [
+          2,
+          5
+        ],
+        "contour": {
+          "riff": 0.65,
+          "descend": 0.25,
+          "arch": 0.1
+        },
+        "chordToneBias": 0.56,
+        "halfStepDissonance": 0.2
+      },
+      "chords": {
+        "extensions": {
+          "triad": 0.92,
+          "seventh": 0.07,
+          "ninth": 0.01
+        }
+      },
+      "drums": {
+        "hihat": {
+          "fillDensity": 0.68,
+          "rolls": {
+            "freqPerBar": 0.6
+          }
+        }
+      }
+    },
+    {
+      "name": "melodic",
+      "weight": 3,
+      "melody": {
+        "register": [
+          62,
+          86
+        ],
+        "densityPerBar": [
+          3,
+          7
+        ],
+        "intervals": {
+          "step": 0.68,
+          "third": 0.26,
+          "leap": 0.06
+        },
+        "contour": {
+          "riff": 0.4,
+          "descend": 0.3,
+          "arch": 0.3
+        },
+        "chordToneBias": 0.74,
+        "halfStepDissonance": 0.06
+      },
+      "chords": {
+        "extensions": {
+          "triad": 0.5,
+          "seventh": 0.4,
+          "ninth": 0.1
+        },
+        "harmonicRhythm": {
+          "values": [
+            "1_per_bar",
+            "2_bars_per_chord"
+          ],
+          "weights": [
+            3,
+            3
+          ]
+        }
+      },
+      "countermelody": {
+        "densityRatio": 0.6,
+        "styles": {
+          "values": [
+            "sustain_pad",
+            "arp"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        }
+      }
+    },
+    {
+      "name": "sample",
+      "weight": 2,
+      "session": {
+        "scales": {
+          "values": [
+            "harmonic_minor",
+            "phrygian"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        }
+      },
+      "melody": {
+        "structure": "call_response",
+        "densityPerBar": [
+          3,
+          7
+        ],
+        "contour": {
+          "riff": 0.3,
+          "descend": 0.35,
+          "arch": 0.35
+        },
+        "twoBarCellRepeat": false
+      },
+      "chords": {
+        "progressionFamilies": [
+          {
+            "roman": [
+              "i",
+              "iv"
+            ],
+            "weight": 4
+          },
+          {
+            "roman": [
+              "VI",
+              "v",
+              "i",
+              "III"
+            ],
+            "weight": 3
+          },
+          {
+            "roman": [
+              "i",
+              "VI",
+              "III"
+            ],
+            "weight": 3
+          },
+          {
+            "roman": [
+              "i",
+              "v",
+              "iv"
+            ],
+            "weight": 2
+          }
+        ],
+        "harmonicRhythm": {
+          "values": [
+            "2_bars_per_chord"
+          ],
+          "weights": [
+            1
+          ]
+        }
+      }
+    }
+  ]
 }

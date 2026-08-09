@@ -48,7 +48,9 @@
     "shipped": "Mitgeliefert",
     "silent": "Kein Klang",
     "choosing": "Wird ausgewählt…",
-    "clearOne": "One-Shot auf {{lane}} entfernen"
+    "clearOne": "One-Shot auf {{lane}} entfernen",
+    "randomize": "Jeden nicht gesperrten Pad aus diesem Ordner neu würfeln",
+    "randomizeOne": "{{lane}} aus diesem Ordner neu würfeln"
   },
   "sections": {
     "genres": "Genres",
@@ -429,5 +431,44 @@
     "key": "{{key}} {{scale}}",
     "halfTime": "Half-Time",
     "moods": "{{count}} Moods"
+  },
+  "styles": {
+    "original": "Eigener Workflow",
+    "originalHint": "Bau dir einen eigenen Stil",
+    "mine": "Deiner",
+    "title": "Stil-Editor",
+    "name": "Name",
+    "namePlaceholder": "Mein dunkler Trap",
+    "basedOn": "Basiert auf",
+    "basedOnHint": "Dein Stil erbt alles, was du nicht überschreibst — auch spätere Verbesserungen.",
+    "tempo": "Tempo",
+    "swing": "Swing",
+    "hats": "Hi-Hat-Dichte",
+    "melody": "Melodiedichte",
+    "scales": "Tonleitern",
+    "scalesHint": "Nur die Tonleitern, in denen {{name}} aufnimmt.",
+    "save": "Stil speichern",
+    "delete": "{{name}} löschen",
+    "export": "Exportieren",
+    "import": "Importieren",
+    "nameNeeded": "Gib deinem Stil einen Namen.",
+    "saved": "Als {{name}} gespeichert",
+    "keep": "Diesen Take fürs Training behalten",
+    "kept": "{{count}} / {{needed}} behalten",
+    "train": "Trainieren",
+    "trained": "Mit {{count}} Generationen trainiert",
+    "samplesHeading": "Seine Sounds",
+    "samplesNote": "Dein Stil kann die zugewiesenen One-Shots behalten. Sie werden auf diesen Rechner kopiert — sie funktionieren also weiter, wenn du die Originale verschiebst oder löschst, und belegen entsprechend mehr Platz auf deiner Festplatte. Ohne dieses Häkchen wird nichts kopiert.",
+    "samplesCopy": "{{count}} Samples ({{size}}) auf diesen Rechner kopieren",
+    "samplesCopied": "{{count}} Samples kopiert",
+    "edit": "{{name}} bearbeiten"
+  },
+  "kits": {
+    "heading": "Gespeicherte Kits",
+    "name": "Kit-Name",
+    "save": "Kit speichern",
+    "none": "Noch keine gespeicherten Kits. Weise Samples zu, gib ihnen einen Namen, und sie sind beim nächsten Mal hier.",
+    "delete": "{{name}} löschen",
+    "duplicate": "{{name}} unter dem eingegebenen Namen kopieren"
   }
 }

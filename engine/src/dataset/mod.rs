@@ -209,6 +209,18 @@ pub struct RosterEntry {
     /// checked to name a real `genre`; see [`unknown_related_genres`].
     pub related_genres: Vec<String>,
     pub era: Option<String>,
+    /// The producer's own model rather than a shipped one (TASK-040U).
+    ///
+    /// ⛔ **Set by whoever loaded it, not by the loader.** The engine has no idea
+    /// where a file came from — `load` is handed `(path, text)` pairs and its
+    /// rules are the same for all of them, which is exactly what makes a user
+    /// model first-class. The app knows which half it read from disk, so the app
+    /// is what marks them; this defaults to `false` and the plugin flips it.
+    ///
+    /// It carries no behaviour. A user model searches, generates, locks and
+    /// re-rolls identically — this is only so the roster can *say* it is yours.
+    #[serde(default)]
+    pub mine: bool,
 }
 
 /// A model the app could not use, in the form the UI reports it (FR-001).
@@ -276,6 +288,8 @@ fn roster_entry(model: &StyleModel, own: &Value) -> RosterEntry {
         genres: string_list(own.get("genres")),
         related_genres: string_list(own.get("relatedGenres")),
         era: own.get("era").and_then(Value::as_str).map(str::to_owned),
+        // Not the loader's to know — see the field's own note.
+        mine: false,
     }
 }
 

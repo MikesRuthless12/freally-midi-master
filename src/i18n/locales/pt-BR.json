@@ -48,7 +48,9 @@
     "shipped": "Incluído",
     "silent": "Sem som",
     "choosing": "Escolhendo…",
-    "clearOne": "Remover o one-shot de {{lane}}"
+    "clearOne": "Remover o one-shot de {{lane}}",
+    "randomize": "Sortear de novo cada pad destravado desta pasta",
+    "randomizeOne": "Sortear {{lane}} de novo desta pasta"
   },
   "sections": {
     "genres": "Gêneros",
@@ -429,5 +431,44 @@
     "key": "{{key}} {{scale}}",
     "halfTime": "half-time",
     "moods": "{{count}} moods"
+  },
+  "styles": {
+    "original": "Fluxo original",
+    "originalHint": "Crie um estilo seu",
+    "mine": "Seu",
+    "title": "Editor de estilo",
+    "name": "Nome",
+    "namePlaceholder": "Meu trap sombrio",
+    "basedOn": "Baseado em",
+    "basedOnHint": "Seu estilo herda tudo o que você não substituir, inclusive melhorias futuras.",
+    "tempo": "Andamento",
+    "swing": "Swing",
+    "hats": "Densidade de chimbal",
+    "melody": "Densidade da melodia",
+    "scales": "Escalas",
+    "scalesHint": "Apenas as escalas em que {{name}} grava.",
+    "save": "Salvar estilo",
+    "delete": "Excluir {{name}}",
+    "export": "Exportar",
+    "import": "Importar",
+    "nameNeeded": "Dê um nome ao seu estilo.",
+    "saved": "Salvo como {{name}}",
+    "keep": "Guardar esta take para o treino",
+    "kept": "{{count}} / {{needed}} guardadas",
+    "train": "Treinar",
+    "trained": "Treinado com {{count}} gerações",
+    "samplesHeading": "Os sons dele",
+    "samplesNote": "Seu estilo pode guardar os one-shots que você atribuiu. Eles são copiados para este computador, então continuam funcionando se você mover ou apagar os originais — e ocupam esse espaço a mais no seu disco. Nada é copiado sem marcar isto.",
+    "samplesCopy": "Copiar {{count}} amostras ({{size}}) para este computador",
+    "samplesCopied": "{{count}} amostras copiadas",
+    "edit": "Editar {{name}}"
+  },
+  "kits": {
+    "heading": "Kits salvos",
+    "name": "Nome do kit",
+    "save": "Salvar kit",
+    "none": "Nenhum kit salvo ainda. Atribua algumas amostras, dê um nome e elas estarão aqui na próxima vez.",
+    "delete": "Excluir {{name}}",
+    "duplicate": "Copiar {{name}} com o nome digitado"
   }
 }

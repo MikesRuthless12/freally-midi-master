@@ -27,6 +27,16 @@ window.SEARCH_INDEX = [
     body: 'artist genre search fuzzy autosuggest mainstream underground style parameters Metro Boomin OsamaSon trap drill disclaimer descriptive reference',
   },
   {
+    id: 'moods',
+    title: 'Moods',
+    body: 'mood moods any pinned dark bounce melodic minimal dusty jazzy hard cowbell memphis brazilian shuffle ballad barnburner range variety kind of record inherited lineage',
+  },
+  {
+    id: 'own-style',
+    title: 'Your own style, and training it',
+    body: 'original workflow own artist own style build save train training fit fitted kept takes star thirty roster yours inherit extends export import copy samples consent disk space no machine learning offline midi file',
+  },
+  {
     id: 'generators',
     title: 'The six generators',
     body: 'drums melody countermelody bassline chords song arrangement hats rolls 808 kick snare clap percussion phrase scale degrees key',

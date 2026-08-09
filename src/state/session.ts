@@ -522,6 +522,16 @@ type SessionState = {
   pendingArtist: RosterEntry | null;
 
   init: () => Promise<void>;
+  /**
+   * Re-read the roster alone, after the user saves or deletes a style.
+   *
+   * ⛔ Not `init()`, which also restores the session, asks who owns the
+   * transport and reloads the drag capability — none of which changed because
+   * somebody named a style. Running it again would rewind the producer's
+   * session to whatever was last persisted, which is a spectacular thing for a
+   * Save button to do.
+   */
+  refreshRoster: () => Promise<void>;
   select: (id: string) => void;
   /** Type or paste a seed. Anything non-empty pins it; clearing the box unpins. */
   setSeed: (seed: string) => void;
@@ -1394,6 +1404,15 @@ export const useSession = create<SessionState>((set, get) => ({
   edited: false,
   defaults: null,
   pendingArtist: null,
+
+  async refreshRoster() {
+    try {
+      const summary = await loadRoster();
+      set({ roster: summary.entries, problems: summary.problems });
+    } catch (error) {
+      set({ error: reason(error) });
+    }
+  },
 
   async init() {
     const saved = beginRestore();

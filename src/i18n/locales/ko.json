@@ -48,7 +48,9 @@
     "shipped": "기본 제공",
     "silent": "소리 없음",
     "choosing": "선택 중…",
-    "clearOne": "{{lane}}의 원샷 해제"
+    "clearOne": "{{lane}}의 원샷 해제",
+    "randomize": "이 폴더에서 잠기지 않은 패드를 다시 뽑기",
+    "randomizeOne": "이 폴더에서 {{lane}} 다시 뽑기"
   },
   "sections": {
     "genres": "장르",
@@ -429,5 +431,44 @@
     "key": "{{key}} {{scale}}",
     "halfTime": "하프타임",
     "moods": "무드 {{count}}개"
+  },
+  "styles": {
+    "original": "나만의 작업 방식",
+    "originalHint": "나만의 스타일을 만드세요",
+    "mine": "내 것",
+    "title": "스타일 편집기",
+    "name": "이름",
+    "namePlaceholder": "나의 다크 트랩",
+    "basedOn": "기반",
+    "basedOnHint": "덮어쓰지 않은 설정은 모두 상속되며, 이후 개선 사항도 함께 따라옵니다.",
+    "tempo": "템포",
+    "swing": "스윙",
+    "hats": "하이햇 밀도",
+    "melody": "멜로디 밀도",
+    "scales": "음계",
+    "scalesHint": "{{name}}이(가) 실제로 쓰는 음계만.",
+    "save": "스타일 저장",
+    "delete": "{{name}} 삭제",
+    "export": "내보내기",
+    "import": "가져오기",
+    "nameNeeded": "스타일에 이름을 지어 주세요.",
+    "saved": "{{name}}(으)로 저장했습니다",
+    "keep": "이 테이크를 학습용으로 보관",
+    "kept": "{{count}} / {{needed}} 보관됨",
+    "train": "학습",
+    "trained": "{{count}}개의 생성으로 학습했습니다",
+    "samplesHeading": "이 스타일의 소리",
+    "samplesNote": "지정한 원샷을 스타일에 담아 둘 수 있습니다. 이 컴퓨터로 복사되므로 원본을 옮기거나 지워도 계속 소리가 나지만, 그만큼 디스크 공간을 더 씁니다. 체크하지 않으면 아무것도 복사하지 않습니다.",
+    "samplesCopy": "샘플 {{count}}개({{size}})를 이 컴퓨터에 복사",
+    "samplesCopied": "샘플 {{count}}개를 복사했습니다",
+    "edit": "{{name}} 편집"
+  },
+  "kits": {
+    "heading": "저장한 킷",
+    "name": "킷 이름",
+    "save": "킷 저장",
+    "none": "저장한 킷이 아직 없습니다. 샘플을 지정하고 이름을 붙이면 다음에 여기에 나타납니다.",
+    "delete": "{{name}} 삭제",
+    "duplicate": "입력한 이름으로 {{name}} 복제"
   }
 }
