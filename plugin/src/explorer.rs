@@ -1617,23 +1617,43 @@ mod tests {
     /// containment check in the plugin for that whole tree: the page could
     /// enumerate it, read `.mid` content back, decode any audio in it, and
     /// star-then-reveal any file — the one command that launches a process.
+    /// ⚠ **Posix spellings, and the Windows ones are a separate test below.** A
+    /// backslash is an ordinary filename character on Linux and macOS, so
+    /// `C:\Users\mike\Samples` is **one** component there — `refuse_remote`'s own
+    /// header records the same trap ("a project file is portable and `Path` is
+    /// not"). CI caught this on two runners.
     #[test]
     fn a_project_file_cannot_point_the_library_at_a_drive_or_a_profile() {
         let explorer = Explorer::default();
         explorer.restore(&[
-            "C:\\".to_owned(),
-            "C:\\Users".to_owned(),
             "/".to_owned(),
             "/home".to_owned(),
             // ...and something that genuinely is a library, to prove the guard
             // is a filter rather than a refusal of everything.
+            "/home/mike/Samples".to_owned(),
+        ]);
+
+        assert_eq!(
+            explorer.snapshot(),
+            vec!["/home/mike/Samples".to_owned()],
+            "only a folder deep enough to be somebody's library survives"
+        );
+    }
+
+    /// The same rule on the platform whose paths this actually protects.
+    #[test]
+    #[cfg(windows)]
+    fn a_windows_drive_or_profile_root_is_refused_too() {
+        let explorer = Explorer::default();
+        explorer.restore(&[
+            "C:\\".to_owned(),
+            "C:\\Users".to_owned(),
             "C:\\Users\\mike\\Samples".to_owned(),
         ]);
 
         assert_eq!(
             explorer.snapshot(),
             vec!["C:\\Users\\mike\\Samples".to_owned()],
-            "only a folder deep enough to be somebody's library survives"
         );
     }
 
