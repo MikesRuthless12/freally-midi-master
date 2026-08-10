@@ -156,10 +156,14 @@ test.afterAll(() => {
 test('the stage: Generate, Generate all, Clear, Clear all, bars', async ({ page }) => {
   await open(page);
 
-  // Generate is refused until somebody is chosen — the empty state is a
-  // feature, not a gap.
-  await expect(page.getByRole('button', { name: 'Generate', exact: true })).toBeDisabled();
-  await feature(page, 'Stage', 'Generate is refused with no artist', 'the button is disabled');
+  // ⛔ **Generate is live from the start now** (2026-08-09). It used to be
+  // disabled until someone was chosen; the rail selects the first artist as soon
+  // as the roster loads, because Mike's rule for the comboboxes is that you
+  // cannot be left with an empty field. There is no longer a state in which
+  // Generate cannot run, so asserting it were disabled would pin a state the
+  // product does not have.
+  await expect(page.getByRole('button', { name: 'Generate', exact: true })).toBeEnabled();
+  await feature(page, 'Stage', 'Generate is ready immediately', 'an artist is already chosen');
 
   await pickArtist(page);
   await page.getByRole('tab', { name: 'Melody' }).click();
@@ -235,7 +239,15 @@ test('the roster: search, keyboard, and switching artists', async ({ page }) => 
   const search = page.getByRole('combobox', { name: 'Roster' });
 
   await search.fill('trap');
-  await expect(page.getByRole('option').first()).toBeVisible();
+  // ⚠ **Scoped to the combobox's own menu.** A bare `getByRole('option')` also
+  // matches the native `<select>` options in the session chips — "The artist's"
+  // — which are present but hidden, so the assertion resolved to the wrong
+  // control and failed on visibility.
+  //
+  // ⛔ It passed locally and failed on all three CI runners because this file is
+  // in `playwright.config.ts`'s `testIgnore` and only runs under
+  // `playwright.gallery.config.ts`. `npm run test:gallery` is what covers it.
+  await expect(page.locator('.combo__menu').getByRole('option').first()).toBeVisible();
   await feature(page, 'Roster', 'Search suggests as you type', 'a suggestion list appears');
 
   await search.press('ArrowDown');
