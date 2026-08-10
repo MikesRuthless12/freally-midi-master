@@ -186,10 +186,19 @@ pub fn generate(
     let degrees = theory::scale_semitones(ctx.scale);
     let cell = (!cells.is_empty()).then(|| &cells[place_rng.random_range(0..cells.len())]);
 
-    let mut notes: Vec<Note> = Vec::with_capacity(onsets.len());
+    // Each note carries whether it was *proposed* as a passing tone — the only
+    // ones pass two may move. A root or a cell degree is the line's skeleton and
+    // stays exactly where the model put it.
+    //
+    // ⚠ **Carried on the note rather than in a parallel `Vec<bool>`.** The two
+    // stayed in step only because both `continue`s below happen to sit above the
+    // push; a third early exit added later would have shifted every flag by one,
+    // silently.
+    let mut written: Vec<(Note, bool)> = Vec::with_capacity(onsets.len());
     for (index, (tick, len)) in onsets.iter().enumerate() {
         let event = chords.at(*tick);
         let chord_root = event.map(|e| e.root).unwrap_or(ctx.key_root);
+        let mut passing_slot = false;
 
         // The blend FR-007 asks for: follow the chord's root, or say something
         // of your own. A cell shape, when the model authors one, is what "your
@@ -198,8 +207,31 @@ pub fn generate(
             i32::from(chord_root)
         } else if let Some(cell) = cell {
             let (degree, accidental) = cell[index % cell.len().max(1)];
-            i32::from(chord_root) + theory::degree_semitone(degrees, degree) + accidental
+            let raw = i32::from(chord_root) + theory::degree_semitone(degrees, degree) + accidental;
+            // ⛔ **A cell degree is measured in the KEY's scale from the CHORD's
+            // root, so on any chord but the tonic it can land outside the key.**
+            // `amapiano` walks `1 3 5` over a VI chord — root 8 plus a dorian
+            // third is 11, a tritone from the key — and nothing had ever noticed,
+            // because the old sample generated 20 (model, seed) pairs.
+            //
+            // ▶ A plain degree is a *figure*, not a chromatic device: the author
+            // asked for the third of the shape, not for a tritone, so it snaps
+            // into the key and keeps the contour. An accidental is the opposite —
+            // `b5` is a blue note somebody asked for by name — so it stays and
+            // pass two makes it land instead of deleting it.
+            if accidental == 0 {
+                theory::nearest_scale_tone(raw, ctx.key_root, degrees)
+            } else {
+                passing_slot = true;
+                raw
+            }
         } else if !passing.is_empty() {
+            // ⚠ **Pass one only proposes.** A passing tone is a fixed interval
+            // off the chord root, and whether it *passes through* anything is a
+            // fact about the note that follows — which `followRootsProb` has not
+            // decided yet. [`resolve_passing_tones`] settles every one of these
+            // once the skeleton exists.
+            passing_slot = true;
             i32::from(chord_root) + i32::from(passing[index % passing.len()])
         } else {
             i32::from(chord_root)
@@ -229,23 +261,39 @@ pub fn generate(
         } else {
             *tick
         };
-        if start >= ctx.total_ticks() {
-            continue;
-        }
-
         // A glide is the 808's own convention: this note slides to the next
         // one's pitch. Recorded on the note so the writer emits the overlap the
         // sampler reads as portamento.
-        notes.push(Note {
-            model_vel: None,
-            start_tick: start,
-            len_ticks: (*len).max(1).min(ctx.total_ticks() - start),
-            pitch,
-            vel: BASS_VELOCITY,
-            slide_to_pitch: None,
-            articulation: None,
-        });
+        //
+        // ⚠ Nothing is clamped to the pattern here — [`super::fit_to_clip`] is
+        // the one place that rule lives now, and it runs on the finished lane.
+        written.push((
+            Note {
+                model_vel: None,
+                start_tick: start,
+                len_ticks: (*len).max(1),
+                pitch,
+                vel: BASS_VELOCITY,
+                slide_to_pitch: None,
+                articulation: None,
+            },
+            passing_slot,
+        ));
     }
+
+    // ⛔ **Time order first, because "the note after this one" is a claim about
+    // time and not about the order the onsets were visited.** `anticipationProb`
+    // pulls a note a 16th early, which can put it *before* the one authored
+    // ahead of it — so resolving in index order aimed some approach notes at a
+    // neighbour that had already been overtaken. The line is sorted once here
+    // and both passes below read it in the order a listener hears it.
+    written.sort_by_key(|(note, _)| (note.start_tick, note.pitch));
+
+    // Pass two. Settled once the whole line exists, for the same reason glides
+    // are: whether a note passes *through* is a fact about the note after it.
+    resolve_passing_tones(&mut written, ctx, degrees, low, high);
+
+    let mut notes: Vec<Note> = written.into_iter().map(|(note, _)| note).collect();
 
     // Glides are applied after placement, because a glide needs to know what it
     // is gliding *to* — which is the next note, not a parameter.
@@ -259,10 +307,115 @@ pub fn generate(
         }
     }
 
-    notes.sort_by_key(|note| (note.start_tick, note.pitch));
-    LaneTrack {
+    // ⚠ Already in time order from the sort above, and nothing since has moved a
+    // `start_tick` — pass two rewrites pitches and the glide pass rewrites
+    // `slide_to_pitch`. Re-sorting here would only re-break same-tick ties.
+    let mut track = LaneTrack {
         lane: Lane::Bass,
         notes,
+    };
+    super::fit_track_to_clip(&mut track, ctx);
+    track
+}
+
+/// Pass two: point every chromatic passing tone at the note it precedes.
+///
+/// ⛔⛔ **A passing tone that passes through nothing is just a wrong note**, and
+/// this is the rule the commercial generators encode. A `passingTones` entry is a
+/// fixed interval off the *chord* root, and over an ordinary diatonic root that
+/// interval routinely leaves the key: `P5` above the supertonic is a semitone
+/// outside every minor key, because ii's own fifth is diminished. `_defaults`
+/// authors `["P5", "m7"]`, so **every model inherits the exposure**.
+///
+/// ▶ **Band-in-a-Box and Toontrack's EZbass both aim the chromatic note at its
+/// TARGET** — a semitone off the note it is about to reach, so the ear hears it
+/// lead somewhere. Scaler and the other scale-locked tools take the opposite
+/// route and snap everything into the scale, which would refuse the walked ♭7
+/// over a major chord that country and blues bass is made of; `coherence.rs`
+/// says in as many words that refusing it would mean refusing the idiom.
+///
+/// ## Why this is a second pass rather than a decision made in the first
+///
+/// ⛔ The first attempt aimed each passing tone at the next *chord root* while
+/// building the line, and it was wrong: `followRootsProb` decides the next note
+/// independently, so the target frequently never arrived and the approach note
+/// resolved into another approach note. A note's target is only knowable once
+/// the skeleton around it exists.
+///
+/// So: walk **backwards**, so a run of consecutive passing tones resolves from
+/// its landing point outwards. The last one leans into a real chord tone; the
+/// ones before it become diatonic and walk toward it, which is what a bass
+/// player does with a bar to fill.
+///
+/// ⚠ **Only slots proposed as passing tones move.** Roots and cell degrees are
+/// the line's skeleton, and a generator that "fixes" those is rewriting the
+/// model rather than serving it.
+///
+/// ⚠ **Targets are compared by pitch class**, because `octaves_of` pops an
+/// octave a quarter of the time on purpose — a resolution is still a resolution
+/// when it lands an octave away.
+fn resolve_passing_tones(
+    written: &mut [(Note, bool)],
+    ctx: &SessionContext,
+    degrees: &[u8],
+    low: u8,
+    high: u8,
+) {
+    let in_key = |pitch: i32| theory::in_scale(pitch, ctx.key_root, degrees);
+
+    // The pitch of this class that sits nearest `near` without leaving the
+    // register — the register is a promise, so a repair may not step outside it.
+    let place = |class: i32, near: i32| -> Option<u8> {
+        octaves_of(class.rem_euclid(12) as u8, low, high)
+            .into_iter()
+            .min_by_key(|pitch| (i32::from(*pitch) - near).abs())
+    };
+
+    for index in (0..written.len()).rev() {
+        if !written[index].1 {
+            continue;
+        }
+        let pitch = i32::from(written[index].0.pitch);
+        if in_key(pitch) {
+            continue;
+        }
+
+        let next = written
+            .get(index + 1)
+            .map(|(note, _)| i32::from(note.pitch));
+        let target = match next {
+            // There is something in the key to lean into: approach it by a
+            // semitone, from whichever side this note already sat on.
+            Some(next_pitch) if in_key(next_pitch) => {
+                let below = next_pitch - 1;
+                let above = next_pitch + 1;
+                if (pitch - below).abs() <= (pitch - above).abs() {
+                    below
+                } else {
+                    above
+                }
+            }
+            // Nothing to lead into — the end of the line, or another chromatic
+            // note still waiting its turn. Become diatonic instead.
+            //
+            // ⛔ **Searched inside the register, not around the pitch.** The
+            // approach branch above always has somewhere to land: the target sits
+            // between this note and its neighbour, so it is inside the register by
+            // construction. This branch has no such guarantee — the nearest scale
+            // tone can fall outside `[low, high]` entirely, and `uk-drill` authors
+            // a five-semitone register (`[24, 28]`) where that is routine. When it
+            // happened, `place` returned `None` and the note was left on its raw
+            // chromatic pitch: the one outcome this whole pass exists to prevent.
+            _ => (low..=high)
+                .map(i32::from)
+                .filter(|candidate| in_key(*candidate))
+                .min_by_key(|candidate| (candidate - pitch).abs())
+                .unwrap_or(pitch),
+        };
+
+        if let Some(placed) = place(target, pitch) {
+            written[index].0.pitch = placed;
+        }
     }
 }
 

@@ -12,6 +12,48 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added — 32 new genres, 2026-08-10
+
+- **The genre list goes from 20 to 52.** New this release: **dark plugg**,
+  **Detroit bounce**, **Jersey club**, **ATL swag rap**, **UK underground**,
+  **EDM rage**, **digicore**, **jump-up DnB**, **neurofunk**, **jungle**,
+  **pop DnB**, **UK garage**, **house**, **dance pop**, **pop 2020s**,
+  **country pop**, **country shuffle**, **neo-soul**, **funk**, **future bass**,
+  **afrobeats**, **amapiano**, **dancehall**, **reggaeton**, **baile funk**,
+  **afroswing**, **Memphis rap**, **G-funk**, **lo-fi hip hop**, **sexy drill**,
+  **hyphy** and **crunk**.
+- Each one writes its own drums, chords, melody, countermelody and bassline —
+  none of them inherits a part wholesale — and each arrives with three moods, so
+  picking a genre gives you three different records rather than one.
+- Every genre is measured against the rest of the roster: no two produce the same
+  beat, the same fill or the same melodic part more often than chance allows.
+
+### Fixed — a note could sustain past the end of the pattern, 2026-08-10
+
+- **Drum hits on the last 16th no longer run past the end of the loop.** A ghost
+  snare nudged late, or a tambourine on the final subdivision, could carry its
+  length beyond the pattern — so the clip you dragged out held a note the bar had
+  no room for. The other four generators had always trimmed; the kit never did.
+
+### Fixed — basslines could wander out of key, 2026-08-10
+
+- **A chromatic bass note now lands somewhere.** Passing tones are written as an
+  interval off the *chord*, and over an ordinary chord that interval can leave the
+  key — so the bass would play a note that was reached from nowhere and led
+  nowhere. It now approaches the note it precedes, the way a bass player walks
+  into a change, and a figure that never asked to be chromatic stays in the key.
+  Walked flat sevenths and blue notes are kept: those are the idiom, not the bug.
+- **A bass no longer plays above the chords it is holding up** in the models where
+  the two registers overlapped, and four models whose bass doubled their own 808
+  note-for-note now play a real second part.
+
+### Fixed — the plugin could ship a stale genre list, 2026-08-10
+
+- **Editing a style model now rebuilds the plugin.** The dataset is compiled into
+  the binary, but nothing told the build system to watch it — so a plugin built
+  after a model changed could keep serving the roster it was compiled with, with
+  nothing anywhere saying so.
+
 ### Fixed — the File Explorer could not open a subfolder, and it was breaking four other things too, 2026-08-10
 
 - **You can browse into subfolders again — at any depth.** Opening a library

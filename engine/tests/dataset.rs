@@ -388,3 +388,68 @@ fn the_first_genre_an_artist_works_in_is_the_one_it_is_built_from() {
     }
     assert!(checked >= 10, "expected the shipped roster, saw {checked}");
 }
+
+#[test]
+fn no_model_puts_its_bass_where_its_chords_live() {
+    // ⛔⛔ **A static fact about the JSON, checked statically.** `coherence.rs`
+    // found `boom-bap` writing a bass above its own chords — but it found it by
+    // generating 504 arrangements and happening to draw the top of one register
+    // against the bottom of the other in the same pass. Thirteen models had the
+    // overlap authored, three of them shipped; only one was ever generated into
+    // view.
+    //
+    // ▶ **A sample cannot prove a property that needs no sampling.** The eight
+    // seeds `coherence.rs` now walks are a real improvement over the twenty
+    // alphabetical pairs before them, and they still would not have caught the
+    // fourteenth model — this does, before a note is generated.
+    //
+    // ⚠ Touching is allowed, overlapping is not: a bass whose ceiling *is* the
+    // chords' floor still sits under them.
+    // ⛔⛔ **Read from the RESOLVED models, not the raw files.** The first cut of
+    // this parsed `data/genres/*.json` directly, which broke it twice over: a
+    // genre that *inherits* `bassline.register` from `_defaults` has no such key
+    // in its own file, so six of them — `phonk`, `plugg`, `pluggnb`, `jerk`,
+    // `chicago-drill`, `west-coast-club` — were skipped by the `continue`, and
+    // `data/artists/` was never read at all. `phonk` inherits `[24, 43]` against
+    // its own chord floor of 34: a real overlap the gate walked straight past
+    // while claiming to catch exactly that.
+    let loaded = shipped_dataset();
+    let mut overlapping = Vec::new();
+    for (id, model) in &loaded.models {
+        // ⚠ **Only models that actually grow a bass part.** Most of the trap
+        // family authors `bass808.role: "bassline"` — the 808 *is* the low end,
+        // and `bass::generate` returns an empty lane — so their inherited
+        // `bassline.register` never produces a note and cannot sit above
+        // anything. Asking the generator's own question keeps this gate from
+        // reporting an overlap that can never be heard: `phonk` and `nettspend`
+        // both tripped it that way on the first run.
+        if engine::generators::bass::eight_o_eight_is_the_bass(model) {
+            continue;
+        }
+
+        let read = |block: &str, pointer: &str| -> Option<(i64, i64)> {
+            let register = model.blocks.get(block)?.pointer(pointer)?.as_array()?;
+            Some((register.first()?.as_i64()?, register.get(1)?.as_i64()?))
+        };
+
+        let (Some((_, bass_top)), Some((chord_floor, _))) = (
+            read("bassline", "/register"),
+            read("chords", "/voicing/register"),
+        ) else {
+            continue;
+        };
+
+        if bass_top > chord_floor {
+            overlapping.push(format!(
+                "{id}: bass reaches {bass_top}, chords start at {chord_floor}"
+            ));
+        }
+    }
+
+    assert!(
+        overlapping.is_empty(),
+        "these models author a bass register that reaches into their own chord \
+         voicing register, so the bass can sit above the harmony:\n  {}",
+        overlapping.join("\n  ")
+    );
+}

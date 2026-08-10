@@ -310,5 +310,14 @@
   },
   "kit": {
     "preview": "plugg-default"
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.5,
+    "anticipationProb": 0.3,
+    "passingTones": [
+      "P5",
+      "m7"
+    ]
   }
 }

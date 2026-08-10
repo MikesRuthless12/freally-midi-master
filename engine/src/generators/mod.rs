@@ -16,7 +16,43 @@ pub mod rolls;
 use rand::Rng;
 use serde_json::Value;
 
+use crate::context::SessionContext;
 use crate::dataset::{NumSpec, StrSpec};
+use crate::pattern::LaneTrack;
+
+/// Hold every note inside the pattern it belongs to.
+///
+/// ⛔⛔ **One rule with four call sites, because it was four rules that happened
+/// to agree.** A note may not start past the end of the pattern, and may not
+/// *sustain* past it either — what every DAW enforces on a clip's contents, and
+/// what any generator writing clips has to enforce itself.
+///
+/// `bass`, `melody` and `counter` each grew their own copy; `drums` never got
+/// one at all, so a hit on the final 16th — a `4a` ghost nudged late by
+/// `offGridMs`, a tambourine on the last subdivision — carried its length past
+/// the end. That was found on 2026-08-10 only because `coherence.rs` widened its
+/// sample; the defect had shipped for months.
+///
+/// ⚠ **And the copies had already drifted**: two spelled it `.max(1).min(room)`
+/// and the newest `.min(room).max(1)`, which differ when `room` is zero. This is
+/// the seam all four go through instead — the same argument
+/// [`read`] makes above, one level up from the generators rather than copied
+/// into each of them. The next generator arrives with the rule rather than
+/// without it.
+pub fn fit_to_clip(lanes: &mut [LaneTrack], ctx: &SessionContext) {
+    let total = ctx.total_ticks();
+    for track in lanes {
+        track.notes.retain(|note| note.start_tick < total);
+        for note in &mut track.notes {
+            note.len_ticks = note.len_ticks.min(total - note.start_tick).max(1);
+        }
+    }
+}
+
+/// [`fit_to_clip`] for a generator that returns a single lane.
+pub fn fit_track_to_clip(track: &mut LaneTrack, ctx: &SessionContext) {
+    fit_to_clip(std::slice::from_mut(track), ctx);
+}
 
 /// Reading the dataset's authoring forms.
 ///
