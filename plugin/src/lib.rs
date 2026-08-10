@@ -29,6 +29,7 @@ mod editor;
 pub mod eula;
 pub mod explorer;
 pub mod export;
+pub mod favourites;
 pub mod host;
 pub mod kits;
 pub mod models;
@@ -356,7 +357,10 @@ impl Plugin for FreallyMidiMaster {
         // known — and `initialize` is off the audio thread, which is where
         // reading files from disk has to happen.
         self.shared.restore_one_shots();
-        // The sample library comes back with the project too (TASK-132).
+        // The sample library, from the project **and** from this machine
+        // (TASK-132). ⚠ `initialize` is the standalone's path as well as the
+        // plugin's, which is what makes *"the folders should persist between app
+        // openings"* work where there is no project at all.
         self.shared.restore_sample_folders();
         true
     }

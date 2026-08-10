@@ -67,6 +67,20 @@ export function rosterBox(page: Page) {
   return page.getByRole('combobox', { name: 'Roster' });
 }
 
+/**
+ * One row of the sample browser's tree, by its name.
+ *
+ * ⛔ **Here rather than in each spec, for the reason this module's own header
+ * gives.** It was copied byte-for-byte into four files the day the tree shipped —
+ * and `role="treeitem"` is brand new, so the next time the browser's markup
+ * changes, four specs break for one reason and each has to be found separately.
+ * That is exactly what happened when the roster became a combobox: 119 failures,
+ * every one the same locator.
+ */
+export function browserRow(page: Page, name: string) {
+  return page.getByRole('treeitem', { name, exact: true });
+}
+
 /** Open Settings and select the language pane. */
 export async function openLanguagePane(page: Page): Promise<void> {
   await page.getByTestId('open-settings').click();

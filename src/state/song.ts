@@ -180,6 +180,20 @@ export type SongState = {
     mood: string | null;
   }) => Promise<void>;
 
+  /**
+   * Load somebody else's song from a `.mid` (TASK-058D).
+   *
+   * ⛔⛔ **Mike's design, 2026-08-10:** *"could you put the midi for the entire
+   * song into the 'Song' tab and allow them to pick which parts they want for
+   * the generators, just like you would for a generation, but using someone
+   * elses song as the starting point?"*
+   *
+   * ⚠ **The drag-in path only.** [`generate`] is untouched — Mike was explicit
+   * that generating a song *"is pretty much self-explanatory"* and must not
+   * change. This is a second way to fill the same view.
+   */
+  importSong: (path: string) => Promise<void>;
+
   /** Re-roll one section, keeping every locked clip (TASK-067 / TASK-071). */
   reroll: (index: number, mood: string | null) => Promise<void>;
 
@@ -412,6 +426,52 @@ export const useSong = create<SongState>((set, get) => ({
         : [...soloParts, part],
     });
     get().armSong();
+  },
+
+  async importSong(path) {
+    if (get().generating) return;
+    set({ generating: true, error: null });
+    try {
+      const song = await invoke<Song>('explorer_song', { path });
+      // ⛔ **`edited: true`, and it is not a guess.** An imported arrangement is
+      // not what any seed produces, so the project has to store the clips rather
+      // than a request that would regenerate something else entirely. Same rule
+      // `openClip` states for a single clip lifted out of a song.
+      //
+      // ⚠ Everything indexed by the *previous* song is cleared, for every reason
+      // `generate` lists below: a lock, a loop, an audition, a clipboard entry
+      // and a drill-in all name sections and clips this arrangement does not
+      // have.
+      set({
+        song,
+        generating: false,
+        edited: true,
+        selection: [],
+        anchor: null,
+        locks: [],
+        loopSection: null,
+        audition: null,
+        clipboard: null,
+        mutedParts: [],
+        soloParts: [],
+        drillPatternId: null,
+        drillSongId: null,
+      });
+      // ⚠ The Song tab, because that is where the thing they just imported is.
+      useUi.getState().setActiveTab('song');
+      // ⛔⛔ **`noteDocumentChange`, or the import is never written to disk.**
+      // `markEdited`'s own doc states the invariant: `edited` is what makes the
+      // song worth storing, `send()` skips an unedited one, so **setting the flag
+      // without asking for a save leaves the arrangement in memory only.** This
+      // set `edited: true` with a bare `set()` — a producer could drag a file in,
+      // see it, save the Ableton set, reopen, and find the Song tab empty.
+      // ⚠ Not `markEdited()` itself, because that would arm before the tab has
+      // moved; `armSong` is called below, in the order `generate` uses.
+      noteDocumentChange();
+      get().armSong();
+    } catch (error) {
+      set({ generating: false, error: reason(error) });
+    }
   },
 
   async generate({ styleId, seed, pins, mood }) {

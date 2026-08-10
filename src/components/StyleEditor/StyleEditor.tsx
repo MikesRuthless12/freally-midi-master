@@ -532,7 +532,7 @@ export function StyleEditor({
           </button>
           {editing !== null && (
             <button type="button" className="btn-ghost" onClick={() => void remove()}>
-              {t('styles.delete', { name: draft.name })}
+              {t('styles.delete')}
             </button>
           )}
           <button

@@ -16,7 +16,11 @@ test.beforeEach(async ({ page }) => {
 });
 
 test('1 – 6 pick a generator, in the order they are drawn', async ({ page }) => {
-  const tabs = page.getByRole('tab');
+  // ⚠ **Scoped to the generator tablist.** The sample browser grew its own
+  // tablist on 2026-08-10 — up to eight library folders — and it is drawn
+  // earlier in the document, so an unscoped `getByRole('tab')` picks up a folder
+  // tab and this asserted the wrong control's title.
+  const tabs = page.getByRole('tablist', { name: 'Generator' }).getByRole('tab');
   const names = await tabs.allInnerTexts();
 
   for (const [index, name] of names.entries()) {

@@ -17,6 +17,7 @@ pub mod arrange;
 pub mod context;
 pub mod dataset;
 pub mod fit;
+pub mod formats;
 pub mod generators;
 pub mod humanize;
 pub mod midi;

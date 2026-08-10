@@ -9,6 +9,7 @@
  */
 
 import { ALL_LANES } from '../state/kit';
+import type { ExplorerEntry, Favourite } from '../state/explorer';
 import type { InvokeArgs } from './ipc';
 import type {
   Note,
@@ -53,6 +54,94 @@ const assignedSamplePaths = (): string[] =>
 
 /** Kits saved during this page life, so the panel has something to list. */
 const savedKits = new Map<string, { id: string; name: string; lanes: number }>();
+
+/**
+ * Samples dropped onto a lane from the browser this page load.
+ *
+ * ⛔⛔ **Without this the whole browser→pad gesture was untestable, and so it was
+ * untested.** `explorer_drop` answered `undefined` and `kit_state` was a constant,
+ * so a spec could perform the drag and then had nothing to assert: the pad read
+ * the same before and after. That is why the one gesture Mike named first has no
+ * coverage anywhere in `e2e/` — not because it was hard to drive, but because the
+ * mock could not tell a landed drop from a lost one.
+ *
+ * ⚠ **Modelling this is not the same as faking a filesystem.** The real
+ * `explorer_drop` routes to `OneShots::restore`, which decodes the file and
+ * rebuilds the kit; decoding is Rust and is tested there. What crosses the bridge
+ * is lane → path, and that much is true in a browser. The mock still refuses to
+ * pretend a *dialog* opened (`one_shot_assign` reports cancelled) because that
+ * genuinely cannot happen here.
+ */
+const droppedSamples = new Map<string, string>();
+
+/** Files starred this page load (TASK-058C). */
+const starred = new Map<string, Favourite>();
+
+/**
+ * The library folders, which a spec can actually remove.
+ *
+ * ⚠ Mutable for the reason `droppedSamples` gives: `explorer_remove` answered
+ * `undefined` and `explorer_state` returned a literal, so removing a root left
+ * the panel reporting it — and any behaviour that depends on a folder no longer
+ * being open could not be tested at all.
+ */
+const libraryRoots: ExplorerEntry[] = [
+  { name: 'Samples', path: '/library/Samples', isDir: true, kind: 'dir' },
+];
+
+/**
+ * What each folder holds — **one fixture, read by both commands**.
+ *
+ * ⛔ `explorer_state` and `explorer_list` each hard-coded `/library/Samples`, and
+ * they had already drifted: only one of them listed `riff.mid`. A spec asserting
+ * through the flat listing was asserting against a library that does not exist,
+ * and the two-kinds rule could not be exercised through it at all.
+ *
+ * ⚠ A shallow tree rather than one folder, because the defect the tree was built
+ * for — *"you cannot go into those subfolders"* — only appears below the first
+ * level.
+ */
+const libraryRows: Record<string, ExplorerEntry[]> = {
+  '/library/Samples': [
+    { name: 'Kicks', path: '/library/Samples/Kicks', isDir: true, kind: 'dir' },
+    { name: 'clap-01.wav', path: '/library/Samples/clap-01.wav', isDir: false, kind: 'audio' },
+    {
+      name: 'kick-808.wav',
+      path: '/library/Samples/kick-808.wav',
+      isDir: false,
+      kind: 'audio',
+    },
+    // ⚠ A `.mid` among the samples: a fixture with none cannot catch a panel
+    // that treats the two kinds alike.
+    { name: 'riff.mid', path: '/library/Samples/riff.mid', isDir: false, kind: 'midi' },
+  ],
+  '/library/Samples/Kicks': [
+    { name: 'Vinyl', path: '/library/Samples/Kicks/Vinyl', isDir: true, kind: 'dir' },
+    {
+      name: 'kick-hard.wav',
+      path: '/library/Samples/Kicks/kick-hard.wav',
+      isDir: false,
+      kind: 'audio',
+    },
+  ],
+  '/library/Samples/Kicks/Vinyl': [
+    {
+      name: 'kick-dusty.wav',
+      path: '/library/Samples/Kicks/Vinyl/kick-dusty.wav',
+      isDir: false,
+      kind: 'audio',
+    },
+  ],
+};
+
+/**
+ * Paths the page asked to reveal in the OS file manager.
+ *
+ * ⛔ Exposed for the same reason `copiedSamples` is: the only thing a browser can
+ * prove about a command it cannot perform is that it was *asked for*, with the
+ * right path. Opening Explorer is not something a mock may pretend to do.
+ */
+const revealed: string[] = [];
 
 const handlers: Record<string, Handler> = {
   // Exactly the shape `app_info` returns in plugin/src/bridge.rs — no more, no
@@ -456,14 +545,22 @@ const handlers: Record<string, Handler> = {
   // fixture with no assignment at all could never exercise the sample-copy
   // consent, which is a gate — and a gate with no test is the thing this
   // codebase keeps writing down.
+  // ⚠ **Reads `droppedSamples`, so a drop from the browser actually shows up
+  // here.** A dropped path wins over the fixture's own assignment, which is what
+  // `restore` does — dropping onto a lane that already carries a sample replaces
+  // it rather than being ignored.
   kit_state: () => ({
     id: 'trap-default',
-    lanes: ALL_LANES.map((lane) => ({
-      lane,
-      shipped: lane !== 'snap',
-      name: lane === 'kick' ? 'my-kick.wav' : null,
-      path: lane === 'kick' ? 'C:/samples/my-kick.wav' : null,
-    })),
+    lanes: ALL_LANES.map((lane) => {
+      const dropped = droppedSamples.get(lane);
+      const path = dropped ?? (lane === 'kick' ? 'C:/samples/my-kick.wav' : null);
+      return {
+        lane,
+        shipped: lane !== 'snap',
+        name: path === null ? null : (path.split(/[\\/]/).pop() ?? path),
+        path,
+      };
+    }),
   }),
 
   // Assigning one. A browser has no native Open dialog and no filesystem, so
@@ -498,7 +595,13 @@ const handlers: Record<string, Handler> = {
     return undefined;
   },
   one_shot_assign: () => undefined,
-  one_shot_clear: () => undefined,
+  // ⚠ Forgets a dropped path too, or clearing a pad would leave `kit_state`
+  // still reporting the sample the producer just removed — the readout-that-lies
+  // failure, arriving through the fixture instead of through the product.
+  one_shot_clear: (args?: InvokeArgs) => {
+    droppedSamples.delete(String((args as { lane?: unknown } | undefined)?.lane ?? ''));
+    return undefined;
+  },
   one_shot_status: () => ({ state: 'cancelled' }),
 
   // The sample browser (TASK-132). A browser has no filesystem, so this is a
@@ -506,24 +609,154 @@ const handlers: Record<string, Handler> = {
   // the listing, the selection and the drag source. ⚠ It does not pretend a
   // dialog can open: `explorer_pick` adds nothing, which is what a shell with
   // no native picker honestly does.
+  // ⚠ **`libraryRoots`, not a literal.** `explorer_remove` used to answer
+  // `undefined` while this went on reporting the root, so removing a folder
+  // changed nothing a spec could see — and "a favourite whose folder is no
+  // longer open falls back to the OS" was untestable for exactly that reason.
+  // Same defect the drop had, one command over.
   explorer_state: () => ({
-    roots: [{ name: 'Samples', path: '/library/Samples', isDir: true }],
-    folder: '/library/Samples',
+    roots: [...libraryRoots],
+    folder: libraryRoots.length > 0 ? '/library/Samples' : null,
     parent: null,
-    entries: [
-      { name: 'Kicks', path: '/library/Samples/Kicks', isDir: true },
-      { name: 'clap-01.wav', path: '/library/Samples/clap-01.wav', isDir: false },
-      { name: 'kick-808.wav', path: '/library/Samples/kick-808.wav', isDir: false },
-    ],
+    // ⚠ The shared fixture — see `libraryRows`. This used to be a second literal
+    // and the two had already drifted.
+    entries: libraryRows['/library/Samples'] ?? [],
     truncated: false,
     // No native picker in a browser, so a dialog is never open — which is what
     // stops  polling for one.
     picking: false,
   }),
+  // Starred favourites (TASK-058C). In memory and per page load, like the user
+  // models and the saved kits: the store, its bounds and its refusals are Rust
+  // and are tested there. What a browser can show is the star and the list.
+  // ⚠ It genuinely mutates, for the reason `droppedSamples` gives — a mock that
+  // answered a constant would let a spec press the star and have nothing to
+  // assert.
+  favourites_list: () => [...starred.values()],
+  favourites_add: (args?: InvokeArgs) => {
+    const path = String((args as { path?: unknown } | undefined)?.path ?? '');
+    const name = path.split(/[\\/]/).pop() ?? path;
+    starred.set(path, {
+      path,
+      name,
+      kind: /\.midi?$/i.test(path) ? 'midi' : 'audio',
+    });
+    return [...starred.values()];
+  },
+  favourites_remove: (args?: InvokeArgs) => {
+    starred.delete(String((args as { path?: unknown } | undefined)?.path ?? ''));
+    return [...starred.values()];
+  },
+  // ⛔ A browser cannot open Windows Explorer, and a mock that pretended it had
+  // would make a broken reveal look like a working one. Recorded so a spec can
+  // assert the *page* asked, which is its half of the contract.
+  favourites_reveal: (args?: InvokeArgs) => {
+    revealed.push(String((args as { path?: unknown } | undefined)?.path ?? ''));
+    return undefined;
+  },
+
+  // Reading a `.mid` from the library into one generator (TASK-058/040T).
+  //
+  // ⛔ **Built on `generate_pattern` rather than as a second note fixture**, for
+  // the reason `generate_song` gives one screen down: a spec that counts an
+  // imported clip's notes and one that counts a generated clip's must not be
+  // able to disagree. What this fixture is *for* is the routing — that the file
+  // lands on the part it was dropped on, and that a file with nothing in it is
+  // refused rather than opened.
+  //
+  // ⚠ The real command parses an SMF; `engine::smf_read` is tested in Rust and
+  // this cannot re-test it. What a browser can show is that the page asked, with
+  // the right part, and drew what came back.
+  explorer_midi: (args?: InvokeArgs) => {
+    const { path, part } = (args ?? {}) as { path?: unknown; part?: unknown };
+    if (typeof path !== 'string' || !/\.midi?$/i.test(path)) {
+      throw new Error('that is not a MIDI file in your sample library');
+    }
+    // A fixture for the empty case, so the refusal has something to refuse.
+    if (/empty/i.test(path)) {
+      return { ...(handlers.generate_pattern({ request: { part } }) as Pattern), lanes: [] };
+    }
+    return handlers.generate_pattern({ request: { part } });
+  },
+
+  // Separating a layered `.mid` (TASK-058D). ⚠ A fixture with three voices,
+  // because a one-part answer could not tell a working split from a split that
+  // silently returned only what it found first.
+  explorer_midi_split: (args?: InvokeArgs) => {
+    const path = String((args as { path?: unknown } | undefined)?.path ?? '');
+    if (!/\.midi?$/i.test(path)) {
+      throw new Error('that is not a MIDI file in your sample library');
+    }
+    const of = (part: Part) => handlers.generate_pattern({ request: { part } }) as Pattern;
+    const notes = (pattern: Pattern) =>
+      pattern.lanes.reduce((sum, lane) => sum + lane.notes.length, 0);
+    return [
+      { part: 'bass', pattern: of('bass'), reason: 'lowestVoice', notes: notes(of('bass')) },
+      {
+        part: 'counter',
+        pattern: of('counter'),
+        reason: 'innerVoice',
+        notes: notes(of('counter')),
+      },
+      {
+        part: 'melody',
+        pattern: of('melody'),
+        reason: 'highestVoice',
+        notes: notes(of('melody')),
+      },
+    ];
+  },
+
+  // A whole `.mid` as an arrangement, for the Song tab (TASK-058D).
+  //
+  // ⛔ **Built on `generate_song` rather than a second arrangement fixture**, for
+  // the reason `generate_song` itself gives: a spec that counts an imported
+  // song's sections and one that counts a generated song's must not be able to
+  // disagree. ⚠ What differs is what an *import* honestly is — no artist and no
+  // seed, because a file carries neither.
+  explorer_song: (args?: InvokeArgs) => {
+    const path = String((args as { path?: unknown } | undefined)?.path ?? '');
+    if (!/\.midi?$/i.test(path)) {
+      throw new Error('that is not a MIDI file in your sample library');
+    }
+    const song = handlers.generate_song({ request: {} }) as Song;
+    return { ...song, artistId: '', seed: '0' };
+  },
+
   explorer_pick: () => undefined,
-  explorer_remove: () => undefined,
+  explorer_remove: (args?: InvokeArgs) => {
+    const path = String((args as { path?: unknown } | undefined)?.path ?? '');
+    const at = libraryRoots.findIndex((root) => root.path === path);
+    if (at >= 0) libraryRoots.splice(at, 1);
+    return undefined;
+  },
   explorer_open: () => undefined,
-  explorer_drop: () => undefined,
+  // One folder's rows, for a node the producer expanded (TASK-058). ⚠ The
+  // fixture is a shallow tree rather than one folder, because the defect the
+  // tree was built for — *"you cannot go into those subfolders"* — only shows up
+  // below the first level.
+  explorer_list: (args?: InvokeArgs) => {
+    const path = String((args as { path?: unknown } | undefined)?.path ?? '');
+    const entries = libraryRows[path];
+    // ⛔ Refuses an unknown folder rather than answering an empty one, because
+    // the real command refuses anything outside the library — and an empty list
+    // would let a containment bug read as "that folder happens to be empty".
+    if (entries === undefined) {
+      throw new Error('that is not a folder in your sample library');
+    }
+    return { roots: [], folder: path, parent: null, entries, truncated: false, picking: false };
+  },
+  // ⛔ **Refuses a folder and refuses an empty path**, because the real command
+  // does: a mock that accepted anything would let the panel start offering a
+  // folder as a draggable row without a single spec noticing.
+  explorer_drop: (args?: InvokeArgs) => {
+    const { lane, path } = (args ?? {}) as { lane?: unknown; path?: unknown };
+    if (typeof lane !== 'string' || typeof path !== 'string' || path === '') {
+      throw new Error('that is not a lane');
+    }
+    droppedSamples.set(lane, path);
+    return undefined;
+  },
   // ⚠ Both bounds per column, like the real command — a fixture returning one
   // amplitude would draw the half-waveform the Rust test exists to refuse, and
   // the mock would be the thing hiding it.
@@ -840,12 +1073,17 @@ function mockDensity(pattern: Pattern): number[] {
 declare global {
   interface Window {
     __freallyCopiedSamples?: string[];
+    /** Paths the page asked to reveal in the OS file manager (TASK-058C). */
+    __freallyRevealed?: string[];
   }
 }
 
 export async function mockInvoke<T>(command: string, args?: InvokeArgs): Promise<T> {
   if (typeof window !== 'undefined') {
     window.__freallyCopiedSamples = copiedSamples;
+    // ⛔ Same reasoning: a browser cannot open Explorer, so the only thing a spec
+    // can check is that the page asked for the right path.
+    window.__freallyRevealed = revealed;
   }
   const handler = handlers[command];
   if (!handler) {

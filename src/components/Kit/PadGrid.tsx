@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Play, Shuffle, X } from 'lucide-react';
+import { CornerDownLeft, Play, Shuffle, X } from 'lucide-react';
 
+import { SAMPLE_TYPE, droppedSample } from '../../lib/dnd';
 import { useKit } from '../../state/kit';
 import { useSession } from '../../state/session';
 import { DEFAULT_PADS, useUi } from '../../state/ui';
@@ -11,9 +12,6 @@ import { auditionLane } from '../DrumGrid/audition';
 import { Combo } from '../Combo/Combo';
 import type { Lane } from '../../lib/ipc-types';
 import './PadGrid.css';
-
-/** Carried by a row dragged out of the sample browser. Mirrors `KitPanel`. */
-const SAMPLE_TYPE = 'application/x-freally-sample';
 
 /**
  * Module constants, and that is the whole point of them.
@@ -54,6 +52,12 @@ export function PadGrid() {
   const setLaneMuted = useSession((s) => s.setLaneMuted);
   const soloedLanes = useSession((s) => s.soloedLanes);
   const dropOn = useExplorer((s) => s.dropOn);
+  // ⚠ **Audio only**, and asked of `selectedKind` rather than inferred. This read
+  // `midiSplit === null`, which is also true for the whole window between
+  // clicking a `.mid` and its split arriving — **and permanently if that split
+  // fails** — so a pad offered to take a MIDI file. The same rule the drag
+  // enforces with two MIME types, from the same source of truth.
+  const selectedSample = useExplorer((s) => (s.selectedKind === 'audio' ? s.selected : null));
   const clear = useKit((s) => s.clear);
   // ⛔ **Per style** — Mike, 2026-08-09: *"the original workflows should go back
   // to exactly how they were when you left them."* Which lanes are on the pads
@@ -121,9 +125,9 @@ export function PadGrid() {
             }}
             onDragLeave={() => setOver((held) => (held === lane ? null : held))}
             onDrop={(event) => {
-              const path = event.dataTransfer.getData(SAMPLE_TYPE);
+              const path = droppedSample(event.dataTransfer);
               setOver(null);
-              if (path === '') return;
+              if (path === null) return;
               event.preventDefault();
               // Refreshed after, because the pad's own label is the only thing
               // that says the drop landed.
@@ -212,6 +216,28 @@ export function PadGrid() {
                 onClick={() => void clear(lane)}
               >
                 <X size={12} aria-hidden="true" />
+              </button>
+            )}
+
+            {/* ⛔⛔ **The second route onto a pad, and it is not a convenience**
+                (TASK-059A). A drag needs the browser and the pads on screen
+                together and needs a mouse; this needs neither. It is also the
+                only route that works while the rail is scrolled somewhere else.
+                ⚠ **Only while a sample is selected**, so a pad carries no control
+                that would have nothing to assign. `selectedSample` is null for a
+                `.mid` too — a MIDI file on a drum pad is the control that can
+                only fail, which `FileTree`'s two MIME types already refuse for
+                the drag. */}
+            {selectedSample !== null && (
+              <button
+                type="button"
+                className="pad__use"
+                disabled={assigning !== null}
+                aria-label={t('kit.useSelected', { lane: name })}
+                title={t('kit.useSelected', { lane: name })}
+                onClick={() => void dropOn(lane, selectedSample).then(() => refresh())}
+              >
+                <CornerDownLeft size={12} aria-hidden="true" />
               </button>
             )}
           </div>

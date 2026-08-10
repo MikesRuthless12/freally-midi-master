@@ -214,3 +214,35 @@
   cursor: default;
   opacity: 0.4;
 }
+
+/* ⛔ **"Put the selected sample here"** (TASK-059A) — bottom LEFT, so it never
+   shares a corner with clear. The two are opposites and a mis-click between them
+   is the difference between assigning a sample and losing one.
+   ⚠ Present only while a sample is selected in the browser, so a pad never
+   carries a control with nothing to assign. */
+.pad__use {
+  position: absolute;
+  z-index: 2;
+  bottom: 4px;
+  left: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-text-3);
+  cursor: pointer;
+}
+
+.pad__use:hover {
+  color: var(--color-primary);
+}
+
+.pad__use:disabled {
+  cursor: default;
+  opacity: 0.4;
+}

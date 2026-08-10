@@ -277,6 +277,68 @@
         </p>
       </article>
 
+      <article class="release" id="browser">
+        <h2>The sample browser</h2>
+        <p class="summary">
+          Your library folders sit at the top of the left rail as <strong>tabs — up to eight of
+          them</strong>. Pick a tab and its folders indent underneath, with the files below those,
+          the way a file manager works. Once you have eight, <strong>Add folder is disabled</strong>
+          until you close one. Your library comes back next time you open the app, with or without
+          a project.
+        </p>
+        <p class="summary" style="margin-top: 14px">
+          <strong>The arrow keys walk it.</strong> <kbd>↑</kbd> and <kbd>↓</kbd> move between rows.
+          On a folder, <kbd>→</kbd> opens it and <kbd>←</kbd> shuts it — and on an already-shut
+          folder <kbd>←</kbd> shuts the branch it sits in, so it is a way back out. On a
+          <em>file</em>, those same two keys play it <strong>forwards and backwards</strong>.
+          Auditioning never starts or stops the transport.
+        </p>
+        <p class="summary" style="margin-top: 14px">
+          <strong>Star anything</strong> — a sample, a one-shot or a MIDI file. The star sits to the
+          left of the name: an outline until you press it, then solid yellow. Starred files gather
+          in a list under the tree, and clicking one opens every folder between the root and that
+          file to reveal it. If its folder is no longer one of your eight open tabs, it opens the
+          file's location in <strong>Windows Explorer or Finder</strong> instead — so a favourite is
+          reachable whatever your library has moved on to. Unstarring forgets it.
+        </p>
+        <p class="summary" style="margin-top: 14px">
+          The browser can take the <strong>whole rail</strong> when you need the depth, and hand it
+          back. Audio and MIDI are kept apart on purpose: a <code>.mid</code> has no waveform to
+          draw and cannot be dropped on a drum pad, and the pad refuses it before you let go rather
+          than failing afterwards.
+        </p>
+      </article>
+
+      <article class="release" id="midi-import">
+        <h2>Dropping a MIDI file in</h2>
+        <p class="summary">
+          Drag a <code>.mid</code> from the browser onto a <strong>generator</strong> and its notes
+          land there. Drop it on the <strong>Song</strong> tab instead and the whole file arrives as
+          an arrangement — sections across the top, parts down the side — and clicking any cell
+          opens that clip in its generator, exactly as drilling into a generated song does. Nothing
+          you already have is overwritten until you choose a cell.
+        </p>
+        <p class="summary" style="margin-top: 14px">
+          A layered file is <strong>separated into bass, melody, countermelody, chords and
+          drums</strong>, and every part says <strong>why</strong> it was routed where it was — "on
+          the GM drum channel", "chords — notes overlap", "lowest voice", "from the file name". A
+          wrong guess is one click to redirect rather than something you discover two bars in.
+        </p>
+        <p class="summary" style="margin-top: 14px">
+          <strong>Name your files and it will listen.</strong> A file called
+          <code>…-Bass.mid</code> or <code>…Drums.mid</code> is taken at its word, because that is
+          you saying what it is rather than the plugin guessing. This matters more than it sounds:
+          an 808's MIDI note says <em>which key fires the sample</em>, not how low it sounds, so a
+          bassline routinely sits in melody register and no measurement can tell it from a slow
+          lead. The one thing that can is the name you gave it.
+        </p>
+        <p class="summary" style="margin-top: 14px">
+          Imported clips <strong>adopt your session's tempo</strong>. Most exported MIDI carries no
+          tempo at all — the number in the filename is not in the data — and the plugin will not
+          claim one it did not read.
+        </p>
+      </article>
+
       <article class="release" id="generators">
         <h2>The generators</h2>
         <p class="summary">

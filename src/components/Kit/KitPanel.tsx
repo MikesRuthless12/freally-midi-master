@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Dices, X } from 'lucide-react';
 
 import { canSound, useKit } from '../../state/kit';
+import { SAMPLE_TYPE, droppedSample } from '../../lib/dnd';
 import { SavedKits } from './SavedKits';
 import { useExplorer } from '../../state/explorer';
 import type { Lane } from '../../lib/ipc-types';
@@ -16,13 +17,6 @@ import type { Lane } from '../../lib/ipc-types';
  * from outside the page look like a sample and fail at the loader instead of at
  * the drop.
  */
-const SAMPLE_TYPE = 'application/x-freally-sample';
-
-/** The path a drop is carrying, or `null` when it is not one of ours. */
-function droppedSample(transfer: DataTransfer): string | null {
-  const path = transfer.getData(SAMPLE_TYPE);
-  return path === '' ? null : path;
-}
 
 /**
  * The KIT panel: what each lane plays, and how to put your own sample on it.

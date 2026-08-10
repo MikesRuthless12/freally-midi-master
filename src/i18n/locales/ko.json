@@ -55,7 +55,8 @@
     "muteLane": "{{lane}} 음소거",
     "unmuteLane": "{{lane}} 음소거 해제",
     "playLane": "{{lane}} 재생",
-    "padLane": "패드 {{at}} 레인"
+    "padLane": "패드 {{at}} 레인",
+    "useSelected": "선택한 샘플을 {{lane}}에 넣기"
   },
   "sections": {
     "genres": "장르",
@@ -407,7 +408,28 @@
     "decoding": "읽는 중…",
     "waveformOf": "{{name}}의 파형",
     "reverse": "거꾸로 재생",
-    "resize": "브라우저 너비 조절"
+    "resize": "브라우저 너비 조절",
+    "fillRail": "브라우저에 레일 전체 사용",
+    "restoreRail": "로스터 다시 표시",
+    "folderLimit": "폴더는 한 번에 8개까지 탐색할 수 있습니다 — 추가하려면 하나를 닫으세요",
+    "favourites": "즐겨찾기",
+    "star": "{{name}} 즐겨찾기에 추가",
+    "unstar": "{{name}} 즐겨찾기에서 제거",
+    "revealHint": "파일 관리자에서 {{path}} 표시",
+    "midiApply": "제너레이터로 보내기",
+    "midiDragHint": "또는 파일을 제너레이터 하나에 끌어다 놓으면 전부 그곳으로 가져옵니다.",
+    "splitReason": {
+      "drumChannel": "GM 드럼 채널",
+      "polyphonic": "코드 — 노트가 겹칩니다",
+      "lowestVoice": "가장 낮은 성부",
+      "highestVoice": "가장 높은 성부",
+      "innerVoice": "중간 성부",
+      "splitByPitch": "한 성부를 음높이로 분할 — 추정입니다",
+      "fromName": "파일 이름에서",
+      "kitShape": "드럼 킷처럼 연주됩니다"
+    },
+    "midiFound": "이 MIDI 파일의 내용",
+    "midiNotes": "노트"
   },
   "patterns": {
     "name": "이 패턴의 이름",
@@ -453,7 +475,7 @@
     "scales": "음계",
     "scalesHint": "{{name}}이(가) 실제로 쓰는 음계만.",
     "save": "스타일 저장",
-    "delete": "{{name}} 삭제",
+    "delete": "워크플로 삭제",
     "export": "내보내기",
     "import": "가져오기",
     "nameNeeded": "스타일에 이름을 지어 주세요.",

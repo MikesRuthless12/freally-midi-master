@@ -55,7 +55,8 @@
     "muteLane": "{{lane}} をミュート",
     "unmuteLane": "{{lane}} のミュート解除",
     "playLane": "{{lane}} を再生",
-    "padLane": "パッド {{at}} のレーン"
+    "padLane": "パッド {{at}} のレーン",
+    "useSelected": "選択したサンプルを {{lane}} に置く"
   },
   "sections": {
     "genres": "ジャンル",
@@ -407,7 +408,28 @@
     "decoding": "読み込み中…",
     "waveformOf": "{{name}} の波形",
     "reverse": "逆再生",
-    "resize": "ブラウザーの幅を変更"
+    "resize": "ブラウザーの幅を変更",
+    "fillRail": "ブラウザーにレール全体を割り当てる",
+    "restoreRail": "ロスターを再表示",
+    "folderLimit": "同時に開けるフォルダーは8つです。追加するには1つ閉じてください",
+    "favourites": "スター付きのお気に入り",
+    "star": "{{name}} にスターを付ける",
+    "unstar": "{{name}} のスターを外す",
+    "revealHint": "{{path}} をファイルマネージャーで表示",
+    "midiApply": "ジェネレーターに送る",
+    "midiDragHint": "または、ファイルを 1 つのジェネレーターにドラッグすると、すべてそこに読み込まれます。",
+    "splitReason": {
+      "drumChannel": "GM ドラムチャンネル上",
+      "polyphonic": "コード — ノートが重なっています",
+      "lowestVoice": "最も低い声部",
+      "highestVoice": "最も高い声部",
+      "innerVoice": "内声",
+      "splitByPitch": "1 声部を音高で分割 — 推定です",
+      "fromName": "ファイル名から",
+      "kitShape": "ドラムキットのように鳴っています"
+    },
+    "midiFound": "この MIDI ファイルの内容",
+    "midiNotes": "ノート"
   },
   "patterns": {
     "name": "このパターンに名前を付ける",
@@ -453,7 +475,7 @@
     "scales": "スケール",
     "scalesHint": "{{name}} が実際に使うスケールのみ。",
     "save": "スタイルを保存",
-    "delete": "{{name}} を削除",
+    "delete": "ワークフローを削除",
     "export": "書き出し",
     "import": "読み込み",
     "nameNeeded": "スタイルに名前を付けてください。",

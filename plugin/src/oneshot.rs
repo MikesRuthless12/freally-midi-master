@@ -393,12 +393,15 @@ impl Claim {
 /// The filter names the formats [`import`] can actually decode. ⚠ It is a filter
 /// and not a guarantee — every platform lets the producer pick "all files" — so
 /// the decoder still has to refuse a text file with a reason, which it does.
+///
+/// ⛔ **`engine::formats::AUDIO`, not a literal.** This was a second copy of the
+/// explorer's list; they agreed by luck, and nothing would have reported it when
+/// they stopped. ⚠ **Audio only here, deliberately** — this dialog assigns a
+/// *one-shot to a drum pad*, and a `.mid` is not one however browsable it is
+/// elsewhere.
 fn pick_file() -> Option<std::path::PathBuf> {
     rfd::FileDialog::new()
-        .add_filter(
-            "Audio",
-            &["wav", "aif", "aiff", "flac", "mp3", "m4a", "ogg", "oga"],
-        )
+        .add_filter("Audio", engine::formats::AUDIO)
         .pick_file()
 }
 
@@ -442,19 +445,49 @@ pub(crate) fn refuse_remote(path: &Path) -> Result<(), String> {
     // through the very payload this guard exists to stop. The attack travels in
     // a shared project; the machine that opens it is not the machine that wrote
     // it, so the rule must not depend on which one it is.
+    // ⛔⛔ **A verbatim DISK path is local, and refusing it broke the File
+    // Explorer outright.** `\\?\C:\samples\kick.wav` names drive C: and can name
+    // nothing else — but it starts with `\\`, so the string test above classified
+    // it as remote. That matters because **`Path::canonicalize` on Windows
+    // returns exactly this form**: `Explorer::open` canonicalises the folder it
+    // browses, `list` builds every row from `entry.path()` underneath it, and so
+    // every path the page holds wears the prefix the moment a root is opened.
+    //
+    // The result, reported by Mike 2026-08-10: *"you can get to the subfolders
+    // list, but you cannot go into those subfolders."* Opening a **root** worked
+    // because roots are stored as they were added; opening any child of one was
+    // refused as a network path. The same refusal silently took the preview
+    // player (`preview_load`), the waveform, `.mid` reading, and — the one Mike
+    // asked for first — **dropping a sample from the browser onto a pad**, since
+    // `restore` is the landing for `explorer_drop` and it guards here too.
+    //
+    // ⚠ **`\\?\UNC\…` is still refused**, by `VerbatimUNC` below: that one really
+    // does name a remote host, and it is in the hostile-path test. This exempts
+    // the disk form only.
+    //
+    // ⚠ **Naturally platform-correct.** `Component::Prefix` is only ever produced
+    // on Windows, so on Linux and macOS — where a project file's backslashes are
+    // ordinary filename characters — this is always `false` and the string test
+    // below still catches the payload this guard was written for.
+    let verbatim_disk = matches!(
+        path.components().next(),
+        Some(Component::Prefix(prefix)) if matches!(prefix.kind(), Prefix::VerbatimDisk(..))
+    );
+
     let text = path.to_string_lossy();
-    let remote = text.starts_with("//")
-        || text.starts_with(r"\\")
-        || matches!(
-            path.components().next(),
-            Some(Component::Prefix(prefix)) if matches!(
-                prefix.kind(),
-                Prefix::UNC(..)
-                    | Prefix::VerbatimUNC(..)
-                    | Prefix::Verbatim(..)
-                    | Prefix::DeviceNS(..)
-            )
-        );
+    let remote = !verbatim_disk
+        && (text.starts_with("//")
+            || text.starts_with(r"\\")
+            || matches!(
+                path.components().next(),
+                Some(Component::Prefix(prefix)) if matches!(
+                    prefix.kind(),
+                    Prefix::UNC(..)
+                        | Prefix::VerbatimUNC(..)
+                        | Prefix::Verbatim(..)
+                        | Prefix::DeviceNS(..)
+                )
+            ));
 
     if remote {
         return Err(
@@ -886,6 +919,39 @@ mod remote_path_tests {
         ] {
             assert!(refuse_remote(Path::new(fine)).is_ok(), "{fine} must load");
         }
+    }
+
+    /// ⛔⛔ **The File Explorer's own paths must not read as network paths.**
+    ///
+    /// `Path::canonicalize` on Windows answers `\\?\C:\…`, and `Explorer::open`
+    /// canonicalises the folder it browses — so every row the page is given
+    /// carries that prefix. Refusing it meant a producer could open a root, see
+    /// its subfolders, and not enter a single one; the preview player, the
+    /// waveform and the drag-to-pad drop were refused by the same line.
+    ///
+    /// ⚠ Windows-only, and that is the point rather than a portability dodge: on
+    /// Linux this string has no path prefix, is not something `canonicalize`
+    /// produces, and *should* still be refused as the portable-project payload
+    /// the guard was written for.
+    #[test]
+    #[cfg(windows)]
+    fn a_canonicalised_windows_path_is_local() {
+        for fine in [
+            r"\\?\C:\Users\mike\samples\kick.wav",
+            r"\\?\C:\Users\mike\samples",
+            r"\\?\Z:\shared-library\kick.wav",
+        ] {
+            assert!(
+                refuse_remote(Path::new(fine)).is_ok(),
+                "{fine} is a local drive and must load"
+            );
+        }
+
+        // ...and the verbatim form of a UNC path is still refused, which is the
+        // half that genuinely names a stranger's host.
+        let error = refuse_remote(Path::new(r"\\?\UNC\evil.example.com\share\kick.wav"))
+            .expect_err("a verbatim UNC path must still be refused");
+        assert!(error.contains("network path"), "{error}");
     }
 
     #[test]

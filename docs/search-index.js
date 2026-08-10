@@ -42,6 +42,16 @@ window.SEARCH_INDEX = [
     body: 'pad pads drum lane lanes kick snare clap closed hat open hat perc rim crash mute unmute green red dot play audition drag drop sample one-shot shuffle re-roll randomize clear built in swap lane picker layer two per lane remembered per artist',
   },
   {
+    id: 'browser',
+    title: 'The sample browser',
+    body: 'browser file explorer tree folder folders subfolder subfolders tabs eight library add folder remove star starred favourite favorites yellow reveal windows explorer finder arrow keys up down left right expand collapse retract audition preview reverse backwards waveform wav aiff flac mp3 m4a ogg mid midi rail width persist',
+  },
+  {
+    id: 'midi-import',
+    title: 'Dropping a MIDI file in',
+    body: 'midi mid import drag drop generator song tab arrangement sections split separate parts bass melody countermelody counter chords drums reason routed why filename file name 808 trigger pitch register tempo bpm adopt session gm drum channel overlap onsets voices layered',
+  },
+  {
     id: 'generators',
     title: 'The six generators',
     body: 'drums melody countermelody bassline chords song arrangement hats rolls 808 kick snare clap percussion phrase scale degrees key',

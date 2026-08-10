@@ -797,6 +797,92 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
             return Some(shared.explorer.open(dir).map(|()| Value::Null));
         }
 
+        // One folder's rows, for a node the producer expanded in the tree.
+        //
+        // ⚠ **Does not move the browse location**, which is the whole difference
+        // from `explorer_open` — see `Explorer::list_one`. A tree has several
+        // folders open and only one of them is the folder being worked from.
+        "explorer_list" => {
+            let dir = request.args["path"].as_str().unwrap_or_default();
+            return Some(
+                shared
+                    .explorer
+                    .list_one(dir)
+                    .and_then(|state| serde_json::to_value(state).map_err(|e| e.to_string())),
+            );
+        }
+
+        // Separating a layered `.mid` into the parts its voices belong to.
+        //
+        // ⛔ Mike, 2026-08-10: *"split it into the proper generators if it is a
+        // layered melody file with the bass and countermelody included."* Each
+        // result carries **why** it was routed where it was — `engine::smf_read`
+        // states the rule: never present a guess as a transcription.
+        "explorer_midi_split" => {
+            let path = request.args["path"].as_str().unwrap_or_default();
+            return Some(
+                crate::explorer::midi_split(&shared.explorer, path)
+                    .and_then(|parts| serde_json::to_value(parts).map_err(|e| e.to_string())),
+            );
+        }
+
+        // A whole `.mid` as an arrangement, for the Song tab (TASK-058D).
+        //
+        // ⛔ Mike, 2026-08-10 — the file lands in the Song tab and the producer
+        // drills out the parts they want, rather than one drop overwriting a
+        // generator. ⚠ **The drag-in path only**; generating a song is untouched.
+        "explorer_song" => {
+            let path = request.args["path"].as_str().unwrap_or_default();
+            return Some(
+                crate::explorer::midi_song(&shared.explorer, path)
+                    .and_then(|song| serde_json::to_value(song).map_err(|e| e.to_string())),
+            );
+        }
+
+        // Starred samples, one-shots and MIDI files (TASK-058C).
+        "favourites_list" => {
+            return Some(
+                serde_json::to_value(crate::favourites::list()).map_err(|e| e.to_string()),
+            );
+        }
+
+        // ⛔⛔ **Containment is applied HERE, where the explorer is in scope.**
+        // `favourites::add` cannot take it — it has no reference to the library —
+        // so a star is only allowed on a file the browser would actually list.
+        // Without this the page could star any local path and then use `reveal`
+        // to launch a shell at it, which is the one command in this plugin that
+        // starts a process.
+        "favourites_add" => {
+            let path = request.args["path"].as_str().unwrap_or_default();
+            if !shared.explorer.contains(std::path::Path::new(path)) {
+                return Some(Err("that file is not in your sample library".into()));
+            }
+            return Some(
+                crate::favourites::add(path)
+                    .and_then(|list| serde_json::to_value(list).map_err(|e| e.to_string())),
+            );
+        }
+
+        // ⚠ **No containment on the way out.** A folder removed from the library
+        // must still be un-starrable, or a favourite could become permanent by
+        // the producer tidying their roots.
+        "favourites_remove" => {
+            let path = request.args["path"].as_str().unwrap_or_default();
+            return Some(
+                crate::favourites::remove(path)
+                    .and_then(|list| serde_json::to_value(list).map_err(|e| e.to_string())),
+            );
+        }
+
+        // ⛔ Mike, 2026-08-10: *"if it's not a folder that you still have in the
+        // 'File Explorer' then it should take you there in Windows Explorer or
+        // the macOS Explorer."* `favourites::reveal` refuses anything that is not
+        // already starred, which is what bounds the process launch.
+        "favourites_reveal" => {
+            let path = request.args["path"].as_str().unwrap_or_default();
+            return Some(crate::favourites::reveal(path).map(|()| Value::Null));
+        }
+
         "explorer_state" => {
             // ⚠ Written back on every read, because the only thing that knows
             // a dialog finished is the dialog thread — and it cannot touch the

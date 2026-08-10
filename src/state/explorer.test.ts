@@ -6,6 +6,9 @@ import {
   RAIL_MIN_WIDTH,
   clampRailWidth,
   formatSeconds,
+  innermostExpanded,
+  isInside,
+  samePath,
   useExplorer,
 } from './explorer';
 import { outlineOf } from '../components/Explorer/waveform';
@@ -19,11 +22,16 @@ beforeEach(() => {
   useExplorer.setState({
     roots: [],
     folder: null,
-    parent: null,
-    entries: [],
-    truncated: false,
+    children: {},
+    expanded: [],
+    truncatedIn: [],
+    activeRoot: null,
+    favourites: [],
+    starred: new Set(),
+    midiSplit: null,
     loaded: false,
     selected: null,
+    selectedKind: null,
     waveform: null,
     position: { playing: false, seconds: 0, total: 0, looping: false, reverse: false },
     error: null,
@@ -295,5 +303,160 @@ describe('removing a library folder', () => {
     await useExplorer.getState().removeFolder('C:\\other\\Loops');
     expect(useExplorer.getState().selected).toBe('C:\\lib\\Samples\\kick.wav');
     expect(useExplorer.getState().waveform).not.toBeNull();
+  });
+});
+
+describe('the tree', () => {
+  /**
+   * ⛔⛔ **The bug this whole tree was rebuilt around.**
+   *
+   * Mike, 2026-08-10: *"you can get to the subfolders list, but you cannot go
+   * into those subfolders."* The cause was in Rust — `canonicalize` answers a
+   * verbatim path on Windows and `refuse_remote` read its leading slashes as a
+   * network path — but the page had its own half of it: every path comparison
+   * here was `===` or `startsWith` between a root spelled as the producer added
+   * it and a folder the plugin had canonicalised.
+   *
+   * ⚠ `String.raw` throughout, so these read as the paths they are rather than
+   * as doubled escapes. A Windows path written with `\\` in a test is a path
+   * nobody can check against the thing it is meant to mirror.
+   */
+  it('treats the canonical and raw spellings of a path as one folder', () => {
+    expect(samePath(String.raw`\\?\C:\lib\Samples`, String.raw`C:\lib\Samples`)).toBe(true);
+    // ⚠ Concatenated rather than raw: a raw literal cannot *end* in a
+    // backslash, because it escapes the closing backtick.
+    expect(samePath(`${String.raw`C:\lib\Samples`}\\`, String.raw`C:\lib\Samples`)).toBe(true);
+    expect(samePath(String.raw`c:\lib\samples`, String.raw`C:\lib\Samples`)).toBe(true);
+    expect(samePath(String.raw`C:\lib\Other`, String.raw`C:\lib\Samples`)).toBe(false);
+
+    expect(isInside(String.raw`\\?\C:\lib\Samples\Kicks`, String.raw`C:\lib\Samples`)).toBe(
+      true,
+    );
+    // ⛔ A separator is required, or `Samples-old` counts as a child of `Samples`.
+    expect(isInside(String.raw`C:\lib\Samples-old\a.wav`, String.raw`C:\lib\Samples`)).toBe(
+      false,
+    );
+    expect(isInside(String.raw`C:\lib\Samples`, String.raw`C:\lib\Samples`)).toBe(false);
+  });
+
+  it('reads a folder when it is expanded, without navigating away from it', async () => {
+    invoke.mockImplementation((command: string) => {
+      if (command === 'explorer_list') {
+        return Promise.resolve({
+          roots: [],
+          folder: String.raw`C:\lib\Samples`,
+          parent: null,
+          entries: [
+            { name: 'kick.wav', path: String.raw`C:\lib\Samples\kick.wav`, isDir: false },
+          ],
+          truncated: false,
+          picking: false,
+        });
+      }
+      return Promise.resolve({
+        roots: [],
+        folder: null,
+        parent: null,
+        entries: [],
+        truncated: false,
+        picking: false,
+      });
+    });
+
+    await useExplorer.getState().toggleFolder(String.raw`C:\lib\Samples`);
+
+    expect(useExplorer.getState().expanded).toContain(String.raw`C:\lib\Samples`);
+    expect(useExplorer.getState().children[String.raw`C:\lib\Samples`]).toHaveLength(1);
+    // ⛔ **Both commands.** `explorer_list` draws the rows; `explorer_open` is
+    // what makes the folder the one a per-pad randomise draws from. Sending only
+    // the first would leave the dice pointed at wherever the producer was last.
+    expect(invoke).toHaveBeenCalledWith('explorer_list', { path: String.raw`C:\lib\Samples` });
+    expect(invoke).toHaveBeenCalledWith('explorer_open', { path: String.raw`C:\lib\Samples` });
+  });
+
+  it('shuts a folder and every branch under it', () => {
+    useExplorer.setState({
+      expanded: [
+        String.raw`C:\lib\Samples`,
+        String.raw`C:\lib\Samples\Kicks`,
+        String.raw`\\?\C:\lib\Samples\Kicks\Vinyl`,
+        String.raw`C:\lib\Loops`,
+      ],
+    });
+
+    useExplorer.getState().collapse(String.raw`C:\lib\Samples`);
+
+    // ⛔ Descendants go too, or re-opening the folder silently regrows every
+    // branch the producer just tidied away — including the one two levels down
+    // that the plugin had spelled canonically.
+    expect(useExplorer.getState().expanded).toEqual([String.raw`C:\lib\Loops`]);
+  });
+
+  it('shuts again when the folder could not be read', async () => {
+    invoke.mockImplementation((command: string) =>
+      command === 'explorer_list'
+        ? Promise.reject(new Error('that is not a folder in your sample library'))
+        : Promise.resolve({
+            roots: [],
+            folder: null,
+            parent: null,
+            entries: [],
+            truncated: false,
+            picking: false,
+          }),
+    );
+
+    await useExplorer.getState().toggleFolder(String.raw`C:\lib\Nope`);
+
+    // ⛔ An expanded twisty over no rows reads as "this folder is empty", which
+    // is a claim the page has not earned — the read is what failed.
+    expect(useExplorer.getState().expanded).not.toContain(String.raw`C:\lib\Nope`);
+    expect(useExplorer.getState().error).toContain('sample library');
+  });
+
+  it('retracts the deepest branch, not the one clicked most recently', () => {
+    // ⚠ Opening a sibling after a child leaves the child open and more deeply
+    // nested, so "most recent" would shut the wrong one — and `Up` would appear
+    // to do nothing while a branch stayed open below it.
+    expect(
+      innermostExpanded([
+        String.raw`C:\lib\Samples`,
+        String.raw`C:\lib\Samples\Kicks\Vinyl`,
+        String.raw`C:\lib\Samples\Kicks`,
+      ]),
+    ).toBe(String.raw`C:\lib\Samples\Kicks\Vinyl`);
+    expect(innermostExpanded([])).toBeNull();
+  });
+
+  it('forgets a removed root’s branch', async () => {
+    invoke.mockResolvedValue({
+      roots: [],
+      folder: null,
+      parent: null,
+      entries: [],
+      truncated: false,
+      picking: false,
+    });
+    useExplorer.setState({
+      expanded: [String.raw`C:\lib\Samples`, String.raw`C:\lib\Samples\Kicks`],
+      children: {
+        [String.raw`C:\lib\Samples`]: [
+          {
+            name: 'Kicks',
+            path: String.raw`C:\lib\Samples\Kicks`,
+            isDir: true,
+            kind: 'dir' as const,
+          },
+        ],
+        [String.raw`C:\lib\Samples\Kicks`]: [],
+      },
+    });
+
+    await useExplorer.getState().removeFolder(String.raw`C:\lib\Samples`);
+
+    // Left behind, the rows would reappear the moment a folder of the same name
+    // was added back — a listing nothing had re-read.
+    expect(useExplorer.getState().expanded).toEqual([]);
+    expect(useExplorer.getState().children).toEqual({});
   });
 });

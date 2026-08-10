@@ -52,14 +52,8 @@ async function pick(page: import('@playwright/test').Page, query: string) {
   await expect(search).not.toHaveValue(query);
 }
 
-test('the chips show what the chosen artist asks for, without being asked', async ({
-  page,
-}) => {
-  // The prompt this used to assert — "Pick an artist to see what it asks for" —
-  // is unreachable now that the rail chooses one on load. The panel it guarded
-  // is what matters, and it is populated straight away.
-  await expect(page.getByText('Pick an artist to see what it asks for.')).toHaveCount(0);
-  await expect(page.locator('.readouts.session')).toBeVisible();
+test('the chips ask for an artist before they show anything', async ({ page }) => {
+  await expect(page.getByText('Pick an artist to see what it asks for.')).toBeVisible();
 });
 
 test('the artist’s tempo is a placeholder, not a value', async ({ page }) => {

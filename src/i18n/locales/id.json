@@ -55,7 +55,8 @@
     "muteLane": "Bisukan {{lane}}",
     "unmuteLane": "Bunyikan {{lane}}",
     "playLane": "Putar {{lane}}",
-    "padLane": "Jalur pad {{at}}"
+    "padLane": "Jalur pad {{at}}",
+    "useSelected": "Taruh sampel terpilih di {{lane}}"
   },
   "sections": {
     "genres": "Genre",
@@ -407,7 +408,28 @@
     "decoding": "Membaca…",
     "waveformOf": "Bentuk gelombang {{name}}",
     "reverse": "Putar mundur",
-    "resize": "Ubah lebar peramban"
+    "resize": "Ubah lebar peramban",
+    "fillRail": "Beri browser seluruh bilah",
+    "restoreRail": "Tampilkan roster lagi",
+    "folderLimit": "Kamu bisa menjelajahi 8 folder sekaligus — tutup satu untuk menambah yang lain",
+    "favourites": "Favorit berbintang",
+    "star": "Bintangi {{name}}",
+    "unstar": "Hapus bintang {{name}}",
+    "revealHint": "Tampilkan {{path}} di pengelola berkas",
+    "midiApply": "Kirim ke generator",
+    "midiDragHint": "Atau seret berkas ke satu generator untuk mengimpor semuanya di sana.",
+    "splitReason": {
+      "drumChannel": "Di kanal drum GM",
+      "polyphonic": "Akor — not saling tumpang tindih",
+      "lowestVoice": "Suara terendah",
+      "highestVoice": "Suara tertinggi",
+      "innerVoice": "Suara tengah",
+      "splitByPitch": "Satu suara, dipisah berdasarkan nada — sebuah tebakan",
+      "fromName": "Dari nama berkas",
+      "kitShape": "Dimainkan seperti drum kit"
+    },
+    "midiFound": "Isi berkas MIDI ini",
+    "midiNotes": "Not"
   },
   "patterns": {
     "name": "Beri nama pattern ini",
@@ -453,7 +475,7 @@
     "scales": "Tangga nada",
     "scalesHint": "Hanya tangga nada yang dipakai {{name}}.",
     "save": "Simpan gaya",
-    "delete": "Hapus {{name}}",
+    "delete": "Hapus alur kerja",
     "export": "Ekspor",
     "import": "Impor",
     "nameNeeded": "Beri nama gayamu.",

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Pencil } from 'lucide-react';
 import { Section } from './Section';
 import { StyleEditor } from '../StyleEditor/StyleEditor';
@@ -82,26 +82,25 @@ export function LeftRail() {
   const allArtists = roster.filter((entry) => entry.type !== 'genre');
   const allGenres = roster.filter((entry) => entry.type === 'genre');
 
-  // ⛔⛔ **The combobox's fallback becomes a real selection.** Mike, 2026-08-09:
-  // *"the selection should start on the first genre/artist in the list … that
-  // way you cannot have an empty field."* Showing the first name without
-  // selecting it made the rail *lie*: the box read "Drake" while `selectedId`
-  // was still `null`, and everything keyed on a real selection quietly did
-  // nothing — the pad grid rendered no pads at all, which is what Mike found.
+  // ⛔⛔ **NOTHING IS SELECTED ON LOAD, AND THAT IS THE POINT.** Mike,
+  // 2026-08-10: *"how about we go back to that landing screen, and ensure that
+  // they have to pick an artist before they ever even generate anything, because
+  // I LOVE that landing screen."*
   //
-  // ⚠ Once, and only when nothing is selected. A reopened project already has
-  // its own artist and this must never overwrite it.
+  // ⚠ **An auto-select lived here for a few hours and was removed.** It came
+  // from *"you cannot have an empty field for the comboboxes"* — but selecting
+  // an artist to avoid a blank box threw away the whole empty state with it: the
+  // "Search an artist. Cook." screen never appeared, Generate was live before
+  // anyone had chosen anything, and the session chips never got to ask. That is
+  // a great deal more than not showing a blank field.
   //
-  // ⛔ **In an effect, not during render.** Writing to another store while
-  // rendering is what React warns about as "cannot update a component while
-  // rendering a different one", and this file has already produced a blank
-  // window once tonight from a render-phase mistake. An effect runs after the
-  // commit, which is the supported place to sync an external store.
-  useEffect(() => {
-    if (rosterLoaded && selectedId === null && allArtists.length > 0) {
-      select(allArtists[0]!.id);
-    }
-  }, [rosterLoaded, selectedId, allArtists, select]);
+  // ▶ The blank field is answered by the **placeholder** instead — the combobox
+  // shows "Search an artist…" rather than either nothing or a name the app has
+  // not actually selected. A placeholder is a prompt; a name would be a lie.
+  //
+  // ⚠ Either kind is enough to unlock Generate. A genre is a real style model
+  // that generates in its own right, so choosing "Trap" is already a complete
+  // choice — confirmed by Mike, 2026-08-10.
 
   return (
     <aside className="rail rail--left">

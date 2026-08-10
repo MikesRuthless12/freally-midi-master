@@ -55,7 +55,8 @@
     "muteLane": "كتم {{lane}}",
     "unmuteLane": "إلغاء كتم {{lane}}",
     "playLane": "تشغيل {{lane}}",
-    "padLane": "مسار الوسادة {{at}}"
+    "padLane": "مسار الوسادة {{at}}",
+    "useSelected": "ضع العينة المحددة على {{lane}}"
   },
   "sections": {
     "genres": "الأنواع",
@@ -407,7 +408,28 @@
     "decoding": "جارٍ القراءة…",
     "waveformOf": "الشكل الموجي لـ {{name}}",
     "reverse": "تشغيل عكسي",
-    "resize": "تغيير حجم المتصفح"
+    "resize": "تغيير حجم المتصفح",
+    "fillRail": "امنح المتصفح الشريط بالكامل",
+    "restoreRail": "إظهار قائمة الفنانين مجددًا",
+    "folderLimit": "يمكنك تصفح 8 مجلدات في المرة الواحدة — أغلق واحدًا لإضافة آخر",
+    "favourites": "المفضلة المميزة بنجمة",
+    "star": "إضافة {{name}} إلى المفضلة",
+    "unstar": "إزالة {{name}} من المفضلة",
+    "revealHint": "إظهار {{path}} في مدير الملفات",
+    "midiApply": "إرسال إلى المولّدات",
+    "midiDragHint": "أو اسحب الملف إلى مولّد واحد لاستيراده كاملاً هناك.",
+    "splitReason": {
+      "drumChannel": "على قناة الإيقاع GM",
+      "polyphonic": "أوتار — النوتات متداخلة",
+      "lowestVoice": "أخفض صوت",
+      "highestVoice": "أعلى صوت",
+      "innerVoice": "صوت داخلي",
+      "splitByPitch": "صوت واحد، مقسوم حسب الطبقة — تخمين",
+      "fromName": "من اسم الملف",
+      "kitShape": "يُعزف مثل طقم الإيقاع"
+    },
+    "midiFound": "محتوى ملف MIDI هذا",
+    "midiNotes": "النوتات"
   },
   "patterns": {
     "name": "سمِّ هذا النمط",
@@ -453,7 +475,7 @@
     "scales": "المقامات",
     "scalesHint": "فقط المقامات التي يسجّل بها {{name}}.",
     "save": "حفظ الأسلوب",
-    "delete": "حذف {{name}}",
+    "delete": "حذف سير العمل",
     "export": "تصدير",
     "import": "استيراد",
     "nameNeeded": "امنح أسلوبك اسمًا.",

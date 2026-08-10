@@ -21,13 +21,47 @@ import { invoke } from '../lib/ipc';
 import { isPlugin } from '../lib/ipc-plugin';
 import { readStored, writeStored } from './storage';
 import { reason } from './session';
-import type { Lane } from '../lib/ipc-types';
+import type { Lane, SplitPart } from '../lib/ipc-types';
 
 /** One row in the browser. Mirrors `explorer::Entry`. */
 export type ExplorerEntry = {
   name: string;
   path: string;
   isDir: boolean;
+  /**
+   * ⛔⛔ **Two kinds, two sets of affordances** — TASK-058's rule, carried as a
+   * field so no call site has to re-derive it from the extension. An audio file
+   * gets the waveform, the audition and a drum pad. A `.mid` gets playback and
+   * drag-to-generator; **a waveform for a `.mid`, or a pad assignment for one, is
+   * a control that can only fail.**
+   */
+  kind: 'dir' | 'audio' | 'midi';
+};
+
+/**
+ * How many library folders may be open at once.
+ *
+ * ⛔ Mike's number, 2026-08-10: *"i should be able to have up to 8 folders in the
+ * view … and if you want to add more, then you have to exit out of one of them."*
+ * ⚠ **Mirrors `explorer::MAX_ROOTS` and does not replace it.** This one disables
+ * the button so the rule is visible before it is hit; the plugin refuses a ninth
+ * however it arrives.
+ */
+export const MAX_ROOTS = 8;
+
+/**
+ * One starred file (TASK-058C). Mirrors `favourites::Favourite`.
+ *
+ * ⛔ **Keyed by path, and the roadmap says hash.** `plugin/src/favourites.rs`
+ * carries the reasoning: drawing a star on every row cannot mean hashing every
+ * file in the folder, and Mike's own description — *"it will delete the memory of
+ * what folder they are in"* — is about the path. The cost is real: a starred file
+ * that moves loses its star.
+ */
+export type Favourite = {
+  path: string;
+  name: string;
+  kind: 'audio' | 'midi';
 };
 
 /** What `explorer_state` answers with. Mirrors `explorer::State`. */
@@ -114,18 +148,178 @@ function loadRailWidth(): number {
   return clampRailWidth(Number.parseInt(raw, 10));
 }
 
+/**
+ * `\\?\C:\Samples` and `C:\Samples` are the same folder.
+ *
+ * ⛔⛔ **The two spellings have caused three bugs on this path now**, and
+ * `same_or_inside`'s own doc records the first two. Roots are stored exactly as
+ * the producer added them; everything the plugin *derives* goes through
+ * `canonicalize`, which on Windows answers with the `\\?\` prefix. So a root and
+ * the folder inside it that the plugin reports as current are routinely written
+ * two different ways, and every `===` or `startsWith` between them is wrong.
+ *
+ * ⚠ The third was the one Mike hit on 2026-08-10 — see `refuse_remote`, where
+ * the same prefix was being read as a *network* path and stopped the browser
+ * descending at all.
+ */
+function normalizePath(path: string): string {
+  return path.replace(/^\\\\\?\\/, '').replace(/[\\/]+$/, '');
+}
+
+/** Is `path` the same folder as `other`, whichever way each is spelled? */
+export function samePath(path: string | null, other: string | null): boolean {
+  if (path === null || other === null) return false;
+  // ⚠ Case-insensitively, because Windows paths are — and the plugin may answer
+  // with a drive letter cased differently from the one the producer typed.
+  return normalizePath(path).toLowerCase() === normalizePath(other).toLowerCase();
+}
+
+/**
+ * Is `path` somewhere below `folder`?
+ *
+ * ⚠ **A separator is required after the prefix**, or `…/Kicks` would count
+ * `…/Kicks-old` as one of its own children — the classic prefix-matching bug,
+ * and the reason the Rust side compares component by component rather than by
+ * string. This is only ever used to tidy the *view*, never to decide access;
+ * containment as a security boundary stays in `Explorer::contains`.
+ */
+export function isInside(path: string, folder: string): boolean {
+  const inner = normalizePath(path).toLowerCase();
+  const outer = normalizePath(folder).toLowerCase();
+  return inner.startsWith(`${outer}/`) || inner.startsWith(`${outer}\\`);
+}
+
+/**
+ * The folder names between `folder` and `path`, excluding the file itself.
+ *
+ * ⛔⛔ **Because slicing by `root.path.length` was wrong, and the fixture hid
+ * it.** `goToFavourite` walked down to a starred file with
+ * `path.slice(root.path.length)` — but a root is stored **as the producer added
+ * it** (`C:\lib\Samples`) while a favourite's path came from a row the plugin had
+ * **canonicalised** (`\\?\C:\lib\Samples\Kicks\kick.wav`). The offset is wrong by
+ * the length of the `\\?\` prefix, so the walk expanded garbage segments and
+ * "take me to the exact spot" landed nowhere. The e2e fixture uses `/library/…`,
+ * where raw and canonical coincide, so nothing went red.
+ *
+ * ⚠ **Every path decomposition goes through here**, for the reason `samePath`
+ * exists: the two spellings are the bug this module keeps paying for, and a
+ * `slice` or a `+` on a path at a call site is how the next one arrives.
+ */
+export function segmentsUnder(folder: string, path: string): string[] {
+  if (!isInside(path, folder)) return [];
+  // ⚠ Measured on the **normalised** forms, so the offset matches the string it
+  // is being taken from.
+  const inner = normalizePath(path);
+  const outer = normalizePath(folder);
+  return inner.slice(outer.length).split(/[\\/]/).filter(Boolean);
+}
+
+/*
+ * ⚠ **There is deliberately no `joinPath` here.** One existed for a day and it
+ * was the bug: building a child path by joining a name onto a parent produces the
+ * *parent's* spelling, and the plugin answers in its own (canonicalised) one — so
+ * the two never matched. Every path this page holds comes from a row the plugin
+ * returned. If you need a child's path, look it up in `children`; if it is not
+ * there, the folder has not been read yet.
+ */
+
+/**
+ * What kind of file a path names, from its extension alone.
+ *
+ * ⚠ **Mirrors `engine::formats::kind_of`**, deliberately and knowingly: the page
+ * has to answer this before any command replies — see `select` — and a round trip
+ * to ask the plugin would be exactly the async gap that made the old code report
+ * a `.mid` as audio. The lists are short and the *authority* stays in Rust; this
+ * decides which question to ask, never what the file is.
+ */
+export function kindOfPath(path: string): 'audio' | 'midi' {
+  return /\.midi?$/i.test(path) ? 'midi' : 'audio';
+}
+
+/**
+ * The deepest folder currently expanded, which is the one `Up` and `←` shut.
+ *
+ * ⚠ **Deepest, not last-clicked.** Opening a sibling after opening a child
+ * leaves the child open and more deeply nested, so "the one I opened most
+ * recently" would retract the wrong branch.
+ */
+export function innermostExpanded(expanded: string[]): string | null {
+  if (expanded.length === 0) return null;
+  return expanded.reduce((deepest, held) => (isInside(held, deepest) ? held : deepest));
+}
+
 type ExplorerStore = {
   roots: ExplorerEntry[];
+  /**
+   * The folder a per-pad randomise draws from.
+   *
+   * ⚠ **`parent`, `entries` and `truncated` are deliberately NOT here.** The
+   * plugin still sends them — `ExplorerReply` mirrors `explorer::State` — but the
+   * tree draws `children`/`truncatedIn` and `Up` collapses instead of navigating,
+   * so nothing read them. Keeping them would be two representations of "the rows
+   * in a folder" with only one live, which is the first thing a reader reaches
+   * for when adding a feature.
+   */
   folder: string | null;
-  parent: string | null;
-  entries: ExplorerEntry[];
-  truncated: boolean;
+  /**
+   * The rows inside each folder the producer has expanded, keyed by the path
+   * that was *asked for*.
+   *
+   * ⚠ **Keyed by the request, not by the reply.** `explorer_list` canonicalises
+   * on the way in, so a root asked for as `C:\Samples` answers with rows under
+   * `\\?\C:\Samples`. Keying by what came back would mean the next lookup — made
+   * with the root's own spelling — missed, and the node would re-fetch on every
+   * render.
+   */
+  children: Record<string, ExplorerEntry[]>;
+  /** Which folders are open, as a stable array — see the note in `PadGrid`. */
+  expanded: string[];
+  /**
+   * Which library folder's tab is showing, or `null` for the first one.
+   *
+   * ⚠ **Not persisted, and that matches the roots' own rule**: the library is a
+   * setup, the tab you were last on is a position. `Explorer::state`'s comment
+   * makes the same distinction about the browse location.
+   */
+  activeRoot: string | null;
+  /** Folders whose listing hit the plugin's row cap. */
+  truncatedIn: string[];
+  /** Starred samples, one-shots and MIDI. Mirrors `favourites::Favourite`. */
+  favourites: Favourite[];
+  /**
+   * What the selected `.mid` was found to contain, or `null`.
+   *
+   * ⛔ **Read when the file is selected, not when a button is pressed.** The
+   * whole point is that a producer sees *what is in the file* before deciding
+   * where it goes — a "Split" button that only reveals its answer after you
+   * commit is the shape TASK-058D refuses: it would present a guess as a result.
+   */
+  midiSplit: SplitPart[] | null;
   /** Whether a folder dialog is open — drives the poll in `addFolder`. */
   picking: boolean;
   /** Whether `explorer_state` has ever answered — "empty" is not "not asked". */
   loaded: boolean;
   /** The file being auditioned, or `null`. */
   selected: string | null;
+  /**
+   * What kind the selected file is — set synchronously with `selected`.
+   *
+   * ⛔ **Not inferred from `midiSplit`.** Two consumers used to sniff
+   * `midiSplit !== null`, which is `null` for the whole window between the click
+   * and the reply *and permanently when the split fails* — so a `.mid` reported
+   * as audio, the pad offered to take it and the transport drew for it. See
+   * `select`.
+   */
+  selectedKind: 'audio' | 'midi' | null;
+  /**
+   * The starred paths, as a set.
+   *
+   * ⚠ **Beside `favourites` rather than derived per row.** `FileTree` asked
+   * `favourites.some(…)` on every row, which is O(rows × favourites) — 2,000
+   * rows against 500 stars is a million string comparisons **per render**, and
+   * the tree re-renders on every refresh. Built once where the list is written.
+   */
+  starred: Set<string>;
   waveform: Waveform | null;
   position: PreviewPosition;
   error: string | null;
@@ -133,9 +327,23 @@ type ExplorerStore = {
   railWidth: number;
 
   refresh: () => Promise<void>;
+  /** Read the starred list. ⚠ At mount and after a star — never on the poll. */
+  loadFavourites: () => Promise<void>;
   addFolder: () => Promise<void>;
   removeFolder: (path: string) => Promise<void>;
-  open: (path: string) => Promise<void>;
+  /** Open a folder's twisty if it is shut, shut it if it is open. */
+  toggleFolder: (path: string) => Promise<void>;
+  /** Shut a folder's twisty. What `Up` and `←` do to the folder you are in. */
+  collapse: (path: string) => void;
+  /** Show a different library folder's tab. */
+  setActiveRoot: (path: string) => void;
+  /** Star a file, or unstar it if it already is. */
+  toggleFavourite: (path: string) => Promise<void>;
+  /**
+   * Go to a starred file: reveal it in the tree if its folder is still open in
+   * the browser, and in the OS file manager if it is not.
+   */
+  goToFavourite: (path: string) => Promise<void>;
   select: (path: string) => Promise<void>;
   play: () => Promise<void>;
   pause: () => Promise<void>;
@@ -151,12 +359,17 @@ type ExplorerStore = {
 export const useExplorer = create<ExplorerStore>((set, get) => ({
   roots: [],
   folder: null,
-  parent: null,
-  entries: [],
-  truncated: false,
+  children: {},
+  expanded: [],
+  truncatedIn: [],
+  activeRoot: null,
+  favourites: [],
+  starred: new Set(),
+  midiSplit: null,
   picking: false,
   loaded: false,
   selected: null,
+  selectedKind: null,
   waveform: null,
   position: STOPPED,
   error: null,
@@ -165,12 +378,12 @@ export const useExplorer = create<ExplorerStore>((set, get) => ({
   async refresh() {
     try {
       const reply = await invoke<ExplorerReply>('explorer_state');
+      // ⚠ **Only the library, the current folder and the dialog flag.** The reply
+      // still carries `parent`/`entries`/`truncated` because it mirrors
+      // `explorer::State`, and nothing reads them — see the note on `folder`.
       set({
         roots: reply.roots,
         folder: reply.folder,
-        parent: reply.parent,
-        entries: reply.entries,
-        truncated: reply.truncated,
         picking: reply.picking,
         loaded: true,
       });
@@ -179,6 +392,26 @@ export const useExplorer = create<ExplorerStore>((set, get) => ({
       // a browser that fails to read its own library and draws an empty list is
       // the readout-that-lies failure, arriving through the error path.
       set({ error: reason(error), loaded: true });
+    }
+  },
+
+  /**
+   * Read the starred list from disk.
+   *
+   * ⛔ **Not inside `refresh`, and that is a real cost rather than tidiness.**
+   * `refresh` runs on the folder-dialog poll — every 400 ms for as long as a
+   * producer browses for a folder — and on every twisty click. Reading and
+   * parsing `favourites.json` on each of those is ~2.5 file reads a second on the
+   * host's editor thread, for a list that changes only when somebody presses a
+   * star. ⚠ And `toggleFavourite` is already handed the fresh list back by the
+   * plugin, so the only time this is needed is at mount.
+   */
+  async loadFavourites() {
+    try {
+      const favourites = await invoke<Favourite[]>('favourites_list');
+      set({ favourites, starred: new Set(favourites.map((held) => held.path)) });
+    } catch {
+      // No stars is not a broken browser — the listing is unaffected.
     }
   },
 
@@ -244,24 +477,225 @@ export const useExplorer = create<ExplorerStore>((set, get) => ({
     if (get().folder === null) {
       set({ selected: null, waveform: null });
     }
+
+    // ⚠ The removed root's branch goes with it. Left behind, its rows would
+    // still be in `children` and would reappear the moment a folder of the same
+    // name was added back — showing a listing nothing had re-read.
+    const children = { ...get().children };
+    for (const key of Object.keys(children)) {
+      if (samePath(key, path) || isInside(key, path)) delete children[key];
+    }
+    set({
+      children,
+      expanded: get().expanded.filter((held) => !samePath(held, path) && !isInside(held, path)),
+    });
   },
 
-  async open(path) {
-    set({ error: null });
-    try {
-      await invoke('explorer_open', { path });
-    } catch (error) {
-      set({ error: reason(error) });
+  /**
+   * Expand or collapse one node of the tree.
+   *
+   * ⛔⛔ **A tree, because a one-folder-at-a-time list is not a file explorer.**
+   * Mike, 2026-08-10: *"you need to show it like a real file explorer does, where
+   * the main folder is at the top, and then indents and shows the subfolders
+   * underneath and then the files beneath that."*
+   *
+   * ⛔ **Expanding also makes the folder current, and collapsing does not undo
+   * that.** `explorer_open` is what per-pad randomise draws its samples from, so
+   * clicking a folder has to mean "I am working here" as well as "show me". But
+   * shutting a twisty is a change to what is *drawn*, and silently re-pointing
+   * the dice at the parent because a producer tidied the view would be a
+   * side effect nobody asked for.
+   *
+   * ⚠ **Rows are re-read every time it is opened**, not cached across a close.
+   * A producer who drops a sample into a folder from Explorer and comes back
+   * expects to see it; a cache that outlived the twisty would show them the
+   * folder as it was when they first looked.
+   */
+  async toggleFolder(path) {
+    const open = get().expanded.some((held) => samePath(held, path));
+    if (open) {
+      get().collapse(path);
       return;
     }
-    await get().refresh();
+
+    set({ error: null, expanded: [...get().expanded, path] });
+    // ⚠ Made current as well — see above. Failure here is not fatal to the
+    // expansion: the rows are what the producer asked to see.
+    void invoke('explorer_open', { path }).then(
+      () => get().refresh(),
+      () => {},
+    );
+
+    try {
+      const reply = await invoke<ExplorerReply>('explorer_list', { path });
+      set({
+        children: { ...get().children, [path]: reply.entries },
+        truncatedIn: reply.truncated
+          ? [...get().truncatedIn.filter((held) => !samePath(held, path)), path]
+          : get().truncatedIn.filter((held) => !samePath(held, path)),
+      });
+    } catch (error) {
+      // ⛔ Shut again on failure, rather than left open and empty. An expanded
+      // twisty over no rows reads as "this folder is empty", which is a claim
+      // the page has not earned — the read is what failed.
+      set({
+        error: reason(error),
+        expanded: get().expanded.filter((held) => !samePath(held, path)),
+      });
+    }
+  },
+
+  async toggleFavourite(path) {
+    const starred = get().starred.has(path);
+    set({ error: null });
+    try {
+      const favourites = await invoke<Favourite[]>(
+        starred ? 'favourites_remove' : 'favourites_add',
+        { path },
+      );
+      // ⚠ The plugin answers with the whole list rather than an acknowledgement,
+      // so the page never has to guess what its own write produced — the same
+      // shape `kits_save` uses. The set is rebuilt here for the same reason it
+      // exists: the tree asks it per row.
+      set({ favourites, starred: new Set(favourites.map((held) => held.path)) });
+    } catch (error) {
+      set({ error: reason(error) });
+    }
+  },
+
+  /**
+   * ⛔⛔ **Two destinations, and which one is not a preference.** Mike,
+   * 2026-08-10: *"it will take us to the exact spot of that exact sample in the
+   * actual 'File Explorer' browser and if it's not a folder that you still have
+   * in the 'File Explorer' then it should take you there in Windows Explorer or
+   * the macOS Explorer, so all 'Starred Favorites' should be able to be reachable
+   * at any given time."*
+   *
+   * So: inside the library, reveal it in the tree. Outside it, hand it to the OS.
+   * The second is what makes "reachable at any given time" true after a producer
+   * closes the folder it lives in — which they will, with only eight tabs.
+   */
+  async goToFavourite(path) {
+    set({ error: null });
+    const root = get().roots.find((entry) => isInside(path, entry.path));
+
+    if (root === undefined) {
+      // Not in any open library folder — the OS knows where it is.
+      try {
+        await invoke('favourites_reveal', { path });
+      } catch (error) {
+        set({ error: reason(error) });
+      }
+      return;
+    }
+
+    // ⛔ **Every folder between the root and the file, in order.** Expanding only
+    // the immediate parent would leave it inside a branch that is still shut, so
+    // "take me to the exact spot" would land on nothing.
+    //
+    // ⛔⛔ **The walk follows the ROWS the plugin returned, never a path this
+    // rebuilds.** It used to join the next name onto the root's own spelling —
+    // and a root is stored as the producer added it (`C:\lib\Samples`) while
+    // every row under it comes back **canonicalised** (`\\?\C:\lib\Samples\…`).
+    // So `toggleFolder` filed the rows under `C:\lib\Samples\Kicks` while
+    // `FileTree` looked them up as `\\?\C:\lib\Samples\Kicks`: the branch opened,
+    // read "Reading…" underneath forever, and the starred file was never
+    // revealed — the one thing the feature exists to do. Found by a code review,
+    // 2026-08-10; the e2e fixture uses `/library/…`, where the two spellings
+    // coincide, so nothing went red.
+    //
+    // ⚠ Names come from `segmentsUnder`; the *paths* come from `children`.
+    set({ activeRoot: root.path });
+    const between = segmentsUnder(root.path, path);
+    const isOpen = (folder: string) => get().expanded.some((held) => samePath(held, folder));
+
+    let at = root.path;
+    if (!isOpen(at)) await get().toggleFolder(at);
+
+    // ⚠ `slice(0, -1)` drops the filename: a file has no twisty to open.
+    for (const name of between.slice(0, -1)) {
+      const next = (get().children[at] ?? []).find((row) => row.isDir && row.name === name);
+      // ⚠ The folder is gone from disk since it was starred. Stop where we are
+      // rather than walking a path the plugin will refuse — the producer is left
+      // looking at the deepest folder that does still exist.
+      if (next === undefined) return;
+      at = next.path;
+      // ⚠ Awaited in sequence: each level's rows have to be read before the next
+      // level's row can be found in them.
+      if (!isOpen(at)) await get().toggleFolder(at);
+    }
+
+    await get().select(path);
+  },
+
+  setActiveRoot(path) {
+    // ⚠ **The other tab's branches are left expanded.** Coming back to a folder
+    // you were three levels into and finding it shut is the browser forgetting
+    // what you were doing; the rows are already in `children` and cost nothing
+    // to keep.
+    set({ activeRoot: path, error: null });
+  },
+
+  collapse(path) {
+    // ⛔ **Descendants too.** Leaving them in `expanded` means re-opening a
+    // folder silently re-opens every branch that was under it — the producer
+    // collapsed a tree and it grew back.
+    set({
+      expanded: get().expanded.filter((held) => !samePath(held, path) && !isInside(held, path)),
+    });
   },
 
   async select(path) {
+    // ⛔⛔ **The kind is DERIVED, not passed in, and it is stored.**
+    //
+    // It used to be a parameter defaulting to `'audio'`, and two things went
+    // wrong at once. The panel's arrow-key handler called `select(path)` with no
+    // kind, so walking onto a `.mid` with → asked for a *waveform of a MIDI
+    // file* — the one thing the two-kinds rule exists to prevent. And nothing
+    // stored what the selected file was: `PadGrid` and `PreviewPlayer` both
+    // sniffed `midiSplit !== null` instead, which is `null` for the whole window
+    // between the click and the reply — and **permanently** when the split fails.
+    // In that state a `.mid` reported as audio, so the pad offered to take it and
+    // the transport drew for it.
+    //
+    // ⚠ The extension is the only input either question ever had; deriving it
+    // here means one answer, set synchronously, before any await.
+    const kind = kindOfPath(path);
     // ⛔ **Set before either call, so the panel switches immediately** and a
     // slow decode cannot leave the previous sample's waveform on screen looking
     // like the one that was just clicked.
-    set({ selected: path, waveform: null, error: null });
+    set({ selected: path, selectedKind: kind, waveform: null, error: null });
+
+    // ⛔⛔ **A `.mid` has no waveform and no PCM, so neither is asked for.**
+    // `explorer_waveform` refuses anything that is not audio and `preview_load`
+    // would too — asking anyway would put a refusal on screen every time a
+    // producer clicked a MIDI file, which is the panel telling them something is
+    // broken about a file that is perfectly fine. TASK-058's two-kinds rule, at
+    // the one place that would otherwise treat them alike.
+    //
+    // ⚠ Selecting it still means something: it is what the arrow keys and
+    // drag-to-generator act on. Hearing it is TASK-058's MIDI audition, which is
+    // not built yet — so today this selects and draws nothing rather than
+    // claiming to play.
+    if (kind === 'midi') {
+      set({ midiSplit: null });
+      try {
+        const parts = await invoke<SplitPart[]>('explorer_midi_split', { path });
+        // A late reply must not describe a file that is no longer selected —
+        // the same rule the waveform follows two branches down.
+        if (get().selected !== path) return;
+        set({ midiSplit: parts });
+      } catch (error) {
+        if (get().selected !== path) return;
+        set({ error: reason(error) });
+      }
+      return;
+    }
+
+    // ⚠ Cleared on the way into an audio file, or the panel would go on offering
+    // to split the `.mid` looked at before it.
+    if (get().midiSplit !== null) set({ midiSplit: null });
+
     try {
       const [wave] = await Promise.all([
         invoke<Waveform>('explorer_waveform', { path }),

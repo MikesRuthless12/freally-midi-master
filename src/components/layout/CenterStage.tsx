@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { AudioWaveform, Drum, ListMusic, Music2, Piano, Waves } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { GENERATOR_TABS, useUi, type GeneratorTab } from '../../state/ui';
@@ -21,6 +21,7 @@ import { SeedChip } from '../SeedChip/SeedChip';
 import { SessionSwitchPrompt } from '../SessionChips/SessionChips';
 import { TransportControls } from './TransportBar';
 import { VariationNav } from '../VariationNav';
+import { MIDI_TYPE, droppedMidi } from '../../lib/dnd';
 import { PadGrid } from '../Kit/PadGrid';
 import { useTranslation } from 'react-i18next';
 
@@ -62,6 +63,9 @@ function GeneratorTabs() {
   const patterns = useSession((s) => s.patterns);
   const partsOff = useUi((s) => s.partsOff);
   const togglePart = useUi((s) => s.togglePart);
+  const importMidi = useSession((s) => s.importMidi);
+  const importSong = useSong((s) => s.importSong);
+  const [over, setOver] = useState<string | null>(null);
 
   return (
     <div className="tabs" role="tablist" aria-label={t('tabs.group')}>
@@ -77,7 +81,50 @@ function GeneratorTabs() {
         const on = part !== undefined && !partsOff.includes(part);
 
         return (
-          <div key={tab} className="tab-slot">
+          <div
+            key={tab}
+            className="tab-slot"
+            data-midi-over={over === tab}
+            // ⛔⛔ **A generator is a drop target for a `.mid`** — Mike,
+            // 2026-08-10: *"be able to drag the file to a generator."* The tab
+            // rather than the editor below it, because the tab is the one place
+            // that names the part while every part is visible at once: dropping
+            // on the roll could only ever mean "the part already showing", which
+            // makes the gesture a two-step (switch tab, then drag).
+            //
+            // ⛔ **`MIDI_TYPE`, so a sample cannot land here and a `.mid` cannot
+            // land on a pad.** `FileTree` puts the two kinds on different MIME
+            // types precisely so each drop target refuses the other *before* the
+            // producer releases — the cursor says no rather than the app
+            // erroring afterwards.
+            //
+            // ⚠ Song takes no drop: it is an arrangement of clips, not a clip,
+            // and `openClip` has no part to open one into.
+            onDragOver={(event) => {
+              if (!event.dataTransfer.types.includes(MIDI_TYPE)) return;
+              event.preventDefault();
+              event.dataTransfer.dropEffect = 'copy';
+              if (over !== tab) setOver(tab);
+            }}
+            onDragLeave={() => setOver((held) => (held === tab ? null : held))}
+            onDrop={(event) => {
+              setOver(null);
+              const path = droppedMidi(event.dataTransfer);
+              if (path === null) return;
+              event.preventDefault();
+              // ⛔⛔ **Song takes the whole file as an arrangement** (TASK-058D).
+              // Mike, 2026-08-10: *"could you put the midi for the entire song
+              // into the 'Song' tab and allow them to pick which parts they want
+              // for the generators."* The other five tabs still take the file
+              // into that one generator, which is the "I know what this is"
+              // shortcut; Song is the "show me what is in it" route.
+              if (part === undefined) {
+                void importSong(path);
+                return;
+              }
+              void importMidi(path, part);
+            }}
+          >
             <button
               type="button"
               role="tab"

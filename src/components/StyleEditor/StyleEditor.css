@@ -241,10 +241,33 @@
 
 .styleeditor__foot {
   display: flex;
+  flex-wrap: wrap;
   gap: var(--space-2);
   justify-content: flex-end;
   padding: var(--space-4) var(--space-5);
   border-top: 1px solid var(--color-border);
+}
+
+/* ⛔ **Every label in this row stays readable** — Mike, 2026-08-10: *"ensure that
+   it is always readable for the text on that button"*. Two things were making it
+   not: the delete button carried the style's *name* ("Delete My EDM"), so a long
+   one squeezed the row and truncated its neighbours; and a ghost button's dimmed
+   colour is fine for a secondary action but not for one whose meaning has to be
+   unmistakable before it is pressed. The name is gone from the label, the row
+   wraps rather than crushing, and this one keeps full contrast. */
+.styleeditor__foot button {
+  white-space: nowrap;
+}
+
+.styleeditor__foot .btn-ghost {
+  color: var(--color-text);
+}
+
+/* Delete reads as destructive on hover rather than looking like its neighbours,
+   which is the one moment it matters. */
+.styleeditor__foot .btn-ghost:hover {
+  color: var(--color-danger, #e5484d);
+  border-color: var(--color-danger, #e5484d);
 }
 
 /* The pinned row that opens all this. It sits above the search box and every

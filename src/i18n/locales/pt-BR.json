@@ -55,7 +55,8 @@
     "muteLane": "Silenciar {{lane}}",
     "unmuteLane": "Reativar {{lane}}",
     "playLane": "Tocar {{lane}}",
-    "padLane": "Faixa do pad {{at}}"
+    "padLane": "Faixa do pad {{at}}",
+    "useSelected": "Colocar a amostra selecionada em {{lane}}"
   },
   "sections": {
     "genres": "Gêneros",
@@ -407,7 +408,28 @@
     "decoding": "Lendo…",
     "waveformOf": "Forma de onda de {{name}}",
     "reverse": "Reproduzir de trás para frente",
-    "resize": "Redimensionar o navegador"
+    "resize": "Redimensionar o navegador",
+    "fillRail": "Dar ao navegador toda a coluna",
+    "restoreRail": "Mostrar o elenco novamente",
+    "folderLimit": "Você pode navegar por 8 pastas por vez — feche uma para adicionar outra",
+    "favourites": "Favoritos com estrela",
+    "star": "Favoritar {{name}}",
+    "unstar": "Remover {{name}} dos favoritos",
+    "revealHint": "Mostrar {{path}} no gerenciador de arquivos",
+    "midiApply": "Enviar aos geradores",
+    "midiDragHint": "Ou arraste o arquivo para um gerador para importar tudo lá.",
+    "splitReason": {
+      "drumChannel": "No canal de bateria GM",
+      "polyphonic": "Acordes — as notas se sobrepõem",
+      "lowestVoice": "Voz mais grave",
+      "highestVoice": "Voz mais aguda",
+      "innerVoice": "Voz interna",
+      "splitByPitch": "Uma voz, dividida por altura — um palpite",
+      "fromName": "Pelo nome do arquivo",
+      "kitShape": "Toca como uma bateria"
+    },
+    "midiFound": "Conteúdo deste arquivo MIDI",
+    "midiNotes": "Notas"
   },
   "patterns": {
     "name": "Dê um nome a este padrão",
@@ -453,7 +475,7 @@
     "scales": "Escalas",
     "scalesHint": "Apenas as escalas em que {{name}} grava.",
     "save": "Salvar estilo",
-    "delete": "Excluir {{name}}",
+    "delete": "Excluir fluxo",
     "export": "Exportar",
     "import": "Importar",
     "nameNeeded": "Dê um nome ao seu estilo.",

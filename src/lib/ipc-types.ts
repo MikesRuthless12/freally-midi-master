@@ -356,6 +356,27 @@ timeSigNum: number, timeSigDen: number,
 patterns: { [key in string]?: Pattern }, ppq: number, };
 
 /**
+ * One part a file was separated into.
+ */
+export type SplitPart = { part: Part, pattern: Pattern, reason: SplitReason, 
+/**
+ * How many notes landed here, so the page can show it without walking lanes.
+ */
+notes: number, };
+
+/**
+ * Why [`split`] put a voice on the part it did.
+ *
+ * ⛔⛔ **The reason travels with the result, and that is a requirement rather
+ * than a nicety.** TASK-058D states it for the audio path and it applies here:
+ * *"the UI names what it detected … and never presents a guess as a
+ * transcription"*, so *"a wrong guess is one click to redirect rather than a
+ * silent mis-file."* Two of these reasons are facts about the file and three are
+ * measurements — a producer is owed the difference.
+ */
+export type SplitReason = "drumChannel" | "kitShape" | "polyphonic" | "lowestVoice" | "highestVoice" | "innerVoice" | "splitByPitch" | "fromName";
+
+/**
  * MPC-style swing. `0.50` is straight and `0.667` is fully triplet; the
  * research constants cluster at 0.54–0.66 (PRD § 3, research ch. 1).
  */

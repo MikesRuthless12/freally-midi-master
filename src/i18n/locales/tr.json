@@ -55,7 +55,8 @@
     "muteLane": "{{lane}} sustur",
     "unmuteLane": "{{lane}} sesini aç",
     "playLane": "{{lane}} çal",
-    "padLane": "Pad {{at}} kanalı"
+    "padLane": "Pad {{at}} kanalı",
+    "useSelected": "Seçili örneği {{lane}} kanalına koy"
   },
   "sections": {
     "genres": "Türler",
@@ -407,7 +408,28 @@
     "decoding": "Okunuyor…",
     "waveformOf": "{{name}} dalga biçimi",
     "reverse": "Geriye doğru çal",
-    "resize": "Tarayıcı genişliğini değiştir"
+    "resize": "Tarayıcı genişliğini değiştir",
+    "fillRail": "Tarayıcıya tüm sütunu ver",
+    "restoreRail": "Kadroyu yeniden göster",
+    "folderLimit": "Aynı anda 8 klasöre göz atabilirsin — başka eklemek için birini kapat",
+    "favourites": "Yıldızlı favoriler",
+    "star": "{{name}} favorilere ekle",
+    "unstar": "{{name}} favorilerden çıkar",
+    "revealHint": "{{path}} dosya yöneticisinde göster",
+    "midiApply": "Üreticilere gönder",
+    "midiDragHint": "Ya da dosyayı tek bir üreticiye sürükleyerek hepsini oraya aktar.",
+    "splitReason": {
+      "drumChannel": "GM davul kanalında",
+      "polyphonic": "Akorlar — notalar üst üste biniyor",
+      "lowestVoice": "En pes ses",
+      "highestVoice": "En tiz ses",
+      "innerVoice": "İç ses",
+      "splitByPitch": "Tek ses, perdeye göre bölündü — bir tahmin",
+      "fromName": "Dosya adından",
+      "kitShape": "Davul seti gibi çalıyor"
+    },
+    "midiFound": "Bu MIDI dosyasının içeriği",
+    "midiNotes": "Notalar"
   },
   "patterns": {
     "name": "Bu pattern’e ad ver",
@@ -453,7 +475,7 @@
     "scales": "Diziler",
     "scalesHint": "Yalnızca {{name}} adlı sanatçının kaydettiği diziler.",
     "save": "Tarzı kaydet",
-    "delete": "{{name}} sil",
+    "delete": "İş akışını sil",
     "export": "Dışa aktar",
     "import": "İçe aktar",
     "nameNeeded": "Tarzına bir ad ver.",

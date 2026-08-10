@@ -71,16 +71,22 @@ test('a kit can be named, saved, listed and deleted', async ({ page }) => {
   // ⛔ TASK-051. The store, its slug rule and its refusals are Rust and are
   // tested there; what only this can show is the loop a producer actually
   // performs — name it, save it, see it listed, take it away again.
-  await expect(page.locator('.presets__empty')).toContainText('No saved kits yet');
+  // ⚠ **Scoped to the KIT section.** `.presets__empty` is `SavedKits`'s class
+  // *and* the preset browser's — two panels in the same rail, both able to say
+  // "nothing here yet". Unscoped this was a race rather than a test: it passed
+  // only while the presets panel happened to render after the assertion, and
+  // any change to how many commands the page fires on load could tip it.
+  const savedKits = page.locator('[data-section="kit"]');
+  await expect(savedKits.locator('.presets__empty')).toContainText('No saved kits yet');
 
   await page.getByLabel('Kit name').fill('My Trap Kit');
   await page.getByRole('button', { name: 'Save kit', exact: true }).click();
 
-  const row = page.locator('.presets__item', { hasText: 'My Trap Kit' });
+  const row = savedKits.locator('.presets__item', { hasText: 'My Trap Kit' });
   await expect(row).toBeVisible();
 
   await row.getByRole('button', { name: /Delete My Trap Kit/ }).click();
-  await expect(page.locator('.presets__empty')).toBeVisible();
+  await expect(savedKits.locator('.presets__empty')).toBeVisible();
 });
 
 test('every pad can be re-rolled, and the whole kit in one gesture', async ({ page }) => {

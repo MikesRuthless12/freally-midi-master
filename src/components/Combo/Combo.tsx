@@ -70,18 +70,20 @@ export function Combo({
   emptyText?: (query: string) => string;
 }) {
   const listId = useId();
-  // ⛔ **Falls back to the first option, so the box is never blank** — Mike,
-  // 2026-08-09: *"the selection should start on the first genre/artist in the
-  // list … that way you cannot have an empty field for the comboboxes."* An empty
-  // combobox reads as "nothing here" rather than "nothing chosen", and this one
-  // is the only way into a five-hundred-name roster.
+  // ⛔⛔ **Nothing selected shows the PLACEHOLDER, never a borrowed name.**
   //
-  // ⚠ Display only — it does not *select* anything. Writing a selection into the
-  // session just because a list rendered would put an artist on screen that the
-  // producer never picked, and the Generate button would then honour it.
-  const selected =
-    options.find((option) => option.id === value) ??
-    (value === null ? (options.find((option) => option.action !== true) ?? null) : null);
+  // This briefly fell back to the first option so the box would not look empty —
+  // Mike, 2026-08-09: *"you cannot have an empty field for the comboboxes."* It
+  // was display-only, and it still lied: the rail read "Drake" while nothing was
+  // selected, so everything keyed on a real selection quietly did nothing. The
+  // pad grid rendered no pads at all, and Mike found it within a minute.
+  //
+  // ▶ A placeholder answers the same complaint honestly. "Search an artist…" is
+  // a prompt; a name the app has not chosen is a claim. The empty state is
+  // deliberate now (2026-08-10: *"ensure that they have to pick an artist before
+  // they ever even generate anything, because I LOVE that landing screen"*), so
+  // the box has to be able to say so.
+  const selected = options.find((option) => option.id === value) ?? null;
   const [open, setOpen] = useState(false);
   const [typed, setTyped] = useState<string | null>(null);
   // ⛔ Starts on the first real choice, never on an action — see `action` above.

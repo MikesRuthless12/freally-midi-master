@@ -55,7 +55,8 @@
     "muteLane": "Mute {{lane}}",
     "unmuteLane": "Unmute {{lane}}",
     "playLane": "Play {{lane}}",
-    "padLane": "Pad {{at}} lane"
+    "padLane": "Pad {{at}} lane",
+    "useSelected": "Put the selected sample on {{lane}}"
   },
   "sections": {
     "genres": "Genres",
@@ -407,7 +408,28 @@
     "decoding": "Reading…",
     "waveformOf": "Waveform of {{name}}",
     "reverse": "Play backwards",
-    "resize": "Resize the browser"
+    "resize": "Resize the browser",
+    "fillRail": "Give the browser the whole rail",
+    "restoreRail": "Show the roster again",
+    "folderLimit": "You can browse 8 folders at a time — close one to add another",
+    "favourites": "Starred favourites",
+    "star": "Star {{name}}",
+    "unstar": "Unstar {{name}}",
+    "revealHint": "Show {{path}} in your file manager",
+    "midiApply": "Send to generators",
+    "midiDragHint": "Or drag the file onto one generator to import it all there.",
+    "splitReason": {
+      "drumChannel": "On the GM drum channel",
+      "polyphonic": "Chords — notes overlap",
+      "lowestVoice": "Lowest voice",
+      "highestVoice": "Highest voice",
+      "innerVoice": "Inner voice",
+      "splitByPitch": "One voice, split by pitch — a guess",
+      "fromName": "From the file name",
+      "kitShape": "Plays like a drum kit"
+    },
+    "midiFound": "What this MIDI file contains",
+    "midiNotes": "Notes"
   },
   "patterns": {
     "name": "Name this pattern",
@@ -453,7 +475,7 @@
     "scales": "Scales",
     "scalesHint": "Only the scales {{name}} records in.",
     "save": "Save style",
-    "delete": "Delete {{name}}",
+    "delete": "Delete workflow",
     "export": "Export",
     "import": "Import",
     "nameNeeded": "Give your style a name.",

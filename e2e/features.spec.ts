@@ -156,14 +156,10 @@ test.afterAll(() => {
 test('the stage: Generate, Generate all, Clear, Clear all, bars', async ({ page }) => {
   await open(page);
 
-  // ⛔ **Generate is live from the start now** (2026-08-09). It used to be
-  // disabled until someone was chosen; the rail selects the first artist as soon
-  // as the roster loads, because Mike's rule for the comboboxes is that you
-  // cannot be left with an empty field. There is no longer a state in which
-  // Generate cannot run, so asserting it were disabled would pin a state the
-  // product does not have.
-  await expect(page.getByRole('button', { name: 'Generate', exact: true })).toBeEnabled();
-  await feature(page, 'Stage', 'Generate is ready immediately', 'an artist is already chosen');
+  // Generate is refused until somebody is chosen — the empty state is a
+  // feature, not a gap, and Mike asked for it back by name on 2026-08-10.
+  await expect(page.getByRole('button', { name: 'Generate', exact: true })).toBeDisabled();
+  await feature(page, 'Stage', 'Generate is refused with no artist', 'the button is disabled');
 
   await pickArtist(page);
   await page.getByRole('tab', { name: 'Melody' }).click();

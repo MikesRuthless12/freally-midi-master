@@ -23,7 +23,10 @@ test('the Studio renders every region', async ({ page }) => {
 });
 
 test('all six generator tabs are present', async ({ page }) => {
-  const tabs = page.getByRole('tab');
+  // ⚠ **Scoped to the generator tablist.** The sample browser grew its own
+  // tablist on 2026-08-10 — up to eight library folders — so an unscoped
+  // `getByRole('tab')` counts those too and this read seven.
+  const tabs = page.getByRole('tablist', { name: 'Generator' }).getByRole('tab');
   await expect(tabs).toHaveCount(6);
   await expect(tabs).toHaveText(['Drums', 'Melody', 'Counter', 'Bass', 'Chords', 'Song']);
 });
@@ -54,15 +57,13 @@ test('controls that cannot work yet are disabled rather than merely inert', asyn
   //
   // The rule has not changed since Phase 0; what each control can do has.
   //
-  // ⛔ **Generate is no longer among them, and that is deliberate** (2026-08-09).
-  // It used to be disabled until someone was selected. The rail now selects the
-  // first artist as soon as the roster loads — Mike's rule for the comboboxes:
-  // *"the selection should start on the first genre/artist in the list … that
-  // way you cannot have an empty field."* With an artist always selected there
-  // is no state in which Generate cannot run, so asserting it were disabled
-  // would be pinning a state the product no longer has.
+  // ⛔ **Generate is disabled until somebody is chosen, and it is meant to be.**
+  // An auto-select briefly removed this state on 2026-08-09 and was reverted the
+  // next day: it took the landing screen with it. Mike, 2026-08-10: *"ensure
+  // that they have to pick an artist before they ever even generate anything,
+  // because I LOVE that landing screen."*
   await expect(page.getByRole('combobox', { name: 'Roster' })).toBeEnabled();
-  await expect(page.getByRole('button', { name: 'Generate', exact: true })).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Generate', exact: true })).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Stop' })).toBeDisabled();
 });

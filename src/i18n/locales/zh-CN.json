@@ -55,7 +55,8 @@
     "muteLane": "静音 {{lane}}",
     "unmuteLane": "取消静音 {{lane}}",
     "playLane": "播放 {{lane}}",
-    "padLane": "鼓垫 {{at}} 音轨"
+    "padLane": "鼓垫 {{at}} 音轨",
+    "useSelected": "将所选样本放到 {{lane}}"
   },
   "sections": {
     "genres": "曲风",
@@ -407,7 +408,28 @@
     "decoding": "正在读取…",
     "waveformOf": "{{name}} 的波形",
     "reverse": "倒放",
-    "resize": "调整浏览器宽度"
+    "resize": "调整浏览器宽度",
+    "fillRail": "让浏览器占满整栏",
+    "restoreRail": "重新显示艺人列表",
+    "folderLimit": "一次最多浏览 8 个文件夹 — 关闭一个才能再添加",
+    "favourites": "收藏夹",
+    "star": "收藏 {{name}}",
+    "unstar": "取消收藏 {{name}}",
+    "revealHint": "在文件管理器中显示 {{path}}",
+    "midiApply": "发送到生成器",
+    "midiDragHint": "或将文件拖到某个生成器，把全部内容导入到那里。",
+    "splitReason": {
+      "drumChannel": "位于 GM 鼓通道",
+      "polyphonic": "和弦 — 音符重叠",
+      "lowestVoice": "最低声部",
+      "highestVoice": "最高声部",
+      "innerVoice": "中间声部",
+      "splitByPitch": "单声部，按音高拆分 — 这是推测",
+      "fromName": "来自文件名",
+      "kitShape": "像鼓组一样演奏"
+    },
+    "midiFound": "此 MIDI 文件的内容",
+    "midiNotes": "音符"
   },
   "patterns": {
     "name": "为此样式命名",
@@ -453,7 +475,7 @@
     "scales": "音阶",
     "scalesHint": "仅限 {{name}} 实际使用的音阶。",
     "save": "保存风格",
-    "delete": "删除 {{name}}",
+    "delete": "删除工作流",
     "export": "导出",
     "import": "导入",
     "nameNeeded": "给你的风格起个名字。",

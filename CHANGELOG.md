@@ -12,6 +12,110 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed — the File Explorer could not open a subfolder, and it was breaking four other things too, 2026-08-10
+
+- **You can browse into subfolders again — at any depth.** Opening a library
+  folder worked; opening anything *inside* it was refused. The cause was one
+  guard: Windows' own `canonicalize` returns paths beginning `\\?\`, and the
+  check that refuses network paths treated that leading `\\` as a network path.
+  **The same refusal was silently breaking the preview player, the waveform,
+  `.mid` reading, and dropping a sample onto a drum pad** — every one of which
+  goes through the same guard. Local drives are now recognised as local; genuine
+  UNC paths are still refused.
+- **The browser can use the whole rail.** It was capped at roughly half the
+  height however deep your folders ran, and collapsing the roster gave it space
+  it could not take — the panel between them never claimed any height, so the
+  tree sat at its minimum. Both halves are fixed, and there is a button on the
+  browser to hand it the whole rail and give it back.
+
+### Security — a page-supplied path could make the plugin authenticate to a stranger, 2026-08-10
+
+- **Starring a file checked the library *before* checking for a network path**,
+  and the library check itself is what touches the disk. On Windows that is not a
+  read — it is an outbound SMB session that hands over your Windows credentials.
+  One message from the plugin's own web view was enough. The guard now lives
+  inside the containment check itself, so no future command can reintroduce it,
+  and the same inversion in the sample-drop path is closed with it.
+- **A shared project file could point the sample library at your whole drive.**
+  Library folders travel inside `.als`/preset files, and only *network* paths were
+  refused — so a project could carry `C:\Users` and quietly grant everything that
+  reads files inside your library. A root now has to be deep enough to plausibly
+  be a sample folder; a drive or profile root is dropped.
+- **A malformed MIDI file could kill your DAW.** A file declaring an extreme time
+  signature at one tick per beat pushed the arrangement reader past the end of its
+  own tick space; in a release build that is not an error you can dismiss, it takes
+  the host down with your unsaved session. Reproduced and pinned by a test.
+
+### Fixed — three ways your work could go missing, 2026-08-10
+
+- **A project with more than eight sample folders lost the extra ones.** The new
+  folder tabs cap what you can *add* at eight — but that cap was also applied when
+  *loading*, and the trimmed list was then written straight back over your project.
+  A bound on what you may add is not a licence to delete what you already had.
+- **An imported song was never saved.** Dragging a MIDI file onto the Song tab
+  filled the timeline, but nothing asked the project to store it — save, reopen,
+  and it was gone.
+- **Undo deleted an imported song.** An import belongs to no artist, and the guard
+  that stops one artist's arrangement leaking into another's read that as a
+  mismatch and dropped it from every undo step. One keystroke after importing,
+  Ctrl+Z wiped it and Ctrl+Y could not bring it back.
+
+### Added — a real file tree, folder tabs, starred favourites, and MIDI that knows what it is, 2026-08-10
+
+- **The browser is a proper tree.** Your library folders sit at the top, their
+  subfolders indent underneath, and the files sit below those. Folders show an
+  open or shut icon, `Up` retracts the deepest branch, and the tree remembers
+  what you left open when you switch between folders.
+- **Up to eight library folders, as tabs.** Pick a tab, sift that folder. **Add
+  folder is disabled once you have eight**, so the rule is visible before you
+  spend the gesture rather than after.
+- **Your library survives closing the app.** It used to be saved only inside the
+  *project*, so it came back with a `.als` and never with the standalone. It is
+  now kept per user as well, and both are merged on load so existing projects
+  keep theirs.
+- **Starred favourites.** A star to the left of every sample, one-shot and `.mid`
+  — outline until you press it, then solid yellow. Starred files gather in a list
+  under the tree; click one and the tree opens every folder between the root and
+  that file to reveal it. **If its folder is no longer one of your eight open
+  tabs, it opens the file's location in Windows Explorer or Finder instead**, so
+  a favourite is reachable whatever your library has moved on to.
+- **The keyboard walks the tree.** `↑`/`↓` move between rows, `→` opens a folder
+  and `←` shuts it — and on a *file* those same two keys play it forwards and
+  backwards. A folder has nothing to audition and a sample has nothing to expand,
+  so which one you meant is never ambiguous.
+- **`.mid` files are shown**, with their own icon, and are kept honestly apart
+  from audio: a MIDI file has no waveform, and it cannot be dropped on a drum pad
+  at all — the pad refuses it before you let go rather than erroring afterwards.
+- **Put the selected sample on a pad without dragging.** Every pad grows a "use
+  selected" button while a sample is selected. Both routes end in the same
+  command, so a sample assigned either way is identical on the pad.
+- **One list of formats.** What the tree shows, what the Open dialog filters on
+  and what the decoder can read now come from a single place, so the browser can
+  no longer offer a file the loader will refuse.
+
+### Added — drop a MIDI file in and it works out what is in it, 2026-08-10
+
+- **Drag a `.mid` onto a generator** and its notes land there.
+- **Or drop it on the Song tab and take the parts you want.** The whole file
+  arrives as an arrangement — sections across the top, parts down the side — and
+  clicking any cell opens that clip in its generator, exactly as drilling into a
+  generated song already does. Nothing overwrites what you have until you choose
+  it. *(Generating a song is unchanged.)*
+- **A layered file is separated into Bass, Melody, Counter, Chords and Drums**,
+  and **every part says why it was routed where it was** — "on the GM drum
+  channel", "chords, notes overlap", "lowest voice", "from the file name" — so a
+  wrong guess is one click to redirect instead of something you discover later.
+- **It was taught by real files, not by assumptions.** Four sample-pack exports
+  broke the first version three times out of three, and each fix is a measurement
+  of them: sample packs put drums on **channel 0**, not the General MIDI drum
+  channel, so drums are recognised by their shape — a handful of pitches, struck
+  many times, **short**. Held melodic notes overlap constantly, so chords are
+  notes struck *together* rather than notes that merely overlap. A line with a low
+  average pitch that ranges over three octaves is a melody, not a bassline. And
+  **an 808's MIDI note says which key fires the sample, not how low it sounds** —
+  so a bassline routinely sits in melody register, which is why the **file's own
+  name** is trusted above any measurement of it.
+
 ### Added — drum pads on the stage, one box to find any artist, and a window that finally behaves, 2026-08-09 (evening)
 
 - **Eight drum pads across the top of the stage.** Each carries everything on its

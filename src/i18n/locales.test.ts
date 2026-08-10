@@ -27,6 +27,7 @@ import { THEME_PREFERENCES } from '../state/theme';
 import { SECTION_KINDS } from '../components/SongTimeline/clips';
 import { GENERATOR_TABS, SECTIONS } from '../state/ui';
 import { LOCALE_CODES, LOCALES, resolveLocale } from './locales';
+import type { SplitReason } from '../lib/ipc-types';
 
 const dir = join(dirname(fileURLToPath(import.meta.url)), 'locales');
 
@@ -115,6 +116,26 @@ function isOnlyPreservedTerms(text: string): boolean {
 
 /** Every `Tier` the bindings define. A union has no runtime form to iterate. */
 const TIERS = ['flagship', 'standard', 'inherited'] as const;
+
+/**
+ * Every reason a layered `.mid` can be routed by (TASK-058D).
+ *
+ * ⚠ **Restated here rather than imported**, because the source of truth is a
+ * Rust enum — `engine::smf_read::SplitReason` — and `ipc-types.ts` exports it as
+ * a union type, which has no runtime value to iterate. Adding a variant in Rust
+ * and forgetting this list fails the templated-prefix test below rather than
+ * rendering `explorer.splitReason.whatever` at the producer.
+ */
+const SPLIT_REASONS = [
+  'drumChannel',
+  'kitShape',
+  'polyphonic',
+  'lowestVoice',
+  'highestVoice',
+  'innerVoice',
+  'splitByPitch',
+  'fromName',
+] as const satisfies readonly SplitReason[];
 
 describe('locale catalogs', () => {
   it('contains exactly the canonical 18 and nothing else', () => {
@@ -212,6 +233,12 @@ describe('locale catalogs', () => {
     // a string fails this instead of rendering its own key at the producer.
     ['shortcuts.groups', SHORTCUT_GROUPS.map((group) => group.id)],
     ['shortcuts.keys', SHORTCUT_GROUPS.flatMap((group) => group.items.map((item) => item.id))],
+    // Why a layered `.mid` was routed where it was (TASK-058D). `MidiPreview`
+    // templates the reason straight into the key, and the reasons are the
+    // engine's own enum — so a variant added in Rust with no string here
+    // renders as `explorer.splitReason.innerVoice` at the producer, which is
+    // exactly the failure the tier badges above were found by.
+    ['explorer.splitReason', SPLIT_REASONS],
   ] as const;
 
   it.each(TEMPLATED_GROUPS)(

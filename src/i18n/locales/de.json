@@ -55,7 +55,8 @@
     "muteLane": "{{lane}} stummschalten",
     "unmuteLane": "{{lane}} einschalten",
     "playLane": "{{lane}} abspielen",
-    "padLane": "Spur für Pad {{at}}"
+    "padLane": "Spur für Pad {{at}}",
+    "useSelected": "Ausgewähltes Sample auf {{lane}} legen"
   },
   "sections": {
     "genres": "Genres",
@@ -407,7 +408,28 @@
     "decoding": "Wird gelesen…",
     "waveformOf": "Wellenform von {{name}}",
     "reverse": "Rückwärts abspielen",
-    "resize": "Breite des Browsers ändern"
+    "resize": "Breite des Browsers ändern",
+    "fillRail": "Dem Browser die ganze Leiste geben",
+    "restoreRail": "Roster wieder anzeigen",
+    "folderLimit": "Du kannst 8 Ordner gleichzeitig durchsuchen — schließe einen, um einen weiteren hinzuzufügen",
+    "favourites": "Markierte Favoriten",
+    "star": "{{name}} markieren",
+    "unstar": "Markierung von {{name}} entfernen",
+    "revealHint": "{{path}} im Dateimanager anzeigen",
+    "midiApply": "An Generatoren senden",
+    "midiDragHint": "Oder ziehe die Datei auf einen Generator, um alles dort zu importieren.",
+    "splitReason": {
+      "drumChannel": "Auf dem GM-Drum-Kanal",
+      "polyphonic": "Akkorde – Noten überlappen",
+      "lowestVoice": "Tiefste Stimme",
+      "highestVoice": "Höchste Stimme",
+      "innerVoice": "Mittelstimme",
+      "splitByPitch": "Eine Stimme, nach Tonhöhe geteilt – geschätzt",
+      "fromName": "Aus dem Dateinamen",
+      "kitShape": "Spielt wie ein Drumkit"
+    },
+    "midiFound": "Inhalt dieser MIDI-Datei",
+    "midiNotes": "Noten"
   },
   "patterns": {
     "name": "Diesem Pattern einen Namen geben",
@@ -453,7 +475,7 @@
     "scales": "Tonleitern",
     "scalesHint": "Nur die Tonleitern, in denen {{name}} aufnimmt.",
     "save": "Stil speichern",
-    "delete": "{{name}} löschen",
+    "delete": "Workflow löschen",
     "export": "Exportieren",
     "import": "Importieren",
     "nameNeeded": "Gib deinem Stil einen Namen.",

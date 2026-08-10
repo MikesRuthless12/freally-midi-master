@@ -55,7 +55,8 @@
     "muteLane": "Tắt tiếng {{lane}}",
     "unmuteLane": "Bật tiếng {{lane}}",
     "playLane": "Phát {{lane}}",
-    "padLane": "Làn của pad {{at}}"
+    "padLane": "Làn của pad {{at}}",
+    "useSelected": "Đặt mẫu đã chọn vào {{lane}}"
   },
   "sections": {
     "genres": "Thể loại",
@@ -407,7 +408,28 @@
     "decoding": "Đang đọc…",
     "waveformOf": "Dạng sóng của {{name}}",
     "reverse": "Phát ngược",
-    "resize": "Thay đổi chiều rộng trình duyệt"
+    "resize": "Thay đổi chiều rộng trình duyệt",
+    "fillRail": "Cho trình duyệt toàn bộ thanh bên",
+    "restoreRail": "Hiện lại danh sách nghệ sĩ",
+    "folderLimit": "Bạn có thể duyệt 8 thư mục cùng lúc — đóng một thư mục để thêm thư mục khác",
+    "favourites": "Mục yêu thích",
+    "star": "Gắn sao {{name}}",
+    "unstar": "Bỏ gắn sao {{name}}",
+    "revealHint": "Hiện {{path}} trong trình quản lý tệp",
+    "midiApply": "Gửi tới các bộ tạo",
+    "midiDragHint": "Hoặc kéo tệp vào một bộ tạo để nhập toàn bộ vào đó.",
+    "splitReason": {
+      "drumChannel": "Trên kênh trống GM",
+      "polyphonic": "Hợp âm — các nốt chồng lên nhau",
+      "lowestVoice": "Bè thấp nhất",
+      "highestVoice": "Bè cao nhất",
+      "innerVoice": "Bè giữa",
+      "splitByPitch": "Một bè, tách theo cao độ — một phỏng đoán",
+      "fromName": "Từ tên tệp",
+      "kitShape": "Chơi như một bộ trống"
+    },
+    "midiFound": "Nội dung tệp MIDI này",
+    "midiNotes": "Nốt"
   },
   "patterns": {
     "name": "Đặt tên cho pattern này",
@@ -453,7 +475,7 @@
     "scales": "Thang âm",
     "scalesHint": "Chỉ những thang âm mà {{name}} thu âm.",
     "save": "Lưu phong cách",
-    "delete": "Xoá {{name}}",
+    "delete": "Xóa quy trình",
     "export": "Xuất",
     "import": "Nhập",
     "nameNeeded": "Hãy đặt tên cho phong cách của bạn.",

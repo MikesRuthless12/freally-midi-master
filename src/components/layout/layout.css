@@ -384,6 +384,19 @@
   min-width: 0;
 }
 
+/* ⛔ **A generator lights up while a `.mid` is over it** (TASK-058/040T). Without
+   it the only feedback for "can I drop here" is the cursor, and a producer
+   dragging a MIDI file has no way to know which of six tabs will take it — Song
+   will not, because an arrangement is not a clip.
+   ⚠ An outline rather than a background: the tab already uses its background to
+   say which one is selected, and two meanings on one property is how a selected
+   tab and a hovered drop target become indistinguishable. */
+.tab-slot[data-midi-over='true'] {
+  outline: 2px dashed var(--color-primary);
+  outline-offset: -2px;
+  border-radius: var(--radius-control);
+}
+
 /* ⛔ The tab fills its slot, so the mute dot — which is positioned against the
    slot — lands inside the tab's own box rather than beside it. It is also what
    makes the strip spread evenly across the stage, which is what Mike asked for:

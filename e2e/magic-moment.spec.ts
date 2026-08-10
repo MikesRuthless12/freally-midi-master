@@ -61,13 +61,11 @@ test('type, Enter, Generate — the grid fills', async ({ page }) => {
   await expect(page.getByText(/4 bars · 64 steps · \d+ notes/)).toBeVisible();
 });
 
-test('the app opens ready to generate, with somebody already chosen', async ({ page }) => {
-  // The rail selects the first artist as soon as the roster loads, so there is
-  // no state in which Generate has nothing to run on. What the old assertion
-  // guarded — a control that looks live and does nothing — is still the rule;
-  // the line simply moved.
-  await expect(page.getByRole('button', { name: 'Generate', exact: true })).toBeEnabled();
-  await expect(page.getByRole('combobox', { name: 'Roster' })).not.toHaveValue('');
+test('Generate is refused until someone is chosen', async ({ page }) => {
+  // Disabled for real, not merely styled: a producer tabbing to it must be
+  // told, and a click that silently does nothing is the worst answer.
+  await expect(page.getByRole('button', { name: 'Generate', exact: true })).toBeDisabled();
+  await expect(page.getByText('Search an artist. Cook.')).toBeVisible();
 });
 
 test('the arrow keys move the highlight and Enter takes it', async ({ page }) => {

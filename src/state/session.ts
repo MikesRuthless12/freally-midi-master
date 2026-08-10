@@ -11,6 +11,7 @@ import type {
   Scale,
   SessionDefaults,
   Song,
+  SplitPart,
 } from '../lib/ipc-types';
 import { patternTicks } from '../components/PianoRoll/notes';
 import { useHistory, type Snapshot } from './history';
@@ -650,6 +651,22 @@ type SessionState = {
    * other leaves a melody clip open on the drum grid.
    */
   openClip: (pattern: Pattern, part: Part) => void;
+  /**
+   * Read a `.mid` from the sample library into one generator (TASK-058/040T).
+   *
+   * ⛔ Mike, 2026-08-10: *"be able to drag the file to a generator."* The Rust
+   * for this — `explorer::midi_pattern` and `engine::smf_read` — shipped with
+   * **no caller**, the same way the whole explorer did before TASK-132. This is
+   * that caller.
+   */
+  importMidi: (path: string, part: Part) => Promise<void>;
+  /**
+   * Open every part a layered `.mid` was separated into (TASK-058D).
+   *
+   * ⛔ Mike, 2026-08-10: *"split it into the proper generators if it is a layered
+   * melody file with the bass and countermelody included."*
+   */
+  importSplit: (parts: SplitPart[]) => void;
   editPattern: (next: Pattern) => void;
   /** Run our own transport. Standalone only — in a host this is the DAW's. */
   play: () => Promise<void>;
@@ -792,9 +809,22 @@ function snapshotOf(state: SessionState): Snapshot {
   // Comparing the ids rather than reordering the subscribers is what makes it
   // robust: a `Song` knows which artist it was built for, so this cannot be
   // broken again by a change to registration order.
+  // ⛔⛔ **An IMPORTED song belongs to no artist, and the guard was eating it.**
+  // `smf_to_song` sets `artist_id` empty on purpose — a file carries no artist,
+  // and inventing one would name a style that did not make it. But an empty id
+  // never equals `selectedId`, so every snapshot filed the producer's imported
+  // arrangement as `null`: one seed keystroke after the import, Ctrl+Z wiped the
+  // whole thing, and Ctrl+Y could not bring it back because the redo snapshot had
+  // been stripped too. Found by a code review, 2026-08-10.
+  //
+  // ⚠ The guard's own purpose is unaffected. It exists to stop the *outgoing*
+  // artist's song being filed under the *incoming* artist's id during a switch —
+  // a mismatch between two real artists. An import has no artist to mismatch, so
+  // it is not the case being guarded against.
   const held = readSongDocument();
+  const imported = held.song !== null && held.song.artistId === '';
   const arrangement =
-    held.song !== null && held.song.artistId !== state.selectedId
+    held.song !== null && !imported && held.song.artistId !== state.selectedId
       ? { song: null, edited: false }
       : held;
   return {
@@ -2049,6 +2079,51 @@ export const useSession = create<SessionState>((set, get) => ({
       editedParts: withEdit(state.editedParts, part),
       edited: true,
     }));
+  },
+
+  async importMidi(path, part) {
+    set({ error: null });
+    try {
+      const pattern = await invoke<Pattern>('explorer_midi', { path, part });
+      // ⛔ **Refused rather than opened when it has no notes.** An empty clip
+      // dropped into a generator looks exactly like a working import of a file
+      // that happens to be silent — and the producer would press Play and hear
+      // nothing with nothing on screen saying why. `smf_to_pattern` reads what is
+      // there; whether what is there is worth opening is this layer's question.
+      if (pattern.lanes.every((lane) => lane.notes.length === 0)) {
+        set({ error: reason('that MIDI file has no notes in it') });
+        return;
+      }
+      // ⚠ **`openClip`, not a bare `set`.** It moves the tab as well as the
+      // clip, and it latches `edited` — which is what stops the next Generate
+      // silently replacing an imported file, and what makes the project store
+      // the notes rather than a seed that never produced them.
+      get().openClip(pattern, part);
+    } catch (error) {
+      set({ error: reason(error) });
+    }
+  },
+
+  importSplit(parts) {
+    if (parts.length === 0) return;
+    // ⛔ **One `set`, not one per part.** `openClip` writes the store and moves
+    // the tab, so calling it five times would fire five renders and five
+    // arm/disarm round trips — and leave the tab on whichever part happened to
+    // be last in the list rather than on anything meaningful.
+    set((state) => {
+      const patterns = { ...state.patterns };
+      let editedParts = state.editedParts;
+      for (const split of parts) {
+        patterns[split.part] = split.pattern;
+        editedParts = withEdit(editedParts, split.part);
+      }
+      return { patterns, editedParts, edited: true, error: null };
+    });
+    // ⚠ **The tab lands on the biggest part**, which is the one a producer most
+    // likely wants to look at first — and never on a part that is not in the
+    // split at all.
+    const biggest = parts.reduce((held, part) => (part.notes > held.notes ? part : held));
+    useUi.getState().setActiveTab(biggest.part);
   },
 
   editPattern(next) {

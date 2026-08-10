@@ -55,7 +55,8 @@
     "muteLane": "{{lane}} dempen",
     "unmuteLane": "{{lane}} inschakelen",
     "playLane": "{{lane}} afspelen",
-    "padLane": "Baan van pad {{at}}"
+    "padLane": "Baan van pad {{at}}",
+    "useSelected": "Geselecteerde sample op {{lane}} zetten"
   },
   "sections": {
     "genres": "Genres",
@@ -407,7 +408,28 @@
     "decoding": "Bezig met lezen…",
     "waveformOf": "Golfvorm van {{name}}",
     "reverse": "Achterstevoren afspelen",
-    "resize": "Breedte van de browser aanpassen"
+    "resize": "Breedte van de browser aanpassen",
+    "fillRail": "Geef de browser de hele balk",
+    "restoreRail": "Toon de roster weer",
+    "folderLimit": "Je kunt 8 mappen tegelijk doorzoeken — sluit er een om er een toe te voegen",
+    "favourites": "Favorieten met ster",
+    "star": "{{name}} als favoriet markeren",
+    "unstar": "Ster van {{name}} verwijderen",
+    "revealHint": "{{path}} tonen in de verkenner",
+    "midiApply": "Naar generatoren sturen",
+    "midiDragHint": "Of sleep het bestand op één generator om alles daar te importeren.",
+    "splitReason": {
+      "drumChannel": "Op het GM-drumkanaal",
+      "polyphonic": "Akkoorden — noten overlappen",
+      "lowestVoice": "Laagste stem",
+      "highestVoice": "Hoogste stem",
+      "innerVoice": "Middenstem",
+      "splitByPitch": "Eén stem, gesplitst op toonhoogte — een gok",
+      "fromName": "Uit de bestandsnaam",
+      "kitShape": "Speelt als een drumkit"
+    },
+    "midiFound": "Inhoud van dit MIDI-bestand",
+    "midiNotes": "Noten"
   },
   "patterns": {
     "name": "Geef dit patroon een naam",
@@ -453,7 +475,7 @@
     "scales": "Toonladders",
     "scalesHint": "Alleen de toonladders waarin {{name}} opneemt.",
     "save": "Stijl opslaan",
-    "delete": "{{name}} verwijderen",
+    "delete": "Workflow verwijderen",
     "export": "Exporteren",
     "import": "Importeren",
     "nameNeeded": "Geef je stijl een naam.",

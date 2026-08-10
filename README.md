@@ -114,11 +114,25 @@ the result into FL Studio, Ableton, Logic, Reaper, or anything else.
   starting your DAW's transport takes it straight back.
 - **Audition with your own sounds.** Drop your own one-shot on any drum lane or
   on melody, countermelody, bassline or chords — WAV, AIFF, FLAC, MP3, M4A or
-  OGG. A sample browser keeps your folders and brings them back with the
-  project. The synthesized kit that ships in the binary is the default, not the
+  OGG. The synthesized kit that ships in the binary is the default, not the
   ceiling. A sample recorded at a different rate from the kit around it is
   converted once, properly filtered, when you load it — rather than stretched to
   fit on every note.
+- **A file browser that behaves like one.** Your library folders sit at the top,
+  their subfolders indent underneath, files below those — up to **eight folders
+  as tabs**, and it all comes back next time you open the app, project or no
+  project. Arrow keys walk it: `→` opens a folder, `←` shuts it, and on a file
+  those same keys play it forwards and backwards. **Star anything** — sample,
+  one-shot or MIDI — and it joins a list; click a starred name and the tree opens
+  its way down to it, or opens Explorer or Finder if that folder is no longer one
+  of your eight.
+- **Drop a MIDI file in and it works out what is in it.** Drag a `.mid` onto a
+  generator and its notes land there; drop it on the Song tab and the whole file
+  arrives as an arrangement you can take parts out of, cell by cell, without
+  overwriting anything until you choose to. A layered file separates into bass,
+  melody, countermelody, chords and drums — and **each part tells you why it was
+  routed there**, so a wrong guess is one click to redirect rather than something
+  you find out later.
 - **Eight pads across the top, and everything on their face.** Each is a drum
   lane: its name, what is on it, and a dot — green if you can hear it, red if you
   cannot. Press the pad to mute it, press Play in its middle to hear that sound
