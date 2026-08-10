@@ -73,9 +73,14 @@ the result into FL Studio, Ableton, Logic, Reaper, or anything else.
   Generate and playing your project makes a sound without wiring an instrument
   up first. One switch turns it off again and hands the notes to your own drum
   sampler, because MIDI-only is a way of working rather than a fallback.
-- **Search an artist, not a genre.** Instant fuzzy autosuggest across a mainstream
-  roster and an underground roster. Genres exist as a browse filter, not the unit of
-  generation.
+- **Search an artist, not a genre.** One type-to-autocomplete box finds anyone —
+  across a mainstream roster and an underground one, through aliases and past
+  typos. Artists and genres sit in the same list, each row saying which it is, so
+  you never have to know in advance whether "UK Drill" is a person or a style.
+  Stop typing halfway and click away and it takes the best match, so you cannot
+  end up with nothing chosen. What the selection *does* — its era, its genres, the
+  tempo and key it tends toward — appears directly underneath, before you press
+  Generate. Genres exist as a browse filter, not the unit of generation.
 - **Every artist has moods, not one sound.** Pick a mood beside the artist and
   stay there, or leave it on *Any* and let each press walk their range —
   boom bap's *dusty / jazzy / hard*, phonk's *cowbell / memphis / brazilian*,
@@ -114,9 +119,16 @@ the result into FL Studio, Ableton, Logic, Reaper, or anything else.
   ceiling. A sample recorded at a different rate from the kit around it is
   converted once, properly filtered, when you load it — rather than stretched to
   fit on every note.
-- **Re-roll a pad from the folder you are browsing.** A dice on any lane pulls a
-  new sample from the folder open in the browser, matched to what that lane is —
-  a snare gets snares — and one dice re-rolls the whole kit. Locked pads are left
+- **Eight pads across the top, and everything on their face.** Each is a drum
+  lane: its name, what is on it, and a dot — green if you can hear it, red if you
+  cannot. Press the pad to mute it, press Play in its middle to hear that sound
+  alone, drag a sample onto it, or clear it back to the built-in. Every pad's name
+  is a picker over all thirty-seven lanes, **two pads may share one so you can
+  layer a snare**, and the layout is remembered *per artist* — a style you built
+  comes back exactly as you left it, with the sounds you gave it.
+- **Re-roll a pad from the folder you are browsing.** A shuffle on any lane pulls
+  a new sample from the folder open in the browser, matched to what that lane is —
+  a snare gets snares — and one re-roll does the whole kit. Locked pads are left
   alone. **Name a kit and it is there next time**, in any song: save, load,
   duplicate or delete it, and it stores the paths rather than copying anybody's
   audio around.
@@ -219,6 +231,12 @@ npm run plugin:build        # release .clap, with the bundled-content gate
 npm run plugin:install      # symlink it into the CLAP folder — once
 npm run ci:local            # every gate, with CI's own environment
 ```
+
+The release standalone is `target/release/standalone.exe` and can simply be
+double-clicked: it supplies its own audio period size rather than needing a flag,
+and opens no console window behind itself. If it ever dies, it appends a stack
+trace to `%APPDATA%\Freally MIDI Master\standalone-crash.log` — and
+`NIH_LOG=some\file.log` brings the whole log back without a rebuild.
 
 **`npm run build` must run before any cargo build**, because the plugin compiles
 the built UI and the dataset into its binary — a plugin has no resource directory
