@@ -55,7 +55,7 @@ test.describe('Phase gate — UI contract', () => {
     // "Generate", and Playwright matches an accessible name by substring by
     // default — so the unqualified form resolves to two buttons and fails
     // strict mode rather than asserting anything.
-    for (const name of ['Generate', 'Play', 'Stop']) {
+    for (const name of ['Play', 'Stop']) {
       await expect(page.getByRole('button', { name, exact: true })).toBeDisabled();
     }
     await expect(page.getByRole('combobox', { name: 'Roster' })).toBeEnabled();
@@ -86,7 +86,11 @@ test.describe('Phase gate — UI contract', () => {
     const search = page.getByRole('combobox', { name: 'Roster' });
     const generate = page.getByRole('button', { name: 'Generate', exact: true });
 
-    await expect(generate).toBeDisabled();
+    // ⚠ Generate is live from the start now — the rail chooses an artist as soon
+    // as the roster loads. What this half of the rule still proves is that
+    // choosing a *different* one leaves it live and actually generates, rather
+    // than a control that goes dead once its precondition changes.
+    await expect(generate).toBeEnabled();
     await search.fill('trap');
     await search.press('Enter');
     await expect(generate).toBeEnabled();
