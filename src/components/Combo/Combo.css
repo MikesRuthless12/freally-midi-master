@@ -1,0 +1,127 @@
+/*
+ * The owned combobox (TASK-055).
+ *
+ * ⛔ Every pixel here exists because a native `<select>` could not be styled at
+ * all inside WebView2 — see `Combo.tsx`. The list is anchored under the field and
+ * matches its width, which is the specific thing the OS popup would not do.
+ */
+.combo {
+  position: relative;
+  width: 100%;
+}
+
+.combo__field {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-2);
+}
+
+.combo__field:focus-within {
+  border-color: var(--color-primary);
+}
+
+.combo__input {
+  flex: 1 1 auto;
+  /* ⚠ Without this the input's intrinsic width sets a floor and the combobox
+     refuses to shrink inside a narrow rail — the same overflow trap the pad grid
+     hit, one element down. */
+  min-width: 0;
+  padding: var(--space-2);
+  border: 0;
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-small);
+}
+
+.combo__input:focus {
+  outline: none;
+}
+
+.combo__arrow {
+  display: flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-3);
+  cursor: pointer;
+}
+
+.combo__arrow:hover {
+  color: var(--color-text);
+}
+
+/* ⛔ `fixed`, because this is portalled to `document.body` to escape the rail's
+   `overflow: hidden` — see `Combo.tsx`. The component measures the field and
+   sets top/left/width, so it still reads as anchored to the control even though
+   it is no longer a descendant of it. Bounded in height so five hundred artists
+   scroll rather than filling the screen. */
+.combo__menu {
+  position: fixed;
+  z-index: 60;
+  max-height: 260px;
+  margin: 0;
+  padding: var(--space-1);
+  overflow-y: auto;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 28%);
+  list-style: none;
+}
+
+.combo__menu button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  width: 100%;
+  padding: var(--space-2);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-text);
+  font: inherit;
+  font-size: var(--text-small);
+  text-align: start;
+  cursor: pointer;
+}
+
+/* `data-active` rather than `:hover`, so the keyboard and the mouse highlight
+   the same row — a list where arrowing down moved one marker and hovering moved
+   another would have two ideas of what Enter does. */
+.combo__menu button[data-active='true'] {
+  background: var(--color-surface-2);
+}
+
+.combo__menu button[aria-selected='true'] .combo__name {
+  font-weight: 600;
+}
+
+.combo__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.combo__badge {
+  flex: none;
+  font-size: var(--text-micro);
+  color: var(--color-text-3);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* The "nothing matches" line. In flow under the field rather than in the menu,
+   because there is no menu when there is nothing to put in it. */
+.combo__empty {
+  margin: var(--space-1) 0 0;
+  font-size: var(--text-micro);
+  color: var(--color-text-3);
+}

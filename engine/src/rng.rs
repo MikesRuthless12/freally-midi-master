@@ -46,6 +46,20 @@ pub fn derive_seed(root: u64, domain: &str) -> u64 {
 }
 
 /// The generator for a named domain, e.g. `"drums/kick"` or `"section:3/melody"`.
+/// A reproducible index into a list of `len`, on its own domain stream.
+///
+/// ⛔ **Here rather than at the caller, so `rand` stays an engine dependency.**
+/// The plugin needs a seeded choice for "re-roll this pad from that folder"
+/// (TASK-050A) and needed exactly this much of a generator to get one — adding
+/// `rand` to a crate that loads into somebody else's DAW, to draw one number, is
+/// a dependency for nothing. Determinism is this module's job anyway.
+///
+/// `None` for an empty list, because there is no index into nothing.
+pub fn index(root: u64, domain: &str, len: usize) -> Option<usize> {
+    use rand::Rng;
+    (len > 0).then(|| stream(root, domain).random_range(0..len))
+}
+
 pub fn stream(root: u64, domain: &str) -> ChaCha8Rng {
     ChaCha8Rng::seed_from_u64(derive_seed(root, domain))
 }

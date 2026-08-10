@@ -15,15 +15,18 @@ test.beforeEach(async ({ page }) => {
 });
 
 test('the Studio renders every region', async ({ page }) => {
-  await expect(page.getByLabel('Search an artist')).toBeVisible();
+  await expect(page.getByRole('combobox', { name: 'Roster' })).toBeVisible();
   await expect(page.getByRole('tablist', { name: 'Generator' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Play' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Generate', exact: true })).toBeVisible();
   await expect(page.getByText('Search an artist. Cook.')).toBeVisible();
 });
 
 test('all six generator tabs are present', async ({ page }) => {
-  const tabs = page.getByRole('tab');
+  // ⚠ **Scoped to the generator tablist.** The sample browser grew its own
+  // tablist on 2026-08-10 — up to eight library folders — so an unscoped
+  // `getByRole('tab')` counts those too and this read seven.
+  const tabs = page.getByRole('tablist', { name: 'Generator' }).getByRole('tab');
   await expect(tabs).toHaveCount(6);
   await expect(tabs).toHaveText(['Drums', 'Melody', 'Counter', 'Bass', 'Chords', 'Song']);
 });
@@ -53,17 +56,23 @@ test('controls that cannot work yet are disabled rather than merely inert', asyn
   // it, and screen readers need to be told.
   //
   // The rule has not changed since Phase 0; what each control can do has.
-  // Search and Generate are live now (TASK-028), so what they must admit to is
-  // narrower: Generate cannot run without someone selected, and Play cannot run
-  // without a pattern and an audio device — which a browser does not have.
-  await expect(page.getByLabel('Search an artist')).toBeEnabled();
+  //
+  // ⛔ **Generate is disabled until somebody is chosen, and it is meant to be.**
+  // An auto-select briefly removed this state on 2026-08-09 and was reverted the
+  // next day: it took the landing screen with it. Mike, 2026-08-10: *"ensure
+  // that they have to pick an artist before they ever even generate anything,
+  // because I LOVE that landing screen."*
+  await expect(page.getByRole('combobox', { name: 'Roster' })).toBeEnabled();
   await expect(page.getByRole('button', { name: 'Generate', exact: true })).toBeDisabled();
-  await expect(page.getByRole('button', { name: 'Play' })).toBeDisabled();
+  await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Stop' })).toBeDisabled();
 });
 
 test('K toggles the right rail', async ({ page }) => {
-  const kit = page.getByRole('button', { name: /Kit/i });
+  // ⚠ The KIT panel's *header*, not any button named after it: the panel gained
+  // a "Save kit" control (TASK-051), and an unscoped /Kit/i locator resolves to
+  // two elements whenever the panel is expanded.
+  const kit = page.locator('.rail__toggle', { hasText: /Kit/i });
   await expect(kit).toBeVisible();
 
   await page.keyboard.press('k');

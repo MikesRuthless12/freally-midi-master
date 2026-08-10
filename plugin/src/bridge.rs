@@ -40,6 +40,25 @@ pub struct Request {
 /// takes minutes to build on the thread the host draws its window from.
 pub(crate) const MAX_BARS: u16 = 128;
 
+/// What the page sends to train a workflow (TASK-040T).
+///
+/// ⛔ **The kept generations travel with the request rather than being read from
+/// the plugin's own state.** "Keep" and "discard" are the producer's opinion of
+/// clips they auditioned; the plugin holds one session's *current* pattern per
+/// part and has never seen the thirty before it. Sending them is what makes a
+/// `.mid` dragged in from the file explorer a training source on the same
+/// footing — the fit reads `Pattern`, and it does not care where one came from.
+#[derive(Debug, Clone, Deserialize)]
+#[serde(rename_all = "camelCase")]
+struct TrainArgs {
+    id: String,
+    name: String,
+    base: String,
+    #[serde(default)]
+    moods: Vec<String>,
+    kept: Vec<Pattern>,
+}
+
 /// What the UI asks for when the user presses Generate.
 ///
 /// The same shape as the desktop app's `GenerateRequest`, because it is the
@@ -103,13 +122,55 @@ pub fn dispatch(
 
         "eula_decline" => crate::eula::decline().map(|()| Value::Null),
 
-        "roster_summary" => {
-            serde_json::to_value(&dataset::loaded().summary).map_err(|e| e.to_string())
-        }
+        "roster_summary" => serde_json::to_value(dataset::roster()).map_err(|e| e.to_string()),
 
         "resolve_model" => {
             let id = request.args["id"].as_str().unwrap_or_default();
             serde_json::to_value(dataset::model(id)?).map_err(|e| e.to_string())
+        }
+
+        // ---- The producer's own models. See [`crate::models`] (TASK-040U) ---
+        //
+        // ⛔ There is no `user_model_list`: a saved model is an ordinary roster
+        // entry carrying `mine`, and a second list would be a second answer to
+        // "what can I generate from" for the rails to disagree with.
+        "user_model_save" => serde_json::to_value(crate::models::save(
+            request.args.get("model").cloned().unwrap_or(Value::Null),
+        )?)
+        .map_err(|e| e.to_string()),
+
+        "user_model_delete" => {
+            let id = request.args["id"].as_str().unwrap_or_default();
+            crate::models::delete(id).map(|()| Value::Null)
+        }
+
+        // ⛔ `user_model_sample_cost` and `user_model_copy_samples` are **not
+        // here** — they need `shared.one_shots` and live in `editor.rs`. See the
+        // note there: the paths must come from the plugin, never from the page.
+        "user_model_export" => {
+            let id = request.args["id"].as_str().unwrap_or_default();
+            Ok(Value::String(crate::models::export(id)?))
+        }
+
+        "user_model_import" => {
+            let text = request.args["text"].as_str().unwrap_or_default();
+            serde_json::to_value(crate::models::import(text)?).map_err(|e| e.to_string())
+        }
+
+        // Training (TASK-040T). ⛔ The kept generations come **from the page**,
+        // because the page is where "keep" and "discard" happened — the plugin
+        // holds one session's current clips, not a producer's opinion of them.
+        "user_model_train" => {
+            let args: TrainArgs =
+                serde_json::from_value(request.args.clone()).map_err(|e| e.to_string())?;
+            serde_json::to_value(crate::models::train(
+                &args.id,
+                &args.name,
+                &args.base,
+                &args.moods,
+                &args.kept,
+            )?)
+            .map_err(|e| e.to_string())
         }
 
         "session_defaults" => {
@@ -584,8 +645,11 @@ fn generate(args: &GenerateArgs, host: &HostSession, auto_sync: bool) -> Result<
         // two different kinds of record.
         _ => match modes::pick(&model, song_seed) {
             Some(name) => (modes::apply(&model, &name)?, Some(name)),
-            // The common case today: eleven of the shipped genres author no
-            // modes at all, and a model with none generates exactly as before.
+            // ⚠ **No shipped model reaches this arm any more.** Eleven genres
+            // authored no modes when this was written; TASK-040V closed the last
+            // twelve on 2026-08-09, so every style in `data/` now picks one.
+            // The arm stays because a **user** model may author none
+            // (TASK-040U), and a model with none generates exactly as before.
             None => (model, None),
         },
     };
@@ -1866,18 +1930,45 @@ mod tests {
     }
 
     #[test]
-    fn a_style_with_no_modes_generates_exactly_as_before() {
-        // Eleven of the shipped genres author none, so this is the common path.
-        let value = dispatch(
-            &request(
-                "generate_pattern",
-                json!({ "request": { "styleId": "phonk", "seed": "7" } }),
-            ),
-            &host(),
-        )
-        .unwrap();
+    fn every_shipped_style_names_the_mood_it_generated() {
+        // ⛔ **This test used to be `a_style_with_no_modes_generates_exactly_as
+        // _before`, and closing TASK-040V made it unwritable.** It reached for
+        // `phonk` because eleven shipped genres authored no modes; all twelve
+        // do now, and there is no modeless style left in `data/` to point it at.
+        // Rather than delete the coverage, it asserts the fact that replaced it
+        // — **every** style names the mood it came out as, which is what makes
+        // the mood chip mean something on every artist rather than on nine.
+        //
+        // ▶ **It is also the Phase 5 gate.** A genre or artist added in a roster
+        // batch without its own `modes` fails here, by name, instead of shipping
+        // as a name with one sound behind it.
+        //
+        // ⚠ The `None` arm in `generate` is still live code and is deliberately
+        // not covered here: it belongs to user models (TASK-040U), which may
+        // author no modes at all. `modes::a_model_with_no_modes_offers_none_and
+        // _resolves_to_itself` is where that path is proven.
+        for entry in &dataset::loaded().summary.entries {
+            let value = dispatch(
+                &request(
+                    "generate_pattern",
+                    json!({ "request": { "styleId": entry.id, "seed": "7" } }),
+                ),
+                &host(),
+            )
+            .unwrap_or_else(|error| panic!("{} failed to generate: {error}", entry.id));
 
-        assert!(value.get("mood").is_none(), "{value}");
+            let mood = value
+                .get("mood")
+                .and_then(Value::as_str)
+                .unwrap_or_else(|| panic!("{} generated without naming a mood", entry.id));
+
+            let model = dataset::model(&entry.id).expect("the roster's own id must resolve");
+            assert!(
+                modes::offers(&model, mood),
+                "{} came out as `{mood}`, which it does not offer",
+                entry.id
+            );
+        }
     }
 
     #[test]

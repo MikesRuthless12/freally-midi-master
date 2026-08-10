@@ -321,7 +321,9 @@ fn save_in(
 /// removed first. That is a real window, and it is the reason the temporary
 /// carries the same stem: if the rename fails, the `.tmp` beside it is the
 /// pattern, recoverable by hand.
-fn write_atomic(path: &Path, text: &str) -> Result<(), String> {
+/// `pub(crate)` for [`crate::models`], which writes a producer's own style model
+/// and needs exactly this dance rather than a second copy of it.
+pub(crate) fn write_atomic(path: &Path, text: &str) -> Result<(), String> {
     let temporary = path.with_extension("json.tmp");
     fs::write(&temporary, text)
         .map_err(|error| format!("could not write {}: {error}", temporary.display()))?;

@@ -16,6 +16,8 @@
 pub mod arrange;
 pub mod context;
 pub mod dataset;
+pub mod fit;
+pub mod formats;
 pub mod generators;
 pub mod humanize;
 pub mod midi;
@@ -23,6 +25,7 @@ pub mod novelty;
 pub mod parts;
 pub mod pattern;
 pub mod rng;
+pub mod smf_read;
 pub mod theory;
 
 pub use context::{Humanize, SessionContext, Swing, SwingGrid};

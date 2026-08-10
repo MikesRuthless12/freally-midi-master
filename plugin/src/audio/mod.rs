@@ -29,7 +29,9 @@
 
 pub mod import;
 pub mod kit;
+pub mod pitch;
 pub mod render;
+pub mod resample;
 pub mod sampler;
 
 use std::collections::BTreeMap;
@@ -110,6 +112,24 @@ pub fn kit_for(preview_id: &str) -> Option<&'static Arc<Kit>> {
     }
 }
 
+/// The rate every pad in a kit is held at (TASK-053).
+///
+/// ⛔ **One rate per kit, or the interpolator pays twice.** A voice reads its pad
+/// at `pad.sample_rate / device_rate`; two pads at different rates in one kit
+/// means two different ratios, so a producer's own sample was resampled by a
+/// different amount from the drums beside it — inconsistently, and on the audio
+/// thread. Taken from the shipped kit rather than declared, so it cannot drift
+/// from what `tools/kitgen` actually writes.
+///
+/// ⚠ Falls back to 44.1 kHz only if the preview kit failed to decode, which is
+/// the case where nothing is audible anyway.
+pub fn kit_rate() -> u32 {
+    preview_kit()
+        .and_then(|kit| kit.pads.first())
+        .map(|pad| pad.sample_rate)
+        .unwrap_or(44_100)
+}
+
 /// The kit a *model* is heard through — the one it names in `kit.preview`.
 ///
 /// ⛔ **This is the reader those eight models never had.** `rage` has asked for
@@ -131,24 +151,45 @@ pub fn kit_for_model(model_id: &str) -> Option<&'static Arc<Kit>> {
     // hundreds of allocations, cloned and thrown away to read one string, on a
     // path the KIT panel calls on every refresh. `loaded()` is `&'static`, so
     // reading through it costs nothing.
-    let named = crate::dataset::loaded()
+    fn preview(model: &engine::StyleModel) -> Option<&str> {
+        model
+            .blocks
+            .get("kit")
+            .and_then(|kit| kit.get("preview"))
+            .and_then(|preview| preview.as_str())
+    }
+
+    if let Some(id) = crate::dataset::loaded()
         .models
         .get(model_id)
-        .and_then(|model| model.blocks.get("kit"))
-        .and_then(|kit| kit.get("preview"))
-        .and_then(|preview| preview.as_str());
-
-    match named {
-        Some(id) => kit_for(id),
-        None => {
-            // ⚠ Logged, because the silent fallback is what hid the original
-            // defect for as long as it did. `kit_for` already says so for a
-            // kit that is named and missing; this is the other half — a model
-            // that names none at all and lands on trap.
-            nih_plug::nih_log!("{model_id} names no kit; using the trap kit");
-            preview_kit()
-        }
+        .and_then(preview)
+    {
+        return kit_for(id);
     }
+
+    // ⛔ **And the producer's own models** (TASK-040U). Without this every user
+    // style would be heard through the trap kit — including one that extends
+    // `uk-drill` and has therefore *inherited* `drill-default`, which is the
+    // same silent-fallback defect this function was written to close, arriving
+    // through the door it did not have yet.
+    //
+    // ⚠ **Borrowed through the `Arc`, not cloned out of it**, so the note above
+    // holds for both halves. The first cut of this called `models::model()`,
+    // which hands back an *owned* `StyleModel` — several kilobytes across
+    // hundreds of allocations, to read one string, on the path the KIT panel
+    // polls. Worse, for a producer generating from their own style the shipped
+    // map *always* misses, so the expensive branch was the normal one.
+    let user = crate::models::all();
+    if let Some(id) = user.models.get(model_id).and_then(preview) {
+        return kit_for(id);
+    }
+
+    // ⚠ Logged, because the silent fallback is what hid the original defect for
+    // as long as it did. `kit_for` already says so for a kit that is named and
+    // missing; this is the other half — a model that names none at all and
+    // lands on trap.
+    nih_plug::nih_log!("{model_id} names no kit; using the trap kit");
+    preview_kit()
 }
 
 /// The preview kit, decoded once.

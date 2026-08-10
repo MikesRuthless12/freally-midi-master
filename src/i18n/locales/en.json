@@ -48,7 +48,15 @@
     "shipped": "Built in",
     "silent": "No sound",
     "choosing": "Choosing…",
-    "clearOne": "Clear the one-shot on {{lane}}"
+    "clearOne": "Clear the one-shot on {{lane}}",
+    "randomize": "Re-roll every unlocked pad from this folder",
+    "randomizeOne": "Re-roll {{lane}} from this folder",
+    "padsLabel": "Drum pads",
+    "muteLane": "Mute {{lane}}",
+    "unmuteLane": "Unmute {{lane}}",
+    "playLane": "Play {{lane}}",
+    "padLane": "Pad {{at}} lane",
+    "useSelected": "Put the selected sample on {{lane}}"
   },
   "sections": {
     "genres": "Genres",
@@ -400,7 +408,28 @@
     "decoding": "Reading…",
     "waveformOf": "Waveform of {{name}}",
     "reverse": "Play backwards",
-    "resize": "Resize the browser"
+    "resize": "Resize the browser",
+    "fillRail": "Give the browser the whole rail",
+    "restoreRail": "Show the roster again",
+    "folderLimit": "You can browse 8 folders at a time — close one to add another",
+    "favourites": "Starred favourites",
+    "star": "Star {{name}}",
+    "unstar": "Unstar {{name}}",
+    "revealHint": "Show {{path}} in your file manager",
+    "midiApply": "Send to generators",
+    "midiDragHint": "Or drag the file onto one generator to import it all there.",
+    "splitReason": {
+      "drumChannel": "On the GM drum channel",
+      "polyphonic": "Chords — notes overlap",
+      "lowestVoice": "Lowest voice",
+      "highestVoice": "Highest voice",
+      "innerVoice": "Inner voice",
+      "splitByPitch": "One voice, split by pitch — a guess",
+      "fromName": "From the file name",
+      "kitShape": "Plays like a drum kit"
+    },
+    "midiFound": "What this MIDI file contains",
+    "midiNotes": "Notes"
   },
   "patterns": {
     "name": "Name this pattern",
@@ -429,5 +458,44 @@
     "key": "{{key}} {{scale}}",
     "halfTime": "half-time",
     "moods": "{{count}} moods"
+  },
+  "styles": {
+    "original": "Original Workflow",
+    "originalHint": "Build a style of your own",
+    "mine": "Yours",
+    "title": "Style editor",
+    "name": "Name",
+    "namePlaceholder": "My dark trap",
+    "basedOn": "Based on",
+    "basedOnHint": "Your style inherits everything it does not override, including later improvements.",
+    "tempo": "Tempo",
+    "swing": "Swing",
+    "hats": "Hat density",
+    "melody": "Melody density",
+    "scales": "Scales",
+    "scalesHint": "Only the scales {{name}} records in.",
+    "save": "Save style",
+    "delete": "Delete workflow",
+    "export": "Export",
+    "import": "Import",
+    "nameNeeded": "Give your style a name.",
+    "saved": "Saved as {{name}}",
+    "keep": "Keep this take for training",
+    "kept": "{{count}} / {{needed}} kept",
+    "train": "Train",
+    "trained": "Trained on {{count}} generations",
+    "samplesHeading": "Its sounds",
+    "samplesNote": "Your style can keep the one-shots you assigned. They are copied onto this computer, so they still work if you move or delete the originals — and they take up that much more space on your drive. Nothing is copied unless you tick this.",
+    "samplesCopy": "Copy {{count}} samples ({{size}}) onto this computer",
+    "samplesCopied": "Copied {{count}} samples",
+    "edit": "Edit {{name}}"
+  },
+  "kits": {
+    "heading": "Saved kits",
+    "name": "Kit name",
+    "save": "Save kit",
+    "none": "No saved kits yet. Assign some samples, name them, and they will be here next time.",
+    "delete": "Delete {{name}}",
+    "duplicate": "Copy {{name}} under the typed name"
   }
 }

@@ -33,7 +33,7 @@ async function rulerLabels(page: Page) {
 /** Open Song Mode with an arrangement in it. */
 async function openSong(page: Page) {
   await page.goto('/');
-  const search = page.getByLabel('Search an artist');
+  const search = page.getByRole('combobox', { name: 'Roster' });
   await search.fill('trap');
   await search.press('Enter');
   await page.getByRole('tab', { name: 'Song' }).click();
@@ -272,7 +272,7 @@ test('choosing another artist clears the arrangement that was on screen', async 
   await openSong(page);
   expect((await sections(page)).length).toBeGreaterThan(1);
 
-  const search = page.getByLabel('Search an artist');
+  const search = page.getByRole('combobox', { name: 'Roster' });
   await search.fill('uk');
   await search.press('Enter');
 

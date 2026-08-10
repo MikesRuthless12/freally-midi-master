@@ -427,5 +427,198 @@
   },
   "kit": {
     "preview": "rnb-default"
-  }
+  },
+  "modes": [
+    {
+      "name": "timbaland",
+      "weight": 4,
+      "melody": {
+        "densityPerBar": [
+          4,
+          9
+        ],
+        "intervals": {
+          "step": 0.68,
+          "third": 0.24,
+          "leap": 0.08
+        },
+        "contour": {
+          "riff": 0.45,
+          "descend": 0.3,
+          "arch": 0.25
+        },
+        "octaveJumpProb": 0.1
+      },
+      "chords": {
+        "harmonicRhythm": {
+          "values": [
+            "syncopated_cell",
+            "1_per_bar"
+          ],
+          "weights": [
+            4,
+            3
+          ]
+        }
+      },
+      "drums": {
+        "kick": {
+          "syncopation": 0.62
+        },
+        "hihat": {
+          "fillDensity": 0.72,
+          "rolls": {
+            "freqPerBar": 0.4
+          }
+        },
+        "snare": {
+          "ghost": {
+            "prob": 0.45
+          }
+        }
+      }
+    },
+    {
+      "name": "slow jam",
+      "weight": 3,
+      "session": {
+        "bpm": {
+          "min": 62,
+          "max": 78,
+          "mode": 70
+        }
+      },
+      "melody": {
+        "register": [
+          60,
+          82
+        ],
+        "densityPerBar": [
+          3,
+          7
+        ],
+        "intervals": {
+          "step": 0.8,
+          "third": 0.17,
+          "leap": 0.03
+        },
+        "contour": {
+          "riff": 0.15,
+          "descend": 0.45,
+          "arch": 0.4
+        },
+        "chordToneBias": 0.86
+      },
+      "chords": {
+        "extensions": {
+          "triad": 0.16,
+          "seventh": 0.46,
+          "ninth": 0.38
+        },
+        "harmonicRhythm": {
+          "values": [
+            "2_bars_per_chord",
+            "1_per_bar"
+          ],
+          "weights": [
+            4,
+            2
+          ]
+        },
+        "voicing": {
+          "style": "open",
+          "register": [
+            44,
+            74
+          ]
+        }
+      },
+      "countermelody": {
+        "densityRatio": 0.35,
+        "styles": {
+          "values": [
+            "sustain_pad",
+            "answer_lick"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        }
+      },
+      "drums": {
+        "hihat": {
+          "fillDensity": 0.45
+        }
+      }
+    },
+    {
+      "name": "uptempo",
+      "weight": 2,
+      "session": {
+        "bpm": {
+          "min": 96,
+          "max": 112,
+          "mode": 104
+        },
+        "scales": {
+          "values": [
+            "natural_minor",
+            "dorian",
+            "major"
+          ],
+          "weights": [
+            3,
+            3,
+            2
+          ]
+        }
+      },
+      "melody": {
+        "densityPerBar": [
+          4,
+          10
+        ],
+        "contour": {
+          "riff": 0.4,
+          "descend": 0.3,
+          "arch": 0.3
+        },
+        "phraseBars": {
+          "values": [
+            2,
+            4
+          ],
+          "weights": [
+            2,
+            3
+          ]
+        }
+      },
+      "chords": {
+        "harmonicRhythm": {
+          "values": [
+            "1_per_bar",
+            "syncopated_cell"
+          ],
+          "weights": [
+            4,
+            2
+          ]
+        }
+      },
+      "drums": {
+        "kick": {
+          "densityPerBar": [
+            3,
+            5
+          ]
+        },
+        "hihat": {
+          "base": "16th",
+          "fillDensity": 0.65
+        }
+      }
+    }
+  ]
 }

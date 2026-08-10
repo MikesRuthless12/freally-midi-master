@@ -48,7 +48,37 @@ type SizeReply = {
  * of the design — two instances of the plugin can be at different sizes.
  */
 function applyZoom(zoom: number): void {
-  document.documentElement.style.zoom = String(zoom);
+  const root = document.documentElement;
+  root.style.zoom = String(zoom);
+
+  // ⛔⛔ **THE APP MUST BE EXACTLY THE SIZE OF THE WINDOW.** Mike, 2026-08-09,
+  // after three failed attempts at this from the Win32 side: *"will you PLEASE
+  // ensure that the gui height = window.height"* — and length likewise.
+  //
+  // ⛔ **CSS `zoom` scales the rendered box, not only its contents**, and that is
+  // the entire bug. `tokens.css` gives `html, body, #root` `height: 100%`; the
+  // 100% resolves against the viewport and the result is *then* multiplied by
+  // the zoom. At `zoom: 0.78` the app therefore paints 78% of the window in both
+  // axes and leaves the remaining 22% showing the window behind it — the dead
+  // space down the right and along the bottom, in exactly that proportion.
+  //
+  // ⚠ **Three attempts went into the webview's bounds looking for this.** The
+  // webview was very likely the right size the whole time; the page inside it
+  // was not filling it. Sizing the frame cannot fix a page that is painting at
+  // 78% of whatever frame it is given.
+  //
+  // Dividing by the zoom is what cancels it: the box is laid out at
+  // `window / zoom` CSS pixels and rendered at `window / zoom * zoom` — the
+  // window, exactly, at any zoom.
+  //
+  // ⚠ **`innerWidth`/`innerHeight` are the right measurements** for the reason
+  // [`measuredZoom`] gives below: they are the *window's* CSS size and do not
+  // move when the root's zoom changes, so this is idempotent and cannot feed
+  // back on itself.
+  if (zoom > 0) {
+    root.style.width = `${window.innerWidth / zoom}px`;
+    root.style.height = `${window.innerHeight / zoom}px`;
+  }
 
   // ⛔ Changing the zoom changes the width the app lays out in, but fires no
   // `resize` event — so the rail breakpoint has to be told, or it keeps the
@@ -88,10 +118,28 @@ function measuredZoom(layoutWidth: number): number | null {
   const css = window.innerWidth;
   if (!Number.isFinite(css) || css <= 0) return null;
   if (!Number.isFinite(layoutWidth) || layoutWidth <= 0) return null;
+
+  // ⛔⛔ **Whichever axis is tighter, so nothing can ever be cut off.** Mike,
+  // 2026-08-09: *"we need to set a minimum height/width to the size to where
+  // everything is visible, even the right side panel if it is visible."*
+  //
+  // Width alone was not enough, and the failure is not exotic: the root is sized
+  // to `window / zoom`, so with a width-only zoom a **short, wide** window gives
+  // the page less than `LAYOUT` height however large it is — and the bottom of
+  // the app is simply gone. Taking the smaller of the two ratios means the page
+  // always gets **at least** 1440x900 in both directions; the spare pixels on
+  // the other axis become extra room, which the layout already handles, rather
+  // than something scrolled out of sight.
+  //
+  // ⚠ `LAYOUT`'s height lives in `plugin/src/editor.rs` and is not sent over the
+  // bridge — only `layoutWidth` is. It is derived here from the 1440x900 ratio
+  // rather than hardcoded twice, so a change there cannot leave this stale.
+  const layoutHeight = layoutWidth * (900 / 1440);
+  const zoom = Math.min(css / layoutWidth, window.innerHeight / layoutHeight);
+
   // ⚠ Bounded. A window reported as one pixel wide during a host's own resize
   // would otherwise set a zoom that makes the UI invisible, and the next honest
   // measurement is a whole frame away.
-  const zoom = css / layoutWidth;
   return zoom >= 0.2 && zoom <= 4 ? zoom : null;
 }
 
@@ -131,13 +179,44 @@ export function WindowSize() {
     // which is the dead space this whole path exists to remove.
     const onResize = () => {
       if (layout === 0) return;
-      const zoom = measuredZoom(layout);
-      if (zoom !== null) applyZoom(zoom);
+      // ⛔ **Applied even when the measurement is refused.** `measuredZoom`
+      // returns `null` for a window it does not trust — mid-resize a host can
+      // report one pixel — and skipping entirely used to mean the *size* was
+      // never re-applied either, so the app stayed the shape of the window it
+      // had before. Falling back to the zoom already on the root keeps the
+      // width and height following the window at every frame of a drag, which is
+      // the whole of what Mike asked for.
+      const current = Number(document.documentElement.style.zoom);
+      applyZoom(measuredZoom(layout) ?? (current > 0 ? current : 1));
     };
     window.addEventListener('resize', onResize);
+
+    // ⛔⛔ **The window is not its final size when the page first measures it.**
+    // Mike, 2026-08-09: *"when the app first starts the gui is bigger than the
+    // window."* The reply to `editor_size` arrives while baseview is still
+    // opening the window, so the first `measuredZoom` reads a viewport that is
+    // about to change — and because nothing resizes it afterwards, no `resize`
+    // event ever arrives to correct the guess. The app then stays laid out for a
+    // window it had for one frame.
+    //
+    // ⚠ **A `ResizeObserver` on the root cannot serve**: `applyZoom` sets the
+    // root's own width and height, so observing it would see its own writes.
+    // These re-measure the *window*, which nothing here changes.
+    //
+    // ⚠ Idempotent, so extra passes cost nothing and cannot oscillate:
+    // `innerWidth` does not move when the root's zoom does (see `measuredZoom`),
+    // so once the window has settled every pass computes the same answer.
+    const settle = [
+      requestAnimationFrame(onResize),
+      requestAnimationFrame(() => requestAnimationFrame(onResize)),
+    ];
+    const late = window.setTimeout(onResize, 300);
+
     return () => {
       live = false;
       window.removeEventListener('resize', onResize);
+      settle.forEach(cancelAnimationFrame);
+      window.clearTimeout(late);
     };
   }, []);
 

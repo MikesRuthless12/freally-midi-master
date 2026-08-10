@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { pickArtist } from './app';
 
 /**
  * The transport playhead (TASK-041T).
@@ -19,7 +20,7 @@ test.beforeEach(async ({ page }) => {
   await expect(page.getByRole('tablist', { name: 'Generator' })).toBeVisible();
 
   // A pattern has to exist before there is a grid to click.
-  await page.locator('.roster__item', { hasText: 'Mock Artist' }).click();
+  await pickArtist(page, 'Mock Artist');
   await page.getByRole('button', { name: 'Generate', exact: true }).first().click();
   await expect(page.locator('.grid__track').first()).toBeVisible();
 });
@@ -86,7 +87,7 @@ test('a click at the far left seeks to the start rather than doing nothing', asy
  */
 async function openRollAndRuler(page: import('@playwright/test').Page) {
   await page.goto('/');
-  const search = page.getByLabel('Search an artist');
+  const search = page.getByRole('combobox', { name: 'Roster' });
   await search.fill('trap');
   await search.press('Enter');
   await page.getByRole('tab', { name: 'Melody' }).click();
@@ -161,24 +162,35 @@ test('a drag on the ruler still sets a loop, and does not seek', async ({ page }
  * every existing spec passed with them in the footer, so nothing would have
  * caught them sliding back down.
  */
-test('play, stop and loop sit at the top, right of the generator tabs', async ({ page }) => {
+test('play, stop and loop sit at the top, above the generator tabs', async ({ page }) => {
   const header = page.locator('.stage__header');
   const controls = header.locator('.transport__controls');
   await expect(controls).toHaveCount(1);
 
   for (const name of ['Play', 'Stop', 'Loop']) {
-    await expect(controls.getByRole('button', { name })).toHaveCount(1);
-    // ⛔ And nowhere else — two Play buttons is worse than one in the wrong place.
-    await expect(page.getByRole('button', { name })).toHaveCount(1);
+    await expect(controls.getByRole('button', { name, exact: true })).toHaveCount(1);
+    // ⛔ And nowhere else — two Play buttons is worse than one in the wrong
+    // place. ⚠ `exact`, because each drum pad now carries a "Play Kick" button
+    // and a substring match finds all eight of them.
+    await expect(page.getByRole('button', { name, exact: true })).toHaveCount(1);
   }
 
-  // To the RIGHT of the tabs, which is the half of the instruction a "is it in
-  // the header" check would miss.
+  // ⛔ **ABOVE the tabs, not to their right** — Mike, 2026-08-09: *"move these
+  // buttons to the first row and have the tabs on the second row above the piano
+  // roll"*, then *"center those buttons"*. The header is two rows now, and the
+  // reason is legibility: one row carrying six tabs, the take history and three
+  // transport buttons had to scroll the tabs on any window narrower than the
+  // layout — worst exactly when a producer needs to see which generator they are
+  // on.
+  //
+  // ⚠ Still pinned as *position* rather than existence, for the reason the old
+  // assertion gave: the buttons were always there, so nothing would catch them
+  // sliding back into the footer.
   const tabs = await page.locator('.tabs').boundingBox();
   const box = await controls.boundingBox();
   expect(tabs && box).toBeTruthy();
   if (!tabs || !box) return;
-  expect(box.x).toBeGreaterThan(tabs.x);
+  expect(box.y).toBeLessThan(tabs.y);
 
   // The footer keeps everything that is not transport.
   await expect(page.locator('.transport .transport__controls')).toHaveCount(0);

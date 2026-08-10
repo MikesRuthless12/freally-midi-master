@@ -27,11 +27,11 @@ test.beforeEach(async ({ page }) => {
  * closed the list" fails over a control on the other side of the window.
  */
 function suggestions(page: import('@playwright/test').Page) {
-  return page.locator('.suggest').getByRole('option');
+  return page.locator('.combo__menu').getByRole('option');
 }
 
 test('type, Enter, Generate — the grid fills', async ({ page }) => {
-  const search = page.getByLabel('Search an artist');
+  const search = page.getByRole('combobox', { name: 'Roster' });
   await search.fill('uk');
 
   // The autosuggest is a combobox, so the list is addressable by role.
@@ -69,7 +69,7 @@ test('Generate is refused until someone is chosen', async ({ page }) => {
 });
 
 test('the arrow keys move the highlight and Enter takes it', async ({ page }) => {
-  const search = page.getByLabel('Search an artist');
+  const search = page.getByRole('combobox', { name: 'Roster' });
   await search.fill('a');
 
   const options = suggestions(page);
@@ -84,13 +84,13 @@ test('the arrow keys move the highlight and Enter takes it', async ({ page }) =>
   await search.press('ArrowUp');
   await expect(options.last()).toHaveAttribute('aria-selected', 'true');
 
-  const chosen = await options.last().locator('.suggest__name').textContent();
+  const chosen = await options.last().locator('.combo__name').textContent();
   await search.press('Enter');
   await expect(search).toHaveValue(chosen ?? '');
 });
 
 test('Escape closes the suggestions without choosing anything', async ({ page }) => {
-  const search = page.getByLabel('Search an artist');
+  const search = page.getByRole('combobox', { name: 'Roster' });
   await search.fill('trap');
   await expect(suggestions(page).first()).toBeVisible();
 
@@ -103,14 +103,14 @@ test('Escape closes the suggestions without choosing anything', async ({ page })
 test('a query that matches nothing says so rather than showing an empty box', async ({
   page,
 }) => {
-  await page.getByLabel('Search an artist').fill('qqqzzz');
+  await page.getByRole('combobox', { name: 'Roster' }).fill('qqqzzz');
   await expect(page.getByText('Nothing matches “qqqzzz”.')).toBeVisible();
 });
 
 test('the seed is shown after generating, and can be pasted back', async ({ page }) => {
   // US-004. The seed chip is the whole promise: the number that comes back is
   // the number that reproduces the beat.
-  const search = page.getByLabel('Search an artist');
+  const search = page.getByRole('combobox', { name: 'Roster' });
   await search.fill('trap');
   await search.press('Enter');
   await page.getByRole('button', { name: 'Generate', exact: true }).click();
@@ -124,7 +124,7 @@ test('the seed is shown after generating, and can be pasted back', async ({ page
 });
 
 test('a longer pattern really is longer', async ({ page }) => {
-  const search = page.getByLabel('Search an artist');
+  const search = page.getByRole('combobox', { name: 'Roster' });
   await search.fill('trap');
   await search.press('Enter');
 
@@ -141,12 +141,12 @@ test('a longer pattern really is longer', async ({ page }) => {
 test('playback is honestly disabled when there is no device', async ({ page }) => {
   // The mock reports no audio backend, which is the truth in a browser. The
   // transport must say so rather than offering a Play button that fails.
-  const search = page.getByLabel('Search an artist');
+  const search = page.getByRole('combobox', { name: 'Roster' });
   await search.fill('trap');
   await search.press('Enter');
   await page.getByRole('button', { name: 'Generate', exact: true }).click();
 
-  const play = page.getByRole('button', { name: 'Play' });
+  const play = page.getByRole('button', { name: 'Play', exact: true });
   await expect(play).toBeDisabled();
   await expect(play).toHaveAttribute('title', /Playback is unavailable/);
 });
@@ -154,7 +154,7 @@ test('playback is honestly disabled when there is no device', async ({ page }) =
 test('choosing someone else clears the pattern that was on screen', async ({ page }) => {
   // The most convincing wrong thing this UI could do is leave one artist's
   // beat under another artist's name.
-  const search = page.getByLabel('Search an artist');
+  const search = page.getByRole('combobox', { name: 'Roster' });
   await search.fill('trap');
   await search.press('Enter');
   await page.getByRole('button', { name: 'Generate', exact: true }).click();
@@ -175,7 +175,7 @@ test('every tab generates, Song included', async ({ page }) => {
   //
   // Song is still not a `Part`: it goes through `useSong` and draws an
   // arrangement rather than an editor, which is why it is asserted separately.
-  const search = page.getByLabel('Search an artist');
+  const search = page.getByRole('combobox', { name: 'Roster' });
   await search.fill('trap');
   await search.press('Enter');
 
@@ -194,7 +194,7 @@ test('a melodic part draws in the piano roll, not the drum grid', async ({ page 
   // The four melodic parts were reachable through the bridge and had no editor
   // at all before TASK-041 — `CenterStage` gated them on "arrives in a later
   // phase" because `DrumGrid` was the only renderer.
-  const search = page.getByLabel('Search an artist');
+  const search = page.getByRole('combobox', { name: 'Roster' });
   await search.fill('trap');
   await search.press('Enter');
 
@@ -241,7 +241,7 @@ test.describe('generation FX', () => {
       }).observe(node, { attributes: true, attributeFilter: ['data-running'] });
     });
 
-    const search = page.getByLabel('Search an artist');
+    const search = page.getByRole('combobox', { name: 'Roster' });
     await search.fill('trap');
     await search.press('Enter');
     await page.getByRole('button', { name: 'Generate', exact: true }).click();
@@ -266,7 +266,7 @@ test.describe('generation FX', () => {
     await expect(host).toHaveClass(/genfx--crossfade/);
     await expect(host.locator('.genfx__canvas')).toHaveCount(0);
 
-    const search = page.getByLabel('Search an artist');
+    const search = page.getByRole('combobox', { name: 'Roster' });
     await search.fill('trap');
     await search.press('Enter');
     await page.getByRole('button', { name: 'Generate', exact: true }).click();

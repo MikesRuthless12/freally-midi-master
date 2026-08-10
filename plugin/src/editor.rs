@@ -24,7 +24,7 @@ use nih_plug_webview::{HTMLSource, WebViewEditor};
 use serde::Deserialize;
 use serde_json::{json, Value};
 
-use engine::pattern::Pattern;
+use engine::pattern::{Lane, Pattern};
 
 use crate::bridge::{self, Request};
 use crate::shared::SharedState;
@@ -183,6 +183,21 @@ fn next_among(name: &str, window: impl Fn(f32) -> (u32, u32)) -> (&'static str, 
 /// it gets a *smaller scale*, which still shows everything. A 1366x768 laptop
 /// asking for `large` is the case that matters, and it is not an exotic one.
 fn physical(factor: f32) -> ((u32, u32), f32) {
+    // ⛔⛔ **The scale is applied by `baseview`, not here, and applying it in both
+    // places counted it twice** (2026-08-09). `nih_plug_webview` opens the window
+    // with `WindowScalePolicy::SystemScaleFactor`, which means the size it is
+    // given is **logical** and baseview multiplies by the system DPI itself.
+    //
+    // ⚠ **This was invisible until the process became DPI-aware.** While it was
+    // not, `GetDpiForSystem` answered 96 — so `system_scale()` was 1.0 and
+    // multiplying by it changed nothing. `become_dpi_aware` in
+    // `bin/standalone.rs` made it answer 144, and the same expression suddenly
+    // asked for 1.5² of the layout: the UI overflowed the window, which is the
+    // exact mirror of the dead margin it had just fixed. Mike, immediately:
+    // *"my size of my gui outshined the window's size."*
+    //
+    // So the size handed out is `LAYOUT * factor`, in logical pixels, and the
+    // one place that knows about DPI is baseview.
     fit(
         LAYOUT,
         system_scale(),
@@ -603,9 +618,269 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
             );
         }
 
+        // ⛔ **A `.mid` the producer already has, as a trainable pattern**
+        // (TASK-040T). Mike: *"you should be able to drag in MIDI from the file
+        // explorer to train your original artist/workflow."* It answers a
+        // `Pattern` and nothing else, which is the requirement rather than a
+        // convenience: the fit reads `Pattern`, so a model trained from files
+        // cannot drift from one trained from generations.
+        "explorer_midi" => {
+            let path = request.args["path"].as_str().unwrap_or_default();
+            let part = match serde_json::from_value(request.args["part"].clone()) {
+                Ok(part) => part,
+                Err(_) => return Some(Err("that is not a part".to_owned())),
+            };
+            return Some(
+                crate::explorer::midi_pattern(&shared.explorer, path, part)
+                    .and_then(|p| serde_json::to_value(p).map_err(|e| e.to_string())),
+            );
+        }
+
+        // ⛔⛔ **The sample-copy pair, and the paths come from the PLUGIN.**
+        // These two shipped in `bridge.rs` for an afternoon taking a page-supplied
+        // list of arbitrary filesystem paths, with `refuse_remote` applied and
+        // **containment not** — which a security review found. That is a clean
+        // per-path existence-and-exact-size oracle over the whole disk handed
+        // straight back to an untrusted page, and then an arbitrary local file
+        // read into a known folder. It is the same defect `explorer_drop` was
+        // found with, arriving through two more doors.
+        //
+        // ▶ **The fix is also the simpler design**: the plugin already holds the
+        // assignments, and the page was fetching them from `kit_state` only to
+        // hand them straight back. Sourced here, there is no path to validate
+        // because none crosses the boundary — the same rule `kits_save` states
+        // below.
+        //
+        // ⚠ The two stay **separate commands**, because that split is the
+        // consent: asking what a copy would cost cannot copy anything, and
+        // `user_model_save` calls neither.
+        "user_model_sample_cost" => {
+            return Some(
+                serde_json::to_value(crate::models::sample_cost(&assigned_paths(shared)))
+                    .map_err(|e| e.to_string()),
+            );
+        }
+
+        "user_model_copy_samples" => {
+            let id = request.args["id"].as_str().unwrap_or_default();
+            return Some(
+                crate::models::copy_samples(id, &assigned_pairs(shared))
+                    .and_then(|landed| serde_json::to_value(landed).map_err(|e| e.to_string())),
+            );
+        }
+
+        // ⛔⛔ **The other half of the copy, and without it the consent text was
+        // false.** It told the producer their samples *"still work if you move
+        // or delete the originals"*; nothing read `models/<id>/samples/` back,
+        // so the copies were bytes on a drive that no code path could reach.
+        // Mike found it by hand: clear the kick on a saved style, select
+        // something else, come back, and the kick did not return.
+        //
+        // ⛔ **Through `load_kit`, so it is on the loader thread.** This decodes
+        // up to a dozen files; doing that here would be doing it on the host's
+        // editor thread, which is § 4.8's freeze — the failure this session has
+        // already had to fix once, in `user_model_train`. The page waits on
+        // `one_shot_status` exactly as it does for a folder re-roll.
+        //
+        // ⚠ **Silent when the style owns nothing**, which is most styles. A
+        // producer selecting a style they never copied samples for must not be
+        // told about a file they never made — so an empty list is `Ok(())` here
+        // rather than `load_kit`'s "that kit has no samples in it".
+        "user_model_load_samples" => {
+            let id = request.args["id"].as_str().unwrap_or_default();
+            let pairs = crate::models::samples_for(id);
+            if pairs.is_empty() {
+                return Some(Ok(Value::Bool(false)));
+            }
+            return Some(
+                shared
+                    .one_shots
+                    .load_kit(pairs, &shared.kits, &shared.session)
+                    .map(|()| Value::Bool(true)),
+            );
+        }
+
+        // Named kits (TASK-051). ⛔ **`kits_save` reads the assignments from the
+        // plugin rather than taking them from the page**, because the plugin is
+        // what holds them — `OneShots::snapshot` is the truth, and a page that
+        // sent its own idea of the kit could save one that never played.
+        "kits_list" => {
+            return Some(serde_json::to_value(crate::kits::list()).map_err(|e| e.to_string()))
+        }
+
+        "kits_save" => {
+            let name = request.args["name"].as_str().unwrap_or_default();
+            let lanes = shared
+                .one_shots
+                .snapshot()
+                .into_iter()
+                .map(|(lane, (path, _))| (lane, path))
+                .collect();
+            return Some(
+                crate::kits::save(name, lanes)
+                    .and_then(|k| serde_json::to_value(k).map_err(|e| e.to_string())),
+            );
+        }
+
+        "kits_load" => {
+            let id = request.args["id"].as_str().unwrap_or_default();
+            return Some(crate::kits::load(id).and_then(|pairs| {
+                shared
+                    .one_shots
+                    .load_kit(pairs, &shared.kits, &shared.session)
+                    .map(|()| Value::Null)
+            }));
+        }
+
+        "kits_rename" => {
+            let id = request.args["id"].as_str().unwrap_or_default();
+            let name = request.args["name"].as_str().unwrap_or_default();
+            return Some(
+                crate::kits::rename(id, name)
+                    .and_then(|k| serde_json::to_value(k).map_err(|e| e.to_string())),
+            );
+        }
+
+        "kits_duplicate" => {
+            let id = request.args["id"].as_str().unwrap_or_default();
+            let name = request.args["name"].as_str().unwrap_or_default();
+            return Some(
+                crate::kits::duplicate(id, name)
+                    .and_then(|k| serde_json::to_value(k).map_err(|e| e.to_string())),
+            );
+        }
+
+        "kits_delete" => {
+            let id = request.args["id"].as_str().unwrap_or_default();
+            return Some(crate::kits::delete(id).map(|()| Value::Null));
+        }
+
+        // ⛔ **Re-roll pads from the folder being browsed** (TASK-050A). The
+        // page sends the lanes, because it is what knows which pads are locked —
+        // TASK-044's rule applied to pads, kept in one place rather than
+        // mirrored here where the two could disagree. It sends the seed too, for
+        // the same reason `variations.ts` sends a timestamp: nothing below the
+        // page may read a clock.
+        "kit_randomize" => {
+            let lanes: Vec<engine::pattern::Lane> =
+                match serde_json::from_value(request.args["lanes"].clone()) {
+                    Ok(lanes) => lanes,
+                    Err(_) => return Some(Err("those are not lanes".to_owned())),
+                };
+            let seed = request.args["seed"]
+                .as_str()
+                .and_then(|text| text.parse::<u64>().ok())
+                .unwrap_or(0);
+
+            // The folder the producer is looking at, as filenames. `state()` is
+            // what the panel already draws, so a re-roll can only ever reach
+            // what they can see — the containment rule, for free.
+            let files: Vec<String> = shared
+                .explorer
+                .state()
+                .entries
+                .into_iter()
+                .filter(|entry| !entry.is_dir)
+                .map(|entry| entry.path)
+                .collect();
+
+            return Some(
+                shared
+                    .one_shots
+                    .randomize(lanes, files, seed, &shared.kits, &shared.session)
+                    .map(|()| Value::Null),
+            );
+        }
+
         "explorer_open" => {
             let dir = request.args["path"].as_str().unwrap_or_default();
             return Some(shared.explorer.open(dir).map(|()| Value::Null));
+        }
+
+        // One folder's rows, for a node the producer expanded in the tree.
+        //
+        // ⚠ **Does not move the browse location**, which is the whole difference
+        // from `explorer_open` — see `Explorer::list_one`. A tree has several
+        // folders open and only one of them is the folder being worked from.
+        "explorer_list" => {
+            let dir = request.args["path"].as_str().unwrap_or_default();
+            return Some(
+                shared
+                    .explorer
+                    .list_one(dir)
+                    .and_then(|state| serde_json::to_value(state).map_err(|e| e.to_string())),
+            );
+        }
+
+        // Separating a layered `.mid` into the parts its voices belong to.
+        //
+        // ⛔ Mike, 2026-08-10: *"split it into the proper generators if it is a
+        // layered melody file with the bass and countermelody included."* Each
+        // result carries **why** it was routed where it was — `engine::smf_read`
+        // states the rule: never present a guess as a transcription.
+        "explorer_midi_split" => {
+            let path = request.args["path"].as_str().unwrap_or_default();
+            return Some(
+                crate::explorer::midi_split(&shared.explorer, path)
+                    .and_then(|parts| serde_json::to_value(parts).map_err(|e| e.to_string())),
+            );
+        }
+
+        // A whole `.mid` as an arrangement, for the Song tab (TASK-058D).
+        //
+        // ⛔ Mike, 2026-08-10 — the file lands in the Song tab and the producer
+        // drills out the parts they want, rather than one drop overwriting a
+        // generator. ⚠ **The drag-in path only**; generating a song is untouched.
+        "explorer_song" => {
+            let path = request.args["path"].as_str().unwrap_or_default();
+            return Some(
+                crate::explorer::midi_song(&shared.explorer, path)
+                    .and_then(|song| serde_json::to_value(song).map_err(|e| e.to_string())),
+            );
+        }
+
+        // Starred samples, one-shots and MIDI files (TASK-058C).
+        "favourites_list" => {
+            return Some(
+                serde_json::to_value(crate::favourites::list()).map_err(|e| e.to_string()),
+            );
+        }
+
+        // ⛔⛔ **Containment is applied HERE, where the explorer is in scope.**
+        // `favourites::add` cannot take it — it has no reference to the library —
+        // so a star is only allowed on a file the browser would actually list.
+        // Without this the page could star any local path and then use `reveal`
+        // to launch a shell at it, which is the one command in this plugin that
+        // starts a process.
+        "favourites_add" => {
+            let path = request.args["path"].as_str().unwrap_or_default();
+            if !shared.explorer.contains(std::path::Path::new(path)) {
+                return Some(Err("that file is not in your sample library".into()));
+            }
+            return Some(
+                crate::favourites::add(path)
+                    .and_then(|list| serde_json::to_value(list).map_err(|e| e.to_string())),
+            );
+        }
+
+        // ⚠ **No containment on the way out.** A folder removed from the library
+        // must still be un-starrable, or a favourite could become permanent by
+        // the producer tidying their roots.
+        "favourites_remove" => {
+            let path = request.args["path"].as_str().unwrap_or_default();
+            return Some(
+                crate::favourites::remove(path)
+                    .and_then(|list| serde_json::to_value(list).map_err(|e| e.to_string())),
+            );
+        }
+
+        // ⛔ Mike, 2026-08-10: *"if it's not a folder that you still have in the
+        // 'File Explorer' then it should take you there in Windows Explorer or
+        // the macOS Explorer."* `favourites::reveal` refuses anything that is not
+        // already starred, which is what bounds the process launch.
+        "favourites_reveal" => {
+            let path = request.args["path"].as_str().unwrap_or_default();
+            return Some(crate::favourites::reveal(path).map(|()| Value::Null));
         }
 
         "explorer_state" => {
@@ -1204,6 +1479,13 @@ const PAGE: &str = "freally://localhost/index.html";
 
 pub fn create(shared: SharedState) -> Option<Box<dyn Editor>> {
     let editor = WebViewEditor::new(HTMLSource::URL(PAGE), window_size(&shared))
+        // ⛔ **The floor a drag stops at is the app's own default size** — Mike,
+        // 2026-08-09: *"a little smaller and it ends up clipping the right
+        // panel."* `physical(1.0)` is the `large` preset, which is what
+        // `LAYOUT` was drawn for, so nothing below it can be a size the UI was
+        // designed to survive. Passed from here rather than chosen in the
+        // adapter, so it tracks `LAYOUT` and the display scale automatically.
+        .with_minimum_size(physical(1.0).0)
         // The app's own background, so a slow first paint is the app's colour
         // rather than a white flash inside a dark DAW.
         .with_background_color((11, 11, 13, 255))
@@ -1394,6 +1676,37 @@ const BEFORE_ACCEPTANCE: &[&str] = &[
 /// It sits here rather than in [`bridge::dispatch`] because this is the single
 /// door the webview comes through: `window_command` and `dispatch` are both
 /// behind it, so one check covers both and neither has to know a gate exists.
+/// The sample paths this instance has assigned, from the plugin's own map.
+///
+/// ⛔ **The only source of paths for the copy pair, deliberately.** They used to
+/// arrive from the page; see the note on `user_model_sample_cost`. Reading them
+/// here means there is no untrusted path to validate, which is a stronger
+/// position than validating one — the guard that cannot be forgotten is the one
+/// that has nothing to guard.
+fn assigned_paths(shared: &SharedState) -> Vec<String> {
+    assigned_pairs(shared)
+        .into_iter()
+        .map(|(_, path)| path)
+        .collect()
+}
+
+/// The same assignments, **with the lane each one is on**.
+///
+/// ⛔⛔ **Dropping the lane here is what orphaned every copied sample.** The
+/// copy landed sixteen hex-named files in a folder with nothing recording which
+/// was the kick, so the read-back could not exist — `assigned_paths` discarded
+/// the one fact that made the copies usable, one call before they were written.
+/// The cost half genuinely does not need lanes (it sums bytes); the copy half
+/// always did.
+fn assigned_pairs(shared: &SharedState) -> Vec<(Lane, String)> {
+    shared
+        .one_shots
+        .snapshot()
+        .into_iter()
+        .map(|(lane, (path, _))| (lane, path))
+        .collect()
+}
+
 fn licence_blocks(command: &str) -> bool {
     !BEFORE_ACCEPTANCE.contains(&command) && !crate::eula::accepted()
 }

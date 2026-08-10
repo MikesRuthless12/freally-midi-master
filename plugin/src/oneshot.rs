@@ -119,6 +119,147 @@ impl OneShots {
         Ok(())
     }
 
+    /// Re-roll each of `lanes` from the files in `folder` (TASK-050A).
+    ///
+    /// ⛔ **On the loader thread, exactly like [`Self::assign`], and for a
+    /// sharper reason.** One assign decodes one file; a kit-level re-roll
+    /// decodes up to a dozen, and doing that on the thread answering the webview
+    /// is the freeze this project has already had to fix once this week. It
+    /// claims the same slot, so a re-roll and an Open dialog cannot run at once.
+    ///
+    /// ⛔ **The caller decides which lanes**, and that is where the lock rule
+    /// lives. A locked pad is exempt (TASK-044's rule, applied to pads), and the
+    /// page is what knows which are locked — a second copy of that state here is
+    /// how the two would start disagreeing.
+    ///
+    /// ⚠ **Seeded, so a re-roll is reproducible and a *different* seed is a
+    /// different kit.** The page supplies it, the same way it supplies the
+    /// timestamp for a variation: nothing in the engine or here may read a
+    /// clock.
+    pub fn randomize(
+        &self,
+        lanes: Vec<Lane>,
+        files: Vec<String>,
+        seed: u64,
+        kits: &Arc<KitHandoff>,
+        session: &SessionStore,
+    ) -> Result<(), String> {
+        if lanes.is_empty() {
+            return Err("no lanes to re-roll — every one of them is locked".to_owned());
+        }
+        if files.is_empty() {
+            return Err("that folder has nothing this could put on a pad".to_owned());
+        }
+
+        let pairs: Vec<(Lane, String)> = lanes
+            .iter()
+            // ⚠ Skipped rather than fatal: a folder with no snare in it should
+            // still re-roll the kick, and saying so lane by lane would be a
+            // dozen toasts for one gesture.
+            .filter_map(|lane| pick_for(*lane, &files, seed).map(|path| (*lane, path)))
+            .collect();
+
+        self.load_many(
+            pairs,
+            "nothing in that folder matched the lanes being re-rolled",
+            kits,
+            session,
+        )
+    }
+
+    /// Decode `pairs` off-thread and put all of them on at once.
+    ///
+    /// ⛔⛔ **One `apply` for the whole set, not one per lane.** Each call
+    /// rebuilds the kit and hands it to the audio thread, which cuts every
+    /// sounding voice — a dozen of those in a row is a dozen audible stutters
+    /// for one gesture. This is shared by the folder re-roll (TASK-050A) and by
+    /// loading a saved kit (TASK-051) precisely so the rule cannot hold in one
+    /// and not the other, which is the drift class this codebase keeps writing
+    /// down.
+    ///
+    /// `empty_reason` is what to say when nothing decoded, because "no snare in
+    /// that folder" and "every sample in that kit has moved" are different
+    /// problems and a producer can act on the difference.
+    fn load_many(
+        &self,
+        pairs: Vec<(Lane, String)>,
+        empty_reason: &str,
+        kits: &Arc<KitHandoff>,
+        session: &SessionStore,
+    ) -> Result<(), String> {
+        let claimed = self.claim()?;
+        let assigned = Arc::clone(&self.assigned);
+        let missing = Arc::clone(&self.missing);
+        let kits = Arc::clone(kits);
+        let session = SessionStore::clone(session);
+        let empty_reason = empty_reason.to_owned();
+
+        std::thread::spawn(move || {
+            let mut loaded: Vec<(Lane, OneShot)> = Vec::new();
+            let mut refused: Option<String> = None;
+
+            for (lane, path) in &pairs {
+                // ⚠ **The same guard `restore` carries**, added for consistency
+                // rather than because a live feed needs it: today both callers
+                // are trustworthy — `randomize` draws from the explorer's own
+                // listing, `load_kit` from a kit file written out of
+                // `snapshot()` — but a saved kit is a file, and the day one
+                // becomes importable a UNC path in it would authenticate
+                // outward on the first read. A guard that is already there is
+                // not one somebody has to remember.
+                if refuse_remote(Path::new(path)).is_err() {
+                    continue;
+                }
+                match load(Path::new(path)) {
+                    Ok(one_shot) => loaded.push((*lane, one_shot)),
+                    Err(reason) => refused = Some(reason),
+                }
+            }
+
+            let status = if loaded.is_empty() {
+                Status::Failed {
+                    reason: refused.unwrap_or(empty_reason),
+                }
+            } else {
+                let count = loaded.len();
+                let last = loaded[count - 1].0;
+                apply(&assigned, &missing, &kits, &session, |map| {
+                    for (lane, one_shot) in loaded {
+                        map.insert(lane, one_shot);
+                    }
+                });
+                Status::Done {
+                    lane: last,
+                    name: format!("{count}"),
+                }
+            };
+            claimed.publish(status);
+        });
+        Ok(())
+    }
+
+    /// Put a saved kit's samples on, all at once (TASK-051).
+    ///
+    /// ⚠ **A kit that has lost some of its samples still loads the rest.** A
+    /// producer who moved one folder should get eleven of their twelve pads
+    /// back, not a refusal — the same rule a reopened project already follows.
+    pub fn load_kit(
+        &self,
+        pairs: Vec<(Lane, String)>,
+        kits: &Arc<KitHandoff>,
+        session: &SessionStore,
+    ) -> Result<(), String> {
+        if pairs.is_empty() {
+            return Err("that kit has no samples in it".to_owned());
+        }
+        self.load_many(
+            pairs,
+            "every sample in that kit has moved or been deleted",
+            kits,
+            session,
+        )
+    }
+
     /// Load `path` onto `lane` with no dialog — how a reopened project gets its
     /// one-shots back (TASK-131B persistence).
     ///
@@ -252,12 +393,15 @@ impl Claim {
 /// The filter names the formats [`import`] can actually decode. ⚠ It is a filter
 /// and not a guarantee — every platform lets the producer pick "all files" — so
 /// the decoder still has to refuse a text file with a reason, which it does.
+///
+/// ⛔ **`engine::formats::AUDIO`, not a literal.** This was a second copy of the
+/// explorer's list; they agreed by luck, and nothing would have reported it when
+/// they stopped. ⚠ **Audio only here, deliberately** — this dialog assigns a
+/// *one-shot to a drum pad*, and a `.mid` is not one however browsable it is
+/// elsewhere.
 fn pick_file() -> Option<std::path::PathBuf> {
     rfd::FileDialog::new()
-        .add_filter(
-            "Audio",
-            &["wav", "aif", "aiff", "flac", "mp3", "m4a", "ogg", "oga"],
-        )
+        .add_filter("Audio", engine::formats::AUDIO)
         .pick_file()
 }
 
@@ -301,19 +445,49 @@ pub(crate) fn refuse_remote(path: &Path) -> Result<(), String> {
     // through the very payload this guard exists to stop. The attack travels in
     // a shared project; the machine that opens it is not the machine that wrote
     // it, so the rule must not depend on which one it is.
+    // ⛔⛔ **A verbatim DISK path is local, and refusing it broke the File
+    // Explorer outright.** `\\?\C:\samples\kick.wav` names drive C: and can name
+    // nothing else — but it starts with `\\`, so the string test above classified
+    // it as remote. That matters because **`Path::canonicalize` on Windows
+    // returns exactly this form**: `Explorer::open` canonicalises the folder it
+    // browses, `list` builds every row from `entry.path()` underneath it, and so
+    // every path the page holds wears the prefix the moment a root is opened.
+    //
+    // The result, reported by Mike 2026-08-10: *"you can get to the subfolders
+    // list, but you cannot go into those subfolders."* Opening a **root** worked
+    // because roots are stored as they were added; opening any child of one was
+    // refused as a network path. The same refusal silently took the preview
+    // player (`preview_load`), the waveform, `.mid` reading, and — the one Mike
+    // asked for first — **dropping a sample from the browser onto a pad**, since
+    // `restore` is the landing for `explorer_drop` and it guards here too.
+    //
+    // ⚠ **`\\?\UNC\…` is still refused**, by `VerbatimUNC` below: that one really
+    // does name a remote host, and it is in the hostile-path test. This exempts
+    // the disk form only.
+    //
+    // ⚠ **Naturally platform-correct.** `Component::Prefix` is only ever produced
+    // on Windows, so on Linux and macOS — where a project file's backslashes are
+    // ordinary filename characters — this is always `false` and the string test
+    // below still catches the payload this guard was written for.
+    let verbatim_disk = matches!(
+        path.components().next(),
+        Some(Component::Prefix(prefix)) if matches!(prefix.kind(), Prefix::VerbatimDisk(..))
+    );
+
     let text = path.to_string_lossy();
-    let remote = text.starts_with("//")
-        || text.starts_with(r"\\")
-        || matches!(
-            path.components().next(),
-            Some(Component::Prefix(prefix)) if matches!(
-                prefix.kind(),
-                Prefix::UNC(..)
-                    | Prefix::VerbatimUNC(..)
-                    | Prefix::Verbatim(..)
-                    | Prefix::DeviceNS(..)
-            )
-        );
+    let remote = !verbatim_disk
+        && (text.starts_with("//")
+            || text.starts_with(r"\\")
+            || matches!(
+                path.components().next(),
+                Some(Component::Prefix(prefix)) if matches!(
+                    prefix.kind(),
+                    Prefix::UNC(..)
+                        | Prefix::VerbatimUNC(..)
+                        | Prefix::Verbatim(..)
+                        | Prefix::DeviceNS(..)
+                )
+            ));
 
     if remote {
         return Err(
@@ -324,9 +498,38 @@ pub(crate) fn refuse_remote(path: &Path) -> Result<(), String> {
     Ok(())
 }
 
+/// One file from `files` that could be `lane`'s, chosen on a seeded stream.
+///
+/// ⛔ **Filtered by [`crate::roles`] rather than picked at random from the
+/// folder.** A dice that put a crash on the kick lane would be a novelty, not a
+/// tool: the whole value of "re-roll this pad from the folder I am browsing" is
+/// that what lands is plausibly the thing the pad is for.
+///
+/// ⚠ **Its own seeded stream per lane**, so re-rolling one pad cannot move
+/// another — the same rule every other domain in this codebase follows.
+fn pick_for(lane: Lane, files: &[String], seed: u64) -> Option<String> {
+    let candidates = crate::roles::candidates(lane, files);
+    let at = engine::rng::index(seed, &format!("kit/randomize/{lane:?}"), candidates.len())?;
+    candidates.get(at).map(|name| (*name).clone())
+}
+
 /// Decode a file into the thing a pad is built from.
+///
+/// ⛔ **Converted to the shipped kit's rate on the way in** (TASK-053). Every
+/// voice reads its pad at `pad.sample_rate / device_rate`, so a producer's
+/// 48 kHz sample sitting beside 44.1 kHz drums played at a *different* ratio
+/// from everything around it — two resampling errors in one kit, both paid on
+/// every note, both through the linear interpolator on the audio thread.
+/// [`crate::audio::resample`] does it once here, band-limited, on this thread,
+/// which is the loader thread the decode already runs on.
 fn load(path: &Path) -> Result<OneShot, String> {
     let decoded = import::decode_file(path)?;
+    let target = crate::audio::kit_rate();
+    let samples = crate::audio::resample::to_rate(&decoded.samples, decoded.sample_rate, target);
+    let decoded = crate::audio::kit::DecodedAudio {
+        samples,
+        sample_rate: target,
+    };
     Ok(OneShot {
         path: path.display().to_string(),
         // The file's own name. ⚠ `file_name` rather than `file_stem`: two
@@ -718,6 +921,39 @@ mod remote_path_tests {
         }
     }
 
+    /// ⛔⛔ **The File Explorer's own paths must not read as network paths.**
+    ///
+    /// `Path::canonicalize` on Windows answers `\\?\C:\…`, and `Explorer::open`
+    /// canonicalises the folder it browses — so every row the page is given
+    /// carries that prefix. Refusing it meant a producer could open a root, see
+    /// its subfolders, and not enter a single one; the preview player, the
+    /// waveform and the drag-to-pad drop were refused by the same line.
+    ///
+    /// ⚠ Windows-only, and that is the point rather than a portability dodge: on
+    /// Linux this string has no path prefix, is not something `canonicalize`
+    /// produces, and *should* still be refused as the portable-project payload
+    /// the guard was written for.
+    #[test]
+    #[cfg(windows)]
+    fn a_canonicalised_windows_path_is_local() {
+        for fine in [
+            r"\\?\C:\Users\mike\samples\kick.wav",
+            r"\\?\C:\Users\mike\samples",
+            r"\\?\Z:\shared-library\kick.wav",
+        ] {
+            assert!(
+                refuse_remote(Path::new(fine)).is_ok(),
+                "{fine} is a local drive and must load"
+            );
+        }
+
+        // ...and the verbatim form of a UNC path is still refused, which is the
+        // half that genuinely names a stranger's host.
+        let error = refuse_remote(Path::new(r"\\?\UNC\evil.example.com\share\kick.wav"))
+            .expect_err("a verbatim UNC path must still be refused");
+        assert!(error.contains("network path"), "{error}");
+    }
+
     #[test]
     fn the_guard_is_on_the_reopen_path_and_not_on_the_dialog() {
         // ⚠ `assign` comes from a native dialog the producer drove themselves,
@@ -792,5 +1028,52 @@ mod missing_path_tests {
         one_shots.clear(Lane::Melody, &kits, &session);
 
         assert!(crate::state::read(&session).one_shots.is_empty());
+    }
+    #[test]
+    fn a_reroll_puts_a_snare_on_the_snare_lane_and_not_a_crash() {
+        // ⛔ **The whole value of the dice is that what lands is plausibly the
+        // thing the pad is for.** A pick that ignored the filenames would be a
+        // novelty rather than a tool — and it would put a crash on the kick.
+        let files: Vec<String> = [
+            "C:/packs/kick 01.wav",
+            "C:/packs/snare hard.wav",
+            "C:/packs/crash.wav",
+            "C:/packs/untitled-7.wav",
+        ]
+        .iter()
+        .map(|s| (*s).to_owned())
+        .collect();
+
+        for seed in 1..40u64 {
+            assert!(pick_for(Lane::Snare, &files, seed).is_some_and(|p| p.contains("snare")));
+            assert!(pick_for(Lane::Kick, &files, seed).is_some_and(|p| p.contains("kick")));
+        }
+    }
+
+    #[test]
+    fn a_lane_with_nothing_to_put_on_it_is_answered_with_nothing() {
+        // A folder of kicks should still re-roll the kick rather than refusing
+        // the whole gesture, so a lane with no candidate answers None and the
+        // caller skips it.
+        let files = vec!["C:/packs/kick 01.wav".to_owned()];
+        assert!(pick_for(Lane::Timbale, &files, 7).is_none());
+        assert!(pick_for(Lane::Kick, &files, 7).is_some());
+    }
+
+    #[test]
+    fn the_same_seed_rerolls_the_same_kit_and_a_different_one_does_not() {
+        // Reproducible, like everything else that draws — and each lane on its
+        // own stream, so re-rolling the hats cannot move the kick.
+        let files: Vec<String> = (0..12)
+            .map(|i| format!("C:/packs/snare {i:02}.wav"))
+            .collect();
+
+        assert_eq!(
+            pick_for(Lane::Snare, &files, 7),
+            pick_for(Lane::Snare, &files, 7)
+        );
+        let moved = (1..60u64)
+            .any(|seed| pick_for(Lane::Snare, &files, seed) != pick_for(Lane::Snare, &files, 7));
+        assert!(moved, "every seed picked the same file");
     }
 }

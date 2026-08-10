@@ -86,6 +86,20 @@ serde_json = "1"
 # shared library in someone else's process: it has no resource directory, no
 # install layout it can rely on and no working directory it chose.
 include_dir = "0.7"
+
+# ⛔ **Band-limited resampling, and it runs NOWHERE NEAR the audio thread.**
+# TASK-053, on the owner's instruction 2026-08-09. `rubato` is a *block*
+# resampler: it allocates, it holds internal state sized at construction, and it
+# processes in chunks — every one of which is forbidden inside `process`. It is
+# used in [`crate::audio::resample`], on the loader thread, to convert a decoded
+# sample **once** to the rate it will be played at. The per-note pitch shift on
+# the audio thread stays linear interpolation, which is the "linear fallback"
+# the roadmap names, and is documented where it lives.
+#
+# ⚠ Pure DSP: no network, no unsafe by default, no ML. `check-denylist.mjs` and
+# `deny.toml` both have to keep passing with it in the graph — if either starts
+# objecting, that is the signal to reconsider rather than to add an exception.
+rubato = "0.15"
 # Directly, for the custom-protocol handler's own return type. The vendored
 # adapter re-exports `wry::http` but not `wry` itself, and reaching for it here
 # keeps the edits to that crate down to the ones VENDORED.md accounts for.

@@ -12,7 +12,7 @@
 import { create } from 'zustand';
 
 import { invoke } from '../lib/ipc';
-import { reason } from './session';
+import { reason, useSession } from './session';
 import type { Lane } from '../lib/ipc-types';
 
 // ⚠ Re-exported so every existing importer keeps working; the list itself
@@ -102,6 +102,26 @@ type KitState = {
   refresh: () => Promise<void>;
   assign: (lane: Lane) => Promise<void>;
   clear: (lane: Lane) => Promise<void>;
+  /**
+   * Re-roll pads from the folder the browser is showing (TASK-050A).
+   *
+   * ⛔ **The locked lanes are filtered out *here*, not in the plugin.** A locked
+   * pad is exempt — TASK-044's rule applied to pads — and `lockedLanes` is the
+   * page's state; sending the plugin a second copy of it is how the two would
+   * start disagreeing about what is locked.
+   *
+   * `null` re-rolls every unlocked lane; a lane re-rolls just that one, and is
+   * refused if that lane is locked rather than silently doing nothing.
+   */
+  randomize: (lane: Lane | null) => Promise<void>;
+  /**
+   * Wait for the loader thread to finish, then refresh and surface any failure.
+   *
+   * ⛔ Shared by the re-roll and by loading a saved kit, because both hand the
+   * work to that thread and answer immediately — a resolved promise from either
+   * means "started", not "done".
+   */
+  awaitLoader: () => Promise<void>;
 };
 
 export const useKit = create<KitState>((set, get) => ({
@@ -191,5 +211,66 @@ export const useKit = create<KitState>((set, get) => ({
       return;
     }
     await get().refresh();
+  },
+
+  async randomize(lane) {
+    set({ error: null });
+
+    const locked = new Set(useSession.getState().lockedLanes);
+    const targets = (lane === null ? get().lanes.map((entry) => entry.lane) : [lane]).filter(
+      (candidate) => !locked.has(candidate),
+    );
+
+    if (targets.length === 0) {
+      // ⚠ **Said rather than silently doing nothing** — a dice that appears to
+      // work and changes no sound is the readout-that-lies failure in
+      // miniature. ⛔ And it says which case it is: one locked pad reported
+      // "every pad is locked", which is a claim about the whole kit that is
+      // simply false, and left a producer looking for a lock they had not set.
+      const all = get().lanes.length === 0 ? 'the kit has not loaded yet' : null;
+      set({
+        error: reason(
+          new Error(all ?? (lane === null ? 'every pad is locked' : `${lane} is locked`)),
+        ),
+      });
+      return;
+    }
+
+    try {
+      // ⚠ **The seed is taken here**, the same rule the variation log follows:
+      // nothing below the page may read a clock, and a re-roll still has to be
+      // a different roll each time.
+      await invoke('kit_randomize', { lanes: targets, seed: String(Date.now()) });
+    } catch (error) {
+      set({ error: reason(error) });
+      return;
+    }
+    await get().awaitLoader();
+  },
+
+  async awaitLoader() {
+    // ⛔⛔ **Without this the panel refreshed onto stale state and a failure was
+    // never shown at all.** `randomize` and `load_kit` hand the decode to the
+    // loader thread and answer immediately, exactly as `assign` does — so a
+    // resolved promise means "started", not "done". Refreshing straight after
+    // read the kit mid-decode, and a saved kit whose files had moved published
+    // `Failed` into a slot nothing ever read: the producer saw no error and
+    // unchanged pads. That is the readout-that-lies failure this codebase keeps
+    // recording, so the poll is shared rather than written twice.
+    for (;;) {
+      let status: OneShotStatus;
+      try {
+        status = await invoke<OneShotStatus>('one_shot_status');
+      } catch (error) {
+        set({ error: reason(error) });
+        return;
+      }
+      if (status.state !== 'running') {
+        set({ error: status.state === 'failed' ? status.reason : null });
+        await get().refresh();
+        return;
+      }
+      await new Promise((resume) => setTimeout(resume, ONE_SHOT_POLL_MS));
+    }
   },
 }));

@@ -194,7 +194,20 @@ export type RosterEntry = { id: string, name: string, aliases: Array<string>, ty
  * own — `rap`, `drill` — that name no model at all. Every id here has been
  * checked to name a real `genre`; see [`unknown_related_genres`].
  */
-relatedGenres: Array<string>, era: string | null, };
+relatedGenres: Array<string>, era: string | null, 
+/**
+ * The producer's own model rather than a shipped one (TASK-040U).
+ *
+ * ⛔ **Set by whoever loaded it, not by the loader.** The engine has no idea
+ * where a file came from — `load` is handed `(path, text)` pairs and its
+ * rules are the same for all of them, which is exactly what makes a user
+ * model first-class. The app knows which half it read from disk, so the app
+ * is what marks them; this defaults to `false` and the plugin flips it.
+ *
+ * It carries no behaviour. A user model searches, generates, locks and
+ * re-rolls identically — this is only so the roster can *say* it is yours.
+ */
+mine: boolean, };
 
 /**
  * What `roster_summary` returns (PRD § 4).
@@ -341,6 +354,27 @@ timeSigNum: number, timeSigDen: number,
  * pattern two sections are looking at.
  */
 patterns: { [key in string]?: Pattern }, ppq: number, };
+
+/**
+ * One part a file was separated into.
+ */
+export type SplitPart = { part: Part, pattern: Pattern, reason: SplitReason, 
+/**
+ * How many notes landed here, so the page can show it without walking lanes.
+ */
+notes: number, };
+
+/**
+ * Why [`split`] put a voice on the part it did.
+ *
+ * ⛔⛔ **The reason travels with the result, and that is a requirement rather
+ * than a nicety.** TASK-058D states it for the audio path and it applies here:
+ * *"the UI names what it detected … and never presents a guess as a
+ * transcription"*, so *"a wrong guess is one click to redirect rather than a
+ * silent mis-file."* Two of these reasons are facts about the file and three are
+ * measurements — a producer is owed the difference.
+ */
+export type SplitReason = "drumChannel" | "kitShape" | "polyphonic" | "lowestVoice" | "highestVoice" | "innerVoice" | "splitByPitch" | "fromName";
 
 /**
  * MPC-style swing. `0.50` is straight and `0.667` is fully triplet; the

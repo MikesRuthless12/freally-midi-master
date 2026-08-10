@@ -754,10 +754,25 @@ impl Shared {
     /// *library folder* has no fallback: silently forgetting it because an
     /// external drive was unplugged means they have to remember what was in the
     /// list, and there is nowhere to look it up.
+    /// ⛔⛔ **Two sources, and the machine's is the one that makes the standalone
+    /// work.** Mike, 2026-08-10: *"the folders should persist between app
+    /// openings."* `sample_folders` lives in [`crate::state::PluginSession`],
+    /// which the **host** writes into the project file — so it came back with an
+    /// `.als` and never with a standalone launch, which has no project. The
+    /// library is now also written per user (`explorer::saved_folders`), the way
+    /// `eula.rs` already argued a per-person fact should be.
+    ///
+    /// ⚠ **Merged rather than one replacing the other.** Dropping the project's
+    /// copy would lose the library of every project saved before this; dropping
+    /// the machine's would put the bug straight back. The project's come first
+    /// because a producer who opened *this song* most likely wants its folders at
+    /// the front, and `Explorer::restore` keeps the first `MAX_ROOTS`.
     pub fn restore_sample_folders(&self) {
-        let stored =
+        let from_project =
             crate::state::with(&self.session, |s| s.sample_folders.clone()).unwrap_or_default();
-        self.explorer.restore(&stored);
+        let folders =
+            crate::explorer::merge_folders(from_project, crate::explorer::saved_folders());
+        self.explorer.restore(&folders);
     }
 
     /// Write the sample library into the session, so the host saves it.

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Pause, Play, Repeat, Rewind, Square } from 'lucide-react';
 
 import { formatSeconds, useExplorer } from '../../state/explorer';
+import { MidiPreview } from './MidiPreview';
 import { VIEW_H, VIEW_W, outlineOf } from './waveform';
 
 /**
@@ -26,6 +27,7 @@ export function PreviewPlayer() {
   const { t } = useTranslation();
   const waveform = useExplorer((s) => s.waveform);
   const selected = useExplorer((s) => s.selected);
+  const selectedKind = useExplorer((s) => s.selectedKind);
   const position = useExplorer((s) => s.position);
   const play = useExplorer((s) => s.play);
   const pause = useExplorer((s) => s.pause);
@@ -44,6 +46,17 @@ export function PreviewPlayer() {
   if (selected === null) {
     return <p className="browser__hint preview__idle">{t('explorer.pickAFile')}</p>;
   }
+
+  // ⛔⛔ **A `.mid` gets its own panel, not this one.** TASK-058's rule: two
+  // kinds, two sets of affordances. A MIDI file has no waveform to draw, no PCM
+  // to seek through and no reverse to play — every control below would be one
+  // that can only fail on it. What it *does* have is parts, which is what
+  // `MidiPreview` shows.
+  //
+  // ⚠ **Asked of `selectedKind`, not of `midiSplit`.** The split arrives after
+  // the click and may never arrive at all, so keying on it drew this transport
+  // over a MIDI file for as long as that took.
+  if (selectedKind === 'midi') return <MidiPreview />;
 
   // ⚠ **The waveform's own length wins until the poll has answered.** `total`
   // starts at 0, and dividing by it would put the playhead at the far end of the

@@ -12,6 +12,202 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed — the File Explorer could not open a subfolder, and it was breaking four other things too, 2026-08-10
+
+- **You can browse into subfolders again — at any depth.** Opening a library
+  folder worked; opening anything *inside* it was refused. The cause was one
+  guard: Windows' own `canonicalize` returns paths beginning `\\?\`, and the
+  check that refuses network paths treated that leading `\\` as a network path.
+  **The same refusal was silently breaking the preview player, the waveform,
+  `.mid` reading, and dropping a sample onto a drum pad** — every one of which
+  goes through the same guard. Local drives are now recognised as local; genuine
+  UNC paths are still refused.
+- **The browser can use the whole rail.** It was capped at roughly half the
+  height however deep your folders ran, and collapsing the roster gave it space
+  it could not take — the panel between them never claimed any height, so the
+  tree sat at its minimum. Both halves are fixed, and there is a button on the
+  browser to hand it the whole rail and give it back.
+
+### Security — a page-supplied path could make the plugin authenticate to a stranger, 2026-08-10
+
+- **Starring a file checked the library *before* checking for a network path**,
+  and the library check itself is what touches the disk. On Windows that is not a
+  read — it is an outbound SMB session that hands over your Windows credentials.
+  One message from the plugin's own web view was enough. The guard now lives
+  inside the containment check itself, so no future command can reintroduce it,
+  and the same inversion in the sample-drop path is closed with it.
+- **A shared project file could point the sample library at your whole drive.**
+  Library folders travel inside `.als`/preset files, and only *network* paths were
+  refused — so a project could carry `C:\Users` and quietly grant everything that
+  reads files inside your library. A root now has to be deep enough to plausibly
+  be a sample folder; a drive or profile root is dropped.
+- **A malformed MIDI file could kill your DAW.** A file declaring an extreme time
+  signature at one tick per beat pushed the arrangement reader past the end of its
+  own tick space; in a release build that is not an error you can dismiss, it takes
+  the host down with your unsaved session. Reproduced and pinned by a test.
+
+### Fixed — three ways your work could go missing, 2026-08-10
+
+- **A project with more than eight sample folders lost the extra ones.** The new
+  folder tabs cap what you can *add* at eight — but that cap was also applied when
+  *loading*, and the trimmed list was then written straight back over your project.
+  A bound on what you may add is not a licence to delete what you already had.
+- **An imported song was never saved.** Dragging a MIDI file onto the Song tab
+  filled the timeline, but nothing asked the project to store it — save, reopen,
+  and it was gone.
+- **Undo deleted an imported song.** An import belongs to no artist, and the guard
+  that stops one artist's arrangement leaking into another's read that as a
+  mismatch and dropped it from every undo step. One keystroke after importing,
+  Ctrl+Z wiped it and Ctrl+Y could not bring it back.
+
+### Added — a real file tree, folder tabs, starred favourites, and MIDI that knows what it is, 2026-08-10
+
+- **The browser is a proper tree.** Your library folders sit at the top, their
+  subfolders indent underneath, and the files sit below those. Folders show an
+  open or shut icon, `Up` retracts the deepest branch, and the tree remembers
+  what you left open when you switch between folders.
+- **Up to eight library folders, as tabs.** Pick a tab, sift that folder. **Add
+  folder is disabled once you have eight**, so the rule is visible before you
+  spend the gesture rather than after.
+- **Your library survives closing the app.** It used to be saved only inside the
+  *project*, so it came back with a `.als` and never with the standalone. It is
+  now kept per user as well, and both are merged on load so existing projects
+  keep theirs.
+- **Starred favourites.** A star to the left of every sample, one-shot and `.mid`
+  — outline until you press it, then solid yellow. Starred files gather in a list
+  under the tree; click one and the tree opens every folder between the root and
+  that file to reveal it. **If its folder is no longer one of your eight open
+  tabs, it opens the file's location in Windows Explorer or Finder instead**, so
+  a favourite is reachable whatever your library has moved on to.
+- **The keyboard walks the tree.** `↑`/`↓` move between rows, `→` opens a folder
+  and `←` shuts it — and on a *file* those same two keys play it forwards and
+  backwards. A folder has nothing to audition and a sample has nothing to expand,
+  so which one you meant is never ambiguous.
+- **`.mid` files are shown**, with their own icon, and are kept honestly apart
+  from audio: a MIDI file has no waveform, and it cannot be dropped on a drum pad
+  at all — the pad refuses it before you let go rather than erroring afterwards.
+- **Put the selected sample on a pad without dragging.** Every pad grows a "use
+  selected" button while a sample is selected. Both routes end in the same
+  command, so a sample assigned either way is identical on the pad.
+- **One list of formats.** What the tree shows, what the Open dialog filters on
+  and what the decoder can read now come from a single place, so the browser can
+  no longer offer a file the loader will refuse.
+
+### Added — drop a MIDI file in and it works out what is in it, 2026-08-10
+
+- **Drag a `.mid` onto a generator** and its notes land there.
+- **Or drop it on the Song tab and take the parts you want.** The whole file
+  arrives as an arrangement — sections across the top, parts down the side — and
+  clicking any cell opens that clip in its generator, exactly as drilling into a
+  generated song already does. Nothing overwrites what you have until you choose
+  it. *(Generating a song is unchanged.)*
+- **A layered file is separated into Bass, Melody, Counter, Chords and Drums**,
+  and **every part says why it was routed where it was** — "on the GM drum
+  channel", "chords, notes overlap", "lowest voice", "from the file name" — so a
+  wrong guess is one click to redirect instead of something you discover later.
+- **It was taught by real files, not by assumptions.** Four sample-pack exports
+  broke the first version three times out of three, and each fix is a measurement
+  of them: sample packs put drums on **channel 0**, not the General MIDI drum
+  channel, so drums are recognised by their shape — a handful of pitches, struck
+  many times, **short**. Held melodic notes overlap constantly, so chords are
+  notes struck *together* rather than notes that merely overlap. A line with a low
+  average pitch that ranges over three octaves is a melody, not a bassline. And
+  **an 808's MIDI note says which key fires the sample, not how low it sounds** —
+  so a bassline routinely sits in melody register, which is why the **file's own
+  name** is trusted above any measurement of it.
+
+### Added — drum pads on the stage, one box to find any artist, and a window that finally behaves, 2026-08-09 (evening)
+
+- **Eight drum pads across the top of the stage.** Each carries everything on its
+  face: the lane's name, what is on it, a **green or red dot** for whether you can
+  hear it, **Play** in the top centre to audition it alone, a shuffle to re-roll
+  it from the folder you are browsing, and a ✕ to put the built-in sound back.
+  Press the pad to mute it; drag a sample onto it to assign one. Every pad's name
+  is a picker over all thirty-seven lanes, **two pads may share a lane** so a
+  snare can be layered, and the layout is remembered **per artist** — a style you
+  built comes back exactly as you left it.
+- **One combobox instead of a search box, a chip row and a five-hundred-row
+  list.** Type to filter across artists, genres, aliases and typos; press the
+  arrow for the whole list. Stop halfway and click away and it takes the best
+  match, so you cannot end up with nothing chosen. The artist's details now sit
+  **directly under the box** rather than below a list you had to scroll past to
+  read them, and **"Original Workflow" is pinned to the top** whatever is
+  selected, so building your own is never something you have to hunt for.
+- **The generator mute switches moved onto the tabs**, as a dot in each tab's top
+  right. They were a second row carrying the same six words as the tabs, so
+  working out which one silenced Drums meant reading "Drums" twice.
+- **The whole clip is visible when it is generated**, whatever its length. The
+  roll opened at a fixed zoom, so anything past four bars ran off the edge and
+  had to be zoomed out by hand after every generation.
+- **Presets are a combobox too**, and the transport sits centred on its own row
+  above the tabs, which now spread the full width of the stage.
+
+### Fixed — 2026-08-09 (evening)
+
+- ⛔ **The plugin ran DPI-unaware while WebView2 did not.** On a 150% display
+  Windows stretched the window by half again while the page rendered at true
+  pixels, so the UI covered two thirds of its window and left a dead margin — and
+  the content did not follow the window when it was dragged. One mismatch, both
+  symptoms.
+- **The window can be dragged, resized and maximised**, and the UI scales with it
+  rather than being cropped or leaving space. It will not shrink below the size
+  the app was designed for.
+- **A style's copied samples are loaded back.** The consent gate and the copy both
+  worked; nothing ever read them, so the checkbox's promise that they *"still work
+  if you move or delete the originals"* was false while the build shipped it.
+- **"Single hit" no longer deletes the note it names** — it collapses a roll back
+  to a single hit, which is the inverse of the roll it undoes.
+- **Double-clicking the standalone works.** It supplies its own audio period size
+  rather than depending on a command-line flag, and the release build no longer
+  opens a console window behind it. Crashes are appended to a log in the app's
+  data folder.
+
+### Added — every artist gets moods, you can build and train a style of your own, and nothing copies your samples without asking, 2026-08-09
+
+- **Every artist and genre now has moods.** Twelve genres had none — boom bap,
+  Chicago drill, country, jerk, liquid DnB, NY drill, phonk, plugg, pluggnb,
+  2000s pop, 2000s R&B and west coast club — and each now offers three: boom
+  bap's *dusty / jazzy / hard*, phonk's *cowbell / memphis / brazilian*, country's
+  *shuffle / ballad / barnburner*, and so on. Pressing Generate walks an artist's
+  range instead of returning one sound with a different seed on it. **96
+  (artist, mood) pairs across all thirty models**, up from 33 across nine, and
+  84 of them reach a thousand different melodies in a thousand seeds.
+- **Original Workflow — build a style of your own.** A pinned row above the
+  roster opens a style editor: name it, base it on any artist or genre, set the
+  tempo range, swing, hat density, melody density and scales, and save. It
+  appears in the roster marked **Yours** and generates, locks, re-rolls and
+  exports exactly like a shipped one, because it *is* one — the same format the
+  shipped models use. It inherits everything you did not change, including
+  improvements the base gets later. A new style opens seeded from the beat on
+  screen rather than blank.
+- **Train a workflow from the takes you keep.** A star on the take counter marks
+  a generation to train on; at thirty the Train button fits a style to what you
+  kept — density, register and phrase shape — and it will not save one that
+  repeats itself. **There is no machine learning in it**: it measures your takes
+  and writes the numbers back, and the app stays entirely offline.
+- **Your own MIDI can train it too.** The plugin can now *read* Standard MIDI
+  Files, not only write them, so a `.mid` you already have becomes a training
+  source measured by the same code as a generation.
+- **Nothing copies your samples without asking.** A style can keep the one-shots
+  you assigned so they survive you moving or deleting the originals — and
+  because that means a second copy on your drive, the editor tells you **how
+  many files and how many megabytes** before anything happens, with the box
+  unticked. Saving a style copies nothing on its own.
+- **Your samples sound better.** A sample recorded at a different rate from the
+  kit around it used to be stretched to fit on every single note; it is now
+  converted once, properly filtered, when you load it.
+
+### Fixed — 2026-08-09
+
+- **The genre chips said they could not be clicked.** The Genres row in the left
+  rail showed a "no entry" cursor over controls that worked perfectly, and had
+  since the layout was first drawn. They also could not show which genre was
+  selected. Both fixed.
+- **Training could have frozen your DAW.** The check that a trained style does
+  not repeat itself ran thousands of generations on the thread your host draws
+  its window from, and would have hung it long enough for the request to time
+  out and throw the work away.
+
 ### Added — the melody stops quoting other people, every genre gets its own voice, and the hats talk, 2026-08-08
 
 - **⛔ A novelty guard, so a generated melody is not a hook somebody already

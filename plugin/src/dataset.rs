@@ -24,14 +24,30 @@ static DATA: Dir<'_> = include_dir!("$CARGO_MANIFEST_DIR/../data");
 
 /// Parsed once, on whichever thread asks first.
 ///
-/// A `OnceLock` rather than eager work in `initialize`: hosts call that on the
-/// audio thread in at least one DAW, and parsing 28 JSON files there would be
-/// a dropout. The editor is what needs the roster, and it asks from the UI
-/// thread.
+/// A `OnceLock` rather than eager work in `initialize`: the roster is what needs
+/// it and the editor asks from the UI thread, so parsing on the first ask costs
+/// nothing and parsing eagerly would cost every instance that never opens its
+/// window.
+///
+/// ⚠ **This doc used to say `initialize` runs on the audio thread "in at least
+/// one DAW", and that claim is retired** (2026-08-09). It contradicted
+/// `lib.rs`'s own note two lines from `restore_one_shots` — *"`initialize` is
+/// off the audio thread, which is where reading files from disk has to
+/// happen"* — and that path already does `fs::read` per assigned one-shot. Both
+/// cannot be true, and the one with file reads behind it is the one to believe:
+/// CLAP calls `init` on the main thread. Left as a `OnceLock` regardless,
+/// because lazy is still right for the reason above — but nothing here is load
+/// bearing on a real-time claim any more, and a future reader should not build
+/// one on it.
 static LOADED: OnceLock<LoadedDataset> = OnceLock::new();
 
 /// Every embedded model file, as the registry wants them.
-fn entries() -> Vec<(PathBuf, String)> {
+///
+/// `pub(crate)` for [`crate::models`], which resolves a producer's own models
+/// **together** with these rather than against them — `extends` is most of what
+/// a user model is, and a registry that had not been shown `trap` could not
+/// resolve one that inherits from it.
+pub(crate) fn entries() -> Vec<(PathBuf, String)> {
     let mut files = Vec::new();
     collect(&DATA, &mut files);
 
@@ -137,12 +153,43 @@ pub fn factory_presets() -> Vec<(String, &'static str)> {
 }
 
 /// One resolved model, inheritance already applied.
+///
+/// Shipped first, then the producer's own (TASK-040U). The order is not a
+/// precedence rule and must never become one: [`crate::models`] **refuses** to
+/// save an id a shipped model already uses, so at most one half can answer. The
+/// shipped lookup goes first only because it is the common case and costs a map
+/// probe against a `&'static`.
 pub fn model(id: &str) -> Result<StyleModel, String> {
     loaded()
         .models
         .get(id)
         .cloned()
+        .or_else(|| crate::models::model(id))
         .ok_or_else(|| format!("no style model with id `{id}`"))
+}
+
+/// The roster the UI lists: everything shipped, then everything of the user's.
+///
+/// ⛔ **The user's models are appended rather than merged in sorted order**, and
+/// the rail is what decides where they appear. Sorting them into the shipped
+/// list here would bury a producer's own style among five hundred artists it
+/// shares a letter with — TASK-040U's rule is that they sort *before* the
+/// roster, not within it.
+pub fn roster() -> RosterSummary {
+    let shipped = &loaded().summary;
+    let user = crate::models::all();
+
+    let mut entries = shipped.entries.clone();
+    entries.extend(user.entries.iter().cloned());
+
+    let mut problems = shipped.problems.clone();
+    problems.extend(user.problems.iter().cloned());
+
+    RosterSummary {
+        dataset_version: shipped.dataset_version.clone(),
+        entries,
+        problems,
+    }
 }
 
 #[cfg(test)]
@@ -193,6 +240,21 @@ mod tests {
     fn the_defaults_base_is_loadable_but_not_offered() {
         assert!(!loaded().summary.entries.iter().any(|e| e.id == "_defaults"));
         assert!(model("_defaults").is_ok());
+    }
+
+    #[test]
+    fn nothing_shipped_is_marked_as_the_producers_own() {
+        // ⛔ `mine` is set in exactly one place — `models::build_from` — and
+        // defaults false everywhere else. A shipped entry arriving marked would
+        // mean the roster offering to delete or export an artist that is
+        // compiled into the binary, so the default is worth pinning.
+        //
+        // ⚠ Asserted against `loaded()` rather than `roster()`, which would also
+        // walk whatever the developer running this happens to have saved.
+        assert!(
+            loaded().summary.entries.iter().all(|entry| !entry.mine),
+            "a shipped model must never claim to be the user's"
+        );
     }
 
     #[test]

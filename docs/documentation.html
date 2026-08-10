@@ -57,6 +57,9 @@
           <li><a href="#install">Installing</a></li>
           <li><a href="#loop">The core loop</a></li>
           <li><a href="#roster">The roster</a></li>
+          <li><a href="#moods">Moods</a></li>
+          <li><a href="#own-style">Your own style</a></li>
+          <li><a href="#pads">The drum pads</a></li>
           <li><a href="#generators">The generators</a></li>
           <li><a href="#tempo">Tempo, key &amp; auto-sync</a></li>
           <li><a href="#seeds">Seeds &amp; reproducibility</a></li>
@@ -159,7 +162,7 @@
       <article class="release" id="loop">
         <h2>The core loop</h2>
         <ol class="features">
-          <li><strong>Pick someone.</strong> Search an artist, or click a genre chip.</li>
+          <li><strong>Pick someone.</strong> Type a name into the roster box — artists and genres alike.</li>
           <li><strong>Generate.</strong> The pattern is built for your project's tempo and key.</li>
           <li><strong>Hear it.</strong> Press play in your DAW — the notes are already on the track.</li>
           <li><strong>Reroll or keep.</strong> Every generation carries a seed you can copy back.</li>
@@ -175,13 +178,164 @@
           behaviour, swing, register and section layout.
         </p>
         <p class="summary" style="margin-top: 14px">
-          Search is instant fuzzy autosuggest across a mainstream roster and an underground roster.
+          You find them with <strong>one type-to-autocomplete box</strong>. Start typing and it
+          narrows as you go — across the mainstream roster, the underground roster, aliases, and
+          typos. Stop halfway and click away and it takes the best match, so you can never be left
+          with nothing chosen. Press the arrow instead and it shows you everything.
+        </p>
+        <p class="summary" style="margin-top: 14px">
+          The same box lists <strong>artists and genres together</strong>, each row saying which it
+          is, so you never have to know in advance whether "UK Drill" is a person or a style. Pick
+          one and its details appear directly underneath — era, the genres it works in, the tempo and
+          key it tends toward — <strong>before</strong> you press Generate.
           <strong>Genres are a browse filter, not the unit of generation</strong> — though a genre is
           itself a real style model and generates in its own right.
         </p>
         <p class="note">
           Artist names are <strong>descriptive style references only</strong>. Nothing in the dataset
           is copied MIDI, sampled audio, or a transcription of anyone's record.
+        </p>
+      </article>
+
+      <article class="release" id="moods">
+        <h2>Moods</h2>
+        <p class="summary">
+          An artist is not one sound. Beside the artist is a <strong>mood</strong> — trap's
+          <em>dark</em>, <em>bounce</em>, <em>melodic</em> and <em>minimal</em>; boom bap's
+          <em>dusty</em>, <em>jazzy</em> and <em>hard</em>; phonk's <em>cowbell</em>,
+          <em>memphis</em> and <em>brazilian</em>. Leave it on <strong>Any</strong> and each press
+          walks that artist's range; pin one and stay there.
+        </p>
+        <p class="summary" style="margin-top: 14px">
+          A mood is <strong>the same author writing a different kind of record</strong>, which is how
+          producers describe their own catalogue. It is applied before any generator runs, so every
+          part honours it — there is no way for the drums to be in one mood and the melody in
+          another.
+        </p>
+        <p class="note">
+          <strong>An artist only offers moods that artist actually does.</strong> Moods are inherited
+          down the same lineage as everything else, so there is no path by which one artist's mood
+          could be offered on another. Ask for one a style does not have and it says so by name
+          rather than quietly generating something else.
+        </p>
+      </article>
+
+      <article class="release" id="own-style">
+        <h2>Your own style, and training it</h2>
+        <p class="summary">
+          <strong>Original Workflow</strong> sits at the top of the left rail, above everything.
+          Start from any artist or genre, adjust the tempo range, swing, hat density, melody density
+          and scales, and save it under your own name. It appears in the roster marked
+          <strong>Yours</strong> and generates, locks, re-rolls and exports exactly like a shipped
+          artist — because it is the same kind of thing, in the same format.
+        </p>
+        <p class="summary" style="margin-top: 14px">
+          It <strong>inherits everything you did not change</strong>, including improvements the
+          artist you based it on gets in a later release. A new style opens seeded from the beat on
+          screen rather than from a blank form.
+        </p>
+        <p class="summary" style="margin-top: 14px">
+          Star the takes you like as you go. At thirty kept, <strong>Train</strong> fits a style to
+          them — how many onsets a bar, what register, what shape the line made — and writes those
+          ranges back as an ordinary style model. Your own <code>.mid</code> files can be training
+          material too.
+        </p>
+        <p class="note">
+          <strong>"Trained" means fitted, and there is no machine learning anywhere in it.</strong>
+          Nothing is learned from anybody else's music, nothing leaves your machine, and a fit that
+          would only repeat itself is refused with a reason rather than saved. The floor of thirty
+          exists so a style encodes your taste rather than one seed's opinion.
+        </p>
+        <p class="note">
+          <strong>Your samples are only copied if you say so.</strong> A style can keep the one-shots
+          you assigned, so they still play after you move or delete the originals. That means a
+          second copy on your drive, so the editor tells you how many files and how many megabytes
+          before anything happens — and the box is unticked. Saving a style copies nothing on its
+          own.
+        </p>
+      </article>
+
+      <article class="release" id="pads">
+        <h2>The drum pads</h2>
+        <p class="summary">
+          Eight pads sit across the top of the stage, above the piano roll. Each one is a drum lane:
+          its name, what is currently on it, and a dot saying whether you can hear it —
+          <strong>green for audible, red for muted</strong>.
+        </p>
+        <p class="summary" style="margin-top: 14px">
+          Press a pad to mute or unmute it. Press <strong>Play</strong> in its top centre to hear
+          that one sound on its own. <strong>Drag a sample onto it</strong> from the browser to put
+          your own one-shot there, or double-click to pick a file. The shuffle button re-rolls that
+          pad from the folder you are browsing, and the ✕ puts the built-in sound back.
+        </p>
+        <p class="summary" style="margin-top: 14px">
+          Every pad's <strong>lane name is itself a picker</strong> — swap any of the eight for any
+          of the thirty-seven lanes the plugin has. Two pads may share a lane, so you can layer a
+          snare; a third is refused. Your layout is remembered
+          <strong>per artist</strong>, so coming back to a style you built restores the pads exactly
+          as you left them, with the samples you assigned.
+        </p>
+      </article>
+
+      <article class="release" id="browser">
+        <h2>The sample browser</h2>
+        <p class="summary">
+          Your library folders sit at the top of the left rail as <strong>tabs — up to eight of
+          them</strong>. Pick a tab and its folders indent underneath, with the files below those,
+          the way a file manager works. Once you have eight, <strong>Add folder is disabled</strong>
+          until you close one. Your library comes back next time you open the app, with or without
+          a project.
+        </p>
+        <p class="summary" style="margin-top: 14px">
+          <strong>The arrow keys walk it.</strong> <kbd>↑</kbd> and <kbd>↓</kbd> move between rows.
+          On a folder, <kbd>→</kbd> opens it and <kbd>←</kbd> shuts it — and on an already-shut
+          folder <kbd>←</kbd> shuts the branch it sits in, so it is a way back out. On a
+          <em>file</em>, those same two keys play it <strong>forwards and backwards</strong>.
+          Auditioning never starts or stops the transport.
+        </p>
+        <p class="summary" style="margin-top: 14px">
+          <strong>Star anything</strong> — a sample, a one-shot or a MIDI file. The star sits to the
+          left of the name: an outline until you press it, then solid yellow. Starred files gather
+          in a list under the tree, and clicking one opens every folder between the root and that
+          file to reveal it. If its folder is no longer one of your eight open tabs, it opens the
+          file's location in <strong>Windows Explorer or Finder</strong> instead — so a favourite is
+          reachable whatever your library has moved on to. Unstarring forgets it.
+        </p>
+        <p class="summary" style="margin-top: 14px">
+          The browser can take the <strong>whole rail</strong> when you need the depth, and hand it
+          back. Audio and MIDI are kept apart on purpose: a <code>.mid</code> has no waveform to
+          draw and cannot be dropped on a drum pad, and the pad refuses it before you let go rather
+          than failing afterwards.
+        </p>
+      </article>
+
+      <article class="release" id="midi-import">
+        <h2>Dropping a MIDI file in</h2>
+        <p class="summary">
+          Drag a <code>.mid</code> from the browser onto a <strong>generator</strong> and its notes
+          land there. Drop it on the <strong>Song</strong> tab instead and the whole file arrives as
+          an arrangement — sections across the top, parts down the side — and clicking any cell
+          opens that clip in its generator, exactly as drilling into a generated song does. Nothing
+          you already have is overwritten until you choose a cell.
+        </p>
+        <p class="summary" style="margin-top: 14px">
+          A layered file is <strong>separated into bass, melody, countermelody, chords and
+          drums</strong>, and every part says <strong>why</strong> it was routed where it was — "on
+          the GM drum channel", "chords — notes overlap", "lowest voice", "from the file name". A
+          wrong guess is one click to redirect rather than something you discover two bars in.
+        </p>
+        <p class="summary" style="margin-top: 14px">
+          <strong>Name your files and it will listen.</strong> A file called
+          <code>…-Bass.mid</code> or <code>…Drums.mid</code> is taken at its word, because that is
+          you saying what it is rather than the plugin guessing. This matters more than it sounds:
+          an 808's MIDI note says <em>which key fires the sample</em>, not how low it sounds, so a
+          bassline routinely sits in melody register and no measurement can tell it from a slow
+          lead. The one thing that can is the name you gave it.
+        </p>
+        <p class="summary" style="margin-top: 14px">
+          Imported clips <strong>adopt your session's tempo</strong>. Most exported MIDI carries no
+          tempo at all — the number in the filename is not in the data — and the plugin will not
+          claim one it did not read.
         </p>
       </article>
 

@@ -1000,6 +1000,14 @@ mod tests {
     /// that claims its folder later. That is what [`settle`] is for, and every
     /// holder of this guard calls it.
     ///
+    /// ⛔⛔ **And `settle` is not enough for a *cancelled* render**, which is
+    /// what made this whole arrangement look sound while still being flaky. A
+    /// disowned render publishes no terminal status by design, so `settle` has
+    /// nothing to wait for — it returns, the guard is released, and the render
+    /// goes on to claim and then drop its folder while the next test is counting
+    /// folders. [`settle_spool`] is the wait that covers that case, and any test
+    /// that ends with a render still disowned has to call it.
+    ///
     /// ⚠ The poison is deliberately ignored: a sibling test failing while
     /// holding this must not turn every other test in the module red as well,
     /// which would bury the one real failure.
@@ -1008,6 +1016,46 @@ mod tests {
         SPOOL
             .lock()
             .unwrap_or_else(|poisoned| poisoned.into_inner())
+    }
+
+    /// Every spool folder this process owns right now.
+    fn spool_folders() -> Vec<std::path::PathBuf> {
+        let prefix = format!("{}-", std::process::id());
+        std::fs::read_dir(spool_root())
+            .into_iter()
+            .flatten()
+            .flatten()
+            .map(|entry| entry.path())
+            .filter(|path| path.is_dir())
+            .filter(|path| {
+                path.file_name()
+                    .is_some_and(|name| name.to_string_lossy().starts_with(&prefix))
+            })
+            .collect()
+    }
+
+    /// Wait until no disowned render is still holding a folder.
+    ///
+    /// ⛔⛔ **The other half of [`spool_guard`]'s rule, and its absence made
+    /// `a_render_that_finishes_after_being_cancelled_takes_its_own_folder_back`
+    /// fail once in a full-lib run and pass every time in isolation.** The guard
+    /// serialises the *tests*; it cannot serialise the threads they leave
+    /// running. A test that cancels a render releases the guard with that render
+    /// still alive — it claims its folder a moment later and removes it a moment
+    /// after that — and the next holder counting folders sees two that are not
+    /// its own and calls them a leak.
+    ///
+    /// ⚠ `settle` is not enough for this: it waits for a *terminal status*, and
+    /// a disowned render publishes none by design. The folder going away is the
+    /// only observable that says it finished.
+    fn settle_spool() {
+        for _ in 0..600 {
+            if spool_folders().is_empty() {
+                return;
+            }
+            std::thread::sleep(Duration::from_millis(10));
+        }
+        panic!("a disowned render never gave its spool folder back");
     }
 
     fn settle(drags: &Drags) -> Status {
@@ -1200,18 +1248,7 @@ mod tests {
         }
         assert_eq!(drags.status(), Status::Idle, "a disowned render published");
 
-        let leaked: Vec<_> = std::fs::read_dir(spool_root())
-            .into_iter()
-            .flatten()
-            .flatten()
-            .filter(|entry| entry.path().is_dir())
-            .filter(|entry| {
-                entry
-                    .file_name()
-                    .to_string_lossy()
-                    .starts_with(&format!("{}-", std::process::id()))
-            })
-            .collect();
+        let leaked = spool_folders();
         assert!(
             leaked.is_empty(),
             "an abandoned render left {} folder(s) behind",
@@ -1236,6 +1273,11 @@ mod tests {
             .expect("a second press must not be refused");
         settle(&drags);
         drags.cancel();
+
+        // ⛔ **Two disowned renders are still running here**, and releasing the
+        // guard with them alive is what made a sibling test flaky: it counted
+        // their folders as a leak of its own. See [`settle_spool`].
+        settle_spool();
     }
 
     /// ⛔⛔ **The Windows standalone is allowed, and it is the one that had to be

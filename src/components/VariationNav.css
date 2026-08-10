@@ -17,6 +17,14 @@
   white-space: nowrap;
 }
 
+/* The keep star (TASK-040T). Lit when this take is in the training set — the
+   same accent tint every other pressed toggle in the app uses, because a
+   producer should not have to learn a second vocabulary for "this one is on". */
+.variations__keep[aria-pressed='true'] {
+  color: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
 /* The resolved tempo and scale. Hidden on a narrow stage rather than wrapping:
    the counter and the arrows are what the control is for, and the readout is
    the detail behind them. */

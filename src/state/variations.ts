@@ -76,9 +76,28 @@ export type Variation = {
   at: number;
 };
 
+/**
+ * The key a kept take is remembered by.
+ *
+ * ⛔ Part **and** seed, because a seed is only unique within a part: the drums
+ * and the melody of one record share a song seed, and keeping the melody must
+ * not silently keep the drums with it.
+ */
+export const keptKey = (part: Part, seed: string) => `${part}:${seed}`;
+
 type VariationsState = {
   /** Every generation, per part, oldest first. */
   entries: Record<string, Variation[]>;
+  /**
+   * The takes the producer marked to train on (TASK-040T).
+   *
+   * ⛔ **A set of keys rather than a flag on `Variation`.** Keeping is an
+   * opinion about a take, and the log is a record of what happened — stepping
+   * back through history must not be able to change what was kept, and a flag
+   * living inside the entry is one careless `record` away from doing exactly
+   * that.
+   */
+  kept: Record<string, true>;
   /** Where the producer is looking, per part. `-1` before the first generation. */
   position: Record<string, number>;
   /** Append a generation and park on it. */
@@ -90,6 +109,10 @@ type VariationsState = {
   step: (part: Part, delta: number) => Variation | null;
   /** The entry currently parked on, or `null`. */
   current: (part: Part) => Variation | null;
+  /** Mark a take to train on, or unmark it. */
+  keep: (part: Part, seed: string, kept: boolean) => void;
+  /** Every kept take, oldest first, across every part. */
+  keptEntries: () => Variation[];
   /** Forget everything. Used by tests; nothing in the UI calls it. */
   reset: () => void;
 };
@@ -97,6 +120,7 @@ type VariationsState = {
 export const useVariations = create<VariationsState>((set, get) => ({
   entries: {},
   position: {},
+  kept: {},
 
   record(entry) {
     set((state) => {
@@ -137,8 +161,31 @@ export const useVariations = create<VariationsState>((set, get) => ({
     return list[at] ?? null;
   },
 
+  keep(part, seed, kept) {
+    // ⚠ **Removed rather than set to `false`.** The field's own doc calls this a
+    // set of keys, and storing `false` forever made every reader spell
+    // `=== true` to avoid trusting it — a shape that invites the one caller who
+    // forgets.
+    set((state) => {
+      const next = { ...state.kept };
+      if (kept) {
+        next[keptKey(part, seed)] = true;
+      } else {
+        delete next[keptKey(part, seed)];
+      }
+      return { kept: next };
+    });
+  },
+
+  keptEntries() {
+    const { entries, kept } = get();
+    return Object.values(entries)
+      .flat()
+      .filter((entry) => kept[keptKey(entry.part, entry.seed)]);
+  },
+
   reset() {
-    set({ entries: {}, position: {} });
+    set({ entries: {}, position: {}, kept: {} });
   },
 }));
 

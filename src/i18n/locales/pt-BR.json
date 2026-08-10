@@ -48,7 +48,15 @@
     "shipped": "Incluído",
     "silent": "Sem som",
     "choosing": "Escolhendo…",
-    "clearOne": "Remover o one-shot de {{lane}}"
+    "clearOne": "Remover o one-shot de {{lane}}",
+    "randomize": "Sortear de novo cada pad destravado desta pasta",
+    "randomizeOne": "Sortear {{lane}} de novo desta pasta",
+    "padsLabel": "Pads de bateria",
+    "muteLane": "Silenciar {{lane}}",
+    "unmuteLane": "Reativar {{lane}}",
+    "playLane": "Tocar {{lane}}",
+    "padLane": "Faixa do pad {{at}}",
+    "useSelected": "Colocar a amostra selecionada em {{lane}}"
   },
   "sections": {
     "genres": "Gêneros",
@@ -400,7 +408,28 @@
     "decoding": "Lendo…",
     "waveformOf": "Forma de onda de {{name}}",
     "reverse": "Reproduzir de trás para frente",
-    "resize": "Redimensionar o navegador"
+    "resize": "Redimensionar o navegador",
+    "fillRail": "Dar ao navegador toda a coluna",
+    "restoreRail": "Mostrar o elenco novamente",
+    "folderLimit": "Você pode navegar por 8 pastas por vez — feche uma para adicionar outra",
+    "favourites": "Favoritos com estrela",
+    "star": "Favoritar {{name}}",
+    "unstar": "Remover {{name}} dos favoritos",
+    "revealHint": "Mostrar {{path}} no gerenciador de arquivos",
+    "midiApply": "Enviar aos geradores",
+    "midiDragHint": "Ou arraste o arquivo para um gerador para importar tudo lá.",
+    "splitReason": {
+      "drumChannel": "No canal de bateria GM",
+      "polyphonic": "Acordes — as notas se sobrepõem",
+      "lowestVoice": "Voz mais grave",
+      "highestVoice": "Voz mais aguda",
+      "innerVoice": "Voz interna",
+      "splitByPitch": "Uma voz, dividida por altura — um palpite",
+      "fromName": "Pelo nome do arquivo",
+      "kitShape": "Toca como uma bateria"
+    },
+    "midiFound": "Conteúdo deste arquivo MIDI",
+    "midiNotes": "Notas"
   },
   "patterns": {
     "name": "Dê um nome a este padrão",
@@ -429,5 +458,44 @@
     "key": "{{key}} {{scale}}",
     "halfTime": "half-time",
     "moods": "{{count}} moods"
+  },
+  "styles": {
+    "original": "Fluxo original",
+    "originalHint": "Crie um estilo seu",
+    "mine": "Seu",
+    "title": "Editor de estilo",
+    "name": "Nome",
+    "namePlaceholder": "Meu trap sombrio",
+    "basedOn": "Baseado em",
+    "basedOnHint": "Seu estilo herda tudo o que você não substituir, inclusive melhorias futuras.",
+    "tempo": "Andamento",
+    "swing": "Swing",
+    "hats": "Densidade de chimbal",
+    "melody": "Densidade da melodia",
+    "scales": "Escalas",
+    "scalesHint": "Apenas as escalas em que {{name}} grava.",
+    "save": "Salvar estilo",
+    "delete": "Excluir fluxo",
+    "export": "Exportar",
+    "import": "Importar",
+    "nameNeeded": "Dê um nome ao seu estilo.",
+    "saved": "Salvo como {{name}}",
+    "keep": "Guardar esta take para o treino",
+    "kept": "{{count}} / {{needed}} guardadas",
+    "train": "Treinar",
+    "trained": "Treinado com {{count}} gerações",
+    "samplesHeading": "Os sons dele",
+    "samplesNote": "Seu estilo pode guardar os one-shots que você atribuiu. Eles são copiados para este computador, então continuam funcionando se você mover ou apagar os originais — e ocupam esse espaço a mais no seu disco. Nada é copiado sem marcar isto.",
+    "samplesCopy": "Copiar {{count}} amostras ({{size}}) para este computador",
+    "samplesCopied": "{{count}} amostras copiadas",
+    "edit": "Editar {{name}}"
+  },
+  "kits": {
+    "heading": "Kits salvos",
+    "name": "Nome do kit",
+    "save": "Salvar kit",
+    "none": "Nenhum kit salvo ainda. Atribua algumas amostras, dê um nome e elas estarão aqui na próxima vez.",
+    "delete": "Excluir {{name}}",
+    "duplicate": "Copiar {{name}} com o nome digitado"
   }
 }

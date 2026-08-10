@@ -76,3 +76,7 @@ screenshots
 # Machine-specific plugin install destinations. plugin-install.example.json
 # is the one that ships.
 plugin-install.json
+
+# Mike's local audio/MIDI fixtures for extraction work (TASK-058D).
+# Real stems and reference MIDI, tens of megabytes — kept out of the repo.
+audioTest/

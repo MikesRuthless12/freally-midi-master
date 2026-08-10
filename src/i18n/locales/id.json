@@ -48,7 +48,15 @@
     "shipped": "Bawaan",
     "silent": "Tanpa suara",
     "choosing": "Memilih…",
-    "clearOne": "Hapus one-shot pada {{lane}}"
+    "clearOne": "Hapus one-shot pada {{lane}}",
+    "randomize": "Undi ulang setiap pad yang tidak terkunci dari folder ini",
+    "randomizeOne": "Undi ulang {{lane}} dari folder ini",
+    "padsLabel": "Pad drum",
+    "muteLane": "Bisukan {{lane}}",
+    "unmuteLane": "Bunyikan {{lane}}",
+    "playLane": "Putar {{lane}}",
+    "padLane": "Jalur pad {{at}}",
+    "useSelected": "Taruh sampel terpilih di {{lane}}"
   },
   "sections": {
     "genres": "Genre",
@@ -400,7 +408,28 @@
     "decoding": "Membaca…",
     "waveformOf": "Bentuk gelombang {{name}}",
     "reverse": "Putar mundur",
-    "resize": "Ubah lebar peramban"
+    "resize": "Ubah lebar peramban",
+    "fillRail": "Beri browser seluruh bilah",
+    "restoreRail": "Tampilkan roster lagi",
+    "folderLimit": "Kamu bisa menjelajahi 8 folder sekaligus — tutup satu untuk menambah yang lain",
+    "favourites": "Favorit berbintang",
+    "star": "Bintangi {{name}}",
+    "unstar": "Hapus bintang {{name}}",
+    "revealHint": "Tampilkan {{path}} di pengelola berkas",
+    "midiApply": "Kirim ke generator",
+    "midiDragHint": "Atau seret berkas ke satu generator untuk mengimpor semuanya di sana.",
+    "splitReason": {
+      "drumChannel": "Di kanal drum GM",
+      "polyphonic": "Akor — not saling tumpang tindih",
+      "lowestVoice": "Suara terendah",
+      "highestVoice": "Suara tertinggi",
+      "innerVoice": "Suara tengah",
+      "splitByPitch": "Satu suara, dipisah berdasarkan nada — sebuah tebakan",
+      "fromName": "Dari nama berkas",
+      "kitShape": "Dimainkan seperti drum kit"
+    },
+    "midiFound": "Isi berkas MIDI ini",
+    "midiNotes": "Not"
   },
   "patterns": {
     "name": "Beri nama pattern ini",
@@ -429,5 +458,44 @@
     "key": "{{key}} {{scale}}",
     "halfTime": "half-time",
     "moods": "{{count}} mood"
+  },
+  "styles": {
+    "original": "Alur kerja sendiri",
+    "originalHint": "Bangun gaya milikmu sendiri",
+    "mine": "Milikmu",
+    "title": "Editor gaya",
+    "name": "Nama",
+    "namePlaceholder": "Trap gelap saya",
+    "basedOn": "Berdasarkan",
+    "basedOnHint": "Gayamu mewarisi semua yang tidak kamu ubah, termasuk perbaikan di kemudian hari.",
+    "tempo": "Tempo",
+    "swing": "Swing",
+    "hats": "Kerapatan hi-hat",
+    "melody": "Kerapatan melodi",
+    "scales": "Tangga nada",
+    "scalesHint": "Hanya tangga nada yang dipakai {{name}}.",
+    "save": "Simpan gaya",
+    "delete": "Hapus alur kerja",
+    "export": "Ekspor",
+    "import": "Impor",
+    "nameNeeded": "Beri nama gayamu.",
+    "saved": "Disimpan sebagai {{name}}",
+    "keep": "Simpan take ini untuk pelatihan",
+    "kept": "{{count}} / {{needed}} disimpan",
+    "train": "Latih",
+    "trained": "Dilatih dari {{count}} generasi",
+    "samplesHeading": "Suaranya",
+    "samplesNote": "Gayamu bisa menyimpan one-shot yang kamu pasang. File-nya disalin ke komputer ini, jadi tetap berbunyi kalau kamu memindah atau menghapus aslinya — dan memakan ruang sebanyak itu di drive-mu. Tidak ada yang disalin kecuali kamu mencentang ini.",
+    "samplesCopy": "Salin {{count}} sampel ({{size}}) ke komputer ini",
+    "samplesCopied": "{{count}} sampel disalin",
+    "edit": "Ubah {{name}}"
+  },
+  "kits": {
+    "heading": "Kit tersimpan",
+    "name": "Nama kit",
+    "save": "Simpan kit",
+    "none": "Belum ada kit tersimpan. Pasang beberapa sampel, beri nama, dan lain kali sudah ada di sini.",
+    "delete": "Hapus {{name}}",
+    "duplicate": "Salin {{name}} dengan nama yang diketik"
   }
 }

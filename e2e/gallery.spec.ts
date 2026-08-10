@@ -39,7 +39,7 @@ async function loadASession(page: Page) {
   await page.goto('/');
   await expect(page.getByRole('tablist', { name: 'Generator' })).toBeVisible();
 
-  const search = page.getByLabel('Search an artist');
+  const search = page.getByRole('combobox', { name: 'Roster' });
   await search.fill('trap');
   await search.press('Enter');
 

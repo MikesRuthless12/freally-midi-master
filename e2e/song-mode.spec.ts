@@ -19,7 +19,7 @@ import { expect, test, type Page } from '@playwright/test';
 /** Pick a genre from the roster — never the artist the fixture also carries. */
 async function pickGenre(page: Page, name: string) {
   await page.goto('/');
-  const search = page.getByLabel('Search an artist');
+  const search = page.getByRole('combobox', { name: 'Roster' });
   await search.fill(name);
   await search.press('Enter');
   await page.getByRole('tab', { name: 'Song' }).click();
@@ -47,7 +47,7 @@ test('a second genre arranges its own song rather than the first one’s', async
   await page.getByRole('button', { name: 'Generate', exact: true }).click();
   await expect(page.locator('[data-testid="song-section-0"]')).toBeVisible();
 
-  const search = page.getByLabel('Search an artist');
+  const search = page.getByRole('combobox', { name: 'Roster' });
   await search.fill('uk-drill');
   await search.press('Enter');
 

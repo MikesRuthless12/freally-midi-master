@@ -50,7 +50,11 @@ const MUTE_TOLERANCE: u32 = grid::SIXTEENTH / 2;
 /// order and drops what it has no slot for. The two lists are not
 /// interchangeable (see [`PERC_LANES`]), but **every** `PERC_LANES` entry must
 /// appear here, which is what `every_perc_lane_can_be_built` holds.
-const LANE_ORDER: &[Lane] = &[
+/// `pub` for [`crate::smf_read`], which needs the inverse of `gm_drum_note` and
+/// must not restate the lane list to get it — two lists naming the same set is
+/// how one of them starts being wrong, which is the failure this file's own
+/// notes record twice over.
+pub const LANE_ORDER: &[Lane] = &[
     Lane::Kick,
     Lane::SubKick,
     Lane::Snare,

@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X } from 'lucide-react';
+import { Dices, X } from 'lucide-react';
 
 import { canSound, useKit } from '../../state/kit';
+import { SAMPLE_TYPE, droppedSample } from '../../lib/dnd';
+import { SavedKits } from './SavedKits';
 import { useExplorer } from '../../state/explorer';
 import type { Lane } from '../../lib/ipc-types';
 
@@ -15,13 +17,6 @@ import type { Lane } from '../../lib/ipc-types';
  * from outside the page look like a sample and fail at the loader instead of at
  * the drop.
  */
-const SAMPLE_TYPE = 'application/x-freally-sample';
-
-/** The path a drop is carrying, or `null` when it is not one of ours. */
-function droppedSample(transfer: DataTransfer): string | null {
-  const path = transfer.getData(SAMPLE_TYPE);
-  return path === '' ? null : path;
-}
 
 /**
  * The KIT panel: what each lane plays, and how to put your own sample on it.
@@ -48,6 +43,7 @@ export function KitPanel() {
   const refresh = useKit((s) => s.refresh);
   const assign = useKit((s) => s.assign);
   const clear = useKit((s) => s.clear);
+  const randomize = useKit((s) => s.randomize);
   const dropOn = useExplorer((s) => s.dropOn);
   // Which row the pointer is currently over, so the target is visible before
   // the producer lets go. Local: it is a property of this gesture, not of the
@@ -81,6 +77,21 @@ export function KitPanel() {
           made that locator ambiguous and failed two specs that have nothing to
           do with the kit. */}
       <p className="kit-hint">{t('kit.assignHint')}</p>
+      {/* ⛔ **One dice for the whole kit** (TASK-050A). Re-rolls every
+          unlocked pad from the folder the browser is showing, in one gesture and
+          one handoff to the audio thread — a dozen separate assignments would
+          be a dozen audible cuts. */}
+      <button
+        type="button"
+        className="btn-ghost kit-dice"
+        disabled={assigning !== null}
+        aria-label={t('kit.randomize')}
+        title={t('kit.randomize')}
+        onClick={() => void randomize(null)}
+      >
+        <Dices size={14} aria-hidden="true" /> {t('kit.randomize')}
+      </button>
+
       <ul className="kit-lanes" aria-label={t('kit.lanesLabel')}>
         {lanes.map((entry) => {
           const busy = assigning === entry.lane;
@@ -147,6 +158,22 @@ export function KitPanel() {
                 <span className="kit-lane__source">{busy ? t('kit.choosing') : source}</span>
               </button>
 
+              {/* ⛔ **The dice** (TASK-050A). Per pad, re-rolling it from the
+                  folder the browser is showing — filtered by what the filename
+                  says the file is, so a crash cannot land on the kick. A locked
+                  pad is exempt and the store says so rather than doing nothing
+                  quietly. */}
+              <button
+                type="button"
+                className="kit-lane__dice"
+                disabled={assigning !== null}
+                aria-label={t('kit.randomizeOne', { lane: t(`lanes.${entry.lane}`) })}
+                title={t('kit.randomizeOne', { lane: t(`lanes.${entry.lane}`) })}
+                onClick={() => void randomize(entry.lane)}
+              >
+                <Dices size={12} aria-hidden="true" />
+              </button>
+
               {entry.name && (
                 <button
                   type="button"
@@ -163,6 +190,11 @@ export function KitPanel() {
           );
         })}
       </ul>
+
+      {/* Named kits (TASK-051). Below the lanes, because you build a kit
+          and then save it — the order a producer works in. */}
+      <p className="kit-hint kit-hint--saved">{t('kits.heading')}</p>
+      <SavedKits />
 
       {error && (
         <p className="kit-error" role="alert">

@@ -94,7 +94,7 @@ async function open(page: Page) {
 }
 
 async function pickArtist(page: Page) {
-  const search = page.getByLabel('Search an artist');
+  const search = page.getByRole('combobox', { name: 'Roster' });
   await search.fill('trap');
   await search.press('Enter');
 }
@@ -157,7 +157,7 @@ test('the stage: Generate, Generate all, Clear, Clear all, bars', async ({ page 
   await open(page);
 
   // Generate is refused until somebody is chosen — the empty state is a
-  // feature, not a gap.
+  // feature, not a gap, and Mike asked for it back by name on 2026-08-10.
   await expect(page.getByRole('button', { name: 'Generate', exact: true })).toBeDisabled();
   await feature(page, 'Stage', 'Generate is refused with no artist', 'the button is disabled');
 
@@ -232,10 +232,18 @@ test('the seed: typing pins, clearing unpins, Enter holds what came back', async
 
 test('the roster: search, keyboard, and switching artists', async ({ page }) => {
   await open(page);
-  const search = page.getByLabel('Search an artist');
+  const search = page.getByRole('combobox', { name: 'Roster' });
 
   await search.fill('trap');
-  await expect(page.getByRole('option').first()).toBeVisible();
+  // ⚠ **Scoped to the combobox's own menu.** A bare `getByRole('option')` also
+  // matches the native `<select>` options in the session chips — "The artist's"
+  // — which are present but hidden, so the assertion resolved to the wrong
+  // control and failed on visibility.
+  //
+  // ⛔ It passed locally and failed on all three CI runners because this file is
+  // in `playwright.config.ts`'s `testIgnore` and only runs under
+  // `playwright.gallery.config.ts`. `npm run test:gallery` is what covers it.
+  await expect(page.locator('.combo__menu').getByRole('option').first()).toBeVisible();
   await feature(page, 'Roster', 'Search suggests as you type', 'a suggestion list appears');
 
   await search.press('ArrowDown');

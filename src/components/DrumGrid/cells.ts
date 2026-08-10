@@ -291,7 +291,15 @@ export function toggleHit(pattern: Pattern, lane: Lane, column: number): Pattern
  * "put a triplet here" as well as "make this one a triplet".
  */
 export function tuplet(pattern: Pattern, lane: Lane, column: number, count: number): Pattern {
-  const size = Math.max(2, Math.min(16, Math.round(count)));
+  // ⛔ **1 is legal, and it means "collapse this back to a single hit"** — Mike,
+  // 2026-08-09: *"when you right click on a note and you go to 'Single note' it
+  // should not delete that note, it should just ensure that it's a single
+  // note."* The floor was 2 because a tuplet of one is not a tuplet, and the
+  // palette's own "Single hit" item was wired to `clearCell` instead — so the
+  // one item whose name promises a note *removed* it. Allowing 1 here makes this
+  // the exact inverse of the roll it undoes, rather than a second code path that
+  // has to agree with it.
+  const size = Math.max(1, Math.min(16, Math.round(count)));
   const [from, to] = cellSpan(column);
   const notes = notesIn(pattern, lane);
   const inside = notes.filter((note) => note.startTick >= from && note.startTick < to);

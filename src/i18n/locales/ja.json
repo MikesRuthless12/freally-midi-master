@@ -48,7 +48,15 @@
     "shipped": "内蔵",
     "silent": "音なし",
     "choosing": "選択中…",
-    "clearOne": "{{lane}} のワンショットを解除"
+    "clearOne": "{{lane}} のワンショットを解除",
+    "randomize": "このフォルダーからロックされていないパッドを引き直す",
+    "randomizeOne": "このフォルダーから {{lane}} を引き直す",
+    "padsLabel": "ドラムパッド",
+    "muteLane": "{{lane}} をミュート",
+    "unmuteLane": "{{lane}} のミュート解除",
+    "playLane": "{{lane}} を再生",
+    "padLane": "パッド {{at}} のレーン",
+    "useSelected": "選択したサンプルを {{lane}} に置く"
   },
   "sections": {
     "genres": "ジャンル",
@@ -400,7 +408,28 @@
     "decoding": "読み込み中…",
     "waveformOf": "{{name}} の波形",
     "reverse": "逆再生",
-    "resize": "ブラウザーの幅を変更"
+    "resize": "ブラウザーの幅を変更",
+    "fillRail": "ブラウザーにレール全体を割り当てる",
+    "restoreRail": "ロスターを再表示",
+    "folderLimit": "同時に開けるフォルダーは8つです。追加するには1つ閉じてください",
+    "favourites": "スター付きのお気に入り",
+    "star": "{{name}} にスターを付ける",
+    "unstar": "{{name}} のスターを外す",
+    "revealHint": "{{path}} をファイルマネージャーで表示",
+    "midiApply": "ジェネレーターに送る",
+    "midiDragHint": "または、ファイルを 1 つのジェネレーターにドラッグすると、すべてそこに読み込まれます。",
+    "splitReason": {
+      "drumChannel": "GM ドラムチャンネル上",
+      "polyphonic": "コード — ノートが重なっています",
+      "lowestVoice": "最も低い声部",
+      "highestVoice": "最も高い声部",
+      "innerVoice": "内声",
+      "splitByPitch": "1 声部を音高で分割 — 推定です",
+      "fromName": "ファイル名から",
+      "kitShape": "ドラムキットのように鳴っています"
+    },
+    "midiFound": "この MIDI ファイルの内容",
+    "midiNotes": "ノート"
   },
   "patterns": {
     "name": "このパターンに名前を付ける",
@@ -429,5 +458,44 @@
     "key": "{{key}} {{scale}}",
     "halfTime": "ハーフタイム",
     "moods": "{{count}} ムード"
+  },
+  "styles": {
+    "original": "オリジナルの流儀",
+    "originalHint": "自分だけのスタイルをつくる",
+    "mine": "あなたのもの",
+    "title": "スタイルエディター",
+    "name": "名前",
+    "namePlaceholder": "自分のダークトラップ",
+    "basedOn": "ベース",
+    "basedOnHint": "上書きしなかった設定はすべて引き継がれます。今後の改善も同じです。",
+    "tempo": "テンポ",
+    "swing": "スウィング",
+    "hats": "ハイハットの密度",
+    "melody": "メロディの密度",
+    "scales": "スケール",
+    "scalesHint": "{{name}} が実際に使うスケールのみ。",
+    "save": "スタイルを保存",
+    "delete": "ワークフローを削除",
+    "export": "書き出し",
+    "import": "読み込み",
+    "nameNeeded": "スタイルに名前を付けてください。",
+    "saved": "{{name}} として保存しました",
+    "keep": "このテイクを学習用に残す",
+    "kept": "{{count}} / {{needed}} 件を保持",
+    "train": "学習",
+    "trained": "{{count}} 件の生成から学習しました",
+    "samplesHeading": "その音",
+    "samplesNote": "割り当てたワンショットをスタイルに持たせられます。このコンピューターへコピーされるため、元のファイルを移動・削除しても鳴り続けますが、その分だけディスク容量を使います。チェックしない限り何もコピーされません。",
+    "samplesCopy": "{{count}} 個のサンプル（{{size}}）をこのコンピューターにコピー",
+    "samplesCopied": "{{count}} 個のサンプルをコピーしました",
+    "edit": "{{name}} を編集"
+  },
+  "kits": {
+    "heading": "保存したキット",
+    "name": "キット名",
+    "save": "キットを保存",
+    "none": "保存したキットはまだありません。サンプルを割り当てて名前を付ければ、次回ここに並びます。",
+    "delete": "{{name}} を削除",
+    "duplicate": "入力した名前で {{name}} を複製"
   }
 }

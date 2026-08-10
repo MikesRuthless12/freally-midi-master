@@ -48,7 +48,15 @@
     "shipped": "Wbudowany",
     "silent": "Brak dźwięku",
     "choosing": "Wybieranie…",
-    "clearOne": "Usuń one-shot ze ścieżki {{lane}}"
+    "clearOne": "Usuń one-shot ze ścieżki {{lane}}",
+    "randomize": "Wylosuj ponownie każdy niezablokowany pad z tego folderu",
+    "randomizeOne": "Wylosuj ponownie {{lane}} z tego folderu",
+    "padsLabel": "Pady perkusyjne",
+    "muteLane": "Wycisz {{lane}}",
+    "unmuteLane": "Włącz {{lane}}",
+    "playLane": "Odtwórz {{lane}}",
+    "padLane": "Ścieżka padu {{at}}",
+    "useSelected": "Umieść wybraną próbkę na {{lane}}"
   },
   "sections": {
     "genres": "Gatunki",
@@ -400,7 +408,28 @@
     "decoding": "Odczytywanie…",
     "waveformOf": "Kształt fali {{name}}",
     "reverse": "Odtwórz wstecz",
-    "resize": "Zmień szerokość przeglądarki"
+    "resize": "Zmień szerokość przeglądarki",
+    "fillRail": "Oddaj przeglądarce cały panel",
+    "restoreRail": "Pokaż ponownie roster",
+    "folderLimit": "Możesz przeglądać 8 folderów naraz — zamknij jeden, aby dodać kolejny",
+    "favourites": "Ulubione z gwiazdką",
+    "star": "Dodaj {{name}} do ulubionych",
+    "unstar": "Usuń {{name}} z ulubionych",
+    "revealHint": "Pokaż {{path}} w menedżerze plików",
+    "midiApply": "Wyślij do generatorów",
+    "midiDragHint": "Albo przeciągnij plik na jeden generator, aby zaimportować całość tam.",
+    "splitReason": {
+      "drumChannel": "Na kanale perkusji GM",
+      "polyphonic": "Akordy — nuty nachodzą na siebie",
+      "lowestVoice": "Najniższy głos",
+      "highestVoice": "Najwyższy głos",
+      "innerVoice": "Głos środkowy",
+      "splitByPitch": "Jeden głos, podzielony wg wysokości — to zgadywanie",
+      "fromName": "Z nazwy pliku",
+      "kitShape": "Gra jak zestaw perkusyjny"
+    },
+    "midiFound": "Zawartość tego pliku MIDI",
+    "midiNotes": "Nuty"
   },
   "patterns": {
     "name": "Nazwij ten pattern",
@@ -429,5 +458,44 @@
     "key": "{{key}} {{scale}}",
     "halfTime": "half-time",
     "moods": "{{count}} nastroje"
+  },
+  "styles": {
+    "original": "Własny warsztat",
+    "originalHint": "Zbuduj własny styl",
+    "mine": "Twój",
+    "title": "Edytor stylu",
+    "name": "Nazwa",
+    "namePlaceholder": "Mój mroczny trap",
+    "basedOn": "Na podstawie",
+    "basedOnHint": "Twój styl dziedziczy wszystko, czego nie nadpiszesz — łącznie z późniejszymi ulepszeniami.",
+    "tempo": "Tempo",
+    "swing": "Swing",
+    "hats": "Gęstość hi-hatów",
+    "melody": "Gęstość melodii",
+    "scales": "Skale",
+    "scalesHint": "Tylko skale, w których nagrywa {{name}}.",
+    "save": "Zapisz styl",
+    "delete": "Usuń przepływ",
+    "export": "Eksportuj",
+    "import": "Importuj",
+    "nameNeeded": "Nadaj swojemu stylowi nazwę.",
+    "saved": "Zapisano jako {{name}}",
+    "keep": "Zachowaj to ujęcie do treningu",
+    "kept": "{{count}} / {{needed}} zachowanych",
+    "train": "Trenuj",
+    "trained": "Wytrenowano na {{count}} generacjach",
+    "samplesHeading": "Jego brzmienia",
+    "samplesNote": "Twój styl może zachować przypisane one-shoty. Są kopiowane na ten komputer, więc zadziałają nawet po przeniesieniu lub usunięciu oryginałów — i zajmą tyle samo miejsca dodatkowo na dysku. Bez zaznaczenia nic nie zostanie skopiowane.",
+    "samplesCopy": "Skopiuj {{count}} sampli ({{size}}) na ten komputer",
+    "samplesCopied": "Skopiowano {{count}} sampli",
+    "edit": "Edytuj {{name}}"
+  },
+  "kits": {
+    "heading": "Zapisane zestawy",
+    "name": "Nazwa zestawu",
+    "save": "Zapisz zestaw",
+    "none": "Brak zapisanych zestawów. Przypisz sample, nadaj im nazwę, a następnym razem będą tutaj.",
+    "delete": "Usuń {{name}}",
+    "duplicate": "Skopiuj {{name}} pod wpisaną nazwą"
   }
 }

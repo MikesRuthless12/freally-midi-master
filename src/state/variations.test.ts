@@ -129,6 +129,50 @@ describe('the variation history', () => {
     expect(counter('drums')).toEqual({ position: 4, total: 4 });
   });
 
+  it('keeps takes per part, so one seed cannot star two generators', () => {
+    // ⛔ The drums and the melody of one record share a song seed. Keying the
+    // kept set on the seed alone would mean starring a melody silently starred
+    // the drums with it, and a training set nobody chose.
+    const { record, keep, keptEntries } = useVariations.getState();
+    record(entryFor(clip('melody', '7', 140), { mood: null, pins: NO_PINS }, 7));
+    record(entryFor(clip('drums', '7', 140), { mood: null, pins: NO_PINS }, 7));
+
+    keep('melody', '7', true);
+
+    const kept = useVariations.getState().keptEntries();
+    expect(kept).toHaveLength(1);
+    expect(kept[0].part).toBe('melody');
+    expect(keptEntries).toBeTypeOf('function');
+  });
+
+  it('unkeeping takes a take back out of the training set', () => {
+    const { record, keep } = useVariations.getState();
+    record(entryFor(clip('melody', '11', 140), { mood: null, pins: NO_PINS }, 11));
+
+    keep('melody', '11', true);
+    expect(useVariations.getState().keptEntries()).toHaveLength(1);
+
+    keep('melody', '11', false);
+    expect(useVariations.getState().keptEntries()).toHaveLength(0);
+  });
+
+  it('stepping back through the log cannot change what was kept', () => {
+    // ⛔ Keeping is an opinion about a take; the log is a record of what
+    // happened. A flag living inside the entry would be one careless `record`
+    // away from browsing the history rewriting the training set.
+    const { record, keep, step } = useVariations.getState();
+    for (const seed of ['1', '2', '3']) {
+      record(entryFor(clip('melody', seed, 140), { mood: null, pins: NO_PINS }, Number(seed)));
+    }
+    keep('melody', '2', true);
+
+    step('melody', -2);
+    record(entryFor(clip('melody', '4', 140), { mood: null, pins: NO_PINS }, 4));
+
+    const kept = useVariations.getState().keptEntries();
+    expect(kept.map((entry) => entry.seed)).toEqual(['2']);
+  });
+
   it('writes the date the way it was asked for, through Intl', () => {
     // ⛔ Two formatters joined by " @", because `timeStyle` cannot be combined
     // with `timeZoneName`. A literal `dddd, MMMM D, YYYY` would be right in one

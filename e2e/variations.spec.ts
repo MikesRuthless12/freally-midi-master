@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { pickArtist } from './app';
 
 /**
  * The variation history (TASK-045).
@@ -12,7 +13,7 @@ import { expect, test } from '@playwright/test';
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('tablist', { name: 'Generator' })).toBeVisible();
-  await page.locator('.roster__item', { hasText: 'Mock Artist' }).click();
+  await pickArtist(page, 'Mock Artist');
 });
 
 test('the counter starts empty and counts every generation of this part', async ({ page }) => {

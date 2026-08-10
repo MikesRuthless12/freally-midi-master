@@ -11,6 +11,7 @@ import type {
   Scale,
   SessionDefaults,
   Song,
+  SplitPart,
 } from '../lib/ipc-types';
 import { patternTicks } from '../components/PianoRoll/notes';
 import { useHistory, type Snapshot } from './history';
@@ -522,6 +523,16 @@ type SessionState = {
   pendingArtist: RosterEntry | null;
 
   init: () => Promise<void>;
+  /**
+   * Re-read the roster alone, after the user saves or deletes a style.
+   *
+   * ⛔ Not `init()`, which also restores the session, asks who owns the
+   * transport and reloads the drag capability — none of which changed because
+   * somebody named a style. Running it again would rewind the producer's
+   * session to whatever was last persisted, which is a spectacular thing for a
+   * Save button to do.
+   */
+  refreshRoster: () => Promise<void>;
   select: (id: string) => void;
   /** Type or paste a seed. Anything non-empty pins it; clearing the box unpins. */
   setSeed: (seed: string) => void;
@@ -640,6 +651,22 @@ type SessionState = {
    * other leaves a melody clip open on the drum grid.
    */
   openClip: (pattern: Pattern, part: Part) => void;
+  /**
+   * Read a `.mid` from the sample library into one generator (TASK-058/040T).
+   *
+   * ⛔ Mike, 2026-08-10: *"be able to drag the file to a generator."* The Rust
+   * for this — `explorer::midi_pattern` and `engine::smf_read` — shipped with
+   * **no caller**, the same way the whole explorer did before TASK-132. This is
+   * that caller.
+   */
+  importMidi: (path: string, part: Part) => Promise<void>;
+  /**
+   * Open every part a layered `.mid` was separated into (TASK-058D).
+   *
+   * ⛔ Mike, 2026-08-10: *"split it into the proper generators if it is a layered
+   * melody file with the bass and countermelody included."*
+   */
+  importSplit: (parts: SplitPart[]) => void;
   editPattern: (next: Pattern) => void;
   /** Run our own transport. Standalone only — in a host this is the DAW's. */
   play: () => Promise<void>;
@@ -782,9 +809,22 @@ function snapshotOf(state: SessionState): Snapshot {
   // Comparing the ids rather than reordering the subscribers is what makes it
   // robust: a `Song` knows which artist it was built for, so this cannot be
   // broken again by a change to registration order.
+  // ⛔⛔ **An IMPORTED song belongs to no artist, and the guard was eating it.**
+  // `smf_to_song` sets `artist_id` empty on purpose — a file carries no artist,
+  // and inventing one would name a style that did not make it. But an empty id
+  // never equals `selectedId`, so every snapshot filed the producer's imported
+  // arrangement as `null`: one seed keystroke after the import, Ctrl+Z wiped the
+  // whole thing, and Ctrl+Y could not bring it back because the redo snapshot had
+  // been stripped too. Found by a code review, 2026-08-10.
+  //
+  // ⚠ The guard's own purpose is unaffected. It exists to stop the *outgoing*
+  // artist's song being filed under the *incoming* artist's id during a switch —
+  // a mismatch between two real artists. An import has no artist to mismatch, so
+  // it is not the case being guarded against.
   const held = readSongDocument();
+  const imported = held.song !== null && held.song.artistId === '';
   const arrangement =
-    held.song !== null && held.song.artistId !== state.selectedId
+    held.song !== null && !imported && held.song.artistId !== state.selectedId
       ? { song: null, edited: false }
       : held;
   return {
@@ -956,6 +996,43 @@ async function loadDefaults(
     if (get().selectedId === id) set({ defaults });
   } catch {
     if (get().selectedId === id) set({ defaults: null });
+  }
+}
+
+/**
+ * Put a style's own samples back on the pads (TASK-049).
+ *
+ * ⛔ **This is what makes the consent text true.** It promises the copies
+ * *"still work if you move or delete the originals"*, and until this existed
+ * nothing read `models/<id>/samples/` at all — Mike, 2026-08-09: *"when i tried
+ * to clear the kick from the 'My EDM' drum lane, and tried to go to something
+ * different, and then clicked on My EDM again, it didn't load the kick drum back
+ * into the slot."*
+ *
+ * ⛔ **Only for a style the producer owns.** A shipped artist has no copied
+ * samples by construction, so asking would be a bridge round trip per click
+ * through a five-hundred-name roster, to be told no every time.
+ *
+ * ⚠ **Not an `error` on failure**, for the reason [`loadDefaults`] gives above:
+ * the banner under Generate says a *generation* went wrong. A kit that could not
+ * be restored surfaces through the kit panel's own error, which is where a
+ * producer is already looking when their pads are wrong.
+ */
+async function loadOwnSamples(id: string, roster: RosterEntry[]): Promise<void> {
+  if (!roster.find((entry) => entry.id === id)?.mine) return;
+  try {
+    // `false` means the style owns nothing — the common case, and not a failure.
+    if (!(await invoke<boolean>('user_model_load_samples', { id }))) return;
+
+    // ⛔ **Imported here rather than at the top, because `kit.ts` imports this
+    // module.** A static import back would close the cycle at module-init time,
+    // and a cycle that happens to work because one store's body only *defines*
+    // functions is a cycle that breaks the first time either file grows
+    // top-level work. This runs long after both are evaluated.
+    const { useKit } = await import('./kit');
+    await useKit.getState().awaitLoader();
+  } catch {
+    // Deliberately swallowed; see the doc above.
   }
 }
 
@@ -1395,6 +1472,15 @@ export const useSession = create<SessionState>((set, get) => ({
   defaults: null,
   pendingArtist: null,
 
+  async refreshRoster() {
+    try {
+      const summary = await loadRoster();
+      set({ roster: summary.entries, problems: summary.problems });
+    } catch (error) {
+      set({ error: reason(error) });
+    }
+  },
+
   async init() {
     const saved = beginRestore();
 
@@ -1498,6 +1584,7 @@ export const useSession = create<SessionState>((set, get) => ({
     });
 
     void loadDefaults(id, set, get);
+    void loadOwnSamples(id, roster);
   },
 
   setSeed(seed) {
@@ -1992,6 +2079,51 @@ export const useSession = create<SessionState>((set, get) => ({
       editedParts: withEdit(state.editedParts, part),
       edited: true,
     }));
+  },
+
+  async importMidi(path, part) {
+    set({ error: null });
+    try {
+      const pattern = await invoke<Pattern>('explorer_midi', { path, part });
+      // ⛔ **Refused rather than opened when it has no notes.** An empty clip
+      // dropped into a generator looks exactly like a working import of a file
+      // that happens to be silent — and the producer would press Play and hear
+      // nothing with nothing on screen saying why. `smf_to_pattern` reads what is
+      // there; whether what is there is worth opening is this layer's question.
+      if (pattern.lanes.every((lane) => lane.notes.length === 0)) {
+        set({ error: reason('that MIDI file has no notes in it') });
+        return;
+      }
+      // ⚠ **`openClip`, not a bare `set`.** It moves the tab as well as the
+      // clip, and it latches `edited` — which is what stops the next Generate
+      // silently replacing an imported file, and what makes the project store
+      // the notes rather than a seed that never produced them.
+      get().openClip(pattern, part);
+    } catch (error) {
+      set({ error: reason(error) });
+    }
+  },
+
+  importSplit(parts) {
+    if (parts.length === 0) return;
+    // ⛔ **One `set`, not one per part.** `openClip` writes the store and moves
+    // the tab, so calling it five times would fire five renders and five
+    // arm/disarm round trips — and leave the tab on whichever part happened to
+    // be last in the list rather than on anything meaningful.
+    set((state) => {
+      const patterns = { ...state.patterns };
+      let editedParts = state.editedParts;
+      for (const split of parts) {
+        patterns[split.part] = split.pattern;
+        editedParts = withEdit(editedParts, split.part);
+      }
+      return { patterns, editedParts, edited: true, error: null };
+    });
+    // ⚠ **The tab lands on the biggest part**, which is the one a producer most
+    // likely wants to look at first — and never on a part that is not in the
+    // split at all.
+    const biggest = parts.reduce((held, part) => (part.notes > held.notes ? part : held));
+    useUi.getState().setActiveTab(biggest.part);
   },
 
   editPattern(next) {

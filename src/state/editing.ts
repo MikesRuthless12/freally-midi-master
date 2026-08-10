@@ -103,6 +103,22 @@ type EditingState = {
 
   setSnap: (snap: Snap) => void;
   setZoom: (zoom: number) => void;
+  /**
+   * Show a whole clip at once, however long it is.
+   *
+   * ⛔⛔ **Mike, 2026-08-09**: *"the entire midi piano roll pattern needs to be
+   * shown, not just most of it, whether it's 4 or 8 bars shouldn't matter."*
+   * The roll opened at a fixed 64px per quarter, so a four-bar clip needed
+   * 1024px and an eight-bar one needed 2048 — anything past the stage width was
+   * simply off-screen, and a producer had to zoom out by hand every time to see
+   * what had been generated. Length is a property of the clip; the zoom should
+   * follow it rather than the other way round.
+   *
+   * ⚠ Clamped to `MIN_ZOOM`, so an absurdly long clip stops shrinking rather
+   * than becoming an unreadable smear — past that it scrolls, which is the
+   * honest answer.
+   */
+  fitTo: (totalTicks: number, ppq: number, viewportPx: number) => void;
   setRowHeight: (height: number) => void;
   scrollTo: (tick: number, pitch: number) => void;
 
@@ -143,6 +159,22 @@ export const useEditing = create<EditingState>((set, get) => ({
 
   setSnap: (snap) => set({ snap }),
   setZoom: (zoom) => set({ zoom: Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom)) }),
+
+  fitTo: (totalTicks, ppq, viewportPx) => {
+    // Nothing to fit to, and dividing by either would give Infinity.
+    if (totalTicks <= 0 || ppq <= 0 || viewportPx <= 0) return;
+    const quarters = totalTicks / ppq;
+    // ⚠ A hair under the full width, so the clip's last bar line is inside the
+    // viewport rather than exactly on its edge where it reads as cut off.
+    const wanted = (viewportPx * 0.985) / quarters;
+    set({
+      zoom: Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, wanted)),
+      // ⛔ Back to the start with it. Fitting a clip while scrolled into the
+      // middle of the previous one shows the right *amount* of a clip and the
+      // wrong *part* of it.
+      scrollTick: 0,
+    });
+  },
   setRowHeight: (rowHeight) =>
     set({
       rowHeight: Math.min(MAX_ROW_HEIGHT, Math.max(MIN_ROW_HEIGHT, Math.round(rowHeight))),

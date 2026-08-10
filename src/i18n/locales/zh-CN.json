@@ -48,7 +48,15 @@
     "shipped": "内置",
     "silent": "无声音",
     "choosing": "选择中…",
-    "clearOne": "清除 {{lane}} 上的单击采样"
+    "clearOne": "清除 {{lane}} 上的单击采样",
+    "randomize": "从这个文件夹重新抽取所有未锁定的音垫",
+    "randomizeOne": "从这个文件夹重新抽取 {{lane}}",
+    "padsLabel": "鼓垫",
+    "muteLane": "静音 {{lane}}",
+    "unmuteLane": "取消静音 {{lane}}",
+    "playLane": "播放 {{lane}}",
+    "padLane": "鼓垫 {{at}} 音轨",
+    "useSelected": "将所选样本放到 {{lane}}"
   },
   "sections": {
     "genres": "曲风",
@@ -400,7 +408,28 @@
     "decoding": "正在读取…",
     "waveformOf": "{{name}} 的波形",
     "reverse": "倒放",
-    "resize": "调整浏览器宽度"
+    "resize": "调整浏览器宽度",
+    "fillRail": "让浏览器占满整栏",
+    "restoreRail": "重新显示艺人列表",
+    "folderLimit": "一次最多浏览 8 个文件夹 — 关闭一个才能再添加",
+    "favourites": "收藏夹",
+    "star": "收藏 {{name}}",
+    "unstar": "取消收藏 {{name}}",
+    "revealHint": "在文件管理器中显示 {{path}}",
+    "midiApply": "发送到生成器",
+    "midiDragHint": "或将文件拖到某个生成器，把全部内容导入到那里。",
+    "splitReason": {
+      "drumChannel": "位于 GM 鼓通道",
+      "polyphonic": "和弦 — 音符重叠",
+      "lowestVoice": "最低声部",
+      "highestVoice": "最高声部",
+      "innerVoice": "中间声部",
+      "splitByPitch": "单声部，按音高拆分 — 这是推测",
+      "fromName": "来自文件名",
+      "kitShape": "像鼓组一样演奏"
+    },
+    "midiFound": "此 MIDI 文件的内容",
+    "midiNotes": "音符"
   },
   "patterns": {
     "name": "为此样式命名",
@@ -429,5 +458,44 @@
     "key": "{{key}} {{scale}}",
     "halfTime": "半速",
     "moods": "{{count}} 种氛围"
+  },
+  "styles": {
+    "original": "我的工作流",
+    "originalHint": "打造属于你的风格",
+    "mine": "你的",
+    "title": "风格编辑器",
+    "name": "名称",
+    "namePlaceholder": "我的暗黑 Trap",
+    "basedOn": "基于",
+    "basedOnHint": "你没有覆盖的设置都会继承下来，包括日后的改进。",
+    "tempo": "速度",
+    "swing": "摇摆",
+    "hats": "踩镲密度",
+    "melody": "旋律密度",
+    "scales": "音阶",
+    "scalesHint": "仅限 {{name}} 实际使用的音阶。",
+    "save": "保存风格",
+    "delete": "删除工作流",
+    "export": "导出",
+    "import": "导入",
+    "nameNeeded": "给你的风格起个名字。",
+    "saved": "已保存为 {{name}}",
+    "keep": "保留此次生成用于训练",
+    "kept": "已保留 {{count}} / {{needed}}",
+    "train": "训练",
+    "trained": "基于 {{count}} 次生成训练完成",
+    "samplesHeading": "它的声音",
+    "samplesNote": "你的风格可以保留你指定的单击样本。它们会被复制到这台电脑上，即使你移动或删除原文件也依然能发声，同时会额外占用相应的硬盘空间。不勾选就不会复制任何东西。",
+    "samplesCopy": "将 {{count}} 个样本（{{size}}）复制到这台电脑",
+    "samplesCopied": "已复制 {{count}} 个样本",
+    "edit": "编辑 {{name}}"
+  },
+  "kits": {
+    "heading": "已保存的音色组",
+    "name": "音色组名称",
+    "save": "保存音色组",
+    "none": "还没有保存的音色组。指定一些样本并命名，下次就会出现在这里。",
+    "delete": "删除 {{name}}",
+    "duplicate": "用输入的名称复制 {{name}}"
   }
 }

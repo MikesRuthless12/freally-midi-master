@@ -354,5 +354,172 @@
   },
   "kit": {
     "preview": "drill-default"
-  }
+  },
+  "modes": [
+    {
+      "name": "raw",
+      "weight": 4,
+      "melody": {
+        "densityPerBar": [
+          2,
+          5
+        ],
+        "contour": {
+          "riff": 0.55,
+          "descend": 0.35,
+          "arch": 0.1
+        },
+        "chordToneBias": 0.66,
+        "halfStepDissonance": 0.12
+      },
+      "chords": {
+        "extensions": {
+          "triad": 0.92,
+          "seventh": 0.07,
+          "ninth": 0.01
+        },
+        "harmonicRhythm": {
+          "values": [
+            "vamp",
+            "2_bars_per_chord"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        }
+      },
+      "drums": {
+        "hihat": {
+          "fillDensity": 0.4,
+          "rolls": {
+            "freqPerBar": 0.25
+          }
+        }
+      }
+    },
+    {
+      "name": "sinister",
+      "weight": 3,
+      "session": {
+        "scales": {
+          "values": [
+            "harmonic_minor",
+            "phrygian"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        }
+      },
+      "melody": {
+        "register": [
+          60,
+          84
+        ],
+        "densityPerBar": [
+          2,
+          6
+        ],
+        "contour": {
+          "riff": 0.35,
+          "descend": 0.5,
+          "arch": 0.15
+        },
+        "chordToneBias": 0.52,
+        "halfStepDissonance": 0.3
+      },
+      "chords": {
+        "progressionFamilies": [
+          {
+            "roman": [
+              "i",
+              "bII",
+              "i"
+            ],
+            "weight": 4
+          },
+          {
+            "roman": [
+              "i",
+              "VI"
+            ],
+            "weight": 3
+          },
+          {
+            "roman": [
+              "i",
+              "bII",
+              "VII"
+            ],
+            "weight": 2
+          },
+          {
+            "roman": [
+              "i"
+            ],
+            "weight": 2
+          }
+        ]
+      },
+      "countermelody": {
+        "densityRatio": 0.45,
+        "styles": {
+          "values": [
+            "sustain_pad",
+            "answer_lick"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        }
+      }
+    },
+    {
+      "name": "modern",
+      "weight": 2,
+      "session": {
+        "bpm": {
+          "min": 135,
+          "max": 150,
+          "mode": 142
+        }
+      },
+      "melody": {
+        "densityPerBar": [
+          4,
+          8
+        ],
+        "phraseBars": {
+          "values": [
+            2,
+            4
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "octaveJumpProb": 0.16
+      },
+      "chords": {
+        "extensions": {
+          "triad": 0.7,
+          "seventh": 0.26,
+          "ninth": 0.04
+        }
+      },
+      "drums": {
+        "hihat": {
+          "base": "16th",
+          "fillDensity": 0.62,
+          "rolls": {
+            "freqPerBar": 0.55
+          }
+        }
+      }
+    }
+  ]
 }

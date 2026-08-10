@@ -73,9 +73,31 @@ the result into FL Studio, Ableton, Logic, Reaper, or anything else.
   Generate and playing your project makes a sound without wiring an instrument
   up first. One switch turns it off again and hands the notes to your own drum
   sampler, because MIDI-only is a way of working rather than a fallback.
-- **Search an artist, not a genre.** Instant fuzzy autosuggest across a mainstream
-  roster and an underground roster. Genres exist as a browse filter, not the unit of
-  generation.
+- **Search an artist, not a genre.** One type-to-autocomplete box finds anyone —
+  across a mainstream roster and an underground one, through aliases and past
+  typos. Artists and genres sit in the same list, each row saying which it is, so
+  you never have to know in advance whether "UK Drill" is a person or a style.
+  Stop typing halfway and click away and it takes the best match, so you cannot
+  end up with nothing chosen. What the selection *does* — its era, its genres, the
+  tempo and key it tends toward — appears directly underneath, before you press
+  Generate. Genres exist as a browse filter, not the unit of generation.
+- **Every artist has moods, not one sound.** Pick a mood beside the artist and
+  stay there, or leave it on *Any* and let each press walk their range —
+  boom bap's *dusty / jazzy / hard*, phonk's *cowbell / memphis / brazilian*,
+  trap's *dark / bounce / melodic / minimal*. One artist writes more than one kind
+  of record, and the seed alone could never cross between them.
+- **Build a style of your own, and train it on what you keep.** Start from any
+  artist or genre, adjust the tempo range, swing, hat density, melody density and
+  scales, and save it — it appears in the roster marked *Yours* and generates,
+  locks, re-rolls and exports exactly like a shipped one, because it is one. Star
+  the takes you like and Train fits a style to them. **No machine learning
+  anywhere in it**: it measures your generations and writes the numbers back, and
+  a style that would only repeat itself is refused rather than saved. Your own
+  `.mid` files can train it too.
+- **Nothing copies your samples without asking.** A style can keep the one-shots
+  you assigned so they survive you moving the originals — and because that is a
+  second copy on your drive, it tells you how many files and how many megabytes
+  first, unticked.
 - **Five generators, plus Song Mode.** Drums · Melody · Countermelody · Bassline ·
   Chords — plus Song Mode, which is not a sixth generator but an arrangement that
   fills all five in. Drums has a pad grid; the other four have a piano roll.
@@ -92,9 +114,38 @@ the result into FL Studio, Ableton, Logic, Reaper, or anything else.
   starting your DAW's transport takes it straight back.
 - **Audition with your own sounds.** Drop your own one-shot on any drum lane or
   on melody, countermelody, bassline or chords — WAV, AIFF, FLAC, MP3, M4A or
-  OGG. A sample browser keeps your folders and brings them back with the
-  project. The synthesized kit that ships in the binary is the default, not the
-  ceiling.
+  OGG. The synthesized kit that ships in the binary is the default, not the
+  ceiling. A sample recorded at a different rate from the kit around it is
+  converted once, properly filtered, when you load it — rather than stretched to
+  fit on every note.
+- **A file browser that behaves like one.** Your library folders sit at the top,
+  their subfolders indent underneath, files below those — up to **eight folders
+  as tabs**, and it all comes back next time you open the app, project or no
+  project. Arrow keys walk it: `→` opens a folder, `←` shuts it, and on a file
+  those same keys play it forwards and backwards. **Star anything** — sample,
+  one-shot or MIDI — and it joins a list; click a starred name and the tree opens
+  its way down to it, or opens Explorer or Finder if that folder is no longer one
+  of your eight.
+- **Drop a MIDI file in and it works out what is in it.** Drag a `.mid` onto a
+  generator and its notes land there; drop it on the Song tab and the whole file
+  arrives as an arrangement you can take parts out of, cell by cell, without
+  overwriting anything until you choose to. A layered file separates into bass,
+  melody, countermelody, chords and drums — and **each part tells you why it was
+  routed there**, so a wrong guess is one click to redirect rather than something
+  you find out later.
+- **Eight pads across the top, and everything on their face.** Each is a drum
+  lane: its name, what is on it, and a dot — green if you can hear it, red if you
+  cannot. Press the pad to mute it, press Play in its middle to hear that sound
+  alone, drag a sample onto it, or clear it back to the built-in. Every pad's name
+  is a picker over all thirty-seven lanes, **two pads may share one so you can
+  layer a snare**, and the layout is remembered *per artist* — a style you built
+  comes back exactly as you left it, with the sounds you gave it.
+- **Re-roll a pad from the folder you are browsing.** A shuffle on any lane pulls
+  a new sample from the folder open in the browser, matched to what that lane is —
+  a snare gets snares — and one re-roll does the whole kit. Locked pads are left
+  alone. **Name a kit and it is there next time**, in any song: save, load,
+  duplicate or delete it, and it stores the paths rather than copying anybody's
+  audio around.
 - **Edit what you got.** Piano-roll editor and a pad-grid drum sequencer, with
   solo, mute and per-lane audition on every drum row — click a lane's name to
   hear that pad on its own. **Lock what you like and reroll the rest**: a locked
@@ -154,6 +205,15 @@ There is **no AI in this product**. No models, no training data, no inference, n
 network calls during generation. The engine is deterministic procedural code reading
 hand-authored style parameters derived from published research.
 
+⛔ **This holds for "train your own style" too, and the word is worth being exact
+about.** Training here is **parameter fitting**: the app measures the takes you
+kept — how many onsets a bar, what register, what shape the line made — and
+writes those ranges back as an ordinary style model, the same kind of file the
+shipped artists are. There is no model, nothing is learned from anybody else's
+music, and nothing leaves your machine. A build with an AI or an HTTP client
+anywhere in its dependency graph fails CI: `scripts/check-denylist.mjs` walks
+every resolved crate and every production npm package on every push.
+
 That is a legal architecture as much as a technical one: nothing here is copied MIDI,
 sampled audio, or a transcription of anyone's record, and there is no feature that
 recreates a specific song. Artist names are descriptive style references only —
@@ -185,6 +245,12 @@ npm run plugin:build        # release .clap, with the bundled-content gate
 npm run plugin:install      # symlink it into the CLAP folder — once
 npm run ci:local            # every gate, with CI's own environment
 ```
+
+The release standalone is `target/release/standalone.exe` and can simply be
+double-clicked: it supplies its own audio period size rather than needing a flag,
+and opens no console window behind itself. If it ever dies, it appends a stack
+trace to `%APPDATA%\Freally MIDI Master\standalone-crash.log` — and
+`NIH_LOG=some\file.log` brings the whole log back without a rebuild.
 
 **`npm run build` must run before any cargo build**, because the plugin compiles
 the built UI and the dataset into its binary — a plugin has no resource directory

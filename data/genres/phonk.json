@@ -492,5 +492,156 @@
   },
   "kit": {
     "preview": "phonk-default"
-  }
+  },
+  "modes": [
+    {
+      "name": "cowbell",
+      "weight": 4,
+      "melody": {
+        "densityPerBar": [
+          5,
+          10
+        ],
+        "contour": {
+          "riff": 0.7,
+          "descend": 0.2,
+          "arch": 0.1
+        },
+        "octaveJumpProb": 0.28,
+        "phraseBars": {
+          "values": [
+            1,
+            2
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        }
+      },
+      "chords": {
+        "harmonicRhythm": {
+          "values": [
+            "vamp"
+          ],
+          "weights": [
+            1
+          ]
+        }
+      },
+      "drums": {
+        "hihat": {
+          "fillDensity": 0.55
+        }
+      }
+    },
+    {
+      "name": "memphis",
+      "weight": 3,
+      "session": {
+        "bpm": {
+          "min": 118,
+          "max": 135,
+          "mode": 126
+        },
+        "scales": {
+          "values": [
+            "natural_minor",
+            "phrygian_dominant"
+          ],
+          "weights": [
+            3,
+            3
+          ]
+        }
+      },
+      "melody": {
+        "register": [
+          55,
+          79
+        ],
+        "densityPerBar": [
+          3,
+          7
+        ],
+        "intervals": {
+          "step": 0.6,
+          "third": 0.22,
+          "leap": 0.18
+        },
+        "contour": {
+          "riff": 0.5,
+          "descend": 0.35,
+          "arch": 0.15
+        },
+        "straightEighthsProb": 0.65
+      },
+      "chords": {
+        "extensions": {
+          "triad": 0.88,
+          "seventh": 0.1,
+          "ninth": 0.02
+        }
+      },
+      "drums": {
+        "hihat": {
+          "base": "8th",
+          "fillDensity": 0.35
+        }
+      }
+    },
+    {
+      "name": "brazilian",
+      "weight": 2,
+      "session": {
+        "bpm": {
+          "min": 145,
+          "max": 165,
+          "mode": 155
+        }
+      },
+      "melody": {
+        "densityPerBar": [
+          4,
+          9
+        ],
+        "octaveJumpProb": 0.24,
+        "phraseBars": {
+          "values": [
+            2,
+            4
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        }
+      },
+      "chords": {
+        "harmonicRhythm": {
+          "values": [
+            "vamp",
+            "1_per_bar"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        }
+      },
+      "drums": {
+        "kick": {
+          "densityPerBar": [
+            5,
+            8
+          ],
+          "syncopation": 0.65
+        },
+        "hihat": {
+          "base": "16th",
+          "fillDensity": 0.6
+        }
+      }
+    }
+  ]
 }

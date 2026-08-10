@@ -1,3 +1,4 @@
+import { Pencil } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { useSession } from '../../state/session';
@@ -18,9 +19,20 @@ import './RosterList.css';
 export function RosterList({
   artists,
   genres,
+  onEdit,
 }: {
   artists: RosterEntry[];
   genres: RosterEntry[];
+  /**
+   * Open a style of the producer's own in the editor.
+   *
+   * ⛔ **Without this a saved style could never be edited or deleted.** The
+   * editor's delete path and its read-back-what-was-saved path both key on an
+   * id, and nothing in the app ever passed one — so a producer accumulated user
+   * models with no way to change or remove any of them. The badge said the row
+   * was theirs and the row did nothing about it.
+   */
+  onEdit: (id: string) => void;
 }) {
   const { t } = useTranslation();
   const selectedId = useSession((s) => s.selectedId);
@@ -45,7 +57,14 @@ export function RosterList({
                     list: there the two kinds are mixed together with no heading
                     above them, so the row is the only thing that can say
                     whether "Trap" is an artist or the archetype under one. */}
-                {entry.type === 'genre' ? (
+                {/* ⛔ **A style of the producer's own says so first** (TASK-040U).
+                    It beats the tier badge rather than sitting beside it: a user
+                    model inherits its parent's `tier`, so a style built on Drake
+                    would otherwise wear FLAGSHIP — claiming a provenance it does
+                    not have, in the one row that exists to say what a thing is. */}
+                {entry.mine ? (
+                  <span className="badge badge--mine">{t('styles.mine')}</span>
+                ) : entry.type === 'genre' ? (
                   <span className="badge badge--genre">{t('roster.genre')}</span>
                 ) : (
                   entry.tier === 'flagship' && (
@@ -53,6 +72,21 @@ export function RosterList({
                   )
                 )}
               </button>
+
+              {/* ⚠ Its own control rather than a click-through on the row: the
+                  row selects, and selecting a style to generate from is not the
+                  same gesture as opening it to change. */}
+              {entry.mine && (
+                <button
+                  type="button"
+                  className="roster__edit"
+                  aria-label={t('styles.edit', { name: entry.name })}
+                  title={t('styles.edit', { name: entry.name })}
+                  onClick={() => onEdit(entry.id)}
+                >
+                  <Pencil size={12} aria-hidden="true" />
+                </button>
+              )}
             </li>
           ))}
         </ul>

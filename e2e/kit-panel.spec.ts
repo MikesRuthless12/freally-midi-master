@@ -58,8 +58,51 @@ test('a lane with a voice reads differently from one with none', async ({ page }
     'false',
   );
 
-  // Nothing is the producer's own yet, so no row offers to clear one.
-  await expect(page.locator('.kit-lane__clear')).toHaveCount(0);
+  // ⚠ **Exactly one row is the producer's own, and only that row offers to
+  // clear.** The fixture gained an assigned `kick` so the sample-copy consent
+  // (TASK-049) has something to be asked about; asserting the count rather than
+  // zero is the stronger claim anyway — it proves the clear affordance follows
+  // the assignment instead of merely being absent everywhere.
+  await expect(page.locator('.kit-lane__clear')).toHaveCount(1);
+  await expect(page.locator('.kit-lane[data-lane="kick"] .kit-lane__clear')).toBeVisible();
+});
+
+test('a kit can be named, saved, listed and deleted', async ({ page }) => {
+  // ⛔ TASK-051. The store, its slug rule and its refusals are Rust and are
+  // tested there; what only this can show is the loop a producer actually
+  // performs — name it, save it, see it listed, take it away again.
+  // ⚠ **Scoped to the KIT section.** `.presets__empty` is `SavedKits`'s class
+  // *and* the preset browser's — two panels in the same rail, both able to say
+  // "nothing here yet". Unscoped this was a race rather than a test: it passed
+  // only while the presets panel happened to render after the assertion, and
+  // any change to how many commands the page fires on load could tip it.
+  const savedKits = page.locator('[data-section="kit"]');
+  await expect(savedKits.locator('.presets__empty')).toContainText('No saved kits yet');
+
+  await page.getByLabel('Kit name').fill('My Trap Kit');
+  await page.getByRole('button', { name: 'Save kit', exact: true }).click();
+
+  const row = savedKits.locator('.presets__item', { hasText: 'My Trap Kit' });
+  await expect(row).toBeVisible();
+
+  await row.getByRole('button', { name: /Delete My Trap Kit/ }).click();
+  await expect(savedKits.locator('.presets__empty')).toBeVisible();
+});
+
+test('every pad can be re-rolled, and the whole kit in one gesture', async ({ page }) => {
+  // ⛔ TASK-050A. The pick rule, the seeding and the threading are Rust and are
+  // tested there; what only this can show is that the gesture exists on every
+  // row *and* once for the kit — "a per-pad dice re-rolls that pad, and a
+  // kit-level dice re-rolls every unlocked pad" is two controls, not one.
+  await expect(page.getByRole('button', { name: /Re-roll every unlocked pad/ })).toBeVisible();
+
+  const rows = page.locator('.kit-lane');
+  const dice = page.locator('.kit-lane__dice');
+  expect(await dice.count()).toBe(await rows.count());
+
+  // And it is offered on a lane that has no sample yet, because re-rolling is
+  // how you get one — not something only an already-filled pad can do.
+  await expect(page.locator('.kit-lane[data-lane="snare"] .kit-lane__dice')).toBeVisible();
 });
 
 test('closing the dialog leaves the panel usable rather than stuck on "Choosing…"', async ({

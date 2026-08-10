@@ -1,7 +1,8 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { AudioWaveform, Drum, ListMusic, Music2, Piano, Waves } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { GENERATOR_TABS, useUi, type GeneratorTab } from '../../state/ui';
+import type { Part } from '../../lib/ipc-types';
 import {
   armCurrentPattern,
   BAR_CHOICES,
@@ -20,6 +21,8 @@ import { SeedChip } from '../SeedChip/SeedChip';
 import { SessionSwitchPrompt } from '../SessionChips/SessionChips';
 import { TransportControls } from './TransportBar';
 import { VariationNav } from '../VariationNav';
+import { MIDI_TYPE, droppedMidi } from '../../lib/dnd';
+import { PadGrid } from '../Kit/PadGrid';
 import { useTranslation } from 'react-i18next';
 
 /** Density buckets handed to the ripple. Matches the columns it draws. */
@@ -35,107 +38,149 @@ const TAB_ICONS: Record<GeneratorTab, LucideIcon> = {
   song: ListMusic,
 };
 
-/**
- * Which generators sound when Play is pressed (TASK-127).
+/*
+ * ⚠ **`PartToggles` is gone, and its rule moved with it** (2026-08-09).
  *
- * ⛔⛔ **Mike, 2026-08-06:** *"i want to be able to play the generators all at
- * once or separately, they should be able to be toggled on and off for each
- * generator."* So this is a set of independent switches, not a solo radio: any
- * combination is legal, and all of them on is the default.
+ * It was a row of six buttons beside the tablist carrying the same six words as
+ * the tabs, so working out which one silenced Drums meant reading "Drums" twice
+ * and matching them up. Mike asked for the switch to live on the tab itself:
+ * *"it should be a button … in the top right side of the tab, so that way you
+ * can mute it by just clicking the 'Green' dot and it will make it 'Red'."*
  *
- * ⛔ **Beside the tablist rather than inside each tab, and that is a
- * requirement rather than a preference.** A `role="tab"` may not contain a
- * second button — nesting interactive controls breaks both the keyboard model
- * and every screen reader — so the switches are their own group.
+ * ⛔ The constraint that shaped the old design still holds and is honoured in
+ * `GeneratorTabs`: a `role="tab"` **may not contain a second button** — nesting
+ * interactive controls breaks the keyboard model and every screen reader — so
+ * the dot is a *sibling* of the tab inside a slot wrapper, never a child of it.
  *
- * ⚠ **Only parts that exist are offered.** A switch for a bassline nobody has
- * generated would be a control that changes nothing, which is the shape of
- * defect this codebase records more than any other.
+ * ⚠ And the Song-tab rule came with it: `TAB_PART.song` is `null`, so re-arming
+ * from the Song tab *disarms* the whole arrangement.
  */
-function PartToggles() {
-  const { t } = useTranslation();
-  const patterns = useSession((s) => s.patterns);
-  const activeTab = useUi((s) => s.activeTab);
-  const partsOff = useUi((s) => s.partsOff);
-  const togglePart = useUi((s) => s.togglePart);
-
-  const generated = GENERATED_PARTS.filter((part) => patterns[part]);
-  if (generated.length === 0) return null;
-
-  return (
-    // ⚠ **No new catalog keys, deliberately.** The part names already exist and
-    // `aria-pressed` is what carries on/off — inventing three strings here would
-    // have meant eighteen translations of them, and `locales.test.ts` rightly
-    // refuses a catalog with a missing or empty key.
-    <div className="parttoggles">
-      {generated.map((part) => {
-        const on = !partsOff.includes(part);
-        return (
-          <button
-            key={part}
-            type="button"
-            className="parttoggle"
-            aria-pressed={on}
-            data-on={on}
-            onClick={() => {
-              togglePart(part);
-              // ⛔ Re-arm here rather than from the store: the schedule holds
-              // one merged clip, so a switch that changed only the UI would
-              // leave Play sounding the previous combination — a control that
-              // looks like it did something and did not.
-              //
-              // ⛔⛔ **Never on the Song tab.** `TAB_PART.song` is `null`, so
-              // `armCurrentPattern` falls through to *disarm* — and these
-              // toggles are still drawn there, because the header is
-              // tab-independent and the clips still exist. Generate a song,
-              // click a part switch, and the whole arrangement goes silent with
-              // the timeline still on screen and Play still lit.
-              //
-              // `session.ts` already excludes `'song'` from the tab-change
-              // re-arm for the same reason — *"SongTimeline's own mount effect
-              // arms the arrangement and its cleanup hands the transport back"*
-              // — and this call site did not inherit the rule.
-              if (activeTab !== 'song') armCurrentPattern();
-            }}
-          >
-            {t(`tabs.${part}`)}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
 
 function GeneratorTabs() {
   const { t } = useTranslation();
   const activeTab = useUi((s) => s.activeTab);
   const setActiveTab = useUi((s) => s.setActiveTab);
+  const patterns = useSession((s) => s.patterns);
+  const partsOff = useUi((s) => s.partsOff);
+  const togglePart = useUi((s) => s.togglePart);
+  const importMidi = useSession((s) => s.importMidi);
+  const importSong = useSong((s) => s.importSong);
+  const [over, setOver] = useState<string | null>(null);
 
   return (
     <div className="tabs" role="tablist" aria-label={t('tabs.group')}>
       {GENERATOR_TABS.map((tab, index) => {
         const Icon = TAB_ICONS[tab];
         const selected = tab === activeTab;
+        // ⛔ **The mute dot only exists once the part does.** A dot on a tab with
+        // no clip behind it would offer to silence something that is not making
+        // a sound — and `partsOff` would then carry a part that was never
+        // generated. `song` is not a generated part and has none.
+        const part = GENERATED_PARTS.find((candidate) => candidate === (tab as Part));
+        const hasClip = part !== undefined && patterns[part] != null;
+        const on = part !== undefined && !partsOff.includes(part);
+
         return (
-          <button
+          <div
             key={tab}
-            type="button"
-            role="tab"
-            id={`tab-${tab}`}
-            aria-selected={selected}
-            aria-controls="generator-panel"
-            tabIndex={selected ? 0 : -1}
-            className="tab"
-            // FR-018's "tooltips show keys everywhere". ⚠ The digit comes from
-            // the tab's *position*, the same way `App.tsx` binds it — a
-            // hardcoded number here would go wrong the day a generator is
-            // added, and it would go wrong silently.
-            title={`${t(`tabs.${tab}`)} — ${index + 1}`}
-            onClick={() => setActiveTab(tab)}
+            className="tab-slot"
+            data-midi-over={over === tab}
+            // ⛔⛔ **A generator is a drop target for a `.mid`** — Mike,
+            // 2026-08-10: *"be able to drag the file to a generator."* The tab
+            // rather than the editor below it, because the tab is the one place
+            // that names the part while every part is visible at once: dropping
+            // on the roll could only ever mean "the part already showing", which
+            // makes the gesture a two-step (switch tab, then drag).
+            //
+            // ⛔ **`MIDI_TYPE`, so a sample cannot land here and a `.mid` cannot
+            // land on a pad.** `FileTree` puts the two kinds on different MIME
+            // types precisely so each drop target refuses the other *before* the
+            // producer releases — the cursor says no rather than the app
+            // erroring afterwards.
+            //
+            // ⚠ Song takes no drop: it is an arrangement of clips, not a clip,
+            // and `openClip` has no part to open one into.
+            onDragOver={(event) => {
+              if (!event.dataTransfer.types.includes(MIDI_TYPE)) return;
+              event.preventDefault();
+              event.dataTransfer.dropEffect = 'copy';
+              if (over !== tab) setOver(tab);
+            }}
+            onDragLeave={() => setOver((held) => (held === tab ? null : held))}
+            onDrop={(event) => {
+              setOver(null);
+              const path = droppedMidi(event.dataTransfer);
+              if (path === null) return;
+              event.preventDefault();
+              // ⛔⛔ **Song takes the whole file as an arrangement** (TASK-058D).
+              // Mike, 2026-08-10: *"could you put the midi for the entire song
+              // into the 'Song' tab and allow them to pick which parts they want
+              // for the generators."* The other five tabs still take the file
+              // into that one generator, which is the "I know what this is"
+              // shortcut; Song is the "show me what is in it" route.
+              if (part === undefined) {
+                void importSong(path);
+                return;
+              }
+              void importMidi(path, part);
+            }}
           >
-            <Icon size={16} aria-hidden="true" />
-            {t(`tabs.${tab}`)}
-          </button>
+            <button
+              type="button"
+              role="tab"
+              id={`tab-${tab}`}
+              aria-selected={selected}
+              aria-controls="generator-panel"
+              tabIndex={selected ? 0 : -1}
+              className="tab"
+              // FR-018's "tooltips show keys everywhere". ⚠ The digit comes from
+              // the tab's *position*, the same way `App.tsx` binds it — a
+              // hardcoded number here would go wrong the day a generator is
+              // added, and it would go wrong silently.
+              title={`${t(`tabs.${tab}`)} — ${index + 1}`}
+              onClick={() => setActiveTab(tab)}
+            >
+              <Icon size={16} aria-hidden="true" />
+              {t(`tabs.${tab}`)}
+            </button>
+
+            {/* ⛔⛔ **The mute switch, on the tab it belongs to** — Mike,
+                2026-08-09: *"the 'Drums' 'Melody' etc. for the muting should not
+                be at the top to the left of being able to select a historical
+                generation, it should be a button … in the top right side of the
+                tab, so that way you can mute it by just clicking the 'Green' dot
+                and it will make it 'Red'."* It was a second row of the same six
+                words, which meant reading "Drums" twice to work out which one
+                silenced it. On the tab there is nothing to match up.
+                ⚠ A sibling of the tab, not a child: a button inside a button is
+                not something HTML allows, and the click would go to whichever
+                the browser preferred. */}
+            {hasClip && part !== undefined && (
+              <button
+                type="button"
+                className="tab-mute"
+                data-on={on}
+                aria-pressed={!on}
+                aria-label={t(on ? 'kit.muteLane' : 'kit.unmuteLane', {
+                  lane: t(`tabs.${tab}`),
+                })}
+                title={t(on ? 'kit.muteLane' : 'kit.unmuteLane', { lane: t(`tabs.${tab}`) })}
+                onClick={() => {
+                  togglePart(part);
+                  // ⛔ Re-arm here rather than from the store: the schedule holds
+                  // one merged clip, so a switch that changed only the UI would
+                  // leave Play sounding the previous combination — a control that
+                  // looks like it did something and did not.
+                  //
+                  // ⛔⛔ **Never on the Song tab.** `TAB_PART.song` is `null`, so
+                  // `armCurrentPattern` falls through to *disarm* — generate a
+                  // song, hit a part switch, and the whole arrangement goes
+                  // silent with the timeline still on screen and Play still lit.
+                  if (activeTab !== 'song') armCurrentPattern();
+                }}
+              />
+            )}
+          </div>
         );
       })}
     </div>
@@ -143,19 +188,30 @@ function GeneratorTabs() {
 }
 
 /**
- * The tab strip, the play switches, and the transport (TASK-127 / TASK-138).
+ * The transport on the first row, the tab strip on the second (TASK-127 /
+ * TASK-138).
  *
- * ⛔ Mike, 2026-08-06: *"the play/pause and stop buttons and loop button need to
- * be moved to the top of the app to the right of the generators tabs, so that
- * way you can play the generators from there."* The switches sit between the
- * two because they are what Play acts on.
+ * ⛔ **Two rows, transport above tabs** — Mike, 2026-08-09: *"move these buttons
+ * to the first row and have the tabs on the second row above the piano roll."*
+ *
+ * ⚠ **This supersedes the 2026-08-06 arrangement**, which put both on one row
+ * with the transport *"to the right of the generators tabs."* That request is
+ * still honoured in substance — the transport is at the top of the app and plays
+ * whichever generator is showing — and the reason it changed is the reason it
+ * was cramped: a row holding six tabs, five switches, the take history and three
+ * transport buttons has to scroll the tabs at any window narrower than the
+ * layout, which is exactly when a producer most needs to see them.
+ *
+ * The switches stay with the transport because they are what Play acts on, and
+ * the take history stays beside it because choosing a take is the same gesture
+ * as playing one.
  */
 function StageHeader() {
   return (
     <div className="stage__header">
-      <GeneratorTabs />
       <div className="stage__header-controls">
-        <PartToggles />
+        {/* ⚠ The part switches moved onto the tabs on 2026-08-09 — see `tab-mute`
+            in `GeneratorTabs`. They were a second row of the same six words. */}
         {/* ⛔ **Beside the transport, because the two are the same gesture.**
             A producer choosing a take alternates between Generate and stepping
             back to the one before it, and putting the history in a rail would
@@ -164,6 +220,17 @@ function StageHeader() {
 
         <TransportControls />
       </div>
+
+      {/* ⛔ **The pads, under the transport** (TASK-054). Mike, 2026-08-09: *"put
+          the drum kit squares below those buttons you just centered 8 going
+          across the length of the piano roll."* Here rather than in the right
+          rail because that is the whole point of the task — a rail row 280px
+          wide is what nobody could find. */}
+      <PadGrid />
+
+      {/* Directly above the editor it labels — a tab strip separated from its
+          own content by a row of controls reads as belonging to the controls. */}
+      <GeneratorTabs />
     </div>
   );
 }
