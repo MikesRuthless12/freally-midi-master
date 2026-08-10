@@ -194,6 +194,12 @@ const handlers: Record<string, Handler> = {
     return paths.map((_, at) => `copied-${at}.wav`);
   },
 
+  // The read-back (TASK-049). ⛔ **`false` when the style owns nothing**, which
+  // is what stops selecting a shipped artist waiting on a loader that was never
+  // asked to do anything — the page treats the two answers differently, so a
+  // mock that always said `true` would hide that.
+  user_model_load_samples: () => copiedSamples.length > 0,
+
   user_model_export: (args?: InvokeArgs) => {
     const id = String((args as { id?: string } | undefined)?.id ?? '');
     const found = userModels.get(id);

@@ -30,7 +30,7 @@ function ratio(a: string, b: string): number {
 
 async function openRoll(page: Page) {
   await page.goto('/');
-  const search = page.getByLabel('Search an artist');
+  const search = page.getByRole('combobox', { name: 'Roster' });
   await search.fill('trap');
   await search.press('Enter');
   await page.getByRole('tab', { name: 'Melody' }).click();

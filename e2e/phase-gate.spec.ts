@@ -27,7 +27,7 @@ test.beforeEach(async ({ page }) => {
 test.describe('Phase gate — UI contract', () => {
   test('the Studio presents every region the PRD specifies', async ({ page }) => {
     // PRD § 8: left rail, generator tabs, grid stage, right rail, transport.
-    await expect(page.getByLabel('Search an artist')).toBeVisible();
+    await expect(page.getByRole('combobox', { name: 'Roster' })).toBeVisible();
     await expect(page.getByRole('tablist', { name: 'Generator' })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Generate', exact: true })).toBeVisible();
     // ⚠ **The panel *header*, located as one.** This asked for any button
@@ -37,7 +37,7 @@ test.describe('Phase gate — UI contract', () => {
     // state of a collapsed section rather than on anything it is about. The
     // claim is "the right rail is present"; `.rail__toggle` is what says so.
     await expect(page.locator('.rail__toggle', { hasText: /Kit/i })).toBeVisible();
-    await expect(page.getByRole('button', { name: 'Play' })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeVisible();
   });
 
   test('the empty state uses the product voice', async ({ page }) => {
@@ -58,7 +58,7 @@ test.describe('Phase gate — UI contract', () => {
     for (const name of ['Generate', 'Play', 'Stop']) {
       await expect(page.getByRole('button', { name, exact: true })).toBeDisabled();
     }
-    await expect(page.getByLabel('Search an artist')).toBeEnabled();
+    await expect(page.getByRole('combobox', { name: 'Roster' })).toBeEnabled();
   });
 
   test('Loop is live, because it now has something to toggle', async ({ page }) => {
@@ -83,7 +83,7 @@ test.describe('Phase gate — UI contract', () => {
     // The other half of the same rule, and the one a "disabled" sweep cannot
     // see: a control that stays disabled after its precondition is met is
     // just as broken as one that lies about being ready.
-    const search = page.getByLabel('Search an artist');
+    const search = page.getByRole('combobox', { name: 'Roster' });
     const generate = page.getByRole('button', { name: 'Generate', exact: true });
 
     await expect(generate).toBeDisabled();

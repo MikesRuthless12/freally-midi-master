@@ -50,7 +50,12 @@
     "choosing": "Choosing…",
     "clearOne": "Clear the one-shot on {{lane}}",
     "randomize": "Re-roll every unlocked pad from this folder",
-    "randomizeOne": "Re-roll {{lane}} from this folder"
+    "randomizeOne": "Re-roll {{lane}} from this folder",
+    "padsLabel": "Drum pads",
+    "muteLane": "Mute {{lane}}",
+    "unmuteLane": "Unmute {{lane}}",
+    "playLane": "Play {{lane}}",
+    "padLane": "Pad {{at}} lane"
   },
   "sections": {
     "genres": "Genres",

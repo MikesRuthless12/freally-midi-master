@@ -18,7 +18,7 @@ test.beforeEach(async ({ page }) => {
 });
 
 async function pick(page: import('@playwright/test').Page, query: string) {
-  const search = page.getByLabel('Search an artist');
+  const search = page.getByRole('combobox', { name: 'Roster' });
   await search.fill(query);
 
   // ⛔ Click the option; do not press Enter. Enter goes through

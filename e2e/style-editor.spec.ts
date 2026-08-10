@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { pickArtist } from './app';
 
 /**
  * Original Workflow — build a style of your own, save it, generate from it
@@ -25,20 +26,23 @@ test('the way in is pinned above everything, whatever is selected', async ({ pag
   const original = page.getByRole('button', { name: /Original Workflow/ });
   await expect(original).toBeVisible();
 
+  // ⚠ **Against the comboboxes, not a roster row** — the search box and the
+  // five-hundred-row list were replaced on 2026-08-09, so what "above
+  // everything" means now is: above both pickers.
   const rail = page.locator('.rail--left');
   const originalBox = await original.boundingBox();
-  const searchBox = await rail.locator('input').first().boundingBox();
-  const rosterBox = await rail.locator('.roster__item').first().boundingBox();
+  const genreBox = await rail.getByRole('combobox', { name: 'Genres' }).boundingBox();
+  const rosterBox = await rail.getByRole('combobox', { name: 'Roster' }).boundingBox();
 
   expect(originalBox).not.toBeNull();
-  expect(searchBox).not.toBeNull();
+  expect(genreBox).not.toBeNull();
   expect(rosterBox).not.toBeNull();
-  expect(originalBox!.y).toBeLessThan(searchBox!.y);
+  expect(originalBox!.y).toBeLessThan(genreBox!.y);
   expect(originalBox!.y).toBeLessThan(rosterBox!.y);
 
   // And it survives selecting something, which is when a rail that reorders
   // itself would lose it.
-  await rail.locator('.roster__item').first().click();
+  await pickArtist(page, 'Mock Artist');
   await expect(original).toBeVisible();
 });
 
@@ -68,10 +72,29 @@ test('a saved style joins the roster marked as yours, and reopens as itself', as
   // ⛔ In the roster, wearing the badge that says it is the producer's own —
   // and *not* the tier badge it inherited, which would claim a provenance it
   // does not have.
-  const row = page.locator('.roster__item', { hasText: 'My Dark Trap' });
+  // ⚠ **In the roster combobox**, since the list it used to join was replaced
+  // on 2026-08-09. The badge does the same job it always did — it is the only
+  // thing on the row that says whose the style is, now that there are no
+  // headings above the entries.
+  // ⚠ **The option is waited for rather than typed-and-committed**, because the
+  // roster refreshes over the bridge after the save: committing immediately
+  // matched nothing and correctly fell back to the previous selection. An
+  // `expect` retries, which is what gives the refresh time to land.
+  const roster = page.getByRole('combobox', { name: 'Roster' });
+  await roster.click();
+  await roster.fill('My Dark');
+  const row = page
+    .locator('.combo__menu')
+    .getByRole('option')
+    .filter({ hasText: 'My Dark Trap' })
+    .first();
   await expect(row).toBeVisible();
-  await expect(row.locator('.badge--mine')).toHaveText('Yours');
-  await expect(row.locator('.badge--flagship')).toHaveCount(0);
+  // The badge says whose the style is — the only thing on the row that can,
+  // now that there are no headings above the entries.
+  await expect(row.locator('.combo__badge')).toHaveText('Yours');
+
+  await row.click();
+  await expect(roster).toHaveValue('My Dark Trap');
 });
 
 test('a new style opens seeded with the beat on screen, not blank', async ({ page }) => {
@@ -79,7 +102,7 @@ test('a new style opens seeded with the beat on screen, not blank', async ({ pag
   // roadmap calls the difference between an editor a producer will use and one
   // they will open once. Generate first, then open the editor: the base must be
   // what made that beat rather than the default.
-  await page.locator('.roster__item', { hasText: 'Mock Artist' }).click();
+  await pickArtist(page, 'Mock Artist');
   await page.getByRole('button', { name: 'Generate', exact: true }).click();
 
   await page.getByRole('button', { name: /Original Workflow/ }).click();
@@ -130,7 +153,7 @@ test('training says how far short the kept set is, rather than going dead', asyn
   // explanation is not. The fit, its constraints and the variety gate are Rust
   // and are measured there over a thousand seeds — what a browser can prove is
   // that the count is on screen and that it moves when a take is starred.
-  await page.locator('.roster__item', { hasText: 'Mock Artist' }).click();
+  await pickArtist(page, 'Mock Artist');
   await page.getByRole('button', { name: 'Generate', exact: true }).click();
 
   const star = page.getByRole('button', { name: 'Keep this take for training' });

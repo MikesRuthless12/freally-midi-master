@@ -50,7 +50,12 @@
     "choosing": "चुना जा रहा है…",
     "clearOne": "{{lane}} से आपका सैंपल हटाएँ",
     "randomize": "इस फ़ोल्डर से हर अनलॉक पैड दोबारा चुनें",
-    "randomizeOne": "इस फ़ोल्डर से {{lane}} दोबारा चुनें"
+    "randomizeOne": "इस फ़ोल्डर से {{lane}} दोबारा चुनें",
+    "padsLabel": "ड्रम पैड",
+    "muteLane": "{{lane}} म्यूट करें",
+    "unmuteLane": "{{lane}} अनम्यूट करें",
+    "playLane": "{{lane}} चलाएँ",
+    "padLane": "पैड {{at}} लेन"
   },
   "sections": {
     "genres": "शैलियाँ",

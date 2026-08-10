@@ -59,7 +59,12 @@ describe('Studio shell', () => {
     stubMatchMedia(1600);
     render(<App />);
 
-    expect(screen.getByLabelText('Search an artist')).toBeDefined();
+    // ⚠ **The genre combobox, not the search box.** The search box and the
+    // five-hundred-row list were replaced by one type-to-filter combobox on
+    // 2026-08-09 — so this asserts the control that now does that job rather
+    // than being deleted, because "the left rail rendered something you can find
+    // an artist with" is exactly what this test is for.
+    expect(screen.getByRole('combobox', { name: 'Genres' })).toBeDefined();
     expect(screen.getByRole('tablist', { name: 'Generator' })).toBeDefined();
     // The transport is the region most easily lost to a grid-area mistake.
     expect(screen.getByRole('button', { name: 'Play' })).toBeDefined();
@@ -222,7 +227,9 @@ describe('Studio shell', () => {
     render(<App />);
     const before = useUi.getState().rightRailOpen;
 
-    const input = screen.getByLabelText('Search an artist');
+    // Any text field in the rail proves the rule; the roster combobox is the one
+    // that replaced the search box this test used to type into.
+    const input = screen.getByRole('combobox', { name: 'Genres' });
     fireEvent.keyDown(input, { key: 'k' });
 
     expect(useUi.getState().rightRailOpen).toBe(before);

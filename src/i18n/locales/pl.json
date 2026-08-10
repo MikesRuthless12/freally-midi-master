@@ -50,7 +50,12 @@
     "choosing": "Wybieranie…",
     "clearOne": "Usuń one-shot ze ścieżki {{lane}}",
     "randomize": "Wylosuj ponownie każdy niezablokowany pad z tego folderu",
-    "randomizeOne": "Wylosuj ponownie {{lane}} z tego folderu"
+    "randomizeOne": "Wylosuj ponownie {{lane}} z tego folderu",
+    "padsLabel": "Pady perkusyjne",
+    "muteLane": "Wycisz {{lane}}",
+    "unmuteLane": "Włącz {{lane}}",
+    "playLane": "Odtwórz {{lane}}",
+    "padLane": "Ścieżka padu {{at}}"
   },
   "sections": {
     "genres": "Gatunki",

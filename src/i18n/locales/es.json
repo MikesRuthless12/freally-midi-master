@@ -50,7 +50,12 @@
     "choosing": "Eligiendo…",
     "clearOne": "Quitar el one-shot de {{lane}}",
     "randomize": "Volver a tirar cada pad no bloqueado desde esta carpeta",
-    "randomizeOne": "Volver a tirar {{lane}} desde esta carpeta"
+    "randomizeOne": "Volver a tirar {{lane}} desde esta carpeta",
+    "padsLabel": "Pads de batería",
+    "muteLane": "Silenciar {{lane}}",
+    "unmuteLane": "Activar {{lane}}",
+    "playLane": "Reproducir {{lane}}",
+    "padLane": "Carril del pad {{at}}"
   },
   "sections": {
     "genres": "Géneros",

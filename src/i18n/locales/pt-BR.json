@@ -50,7 +50,12 @@
     "choosing": "Escolhendo…",
     "clearOne": "Remover o one-shot de {{lane}}",
     "randomize": "Sortear de novo cada pad destravado desta pasta",
-    "randomizeOne": "Sortear {{lane}} de novo desta pasta"
+    "randomizeOne": "Sortear {{lane}} de novo desta pasta",
+    "padsLabel": "Pads de bateria",
+    "muteLane": "Silenciar {{lane}}",
+    "unmuteLane": "Reativar {{lane}}",
+    "playLane": "Tocar {{lane}}",
+    "padLane": "Faixa do pad {{at}}"
   },
   "sections": {
     "genres": "Gêneros",

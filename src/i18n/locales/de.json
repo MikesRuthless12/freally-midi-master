@@ -50,7 +50,12 @@
     "choosing": "Wird ausgewählt…",
     "clearOne": "One-Shot auf {{lane}} entfernen",
     "randomize": "Jeden nicht gesperrten Pad aus diesem Ordner neu würfeln",
-    "randomizeOne": "{{lane}} aus diesem Ordner neu würfeln"
+    "randomizeOne": "{{lane}} aus diesem Ordner neu würfeln",
+    "padsLabel": "Drum-Pads",
+    "muteLane": "{{lane}} stummschalten",
+    "unmuteLane": "{{lane}} einschalten",
+    "playLane": "{{lane}} abspielen",
+    "padLane": "Spur für Pad {{at}}"
   },
   "sections": {
     "genres": "Genres",

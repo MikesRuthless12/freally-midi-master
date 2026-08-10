@@ -196,6 +196,30 @@ export function PianoRoll({
   const drag = useEditing((s) => s.drag);
   const foldToScale = useEditing((s) => s.foldToScale);
   const foldToNotes = useEditing((s) => s.foldToNotes);
+  const fitTo = useEditing((s) => s.fitTo);
+
+  // ⛔⛔ **Show the whole clip when the clip changes** (Mike, 2026-08-09: *"the
+  // entire midi piano roll pattern needs to be shown … whether it's 4 or 8 bars
+  // shouldn't matter"*). The roll's zoom was a fixed 64px per quarter, so
+  // anything past four bars ran off the right-hand edge of the stage and the
+  // producer had to zoom out by hand after every generation.
+  //
+  // ⚠ Keyed on the clip's **id and length**, not on every render: re-fitting
+  // while someone is zooming would fight them for the control, and re-fitting on
+  // each edit would snap the view back mid-gesture. A new take or a different
+  // length is exactly when a fresh view is wanted, and nowhere else.
+  //
+  // ⚠ The lint rule wants the whole `pattern` in the deps and it is wrong here:
+  // that object is rebuilt on every edit, so honouring it would re-fit the view
+  // on each note a producer moves. The three fields below are the only ones this
+  // effect reads, and they are the ones that mean "a different clip".
+  const totalTicks = patternTicks(pattern);
+  const ppq = pattern.ppq;
+  useEffect(() => {
+    const wrap = wrapRef.current;
+    if (wrap === null) return;
+    fitTo(totalTicks, ppq, wrap.clientWidth - GUTTER);
+  }, [pattern.id, totalTicks, ppq, fitTo]);
 
   const lane = laneOf(part);
   const notes = useMemo(() => notesOf(pattern, lane), [pattern, lane]);

@@ -59,6 +59,7 @@
           <li><a href="#roster">The roster</a></li>
           <li><a href="#moods">Moods</a></li>
           <li><a href="#own-style">Your own style</a></li>
+          <li><a href="#pads">The drum pads</a></li>
           <li><a href="#generators">The generators</a></li>
           <li><a href="#tempo">Tempo, key &amp; auto-sync</a></li>
           <li><a href="#seeds">Seeds &amp; reproducibility</a></li>
@@ -161,7 +162,7 @@
       <article class="release" id="loop">
         <h2>The core loop</h2>
         <ol class="features">
-          <li><strong>Pick someone.</strong> Search an artist, or click a genre chip.</li>
+          <li><strong>Pick someone.</strong> Type a name into the roster box — artists and genres alike.</li>
           <li><strong>Generate.</strong> The pattern is built for your project's tempo and key.</li>
           <li><strong>Hear it.</strong> Press play in your DAW — the notes are already on the track.</li>
           <li><strong>Reroll or keep.</strong> Every generation carries a seed you can copy back.</li>
@@ -177,7 +178,16 @@
           behaviour, swing, register and section layout.
         </p>
         <p class="summary" style="margin-top: 14px">
-          Search is instant fuzzy autosuggest across a mainstream roster and an underground roster.
+          You find them with <strong>one type-to-autocomplete box</strong>. Start typing and it
+          narrows as you go — across the mainstream roster, the underground roster, aliases, and
+          typos. Stop halfway and click away and it takes the best match, so you can never be left
+          with nothing chosen. Press the arrow instead and it shows you everything.
+        </p>
+        <p class="summary" style="margin-top: 14px">
+          The same box lists <strong>artists and genres together</strong>, each row saying which it
+          is, so you never have to know in advance whether "UK Drill" is a person or a style. Pick
+          one and its details appear directly underneath — era, the genres it works in, the tempo and
+          key it tends toward — <strong>before</strong> you press Generate.
           <strong>Genres are a browse filter, not the unit of generation</strong> — though a genre is
           itself a real style model and generates in its own right.
         </p>
@@ -242,6 +252,28 @@
           second copy on your drive, so the editor tells you how many files and how many megabytes
           before anything happens — and the box is unticked. Saving a style copies nothing on its
           own.
+        </p>
+      </article>
+
+      <article class="release" id="pads">
+        <h2>The drum pads</h2>
+        <p class="summary">
+          Eight pads sit across the top of the stage, above the piano roll. Each one is a drum lane:
+          its name, what is currently on it, and a dot saying whether you can hear it —
+          <strong>green for audible, red for muted</strong>.
+        </p>
+        <p class="summary" style="margin-top: 14px">
+          Press a pad to mute or unmute it. Press <strong>Play</strong> in its top centre to hear
+          that one sound on its own. <strong>Drag a sample onto it</strong> from the browser to put
+          your own one-shot there, or double-click to pick a file. The shuffle button re-rolls that
+          pad from the folder you are browsing, and the ✕ puts the built-in sound back.
+        </p>
+        <p class="summary" style="margin-top: 14px">
+          Every pad's <strong>lane name is itself a picker</strong> — swap any of the eight for any
+          of the thirty-seven lanes the plugin has. Two pads may share a lane, so you can layer a
+          snare; a third is refused. Your layout is remembered
+          <strong>per artist</strong>, so coming back to a style you built restores the pads exactly
+          as you left them, with the samples you assigned.
         </p>
       </article>
 

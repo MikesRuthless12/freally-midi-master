@@ -50,7 +50,12 @@
     "choosing": "Sélection…",
     "clearOne": "Retirer le one-shot de {{lane}}",
     "randomize": "Retirer au sort chaque pad non verrouillé depuis ce dossier",
-    "randomizeOne": "Retirer {{lane}} au sort depuis ce dossier"
+    "randomizeOne": "Retirer {{lane}} au sort depuis ce dossier",
+    "padsLabel": "Pads de batterie",
+    "muteLane": "Couper {{lane}}",
+    "unmuteLane": "Réactiver {{lane}}",
+    "playLane": "Jouer {{lane}}",
+    "padLane": "Piste du pad {{at}}"
   },
   "sections": {
     "genres": "Genres",

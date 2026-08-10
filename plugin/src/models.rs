@@ -51,6 +51,7 @@ use std::path::{Path, PathBuf};
 use std::sync::{Arc, OnceLock, RwLock};
 
 use engine::dataset::{DatasetProblem, RosterEntry, StyleModel};
+use engine::pattern::Lane;
 use serde_json::Value;
 
 use crate::presets::{data_dir, is_safe_stem};
@@ -455,23 +456,106 @@ pub fn sample_cost(paths: &[String]) -> SampleCost {
     }
 }
 
+/// A style's copied samples, by the lane each one plays on.
+///
+/// ⛔⛔ **The lane is the whole point of this file.** Without it the copies are
+/// sixteen hex-named files in a folder with nothing saying which is the kick —
+/// which is exactly what shipped on 2026-08-09, and what made the consent
+/// checkbox's promise false: the producer agreed, the bytes landed, and no code
+/// path could ever put them back. `assigned_paths` threw the lane away one line
+/// before the copy, so the information was lost at the last possible moment.
+///
+/// Names, not paths, because the directory is ours: a copy that recorded an
+/// absolute path would break the moment the style was moved to another machine,
+/// which is the case the copies exist to survive.
+#[derive(Debug, Default, serde::Serialize, serde::Deserialize)]
+struct SampleIndex {
+    lanes: BTreeMap<Lane, String>,
+}
+
+/// True when `name` is something [`copy_samples_in`] could have written.
+///
+/// ⛔ A whitelist, and it guards a **join**. The index is a file on disk, so it
+/// is editable by anything running as the producer — an entry of `..\..\..` is
+/// the obvious attempt, and the answer is to accept only the shape we emit:
+/// `{16 hex}.{alphanumeric}`.
+fn is_safe_sample_name(name: &str) -> bool {
+    let Some((stem, extension)) = name.rsplit_once('.') else {
+        return false;
+    };
+    is_safe_stem(stem)
+        && !extension.is_empty()
+        && extension.chars().all(|ch| ch.is_ascii_alphanumeric())
+}
+
+/// Where a style keeps the samples it owns.
+fn samples_dir(dir: &Path, id: &str) -> PathBuf {
+    dir.join(id).join("samples")
+}
+
+/// The samples this style owns, ready for [`crate::oneshot::OneShots::load_kit`].
+///
+/// ⛔ **This is the half that was missing.** The copy landed and nothing read it
+/// back, so a style's sounds did not come with it — Mike, 2026-08-09: *"when i
+/// tried to clear the kick from the 'My EDM' drum lane, and tried to go to
+/// something different, and then clicked on My EDM again, it didn't load the
+/// kick drum back into the slot."*
+///
+/// Empty rather than an error when there is no index: most styles have no
+/// samples of their own, and a producer selecting one should not be told about a
+/// file they never asked to exist.
+pub fn samples_for(id: &str) -> Vec<(Lane, String)> {
+    let Some(dir) = user_dir() else {
+        return Vec::new();
+    };
+    samples_for_in(&dir, id)
+}
+
+fn samples_for_in(dir: &Path, id: &str) -> Vec<(Lane, String)> {
+    if !is_safe_stem(id) {
+        return Vec::new();
+    }
+    let into = samples_dir(dir, id);
+    let Ok(text) = fs::read_to_string(into.join("index.json")) else {
+        return Vec::new();
+    };
+    let Ok(index) = serde_json::from_str::<SampleIndex>(&text) else {
+        return Vec::new();
+    };
+
+    index
+        .lanes
+        .into_iter()
+        .filter(|(_, name)| is_safe_sample_name(name))
+        .map(|(lane, name)| (lane, into.join(name).to_string_lossy().into_owned()))
+        // ⚠ A copy that is not there is dropped here rather than handed on, so
+        // the loader's "every sample in that kit has moved" can only mean what
+        // it says. `load_kit` skips unreadable files too; this keeps the two
+        // from disagreeing about how many there were.
+        .filter(|(_, path)| Path::new(path).exists())
+        .collect()
+}
+
 /// Copy a style's samples into its own folder, and say where they landed.
 ///
 /// ⛔ **Only ever called after the producer has agreed**, with the count and the
 /// size in front of them. Nothing on this path asks; the caller does, and the
 /// bridge command is separate from `user_model_save` for exactly that reason —
 /// so that saving a style can never copy anything by accident.
-pub fn copy_samples(id: &str, paths: &[String]) -> Result<Vec<String>, String> {
+///
+/// Takes **(lane, path)** rather than paths: see [`SampleIndex`].
+pub fn copy_samples(id: &str, pairs: &[(Lane, String)]) -> Result<Vec<String>, String> {
     let dir = user_dir().ok_or_else(|| "there is no user directory to copy into".to_owned())?;
-    copy_samples_in(&dir, id, paths)
+    copy_samples_in(&dir, id, pairs)
 }
 
-fn copy_samples_in(dir: &Path, id: &str, paths: &[String]) -> Result<Vec<String>, String> {
+fn copy_samples_in(dir: &Path, id: &str, pairs: &[(Lane, String)]) -> Result<Vec<String>, String> {
     if !is_safe_stem(id) {
         return Err(format!("`{id}` is not a model id"));
     }
 
-    let cost = sample_cost(paths);
+    let paths: Vec<String> = pairs.iter().map(|(_, path)| path.clone()).collect();
+    let cost = sample_cost(&paths);
     if cost.bytes > MAX_COPY_BYTES {
         return Err(format!(
             "those samples come to {} MB, which is more than a style should carry",
@@ -479,12 +563,13 @@ fn copy_samples_in(dir: &Path, id: &str, paths: &[String]) -> Result<Vec<String>
         ));
     }
 
-    let into = dir.join(id).join("samples");
+    let into = samples_dir(dir, id);
     fs::create_dir_all(&into)
         .map_err(|error| format!("could not create {}: {error}", into.display()))?;
 
     let mut landed = Vec::new();
-    for path in paths {
+    let mut index = SampleIndex::default();
+    for (lane, path) in pairs {
         let from = Path::new(path);
         crate::oneshot::refuse_remote(from)?;
         let Ok(bytes) = fs::read(from) else {
@@ -516,10 +601,21 @@ fn copy_samples_in(dir: &Path, id: &str, paths: &[String]) -> Result<Vec<String>
             fs::write(&target, &bytes)
                 .map_err(|error| format!("could not copy {}: {error}", from.display()))?;
         }
+        // ⚠ Recorded per lane, so two pads sharing one clap both point at the
+        // single stored copy — the dedupe above and this are the same fact seen
+        // from the two ends.
+        index.lanes.insert(*lane, name.clone());
         if !landed.contains(&name) {
             landed.push(name);
         }
     }
+
+    // ⛔ **Written even when nothing landed**, so a style whose every sample has
+    // moved records an empty kit rather than keeping the last one that worked.
+    // A stale index is the readout-that-lies failure in its file form.
+    let text = serde_json::to_string_pretty(&index)
+        .map_err(|error| format!("could not write the sample index: {error}"))?;
+    crate::patterns::write_atomic(&into.join("index.json"), &text)?;
 
     Ok(landed)
 }
@@ -829,6 +925,7 @@ mod tests {
         let sample = library.join("kick.wav");
         fs::write(&sample, vec![7u8; 2048]).unwrap();
         let paths = vec![sample.display().to_string()];
+        let pairs = vec![(Lane::Kick, sample.display().to_string())];
 
         // Asking costs nothing on disk.
         let cost = sample_cost(&paths);
@@ -843,13 +940,116 @@ mod tests {
         );
 
         // Only the explicit copy does.
-        let landed = copy_samples_in(&dir, "my-dark-trap", &paths).expect("copy");
+        let landed = copy_samples_in(&dir, "my-dark-trap", &pairs).expect("copy");
         assert_eq!(landed.len(), 1);
         assert!(dir
             .join("my-dark-trap")
             .join("samples")
             .join(&landed[0])
             .exists());
+    }
+
+    #[test]
+    fn a_styles_samples_come_back_on_the_lanes_they_were_copied_from() {
+        // ⛔⛔ **The half that was missing, and the reason the consent text was a
+        // lie.** Mike, 2026-08-09: *"when i tried to clear the kick from the 'My
+        // EDM' drum lane, and tried to go to something different, and then
+        // clicked on My EDM again, it didn't load the kick drum back into the
+        // slot."* The copy worked; nothing read it back.
+        let dir = temp_dir("readback");
+        let library = temp_dir("readback-library");
+        let kick = library.join("kick.wav");
+        let snare = library.join("snare.wav");
+        fs::write(&kick, vec![1u8; 64]).unwrap();
+        fs::write(&snare, vec![2u8; 64]).unwrap();
+
+        copy_samples_in(
+            &dir,
+            "my-dark-trap",
+            &[
+                (Lane::Kick, kick.display().to_string()),
+                (Lane::Snare, snare.display().to_string()),
+            ],
+        )
+        .expect("copy");
+
+        let back = samples_for_in(&dir, "my-dark-trap");
+        assert_eq!(back.len(), 2, "both lanes must come back");
+        assert_eq!(back[0].0, Lane::Kick);
+        assert_eq!(back[1].0, Lane::Snare);
+
+        // ⚠ The paths must resolve — a lane naming a file that is not there is
+        // the same silent failure one layer along.
+        for (lane, path) in &back {
+            assert!(Path::new(path).exists(), "{lane:?} points at nothing");
+        }
+
+        // And the two lanes must not have been handed the same file: the dedupe
+        // is by content, and these differ.
+        assert_ne!(back[0].1, back[1].1);
+    }
+
+    #[test]
+    fn a_style_with_no_samples_of_its_own_asks_for_nothing() {
+        // The common case. A producer selecting a style they never copied
+        // samples for must not be told about a file they never made.
+        let dir = temp_dir("no-samples");
+        save_in(&dir, dark_trap()).expect("save");
+        assert!(samples_for_in(&dir, "my-dark-trap").is_empty());
+        assert!(samples_for_in(&dir, "nothing-here").is_empty());
+    }
+
+    #[test]
+    fn a_tampered_index_cannot_reach_outside_the_styles_own_folder() {
+        // ⛔ The index is a file on disk, so it is editable by anything running
+        // as the producer. It is read back into a `join`, which is what makes
+        // this a boundary rather than a validation.
+        let dir = temp_dir("tampered");
+        let into = dir.join("my-dark-trap").join("samples");
+        fs::create_dir_all(&into).unwrap();
+        fs::write(
+            into.join("index.json"),
+            r#"{"lanes":{"Kick":"../../../../../../Windows/System32/drivers/etc/hosts",
+                         "Snare":"..\\..\\secrets.wav",
+                         "Clap":"no-extension"}}"#,
+        )
+        .unwrap();
+
+        assert!(
+            samples_for_in(&dir, "my-dark-trap").is_empty(),
+            "no entry that is not the shape we write may survive the read"
+        );
+    }
+
+    #[test]
+    fn re_copying_a_style_whose_samples_have_all_moved_leaves_no_stale_kit() {
+        // ⚠ A stale index is the readout-that-lies failure in file form: the
+        // style would keep loading the kit it had before the producer changed
+        // it, and nothing on screen would say so.
+        let dir = temp_dir("stale");
+        let library = temp_dir("stale-library");
+        let kick = library.join("kick.wav");
+        fs::write(&kick, vec![9u8; 32]).unwrap();
+
+        copy_samples_in(
+            &dir,
+            "my-dark-trap",
+            &[(Lane::Kick, kick.display().to_string())],
+        )
+        .expect("the first copy");
+        assert_eq!(samples_for_in(&dir, "my-dark-trap").len(), 1);
+
+        // Everything the producer had assigned is gone by the second copy.
+        copy_samples_in(
+            &dir,
+            "my-dark-trap",
+            &[(Lane::Kick, library.join("gone.wav").display().to_string())],
+        )
+        .expect("the second copy");
+        assert!(
+            samples_for_in(&dir, "my-dark-trap").is_empty(),
+            "the index must forget a lane whose sample no longer exists"
+        );
     }
 
     #[test]
@@ -871,8 +1071,23 @@ mod tests {
             }
         );
 
-        let landed = copy_samples_in(&dir, "my-dark-trap", &twice).expect("copy");
+        let landed = copy_samples_in(
+            &dir,
+            "my-dark-trap",
+            &[
+                (Lane::Clap, sample.display().to_string()),
+                (Lane::Snap, sample.display().to_string()),
+            ],
+        )
+        .expect("copy");
         assert_eq!(landed.len(), 1);
+
+        // ⚠ Stored once, but *both* lanes must still find it — the dedupe is an
+        // implementation detail of the folder, not something the producer's kit
+        // should feel as a missing pad.
+        let back = samples_for_in(&dir, "my-dark-trap");
+        assert_eq!(back.len(), 2, "both lanes point at the single stored copy");
+        assert_eq!(back[0].1, back[1].1);
     }
 
     #[test]
@@ -888,8 +1103,22 @@ mod tests {
         ];
         assert_eq!(sample_cost(&paths).count, 1, "a missing file costs nothing");
 
-        let landed = copy_samples_in(&dir, "my-dark-trap", &paths).expect("copy");
+        let landed = copy_samples_in(
+            &dir,
+            "my-dark-trap",
+            &[
+                (Lane::Snare, here.display().to_string()),
+                (Lane::Kick, library.join("gone.wav").display().to_string()),
+            ],
+        )
+        .expect("copy");
         assert_eq!(landed.len(), 1, "the one that is there still lands");
+
+        // ⚠ And the lane whose file had gone is simply absent, rather than
+        // recorded pointing at nothing.
+        let back = samples_for_in(&dir, "my-dark-trap");
+        assert_eq!(back.len(), 1);
+        assert_eq!(back[0].0, Lane::Snare);
     }
 
     #[test]
@@ -936,7 +1165,13 @@ mod tests {
         assert_eq!(sample_cost(&paths), SampleCost::default());
 
         let dir = temp_dir("remote");
-        assert!(copy_samples_in(&dir, "my-dark-trap", &paths).is_err());
+        let pairs = vec![(Lane::Kick, paths[0].clone())];
+        assert!(copy_samples_in(&dir, "my-dark-trap", &pairs).is_err());
+
+        // ⚠ And a refusal must leave nothing behind for the read-back to find:
+        // a half-written index naming a UNC path would put the outbound
+        // authentication one selection away instead of one copy away.
+        assert!(samples_for_in(&dir, "my-dark-trap").is_empty());
     }
 
     #[test]

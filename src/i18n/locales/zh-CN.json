@@ -50,7 +50,12 @@
     "choosing": "选择中…",
     "clearOne": "清除 {{lane}} 上的单击采样",
     "randomize": "从这个文件夹重新抽取所有未锁定的音垫",
-    "randomizeOne": "从这个文件夹重新抽取 {{lane}}"
+    "randomizeOne": "从这个文件夹重新抽取 {{lane}}",
+    "padsLabel": "鼓垫",
+    "muteLane": "静音 {{lane}}",
+    "unmuteLane": "取消静音 {{lane}}",
+    "playLane": "播放 {{lane}}",
+    "padLane": "鼓垫 {{at}} 音轨"
   },
   "sections": {
     "genres": "曲风",

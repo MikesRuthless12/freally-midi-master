@@ -1,27 +1,45 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { Pencil } from 'lucide-react';
 import { Section } from './Section';
 import { StyleEditor } from '../StyleEditor/StyleEditor';
 import '../StyleEditor/StyleEditor.css';
 import { RailResizer } from './RailResizer';
-import { SearchBar } from '../SearchBar/SearchBar';
-import { RosterList } from '../RosterList/RosterList';
+import { Combo } from '../Combo/Combo';
 import { ExplorerPanel } from '../Explorer/ExplorerPanel';
 import { ArtistPane } from '../RosterList/ArtistPane';
 import { crossFilter } from '../../lib/cross-filter';
+import { search } from '../../lib/fuzzy';
 import { useSession } from '../../state/session';
 import { useTranslation } from 'react-i18next';
 
-/**
- * The genres offered as one-click chips.
- *
- * Ids, not display names: the label comes from the model itself, so a renamed
- * genre relabels here rather than drifting into a chip that selects nothing.
- * Every one is a real style model — a genre generates in its own right, it is
- * not merely a tag on the artists under it.
+/*
+ * ⚠ **`GENRE_CHIPS` is gone with the chips it named** (2026-08-09). It held six
+ * quick-pick ids because a chip row can only show a handful; the combobox lists
+ * every genre and finds any of them by typing, so a shortlist would now be a rule
+ * about which genres are worth reaching quickly — a decision nobody made and one
+ * the dataset would outgrow silently.
  */
-const GENRE_CHIPS = ['trap', 'uk-drill', 'plugg', 'rage', 'rnb-2000s', 'liquid-dnb'];
 
-/** Left rail: search on top, then collapsible genre and roster panels. */
+/**
+ * The roster combobox's first row: start a style of your own.
+ *
+ * ⛔ Not a style id — nothing resolves it, and it must never reach the session.
+ * The double underscores make that obvious at a glance and keep it outside the
+ * slug alphabet `presets::is_safe_stem` accepts, so it cannot collide with a
+ * real one even by accident.
+ */
+const ORIGINAL = '__original__';
+
+/**
+ * Left rail: build-your-own on top, then the genre and roster comboboxes.
+ *
+ * ⛔ **One control per thing, not three.** This was a search box, a chip row and
+ * a five-hundred-row list, with the artist's description below all of it — so
+ * reading about the artist you had just picked meant scrolling away from the
+ * list you picked them from. Mike, 2026-08-09: *"instead of listing the roster,
+ * can we just have a combobox … it shows the details under it"* and *"we won't
+ * need the search textbox … it will save us some room."*
+ */
 export function LeftRail() {
   const { t } = useTranslation();
   const roster = useSession((s) => s.roster);
@@ -44,21 +62,46 @@ export function LeftRail() {
     setLastSelected(selectedId);
     if (showAllFor !== null) setShowAllFor(null);
   }
-  const { artists, genres, filteredBy } = crossFilter(
+  const { artists, filteredBy } = crossFilter(
     roster,
     selectedId === showAllFor ? null : selectedId,
   );
 
-  // Picking an artist replaces the quick-picks with that artist's own genres —
-  // all of them, not the ones that happen to be quick-picks, or an artist who
-  // works in none of the six would leave this row empty. Unfiltered, and when a
-  // genre is picked, it is the fixed shortcut list it has always been.
-  const chips =
-    filteredBy?.type === 'artist'
-      ? genres
-      : GENRE_CHIPS.map((id) => genres.find((entry) => entry.id === id)).filter(
-          (entry): entry is NonNullable<typeof entry> => entry !== undefined,
-        );
+  const selected = roster.find((entry) => entry.id === selectedId) ?? null;
+
+  // ⛔⛔ **The comboboxes offer the WHOLE roster, never the cross-filtered one.**
+  // Narrowing made sense for a list — it was the only way to make five hundred
+  // rows scannable — but a combobox is filtered by *typing*, so hiding entries
+  // only stops them being found. It broke immediately once the rail auto-selects
+  // an artist on load: `crossFilter` then trimmed the genres to that artist's
+  // own, and "UK Drill" could not be typed at all.
+  //
+  // ⚠ `crossFilter` is still used, for the "filtered by" notice and the pane —
+  // saying what the selection *implies* is a different job from deciding what a
+  // producer is allowed to reach.
+  const allArtists = roster.filter((entry) => entry.type !== 'genre');
+  const allGenres = roster.filter((entry) => entry.type === 'genre');
+
+  // ⛔⛔ **The combobox's fallback becomes a real selection.** Mike, 2026-08-09:
+  // *"the selection should start on the first genre/artist in the list … that
+  // way you cannot have an empty field."* Showing the first name without
+  // selecting it made the rail *lie*: the box read "Drake" while `selectedId`
+  // was still `null`, and everything keyed on a real selection quietly did
+  // nothing — the pad grid rendered no pads at all, which is what Mike found.
+  //
+  // ⚠ Once, and only when nothing is selected. A reopened project already has
+  // its own artist and this must never overwrite it.
+  //
+  // ⛔ **In an effect, not during render.** Writing to another store while
+  // rendering is what React warns about as "cannot update a component while
+  // rendering a different one", and this file has already produced a blank
+  // window once tonight from a render-phase mistake. An effect runs after the
+  // commit, which is the supported place to sync an external store.
+  useEffect(() => {
+    if (rosterLoaded && selectedId === null && allArtists.length > 0) {
+      select(allArtists[0]!.id);
+    }
+  }, [rosterLoaded, selectedId, allArtists, select]);
 
   return (
     <aside className="rail rail--left">
@@ -78,34 +121,119 @@ export function LeftRail() {
         </div>
       </div>
 
-      <div className="rail__section">
-        <div className="rail__content">
-          <SearchBar />
-        </div>
-      </div>
-
+      {/* ⛔⛔ **One combobox instead of a search box and a five-hundred-row
+          list** — Mike, 2026-08-09: *"instead of listing the roster, can we just
+          have a combobox … and when you end up with an artist/producer in the
+          combobox, it shows the details under it?"* and then *"we won't need the
+          search textbox … that can go away too and it will save us some room."*
+          Typing filters through the same alias-and-typo matcher the search box
+          used, so nothing about finding an artist got weaker; what went away is
+          two controls doing one job and the scrolling that separated a name from
+          its own description. */}
       <Section id="genres">
-        <div className="chips">
-          {chips.map((genre) => (
-            <button
-              key={genre.id}
-              type="button"
-              className="chip"
-              aria-pressed={selectedId === genre.id}
-              onClick={() => select(genre.id)}
-            >
-              {genre.name}
-            </button>
-          ))}
-        </div>
+        <Combo
+          label={t('sections.genres')}
+          options={allGenres.map((genre) => ({ id: genre.id, name: genre.name }))}
+          value={allGenres.some((genre) => genre.id === selectedId) ? selectedId : null}
+          onChange={select}
+          placeholder={t('sections.genres')}
+          // ⛔ **In the matcher's order, not the roster's.** Filtering `options`
+          // by a set of ids threw away the ranking and left the list in dataset
+          // order — so typing "Trap" put **Boom Bap** at the top and, because the
+          // top row is what Enter and blur commit, choosing it. Mapping the
+          // results keeps the best match first, which is the whole point of
+          // ranking them.
+          filter={(query, options) => {
+            const byId = new Map(options.map((option) => [option.id, option]));
+            return search(query, allGenres, allGenres.length)
+              .map((entry) => byId.get(entry.id))
+              .filter((option): option is NonNullable<typeof option> => option !== undefined);
+          }}
+        />
       </Section>
 
       <Section id="roster" grow>
         {rosterLoaded && roster.length > 0 ? (
           <>
-            {/* Search still reaches every model whatever is filtered here, so
-                this is legibility rather than an escape hatch — a narrowed list
-                with nothing saying so reads as a dataset that lost half itself. */}
+            <Combo
+              label={t('sections.roster')}
+              // ⛔⛔ **"Original Workflow" is always the first entry** — Mike,
+              // 2026-08-09: *"ensure that 'Original Workflow' is at the top of
+              // the artist/producer combobox no matter which genre is selected,
+              // so that way you can always start an original artist/producer
+              // workflow and save it."* The list narrows to the selected genre,
+              // so anything *inside* the roster can be filtered away; this is
+              // prepended after the filter for exactly that reason. It is the
+              // way in to building your own, so no genre may hide it.
+              // ⛔ **Artists AND genres, because that is what the roster held.**
+              // The list this replaced showed both, under two headings, and the
+              // search box found both — so splitting them across two comboboxes
+              // quietly meant a producer had to know which kind "UK Drill" was
+              // before they could find it. The genre combobox above is a
+              // shortcut, not the only door.
+              options={[
+                { id: ORIGINAL, name: t('styles.original'), action: true },
+                ...allArtists.map((artist) => ({
+                  id: artist.id,
+                  name: artist.name,
+                  badge: artist.mine
+                    ? t('styles.mine')
+                    : artist.tier === 'flagship'
+                      ? t('roster.flagship')
+                      : null,
+                })),
+                ...allGenres.map((genre) => ({
+                  id: genre.id,
+                  name: genre.name,
+                  badge: t('roster.genre'),
+                })),
+              ]}
+              value={selectedId}
+              // ⚠ It opens the editor rather than selecting anything: there is no
+              // style called "Original Workflow" to generate from, and putting a
+              // sentinel id into the session would be a selection the plugin
+              // could not resolve.
+              onChange={(id) => (id === ORIGINAL ? setEditing('') : select(id))}
+              placeholder={t('rails.searchPlaceholder')}
+              emptyText={(query) => t('rails.noMatch', { query })}
+              // ⚠ The roster's own matcher, not a substring test: it knows
+              // aliases and tolerates typos, which is most of what made the
+              // search box worth having.
+              filter={(query, options) => {
+                const byId = new Map(options.map((option) => [option.id, option]));
+                // ⚠ Searched over both halves together, in one ranking — two
+                // separate searches concatenated would put every artist above
+                // every genre regardless of how well either matched.
+                const pool = [...allArtists, ...allGenres];
+                return search(query, pool, pool.length)
+                  .map((entry) => byId.get(entry.id))
+                  .filter(
+                    (option): option is NonNullable<typeof option> => option !== undefined,
+                  );
+              }}
+            />
+
+            {/* ⛔ **Directly under the combobox**, which is the whole point: the
+                pane used to sit below a scrolling list, so reading about the
+                artist under the pointer meant scrolling away from them. */}
+            <ArtistPane entry={roster.find((entry) => entry.id === selectedId) ?? null} />
+
+            {/* A style of the producer's own can be opened from here — the
+                pencil lived on the roster row, and the row is gone. */}
+            {selected?.mine === true && (
+              <button
+                type="button"
+                className="rail__edit-style"
+                onClick={() => setEditing(selected.id)}
+              >
+                <Pencil size={12} aria-hidden="true" />{' '}
+                {t('styles.edit', { name: selected.name })}
+              </button>
+            )}
+
+            {filteredBy?.type === 'genre' && artists.length === 0 && (
+              <p className="rail__hint">{t('roster.noneInGenre', { name: filteredBy.name })}</p>
+            )}
             {filteredBy && (
               <div className="roster__filter">
                 <span>{t('roster.filteredBy', { name: filteredBy.name })}</span>
@@ -118,16 +246,6 @@ export function LeftRail() {
                 </button>
               </div>
             )}
-            {filteredBy?.type === 'genre' && artists.length === 0 && (
-              <p className="rail__hint">{t('roster.noneInGenre', { name: filteredBy.name })}</p>
-            )}
-            <RosterList artists={artists} genres={genres} onEdit={setEditing} />
-            {/* ⛔ **Under the list rather than beside it**, and the rail's width
-                is why: this column is ~280px and a two-pane layout inside it
-                would give the roster half of that. It reads as a footer to the
-                thing it describes, which is also the order a producer works in
-                — pick a row, then read it. */}
-            <ArtistPane entry={roster.find((entry) => entry.id === selectedId) ?? null} />
           </>
         ) : (
           <p className="rail__hint">{t('rails.noDataset')}</p>

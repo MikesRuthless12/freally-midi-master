@@ -50,7 +50,12 @@
     "choosing": "Выбор…",
     "clearOne": "Убрать ваш сэмпл с дорожки «{{lane}}»",
     "randomize": "Перебрать каждый незаблокированный пэд из этой папки",
-    "randomizeOne": "Перебрать {{lane}} из этой папки"
+    "randomizeOne": "Перебрать {{lane}} из этой папки",
+    "padsLabel": "Барабанные пэды",
+    "muteLane": "Заглушить {{lane}}",
+    "unmuteLane": "Включить {{lane}}",
+    "playLane": "Воспроизвести {{lane}}",
+    "padLane": "Дорожка пэда {{at}}"
   },
   "sections": {
     "genres": "Жанры",

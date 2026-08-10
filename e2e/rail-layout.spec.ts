@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { pickArtist } from './app';
 
 /**
  * The right rail's panels never draw on top of each other.
@@ -59,10 +60,10 @@ const SHORT = { width: 1440, height: 480 };
  * part exists, so the sections fit and the collapse never happens.
  */
 async function generate(page: import('@playwright/test').Page) {
-  const search = page.getByLabel('Search an artist');
-  await search.fill('uk');
-  await page.getByRole('option').first().waitFor();
-  await search.press('Enter');
+  // ⚠ The shared helper rather than a local copy: waiting for an option to be
+  // *visible* does not hold for the portalled menu, and `pickArtist` also blurs,
+  // which the app needs before a shortcut will fire.
+  await pickArtist(page, 'uk');
   await page.getByRole('button', { name: 'Generate', exact: true }).click();
   await expect(page.getByRole('table', { name: 'Generated pattern' })).toBeVisible();
 }

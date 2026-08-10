@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import { invoke } from '../../lib/ipc';
 import { useSession, type SavedSession } from '../../state/session';
+import { Combo } from '../Combo/Combo';
 import './Presets.css';
 
 /**
@@ -33,6 +34,10 @@ export function Presets() {
   const [presets, setPresets] = useState<PresetSummary[]>([]);
   const [name, setName] = useState('');
   const [error, setError] = useState<string | null>(null);
+  /** Which preset the combobox is showing. Its own state: applying one does not
+   *  make it "the session's preset", so nothing else has an opinion about it. */
+  const [chosen, setChosen] = useState<string | null>(null);
+  const chosenPreset = presets.find((preset) => preset.id === chosen);
 
   // `.then` rather than `async`/`await`, matching `BugReport`: the state is set
   // from a promise callback rather than from the effect body, which is what
@@ -77,29 +82,46 @@ export function Presets() {
 
   return (
     <div className="presets">
-      <ul className="presets__list">
-        {presets.map((preset) => (
-          <li key={preset.id} className="presets__item">
-            <button type="button" className="presets__load" onClick={() => load(preset.id)}>
-              <span className="presets__name">{preset.name}</span>
-              {preset.factory && <span className="presets__badge">{t('presets.factory')}</span>}
-            </button>
+      {/* ⛔ **A combobox rather than a list** — Mike, 2026-08-09: *"the presets
+          on the right need to be just a auto-complete combobox like the
+          artists/producers/genre."* It is the same control, so it behaves the
+          same way: type to filter, or press the arrow for the whole list. A
+          rail-height list of presets grows without bound as a producer saves
+          them, and it was already the tallest panel in the rail.
+          ⚠ **Applying is the change**, so this loads on pick rather than
+          needing a second confirm — the same as choosing an artist. */}
+      {presets.length > 0 && (
+        <div className="presets__pick">
+          <Combo
+            label={t('sections.presets')}
+            options={presets.map((preset) => ({
+              id: preset.id,
+              name: preset.name,
+              badge: preset.factory ? t('presets.factory') : null,
+            }))}
+            value={chosen}
+            onChange={(id) => {
+              setChosen(id);
+              load(id);
+            }}
+            placeholder={t('presets.name')}
+          />
 
-            {/* Absent rather than disabled for factory presets: a control that
-                is there and always refuses is a worse answer than no control. */}
-            {!preset.factory && (
-              <button
-                type="button"
-                className="presets__delete"
-                aria-label={t('presets.delete', { name: preset.name })}
-                onClick={() => remove(preset.id)}
-              >
-                <Trash2 size={13} aria-hidden="true" />
-              </button>
-            )}
-          </li>
-        ))}
-      </ul>
+          {/* Absent rather than disabled for factory presets: a control that is
+              there and always refuses is a worse answer than no control. */}
+          {chosenPreset !== undefined && !chosenPreset.factory && (
+            <button
+              type="button"
+              className="presets__delete"
+              aria-label={t('presets.delete', { name: chosenPreset.name })}
+              title={t('presets.delete', { name: chosenPreset.name })}
+              onClick={() => remove(chosenPreset.id)}
+            >
+              <Trash2 size={13} aria-hidden="true" />
+            </button>
+          )}
+        </div>
+      )}
 
       {presets.length === 0 && !error && <p className="presets__empty">{t('presets.none')}</p>}
 

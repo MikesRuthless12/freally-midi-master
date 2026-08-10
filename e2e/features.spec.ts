@@ -94,7 +94,7 @@ async function open(page: Page) {
 }
 
 async function pickArtist(page: Page) {
-  const search = page.getByLabel('Search an artist');
+  const search = page.getByRole('combobox', { name: 'Roster' });
   await search.fill('trap');
   await search.press('Enter');
 }
@@ -232,7 +232,7 @@ test('the seed: typing pins, clearing unpins, Enter holds what came back', async
 
 test('the roster: search, keyboard, and switching artists', async ({ page }) => {
   await open(page);
-  const search = page.getByLabel('Search an artist');
+  const search = page.getByRole('combobox', { name: 'Roster' });
 
   await search.fill('trap');
   await expect(page.getByRole('option').first()).toBeVisible();

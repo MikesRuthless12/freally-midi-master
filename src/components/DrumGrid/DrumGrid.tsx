@@ -488,8 +488,16 @@ export function DrumGrid({ pattern, playhead }: { pattern: Pattern; playhead: nu
             type="button"
             role="menuitem"
             className="grid__paletteitem"
+            // ⛔ **Collapses the roll to one hit; it does not delete it.** Mike,
+            // 2026-08-09: *"when you right click on a note and you go to 'Single
+            // note' it should not delete that note, it should just ensure that
+            // it's a single note."* This called `clearCell`, so the one item in
+            // the palette whose name promises a note was the one that removed
+            // it — and a producer undoing a roll lost the hit underneath it.
+            // ⚠ Deleting is still a click on the cell itself, which is where it
+            // has always been.
             onClick={() => {
-              editPattern(clearCell(pattern, palette.lane, palette.column));
+              editPattern(tuplet(pattern, palette.lane, palette.column, 1));
               setPalette(null);
             }}
           >

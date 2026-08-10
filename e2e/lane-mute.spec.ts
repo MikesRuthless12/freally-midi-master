@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { pickArtist } from './app';
 
 /**
  * The per-lane preview mute (FMM-S02).
@@ -22,7 +23,7 @@ test.beforeEach(async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('tablist', { name: 'Generator' })).toBeVisible();
 
-  await page.locator('.roster__item', { hasText: 'Mock Artist' }).click();
+  await pickArtist(page, 'Mock Artist');
   await page.getByRole('button', { name: 'Generate', exact: true }).first().click();
   await expect(page.locator('.grid__track').first()).toBeVisible();
 });

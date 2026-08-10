@@ -121,3 +121,11 @@
 .presets__error {
   color: var(--color-error);
 }
+
+/* The preset combobox and its delete control share a row (2026-08-09). */
+.presets__pick {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-bottom: var(--space-2);
+}

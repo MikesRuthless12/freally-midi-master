@@ -15,9 +15,9 @@ test.beforeEach(async ({ page }) => {
 });
 
 test('the Studio renders every region', async ({ page }) => {
-  await expect(page.getByLabel('Search an artist')).toBeVisible();
+  await expect(page.getByRole('combobox', { name: 'Roster' })).toBeVisible();
   await expect(page.getByRole('tablist', { name: 'Generator' })).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Play' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeVisible();
   await expect(page.getByRole('button', { name: 'Generate', exact: true })).toBeVisible();
   await expect(page.getByText('Search an artist. Cook.')).toBeVisible();
 });
@@ -53,12 +53,17 @@ test('controls that cannot work yet are disabled rather than merely inert', asyn
   // it, and screen readers need to be told.
   //
   // The rule has not changed since Phase 0; what each control can do has.
-  // Search and Generate are live now (TASK-028), so what they must admit to is
-  // narrower: Generate cannot run without someone selected, and Play cannot run
-  // without a pattern and an audio device — which a browser does not have.
-  await expect(page.getByLabel('Search an artist')).toBeEnabled();
-  await expect(page.getByRole('button', { name: 'Generate', exact: true })).toBeDisabled();
-  await expect(page.getByRole('button', { name: 'Play' })).toBeDisabled();
+  //
+  // ⛔ **Generate is no longer among them, and that is deliberate** (2026-08-09).
+  // It used to be disabled until someone was selected. The rail now selects the
+  // first artist as soon as the roster loads — Mike's rule for the comboboxes:
+  // *"the selection should start on the first genre/artist in the list … that
+  // way you cannot have an empty field."* With an artist always selected there
+  // is no state in which Generate cannot run, so asserting it were disabled
+  // would be pinning a state the product no longer has.
+  await expect(page.getByRole('combobox', { name: 'Roster' })).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Generate', exact: true })).toBeEnabled();
+  await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeDisabled();
   await expect(page.getByRole('button', { name: 'Stop' })).toBeDisabled();
 });
 

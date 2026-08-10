@@ -50,7 +50,12 @@
     "choosing": "جارٍ الاختيار…",
     "clearOne": "إزالة العيّنة من {{lane}}",
     "randomize": "أعد اختيار كل باد غير مقفل من هذا المجلد",
-    "randomizeOne": "أعد اختيار {{lane}} من هذا المجلد"
+    "randomizeOne": "أعد اختيار {{lane}} من هذا المجلد",
+    "padsLabel": "وسادات الطبول",
+    "muteLane": "كتم {{lane}}",
+    "unmuteLane": "إلغاء كتم {{lane}}",
+    "playLane": "تشغيل {{lane}}",
+    "padLane": "مسار الوسادة {{at}}"
   },
   "sections": {
     "genres": "الأنواع",

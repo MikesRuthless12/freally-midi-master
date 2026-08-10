@@ -12,6 +12,52 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added — drum pads on the stage, one box to find any artist, and a window that finally behaves, 2026-08-09 (evening)
+
+- **Eight drum pads across the top of the stage.** Each carries everything on its
+  face: the lane's name, what is on it, a **green or red dot** for whether you can
+  hear it, **Play** in the top centre to audition it alone, a shuffle to re-roll
+  it from the folder you are browsing, and a ✕ to put the built-in sound back.
+  Press the pad to mute it; drag a sample onto it to assign one. Every pad's name
+  is a picker over all thirty-seven lanes, **two pads may share a lane** so a
+  snare can be layered, and the layout is remembered **per artist** — a style you
+  built comes back exactly as you left it.
+- **One combobox instead of a search box, a chip row and a five-hundred-row
+  list.** Type to filter across artists, genres, aliases and typos; press the
+  arrow for the whole list. Stop halfway and click away and it takes the best
+  match, so you cannot end up with nothing chosen. The artist's details now sit
+  **directly under the box** rather than below a list you had to scroll past to
+  read them, and **"Original Workflow" is pinned to the top** whatever is
+  selected, so building your own is never something you have to hunt for.
+- **The generator mute switches moved onto the tabs**, as a dot in each tab's top
+  right. They were a second row carrying the same six words as the tabs, so
+  working out which one silenced Drums meant reading "Drums" twice.
+- **The whole clip is visible when it is generated**, whatever its length. The
+  roll opened at a fixed zoom, so anything past four bars ran off the edge and
+  had to be zoomed out by hand after every generation.
+- **Presets are a combobox too**, and the transport sits centred on its own row
+  above the tabs, which now spread the full width of the stage.
+
+### Fixed — 2026-08-09 (evening)
+
+- ⛔ **The plugin ran DPI-unaware while WebView2 did not.** On a 150% display
+  Windows stretched the window by half again while the page rendered at true
+  pixels, so the UI covered two thirds of its window and left a dead margin — and
+  the content did not follow the window when it was dragged. One mismatch, both
+  symptoms.
+- **The window can be dragged, resized and maximised**, and the UI scales with it
+  rather than being cropped or leaving space. It will not shrink below the size
+  the app was designed for.
+- **A style's copied samples are loaded back.** The consent gate and the copy both
+  worked; nothing ever read them, so the checkbox's promise that they *"still work
+  if you move or delete the originals"* was false while the build shipped it.
+- **"Single hit" no longer deletes the note it names** — it collapses a roll back
+  to a single hit, which is the inverse of the roll it undoes.
+- **Double-clicking the standalone works.** It supplies its own audio period size
+  rather than depending on a command-line flag, and the release build no longer
+  opens a console window behind it. Crashes are appended to a log in the app's
+  data folder.
+
 ### Added — every artist gets moods, you can build and train a style of your own, and nothing copies your samples without asking, 2026-08-09
 
 - **Every artist and genre now has moods.** Twelve genres had none — boom bap,

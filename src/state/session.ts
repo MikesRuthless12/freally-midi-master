@@ -970,6 +970,43 @@ async function loadDefaults(
 }
 
 /**
+ * Put a style's own samples back on the pads (TASK-049).
+ *
+ * ⛔ **This is what makes the consent text true.** It promises the copies
+ * *"still work if you move or delete the originals"*, and until this existed
+ * nothing read `models/<id>/samples/` at all — Mike, 2026-08-09: *"when i tried
+ * to clear the kick from the 'My EDM' drum lane, and tried to go to something
+ * different, and then clicked on My EDM again, it didn't load the kick drum back
+ * into the slot."*
+ *
+ * ⛔ **Only for a style the producer owns.** A shipped artist has no copied
+ * samples by construction, so asking would be a bridge round trip per click
+ * through a five-hundred-name roster, to be told no every time.
+ *
+ * ⚠ **Not an `error` on failure**, for the reason [`loadDefaults`] gives above:
+ * the banner under Generate says a *generation* went wrong. A kit that could not
+ * be restored surfaces through the kit panel's own error, which is where a
+ * producer is already looking when their pads are wrong.
+ */
+async function loadOwnSamples(id: string, roster: RosterEntry[]): Promise<void> {
+  if (!roster.find((entry) => entry.id === id)?.mine) return;
+  try {
+    // `false` means the style owns nothing — the common case, and not a failure.
+    if (!(await invoke<boolean>('user_model_load_samples', { id }))) return;
+
+    // ⛔ **Imported here rather than at the top, because `kit.ts` imports this
+    // module.** A static import back would close the cycle at module-init time,
+    // and a cycle that happens to work because one store's body only *defines*
+    // functions is a cycle that breaks the first time either file grows
+    // top-level work. This runs long after both are evaluated.
+    const { useKit } = await import('./kit');
+    await useKit.getState().awaitLoader();
+  } catch {
+    // Deliberately swallowed; see the doc above.
+  }
+}
+
+/**
  * The session as the *plugin* stores it, which the host writes into the
  * project file (TASK-P07). Field-for-field what `PluginSession` in
  * `plugin/src/state.rs` reads and writes.
@@ -1517,6 +1554,7 @@ export const useSession = create<SessionState>((set, get) => ({
     });
 
     void loadDefaults(id, set, get);
+    void loadOwnSamples(id, roster);
   },
 
   setSeed(seed) {

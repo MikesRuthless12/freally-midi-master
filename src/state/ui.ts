@@ -3,7 +3,11 @@ import { readStored, writeStored } from './storage';
 import { applyLanguage, loadLanguagePreference } from '../i18n';
 import { type LocaleCode } from '../i18n/locales';
 import { applyThemePreference, loadThemePreference, type ThemePreference } from './theme';
-import type { Part } from '../lib/ipc-types';
+import type { Lane, Part } from '../lib/ipc-types';
+// ⚠ `state/lanes.ts` is a leaf that imports nothing but a type, which is why it
+// can be reached from here without dragging the kit store — and its own doc
+// records what happened the last time that list lived somewhere less reachable.
+import { ALL_LANES } from './lanes';
 
 /** The six generators. Order matches the tab strip in PRD § 8. */
 export const GENERATOR_TABS = ['drums', 'melody', 'counter', 'bass', 'chords', 'song'] as const;
@@ -32,6 +36,86 @@ export type SectionState = Record<SectionId, boolean>;
 const SECTIONS_KEY = 'freally.sections';
 
 const REDUCE_MOTION_KEY = 'freally.reduceMotion';
+const PADS_KEY = 'freally.pads';
+
+/**
+ * How many pads may address the same lane.
+ *
+ * ⛔ **Two, so a snare can be layered** (Mike, 2026-08-09). One would forbid the
+ * thing he asked for; unlimited would let a producer fill all eight with the same
+ * lane and lose the kit with no way to see what happened.
+ */
+export const PAD_LIMIT = 2;
+
+/**
+ * Which eight lanes the stage pads address, in order.
+ *
+ * ⛔ **Eight, and every one of them swappable** — Mike, 2026-08-09: *"ensure that
+ * the names of the eight lanes are interchangeable with comboboxes so an end
+ * user can switch them out for other lane names."* The default is what a trap,
+ * drill or boom-bap beat is built from; a producer working in anything else
+ * changes them, and the choice sticks.
+ *
+ * ⚠ The other twenty-nine lanes never went anywhere — the KIT panel in the right
+ * rail still lists all of them. These eight are the shortcut.
+ */
+export const DEFAULT_PADS = [
+  'kick',
+  'snare',
+  'clap',
+  'closedHat',
+  'openHat',
+  'perc',
+  'rim',
+  'crash',
+] as const;
+
+/**
+ * ⛔ **Validated against the real lane list on the way in, not trusted.** This is
+ * localStorage: it survives updates, and a lane renamed or removed by a later
+ * release would otherwise leave a pad addressing something that no longer
+ * exists — a pad that silently does nothing, which is the worst kind. Anything
+ * unrecognised falls back to the default for that slot.
+ */
+function cleanPads(parsed: unknown): string[] {
+  const fallback = [...DEFAULT_PADS];
+  if (!Array.isArray(parsed)) return fallback;
+  return fallback.map((lane, at) =>
+    typeof parsed[at] === 'string' && ALL_LANES.includes(parsed[at] as Lane)
+      ? (parsed[at] as string)
+      : lane,
+  );
+}
+
+/**
+ * The pad layout **per style**, keyed by style id.
+ *
+ * ⛔⛔ **One shared layout was wrong, and Mike caught it immediately.**
+ * 2026-08-09: *"when i click to open my 'My EDM' it should go back to having a
+ * kick for the first drum lane instead of a 'Sub Kick' that i changed it to when
+ * i switched the artist — the original workflows should go back to exactly how
+ * they were when you left them."* A single list meant reaching for a sub kick
+ * while working on a drill beat silently rewrote the layout of every other style
+ * the producer owns, and there was nothing on screen to say it had happened.
+ *
+ * ⚠ Which lanes are on the pads is a property of **the thing being made**, like
+ * the kit itself — not of the window it is made in.
+ */
+function loadPads(): Record<string, string[]> {
+  try {
+    const raw = window.localStorage.getItem(PADS_KEY);
+    if (!raw) return {};
+    const parsed: unknown = JSON.parse(raw);
+    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return {};
+    const out: Record<string, string[]> = {};
+    for (const [id, lanes] of Object.entries(parsed as Record<string, unknown>)) {
+      out[id] = cleanPads(lanes);
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
 
 /**
  * Whether the user asked for less animation.
@@ -85,6 +169,12 @@ type UiState = {
    *  overrides it with K, which is why it is stored rather than derived. */
   rightRailOpen: boolean;
   sections: SectionState;
+  /** Every style's pad layout, by style id. Read it through `padsFor`. */
+  pads: Record<string, string[]>;
+  /** The eight lanes this style's pads address, defaulted when it has none yet. */
+  padsFor: (styleId: string | null) => string[];
+  /** Put a different lane on one of this style's pads. Persisted immediately. */
+  setPad: (styleId: string | null, at: number, lane: string) => void;
   theme: ThemePreference;
   /**
    * The Settings toggle that suppresses the generation animation.
@@ -260,10 +350,42 @@ const startsWide = typeof window === 'undefined' ? true : isWide();
  */
 let lastBreakpoint = startsWide;
 
-export const useUi = create<UiState>((set) => ({
+export const useUi = create<UiState>((set, get) => ({
   activeTab: 'drums',
   rightRailOpen: startsWide,
   sections: loadSections(),
+  pads: loadPads(),
+
+  padsFor: (styleId) =>
+    styleId === null ? [...DEFAULT_PADS] : (get().pads[styleId] ?? [...DEFAULT_PADS]),
+
+  setPad: (styleId, at, lane) =>
+    set((s) => {
+      // Nothing selected is nothing to remember it against — and there is no
+      // pad grid to change either, so this cannot be reached in practice.
+      if (styleId === null) return s;
+      const current = s.pads[styleId] ?? [...DEFAULT_PADS];
+
+      // ⛔ **At most two pads on one lane** — Mike, 2026-08-09: *"only 2
+      // instruments can be the same, so that way if you want to layer a snare,
+      // you can do that."* Two is the layering case and is deliberately allowed;
+      // a third is a producer losing a pad to a duplicate they cannot see,
+      // because both copies look identical and neither says it is the spare.
+      //
+      // ⚠ Refused rather than swapped or auto-corrected. Moving another pad out
+      // of the way would change a slot the producer did not touch, which is a
+      // worse surprise than the change they asked for simply not taking.
+      const already = current.filter((held, index) => index !== at && held === lane).length;
+      if (already >= PAD_LIMIT) return s;
+
+      const pads = {
+        ...s.pads,
+        [styleId]: current.map((held, index) => (index === at ? lane : held)),
+      };
+      writeStored(PADS_KEY, JSON.stringify(pads));
+      return { pads };
+    }),
+
   theme: loadThemePreference(),
   reduceMotion: loadReduceMotion(),
   language: loadLanguagePreference(),

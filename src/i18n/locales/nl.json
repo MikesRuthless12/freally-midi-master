@@ -50,7 +50,12 @@
     "choosing": "Kiezen…",
     "clearOne": "One-shot op {{lane}} wissen",
     "randomize": "Elke niet-vergrendelde pad opnieuw loten uit deze map",
-    "randomizeOne": "{{lane}} opnieuw loten uit deze map"
+    "randomizeOne": "{{lane}} opnieuw loten uit deze map",
+    "padsLabel": "Drumpads",
+    "muteLane": "{{lane}} dempen",
+    "unmuteLane": "{{lane}} inschakelen",
+    "playLane": "{{lane}} afspelen",
+    "padLane": "Baan van pad {{at}}"
   },
   "sections": {
     "genres": "Genres",

@@ -55,7 +55,7 @@ async function notes(page: Page) {
 /** Generate a melody and hand back the roll's canvas. */
 async function openRoll(page: Page): Promise<Locator> {
   await page.goto('/');
-  const search = page.getByLabel('Search an artist');
+  const search = page.getByRole('combobox', { name: 'Roster' });
   await search.fill('trap');
   await search.press('Enter');
   await page.getByRole('tab', { name: 'Melody' }).click();

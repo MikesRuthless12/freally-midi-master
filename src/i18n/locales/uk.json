@@ -50,7 +50,12 @@
     "choosing": "Вибір…",
     "clearOne": "Прибрати ваш семпл із доріжки «{{lane}}»",
     "randomize": "Перебрати кожен незаблокований пед із цієї теки",
-    "randomizeOne": "Перебрати {{lane}} із цієї теки"
+    "randomizeOne": "Перебрати {{lane}} із цієї теки",
+    "padsLabel": "Барабанні педи",
+    "muteLane": "Приглушити {{lane}}",
+    "unmuteLane": "Увімкнути {{lane}}",
+    "playLane": "Відтворити {{lane}}",
+    "padLane": "Доріжка педа {{at}}"
   },
   "sections": {
     "genres": "Жанри",

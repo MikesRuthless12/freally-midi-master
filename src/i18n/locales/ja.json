@@ -50,7 +50,12 @@
     "choosing": "選択中…",
     "clearOne": "{{lane}} のワンショットを解除",
     "randomize": "このフォルダーからロックされていないパッドを引き直す",
-    "randomizeOne": "このフォルダーから {{lane}} を引き直す"
+    "randomizeOne": "このフォルダーから {{lane}} を引き直す",
+    "padsLabel": "ドラムパッド",
+    "muteLane": "{{lane}} をミュート",
+    "unmuteLane": "{{lane}} のミュート解除",
+    "playLane": "{{lane}} を再生",
+    "padLane": "パッド {{at}} のレーン"
   },
   "sections": {
     "genres": "ジャンル",

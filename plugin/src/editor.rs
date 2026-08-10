@@ -24,7 +24,7 @@ use nih_plug_webview::{HTMLSource, WebViewEditor};
 use serde::Deserialize;
 use serde_json::{json, Value};
 
-use engine::pattern::Pattern;
+use engine::pattern::{Lane, Pattern};
 
 use crate::bridge::{self, Request};
 use crate::shared::SharedState;
@@ -183,6 +183,21 @@ fn next_among(name: &str, window: impl Fn(f32) -> (u32, u32)) -> (&'static str, 
 /// it gets a *smaller scale*, which still shows everything. A 1366x768 laptop
 /// asking for `large` is the case that matters, and it is not an exotic one.
 fn physical(factor: f32) -> ((u32, u32), f32) {
+    // ⛔⛔ **The scale is applied by `baseview`, not here, and applying it in both
+    // places counted it twice** (2026-08-09). `nih_plug_webview` opens the window
+    // with `WindowScalePolicy::SystemScaleFactor`, which means the size it is
+    // given is **logical** and baseview multiplies by the system DPI itself.
+    //
+    // ⚠ **This was invisible until the process became DPI-aware.** While it was
+    // not, `GetDpiForSystem` answered 96 — so `system_scale()` was 1.0 and
+    // multiplying by it changed nothing. `become_dpi_aware` in
+    // `bin/standalone.rs` made it answer 144, and the same expression suddenly
+    // asked for 1.5² of the layout: the UI overflowed the window, which is the
+    // exact mirror of the dead margin it had just fixed. Mike, immediately:
+    // *"my size of my gui outshined the window's size."*
+    //
+    // So the size handed out is `LAYOUT * factor`, in logical pixels, and the
+    // one place that knows about DPI is baseview.
     fit(
         LAYOUT,
         system_scale(),
@@ -649,8 +664,39 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
         "user_model_copy_samples" => {
             let id = request.args["id"].as_str().unwrap_or_default();
             return Some(
-                crate::models::copy_samples(id, &assigned_paths(shared))
+                crate::models::copy_samples(id, &assigned_pairs(shared))
                     .and_then(|landed| serde_json::to_value(landed).map_err(|e| e.to_string())),
+            );
+        }
+
+        // ⛔⛔ **The other half of the copy, and without it the consent text was
+        // false.** It told the producer their samples *"still work if you move
+        // or delete the originals"*; nothing read `models/<id>/samples/` back,
+        // so the copies were bytes on a drive that no code path could reach.
+        // Mike found it by hand: clear the kick on a saved style, select
+        // something else, come back, and the kick did not return.
+        //
+        // ⛔ **Through `load_kit`, so it is on the loader thread.** This decodes
+        // up to a dozen files; doing that here would be doing it on the host's
+        // editor thread, which is § 4.8's freeze — the failure this session has
+        // already had to fix once, in `user_model_train`. The page waits on
+        // `one_shot_status` exactly as it does for a folder re-roll.
+        //
+        // ⚠ **Silent when the style owns nothing**, which is most styles. A
+        // producer selecting a style they never copied samples for must not be
+        // told about a file they never made — so an empty list is `Ok(())` here
+        // rather than `load_kit`'s "that kit has no samples in it".
+        "user_model_load_samples" => {
+            let id = request.args["id"].as_str().unwrap_or_default();
+            let pairs = crate::models::samples_for(id);
+            if pairs.is_empty() {
+                return Some(Ok(Value::Bool(false)));
+            }
+            return Some(
+                shared
+                    .one_shots
+                    .load_kit(pairs, &shared.kits, &shared.session)
+                    .map(|()| Value::Bool(true)),
             );
         }
 
@@ -1347,6 +1393,13 @@ const PAGE: &str = "freally://localhost/index.html";
 
 pub fn create(shared: SharedState) -> Option<Box<dyn Editor>> {
     let editor = WebViewEditor::new(HTMLSource::URL(PAGE), window_size(&shared))
+        // ⛔ **The floor a drag stops at is the app's own default size** — Mike,
+        // 2026-08-09: *"a little smaller and it ends up clipping the right
+        // panel."* `physical(1.0)` is the `large` preset, which is what
+        // `LAYOUT` was drawn for, so nothing below it can be a size the UI was
+        // designed to survive. Passed from here rather than chosen in the
+        // adapter, so it tracks `LAYOUT` and the display scale automatically.
+        .with_minimum_size(physical(1.0).0)
         // The app's own background, so a slow first paint is the app's colour
         // rather than a white flash inside a dark DAW.
         .with_background_color((11, 11, 13, 255))
@@ -1545,11 +1598,26 @@ const BEFORE_ACCEPTANCE: &[&str] = &[
 /// position than validating one — the guard that cannot be forgotten is the one
 /// that has nothing to guard.
 fn assigned_paths(shared: &SharedState) -> Vec<String> {
+    assigned_pairs(shared)
+        .into_iter()
+        .map(|(_, path)| path)
+        .collect()
+}
+
+/// The same assignments, **with the lane each one is on**.
+///
+/// ⛔⛔ **Dropping the lane here is what orphaned every copied sample.** The
+/// copy landed sixteen hex-named files in a folder with nothing recording which
+/// was the kick, so the read-back could not exist — `assigned_paths` discarded
+/// the one fact that made the copies usable, one call before they were written.
+/// The cost half genuinely does not need lanes (it sums bytes); the copy half
+/// always did.
+fn assigned_pairs(shared: &SharedState) -> Vec<(Lane, String)> {
     shared
         .one_shots
         .snapshot()
         .into_iter()
-        .map(|(_, (path, _))| path)
+        .map(|(lane, (path, _))| (lane, path))
         .collect()
 }
 

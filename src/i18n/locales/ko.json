@@ -50,7 +50,12 @@
     "choosing": "선택 중…",
     "clearOne": "{{lane}}의 원샷 해제",
     "randomize": "이 폴더에서 잠기지 않은 패드를 다시 뽑기",
-    "randomizeOne": "이 폴더에서 {{lane}} 다시 뽑기"
+    "randomizeOne": "이 폴더에서 {{lane}} 다시 뽑기",
+    "padsLabel": "드럼 패드",
+    "muteLane": "{{lane}} 음소거",
+    "unmuteLane": "{{lane}} 음소거 해제",
+    "playLane": "{{lane}} 재생",
+    "padLane": "패드 {{at}} 레인"
   },
   "sections": {
     "genres": "장르",

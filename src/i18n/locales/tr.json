@@ -50,7 +50,12 @@
     "choosing": "Seçiliyor…",
     "clearOne": "{{lane}} kanalındaki one-shot örneğini kaldır",
     "randomize": "Bu klasörden kilitli olmayan her pad’i yeniden çek",
-    "randomizeOne": "{{lane}} pad’ini bu klasörden yeniden çek"
+    "randomizeOne": "{{lane}} pad’ini bu klasörden yeniden çek",
+    "padsLabel": "Davul padleri",
+    "muteLane": "{{lane}} sustur",
+    "unmuteLane": "{{lane}} sesini aç",
+    "playLane": "{{lane}} çal",
+    "padLane": "Pad {{at}} kanalı"
   },
   "sections": {
     "genres": "Türler",

@@ -50,7 +50,12 @@
     "choosing": "Đang chọn…",
     "clearOne": "Xoá one-shot trên {{lane}}",
     "randomize": "Bốc lại mọi pad chưa khoá từ thư mục này",
-    "randomizeOne": "Bốc lại {{lane}} từ thư mục này"
+    "randomizeOne": "Bốc lại {{lane}} từ thư mục này",
+    "padsLabel": "Pad trống",
+    "muteLane": "Tắt tiếng {{lane}}",
+    "unmuteLane": "Bật tiếng {{lane}}",
+    "playLane": "Phát {{lane}}",
+    "padLane": "Làn của pad {{at}}"
   },
   "sections": {
     "genres": "Thể loại",

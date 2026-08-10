@@ -968,6 +968,59 @@ describe('each part keeps its own pattern', () => {
     expect(lastRequest().seed).toBe(got);
   });
 
+  // ── A style's own samples come back with it (TASK-049) ──────────────────
+  it('loads a style’s copied samples when the producer selects it', async () => {
+    // ⛔⛔ **The half that was missing, and it made the consent text false.** The
+    // checkbox promises the copies *"still work if you move or delete the
+    // originals"*, and nothing read `models/<id>/samples/` back — Mike found it
+    // by hand: clear the kick on a saved style, select something else, come
+    // back, and the kick did not return.
+    useSession.setState({
+      roster: [
+        ...ROSTER,
+        {
+          id: 'my-edm',
+          name: 'My EDM',
+          aliases: [],
+          type: 'artist',
+          tier: 'standard',
+          genres: [],
+          relatedGenres: [],
+          era: null,
+          mine: true,
+        },
+      ],
+      selectedId: 'trap',
+    });
+
+    useSession.getState().select('my-edm');
+    await vi.waitFor(() =>
+      expect(
+        invoke.mock.calls.filter((call: unknown[]) => call[0] === 'user_model_load_samples')
+          .length,
+      ).toBe(1),
+    );
+    const [, args] = invoke.mock.calls.find(
+      (call: unknown[]) => call[0] === 'user_model_load_samples',
+    ) as [string, { id: string }];
+    expect(args.id).toBe('my-edm');
+  });
+
+  it('asks nothing of the bridge when the style is not the producer’s own', async () => {
+    // ⛔ A shipped artist has no copied samples by construction. Asking anyway
+    // would be a round trip per click through a five-hundred-name roster, to be
+    // told no every time — and the `mine` check is what makes the read-back cost
+    // nothing for everybody who never built a style.
+    useSession.setState({ roster: ROSTER, selectedId: 'trap' });
+
+    useSession.getState().select('uk-drill');
+    await Promise.resolve();
+
+    expect(
+      invoke.mock.calls.filter((call: unknown[]) => call[0] === 'user_model_load_samples'),
+    ).toEqual([]);
+  });
+
   it('refuses to lock an empty box, so the flag cannot contradict the seed', () => {
     useSession.getState().setSeed('');
     useSession.getState().setSeedPinned(true);

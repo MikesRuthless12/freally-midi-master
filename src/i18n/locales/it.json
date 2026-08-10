@@ -50,7 +50,12 @@
     "choosing": "Selezione…",
     "clearOne": "Rimuovi il one-shot da {{lane}}",
     "randomize": "Rilancia ogni pad non bloccato da questa cartella",
-    "randomizeOne": "Rilancia {{lane}} da questa cartella"
+    "randomizeOne": "Rilancia {{lane}} da questa cartella",
+    "padsLabel": "Pad batteria",
+    "muteLane": "Silenzia {{lane}}",
+    "unmuteLane": "Riattiva {{lane}}",
+    "playLane": "Riproduci {{lane}}",
+    "padLane": "Traccia del pad {{at}}"
   },
   "sections": {
     "genres": "Generi",

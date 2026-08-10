@@ -24,7 +24,7 @@ window.SEARCH_INDEX = [
   {
     id: 'roster',
     title: 'The roster',
-    body: 'artist genre search fuzzy autosuggest mainstream underground style parameters Metro Boomin OsamaSon trap drill disclaimer descriptive reference',
+    body: 'combobox autocomplete type to filter arrow dropdown artist genre search fuzzy autosuggest mainstream underground style parameters Metro Boomin OsamaSon trap drill disclaimer descriptive reference',
   },
   {
     id: 'moods',
@@ -35,6 +35,11 @@ window.SEARCH_INDEX = [
     id: 'own-style',
     title: 'Your own style, and training it',
     body: 'original workflow own artist own style build save train training fit fitted kept takes star thirty roster yours inherit extends export import copy samples consent disk space no machine learning offline midi file',
+  },
+  {
+    id: 'pads',
+    title: 'The drum pads',
+    body: 'pad pads drum lane lanes kick snare clap closed hat open hat perc rim crash mute unmute green red dot play audition drag drop sample one-shot shuffle re-roll randomize clear built in swap lane picker layer two per lane remembered per artist',
   },
   {
     id: 'generators',

@@ -50,7 +50,12 @@
     "choosing": "Memilih…",
     "clearOne": "Hapus one-shot pada {{lane}}",
     "randomize": "Undi ulang setiap pad yang tidak terkunci dari folder ini",
-    "randomizeOne": "Undi ulang {{lane}} dari folder ini"
+    "randomizeOne": "Undi ulang {{lane}} dari folder ini",
+    "padsLabel": "Pad drum",
+    "muteLane": "Bisukan {{lane}}",
+    "unmuteLane": "Bunyikan {{lane}}",
+    "playLane": "Putar {{lane}}",
+    "padLane": "Jalur pad {{at}}"
   },
   "sections": {
     "genres": "Genre",

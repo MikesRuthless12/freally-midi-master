@@ -1,4 +1,6 @@
-use baseview::{Event, Size, Window, WindowHandle, WindowOpenOptions, WindowScalePolicy};
+use baseview::{
+    Event, Size, Window, WindowEvent, WindowHandle, WindowOpenOptions, WindowScalePolicy,
+};
 use nih_plug::prelude::{Editor, GuiContext, ParamSetter};
 use serde_json::Value;
 use std::{
@@ -72,6 +74,25 @@ impl WebViewEditor {
             mouse_handler: Arc::new(|_| EventStatus::Ignored),
             custom_protocol: None,
         }
+    }
+
+    /// The smallest client area a producer may drag the window to.
+    ///
+    /// ⛔ **Mike, 2026-08-09**: *"let's just ensure that the window can get no
+    /// smaller than the default size of the app, because a little smaller and it
+    /// ends up clipping the right panel."* So the caller passes its own default —
+    /// the `large` preset — and this file invents no size of its own.
+    ///
+    /// ⚠ **Standalone only in practice.** The floor is enforced through
+    /// `WM_GETMINMAXINFO` on the frame, and a plugin has no frame of its own: in
+    /// a DAW the window belongs to the host, and telling Ableton how large its
+    /// own window must be is not ours to do.
+    pub fn with_minimum_size(self, size: (u32, u32)) -> Self {
+        #[cfg(target_os = "windows")]
+        windows_pump::set_minimum_size(size.0, size.1);
+        #[cfg(not(target_os = "windows"))]
+        let _ = size;
+        self
     }
 
     pub fn with_background_color(mut self, background_color: (u8, u8, u8, u8)) -> Self {
@@ -177,6 +198,63 @@ impl WindowHandler {
         });
     }
 
+    /// Keep the webview the size of the frame, so a drag actually resizes the UI.
+    ///
+    /// ⛔⛔ **`set_bounds` ONLY — no `SetWindowPos`, and that is what makes this
+    /// safe from here.** `set_bounds` repositions **WebView2's own** window
+    /// through COM; `baseview` never hears about it, so nothing re-enters the
+    /// window procedure this function runs inside. Two earlier attempts moved
+    /// `baseview`'s window instead and both failed, differently:
+    ///
+    /// - From `on_frame`, `SetWindowPos` dispatches `WM_SIZE` synchronously into
+    ///   that procedure, on top of a live `RefCell` borrow — *'RefCell already
+    ///   borrowed'* at `baseview/win/window.rs:521`, and with `panic = "abort"`
+    ///   that is the process, not a caught panic.
+    /// - From `pump_proc` it did not crash but came out **1.5x wrong**: the page
+    ///   went from `inner=1440` to `inner=960`. `baseview`'s child sits in a
+    ///   different DPI context, so the coordinates handed to `SetWindowPos` are
+    ///   virtualised — asking for 2160 produced a client of 1440.
+    ///
+    /// Going straight to the webview sidesteps both: one call, one unit, no
+    /// messages.
+    ///
+    /// ⚠ **Why this looked broken when it was first tried.** It compared against
+    /// `self.width`, which already *equalled* the frame's client area, so it
+    /// correctly did nothing — and it was only ever exercised while Mike was
+    /// **moving** the window, which does not change a client rect. The zero
+    /// refits in that trace were the honest answer to a question nobody had
+    /// asked properly.
+    ///
+    /// ⚠ The page handles the other half: `WindowSize.tsx` re-derives its zoom
+    /// from `window.innerWidth` on every `resize` and sizes its root to
+    /// `window / zoom`, so the UI scales to fill whatever this hands it.
+    #[cfg(target_os = "windows")]
+    fn fill_frame(&self, editor: *mut std::ffi::c_void) {
+        let Some((width, height)) = windows_pump::frame_client_size(editor) else {
+            return;
+        };
+        if self.width.load(Ordering::Relaxed) == width
+            && self.height.load(Ordering::Relaxed) == height
+        {
+            return;
+        }
+
+        if let Some(webview) = self.webview() {
+            webview.set_bounds(wry::Rect {
+                x: 0,
+                y: 0,
+                width,
+                height,
+            });
+        }
+        self.width.store(width, Ordering::Relaxed);
+        self.height.store(height, Ordering::Relaxed);
+
+        if std::env::var("FREALLY_TRACE_EDITOR").is_ok() {
+            eprintln!("[editor] webview filled the frame: {width}x{height}");
+        }
+    }
+
     pub fn send_json(&self, json: Value) {
         let Some(webview) = self.webview() else {
             return;
@@ -279,6 +357,16 @@ mod windows_pump {
             param: *mut c_void,
         ) -> *mut c_void;
         fn DefWindowProcW(hwnd: *mut c_void, msg: u32, w_param: usize, l_param: isize) -> isize;
+        /// ⛔ How [`min_size_proc`] hands everything it does not answer back to
+        /// `baseview`'s own procedure. `DefWindowProcW` is **not** a substitute:
+        /// it would swallow every message baseview relies on.
+        fn CallWindowProcW(
+            previous: *mut c_void,
+            hwnd: *mut c_void,
+            msg: u32,
+            w_param: usize,
+            l_param: isize,
+        ) -> isize;
         fn PostMessageW(hwnd: *mut c_void, msg: u32, w_param: usize, l_param: isize) -> i32;
         fn GetParent(hwnd: *mut c_void) -> *mut c_void;
         fn GetWindowLongPtrW(hwnd: *mut c_void, index: i32) -> isize;
@@ -427,7 +515,20 @@ mod windows_pump {
             let created = create_pump_window(editor);
             PUMP_WINDOW.with(|w| w.set(created));
             stop_being_a_drop_target(editor);
-            pin_the_frame(editor);
+            // ⛔ **Not called any more, 2026-08-09.** It stripped the sizing
+            // border and the maximise box so the window could not disagree with
+            // its contents — a workaround for the DPI mismatch that
+            // `standalone::become_dpi_aware` now fixes properly. Mike asked for
+            // both back the moment the real bug was gone, and he is right that a
+            // producer should be able to have the window the size they want.
+            //
+            // ⚠ **Kept rather than deleted.** If drag-resize turns out to be
+            // wrong in some host, restoring one call is a cheaper retreat than
+            // reconstructing this from the history — and it documents what the
+            // old behaviour was for anyone reading the git log.
+            let _ = pin_the_frame;
+            // ⛔ The floor a drag stops at. See `enforce_minimum_size`.
+            enforce_minimum_size(editor);
             created
         } else {
             window
@@ -522,6 +623,170 @@ mod windows_pump {
             }
             window = unsafe { GetParent(window) };
         }
+    }
+
+    thread_local! {
+        /// The smallest **client area** the window may be dragged to, in physical
+        /// pixels. Set by [`set_minimum_size`]; zero means no floor.
+        ///
+        /// ⛔ **The app's own default size, not a number invented here.** Mike,
+        /// 2026-08-09: *"let's just ensure that the window can get no smaller
+        /// than the default size of the app, because a little smaller and it ends
+        /// up clipping the right panel."* A constant in this file would be a
+        /// second opinion about how big the UI needs to be, and it would drift
+        /// the moment `LAYOUT` or the display scale changed. The plugin already
+        /// computes that size for the `large` preset; it passes it in.
+        static MIN_CLIENT: Cell<(i32, i32)> = const { Cell::new((0, 0)) };
+    }
+
+    /// Set the floor a drag stops at, in physical pixels of **client** area.
+    ///
+    /// Called by [`super::WebViewEditor::with_minimum_size`], which is given the
+    /// plugin's own `large` preset.
+    pub fn set_minimum_size(width: u32, height: u32) {
+        MIN_CLIENT.with(|m| m.set((width as i32, height as i32)));
+    }
+
+    /// Windows asks a window for its limits before it lets anyone resize it.
+    ///
+    /// ⛔ **`WM_GETMINMAXINFO` is the right mechanism, and it is the only one
+    /// that does not fight the producer.** The alternative — noticing afterwards
+    /// that the window got too small and resizing it back — means `SetWindowPos`
+    /// on `baseview`'s own window, which is the re-entrancy that aborted this
+    /// process on 2026-08-09, and it would also snap the frame out from under a
+    /// held mouse button. Answering the question Windows asks *first* means the
+    /// drag simply stops at the floor.
+    ///
+    /// ⚠ **This handler sends no messages and touches no borrow.** It writes two
+    /// numbers into a struct Windows hands it and delegates everything else. That
+    /// is what makes it safe to sit in front of `baseview`'s procedure at all.
+    unsafe extern "system" fn min_size_proc(
+        hwnd: *mut c_void,
+        msg: u32,
+        w_param: usize,
+        l_param: isize,
+    ) -> isize {
+        const WM_GETMINMAXINFO: u32 = 0x0024;
+        // Local, because `pin_the_frame` keeps its own copies and neither is
+        // worth hoisting for two uses.
+        const GWL_STYLE: i32 = -16;
+        const GWL_EXSTYLE: i32 = -20;
+
+        let (min_w, min_h) = MIN_CLIENT.with(|m| m.get());
+        if msg == WM_GETMINMAXINFO && l_param != 0 && min_w > 0 && min_h > 0 {
+            // ⛔ **`ptMinTrackSize` is the whole WINDOW, and the floor above is a
+            // CLIENT area.** Reporting the client size directly would let the
+            // window shrink by exactly the caption and borders — which is a few
+            // dozen pixels, and a few dozen pixels is precisely what was clipping
+            // the right panel. `AdjustWindowRectEx` asks Windows what outer size
+            // yields the client area we want, using this window's real styles.
+            let mut want = Rect {
+                left: 0,
+                top: 0,
+                right: min_w,
+                bottom: min_h,
+            };
+            // SAFETY: documented entry points on a window this process owns.
+            let (mut width, mut height) = (min_w, min_h);
+            unsafe {
+                let style = GetWindowLongPtrW(hwnd, GWL_STYLE) as u32;
+                let ex_style = GetWindowLongPtrW(hwnd, GWL_EXSTYLE) as u32;
+                if AdjustWindowRectEx(&mut want, style, 0, ex_style) != 0 {
+                    width = want.right - want.left;
+                    height = want.bottom - want.top;
+                }
+            }
+
+            // `MINMAXINFO` is five `POINT`s; `ptMinTrackSize` is the fourth, so
+            // it starts at offset 24 bytes on both 32- and 64-bit Windows
+            // (`POINT` is two `i32`s and the struct is not padded).
+            //
+            // SAFETY: Windows guarantees `l_param` points at a writable
+            // `MINMAXINFO` for the duration of this message.
+            unsafe {
+                let min_track = (l_param as *mut u8).add(24) as *mut i32;
+                *min_track = width;
+                *min_track.add(1) = height;
+            }
+            return 0;
+        }
+
+        // SAFETY: `PREVIOUS_PROC` is the procedure this one displaced, and the
+        // arguments are the ones Windows just handed us.
+        let previous = PREVIOUS_PROC.with(|p| p.get());
+        unsafe {
+            if previous == 0 {
+                DefWindowProcW(hwnd, msg, w_param, l_param)
+            } else {
+                CallWindowProcW(previous as *mut c_void, hwnd, msg, w_param, l_param)
+            }
+        }
+    }
+
+    thread_local! {
+        /// The frame's original window procedure, so [`min_size_proc`] can
+        /// delegate everything it does not answer.
+        static PREVIOUS_PROC: Cell<isize> = const { Cell::new(0) };
+    }
+
+    /// Put [`min_size_proc`] in front of the frame's own procedure, once.
+    ///
+    /// ⚠ Standalone only, like everything else in this module: [`request`]
+    /// returns before its caller when the pump is off, so a host's window is
+    /// never restyled — doing that to Ableton's frame would be indefensible.
+    fn enforce_minimum_size(editor: *mut c_void) {
+        const GWLP_WNDPROC: i32 = -4;
+
+        let frame = top_level(editor);
+        if frame.is_null() || frame == editor {
+            return;
+        }
+        // SAFETY: documented entry points on a window this process owns, called
+        // from the thread that created it.
+        let previous = unsafe {
+            SetWindowLongPtrW(
+                frame,
+                GWLP_WNDPROC,
+                min_size_proc as *const () as usize as isize,
+            )
+        };
+        PREVIOUS_PROC.with(|p| p.set(previous));
+
+        if std::env::var("FREALLY_TRACE_EDITOR").is_ok() {
+            let (w, h) = MIN_CLIENT.with(|m| m.get());
+            eprintln!("[editor] minimum client area set to {w}x{h}");
+        }
+    }
+
+    /// The client area of the **frame above** `editor`, in physical pixels.
+    ///
+    /// ⛔⛔ **[`top_level`], not `editor` itself.** `baseview`'s window is a
+    /// `WS_CHILD` that is never resized when the frame is dragged, so its own
+    /// client rect answers the same number forever — a refit keyed on it can
+    /// never fire, which is what a traced session showed on 2026-08-09.
+    ///
+    /// ⚠ Physical pixels, which is the unit `WebView2`'s bounds are in. Measured:
+    /// with the frame at 2160x1350 the page reports `inner=1440x900` at
+    /// `dpr=1.5`, i.e. `CSS = physical / 1.5`. No conversion belongs here.
+    pub fn frame_client_size(editor: *mut c_void) -> Option<(u32, u32)> {
+        if editor.is_null() {
+            return None;
+        }
+        let frame = top_level(editor);
+        let mut rect = Rect {
+            left: 0,
+            top: 0,
+            right: 0,
+            bottom: 0,
+        };
+        // SAFETY: a documented entry point on a window this process owns.
+        if unsafe { GetClientRect(frame, &mut rect) } == 0 {
+            return None;
+        }
+        let (width, height) = (rect.right - rect.left, rect.bottom - rect.top);
+        // Minimised reports zero; handing that on would collapse the webview and
+        // it would not come back on restore.
+        (width > 0 && height > 0).then_some((width as u32, height as u32))
     }
 
     /// The editor window this thread pumps for, or null if it does not pump.
@@ -870,6 +1135,10 @@ impl baseview::WindowHandler for WindowHandler {
                 _ => std::ptr::null_mut(),
             };
             windows_pump::request(editor);
+            // ⛔ Safe from here **because it only calls `set_bounds`**. See
+            // `fill_frame`: anything that moves baseview's own window from this
+            // stack re-enters the window procedure and aborts the process.
+            self.fill_frame(editor);
         }
 
         let setter = ParamSetter::new(&*self.context);
@@ -899,10 +1168,80 @@ impl baseview::WindowHandler for WindowHandler {
             // the symptom is the app cropping and the right rail collapsing —
             // the exact failure the design exists to prevent.
             //
-            // ▶ **The answer is that the standalone cannot be resized at all**:
-            // `windows_pump::pin_the_frame` takes away the sizing border and the
-            // maximise box, so the only route to a different size is
-            // `set_editor_size`, which moves *both* numbers together.
+            // ▶ **RESOLVED 2026-08-09, and the note above is kept because it
+            // records a wrong diagnosis that cost a whole evening.** Everything
+            // it describes was real; the *cause* was not resizing at all. This
+            // process was running **DPI-unaware** on a 150% display while
+            // WebView2 was per-monitor aware, so the two disagreed about the
+            // size of a pixel: the window was stretched 1.5x by the desktop and
+            // the page rendered at true pixels inside it, covering two thirds of
+            // each axis. That is the dead space, and the same mismatch is why
+            // the content would not follow the frame when it was dragged.
+            // `standalone::become_dpi_aware` fixes it at the source — the page's
+            // own `devicePixelRatio` went from 1 to 1.5 — and Mike confirmed it.
+            //
+            // ⛔ **So the window may be resized and maximised again**, which is
+            // what he asked for once it worked: *"i need it to be able to be
+            // dragged to resize and maximized again … so that way the end user
+            // can have it whatever way they want it."* `pin_the_frame` is no
+            // longer called.
+            //
+            // ⛔⛔ **`set_bounds` ONLY. Nothing here may call `SetWindowPos` on a
+            // baseview window, and nothing here may call [`Self::resize`].**
+            // Both re-enter this window procedure while its `RefCell` borrow is
+            // live, and with `panic = "abort"` that is not a caught panic — it is
+            // the process. It was, on 2026-08-09:
+            //
+            //     panicked at 'RefCell already borrowed'
+            //       baseview/win/window.rs:521
+            //       … CallWindowProcW → SendMessageW → handle_message
+            //
+            // `WebView::set_bounds` is safe here because it repositions
+            // **WebView2's own** child window, which baseview knows nothing
+            // about, so no message reaches the procedure we are standing in.
+            //
+            // ⚠ The page re-derives its own zoom from `window.innerWidth` on
+            // every `resize` (`WindowSize.tsx::measuredZoom`) and sizes its root
+            // to `window / zoom`, so making the webview the right size is the
+            // whole of this side's job — the page then scales to fill it.
+            Event::Window(WindowEvent::Resized(info)) => {
+                // ⛔⛔ **`logical_size`, NOT `physical_size`.** wry's bounds are
+                // in **DIPs**, and handing it physical pixels multiplies the
+                // page's viewport by the display scale. Measured on 2026-08-09,
+                // on a 150% display: with `physical_size` the page reported
+                // `inner=2160x1350`, so `measuredZoom` computed
+                // `2160 / 1440 = 1.5` and drew the whole UI half again too big —
+                // Mike: *"now it's even bigger."* With the correct units it
+                // reports `inner=1440x900` and a zoom of 1, which is the build he
+                // confirmed working.
+                //
+                // ⚠ This is the third distinct thing that went wrong in this one
+                // area tonight, and all three were **unit** errors: the process
+                // was DPI-unaware while WebView2 was aware, the scale was almost
+                // applied twice, and this. When something here looks wrong, print
+                // the numbers before changing the logic.
+                let size = info.logical_size();
+                let (width, height) = (size.width as u32, size.height as u32);
+                if std::env::var("FREALLY_TRACE_EDITOR").is_ok() {
+                    eprintln!(
+                        "[editor] Resized -> logical {width}x{height} (physical {:?}, scale {})",
+                        info.physical_size(),
+                        info.scale()
+                    );
+                }
+                if let Some(webview) = self.webview() {
+                    webview.set_bounds(wry::Rect {
+                        x: 0,
+                        y: 0,
+                        width,
+                        height,
+                    });
+                }
+                self.width.store(width, Ordering::Relaxed);
+                self.height.store(height, Ordering::Relaxed);
+                EventStatus::Ignored
+            }
+
             _ => EventStatus::Ignored,
         }
     }

@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import { pickArtist } from './app';
 
 /**
  * The keyboard map (TASK-046, FR-018).
@@ -11,7 +12,7 @@ import { expect, test } from '@playwright/test';
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('tablist', { name: 'Generator' })).toBeVisible();
-  await page.locator('.roster__item', { hasText: 'Mock Artist' }).click();
+  await pickArtist(page, 'Mock Artist');
 });
 
 test('1 – 6 pick a generator, in the order they are drawn', async ({ page }) => {
@@ -49,7 +50,7 @@ test('a key pressed in a text box types rather than firing', async ({ page }) =>
   // ⛔ The rule every one of these handlers keeps: `isTypingTarget` first. A
   // producer typing "drill" into the search box must not switch tabs on the
   // "1" of a seed or generate on the "g" of "garage".
-  const search = page.getByLabel('Search an artist');
+  const search = page.getByRole('combobox', { name: 'Roster' });
   await search.fill('');
   await search.press('g');
   await expect(search).toHaveValue('g');
