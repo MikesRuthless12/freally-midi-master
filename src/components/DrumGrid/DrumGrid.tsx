@@ -374,7 +374,7 @@ export function DrumGrid({ pattern, playhead }: { pattern: Pattern; playhead: nu
    * also kept a second, stale idea of "what is selected" alive beside the box.
    */
   const sweep = useRef<
-    | { mode: 'delete'; cells: Map<string, CellRef>; moved: boolean }
+    | { mode: 'delete'; origin: CellRef; cells: Map<string, CellRef>; moved: boolean }
     | { mode: 'select'; start: CellRef; from: { x: number; y: number }; frame: DOMRect }
     | null
   >(null);
@@ -397,18 +397,14 @@ export function DrumGrid({ pattern, playhead }: { pattern: Pattern; playhead: nu
     height: number;
   } | null>(null);
   const gridRef = useRef<HTMLDivElement>(null);
-  /** Set when a sweep has just deleted, so its own context menu does not open. */
-  const swallowMenu = useRef(false);
-
   const onCellDown = useCallback((event: React.PointerEvent, lane: Lane, column: number) => {
-    // A fresh gesture clears the flags the last one left behind — the context
-    // menu one was meant for never arrives when the button is released off-grid.
-    swallowMenu.current = false;
+    // A fresh gesture clears the flag the last one left behind.
     handled.current = false;
 
     if (event.button === 2) {
       sweep.current = {
         mode: 'delete',
+        origin: { lane, column },
         cells: new Map([[cellKey(lane, column), { lane, column }]]),
         moved: false,
       };
@@ -535,9 +531,23 @@ export function DrumGrid({ pattern, playhead }: { pattern: Pattern; playhead: nu
         return;
       }
 
-      // A right-click that did not travel is a menu, and it is handled there.
-      if (!current.moved) return;
-      swallowMenu.current = true;
+      // ⛔⛔ **The palette opens from HERE, not from the `contextmenu` event, and
+      // that is a platform bug fixed rather than a preference.** This used to
+      // open on `contextmenu` and let the sweep suppress it afterwards with a
+      // `swallowMenu` flag — which silently assumed `contextmenu` arrives
+      // *after* `pointerup`. **That is true on Windows and false on Linux and
+      // macOS, where it fires on pointer DOWN.** So on those two the palette
+      // opened the instant the right button went down, covered the grid, and
+      // every following move landed on the menu instead of a cell: no
+      // `pointerenter` fired, `moved` stayed false, and the wipe deleted
+      // nothing. CI caught it on ubuntu and macOS while every local run passed,
+      // because the one platform it works on is the one it was written on.
+      //
+      // Down arms, move collects, up decides — one ordering, every platform.
+      if (!current.moved) {
+        setPalette(current.origin);
+        return;
+      }
       editPattern(clearCells(pattern, [...current.cells.values()]));
     };
 
@@ -560,17 +570,24 @@ export function DrumGrid({ pattern, playhead }: { pattern: Pattern; playhead: nu
    * the grid can make triplets at all. This is the same gesture that opens the
    * transform menu in the roll, so it is one thing to learn rather than two.
    */
-  const onCellMenu = useCallback((event: React.MouseEvent, lane: Lane, column: number) => {
+  const onCellMenu = useCallback((event: React.MouseEvent) => {
+    // ⛔⛔ **This handler now does one thing: stop the OS menu.** It used to be
+    // where the palette opened, which made the whole gesture depend on when the
+    // browser chooses to fire `contextmenu` — after `pointerup` on Windows,
+    // *on pointer down* on Linux and macOS. Opening the palette at pointer-down
+    // put a menu over the grid before the drag had travelled a pixel, so the
+    // right-drag wipe could not collect a single cell on two of three platforms.
+    // The decision moved to the `pointerup` handler above, where the gesture is
+    // actually finished and its travel is known.
+    //
+    // ⚠ **`preventDefault` still has to happen here and nowhere else** — it is
+    // the only event that can cancel the native menu, and without it the OS one
+    // appears over the palette on every platform.
     event.preventDefault();
     // ⚠ Not `stopPropagation`. The track's own `onMouseDown` already ignores
     // every button but the primary — see `seekTo` — so the seek this would be
     // protecting against cannot happen, and stopping it here would be a second
     // guard on a rule that is already spelled once.
-    if (swallowMenu.current) {
-      swallowMenu.current = false;
-      return;
-    }
-    setPalette({ lane, column });
   }, []);
 
   // Escape and a click elsewhere are the two ways anybody dismisses a popover,
@@ -799,7 +816,7 @@ export function DrumGrid({ pattern, playhead }: { pattern: Pattern; playhead: nu
                       onClick={(event) => onCell(event, lane, index)}
                       onPointerDown={(event) => onCellDown(event, lane, index)}
                       onPointerEnter={(event) => onCellEnter(event, lane, index)}
-                      onContextMenu={(event) => onCellMenu(event, lane, index)}
+                      onContextMenu={onCellMenu}
                       onKeyDown={(event) => onCellKey(event, lane, index)}
                       data-lane={lane}
                       data-col={index}

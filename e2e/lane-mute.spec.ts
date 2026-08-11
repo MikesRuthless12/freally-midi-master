@@ -267,8 +267,20 @@ test('Ctrl-clicking selects cells without placing or clearing a hit', async ({ p
     els.map((el) => el.getAttribute('data-hits')),
   );
 
-  await cells.nth(2).click({ modifiers: ['Control'] });
-  await cells.nth(5).click({ modifiers: ['Control'] });
+  // ⛔⛔ **`ControlOrMeta`, not `Control`, and macOS is not being humoured here —
+  // it reinterprets the gesture.** On macOS, Control + primary button IS the
+  // secondary click: the browser delivers `button: 2` and **never fires a
+  // `click` event at all**, so `onCell`'s Ctrl branch cannot run and no cell is
+  // ever selected. Pressing `Control` there tests the roll palette, not the
+  // selection. The app is already right — it reads `ctrlKey || metaKey`, and the
+  // shortcuts panel renders this row as `⌘ + click` on a Mac through `ACCEL` —
+  // so what was wrong was the test insisting on one platform's modifier.
+  //
+  // ⚠ **Keyboard presses below stay `Control` deliberately.** Those are not
+  // reinterpreted by the OS, they pass on all three runners today, and switching
+  // them would be changing what is covered rather than fixing what is broken.
+  await cells.nth(2).click({ modifiers: ['ControlOrMeta'] });
+  await cells.nth(5).click({ modifiers: ['ControlOrMeta'] });
 
   await expect(cells.nth(2)).toHaveAttribute('data-selected', 'true');
   await expect(cells.nth(5)).toHaveAttribute('data-selected', 'true');
@@ -388,10 +400,10 @@ test('Delete clears a whole selection, and one Ctrl+Z brings it all back', async
   const before = await lit.count();
   expect(before).toBeGreaterThan(1);
 
-  await cells.nth(0).click({ modifiers: ['Control'] });
-  await cells.nth(1).click({ modifiers: ['Control'] });
-  await cells.nth(2).click({ modifiers: ['Control'] });
-  await cells.nth(3).click({ modifiers: ['Control'] });
+  await cells.nth(0).click({ modifiers: ['ControlOrMeta'] });
+  await cells.nth(1).click({ modifiers: ['ControlOrMeta'] });
+  await cells.nth(2).click({ modifiers: ['ControlOrMeta'] });
+  await cells.nth(3).click({ modifiers: ['ControlOrMeta'] });
 
   const litInBlock = await cells.evaluateAll(
     (els) => els.slice(0, 4).filter((el) => el.classList.contains('grid__cell--on')).length,
