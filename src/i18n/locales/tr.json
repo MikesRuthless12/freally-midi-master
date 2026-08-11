@@ -1,7 +1,8 @@
 {
   "titlebar": {
     "settings": "Ayarlar",
-    "about": "Hakkında"
+    "about": "Hakkında",
+    "shortcuts": "Klavye kısayolları"
   },
   "tabs": {
     "group": "Oluşturucu",
@@ -393,7 +394,11 @@
       "generate": "Bu parçayı üret",
       "generateAll": "Tüm parçaları üret",
       "pickGenerator": "Üretici seç",
-      "redo": "Yinele"
+      "redo": "Yinele",
+      "selectBox": "Hücreleri seçmek için bir kutu sürükleyin",
+      "addCell": "Seçime bir hücre ekle",
+      "rollPalette": "Bu hücre için ritim paleti",
+      "wipeCells": "Üzerinden geçilen tüm hücreleri sil"
     }
   },
   "explorer": {

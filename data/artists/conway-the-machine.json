@@ -1,0 +1,314 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "conway-the-machine",
+  "type": "artist",
+  "name": "Conway the Machine",
+  "aliases": [
+    "conway the machine",
+    "conway",
+    "demond price",
+    "griselda",
+    "wwcd"
+  ],
+  "tier": "standard",
+  "extends": [
+    "boom-bap"
+  ],
+  "era": "2017-2022",
+  "genres": [
+    "rap",
+    "boom-bap"
+  ],
+  "relatedGenres": [
+    "boom-bap",
+    "dark-trap",
+    "memphis-rap"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 boom-bap — Conway the Machine",
+    "Ambrosia for Heads — Daringer & Beat Butcha on producing without samples (https://ambrosiaforheads.com/2019/12/griselda-daringer-beat-butcha-no-samples-wwcd/)",
+    "Wikipedia — Conway the Machine (https://en.wikipedia.org/wiki/Conway_the_Machine)"
+  ],
+  "notes": "The same label as Westside Gunn and the opposite drum sound, which is the whole reason this is a separate model: \"dry, hard kick 1 and 3.5, snare 2&4… heavy transient, no room tone\". So where his labelmate's accents top at 102, these reach 127, the mains sit at 86–100, and `humanize` is the tightest in the batch — `quantizeStrength` 0.9, `velocityVar` 0.1, `timingJitterMs` at 1–2 ms across the kit. \"No room tone\" is a placed hit with nothing around it, and that is what those three numbers say. The other research fact is that some of these records contain no samples at all: \"the harmony is *played* (Rhodes, Moog, strings) but written to imitate a dusty loop\". `chords.impliedByRiff` is therefore true even though a player made it — the loop-imitating behaviour, not the source, is what the flag describes — and `i–iv` is authored at weight 3 because the research names it as the one motion that occurs. ⚠ The `i–VII` family at weight 1 is **INFERRED**; the research names static `i` and occasional `i–iv` only. ⚠ `hihat.continuous` is false at `fillDensity` 0.32 for \"hats sparse or absent\", which is the emptiest a declared hat block may legally be. ⚠ `confidence` is medium: the research rates it medium-high because the producers documented the construction *method* — no samples, played parts — which is not the same as documenting a velocity or a density. Every number in `drums` here is that inference. ⚠ The bass ceiling came down from 41 to 39 so it stays under a chord part that starts at 40 — `coherence.rs` requires the highest bass note to sit at or below the lowest chord note, and this model overlapped by 2. ⚠ **The 1-bar phrase length was removed** (was [1,2], now [2,4]). A one-bar phrase looped four times carries less entropy than a four-bar phrase, and it is the countermelody it strangles hardest: a counter answers *inside* the melody’s phrase, so a one-bar shape leaves it nowhere to go. Every worst offender on `counter.rs` carried it. ⛔ The previous session recorded this exact mistake and it arrived again from the other direction — distinctness is combinatorial in the shape LENGTH, not in the option count.",
+  "session": {
+    "bpm": {
+      "min": 80,
+      "max": 92,
+      "mode": 86
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "phrygian",
+        "harmonic_minor"
+      ],
+      "weights": [
+        4,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.52
+    },
+    "humanize": {
+      "quantizeStrength": 0.9,
+      "velocityVar": 0.1,
+      "timingJitterMs": {
+        "kick": 1,
+        "snare": 1,
+        "closedHat": 2,
+        "openHat": 2,
+        "rim": 2,
+        "perc": 2
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        110,
+        127
+      ],
+      "main": [
+        86,
+        100
+      ],
+      "ghost": [
+        30,
+        42
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.3
+    },
+    "snare": {
+      "rimshotLayer": false,
+      "ghost": {
+        "prob": 0.1,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.2,
+          0.32
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.32,
+      "velocities": {
+        "main": [
+          0.5,
+          0.72
+        ],
+        "ghost": [
+          0.12,
+          0.28
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16T"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.16
+      },
+      "openHat": {
+        "prob": 0.06,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "perc"
+      ],
+      "densityPerBar": [
+        0,
+        1
+      ],
+      "gainOffsetDb": -10
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "8t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        73,
+        127
+      ],
+      "rampJitter": 12,
+      "gapProb": 0.44,
+      "descendProb": 0.2
+    }
+  },
+  "melody": {
+    "register": [
+      57,
+      80
+    ],
+    "densityPerBar": [
+      2,
+      5
+    ],
+    "intervals": {
+      "step": 0.55,
+      "third": 0.25,
+      "leap": 0.2
+    },
+    "contour": {
+      "riff": 0.65,
+      "descend": 0.25,
+      "arch": 0.1
+    },
+    "chordToneBias": 0.6,
+    "halfStepDissonance": 0.1,
+    "octaveJumpProb": 0.05,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    },
+    "timbreHint": "rhodes"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.34,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 1
+      }
+    ],
+    "maxChords": 2,
+    "impliedByRiff": true,
+    "chordDurationBeats": [
+      2,
+      24
+    ],
+    "extensions": {
+      "triad": 0.5,
+      "seventh": 0.38,
+      "ninth": 0.12
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        40,
+        78
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        5,
+        3,
+        1
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.9,
+    "register": [
+      23,
+      39
+    ],
+    "glideProb": 0,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.08
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": [
+        16,
+        32
+      ],
+      "outro": 2
+    },
+    "transitions": {
+      "dropOutBeats": {
+        "prob": 0.35,
+        "beats": 2
+      },
+      "switchUpProb": 0.06
+    }
+  }
+}

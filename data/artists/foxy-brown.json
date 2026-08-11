@@ -1,0 +1,309 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "foxy-brown",
+  "type": "artist",
+  "name": "Foxy Brown",
+  "aliases": [
+    "foxy brown",
+    "foxy",
+    "inga marchand",
+    "ill na na",
+    "the firm"
+  ],
+  "tier": "standard",
+  "extends": [
+    "boom-bap"
+  ],
+  "era": "1996-1999",
+  "genres": [
+    "rap",
+    "boom-bap"
+  ],
+  "relatedGenres": [
+    "boom-bap",
+    "rnb-2000s",
+    "pop-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 boom-bap — Foxy Brown",
+    "https://en.wikipedia.org/wiki/Ill_Na_Na",
+    "https://www.complex.com/music/a/insanul-ahmed/trackmasters-tells-all-the-stories-behind-their-classic-records-part-1"
+  ],
+  "notes": "Trackmasters replay rather than chop, and that single production fact is what every parameter here follows from. Because the source is re-performed on keyboards and strings rather than lifted, the harmony has real functional motion — I–V–vi–IV on the interpolated singles and ii–V–I underneath — and the bass is a played instrument, so it is `independent_riff` with `followRootsProb` 0.55 and P8 in `passingTones` for the octave jumps the research names. The clap-layered backbeat and the 16th hat runs into the hooks are the other two distinctives; `hihat.fillDensity` is 0.58 so the runs are audible without the base pattern leaving 8ths. ⚠ `medium` because the research rates this entry medium-high: the replay method is documented first-hand by the producers, but the tempo band and the drum velocities are catalog-level, and the exact split between major singles and minor street cuts is carried as scale weights rather than as two authored modes.",
+  "session": {
+    "bpm": {
+      "min": 90,
+      "max": 100,
+      "mode": 95
+    },
+    "keys": {
+      "values": [
+        "C",
+        "F",
+        "G",
+        "Cm",
+        "Fm",
+        "Gm"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor",
+        "mixolydian"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.56
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.35
+    },
+    "snare": {
+      "layered": true,
+      "rimshotLayer": false,
+      "layerClapOffsetMs": [
+        2,
+        6
+      ],
+      "ghost": {
+        "prob": 0.22,
+        "pos": [
+          "2e",
+          "4e"
+        ],
+        "vel": [
+          0.2,
+          0.36
+        ]
+      }
+    },
+    "hihat": {
+      "base": {
+        "values": [
+          "8th",
+          "16th"
+        ],
+        "weights": [
+          3,
+          2
+        ]
+      },
+      "continuous": true,
+      "fillDensity": 0.58,
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "16T"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "pre_snare"
+        ],
+        "freqPerBar": 0.52,
+        "velocityRamp": true
+      },
+      "openHat": {
+        "prob": 0.3,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "perc",
+        "shaker",
+        "rim"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "gainOffsetDb": -5
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 4
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th",
+        "32nd"
+      ],
+      "grouping": [
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        64,
+        116
+      ],
+      "gapProb": 0.22,
+      "descendProb": 0.38,
+      "rampJitter": 11
+    }
+  },
+  "melody": {
+    "register": [
+      64,
+      88
+    ],
+    "densityPerBar": [
+      4,
+      8
+    ],
+    "intervals": {
+      "step": 0.55,
+      "third": 0.33,
+      "leap": 0.12
+    },
+    "contour": {
+      "riff": 0.3,
+      "descend": 0.28,
+      "arch": 0.42
+    },
+    "chordToneBias": 0.78,
+    "octaveJumpProb": 0.12,
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "timbreHint": "warm_keys"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.5,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "borrowed": {
+      "V": 0.3
+    },
+    "extensions": {
+      "triad": 0.45,
+      "seventh": 0.42,
+      "ninth": 0.13
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        50,
+        76
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.55,
+    "register": [
+      28,
+      47
+    ],
+    "glideProb": 0.05,
+    "passingTones": [
+      "P5",
+      "M3",
+      "M6",
+      "P8"
+    ],
+    "anticipationProb": 0.3
+  }
+}

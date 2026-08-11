@@ -1,0 +1,349 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "frank-dukes",
+  "type": "artist",
+  "name": "Frank Dukes",
+  "aliases": [
+    "frank dukes",
+    "adam feeney",
+    "kingsway"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "trap"
+  ],
+  "era": "2015-present",
+  "genres": [
+    "rap",
+    "trap"
+  ],
+  "relatedGenres": [
+    "trap",
+    "lofi-hiphop",
+    "neo-soul"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended vol.1 trap — Frank Dukes",
+    "https://www.thefader.com/2016/02/04/frank-dukes-producer-interview",
+    "https://www.spin.com/2016/12/how-hitmaking-producer-frank-dukes-is-reinventing-the-pop-music-machine/",
+    "https://www.tracklib.com/blog/original-compositions-frank-dukes-kingsway"
+  ],
+  "notes": "The original-sample architect: he writes and records his own vintage source material and then samples it, so every parameter here describes a live-played recording rather than a piano roll. That is the reason for the loosest-but-one humanize on this bench (`quantizeStrength` 0.7, `velocityVar` 0.25), 8th-grid swing at 0.56, and a bass that is `independent_riff` in the 28–47 register with authored cell shapes — the research says the low end is an upright or electric bass from the source recording, not an 808. Harmony is the other half: m7/m9/altered-dominant colour with sevenths at 0.5 and ninths at 0.3, `dissonanceBudget.tritone` 0.3 for the altered dominants, and non-functional-but-tonal families (ii–v–i, i–iv–VII–III, iv–VII–III–VI) that come from what the tape did rather than from theory. The drums are deliberately quiet — `velocityTiers` is pulled *down*, the inverse of T-Minus — because the research says they are secondary to the sampled bed. ⚠ An authored `chords.dissonanceBudget` was removed: no generator reads it, so it was a knob that looked like a parameter and did nothing.",
+  "session": {
+    "bpm": {
+      "min": 120,
+      "max": 150,
+      "mode": 136
+    },
+    "halfTime": true,
+    "scales": {
+      "values": [
+        "dorian",
+        "natural_minor",
+        "harmonic_minor",
+        "mixolydian"
+      ],
+      "weights": [
+        4,
+        4,
+        2,
+        1
+      ]
+    },
+    "swing": {
+      "grid": "8th",
+      "amount": 0.56
+    },
+    "humanize": {
+      "quantizeStrength": 0.7,
+      "velocityVar": 0.25
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        92,
+        112
+      ],
+      "main": [
+        68,
+        82
+      ],
+      "ghost": [
+        34,
+        46
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3",
+      "syncopation": 0.32
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.2,
+        "pos": [
+          "4&",
+          "3a"
+        ],
+        "vel": [
+          0.28,
+          0.45
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.35,
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.05,
+        "velocityRamp": true
+      },
+      "openHat": {
+        "prob": 0.2,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "bass808": {
+      "sustain": "legato",
+      "slideProb": 0.35,
+      "portamentoMs": [
+        140,
+        320
+      ],
+      "register": [
+        24,
+        45
+      ],
+      "distortion": "none"
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        42,
+        86
+      ],
+      "gapProb": 0.5,
+      "descendProb": 0.56,
+      "rampJitter": 6
+    }
+  },
+  "melody": {
+    "register": [
+      60,
+      86
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "intervals": {
+      "step": 0.7,
+      "third": 0.24,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.3,
+      "descend": 0.35,
+      "arch": 0.35
+    },
+    "chordToneBias": 0.72,
+    "halfStepDissonance": 0.12,
+    "colorTones": [
+      2,
+      4,
+      6,
+      7
+    ],
+    "octaveJumpProb": 0.06,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "structure": "long_arc",
+    "articulation": "legato",
+    "timbreHint": "vibraphone"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.45,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII",
+          "III"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "ii",
+          "v",
+          "i"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "ii",
+          "v"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI",
+          "V"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "iv",
+          "VII",
+          "III",
+          "VI"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "III",
+          "VI",
+          "ii"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.2,
+      "seventh": 0.5,
+      "ninth": 0.3
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        84
+      ],
+      "topVoiceStepwise": true,
+      "adjacentSecondProb": 0.3
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "syncopated_cell"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    },
+    "chordDurationBeats": [
+      3,
+      8
+    ],
+    "borrowed": {
+      "V": 0.25
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.55,
+    "register": [
+      28,
+      47
+    ],
+    "glideProb": 0.08,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2",
+      "M3"
+    ],
+    "anticipationProb": 0.35,
+    "cellShapes": [
+      [
+        "1",
+        "5",
+        "7",
+        "1"
+      ],
+      [
+        "1",
+        "3",
+        "5",
+        "7"
+      ],
+      [
+        "1",
+        "7",
+        "5",
+        "3"
+      ]
+    ]
+  }
+}

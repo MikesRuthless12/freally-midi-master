@@ -1,0 +1,263 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "g-eazy",
+  "type": "artist",
+  "name": "G-Eazy",
+  "aliases": [
+    "g eazy",
+    "geazy",
+    "gerald gillum"
+  ],
+  "tier": "standard",
+  "extends": [
+    "west-coast-club"
+  ],
+  "era": "2014-present",
+  "genres": [
+    "rap",
+    "west-coast-club"
+  ],
+  "relatedGenres": [
+    "west-coast-club",
+    "pop-2020s",
+    "trap"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 west-coast-club — G-Eazy"
+  ],
+  "notes": "Oakland’s pop-rap crossover. Two populations again — 110–140 half-time with the backbeat on 3, and 95–104 straight — but the distinguishing colour is **doo-wop and 50s-sample material**, which puts major-mode `I–V–vi–IV` alongside the minor trap families and makes features the structural hinge rather than decoration.",
+  "session": {
+    "bpm": {
+      "min": 95,
+      "max": 140,
+      "mode": 120
+    },
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.54
+    },
+    "halfTime": true
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.4,
+      "lockTo808": 0.9
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "lowPassedClap": true,
+      "layerClapOffsetMs": [
+        3,
+        8
+      ],
+      "ghost": {
+        "prob": 0.2,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.25,
+          0.4
+        ]
+      }
+    },
+    "hihat": {
+      "base": {
+        "values": [
+          "16th",
+          "8t"
+        ],
+        "weights": [
+          3,
+          2
+        ]
+      },
+      "continuous": true,
+      "fillDensity": 0.5,
+      "openHat": {
+        "prob": 0.3,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.07
+      }
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        44,
+        92
+      ],
+      "rampJitter": 6
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "slideProb": 0.3,
+      "slidePositions": [
+        "phrase_end"
+      ],
+      "register": [
+        17,
+        34
+      ],
+      "distortion": "none"
+    }
+  },
+  "melody": {
+    "register": [
+      64,
+      88
+    ],
+    "densityPerBar": [
+      3,
+      6
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "warm_grand_piano"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.65,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "vi",
+          "IV",
+          "V"
+        ],
+        "weight": 3
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.45,
+      "seventh": 0.42,
+      "ninth": 0.13
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        47,
+        79
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      16
+    ]
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.8,
+    "register": [
+      26,
+      44
+    ],
+    "glideProb": 0.14,
+    "passingTones": [
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.24
+  }
+}

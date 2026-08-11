@@ -1,0 +1,256 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "quay-global",
+  "type": "artist",
+  "name": "Quay Global",
+  "aliases": [
+    "quay global",
+    "quay"
+  ],
+  "tier": "standard",
+  "extends": [
+    "atl-swag-rap"
+  ],
+  "era": "2016-present",
+  "genres": [
+    "rap",
+    "atl-swag-rap"
+  ],
+  "relatedGenres": [
+    "atl-swag-rap",
+    "trap",
+    "crunk"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended vol.1 atl-swag-rap — Quay Global"
+  ],
+  "notes": "Quality Control’s in-house melodic bench. The one first-hand parameter is **melody-first ideation** — \"I might hear a melody\" is the documented starting point, so the chord bed follows the lead rather than the other way round — and he **raps over his own beats to test them**, which is a workflow statement about leaving room for a vocal. ⚠ **`low`, and the research is explicit**: the lineage, workflow, tag and credits are first-hand from a production interview, but the drum and 808 specifics are marked `[LOW-CONF]` and inherited from the era’s QC kit.",
+  "session": {
+    "bpm": {
+      "min": 130,
+      "max": 155,
+      "mode": 144
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "harmonic_minor",
+        "phrygian"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.54
+    },
+    "halfTime": true
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.38,
+      "lockTo808": 0.95
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "lowPassedClap": true,
+      "ghost": {
+        "prob": 0.16,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.22,
+          0.38
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.55,
+      "openHat": {
+        "prob": 0.25,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32",
+            "32T"
+          ],
+          "weights": [
+            2,
+            1
+          ]
+        },
+        "positions": [
+          "pre_snare"
+        ],
+        "freqPerBar": 0.6
+      }
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "32nd"
+      ],
+      "grouping": [
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        56,
+        104
+      ],
+      "rampJitter": 18
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "monoCutSelf": true,
+      "slideProb": 0.35,
+      "slidePositions": [
+        "phrase_end",
+        "bar_4"
+      ],
+      "register": [
+        18,
+        34
+      ],
+      "distortion": "none"
+    }
+  },
+  "melody": {
+    "register": [
+      65,
+      89
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "bright_bell",
+    "contour": {
+      "riff": 0.55,
+      "descend": 0.28,
+      "arch": 0.17
+    }
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.4,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII"
+        ],
+        "weight": 3
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.35,
+      "seventh": 0.48,
+      "ninth": 0.17
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        46,
+        78
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      16
+    ]
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.85,
+    "register": [
+      25,
+      41
+    ],
+    "glideProb": 0.22,
+    "passingTones": [
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.24
+  }
+}

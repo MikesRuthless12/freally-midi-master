@@ -1,0 +1,284 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "black-sheep",
+  "type": "artist",
+  "name": "Black Sheep",
+  "aliases": [
+    "black sheep",
+    "dres",
+    "mista lawnge",
+    "native tongues"
+  ],
+  "tier": "standard",
+  "extends": [
+    "boom-bap"
+  ],
+  "era": "1991-1994",
+  "genres": [
+    "rap",
+    "boom-bap",
+    "jazz rap"
+  ],
+  "relatedGenres": [
+    "boom-bap",
+    "lofi-hiphop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 boom-bap — Black Sheep",
+    "https://en.wikipedia.org/wiki/A_Wolf_in_Sheep%27s_Clothing_(Black_Sheep_album)",
+    "https://en.wikipedia.org/wiki/Black_Sheep_(group)"
+  ],
+  "notes": "The research makes exactly one comparative claim — \"drums notably hotter than the Tribe/De La mixes\" — so this file's job is to be measurably louder than its two Native Tongues neighbours in this same batch: `velocityTiers.main` 92–106 against Tribe's 70–84, and `accent` running to 127. Everything else is jazz minor under a satirist: swung 8ths at 0.6, one piano/horn phrase as the melody, walking filtered sample bass forward in the mix (`independent_riff`, `followRootsProb` 0.42, five passing tones), and i–iv / ii–V–i with a major I–IV family at weight 2 for the comedic novelty loops. ⚠ `medium`, and the research marks the drum specifics `[LOW-CONF]` itself: the records are well documented but the workflow is not, so the kick density, ghost placement and swing amount here are inferred from the Native Tongues idiom. The one drum number that IS researched is the relative loudness, and that is the one this file commits to hardest. ⚠ The bass ceiling came down from 48 to 47 so it stays under a chord part that starts at 48 — `coherence.rs` requires the highest bass note to sit at or below the lowest chord note, and this model overlapped by 1.",
+  "session": {
+    "bpm": {
+      "min": 92,
+      "max": 102,
+      "mode": 96
+    },
+    "scales": {
+      "values": [
+        "dorian",
+        "natural_minor",
+        "major"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "8th",
+      "amount": 0.6
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        112,
+        127
+      ],
+      "main": [
+        92,
+        106
+      ],
+      "ghost": [
+        40,
+        56
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        3,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.38
+    },
+    "snare": {
+      "rimshotLayer": true,
+      "transient": "hard",
+      "ghost": {
+        "prob": 0.3,
+        "pos": [
+          "1a",
+          "2e",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.22,
+          0.4
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.5,
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "16T"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "pre_snare"
+        ],
+        "freqPerBar": 0.5,
+        "velocityRamp": true
+      },
+      "openHat": {
+        "prob": 0.3,
+        "pos": [
+          "1&",
+          "3&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "perc",
+        "ride"
+      ],
+      "densityPerBar": [
+        0,
+        2
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 4
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th",
+        "32nd"
+      ],
+      "grouping": [
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        68,
+        118
+      ],
+      "gapProb": 0.29,
+      "descendProb": 0.19,
+      "rampJitter": 6
+    }
+  },
+  "melody": {
+    "register": [
+      64,
+      88
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "intervals": {
+      "step": 0.55,
+      "third": 0.32,
+      "leap": 0.13
+    },
+    "contour": {
+      "riff": 0.45,
+      "descend": 0.23,
+      "arch": 0.32
+    },
+    "chordToneBias": 0.74,
+    "octaveJumpProb": 0.12,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "timbreHint": "jaunty_piano"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.45,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "ii",
+          "V",
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "borrowed": {
+      "V": 0.35
+    },
+    "extensions": {
+      "triad": 0.3,
+      "seventh": 0.5,
+      "ninth": 0.2
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        48,
+        78
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.42,
+    "register": [
+      28,
+      47
+    ],
+    "glideProb": 0.03,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2",
+      "m3",
+      "M6"
+    ],
+    "anticipationProb": 0.35
+  }
+}

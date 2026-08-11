@@ -1,0 +1,376 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "z-ro",
+  "type": "artist",
+  "name": "Z-Ro",
+  "aliases": [
+    "z-ro",
+    "zro",
+    "z ro",
+    "joseph mcvey",
+    "the mo city don",
+    "rother",
+    "screwed up click"
+  ],
+  "tier": "standard",
+  "extends": [
+    "houston-screw"
+  ],
+  "era": "1998–2010",
+  "genres": [
+    "rap",
+    "southern rap",
+    "screw",
+    "houston"
+  ],
+  "relatedGenres": [
+    "houston-screw",
+    "rnb-2000s",
+    "crunk",
+    "memphis-rap"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended vol.1 crunk — Z-Ro (the `houston-screw` lane's research section)",
+    "Wikipedia — Z-Ro: https://en.wikipedia.org/wiki/Z-Ro",
+    "Wikipedia — DJ Screw: https://en.wikipedia.org/wiki/DJ_Screw"
+  ],
+  "notes": "⛔ **`confidence` is `low`, following the research's medium-low rating** — \"SUC affiliation and era documented; parameters inferred from the audible idiom\" — with the 62–76 band flagged [LOW-CONF] as well. Sourced: the sung blues-gospel register, i–iv–V and i–VI–VII with gospel organ voicings, a sparse kit with 8th hats and very little fill activity, low velocity variance, a long sustained 808 *plus* played-bass-style motion on some records, 4-bar loops with real motion, sung hooks with wide range, and sung intro / 16–24 bar verses / sung 8-bar hooks / outro vamp. INFERRED: every probability, velocity tier and register bound. ⛔ **This is the only entry in this batch whose bass is `independent_riff`, and it is the sourced difference.** \"Long sustained 808 plus played-bass-style motion on some records\" is two low voices doing different things: the 808 stays legato at 16–32 carrying the tonic, while the played bass at 24–43 leaves the kick, drops `followRootsProb` to 0.72, takes P5/m7/M2 passing tones and anticipates at 0.2. Everywhere else in this lane the bass mirrors the kick because the record is a pedal; here it does not, because the research says a player is on it. ▶ **`blues` in `session.scales` is the word the research uses.** \"Minor, blues-inflected\" cannot be said with a key label — a key name in this dataset is a label, not a pitch — so it is said as a scale draw, alongside dorian and minor pentatonic. The i–iv–V family and seventh-heavy `extensions` are the same fact in the harmony. ▶ **Gospel organ voicings are `close`, against a lane that is `open`.** The genre's whole harmonic signature is strings spread wide down to 40; an organ is a stack of close voices in the mid, so this entry pulls back to `close` at 45–76 and pushes seventh colour to 0.42. It is the one place this model contradicts its parent, and the research is explicit about why. ▶ **\"Very little fill activity\" is authored where the fingerprint leaves room.** The fill cadence itself is fixed at 4/8 bars, so sparseness is carried by the roll: `gapProb` 0.60 — the second-gappiest here — and `rolls.freqPerBar` 0.15, the floor of this band. `velocityVar` 0.08 is the research's \"low velocity variance\". ▶ **The sung layer is the arrangement's top**, so the counter goes *above* the melody at +12 with `answer_lick` weighted highest and `densityRatio` up to 0.7 — the most active counter in this batch — and the outro is a vamp at 8–12 bars rather than the genre's 4–8. ⚠ **`melody.timbreHint` is inherited rather than authored.** The genre's `church_organ` was chosen partly *from* this entry's gospel organ; overriding it here would restate the parent. ⚠ **The i–iv family is INFERRED** — the research names i–iv–V and i–VI–VII only. ⚠ **Fill fingerprint.** `gapProb` 0.60 / `descendProb` 0.40 / `rampJitter` 9 over 8th-triplets, even grouping, ramping 64–110 — the softest roll ceiling in the batch, which is what a record with very little fill activity should sound like when it does fill.",
+  "session": {
+    "bpm": {
+      "min": 62,
+      "max": 76,
+      "mode": 68
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "minor_pentatonic",
+        "blues",
+        "harmonic_minor"
+      ],
+      "weights": [
+        5,
+        3,
+        3,
+        2,
+        1
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.9,
+      "velocityVar": 0.08
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        94,
+        112
+      ],
+      "main": [
+        74,
+        88
+      ],
+      "ghost": [
+        32,
+        44
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3",
+      "syncopation": 0.08,
+      "beatSkipProb": 0.06
+    },
+    "snare": {
+      "layerClapOffsetMs": [
+        5,
+        12
+      ],
+      "clusterProb": 0.08,
+      "clusterHits": [
+        2,
+        2
+      ],
+      "ghost": {
+        "prob": 0.06,
+        "pos": [
+          "4&"
+        ],
+        "vel": [
+          0.2,
+          0.34
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": [
+        0.3,
+        0.44
+      ],
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16T"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.15,
+        "velocityRamp": true
+      },
+      "openHat": {
+        "prob": 0.18,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "perc",
+        "tom"
+      ],
+      "densityPerBar": [
+        0,
+        1
+      ],
+      "placement": "downbeat",
+      "gainOffsetDb": -8
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "8t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        64,
+        110
+      ],
+      "rampJitter": 9,
+      "descendProb": 0.4,
+      "gapProb": 0.6
+    },
+    "bass808": {
+      "register": [
+        16,
+        32
+      ],
+      "sustain": "legato",
+      "slideProb": 0.14,
+      "slideIntervals": {
+        "values": [
+          "P5",
+          "P8",
+          "M2"
+        ],
+        "weights": [
+          3,
+          2,
+          2
+        ]
+      }
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "iv",
+          "V"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.45,
+      "seventh": 0.42,
+      "ninth": 0.13
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        45,
+        76
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        5,
+        3,
+        1
+      ]
+    },
+    "chordDurationBeats": [
+      3,
+      10
+    ]
+  },
+  "melody": {
+    "register": [
+      55,
+      86
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        8,
+        2
+      ],
+      "weights": [
+        5,
+        2,
+        1
+      ]
+    },
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "structure": "question_answer",
+    "motifPitchCount": [
+      4,
+      6
+    ],
+    "intervals": {
+      "step": 0.55,
+      "third": 0.28,
+      "leap": 0.17
+    },
+    "contour": {
+      "riff": 0.24,
+      "descend": 0.34,
+      "arch": 0.42
+    },
+    "chordToneBias": 0.78,
+    "halfStepDissonance": 0.04,
+    "emptyBarBias": 0.06,
+    "octaveJumpProb": 0.14
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.4,
+      0.7
+    ],
+    "echoOffset": "1/8",
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo",
+        "arp"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.72,
+    "register": [
+      24,
+      43
+    ],
+    "glideProb": 0.12,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2"
+    ],
+    "anticipationProb": 0.2
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": [
+        16,
+        24
+      ],
+      "hook": 8,
+      "outro": [
+        8,
+        12
+      ]
+    }
+  }
+}

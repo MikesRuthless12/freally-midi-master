@@ -119,6 +119,29 @@ type EditingState = {
    * honest answer.
    */
   fitTo: (totalTicks: number, ppq: number, viewportPx: number) => void;
+  /**
+   * Show a whole clip's *register* at once — the vertical half of `fitTo`.
+   *
+   * ⛔⛔ **Mike, 2026-08-09**: *"ensure that all notes that have been generated
+   * are visible, not just most of them, i don't care if you need to zoom out a
+   * little."* `fitTo` fixed the horizontal half only: it sets `zoom` and
+   * `scrollTick` and never touches `rowHeight`, so a melody spanning two octaves
+   * needed 24 rows and a 400 px stage at the default 20 px row shows 20. The
+   * notes off the top and bottom were as invisible as the off-screen bars were,
+   * and for the same reason.
+   *
+   * ⚠ **Shrinks the row to fit, and grows it back no further than the default.**
+   * Clamping the upper end to the current height would leave a roll that had
+   * once framed a wide clip stuck at 8 px rows forever; clamping it to
+   * `MAX_ROW_HEIGHT` would blow a three-note bass line up to 48 px rows. The
+   * default is the height a producer expects to open on.
+   *
+   * ⚠ **Measured in semitones, not in visible rows.** A fold removes rows from
+   * the middle, so the folded row count is never *more* than the semitone span —
+   * fitting the span therefore fits the fold too, a little smaller than it had
+   * to be. The reverse assumption would crop.
+   */
+  frameTo: (highest: number, lowest: number, viewportPx: number) => void;
   setRowHeight: (height: number) => void;
   scrollTo: (tick: number, pitch: number) => void;
 
@@ -175,6 +198,40 @@ export const useEditing = create<EditingState>((set, get) => ({
       scrollTick: 0,
     });
   },
+  frameTo: (highest, lowest, viewportPx) => {
+    if (viewportPx <= 0 || highest < lowest) return;
+    // A row of air above the top note and below the bottom one, so neither sits
+    // flush against the ruler or the bottom edge where it reads as cut off —
+    // the vertical twin of `fitTo`'s 0.985.
+    const wanted = highest - lowest + 3;
+    const rowHeight = Math.min(
+      DEFAULT_ROW_HEIGHT,
+      Math.max(MIN_ROW_HEIGHT, Math.floor(viewportPx / wanted)),
+    );
+    const rows = Math.max(1, Math.floor(viewportPx / rowHeight));
+    // ⛔⛔ **Centred, always — the leftover space is SPLIT rather than dumped
+    // below the notes.** Anchoring the top at `highest + 1` is only the right
+    // answer when the range exactly fills the stage, and it almost never does:
+    // the row height is clamped up to `DEFAULT_ROW_HEIGHT`, so a five-note 808
+    // line in a 500 px roll got 25 rows for a range needing 8 — five rows jammed
+    // against the ruler with four hundred pixels of empty keyboard underneath.
+    // The centring this replaced (`middle + rows / 2`) did not have that
+    // failure, and losing it was a regression dressed as a simplification.
+    //
+    // ⚠ It also covers the case the old comment was about: when the range is
+    // taller than the stage even at `MIN_ROW_HEIGHT`, centring shows the middle
+    // of it, which is the honest answer rather than a top edge with the rest
+    // below the fold. One expression, both cases.
+    const middle = (highest + lowest) / 2;
+    set({
+      rowHeight,
+      // `(rows - 1) / 2` rather than `rows / 2`: the visible band runs from
+      // `topPitch` *down to* `topPitch - rows + 1`, so its centre is half a row
+      // below the top edge, not a whole one.
+      topPitch: Math.min(127, Math.max(0, Math.round(middle + (rows - 1) / 2))),
+    });
+  },
+
   setRowHeight: (rowHeight) =>
     set({
       rowHeight: Math.min(MAX_ROW_HEIGHT, Math.max(MIN_ROW_HEIGHT, Math.round(rowHeight))),

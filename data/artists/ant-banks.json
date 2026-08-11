@@ -1,0 +1,387 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "ant-banks",
+  "type": "artist",
+  "name": "Ant Banks",
+  "aliases": [
+    "ant banks",
+    "anthony banks",
+    "dangerous crew",
+    "big bad ass beats"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "g-funk"
+  ],
+  "era": "1992-1998",
+  "genres": [
+    "rap",
+    "g-funk",
+    "mobb music",
+    "bay area",
+    "funk",
+    "producer"
+  ],
+  "relatedGenres": [
+    "g-funk",
+    "funk",
+    "hyphy"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 g-funk — Ant Banks",
+    "Chad Kiser — Too $hort & the Dangerous Crew — https://chadkiser.com/2016/12/08/so-funky-it-stanks-a-microscopic-look-into-too-short-and-the-dangerous-crew/",
+    "Critical Minded — Bay Area mobb music — https://www.criticalminded.com/2016/11/27/bay-area-mobb-music/"
+  ],
+  "notes": "Oakland's live-funk architect, and the two research phrases that become numbers are \"funk samples augmented by live drums\" and mixing of \"surgical precision.\" The second is the unusual one: a forward snare and a controlled low-mid is `velocityTiers` with the accent band pushed up and the main band tightened, plus the percussion gain brought two dB nearer the kit than the g-funk parent leaves it. He is the keyboardist as well as the producer, so the harmony is flat-7 Clinton/Bootsy vamp material — `i–VII` at the top weight, sevenths half the extension mass — and the lead is organ rather than the parent's portamento worm. The bass is not his: he works with a live bassist and reinforces it for car playback, which is a low `followRootsProb`, a high glide and a register that stays deep while staying 19 semitones wide. ⚠ `modes` are authored, not inherited: his band is 84–96 and the parent's Death Row moods pin 90–100, so the slower Dangerous Crew records would have been unreachable. ⚠ `medium` because the research rates him high-medium — the role, the gear lineage and the mixing description are documented, the tempo band and the voicing detail are read from the catalog. ⚠ The bass ceiling came down from 47 to 45 so it stays under a chord part that starts at 46 — `coherence.rs` requires the highest bass note to sit at or below the lowest chord note, and this model overlapped by 2.",
+  "session": {
+    "bpm": {
+      "min": 84,
+      "max": 96,
+      "mode": 90
+    },
+    "scales": {
+      "values": [
+        "mixolydian",
+        "minor_pentatonic",
+        "dorian",
+        "blues"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.61
+    },
+    "humanize": {
+      "quantizeStrength": 0.78,
+      "velocityVar": 0.19
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        104,
+        127
+      ],
+      "main": [
+        80,
+        94
+      ],
+      "ghost": [
+        36,
+        50
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "syncopation": 0.48,
+      "tresilloBias": 0.24,
+      "offbeat8thShare": 0.32
+    },
+    "snare": {
+      "rimshotLayer": true,
+      "ghost": {
+        "prob": 0.32,
+        "pos": [
+          "2e",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.24,
+          0.42
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.5,
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16T",
+            "32"
+          ],
+          "weights": [
+            3,
+            1
+          ]
+        },
+        "positions": [
+          "pre_snare",
+          "bar_4"
+        ],
+        "freqPerBar": 0.33
+      },
+      "openHat": {
+        "prob": 0.4,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "conga",
+        "shaker",
+        "rim"
+      ],
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "gainOffsetDb": -5
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th",
+        "16t"
+      ],
+      "grouping": [
+        "even",
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        51,
+        111
+      ],
+      "rampJitter": 19,
+      "descendProb": 0.34,
+      "gapProb": 0.5
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "iv"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "VII",
+          "i"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.34,
+      "seventh": 0.5,
+      "ninth": 0.16
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        46,
+        76
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        3,
+        3,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      67,
+      90
+    ],
+    "densityPerBar": [
+      3,
+      6
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "chordToneBias": 0.66,
+    "halfStepDissonance": 0.08,
+    "octaveJumpProb": [
+      0.1,
+      0.22
+    ],
+    "timbreHint": "church_organ"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.5,
+    "styles": {
+      "values": [
+        "arp",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.35,
+    "register": [
+      28,
+      45
+    ],
+    "glideProb": 0.55,
+    "passingTones": [
+      "M2",
+      "m3",
+      "P4",
+      "P5",
+      "M6",
+      "m7"
+    ],
+    "anticipationProb": 0.35
+  },
+  "modes": [
+    {
+      "name": "dangerous crew",
+      "weight": 4,
+      "session": {
+        "bpm": {
+          "min": 84,
+          "max": 92,
+          "mode": 88
+        },
+        "swing": {
+          "grid": "16th",
+          "amount": 0.63
+        }
+      },
+      "drums": {
+        "percs": {
+          "densityPerBar": [
+            3,
+            4
+          ]
+        },
+        "snare": {
+          "ghost": {
+            "prob": 0.4
+          }
+        }
+      },
+      "bassline": {
+        "followRootsProb": 0.28,
+        "glideProb": 0.66,
+        "anticipationProb": 0.44
+      },
+      "melody": {
+        "densityPerBar": [
+          3,
+          7
+        ]
+      }
+    },
+    {
+      "name": "trunk mix",
+      "weight": 3,
+      "session": {
+        "bpm": {
+          "min": 88,
+          "max": 96,
+          "mode": 92
+        },
+        "humanize": {
+          "quantizeStrength": 0.85,
+          "velocityVar": 0.13
+        }
+      },
+      "drums": {
+        "kick": {
+          "densityPerBar": [
+            3,
+            4
+          ],
+          "syncopation": 0.36
+        },
+        "percs": {
+          "densityPerBar": [
+            1,
+            2
+          ]
+        }
+      },
+      "chords": {
+        "extensions": {
+          "triad": 0.5,
+          "seventh": 0.42,
+          "ninth": 0.08
+        }
+      },
+      "melody": {
+        "densityPerBar": [
+          2,
+          5
+        ],
+        "chordToneBias": 0.74
+      },
+      "bassline": {
+        "followRootsProb": 0.52,
+        "glideProb": 0.4,
+        "anticipationProb": 0.2
+      }
+    }
+  ]
+}

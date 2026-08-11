@@ -1,4 +1,4 @@
-import { expect, type Page } from '@playwright/test';
+import { expect, type Locator, type Page } from '@playwright/test';
 
 /**
  * Ways into the app that more than one spec needs.
@@ -56,6 +56,37 @@ export async function pickGenre(page: Page, name: string): Promise<void> {
   await box.click();
   await box.fill(name);
   await page.keyboard.press('Enter');
+}
+
+/**
+ * Choose from any other `Combo`, by the field's accessible name.
+ *
+ * ⛔ **Here for the reason this module's header gives.** TASK-057 turned the
+ * roll bar's snap, scale and meter pickers and the pattern library's two filters
+ * from `<select>`s into comboboxes, because a `<select>` popup inside WebView2
+ * is drawn by the OS against the window rather than the field. Every spec that
+ * drove one reached for `selectOption`, which a combobox does not have — so the
+ * next control that changes shape should break this function and nothing else.
+ *
+ * ⚠ Typing then Enter, not clicking a row: it commits the top match, which is
+ * the behaviour the component guarantees whatever the list is filtered down to.
+ *
+ * ⛔ **`root` is not optional decoration.** A native `<select>` carries the role
+ * `combobox` too, so `getByRole('combobox', { name: 'Scale' })` matches the roll
+ * bar's new one *and* the session chip's `<select>` — the app has two controls
+ * for the same value by design, and the strict-mode violation that follows reads
+ * as the control having vanished. Pass the panel it lives in.
+ */
+export async function pickCombo(
+  root: Page | Locator,
+  label: string,
+  name: string,
+): Promise<void> {
+  const field = root.getByRole('combobox', { name: label, exact: true });
+  await field.click();
+  await field.fill(name);
+  await field.press('Enter');
+  await field.blur();
 }
 
 /**

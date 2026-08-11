@@ -1,0 +1,237 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "smokepurpp",
+  "type": "artist",
+  "name": "Smokepurpp",
+  "aliases": [
+    "smokepurpp",
+    "omar pineiro"
+  ],
+  "tier": "standard",
+  "extends": [
+    "dark-trap"
+  ],
+  "era": "2017-2020",
+  "genres": [
+    "rap",
+    "dark-trap"
+  ],
+  "relatedGenres": [
+    "dark-trap",
+    "trap",
+    "memphis-rap"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended vol.1 dark-trap — Smokepurpp"
+  ],
+  "notes": "Miami’s punk-rap loudest-mix lane, defined by producer partnerships rather than by melody. Harmonic movement is **essentially absent — the loop is a timbre, not a progression** — so the model is a static minor pentatonic i with one dark synth or bell loop. The 808 is very forward with a medium decay and one slide per two bars, frequently doubled an octave up to cut through a clipped drum bus. ⚠ **`low`**: chart, label and collaborators are documented, but the research says there is **no sourced statement about his own method**, so the drum grammar is inherited from the lane.",
+  "session": {
+    "bpm": {
+      "min": 130,
+      "max": 160,
+      "mode": 145
+    },
+    "scales": {
+      "values": [
+        "minor_pentatonic",
+        "natural_minor"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.54
+    },
+    "halfTime": true
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.3,
+      "lockTo808": 1
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "lowPassedClap": true,
+      "ghost": {
+        "prob": 0.1,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.2,
+          0.35
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.55,
+      "openHat": {
+        "prob": 0.25,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.14
+      }
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        52,
+        96
+      ],
+      "rampJitter": 9
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "monoCutSelf": true,
+      "slideProb": 0.3,
+      "slidesPer4Bars": [
+        2,
+        2
+      ],
+      "slidePositions": [
+        "phrase_end"
+      ],
+      "register": [
+        17,
+        33
+      ],
+      "distortion": "saturated"
+    }
+  },
+  "melody": {
+    "register": [
+      66,
+      88
+    ],
+    "densityPerBar": [
+      1,
+      4
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "dark_bell"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.4,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 6
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.82,
+      "seventh": 0.16,
+      "ninth": 0.02
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        44,
+        76
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      2,
+      16
+    ],
+    "impliedByRiff": true
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.94,
+    "register": [
+      24,
+      39
+    ],
+    "glideProb": 0.15,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.18
+  }
+}

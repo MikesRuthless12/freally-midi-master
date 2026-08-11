@@ -1,0 +1,240 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "zillakami",
+  "type": "artist",
+  "name": "ZillaKami",
+  "aliases": [
+    "zillakami",
+    "jesse ahmed",
+    "city morgue"
+  ],
+  "tier": "standard",
+  "extends": [
+    "dark-trap"
+  ],
+  "era": "2018-present",
+  "genres": [
+    "rap",
+    "dark-trap"
+  ],
+  "relatedGenres": [
+    "dark-trap",
+    "trap",
+    "memphis-rap"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 dark-trap — ZillaKami"
+  ],
+  "notes": "Merges hardcore punk and heavy metal with trap. The parameter is register allocation: the **808 is saturated and SHORT so the guitars own the low-mids**, in unison with the riff root — the opposite of Lil Peep, where the 808 sustains under the guitar. Drop-tuned minor/Phrygian power-chord riffs are the entire melodic layer, doubled and panned wide, with no keys and no pad, and the kick is doubled with a metal kick sample against 808 clap. ⚠ `medium`: the style is directly sourced; no interview establishes tempo, so those parameters are inferred.",
+  "session": {
+    "bpm": {
+      "min": 130,
+      "max": 170,
+      "mode": 152
+    },
+    "scales": {
+      "values": [
+        "phrygian",
+        "natural_minor"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.54
+    },
+    "halfTime": true
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.45,
+      "lockTo808": 0.95
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "lowPassedClap": true,
+      "ghost": {
+        "prob": 0.2,
+        "pos": [
+          "2e",
+          "4e"
+        ],
+        "vel": [
+          0.2,
+          0.4
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.6,
+      "openHat": {
+        "prob": 0.28,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32",
+            "32T"
+          ],
+          "weights": [
+            2,
+            1
+          ]
+        },
+        "positions": [
+          "pre_snare"
+        ],
+        "freqPerBar": 0.6
+      }
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "32nd"
+      ],
+      "grouping": [
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        56,
+        104
+      ],
+      "rampJitter": 18
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "staccato",
+      "monoCutSelf": true,
+      "slideProb": 0.05,
+      "register": [
+        21,
+        34
+      ],
+      "distortion": "saturated"
+    }
+  },
+  "melody": {
+    "register": [
+      52,
+      76
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "supersaw_guitar_hybrid",
+    "intervals": {
+      "step": 0.4,
+      "third": 0.2,
+      "leap": 0.4
+    },
+    "halfStepDissonance": 0.25
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.4,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "bII"
+        ],
+        "weight": 3
+      }
+    ],
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.9,
+      "seventh": 0.09,
+      "ninth": 0.01
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        45,
+        77
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      2,
+      12
+    ],
+    "impliedByRiff": true
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.95,
+    "register": [
+      24,
+      40
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.22
+  }
+}

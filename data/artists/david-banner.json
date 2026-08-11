@@ -1,0 +1,297 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "david-banner",
+  "type": "artist",
+  "name": "David Banner",
+  "aliases": [
+    "david banner",
+    "levell crump",
+    "like a pimp type",
+    "mississippi crunk"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "crunk"
+  ],
+  "era": "2000-2008",
+  "genres": [
+    "rap",
+    "crunk",
+    "southern rap",
+    "producer"
+  ],
+  "relatedGenres": [
+    "crunk",
+    "dungeon-family",
+    "memphis-rap",
+    "trap"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 crunk — David Banner",
+    "https://en.wikipedia.org/wiki/Like_a_Pimp",
+    "https://en.wikipedia.org/wiki/David_Banner"
+  ],
+  "notes": "A rapper-producer, so this model is his production workflow: crunk 808 aggression with piano and string writing on top of it. The research calls the sustained 4-bar chord loop under a 2-bar riff *unusual for crunk — most of the lane has no chords at all*, and that is exactly what separates this file from its siblings. It is the only entry in this batch with four-chord families and real voice-leading (`topVoiceStepwise` true, `extensions.seventh` 0.24, an open voicing), and the only one whose melody block is written as a keyboard part rather than a stab — `densityPerBar` [3, 8], an arch/descend contour instead of a flat riff, and `structure` left as the loop because the riff is still 2 bars. Both progressions the research names are authored: i–VI–III–VII and i–iv–i–V. ⚠ `confidence` is medium and **the harmonic detail is the inferred parameter** — the research sources the self-production credit and the chart facts, and says the harmony is inference from his documented piano-forward approach. `session.bpm` is additionally marked [LOW-CONF]. ⚠ Two bands are documented: 70–82 half-time for the club cuts and 80–90 straight for the soul/piano material. This model takes the club band, because that is the one his crunk placements sit in; the ballad side is not reachable from it, and neither is the \"frequent half-time/normal-time section contrast within one track\" the research describes, which has no parameter. ⚠ The doubled low piano octave under the 808 is a layering the engine has no stage for; `bass808.slideProb` 0.16 carries only the pitch-drop at phrase ends. ⚠ Fill fingerprint for this batch: `gapProb` 0.28 / `descendProb` 0.54 / `rampJitter` 21. ⚠ `anticipationProb` raised to 0.15. With `mirror_kick` against a fully locked 808 both parts take every kick, so every bass onset lands exactly on an 808 onset — `coherence.rs` calls that one line played twice rather than two parts locking. The lock is the style and is untouched; the anticipation is what makes them two parts.",
+  "session": {
+    "bpm": {
+      "min": 140,
+      "max": 164,
+      "mode": 148
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "phrygian",
+        "harmonic_minor"
+      ],
+      "weights": [
+        5,
+        2,
+        2
+      ]
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3",
+      "syncopation": 0.16,
+      "tresilloBias": 0.08
+    },
+    "snare": {
+      "layerClapOffsetMs": [
+        4,
+        10
+      ],
+      "ghost": {
+        "prob": 0.18,
+        "pos": [
+          "4&",
+          "1a"
+        ],
+        "vel": [
+          0.3,
+          0.5
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": [
+        0.62,
+        0.88
+      ],
+      "openHat": {
+        "prob": 0.2,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.25
+      }
+    },
+    "percs": {
+      "lanes": [
+        "timbale",
+        "crash"
+      ],
+      "densityPerBar": [
+        1,
+        2
+      ],
+      "placement": "downbeat",
+      "gainOffsetDb": -5
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t",
+        "8t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        56,
+        110
+      ],
+      "rampJitter": 21,
+      "descendProb": 0.54,
+      "gapProb": 0.28
+    },
+    "bass808": {
+      "register": [
+        15,
+        28
+      ],
+      "slideProb": 0.16,
+      "slideIntervals": {
+        "values": [
+          "P8",
+          "P5",
+          "m3"
+        ],
+        "weights": [
+          3,
+          2,
+          1
+        ]
+      },
+      "slidePositions": [
+        "phrase_end"
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "i",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "bII"
+        ],
+        "weight": 1
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.72,
+      "seventh": 0.24,
+      "ninth": 0.04
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        45,
+        73
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      3,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      55,
+      84
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        2,
+        3
+      ]
+    },
+    "densityPerBar": [
+      3,
+      8
+    ],
+    "motifPitchCount": [
+      4,
+      6
+    ],
+    "intervals": {
+      "step": 0.62,
+      "third": 0.26,
+      "leap": 0.12
+    },
+    "contour": {
+      "riff": 0.5,
+      "descend": 0.3,
+      "arch": 0.2
+    },
+    "chordToneBias": 0.74,
+    "halfStepDissonance": 0.08,
+    "emptyBarBias": 0.05,
+    "octaveJumpProb": 0.1,
+    "timbreHint": "piano"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.55,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "arp",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        2,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "anticipationProb": 0.15
+  }
+}

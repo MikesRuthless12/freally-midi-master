@@ -80,6 +80,8 @@ export function Ruler({
   const [width, setWidth] = useState(0);
   /** The in-flight drag, mirrored into state so the strip repaints as it moves. */
   const [live, setLive] = useState<Partial<Pattern> | null>(null);
+  /** Whether the pointer is over a draggable edge, which sets the cursor. */
+  const [onGrip, setOnGrip] = useState(false);
 
   const shown = live === null ? pattern : { ...pattern, ...live };
   const total = patternTicks(pattern);
@@ -274,12 +276,25 @@ export function Ruler({
   const onPointerMove = useCallback(
     (event: React.PointerEvent<HTMLCanvasElement>) => {
       const current = drag.current;
-      if (current === null || current.pointerId !== event.pointerId) return;
+      if (current === null || current.pointerId !== event.pointerId) {
+        // ⛔ **Hover has to say which band is the grip.** Nothing on a 24 px
+        // strip distinguishes the 16 px that resize an edge from the rest of it
+        // that seeks and draws, so a producer aiming at the brace and missing
+        // gets a *new* brace — Mike's "it redraws it instead of resizing it".
+        // The cursor is the only affordance a canvas has.
+        const { x, y } = locate(event);
+        const grip =
+          x < gutter
+            ? { kind: 'new' as const }
+            : gripAt(x, y, loop, region, span, (t) => gutter + tickToX(t, view));
+        setOnGrip(grip.kind !== 'new');
+        return;
+      }
       const { tick } = locate(event);
       current.pending = preview(current, tick);
       setLive(current.pending);
     },
-    [locate, preview],
+    [locate, preview, gutter, loop, region, span, view],
   );
 
   const onPointerUp = useCallback(
@@ -335,6 +350,7 @@ export function Ruler({
         ref={canvasRef}
         className="ruler__canvas"
         data-testid="roll-ruler"
+        data-grip={onGrip ? 'edge' : undefined}
         data-gutter={gutter}
         data-height={RULER_HEIGHT}
         data-loop-from={loop.fromTick}
@@ -344,6 +360,7 @@ export function Ruler({
         aria-label={t('roll.rulerLabel')}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
+        onPointerLeave={() => setOnGrip(false)}
         onPointerUp={onPointerUp}
         onPointerCancel={onPointerUp}
         onDoubleClick={onDoubleClick}

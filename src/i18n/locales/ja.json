@@ -1,7 +1,8 @@
 {
   "titlebar": {
     "settings": "設定",
-    "about": "情報"
+    "about": "情報",
+    "shortcuts": "キーボードショートカット"
   },
   "tabs": {
     "group": "ジェネレーター",
@@ -393,7 +394,11 @@
       "generate": "このパートを生成",
       "generateAll": "すべてのパートを生成",
       "pickGenerator": "ジェネレーターを選ぶ",
-      "redo": "やり直す"
+      "redo": "やり直す",
+      "selectBox": "ドラッグして範囲でセルを選択",
+      "addCell": "セルを選択に追加",
+      "rollPalette": "このセルのロールパレット",
+      "wipeCells": "ドラッグしたセルをすべて消去"
     }
   },
   "explorer": {

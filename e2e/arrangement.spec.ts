@@ -484,22 +484,32 @@ test('the picker offers the forms the artist writes, and defaults to their choic
 }) => {
   await openSong(page);
 
-  const picker = page.locator('.song__structure-pick select');
+  // ⚠ A combobox since TASK-057: its rows are whole section lists joined
+  // together, so they were the widest in the app and the worst served by a popup
+  // the OS sized against the window.
+  const pick = page.locator('.song__structure-pick');
+  const picker = pick.getByRole('combobox');
   await expect(picker).toBeVisible();
   // ⛔ Absence is the default and it means "the artist chooses" — the same
   // meaning it carries for every pin in this app, and what makes two
-  // generations of one artist differ.
-  await expect(picker).toHaveValue('');
+  // generations of one artist differ. It is a named row rather than an empty
+  // field, because a combobox always has something chosen.
+  const anyForm = await picker.inputValue();
+  expect(anyForm).not.toBe('');
 
-  const options = await picker.locator('option').evaluateAll((nodes) => nodes.length);
-  expect(options).toBeGreaterThan(2);
+  await picker.click();
+  const options = page.locator('.combo__menu [role="option"]');
+  expect(await options.count()).toBeGreaterThan(2);
 
-  await picker.selectOption('1');
-  await expect(picker).toHaveValue('1');
+  // The first authored form, which is the option after "any".
+  const chosen = (await options.nth(1).innerText()).trim();
+  await options.nth(1).click();
+  await expect(picker).toHaveValue(chosen);
+
   // A picked form survives generating with it — it is an instruction about what
   // to build next, not a one-shot.
   await page.getByRole('button', { name: 'Generate', exact: true }).click();
-  await expect(picker).toHaveValue('1');
+  await expect(picker).toHaveValue(chosen);
 });
 
 // ---------------------------------------------------------------------------

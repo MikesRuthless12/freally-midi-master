@@ -101,6 +101,17 @@ export const SHORTCUT_GROUPS: ShortcutGroup[] = [
       { keys: `${ACCEL} + 5`, id: 'quintuplet' },
       { keys: `${ACCEL} + 7`, id: 'septuplet' },
       { keys: 'Alt + click', id: 'cloneBar' },
+      // ⛔ **The pointer half of the grid, added 2026-08-11 because it was
+      // undocumented and unguessable.** Mike: *"ensure you put that in the
+      // keyboard shortcuts that you have to press 'Shift+Drag' to select
+      // multiple notes in the drum grid, plus all the other keyboard shortcuts
+      // for the drum grid."* Every row below is a gesture a producer has no way
+      // of discovering by looking at the grid — which is exactly what this panel
+      // is for.
+      { keys: 'Shift + drag', id: 'selectBox' },
+      { keys: `${ACCEL} + click`, id: 'addCell' },
+      { keys: 'Right click', id: 'rollPalette' },
+      { keys: 'Right click + drag', id: 'wipeCells' },
     ],
   },
   {

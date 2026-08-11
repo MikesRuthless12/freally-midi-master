@@ -1,0 +1,327 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "too-short",
+  "type": "artist",
+  "name": "Too Short",
+  "aliases": [
+    "too short",
+    "too $hort",
+    "short dog",
+    "todd shaw"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "g-funk"
+  ],
+  "era": "1992-1996",
+  "genres": [
+    "rap",
+    "g-funk",
+    "bay area",
+    "mobb music",
+    "funk"
+  ],
+  "relatedGenres": [
+    "g-funk",
+    "hyphy",
+    "funk"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended vol.1 g-funk — Too Short",
+    "https://chadkiser.com/2016/12/08/so-funky-it-stanks-a-microscopic-look-into-too-short-and-the-dangerous-crew/",
+    "https://www.melodigging.com/genre/mobb-music"
+  ],
+  "notes": "Oakland pimp-rap over live Bay funk, and the research says outright what the model has to put first: Shorty B's \"deftly played live bass\" is the defining layer, sitting louder in the mix than almost anywhere else in the lane. So this is the most melodically free bass in the batch — `followRootsProb` 0.30, `glideProb` 0.70, the full six-note funk passing set and four cell shapes — over a kit that is a documented hybrid, \"funk samples augmented by live drums\", which is why `quantizeStrength` stays loose at 0.80 while the kick runs dense and swung with Ant Banks' \"surgical precision\" on the backbeat. Live keyboards and guitar replace sampled synths, so `timbreHint` is the organ/clav the research names rather than the genre's portamento worm lead, and `chordToneBias` sits high because a played organ pad outlines the chord. `high` is the research's own rating — gear, personnel and method are all sourced. ⚠ The one thing not modelled is length: the research's \"very long records (5–7 minutes), instrumental vamp outros\" is an arrangement claim, and this entry inherits the genre's arrangement rather than authoring a form no other artist model in the dataset authors. ⚠ The bass ceiling came down from 48 to 46 so it stays under a chord part that starts at 47 — `coherence.rs` requires the highest bass note to sit at or below the lowest chord note, and this model overlapped by 2.",
+  "session": {
+    "bpm": {
+      "min": 84,
+      "max": 96,
+      "mode": 90
+    },
+    "scales": {
+      "values": [
+        "mixolydian",
+        "dorian",
+        "minor_pentatonic",
+        "blues"
+      ],
+      "weights": [
+        3,
+        3,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.62
+    },
+    "humanize": {
+      "quantizeStrength": 0.8,
+      "velocityVar": 0.2
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.48,
+      "tresilloBias": 0.3,
+      "offbeat8thShare": 0.36
+    },
+    "snare": {
+      "rimshotLayer": true,
+      "ghost": {
+        "prob": 0.3,
+        "pos": [
+          "1a",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.26,
+          0.46
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.52,
+      "velocities": {
+        "main": [
+          0.7,
+          0.94
+        ],
+        "ghost": [
+          0.24,
+          0.5
+        ]
+      },
+      "openHat": {
+        "prob": 0.3,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32",
+            "32T"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.66,
+        "velocityRamp": true
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "conga",
+        "shaker",
+        "rim"
+      ],
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "gainOffsetDb": -6
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 4
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "32nd"
+      ],
+      "grouping": [
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        58,
+        104
+      ],
+      "rampJitter": 19,
+      "gapProb": 0.14,
+      "descendProb": 0.47
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "III",
+          "iv"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.44,
+      "seventh": 0.44,
+      "ninth": 0.12
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        47,
+        75
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "vamp",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      66,
+      88
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "densityPerBar": [
+      3,
+      6
+    ],
+    "motifPitchCount": [
+      3,
+      6
+    ],
+    "intervals": {
+      "step": 0.5,
+      "third": 0.32,
+      "leap": 0.18
+    },
+    "contour": {
+      "riff": 0.45,
+      "descend": 0.3,
+      "arch": 0.25
+    },
+    "chordToneBias": 0.66,
+    "halfStepDissonance": 0.08,
+    "octaveJumpProb": [
+      0.1,
+      0.2
+    ],
+    "timbreHint": "church_organ"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.46,
+    "styles": {
+      "values": [
+        "arp",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.3,
+    "register": [
+      28,
+      46
+    ],
+    "glideProb": 0.7,
+    "passingTones": [
+      "M2",
+      "m3",
+      "P4",
+      "P5",
+      "M6",
+      "m7"
+    ],
+    "anticipationProb": 0.35,
+    "cellShapes": [
+      [
+        "1",
+        "b3",
+        "4",
+        "5"
+      ],
+      [
+        "1",
+        "5",
+        "b7",
+        "5"
+      ],
+      [
+        "5",
+        "4",
+        "b3",
+        "1"
+      ],
+      [
+        "1",
+        "2",
+        "b3",
+        "4"
+      ]
+    ]
+  }
+}

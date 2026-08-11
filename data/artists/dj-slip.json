@@ -1,0 +1,337 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "dj-slip",
+  "type": "artist",
+  "name": "DJ Slip",
+  "aliases": [
+    "dj slip",
+    "slip",
+    "comptons most wanted producer",
+    "music to driveby"
+  ],
+  "tier": "standard",
+  "extends": [
+    "g-funk"
+  ],
+  "era": "1990-1994",
+  "genres": [
+    "rap",
+    "west coast",
+    "compton",
+    "g-funk",
+    "producer"
+  ],
+  "relatedGenres": [
+    "g-funk",
+    "boom-bap",
+    "lofi-hiphop",
+    "houston-screw"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 g-funk — DJ Slip (Compton's Most Wanted)",
+    "Wikipedia — Compton's Most Wanted — https://en.wikipedia.org/wiki/Compton%27s_Most_Wanted",
+    "Wikipedia — Music to Driveby — https://en.wikipedia.org/wiki/Music_to_Driveby"
+  ],
+  "notes": "The research calls this the sparsest programming in the whole section, and every drum number here is chosen to be the lowest in the batch: kick at 1–3 a bar with the secondary anchor moved off the and-of-2 to a plain 3, `syncopation` 0.12, `tresilloBias` 0.05, ghost notes at 0.04, one percussion lane, and a snare velocity tier lowered because the research says the snare is thin and dry. Against that, the harmony is the *lushest* thing here — Isaac Hayes and Teddy Pendergrass sources give 7th and 9th colour, so `extensions.ninth` is 0.3 while `melody.densityPerBar` is 1–3. That contrast is the entry. `chords.impliedByRiff` is set because the harmony is one sustained Rhodes or string loop, and the chord part's variety comes from `chordDurationBeats` and three harmonic rhythms over a very wide voicing register rather than from chord changes. The uncredited freestyle keyboardist Willie Zimmerman is why `quantizeStrength` drops to 0.7 — improvised, non-quantized keyboard lines. ⛔ The bass is `mirror_kick` at 0.95, not `reese_sustain`: the research says long sustained sub, slow-moving, few notes, and over a kick that plays 1 and 3 that reads as sustained without collapsing the part to one note per chord. ⚠ The research says the kick often halves so the record reads half-time; `session.halfTime` stays false and the halving is expressed in `kick.densityPerBar` instead, because flipping the session flag would halve the hats and the backbeat too. ⚠ `medium` per the research's medium-high. ⚠ **The bass pool was widened after `bass.rs` measured it at 0.830 distinct against a floor of 0.95.** It was authored with NO passing tones, followRootsProb 0.95, anticipationProb 0.03 over register [22,40] — a faithful description of a sample-loop bass, and one that leaves a seed nothing to vary but root and octave. Now [\"P5\"], root lock 0.88, anticipation 0.2, register [22,44]. The line is still overwhelmingly root-on-kick; what changed is how many different records it can be, not how busy any one of them is. ⚠ The bass ceiling came down from 44 to 43 so it stays under a chord part that starts at 44 — `coherence.rs` requires the highest bass note to sit at or below the lowest chord note, and this model overlapped by 1. ⚠ **The countermelody reached only 880 distinct answers in 1000 seeds against a floor of 980**, so it was given range: styles 3, densityRatio 0.5, melody density [1,5]. A counter is combinatorial in the styles it may pick, its density against the melody, and the phrase length it answers inside — one style over a thin density inside a single phrase length has almost nothing a seed can vary.",
+  "session": {
+    "bpm": {
+      "min": 88,
+      "max": 96,
+      "mode": 91
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.55
+    },
+    "humanize": {
+      "quantizeStrength": 0.7,
+      "velocityVar": 0.2
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        92,
+        112
+      ],
+      "main": [
+        66,
+        80
+      ],
+      "ghost": [
+        30,
+        42
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3",
+      "syncopation": 0.12,
+      "tresilloBias": 0.05,
+      "offbeat8thShare": 0.08
+    },
+    "snare": {
+      "rimshotLayer": false,
+      "ghost": {
+        "prob": 0.04,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.12,
+          0.22
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.3,
+      "velocities": {
+        "main": [
+          0.45,
+          0.65
+        ],
+        "ghost": [
+          0.12,
+          0.28
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16T",
+            "32"
+          ],
+          "weights": [
+            2,
+            1
+          ]
+        },
+        "positions": [
+          "pre_snare",
+          "bar_4"
+        ],
+        "freqPerBar": 0.25
+      },
+      "openHat": {
+        "prob": 0.05,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim"
+      ],
+      "densityPerBar": [
+        0,
+        1
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8,
+      "fillBeforeSection": false
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th",
+        "16t"
+      ],
+      "grouping": [
+        "even",
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        44,
+        102
+      ],
+      "rampJitter": 10,
+      "descendProb": 0.06,
+      "gapProb": 0.65
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 3
+      }
+    ],
+    "maxChords": 3,
+    "impliedByRiff": true,
+    "chordDurationBeats": [
+      4,
+      24
+    ],
+    "extensions": {
+      "triad": 0.2,
+      "seventh": 0.5,
+      "ninth": 0.3
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        44,
+        80
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      65,
+      88
+    ],
+    "densityPerBar": [
+      1,
+      5
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    },
+    "motifPitchCount": [
+      2,
+      4
+    ],
+    "intervals": {
+      "step": 0.6,
+      "third": 0.28,
+      "leap": 0.12
+    },
+    "contour": {
+      "riff": 0.28,
+      "descend": 0.46,
+      "arch": 0.26
+    },
+    "chordToneBias": 0.8,
+    "octaveJumpProb": 0.03,
+    "timbreHint": "rhodes"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.5,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo",
+        "arp"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.88,
+    "register": [
+      22,
+      43
+    ],
+    "glideProb": 0.05,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.2
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 5
+      }
+    ],
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": 16,
+      "hook": 8,
+      "outro": [
+        4,
+        8
+      ]
+    },
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.35,
+        "beats": 2
+      },
+      "switchUpProb": 0.05
+    }
+  }
+}

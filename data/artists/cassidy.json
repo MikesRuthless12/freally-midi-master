@@ -1,0 +1,310 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "cassidy",
+  "type": "artist",
+  "name": "Cassidy",
+  "aliases": [
+    "cassidy",
+    "barry adrian reese",
+    "da hustla",
+    "full surface"
+  ],
+  "tier": "standard",
+  "extends": [
+    "boom-bap"
+  ],
+  "era": "2004-2007",
+  "genres": [
+    "rap",
+    "boom bap"
+  ],
+  "relatedGenres": [
+    "boom-bap",
+    "ringtone-club-rap",
+    "rnb-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 boom-bap — Cassidy",
+    "https://en.wikipedia.org/wiki/Cassidy_(rapper)",
+    "https://en.wikipedia.org/wiki/Hotel_(Cassidy_song)",
+    "https://en.wikipedia.org/wiki/I%27m_a_Hustla",
+    "https://www.discogs.com/release/350087-Cassidy-Split-Personality",
+    "https://www.rapreviews.com/archive/2005_07_imahustla.html"
+  ],
+  "notes": "The Full Surface board: a *played* layer over drum-machine drums, which is what separates this from the Roc-A-Fella chipmunk-soul cluster. Three parameters carry it. **The keys are major** — the research says major-mode more often than not across the singles (C, D, A, D♭), which is unusual for 2000s East Coast rap and a direct consequence of Swizz's board, so `session.scales` leads with `major` and reaches outside its parent's minor set on purpose. **The kick's second anchor is the &-of-2, not the &-of-3** — the one drum fact the research states outright, and the thing that makes this beat lean forward where the rest of this lane leans back. **The melody is deliberately thin**: the extreme end of this board is a track \"so understated he either forgot to add the melody or did it on purpose\", i.e. drums plus one riff plus nothing, so `densityPerBar` tops out at 6 and `maxChords` is 2. The harmony is a static vamp with a single chromatic neighbour and no functional cadence, which is why the families are `I`, `i` and `I–bII` rather than anything that resolves. ⚠ `medium` because the research rates it medium-high: per-track producer *and* musician credits, sample sources and charts are sourced, but no interview establishes the programming. The INFERRED parameters are the hat grammar (`fillDensity`, `openHat`) and `percs.lanes` — the research names 8th hats with 16th fills and a hard clap, and says nothing about where the open hat lands or what percussion sits under it. `snare.layerClapOffsetMs` is the researched half: a hard clap layered over a dry snare is the kit's signature. ⚠ Band-D fill fingerprint: `fills` 4/16 and a 16th-triplet roll grouped even, with the lowest `gapProb` and a high `descendProb` in this batch so the roll runs down almost unbroken into the hook, which is what \"snare rolls into hooks\" describes. ⚠ **The chord part reached only 434 distinct harmonies in 1000 seeds against a floor of 500, so it was given range: voicing.register [45,69].** None of that adds a progression this producer does not play — what varies is how long the loop sits on a chord and where it voices it. The progression families are exactly as researched. ⛔ **`chords.impliedByRiff` is set.** This model reached only 434 distinct harmonies in 1000 seeds, and every honest lever — chord duration, harmonic rhythm, voicing window — was already open. The reason is the record rather than the authoring: the harmony is stated by the riff rather than by a chord part, so there is one thing to voice. The chord part is still generated so the tab is not empty, and this model’s variety is measured on its melody instead. ⚠ If it ever grows a real progression, delete this flag.",
+  "session": {
+    "bpm": {
+      "min": 87,
+      "max": 95,
+      "mode": 91
+    },
+    "keys": {
+      "values": [
+        "C",
+        "D",
+        "A",
+        "Db",
+        "Cm"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2,
+        1
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "natural_minor"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.54
+    },
+    "humanize": {
+      "quantizeStrength": 0.88,
+      "velocityVar": 0.14
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.38,
+      "tresilloBias": 0.08
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "layerClapOffsetMs": 6,
+      "ghost": {
+        "prob": 0.22,
+        "pos": [
+          "2e",
+          "4e"
+        ],
+        "vel": [
+          0.2,
+          0.36
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.42,
+      "velocities": {
+        "main": [
+          0.72,
+          0.94
+        ],
+        "ghost": [
+          0.18,
+          0.42
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "16T"
+          ],
+          "weights": [
+            3,
+            1
+          ]
+        },
+        "positions": [
+          "pre_snare"
+        ],
+        "freqPerBar": 0.32
+      },
+      "openHat": {
+        "prob": 0.22,
+        "pos": [
+          "2&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim"
+      ],
+      "densityPerBar": [
+        0,
+        1
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        58,
+        105
+      ],
+      "rampJitter": 8,
+      "descendProb": 0.55,
+      "gapProb": 0.1
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "bII"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.62,
+      "seventh": 0.3,
+      "ninth": 0.08
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        45,
+        69
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      16
+    ],
+    "impliedByRiff": true
+  },
+  "melody": {
+    "register": [
+      63,
+      84
+    ],
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "structure": "riff_loop",
+    "intervals": {
+      "step": 0.58,
+      "third": 0.3,
+      "leap": 0.12
+    },
+    "contour": {
+      "riff": 0.62,
+      "descend": 0.24,
+      "arch": 0.14
+    },
+    "chordToneBias": 0.74,
+    "octaveJumpProb": 0.07,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "clean_guitar"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.34,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.92,
+    "register": [
+      26,
+      43
+    ],
+    "glideProb": 0.06,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.12
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": 16,
+      "hook": 8,
+      "outro": 4
+    }
+  }
+}

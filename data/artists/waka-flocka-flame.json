@@ -1,0 +1,319 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "waka-flocka-flame",
+  "type": "artist",
+  "name": "Waka Flocka Flame",
+  "aliases": [
+    "waka flocka flame",
+    "waka flocka",
+    "waka",
+    "juaquin malphurs",
+    "flockaveli",
+    "bow"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "trap"
+  ],
+  "era": "2010-2013",
+  "genres": [
+    "rap",
+    "trap"
+  ],
+  "relatedGenres": [
+    "trap",
+    "dark-trap",
+    "crunk"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 trap — Waka Flocka Flame",
+    "https://en.wikipedia.org/wiki/Flockaveli",
+    "https://en.wikipedia.org/wiki/Hard_in_da_Paint"
+  ],
+  "notes": "The Lex-Luger stadium grammar, and it is the one entry in this batch whose *fill* is the identity rather than an ornament. The research: \"a machine-gun snare roll (16ths/32nds) as the primary transition device\" and \"long accelerating rolls\" — so `snareRoll.gapProb` is 0.06, the lowest number in this batch by a distance (a roll with holes in it is not machine-gun), `descendProb` is 0.08 because it only ever builds, and `velocityRampRange` [44, 102] is the widest accelerating ramp here. Everything else is the sub: \"very long-decay distorted 808 that overlaps into the next bar, minimal pitch movement, deliberately clipping the low end; the sub *is* the arrangement's weight\" — `slideProb` 0.08, `distortion: heavy`, `clipping: true`, and the lowest, narrowest 808 register in the batch. Harmony is \"reduced to a tonic pedal plus one neighbour chord\", so `maxChords` is 2 and only i–VI and i–VII exist beside the static tonic. `melody.register` spans 38 semitones — the research's \"register wide-spread (very low pad + very high bell)\" — which is the widest melodic reach in the batch, against a `densityPerBar` of [2, 4] that is nearly the narrowest. ⚠ `confidence` is `medium`: the research rates this high-medium and says tempi vary track to track. ⚠ `clipping` is authored intent the sampler cannot honour yet — it is on the engine's deferral register — and it is named here rather than left out, because \"deliberately clipping the low end\" is the single most directly sourced sentence in the entry. INFERRED: every velocity figure, the crash/impact perc density standing in for \"crash on every 4- or 8-bar boundary\", and the family weights. ⚠ **A register here spanned less than an octave and has been widened.** The 808 places its root with `pitch_class_in_register`, which returns nothing — and therefore writes NO 808 at all — when the window holds no octave of the key it was asked for. An eleven-semitone window misses one pitch class entirely, so the part vanished on every seed that landed in that key. The centre of the authored range is unchanged. ⚠ `anticipationProb` raised to 0.15. With `mirror_kick` against a fully locked 808 both parts take every kick, so every bass onset lands exactly on an 808 onset — `coherence.rs` calls that one line played twice rather than two parts locking. The lock is the style and is untouched; the anticipation is what makes them two parts. ⚠ **The countermelody reached only 974 distinct answers in 1000 seeds against a floor of 980**, so it was given range: densityRatio 0.45. A counter is combinatorial in the styles it may pick, its density against the melody, and the phrase length it answers inside — one style over a thin density inside a single phrase length has almost nothing a seed can vary.",
+  "session": {
+    "bpm": {
+      "min": 138,
+      "max": 152,
+      "mode": 144
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "phrygian",
+        "harmonic_minor"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2a",
+      "syncopation": 0.44,
+      "tresilloBias": 0.2,
+      "avoidPreSnareGap": "16th"
+    },
+    "snare": {
+      "layered": true,
+      "layerClapOffsetMs": [
+        4,
+        9
+      ],
+      "ghost": {
+        "prob": 0.12,
+        "pos": [
+          "4&"
+        ],
+        "vel": [
+          0.32,
+          0.48
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.58,
+      "velocities": {
+        "main": [
+          0.88,
+          1
+        ],
+        "ghost": [
+          0.4,
+          0.58
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.18,
+        "velocityRamp": true,
+        "rampRange": [
+          0.35,
+          1
+        ]
+      },
+      "openHat": {
+        "prob": 0.24,
+        "pos": [
+          "3a"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "crash",
+        "impact"
+      ],
+      "densityPerBar": [
+        0,
+        1
+      ],
+      "placement": "downbeat"
+    },
+    "bass808": {
+      "sustain": "legato",
+      "slideProb": 0.08,
+      "slidesPer4Bars": [
+        0,
+        1
+      ],
+      "slideIntervals": {
+        "values": [
+          "P8"
+        ],
+        "weights": [
+          1
+        ]
+      },
+      "slidePositions": [
+        "phrase_end"
+      ],
+      "register": [
+        16,
+        27
+      ],
+      "distortion": "heavy",
+      "clipping": true
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        44,
+        102
+      ],
+      "rampJitter": 13,
+      "descendProb": 0.08,
+      "gapProb": 0.06,
+      "buildAndStopProb": 0.45
+    }
+  },
+  "melody": {
+    "register": [
+      58,
+      96
+    ],
+    "densityPerBar": [
+      2,
+      4
+    ],
+    "structure": "riff_loop",
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    },
+    "intervals": {
+      "step": 0.42,
+      "third": 0.2,
+      "leap": 0.38
+    },
+    "contour": {
+      "riff": 0.5,
+      "descend": 0.36,
+      "arch": 0.14
+    },
+    "chordToneBias": 0.86,
+    "halfStepDissonance": 0.08,
+    "octaveJumpProb": 0.34,
+    "emptyBarBias": 0.14,
+    "timbreHint": "low_brass_stab"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.45,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 4
+      }
+    ],
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.88,
+      "seventh": 0.1,
+      "ninth": 0.02
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        42,
+        80
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "vamp",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        4,
+        1
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      16
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": {
+        "values": [
+          12,
+          16
+        ],
+        "weights": [
+          2,
+          3
+        ]
+      },
+      "hook": 8,
+      "bridge": 4,
+      "outro": 4
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.7,
+        "beats": 4
+      },
+      "switchUpProb": 0.08
+    }
+  },
+  "bassline": {
+    "anticipationProb": 0.15
+  }
+}

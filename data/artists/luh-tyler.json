@@ -1,0 +1,291 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "luh-tyler",
+  "type": "artist",
+  "name": "Luh Tyler",
+  "aliases": [
+    "luh tyler",
+    "tyler",
+    "tyler kevin sims"
+  ],
+  "tier": "standard",
+  "extends": [
+    "trap"
+  ],
+  "era": "2023-present",
+  "genres": [
+    "rap",
+    "trap"
+  ],
+  "relatedGenres": [
+    "trap",
+    "atl-swag-rap",
+    "lofi-hiphop"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended vol.1 trap — Luh Tyler",
+    "https://en.wikipedia.org/wiki/Luh_Tyler",
+    "https://en.wikipedia.org/wiki/My_Vision"
+  ],
+  "notes": "⛔ `low` because the research marks this entry medium-low: a clear stylistic profile with limited technical sourcing [LOW-CONF]. Treat the numbers as a reading of the records. Two research words decide the file. \"Behind-the-beat\": authored as `snare.offGridMs` [3, 8] against the trap parent's 0, plus a loosened `quantizeStrength` of 0.82 — this is the only entry in the batch that moves the backbeat off the grid, and it is what \"laid-back\" means to a MIDI generator. \"Jazz-leaning colour (m7, m9)\": authored as dorian-first scales, `extensions` at 0.55 seventh and 0.25 ninth, and the only ii–v–i family in this batch, over a `vibraphone` timbre for the jazzy guitar / electric-piano / vibraphone loops. The kit is \"intentionally light\", so `velocityTiers` is the lowest here, and the low vocal-melody content is a modest `densityPerBar` in a low register. ⚠ The INFERRED parameters are the drum numbers and the 808's glide rate — the research says the 808 is \"not the record's focal point\" and gives no figures. ⚠ The ii–v–i family is a reading of \"jazz-leaning colour\", not a progression the research names; it carries the lowest weight and is the first thing to delete if this sounds more harmonically mobile than the records. ⚠ `anticipationProb` raised to 0.15. With `mirror_kick` against a fully locked 808 both parts take every kick, so every bass onset lands exactly on an 808 onset — `coherence.rs` calls that one line played twice rather than two parts locking. The lock is the style and is untouched; the anticipation is what makes them two parts.",
+  "session": {
+    "bpm": {
+      "min": 128,
+      "max": 148,
+      "mode": 138
+    },
+    "scales": {
+      "values": [
+        "dorian",
+        "natural_minor",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.82,
+      "velocityVar": 0.14
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        90,
+        108
+      ],
+      "main": [
+        64,
+        78
+      ],
+      "ghost": [
+        30,
+        42
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "syncopation": 0.3,
+      "tresilloBias": 0.12
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "offGridMs": [
+        3,
+        8
+      ]
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.4,
+      "velocities": {
+        "main": [
+          0.66,
+          0.86
+        ],
+        "ghost": [
+          0.28,
+          0.48
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "16T"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "pre_snare"
+        ],
+        "freqPerBar": 0.48,
+        "velocityRamp": true
+      },
+      "openHat": {
+        "prob": 0.2,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 4
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th",
+        "32nd"
+      ],
+      "grouping": [
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        64,
+        108
+      ],
+      "rampJitter": 23,
+      "descendProb": 0.42,
+      "gapProb": 0.53
+    },
+    "bass808": {
+      "sustain": "legato",
+      "slideProb": 0.45,
+      "distortion": "none",
+      "register": [
+        18,
+        35
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      62,
+      86
+    ],
+    "densityPerBar": [
+      3,
+      6
+    ],
+    "intervals": {
+      "step": 0.66,
+      "third": 0.28,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.4,
+      "descend": 0.35,
+      "arch": 0.25
+    },
+    "chordToneBias": 0.7,
+    "halfStepDissonance": 0.05,
+    "octaveJumpProb": 0.07,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        4,
+        1
+      ]
+    },
+    "timbreHint": "vibraphone"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.4,
+    "styles": {
+      "values": [
+        "arp",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "ii",
+          "v"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "ii",
+          "v",
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.2,
+      "seventh": 0.55,
+      "ninth": 0.25
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        52,
+        79
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ]
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.8,
+    "register": [
+      18,
+      35
+    ],
+    "glideProb": 0.5,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2"
+    ],
+    "anticipationProb": 0.15
+  }
+}

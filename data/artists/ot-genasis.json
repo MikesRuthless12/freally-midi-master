@@ -1,0 +1,234 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "ot-genasis",
+  "type": "artist",
+  "name": "O.T. Genasis",
+  "aliases": [
+    "ot genasis",
+    "o t genasis",
+    "odis flores"
+  ],
+  "tier": "standard",
+  "extends": [
+    "west-coast-club"
+  ],
+  "era": "2014-present",
+  "genres": [
+    "rap",
+    "west-coast-club"
+  ],
+  "relatedGenres": [
+    "west-coast-club",
+    "g-funk",
+    "trap"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 west-coast-club — O.T. Genasis"
+  ],
+  "notes": "Long Beach chant-rap, and the research names the arrangement parameter exactly: **repetition count, not chord change**. The hook is the whole song. So harmony is effectively monotonal, the 808 is one distorted note a bar functioning as a *percussion hit* rather than a pitched line, and there are long stretches with no hats at all — snare rolls are the only transition device, which is why this entry’s fill fingerprint is the loudest thing in it. ⚠ `medium`: tempo and key are measured; the drum specifics are partly lane-inherited and the research marks them `[LOW-CONF]`. ⚠ **The countermelody reached 960/1000 distinct answers against a floor of 980**, so its style pool was opened: bell_echo, arp, densityRatio 0.55. ⛔ `counter.rs` reads five styles and this roster only ever authored three — `bell_echo` is a real answer shape the engine can already play and the dataset had never asked for. ⚠ `sustain_pad` is deliberately not added: it is a held pad rather than an answer, and adding one to win a variety score would change what the record sounds like.",
+  "session": {
+    "bpm": {
+      "min": 95,
+      "max": 140,
+      "mode": 128
+    },
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.54
+    },
+    "halfTime": true
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "syncopation": 0.1,
+      "lockTo808": 1
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "lowPassedClap": true,
+      "ghost": {
+        "prob": 0.05,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.2,
+          0.3
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.3,
+      "openHat": {
+        "prob": 0.1,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.3
+      }
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "8t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        70,
+        120
+      ],
+      "rampJitter": 11
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "staccato",
+      "monoCutSelf": true,
+      "slideProb": 0,
+      "register": [
+        20,
+        33
+      ],
+      "distortion": "saturated"
+    }
+  },
+  "melody": {
+    "register": [
+      64,
+      86
+    ],
+    "densityPerBar": [
+      1,
+      3
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "low_brass_stab"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.55,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo",
+        "bell_echo",
+        "arp"
+      ],
+      "weights": [
+        3,
+        2,
+        2,
+        1
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 6
+      },
+      {
+        "roman": [
+          "I"
+        ],
+        "weight": 3
+      }
+    ],
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.85,
+      "seventh": 0.13,
+      "ninth": 0.02
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        43,
+        75
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        6,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      2,
+      16
+    ],
+    "impliedByRiff": true
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.97,
+    "register": [
+      24,
+      38
+    ],
+    "glideProb": 0,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.16
+  }
+}

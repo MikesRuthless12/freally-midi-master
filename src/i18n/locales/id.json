@@ -1,7 +1,8 @@
 {
   "titlebar": {
     "settings": "Pengaturan",
-    "about": "Tentang"
+    "about": "Tentang",
+    "shortcuts": "Pintasan keyboard"
   },
   "tabs": {
     "group": "Generator",
@@ -393,7 +394,11 @@
       "generate": "Buat bagian ini",
       "generateAll": "Buat semua bagian",
       "pickGenerator": "Pilih generator",
-      "redo": "Ulangi"
+      "redo": "Ulangi",
+      "selectBox": "Seret kotak untuk memilih sel",
+      "addCell": "Tambahkan sel ke pilihan",
+      "rollPalette": "Palet roll untuk sel ini",
+      "wipeCells": "Hapus semua sel yang dilewati"
     }
   },
   "explorer": {

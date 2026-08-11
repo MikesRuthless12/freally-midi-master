@@ -56,9 +56,18 @@ describe('the shortcut catalog', () => {
 
     for (const group of SHORTCUT_GROUPS) {
       for (const item of group.items) {
+        // ⛔ **Mouse gestures are stripped to nothing on purpose, and saying so
+        // is the point.** A pointer gesture has no `event.key` for any handler
+        // to listen for, so this check simply does not apply to it — `Right
+        // click + drag` is answered by `onPointerDown`/`onPointerMove`, not by a
+        // key comparison. `Alt + click` was already passing for exactly this
+        // reason and only by *accident* of what the strip list happened to
+        // contain; `drag` and `Right` are now listed beside `click` so the
+        // exemption is deliberate rather than coincidental. ⚠ This does not
+        // weaken the check for keys: every real key still has to be found.
         const bare = item.keys
           .replace(ACCEL, '')
-          .replace(/Alt|Shift|\+|click|\s/g, '')
+          .replace(/Alt|Shift|Right|\+|click|drag|\s/g, '')
           .split('/')[0];
         if (bare === '') continue;
 

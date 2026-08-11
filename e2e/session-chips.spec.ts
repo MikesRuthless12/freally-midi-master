@@ -75,17 +75,20 @@ test('key and scale offer the artist’s choice until a beat exists', async ({ p
   // A seed picks them, so before Generate there is nothing honest to show.
   await pick(page, 'trap');
 
-  const key = page.locator(`${chip('Key')} select`);
-  await expect(key).toHaveValue('');
-  await expect(key.locator('option').first()).toHaveText('The artist’s');
+  // ⚠ Comboboxes since TASK-057, so this reads the field itself rather than the
+  // first `<option>` — which is a better question anyway: what the chip *shows*
+  // is the thing a producer reads, and the old assertion could have passed over
+  // a control displaying something else entirely.
+  const key = page.locator(chip('Key')).getByRole('combobox');
+  await expect(key).toHaveValue('The artist’s');
 
   await page.getByRole('button', { name: 'Generate', exact: true }).click();
   await expect(page.getByRole('table', { name: 'Generated pattern' })).toBeVisible();
 
   // ...and afterwards it says which one the artist landed on. The mock
   // generates in F♯ natural minor.
-  await expect(key.locator('option').first()).toHaveText('F♯ — the artist’s');
-  await expect(page.locator(`${chip('Scale')} select option`).first()).toHaveText(
+  await expect(key).toHaveValue('F♯ — the artist’s');
+  await expect(page.locator(chip('Scale')).getByRole('combobox')).toHaveValue(
     'Natural minor — the artist’s',
   );
 });

@@ -6,11 +6,20 @@
   width: 100%;
 }
 
+/* ⛔ The cursor is set from the grip under the pointer, not fixed here. The
+   whole strip used to read `ew-resize`, which told a producer that every pixel
+   of it resized something — so the one band that actually does was invisible,
+   and aiming at it and missing draws a new brace over the loop being aimed at.
+   `crosshair` is the default because empty ruler seeks and draws. */
 .ruler__canvas {
   display: block;
   width: 100%;
   height: 100%;
   user-select: none;
   touch-action: none;
+  cursor: crosshair;
+}
+
+.ruler__canvas[data-grip='edge'] {
   cursor: ew-resize;
 }

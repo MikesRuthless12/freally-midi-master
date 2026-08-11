@@ -203,6 +203,210 @@ test('right-clicking a cell offers the roll palette, and picking one fills the s
   await expect(cell).not.toHaveAttribute('data-hits', '4');
 });
 
+test('right-dragging across cells clears them all, in one undo step', async ({ page }) => {
+  // TASK-056 #3. Mike: "right-click and drag across the drum grid to delete —
+  // multiple cells in one gesture, not one click each."
+  //
+  // ⛔ Only a browser can prove this one. The split between "a right-click opens
+  // the palette" and "a right-drag deletes" is decided by whether the pointer
+  // moved between down and up, and that ordering — pointerup, then contextmenu —
+  // is the browser's, not something a unit test can assert.
+  const row = page.locator('.grid__row').first();
+  const cells = row.locator('.grid__cell');
+  const lit = row.locator('.grid__cell--on');
+
+  const before = await lit.count();
+  expect(before).toBeGreaterThan(1);
+
+  const first = await cells.nth(0).boundingBox();
+  const last = await cells.nth((await cells.count()) - 1).boundingBox();
+  if (first === null || last === null) throw new Error('the grid has no cells to sweep');
+
+  await page.mouse.move(first.x + first.width / 2, first.y + first.height / 2);
+  await page.mouse.down({ button: 'right' });
+  // ⚠ Enough steps to land inside every cell on the way. A coarse sweep skips
+  // cells, which is true of a real drag too — but then the test would be
+  // asserting the interpolation rather than the gesture.
+  await page.mouse.move(last.x + last.width / 2, last.y + last.height / 2, { steps: 400 });
+  await page.mouse.up({ button: 'right' });
+
+  // The whole row is wiped, and the palette the same button opens did not.
+  await expect(lit).toHaveCount(0);
+  await expect(page.getByRole('menu', { name: 'Roll this step' })).toBeHidden();
+
+  // ⛔ One press, not one per cell — the reason `clearCells` exists.
+  await page.keyboard.press('Control+z');
+  await expect(lit).toHaveCount(before);
+});
+
+test('a right-click that does not travel still opens the palette', async ({ page }) => {
+  // The other half of the split: the sweep must not have cost TASK-043 its
+  // gesture. Down and up on one cell with no movement is a menu.
+  const cell = page.locator('.grid__row').first().locator('.grid__cell').first();
+  const box = await cell.boundingBox();
+  if (box === null) throw new Error('the grid has no cells');
+
+  await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2);
+  await page.mouse.down({ button: 'right' });
+  await page.mouse.up({ button: 'right' });
+
+  await expect(page.getByRole('menu', { name: 'Roll this step' })).toBeVisible();
+});
+
+/**
+ * Selection, copy, paste and clone in the drum grid (TASK-056 #4).
+ *
+ * Mike: *"select, copy, paste and clone multiple notes in the drum grid — i
+ * don't care if you want me to press 'Ctrl+click' or whatever."* The arithmetic
+ * lives in `cells.test.ts`; what only a browser proves is that the modifiers
+ * reach the handlers and that selecting a cell does not also edit it.
+ */
+test('Ctrl-clicking selects cells without placing or clearing a hit', async ({ page }) => {
+  const cells = page.locator('.grid__row').first().locator('.grid__cell');
+  const before = await cells.evaluateAll((els) =>
+    els.map((el) => el.getAttribute('data-hits')),
+  );
+
+  await cells.nth(2).click({ modifiers: ['Control'] });
+  await cells.nth(5).click({ modifiers: ['Control'] });
+
+  await expect(cells.nth(2)).toHaveAttribute('data-selected', 'true');
+  await expect(cells.nth(5)).toHaveAttribute('data-selected', 'true');
+  await expect(cells.nth(3)).not.toHaveAttribute('data-selected', 'true');
+
+  // ⛔ The pattern is untouched. A selection that also toggled a hit would make
+  // every act of selecting an edit.
+  expect(
+    await cells.evaluateAll((els) => els.map((el) => el.getAttribute('data-hits'))),
+  ).toEqual(before);
+
+  // And a plain click starts again, the way it does in every editor.
+  await cells.nth(9).click();
+  await expect(cells.nth(2)).not.toHaveAttribute('data-selected', 'true');
+});
+
+test('shift-dragging a bar and pasting it lands the same figure in the next one', async ({
+  page,
+}) => {
+  const row = page.locator('.grid__row').first();
+  const cells = row.locator('.grid__cell');
+  const total = await cells.count();
+  expect(total).toBeGreaterThanOrEqual(32);
+
+  const hits = () => cells.evaluateAll((els) => els.map((el) => el.getAttribute('data-hits')));
+  const first = await cells.nth(0).boundingBox();
+  const sixteenth = await cells.nth(15).boundingBox();
+  if (first === null || sixteenth === null) throw new Error('the grid has no cells to sweep');
+
+  // The marquee: Shift with the primary button, so click-to-seek keeps the
+  // plain drag it has always had.
+  await page.keyboard.down('Shift');
+  await page.mouse.move(first.x + first.width / 2, first.y + first.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(sixteenth.x + sixteenth.width / 2, sixteenth.y + sixteenth.height / 2, {
+    steps: 120,
+  });
+  await page.mouse.up();
+  await page.keyboard.up('Shift');
+
+  await expect(cells.nth(0)).toHaveAttribute('data-selected', 'true');
+  await expect(cells.nth(15)).toHaveAttribute('data-selected', 'true');
+  await expect(cells.nth(20)).not.toHaveAttribute('data-selected', 'true');
+
+  const barOne = (await hits()).slice(0, 16);
+  await page.keyboard.press('Control+c');
+
+  // ⛔ Focused, not clicked: a plain click would clear the selection and toggle
+  // a hit. The focused cell's column is where the block lands.
+  await cells.nth(16).focus();
+  await page.keyboard.press('Control+v');
+
+  await expect(async () => {
+    expect((await hits()).slice(16, 32)).toEqual(barOne);
+  }).toPass();
+});
+
+test('dragging draws a box, and it selects the rectangle rather than the path', async ({
+  page,
+}) => {
+  // Mike, 2026-08-11: "creates a box as you drag like on windows and then you
+  // select multiple drum notes with drag."
+  //
+  // ⛔⛔ **This is the test that would have caught the first cut.** That version
+  // collected cells from `pointerenter`, so it selected the diagonal line the
+  // pointer travelled and left everything above and below it alone. The
+  // assertion below is deliberately about a cell the pointer NEVER TOUCHES: the
+  // drag goes from row 1 column 1 to row 3 column 5, and row 2 column 3 sits
+  // inside the rectangle but nowhere near the diagonal.
+  const rows = page.locator('.grid__row');
+  expect(await rows.count()).toBeGreaterThanOrEqual(3);
+
+  const start = await rows.nth(0).locator('.grid__cell').nth(1).boundingBox();
+  const end = await rows.nth(2).locator('.grid__cell').nth(5).boundingBox();
+  if (start === null || end === null) throw new Error('the grid has no cells to band');
+
+  await page.keyboard.down('Shift');
+  await page.mouse.move(start.x + start.width / 2, start.y + start.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(end.x + end.width / 2, end.y + end.height / 2, { steps: 20 });
+
+  // The band is drawn while the drag is live, which is the visible half of it.
+  await expect(page.getByTestId('grid-marquee')).toBeVisible();
+
+  await page.mouse.up();
+  await page.keyboard.up('Shift');
+
+  // ...and gone once it is released.
+  await expect(page.getByTestId('grid-marquee')).toBeHidden();
+
+  // Everything inside the rectangle, including the middle row the pointer never
+  // crossed.
+  await expect(rows.nth(1).locator('.grid__cell').nth(3)).toHaveAttribute(
+    'data-selected',
+    'true',
+  );
+  await expect(rows.nth(0).locator('.grid__cell').nth(2)).toHaveAttribute(
+    'data-selected',
+    'true',
+  );
+  await expect(rows.nth(2).locator('.grid__cell').nth(4)).toHaveAttribute(
+    'data-selected',
+    'true',
+  );
+
+  // ...and nothing outside it.
+  await expect(rows.nth(0).locator('.grid__cell').nth(9)).not.toHaveAttribute(
+    'data-selected',
+    'true',
+  );
+});
+
+test('Delete clears a whole selection, and one Ctrl+Z brings it all back', async ({ page }) => {
+  const row = page.locator('.grid__row').first();
+  const cells = row.locator('.grid__cell');
+  const lit = row.locator('.grid__cell--on');
+  const before = await lit.count();
+  expect(before).toBeGreaterThan(1);
+
+  await cells.nth(0).click({ modifiers: ['Control'] });
+  await cells.nth(1).click({ modifiers: ['Control'] });
+  await cells.nth(2).click({ modifiers: ['Control'] });
+  await cells.nth(3).click({ modifiers: ['Control'] });
+
+  const litInBlock = await cells.evaluateAll(
+    (els) => els.slice(0, 4).filter((el) => el.classList.contains('grid__cell--on')).length,
+  );
+  expect(litInBlock).toBeGreaterThan(0);
+
+  await page.keyboard.press('Delete');
+  await expect(lit).toHaveCount(before - litInBlock);
+
+  // ⛔ One press for the whole selection — the reason `clearCells` builds one
+  // pattern rather than folding `clearCell` over the list.
+  await page.keyboard.press('Control+z');
+  await expect(lit).toHaveCount(before);
+});
+
 test('Escape dismisses the roll palette without changing the step', async ({ page }) => {
   const cell = page.locator('.grid__row').first().locator('.grid__cell').first();
   const before = await cell.getAttribute('data-hits');
@@ -230,6 +434,11 @@ test('the hat lane offers an add-fill, and it writes one at the phrase end', asy
   const total = await cells.count();
   const last = cells.nth(total - 1);
 
+  // ⚠ Hover the row first. The fill button collapses to zero width until the row
+  // is reached for — that is what gives the lane its name back in a 5.5rem
+  // header — so it has no box to click until then. A producer hovers on the way
+  // to it; Playwright has to be told.
+  await hat.hover();
   await hat.locator('.grid__fill').click();
 
   // A 32nd stream through the last beat: every one of the last four cells now
@@ -249,20 +458,23 @@ test('a slot can be switched to a drum the kit is not already using', async ({ p
   const rows = page.locator('.grid__row');
   const before = await rows.count();
   const first = rows.first();
-  const picker = first.locator('.grid__slot');
-
+  // ⚠ A combobox since TASK-057, so the offered lanes live in a portalled
+  // listbox that exists only while it is open — a `<select>`'s `<option>`s were
+  // always in the DOM. The picker is still an arrow and nothing else.
+  const picker = first.locator('.grid__slot').getByRole('combobox');
   await expect(picker).toHaveAttribute('aria-label', /Change /);
 
   // Every lane already drawn is absent from the list, bar this row's own.
   const drawn = await rows.locator('.grid__lanename').allInnerTexts();
-  const offered = await picker.locator('option').allInnerTexts();
+  await picker.click();
+  const offered = await page.locator('.combo__menu [role="option"]').allInnerTexts();
   const own = offered[0];
   for (const name of drawn.filter((n) => n !== own)) {
     expect(offered).not.toContain(name);
   }
   expect(offered).toContain('Conga');
 
-  await picker.selectOption({ label: 'Conga' });
+  await page.locator('.combo__menu [role="option"]', { hasText: 'Conga' }).first().click();
 
   // The row is a conga now — the same count of rows, one of them renamed.
   await expect(rows).toHaveCount(before);
@@ -284,9 +496,18 @@ test('a locked lane survives a re-roll, and R is what re-rolls', async ({ page }
       .locator('.grid__cell')
       .evaluateAll((els) => els.map((e) => e.getAttribute('data-hits')));
 
+  // ⚠ Hover first: the padlock collapses to zero width until the row is reached
+  // for, which is what frees the 5.5rem header for the lane's name.
+  await kick.hover();
   await kick.locator('.grid__lock').click();
   await expect(kick.locator('.grid__lock')).toHaveAttribute('aria-pressed', 'true');
   await expect(kick).toHaveAttribute('data-locked', 'true');
+
+  // ⛔ And once it IS locked the padlock stays put with the pointer away — a
+  // locked lane that looked unlocked until you hovered it would be the
+  // readout-that-lies failure in the one control whose job is to report state.
+  await page.locator('.grid__meta').hover();
+  await expect(kick.locator('.grid__lock')).toBeVisible();
 
   const held = await cells();
 
@@ -298,6 +519,7 @@ test('a locked lane survives a re-roll, and R is what re-rolls', async ({ page }
   // Unlocking lets it go: press R again and it may move. ⚠ Asserted as "the
   // lock is off" rather than "the notes changed", because a seed is entitled to
   // land on the same kick twice and a flake here would be worse than the gap.
+  await kick.hover();
   await kick.locator('.grid__lock').click();
   await expect(kick).not.toHaveAttribute('data-locked', 'true');
 });

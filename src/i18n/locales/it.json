@@ -1,7 +1,8 @@
 {
   "titlebar": {
     "settings": "Impostazioni",
-    "about": "Informazioni"
+    "about": "Informazioni",
+    "shortcuts": "Scorciatoie da tastiera"
   },
   "tabs": {
     "group": "Generatore",
@@ -393,7 +394,11 @@
       "generate": "Genera questa parte",
       "generateAll": "Genera tutte le parti",
       "pickGenerator": "Scegli un generatore",
-      "redo": "Ripeti"
+      "redo": "Ripeti",
+      "selectBox": "Trascina un riquadro per selezionare le celle",
+      "addCell": "Aggiungi una cella alla selezione",
+      "rollPalette": "Tavolozza dei rulli per questa cella",
+      "wipeCells": "Cancella tutte le celle attraversate"
     }
   },
   "explorer": {

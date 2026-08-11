@@ -1,0 +1,370 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "the-bomb-squad",
+  "type": "artist",
+  "name": "The Bomb Squad",
+  "aliases": [
+    "the bomb squad",
+    "bomb squad",
+    "hank shocklee",
+    "keith shocklee",
+    "eric sadler",
+    "public enemy"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "boom-bap"
+  ],
+  "era": "1990-1991",
+  "genres": [
+    "rap",
+    "boom-bap"
+  ],
+  "relatedGenres": [
+    "boom-bap",
+    "funk"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 boom-bap — The Bomb Squad",
+    "The Quietus — Hank Shocklee interviewed (https://thequietus.com/interviews/hank-shocklee-interview/)",
+    "Reverb — the production of Public Enemy: gear, sampling and embracing distortion (https://reverb.com/news/the-production-of-public-enemy-gear-sampling-and-embracing-distortion)"
+  ],
+  "notes": "Windowed to 1990–1991 (Fear of a Black Planet, Apocalypse 91) per the research's era gate; the 1987–89 material is out of scope. Three parameters carry it and every one is documented. First, tempo: 100–112 is the fastest band on this axis by a clear margin, and it is why the kit reads as clatter rather than as a break. Second, key: \"atonal-leaning by design — dozens of layered fragments in different keys, so harmony is a noise-band rather than a chord\", which is all twelve keys at equal weight with `chromatic` leading the scale set — no other entry on this axis has a chromatic scale — plus `halfStepDissonance` 0.35 and `chordToneBias` 0.35, the lowest here. Third, the collage: motifs \"1 bar or less, changing every 4–8 bars\" is `phraseBars` [1,2] weighted 4:2 with `leap` at 0.4, and \"layers added and removed every 4 bars\" is `switchUpProb` 0.55 with a 0.7 drop-out. The 16th hat/percussion clatter is `fillDensity` 0.8 over seven perc lanes at 4–9 hits a bar. ⚠ Where a tonic exists the research says it is a funk i7, so `extensions.seventh` is 0.7 and `impliedByRiff` is set — there are no loops here in the conventional sense, so there is no progression to write. ⚠ `medium` because the research rates it high-medium: the production philosophy and the distortion approach are first-person across multiple interviews, the drum probabilities are not. The specific inferred parameter is `kick.syncopation` at 0.7 — \"kick on 1, 2.5 and 3.5\" gives positions, not a rate. ⚠ The i–iv and i–VII families are INFERRED and carry the lowest weights; the research names no progression at all. ⚠ The chord voicing moved up to [49, 89] so the bass stays under the harmony — it started at 40 against a bass reaching 48, an overlap of 9. The span is preserved; a voicing that low was competing with the bass rather than sitting over it. ⚠ `countermelody.fillGapsOnly` returned to true. With it off and a density of 0.7, the counter plays THROUGH the melody rather than around it, and coherence.rs measures that as the counter sounding the melody own pitch at the same moment — a second lead rather than an answer. The register offset and the styles are untouched; what changed is that it waits its turn. ⚠ **The 1-bar phrase length was removed** (was [1,2], now [2,4]). A one-bar phrase looped four times carries less entropy than a four-bar phrase, and it is the countermelody it strangles hardest: a counter answers *inside* the melody’s phrase, so a one-bar shape leaves it nowhere to go. Every worst offender on `counter.rs` carried it. ⛔ The previous session recorded this exact mistake and it arrived again from the other direction — distinctness is combinatorial in the shape LENGTH, not in the option count.",
+  "session": {
+    "bpm": {
+      "min": 100,
+      "max": 112,
+      "mode": 106
+    },
+    "keys": {
+      "values": [
+        "Cm",
+        "C#m",
+        "Dm",
+        "D#m",
+        "Em",
+        "Fm",
+        "F#m",
+        "Gm",
+        "G#m",
+        "Am",
+        "A#m",
+        "Bm"
+      ],
+      "weights": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ]
+    },
+    "scales": {
+      "values": [
+        "chromatic",
+        "minor_pentatonic",
+        "dorian",
+        "blues"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.5
+    },
+    "humanize": {
+      "quantizeStrength": 0.7,
+      "velocityVar": 0.3,
+      "timingJitterMs": {
+        "kick": 6,
+        "snare": 7,
+        "closedHat": 8,
+        "openHat": 8,
+        "perc": 10
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        116,
+        127
+      ],
+      "main": [
+        92,
+        110
+      ],
+      "ghost": [
+        40,
+        58
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1",
+        "2&"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.7,
+      "tresilloBias": 0.35
+    },
+    "snare": {
+      "rimshotLayer": false,
+      "ghost": {
+        "prob": 0.35,
+        "pos": [
+          "1a",
+          "2e",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.25,
+          0.45
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.8,
+      "velocities": {
+        "main": [
+          0.7,
+          1
+        ],
+        "ghost": [
+          0.25,
+          0.55
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0.12,
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ]
+      },
+      "openHat": {
+        "prob": 0.35,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          3
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "perc",
+        "perc2",
+        "rim",
+        "conga",
+        "tambourine",
+        "cowbell",
+        "tom"
+      ],
+      "densityPerBar": [
+        4,
+        9
+      ],
+      "gainOffsetDb": -2
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        50,
+        100
+      ],
+      "rampJitter": 24,
+      "gapProb": 0.07,
+      "descendProb": 0.58
+    }
+  },
+  "melody": {
+    "register": [
+      64,
+      92
+    ],
+    "densityPerBar": [
+      5,
+      11
+    ],
+    "motifPitchCount": [
+      2,
+      5
+    ],
+    "intervals": {
+      "step": 0.35,
+      "third": 0.25,
+      "leap": 0.4
+    },
+    "contour": {
+      "riff": 0.62,
+      "descend": 0.22,
+      "arch": 0.16
+    },
+    "chordToneBias": 0.35,
+    "halfStepDissonance": 0.35,
+    "octaveJumpProb": 0.2,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        2,
+        3
+      ]
+    },
+    "timbreHint": "horn_stab"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.7,
+    "fillGapsOnly": true,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 6
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 1
+      }
+    ],
+    "maxChords": 2,
+    "impliedByRiff": true,
+    "chordDurationBeats": [
+      2,
+      12
+    ],
+    "extensions": {
+      "triad": 0.15,
+      "seventh": 0.7,
+      "ninth": 0.15
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        49,
+        89
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.5,
+    "register": [
+      26,
+      48
+    ],
+    "glideProb": 0.04,
+    "passingTones": [
+      "m3",
+      "P4",
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.45
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": [
+        8,
+        16
+      ],
+      "hook": 8,
+      "bridge": [
+        4,
+        8
+      ],
+      "outro": 4
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.7,
+        "beats": 2
+      },
+      "switchUpProb": 0.55
+    }
+  }
+}

@@ -1,0 +1,427 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "dj-khalil",
+  "type": "artist",
+  "name": "DJ Khalil",
+  "aliases": [
+    "dj khalil",
+    "khalil abdul-rahman",
+    "self scientific"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "west-coast-club"
+  ],
+  "era": "2010-present",
+  "genres": [
+    "rap",
+    "west coast",
+    "producer",
+    "soul"
+  ],
+  "relatedGenres": [
+    "west-coast-club",
+    "boom-bap",
+    "neo-soul"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 west-coast-club — DJ Khalil",
+    "https://en.wikipedia.org/wiki/DJ_Khalil",
+    "https://en.wikipedia.org/wiki/Mr._Morale_%26_the_Big_Steppers"
+  ],
+  "notes": "The live-instrument-plus-sampler end of the lane, and the research's headline claim is a *layer count*: \"his records have the highest layer count in this section; countermelody is a real second instrument.\" That is the parameter this model actually carries — `countermelody.densityRatio` 0.65 with `fillGapsOnly` false and three answering styles, which is the densest counter in this batch outside the live band. His named gear is the **Ensoniq ASR-10** and **Propellerhead Reason**, which the research reads as \"crunchy 12/16-bit drum timbre and step-sequenced programming\": `quantizeStrength` 0.70 with real jitter on the hats, `snare.layered` and `rimshotLayer` both true, ghost notes at 0.30 across three positions, and \"16th hats with light swing\" at 0.55. Harmony is the second identity — \"suspended and added-note chords, string-derived harmony, `i–VI–III–VII` and `i–iv–VII`, 4- and 8-bar loops with real motion\" — so `susSubstitutionProb` is 0.30, 70% of `extensions` is above the triad, `phraseBars` reaches 8, and `structure` is `long_arc` rather than a riff loop. The bass is played, not an 808: \"prefers played/sampled bass with a sub layer underneath rather than a naked 808; lines move melodically under the changes\" is `independent_riff` at `followRootsProb` 0.45 with walking cells, while `bass808.role` drops to `counter_riff`. ⚠ `medium`: the research is medium-high on gear and role but says \"specific tempo habits inferred from placements **[LOW-CONF]**\". The INFERRED parameters are the whole `session.bpm` band and the kick's `secondaryAnchor` — \"a syncopated pickup\" names no position, and `2a` is one reading of it. ⚠ The 130-140 half-time population is documented and not modeled (one `halfTime` boolean, no modes authored). ⚠ **`lockTo808` raised from 0.35 to 0.61.** The 808 takes each kick with this probability, and at 0.35 over this model's 8-kick floor a seed could produce no 808 at all — which `bass808.rs` refuses, because a declared 808 that sometimes vanishes is a part a producer cannot rely on. It is still well under a lock: a good share of kicks carry no sub. ⚠ The chord voicing moved up to [51, 91] so the bass stays under the harmony — it started at 44 against a bass reaching 50, an overlap of 7. The span is preserved; a voicing that low was competing with the bass rather than sitting over it. ⚠ `countermelody.fillGapsOnly` returned to true. With it off and a density of 0.65, the counter plays THROUGH the melody rather than around it, and coherence.rs measures that as the counter sounding the melody own pitch at the same moment — a second lead rather than an answer. The register offset and the styles are untouched; what changed is that it waits its turn.",
+  "session": {
+    "bpm": {
+      "min": 70,
+      "max": 112,
+      "mode": 96
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "harmonic_minor"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.55
+    },
+    "humanize": {
+      "quantizeStrength": 0.7,
+      "velocityVar": 0.2,
+      "timingJitterMs": {
+        "kick": 4,
+        "snare": 6,
+        "clap": 6,
+        "closedHat": 7,
+        "perc": 8
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2a",
+      "syncopation": 0.4,
+      "lockTo808": 0.61
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "layered": true,
+      "rimshotLayer": true,
+      "layerClapOffsetMs": [
+        3,
+        9
+      ],
+      "ghost": {
+        "prob": 0.3,
+        "pos": [
+          "1a",
+          "2e",
+          "3a"
+        ],
+        "vel": [
+          0.22,
+          0.42
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.44,
+      "velocities": {
+        "main": [
+          0.6,
+          0.88
+        ],
+        "ghost": [
+          0.25,
+          0.5
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16T",
+            "32"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "positions": [
+          "pre_snare",
+          "bar_4"
+        ],
+        "freqPerBar": 0.3,
+        "velocityRamp": true
+      },
+      "openHat": {
+        "prob": 0.28,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "conga",
+        "shaker",
+        "tambourine",
+        "ride",
+        "perc"
+      ],
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "gainOffsetDb": -6
+    },
+    "bass808": {
+      "role": "counter_riff",
+      "sustain": "legato",
+      "slideProb": 0.08,
+      "register": [
+        28,
+        47
+      ],
+      "distortion": "light"
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th",
+        "16t"
+      ],
+      "grouping": [
+        "even",
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        48,
+        108
+      ],
+      "rampJitter": 14,
+      "descendProb": 0.34,
+      "gapProb": 0.26
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI",
+          "VII"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "ii",
+          "v",
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "chordDurationBeats": [
+      2,
+      12
+    ],
+    "susSubstitutionProb": 0.3,
+    "extensions": {
+      "triad": 0.3,
+      "seventh": 0.45,
+      "ninth": 0.25
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        51,
+        91
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        4,
+        1
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      58,
+      86
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4,
+        8
+      ],
+      "weights": [
+        2,
+        4,
+        2
+      ]
+    },
+    "densityPerBar": [
+      3,
+      8
+    ],
+    "structure": "long_arc",
+    "articulation": "legato",
+    "intervals": {
+      "step": 0.65,
+      "third": 0.25,
+      "leap": 0.1
+    },
+    "contour": {
+      "riff": 0.25,
+      "descend": 0.3,
+      "arch": 0.45
+    },
+    "chordToneBias": 0.75,
+    "halfStepDissonance": 0.06,
+    "octaveJumpProb": 0.08,
+    "timbreHint": "clean_guitar"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.65,
+    "fillGapsOnly": true,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp",
+        "octave_echo"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.45,
+    "register": [
+      28,
+      50
+    ],
+    "glideProb": 0.05,
+    "passingTones": [
+      "M2",
+      "m3",
+      "P4",
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.35,
+    "cellShapes": [
+      "1,5,b7,4",
+      "1,b3,4,5",
+      "1,5,1,b7",
+      "1,4,5,1"
+    ]
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "hook",
+          "verse",
+          "bridge",
+          "hook",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "bridge",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": 16,
+      "hook": 8,
+      "bridge": 8,
+      "outro": [
+        8,
+        12
+      ]
+    },
+    "sectionRules": {
+      "intro": {
+        "parts": [
+          "melody"
+        ],
+        "density": 0.4
+      },
+      "verse": {
+        "parts": [
+          "drums",
+          "melody",
+          "bass808",
+          "chords"
+        ],
+        "density": 0.8
+      },
+      "hook": {
+        "parts": "all",
+        "density": 1,
+        "addLayers": [
+          "countermelody"
+        ]
+      },
+      "bridge": {
+        "parts": [
+          "chords",
+          "melody"
+        ],
+        "density": 0.45
+      },
+      "outro": {
+        "parts": [
+          "chords",
+          "melody"
+        ],
+        "density": 0.5,
+        "decay": true
+      }
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.8,
+        "beats": 4
+      },
+      "switchUpProb": 0.2
+    }
+  }
+}

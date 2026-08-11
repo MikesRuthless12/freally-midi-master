@@ -1,0 +1,302 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "ludacris",
+  "type": "artist",
+  "name": "Ludacris",
+  "aliases": [
+    "ludacris",
+    "luda",
+    "christopher bridges",
+    "dtp",
+    "disturbing tha peace"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "crunk"
+  ],
+  "era": "2000-2010",
+  "genres": [
+    "rap",
+    "club",
+    "southern rap",
+    "crunk"
+  ],
+  "relatedGenres": [
+    "crunk",
+    "atl-swag-rap",
+    "ringtone-club-rap",
+    "trap"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 crunk — Ludacris",
+    "https://en.wikipedia.org/wiki/Ludacris",
+    "https://daily.redbullmusicacademy.com/2019/09/lil-jon-usher-ludacris-yeah/"
+  ],
+  "notes": "The DTP wing: comic, elastic cadences over an 808/909 hybrid kit, and the research's structural claim is that *the arrangement responds to the vocal, not the reverse* — heavy stop-time hits under punchlines and a frequent full-band stop on the last bar of a section. ⚠ **Neither of those is authored, because there is no stop-time parameter.** They are the most characteristic thing about these records and the least expressible; what carries the character instead is the melody block — cartoonish lead timbres over 2-bar loops at moderate density, with `octaveJumpProb` at 0.20, the highest in this batch, and `intervals.leap` at 0.18, which is the elastic-cadence quality moved from the vocal onto the lead. Harmony is i–VI–VII and i–VII vamps over 2–4 bar loops with one major family for the pop features. `session.halfTime` is **false** with the clap on 2 and 4, and the hats are a continuous 16th layer with roll fills. ⚠ `confidence` is medium and the inferred parameters are the numbers: the research documents the era, the roster and the crunk adjacency, marks the tempo [LOW-CONF], and says the parameters are partly inferred. ⚠ Two bands exist — 82–100 straight and 70–80 half-time on crunk-facing singles. This model is the first; the half-time form is the parent genre. ⚠ Fill fingerprint for this batch: `gapProb` 0.25 / `descendProb` 0.48 / `rampJitter` 9. ⛔ `session.scales` **widens** its parent's set rather than narrowing it: `major` is not one of crunk's four, and the convention elsewhere is that an artist narrows its genre's scales and never reaches outside them. It carries the lowest weight of the three and is here only because the research says \"minor for club records, major for pop features\" — drop it and the pop-feature half of the catalogue is unreachable.",
+  "session": {
+    "halfTime": false,
+    "bpm": {
+      "min": 82,
+      "max": 100,
+      "mode": 92
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "minor_pentatonic",
+        "major"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.3,
+      "tresilloBias": 0.1,
+      "lockTo808": 0.85
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "layerClapOffsetMs": [
+        3,
+        8
+      ],
+      "ghost": {
+        "prob": 0.16,
+        "pos": [
+          "1a",
+          "4e"
+        ],
+        "vel": [
+          0.26,
+          0.44
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": [
+        0.58,
+        0.82
+      ],
+      "openHat": {
+        "prob": 0.26,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.28
+      }
+    },
+    "percs": {
+      "lanes": [
+        "cowbell",
+        "crash"
+      ],
+      "densityPerBar": [
+        1,
+        2
+      ],
+      "placement": "downbeat",
+      "gainOffsetDb": -6
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t",
+        "8t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        62,
+        118
+      ],
+      "rampJitter": 9,
+      "descendProb": 0.48,
+      "gapProb": 0.25
+    },
+    "bass808": {
+      "register": [
+        18,
+        32
+      ],
+      "slideProb": 0.14,
+      "slideIntervals": {
+        "values": [
+          "P5",
+          "P8",
+          "m3"
+        ],
+        "weights": [
+          3,
+          2,
+          1
+        ]
+      },
+      "distortion": "light"
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.78,
+      "seventh": 0.19,
+      "ninth": 0.03
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        47,
+        73
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        2,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      2,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      57,
+      85
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "motifPitchCount": [
+      4,
+      6
+    ],
+    "intervals": {
+      "step": 0.55,
+      "third": 0.27,
+      "leap": 0.18
+    },
+    "contour": {
+      "riff": 0.68,
+      "descend": 0.2,
+      "arch": 0.12
+    },
+    "chordToneBias": 0.66,
+    "halfStepDissonance": 0.06,
+    "emptyBarBias": 0.1,
+    "octaveJumpProb": 0.2,
+    "timbreHint": "video_game_lead"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.47,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo",
+        "arp"
+      ],
+      "weights": [
+        3,
+        2,
+        1
+      ]
+    }
+  }
+}

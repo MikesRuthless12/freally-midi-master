@@ -1,0 +1,335 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "baby-bash",
+  "type": "artist",
+  "name": "Baby Bash",
+  "aliases": [
+    "baby bash",
+    "baby beesh",
+    "ronnie bryant",
+    "suga suga type",
+    "latin rap crossover"
+  ],
+  "tier": "standard",
+  "extends": [
+    "crunk"
+  ],
+  "era": "2003-2008",
+  "genres": [
+    "rap",
+    "latin rap",
+    "club",
+    "rnb"
+  ],
+  "relatedGenres": [
+    "crunk",
+    "houston-screw",
+    "rnb-2000s",
+    "west-coast-club"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 crunk — Baby Bash",
+    "https://en.wikipedia.org/wiki/Baby_Bash",
+    "https://en.wikipedia.org/wiki/Chopped_and_screwed"
+  ],
+  "notes": "The furthest this batch gets from crunk, and every block says so. `session.halfTime` is **false** at 88–98 with the snare on 2 and 4; the harmony is a 4-bar loop with real motion in both the major (I–V–vi–IV) and minor (i–VII–VI–VII) forms the research names, so `scales` leads with major and mixolydian because those numerals only point at the right degrees there; and the identity instrument is an acoustic-guitar loop in arpeggiated 8ths, which is the highest melodic density in this batch — `densityPerBar` [6, 13], `motifPitchCount` [5, 8], `structure` `question_answer` and an almost-zero `emptyBarBias`. ⛔ **The low end is a played bass line, not the 808.** The research: *\"melodic synth or electric bass line following the chord loop; 808 used only for weight\"*. `bass::generate` emits nothing while the 808 holds the `bassline` role, so `drums.bass808.role` is `counter_riff` — the engine's only other value — and the real part is the `bassline` block: `independent_riff`, `followRootsProb` 0.55, passing tones through the 5th, 2nd, 3rd and 6th. ⚠ `counter_riff` also means the 808 keeps a pitch it slid to, which is a drill behaviour rather than a Happy Perez one; `slideProb` 0.06 keeps it rare, and `distortion` is `none` because the 808 here is weight, not the sound. ⚠ `confidence` is medium and the inferred parameters are the numbers: the research documents the palette and the era at lane level and marks the 88–98 straight band [LOW-CONF]. ⚠ The screwed-and-chopped alternate mixes that were standard for his Houston-facing releases are a playback transform, not a style model; `houston-screw` is the model for that and is listed in `relatedGenres` rather than folded in here. ⚠ Fill fingerprint for this batch: `gapProb` 0.13 / `descendProb` 0.24 / `rampJitter` 18. ⛔ `session.scales` **widens** its parent's set rather than narrowing it: `major` and `mixolydian` are not among crunk's four, and the convention elsewhere is that an artist narrows its genre's scales and never reaches outside them. They are here because the research's keys row says \"major/mixolydian\" and the I–V–vi–IV family points at the wrong degrees without them. This model wants a Latin-rap/West-Coast-crossover archetype to extend rather than crunk. ⚠ **`lockTo808` raised from 0.4 to 0.47.** The 808 takes each kick with this probability, and at 0.4 over this model's 12-kick floor a seed could produce no 808 at all — which `bass808.rs` refuses, because a declared 808 that sometimes vanishes is a part a producer cannot rely on. It is still well under a lock: a good share of kicks carry no sub.",
+  "session": {
+    "halfTime": false,
+    "bpm": {
+      "min": 88,
+      "max": 98,
+      "mode": 93
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "natural_minor"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.88,
+      "velocityVar": 0.16
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        102,
+        118
+      ],
+      "main": [
+        80,
+        96
+      ],
+      "ghost": [
+        38,
+        52
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        3,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.28,
+      "lockTo808": 0.47
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "layerClapOffsetMs": [
+        0,
+        4
+      ],
+      "ghost": {
+        "prob": 0.2,
+        "pos": [
+          "2e",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.2,
+          0.38
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": [
+        0.42,
+        0.62
+      ],
+      "openHat": {
+        "prob": 0.44,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.2
+      }
+    },
+    "percs": {
+      "lanes": [
+        "bongo",
+        "shaker"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "placement": "offbeat",
+      "gainOffsetDb": -6
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t",
+        "8t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        60,
+        100
+      ],
+      "rampJitter": 18,
+      "descendProb": 0.24,
+      "gapProb": 0.13
+    },
+    "bass808": {
+      "role": "counter_riff",
+      "register": [
+        22,
+        36
+      ],
+      "slideProb": 0.06,
+      "distortion": "none"
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.55,
+    "register": [
+      30,
+      48
+    ],
+    "glideProb": 0.1,
+    "passingTones": [
+      "P5",
+      "M2",
+      "M3",
+      "M6"
+    ],
+    "anticipationProb": 0.22,
+    "cellShapes": [
+      [
+        "1",
+        "5"
+      ],
+      [
+        "1",
+        "3",
+        "5"
+      ],
+      [
+        "1",
+        "5",
+        "1",
+        "5"
+      ]
+    ]
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "I",
+          "vi",
+          "IV",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.6,
+      "seventh": 0.34,
+      "ninth": 0.06
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        52,
+        78
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      2,
+      6
+    ]
+  },
+  "melody": {
+    "register": [
+      58,
+      84
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        2,
+        3
+      ]
+    },
+    "densityPerBar": [
+      6,
+      13
+    ],
+    "motifPitchCount": [
+      5,
+      8
+    ],
+    "structure": "question_answer",
+    "intervals": {
+      "step": 0.66,
+      "third": 0.26,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.35,
+      "descend": 0.3,
+      "arch": 0.35
+    },
+    "chordToneBias": 0.78,
+    "halfStepDissonance": 0.02,
+    "emptyBarBias": 0.02,
+    "octaveJumpProb": 0.06,
+    "timbreHint": "acoustic_guitar"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.58,
+    "styles": {
+      "values": [
+        "arp",
+        "answer_lick"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  }
+}

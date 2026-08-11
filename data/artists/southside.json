@@ -24,7 +24,7 @@
   "sources": [
     "style-research ch.3 Southside / 808 Mafia (flagship)"
   ],
-  "notes": "Aggressive evil trap. Machine-gun 1/32 hat rolls and double-time switch bars, a hard clap-and-snare on 3 with flam layers, and a kick that doubles the 808 - which is the signature: distorted, long-sustained, busier than the kick, sliding octaves.",
+  "notes": "Aggressive evil trap. Machine-gun 1/32 hat rolls and double-time switch bars, a hard clap-and-snare on 3 with flam layers, and a kick that doubles the 808 - which is the signature: distorted, long-sustained, busier than the kick, sliding octaves. ⚠ The bass ceiling came down from 44 to 43 so it stays under a chord part that starts at 44 — `coherence.rs` requires the highest bass note to sit at or below the lowest chord note, and this model overlapped by 1.",
   "session": {
     "bpm": {
       "min": 130,
@@ -352,7 +352,7 @@
     "followRootsProb": 0.5,
     "register": [
       28,
-      44
+      43
     ],
     "glideProb": 0.2,
     "passingTones": [

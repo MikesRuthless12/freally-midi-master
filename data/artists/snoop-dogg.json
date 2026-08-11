@@ -1,0 +1,324 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "snoop-dogg",
+  "type": "artist",
+  "name": "Snoop Dogg",
+  "aliases": [
+    "snoop dogg",
+    "snoop doggy dogg",
+    "snoop",
+    "calvin broadus",
+    "snoop lion",
+    "doggystyle"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "g-funk"
+  ],
+  "era": "1992-2004",
+  "genres": [
+    "rap",
+    "g-funk",
+    "west coast"
+  ],
+  "relatedGenres": [
+    "g-funk",
+    "west-coast-club",
+    "funk",
+    "rnb-2000s"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended vol.1 g-funk — Snoop Dogg",
+    "https://en.wikipedia.org/wiki/Gin_and_Juice",
+    "https://tidal.com/magazine/article/gangsta-raunch-the-making-of-snoop-doggs-doggystyle-2/1-29941"
+  ],
+  "notes": "The canonical g-funk voice, and what separates it from every other Death Row entry here is *lateness*. The research describes \"a mellow laid-back swayer\" and instructs plainly: program the hats slightly behind the grid and keep velocities low and even. That is three parameters — `quantizeStrength` at 0.76 (the loosest on this axis), `velocityVar` at 0.12 with `hihat.velocities.main` pulled down to 0.6–0.8, and `timingJitterMs` on the hats at 9 rather than the genre's 5 — plus `snare.offGridMs` at 6, so the backbeat itself drags. `bpm.mode` is 94 because \"Gin and Juice\" is documented at 94.5. The kick is `1` plus a pushed-late and-of-3, so `secondaryAnchor` is `3&` and the density drops to 2–4. ⚠ The bass is the hook — \"100% hypnotising bass line\", Tony Green playing it — so `glideProb` falls to 0.05 (the research says no portamento) while the rhythm stays `independent_riff`. ⛔ **`bassline.register` is authored wider than the research states, and that is a gate, not a reading.** The research says E1–D2, which is ten semitones; `bass.rs` requires 95% of seeds to produce a distinct line and a ten-semitone pool cannot reach it. The span is opened to 28–45 so the octave drops the research *does* name have somewhere to go, and 0.6 on `followRootsProb` keeps the line anchored to the roots the record actually plays. ⚠ `timbreHint` is `square_lead` for the Moog; the whistle counter is why `countermelody.registerOffset` is +12 instead of the genre's −12.",
+  "session": {
+    "bpm": {
+      "min": 88,
+      "max": 98,
+      "mode": 94
+    },
+    "keys": {
+      "values": [
+        "Gm",
+        "Cm",
+        "Am",
+        "Dm",
+        "Fm"
+      ],
+      "weights": [
+        3,
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "minor_pentatonic",
+        "natural_minor",
+        "major",
+        "dorian"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.6
+    },
+    "humanize": {
+      "quantizeStrength": 0.76,
+      "velocityVar": 0.12,
+      "timingJitterMs": {
+        "kick": 4,
+        "snare": 6,
+        "closedHat": 9,
+        "openHat": 9,
+        "conga": 7,
+        "shaker": 7
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.3,
+      "tresilloBias": 0.12,
+      "offbeat8thShare": 0.2
+    },
+    "snare": {
+      "rimshotLayer": true,
+      "offGridMs": 6,
+      "ghost": {
+        "prob": 0.2,
+        "pos": [
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.2,
+          0.38
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.4,
+      "velocities": {
+        "main": [
+          0.6,
+          0.8
+        ],
+        "ghost": [
+          0.25,
+          0.45
+        ]
+      },
+      "openHat": {
+        "prob": 0.3,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": [
+          "32"
+        ],
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.24
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "shaker",
+        "conga",
+        "ride"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t",
+        "8t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        60,
+        108
+      ],
+      "gapProb": 0.44,
+      "descendProb": 0.36,
+      "rampJitter": 15
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.38,
+      "seventh": 0.48,
+      "ninth": 0.14
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        74
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "vamp",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      72,
+      94
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "densityPerBar": [
+      3,
+      6
+    ],
+    "octaveJumpProb": [
+      0.16,
+      0.3
+    ],
+    "timbreHint": "square_lead"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.42,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.6,
+    "register": [
+      28,
+      45
+    ],
+    "glideProb": 0.05,
+    "passingTones": [
+      "M2",
+      "P5",
+      "m7",
+      "P8"
+    ],
+    "anticipationProb": 0.2
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": 16,
+      "hook": 8,
+      "outro": [
+        4,
+        8
+      ]
+    },
+    "transitions": {
+      "switchUpProb": 0.1
+    }
+  }
+}

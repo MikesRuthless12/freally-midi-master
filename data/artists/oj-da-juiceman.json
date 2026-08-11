@@ -1,0 +1,291 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "oj-da-juiceman",
+  "type": "artist",
+  "name": "OJ da Juiceman",
+  "aliases": [
+    "oj da juiceman",
+    "oj",
+    "otis williams jr",
+    "aye",
+    "1017 brick squad"
+  ],
+  "tier": "standard",
+  "extends": [
+    "trap"
+  ],
+  "era": "2008-2011",
+  "genres": [
+    "rap",
+    "trap"
+  ],
+  "relatedGenres": [
+    "trap",
+    "bouncy-trap"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 trap — OJ da Juiceman",
+    "https://en.wikipedia.org/wiki/OJ_da_Juiceman",
+    "https://en.wikipedia.org/wiki/The_Otha_Side_of_the_Trap"
+  ],
+  "notes": "The same Zaytoven bench as `gucci-mane`, and the two parameters that separate them are the ones the research separates them on. **Harmony**: Gucci's entry is the functional one (i–iv–V, i–VI–V); this one is \"static one-chord vamps predominate\" and \"i or i–VI\", so `maxChords` is 2, `impliedByRiff` is set, and the static tonic carries the top weight. **Glide**: Gucci's 808 has \"short glides between scale tones\" at `slideProb` 0.42; here \"glides rare\" is 0.1, and the 808 moves \"in scale steps under the pluck line\" — a `M2`-weighted interval set in a higher, shorter register. The third difference is the pitch set: \"note density high but pitch set tiny (3–5 pitches)\", which is `densityPerBar` [6, 10] with `motifPitchCount` 4 — high density over almost no pitches, which no other entry in this batch pairs. ⚠ **The roll frequency is capped by this batch's authoring band**, and the research asks for \"frequent 32nd rolls\": the hat's real density is carried by the `8T` base at `fillDensity` 0.66 rather than by roll count, and 0.20 is the top of the band. ⚠ `confidence` is `medium` — the research says the collaborator grammar is documented but artist-specific workflow sourcing is thin. INFERRED: every velocity figure, the kick's `syncopation` 0.66 as a number for \"busy 16th kick syncopation\", and the whole `intervals`/`contour` split. ⚠ `anticipationProb` raised to 0.15. With `mirror_kick` against a fully locked 808 both parts take every kick, so every bass onset lands exactly on an 808 onset — `coherence.rs` calls that one line played twice rather than two parts locking. The lock is the style and is untouched; the anticipation is what makes them two parts.",
+  "session": {
+    "bpm": {
+      "min": 136,
+      "max": 150,
+      "mode": 142
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        5,
+        7
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2a",
+      "syncopation": 0.66,
+      "tresilloBias": 0.3,
+      "avoidPreSnareGap": "16th"
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.22,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.36,
+          0.5
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8T",
+      "continuous": true,
+      "fillDensity": 0.66,
+      "velocities": {
+        "main": [
+          0.85,
+          1
+        ],
+        "ghost": [
+          0.44,
+          0.62
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.19,
+        "velocityRamp": true
+      },
+      "openHat": {
+        "prob": 0.34,
+        "pos": [
+          "2&",
+          "3&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "pitchBendProb": 0.1
+    },
+    "bass808": {
+      "sustain": "staccato",
+      "slideProb": 0.1,
+      "slidesPer4Bars": [
+        0,
+        1
+      ],
+      "slideIntervals": {
+        "values": [
+          "M2",
+          "m3"
+        ],
+        "weights": [
+          4,
+          2
+        ]
+      },
+      "slidePositions": [
+        "phrase_end"
+      ],
+      "register": [
+        22,
+        37
+      ],
+      "distortion": "medium"
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        58,
+        98
+      ],
+      "rampJitter": 17,
+      "descendProb": 0.18,
+      "gapProb": 0.12
+    }
+  },
+  "melody": {
+    "register": [
+      74,
+      97
+    ],
+    "densityPerBar": [
+      6,
+      10
+    ],
+    "structure": "riff_loop",
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        1
+      ]
+    },
+    "motifPitchCount": 4,
+    "intervals": {
+      "step": 0.44,
+      "third": 0.38,
+      "leap": 0.18
+    },
+    "contour": {
+      "riff": 0.68,
+      "descend": 0.14,
+      "arch": 0.18
+    },
+    "chordToneBias": 0.7,
+    "halfStepDissonance": 0.06,
+    "octaveJumpProb": 0.22,
+    "timbreHint": "bright_pluck"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.5,
+    "styles": {
+      "values": [
+        "arp",
+        "octave_echo"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 6
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 4
+      }
+    ],
+    "maxChords": 2,
+    "impliedByRiff": true,
+    "extensions": {
+      "triad": 0.66,
+      "seventh": 0.28,
+      "ninth": 0.06
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        52,
+        83
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "syncopated_cell",
+        "1_per_bar"
+      ],
+      "weights": [
+        5,
+        2,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      2,
+      14
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": {
+        "values": [
+          8,
+          12
+        ],
+        "weights": [
+          3,
+          2
+        ]
+      },
+      "hook": 8,
+      "bridge": 4,
+      "outro": 4
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.15,
+        "beats": 2
+      },
+      "switchUpProb": 0.03
+    }
+  },
+  "bassline": {
+    "anticipationProb": 0.15
+  }
+}

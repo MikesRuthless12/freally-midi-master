@@ -1,0 +1,259 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "cormega",
+  "type": "artist",
+  "name": "Cormega",
+  "aliases": [
+    "cormega",
+    "mega",
+    "cory mckay"
+  ],
+  "tier": "standard",
+  "extends": [
+    "boom-bap"
+  ],
+  "era": "2001-2004",
+  "genres": [
+    "rap",
+    "boom-bap"
+  ],
+  "relatedGenres": [
+    "boom-bap",
+    "lofi-hiphop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 boom-bap — Cormega",
+    "Wikipedia — Cormega",
+    "Wikipedia — Havoc production discography"
+  ],
+  "notes": "QB street-narrative traditionalism in the post-Firm independent run. The research's own phrase is the parameter: *the beat is furniture for the verse* — so this is the flattest, least ornamented model on the axis, with the lowest velocity variance and almost no fills. That is what separates it from Nas, whose emptiness is harmonic; Cormega's is dynamic. ⚠ `medium`: the research gives catalog-level numbers rather than producer interviews for this window. ⚠ `snareRoll.pitchWalk` is inherited rather than authored: the research says nothing about how these producers pitch a roll, and lowering it was an invention that `drum_pitch.rs` correctly refused — a roll owes a producer three pitches unless the style is a train beat.",
+  "session": {
+    "bpm": {
+      "min": 88,
+      "max": 96,
+      "mode": 91
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.57
+    },
+    "humanize": {
+      "quantizeStrength": 0.85,
+      "velocityVar": 0.07
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.28
+    },
+    "snare": {
+      "rimshotLayer": true,
+      "ghost": {
+        "prob": 0.12,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.25,
+          0.35
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.1,
+      "velocities": {
+        "main": [
+          0.78,
+          0.88
+        ],
+        "ghost": [
+          0.3,
+          0.42
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0.05,
+        "velocityRamp": false,
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ]
+      },
+      "openHat": {
+        "prob": 0.12,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "snareRoll": {
+      "gapProb": 0.15,
+      "descendProb": 0.05,
+      "rampJitter": 5,
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        70,
+        100
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "melody": {
+    "register": [
+      61,
+      83
+    ],
+    "densityPerBar": [
+      2,
+      5
+    ],
+    "intervals": {
+      "step": 0.66,
+      "third": 0.28,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.5,
+      "descend": 0.38,
+      "arch": 0.12
+    },
+    "chordToneBias": 0.76,
+    "octaveJumpProb": 0.06,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    },
+    "timbreHint": "church_organ"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.25,
+    "styles": {
+      "values": [
+        "answer_lick"
+      ],
+      "weights": [
+        1
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.45,
+      "seventh": 0.45,
+      "ninth": 0.1
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        2,
+        1
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.95,
+    "register": [
+      28,
+      43
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.15
+  }
+}

@@ -61,6 +61,13 @@ original patterns that carry that artist's actual signatures — the hat-roll gr
 the 808 slide behaviour, the swing, the way their sections are laid out — then drag
 the result into FL Studio, Ableton, Logic, Reaper, or anything else.
 
+**534 artists and producers across 56 genres**, each one a hand-researched
+workflow with its sources written down — the drum grammar, the bass behaviour,
+the harmonic habits — rather than a name attached to a preset. Producers are in
+there beside the artists, because "a Metro Boomin beat" and "a Metro Boomin
+*record*" are different things to build. Where the research on someone is thin,
+their model says so and names which parameter is the inferred one.
+
 ## How it works
 
 - **It follows your DAW.** The plugin reads the host's tempo and time signature

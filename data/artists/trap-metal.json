@@ -1,0 +1,366 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "trap-metal",
+  "type": "artist",
+  "name": "Trap Metal / Scream Rap",
+  "aliases": [
+    "trap metal",
+    "scream rap",
+    "punk rap",
+    "rap metal type"
+  ],
+  "tier": "standard",
+  "extends": [
+    "dark-trap"
+  ],
+  "era": "2014-2021",
+  "genres": [
+    "rap",
+    "trap",
+    "metal"
+  ],
+  "relatedGenres": [
+    "dark-trap",
+    "emo-rap",
+    "phonk"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 dark-trap — Trap metal / scream rap (scene preset)",
+    "https://en.wikipedia.org/wiki/Trap_metal",
+    "https://en.wikipedia.org/wiki/Punk_rap"
+  ],
+  "notes": "The metal-facing branch of the lane, authored as a scene preset rather than a person: an 808 kit playing against metal signifiers. Three things separate it from its parent. (1) The harmony is written as power-chord roots — root and 5th, not triads — so `extensions.triad` is near-total, `voicing.style` is open and `voicing.register` sits an octave below the parent's: drop tuning is the reason the whole model is low. (2) `melody.register` is guitar range, not bell range, because the riff *is* the hook and there is no pad above it. (3) `dissonanceBudget` is authored rather than inherited: the research names the tritone and b2 specifically as horror colour, which is a different device from the parent's half-step melodic clash. `percs.lanes` carries the crash / reversed-cymbal marker the research puts at every 8 bars. ⚠ `medium` because the research rates this high-medium and marks the tempo distribution `[LOW-CONF]` — the 130–165 range is the inferred parameter; everything else here traces to a stated trait. ⚠ The breakdown the research describes (drums out, voice and guitar only) is carried by `arrangement.sectionRules.bridge`, since the engine has no breakdown section name. ⚠ The 32nd/triplet hat bursts the research names as section markers are carried by `hihat.fillDensity`; the roll vocabulary is held to 16ths at one position so this batch's fills stay distinguishable from each other. ⚠ An authored `chords.dissonanceBudget` was removed: no generator reads it, so it was a knob that looked like a parameter and did nothing.",
+  "session": {
+    "bpm": {
+      "min": 130,
+      "max": 165,
+      "mode": 145
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "phrygian"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2a",
+      "syncopation": 0.4,
+      "tresilloBias": 0.2,
+      "lockTo808": 1
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "layered": true,
+      "layerClapOffsetMs": [
+        0,
+        3
+      ],
+      "ghost": {
+        "prob": 0.05,
+        "pos": [
+          "4&"
+        ],
+        "vel": [
+          0.25,
+          0.4
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.55,
+      "velocities": {
+        "main": [
+          0.88,
+          1
+        ],
+        "ghost": [
+          0.45,
+          0.65
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.18
+      },
+      "openHat": {
+        "prob": 0.15,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "pitchBendProb": 0
+    },
+    "percs": {
+      "lanes": [
+        "crash",
+        "reverse"
+      ],
+      "densityPerBar": [
+        0,
+        1
+      ],
+      "placement": "downbeat"
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "staccato",
+      "distortion": "heavy",
+      "distortionWet": [
+        0.4,
+        0.6
+      ],
+      "clipping": true,
+      "slideProb": 0.2,
+      "slidesPer4Bars": [
+        1,
+        2
+      ],
+      "slidePositions": [
+        "bar_2",
+        "bar_4"
+      ],
+      "register": [
+        17,
+        34
+      ],
+      "monoCutSelf": true
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        52,
+        96
+      ],
+      "rampJitter": 5,
+      "descendProb": 0.1,
+      "gapProb": 0.08
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "bII"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.95,
+      "seventh": 0.05,
+      "ninth": 0
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        40,
+        64
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        3,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      16
+    ],
+    "impliedByRiff": true
+  },
+  "melody": {
+    "register": [
+      48,
+      72
+    ],
+    "densityPerBar": [
+      2,
+      5
+    ],
+    "motifPitchCount": [
+      2,
+      5
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "structure": "riff_loop",
+    "loopVerbatim": true,
+    "articulation": "staccato",
+    "intervals": {
+      "step": 0.4,
+      "third": 0.15,
+      "leap": 0.45
+    },
+    "contour": {
+      "riff": 0.7,
+      "descend": 0.2,
+      "arch": 0.1
+    },
+    "chordToneBias": 0.7,
+    "halfStepDissonance": 0.35,
+    "monophonicBias": 0.95,
+    "octaveJumpProb": 0.05,
+    "timbreHint": "supersaw_guitar_hybrid"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.3,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        1
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.92,
+    "register": [
+      17,
+      36
+    ],
+    "glideProb": 0.2,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.25
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": [
+        8,
+        16
+      ],
+      "hook": 8,
+      "bridge": 4,
+      "outro": 2
+    },
+    "sectionRules": {
+      "bridge": {
+        "parts": [
+          "melody"
+        ],
+        "density": 0.3
+      }
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "hook",
+          "bridge",
+          "hook",
+          "outro"
+        ],
+        "weight": 3
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.5,
+        "beats": 2
+      },
+      "switchUpProb": 0.1
+    }
+  }
+}

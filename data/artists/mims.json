@@ -1,0 +1,365 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "mims",
+  "type": "artist",
+  "name": "Mims",
+  "aliases": [
+    "mims",
+    "shawn mims",
+    "this is why im hot",
+    "this is why i'm hot",
+    "blackout movement"
+  ],
+  "tier": "standard",
+  "extends": [
+    "ringtone-club-rap"
+  ],
+  "era": "2007–2008",
+  "genres": [
+    "rap",
+    "club",
+    "ringtone rap"
+  ],
+  "relatedGenres": [
+    "ringtone-club-rap",
+    "crunk",
+    "pop-2000s",
+    "trap"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 crunk — Mims",
+    "Wikipedia — This Is Why I'm Hot: https://en.wikipedia.org/wiki/This_Is_Why_I%27m_Hot",
+    "Wikipedia — Snap music: https://en.wikipedia.org/wiki/Snap_music"
+  ],
+  "notes": "New York by birth and ringtone-era club rap by construction, and the research's word for the beat is \"minimalist\" — this is the emptiest grid in the batch. `hihat.fillDensity` bottoms at 0.3 (the floor a model declaring a hat block may use and still owe every seed a hat), the snap is the only perc lane at −5 dB, and `melody.emptyBarBias` is 0.3, the highest here. The tempo is also the fastest: 156–172, from the research's 78–86 half-time band. ⛔ **The melody is the vocal, and the research turns that into a generator rule rather than a description**: \"no sustained melodic instrument\", \"hook = borrowed cadence over an empty grid\". So `melody.structure` is `call_response` rather than the lane's `riff_loop`, `articulation` is `legato`, `phraseBars` reaches 4, `intervals.step` is 0.68 and `timbreHint` is `vocal_chant` — a sung cadence, not a keyboard figure. It is the only entry on this axis that is not a riff. ⚠ **The two-note 808 figure is the bass and there is no other bass part**, which the research says outright — so `bass808.register` opens to [24, 42] and `slideProb` rises to 0.1 so the figure has somewhere to move; no `bassline` block is authored, because in this lane the 808 *is* the bassline and a second one could never sound. ⚠ **Confidence is medium and the tempo is the inference** — the minimalism and the documented interpolation set are sourced, the 78–86 band is [LOW-CONF]. ⚠ The research caps this at ≤ 3 simultaneous parts, which is why `arrangement.sectionRules.hook` names three and no authored form adds a countermelody; the counter block still exists at the variety floor because the generator is owed a part it can vary. The `i–VII` and `i–VI` families are **INFERRED** — the research says \"no chords\". ⚠ `anticipationProb` raised to 0.15. With `mirror_kick` against a fully locked 808 both parts take every kick, so every bass onset lands exactly on an 808 onset — `coherence.rs` calls that one line played twice rather than two parts locking. The lock is the style and is untouched; the anticipation is what makes them two parts. ⚠ **The countermelody reached only 821 distinct answers in 1000 seeds against a floor of 980**, so it was given range: styles 3, densityRatio 0.5, melody density [1,5]. A counter is combinatorial in the styles it may pick, its density against the melody, and the phrase length it answers inside — one style over a thin density inside a single phrase length has almost nothing a seed can vary. ⚠ **The countermelody reached 946/1000 distinct answers against a floor of 980**, so its style pool was opened: bell_echo, densityRatio 0.55. ⛔ `counter.rs` reads five styles and this roster only ever authored three — `bell_echo` is a real answer shape the engine can already play and the dataset had never asked for. ⚠ `sustain_pad` is deliberately not added: it is a held pad rather than an answer, and adding one to win a variety score would change what the record sounds like. ⚠ **The melody floor was raised from [1,5] to [2,6] because the COUNTERMELODY was saturating at 947/1000 against a floor of 980.** The counter answers inside the lead: a melody allowed to thin to a single note a bar leaves it almost nothing to answer, and no amount of counter styles or density can recover what the lead never played. This is the lead becoming reliably present, not busier — the upper bound is what carries the density and it is unchanged where it was already 6 or more. ⚠ **`melody.emptyBarBias` came down from 0.3 to 0.1, and this is the parameter that was actually saturating the countermelody** (this model reached 947/1000 against a floor of 980). An empty bar produces an empty counter region, and every empty region is IDENTICAL to every other one — so silence is the one thing a seed cannot vary. Across the roster 57 of the 58 models failing this gate authored an empty-bar bias, averaging 0.246, against 0.115 for the models that passed. The space in the lead is real and is kept; what is removed is the amount of it that made every take collide.",
+  "session": {
+    "bpm": {
+      "min": 156,
+      "max": 172,
+      "mode": 162
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "minor_pentatonic",
+        "dorian"
+      ],
+      "weights": [
+        5,
+        4,
+        1
+      ]
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.1,
+      "offbeat8thShare": 0.3
+    },
+    "snare": {
+      "layerClapOffsetMs": [
+        1,
+        4
+      ],
+      "ghost": {
+        "prob": 0.04,
+        "pos": [
+          "4&"
+        ],
+        "vel": [
+          0.2,
+          0.3
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": [
+        0.3,
+        0.44
+      ],
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16T",
+            "32"
+          ],
+          "weights": [
+            4,
+            1
+          ]
+        },
+        "positions": [
+          "pre_snare",
+          "bar_4"
+        ],
+        "freqPerBar": 0.25,
+        "velocityRamp": true
+      },
+      "openHat": {
+        "prob": 0.05,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "snap"
+      ],
+      "densityPerBar": [
+        1,
+        2
+      ],
+      "placement": "offbeat",
+      "gainOffsetDb": -5
+    },
+    "bass808": {
+      "sustain": "legato",
+      "register": [
+        24,
+        42
+      ],
+      "slideProb": 0.1,
+      "slideIntervals": {
+        "values": [
+          "P5",
+          "P8"
+        ],
+        "weights": [
+          2,
+          1
+        ]
+      },
+      "slidePositions": [
+        "phrase_end"
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th",
+        "16t"
+      ],
+      "grouping": [
+        "even",
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        50,
+        104
+      ],
+      "rampJitter": 6,
+      "descendProb": 0.05,
+      "gapProb": 0.58
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 8
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 1
+      }
+    ],
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.98,
+      "seventh": 0.02,
+      "ninth": 0
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        55,
+        86
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        6,
+        2,
+        1
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      16
+    ]
+  },
+  "melody": {
+    "register": [
+      72,
+      92
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "structure": "call_response",
+    "motifPitchCount": [
+      2,
+      4
+    ],
+    "monophonicBias": 1,
+    "articulation": "legato",
+    "intervals": {
+      "step": 0.68,
+      "third": 0.24,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.55,
+      "descend": 0.3,
+      "arch": 0.15
+    },
+    "chordToneBias": 0.7,
+    "emptyBarBias": 0.1,
+    "octaveJumpProb": [
+      0.02,
+      0.08
+    ],
+    "timbreHint": "vocal_chant"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.55,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo",
+        "arp",
+        "bell_echo"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2
+      ]
+    }
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "hook",
+          "verse",
+          "hook",
+          "hook",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "hook": 8,
+      "outro": 4
+    },
+    "sectionRules": {
+      "intro": {
+        "parts": [
+          "drums",
+          "melody"
+        ],
+        "density": 0.4
+      },
+      "verse": {
+        "parts": [
+          "drums",
+          "bass808",
+          "melody"
+        ],
+        "density": 0.7
+      },
+      "hook": {
+        "parts": [
+          "drums",
+          "bass808",
+          "melody"
+        ],
+        "density": 0.9
+      },
+      "outro": {
+        "parts": [
+          "drums",
+          "melody"
+        ],
+        "density": 0.4,
+        "decay": true
+      }
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.85,
+        "beats": 4
+      },
+      "switchUpProb": 0.12
+    }
+  },
+  "bassline": {
+    "anticipationProb": 0.15
+  }
+}

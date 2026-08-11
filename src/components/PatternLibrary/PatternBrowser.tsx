@@ -2,6 +2,7 @@ import { Trash2 } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Combo } from '../Combo/Combo';
 import { invoke } from '../../lib/ipc';
 import type { Pattern } from '../../lib/ipc-types';
 import { useSession } from '../../state/session';
@@ -157,33 +158,33 @@ export function PatternBrowser() {
 
   return (
     <div className="patterns">
+      {/* ⛔⛔ **Not native `<select>`s** (TASK-057) — a `<select>` popup inside
+          WebView2 is drawn by the OS, against the window rather than the field.
+          ⚠ The artist list grows with the library, so this is the pair most
+          likely to reach the size Mike screenshotted. */}
       <div className="patterns__filters">
-        <select
-          className="patterns__filter"
-          aria-label={t('patterns.filterArtist')}
-          value={artist}
-          onChange={(event) => setArtist(event.target.value)}
-        >
-          <option value="">{t('patterns.allArtists')}</option>
-          {artists.map((id) => (
-            <option key={id} value={id}>
-              {id}
-            </option>
-          ))}
-        </select>
-        <select
-          className="patterns__filter"
-          aria-label={t('patterns.filterPart')}
-          value={part}
-          onChange={(event) => setPart(event.target.value)}
-        >
-          <option value="">{t('patterns.allParts')}</option>
-          {parts.map((id) => (
-            <option key={id} value={id}>
-              {t(`tabs.${id}`, id)}
-            </option>
-          ))}
-        </select>
+        <div className="patterns__filter">
+          <Combo
+            label={t('patterns.filterArtist')}
+            options={[
+              { id: '', name: t('patterns.allArtists') },
+              ...artists.map((id) => ({ id, name: id })),
+            ]}
+            value={artist}
+            onChange={setArtist}
+          />
+        </div>
+        <div className="patterns__filter">
+          <Combo
+            label={t('patterns.filterPart')}
+            options={[
+              { id: '', name: t('patterns.allParts') },
+              ...parts.map((id) => ({ id, name: t(`tabs.${id}`, id) })),
+            ]}
+            value={part}
+            onChange={setPart}
+          />
+        </div>
       </div>
 
       <ul className="patterns__list">

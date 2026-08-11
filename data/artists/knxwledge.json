@@ -1,0 +1,259 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "knxwledge",
+  "type": "artist",
+  "name": "Knxwledge",
+  "aliases": [
+    "knxwledge",
+    "knx",
+    "glen boothe"
+  ],
+  "tier": "standard",
+  "extends": [
+    "west-coast-club"
+  ],
+  "era": "2009-present",
+  "genres": [
+    "rap",
+    "west-coast-club"
+  ],
+  "relatedGenres": [
+    "west-coast-club",
+    "lofi-hiphop",
+    "neo-soul"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 west-coast-club — Knxwledge"
+  ],
+  "notes": "LA’s lo-fi sample-chopper. The parameter is **deliberate imprecision**: snare and clap placed early or late by a 32nd, an extra unquantised kick, hats crushed or absent, and bit-reduction and tape saturation treated as part of the drum *timbre* rather than as a mix decision. Loops are 1–2 bars and **often harmonically incomplete on purpose**, so the harmony is entirely sample-inherited — 7ths, 9ths and unresolved changes. ⚠ `medium`: the sampling aesthetic and his role are documented; specific drum and tempo values are inferred and marked `[LOW-CONF]`. ⚠ A progression family authored `Imaj7`, which `Numeral::parse` cannot read — it knows i, VI, bII and vii° and takes the seventh from `chords.extensions`, not from the numeral. An unreadable numeral makes the generator skip the slot, so that whole family produced NO CHORDS AT ALL, and chords.rs caught it only when a seed happened to pick it. Now `I`; the major-7th colour is carried by the extensions block, where it was always meant to be.",
+  "session": {
+    "bpm": {
+      "min": 70,
+      "max": 100,
+      "mode": 86
+    },
+    "scales": {
+      "values": [
+        "dorian",
+        "natural_minor",
+        "major"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.62
+    },
+    "humanize": {
+      "quantizeStrength": 0.5,
+      "velocityVar": 0.3
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.5,
+      "lockTo808": 0.6
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "offGridMs": 12,
+      "ghost": {
+        "prob": 0.3,
+        "pos": [
+          "2e",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.18,
+          0.4
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.3,
+      "velocities": {
+        "main": [
+          0.4,
+          0.75
+        ],
+        "ghost": [
+          0.1,
+          0.35
+        ]
+      },
+      "openHat": {
+        "prob": 0.1,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "16T"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "pre_snare"
+        ],
+        "freqPerBar": 0.5
+      }
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 4
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th",
+        "32nd"
+      ],
+      "grouping": [
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        66,
+        118
+      ],
+      "rampJitter": 16
+    }
+  },
+  "melody": {
+    "register": [
+      60,
+      86
+    ],
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "chopped_vocal"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.4,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "ii",
+          "v",
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "vi"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.15,
+      "seventh": 0.5,
+      "ninth": 0.35
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        49,
+        83
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    },
+    "chordDurationBeats": [
+      2,
+      12
+    ]
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.5,
+    "register": [
+      28,
+      46
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2"
+    ],
+    "anticipationProb": 0.3
+  }
+}

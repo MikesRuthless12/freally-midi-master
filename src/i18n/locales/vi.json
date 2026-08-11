@@ -1,7 +1,8 @@
 {
   "titlebar": {
     "settings": "Cài đặt",
-    "about": "Giới thiệu"
+    "about": "Giới thiệu",
+    "shortcuts": "Phím tắt"
   },
   "tabs": {
     "group": "Trình tạo",
@@ -393,7 +394,11 @@
       "generate": "Tạo phần này",
       "generateAll": "Tạo tất cả các phần",
       "pickGenerator": "Chọn bộ tạo",
-      "redo": "Làm lại"
+      "redo": "Làm lại",
+      "selectBox": "Kéo một khung để chọn ô",
+      "addCell": "Thêm một ô vào vùng chọn",
+      "rollPalette": "Bảng roll cho ô này",
+      "wipeCells": "Xoá mọi ô đã kéo qua"
     }
   },
   "explorer": {

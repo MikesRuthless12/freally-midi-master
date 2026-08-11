@@ -14,15 +14,18 @@
   gap: var(--space-1);
 }
 
+/* ⚠ The box, the border and the background are `Combo`'s own since TASK-057 —
+   this is now only the cell it sits in. Keeping them here would have drawn a
+   second border around the first. */
 .patterns__filter {
   flex: 1;
   min-width: 0;
-  padding: var(--space-1);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control, 4px);
-  background: var(--color-surface-2);
-  color: var(--color-text);
   font-size: var(--text-micro);
+}
+
+.patterns__filter .combo__input {
+  padding: var(--space-1);
+  font-size: inherit;
 }
 
 .patterns__list {

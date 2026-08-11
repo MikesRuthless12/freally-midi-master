@@ -1,0 +1,295 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "suga-free",
+  "type": "artist",
+  "name": "Suga Free",
+  "aliases": [
+    "suga free",
+    "sugafree",
+    "dejuan walker",
+    "street gospel",
+    "pomona pimp rap"
+  ],
+  "tier": "standard",
+  "extends": [
+    "g-funk"
+  ],
+  "era": "1997-2004",
+  "genres": [
+    "rap",
+    "g-funk",
+    "west coast",
+    "funk"
+  ],
+  "relatedGenres": [
+    "g-funk",
+    "funk",
+    "west-coast-club",
+    "rnb-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 g-funk — Suga Free",
+    "https://en.wikipedia.org/wiki/Street_Gospel",
+    "https://www.frannieandali.com/home/2015/1/30/dj-quik"
+  ],
+  "notes": "The busiest record in this lane, and the research says so twice — \"the busiest syllabic delivery in the lane\" and \"countermelody active and continuous (the beats are busy, unusually so for this lane)\". ⛔ **That second sentence is why `countermelody.fillGapsOnly` is false here and nowhere else in this batch.** Every other model in the dataset authors it true, which means the counter only speaks where the lead is silent; a layer described as continuous cannot be gated on the lead's gaps. With `densityRatio` at 0.75 and three styles it is the densest counter authored here. The rest follows Quik's live band: heavy 16th swing at 0.66 — the strongest in the batch — a kick at 4–6 with `syncopation` 0.52, ghost notes specifically at the \"e\" of 2 and 4 as the research states rather than on every offbeat, and congas and timbales in the percussion layer. `mixolydian` and `major` carry the scale weight for the replayed soul turnarounds, and `rhodes` is the `timbreHint` for the Rhodes/clav half of the palette. The bass is the melodic co-lead alongside the guitar — played, walking, syncopated, with slides — so `followRootsProb` is 0.36 with `glideProb` 0.62 over a 22-semitone span. ⚠ `confidence` is `medium`: the research rates the production medium-high (Quik produced the whole album) but **the vocal parameterisation only medium, and the melody's 5–9 notes a bar is that inferred half** — \"busiest syllabic delivery\" is a comparison, not a count. Verse lengths run 12–24 bars because the research says the vocal drives the form. ⚠ The bass ceiling came down from 50 to 47 so it stays under a chord part that starts at 48 — `coherence.rs` requires the highest bass note to sit at or below the lowest chord note, and this model overlapped by 3. ⚠ `countermelody.fillGapsOnly` returned to true. With it off and a density of 0.75, the counter plays THROUGH the melody rather than around it, and coherence.rs measures that as the counter sounding the melody own pitch at the same moment — a second lead rather than an answer. The register offset and the styles are untouched; what changed is that it waits its turn.",
+  "session": {
+    "bpm": {
+      "min": 92,
+      "max": 104,
+      "mode": 98
+    },
+    "scales": {
+      "values": [
+        "mixolydian",
+        "major",
+        "dorian",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        4,
+        4,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.66
+    },
+    "humanize": {
+      "quantizeStrength": 0.76,
+      "velocityVar": 0.22
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        4,
+        6
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.52,
+      "tresilloBias": 0.24,
+      "offbeat8thShare": 0.36
+    },
+    "snare": {
+      "rimshotLayer": true,
+      "ghost": {
+        "prob": 0.44,
+        "pos": [
+          "2e",
+          "4e"
+        ],
+        "vel": [
+          0.26,
+          0.46
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.55,
+      "openHat": {
+        "prob": 0.36,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "rolls": {
+        "vocab": [
+          "32"
+        ],
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.3
+      }
+    },
+    "percs": {
+      "lanes": [
+        "conga",
+        "timbale",
+        "tambourine",
+        "shaker"
+      ],
+      "densityPerBar": [
+        3,
+        5
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t",
+        "8t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        64,
+        114
+      ],
+      "gapProb": 0.14,
+      "descendProb": 0.48,
+      "rampJitter": 24
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "vi",
+          "IV",
+          "V"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.26,
+      "seventh": 0.52,
+      "ninth": 0.22
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        78
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      67,
+      91
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    },
+    "densityPerBar": [
+      5,
+      9
+    ],
+    "intervals": {
+      "step": 0.55,
+      "third": 0.28,
+      "leap": 0.17
+    },
+    "chordToneBias": 0.6,
+    "timbreHint": "rhodes"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.75,
+    "fillGapsOnly": true,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.36,
+    "register": [
+      28,
+      47
+    ],
+    "glideProb": 0.62,
+    "passingTones": [
+      "M2",
+      "m3",
+      "P4",
+      "P5",
+      "M6",
+      "m7",
+      "M7"
+    ],
+    "anticipationProb": 0.4
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": [
+        12,
+        24
+      ],
+      "hook": 8,
+      "outro": [
+        4,
+        8
+      ]
+    }
+  }
+}

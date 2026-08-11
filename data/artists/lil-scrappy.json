@@ -1,0 +1,293 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "lil-scrappy",
+  "type": "artist",
+  "name": "Lil Scrappy",
+  "aliases": [
+    "lil scrappy",
+    "darryl richardson",
+    "bme scrappy",
+    "money in the bank type"
+  ],
+  "tier": "standard",
+  "extends": [
+    "crunk"
+  ],
+  "era": "2003-2008",
+  "genres": [
+    "rap",
+    "crunk",
+    "southern rap"
+  ],
+  "relatedGenres": [
+    "crunk",
+    "trap",
+    "atl-swag-rap",
+    "memphis-rap"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended vol.1 crunk — Lil Scrappy",
+    "https://en.wikipedia.org/wiki/Lil_Scrappy",
+    "https://en.wikipedia.org/wiki/Crunk"
+  ],
+  "notes": "The bridge out of crunk and into ATL trap phrasing, and the parameters say so in three places: the kick reaches 4 hits a bar with a real `tresilloBias` (0.10) that no other early-crunk entry in this batch carries, the hats are the busy 16th carpet rather than crunk's stop-start 8ths, and the 808 is the only one here with a meaningful `slideProb` for a *hook entry* rather than a phrase end — 0.14, against the 0.01–0.05 of the pure crunk names. Harmony moves one step further than the lane's static i: i–VII and i–VI stabs are equal-weighted families with a Phrygian ♭II underneath them for menace, so `maxChords` is 3 rather than 2. The melody is a brass or bell stab with an organ pad, capped at the research's \"≤ 6 notes/bar\", which is `densityPerBar` [2, 6] — the pad is why `countermelody.styles` leads with `sustain_pad`. ⚠ `confidence` is low because the research rates the entry medium-low and states that only the era and label are documented; **every drum and harmony number here is lane-level inference**, and `session.bpm` is additionally marked [LOW-CONF] in the research. ⚠ The research says the roll inserts are triplets. This batch's hat-roll fingerprint is fixed at a 32nd vocabulary, so the triplet lives in `snareRoll.subdivisions` (\"16t\") instead of in the hats — a displacement, and worth knowing before anyone reads the hats as the researched value. Its own place in the band is `gapProb` 0.22 / `descendProb` 0.36 / `rampJitter` 15. ⚠ `anticipationProb` raised to 0.15. With `mirror_kick` against a fully locked 808 both parts take every kick, so every bass onset lands exactly on an 808 onset — `coherence.rs` calls that one line played twice rather than two parts locking. The lock is the style and is untouched; the anticipation is what makes them two parts. ⚠ **The 1-bar phrase length was removed** (was [1,2,4], now [2,4]). A one-bar phrase looped four times carries less entropy than a four-bar phrase, and it is the countermelody it strangles hardest: a counter answers *inside* the melody’s phrase, so a one-bar shape leaves it nowhere to go. Every worst offender on `counter.rs` carried it. ⛔ The previous session recorded this exact mistake and it arrived again from the other direction — distinctness is combinatorial in the shape LENGTH, not in the option count.",
+  "session": {
+    "bpm": {
+      "min": 142,
+      "max": 158,
+      "mode": 148
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "phrygian",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3",
+      "syncopation": 0.18,
+      "tresilloBias": 0.1,
+      "offbeat8thShare": 0.1
+    },
+    "snare": {
+      "layerClapOffsetMs": [
+        5,
+        12
+      ],
+      "ghost": {
+        "prob": 0.16,
+        "pos": [
+          "4&",
+          "1a"
+        ],
+        "vel": [
+          0.28,
+          0.46
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": [
+        0.6,
+        0.85
+      ],
+      "openHat": {
+        "prob": 0.24,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.29
+      }
+    },
+    "percs": {
+      "lanes": [
+        "perc",
+        "crash"
+      ],
+      "densityPerBar": [
+        1,
+        2
+      ],
+      "placement": "downbeat",
+      "gainOffsetDb": -4
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t",
+        "8t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        62,
+        114
+      ],
+      "rampJitter": 15,
+      "descendProb": 0.36,
+      "gapProb": 0.22
+    },
+    "bass808": {
+      "register": [
+        16,
+        29
+      ],
+      "slideProb": 0.14,
+      "slideIntervals": {
+        "values": [
+          "P5",
+          "P8",
+          "m3"
+        ],
+        "weights": [
+          3,
+          2,
+          1
+        ]
+      },
+      "slidePositions": [
+        "phrase_end"
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "bII"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.9,
+      "seventh": 0.09,
+      "ninth": 0.01
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        46,
+        70
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      2,
+      7
+    ]
+  },
+  "melody": {
+    "register": [
+      53,
+      77
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "motifPitchCount": [
+      3,
+      5
+    ],
+    "intervals": {
+      "step": 0.56,
+      "third": 0.26,
+      "leap": 0.18
+    },
+    "contour": {
+      "riff": 0.78,
+      "descend": 0.16,
+      "arch": 0.06
+    },
+    "chordToneBias": 0.66,
+    "halfStepDissonance": 0.1,
+    "emptyBarBias": 0.12,
+    "octaveJumpProb": 0.18,
+    "timbreHint": "synth_brass_stab"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.45,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "octave_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        2,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "anticipationProb": 0.15
+  }
+}

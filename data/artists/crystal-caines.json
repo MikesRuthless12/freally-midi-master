@@ -1,0 +1,147 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "crystal-caines",
+  "type": "artist",
+  "name": "Crystal Caines",
+  "aliases": ["crystal caines", "caines", "crystal caines producer"],
+  "tier": "standard",
+  "extends": ["dark-trap"],
+  "era": "2013-2016",
+  "genres": ["rap", "trap", "dark-trap", "producer"],
+  "relatedGenres": ["dark-trap", "memphis-rap", "trap"],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended vol.1 dark-trap — Crystal Caines",
+    "https://en.wikipedia.org/wiki/Trap_Lord"
+  ],
+  "notes": "The in-house producer behind *Trap Lord*'s signature records, and the research hands over the album's documented sonic identity as her working brief: \"unrelenting in its gothic intensity\" and \"melodic variations of John Carpenter's 'Halloween' melody\". A Carpenter ostinato is a specific musical object and this file authors it as one: `harmonic_minor` outweighs everything in the scale pool for the raised-7th leading tone, `colorTones` carries the b6, and the melody is **low pitch count at high rhythmic density** — 6–10 notes a bar drawn from a 3-to-4-pitch motif, in 16ths, on `music_box_pluck`. That inversion (many notes, few pitches) is the thing that separates her from every other entry in this batch. The 808 \"following the ostinato root with short semitone slides\" is `slideIntervals` weighted to `m2`, which almost nothing else in the dataset does, and `passingTones` of `m2` and `P5`. \"Clap on 3 with a snap on the preceding 16th\" is `layerClapOffsetMs` plus `snap` in `percs.lanes`, and \"vinyl noise and hand percussion as the sticky layer\" is `conga` and `bongo` beside it. \"Dropping out under chant hooks\" is `dropOutBeats` at 0.72. ⚠ `low` because the research rates it medium-low: her credits and the album's sonic character are documented but no method interview was reachable, so the parametric bullets are inference from the two records she is credited on. Explicitly INFERRED and marked `[LOW-CONF]` in the research: the bpm range, the whole drum block, and the 808 parameters. What is *not* inference is the harmony — \"static i or i–VI–VII, no modulation\" — and this file adds no family beyond that pair.",
+  "session": {
+    "bpm": { "min": 130, "max": 155, "mode": 142 },
+    "scales": {
+      "values": ["harmonic_minor", "natural_minor", "phrygian"],
+      "weights": [5, 3, 2]
+    },
+    "humanize": { "quantizeStrength": 0.93, "velocityVar": 0.12 }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [106, 124],
+      "main": [80, 96],
+      "ghost": [38, 52]
+    },
+    "kick": {
+      "densityPerBar": [3, 4],
+      "anchors": ["1"],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.32,
+      "tresilloBias": 0.22,
+      "lockTo808": 1
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "layered": true,
+      "layerClapOffsetMs": [3, 8],
+      "ghost": { "prob": 0.22, "pos": ["2e", "4&"], "vel": [0.3, 0.46] },
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.52,
+      "velocities": { "main": [0.8, 1], "ghost": [0.34, 0.56] },
+      "rolls": {
+        "vocab": { "values": ["16", "16T"], "weights": [2, 5] },
+        "positions": ["phrase_end", "pre_snare"],
+        "freqPerBar": 0.6,
+        "velocityRamp": true
+      },
+      "openHat": { "prob": 0.22, "pos": ["2&", "4&"], "perBar": [1, 1] },
+      "pitchBendProb": 0.06
+    },
+    "percs": {
+      "lanes": ["snap", "conga", "bongo"],
+      "densityPerBar": [2, 4]
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "monoCutSelf": true,
+      "slideProb": 0.4,
+      "slideIntervals": { "values": ["m2", "m3", "P5"], "weights": [5, 2, 2] },
+      "slidePositions": ["phrase_end"],
+      "register": [17, 32],
+      "distortion": "medium",
+      "distortionWet": [0.2, 0.4]
+    },
+    "fills": { "smallEveryBars": 2, "bigEveryBars": 4 },
+    "snareRoll": {
+      "subdivisions": ["16th", "32nd"],
+      "grouping": ["strong_weak_weak_weak"],
+      "velocityRampRange": [64, 116],
+      "gapProb": 0.19,
+      "descendProb": 0.41,
+      "rampJitter": 15
+    }
+  },
+  "melody": {
+    "register": [72, 96],
+    "densityPerBar": [6, 10],
+    "motifPitchCount": [3, 4],
+    "structure": "riff_loop",
+    "articulation": "staccato",
+    "intervals": { "step": 0.72, "third": 0.2, "leap": 0.08 },
+    "contour": { "riff": 0.7, "descend": 0.22, "arch": 0.08 },
+    "chordToneBias": 0.52,
+    "halfStepDissonance": 0.26,
+    "colorTones": [6, 7],
+    "octaveJumpProb": 0.04,
+    "phraseBars": { "values": [2, 4], "weights": [5, 2] },
+    "timbreHint": "music_box_pluck"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.36,
+    "styles": { "values": ["answer_lick", "octave_echo"], "weights": [4, 2] }
+  },
+  "chords": {
+    "progressionFamilies": [
+      { "roman": ["i"], "weight": 5 },
+      { "roman": ["i", "VI", "VII"], "weight": 4 }
+    ],
+    "maxChords": 3,
+    "extensions": { "triad": 0.84, "seventh": 0.14, "ninth": 0.02 },
+    "voicing": { "style": "close", "register": [46, 80], "topVoiceStepwise": true },
+    "harmonicRhythm": {
+      "values": ["vamp", "2_bars_per_chord", "1_per_bar"],
+      "weights": [4, 3, 2]
+    },
+    "impliedByRiff": true,
+    "chordDurationBeats": [2, 16]
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.9,
+    "register": [17, 34],
+    "glideProb": 0.3,
+    "passingTones": ["m2", "P5"],
+    "anticipationProb": 0.18
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": [12, 16],
+      "hook": 8,
+      "bridge": [4, 8],
+      "outro": 4
+    },
+    "structures": [
+      { "sections": ["intro", "hook", "verse", "hook", "verse", "hook", "outro"], "weight": 4 },
+      { "sections": ["intro", "hook", "verse", "hook", "bridge", "hook", "outro"], "weight": 2 }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": { "prob": 0.72, "beats": 2 },
+      "switchUpProb": 0.14
+    }
+  }
+}

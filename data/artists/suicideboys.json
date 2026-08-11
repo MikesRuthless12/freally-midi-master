@@ -1,0 +1,245 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "suicideboys",
+  "type": "artist",
+  "name": "$uicideboy$",
+  "aliases": [
+    "suicideboys",
+    "uicideboy",
+    "ruby da cherry",
+    "scrim",
+    "g59"
+  ],
+  "tier": "standard",
+  "extends": [
+    "dark-trap"
+  ],
+  "era": "2014-present",
+  "genres": [
+    "rap",
+    "dark-trap"
+  ],
+  "relatedGenres": [
+    "dark-trap",
+    "memphis-rap",
+    "phonk"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 dark-trap — $uicideboy$"
+  ],
+  "notes": "New Orleans horror-rap duo, **entirely self-produced**, and the harmony is inherited from the sample source rather than composed — 2- or 4-bar pitched-down loops of choir, organ, guitar or string, one voice, heavy tape and lo-fi treatment. The 808 is the documented outlier: **\"dark but clean\"** means a huge long-decay sub on the tonic with *less* saturation than the rest of the lane, not more. Natural minor and Phrygian throughout. ⚠ `medium`: self-production, chart data, sample sources and the instrumental description are all documented; the research rates it high-medium.",
+  "session": {
+    "bpm": {
+      "min": 125,
+      "max": 160,
+      "mode": 140
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "phrygian",
+        "harmonic_minor"
+      ],
+      "weights": [
+        4,
+        4,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.54
+    },
+    "halfTime": true
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.35,
+      "lockTo808": 1
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "lowPassedClap": true,
+      "ghost": {
+        "prob": 0.12,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.2,
+          0.35
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.55,
+      "openHat": {
+        "prob": 0.22,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.07
+      }
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        44,
+        92
+      ],
+      "rampJitter": 6
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "monoCutSelf": true,
+      "slideProb": 0.1,
+      "register": [
+        17,
+        32
+      ],
+      "distortion": "none"
+    }
+  },
+  "melody": {
+    "register": [
+      62,
+      86
+    ],
+    "densityPerBar": [
+      2,
+      5
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "church_organ"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.4,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "bII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.6,
+      "seventh": 0.34,
+      "ninth": 0.06
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        44,
+        78
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    },
+    "chordDurationBeats": [
+      2,
+      16
+    ],
+    "impliedByRiff": true
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.92,
+    "register": [
+      24,
+      39
+    ],
+    "glideProb": 0.06,
+    "passingTones": [
+      "P5",
+      "m2"
+    ],
+    "anticipationProb": 0.18
+  }
+}

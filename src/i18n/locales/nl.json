@@ -1,7 +1,8 @@
 {
   "titlebar": {
     "settings": "Instellingen",
-    "about": "Over"
+    "about": "Over",
+    "shortcuts": "Sneltoetsen"
   },
   "tabs": {
     "group": "Generator",
@@ -393,7 +394,11 @@
       "generate": "Dit part genereren",
       "generateAll": "Alle parts genereren",
       "pickGenerator": "Generator kiezen",
-      "redo": "Opnieuw"
+      "redo": "Opnieuw",
+      "selectBox": "Sleep een kader om cellen te selecteren",
+      "addCell": "Cel aan de selectie toevoegen",
+      "rollPalette": "Roffelpalet voor deze cel",
+      "wipeCells": "Alle doorlopen cellen wissen"
     }
   },
   "explorer": {

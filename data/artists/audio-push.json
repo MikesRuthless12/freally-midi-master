@@ -1,0 +1,246 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "audio-push",
+  "type": "artist",
+  "name": "Audio Push",
+  "aliases": [
+    "audio push",
+    "oktane",
+    "price",
+    "hit since 87"
+  ],
+  "tier": "standard",
+  "extends": [
+    "west-coast-club"
+  ],
+  "era": "2009-2016",
+  "genres": [
+    "rap",
+    "west-coast-club"
+  ],
+  "relatedGenres": [
+    "west-coast-club",
+    "g-funk",
+    "trap"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended vol.1 west-coast-club — Audio Push"
+  ],
+  "notes": "The Inland Empire’s jerkin’ breakout, later reworked into the Hit-Boy orbit — **two modes, and they are genuinely different records**: 2009 jerk-dance (club-tempo straight, one-note 808, whistle and air-horn accents) and 2012+ rap (half-time trap-pop, clap on 3, triplet hats, sliding 808s). Authored with both as `modes` rather than averaged, because the average is neither. ⚠ **`low`**: era, scene role and the production partnership are documented; the drum and harmony parameters are inferred from the jerkin’ documentation and marked `[LOW-CONF]`.",
+  "session": {
+    "bpm": {
+      "min": 96,
+      "max": 145,
+      "mode": 108
+    },
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.54
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.28,
+      "lockTo808": 1
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "lowPassedClap": true,
+      "ghost": {
+        "prob": 0.12,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.2,
+          0.35
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.35,
+      "openHat": {
+        "prob": 0.2,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16T",
+            "32"
+          ],
+          "weights": [
+            2,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.36
+      }
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 4
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t",
+        "8t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        62,
+        112
+      ],
+      "rampJitter": 14
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "staccato",
+      "slideProb": 0.15,
+      "register": [
+        21,
+        35
+      ],
+      "distortion": "none"
+    }
+  },
+  "melody": {
+    "register": [
+      67,
+      90
+    ],
+    "densityPerBar": [
+      2,
+      5
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "square_lead"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.4,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.45,
+      "seventh": 0.42,
+      "ninth": 0.13
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        47,
+        79
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      16
+    ]
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.88,
+    "register": [
+      25,
+      42
+    ],
+    "glideProb": 0.08,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.2
+  }
+}

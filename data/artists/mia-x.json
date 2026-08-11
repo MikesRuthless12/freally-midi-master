@@ -1,0 +1,373 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "mia-x",
+  "type": "artist",
+  "name": "Mia X",
+  "aliases": [
+    "mia x",
+    "mia-x",
+    "mama mia",
+    "no limit first lady",
+    "unlady like"
+  ],
+  "tier": "standard",
+  "extends": [
+    "nola-bounce"
+  ],
+  "era": "1995–1998",
+  "genres": [
+    "rap",
+    "bounce",
+    "southern rap",
+    "club"
+  ],
+  "relatedGenres": [
+    "nola-bounce",
+    "g-funk",
+    "funk"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended vol.1 nola-bounce — Mia X",
+    "https://en.wikipedia.org/wiki/Mia_X",
+    "https://en.wikipedia.org/wiki/Bounce_music"
+  ],
+  "notes": "The hinge between the two halves of this archetype: a No Limit artist with bounce-chant phrasing, so the kit is explicitly a hybrid rather than one side or the other. ⛔ **`offSnare.prob` at 0.66 is the model.** The research calls the drums an \"808 bounce/No Limit hybrid\" with \"snare on 2&4 with a '&'-of-2 answer\" — so the Triggerman answer sits between Cash Money's 0.85 and the No Limit bench's 0.42, and no other entry in this batch lands there. The hats hybridise the same way, mixing an 8th grid against 16ths rather than committing to either. ⛔ **Major *and* minor, on the same roster.** \"Keys: major and minor both\" — this and `hot-boys` are the only entries here that carry both, and Mia X weights them evenly where Hot Boys leans bright. The vamps under them are single-chord, so `chords.impliedByRiff` is set and the variety comes from a 2–12 beat `chordDurationBeats`, three `harmonicRhythm` values and a wide `voicing.register` rather than from progressions these records do not play. ⛔ **Call-and-response is structural, not decorative.** \"Chant-based hooks with crowd response (Mardi Gras Indian/second-line lineage)\" — so `melody.structure` is `call_response`, `countermelody.styles` is led by `answer_lick` at weight 5 (the crowd *is* the answering voice), `densityRatio` runs 0.5–0.78, and `sectionRules.bridge` is the call-out breakdown: drums and countermelody only, no lead. ⚠ **The keyboard counter-line** the research names is why the countermelody sits above rather than below — `registerOffset` is +12 against the parent's -12. ⛔ **Confidence is `low`, and that is the research's verdict** — \"medium-low — bounce lineage and label documented; specific parameters inferred\" — with the 88–100 band marked **[LOW-CONF]** on top. Inferred: the key list, every velocity and register bound, `intervals`/`contour`, the exact hybrid `offSnare.prob`, the perc lanes and the chord-duration spread. ⚠ `snareRoll.pitchWalk` is inherited; nothing says how a Beats By the Pound roll is pitched.",
+  "session": {
+    "bpm": {
+      "min": 88,
+      "max": 100,
+      "mode": 93
+    },
+    "scales": {
+      "values": [
+        "mixolydian",
+        "natural_minor",
+        "major",
+        "dorian"
+      ],
+      "weights": [
+        4,
+        4,
+        3,
+        3
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.87,
+      "velocityVar": 0.15
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "syncopation": 0.4,
+      "tresilloBias": 0.22,
+      "offbeat8thShare": 0.18
+    },
+    "snare": {
+      "offSnare": {
+        "prob": 0.66,
+        "pos": [
+          "2&"
+        ]
+      },
+      "ghost": {
+        "prob": 0.26,
+        "pos": [
+          "1a",
+          "3e",
+          "4e"
+        ],
+        "vel": [
+          0.28,
+          0.48
+        ]
+      }
+    },
+    "hihat": {
+      "base": {
+        "values": [
+          "8th",
+          "16th",
+          "8T"
+        ],
+        "weights": [
+          4,
+          4,
+          2
+        ]
+      },
+      "continuous": false,
+      "fillDensity": [
+        0.7,
+        0.92
+      ],
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.14,
+        "velocityRamp": true
+      },
+      "openHat": {
+        "prob": 0.3,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "tambourine": true,
+      "lanes": [
+        "tom",
+        "cowbell",
+        "conga",
+        "rim"
+      ],
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "gainOffsetDb": -3
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        52,
+        94
+      ],
+      "rampJitter": 16,
+      "descendProb": 0.24,
+      "gapProb": 0.4
+    },
+    "bass808": {
+      "role": "counter_riff",
+      "sustain": "legato",
+      "slideProb": 0.06,
+      "register": [
+        21,
+        33
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 2
+      }
+    ],
+    "impliedByRiff": true,
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.68,
+      "seventh": 0.27,
+      "ninth": 0.05
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        46,
+        78
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      2,
+      12
+    ]
+  },
+  "melody": {
+    "register": [
+      61,
+      85
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "densityPerBar": [
+      4,
+      8
+    ],
+    "structure": "call_response",
+    "motifPitchCount": [
+      3,
+      6
+    ],
+    "intervals": {
+      "step": 0.58,
+      "third": 0.26,
+      "leap": 0.16
+    },
+    "contour": {
+      "riff": 0.58,
+      "descend": 0.24,
+      "arch": 0.18
+    },
+    "chordToneBias": 0.7,
+    "emptyBarBias": 0.09,
+    "octaveJumpProb": 0.16,
+    "timbreHint": "church_organ"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.5,
+      0.78
+    ],
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo",
+        "arp"
+      ],
+      "weights": [
+        5,
+        2,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.68,
+    "register": [
+      27,
+      44
+    ],
+    "glideProb": 0.11,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2"
+    ],
+    "cellShapes": [
+      [
+        "1",
+        "5",
+        "1",
+        "5"
+      ],
+      [
+        "1",
+        "1",
+        "5",
+        "b7"
+      ]
+    ],
+    "anticipationProb": 0.2
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "hook": 8,
+      "bridge": [
+        4,
+        8
+      ],
+      "outro": {
+        "values": [
+          4,
+          8
+        ],
+        "weights": [
+          2,
+          2
+        ]
+      }
+    },
+    "sectionRules": {
+      "bridge": {
+        "parts": [
+          "drums",
+          "countermelody"
+        ],
+        "density": 0.45
+      }
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.78,
+        "beats": 4
+      },
+      "switchUpProb": 0.2
+    }
+  }
+}

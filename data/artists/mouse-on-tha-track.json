@@ -1,0 +1,379 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "mouse-on-tha-track",
+  "type": "artist",
+  "name": "Mouse on tha Track",
+  "aliases": [
+    "mouse on tha track",
+    "mouse on the track",
+    "mouse",
+    "trill entertainment",
+    "wipe me down",
+    "baton rouge"
+  ],
+  "tier": "standard",
+  "extends": [
+    "crunk"
+  ],
+  "era": "2005-2010",
+  "genres": [
+    "rap",
+    "southern rap",
+    "baton rouge",
+    "producer"
+  ],
+  "relatedGenres": [
+    "crunk",
+    "nola-bounce",
+    "memphis-rap",
+    "trap"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended vol.1 crunk — Mouse on tha Track",
+    "https://en.wikipedia.org/wiki/Wipe_Me_Down",
+    "https://en.wikipedia.org/wiki/Boosie_Badazz"
+  ],
+  "notes": "The Trill house producer, and the one claim that separates him from the Atlanta bench is rhythmic: \"Louisiana bounce syncopation survives in the kick placement\". That is authored as the highest `kick.syncopation` and `tresilloBias` of any 808-led entry in this batch, against a parent whose kick is deliberately flat-footed on 1 and 3. The second is the roll vocabulary — \"16th hats with **triplet** rolls\" — so `hihat.rolls.vocab` weights `32T` over `32`, the only entry here that does. The 808 is a long-decay root that occasionally glides to the fifth, so `slideProb` rises well above the parent's 0.04 and `slideIntervals` is P5-first. Harmony is i–VI–VII and i–VII over 2–4 bars with a blues inflection, and the melody deliberately \"leaves room for a shouted chant hook\": `emptyBarBias` is high and `densityPerBar` low, which is the space the chant occupies. ⚠ `low`, the research's medium-low: the credit and the region are documented, the paragraph says the parameters are inferred, and it marks both the 72–84 half-time band (stored as its 144–168 straight equivalent) and the bounce-syncopation claim LOW-CONF. The perc lanes, the chord weights and the hat density are INFERRED. ⚠ `fills.snareRollLadder` is off — with both fill periods at 4 bars the big fill wins and the inherited climbing ladder reads no seed, so it would write one identical fill on all 200; the snare-roll build the research names is what `snareRoll` describes instead. ⚠ `anticipationProb` raised to 0.15. With `mirror_kick` against a fully locked 808 both parts take every kick, so every bass onset lands exactly on an 808 onset — `coherence.rs` calls that one line played twice rather than two parts locking. The lock is the style and is untouched; the anticipation is what makes them two parts. ⚠ **The countermelody reached only 970 distinct answers in 1000 seeds against a floor of 980**, so it was given range: densityRatio 0.45. A counter is combinatorial in the styles it may pick, its density against the melody, and the phrase length it answers inside — one style over a thin density inside a single phrase length has almost nothing a seed can vary. ⚠ **The countermelody reached 974/1000 distinct answers against a floor of 980**, so its style pool was opened: bell_echo, arp, densityRatio 0.55. ⛔ `counter.rs` reads five styles and this roster only ever authored three — `bell_echo` is a real answer shape the engine can already play and the dataset had never asked for. ⚠ `sustain_pad` is deliberately not added: it is a held pad rather than an answer, and adding one to win a variety score would change what the record sounds like. ⚠ **The melody floor was raised from [2,5] to [2,6] because the COUNTERMELODY was saturating at 971/1000 against a floor of 980.** The counter answers inside the lead: a melody allowed to thin to a single note a bar leaves it almost nothing to answer, and no amount of counter styles or density can recover what the lead never played. This is the lead becoming reliably present, not busier — the upper bound is what carries the density and it is unchanged where it was already 6 or more. ⚠ **`melody.emptyBarBias` came down from 0.22 to 0.1, and this is the parameter that was actually saturating the countermelody** (this model reached 971/1000 against a floor of 980). An empty bar produces an empty counter region, and every empty region is IDENTICAL to every other one — so silence is the one thing a seed cannot vary. Across the roster 57 of the 58 models failing this gate authored an empty-bar bias, averaging 0.246, against 0.115 for the models that passed. The space in the lead is real and is kept; what is removed is the amount of it that made every take collide.",
+  "session": {
+    "bpm": {
+      "min": 144,
+      "max": 168,
+      "mode": 154
+    },
+    "keys": {
+      "values": [
+        "Cm",
+        "Fm",
+        "A#m",
+        "Gm",
+        "Dm"
+      ],
+      "weights": [
+        4,
+        4,
+        3,
+        2,
+        1
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "minor_pentatonic",
+        "harmonic_minor"
+      ],
+      "weights": [
+        5,
+        3,
+        1
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.92,
+      "velocityVar": 0.16
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        4
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.34,
+      "tresilloBias": 0.24,
+      "offbeat8thShare": 0.16,
+      "lockTo808": 1
+    },
+    "snare": {
+      "layerClapOffsetMs": [
+        4,
+        12
+      ],
+      "ghost": {
+        "prob": 0.22,
+        "pos": [
+          "4&",
+          "1a",
+          "3a"
+        ],
+        "vel": [
+          0.3,
+          0.48
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": [
+        0.55,
+        0.8
+      ],
+      "velocities": {
+        "main": [
+          0.8,
+          0.96
+        ],
+        "ghost": [
+          0.44,
+          0.62
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32",
+            "32T"
+          ],
+          "weights": [
+            1,
+            4
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.65,
+        "velocityRamp": true
+      },
+      "openHat": {
+        "prob": 0.26,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "conga",
+        "timbale",
+        "crash"
+      ],
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "placement": "offbeat",
+      "gainOffsetDb": -5
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 4,
+      "snareRollLadder": false
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "32nd"
+      ],
+      "grouping": [
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        54,
+        101
+      ],
+      "rampJitter": 5,
+      "descendProb": 0.33,
+      "gapProb": 0.28
+    },
+    "bass808": {
+      "sustain": "legato",
+      "slideProb": 0.16,
+      "slideIntervals": {
+        "values": [
+          "P5",
+          "P8"
+        ],
+        "weights": [
+          4,
+          1
+        ]
+      },
+      "slidePositions": [
+        "phrase_end"
+      ],
+      "register": [
+        16,
+        30
+      ],
+      "distortion": "heavy"
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.86,
+      "seventh": 0.12,
+      "ninth": 0.02
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        48,
+        70
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      11
+    ]
+  },
+  "melody": {
+    "register": [
+      56,
+      80
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    },
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "structure": "riff_loop",
+    "motifPitchCount": [
+      4,
+      5
+    ],
+    "intervals": {
+      "step": 0.6,
+      "third": 0.26,
+      "leap": 0.14
+    },
+    "contour": {
+      "riff": 0.7,
+      "descend": 0.22,
+      "arch": 0.08
+    },
+    "chordToneBias": 0.68,
+    "halfStepDissonance": 0.1,
+    "emptyBarBias": 0.1,
+    "octaveJumpProb": 0.12,
+    "timbreHint": "dark_bell"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.55,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo",
+        "bell_echo",
+        "arp"
+      ],
+      "weights": [
+        3,
+        4,
+        2,
+        1
+      ]
+    }
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "hook": 8,
+      "outro": [
+        4,
+        8
+      ]
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.7,
+        "beats": 4
+      },
+      "switchUpProb": 0.12
+    }
+  },
+  "bassline": {
+    "anticipationProb": 0.15
+  }
+}

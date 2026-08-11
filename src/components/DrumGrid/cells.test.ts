@@ -9,6 +9,9 @@ import {
   tuplet,
   cloneBar,
   clearCell,
+  clearCells,
+  copyCells,
+  pasteCells,
   columnOf,
   reassignLane,
   unusedLanes,
@@ -301,6 +304,201 @@ describe('editing the grid (TASK-131G)', () => {
     // the track would make it vanish under the producer's cursor mid-edit.
     expect(cleared.lanes.some((l) => l.lane === 'closedHat')).toBe(true);
     expect(clearCell(cleared, 'closedHat', 0)).toBe(cleared);
+  });
+
+  describe('clearCells — the right-drag sweep (TASK-056 #3)', () => {
+    it('wipes every cell the drag crossed, in one new pattern', () => {
+      const source = clip([
+        { startTick: 0 },
+        { startTick: 240 },
+        { startTick: 480 },
+        { startTick: 720 },
+      ]);
+      const swept = clearCells(source, [
+        { lane: 'closedHat', column: 1 },
+        { lane: 'closedHat', column: 2 },
+      ]);
+      expect(hats(swept).map((n) => n.startTick)).toEqual([0, 720]);
+    });
+
+    it('crosses lanes, because a drag does', () => {
+      const source: Pattern = {
+        ...clip([{ startTick: 0 }]),
+        lanes: [
+          ...clip([{ startTick: 0 }]).lanes,
+          {
+            lane: 'kick',
+            notes: [
+              {
+                startTick: 0,
+                lenTicks: 240,
+                pitch: 36,
+                vel: 100,
+                modelVel: null,
+                slideToPitch: null,
+                articulation: null,
+              },
+            ],
+          },
+        ],
+      };
+      const swept = clearCells(source, [
+        { lane: 'closedHat', column: 0 },
+        { lane: 'kick', column: 0 },
+      ]);
+      expect(hats(swept)).toEqual([]);
+      expect(swept.lanes.find((l) => l.lane === 'kick')?.notes).toEqual([]);
+    });
+
+    it('takes a humanized hit with the cell it is drawn in', () => {
+      // ⛔ The defect this module has already been bitten by twice: half the
+      // hits in a generated pattern sit early of the grid, and an exact 16th
+      // span misses exactly those. A sweep that leaves them behind reads as the
+      // drag having skipped cells at random.
+      const early = clip([{ startTick: TICKS_PER_16TH * 4 - 33 }]);
+      expect(hats(clearCells(early, [{ lane: 'closedHat', column: 4 }]))).toEqual([]);
+      // And the visually empty cell to its left still must not touch it.
+      expect(hats(clearCells(early, [{ lane: 'closedHat', column: 3 }]))).toHaveLength(1);
+    });
+
+    it('returns the very same pattern when the sweep hit nothing', () => {
+      // A right-drag across empty cells must not push an undo step.
+      const source = clip([{ startTick: 0 }]);
+      expect(
+        clearCells(source, [
+          { lane: 'closedHat', column: 5 },
+          { lane: 'closedHat', column: 6 },
+        ]),
+      ).toBe(source);
+      expect(clearCells(source, [])).toBe(source);
+    });
+
+    it('takes a whole roll with the cell, the way one click does', () => {
+      const rolled = tuplet(clip([]), 'closedHat', 2, 3);
+      expect(hats(rolled)).toHaveLength(3);
+      expect(hats(clearCells(rolled, [{ lane: 'closedHat', column: 2 }]))).toEqual([]);
+    });
+  });
+
+  describe('copy, paste and clone (TASK-056 #4)', () => {
+    const at = (lane: Lane, column: number) => ({ lane, column });
+
+    it('puts the copied block down where it was asked for', () => {
+      const source = clip([{ startTick: 0 }, { startTick: 240 }]);
+      const lifted = copyCells(source, [at('closedHat', 0), at('closedHat', 1)]);
+      expect(lifted).not.toBeNull();
+      expect(lifted!.columns).toBe(2);
+
+      const pasted = pasteCells(source, lifted!, 8);
+      expect(
+        hats(pasted)
+          .map((n) => n.startTick)
+          .sort((a, b) => a - b),
+      ).toEqual([0, 240, 1920, 2160]);
+    });
+
+    it('keeps a roll intact rather than quantising it onto the grid', () => {
+      // ⛔ The reason the clip stores ticks and not cell indices. A triplet is
+      // three notes 80 ticks apart *inside* one 16th; rebuilding it on the grid
+      // would hand back three 16ths, which is a different figure.
+      const rolled = tuplet(clip([]), 'closedHat', 0, 3);
+      const lifted = copyCells(rolled, [at('closedHat', 0)]);
+      const pasted = pasteCells(rolled, lifted!, 4);
+      const landed = hats(pasted)
+        .map((n) => n.startTick)
+        .filter((tick) => tick >= 960 - 40 && tick < 1200)
+        .sort((a, b) => a - b);
+      expect(landed).toEqual([960, 1040, 1120]);
+    });
+
+    it('carries a humanized hit at the offset it actually sat at', () => {
+      const early = clip([{ startTick: TICKS_PER_16TH * 4 - 33 }]);
+      const lifted = copyCells(early, [at('closedHat', 4)]);
+      const pasted = pasteCells(early, lifted!, 8);
+      expect(
+        hats(pasted)
+          .map((n) => n.startTick)
+          .sort((a, b) => a - b),
+      ).toEqual([TICKS_PER_16TH * 4 - 33, TICKS_PER_16TH * 8 - 33]);
+    });
+
+    it('clears the destination first rather than doubling into a flam', () => {
+      // The same rule `cloneBar` keeps, and for the same reason.
+      const source = clip([
+        { startTick: 0, vel: 120 },
+        { startTick: 960, vel: 60 },
+      ]);
+      const lifted = copyCells(source, [at('closedHat', 0)]);
+      const pasted = pasteCells(source, lifted!, 4);
+      const landed = hats(pasted).filter((n) => n.startTick >= 920 && n.startTick < 1160);
+      expect(landed).toHaveLength(1);
+      expect(landed[0].vel).toBe(120);
+    });
+
+    it('leaves every note in its own lane', () => {
+      // ⛔ Sliding the block onto whichever row had focus would turn a kick
+      // pattern into a crash pattern. Moving a lane is `reassignLane`'s job.
+      const source: Pattern = {
+        ...clip([{ startTick: 0 }]),
+        lanes: [
+          ...clip([{ startTick: 0 }]).lanes,
+          {
+            lane: 'kick',
+            notes: [
+              {
+                startTick: 0,
+                lenTicks: 240,
+                pitch: 36,
+                vel: 100,
+                modelVel: null,
+                slideToPitch: null,
+                articulation: null,
+              },
+            ],
+          },
+        ],
+      };
+      const lifted = copyCells(source, [at('closedHat', 0), at('kick', 0)]);
+      const pasted = pasteCells(source, lifted!, 4);
+      expect(
+        pasted.lanes.find((l) => l.lane === 'kick')?.notes.map((n) => n.startTick),
+      ).toEqual([0, 960]);
+      expect(
+        hats(pasted)
+          .map((n) => n.startTick)
+          .sort((a, b) => a - b),
+      ).toEqual([0, 960]);
+    });
+
+    it('drops what would land past the end instead of piling it on the last cell', () => {
+      const source = clip([{ startTick: 0 }, { startTick: 240 }]);
+      const lifted = copyCells(source, [at('closedHat', 0), at('closedHat', 1)]);
+      // The clip is two bars, so column 31 is its last: the block's second note
+      // has nowhere to go.
+      const pasted = pasteCells(source, lifted!, 31);
+      const tail = hats(pasted).filter((n) => n.startTick >= 7000);
+      expect(tail.map((n) => n.startTick)).toEqual([31 * TICKS_PER_16TH]);
+    });
+
+    it('has nothing to copy when the selected cells are empty', () => {
+      // ⚠ A clipboard holding an empty block would let Ctrl+V wipe a region
+      // while looking like it pasted.
+      expect(copyCells(clip([{ startTick: 0 }]), [at('closedHat', 9)])).toBeNull();
+      expect(copyCells(clip([{ startTick: 0 }]), [])).toBeNull();
+    });
+
+    it('clones the block immediately after itself', () => {
+      // What Ctrl+D does: lift columns 0–1 and put them down at 2–3.
+      const source = clip([{ startTick: 0 }, { startTick: 240 }]);
+      const picked = [at('closedHat', 0), at('closedHat', 1)];
+      const lifted = copyCells(source, picked)!;
+      const cloned = pasteCells(source, lifted, 0 + lifted.columns);
+      expect(
+        hats(cloned)
+          .map((n) => n.startTick)
+          .sort((a, b) => a - b),
+      ).toEqual([0, 240, 480, 720]);
+    });
   });
 });
 

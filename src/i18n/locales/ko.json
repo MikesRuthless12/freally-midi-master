@@ -1,7 +1,8 @@
 {
   "titlebar": {
     "settings": "설정",
-    "about": "정보"
+    "about": "정보",
+    "shortcuts": "키보드 단축키"
   },
   "tabs": {
     "group": "제너레이터",
@@ -393,7 +394,11 @@
       "generate": "이 파트 생성",
       "generateAll": "모든 파트 생성",
       "pickGenerator": "제너레이터 선택",
-      "redo": "다시 실행"
+      "redo": "다시 실행",
+      "selectBox": "드래그로 상자를 그려 셀 선택",
+      "addCell": "선택에 셀 추가",
+      "rollPalette": "이 셀의 롤 팔레트",
+      "wipeCells": "드래그한 셀 모두 지우기"
     }
   },
   "explorer": {

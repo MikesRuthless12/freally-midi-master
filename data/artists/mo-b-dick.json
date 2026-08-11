@@ -1,0 +1,421 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "mo-b-dick",
+  "type": "artist",
+  "name": "Mo B. Dick",
+  "aliases": [
+    "mo b. dick",
+    "mo b dick",
+    "mob dick",
+    "beats by the pound",
+    "no limit hooks",
+    "the medicine men"
+  ],
+  "tier": "standard",
+  "extends": [
+    "nola-bounce"
+  ],
+  "era": "1995–2000",
+  "genres": [
+    "rap",
+    "southern rap",
+    "g-funk",
+    "soul"
+  ],
+  "relatedGenres": [
+    "nola-bounce",
+    "g-funk",
+    "rnb-2000s",
+    "neo-soul"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 nola-bounce — Mo B. Dick",
+    "https://en.wikipedia.org/wiki/The_Medicine_Men",
+    "https://en.wikipedia.org/wiki/Mo_B._Dick"
+  ],
+  "notes": "Beats By the Pound's hook singer, so this model is a *vocal arrangement* wearing the unit's kit — and it is the only entry in this batch where the melody and the countermelody are the point and the drums are the accompaniment. ⛔ **\"The chord choice follows the vocal, which is the reverse of crunk practice.\"** The research says that in as many words, and it is the model: gospel/soul hook harmony led by `I–vi–IV–V`, `harmonicRhythm` weighted to `1_per_bar` because chords move with a sung line rather than sitting under a loop, `topVoiceStepwise` on, `voicing.style` open, and `extensions` carrying both sevenths and the highest ninth share here after `c-murder`. Major and minor families sit side by side because the research names both `I–vi–IV–V` **and** `i–VII–VI`. ⛔ **`countermelody.registerOffset` is 4, and no other model in this dataset does that.** \"Backing-vocal stacks in thirds and sixths — a real vocal-arrangement layer to model as a second melodic voice.\" Every other entry puts the counter an octave above or below the lead; a backing stack is close harmony, so it sits a third up, with `densityRatio` running 0.55–0.8 and `octave_echo` weighted first because a stack shadows the lead line rather than answering it. ⛔ **His sections thin the drums so the vocal sits forward** — the research names \"hats out, kick simplified\" — so `hihat.continuous` is false at `fillDensity` 0.36, `kick.densityPerBar` is 2–3 with the lowest `syncopation` in this batch, `offSnare.prob` falls to 0.22, and `percs.gainOffsetDb` drops to -8. That is a deliberately smaller kit than the unit's own, which is exactly what the research describes. ⛔ **4–8 bar sung phrases, blues thirds and falsetto tags:** `melody.phraseBars` reaches 8, which nothing else in this batch does; `intervals.third` is 0.4, the highest here; `colorTones` moves to the flat third and sixth; and `octaveJumpProb` at 0.24 is the falsetto tag. ⚠ **`timbreHint` is `vocal_chant`, and that is a substitution rather than a description.** The dataset names no sung-lead voice; `vocal_chant` is the nearest thing it has, exactly as the parent uses `square_lead` for a whistle. ⚠ **Confidence `medium`, matching the research** — his hook role and unit membership are sourced, \"harmonic specifics inferred from the idiom\" is its own wording, and the 80–96 band is marked **[LOW-CONF]**. Also inferred: the key list, every velocity and register bound, `intervals`/`contour` and the counter's exact offset. ⚠ `snareRoll.pitchWalk` is inherited. ⚠ `countermelody.registerOffset` moved from 4 to 12: inside a fifth the counter sits in the melody's own register and plays its pitches at the same moment, which `coherence.rs` calls a second lead rather than an answer. ⚠ `countermelody.fillGapsOnly` returned to true. With it off and a density of 0.8, the counter plays THROUGH the melody rather than around it, and coherence.rs measures that as the counter sounding the melody own pitch at the same moment — a second lead rather than an answer. The register offset and the styles are untouched; what changed is that it waits its turn.",
+  "session": {
+    "bpm": {
+      "min": 80,
+      "max": 96,
+      "mode": 87
+    },
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor",
+        "mixolydian",
+        "dorian"
+      ],
+      "weights": [
+        4,
+        4,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.9,
+      "velocityVar": 0.14
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3",
+      "syncopation": 0.2,
+      "tresilloBias": 0.06,
+      "offbeat8thShare": 0.08
+    },
+    "snare": {
+      "offSnare": {
+        "prob": 0.22,
+        "pos": [
+          "2&"
+        ]
+      },
+      "ghost": {
+        "prob": 0.14,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.22,
+          0.38
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.36,
+      "velocities": {
+        "main": [
+          0.66,
+          0.86
+        ],
+        "ghost": [
+          0.32,
+          0.5
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.11,
+        "velocityRamp": true
+      },
+      "openHat": {
+        "prob": 0.12,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "tambourine": true,
+      "lanes": [
+        "shaker"
+      ],
+      "densityPerBar": [
+        0,
+        2
+      ],
+      "gainOffsetDb": -8
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        50,
+        96
+      ],
+      "rampJitter": 24,
+      "descendProb": 0.44,
+      "gapProb": 0.57
+    },
+    "bass808": {
+      "role": "counter_riff",
+      "sustain": "legato",
+      "slideProb": 0.05,
+      "register": [
+        20,
+        32
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "vi",
+          "IV",
+          "V"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.46,
+      "seventh": 0.4,
+      "ninth": 0.14
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        50,
+        79
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        5,
+        3,
+        1
+      ]
+    },
+    "chordDurationBeats": [
+      2,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      59,
+      83
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        8,
+        2
+      ],
+      "weights": [
+        4,
+        2,
+        1
+      ]
+    },
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "structure": "question_answer",
+    "motifPitchCount": [
+      4,
+      7
+    ],
+    "intervals": {
+      "step": 0.5,
+      "third": 0.4,
+      "leap": 0.1
+    },
+    "contour": {
+      "riff": 0.24,
+      "descend": 0.34,
+      "arch": 0.42
+    },
+    "chordToneBias": 0.76,
+    "colorTones": [
+      3,
+      6
+    ],
+    "halfStepDissonance": 0.04,
+    "emptyBarBias": 0.05,
+    "octaveJumpProb": 0.24,
+    "timbreHint": "vocal_chant"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.55,
+      0.8
+    ],
+    "fillGapsOnly": true,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.7,
+    "register": [
+      26,
+      43
+    ],
+    "glideProb": 0.09,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2",
+      "m3"
+    ],
+    "cellShapes": [
+      [
+        "1",
+        "5",
+        "1",
+        "5"
+      ],
+      [
+        "1",
+        "1",
+        "5",
+        "b7"
+      ]
+    ],
+    "anticipationProb": 0.16
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "hook",
+          "bridge",
+          "hook",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "sectionBars": {
+      "intro": {
+        "values": [
+          4,
+          8
+        ],
+        "weights": [
+          2,
+          3
+        ]
+      },
+      "verse": 16,
+      "hook": 8,
+      "bridge": [
+        4,
+        8
+      ],
+      "outro": {
+        "values": [
+          4,
+          8
+        ],
+        "weights": [
+          2,
+          3
+        ]
+      }
+    },
+    "sectionRules": {
+      "outro": {
+        "parts": [
+          "melody",
+          "countermelody",
+          "chords"
+        ],
+        "density": 0.5,
+        "decay": true
+      }
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.55,
+        "beats": 2
+      },
+      "switchUpProb": 0.09
+    }
+  }
+}

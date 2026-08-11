@@ -1,0 +1,473 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "shock-g",
+  "type": "artist",
+  "name": "Shock G",
+  "aliases": [
+    "shock g",
+    "gregory jacobs",
+    "humpty hump",
+    "digital underground",
+    "the piano man"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "g-funk"
+  ],
+  "era": "1990-1993",
+  "genres": [
+    "rap",
+    "p-funk",
+    "bay area",
+    "g-funk",
+    "funk",
+    "producer"
+  ],
+  "relatedGenres": [
+    "g-funk",
+    "funk",
+    "boom-bap"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 g-funk — Shock G",
+    "Fat Cap — Shock G breaks down the catalogue — http://fatcapmagazine.blogspot.com/2010/12/shock-g-breaks-down-digital.html",
+    "Rolling Stone — oral history of 2Pac's Digital Underground years — https://www.rollingstone.com/feature/i-get-around-the-oral-history-of-2pacs-digital-underground-years-125475/"
+  ],
+  "notes": "The fastest entry in this batch by a clear margin — 96–108 where the lane's norm is 90–100 — and the only one whose build order is documented backwards. He finishes everything else before the drums: \"that's how I figure out where to put the kick and the snare.\" That is modelled as a kit that answers a busy bass: the highest `kick.densityPerBar`, `syncopation` and `offbeat8thShare` on this axis, five percussion lanes, and a bass with the lowest `followRootsProb` and the highest `anticipationProb` here because the research calls it the leading voice of the groove, highly syncopated with rests. The harmony is real P-Funk played on keys — dominant-7 and 9th vamps over `mixolydian`, with the case-corrected `IV` and `VII` families that a funk vamp actually uses, and Rhodes rather than the parent's portamento worm on top. Full song forms with bridge and breakdown come from his own account, so the arrangement authors a bridge and a long vamp outro. ⚠ `modes` are authored because the parent's Death Row moods pin 90–100 and would have made his own tempo unreachable. ⚠ `medium` per the research's high-medium: the build order and the layer order are quoted, the tempo band and the chord families are read from the catalogue. ⚠ The bass ceiling came down from 48 to 45 so it stays under a chord part that starts at 46 — `coherence.rs` requires the highest bass note to sit at or below the lowest chord note, and this model overlapped by 3.",
+  "session": {
+    "bpm": {
+      "min": 96,
+      "max": 108,
+      "mode": 101
+    },
+    "keys": {
+      "values": [
+        "Gm",
+        "Cm",
+        "Dm",
+        "F",
+        "Bb"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "mixolydian",
+        "dorian",
+        "minor_pentatonic",
+        "major",
+        "blues"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.6
+    },
+    "humanize": {
+      "quantizeStrength": 0.76,
+      "velocityVar": 0.22
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        4,
+        7
+      ],
+      "syncopation": 0.62,
+      "tresilloBias": 0.3,
+      "offbeat8thShare": 0.45
+    },
+    "snare": {
+      "rimshotLayer": true,
+      "ghost": {
+        "prob": 0.34,
+        "pos": [
+          "1a",
+          "2e",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.24,
+          0.46
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.55,
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16T",
+            "32"
+          ],
+          "weights": [
+            4,
+            2
+          ]
+        },
+        "positions": [
+          "pre_snare",
+          "bar_4"
+        ],
+        "freqPerBar": 0.35
+      },
+      "openHat": {
+        "prob": 0.45,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "conga",
+        "bongo",
+        "tambourine",
+        "cowbell",
+        "timbale"
+      ],
+      "densityPerBar": [
+        3,
+        5
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th",
+        "16t"
+      ],
+      "grouping": [
+        "even",
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        52,
+        112
+      ],
+      "rampJitter": 23,
+      "descendProb": 0.3,
+      "gapProb": 0.06
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "IV"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII",
+          "III"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "ii",
+          "v",
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.26,
+      "seventh": 0.52,
+      "ninth": 0.22
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        46,
+        80
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        2,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      64,
+      88
+    ],
+    "densityPerBar": [
+      4,
+      8
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        2,
+        8
+      ],
+      "weights": [
+        3,
+        2,
+        1
+      ]
+    },
+    "intervals": {
+      "step": 0.55,
+      "third": 0.3,
+      "leap": 0.15
+    },
+    "chordToneBias": 0.72,
+    "halfStepDissonance": 0.08,
+    "octaveJumpProb": [
+      0.12,
+      0.24
+    ],
+    "timbreHint": "rhodes"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.6,
+    "styles": {
+      "values": [
+        "arp",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.25,
+    "register": [
+      26,
+      45
+    ],
+    "glideProb": 0.35,
+    "passingTones": [
+      "M2",
+      "m3",
+      "M3",
+      "P4",
+      "P5",
+      "M6",
+      "m7"
+    ],
+    "cellShapes": [
+      [
+        "1",
+        "5",
+        "b7",
+        "1"
+      ],
+      [
+        "1",
+        "b3",
+        "4",
+        "5"
+      ],
+      [
+        "5",
+        "4",
+        "b3",
+        "1"
+      ],
+      [
+        "1",
+        "1",
+        "5",
+        "4"
+      ]
+    ],
+    "anticipationProb": 0.5
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "bridge",
+          "hook",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "hook",
+          "bridge",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": 16,
+      "hook": 8,
+      "bridge": [
+        8,
+        16
+      ],
+      "outro": [
+        8,
+        16
+      ]
+    }
+  },
+  "modes": [
+    {
+      "name": "sex packets",
+      "weight": 4,
+      "session": {
+        "bpm": {
+          "min": 96,
+          "max": 104,
+          "mode": 100
+        }
+      },
+      "drums": {
+        "percs": {
+          "densityPerBar": [
+            3,
+            5
+          ]
+        }
+      },
+      "melody": {
+        "densityPerBar": [
+          4,
+          8
+        ]
+      },
+      "countermelody": {
+        "densityRatio": 0.62
+      }
+    },
+    {
+      "name": "piano man",
+      "weight": 3,
+      "session": {
+        "bpm": {
+          "min": 98,
+          "max": 108,
+          "mode": 103
+        },
+        "humanize": {
+          "quantizeStrength": 0.7,
+          "velocityVar": 0.26
+        }
+      },
+      "drums": {
+        "kick": {
+          "densityPerBar": [
+            3,
+            5
+          ],
+          "syncopation": 0.5
+        },
+        "hihat": {
+          "fillDensity": 0.45
+        }
+      },
+      "chords": {
+        "extensions": {
+          "triad": 0.18,
+          "seventh": 0.52,
+          "ninth": 0.3
+        },
+        "harmonicRhythm": {
+          "values": [
+            "1_per_bar",
+            "2_bars_per_chord"
+          ],
+          "weights": [
+            4,
+            2
+          ]
+        }
+      },
+      "melody": {
+        "densityPerBar": [
+          5,
+          9
+        ],
+        "chordToneBias": 0.8,
+        "timbreHint": "warm_grand_piano"
+      },
+      "bassline": {
+        "followRootsProb": 0.34,
+        "anticipationProb": 0.4
+      }
+    }
+  ]
+}
