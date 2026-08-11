@@ -45,9 +45,30 @@
   color: var(--color-text-3);
 }
 
-.session__select {
-  max-width: 14ch;
+/* ⛔ **The chip owns the box; the combobox must not draw a second one**
+   (TASK-057). A chip is a borderless readout that happens to be editable —
+   giving the picker inside it `Combo`'s own border and surface would put a
+   field inside a field, three times along one strip. The list it opens is
+   `Combo`'s and is styled there; only the trigger is dressed down. */
+.session__chip .combo {
+  width: 14ch;
+}
+
+.session__chip .combo__field {
+  border: 0;
+  background: transparent;
+}
+
+.session__chip .combo__input {
+  padding: 0;
+  font: inherit;
   cursor: pointer;
+}
+
+.session__chip .combo__field:focus-within {
+  outline: 1px solid var(--color-primary);
+  outline-offset: 2px;
+  border-radius: 2px;
 }
 
 .session__number:focus-visible,

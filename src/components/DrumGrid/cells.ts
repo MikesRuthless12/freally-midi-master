@@ -1,4 +1,4 @@
-import type { Lane, Pattern } from '../../lib/ipc-types';
+import type { Lane, Note, Pattern } from '../../lib/ipc-types';
 // ⛔ **The clip's length honours its meter, and this file used to assume common
 // time** — `bars × ppq × 4`. Invisible until TASK-041E made the meter settable,
 // and then wrong in two directions at once: the grid drew a third more columns
@@ -348,6 +348,203 @@ export function clearCell(pattern: Pattern, lane: Lane, column: number): Pattern
     lane,
     notes.filter((note) => !(note.startTick >= from && note.startTick < to)),
   );
+}
+
+/** A cell anywhere in the grid — what a sweep or a selection is made of. */
+export type CellRef = { lane: Lane; column: number };
+
+/**
+ * A cell's identity, for a selection that survives a re-render.
+ *
+ * ⛔ **One spelling, beside the type it names** — the same rule `noteId` follows
+ * for the roll. The key was written out at six call sites, and a selection keyed
+ * one way and read another does not fail loudly: it draws and then cannot be
+ * deleted.
+ */
+export function cellKey(lane: Lane, column: number): string {
+  return `${lane}:${column}`;
+}
+
+/** Group cells by lane, which all three edits below need before they can act. */
+function columnsByLane(targets: readonly CellRef[]): Map<Lane, Set<number>> {
+  const byLane = new Map<Lane, Set<number>>();
+  for (const { lane, column } of targets) {
+    const columns = byLane.get(lane);
+    if (columns === undefined) byLane.set(lane, new Set([column]));
+    else columns.add(column);
+  }
+  return byLane;
+}
+
+/**
+ * Clear many cells at once (TASK-056 #3).
+ *
+ * ⛔ **One pass and one new pattern, rather than folding `clearCell` over the
+ * list.** `editPattern` snapshots on every call and `state/history.ts` lists
+ * `pattern` as discrete, so a right-drag across sixteen cells committed one at a
+ * time would cost sixteen presses of Ctrl+Z to take back one gesture — the same
+ * reason the ruler holds a brace drag outside the pattern until pointerup. A
+ * gesture is one undo step.
+ *
+ * ⚠ Returns the pattern unchanged when the sweep hit nothing, so a drag across
+ * empty cells is free and does not push a snapshot at all.
+ */
+export function clearCells(pattern: Pattern, targets: readonly CellRef[]): Pattern {
+  let next = pattern;
+  for (const [lane, columns] of columnsByLane(targets)) {
+    const notes = notesIn(next, lane);
+    // ⚠ `columnOf` rather than a span test per column: it is the one definition
+    // of which cell a note is drawn in, and half the hits in a generated pattern
+    // sit early of the grid on purpose. A hand-rolled span here is exactly the
+    // drift the header of this module records.
+    const kept = notes.filter((note) => !columns.has(columnOf(note.startTick)));
+    if (kept.length === notes.length) continue;
+    next = withLane(next, lane, kept);
+  }
+  return next;
+}
+
+/**
+ * A block of cells lifted off the grid, ready to be put back somewhere else
+ * (TASK-056 #4).
+ *
+ * ⛔ **Ticks relative to the block's own first column, not absolute ones.** A
+ * roll, a triplet and every humanized hit sit *inside* a cell rather than on its
+ * boundary, and that displacement is what the figure is made of — storing the
+ * cell index and rebuilding on the grid would quantise the copy and hand back
+ * something that is not what was copied. This is the same reason the edits work
+ * on ticks and never on cells.
+ */
+export type CellClip = {
+  /** How many columns the block spans, so a clone knows where to land. */
+  columns: number;
+  /** The column the offsets are measured from — a clone lands `columns` later. */
+  fromColumn: number;
+  /** Which lane each note came from, and how far into the block it sat. */
+  notes: readonly { lane: Lane; offsetTicks: number; note: Note }[];
+};
+
+/**
+ * Lift the selected cells, keeping everything inside them.
+ *
+ * ⚠ `null` when the selection holds no notes: there is nothing to paste, and a
+ * clipboard holding an empty block would let Ctrl+V wipe a region while looking
+ * like it pasted.
+ */
+export function copyCells(pattern: Pattern, targets: readonly CellRef[]): CellClip | null {
+  if (targets.length === 0) return null;
+  // One pass for both ends. Spreading a `map` into `Math.min` allocated a whole
+  // array per bound, and a full-grid selection is over a thousand cells.
+  let first = targets[0].column;
+  let last = first;
+  for (const { column } of targets) {
+    if (column < first) first = column;
+    if (column > last) last = column;
+  }
+  const origin = first * TICKS_PER_16TH;
+
+  const notes: { lane: Lane; offsetTicks: number; note: Note }[] = [];
+  for (const [lane, columns] of columnsByLane(targets)) {
+    for (const note of notesIn(pattern, lane)) {
+      if (!columns.has(columnOf(note.startTick))) continue;
+      notes.push({ lane, offsetTicks: note.startTick - origin, note });
+    }
+  }
+
+  if (notes.length === 0) return null;
+  // ⚠ `fromColumn` travels with the clip so a clone does not have to re-derive
+  // the origin the offsets are already measured from — two definitions of where
+  // a block starts is a clone that pastes to the wrong column the first time
+  // either changes.
+  return { columns: last - first + 1, fromColumn: first, notes };
+}
+
+/**
+ * Put a copied block down with its first column on `atColumn`.
+ *
+ * ⛔ **Each note keeps its own lane.** Sliding the whole block to whichever row
+ * the producer happened to have focused would silently turn a kick pattern into
+ * a crash pattern, and moving one lane's notes to another is what the slot
+ * picker (`reassignLane`) is for. The paste moves in time only.
+ *
+ * ⛔ **The destination is cleared first**, the same rule and for the same reason
+ * as `cloneBar`: merging would double every hit the two blocks share, which
+ * reads as the paste having worked and sounds like a flam.
+ *
+ * ⚠ Anything that would land past the end of the clip is dropped rather than
+ * clamped onto the last cell, which would pile a whole bar onto one column.
+ */
+export function pasteCells(pattern: Pattern, clip: CellClip, atColumn: number): Pattern {
+  const lastColumn = Math.max(0, Math.round(patternTicks(pattern) / TICKS_PER_16TH) - 1);
+  const start = Math.max(0, Math.round(atColumn));
+  const destination = start * TICKS_PER_16TH;
+
+  // ⛔⛔ **The block's footprint is decided in COLUMNS, before a single note is
+  // placed, and that is three bugs in one.**
+  //
+  // Bounding the paste by raw ticks got all three wrong, because a tick is not
+  // a cell: `columnOf` buckets with `EARLY_TOLERANCE`, so a humanized hit sits
+  // up to 40 ticks *before* the column it is drawn in.
+  //  1. A hit early of the block's first column carries a NEGATIVE offset, and
+  //     pasting at column 0 pushed it below zero, where a `startTick < 0` test
+  //     dropped it silently. Half the hits in a generated pattern sit early, so
+  //     the paste lost its downbeat — and only ever at column 0, which reads as
+  //     random.
+  //  2. A hit early of the column *after* the last drawn one passed a
+  //     `startTick < patternTicks` test and landed in a phantom column that
+  //     `toCells` never draws: audible, exported, and impossible to click,
+  //     Delete or right-drag away.
+  //  3. The destination was cleared only where notes happened to arrive, so a
+  //     sparse block pasted over a busy region MERGED with it — the doubling
+  //     the contract above says the clear exists to prevent.
+  //
+  // Deciding the footprint first fixes all three: the columns the block covers
+  // are cleared whether or not the block has a note in each of them, and a note
+  // is kept exactly when the column it will be DRAWN in is inside the grid.
+  const footprint: CellRef[] = [];
+  const lanes = new Set(clip.notes.map((held) => held.lane));
+  for (const lane of lanes) {
+    for (
+      let column = start;
+      column < start + clip.columns && column <= lastColumn;
+      column += 1
+    ) {
+      footprint.push({ lane, column });
+    }
+  }
+  if (footprint.length === 0) return pattern;
+
+  // ⚠ Get-then-push. Rebuilding the array per note is quadratic, and a copied
+  // hat lane is easily a few hundred notes.
+  const arriving = new Map<Lane, Note[]>();
+  for (const { lane, offsetTicks, note } of clip.notes) {
+    const wanted = destination + offsetTicks;
+    // ⚠ Judged on the column it will be DRAWN in, not on its raw tick.
+    const column = columnOf(wanted);
+    if (column < 0 || column > lastColumn) continue;
+    // ⚠ **Clamped rather than dropped.** A hit humanized early of column 0 wants
+    // a negative tick, which no pattern can hold — but losing the note is a far
+    // worse answer than losing the 33 ticks of jitter in front of it. It keeps
+    // its place in the figure and gives up only its lead-in.
+    const startTick = Math.max(0, wanted);
+    const landing = arriving.get(lane);
+    if (landing === undefined) arriving.set(lane, [{ ...note, startTick }]);
+    else landing.push({ ...note, startTick });
+  }
+
+  // ⛔ The destination is cleared through `clearCells`, not through a second
+  // copy of its filter. Which notes a cell holds is one rule, and this function
+  // promises to keep the same one `cloneBar` does.
+  let next = clearCells(pattern, footprint);
+  for (const [lane, notes] of arriving) {
+    // ⛔ **Only into lanes the pattern still has.** `withLane` adds a missing
+    // one, so pasting a copied conga figure after that row had been reassigned
+    // to a bongo brought the conga row back from the dead — a lane the producer
+    // deliberately swapped away, playing and exporting again.
+    if (!next.lanes.some((track) => track.lane === lane)) continue;
+    next = withLane(next, lane, [...notesIn(next, lane), ...notes]);
+  }
+  return next;
 }
 
 /**

@@ -38,7 +38,14 @@ dist-ssr
 /docs/prd.md
 /docs/product-roadmap.md
 /docs/product-vision.md
-/docs/style-research.md
+# ⛔ A GLOB, not the single filename it used to be. The compendium grew a
+# five-volume companion set (`style-research-extended.md`,
+# `-extended-2.md` … `-extended-underground.md`) and the exact-path rule above
+# covered none of them — they sat untracked but NOT ignored, one `git add -A`
+# away from being published. This is the dataset's whole moat: the research is
+# what nobody else has, and `docs/` is what the Pages site publishes from, so a
+# stray commit here is a publication.
+/docs/style-research*.md
 
 # House-convention planning files (same names as the sibling Freally repos)
 *[Bb]uild-[Pp]rompts-[Gg]uide*

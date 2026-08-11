@@ -102,6 +102,33 @@ describe('what a pointer in the strip grabbed', () => {
       kind: 'new',
     });
   });
+
+  it('takes the nearer edge when both are inside the grip', () => {
+    // ⛔⛔ `xOf` is 1 px per 100 ticks, so this loop is 12 px wide — narrower
+    // than `2 × HANDLE_PX`, which is what a short brace looks like on a clip
+    // zoomed out to fit. Between 4 px and 8 px BOTH edges are within a grip,
+    // and taking the first match rather than the nearest handed every one of
+    // those pixels to `from`: aiming at the right edge dragged the left one.
+    const narrow: Region = { fromTick: 0, toTick: 1200 };
+    expect(gripAt(xOf(800), 4, narrow, clipRegion, null, xOf)).toEqual({
+      kind: 'loop',
+      edge: 'to',
+    });
+    expect(gripAt(xOf(400), 4, narrow, clipRegion, null, xOf)).toEqual({
+      kind: 'loop',
+      edge: 'from',
+    });
+  });
+
+  it('keeps the brace ahead of the clip marker when both sit on one tick', () => {
+    // Until someone drags a brace the two are the same ticks, and the brace is
+    // the one a producer reaches for. A tie must not start resizing the clip.
+    const whole: Region = { fromTick: 0, toTick: BAR * 4 };
+    expect(gripAt(xOf(BAR * 4), 4, whole, whole, null, xOf)).toEqual({
+      kind: 'loop',
+      edge: 'to',
+    });
+  });
 });
 
 describe('dragging an edge', () => {

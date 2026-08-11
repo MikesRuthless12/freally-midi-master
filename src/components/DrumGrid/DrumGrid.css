@@ -175,6 +175,29 @@
   background: var(--color-signal);
 }
 
+/* The selection (TASK-056 #4). ⛔ An inset ring rather than a fill: the fill is
+   already saying two things — lit or not, and roll or not — and a third colour
+   in the same channel would make "selected" and "loud" indistinguishable. The
+   ring reads over an empty cell and a lit one alike, which matters because a
+   selection is often drawn across both before a paste. */
+.grid__cell[data-selected] {
+  box-shadow: inset 0 0 0 2px var(--color-signal);
+}
+
+/* The drag-to-select rubber band (TASK-056 #4). Mike, 2026-08-11: *"creates a
+   box as you drag like on windows and then you select multiple drum notes with
+   drag."* Drawn in the signal colour rather than the primary one so it does not
+   read as a lit cell, and translucent so the pattern stays visible underneath —
+   the point of a marquee is to see what you are about to catch. */
+.grid__marquee {
+  position: absolute;
+  z-index: 3;
+  border: 1px solid var(--color-signal);
+  background: color-mix(in srgb, var(--color-signal) 16%, transparent);
+  border-radius: 2px;
+  pointer-events: none;
+}
+
 .grid__playhead {
   position: absolute;
   top: var(--space-3);
@@ -262,30 +285,65 @@
    button and must not push either out of a 5.5rem gutter, so it is a bare
    glyph-width control that grows only its dropdown. The row's name is what a
    producer reads; this is what they reach for to change it. */
+/* The slot picker, an arrow and nothing else (TASK-043A, TASK-057).
+   ⛔ **The arrow IS the control here.** The header has ~1.1rem to spare, which
+   was never enough to show a lane name — the `<select>` this replaced pushed its
+   own text off-screen with `text-indent` for exactly that reason. What changed
+   with `Combo` is the list: it has a minimum width of its own, so a trigger this
+   narrow still opens something readable, and it is drawn by us and anchored to
+   the row rather than by the OS against the window.
+   ⚠ The input keeps zero width rather than `display: none`, because it is the
+   element that carries the `combobox` role, the accessible name and every key
+   the list responds to. Hiding it would take the control away from the keyboard
+   and from a screen reader to save nothing. */
 .grid__slot {
   flex: none;
+  display: inline-flex;
   width: 1.1rem;
-  padding: 0;
+}
+
+.grid__slot .combo {
+  width: 1.1rem;
+}
+
+.grid__slot .combo__field {
+  position: relative;
   border: 0;
   background: none;
-  color: var(--color-text-3);
-  font: inherit;
+}
+
+/* ⛔ **Laid over the arrow, not shrunk to nothing.** Giving the input zero width
+   made it unclickable and unfocusable — the control would have been reachable
+   only by the arrow, which is `aria-hidden` and out of the tab order precisely
+   because the input is supposed to be the control. Covering the arrow instead
+   keeps the whole 1.1rem as one target for the mouse and leaves the input where
+   the keyboard and a screen reader expect it. The text is transparent because a
+   lane name rendered into 1.1rem is a fragment of a letter. */
+.grid__slot .combo__input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  min-width: 0;
+  padding: 0;
+  color: transparent;
   cursor: pointer;
-  /* The native arrow is the affordance; the text behind it would be clipped to
-     nothing at this width and is deliberately not shown. */
-  text-indent: -100vw;
 }
 
-.grid__slot:hover {
-  color: var(--color-text);
+.grid__slot .combo__field:focus-within {
+  outline: 1px solid var(--color-primary);
+  outline-offset: 1px;
+  border-radius: 2px;
 }
 
-/* The options themselves are drawn by the platform, which does not inherit the
-   control's colours — so they get the page's rather than the system's. */
-.grid__slot option {
+.grid__slot .combo__arrow {
+  width: 1.1rem;
+  height: 1.1rem;
+  color: var(--color-text-3);
+}
+
+.grid__slot .combo__arrow:hover,
+.grid__slot .combo__field:focus-within .combo__arrow {
   color: var(--color-text);
-  background: var(--color-surface-2);
-  text-indent: 0;
 }
 
 /* The per-lane lock (TASK-044). ⛔ Lit in the primary colour rather than the
@@ -307,6 +365,54 @@
 
 .grid__lock[aria-pressed='true'] {
   color: var(--color-primary);
+}
+
+/* ⛔⛔ **The lock and the fill collapse until the row is reached for, and that
+   is what gives the lane its NAME back.** `--grid-label` is 5.5rem and was
+   holding a lock, a mute, a solo, the name, the slot picker and (on the hat
+   rows) a fill — 70–82px of fixed controls, leaving roughly 6–18px for the
+   name, so every row read as `S…` or `K…`. The name is also the audition button
+   (TASK-043 — *"clicking a lane's header plays that lane's sound on its own"*),
+   so the largest and most-clicked thing in the header was the one squeezed out.
+   Mike chose this fix over widening the column, 2026-08-11.
+
+   ⚠ **Width, not just opacity.** Fading them would leave the space reserved and
+   the name would still have nowhere to go; collapsing the width is the whole
+   point.
+
+   ⛔ **A LOCKED lane keeps its padlock at all times.** Hiding it would make a
+   lane that is locked look identical to one that is not until the pointer
+   happens to pass over it — the readout-that-lies failure, in the control whose
+   only job is to report state. Mute and solo are never hidden for the same
+   reason; only the fill, which has no state, hides unconditionally.
+
+   ⚠ `:focus-within` is not decoration: the buttons stay in the tab order while
+   collapsed, so tabbing to one reveals it rather than moving focus to something
+   invisible. */
+.grid__lock,
+.grid__fill {
+  width: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition:
+    width 100ms ease,
+    opacity 100ms ease;
+}
+
+.grid__row:hover .grid__lock,
+.grid__row:hover .grid__fill,
+.grid__row:focus-within .grid__lock,
+.grid__row:focus-within .grid__fill,
+.grid__lock[aria-pressed='true'] {
+  width: 12px;
+  opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grid__lock,
+  .grid__fill {
+    transition: none;
+  }
 }
 
 /* The dimmed tint the task asks for. ⚠ Deliberately *lighter* than a mute's

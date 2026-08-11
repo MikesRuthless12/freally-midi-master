@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { pickArtist } from './app';
+import { pickArtist, pickCombo } from './app';
 
 /**
  * The pattern library (TASK-045A).
@@ -70,18 +70,32 @@ test('the filters offer only what the library actually holds', async ({ page }) 
   // filter offering "Bassline" over a library with no basslines in it is a
   // control that can only ever produce an empty list — the producer clicks it,
   // sees nothing, and cannot tell a working filter from a lost pattern.
-  const parts = page.getByLabel('Filter by part');
-  await expect(parts.locator('option')).toHaveCount(2);
-  await expect(parts.locator('option').nth(1)).toHaveText('Drums');
+  //
+  // ⚠ Comboboxes since TASK-057, so the options live in a portalled listbox
+  // that only exists while the field is open — a `<select>`'s were always in
+  // the DOM.
+  const parts = page.getByRole('combobox', { name: 'Filter by part' });
+  await parts.click();
+  const partOptions = page.getByRole('listbox', { name: 'Filter by part' }).getByRole('option');
+  await expect(partOptions).toHaveCount(2);
+  await expect(partOptions.nth(1)).toHaveText('Drums');
+  await page.keyboard.press('Escape');
 
-  const artists = page.getByLabel('Filter by artist');
-  await expect(artists.locator('option')).toHaveCount(2);
+  const artists = page.getByRole('combobox', { name: 'Filter by artist' });
+  await artists.click();
+  await expect(
+    page.getByRole('listbox', { name: 'Filter by artist' }).getByRole('option'),
+  ).toHaveCount(2);
+  await page.keyboard.press('Escape');
 
   // Choosing the one that is there keeps the row; going back to "all" keeps it
   // too, so the filter is a narrowing rather than a mode.
-  await parts.selectOption({ index: 1 });
+  await pickCombo(page, 'Filter by part', 'Drums');
+  await expect(parts).toHaveValue('Drums');
   await expect(page.locator('.patterns__item')).toHaveCount(1);
-  await parts.selectOption('');
+
+  await pickCombo(page, 'Filter by part', 'All parts');
+  await expect(parts).toHaveValue('All parts');
   await expect(page.locator('.patterns__item')).toHaveCount(1);
 });
 

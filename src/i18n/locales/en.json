@@ -1,7 +1,8 @@
 {
   "titlebar": {
     "settings": "Settings",
-    "about": "About"
+    "about": "About",
+    "shortcuts": "Keyboard shortcuts"
   },
   "tabs": {
     "group": "Generator",
@@ -393,7 +394,11 @@
       "generate": "Generate this part",
       "generateAll": "Generate every part",
       "pickGenerator": "Pick a generator",
-      "redo": "Redo"
+      "redo": "Redo",
+      "selectBox": "Drag a box to select cells",
+      "addCell": "Add a cell to the selection",
+      "rollPalette": "Roll palette for this cell",
+      "wipeCells": "Wipe every cell dragged over"
     }
   },
   "explorer": {

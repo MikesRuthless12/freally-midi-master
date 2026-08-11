@@ -13,8 +13,17 @@ import { patternTicks } from './notes';
 /** The strip's height in CSS pixels. */
 export const RULER_HEIGHT = 24;
 
-/** How near a handle a pointer has to be to have meant it. */
-export const HANDLE_PX = 6;
+/**
+ * How near a handle a pointer has to be to have meant it.
+ *
+ * ⚠ **Eight, not six.** Mike asked to resize a loop by dragging its edge and
+ * reported redrawing it instead — a 12 px band on a 24 px strip that also
+ * seeks on click and draws on drag is small enough that missing it is the
+ * common case, and missing it is not a no-op: it lays down a new brace over the
+ * one being aimed at. Sixteen still leaves the two edges of a one-bar loop
+ * separately grabbable at any zoom the roll opens on.
+ */
+export const HANDLE_PX = 8;
 
 /**
  * The band the stretch handles live in.
@@ -65,23 +74,52 @@ export function gripAt(
   stretch: Region | null,
   xOf: (tick: number) => number,
 ): Grip {
-  const near = (tick: number) => Math.abs(x - xOf(tick)) <= HANDLE_PX;
+  /**
+   * ⛔⛔ **The nearest handle wins, not the first one tested.** This walked the
+   * handles in priority order and took the first within `HANDLE_PX`, which is a
+   * different rule from the one its own test was named for — and the two only
+   * disagree when handles are within a grip of each other, which is precisely a
+   * short loop. A loop narrower than `2 × HANDLE_PX` on screen matched
+   * `from` for every pixel of itself, so its right edge could not be grabbed at
+   * all: dragging it moved the left edge instead. Widening the grip would have
+   * made that reach *further*.
+   */
+  let best: { grip: Grip; distance: number } | null = null;
+  const consider = (grip: Grip, tick: number) => {
+    const distance = Math.abs(x - xOf(tick));
+    // ⚠ Strictly nearer, so an equal distance keeps the candidate offered first
+    // — which is what makes the ordering below a tie-break rather than decoration.
+    if (distance <= HANDLE_PX && (best === null || distance < best.distance)) {
+      best = { grip, distance };
+    }
+  };
 
+  // ⛔⛔ **The stretch band is exclusive, and nearest-wins does not apply across
+  // it.** `STRETCH_BAND_TOP` exists because a selection's outer edge and the
+  // loop's end are frequently the *same tick* — a producer loops what they
+  // selected — so the two are separated by y rather than by x. Letting a loop
+  // edge compete on distance inside the band undid exactly that: with the last
+  // note ending a few pixels short of the brace, pressing on the stretch handle
+  // resized the loop instead of stretching the notes, and the loop end silently
+  // jumped to wherever the pointer was released. Below the line, the stretch
+  // handles are the only candidates there are.
   if (stretch !== null && y >= STRETCH_BAND_TOP) {
-    if (near(stretch.fromTick)) return { kind: 'stretch', edge: 'from' };
-    if (near(stretch.toTick)) return { kind: 'stretch', edge: 'to' };
+    consider({ kind: 'stretch', edge: 'from' }, stretch.fromTick);
+    consider({ kind: 'stretch', edge: 'to' }, stretch.toTick);
+    if (best !== null) return (best as { grip: Grip }).grip;
   }
 
-  if (near(loop.fromTick)) return { kind: 'loop', edge: 'from' };
-  if (near(loop.toTick)) return { kind: 'loop', edge: 'to' };
+  consider({ kind: 'loop', edge: 'from' }, loop.fromTick);
+  consider({ kind: 'loop', edge: 'to' }, loop.toTick);
 
-  // ⛔ The clip markers are tested *after* the loop's, because until someone
+  // ⛔ The clip markers are considered *after* the loop's, because until someone
   // drags a brace the two sit on exactly the same ticks — and the brace is the
-  // one a producer reaches for first.
-  if (near(clip.fromTick)) return { kind: 'clip', edge: 'from' };
-  if (near(clip.toTick)) return { kind: 'clip', edge: 'to' };
+  // one a producer reaches for first. A tie keeps the earlier candidate, so this
+  // order is still the tie-break it always was.
+  consider({ kind: 'clip', edge: 'from' }, clip.fromTick);
+  consider({ kind: 'clip', edge: 'to' }, clip.toTick);
 
-  return { kind: 'new' };
+  return best === null ? { kind: 'new' } : (best as { grip: Grip }).grip;
 }
 
 /**

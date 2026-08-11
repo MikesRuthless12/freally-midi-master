@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next';
 
+import { Combo } from '../Combo/Combo';
 import { SCALES } from '../SessionChips/values';
 import { useEditing } from '../../state/editing';
 import { useSession } from '../../state/session';
@@ -63,38 +64,40 @@ export function RollBar({
 
   return (
     <div className="rollbar">
-      <label className="rollbar__field">
+      {/* ⛔⛔ **Not native `<select>`s** (TASK-057). A `<select>` popup inside
+          WebView2 is drawn by the OS, positioned against the *window* rather
+          than the field and at OS scale — Mike screenshotted it. These three
+          escaped the first sweep only because their lists are short, which is
+          luck rather than a reason: the popup is misplaced whatever is in it.
+          ⚠ `<div>` rather than `<label>` around each: a `<label>` wrapping a
+          combobox refocuses the input on every click inside it, including the
+          arrow button whose whole job is to toggle the list. The visible text
+          stays; `Combo`'s `label` is what names the field to assistive tech. */}
+      <div className="rollbar__field">
         <span className="rollbar__label">{t('roll.snapLabel')}</span>
-        <select
-          className="rollbar__select"
+        <Combo
+          label={t('roll.snapLabel')}
+          // ⛔ Only `off` is translated. `1/16` and `1/8T` are notation, not
+          // words — a locale that rendered them differently would be showing
+          // a producer a grid they cannot name.
+          options={SNAP_VALUES.map((value) => ({
+            id: value,
+            name: value === 'off' ? t('roll.snapOff') : value,
+          }))}
           value={snap}
-          onChange={(event) => setSnap(event.target.value as Snap)}
-        >
-          {SNAP_VALUES.map((value) => (
-            // ⛔ Only `off` is translated. `1/16` and `1/8T` are notation, not
-            // words — a locale that rendered them differently would be showing
-            // a producer a grid they cannot name.
-            <option key={value} value={value}>
-              {value === 'off' ? t('roll.snapOff') : value}
-            </option>
-          ))}
-        </select>
-      </label>
+          onChange={(id) => setSnap(id as Snap)}
+        />
+      </div>
 
-      <label className="rollbar__field">
+      <div className="rollbar__field">
         <span className="rollbar__label">{t('roll.scaleLabel')}</span>
-        <select
-          className="rollbar__select"
+        <Combo
+          label={t('roll.scaleLabel')}
+          options={SCALES.map((value) => ({ id: value, name: t(`scales.${value}`) }))}
           value={scale}
-          onChange={(event) => setPin('scale', event.target.value as Scale)}
-        >
-          {SCALES.map((value) => (
-            <option key={value} value={value}>
-              {t(`scales.${value}`)}
-            </option>
-          ))}
-        </select>
-      </label>
+          onChange={(id) => setPin('scale', id as Scale)}
+        />
+      </div>
 
       {/*
         The clip's meter (TASK-041E).
@@ -105,20 +108,15 @@ export function RollBar({
         opens as 4/4 in a DAW. The pin is what the next Generate inherits, and
         `host.rs::session_for` lets it beat the host's own project meter.
       */}
-      <label className="rollbar__field">
+      <div className="rollbar__field">
         <span className="rollbar__label">{t('roll.meterLabel')}</span>
-        <select
-          className="rollbar__select"
+        <Combo
+          label={t('roll.meterLabel')}
+          options={meters.map((value) => ({ id: value, name: value }))}
           value={meter}
-          onChange={(event) => setMeter(event.target.value)}
-        >
-          {meters.map((value) => (
-            <option key={value} value={value}>
-              {value}
-            </option>
-          ))}
-        </select>
-      </label>
+          onChange={setMeter}
+        />
+      </div>
 
       <button
         type="button"

@@ -1,4 +1,5 @@
-//! Windows resources for the standalone executable.
+//! Windows resources for the standalone executable, and the one dependency
+//! cargo cannot work out for itself: the embedded dataset.
 //!
 //! Without this the standalone ships with the stock Rust/MSVC application icon —
 //! a blank window frame in the taskbar, in Explorer and in Alt-Tab. The plugin
@@ -27,6 +28,24 @@ fn main() {
     // which relinks the standalone on every edit.
     println!("cargo:rerun-if-changed=icon.ico");
     println!("cargo:rerun-if-changed=build.rs");
+
+    // ⛔ **The dataset is compiled into the plugin, and cargo cannot see that.**
+    // `dataset.rs` does `include_dir!("$CARGO_MANIFEST_DIR/../data")`, which
+    // reads every model at *compile* time. A macro's file reads are invisible to
+    // cargo's dependency graph, so editing a model changes no Rust source, the
+    // crate is judged fresh, and the plugin keeps serving the roster it was last
+    // built with — a stale genre list with nothing anywhere saying so.
+    //
+    // Found on 2026-08-10 by `the_embedded_copy_matches_the_one_on_disk`, and
+    // only because a model happened to be edited between two builds. Without
+    // this line that test is load-bearing by luck: it compares the embedded copy
+    // against `data/`, but a build that never re-embedded still passes whenever
+    // the two happen to agree.
+    //
+    // ⚠ This does mean any model edit relinks the plugin. That is the cost of
+    // the data being *in* the binary, and it is the correct trade against
+    // shipping a roster that silently does not match the dataset.
+    println!("cargo:rerun-if-changed=../data");
 
     #[cfg(target_os = "windows")]
     {

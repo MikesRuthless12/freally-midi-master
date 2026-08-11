@@ -1,7 +1,8 @@
 {
   "titlebar": {
     "settings": "Paramètres",
-    "about": "À propos"
+    "about": "À propos",
+    "shortcuts": "Raccourcis clavier"
   },
   "tabs": {
     "group": "Générateur",
@@ -393,7 +394,11 @@
       "generate": "Générer cette partie",
       "generateAll": "Générer toutes les parties",
       "pickGenerator": "Choisir un générateur",
-      "redo": "Rétablir"
+      "redo": "Rétablir",
+      "selectBox": "Faire glisser un cadre pour sélectionner des cellules",
+      "addCell": "Ajouter une cellule à la sélection",
+      "rollPalette": "Palette de roulements de cette cellule",
+      "wipeCells": "Effacer toutes les cellules survolées"
     }
   },
   "explorer": {

@@ -194,19 +194,13 @@ pub fn generate(
     // `densityRatio` is the last word on how many notes there are.
     thin(&mut notes, wanted, &mut place_rng);
 
-    notes.retain(|note| note.start_tick < ctx.total_ticks());
-    for note in &mut notes {
-        note.len_ticks = note
-            .len_ticks
-            .max(1)
-            .min(ctx.total_ticks() - note.start_tick);
-    }
-
     notes.sort_by_key(|note| (note.start_tick, note.pitch));
-    LaneTrack {
+    let mut track = LaneTrack {
         lane: Lane::Counter,
         notes,
-    }
+    };
+    super::fit_track_to_clip(&mut track, ctx);
+    track
 }
 
 /// The counter's register: the melody's, shifted by `offset`.

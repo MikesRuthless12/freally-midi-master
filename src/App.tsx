@@ -293,6 +293,7 @@ function Studio() {
       <TransportBar
         onOpenSettings={() => setSettingsOpen(true)}
         onOpenAbout={() => setAboutOpen(true)}
+        onOpenShortcuts={() => setShortcutsOpen(true)}
       />
 
       {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}

@@ -18,6 +18,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { Combo } from '../Combo/Combo';
 import { invoke } from '../../lib/ipc';
 import type { Song } from '../../lib/ipc-types';
 
@@ -73,27 +74,32 @@ export function StructureChips({ song, styleId, structure, onPick }: Props) {
         ))}
       </ol>
 
+      {/* ⛔⛔ **Not a native `<select>`** (TASK-057) — its popup is drawn by the
+          OS against the window rather than the field inside WebView2.
+          ⚠ And this is the list most hurt by that: a form's name is every one of
+          its sections joined together, so these rows are the widest in the app
+          and the OS popup sized itself to the window rather than to them.
+          ⚠ `<div>` rather than `<label>` for the reason `SessionChips` gives. */}
       {forms.length > 1 && (
-        <label className="song__structure-pick">
+        <div className="song__structure-pick">
           <span className="song__structure-pick-label">{t('song.form')}</span>
-          <select
+          <Combo
+            label={t('song.form')}
+            // ⛔ First, and it is the default: absence means "the artist
+            // chooses", sampled from the weights the model authored. That is
+            // the same meaning absence carries for every pin in this app, and
+            // it is what makes two generations differ.
+            options={[
+              { id: '', name: t('song.formAny') },
+              ...forms.map((sections, index) => ({
+                id: String(index),
+                name: sections.map((name) => t(`song.kind.${chipKey(name)}`)).join(' · '),
+              })),
+            ]}
             value={structure === null ? '' : String(structure)}
-            onChange={(event) =>
-              onPick(event.target.value === '' ? null : Number(event.target.value))
-            }
-          >
-            {/* ⛔ First, and it is the default: absence means "the artist
-                chooses", sampled from the weights the model authored. That is
-                the same meaning absence carries for every pin in this app, and
-                it is what makes two generations differ. */}
-            <option value="">{t('song.formAny')}</option>
-            {forms.map((sections, index) => (
-              <option key={index} value={index}>
-                {sections.map((name) => t(`song.kind.${chipKey(name)}`)).join(' · ')}
-              </option>
-            ))}
-          </select>
-        </label>
+            onChange={(id) => onPick(id === '' ? null : Number(id))}
+          />
+        </div>
       )}
     </div>
   );

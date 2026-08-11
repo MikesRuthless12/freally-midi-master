@@ -318,13 +318,14 @@ pub fn generate(
                 continue;
             }
 
+            // ⚠ Not clamped to the pattern here — [`super::fit_to_clip`] is the
+            // one place that rule lives now, and it runs on the finished lane.
             let len = if staccato {
                 grid::SIXTEENTH.min(onset.len)
             } else {
                 onset.len
             }
-            .max(1)
-            .min(ctx.total_ticks() - start);
+            .max(1);
 
             let mut vel = if onset.strong {
                 MELODY_VELOCITY.saturating_add(ACCENT)
@@ -369,10 +370,12 @@ pub fn generate(
     }
 
     notes.sort_by_key(|note| (note.start_tick, note.pitch));
-    LaneTrack {
+    let mut track = LaneTrack {
         lane: Lane::Melody,
         notes,
-    }
+    };
+    super::fit_track_to_clip(&mut track, ctx);
+    track
 }
 
 /// The register, clamped to MIDI and to being the right way round.

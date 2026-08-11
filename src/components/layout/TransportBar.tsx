@@ -1,5 +1,6 @@
 import {
   Info,
+  Keyboard,
   Monitor,
   Moon,
   PanelRight,
@@ -247,9 +248,11 @@ export function TransportControls() {
 export function TransportBar({
   onOpenSettings,
   onOpenAbout,
+  onOpenShortcuts,
 }: {
   onOpenSettings: () => void;
   onOpenAbout: () => void;
+  onOpenShortcuts: () => void;
 }) {
   const { t } = useTranslation();
   const rightRailOpen = useUi((s) => s.rightRailOpen);
@@ -295,6 +298,25 @@ export function TransportBar({
         title={t('titlebar.settings')}
       >
         <Settings2 size={14} aria-hidden="true" />
+      </button>
+
+      {/* ⛔⛔ **The shortcuts panel had no button at all until 2026-08-11** —
+          `?` and `F1` were the only way in, which makes the one panel whose
+          entire job is telling a producer what the keys do reachable only by
+          already knowing a key. Mike asked where it was: *"i haven't tried
+          looking for it, is it in the top right of the app?"* It was nowhere.
+          ⚠ It sits beside Settings and About because those are the other two
+          "tell me about the app" doors, and a producer hunting for one will
+          find all three. */}
+      <button
+        type="button"
+        className="btn-ghost"
+        data-testid="open-shortcuts"
+        onClick={onOpenShortcuts}
+        aria-label={t('titlebar.shortcuts')}
+        title={t('titlebar.shortcuts')}
+      >
+        <Keyboard size={14} aria-hidden="true" />
       </button>
 
       <button

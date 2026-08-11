@@ -208,6 +208,35 @@ mod key_tests {
     }
 }
 
+/// Is this pitch one of the key's own notes?
+///
+/// ⛔ **The same `(pitch - key_root).rem_euclid(12)` test was hand-rolled in
+/// five places** — `bass.rs` twice, `chords.rs`, `melody.rs` and `coherence.rs`
+/// — because `theory` owned every other statement about a key and not this one.
+/// It is a question about a key, so it lives with the key.
+pub fn in_scale(pitch: i32, key_root: u8, degrees: &[u8]) -> bool {
+    degrees.contains(&((pitch - i32::from(key_root)).rem_euclid(12) as u8))
+}
+
+/// The nearest pitch that *is* one of the key's own notes.
+///
+/// ⚠ **Ties resolve downward**, and that is a musical decision rather than an
+/// implementation detail: a line repaired onto the note below keeps its shape
+/// where one pushed up would invert it. Stated once here so the next caller
+/// inherits the choice instead of re-deciding it.
+///
+/// Searches ±6 semitones, which always finds something — no scale in
+/// [`scale_semitones`] has a gap that wide.
+pub fn nearest_scale_tone(pitch: i32, key_root: u8, degrees: &[u8]) -> i32 {
+    if in_scale(pitch, key_root, degrees) {
+        return pitch;
+    }
+    (1..=6)
+        .flat_map(|delta| [pitch - delta, pitch + delta])
+        .find(|candidate| in_scale(*candidate, key_root, degrees))
+        .unwrap_or(pitch)
+}
+
 /// The semitones of a scale's degrees, from its root.
 ///
 /// The generators ask for this in two different ways and both are here: a

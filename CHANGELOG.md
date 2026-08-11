@@ -12,6 +12,98 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added — the drum grid becomes an editor, 2026-08-11
+
+- **Drag a box to select.** Shift-drag draws a rubber band and selects every cell
+  inside it — the whole rectangle, not just the cells the pointer crossed.
+- **Copy, paste, clone and delete a selection.** `Ctrl+C`, `Ctrl+V`, `Ctrl+D` and
+  `Delete`, with `Ctrl+click` to add a single cell. A copied triplet pastes back
+  as a triplet: the clipboard keeps the real note timing rather than snapping it
+  to the grid.
+- **Right-click and drag to wipe.** One gesture clears every cell it crosses, and
+  one `Ctrl+Z` puts them all back. A right-click that does not travel still opens
+  the roll palette.
+- **The lane names are readable again.** The lock and the fill button now appear
+  when you reach for a row, which gives the name back the space it needs — it had
+  been rendering as a single letter. A locked padlock stays visible whatever the
+  pointer is doing, because a lock you cannot see is a lock you forget you set.
+
+### Added — the keyboard shortcuts panel, 2026-08-11
+
+- **It has a button now**, next to Settings and About. It was reachable only by
+  pressing `?` or `F1` — a panel whose entire job is telling you what the keys do,
+  findable only if you already knew a key.
+- **It fits on one screen.** Four columns across the window instead of one long
+  scrolling list, and the drum grid's own gestures are documented for the first
+  time, in all eighteen languages.
+
+### Fixed — 2026-08-11
+
+- **Every note is visible when a clip is generated, vertically as well as
+  horizontally.** A melody spanning two octaves had notes above and below the
+  visible rows; the roll now sizes its rows to the clip's own register and
+  centres it, rather than pinning it to the top with the leftover space below.
+- **The loop brace can be resized by its edges.** Two things were wrong: the grip
+  took the *first* handle in range rather than the nearest, so a short loop's
+  right edge could not be grabbed at all — and the whole ruler showed a resize
+  cursor, which made the one band that resizes invisible. Missing it drew a new
+  loop over the one you were aiming at.
+- **The last ten native dropdowns are gone.** Their menus were drawn by the OS
+  against the window rather than the field, which is why they appeared detached
+  and at the wrong size.
+- **Ten defects found by review of the above, each fixed with a test watched
+  failing first.** Four were in the drum grid's paste, all from measuring it in
+  ticks when the grid thinks in columns: a humanized-early hit vanished when
+  pasted at the first cell, a sparse figure pasted over a dense region kept the
+  dense one's extra hits, a note could land past the end of the grid where no
+  cell draws it, and a paste could bring back a lane you had reassigned away.
+  The rest: the stretch band stopped being exclusive, a shift-click whose Shift
+  was released before the mouse button edited the pattern, `Ctrl+Shift+click`
+  emptied the selection it was meant to add to, `Ctrl+C` on an empty selection
+  destroyed the clipboard, and a selection outlived the pattern it was drawn on.
+
+### Added — 32 new genres, 2026-08-10
+
+- **The genre list goes from 20 to 52.** New this release: **dark plugg**,
+  **Detroit bounce**, **Jersey club**, **ATL swag rap**, **UK underground**,
+  **EDM rage**, **digicore**, **jump-up DnB**, **neurofunk**, **jungle**,
+  **pop DnB**, **UK garage**, **house**, **dance pop**, **pop 2020s**,
+  **country pop**, **country shuffle**, **neo-soul**, **funk**, **future bass**,
+  **afrobeats**, **amapiano**, **dancehall**, **reggaeton**, **baile funk**,
+  **afroswing**, **Memphis rap**, **G-funk**, **lo-fi hip hop**, **sexy drill**,
+  **hyphy** and **crunk**.
+- Each one writes its own drums, chords, melody, countermelody and bassline —
+  none of them inherits a part wholesale — and each arrives with three moods, so
+  picking a genre gives you three different records rather than one.
+- Every genre is measured against the rest of the roster: no two produce the same
+  beat, the same fill or the same melodic part more often than chance allows.
+
+### Fixed — a note could sustain past the end of the pattern, 2026-08-10
+
+- **Drum hits on the last 16th no longer run past the end of the loop.** A ghost
+  snare nudged late, or a tambourine on the final subdivision, could carry its
+  length beyond the pattern — so the clip you dragged out held a note the bar had
+  no room for. The other four generators had always trimmed; the kit never did.
+
+### Fixed — basslines could wander out of key, 2026-08-10
+
+- **A chromatic bass note now lands somewhere.** Passing tones are written as an
+  interval off the *chord*, and over an ordinary chord that interval can leave the
+  key — so the bass would play a note that was reached from nowhere and led
+  nowhere. It now approaches the note it precedes, the way a bass player walks
+  into a change, and a figure that never asked to be chromatic stays in the key.
+  Walked flat sevenths and blue notes are kept: those are the idiom, not the bug.
+- **A bass no longer plays above the chords it is holding up** in the models where
+  the two registers overlapped, and four models whose bass doubled their own 808
+  note-for-note now play a real second part.
+
+### Fixed — the plugin could ship a stale genre list, 2026-08-10
+
+- **Editing a style model now rebuilds the plugin.** The dataset is compiled into
+  the binary, but nothing told the build system to watch it — so a plugin built
+  after a model changed could keep serving the roster it was compiled with, with
+  nothing anywhere saying so.
+
 ### Fixed — the File Explorer could not open a subfolder, and it was breaking four other things too, 2026-08-10
 
 - **You can browse into subfolders again — at any depth.** Opening a library

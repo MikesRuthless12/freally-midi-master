@@ -4,6 +4,15 @@ import { ChevronDown } from 'lucide-react';
 
 import './Combo.css';
 
+/**
+ * How narrow the open list is allowed to get, whatever the field measures.
+ *
+ * Wide enough for the longest lane name the drum grid's slot picker offers,
+ * which is the narrowest trigger in the app and therefore the one that sets
+ * this number.
+ */
+const MIN_MENU_PX = 176;
+
 export type ComboOption = {
   id: string;
   name: string;
@@ -123,7 +132,17 @@ export function Combo({
     const below = field.bottom + 2;
     const top =
       below + height > window.innerHeight - 8 ? Math.max(8, field.top - height - 2) : below;
-    setAt({ top, left: field.left, width: field.width });
+    // ⛔ **The menu may be wider than the field it belongs to** (TASK-057). It
+    // matched the field exactly, which is right for a rail and impossible for a
+    // trigger — the drum grid's slot picker is an arrow barely wider than its
+    // own glyph, and a list of lane names measured from *that* would be a column
+    // of ellipses. Anchored to the field's leading edge either way, so it still
+    // reads as belonging to the control.
+    const width = Math.max(field.width, MIN_MENU_PX);
+    // Pulled back inside the window when widening would push it off the right
+    // edge, which is where a narrow trigger in a right-hand panel would put it.
+    const left = Math.max(8, Math.min(field.left, window.innerWidth - width - 8));
+    setAt({ top, left, width });
   }, [open, narrowed.length]);
 
   // ⛔ **Every exit lands on a real selection.** Committing the top match is the

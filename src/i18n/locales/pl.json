@@ -1,7 +1,8 @@
 {
   "titlebar": {
     "settings": "Ustawienia",
-    "about": "O programie"
+    "about": "O programie",
+    "shortcuts": "Skróty klawiszowe"
   },
   "tabs": {
     "group": "Generator",
@@ -393,7 +394,11 @@
       "generate": "Generuj tę partię",
       "generateAll": "Generuj wszystkie partie",
       "pickGenerator": "Wybierz generator",
-      "redo": "Ponów"
+      "redo": "Ponów",
+      "selectBox": "Przeciągnij ramkę, aby zaznaczyć komórki",
+      "addCell": "Dodaj komórkę do zaznaczenia",
+      "rollPalette": "Paleta werbli dla tej komórki",
+      "wipeCells": "Wyczyść wszystkie przeciągnięte komórki"
     }
   },
   "explorer": {

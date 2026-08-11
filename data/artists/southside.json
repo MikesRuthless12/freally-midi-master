@@ -346,5 +346,19 @@
   },
   "kit": {
     "preview": "trap-default"
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.5,
+    "register": [
+      28,
+      44
+    ],
+    "glideProb": 0.2,
+    "passingTones": [
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.3
   }
 }

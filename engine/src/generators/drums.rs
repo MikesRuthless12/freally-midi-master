@@ -726,7 +726,21 @@ pub fn generate(model: &StyleModel, ctx: &SessionContext, seed: u64) -> Vec<Lane
     let mut perc_rng = rng::stream(seed, "drums/percs");
     percs(&mut kit, drums, ctx, &tiers, &mut perc_rng);
 
-    kit.into_lanes()
+    // ⛔ **The kit had no clip boundary at all**, so a hit on the final 16th — a
+    // `4a` ghost nudged late by `offGridMs`, a tambourine on the last
+    // subdivision — carried its length past the end of the pattern. Found only
+    // by widening `coherence::combinations` from twenty (model, seed) pairs to
+    // every model across eight seeds; the model it caught first,
+    // `west-coast-club`, had shipped that way the whole time.
+    //
+    // ▶ [`super::fit_to_clip`] is the seam every generator goes through, rather
+    // than a fifth hand-written copy of the same rule. ⚠ The alternative was
+    // deleting authored ghost and percussion positions out of four models to
+    // work around one missing clamp — fixing the data to suit a defect in the
+    // code.
+    let mut lanes = kit.into_lanes();
+    super::fit_to_clip(&mut lanes, ctx);
+    lanes
 }
 
 /// A velocity authored as a fraction of full scale, e.g. `[0.8, 1.0]`.

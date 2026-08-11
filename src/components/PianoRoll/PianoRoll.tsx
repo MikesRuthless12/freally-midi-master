@@ -238,6 +238,11 @@ export function PianoRoll({
    * nothing. That is the same "indistinguishable from a failure" trap
    * `CenterStage` avoids by not drawing an empty grid at all.
    *
+   * ⛔ **It sets the row height too, which is the half that was missing.**
+   * Scrolling to the register only ever showed as many semitones as the current
+   * row height happened to allow; a two-octave melody was still cropped at both
+   * ends. `frameTo` is to the vertical what `fitTo` is to the horizontal.
+   *
    * ⛔ **Keyed on the pattern's id, not on the pattern object.** Every note edit
    * produces a new object; re-framing on those would yank the view back mid-edit
    * every time a note was dragged, which is unusable. A new id means a new
@@ -250,14 +255,9 @@ export function PianoRoll({
     if (notes.length === 0) return;
 
     const height = wrapRef.current?.clientHeight ?? 0;
-    const rows = Math.max(1, Math.floor(height / rowHeight));
-    const highest = Math.max(...notes.map((note) => note.pitch));
-    const lowest = Math.min(...notes.map((note) => note.pitch));
-    // Centre the written range, then leave a row of air above the top note so it
-    // does not sit flush against the ruler.
-    const middle = Math.round((highest + lowest) / 2);
-    useEditing.getState().scrollTo(0, Math.min(127, middle + Math.floor(rows / 2)));
-  }, [pattern.id, notes, rowHeight]);
+    const pitches = notes.map((note) => note.pitch);
+    useEditing.getState().frameTo(Math.max(...pitches), Math.min(...pitches), height);
+  }, [pattern.id, notes]);
 
   // The two pixels the renderer floors a note at, in this view's own ticks —
   // so a note is clickable over exactly the span it is drawn over.
