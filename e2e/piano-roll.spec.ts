@@ -1,4 +1,5 @@
 import { expect, test, type Locator, type Page } from '@playwright/test';
+import { pickCombo } from './app';
 
 /**
  * The piano roll's gestures (TASK-041, TASK-041A).
@@ -110,8 +111,19 @@ test('double-clicking empty canvas draws a note there', async ({ page }) => {
 
   // A pitch the mock's pentatonic figure does not use, so the row is certainly
   // empty and the new note is unambiguous.
+  //
+  // ⚠ **Found, not assumed.** This took `topPitch - 1` and stopped being empty
+  // the moment `frameTo` (TASK-056 #2) started framing the clip's own register:
+  // the top row is now one above the highest note, so the row below it is the
+  // highest note's. Asking the notes which rows are free cannot go stale that
+  // way.
   const v = await view(canvas);
-  const emptyPitch = v.topPitch - 1;
+  const used = new Set(before.map((note) => note.pitch));
+  const rowsShown = Math.floor((await canvas.evaluate((el) => el.clientHeight)) / v.rowHeight);
+  const emptyPitch = Array.from({ length: rowsShown }, (_, index) => v.topPitch - index).find(
+    (pitch) => !used.has(pitch),
+  );
+  if (emptyPitch === undefined) throw new Error('every visible row already has a note');
   const at = await pointFor(canvas, v.ppq * 2, emptyPitch);
   await page.mouse.dblclick(at.x, at.y);
 
@@ -254,11 +266,17 @@ test('the roll and the session chip never hold two opinions about the scale', as
   // second copy. Two opinions about the key means the tinted rows say one thing
   // and the next Generate produces another.
   const canvas = await openRoll(page);
-  const picker = page.locator('.rollbar__select').nth(1);
+  // ⚠ A combobox since TASK-057, so it is driven by name rather than by value —
+  // and 41 scales is exactly the list length that made the OS popup unusable.
+  // ⛔ Scoped to the roll bar: the session chip holds a `<select>` for the very
+  // same value, and a `<select>` is a `combobox` to ARIA too — which is the
+  // point of this test and would otherwise make its own locator ambiguous.
+  const bar = page.locator('.rollbar');
+  const picker = bar.getByRole('combobox', { name: 'Scale', exact: true });
 
-  await picker.selectOption('lydian');
+  await pickCombo(bar, 'Scale', 'Lydian');
   await expect.poll(async () => canvas.getAttribute('data-top-pitch')).not.toBeNull();
-  await expect(picker).toHaveValue('lydian');
+  await expect(picker).toHaveValue('Lydian');
 });
 
 test('clicking the keyboard gutter never changes the notes', async ({ page }) => {
@@ -615,10 +633,11 @@ test('the meter picker changes the clip and the bars drawn under it', async ({ p
   // that said 6/8 on screen and 4/4 in the file would be the readout-that-lies
   // failure in its most expensive form: found in another DAW, days later.
   await openRoll(page);
-  const meter = page.locator('.rollbar__select').nth(2);
+  const bar = page.locator('.rollbar');
+  const meter = bar.getByRole('combobox', { name: 'Meter', exact: true });
   await expect(meter).toHaveValue('4/4');
 
-  await meter.selectOption('6/8');
+  await pickCombo(bar, 'Meter', '6/8');
   await expect(meter).toHaveValue('6/8');
 
   // A 6/8 bar is three quarter notes, so the clip's own bar length halves.

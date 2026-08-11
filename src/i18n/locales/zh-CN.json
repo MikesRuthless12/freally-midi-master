@@ -1,7 +1,8 @@
 {
   "titlebar": {
     "settings": "设置",
-    "about": "关于"
+    "about": "关于",
+    "shortcuts": "键盘快捷键"
   },
   "tabs": {
     "group": "生成器",
@@ -393,7 +394,11 @@
       "generate": "生成此声部",
       "generateAll": "生成全部声部",
       "pickGenerator": "选择生成器",
-      "redo": "重做"
+      "redo": "重做",
+      "selectBox": "拖出方框以选择单元格",
+      "addCell": "将单元格加入选区",
+      "rollPalette": "此单元格的滚奏面板",
+      "wipeCells": "清除拖过的所有单元格"
     }
   },
   "explorer": {

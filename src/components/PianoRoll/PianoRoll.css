@@ -42,13 +42,19 @@
   letter-spacing: 0.04em;
 }
 
-.rollbar__select {
-  padding: 2px 4px;
-  color: var(--color-text);
-  font: inherit;
-  background: var(--color-surface-2);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-control, 4px);
+/* ⚠ **The three pickers need a width of their own** (TASK-057). `Combo` is
+   `width: 100%`, and 100% of an inline-flex parent sized by its content is
+   circular — the field collapses to the chevron and the value cannot be read.
+   Wide enough for the longest thing any of them shows, which is a scale name. */
+.rollbar__field .combo {
+  width: 8.5rem;
+}
+
+/* The bar is `--text-micro`; the combobox's own padding is sized for a rail and
+   would make this header twice as tall as the rest of the roll. */
+.rollbar__field .combo__input {
+  padding: 2px var(--space-1);
+  font-size: inherit;
 }
 
 .rollbar__toggle {

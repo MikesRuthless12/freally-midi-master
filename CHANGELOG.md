@@ -12,6 +12,56 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added — the drum grid becomes an editor, 2026-08-11
+
+- **Drag a box to select.** Shift-drag draws a rubber band and selects every cell
+  inside it — the whole rectangle, not just the cells the pointer crossed.
+- **Copy, paste, clone and delete a selection.** `Ctrl+C`, `Ctrl+V`, `Ctrl+D` and
+  `Delete`, with `Ctrl+click` to add a single cell. A copied triplet pastes back
+  as a triplet: the clipboard keeps the real note timing rather than snapping it
+  to the grid.
+- **Right-click and drag to wipe.** One gesture clears every cell it crosses, and
+  one `Ctrl+Z` puts them all back. A right-click that does not travel still opens
+  the roll palette.
+- **The lane names are readable again.** The lock and the fill button now appear
+  when you reach for a row, which gives the name back the space it needs — it had
+  been rendering as a single letter. A locked padlock stays visible whatever the
+  pointer is doing, because a lock you cannot see is a lock you forget you set.
+
+### Added — the keyboard shortcuts panel, 2026-08-11
+
+- **It has a button now**, next to Settings and About. It was reachable only by
+  pressing `?` or `F1` — a panel whose entire job is telling you what the keys do,
+  findable only if you already knew a key.
+- **It fits on one screen.** Four columns across the window instead of one long
+  scrolling list, and the drum grid's own gestures are documented for the first
+  time, in all eighteen languages.
+
+### Fixed — 2026-08-11
+
+- **Every note is visible when a clip is generated, vertically as well as
+  horizontally.** A melody spanning two octaves had notes above and below the
+  visible rows; the roll now sizes its rows to the clip's own register and
+  centres it, rather than pinning it to the top with the leftover space below.
+- **The loop brace can be resized by its edges.** Two things were wrong: the grip
+  took the *first* handle in range rather than the nearest, so a short loop's
+  right edge could not be grabbed at all — and the whole ruler showed a resize
+  cursor, which made the one band that resizes invisible. Missing it drew a new
+  loop over the one you were aiming at.
+- **The last ten native dropdowns are gone.** Their menus were drawn by the OS
+  against the window rather than the field, which is why they appeared detached
+  and at the wrong size.
+- **Ten defects found by review of the above, each fixed with a test watched
+  failing first.** Four were in the drum grid's paste, all from measuring it in
+  ticks when the grid thinks in columns: a humanized-early hit vanished when
+  pasted at the first cell, a sparse figure pasted over a dense region kept the
+  dense one's extra hits, a note could land past the end of the grid where no
+  cell draws it, and a paste could bring back a lane you had reassigned away.
+  The rest: the stretch band stopped being exclusive, a shift-click whose Shift
+  was released before the mouse button edited the pattern, `Ctrl+Shift+click`
+  emptied the selection it was meant to add to, `Ctrl+C` on an empty selection
+  destroyed the clipboard, and a selection outlived the pattern it was drawn on.
+
 ### Added — 32 new genres, 2026-08-10
 
 - **The genre list goes from 20 to 52.** New this release: **dark plugg**,

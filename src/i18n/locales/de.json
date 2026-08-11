@@ -1,7 +1,8 @@
 {
   "titlebar": {
     "settings": "Einstellungen",
-    "about": "Über"
+    "about": "Über",
+    "shortcuts": "Tastenkürzel"
   },
   "tabs": {
     "group": "Generator",
@@ -393,7 +394,11 @@
       "generate": "Diesen Part generieren",
       "generateAll": "Alle Parts generieren",
       "pickGenerator": "Generator wählen",
-      "redo": "Wiederholen"
+      "redo": "Wiederholen",
+      "selectBox": "Rahmen ziehen, um Zellen auszuwählen",
+      "addCell": "Zelle zur Auswahl hinzufügen",
+      "rollPalette": "Roll-Palette für diese Zelle",
+      "wipeCells": "Alle überstrichenen Zellen löschen"
     }
   },
   "explorer": {

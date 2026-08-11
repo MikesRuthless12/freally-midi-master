@@ -1,6 +1,7 @@
 import { Link2, Unlink, Volume2, VolumeX, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
+import { Combo } from '../Combo/Combo';
 import { useSession, useActivePattern } from '../../state/session';
 import { useSong } from '../../state/song';
 import type { Scale } from '../../lib/ipc-types';
@@ -172,41 +173,45 @@ export function SessionChips() {
         <span className="session__label">{t('session.audio')}</span>
       </button>
 
-      <label className="chip chip--mono session__chip">
+      {/* ⛔⛔ **Not native `<select>`s** (TASK-057). A `<select>` popup inside
+          WebView2 is drawn by the OS, against the *window* rather than the
+          field and at OS scale — Mike screenshotted it. The scale chip below
+          offers **41** scales, which is the list length that produced the
+          screenshot; it was the strongest case in the app for this change and
+          it was missing from the "six left" count entirely.
+          ⚠ `<div>` rather than `<label>`: a `<label>` wrapping a combobox
+          refocuses the input on every click inside it, including on the arrow
+          whose whole job is to toggle the list. `Combo`'s `label` carries the
+          accessible name the `<label>` used to give, so the name is unchanged. */}
+      <div className="chip chip--mono session__chip">
         <span className="session__label">{t('readouts.key')}</span>
-        <select
-          className="session__select"
-          value={pins.keyRoot ?? ''}
-          onChange={(e) =>
-            setPin('keyRoot', e.target.value === '' ? null : Number(e.target.value))
-          }
-        >
-          <option value="">{chose(pattern ? keyName(pattern.keyRoot) : null)}</option>
-          {KEY_NAMES.map((name, pitchClass) => (
-            <option key={name} value={pitchClass}>
-              {name}
-            </option>
-          ))}
-        </select>
-      </label>
+        <Combo
+          label={t('readouts.key')}
+          // ⛔ First, and it is the default: absence means "the artist chooses".
+          // It is a real option rather than an empty field, because `Combo`'s
+          // contract is that you cannot end up with nothing selected — and here
+          // "nothing pinned" is itself a choice worth being able to make again.
+          options={[
+            { id: '', name: chose(pattern ? keyName(pattern.keyRoot) : null) },
+            ...KEY_NAMES.map((name, pitchClass) => ({ id: String(pitchClass), name })),
+          ]}
+          value={pins.keyRoot === null ? '' : String(pins.keyRoot)}
+          onChange={(id) => setPin('keyRoot', id === '' ? null : Number(id))}
+        />
+      </div>
 
-      <label className="chip chip--mono session__chip">
+      <div className="chip chip--mono session__chip">
         <span className="session__label">{t('readouts.scale')}</span>
-        <select
-          className="session__select"
+        <Combo
+          label={t('readouts.scale')}
+          options={[
+            { id: '', name: chose(pattern ? t(`scales.${pattern.scale}`) : null) },
+            ...SCALES.map((scale) => ({ id: scale, name: t(`scales.${scale}`) })),
+          ]}
           value={pins.scale ?? ''}
-          onChange={(e) =>
-            setPin('scale', e.target.value === '' ? null : (e.target.value as Scale))
-          }
-        >
-          <option value="">{chose(pattern ? t(`scales.${pattern.scale}`) : null)}</option>
-          {SCALES.map((scale) => (
-            <option key={scale} value={scale}>
-              {t(`scales.${scale}`)}
-            </option>
-          ))}
-        </select>
-      </label>
+          onChange={(id) => setPin('scale', id === '' ? null : (id as Scale))}
+        />
+      </div>
 
       {/* Only for a style that offers modes — eleven of the shipped genres
           author none, and a chip whose only option is "Any" is a control that
@@ -215,21 +220,18 @@ export function SessionChips() {
           artist; the chip then says which one it landed on, exactly as the
           key and scale chips do. */}
       {moods.length > 0 && (
-        <label className="chip chip--mono session__chip">
+        <div className="chip chip--mono session__chip">
           <span className="session__label">{t('readouts.mood')}</span>
-          <select
-            className="session__select"
+          <Combo
+            label={t('readouts.mood')}
+            options={[
+              { id: '', name: chose(pattern?.mood ?? null) },
+              ...moods.map((name) => ({ id: name, name })),
+            ]}
             value={mood ?? ''}
-            onChange={(e) => setMood(e.target.value === '' ? null : e.target.value)}
-          >
-            <option value="">{chose(pattern?.mood ?? null)}</option>
-            {moods.map((name) => (
-              <option key={name} value={name}>
-                {name}
-              </option>
-            ))}
-          </select>
-        </label>
+            onChange={(id) => setMood(id === '' ? null : id)}
+          />
+        </div>
       )}
 
       <label className="chip chip--mono session__chip">

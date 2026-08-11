@@ -1,23 +1,42 @@
 /* The keyboard-shortcuts panel (TASK-131I). */
 
+/* ⛔⛔ **`max-width` alone never produced the two columns this file claims.**
+   The comment below has said "two columns read far better than one long scroll"
+   since TASK-131I, and the grid underneath is written for it — but a dialog
+   sized to its content stops at the widest row it holds, which is well under
+   46rem, so `auto-fill` only ever fitted ONE track and every producer who opened
+   this panel got the long scroll it was written to avoid. Asking for the width
+   is what makes the intent true. Mike, 2026-08-11: *"hopefully it looks good and
+   spaced out evenly and beautiful."*
+   ⚠ Clamped against the viewport because the plugin editor is resizable and the
+   hosted VST3 can be far narrower than the standalone. */
 .shortcuts__panel {
-  /* Wider than About: two columns of shortcuts read far better than one long
-     scroll, and the panel is reference material rather than prose. */
-  max-width: 46rem;
+  /* Mike, 2026-08-11: *"widen it and make it almost as big as the app itself."*
+     Nearly the whole window, held off the edges so it still reads as a panel
+     over the app rather than as a new screen. */
+  width: calc(100vw - 4rem);
+  max-width: calc(100vw - 4rem);
 }
 
 .shortcuts__body {
   /* ⚠ `auto-fill` with a min, not a fixed column count. The plugin editor is
      resizable and the hosted VST3 can be narrower than the standalone, so a
-     hardcoded two-up would clip a whole column in Ableton at 1.0 scale. */
+     hardcoded column count would clip one in Ableton at 1.0 scale. At full
+     window width this now lays out three or four groups side by side, which is
+     what turns the panel from a scroll into a reference card. */
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(18rem, 1fr));
-  gap: 1rem 2rem;
-  padding: 0.75rem 1rem 1rem;
-  /* The panel is taller than a short editor, so it scrolls inside itself
-     rather than pushing the dialog past the window. */
+  grid-template-columns: repeat(auto-fill, minmax(20rem, 1fr));
+  gap: 1.25rem 2.5rem;
+  padding: 1rem 1.5rem 1.5rem;
+  /* Taller too, now the dialog is nearly the window: it still scrolls inside
+     itself rather than pushing past the frame, but it rarely has to. */
   overflow-y: auto;
-  max-height: 60vh;
+  max-height: calc(100vh - 12rem);
+  /* ⚠ Groups start at the top of their own column rather than stretching to the
+     tallest one — otherwise a six-row group next to a three-row one leaves the
+     short one's rows spaced twice as far apart as its neighbour's, which is
+     exactly the unevenness a reference card must not have. */
+  align-items: start;
 }
 
 .shortcuts__group {

@@ -499,8 +499,15 @@
   color: var(--color-text-2);
 }
 
-.song__structure-pick select {
-  max-width: 18rem;
+/* ⚠ A width of its own since TASK-057: `Combo` is `width: 100%`, and 100% of a
+   flex parent sized by its content is circular — the field would collapse to
+   the chevron and the chosen form could not be read. */
+.song__structure-pick .combo {
+  width: 18rem;
+}
+
+.song__structure-pick .combo__input {
+  padding: 2px var(--space-1);
   font-size: 0.7rem;
 }
 
