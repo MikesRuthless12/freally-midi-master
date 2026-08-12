@@ -218,10 +218,31 @@ impl DrumKit {
 
     /// Place one hit.
     pub fn hit(&mut self, lane: Lane, tick: u32, vel: u8, articulation: Option<Articulation>) {
-        self.notes
-            .entry(lane)
-            .or_default()
-            .push(note_at(lane, tick, vel, articulation));
+        // ⛔⛔ **ONE VOICE CANNOT SOUND TWICE AT ONE INSTANT, so the second note
+        // is refused here rather than at each of the writers** (2026-08-12).
+        // Several stages target the same lane and none of them can see the
+        // others: `percs.lanes` may name the tambourine while
+        // `tambourineMirrorsClap` mirrors the clap into it, and a steady
+        // tambourine stream is a third writer again. Volume 1 found two
+        // different pairs within one gate run — `1500-or-nothin` at 4 bars seed
+        // 4, then `beanie-sigel` at seed 0 — which is the shape of a class, not
+        // of two cases.
+        //
+        // ⚠ **The duplicate was never audible and always shipped.** It reaches
+        // `to_midi`, the host's track and `stem_files` as a second note-on at the
+        // same tick on the same GM note; nothing plays it and everything carries
+        // it. Keeping the first writer's note is deterministic and sounds
+        // identical.
+        //
+        // ⚠ `extend` deliberately does **not** do this — the hat stream builds
+        // its own stream and knows what it placed — so
+        // `no_lane_ever_carries_two_notes_on_the_same_tick` still has the paths
+        // that bypass this to guard.
+        let notes = self.notes.entry(lane).or_default();
+        if notes.iter().any(|note| note.start_tick == tick) {
+            return;
+        }
+        notes.push(note_at(lane, tick, vel, articulation));
     }
 
     /// Add notes a stage built on its own — the hat stream, which has to know
