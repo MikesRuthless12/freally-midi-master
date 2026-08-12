@@ -452,7 +452,7 @@
         {
           "startTick": 28800,
           "lenTicks": 960,
-          "pitch": 38,
+          "pitch": 42,
           "vel": 47,
           "modelVel": 48,
           "articulation": "roll"
@@ -460,7 +460,7 @@
         {
           "startTick": 29281,
           "lenTicks": 480,
-          "pitch": 38,
+          "pitch": 41,
           "vel": 63,
           "modelVel": 67,
           "articulation": "roll"
@@ -468,7 +468,7 @@
         {
           "startTick": 29761,
           "lenTicks": 259,
-          "pitch": 38,
+          "pitch": 40,
           "vel": 94,
           "modelVel": 85,
           "articulation": "roll"
@@ -476,7 +476,7 @@
         {
           "startTick": 30018,
           "lenTicks": 221,
-          "pitch": 38,
+          "pitch": 39,
           "vel": 70,
           "modelVel": 75,
           "articulation": "roll"
@@ -484,7 +484,7 @@
         {
           "startTick": 30241,
           "lenTicks": 130,
-          "pitch": 38,
+          "pitch": 39,
           "vel": 96,
           "modelVel": 104,
           "articulation": "roll"
@@ -492,7 +492,7 @@
         {
           "startTick": 30370,
           "lenTicks": 129,
-          "pitch": 38,
+          "pitch": 39,
           "vel": 69,
           "modelVel": 79,
           "articulation": "roll"

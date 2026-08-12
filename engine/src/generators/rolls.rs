@@ -816,6 +816,30 @@ pub fn snare_ladder(
     // for stopped existing. One key, one block, two readers is how that happens.
     let grouping = grouping_from(block, rng);
 
+    // ⛔⛔ **`pitchWalk` reached `snare_roll` and never reached here** (found
+    // 2026-08-12). TASK-131D added the walk so a roll "climbs and falls rather
+    // than sitting on one note", and authored it on the *model* — but only one
+    // of the two snare-roll paths ever read it, so any model whose fills land on
+    // the **ladder** wrote a flat roll no matter what its data said. It stayed
+    // invisible while most models mix the two gestures: `sosmula` is the only one
+    // on the roster whose `fills` make every fill a big one
+    // (`smallEveryBars` and `bigEveryBars` both 4), so the ladder is the only
+    // roll it ever writes and it was the only model the gate could see it on.
+    //
+    // ⚠ **Reshaping sosmula's fills would have made the gate green and left the
+    // bug**, on every other ladder model, waiting for the next artist that
+    // happens to prefer big fills.
+    let walk = number(block, "pitchWalk", 0.0, rng).clamp(0.0, 24.0) as i8;
+    // Direction per gesture, as `snare_roll` draws it — one artist's ladders
+    // climb and fall rather than always doing one.
+    let (walk_from, walk_to) = if walk == 0 {
+        (0.0, 0.0)
+    } else if rng.random_bool(0.5) {
+        (0.0, f32::from(walk))
+    } else {
+        (f32::from(walk), 0.0)
+    };
+
     // Each rung gets an equal slice of the window and its own slice of the ramp,
     // so the climb is continuous across the whole gesture rather than restarting
     // at every subdivision change.
@@ -827,10 +851,17 @@ pub fn snare_ladder(
         let rung_start = start_tick + i as u32 * slice;
         let low = f32::from(from) + span * (i as f32 / steps.len() as f32);
         let high = f32::from(from) + span * ((i + 1) as f32 / steps.len() as f32);
+        // ⚠ The walk is sliced the same way as the ramp, so it runs across the
+        // whole ladder rather than restarting at every rung — which would make a
+        // four-rung ladder walk the same two semitones four times.
+        let rungs = steps.len() as f32;
+        let pitch_at =
+            |edge: f32| (walk_from + (walk_to - walk_from) * (edge / rungs)).round() as i8;
         notes.extend(
             Roll::new(lane, rung_start, rung_start + slice, *step)
                 .ramp(low.round().max(1.0) as u8, high.round().max(1.0) as u8)
                 .grouped(grouping)
+                .walking(pitch_at(i as f32), pitch_at((i + 1) as f32))
                 .render(rng),
         );
     }
