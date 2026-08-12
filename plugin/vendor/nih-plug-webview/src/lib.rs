@@ -181,6 +181,17 @@ pub struct WindowHandler {
     pub width: Arc<AtomicU32>,
     pub height: Arc<AtomicU32>,
     /// See [`WebViewEditor::with_window_title`]. `None` leaves the caption alone.
+    ///
+    /// ⛔ **Read only on Windows, and CI is where that was found.** `retitle` is
+    /// a Win32 call and no other platform has a host frame we may rename, so on
+    /// Linux and macOS this field is written and never read — `dead_code` under
+    /// `-D warnings`, which passes on a Windows laptop and fails on two thirds of
+    /// the matrix.
+    ///
+    /// ⚠ **Carried on every platform rather than `cfg`-gated**, so the field, the
+    /// builder, the constructor and the struct literal do not each need an arm.
+    /// One attribute here is the whole cost.
+    #[cfg_attr(not(target_os = "windows"), allow(dead_code))]
     window_title: Option<Arc<str>>,
 }
 
