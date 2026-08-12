@@ -258,6 +258,7 @@ fn echo_notes(
                 vel: note.vel.saturating_sub(drop).max(1),
                 slide_to_pitch: None,
                 articulation: None,
+                reversed: false,
             })
         })
         .collect()
@@ -306,6 +307,7 @@ fn arp_notes(
                 vel: COUNTER_VELOCITY,
                 slide_to_pitch: None,
                 articulation: None,
+                reversed: false,
             });
         }
     }
@@ -366,6 +368,7 @@ fn lick_notes(
                     vel: COUNTER_VELOCITY,
                     slide_to_pitch: None,
                     articulation: None,
+                    reversed: false,
                 });
             }
         }
@@ -454,6 +457,7 @@ fn pad_notes(chords: &Chords, low: u8, high: u8, on: &[u32], rng: &mut impl Rng)
                 vel: COUNTER_VELOCITY.saturating_sub(8 + voice as u8 * 6).max(1),
                 slide_to_pitch: None,
                 articulation: None,
+                reversed: false,
             });
         }
     }

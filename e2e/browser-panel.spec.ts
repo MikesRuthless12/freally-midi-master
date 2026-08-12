@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { browserRow } from './app';
+import { browserRow, openPanel } from './app';
 
 /**
  * The sample browser and its audition player, end to end (TASK-132).
@@ -23,6 +23,8 @@ import { browserRow } from './app';
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('tablist', { name: 'Generator' })).toBeVisible();
+  // ⛔ The panel is behind a vertical tab now — `openPanel` presses it.
+  await openPanel(page, 'explorer');
 });
 
 test('starts as a list of roots, named rather than shown as full paths', async ({ page }) => {
@@ -132,24 +134,38 @@ test('the arrows open and shut folders', async ({ page }) => {
   await expect(browserRow(page, 'Kicks')).toBeHidden();
 });
 
-test('up and down walk the tree without auditioning anything', async ({ page }) => {
-  // TASK-058A: *"`↑`/`↓` move the selection, so a producer can walk a folder and
-  // hear every file … without touching the mouse."* Paired with →, which is what
-  // actually plays — auditioning on every step would make ↓ unusable for simply
-  // getting past a folder.
+test('up and down walk the tree, and a sample auditions as it is reached', async ({ page }) => {
+  // ⛔⛔ **THIS ASSERTED THE OPPOSITE UNTIL 2026-08-11**, and the old rule was
+  // TASK-058A's: *"↑/↓ move the selection … paired with →, which is what actually
+  // plays — auditioning on every step would make ↓ unusable for simply getting
+  // past a folder."* Mike overruled it by name: *"the files need to play as you
+  // go up and down in the list with the up/down arrow or by clicking on them."*
+  //
+  // ⚠ **The folder case is what the old rule was protecting, and it still holds:**
+  // walking onto a *directory* auditions nothing, because a directory has no
+  // sample. So ↓ past a folder is still silent; it is only files that sound.
   await browserRow(page, 'Samples').click();
+  // The listing arrives from the bridge, so the rows below Samples only exist a
+  // tick later — arrowing before then walks a one-row tree.
+  await expect(browserRow(page, 'Kicks')).toBeVisible();
   await browserRow(page, 'Samples').focus();
 
   await page.keyboard.press('ArrowDown');
   await expect(browserRow(page, 'Kicks')).toBeFocused();
+  // A folder: nothing to hear, so the preview is still empty.
+  await expect(page.getByText('Pick a sample to preview it.')).toBeVisible();
+
   await page.keyboard.press('ArrowDown');
   await expect(browserRow(page, 'clap-01.wav')).toBeFocused();
+  // A file: reaching it selects it, and selecting is what auditions. The
+  // waveform itself is the click test's business one screen down; what this one
+  // pins is that walking moves the *selection* rather than only the highlight,
+  // which is what the old behaviour did not do.
+  await expect(browserRow(page, 'clap-01.wav')).toHaveAttribute('aria-selected', 'true');
+  await expect(page.getByText('Pick a sample to preview it.')).toBeHidden();
+
   await page.keyboard.press('ArrowUp');
   await expect(browserRow(page, 'Kicks')).toBeFocused();
-
-  // ⚠ Walking is not selecting: nothing has been auditioned, so the preview is
-  // still empty.
-  await expect(page.getByText('Pick a sample to preview it.')).toBeVisible();
 });
 
 test('the arrows audition a sample forwards and backwards', async ({ page }) => {
@@ -220,22 +236,35 @@ test('Add folder is disabled once eight folders are open', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Add folder' })).toBeEnabled();
 });
 
-test('the browser can take the whole rail, and give it back', async ({ page }) => {
-  // ⛔ Mike, 2026-08-10: it must *"expand as high as it can, not just a little
-  // bit or half-way up the side of the left rail."* The roster and the browser
-  // were both `flex: 1 1 0`, so each got half the rail however deep the tree ran.
-  const tree = page.locator('.tree');
-  const before = (await tree.boundingBox())!;
-
-  await page.getByRole('button', { name: 'Give the browser the whole rail' }).click();
+/**
+ * ⛔⛔ **`the browser can take the whole rail, and give it back` was deleted on
+ * 2026-08-12, and what it was gating is now structural.**
+ *
+ * It covered a "Give the browser the whole rail" button that hid the roster, for
+ * Mike's 2026-08-10 request that the tree *"expand as high as it can, not just a
+ * little bit or half-way up the side of the left rail"* — the roster and the
+ * browser were both `flex: 1 1 0` and each got half the rail however deep the
+ * tree ran.
+ *
+ * ▶ **The rail groups replaced the button with the layout.** `explorer` is a
+ * group of its own (`RAIL_GROUPS` in `state/ui.ts`), so opening the browser
+ * *already* takes the whole rail and the roster is not merely hidden — it is not
+ * in that group. There is no button left to press and nothing to give back, and
+ * the `explorer.fillRail` / `explorer.restoreRail` strings went with it.
+ *
+ * ⚠ The test below is what remains worth asserting: that the group really does
+ * hand the browser the full height rather than a slot.
+ */
+test('the browser gets the whole rail, because it is a group of its own', async ({ page }) => {
+  const rail = page.locator('.rail--left');
+  const section = page.locator('.rail__section[data-section="explorer"]');
 
   await expect(page.getByRole('combobox', { name: 'Roster' })).toBeHidden();
-  const after = (await tree.boundingBox())!;
-  expect(after.height).toBeGreaterThan(before.height);
-
-  // ...and back, because hiding the roster permanently would be a worse trade.
-  await page.getByRole('button', { name: 'Show the roster again' }).click();
-  await expect(page.getByRole('combobox', { name: 'Roster' })).toBeVisible();
+  const railBox = (await rail.boundingBox())!;
+  const sectionBox = (await section.boundingBox())!;
+  // The one panel in the group, so it is the rail minus its own padding rather
+  // than a half of it.
+  expect(sectionBox.height).toBeGreaterThan(railBox.height * 0.8);
 });
 
 test('clicking a sample draws its waveform and offers the transport', async ({ page }) => {
@@ -257,9 +286,15 @@ test('clicking a sample draws its waveform and offers the transport', async ({ p
   // `transport.*` strings rather than inventing a second set. An unscoped
   // locator matches both and tells you nothing about either.
   const bar = page.locator('.preview__bar');
-  for (const label of ['Play', 'Stop', 'Loop', 'Play backwards']) {
+  for (const label of ['Stop', 'Loop', 'Play backwards']) {
     await expect(bar.getByRole('button', { name: label, exact: true })).toBeVisible();
   }
+  // ⛔⛔ **`Pause`, not `Play`, and that is the point** — Mike, 2026-08-11: *"the
+  // files need to play as you go up and down in the list with the up/down arrow
+  // or by clicking on them."* Clicking the row auditions it, so by the time this
+  // runs the one button that is both has already flipped. Asserting `Play` here
+  // is what the old, silent-on-click behaviour looked like.
+  await expect(bar.getByRole('button', { name: 'Pause', exact: true })).toBeVisible();
   // "Playback time out of total time", verbatim from Mike's spec.
   await expect(page.locator('.preview__time')).toHaveText('0:00.0 / 0:01.5');
 });

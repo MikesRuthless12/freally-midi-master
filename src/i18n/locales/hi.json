@@ -30,9 +30,8 @@
     "generating": "बन रहा है…",
     "readyBody": "{{name}} तैयार है। जेनरेट दबाएँ।",
     "generateAll": "सभी बनाएँ",
-    "clear": "हटाएँ",
-    "clearAll": "सभी हटाएँ",
-    "clearLabel": "बनाए गए हिस्से हटाएँ"
+    "clearOne": "{{part}} हटाएँ",
+    "clearAll": "सभी हटाएँ"
   },
   "rails": {
     "searchPlaceholder": "आर्टिस्ट खोजें…",
@@ -141,7 +140,6 @@
     "loop": "लूप",
     "masterLevel": "मास्टर लेवल: मौन",
     "toggleRightRail": "दायाँ पैनल दिखाएँ/छिपाएँ (K)",
-    "windowSize": "विंडो का आकार",
     "loopAlways": "इस चरण में प्लेबैक हमेशा लूप करता है।",
     "unavailable": "प्लेबैक उपलब्ध नहीं है: {{reason}}"
   },
@@ -159,9 +157,7 @@
   "view": {
     "button": "दृश्य",
     "panels": "पैनल",
-    "rightRail": "दायाँ पैनल",
-    "showAll": "सभी पैनल दिखाएँ",
-    "hideAll": "सभी पैनल छिपाएँ"
+    "rightRail": "दायाँ पैनल"
   },
   "settings": {
     "title": "सेटिंग्स",
@@ -218,8 +214,6 @@
     "artists": "कलाकार",
     "flagship": "प्रमुख",
     "genre": "शैली",
-    "filteredBy": "{{name}} से फ़िल्टर किया गया",
-    "showAll": "सभी दिखाएँ",
     "noneInGenre": "{{name}} में अभी कोई कलाकार नहीं है।",
     "standard": "मानक",
     "inherited": "विरासत"
@@ -382,6 +376,7 @@
       "nudge": "समय में खिसकाएँ",
       "stretch": "दोगुना लंबा करें",
       "compress": "आधा छोटा करें",
+      "reverseNote": "चयनित नोट को उलटा चलाएँ",
       "triplet": "इस सेल में त्रिक",
       "quintuplet": "इस सेल में पंचक",
       "septuplet": "इस सेल में सप्तक",
@@ -414,8 +409,6 @@
     "waveformOf": "{{name}} का तरंगरूप",
     "reverse": "उल्टा चलाएँ",
     "resize": "ब्राउज़र का आकार बदलें",
-    "fillRail": "ब्राउज़र को पूरी पट्टी दें",
-    "restoreRail": "रोस्टर फिर से दिखाएँ",
     "folderLimit": "आप एक बार में 8 फ़ोल्डर ब्राउज़ कर सकते हैं — दूसरा जोड़ने के लिए एक बंद करें",
     "favourites": "तारांकित पसंदीदा",
     "star": "{{name}} को तारांकित करें",

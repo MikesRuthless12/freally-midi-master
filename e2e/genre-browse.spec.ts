@@ -40,17 +40,17 @@ test('one box finds artists and genres alike, and says which is which', async ({
   await expect(options.first().locator('.combo__badge')).toHaveText('Genre');
 });
 
-test('picking a genre says what the roster is filtered by, and there is a way back', async ({
-  page,
-}) => {
+test('picking a genre leaves the details clean of a filter notice', async ({ page }) => {
+  // ⛔⛔ **INVERTED 2026-08-11.** This read `toContainText('Trap')` against
+  // `.roster__filter`, and then pressed "Show all" for the way back. Mike:
+  // *"I also don't want the 'Filtered by DrakeShow all' to show up at all in the
+  // details part of the roster."* `e2e/cross-filter.spec.ts` carries the full
+  // reasoning; this is the second door onto the same removed control and is kept
+  // as a refusal so reinstating it fails in both places.
   await pickGenre(page, 'Trap');
 
-  // ⛔ Labelled, not silent: a rail that changed with nothing saying so reads as
-  // a broken dataset rather than as a filter.
-  await expect(page.locator('.roster__filter')).toContainText('Trap');
-
-  await page.getByRole('button', { name: 'Show all' }).click();
   await expect(page.locator('.roster__filter')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Show all' })).toHaveCount(0);
 });
 
 test('the pane says what the selection tends to do, before you generate', async ({ page }) => {

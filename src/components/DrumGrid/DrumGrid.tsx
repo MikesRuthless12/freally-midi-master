@@ -3,7 +3,7 @@ import { Headphones, Lock, LockOpen, Volume2, VolumeX, Waves } from 'lucide-reac
 import { useTranslation } from 'react-i18next';
 
 import { isTypingTarget } from '../../lib/keyboard';
-import { useSession } from '../../state/session';
+import { laneAudible, useSession } from '../../state/session';
 import type { Lane, Pattern } from '../../lib/ipc-types';
 import { Combo } from '../Combo/Combo';
 import { VelocityLane } from '../PianoRoll/VelocityLane';
@@ -13,6 +13,7 @@ import {
   addFill,
   clearCell,
   clearCells,
+  reverseCells,
   cloneBar,
   copyCells,
   pasteCells,
@@ -304,6 +305,31 @@ export function DrumGrid({ pattern, playhead }: { pattern: Pattern; playhead: nu
       // reports `C` while Shift is down, and a producer holding Shift from the
       // marquee they just drew is the common case rather than a rare one.
       const key = event.key.toLowerCase();
+
+      // ⛔⛔ **`Ctrl`/`⌘` + R plays the selected hits backwards** — Mike,
+      // 2026-08-11: *"if you have a drum pad or something playing forward in the
+      // pad, but you want it to play backwards in the drum pattern, you should be
+      // able to switch it … press like 'Ctrl+R' or 'Command+R'."*
+      //
+      // ⚠ **Selection only.** Every other key here falls back to "the cell under
+      // the cursor" when nothing is selected; this does not, because reversing is
+      // not a gesture anyone makes by accident and a single cell is one click
+      // away from being selected. The roll's binding is the same shortcut on the
+      // same rule.
+      // ⛔⛔ **`preventDefault` BEFORE the selection test, not after it.** Ctrl+R
+      // is the host's **Reload**, and returning early handed it straight to the
+      // webview: press it in the standalone with nothing selected and the page
+      // reloads, taking every unsaved pattern with it. The shortcut is ours the
+      // moment the modifier is down — whether it has anything to act on is a
+      // separate question, and the answer to "nothing selected" is *do nothing*,
+      // never *reload the app*.
+      if (key === 'r') {
+        event.preventDefault();
+        if (!hasSelection) return;
+        editPattern(reverseCells(pattern, picked()));
+        return;
+      }
+
       if (key === 'c') {
         if (!hasSelection) return;
         event.preventDefault();
@@ -634,7 +660,7 @@ export function DrumGrid({ pattern, playhead }: { pattern: Pattern; playhead: nu
         // readout-that-lies failure in the one control that says what you can
         // hear. Mute wins over solo here for the same reason it does on the
         // audio thread — see `Shared::set_lane_audio`.
-        const silent = muted || (soloedLanes.length > 0 && !soloed);
+        const silent = !laneAudible(lane, mutedLanes, soloedLanes);
         const name = t(`lanes.${lane}`);
         // ⛔ **The name does not change with the state, because `aria-pressed`
         // already carries it.** WAI-ARIA's toggle-button pattern asks for one or

@@ -248,6 +248,44 @@ export function innermostExpanded(expanded: string[]): string | null {
   return expanded.reduce((deepest, held) => (isInside(held, deepest) ? held : deepest));
 }
 
+/**
+ * The folder the producer is standing in — the one a re-roll draws from.
+ *
+ * ⛔⛔ **Mike, 2026-08-11:** *"if i am on an actual sample in the file explorer,
+ * or i am on a folder in file explorer, either way, it should remember the
+ * folder's name that i am in, and it should randomize a sample from that
+ * specific folder for the 'Re-roll'."*
+ *
+ * ▶ **Two selections, one answer.** A *file* means the folder it is in; a
+ * *folder* means itself. Before this the plugin answered from its own "current
+ * folder", which the tree view stopped maintaining the moment navigation became
+ * expand-in-place — so the dice re-rolled from wherever the old list had last
+ * been opened, or from nothing.
+ *
+ * ⚠ **Falls back to the deepest expanded branch**, so the dice still has a
+ * sensible source before anything has been clicked. `null` only when the browser
+ * is closed or empty, and the plugin then keeps its own answer.
+ *
+ * ⚠ **Derived here rather than in Rust**, because the *selection* lives here.
+ * Deriving it on the other side would be a second idea of where the producer is
+ * standing, and the two would part company the first time one of them changed.
+ */
+export function standingIn(state: {
+  selected: string | null;
+  selectedKind: 'audio' | 'midi' | null;
+  expanded: string[];
+}): string | null {
+  if (state.selected !== null) {
+    // A selection is always a file — folders are expanded, not selected — so
+    // this is its parent. Windows and POSIX separators both, because a root the
+    // producer typed and a path the plugin canonicalised are spelled differently
+    // (see `normalizePath`).
+    const at = Math.max(state.selected.lastIndexOf('/'), state.selected.lastIndexOf('\\'));
+    if (at > 0) return state.selected.slice(0, at);
+  }
+  return innermostExpanded(state.expanded);
+}
+
 type ExplorerStore = {
   roots: ExplorerEntry[];
   /**
@@ -352,7 +390,17 @@ type ExplorerStore = {
   toggleLoop: () => Promise<void>;
   setReverse: (on: boolean) => Promise<void>;
   /** Put the selected sample on a drum lane. */
-  dropOn: (lane: Lane, path: string) => Promise<void>;
+  /**
+   * Put the selected sample on a drum lane.
+   *
+   * ⛔ **`reversed` plays the one-shot backwards** — Mike, 2026-08-11: *"Ctrl +
+   * left arrow when you have a sample selected should add the sample to that
+   * selected drum pad lane in reverse and Ctrl + right arrow should add the
+   * sample to that selected drum pad lane playing regularly."* It travels to the
+   * plugin and is stored with the project, so a reopened session does not
+   * silently play it forwards.
+   */
+  dropOn: (lane: Lane, path: string, reversed?: boolean) => Promise<void>;
   setRailWidth: (px: number) => void;
 };
 
@@ -710,6 +758,51 @@ export const useExplorer = create<ExplorerStore>((set, get) => ({
     } catch (error) {
       if (get().selected !== path) return;
       set({ error: reason(error), waveform: null });
+      // ⛔⛔ **AND NOTHING PLAYS, BECAUSE NOTHING WAS LOADED.** `preview_load` is
+      // in the `Promise.all` above, so this catch is also the case where the
+      // plugin still holds the *previous* file. Falling through to
+      // `preview_play` started that one — so landing on a corrupt `.wav` showed
+      // an error and a blank waveform for the file under the cursor while the
+      // last good sample sounded, and the transport said `playing` for a file
+      // that was not the one being heard.
+      return;
+    }
+
+    // ⛔⛔ **LANDING ON A FILE PLAYS IT** (Mike, 2026-08-11): *"the files need to
+    // play as you go up and down in the list with the up/down arrow or by
+    // clicking on them."*
+    //
+    // ⚠ **This reverses a documented judgement, and the note it reverses is
+    // still in `ExplorerPanel`'s arrow handler.** That one argued auditioning on
+    // every step *"would make ↓ unusable for simply getting past a folder"* and
+    // paired ↓ with → instead — step onto a row, press → to hear it. Mike has
+    // now asked for the other behaviour by name, twice over (arrows *and*
+    // clicks), so the two-key gesture is gone and → keeps working for anyone who
+    // still reaches for it.
+    //
+    // ⛔ **In `select`, not in the two callers.** A click goes through
+    // `FileTree`, an arrow through `ExplorerPanel`, and a starred file through
+    // `reveal` — three doors onto one behaviour, and putting it behind them all
+    // is how one of them ends up silent.
+    //
+    // ⚠ **Guarded on the selection, because a fast walk overlaps.** Holding ↓
+    // starts a load per row and they resolve out of order; without this the
+    // *previous* row's reply would start the *current* row's sample a second
+    // time. `preview_load` replaces what is loaded, so the last one to land is
+    // the one that sounds.
+    if (get().selected !== path) return;
+    // ⛔ **Silent on failure, unlike the transport buttons.** An audition is
+    // feedback on a gesture that has already happened — the same argument
+    // `DrumGrid/audition.ts` spells out. Putting `play`'s error on screen here
+    // would mean a browser with no audio thread shows a failure every time a
+    // producer clicks a file, for a click that did nothing wrong.
+    try {
+      await invoke('preview_play');
+      if (get().selected !== path) return;
+      poke();
+      set({ position: { ...get().position, playing: true } });
+    } catch {
+      // See above.
     }
   },
 
@@ -778,10 +871,10 @@ export const useExplorer = create<ExplorerStore>((set, get) => ({
     }
   },
 
-  async dropOn(lane, path) {
+  async dropOn(lane, path, reversed = false) {
     set({ error: null });
     try {
-      await invoke('explorer_drop', { lane, path });
+      await invoke('explorer_drop', { lane, path, reversed });
     } catch (error) {
       set({ error: reason(error) });
     }

@@ -19,6 +19,7 @@ import {
   MIN_VELOCITY,
   deleteNotes,
   mapNotes,
+  nextReversed,
   noteId,
   notesOf,
   patternTicks,
@@ -76,17 +77,50 @@ export function invert(
  *
  * Reflected about the selection's own span rather than the clip's, so reversing
  * two bars of a four-bar clip leaves the other two where they were.
+ *
+ * ⛔⛔ **NOTES THAT SOUNDED TOGETHER STILL SOUND TOGETHER** — Mike, 2026-08-11:
+ * *"if you reverse two countermelody lines that are supposed to be played at the
+ * same time, then they should play at the same time, not back to back."*
+ *
+ * ▶ **It reflected each note's own end**, so two voices sharing an onset but not
+ * a length ended at different ticks and came back *starting* at different ticks
+ * — a two-part counterline turned into one part answering the other.
+ *
+ * ⛔⛔ **THE FIX IS TO REVERSE THE *GAPS*, NOT TO REFLECT EACH ONSET.** The
+ * obvious repair — reflect by the group's *end* instead of the note's — keeps a
+ * chord together but is **not injective**: two groups whose ends happen to
+ * coincide map to the same tick, and `mapNotes` runs its result through
+ * `dedupe`, which keeps one note per `startTick:pitch` and silently drops the
+ * rest. A C4 at tick 0 under a longer G4, plus a C4 at 240, both land on one
+ * tick and the clip comes back a note short with nothing to say so.
+ *
+ * ▶ **So this walks the distinct onsets from the back**, laying each one down
+ * after the *gap that used to follow the one behind it*. Every gap is strictly
+ * positive, so distinct onsets stay distinct; a whole chord moves as one, so
+ * simultaneity is preserved; and for a single-voice line it is identical to the
+ * old reflection, which is why the golden test above did not have to change.
+ *
+ * ⚠ Each note keeps its own length. Only the onsets move.
  */
 export function reverse(pattern: Pattern, lane: Lane, ids: ReadonlySet<NoteId>): Pattern {
   const notes = selected(pattern, lane, ids);
   if (notes.length === 0) return pattern;
   const { from, to } = span(notes);
 
+  const onsets = [...new Set(notes.map((note) => note.startTick))].sort((a, b) => a - b);
+  // What follows each onset: the next one, or the end of the span for the last.
+  const gap = onsets.map((at, i) => (i + 1 < onsets.length ? onsets[i + 1] : to) - at);
+
+  const moved = new Map<number, number>();
+  let cursor = from;
+  for (let i = onsets.length - 1; i >= 0; i--) {
+    moved.set(onsets[i], cursor);
+    cursor += gap[i];
+  }
+
   return mapNotes(pattern, lane, ids, (note) => ({
     ...note,
-    // The note's *end* becomes its distance from the start of the span, which
-    // is what keeps a long note long instead of reflecting only its onset.
-    startTick: from + (to - (note.startTick + note.lenTicks)),
+    startTick: moved.get(note.startTick) ?? note.startTick,
   }));
 }
 
@@ -124,6 +158,48 @@ export function stretch(
     startTick: at(note),
     lenTicks: Math.max(1, note.lenTicks * factor),
   }));
+}
+
+/**
+ * Play the selected notes' samples backwards — or forwards again.
+ *
+ * ⛔ **NOT [`reverse`] above, and the two are easy to confuse.** That one is a
+ * *retrograde*: it flips the notes' order in time, so the last hit plays first.
+ * This changes no tick at all — it plays each note's own sample back to front,
+ * which is a sound-design gesture rather than a compositional one. Naming it
+ * `reverseNotes` beside a `reverse` that reverses notes was a collision waiting
+ * to be reached for by the wrong name.
+ *
+ * ⛔⛔ **Mike, 2026-08-11:** *"if you have a drum pad or something playing forward
+ * in the pad, but you want it to play backwards in the drum pattern, you should
+ * be able to switch it, the same with a melody/chords/bassline/counter melody
+ * within the actual note itself — you should be able to select the note and press
+ * like 'Ctrl+R' or 'Command+R' on macOS to reverse the note just for that single
+ * note being played. i think this would be a VERY USABLE AND COOL FEATURE to
+ * have."*
+ *
+ * ⛔ **A TOGGLE, decided once for the whole selection — see [`nextReversed`],**
+ * which is where that rule lives so the drum grid's `reverseCells` cannot come
+ * to a different answer about what a mixed selection does.
+ *
+ * ⚠ **Nothing moves.** Unlike every other transform here this changes no tick
+ * and no pitch, so the selection stays valid and the caller does not need
+ * `reselect` — which is worth knowing, because passing through it would be
+ * harmless and would look like the note ids had changed.
+ *
+ * ⛔ **Audio only.** A reversed note has no SMF representation, so a `.mid`
+ * dragged or exported from this clip loses it — `engine::pattern::Note::reversed`
+ * carries the same warning on the other side of the bridge.
+ */
+export function reversePlayback(
+  pattern: Pattern,
+  lane: Lane,
+  ids: ReadonlySet<NoteId>,
+): Pattern {
+  const notes = selected(pattern, lane, ids);
+  if (notes.length === 0) return pattern;
+  const backwards = nextReversed(notes);
+  return mapNotes(pattern, lane, ids, (note) => ({ ...note, reversed: backwards }));
 }
 
 /**

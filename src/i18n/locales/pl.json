@@ -30,9 +30,8 @@
     "generating": "Generowanie…",
     "readyBody": "{{name}} gotowy. Naciśnij Generuj.",
     "generateAll": "Generuj wszystko",
-    "clear": "Wyczyść",
-    "clearAll": "Wyczyść wszystko",
-    "clearLabel": "Wyczyść wygenerowane partie"
+    "clearOne": "Wyczyść {{part}}",
+    "clearAll": "Wyczyść wszystko"
   },
   "rails": {
     "searchPlaceholder": "Szukaj artysty…",
@@ -141,7 +140,6 @@
     "loop": "Pętla",
     "masterLevel": "Poziom master: cisza",
     "toggleRightRail": "Przełącz prawy panel (K)",
-    "windowSize": "Rozmiar okna",
     "loopAlways": "W tej fazie odtwarzanie zawsze się zapętla.",
     "unavailable": "Odtwarzanie niedostępne: {{reason}}"
   },
@@ -159,9 +157,7 @@
   "view": {
     "button": "Widok",
     "panels": "Panele",
-    "rightRail": "Prawy panel",
-    "showAll": "Pokaż wszystkie panele",
-    "hideAll": "Ukryj wszystkie panele"
+    "rightRail": "Prawy panel"
   },
   "settings": {
     "title": "Ustawienia",
@@ -218,8 +214,6 @@
     "artists": "Artyści",
     "flagship": "Sztandarowy",
     "genre": "Gatunek",
-    "filteredBy": "Filtrowane wg {{name}}",
-    "showAll": "Pokaż wszystko",
     "noneInGenre": "Nikt jeszcze nie tworzy w {{name}}.",
     "standard": "Standard",
     "inherited": "Dziedziczony"
@@ -382,6 +376,7 @@
       "nudge": "Przesuń w czasie",
       "stretch": "Rozciągnij dwukrotnie",
       "compress": "Skróć o połowę",
+      "reverseNote": "Odwróć zaznaczoną nutę",
       "triplet": "Triola w tej komórce",
       "quintuplet": "Kwintola w tej komórce",
       "septuplet": "Septola w tej komórce",
@@ -414,8 +409,6 @@
     "waveformOf": "Kształt fali {{name}}",
     "reverse": "Odtwórz wstecz",
     "resize": "Zmień szerokość przeglądarki",
-    "fillRail": "Oddaj przeglądarce cały panel",
-    "restoreRail": "Pokaż ponownie roster",
     "folderLimit": "Możesz przeglądać 8 folderów naraz — zamknij jeden, aby dodać kolejny",
     "favourites": "Ulubione z gwiazdką",
     "star": "Dodaj {{name}} do ulubionych",

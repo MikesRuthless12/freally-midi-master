@@ -72,7 +72,7 @@ test('K toggles the right rail', async ({ page }) => {
   // ⚠ The KIT panel's *header*, not any button named after it: the panel gained
   // a "Save kit" control (TASK-051), and an unscoped /Kit/i locator resolves to
   // two elements whenever the panel is expanded.
-  const kit = page.locator('.rail__toggle', { hasText: /Kit/i });
+  const kit = page.locator('.rail__title', { hasText: /Kit/i });
   await expect(kit).toBeVisible();
 
   await page.keyboard.press('k');
@@ -82,20 +82,24 @@ test('K toggles the right rail', async ({ page }) => {
   await expect(kit).toBeVisible();
 });
 
-test('a panel collapses from its header and stays collapsed across a reload', async ({
-  page,
-}) => {
-  const genres = page.getByRole('button', { name: /Genres/i });
-  await expect(genres).toHaveAttribute('aria-expanded', 'true');
+test('a rail swaps groups from its tab and remembers it across a reload', async ({ page }) => {
+  // ⛔⛔ **INVERTED 2026-08-11: panels do not collapse, rails swap groups.** This
+  // read "a panel collapses from its header and stays collapsed across a
+  // reload", clicking the GENRES header and asserting `aria-expanded`. Mike
+  // replaced the accordion — *"only leave 2 open at a time … file explorer's
+  // vertical tab replaces and takes the place of both roster and genres"* — so
+  // there is no header toggle left. The half worth keeping is that the choice
+  // survives a relaunch, which is what this now drives.
+  await expect(page.locator('.rail__title', { hasText: /Roster/i })).toBeVisible();
 
-  await genres.click();
-  await expect(genres).toHaveAttribute('aria-expanded', 'false');
+  // The tab names what it will bring, not what is showing.
+  await page.locator('.railtabs__tab', { hasText: /Browser/i }).click();
+
+  await expect(page.locator('.rail__title', { hasText: /Browser/i })).toBeVisible();
+  await expect(page.locator('.rail__title', { hasText: /Roster/i })).toHaveCount(0);
 
   await page.reload();
-  await expect(page.getByRole('button', { name: /Genres/i })).toHaveAttribute(
-    'aria-expanded',
-    'false',
-  );
+  await expect(page.locator('.rail__title', { hasText: /Browser/i })).toBeVisible();
 });
 
 test('the View menu lists every panel', async ({ page }) => {

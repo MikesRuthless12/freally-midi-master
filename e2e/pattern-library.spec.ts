@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { pickArtist, pickCombo } from './app';
+import { openPanel, pickArtist, pickCombo } from './app';
 
 /**
  * The pattern library (TASK-045A).
@@ -21,6 +21,8 @@ test.beforeEach(async ({ page }) => {
   await pickArtist(page, 'Mock Artist');
   await page.getByRole('button', { name: 'Generate', exact: true }).first().click();
   await expect(page.locator('.grid__track').first()).toBeVisible();
+  // ⛔ The panel is behind a vertical tab now — `openPanel` presses it.
+  await openPanel(page, 'patterns');
 });
 
 test('a saved pattern appears in the library with what it is', async ({ page }) => {

@@ -71,8 +71,8 @@ const UNREACHABLE: { area: string; feature: string; why: string }[] = [
   },
   {
     area: 'Plugin window',
-    feature: 'The two window sizes, and the zoom matching the window',
-    why: 'There is no host window in a browser tab. `WindowSize` renders nothing outside the plugin.',
+    feature: 'The page zoom matching the window it was given',
+    why: 'There is no host window in a browser tab. `WindowFit` draws nothing anywhere, and outside the plugin it does nothing at all.',
   },
   {
     area: 'Host',

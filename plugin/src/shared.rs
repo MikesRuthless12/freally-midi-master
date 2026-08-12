@@ -733,10 +733,16 @@ impl Shared {
     /// therefore self-explaining once they look at the panel.
     pub fn restore_one_shots(&self) {
         let stored = crate::state::with(&self.session, |s| s.one_shots.clone()).unwrap_or_default();
+        // ⛔ **Read alongside the paths, or a reversed one-shot reloads
+        // forwards.** The reversal is applied at decode time, so it is not
+        // recoverable from the file — see `PluginSession::one_shots_reversed`.
+        let reversed =
+            crate::state::with(&self.session, |s| s.one_shots_reversed.clone()).unwrap_or_default();
         for (lane, path) in stored {
-            if let Err(reason) = self
-                .one_shots
-                .restore(lane, &path, &self.kits, &self.session)
+            let backwards = reversed.get(&lane).copied().unwrap_or(false);
+            if let Err(reason) =
+                self.one_shots
+                    .restore(lane, &path, backwards, &self.kits, &self.session)
             {
                 nih_plug::nih_log!(
                     "the one-shot saved for {lane:?} could not be reloaded: {reason}"

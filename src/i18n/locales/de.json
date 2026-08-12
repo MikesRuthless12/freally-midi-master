@@ -30,9 +30,8 @@
     "generating": "Wird erzeugt…",
     "readyBody": "{{name}} ist bereit. Auf Generieren klicken.",
     "generateAll": "Alle erzeugen",
-    "clear": "Leeren",
-    "clearAll": "Alle leeren",
-    "clearLabel": "Erzeugte Parts leeren"
+    "clearOne": "{{part}} leeren",
+    "clearAll": "Alle leeren"
   },
   "rails": {
     "searchPlaceholder": "Künstler suchen…",
@@ -141,7 +140,6 @@
     "loop": "Loop",
     "masterLevel": "Masterpegel: stumm",
     "toggleRightRail": "Rechte Leiste ein-/ausblenden (K)",
-    "windowSize": "Fenstergröße",
     "loopAlways": "Die Wiedergabe läuft in dieser Phase immer in Schleife.",
     "unavailable": "Wiedergabe nicht verfügbar: {{reason}}"
   },
@@ -159,9 +157,7 @@
   "view": {
     "button": "Ansicht",
     "panels": "Bereiche",
-    "rightRail": "Rechte Leiste",
-    "showAll": "Alle Bereiche einblenden",
-    "hideAll": "Alle Bereiche ausblenden"
+    "rightRail": "Rechte Leiste"
   },
   "settings": {
     "title": "Einstellungen",
@@ -218,8 +214,6 @@
     "artists": "Künstler",
     "flagship": "Aushängeschild",
     "genre": "Stil",
-    "filteredBy": "Gefiltert nach {{name}}",
-    "showAll": "Alle anzeigen",
     "noneInGenre": "Noch arbeitet niemand in {{name}}.",
     "standard": "Standard",
     "inherited": "Vererbt"
@@ -382,6 +376,7 @@
       "nudge": "Zeitlich verschieben",
       "stretch": "Auf doppelte Länge dehnen",
       "compress": "Auf halbe Länge stauchen",
+      "reverseNote": "Ausgewählte Note umkehren",
       "triplet": "Triole in dieser Zelle",
       "quintuplet": "Quintole in dieser Zelle",
       "septuplet": "Septole in dieser Zelle",
@@ -414,8 +409,6 @@
     "waveformOf": "Wellenform von {{name}}",
     "reverse": "Rückwärts abspielen",
     "resize": "Breite des Browsers ändern",
-    "fillRail": "Dem Browser die ganze Leiste geben",
-    "restoreRail": "Roster wieder anzeigen",
     "folderLimit": "Du kannst 8 Ordner gleichzeitig durchsuchen — schließe einen, um einen weiteren hinzuzufügen",
     "favourites": "Markierte Favoriten",
     "star": "{{name}} markieren",

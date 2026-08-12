@@ -30,9 +30,8 @@
     "generating": "Generando…",
     "readyBody": "{{name}} está listo. Pulsa Generar.",
     "generateAll": "Generar todo",
-    "clear": "Vaciar",
-    "clearAll": "Vaciar todo",
-    "clearLabel": "Vaciar las partes generadas"
+    "clearOne": "Vaciar {{part}}",
+    "clearAll": "Vaciar todo"
   },
   "rails": {
     "searchPlaceholder": "Busca un artista…",
@@ -141,7 +140,6 @@
     "loop": "Bucle",
     "masterLevel": "Nivel máster: en silencio",
     "toggleRightRail": "Alternar el panel derecho (K)",
-    "windowSize": "Tamaño de la ventana",
     "loopAlways": "La reproducción siempre se repite en esta fase.",
     "unavailable": "La reproducción no está disponible: {{reason}}"
   },
@@ -159,9 +157,7 @@
   "view": {
     "button": "Vista",
     "panels": "Paneles",
-    "rightRail": "Panel derecho",
-    "showAll": "Mostrar todos los paneles",
-    "hideAll": "Ocultar todos los paneles"
+    "rightRail": "Panel derecho"
   },
   "settings": {
     "title": "Ajustes",
@@ -218,8 +214,6 @@
     "artists": "Artistas",
     "flagship": "Destacado",
     "genre": "Género",
-    "filteredBy": "Filtrado por {{name}}",
-    "showAll": "Mostrar todo",
     "noneInGenre": "Todavía no hay artistas en {{name}}.",
     "standard": "Estándar",
     "inherited": "Heredado"
@@ -382,6 +376,7 @@
       "nudge": "Desplazar en el tiempo",
       "stretch": "Estirar al doble",
       "compress": "Comprimir a la mitad",
+      "reverseNote": "Invertir la nota seleccionada",
       "triplet": "Tresillo en esta celda",
       "quintuplet": "Quintillo en esta celda",
       "septuplet": "Septillo en esta celda",
@@ -414,8 +409,6 @@
     "waveformOf": "Forma de onda de {{name}}",
     "reverse": "Reproducir al revés",
     "resize": "Cambiar el tamaño del explorador",
-    "fillRail": "Dar al navegador toda la columna",
-    "restoreRail": "Mostrar el roster de nuevo",
     "folderLimit": "Puedes explorar 8 carpetas a la vez: cierra una para añadir otra",
     "favourites": "Favoritos destacados",
     "star": "Destacar {{name}}",

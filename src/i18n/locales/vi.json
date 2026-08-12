@@ -30,9 +30,8 @@
     "generating": "Đang tạo…",
     "readyBody": "{{name}} đã sẵn sàng. Nhấn Tạo.",
     "generateAll": "Tạo tất cả",
-    "clear": "Xóa",
-    "clearAll": "Xóa tất cả",
-    "clearLabel": "Xóa các phần đã tạo"
+    "clearOne": "Xóa {{part}}",
+    "clearAll": "Xóa tất cả"
   },
   "rails": {
     "searchPlaceholder": "Tìm nghệ sĩ…",
@@ -141,7 +140,6 @@
     "loop": "Lặp",
     "masterLevel": "Mức master: im lặng",
     "toggleRightRail": "Bật/tắt thanh phải (K)",
-    "windowSize": "Kích thước cửa sổ",
     "loopAlways": "Ở giai đoạn này, phát lại luôn lặp.",
     "unavailable": "Không thể phát: {{reason}}"
   },
@@ -159,9 +157,7 @@
   "view": {
     "button": "Hiển thị",
     "panels": "Bảng",
-    "rightRail": "Thanh phải",
-    "showAll": "Hiện tất cả bảng",
-    "hideAll": "Ẩn tất cả bảng"
+    "rightRail": "Thanh phải"
   },
   "settings": {
     "title": "Cài đặt",
@@ -218,8 +214,6 @@
     "artists": "Nghệ sĩ",
     "flagship": "Tiêu biểu",
     "genre": "Thể loại",
-    "filteredBy": "Đã lọc theo {{name}}",
-    "showAll": "Hiện tất cả",
     "noneInGenre": "Chưa có nghệ sĩ nào thuộc {{name}}.",
     "standard": "Tiêu chuẩn",
     "inherited": "Kế thừa"
@@ -382,6 +376,7 @@
       "nudge": "Dịch theo thời gian",
       "stretch": "Kéo dài gấp đôi",
       "compress": "Nén còn một nửa",
+      "reverseNote": "Đảo ngược nốt đã chọn",
       "triplet": "Chùm ba ở ô này",
       "quintuplet": "Chùm năm ở ô này",
       "septuplet": "Chùm bảy ở ô này",
@@ -414,8 +409,6 @@
     "waveformOf": "Dạng sóng của {{name}}",
     "reverse": "Phát ngược",
     "resize": "Thay đổi chiều rộng trình duyệt",
-    "fillRail": "Cho trình duyệt toàn bộ thanh bên",
-    "restoreRail": "Hiện lại danh sách nghệ sĩ",
     "folderLimit": "Bạn có thể duyệt 8 thư mục cùng lúc — đóng một thư mục để thêm thư mục khác",
     "favourites": "Mục yêu thích",
     "star": "Gắn sao {{name}}",

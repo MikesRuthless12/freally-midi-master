@@ -1,7 +1,7 @@
-import { cleanup, render, screen, fireEvent } from '@testing-library/react';
+import { cleanup, render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import App from './App';
-import { useUi, WIDE_BREAKPOINT } from './state/ui';
+import { sectionsFor, useUi, WIDE_BREAKPOINT } from './state/ui';
 
 // No Rust backend under jsdom, so `src/lib/ipc` routes through `ipc-mock`
 // automatically — the same path Playwright uses. Nothing to stub here.
@@ -30,20 +30,17 @@ function stubMatchMedia(width: number) {
 
 beforeEach(() => {
   window.localStorage.clear();
+  // ⚠ **Through `sectionsFor`, never by hand.** `sections` is derived from
+  // `openGroups`, and a literal map here would seed a layout the app can no
+  // longer reach — all eight panels at once, which is exactly the state the
+  // rails were redesigned to stop existing.
   useUi.setState({
     activeTab: 'drums',
     rightRailOpen: true,
     theme: 'system',
-    sections: {
-      genres: true,
-      roster: true,
-      explorer: true,
-      kit: true,
-      stems: true,
-      session: true,
-      presets: true,
-      patterns: true,
-    },
+    openGroups: { left: 0, right: 0 },
+    sections: sectionsFor({ left: 0, right: 0 }),
+    leaving: { left: null, right: null },
   });
 });
 
@@ -136,55 +133,57 @@ describe('Studio shell', () => {
     expect(container.querySelector('.rail--right')).toBeNull();
   });
 
-  it('collapses an individual panel from its header', () => {
+  /**
+   * ⛔⛔ **THE RAILS SWAP GROUPS; THEY DO NOT COLLAPSE PANELS** (2026-08-11).
+   *
+   * These three tests drove the accordion: click a panel's header, watch it
+   * collapse, reopen it from the View menu. Mike replaced that model — *"only
+   * leave 2 open at a time … file explorer's vertical tab replaces and takes the
+   * place of both roster and genres"* — so there is no header toggle and no
+   * collapsed state to persist. What is worth keeping from them is the
+   * *property*: exactly one group per rail is mounted, the swap really unmounts
+   * the old one, and the choice survives a relaunch.
+   */
+  it('swaps a whole group in from the rail tab, and unmounts the one it replaced', async () => {
     stubMatchMedia(1600);
     const { container } = render(<App />);
 
-    const kit = screen.getByRole('button', { name: /Kit/i });
-    expect(kit.getAttribute('aria-expanded')).toBe('true');
-    // ⚠ The panel's *container*, not a string inside it. This used to assert on
-    // "No kit yet" — which was the hardcoded placeholder TASK-136 removed, and
-    // asserting on it meant this test would have kept passing however wrong the
-    // panel's contents got. What is under test here is that collapsing unmounts
-    // the content, and the content is what `Section` gives an id to.
+    // Kit and Stems are group 0 of the right rail, so both are up.
     expect(container.querySelector('#section-kit')).not.toBeNull();
+    expect(container.querySelector('#section-stems')).not.toBeNull();
+    expect(container.querySelector('#section-session')).toBeNull();
 
-    fireEvent.click(kit);
+    // ⚠ The tab names what it will bring, not what is showing — Mike: *"then
+    // switch the name on the vertical tab after they switch."*
+    fireEvent.click(screen.getByRole('button', { name: /Session · Presets/i }));
 
-    expect(kit.getAttribute('aria-expanded')).toBe('false');
-    // Collapsed content is unmounted, not merely hidden.
-    expect(container.querySelector('#section-kit')).toBeNull();
-    // Collapsing one panel must not disturb its neighbours.
-    expect(screen.getByRole('button', { name: /Session/i }).getAttribute('aria-expanded')).toBe(
-      'true',
-    );
+    expect(container.querySelector('#section-session')).not.toBeNull();
+    expect(container.querySelector('#section-presets')).not.toBeNull();
+    // ⛔ The outgoing group stays mounted while it slides out, so this is the
+    // state *after* the swap has finished — which is the one that matters, and
+    // the one a leaked timer would break.
+    await waitFor(() => expect(container.querySelector('#section-kit')).toBeNull());
+    // The left rail is untouched: a swap is per rail.
+    expect(container.querySelector('#section-roster')).not.toBeNull();
   });
 
-  it('persists collapsed panels across a remount', () => {
+  it('remembers which group each rail was showing across a remount', () => {
     stubMatchMedia(1600);
     const first = render(<App />);
-    fireEvent.click(screen.getByRole('button', { name: /Genres/i }));
-    expect(JSON.parse(window.localStorage.getItem('freally.sections')!).genres).toBe(false);
+    fireEvent.click(screen.getByRole('button', { name: /^Browser$/ }));
+    expect(JSON.parse(window.localStorage.getItem('freally.railGroups')!).left).toBe(1);
 
     first.unmount();
     // Rehydrate the way a fresh launch would.
     useUi.setState({
-      sections: {
-        genres: false,
-        roster: true,
-        explorer: true,
-        kit: true,
-        stems: true,
-        session: true,
-        presets: true,
-        patterns: true,
-      },
+      openGroups: { left: 1, right: 0 },
+      sections: sectionsFor({ left: 1, right: 0 }),
+      leaving: { left: null, right: null },
     });
-    render(<App />);
+    const again = render(<App />);
 
-    expect(screen.getByRole('button', { name: /Genres/i }).getAttribute('aria-expanded')).toBe(
-      'false',
-    );
+    expect(again.container.querySelector('#section-explorer')).not.toBeNull();
+    expect(again.container.querySelector('#section-roster')).toBeNull();
   });
 
   it('lists every panel in the View menu', () => {
@@ -209,17 +208,22 @@ describe('Studio shell', () => {
     ]);
   });
 
-  it('reopens a panel from the View menu after it was collapsed', () => {
+  it('brings a group back from the View menu after the rail switched away', () => {
     stubMatchMedia(1600);
     render(<App />);
 
-    fireEvent.click(screen.getByRole('button', { name: /Roster/i }));
+    // Switch the left rail to the browser, which is a group of one.
+    fireEvent.click(screen.getByRole('button', { name: /^Browser$/ }));
     expect(useUi.getState().sections.roster).toBe(false);
 
+    // ⚠ **The View menu is the second door and it still works**, which is the
+    // point of keeping `sections` as a derived map: the menu names panels, not
+    // groups, and clicking one brings whichever group holds it.
     fireEvent.click(screen.getByRole('button', { name: /View/i }));
     fireEvent.click(screen.getByRole('menuitemcheckbox', { name: /Roster/i }));
 
     expect(useUi.getState().sections.roster).toBe(true);
+    expect(useUi.getState().sections.genres).toBe(true);
   });
 
   it('ignores K while typing in a field', () => {

@@ -479,6 +479,7 @@ mod tests {
             model_vel: None,
             slide_to_pitch: None,
             articulation: None,
+            reversed: false,
         }
     }
 

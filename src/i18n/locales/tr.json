@@ -30,9 +30,8 @@
     "generating": "Oluşturuluyor…",
     "readyBody": "{{name}} hazır. Oluştur’a bas.",
     "generateAll": "Tümünü üret",
-    "clear": "Temizle",
-    "clearAll": "Tümünü temizle",
-    "clearLabel": "Üretilen partisyonları temizle"
+    "clearOne": "{{part}} temizle",
+    "clearAll": "Tümünü temizle"
   },
   "rails": {
     "searchPlaceholder": "Sanatçı ara…",
@@ -141,7 +140,6 @@
     "loop": "Döngü",
     "masterLevel": "Master seviyesi: sessiz",
     "toggleRightRail": "Sağ paneli aç/kapat (K)",
-    "windowSize": "Pencere boyutu",
     "loopAlways": "Bu aşamada çalma her zaman döngüdedir.",
     "unavailable": "Çalma kullanılamıyor: {{reason}}"
   },
@@ -159,9 +157,7 @@
   "view": {
     "button": "Görünüm",
     "panels": "Paneller",
-    "rightRail": "Sağ panel",
-    "showAll": "Tüm panelleri göster",
-    "hideAll": "Tüm panelleri gizle"
+    "rightRail": "Sağ panel"
   },
   "settings": {
     "title": "Ayarlar",
@@ -218,8 +214,6 @@
     "artists": "Sanatçılar",
     "flagship": "Öne çıkan",
     "genre": "Tür",
-    "filteredBy": "{{name}} ile filtrelendi",
-    "showAll": "Tümünü göster",
     "noneInGenre": "{{name}} türünde henüz sanatçı yok.",
     "standard": "Standart",
     "inherited": "Devralınan"
@@ -382,6 +376,7 @@
       "nudge": "Zamanda kaydır",
       "stretch": "İki katına uzat",
       "compress": "Yarıya sıkıştır",
+      "reverseNote": "Seçili notayı ters çevir",
       "triplet": "Bu hücrede triole",
       "quintuplet": "Bu hücrede kentole",
       "septuplet": "Bu hücrede septole",
@@ -414,8 +409,6 @@
     "waveformOf": "{{name}} dalga biçimi",
     "reverse": "Geriye doğru çal",
     "resize": "Tarayıcı genişliğini değiştir",
-    "fillRail": "Tarayıcıya tüm sütunu ver",
-    "restoreRail": "Kadroyu yeniden göster",
     "folderLimit": "Aynı anda 8 klasöre göz atabilirsin — başka eklemek için birini kapat",
     "favourites": "Yıldızlı favoriler",
     "star": "{{name}} favorilere ekle",

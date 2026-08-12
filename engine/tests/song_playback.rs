@@ -170,6 +170,7 @@ fn a_decaying_section_gets_quieter_across_its_length_when_played() {
             model_vel: None,
             slide_to_pitch: None,
             articulation: None,
+            reversed: false,
         })
         .collect();
 
@@ -249,6 +250,7 @@ fn a_resized_clip_loops_on_its_own_length_in_what_plays_and_in_what_exports() {
             model_vel: None,
             slide_to_pitch: None,
             articulation: None,
+            reversed: false,
         })
         .collect();
 
@@ -313,6 +315,7 @@ fn a_resized_clip_does_not_ring_into_its_own_next_repeat() {
             model_vel: None,
             slide_to_pitch: None,
             articulation: None,
+            reversed: false,
         })
         .collect();
 
@@ -452,6 +455,7 @@ fn one_bar_kick(id: &str) -> Pattern {
                 model_vel: None,
                 slide_to_pitch: None,
                 articulation: None,
+                reversed: false,
             }],
         }],
         ppq: PPQ,
@@ -559,6 +563,7 @@ fn a_stem_and_its_track_in_the_multi_track_file_agree() {
                 model_vel: None,
                 slide_to_pitch: Some(37),
                 articulation: None,
+                reversed: false,
             })
             .collect(),
     }];

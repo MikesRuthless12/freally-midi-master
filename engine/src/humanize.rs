@@ -352,6 +352,7 @@ mod tests {
             vel: 100,
             slide_to_pitch: None,
             articulation: None,
+            reversed: false,
         }
     }
 

@@ -421,12 +421,66 @@ pub fn guess(name: &str) -> Option<Lane> {
     best.map(|(_, _, lane)| lane)
 }
 
+/// The four lanes a *generator* writes: a pitched line, played from one sample.
+///
+/// ⛔ **One definition, because two things now turn on it** and they must agree
+/// about which lanes those are:
+///
+/// 1. [`candidates`] — a melodic lane takes any file, a drum lane does not.
+/// 2. `audio::sampler` — a melodic voice is **gated by its note's length**,
+///    where a drum voice rings out. See `trigger_with`'s `hold`.
+///
+/// ⚠ **`Sub` and `SubLow` are NOT in this list**, pitched though they are. They
+/// are kit lanes: `808` is a filename convention people really do use, so
+/// [`guess`] can read them; and they have always rung past their note, which is
+/// how the kit already sounds.
+pub fn is_melodic(lane: Lane) -> bool {
+    matches!(
+        lane,
+        Lane::Melody | Lane::Counter | Lane::Bass | Lane::Chords
+    )
+}
+
 /// Every file in `names` that could be this lane's, in the order given.
 ///
 /// What "randomise this pad from the selected folder" (TASK-050A) draws from.
+///
+/// ⛔⛔ **A MELODIC LANE TAKES ANYTHING, AND A DRUM LANE STILL DOES NOT.**
+/// Mike, 2026-08-11, pressing the dice on Melody while standing in a hi-hats
+/// folder and getting *"nothing in that folder matched the lanes being
+/// re-rolled"*: he expects a hat to land on the melody pad, and he is right.
+///
+/// ▶ **Filename matching can only ever fail for those four.** The whole value of
+/// [`guess`] is that a crash does not land on the kick — a real rule, tested, and
+/// worth keeping. But nobody names a file `melody.wav`: a melodic pad is a
+/// *pitched sample*, and which one is taste rather than a role a filename
+/// declares. So the honest candidate set there is **every file in the folder**,
+/// and refusing was the dice enforcing a naming convention that does not exist.
+///
+/// ⛔⛔ **"Anything" MEANS ANY SAMPLE, NOT ANY FILE.** The browser has listed
+/// `.mid` alongside one-shots since 2026-08-10, and `editor.rs` hands this the
+/// listing filtered only by "not a directory" — so the first cut of the melodic
+/// arm could hand a MIDI file to `oneshot::load`, where `import::decode_file`
+/// refuses it and the whole re-roll comes back as a decode error with the pad
+/// unchanged. At random, on roughly one press in N, which is worse than a
+/// consistent failure because it looks like the dice sometimes not working.
+///
+/// ⚠ **The drum arm needs no such filter**: `guess` reads a *drum* name out of a
+/// filename, and no `.mid` in a kit folder is called `kick.mid`… but a "MIDI
+/// kick" pack is a real thing people ship, so it is checked for both.
 pub fn candidates(lane: Lane, names: &[String]) -> Vec<&String> {
+    let playable = |name: &&String| {
+        matches!(
+            engine::formats::kind_of(std::path::Path::new(name.as_str())),
+            Some(engine::formats::Kind::Audio)
+        )
+    };
+    if is_melodic(lane) {
+        return names.iter().filter(playable).collect();
+    }
     names
         .iter()
+        .filter(playable)
         .filter(|name| guess(name) == Some(lane))
         .collect()
 }

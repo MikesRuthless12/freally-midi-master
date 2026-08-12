@@ -13,6 +13,9 @@ import { create } from 'zustand';
 
 import { invoke } from '../lib/ipc';
 import { reason, useSession } from './session';
+// ⚠ A store-to-store read, not a subscription: the re-roll asks where the
+// browser is standing at the moment it fires, and nothing here re-renders on it.
+import { standingIn, useExplorer } from './explorer';
 import type { Lane } from '../lib/ipc-types';
 
 // ⚠ Re-exported so every existing importer keeps working; the list itself
@@ -240,7 +243,15 @@ export const useKit = create<KitState>((set, get) => ({
       // ⚠ **The seed is taken here**, the same rule the variation log follows:
       // nothing below the page may read a clock, and a re-roll still has to be
       // a different roll each time.
-      await invoke('kit_randomize', { lanes: targets, seed: String(Date.now()) });
+      // ⛔ **The folder the browser is standing in travels with the request** —
+      // `standingIn` carries Mike's rule: a selected *file* means its folder, a
+      // folder means itself. The plugin used to answer this from its own current
+      // folder, which the tree view stopped maintaining.
+      await invoke('kit_randomize', {
+        lanes: targets,
+        seed: String(Date.now()),
+        folder: standingIn(useExplorer.getState()),
+      });
     } catch (error) {
       set({ error: reason(error) });
       return;

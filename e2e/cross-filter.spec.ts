@@ -31,10 +31,19 @@ test.beforeEach(async ({ page }) => {
   await expect(page.getByRole('tablist', { name: 'Generator' })).toBeVisible();
 });
 
-test('picking a genre says what the roster is filtered by', async ({ page }) => {
+test('picking a genre puts no filter notice in the details', async ({ page }) => {
+  // ⛔⛔ **INVERTED 2026-08-11, and kept as a refusal so it cannot come back.**
+  // This read `toContainText('Filtered by Trap')`. Mike, looking at the rail:
+  // *"I also don't want the 'Filtered by DrakeShow all' to show up at all in the
+  // details part of the roster."* The two strings ran together on screen because
+  // the notice and its button sat side by side under the artist blurb — but the
+  // reason it goes is that it described a filter on a **list that no longer
+  // exists**. Both comboboxes deliberately offer the whole roster (the test
+  // below pins that), so there was nothing on screen for it to be true of.
   await pickGenre(page, 'Trap');
 
-  await expect(page.locator('.roster__filter')).toContainText('Filtered by Trap');
+  await expect(page.locator('.roster__filter')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Show all' })).toHaveCount(0);
 });
 
 test('a genre nobody works in says so rather than leaving the rail silent', async ({
@@ -45,15 +54,15 @@ test('a genre nobody works in says so rather than leaving the rail silent', asyn
   await expect(page.locator('.rail__hint')).toContainText('No artists work in UK Drill yet.');
 });
 
-test('Show all clears the notice without changing the selection', async ({ page }) => {
+test('an empty genre stays selected, with only the hint to show for it', async ({ page }) => {
+  // ⚠ **What is left of "Show all clears the notice without changing the
+  // selection".** The button and the notice are gone (see above); the half that
+  // still matters is that an empty genre is a *selection* rather than an error
+  // the rail bounces off — it keeps the choice and says why the roster looks
+  // bare.
   await pickGenre(page, 'UK Drill');
+
   await expect(page.locator('.rail__hint')).toContainText('No artists work in UK Drill yet.');
-
-  await page.getByRole('button', { name: 'Show all' }).click();
-
-  await expect(page.locator('.roster__filter')).toBeHidden();
-  // Still selected — this clears the filter, not the choice the filter came
-  // from. The genre box is what now holds that choice.
   await expect(page.getByRole('combobox', { name: 'Genres' })).toHaveValue('UK Drill');
 });
 

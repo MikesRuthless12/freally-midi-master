@@ -149,6 +149,30 @@ export function laneOf(part: MelodicPart): Lane {
  */
 export type NoteId = string;
 
+/**
+ * Which way `Ctrl`+R turns a selection: the one direction it can be un-done from.
+ *
+ * ⛔⛔ **A TOGGLE DECIDED ONCE FOR THE WHOLE SELECTION.** Flipping each note
+ * independently would make a mixed selection un-un-reversible — every press
+ * would swap which half was backwards and there would be no way back to "all
+ * forwards". So if *anything* selected is still forwards the press reverses
+ * everything, and only a wholly-reversed selection turns back.
+ *
+ * ⛔ **One definition, because two grids implement the gesture.**
+ * `PianoRoll/transforms.ts::reversePlayback` works on note ids and
+ * `DrumGrid/cells.ts::reverseCells` on cell references — the selection models
+ * genuinely differ, the *policy* does not, and both files' docs used to promise
+ * the rule was "deliberately identical" while stating it separately.
+ *
+ * ⚠ **There is no "nothing would change" case to guard.** It was written out in
+ * both copies as `if (notes.every(n => n.reversed === backwards)) return`, and
+ * it is a contradiction either way round: all-reversed gives `backwards = false`
+ * and needs them all false, any-forward gives `true` and needs them all true.
+ */
+export function nextReversed(notes: readonly Note[]): boolean {
+  return !notes.every((note) => note.reversed);
+}
+
 export function noteId(note: Note): NoteId {
   return `${note.startTick}:${note.pitch}`;
 }

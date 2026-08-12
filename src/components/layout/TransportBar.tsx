@@ -16,7 +16,7 @@ import { invoke } from '../../lib/ipc';
 import { useSession, armedClips, canDrive } from '../../state/session';
 import { useSong } from '../../state/song';
 import { ViewMenu } from './ViewMenu';
-import { WindowSize } from './WindowSize';
+import { WindowFit } from './WindowFit';
 import type { ThemePreference } from '../../state/theme';
 import { useTranslation } from 'react-i18next';
 
@@ -283,7 +283,7 @@ export function TransportBar({
         <PanelRight size={14} aria-hidden="true" />
       </button>
 
-      <WindowSize />
+      <WindowFit />
 
       {/* ⛔ Settings and About live here rather than on a title bar. The host
           owns the plugin's window — Ableton draws the frame, the title and the

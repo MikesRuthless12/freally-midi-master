@@ -30,9 +30,8 @@
     "generating": "生成中…",
     "readyBody": "{{name}} 已就绪。点击生成。",
     "generateAll": "全部生成",
-    "clear": "清除",
-    "clearAll": "全部清除",
-    "clearLabel": "清除已生成的声部"
+    "clearOne": "清除{{part}}",
+    "clearAll": "全部清除"
   },
   "rails": {
     "searchPlaceholder": "搜索艺人…",
@@ -141,7 +140,6 @@
     "loop": "循环",
     "masterLevel": "主输出电平：静音",
     "toggleRightRail": "切换右侧栏 (K)",
-    "windowSize": "窗口大小",
     "loopAlways": "当前阶段播放始终循环。",
     "unavailable": "无法播放：{{reason}}"
   },
@@ -159,9 +157,7 @@
   "view": {
     "button": "视图",
     "panels": "面板",
-    "rightRail": "右侧栏",
-    "showAll": "显示所有面板",
-    "hideAll": "隐藏所有面板"
+    "rightRail": "右侧栏"
   },
   "settings": {
     "title": "设置",
@@ -218,8 +214,6 @@
     "artists": "艺人",
     "flagship": "旗舰",
     "genre": "流派",
-    "filteredBy": "按 {{name}} 筛选",
-    "showAll": "显示全部",
     "noneInGenre": "{{name}} 中还没有艺人。",
     "standard": "标准",
     "inherited": "继承"
@@ -382,6 +376,7 @@
       "nudge": "在时间上微调",
       "stretch": "拉伸至两倍长度",
       "compress": "压缩至一半长度",
+      "reverseNote": "反向播放选中的音符",
       "triplet": "此格三连音",
       "quintuplet": "此格五连音",
       "septuplet": "此格七连音",
@@ -414,8 +409,6 @@
     "waveformOf": "{{name}} 的波形",
     "reverse": "倒放",
     "resize": "调整浏览器宽度",
-    "fillRail": "让浏览器占满整栏",
-    "restoreRail": "重新显示艺人列表",
     "folderLimit": "一次最多浏览 8 个文件夹 — 关闭一个才能再添加",
     "favourites": "收藏夹",
     "star": "收藏 {{name}}",

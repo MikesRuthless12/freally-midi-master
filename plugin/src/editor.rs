@@ -772,17 +772,40 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
                 .and_then(|text| text.parse::<u64>().ok())
                 .unwrap_or(0);
 
-            // The folder the producer is looking at, as filenames. `state()` is
-            // what the panel already draws, so a re-roll can only ever reach
-            // what they can see — the containment rule, for free.
-            let files: Vec<String> = shared
-                .explorer
-                .state()
-                .entries
-                .into_iter()
-                .filter(|entry| !entry.is_dir)
-                .map(|entry| entry.path)
-                .collect();
+            // ⛔⛔ **THE FOLDER THE PRODUCER IS STANDING IN, WHICH THE PAGE HAS
+            // TO SAY** — Mike, 2026-08-11: *"if i am on an actual sample in the
+            // file explorer, or i am on a folder in file explorer, either way, it
+            // should remember the folder's name that i am in, and it should
+            // randomize a sample from that specific folder for the 'Re-roll'."*
+            //
+            // ▶ **`state()` could not answer that any more.** It reports the
+            // explorer's own "current folder", which the *tree* view stopped
+            // maintaining — expanding a branch and clicking a file inside it
+            // never moves it. So the dice was re-rolling from whatever folder was
+            // last opened the old way, or from nothing at all.
+            //
+            // ⚠ **Which folder a *file* means is the page's question**, because
+            // the page is what holds the selection: it sends the parent for a
+            // file and the folder itself for a folder. Deriving it here would be
+            // a second idea of where the producer is standing.
+            //
+            // ⛔ **`list_one` re-applies containment**, so an arbitrary path from
+            // the webview cannot read outside the sample library — the same
+            // boundary `explorer_drop` leans on, and the reason this is not just
+            // a `read_dir`. Falling back to `state()` keeps the old behaviour for
+            // a page that sends nothing.
+            let files: Vec<String> = match request.args["folder"].as_str() {
+                Some(dir) if !dir.is_empty() => shared
+                    .explorer
+                    .list_one(dir)
+                    .map(|state| state.entries)
+                    .unwrap_or_default(),
+                _ => shared.explorer.state().entries,
+            }
+            .into_iter()
+            .filter(|entry| !entry.is_dir)
+            .map(|entry| entry.path)
+            .collect();
 
             return Some(
                 shared
@@ -928,10 +951,19 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
             if !shared.explorer.contains(file) {
                 return Some(Err("that sample is not in your sample library".into()));
             }
+            // ⛔ **Backwards when the page says so** — Mike, 2026-08-11: *"'Ctrl +
+            // left arrow' … should add the sample to that selected drum pad lane
+            // in reverse and 'Ctrl + right arrow' should add the sample to that
+            // selected drum pad lane playing regularly."*
+            //
+            // ⚠ **Absent means forwards**, so the drag-onto-a-pad and
+            // click-to-assign routes — which send no such flag and have no
+            // reverse gesture — keep behaving exactly as they did.
+            let reversed = request.args["reversed"].as_bool().unwrap_or(false);
             return Some(
                 shared
                     .one_shots
-                    .restore(lane, path, &shared.kits, &shared.session)
+                    .restore(lane, path, reversed, &shared.kits, &shared.session)
                     .map(|()| Value::Null),
             );
         }
@@ -1251,6 +1283,28 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
                             // stacks them"*). `render_and_spool` builds both
                             // from this one cut; `drag/windows.rs` picks
                             // between them from inside the drag.
+                            // ⛔⛔ **MORE THAN ONE PART LANDS TOGETHER**
+                            // (Mike, 2026-08-11): *"all parts of a song should be
+                            // able to press 'Ctrl+Drag in' to put them on
+                            // separate lanes, but together if you don't press
+                            // ctrl"* … *"for audio and midi."* `Cut::Parts` — one
+                            // file each, and therefore one DAW lane each — is now
+                            // what the modifier reaches; `drag::render_and_spool`
+                            // spools both.
+                            //
+                            // ⚠ **One pattern is `Parts`, not `Together`.** They
+                            // would produce the same single file, but `Together`
+                            // names it *All Parts*, which on a lone drum loop is
+                            // a label that lies about what is in it. A single
+                            // part also has nothing for Ctrl to choose between.
+                            // ⚠ **How many patterns there are does not enter
+                            // into it**, and it used to: a `several` guard
+                            // selected between two arms that had become the same
+                            // answer, which rustc cannot warn about through a
+                            // guard. See `drag::render_and_spool` — a multi-part
+                            // drag is plain `Cut::Parts`, one clip per part at
+                            // bar 1, because anything offset arrives as a
+                            // staircase of over-long clips.
                             cut: match (args.lane, args.lanes) {
                                 (Some(lane), _) => crate::export::Cut::OneLane(lane),
                                 (None, true) => crate::export::Cut::EveryLaneInSequence,
@@ -1486,6 +1540,22 @@ pub fn create(shared: SharedState) -> Option<Box<dyn Editor>> {
         // designed to survive. Passed from here rather than chosen in the
         // adapter, so it tracks `LAYOUT` and the display scale automatically.
         .with_minimum_size(physical(1.0).0)
+        // ⛔⛔ **So the caption says it once** — Mike, 2026-08-11: *"can you
+        // replace the window's title bar after the vst3/clap file opens … so it
+        // just says it once?"* Ableton names a fresh track after the instrument
+        // dropped on it and then builds the plugin window's caption from the
+        // device *and* the track, so the name lands on both sides of a slash:
+        // `Freally MIDI Master By: Mike Weaver/1-Freally MIDI Master By: Mike
+        // Weaver`.
+        //
+        // ⚠ **`Plugin::NAME`, not a second string.** The whole point is that the
+        // caption agrees with what the host calls us; a literal here would be a
+        // rename waiting to disagree with the plugin browser.
+        //
+        // ⛔ The adapter only rewrites a caption that **already contains** this
+        // name — `windows_pump::retitle` explains why, and the short version is
+        // that a docked FL Studio editor's top-level window is FL's own frame.
+        .with_window_title(<crate::FreallyMidiMaster as Plugin>::NAME)
         // The app's own background, so a slow first paint is the app's colour
         // rather than a white flash inside a dark DAW.
         .with_background_color((11, 11, 13, 255))
@@ -2440,6 +2510,7 @@ mod tests {
                 .restore(
                     Lane::Melody,
                     sample.to_str().expect("a utf-8 temp path"),
+                    false,
                     &shared.kits,
                     &shared.session,
                 )

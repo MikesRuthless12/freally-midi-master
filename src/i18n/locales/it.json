@@ -30,9 +30,8 @@
     "generating": "Generazione…",
     "readyBody": "{{name}} è pronto. Premi Genera.",
     "generateAll": "Genera tutto",
-    "clear": "Svuota",
-    "clearAll": "Svuota tutto",
-    "clearLabel": "Svuota le parti generate"
+    "clearOne": "Svuota {{part}}",
+    "clearAll": "Svuota tutto"
   },
   "rails": {
     "searchPlaceholder": "Cerca un artista…",
@@ -141,7 +140,6 @@
     "loop": "Loop",
     "masterLevel": "Livello master: silenzio",
     "toggleRightRail": "Mostra/nascondi pannello destro (K)",
-    "windowSize": "Dimensioni finestra",
     "loopAlways": "La riproduzione va sempre in loop in questa fase.",
     "unavailable": "Riproduzione non disponibile: {{reason}}"
   },
@@ -159,9 +157,7 @@
   "view": {
     "button": "Vista",
     "panels": "Pannelli",
-    "rightRail": "Pannello destro",
-    "showAll": "Mostra tutti i pannelli",
-    "hideAll": "Nascondi tutti i pannelli"
+    "rightRail": "Pannello destro"
   },
   "settings": {
     "title": "Impostazioni",
@@ -218,8 +214,6 @@
     "artists": "Artisti",
     "flagship": "Di punta",
     "genre": "Genere",
-    "filteredBy": "Filtrato per {{name}}",
-    "showAll": "Mostra tutto",
     "noneInGenre": "Nessun artista lavora ancora in {{name}}.",
     "standard": "Standard",
     "inherited": "Ereditato"
@@ -382,6 +376,7 @@
       "nudge": "Sposta nel tempo",
       "stretch": "Allunga al doppio",
       "compress": "Comprimi a metà",
+      "reverseNote": "Inverti la nota selezionata",
       "triplet": "Terzina in questa cella",
       "quintuplet": "Quintina in questa cella",
       "septuplet": "Settimina in questa cella",
@@ -414,8 +409,6 @@
     "waveformOf": "Forma d’onda di {{name}}",
     "reverse": "Riproduci al contrario",
     "resize": "Ridimensiona il browser",
-    "fillRail": "Dare al browser tutta la colonna",
-    "restoreRail": "Mostra di nuovo il roster",
     "folderLimit": "Puoi sfogliare 8 cartelle alla volta: chiudine una per aggiungerne un’altra",
     "favourites": "Preferiti con stella",
     "star": "Aggiungi {{name}} ai preferiti",

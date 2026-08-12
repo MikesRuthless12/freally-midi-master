@@ -276,6 +276,7 @@ pub fn generate(
                 vel: BASS_VELOCITY,
                 slide_to_pitch: None,
                 articulation: None,
+                reversed: false,
             },
             passing_slot,
         ));

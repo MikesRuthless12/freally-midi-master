@@ -92,6 +92,15 @@ export const SHORTCUT_GROUPS: ShortcutGroup[] = [
       { keys: '← / →', id: 'nudge' },
       { keys: '*', id: 'stretch' },
       { keys: '/', id: 'compress' },
+      // ⛔ **Mike asked for this row by name**, 2026-08-11: *"you need to ensure
+      // that the 'Ctrl+R' and 'Command+R' are in the keyboard shortcuts modal as
+      // well."* One entry serves both — `ACCEL` is already the platform's own
+      // accelerator, so this reads `Ctrl + R` on Windows and `⌘ + R` on macOS.
+      //
+      // ⚠ **In `notes` rather than `generate`**, which is where the bare `R`
+      // (re-roll) lives. They are different gestures on different objects: `R`
+      // re-rolls a whole lane, this flips one selected note.
+      { keys: `${ACCEL} + R`, id: 'reverseNote' },
     ],
   },
   {

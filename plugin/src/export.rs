@@ -826,6 +826,7 @@ mod tests {
             model_vel: None,
             slide_to_pitch: None,
             articulation: None,
+            reversed: false,
         };
         let pattern = Pattern {
             id: "muted-export".into(),
@@ -1028,6 +1029,7 @@ mod stem_name_tests {
                     model_vel: None,
                     slide_to_pitch: None,
                     articulation: None,
+                    reversed: false,
                 }],
             }],
             ppq: engine::pattern::PPQ,

@@ -30,9 +30,8 @@
     "generating": "Genereren…",
     "readyBody": "{{name}} staat klaar. Klik op Genereren.",
     "generateAll": "Alles genereren",
-    "clear": "Wissen",
-    "clearAll": "Alles wissen",
-    "clearLabel": "Gegenereerde partijen wissen"
+    "clearOne": "{{part}} wissen",
+    "clearAll": "Alles wissen"
   },
   "rails": {
     "searchPlaceholder": "Zoek een artiest…",
@@ -141,7 +140,6 @@
     "loop": "Loop",
     "masterLevel": "Masterniveau: stil",
     "toggleRightRail": "Rechterbalk tonen of verbergen (K)",
-    "windowSize": "Venstergrootte",
     "loopAlways": "Afspelen loopt in deze fase altijd door.",
     "unavailable": "Afspelen is niet beschikbaar: {{reason}}"
   },
@@ -159,9 +157,7 @@
   "view": {
     "button": "Weergave",
     "panels": "Panelen",
-    "rightRail": "Rechterbalk",
-    "showAll": "Alle panelen tonen",
-    "hideAll": "Alle panelen verbergen"
+    "rightRail": "Rechterbalk"
   },
   "settings": {
     "title": "Instellingen",
@@ -218,8 +214,6 @@
     "artists": "Artiesten",
     "flagship": "Vlaggenschip",
     "genre": "Stijl",
-    "filteredBy": "Gefilterd op {{name}}",
-    "showAll": "Alles tonen",
     "noneInGenre": "Nog geen artiesten in {{name}}.",
     "standard": "Standaard",
     "inherited": "Overgeërfd"
@@ -382,6 +376,7 @@
       "nudge": "In de tijd verschuiven",
       "stretch": "Naar dubbele lengte rekken",
       "compress": "Naar halve lengte comprimeren",
+      "reverseNote": "Geselecteerde noot omkeren",
       "triplet": "Triool in deze cel",
       "quintuplet": "Kwintool in deze cel",
       "septuplet": "Septool in deze cel",
@@ -414,8 +409,6 @@
     "waveformOf": "Golfvorm van {{name}}",
     "reverse": "Achterstevoren afspelen",
     "resize": "Breedte van de browser aanpassen",
-    "fillRail": "Geef de browser de hele balk",
-    "restoreRail": "Toon de roster weer",
     "folderLimit": "Je kunt 8 mappen tegelijk doorzoeken — sluit er een om er een toe te voegen",
     "favourites": "Favorieten met ster",
     "star": "{{name}} als favoriet markeren",

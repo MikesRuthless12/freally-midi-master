@@ -9,6 +9,7 @@ import {
   quantize,
   reselect,
   reverse,
+  reversePlayback,
   stretch,
   transposeToScale,
 } from './transforms';
@@ -97,6 +98,36 @@ describe('reverse', () => {
     const only = new Set([noteId(notes[0]), noteId(notes[1])]);
     const after = out(reverse(clip(notes, 2), LANE, only));
     expect(after).toContainEqual([1920, 64, 240]);
+  });
+
+  it('keeps two voices that started together together', () => {
+    // ⛔⛔ Mike, 2026-08-11: *"if you reverse two countermelody lines that are
+    // supposed to be played at the same time, then they should play at the same
+    // time, not back to back."* Reflecting each note's own end put the short one
+    // 240 ticks after the long one — a duet turned into a call and response.
+    const notes = [note(0, 60, 480), note(0, 67, 240), note(480, 64, 480)];
+    const after = out(reverse(clip(notes), LANE, all(notes)));
+
+    expect(
+      after
+        .filter(([at]) => at === 480)
+        .map(([, pitch]) => pitch)
+        .sort(),
+    ).toEqual([60, 67]);
+  });
+
+  it('never lands two notes of one pitch on the same tick', () => {
+    // ⛔⛔ **`mapNotes` dedupes by `startTick:pitch` and keeps the last writer**,
+    // so a retrograde that is not injective on onsets *deletes notes* with
+    // nothing on screen to say it happened. Reflecting by the onset group's end
+    // did exactly that: group 0 (C4 240 under a G4 480) and group 240 (C4 240)
+    // share an end of 480, so both C4s landed on one tick and one was lost.
+    const notes = [note(0, 60, 240), note(0, 67, 480), note(240, 60, 240)];
+    const after = out(reverse(clip(notes), LANE, all(notes)));
+
+    expect(after).toHaveLength(notes.length);
+    const keys = after.map(([at, pitch]) => `${at}:${pitch}`);
+    expect(new Set(keys).size).toBe(keys.length);
   });
 });
 
@@ -245,5 +276,60 @@ describe('the selection a transform hands back', () => {
     const before = clip(notes, 2);
     const after = invert(before, LANE, only);
     expect(reselect(before, after, LANE, only)).toEqual([noteId({ ...notes[0], pitch: 72 })]);
+  });
+});
+
+/**
+ * Playing one note's sample backwards (2026-08-11).
+ *
+ * ⛔⛔ **Mike:** *"you should be able to select the note and press like 'Ctrl+R'
+ * or 'Command+R' on macOS to reverse the note just for that single note being
+ * played."*
+ *
+ * ⚠ **Not `reverse` above**, which is a retrograde and moves the notes in time.
+ * This moves nothing — it flips playback direction — and the two sitting next to
+ * each other is exactly why one is `reversePlayback`.
+ */
+describe('reversePlayback', () => {
+  const two = () => clip([note(0, 60), note(PPQ, 62)]);
+  const ids = (pattern: Pattern): Set<NoteId> => new Set(notesOf(pattern, LANE).map(noteId));
+
+  it('flips the selected notes and leaves everything else alone', () => {
+    const pattern = two();
+    const first = new Set([noteId(notesOf(pattern, LANE)[0])]);
+    const next = reversePlayback(pattern, LANE, first);
+    const notes = notesOf(next, LANE);
+
+    expect(notes[0].reversed).toBe(true);
+    expect(notes[1].reversed).toBeFalsy();
+    // ⚠ Nothing moved, which is the property that lets the caller skip
+    // `reselect` — the note ids are start tick and pitch.
+    expect(notes.map((n) => n.startTick)).toEqual([0, PPQ]);
+  });
+
+  it('turns a wholly reversed selection back', () => {
+    const pattern = two();
+    const all = ids(pattern);
+    const once = reversePlayback(pattern, LANE, all);
+    const twice = reversePlayback(once, LANE, ids(once));
+
+    expect(notesOf(twice, LANE).every((n) => n.reversed)).toBe(false);
+  });
+
+  it('reverses everything when the selection is mixed', () => {
+    // ⛔ The property that makes it usable: flipping each note independently
+    // would swap which half is backwards on every press, with no way to reach
+    // "all forwards" again.
+    const pattern = two();
+    const first = new Set([noteId(notesOf(pattern, LANE)[0])]);
+    const half = reversePlayback(pattern, LANE, first);
+
+    const next = reversePlayback(half, LANE, ids(half));
+    expect(notesOf(next, LANE).every((n) => n.reversed)).toBe(true);
+  });
+
+  it('leaves the pattern untouched when nothing is selected', () => {
+    const pattern = two();
+    expect(reversePlayback(pattern, LANE, new Set())).toBe(pattern);
   });
 });

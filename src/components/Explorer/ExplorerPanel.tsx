@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CornerLeftUp, FolderPlus, Maximize2, Minimize2, X } from 'lucide-react';
+import { CornerLeftUp, FolderPlus, X } from 'lucide-react';
 
 import {
   MAX_ROOTS,
@@ -9,10 +9,13 @@ import {
   samePath,
   useExplorer,
 } from '../../state/explorer';
-import { useUi } from '../../state/ui';
+import { useKit } from '../../state/kit';
+import { useSession } from '../../state/session';
+import { padsOf, useUi } from '../../state/ui';
 import { Favourites } from './Favourites';
 import { FileTree } from './FileTree';
 import { PreviewPlayer } from './PreviewPlayer';
+import type { Lane } from '../../lib/ipc-types';
 import './Explorer.css';
 
 /**
@@ -52,6 +55,7 @@ export function ExplorerPanel() {
   const select = useExplorer((s) => s.select);
   const play = useExplorer((s) => s.play);
   const setReverse = useExplorer((s) => s.setReverse);
+  const dropOn = useExplorer((s) => s.dropOn);
 
   // ⛔⛔ **The browser can take the whole rail** — Mike, 2026-08-10: *"the File
   // Explorer needs to show and hide the 'Artist/Producer Roster' part so that
@@ -69,9 +73,6 @@ export function ExplorerPanel() {
   // `Section` unmounts collapsed content and the state is the one `K` and the
   // View menu already write, so this is the same show/hide by another button —
   // not a second layout the two could disagree about.
-  const sections = useUi((s) => s.sections);
-  const toggleSection = useUi((s) => s.toggleSection);
-  const crowded = sections.roster || sections.genres;
 
   // Read once when the panel mounts. `Section` unmounts a collapsed panel's
   // content, so reopening it re-reads — which is what keeps the list in step
@@ -87,6 +88,38 @@ export function ExplorerPanel() {
     void refresh();
     void loadFavourites();
   }, [refresh, loadFavourites]);
+
+  /**
+   * The lane `Ctrl`+arrow will put the selected sample on, or `null`.
+   *
+   * ⛔⛔ **Two different answers, and Mike drew the line himself** (2026-08-11):
+   * *"you should be able to select one of the drum pads, and then 'Ctrl + left
+   * arrow' … that same goes with the melody/chords/bassline/counter melody, but
+   * **you should only have to be in their tab** to be able to add them to the
+   * melodic parts, you should not have to select the actual 'Melody' button
+   * where you drag it to."*
+   *
+   * So on the **Drums** tab the target is whichever pad is selected — which is
+   * why that selection is never allowed to be empty — and on a melodic tab it is
+   * that tab's own lane, with nothing to aim.
+   *
+   * ⚠ **`null` on the Song tab**, and that is the honest answer rather than a
+   * fallback: an arrangement has no one lane to drop a one-shot onto, and
+   * quietly picking the drums would put a sample somewhere the producer was not
+   * looking.
+   */
+  const activeTab = useUi((s) => s.activeTab);
+  const selectedPad = useUi((s) => s.selectedPad);
+  const padsByStyle = useUi((s) => s.pads);
+  const selectedId = useSession((s) => s.selectedId);
+  const refreshKit = useKit((s) => s.refresh);
+  const selectedKind = useExplorer((s) => s.selectedKind);
+  const assignTarget: Lane | null =
+    activeTab === 'song'
+      ? null
+      : activeTab === 'drums'
+        ? ((padsOf(padsByStyle, selectedId)[selectedPad] ?? null) as Lane | null)
+        : (activeTab as Lane);
 
   /** Shut the deepest open folder. What `Up` and `←`-on-a-folder both do. */
   const up = () => {
@@ -107,7 +140,40 @@ export function ExplorerPanel() {
       onKeyDown={(event) => {
         const vertical = event.key === 'ArrowUp' || event.key === 'ArrowDown';
         if (!vertical && event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
-        if (event.ctrlKey || event.metaKey || event.altKey) return;
+
+        // ⛔⛔ **`Ctrl`+←/→ PUTS THE SELECTED SAMPLE ON THE CURRENT TARGET** —
+        // Mike, 2026-08-11: *"you should be able to select one of the drum pads,
+        // and then 'Ctrl + left arrow' when you have a sample selected should add
+        // the sample to that selected drum pad lane **in reverse** and 'Ctrl +
+        // right arrow' should add the sample to that selected drum pad lane
+        // playing regularly, that same goes with the melody/chords/bassline/
+        // counter melody, but you should only have to be in their tab."*
+        //
+        // ⚠ **The plain arrows already mean two other things here** — ↑/↓ walk
+        // the tree and ←/→ audition backwards and forwards — and this handler
+        // used to `return` on any modifier, which is exactly what left `Ctrl`
+        // free to mean something new.
+        if (event.ctrlKey || event.metaKey) {
+          const sideways = event.key === 'ArrowLeft' || event.key === 'ArrowRight';
+          // ⚠ Nothing selected, or a `.mid`, or the Song tab — all three are
+          // "there is no target", and none of them is worth a message: the
+          // producer pressed a shortcut in a state it does not apply to.
+          if (
+            !sideways ||
+            assignTarget === null ||
+            selected === null ||
+            selectedKind !== 'audio'
+          ) {
+            return;
+          }
+          event.preventDefault();
+          void dropOn(assignTarget, selected, event.key === 'ArrowLeft').then(() =>
+            refreshKit(),
+          );
+          return;
+        }
+
+        if (event.altKey) return;
 
         const row =
           event.target instanceof HTMLElement
@@ -120,12 +186,23 @@ export function ExplorerPanel() {
         // producer can walk a folder and hear every file — in both directions —
         // without touching the mouse."*
         //
-        // ⚠ **Moves focus and does not audition.** Pairing it with → is what
-        // makes walking a folder possible at all: a producer steps down the rows
-        // and presses → on the ones worth hearing. Auditioning on every step is
-        // TASK-058's *"arrow down a folder and every file plays as you land on
-        // it"* — a different behaviour, and one that would make ↓ unusable for
-        // simply getting past a folder.
+        // ⛔⛔ **IT SELECTS AS IT WALKS NOW, AND THE SAMPLE PLAYS** (Mike,
+        // 2026-08-11): *"the files need to play as you go up and down in the list
+        // with the up/down arrow or by clicking on them."*
+        //
+        // ⚠ **This reverses the note that stood here**, which read: *"Moves focus
+        // and does not audition. Pairing it with → is what makes walking a folder
+        // possible at all … auditioning on every step would make ↓ unusable for
+        // simply getting past a folder."* The objection was reasonable and Mike
+        // has overruled it by name. ▶ It also left ↓ doing **less** than it
+        // looked like it did: the row took focus and the selection did not move
+        // at all, so the waveform and the transport went on describing whatever
+        // was last clicked while the highlight walked away from it.
+        //
+        // ⚠ **The playing is `select`'s**, not this handler's — a click has to do
+        // the same thing and there must not be two answers to when a file
+        // sounds. → still auditions, for anyone who has the old gesture in their
+        // fingers.
         //
         // ⚠ **Over the rendered rows, in document order**, which is exactly the
         // tree's visual order — a flattened model would be a second idea of what
@@ -141,7 +218,13 @@ export function ExplorerPanel() {
           // Clamped rather than wrapped: a list that jumps from the last row back
           // to the first reads as the key having done nothing.
           const next = Math.min(rows.length - 1, Math.max(0, at + step));
-          rows[next]?.focus();
+          const landed = rows[next];
+          landed?.focus();
+          // ⚠ **A folder is stepped over, not selected.** It has no waveform and
+          // nothing to audition, and selecting one would clear the sample the
+          // producer is walking past it to get back to.
+          const onto = landed?.dataset.path;
+          if (landed?.dataset.kind !== 'dir' && onto !== undefined) void select(onto);
           return;
         }
 
@@ -219,26 +302,15 @@ export function ExplorerPanel() {
           {t('explorer.up')}
         </button>
 
-        <button
-          type="button"
-          className="btn-ghost browser__grow"
-          aria-pressed={!crowded}
-          title={t(crowded ? 'explorer.fillRail' : 'explorer.restoreRail')}
-          aria-label={t(crowded ? 'explorer.fillRail' : 'explorer.restoreRail')}
-          onClick={() => {
-            // ⚠ Both of them, and back again. The genres combobox is only one
-            // row, but with the roster shut it is the only thing left between
-            // the browser and the top of the rail.
-            if (sections.roster !== !crowded) toggleSection('roster');
-            if (sections.genres !== !crowded) toggleSection('genres');
-          }}
-        >
-          {crowded ? (
-            <Maximize2 size={12} aria-hidden="true" />
-          ) : (
-            <Minimize2 size={12} aria-hidden="true" />
-          )}
-        </button>
+        {/* ⚠ **The "fill the rail" toggle is gone, and the feature it asked for
+            is now unconditional** (2026-08-11). It existed because the browser
+            and the roster were both `Section … grow` and each got half the rail
+            however deep the folder tree ran — Mike, 2026-08-10: *"the File
+            Explorer needs to show and hide the 'Artist/Producer Roster' part so
+            that way it can expand as high as it can."* Under `RAIL_GROUPS` the
+            browser is a group of **one**, so showing it *is* giving it the whole
+            rail. A button that collapsed the roster would now be a second way to
+            do what its own tab already does. */}
       </div>
 
       {/* ⛔⛔ **The library folders are tabs, up to eight** — Mike, 2026-08-10:

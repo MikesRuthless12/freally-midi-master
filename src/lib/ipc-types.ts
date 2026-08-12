@@ -77,7 +77,34 @@ modelVel?: number | null,
  * 808 slide target. The note glides to this pitch; the writer emits the
  * overlap convention the sampler reads as portamento.
  */
-slideToPitch?: number | null, articulation?: Articulation | null, };
+slideToPitch?: number | null, articulation?: Articulation | null, 
+/**
+ * Play this one note's sample **backwards** (2026-08-11).
+ *
+ * ⛔⛔ **Mike:** *"if you have a drum pad or something playing forward in
+ * the pad, but you want it to play backwards in the drum pattern, you should
+ * be able to switch it … select the note and press like 'Ctrl+R' or
+ * 'Command+R' on macOS to reverse the note just for that single note being
+ * played. i think this would be a VERY USABLE AND COOL FEATURE to have."*
+ *
+ * ⛔ **Per NOTE, and deliberately not the same thing as a reversed
+ * one-shot.** A pad can be *assigned* a reversed sample (`Ctrl`+← in the
+ * browser, stored in `PluginSession::one_shots_reversed`), and that flips the
+ * buffer once at load time because it never changes. This is the opposite
+ * case: the same pad sounding forwards on one hit and backwards on the next
+ * inside one pattern, so it can only be read per voice, at trigger time.
+ *
+ * ⛔ **A `.mid` cannot carry it.** There is no SMF representation of "play
+ * this sample backwards", so a dragged or exported MIDI clip loses it and
+ * only the audio keeps it. That is a real limit of the format rather than
+ * something to work around, and it is written here so the next reader does
+ * not go looking for the encoding.
+ *
+ * ⚠ `#[serde(default)]` and skipped when false, so every pattern already on
+ * disk — and every golden snapshot — deserializes unchanged and gains
+ * nothing in its serialized form.
+ */
+reversed?: boolean, };
 
 /**
  * The five generated parts. `Drums` covers the whole kit including the 808,

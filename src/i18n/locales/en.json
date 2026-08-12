@@ -30,9 +30,8 @@
     "generating": "Generating…",
     "readyBody": "{{name}} is ready. Hit Generate.",
     "generateAll": "Generate all",
-    "clear": "Clear",
-    "clearAll": "Clear all",
-    "clearLabel": "Clear generated parts"
+    "clearOne": "Clear {{part}}",
+    "clearAll": "Clear all"
   },
   "rails": {
     "searchPlaceholder": "Search an artist…",
@@ -141,7 +140,6 @@
     "loop": "Loop",
     "masterLevel": "Master level: silent",
     "toggleRightRail": "Toggle right rail (K)",
-    "windowSize": "Window size",
     "loopAlways": "Playback always loops in this phase.",
     "unavailable": "Playback is unavailable: {{reason}}"
   },
@@ -159,9 +157,7 @@
   "view": {
     "button": "View",
     "panels": "Panels",
-    "rightRail": "Right rail",
-    "showAll": "Show all panels",
-    "hideAll": "Hide all panels"
+    "rightRail": "Right rail"
   },
   "settings": {
     "title": "Settings",
@@ -218,8 +214,6 @@
     "artists": "Artists",
     "flagship": "Flagship",
     "genre": "Genre",
-    "filteredBy": "Filtered by {{name}}",
-    "showAll": "Show all",
     "noneInGenre": "No artists work in {{name}} yet.",
     "standard": "Standard",
     "inherited": "Inherited"
@@ -382,6 +376,7 @@
       "nudge": "Nudge in time",
       "stretch": "Stretch to double length",
       "compress": "Compress to half length",
+      "reverseNote": "Reverse the selected note",
       "triplet": "Triplet in this cell",
       "quintuplet": "Quintuplet in this cell",
       "septuplet": "Septuplet in this cell",
@@ -414,8 +409,6 @@
     "waveformOf": "Waveform of {{name}}",
     "reverse": "Play backwards",
     "resize": "Resize the browser",
-    "fillRail": "Give the browser the whole rail",
-    "restoreRail": "Show the roster again",
     "folderLimit": "You can browse 8 folders at a time — close one to add another",
     "favourites": "Starred favourites",
     "star": "Star {{name}}",

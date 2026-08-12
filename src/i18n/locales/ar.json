@@ -30,9 +30,8 @@
     "generating": "جارٍ التوليد…",
     "readyBody": "{{name}} جاهز. اضغط توليد.",
     "generateAll": "توليد الكل",
-    "clear": "مسح",
-    "clearAll": "مسح الكل",
-    "clearLabel": "مسح الأجزاء المولَّدة"
+    "clearOne": "مسح {{part}}",
+    "clearAll": "مسح الكل"
   },
   "rails": {
     "searchPlaceholder": "ابحث عن فنان…",
@@ -141,7 +140,6 @@
     "loop": "تكرار",
     "masterLevel": "مستوى الماستر: صامت",
     "toggleRightRail": "تبديل الشريط الجانبي (K)",
-    "windowSize": "حجم النافذة",
     "loopAlways": "التشغيل يعمل دائماً في حلقة في هذه المرحلة.",
     "unavailable": "التشغيل غير متاح: {{reason}}"
   },
@@ -159,9 +157,7 @@
   "view": {
     "button": "عرض",
     "panels": "اللوحات",
-    "rightRail": "الشريط الجانبي",
-    "showAll": "إظهار كل اللوحات",
-    "hideAll": "إخفاء كل اللوحات"
+    "rightRail": "الشريط الجانبي"
   },
   "settings": {
     "title": "الإعدادات",
@@ -218,8 +214,6 @@
     "artists": "الفنانون",
     "flagship": "مميّز",
     "genre": "نوع",
-    "filteredBy": "مُصفّى حسب {{name}}",
-    "showAll": "عرض الكل",
     "noneInGenre": "لا يعمل أي فنان في {{name}} بعد.",
     "standard": "قياسي",
     "inherited": "موروث"
@@ -382,6 +376,7 @@
       "nudge": "إزاحة زمنية",
       "stretch": "مد إلى الضعف",
       "compress": "ضغط إلى النصف",
+      "reverseNote": "عكس النغمة المحددة",
       "triplet": "ثلاثية في هذه الخانة",
       "quintuplet": "خماسية في هذه الخانة",
       "septuplet": "سباعية في هذه الخانة",
@@ -414,8 +409,6 @@
     "waveformOf": "الشكل الموجي لـ {{name}}",
     "reverse": "تشغيل عكسي",
     "resize": "تغيير حجم المتصفح",
-    "fillRail": "امنح المتصفح الشريط بالكامل",
-    "restoreRail": "إظهار قائمة الفنانين مجددًا",
     "folderLimit": "يمكنك تصفح 8 مجلدات في المرة الواحدة — أغلق واحدًا لإضافة آخر",
     "favourites": "المفضلة المميزة بنجمة",
     "star": "إضافة {{name}} إلى المفضلة",

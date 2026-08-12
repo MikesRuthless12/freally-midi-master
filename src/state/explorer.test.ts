@@ -156,6 +156,66 @@ describe('selecting a sample', () => {
     expect(useExplorer.getState().selected).toBe('/lib/kick.wav');
     expect(useExplorer.getState().waveform).toBeNull();
   });
+
+  /**
+   * ⛔⛔ **LANDING ON A FILE PLAYS IT** — Mike, 2026-08-11: *"the files need to
+   * play as you go up and down in the list with the up/down arrow or by clicking
+   * on them."*
+   *
+   * ⚠ Pinned in the **store**, because that is the point of putting it there: a
+   * click, an arrow key and a starred file are three different callers, and the
+   * bug this prevents is one of them staying silent.
+   */
+  it('plays what it just landed on', async () => {
+    invoke.mockResolvedValue({
+      path: '/lib/kick.wav',
+      name: 'kick.wav',
+      peaks: [],
+      seconds: 1,
+    });
+    await useExplorer.getState().select('/lib/kick.wav');
+
+    expect(invoke).toHaveBeenCalledWith('preview_play');
+    expect(useExplorer.getState().position.playing).toBe(true);
+  });
+
+  it('does not sound a file the walk has already moved off', async () => {
+    // ⛔ Holding ↓ starts a load per row and they resolve out of order. Without
+    // the guard the *previous* row's reply starts the *current* row's sample a
+    // second time — which reads as the browser stuttering on every step.
+    invoke.mockResolvedValue({ path: '/lib/old.wav', name: 'old.wav', peaks: [], seconds: 1 });
+    const stale = useExplorer.getState().select('/lib/old.wav');
+    useExplorer.setState({ selected: '/lib/new.wav' });
+    await stale;
+
+    expect(invoke).not.toHaveBeenCalledWith('preview_play');
+  });
+
+  it('says nothing when there is no audio thread to play it with', async () => {
+    // ⚠ **Silent, unlike the transport buttons.** An audition is feedback on a
+    // gesture that already happened, and every browser session has no preview
+    // voice at all — so a failure here would put an error on screen for a click
+    // that did nothing wrong. Same rule `DrumGrid/audition.ts` follows.
+    invoke.mockImplementation((command: string) =>
+      command === 'preview_play'
+        ? Promise.reject(new Error('no audio thread'))
+        : Promise.resolve({ path: '/lib/kick.wav', name: 'kick.wav', peaks: [], seconds: 1 }),
+    );
+    await useExplorer.getState().select('/lib/kick.wav');
+
+    expect(useExplorer.getState().error).toBeNull();
+    expect(useExplorer.getState().waveform).not.toBeNull();
+  });
+
+  it('leaves a MIDI file alone, because there is nothing to sound', async () => {
+    // ⚠ The two-kinds rule at the one place that would otherwise treat them
+    // alike: a `.mid` has no PCM, so `preview_play` on one is a command that can
+    // only fail.
+    invoke.mockResolvedValue([]);
+    await useExplorer.getState().select('/lib/loop.mid');
+
+    expect(invoke).not.toHaveBeenCalledWith('preview_play');
+  });
 });
 
 describe('the transport', () => {
@@ -242,6 +302,25 @@ describe('dropping a sample on a lane', () => {
     expect(invoke).toHaveBeenCalledWith('explorer_drop', {
       lane: 'kick',
       path: '/lib/kick.wav',
+      // ⚠ **Forwards unless asked**, so every route that predates `Ctrl`+arrow —
+      // the drag onto a pad, the KIT row drop, the `↵` button — keeps behaving
+      // exactly as it did.
+      reversed: false,
+    });
+  });
+
+  it('asks for a backwards one-shot when Ctrl+← was the gesture', async () => {
+    // ⛔⛔ Mike, 2026-08-11: *"'Ctrl + left arrow' … should add the sample to
+    // that selected drum pad lane **in reverse**."* The flag has to reach the
+    // plugin, which flips the buffer at decode time and writes the choice into
+    // the project — `oneshot::load` and `PluginSession::one_shots_reversed`
+    // carry the two halves of why.
+    invoke.mockResolvedValue(undefined);
+    await useExplorer.getState().dropOn('kick', '/lib/kick.wav', true);
+    expect(invoke).toHaveBeenCalledWith('explorer_drop', {
+      lane: 'kick',
+      path: '/lib/kick.wav',
+      reversed: true,
     });
   });
 

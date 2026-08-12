@@ -223,6 +223,7 @@ impl Roll {
                     vel,
                     slide_to_pitch: None,
                     articulation: Some(Articulation::Roll),
+                    reversed: false,
                 }
             })
             .collect()
@@ -1081,6 +1082,7 @@ mod tests {
                 vel: 100,
                 slide_to_pitch: None,
                 articulation: None,
+                reversed: false,
             })
             .collect();
 
@@ -1119,6 +1121,7 @@ mod tests {
             vel: 100,
             slide_to_pitch: None,
             articulation: None,
+            reversed: false,
         }];
         let before = closed.clone();
         hat_rolls(&mut closed, Some(&json!({})), &context, &[], &mut rng());

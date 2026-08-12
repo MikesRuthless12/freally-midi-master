@@ -14,6 +14,7 @@ import {
 import { useSession } from '../../state/session';
 import { soundableLanes, useKit } from '../../state/kit';
 import { useSong } from '../../state/song';
+import { rootZoom } from '../../state/ui';
 import type { Lane, Pattern } from '../../lib/ipc-types';
 
 /**
@@ -68,6 +69,40 @@ type Row = {
    */
   audio: boolean;
 };
+
+/**
+ * Every lane this part actually wrote to, in the order the drum grid draws them.
+ *
+ * ⛔⛔ **THIS USED TO BE `LANE_ORDER.filter(…)`, AND THAT SILENTLY DELETED THE
+ * AUDIO CHIP FROM EVERY MELODIC PART.** `LANE_ORDER` lists the *drum* lanes —
+ * `cells.ts` says so in its own header — so for Melody, Chords, Countermelody
+ * and Bassline the filter matched nothing and `written` came back **empty**.
+ * `Row.audio` is `written.length > 0`, so those four rows rendered a MIDI chip
+ * and no Audio chip at all, whatever was on the pads. Mike, 2026-08-11: *"when I
+ * have samples dragged to my kit for the Melody/Chords/Counter melody, they do
+ * not have an 'Audio' button able to drag audio to my DAW, but they play in the
+ * generators."* The samples were never the variable; those rows could not have
+ * shown an Audio chip for any kit.
+ *
+ * ⚠ **The ordering is what `LANE_ORDER` is still here for**, and only that: a
+ * drum part reads top-to-bottom the way the grid draws it, and any lane the list
+ * does not name — every melodic one — keeps its own position after them. The
+ * engine's lane order is whatever it emitted, which is not the order anything
+ * else in the UI uses.
+ *
+ * ⚠ De-duplicated, because `lanes` is a `Vec` that may carry the same `Lane`
+ * twice — the layering case — and two menu entries with one name is a list where
+ * neither says which is which.
+ */
+function writtenLanes(pattern: Pattern): Lane[] {
+  const rank = new Map(LANE_ORDER.map((lane, at) => [lane, at]));
+  const written = new Set(
+    pattern.lanes.filter((track) => track.notes.length > 0).map((track) => track.lane),
+  );
+  return [...written].sort(
+    (a, b) => (rank.get(a) ?? LANE_ORDER.length) - (rank.get(b) ?? LANE_ORDER.length),
+  );
+}
 
 export function DragRows() {
   const { t } = useTranslation();
@@ -150,16 +185,11 @@ export function DragRows() {
     }
 
     for (const pattern of Object.values(patterns) as Pattern[]) {
-      // ⛔ `LANE_ORDER`, so these read top-to-bottom in the same order the drum
-      // grid draws them. The engine's own lane order is whatever it emitted,
-      // which is not the order anything else in the UI uses.
       // ⚠ **A lane with no notes is not offered in either format.** Mike asked
       // for "all instruments that are used for that drum pattern" — an empty
       // lane is one the generator authored and did not write to, and a file of
       // nothing is one a producer imports and has to work out was always empty.
-      const written = LANE_ORDER.filter((lane) =>
-        pattern.lanes.some((track) => track.lane === lane && track.notes.length > 0),
-      );
+      const written = writtenLanes(pattern);
       // ⛔⛔ **EVERY WRITTEN LANE OFFERS BOTH FORMATS.** Mike, 2026-08-06: *"each
       // individual drum lane should be able to drag midi or audio, not just
       // midi and not just audio."*
@@ -186,37 +216,47 @@ export function DragRows() {
         audio: playable.length > 0,
       });
     }
-    // ⛔⛔ **The four melodic generators, in one gesture** (Mike, 2026-08-06):
-    // *"you should also be able to drag all 4 of the other generators
-    // midi/audio all at the same time too into the DAW (melody/bassline/
-    // countermelody/chords), just the drums has to be separate because it has
-    // it's own separate lanes per the generator."*
+    // ⛔⛔ **EVERY GENERATED PART, DRUMS INCLUDED** — Mike, 2026-08-11: *"it
+    // should be all parts of the chords/melody/counter melody/basslines/drums
+    // one clip after the next or ctrl should split them up into rows."*
     //
-    // ⚠ **`Cut::Parts`, which the plugin already had** — one file per pattern,
-    // named for its part. Nothing new was needed on that side; what was missing
-    // was a handle that hands it more than one pattern.
+    // ⚠ **This reverses the exclusion that stood here**, which came from his own
+    // 2026-08-06 sentence — *"you should also be able to drag all 4 of the other
+    // generators … just the drums has to be separate because it has it's own
+    // separate lanes per the generator"* — and read: *"Drums is deliberately not
+    // in here. Its instruments are its own lanes, so 'all of it at once' already
+    // means something different for that part."* He has now named drums in the
+    // list, so it is in.
     //
-    // ⚠ **Drums is deliberately not in here.** Its instruments are its own
-    // lanes, so "all of it at once" already means something different for that
-    // part and has its own All Tracks inside its menu. Folding it in would make
-    // one gesture mean two things depending on which part it caught.
+    // ⛔ **This does collide with a rule he has not withdrawn**, and it is worth
+    // knowing which one gave: *"there should never be one single midi file with
+    // all parts of the drums draggable."* That rule is about the **Drums row's
+    // own MIDI chip**, which still refuses — its menu offers one lane at a time
+    // and no All Tracks. Here the drums arrive as one clip among five, which is
+    // what "all parts, one after the next" has to mean if drums is one of them.
+    // ▶ If it turns out he wants the drum kit left out of the MIDI half
+    // specifically, this filter is the one line to change.
+    //
+    // ⚠ **`Cut::Parts`** on the other side: one file per part, every one of them
+    // at bar 1, so the set lands as a row of clips the host can place. There is
+    // no `PartsInSequence` — the end-to-end layout was reverted on 2026-08-11,
+    // because offset clips arrive as a staircase of over-long ones.
     //
     // ⚠ Two or more, because with one generated part this row would be a second
     // way to drag the row directly above it.
-    const melodic = (Object.values(patterns) as Pattern[]).filter(
-      (pattern) =>
-        pattern.part !== 'drums' && pattern.lanes.some((track) => track.notes.length > 0),
+    const everyPart = (Object.values(patterns) as Pattern[]).filter((pattern) =>
+      pattern.lanes.some((track) => track.notes.length > 0),
     );
-    if (melodic.length > 1) {
+    if (everyPart.length > 1) {
       built.push({
         key: 'all-parts',
         label: t('stems.allParts'),
-        subject: { kind: 'patterns', patterns: melodic },
+        subject: { kind: 'patterns', patterns: everyPart },
         midiLanes: [],
         audioLanes: [],
         // At least one of them has to be playable, or the audio chip offers a
         // drag that spools nothing.
-        audio: melodic.some((pattern) =>
+        audio: everyPart.some((pattern) =>
           pattern.lanes.some((track) => track.notes.length > 0 && audible(track.lane)),
         ),
       });
@@ -353,8 +393,13 @@ function DragMenu({ row, format, label, lanes }: HandleProps) {
         ? Math.max(gap, window.innerHeight - gap - list.height)
         : below;
 
-    node.style.top = `${top}px`;
-    node.style.left = `${left}px`;
+    // ⛔ **Divided back out of the root's zoom** — `rootZoom` carries why. Every
+    // measurement above is a viewport figure, and a `top`/`left` on a fixed
+    // element is not. At `zoom: 1`, which is the standalone and every browser,
+    // this changes nothing.
+    const zoom = rootZoom();
+    node.style.top = `${top / zoom}px`;
+    node.style.left = `${left / zoom}px`;
     node.style.visibility = 'visible';
   }, [open, lanes.length, format]);
 

@@ -30,9 +30,8 @@
     "generating": "Gerando…",
     "readyBody": "{{name}} está pronto. Toque em Gerar.",
     "generateAll": "Gerar tudo",
-    "clear": "Limpar",
-    "clearAll": "Limpar tudo",
-    "clearLabel": "Limpar as partes geradas"
+    "clearOne": "Limpar {{part}}",
+    "clearAll": "Limpar tudo"
   },
   "rails": {
     "searchPlaceholder": "Buscar um artista…",
@@ -141,7 +140,6 @@
     "loop": "Loop",
     "masterLevel": "Nível master: silencioso",
     "toggleRightRail": "Alternar painel direito (K)",
-    "windowSize": "Tamanho da janela",
     "loopAlways": "A reprodução sempre repete nesta fase.",
     "unavailable": "A reprodução não está disponível: {{reason}}"
   },
@@ -159,9 +157,7 @@
   "view": {
     "button": "Exibir",
     "panels": "Painéis",
-    "rightRail": "Painel direito",
-    "showAll": "Mostrar todos os painéis",
-    "hideAll": "Ocultar todos os painéis"
+    "rightRail": "Painel direito"
   },
   "settings": {
     "title": "Configurações",
@@ -218,8 +214,6 @@
     "artists": "Artistas",
     "flagship": "Destaque",
     "genre": "Gênero",
-    "filteredBy": "Filtrado por {{name}}",
-    "showAll": "Mostrar tudo",
     "noneInGenre": "Ainda não há artistas em {{name}}.",
     "standard": "Padrão",
     "inherited": "Herdado"
@@ -382,6 +376,7 @@
       "nudge": "Deslocar no tempo",
       "stretch": "Esticar ao dobro",
       "compress": "Comprimir à metade",
+      "reverseNote": "Inverter a nota selecionada",
       "triplet": "Quiáltera de 3 nesta célula",
       "quintuplet": "Quiáltera de 5 nesta célula",
       "septuplet": "Quiáltera de 7 nesta célula",
@@ -414,8 +409,6 @@
     "waveformOf": "Forma de onda de {{name}}",
     "reverse": "Reproduzir de trás para frente",
     "resize": "Redimensionar o navegador",
-    "fillRail": "Dar ao navegador toda a coluna",
-    "restoreRail": "Mostrar o elenco novamente",
     "folderLimit": "Você pode navegar por 8 pastas por vez — feche uma para adicionar outra",
     "favourites": "Favoritos com estrela",
     "star": "Favoritar {{name}}",

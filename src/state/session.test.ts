@@ -1266,9 +1266,13 @@ describe('the Stems panel reveals itself once anything is generated', () => {
     expect(useUi.getState().rightRailOpen).toBe(false);
   });
 
-  it('does not reopen it after the producer has closed it again', async () => {
+  it('does not reopen it after the producer has switched away again', async () => {
+    // ⚠ **"Closed it" is now "switched the rail to the other group"** — a rail
+    // shows one group and a panel cannot leave on its own. The property under
+    // test is unchanged and is the one that matters: having been shown Stems
+    // once, the app must not go on yanking the rail back to it.
     await useSession.getState().generate('drums');
-    useUi.getState().toggleSection('stems');
+    useUi.getState().showSection('session');
     expect(useUi.getState().sections.stems).toBe(false);
 
     // ⚠ The subscriber runs on every write that leaves a pattern in the store,
@@ -1367,5 +1371,123 @@ describe('the drums seed a mirrored bass is told to copy', () => {
     // Pinning the tempo the drums were built at changes nothing about the kick,
     // so withholding there would give up the fix for no reason.
     expect(mirrorableDrumsSeed(drums, { ...now, pins: { ...NO_PINS, bpm: 140 } })).toBe('3141');
+  });
+});
+
+/**
+ * Switching a generation between four and eight bars (2026-08-11).
+ *
+ * ⛔⛔ **Mike:** *"if you already have a generation and you switch to 8 bars,
+ * then it should copy the first 4 bars to the second 4 bars"* — and *"back to 4
+ * bars again so the chords/melodies, etc. should double or go back to 4 bars."*
+ * Without the copy, switching up gave four bars of music and four of silence,
+ * which reads as the switch having half-broken the pattern.
+ */
+describe('the bar switch', () => {
+  const clip = (): Pattern => ({
+    id: 'p',
+    part: 'drums',
+    artistId: 'trap',
+    seed: '1',
+    songSeed: '1',
+    bars: 4,
+    bpm: 140,
+    timeSigNum: 4,
+    timeSigDen: 4,
+    keyRoot: 0,
+    scale: 'natural_minor',
+    ppq: 960,
+    lanes: [
+      {
+        lane: 'kick',
+        notes: [
+          { startTick: 0, lenTicks: 120, pitch: 36, vel: 100 },
+          { startTick: 960, lenTicks: 120, pitch: 36, vel: 100 },
+        ],
+      },
+    ],
+  });
+
+  beforeEach(() => {
+    useSession.setState({ bars: 4, patterns: { drums: clip() } });
+  });
+
+  it('repeats the first four bars into the second when it grows', () => {
+    useSession.getState().setBars(8);
+    const drums = useSession.getState().patterns.drums!;
+
+    expect(drums.bars).toBe(8);
+    // ⚠ One bar of 4/4 at 960 PPQ is 3840 ticks, so four bars is 15360.
+    expect(drums.lanes[0].notes.map((n) => n.startTick)).toEqual([0, 960, 15360, 16320]);
+  });
+
+  it('drops what is past the end when it shrinks back', () => {
+    // ⚠ The honest inverse. Notes left past the new boundary are in the file and
+    // inaudible — the failure `does not carry a locked lane past the end of a
+    // shorter clip` above records, arriving through the switch instead.
+    useSession.getState().setBars(8);
+    useSession.getState().setBars(4);
+    const drums = useSession.getState().patterns.drums!;
+
+    expect(drums.bars).toBe(4);
+    expect(drums.lanes[0].notes.map((n) => n.startTick)).toEqual([0, 960]);
+  });
+
+  it('leaves the notes alone when the count has not moved', () => {
+    // ⚠ Pressing the button you are already on must not double anything.
+    useSession.getState().setBars(4);
+    expect(useSession.getState().patterns.drums!.lanes[0].notes).toHaveLength(2);
+  });
+
+  it('tiles a clip that is not the store’s own length, rather than offsetting it', () => {
+    // ⛔⛔ **An imported `.mid` keeps the file's bar count** — `openClip` stores
+    // it verbatim — so the clip and the store disagree, and doubling "by the
+    // store's 4 bars" put the copy at bar 5 of a two-bar clip and then rewrote
+    // its length to 8. Four bars of silence in the middle of a clip that was
+    // supposed to have been filled.
+    const short = { ...clip(), bars: 2 };
+    useSession.setState({ bars: 4, patterns: { drums: short } });
+
+    useSession.getState().setBars(8);
+    const drums = useSession.getState().patterns.drums!;
+
+    expect(drums.bars).toBe(8);
+    // Two bars is 7680 ticks, so eight bars is four passes of the same two hits.
+    expect(drums.lanes[0].notes.map((n) => n.startTick)).toEqual([
+      0, 960, 7680, 8640, 15360, 16320, 23040, 24000,
+    ]);
+  });
+
+  it('trims a clip longer than the new length instead of copying past its end', () => {
+    // ⚠ The mirror of the case above: a sixteen-bar import copied to bar 17 is
+    // invisible in the roll and still in `patterns` for export.
+    const long = { ...clip(), bars: 16 };
+    useSession.setState({ bars: 4, patterns: { drums: long } });
+
+    useSession.getState().setBars(8);
+    const drums = useSession.getState().patterns.drums!;
+
+    expect(drums.bars).toBe(8);
+    expect(drums.lanes[0].notes.map((n) => n.startTick)).toEqual([0, 960]);
+  });
+
+  it('latches `edited`, or the doubling is not in the saved project', () => {
+    // ⛔⛔ `editPattern` is the only other writer of `patterns` and it is what
+    // sets this. Without it `send()` never stores the clip, so a project
+    // reopened after the switch regenerates eight bars from the seed — different
+    // material from the two passes the producer was shown and saved.
+    expect(useSession.getState().edited).toBe(false);
+    useSession.getState().setBars(8);
+
+    expect(useSession.getState().edited).toBe(true);
+    expect(useSession.getState().editedParts).toContain('drums');
+  });
+
+  it('does not mark an empty session edited', () => {
+    // ⚠ Pressing 8 with nothing generated has nothing to save.
+    useSession.setState({ bars: 4, patterns: {}, edited: false, editedParts: [] });
+    useSession.getState().setBars(8);
+
+    expect(useSession.getState().edited).toBe(false);
   });
 });

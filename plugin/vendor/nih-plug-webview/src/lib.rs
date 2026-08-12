@@ -52,6 +52,8 @@ pub struct WebViewEditor {
     custom_protocol: Option<(String, Arc<CustomProtocolHandler>)>,
     developer_mode: bool,
     background_color: (u8, u8, u8, u8),
+    /// What to call the window above the editor. See [`Self::with_window_title`].
+    window_title: Option<Arc<str>>,
 }
 
 pub enum HTMLSource {
@@ -73,6 +75,7 @@ impl WebViewEditor {
             keyboard_handler: Arc::new(|_| false),
             mouse_handler: Arc::new(|_| EventStatus::Ignored),
             custom_protocol: None,
+            window_title: None,
         }
     }
 
@@ -92,6 +95,27 @@ impl WebViewEditor {
         windows_pump::set_minimum_size(size.0, size.1);
         #[cfg(not(target_os = "windows"))]
         let _ = size;
+        self
+    }
+
+    /// What the window above the editor should be called, once it exists.
+    ///
+    /// ⛔⛔ **Mike, 2026-08-11:** *"can you replace the window's title bar after
+    /// the vst3/clap file opens like wait until form loads then replace the
+    /// titlebar text?"* — *"so it just says it once?"* Ableton composes its
+    /// plugin-window caption from the device **and** the track, and it auto-names
+    /// a new track after the instrument dropped on it, so the same long name
+    /// arrives on both sides of a slash: *"Freally MIDI Master By: Mike
+    /// Weaver/1-Freally MIDI Master By: Mike Weaver"*.
+    ///
+    /// ⚠ **We cannot change how a host joins those, only what the caption ends up
+    /// saying.** So this overwrites it after the fact, from the frame loop —
+    /// which is also the only place a window handle exists.
+    ///
+    /// ⛔ **Windows only, and guarded — see [`windows_pump::retitle`] for the
+    /// guard that stops this renaming FL Studio itself.**
+    pub fn with_window_title(mut self, title: &str) -> Self {
+        self.window_title = Some(title.into());
         self
     }
 
@@ -156,6 +180,8 @@ pub struct WindowHandler {
     events_receiver: Receiver<Value>,
     pub width: Arc<AtomicU32>,
     pub height: Arc<AtomicU32>,
+    /// See [`WebViewEditor::with_window_title`]. `None` leaves the caption alone.
+    window_title: Option<Arc<str>>,
 }
 
 impl WindowHandler {
@@ -225,7 +251,7 @@ impl WindowHandler {
     /// refits in that trace were the honest answer to a question nobody had
     /// asked properly.
     ///
-    /// ⚠ The page handles the other half: `WindowSize.tsx` re-derives its zoom
+    /// ⚠ The page handles the other half: `WindowFit.tsx` re-derives its zoom
     /// from `window.innerWidth` on every `resize` and sizes its root to
     /// `window / zoom`, so the UI scales to fill whatever this hands it.
     #[cfg(target_os = "windows")]
@@ -369,6 +395,8 @@ mod windows_pump {
         ) -> isize;
         fn PostMessageW(hwnd: *mut c_void, msg: u32, w_param: usize, l_param: isize) -> i32;
         fn GetParent(hwnd: *mut c_void) -> *mut c_void;
+        fn GetWindowTextW(hwnd: *mut c_void, text: *mut u16, max: i32) -> i32;
+        fn SetWindowTextW(hwnd: *mut c_void, text: *const u16) -> i32;
         fn GetWindowLongPtrW(hwnd: *mut c_void, index: i32) -> isize;
         fn SetWindowLongPtrW(hwnd: *mut c_void, index: i32, new_long: isize) -> isize;
         fn GetClientRect(hwnd: *mut c_void, rect: *mut Rect) -> i32;
@@ -737,7 +765,7 @@ mod windows_pump {
     fn enforce_minimum_size(editor: *mut c_void) {
         const GWLP_WNDPROC: i32 = -4;
 
-        let frame = top_level(editor);
+        let frame = host_frame(editor);
         if frame.is_null() || frame == editor {
             return;
         }
@@ -758,9 +786,80 @@ mod windows_pump {
         }
     }
 
+    /// Say the plugin's name **once** on the window above the editor.
+    ///
+    /// ⛔⛔ **Mike, 2026-08-11:** *"can you replace the window's title bar after
+    /// the vst3/clap file opens … so it just says it once?"* Ableton builds its
+    /// caption from the device and the track, and auto-names a fresh track after
+    /// the instrument dropped on it — so a long plugin name arrives on both sides
+    /// of a slash: *"Freally MIDI Master By: Mike Weaver/1-Freally MIDI Master By:
+    /// Mike Weaver"*. Nothing about how a host joins those is ours to change;
+    /// what the caption ends up saying is.
+    ///
+    /// ⛔⛔ **THE GUARD IS THE WHOLE FUNCTION: only a window whose caption
+    /// ALREADY NAMES US may be renamed.** A plugin editor is not always in a
+    /// window of its own — FL Studio docks them, and there [`host_frame`] is
+    /// **FL's main application frame**. Renaming that would retitle the whole of
+    /// FL Studio from inside a plugin, which is indefensible. A caption that
+    /// already contains the plugin's name is one the host built *for this
+    /// plugin*; `FL Studio 21 - project.flp` is not, and is left alone.
+    ///
+    /// ⚠ **Re-checked rather than done once**, because Ableton rewrites the
+    /// caption whenever the track is renamed — a one-shot at startup would be
+    /// undone the first time the producer names their track. Throttled to roughly
+    /// twice a second: `GetWindowTextW` on another window is a `WM_GETTEXT`
+    /// dispatch, and a caption that stays doubled for half a second after a
+    /// rename is not worth one of those on every frame.
+    ///
+    /// ⚠ **Safe from `on_frame`'s borrowed stack** for the same reason
+    /// `set_bounds` is: the messages go to the **host's** window procedure, not
+    /// to baseview's, so nothing re-enters the procedure this runs inside.
+    pub fn retitle(editor: *mut c_void, want: &str) {
+        use std::cell::Cell;
+        thread_local! {
+            static TICK: Cell<u32> = const { Cell::new(0) };
+        }
+        // ~30 frames at 60fps. Cheap, and the first frame still runs.
+        let due = TICK.with(|t| {
+            let n = t.get();
+            t.set(n.wrapping_add(1));
+            n % 30 == 0
+        });
+        if !due || editor.is_null() {
+            return;
+        }
+
+        let frame = host_frame(editor);
+        if frame.is_null() {
+            return;
+        }
+
+        let mut buffer = [0u16; 512];
+        // SAFETY: a documented entry point, given a buffer we own and its length.
+        let read = unsafe { GetWindowTextW(frame, buffer.as_mut_ptr(), buffer.len() as i32) };
+        if read <= 0 {
+            return;
+        }
+        let current = String::from_utf16_lossy(&buffer[..read as usize]);
+
+        // Already right — the common case once it has been set, and the only
+        // thing standing between this and a `WM_SETTEXT` every half second.
+        if current == want {
+            return;
+        }
+        // ⛔ Not our window. See the note above; this is the FL docking case.
+        if !current.contains(want) {
+            return;
+        }
+
+        let wide: Vec<u16> = want.encode_utf16().chain(std::iter::once(0)).collect();
+        // SAFETY: a documented entry point, given a NUL-terminated wide string.
+        unsafe { SetWindowTextW(frame, wide.as_ptr()) };
+    }
+
     /// The client area of the **frame above** `editor`, in physical pixels.
     ///
-    /// ⛔⛔ **[`top_level`], not `editor` itself.** `baseview`'s window is a
+    /// ⛔⛔ **[`host_frame`], not `editor` itself.** `baseview`'s window is a
     /// `WS_CHILD` that is never resized when the frame is dragged, so its own
     /// client rect answers the same number forever — a refit keyed on it can
     /// never fire, which is what a traced session showed on 2026-08-09.
@@ -772,7 +871,7 @@ mod windows_pump {
         if editor.is_null() {
             return None;
         }
-        let frame = top_level(editor);
+        let frame = host_frame(editor);
         let mut rect = Rect {
             left: 0,
             top: 0,
@@ -798,21 +897,42 @@ mod windows_pump {
         PUMP_EDITOR.with(|e| e.get())
     }
 
-    /// The outermost window above `from`, or `from` if it is already top level.
-    fn top_level(from: *mut c_void) -> *mut c_void {
-        let mut window = from;
-        // ⚠ Bounded for the same reason the revoke walk is: a chain this deep
-        // means the assumption is wrong, and spinning inside a frame handler is
-        // worse than stopping early.
-        for _ in 0..8 {
-            // SAFETY: a documented entry point on a window this process owns.
-            let parent = unsafe { GetParent(window) };
-            if parent.is_null() {
-                break;
-            }
-            window = parent;
+    /// **The window the host handed us** — exactly one level above the editor.
+    ///
+    /// ⛔⛔ **ONE LEVEL. NOT A WALK, AND NOT `GA_ROOT`.** This has now been wrong
+    /// twice, in opposite directions, and both are worth keeping:
+    ///
+    /// - **A `GetParent` loop to "parent is null"** climbed out of the plugin
+    ///   entirely, because `GetParent` answers *"parent **or owner**"* and a
+    ///   host's floating plugin window is *owned* by its main window. It
+    ///   therefore returned **Ableton's own application frame**, and `fill_frame`
+    ///   bounded the webview to that. ▶ Mike: *"it looks like the GUI size
+    ///   stretched and got bigger, but the actual size of the GUI's part did
+    ///   not, so it zoomed in."*
+    /// - **`GetAncestor(GA_ROOT)`** fixed that for Ableton and is still wrong for
+    ///   **FL Studio**, which *docks* plugin editors inside its own window. There
+    ///   the root genuinely **is** FL's main frame, so the webview would be
+    ///   bounded to the whole DAW — which is the black square and the torn
+    ///   arrangement view Mike screenshotted.
+    ///
+    /// ▶ **`baseview::Window::open_parented` puts the editor directly inside the
+    /// handle the host gave us**, so its immediate parent *is* that container in
+    /// every case: the floating plugin window in Ableton, the docked panel in FL,
+    /// and `nih_plug`'s own wrapper frame in the standalone. There is no case
+    /// where the right answer is further up, and every case where it is further
+    /// up is a case where we are measuring somebody else's window.
+    ///
+    /// ⚠ Answers `from` itself if it somehow has no parent, so a caller never
+    /// gets a null handle to `GetClientRect` — a zero rect collapses the webview
+    /// and it does not come back.
+    fn host_frame(from: *mut c_void) -> *mut c_void {
+        // SAFETY: a documented entry point on a window this process can see.
+        let parent = unsafe { GetParent(from) };
+        if parent.is_null() {
+            from
+        } else {
+            parent
         }
-        window
     }
 
     /// Give the standalone a fixed frame: no maximise, no sizing border.
@@ -849,7 +969,7 @@ mod windows_pump {
         // ⚠ The top-level window, not the editor. The editor is a `WS_CHILD` of
         // nih_plug's wrapper window, and a child has no caption buttons and no
         // sizing border to take away.
-        let frame = top_level(editor);
+        let frame = host_frame(editor);
         if frame.is_null() {
             return;
         }
@@ -1135,6 +1255,34 @@ impl baseview::WindowHandler for WindowHandler {
                 _ => std::ptr::null_mut(),
             };
             windows_pump::request(editor);
+            // ⛔ Say the plugin's name once, on a window that already names us.
+            // `windows_pump::retitle` carries the guard that keeps this off FL
+            // Studio's own frame when the editor is docked rather than floating.
+            if let Some(title) = self.window_title.as_deref() {
+                windows_pump::retitle(editor, title);
+            }
+            // ⛔ Safe from here **because it only calls `set_bounds`**. See
+            // `fill_frame`: anything that moves baseview's own window from this
+            // stack re-enters the window procedure and aborts the process.
+            //
+            // ⛔⛔ **THIS RUNS IN HOSTS TOO, AND GATING IT TO THE STANDALONE
+            // BLANKED THE ABLETON VST3** (2026-08-11). It was gated for one
+            // build, on the reasoning that a host resizes through
+            // `IPlugView::onSize` → baseview → `Event::Window(Resized)` and needs
+            // no polling. ▶ **Mike's screenshot answered that in one frame: a
+            // white, empty plugin window.** Whatever the theory, `fill_frame` is
+            // what actually sizes the webview in Ableton — with it gone the
+            // webview kept its creation bounds, covered none of the window, and
+            // the host's own background showed through.
+            //
+            // ⚠ **The real defect was `host_frame`, not the call site**, and the
+            // gate was treating the symptom by removing the feature. `GetParent`
+            // answers *parent **or owner***, so the walk climbed out of the
+            // plugin window and returned the DAW's main frame — which is why
+            // growing the window measured the wrong thing. `GetAncestor(GA_ROOT)`
+            // walks parents only and stops at the host's plugin window, which is
+            // the frame this was always meant to fill.
+            //
             // ⛔ Safe from here **because it only calls `set_bounds`**. See
             // `fill_frame`: anything that moves baseview's own window from this
             // stack re-enters the window procedure and aborts the process.
@@ -1201,7 +1349,7 @@ impl baseview::WindowHandler for WindowHandler {
             // about, so no message reaches the procedure we are standing in.
             //
             // ⚠ The page re-derives its own zoom from `window.innerWidth` on
-            // every `resize` (`WindowSize.tsx::measuredZoom`) and sizes its root
+            // every `resize` (`WindowFit.tsx::measuredZoom`) and sizes its root
             // to `window / zoom`, so making the webview the right size is the
             // whole of this side's job — the page then scales to fill it.
             Event::Window(WindowEvent::Resized(info)) => {
@@ -1403,6 +1551,7 @@ impl Editor for WebViewEditor {
         let source = self.source.clone();
         let background_color = self.background_color;
         let custom_protocol = self.custom_protocol.clone();
+        let window_title = self.window_title.clone();
         let event_loop_handler = self.event_loop_handler.clone();
         let keyboard_handler = self.keyboard_handler.clone();
         let mouse_handler = self.mouse_handler.clone();
@@ -1514,6 +1663,7 @@ impl Editor for WebViewEditor {
                 mouse_handler,
                 width,
                 height,
+                window_title,
             }
         });
         return Box::new(Instance { window_handle });

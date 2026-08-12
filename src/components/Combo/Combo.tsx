@@ -2,6 +2,7 @@ import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronDown } from 'lucide-react';
 
+import { rootZoom } from '../../state/ui';
 import './Combo.css';
 
 /**
@@ -142,7 +143,17 @@ export function Combo({
     // Pulled back inside the window when widening would push it off the right
     // edge, which is where a narrow trigger in a right-hand panel would put it.
     const left = Math.max(8, Math.min(field.left, window.innerWidth - width - 8));
-    setAt({ top, left, width });
+    // ⛔ **Out of the root's zoom, because this menu is `position: fixed`.**
+    // `state/ui.ts::rootZoom` carries the units rule in full: the measurements
+    // above are viewport pixels with the zoom already in them, and a `top`/`left`
+    // on a fixed element is resolved before the zoom is applied — so at any zoom
+    // but 1 the menu lands at `rect × zoom`, further out the further right the
+    // field sits. The drum-lane menu in the right rail is where that first showed
+    // up; every combobox in the plugin has the same exposure, including the eight
+    // pad pickers. ⚠ A no-op at `zoom: 1`, which is the standalone and every
+    // browser.
+    const zoom = rootZoom();
+    setAt({ top: top / zoom, left: left / zoom, width: width / zoom });
   }, [open, narrowed.length]);
 
   // ⛔ **Every exit lands on a real selection.** Committing the top match is the

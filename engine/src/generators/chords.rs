@@ -332,6 +332,7 @@ pub fn generate(model: &StyleModel, ctx: &SessionContext, seed: u64) -> Chords {
                 vel: CHORD_VELOCITY,
                 slide_to_pitch: None,
                 articulation: None,
+                reversed: false,
             });
         }
 

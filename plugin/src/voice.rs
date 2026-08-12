@@ -57,6 +57,8 @@ struct Placed {
     /// `render_preview` does, and it is the same call `audio::render` makes, so
     /// the preview and a rendered stem cannot disagree about the interval.
     slide_to: Option<u8>,
+    /// Play this note's pad back to front — see `engine::pattern::Note::reversed`.
+    reversed: bool,
 }
 
 /// A note that went out in this block, for the preview sampler to play.
@@ -72,6 +74,11 @@ pub struct Fired {
     pub slide_to: Option<u8>,
     /// How long the note lasts in frames, which is the slide's whole window.
     pub frames: u32,
+    /// Play this note's pad back to front — see `engine::pattern::Note::reversed`.
+    ///
+    /// ⚠ Carried per fired note rather than read off the pad, because the same
+    /// pad may sound forwards on one hit and backwards on the next.
+    pub reversed: bool,
 }
 
 /// The note-ons of one block, in a fixed array.
@@ -99,6 +106,7 @@ impl Default for FiredNotes {
                 velocity: 0.0,
                 slide_to: None,
                 frames: 0,
+                reversed: false,
             }; Self::CAPACITY],
             len: 0,
         }
@@ -216,6 +224,7 @@ impl Schedule {
                     // invisible. One sample is the floor.
                     off_at: off.max(at.saturating_add(1)),
                     slide_to: note.slide_to_pitch,
+                    reversed: note.reversed,
                 });
             }
         }
@@ -524,6 +533,7 @@ impl Schedule {
                 // ⚠ From the schedule's own samples, so it follows the host's
                 // tempo for free — the same reason the placement does.
                 frames: event.off_at.saturating_sub(event.at),
+                reversed: event.reversed,
             });
             context.send_event(NoteEvent::NoteOff {
                 // Clamped into this block. A note longer than one block still
@@ -603,6 +613,7 @@ mod tests {
             vel: 100,
             slide_to_pitch: None,
             articulation: None,
+            reversed: false,
         }
     }
 
@@ -734,6 +745,7 @@ mod transport_tests {
                 vel: 100,
                 slide_to_pitch: None,
                 articulation: None,
+                reversed: false,
             })
             .collect();
 

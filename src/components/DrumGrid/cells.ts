@@ -4,7 +4,7 @@ import type { Lane, Note, Pattern } from '../../lib/ipc-types';
 // and then wrong in two directions at once: the grid drew a third more columns
 // than a 6/8 clip has, while the velocity lane below it (which does use this)
 // placed its caps on the real tick scale. One definition, one answer.
-import { patternTicks } from '../PianoRoll/notes';
+import { nextReversed, patternTicks } from '../PianoRoll/notes';
 
 /**
  * Turning a pattern into grid cells, kept out of the component file.
@@ -400,6 +400,51 @@ export function clearCells(pattern: Pattern, targets: readonly CellRef[]): Patte
     const kept = notes.filter((note) => !columns.has(columnOf(note.startTick)));
     if (kept.length === notes.length) continue;
     next = withLane(next, lane, kept);
+  }
+  return next;
+}
+
+/**
+ * Play the hits in these cells backwards — or forwards again.
+ *
+ * ⛔⛔ **Mike, 2026-08-11:** *"if you have a drum pad or something playing forward
+ * in the pad, but you want it to play backwards in the drum pattern, you should
+ * be able to switch it … select the note and press like 'Ctrl+R' or 'Command+R'
+ * on macOS to reverse the note just for that single note being played."*
+ *
+ * ⛔ **A TOGGLE decided once for the whole selection**, exactly as the roll's
+ * `reverseNotes` does it and for the same reason: flipping each hit
+ * independently makes a mixed selection un-un-reversible, because every press
+ * would swap which half is backwards with no way back to "all forwards". So if
+ * anything selected is still forwards the press reverses everything.
+ *
+ * ⚠ **`columnOf`, not a span test.** It is the one definition of which cell a
+ * note is drawn in, and half the hits in a generated pattern sit early of the
+ * grid on purpose — the drift this module's header records.
+ *
+ * ⛔ Audio only: a reversed note has no SMF representation, so a `.mid` from this
+ * clip loses it. `engine::pattern::Note::reversed` carries the same warning.
+ */
+export function reverseCells(pattern: Pattern, targets: readonly CellRef[]): Pattern {
+  const hits = columnsByLane(targets);
+  const all = [...hits].flatMap(([lane, columns]) =>
+    notesIn(pattern, lane).filter((note) => columns.has(columnOf(note.startTick))),
+  );
+  if (all.length === 0) return pattern;
+  // ⛔ The same decision the piano roll makes — see `nextReversed`, which is why
+  // it is not spelled out here a second time.
+  const backwards = nextReversed(all);
+
+  let next = pattern;
+  for (const [lane, columns] of hits) {
+    const notes = notesIn(next, lane);
+    next = withLane(
+      next,
+      lane,
+      notes.map((note) =>
+        columns.has(columnOf(note.startTick)) ? { ...note, reversed: backwards } : note,
+      ),
+    );
   }
   return next;
 }

@@ -30,9 +30,8 @@
     "generating": "生成中…",
     "readyBody": "{{name}} の準備ができました。生成を押してください。",
     "generateAll": "すべて生成",
-    "clear": "クリア",
-    "clearAll": "すべてクリア",
-    "clearLabel": "生成したパートをクリア"
+    "clearOne": "{{part}}をクリア",
+    "clearAll": "すべてクリア"
   },
   "rails": {
     "searchPlaceholder": "アーティストを検索…",
@@ -141,7 +140,6 @@
     "loop": "ループ",
     "masterLevel": "マスターレベル: 無音",
     "toggleRightRail": "右パネルの表示切替 (K)",
-    "windowSize": "ウィンドウサイズ",
     "loopAlways": "このフェーズでは再生は常にループします。",
     "unavailable": "再生できません: {{reason}}"
   },
@@ -159,9 +157,7 @@
   "view": {
     "button": "表示",
     "panels": "パネル",
-    "rightRail": "右パネル",
-    "showAll": "すべてのパネルを表示",
-    "hideAll": "すべてのパネルを非表示"
+    "rightRail": "右パネル"
   },
   "settings": {
     "title": "設定",
@@ -218,8 +214,6 @@
     "artists": "アーティスト",
     "flagship": "主要",
     "genre": "ジャンル",
-    "filteredBy": "{{name}} で絞り込み中",
-    "showAll": "すべて表示",
     "noneInGenre": "{{name}} のアーティストはまだいません。",
     "standard": "標準",
     "inherited": "継承"
@@ -382,6 +376,7 @@
       "nudge": "時間をずらす",
       "stretch": "2倍に伸ばす",
       "compress": "半分に縮める",
+      "reverseNote": "選択したノートを逆再生",
       "triplet": "このセルを3連符に",
       "quintuplet": "このセルを5連符に",
       "septuplet": "このセルを7連符に",
@@ -414,8 +409,6 @@
     "waveformOf": "{{name}} の波形",
     "reverse": "逆再生",
     "resize": "ブラウザーの幅を変更",
-    "fillRail": "ブラウザーにレール全体を割り当てる",
-    "restoreRail": "ロスターを再表示",
     "folderLimit": "同時に開けるフォルダーは8つです。追加するには1つ閉じてください",
     "favourites": "スター付きのお気に入り",
     "star": "{{name}} にスターを付ける",

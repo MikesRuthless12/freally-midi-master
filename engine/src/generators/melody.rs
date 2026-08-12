@@ -344,6 +344,7 @@ pub fn generate(
                 vel,
                 slide_to_pitch: None,
                 articulation: staccato.then_some(Articulation::Staccato),
+                reversed: false,
             });
 
             // `monophonicBias` is read as *how often the line stays one note*.
@@ -363,6 +364,7 @@ pub fn generate(
                         vel: vel.saturating_sub(10).max(1),
                         slide_to_pitch: None,
                         articulation: staccato.then_some(Articulation::Staccato),
+                        reversed: false,
                     });
                 }
             }
@@ -1168,6 +1170,7 @@ mod tests {
                 vel: 100,
                 slide_to_pitch: None,
                 articulation: None,
+                reversed: false,
             }],
         }];
 

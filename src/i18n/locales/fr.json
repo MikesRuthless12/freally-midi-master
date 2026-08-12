@@ -30,9 +30,8 @@
     "generating": "Génération…",
     "readyBody": "{{name}} est prêt. Appuyez sur Générer.",
     "generateAll": "Tout générer",
-    "clear": "Vider",
-    "clearAll": "Tout vider",
-    "clearLabel": "Vider les parties générées"
+    "clearOne": "Vider {{part}}",
+    "clearAll": "Tout vider"
   },
   "rails": {
     "searchPlaceholder": "Rechercher un artiste…",
@@ -141,7 +140,6 @@
     "loop": "Boucle",
     "masterLevel": "Niveau master : silencieux",
     "toggleRightRail": "Afficher/masquer le panneau droit (K)",
-    "windowSize": "Taille de la fenêtre",
     "loopAlways": "La lecture est toujours en boucle à ce stade.",
     "unavailable": "Lecture indisponible : {{reason}}"
   },
@@ -159,9 +157,7 @@
   "view": {
     "button": "Affichage",
     "panels": "Panneaux",
-    "rightRail": "Panneau droit",
-    "showAll": "Afficher tous les panneaux",
-    "hideAll": "Masquer tous les panneaux"
+    "rightRail": "Panneau droit"
   },
   "settings": {
     "title": "Paramètres",
@@ -218,8 +214,6 @@
     "artists": "Artistes",
     "flagship": "Emblématique",
     "genre": "Style",
-    "filteredBy": "Filtré par {{name}}",
-    "showAll": "Tout afficher",
     "noneInGenre": "Aucun artiste ne travaille encore en {{name}}.",
     "standard": "Standard",
     "inherited": "Hérité"
@@ -382,6 +376,7 @@
       "nudge": "Décaler dans le temps",
       "stretch": "Étirer au double",
       "compress": "Comprimer de moitié",
+      "reverseNote": "Inverser la note sélectionnée",
       "triplet": "Triolet dans cette case",
       "quintuplet": "Quintolet dans cette case",
       "septuplet": "Septolet dans cette case",
@@ -414,8 +409,6 @@
     "waveformOf": "Forme d’onde de {{name}}",
     "reverse": "Lire à l’envers",
     "resize": "Redimensionner le navigateur",
-    "fillRail": "Donner toute la colonne au navigateur",
-    "restoreRail": "Réafficher le roster",
     "folderLimit": "Vous pouvez parcourir 8 dossiers à la fois — fermez-en un pour en ajouter un autre",
     "favourites": "Favoris étoilés",
     "star": "Ajouter {{name}} aux favoris",

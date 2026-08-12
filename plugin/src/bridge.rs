@@ -494,6 +494,21 @@ pub fn dispatch(
             // knowing about them. Taking the page's word here would delete a
             // producer's whole kit on the next artist change.
             next.one_shots = state::with(session, |s| s.one_shots.clone()).unwrap_or_default();
+            // ⛔⛔ **And which of them play backwards, which is the same field in
+            // two halves.** Mike, 2026-08-11, asked for `Ctrl`+← to assign a
+            // sample *reversed*; that lands in `one_shots_reversed` beside the
+            // path in `one_shots`. It was added without this line, so every save
+            // deserialized an absent map as empty and `state::write` wiped it —
+            // the pad came back playing forwards, silently, and only the
+            // direction was lost while the sample survived.
+            //
+            // ⚠ **The two must be carried by the same rule or they disagree**:
+            // one names the file, the other names how it is read. This is the
+            // third field to be caught by the same omission — see `sample_folders`
+            // below — so the test to write when a fourth is added is "does the
+            // page author it?", and the answer here is no.
+            next.one_shots_reversed =
+                state::with(session, |s| s.one_shots_reversed.clone()).unwrap_or_default();
             // ⛔ **And the sample library, for exactly the same reason.** It was
             // added beside `one_shots` and did not inherit this: the page never
             // sends `sampleFolders` — nothing in `src/` mentions it — so every

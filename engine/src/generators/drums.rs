@@ -275,6 +275,7 @@ fn note_at(lane: Lane, tick: u32, vel: u8, articulation: Option<Articulation>) -
         vel: vel.max(1),
         slide_to_pitch: None,
         articulation,
+        reversed: false,
     }
 }
 
@@ -1118,6 +1119,7 @@ fn bass808(
             vel: 100,
             slide_to_pitch: slide_to,
             articulation: Some(Articulation::Legato),
+            reversed: false,
         });
 
         pitch = match slide_to {

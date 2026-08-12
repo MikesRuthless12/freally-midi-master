@@ -78,33 +78,10 @@
   white-space: nowrap;
 }
 
-/* Says what the list below has been narrowed to, and offers the way back. */
-.roster__filter {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: var(--space-2);
-  margin-bottom: var(--space-2);
-  font-size: var(--text-micro);
-  color: var(--color-text-3);
-}
-
-.roster__filter > span {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.roster__show-all {
-  flex: none;
-  padding: 0;
-  border: 0;
-  background: transparent;
-  color: var(--color-primary);
-  font: inherit;
-  cursor: pointer;
-}
-
-.roster__show-all:hover {
-  text-decoration: underline;
-}
+/*
+ * ⚠ **`.roster__filter` and `.roster__show-all` are gone** (2026-08-11), with
+ * the "Filtered by … / Show all" row `LeftRail.tsx` used to draw under the
+ * artist blurb. Mike: *"I also don't want the 'Filtered by DrakeShow all' to
+ * show up at all in the details part of the roster."* `LeftRail.tsx` carries the
+ * reasoning; these rules had no other user.
+ */

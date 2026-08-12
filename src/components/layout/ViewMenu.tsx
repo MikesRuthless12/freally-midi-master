@@ -11,8 +11,7 @@ import { useTranslation } from 'react-i18next';
 export function ViewMenu() {
   const { t } = useTranslation();
   const sections = useUi((s) => s.sections);
-  const toggleSection = useUi((s) => s.toggleSection);
-  const setAllSections = useUi((s) => s.setAllSections);
+  const showSection = useUi((s) => s.showSection);
   const rightRailOpen = useUi((s) => s.rightRailOpen);
   const toggleRightRail = useUi((s) => s.toggleRightRail);
 
@@ -34,8 +33,6 @@ export function ViewMenu() {
       document.removeEventListener('keydown', onKey);
     };
   }, [open]);
-
-  const allOpen = SECTIONS.every((id) => sections[id]) && rightRailOpen;
 
   return (
     <div className="viewmenu" ref={wrap}>
@@ -73,27 +70,12 @@ export function ViewMenu() {
               role="menuitemcheckbox"
               aria-checked={sections[id]}
               className="viewmenu__item"
-              onClick={() => toggleSection(id)}
+              onClick={() => showSection(id)}
             >
               <span className="viewmenu__check">{sections[id] && <Check size={12} />}</span>
               {t(`sections.${id}`)}
             </button>
           ))}
-
-          <div className="viewmenu__sep" role="separator" />
-
-          <button
-            type="button"
-            role="menuitem"
-            className="viewmenu__item"
-            onClick={() => {
-              setAllSections(!allOpen);
-              if (rightRailOpen !== !allOpen) toggleRightRail();
-            }}
-          >
-            <span className="viewmenu__check" />
-            {allOpen ? t('view.hideAll') : t('view.showAll')}
-          </button>
         </div>
       )}
     </div>

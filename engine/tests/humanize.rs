@@ -39,6 +39,7 @@ fn note(start: u32, len: u32, vel: u8) -> Note {
         vel,
         slide_to_pitch: None,
         articulation: None,
+        reversed: false,
     }
 }
 

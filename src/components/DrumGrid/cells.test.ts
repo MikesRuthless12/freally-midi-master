@@ -14,6 +14,7 @@ import {
   pasteCells,
   columnOf,
   reassignLane,
+  reverseCells,
   unusedLanes,
   addFill,
   PITCHED_LANES,
@@ -735,5 +736,60 @@ describe('addFill (TASK-043H)', () => {
     const empty = pattern([{ lane: 'openHat', notes: [] }]);
     const notes = addFill(empty, 'openHat').lanes.find((l) => l.lane === 'openHat')!.notes;
     expect(notes.length).toBe(8);
+  });
+});
+
+/**
+ * Playing the hits in a cell backwards (2026-08-11).
+ *
+ * ⛔ Mike named the drum grid first: *"if you have a drum pad or something
+ * playing forward in the pad, but you want it to play backwards in the drum
+ * pattern, you should be able to switch it."* The roll's own
+ * `transforms.reversePlayback` is the same gesture on a `NoteId` selection; this
+ * is the cell-based half, and the toggle rule is deliberately identical.
+ */
+describe('reverseCells', () => {
+  const kit = () =>
+    pattern([
+      { lane: 'kick', notes: [note(0), note(TICKS_PER_16TH * 4)] },
+      { lane: 'snare', notes: [note(TICKS_PER_16TH * 4)] },
+    ]);
+
+  it('flips only the cells that were picked', () => {
+    const next = reverseCells(kit(), [{ lane: 'kick', column: 0 }]);
+    const kick = next.lanes.find((l) => l.lane === 'kick')!.notes;
+    const snare = next.lanes.find((l) => l.lane === 'snare')!.notes;
+
+    expect(kick[0].reversed).toBe(true);
+    expect(kick[1].reversed).toBeFalsy();
+    expect(snare[0].reversed).toBeFalsy();
+  });
+
+  it('turns a wholly reversed selection back', () => {
+    const cells = [{ lane: 'kick' as Lane, column: 0 }];
+    const once = reverseCells(kit(), cells);
+    const twice = reverseCells(once, cells);
+
+    expect(twice.lanes.find((l) => l.lane === 'kick')!.notes[0].reversed).toBe(false);
+  });
+
+  it('reverses everything when the selection is mixed', () => {
+    // ⛔ The same rule the roll follows: per-note flipping makes a mixed
+    // selection un-un-reversible.
+    const both: { lane: Lane; column: number }[] = [
+      { lane: 'kick', column: 0 },
+      { lane: 'kick', column: 4 },
+    ];
+    const half = reverseCells(kit(), [both[0]]);
+    const next = reverseCells(half, both);
+
+    expect(next.lanes.find((l) => l.lane === 'kick')!.notes.every((n) => n.reversed)).toBe(
+      true,
+    );
+  });
+
+  it('leaves the pattern untouched when the cells hold nothing', () => {
+    const source = kit();
+    expect(reverseCells(source, [{ lane: 'kick', column: 9 }])).toBe(source);
   });
 });

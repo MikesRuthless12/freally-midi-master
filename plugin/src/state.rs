@@ -151,6 +151,25 @@ pub struct PluginSession {
     /// order, so a project file does not reorder its own keys between saves.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub one_shots: BTreeMap<Lane, String>,
+    /// Which of those play **backwards** (2026-08-11).
+    ///
+    /// ⛔⛔ **Mike:** *"'Ctrl + left arrow' when you have a sample selected should
+    /// add the sample to that selected drum pad lane **in reverse**."* Reversing
+    /// happens when the file is decoded, so without this a reopened project would
+    /// reload the same path forwards — the producer's choice silently undone, and
+    /// the kind of quiet wrong that is only noticed on playback.
+    ///
+    /// ⛔ **A SEPARATE MAP RATHER THAN WIDENING [`Self::one_shots`], and that is
+    /// the whole reason it looks redundant.** That field is the saved project
+    /// format: every existing file on Mike's disk holds `lane -> path` strings,
+    /// and turning it into a struct would need a deserializer that accepts both
+    /// shapes forever. An additional field defaults to empty on every old
+    /// project, so nothing has to be migrated and no existing reader changes.
+    ///
+    /// ⚠ **Keyed by the same lane**, so an entry here without one in `one_shots`
+    /// is meaningless and simply never read.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub one_shots_reversed: BTreeMap<Lane, bool>,
     /// The producer's saved sample-library folders (TASK-132).
     ///
     /// ⚠ **The same exception `one_shots` above is**: a folder on somebody's
@@ -302,6 +321,7 @@ impl Default for PluginSession {
             soloed_lanes: Vec::new(),
             locked_lanes: Vec::new(),
             one_shots: BTreeMap::new(),
+            one_shots_reversed: BTreeMap::new(),
             sample_folders: Vec::new(),
             patterns: BTreeMap::new(),
             pattern: None,
@@ -396,6 +416,7 @@ mod tests {
                     model_vel: Some(84),
                     slide_to_pitch: None,
                     articulation: None,
+                    reversed: false,
                 }],
             }],
             ppq: engine::pattern::PPQ,
@@ -429,6 +450,9 @@ mod tests {
             soloed_lanes: vec![Lane::Kick],
             locked_lanes: vec![Lane::ClosedHat],
             one_shots: BTreeMap::from([(Lane::Melody, "C:/samples/lead.wav".to_owned())]),
+            // ⚠ Reversed too, so the round trip proves the new field survives
+            // a save and an open rather than only the old one.
+            one_shots_reversed: BTreeMap::from([(Lane::Melody, true)]),
             // The sample library rides with the project too (TASK-132).
             sample_folders: vec!["C:/samples".to_owned()],
             patterns: BTreeMap::new(),
@@ -581,6 +605,7 @@ mod tests {
                     model_vel: None,
                     slide_to_pitch: None,
                     articulation: None,
+                    reversed: false,
                 }],
             }],
             ppq: engine::pattern::PPQ,

@@ -30,9 +30,8 @@
     "generating": "Membuat…",
     "readyBody": "{{name}} siap. Tekan Buat.",
     "generateAll": "Buat semua",
-    "clear": "Kosongkan",
-    "clearAll": "Kosongkan semua",
-    "clearLabel": "Kosongkan bagian yang dibuat"
+    "clearOne": "Kosongkan {{part}}",
+    "clearAll": "Kosongkan semua"
   },
   "rails": {
     "searchPlaceholder": "Cari artis…",
@@ -141,7 +140,6 @@
     "loop": "Loop",
     "masterLevel": "Level master: senyap",
     "toggleRightRail": "Alihkan panel kanan (K)",
-    "windowSize": "Ukuran jendela",
     "loopAlways": "Pemutaran selalu berulang pada fase ini.",
     "unavailable": "Pemutaran tidak tersedia: {{reason}}"
   },
@@ -159,9 +157,7 @@
   "view": {
     "button": "Tampilan",
     "panels": "Panel",
-    "rightRail": "Panel kanan",
-    "showAll": "Tampilkan semua panel",
-    "hideAll": "Sembunyikan semua panel"
+    "rightRail": "Panel kanan"
   },
   "settings": {
     "title": "Pengaturan",
@@ -218,8 +214,6 @@
     "artists": "Artis",
     "flagship": "Unggulan",
     "genre": "Aliran",
-    "filteredBy": "Difilter menurut {{name}}",
-    "showAll": "Tampilkan semua",
     "noneInGenre": "Belum ada artis di {{name}}.",
     "standard": "Standar",
     "inherited": "Diwarisi"
@@ -382,6 +376,7 @@
       "nudge": "Geser dalam waktu",
       "stretch": "Regangkan dua kali lipat",
       "compress": "Mampatkan jadi separuh",
+      "reverseNote": "Balikkan not yang dipilih",
       "triplet": "Triol di sel ini",
       "quintuplet": "Kuintol di sel ini",
       "septuplet": "Septol di sel ini",
@@ -414,8 +409,6 @@
     "waveformOf": "Bentuk gelombang {{name}}",
     "reverse": "Putar mundur",
     "resize": "Ubah lebar peramban",
-    "fillRail": "Beri browser seluruh bilah",
-    "restoreRail": "Tampilkan roster lagi",
     "folderLimit": "Kamu bisa menjelajahi 8 folder sekaligus — tutup satu untuk menambah yang lain",
     "favourites": "Favorit berbintang",
     "star": "Bintangi {{name}}",

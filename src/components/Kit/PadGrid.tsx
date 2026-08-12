@@ -1,26 +1,17 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type DragEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { CornerDownLeft, Play, Shuffle, X } from 'lucide-react';
 
-import { SAMPLE_TYPE, droppedSample } from '../../lib/dnd';
+import { PAD_TYPE, SAMPLE_TYPE, droppedSample } from '../../lib/dnd';
 import { useKit } from '../../state/kit';
-import { useSession } from '../../state/session';
-import { DEFAULT_PADS, useUi } from '../../state/ui';
-import { ALL_LANES } from '../../state/lanes';
+import { laneAudible, useSession } from '../../state/session';
+import { padsOf, useUi } from '../../state/ui';
+import { PAD_LANES } from '../../state/lanes';
 import { useExplorer } from '../../state/explorer';
 import { auditionLane } from '../DrumGrid/audition';
 import { Combo } from '../Combo/Combo';
 import type { Lane } from '../../lib/ipc-types';
 import './PadGrid.css';
-
-/**
- * Module constants, and that is the whole point of them.
- *
- * ⚠ Building either of these inside the render would hand React a new array
- * every pass — see the note on the selector below, which is how this file
- * blanked the window once already.
- */
-const FALLBACK_PADS: string[] = [...DEFAULT_PADS];
 
 /**
  * The drum pads, across the top of the stage (TASK-054).
@@ -68,9 +59,15 @@ export function PadGrid() {
   // every call** — so zustand's equality check never held, the component
   // re-rendered forever, and React gave up and painted a blank window. Mike
   // screenshotted exactly that, 2026-08-09. A selector must return something
-  // stable; `s.pads` is, and the fallbacks below are module constants.
+  // stable; `s.pads` is, and `padsOf` answers with one frozen module constant
+  // rather than a fresh copy — which is what let this file and two others stop
+  // each keeping a `FALLBACK_PADS` of their own.
   const padsByStyle = useUi((s) => s.pads);
   const setPad = useUi((s) => s.setPad);
+  // ⛔ Always a valid slot — `state/ui.ts::selectedPad` says why it is never null.
+  const selectedPad = useUi((s) => s.selectedPad);
+  const selectPad = useUi((s) => s.selectPad);
+  const movePad = useUi((s) => s.movePad);
   // ⛔⛔ **Always eight pads, even before an artist is chosen.** This read
   // `selectedId === null ? NO_PADS : …` for one build and the whole grid
   // vanished — Mike: *"you just deleted the drum lane kit squares!!!!!"* The
@@ -78,7 +75,7 @@ export function PadGrid() {
   // looked like it had one while `selectedId` was still `null`, and the pads
   // silently rendered an empty list. The kit exists whether or not a style has
   // been picked; the pads are how you reach it, so they are never absent.
-  const pads = padsByStyle[selectedId ?? ''] ?? FALLBACK_PADS;
+  const pads = padsOf(padsByStyle, selectedId);
   const [over, setOver] = useState<Lane | null>(null);
 
   useEffect(() => {
@@ -88,7 +85,16 @@ export function PadGrid() {
   if (!loaded) return null;
 
   return (
-    <div className="padgrid" aria-label={t('kit.padsLabel')}>
+    // ⛔ **`data-picking` is what keeps the sample name clear of the buttons
+    //    pinned to the pad's bottom corners** — see `.pad__source` in
+    //    `PadGrid.css` for the overlap it prevents. It lives on the grid rather
+    //    than on each pad because `pad__use` is drawn from a browser selection,
+    //    which is one answer for all eight of them.
+    <div
+      className="padgrid"
+      aria-label={t('kit.padsLabel')}
+      data-picking={selectedSample !== null}
+    >
       {pads.map((padLane, at) => {
         const lane = padLane as Lane;
         const entry = lanes.find((row) => row.lane === lane);
@@ -98,9 +104,23 @@ export function PadGrid() {
         // in the one control that exists to say whether you can hear it. Same
         // rule the drum grid's rows already follow.
         const muted = mutedLanes.includes(lane);
-        const audible = !muted && (soloedLanes.length === 0 || soloedLanes.includes(lane));
+        const audible = laneAudible(lane, mutedLanes, soloedLanes);
         const name = t(`lanes.${lane}`);
         const source = entry?.name ?? (entry?.shipped ? t('kit.shipped') : t('kit.silent'));
+
+        // ⛔⛔ **Shared by the tile AND by the face button on top of it** — see
+        // the `draggable` note on each. One body, because a reorder that only
+        // works when you happen to grab the 3px of tile the face does not cover
+        // is the bug Mike reported: *"the drum pads do not let me reorder them,
+        // it just shows a selection around the drum pad."*
+        const startDrag = (event: DragEvent<HTMLElement>) => {
+          event.dataTransfer.setData(PAD_TYPE, String(at));
+          // ⚠ `text/plain` alongside it for the reason `dnd.ts` records: some
+          // WebView2 builds refuse to start a drag carrying only an
+          // unrecognised type.
+          event.dataTransfer.setData('text/plain', lane);
+          event.dataTransfer.effectAllowed = 'move';
+        };
 
         return (
           <div
@@ -114,19 +134,63 @@ export function PadGrid() {
             data-audible={audible}
             data-over={over === lane}
             data-assigned={entry?.name != null}
+            data-selected={at === selectedPad}
+            // ⛔⛔ **ANY press inside the pad aims the keyboard at it** — Mike,
+            // 2026-08-11: *"there has to be a way to select the drum pad so you
+            // know which one you are putting it into."*
+            //
+            // ⚠ **On the container, in the capture phase, rather than on the
+            // face button** — and that is what keeps it out of the way of every
+            // gesture the pad already owns. The face click still mutes, the
+            // double-click still assigns, Play still auditions and the combobox
+            // still opens; selecting rides along with whichever of them the
+            // producer used. Hanging it on the face alone would mean the only
+            // way to aim at a pad was to *mute* it.
+            onPointerDownCapture={() => selectPad(at)}
+            // ⛔⛔ **THE PAD IS ALSO A DRAG SOURCE, FOR REORDERING** — Mike,
+            // 2026-08-11: *"you should be able to click and drag your drum pads
+            // and replace the ordering, and the 'Kits' rail on the right should
+            // reorder with them"* … *"and the ordering should persist from unload
+            // to reload."*
+            //
+            // ⛔⛔ **`draggable` here AND on the face button.** Chromium will not
+            // start a drag on a `<button>` and it will not walk *past* one to a
+            // draggable ancestor either — a press that lands on a form control
+            // is simply not a drag. `.pad__face` is `position: absolute; inset:
+            // 0`, so it covers the whole tile: with `draggable` only here, every
+            // grab landed on the face and nothing ever moved. That was Mike's
+            // report, 2026-08-11 — *"the drum pads do not let me reorder them, it
+            // just shows a selection around the drum pad"* — the ring being
+            // `onPointerDownCapture` firing while the drag never began.
+            //
+            // ⚠ **A MIME type of its own**, so the drop handler below can tell a
+            // pad from a sample coming out of the browser. Both land on the same
+            // element and they mean completely different things.
+            draggable
+            onDragStart={startDrag}
             // ⚠ `preventDefault` on dragOver is what makes the drop legal at
             // all; without it the browser's default is "not a drop target" and
             // the release does nothing, silently.
             onDragOver={(event) => {
-              if (!event.dataTransfer.types.includes(SAMPLE_TYPE)) return;
+              const moving = event.dataTransfer.types.includes(PAD_TYPE);
+              if (!moving && !event.dataTransfer.types.includes(SAMPLE_TYPE)) return;
               event.preventDefault();
-              event.dataTransfer.dropEffect = 'copy';
+              event.dataTransfer.dropEffect = moving ? 'move' : 'copy';
               if (over !== lane) setOver(lane);
             }}
             onDragLeave={() => setOver((held) => (held === lane ? null : held))}
             onDrop={(event) => {
-              const path = droppedSample(event.dataTransfer);
               setOver(null);
+              // ⛔ **Reorder first**, because a pad drag also carries
+              // `text/plain` and `droppedSample` would otherwise have to decide
+              // it is not a path. One check, in the order the types were set.
+              const from = event.dataTransfer.getData(PAD_TYPE);
+              if (from !== '') {
+                event.preventDefault();
+                movePad(selectedId, Number(from), at);
+                return;
+              }
+              const path = droppedSample(event.dataTransfer);
               if (path === null) return;
               event.preventDefault();
               // Refreshed after, because the pad's own label is the only thing
@@ -144,6 +208,12 @@ export function PadGrid() {
               aria-pressed={!audible}
               aria-label={t(audible ? 'kit.muteLane' : 'kit.unmuteLane', { lane: name })}
               title={source}
+              // ⛔ **The face is the drag handle too** — it covers the tile, so
+              // without this the reorder above is unreachable. See the tile's
+              // `draggable` note. A click still mutes: a drag only begins once
+              // the pointer moves, and `dragstart` and `click` never both fire.
+              draggable
+              onDragStart={startDrag}
               onClick={() => setLaneMuted(lane, !muted)}
               onDoubleClick={() => void assign(lane)}
             />
@@ -160,7 +230,7 @@ export function PadGrid() {
             <div className="pad__lane">
               <Combo
                 label={t('kit.padLane', { at: at + 1 })}
-                options={ALL_LANES.map((id) => ({ id, name: t(`lanes.${id}`) }))}
+                options={PAD_LANES.map((id) => ({ id, name: t(`lanes.${id}`) }))}
                 value={lane}
                 onChange={(id) => setPad(selectedId, at, id)}
               />

@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 
-import { browserRow } from './app';
+import { browserRow, openPanel } from './app';
 
 /**
  * Browse → hear → drag → it stays there (TASK-058 / TASK-059A / TASK-054).
@@ -34,6 +34,8 @@ function pad(page: Page, lane: string) {
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('tablist', { name: 'Generator' })).toBeVisible();
+  // ⛔ The panel is behind a vertical tab now — `openPanel` presses it.
+  await openPanel(page, 'explorer');
 });
 
 test('a sample dragged from the browser lands on the pad and stays there', async ({ page }) => {

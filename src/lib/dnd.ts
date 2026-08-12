@@ -27,6 +27,19 @@ export const SAMPLE_TYPE = 'application/x-freally-sample';
 export const MIDI_TYPE = 'application/x-freally-midi';
 
 /**
+ * A drum pad being dragged to a new slot (2026-08-11).
+ *
+ * ⛔ **Its own type, because a pad and a sample land on the same element and
+ * mean opposite things.** Mike: *"you should be able to click and drag your drum
+ * pads and replace the ordering."* Sharing [`SAMPLE_TYPE`] would make a pad drag
+ * look like a file drop and try to assign a lane name as a path.
+ *
+ * The payload is the source pad's **slot index**, as a string — the slot rather
+ * than the lane, because two pads may hold the same lane.
+ */
+export const PAD_TYPE = 'application/x-freally-pad';
+
+/**
  * The sample path a drop carries, or `null` if it carries none.
  *
  * ⚠ `getData` answers `''` rather than `null` for a type that is not present, and
