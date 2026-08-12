@@ -1,0 +1,310 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "diamond-d",
+  "type": "producer",
+  "name": "Diamond D",
+  "aliases": [
+    "diamond d",
+    "diamond",
+    "joseph kirkland",
+    "d.i.t.c."
+  ],
+  "tier": "standard",
+  "extends": [
+    "boom-bap"
+  ],
+  "era": "1992-2000",
+  "genres": [
+    "rap",
+    "boom bap",
+    "producer"
+  ],
+  "relatedGenres": [
+    "boom-bap",
+    "funk"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 boom-bap — Diamond D",
+    "https://hiphopdx.com/news/id.73643/title.diamond-d-stunts-blunts-hip-hop-30th-anniversary-interview",
+    "https://reverb.com/news/diamond-d-reflects-on-50-years-of-hip-hop-interview"
+  ],
+  "notes": "Bronx D.I.T.C. founder, and **one of the first to speed samples up** — a habit he claims as an early signature, and the direct inverse of the Premier and RZA methods in this same batch. Sped-up samples read *sharp* of source, so the scale set leads with mixolydian and the tempo band is the fastest of the D.I.T.C. trio at 90–100. **The bass is the groove's melodic centre**: a filtered funk bass riff, loud, with real syncopation — which is `independent_riff` at a low `followRootsProb`, the widest `passingTones` set among the SP-1200 producers here, and the highest `anticipationProb`. **Guitar and horn stabs land on the backbeat**, so the countermelody is `answer_lick`-led against a low-density melody, and `pad content is low` is authored as `maxChords` 2 over static `I7/i7` vamps and `i–iv`. **Beats are built fast** — the research documents about thirty minutes for a signature track — so the patterns are simple and repeated: a `riff_loop` melody, a 2-bar phrase weighting, and a swung 8th hat rather than anything finer. ⚠ `medium` matching the research's medium-high: the interviews are first-person but **gear specifics are thinner than his peers'**, so the hat, open-hat, perc and roll numbers are INFERRED, and the swing figure of 0.60 is a reading of \"swung 8th hats\" rather than a documented MPC setting.",
+  "session": {
+    "bpm": {
+      "min": 90,
+      "max": 100,
+      "mode": 95
+    },
+    "scales": {
+      "values": [
+        "mixolydian",
+        "dorian",
+        "blues"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "8th",
+      "amount": 0.6
+    },
+    "humanize": {
+      "quantizeStrength": 0.76,
+      "velocityVar": 0.17
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.42,
+      "tresilloBias": 0.14
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "ghost": {
+        "prob": 0.3,
+        "pos": [
+          "1a",
+          "3a"
+        ],
+        "vel": [
+          0.22,
+          0.4
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.48,
+      "velocities": {
+        "main": [
+          0.76,
+          0.96
+        ],
+        "ghost": [
+          0.2,
+          0.44
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "16T"
+          ],
+          "weights": [
+            2,
+            4
+          ]
+        },
+        "positions": [
+          "pre_snare"
+        ],
+        "freqPerBar": 0.32
+      },
+      "openHat": {
+        "prob": 0.3,
+        "pos": [
+          "2&",
+          "3&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "perc"
+      ],
+      "densityPerBar": [
+        0,
+        2
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        58,
+        107
+      ],
+      "rampJitter": 20,
+      "descendProb": 0.25,
+      "gapProb": 0.33
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.3,
+      "seventh": 0.56,
+      "ninth": 0.14
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        48,
+        73
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      16
+    ]
+  },
+  "melody": {
+    "register": [
+      61,
+      82
+    ],
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "structure": "riff_loop",
+    "intervals": {
+      "step": 0.56,
+      "third": 0.34,
+      "leap": 0.1
+    },
+    "contour": {
+      "riff": 0.6,
+      "descend": 0.26,
+      "arch": 0.14
+    },
+    "chordToneBias": 0.7,
+    "octaveJumpProb": 0.09,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "timbreHint": "guitar"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.42,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.44,
+    "register": [
+      29,
+      47
+    ],
+    "glideProb": 0.06,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2",
+      "M6"
+    ],
+    "anticipationProb": 0.42,
+    "cellShapes": [
+      [
+        "1",
+        "b7",
+        "5"
+      ],
+      [
+        "1",
+        "5",
+        "b7",
+        "4"
+      ],
+      [
+        "1",
+        "1",
+        "b3",
+        "4"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 8,
+      "verse": 16,
+      "hook": 8,
+      "outro": 4
+    }
+  }
+}

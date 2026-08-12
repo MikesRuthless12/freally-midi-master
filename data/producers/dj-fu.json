@@ -1,0 +1,343 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "dj-fu",
+  "type": "producer",
+  "name": "DJ Fu",
+  "aliases": [
+    "dj fu",
+    "fu"
+  ],
+  "tier": "standard",
+  "extends": [
+    "west-coast-club"
+  ],
+  "era": "2018-present",
+  "genres": [
+    "rap",
+    "west coast",
+    "club",
+    "producer"
+  ],
+  "relatedGenres": [
+    "west-coast-club",
+    "trap"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 west-coast-club — DJ Fu",
+    "https://djbooth.net/features/2019-03-14-schoolboy-q-numb-numb-juice-dj-fu-baby-keem-cardo-sounwave/"
+  ],
+  "notes": "A melody specialist, and the research is unusually specific about which layer is fixed and which is variable: \"the drum pattern is the fixed element while the melody is iterated\" — one documented session spent 10 hours replacing the main melodic figure. So this model's drums are tight (`quantizeStrength` 0.86, clap offset 2-5ms, `ghost.prob` 0.12) and its melody is the wide part: `densityPerBar` [3,6], `motifPitchCount` [3,5], `structure` `call_response`. **Guitar loop plus bells** is the named signature combination, so `timbreHint` is `clean_guitar` and the bell layer is modeled as the countermelody at `densityRatio` 0.45 answering it — that is what `call_response` plus `answer_lick` is doing here. The drums are built to a rapper's stated *bounce* requirement, which is `offbeat8thShare` 0.35 and a loud kick-locked sub (`bass808` forward, `bassline.followRootsProb` 0.90) so \"the drum-and-bass pair carries the bounce\". ⚠ `medium`: the research is medium-high on workflow but says outright \"harmonic detail inferred\" and marks the chord families **[LOW-CONF]**. ⛔ The three `progressionFamilies` below are therefore **INFERRED** — the research names only \"a static minor chord or `i–VII`\", which is why `impliedByRiff` is true and `maxChords` is 2. The chord part's required variety is carried by `chordDurationBeats` [4,16], three harmonic rhythms and a 34-semitone voicing register, not by families he is not documented as playing; the `i–VI–VII` family carries weight 1 and is the first thing to delete. ⚠ `switchUpProb` 0.2 is high for this lane on purpose: the research names \"a mid-track melodic feature (the guitar loop entering in the middle rather than at the top)\".",
+  "session": {
+    "bpm": {
+      "min": 98,
+      "max": 106,
+      "mode": 102
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "minor_pentatonic",
+        "dorian"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.86,
+      "velocityVar": 0.14
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.3,
+      "offbeat8thShare": 0.35,
+      "lockTo808": 0.95
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "layerClapOffsetMs": [
+        2,
+        5
+      ],
+      "ghost": {
+        "prob": 0.12,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.3,
+          0.45
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.4,
+      "velocities": {
+        "main": [
+          0.75,
+          1
+        ],
+        "ghost": [
+          0.4,
+          0.6
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16T",
+            "32"
+          ],
+          "weights": [
+            2,
+            3
+          ]
+        },
+        "positions": [
+          "pre_snare",
+          "bar_4"
+        ],
+        "freqPerBar": 0.29,
+        "velocityRamp": true
+      },
+      "openHat": {
+        "prob": 0.45,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "snap",
+        "shaker",
+        "tambourine"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "gainOffsetDb": -6
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "monoCutSelf": true,
+      "slideProb": 0.3,
+      "portamentoMs": 25,
+      "slidePositions": [
+        "phrase_end"
+      ],
+      "register": [
+        28,
+        45
+      ],
+      "distortion": "light"
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th",
+        "16t"
+      ],
+      "grouping": [
+        "even",
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        52,
+        110
+      ],
+      "rampJitter": 10,
+      "descendProb": 0.38,
+      "gapProb": 0.16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 1
+      }
+    ],
+    "maxChords": 2,
+    "impliedByRiff": true,
+    "chordDurationBeats": [
+      4,
+      16
+    ],
+    "extensions": {
+      "triad": 0.72,
+      "seventh": 0.23,
+      "ninth": 0.05
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        46,
+        80
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      59,
+      83
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "densityPerBar": [
+      3,
+      6
+    ],
+    "motifPitchCount": [
+      3,
+      5
+    ],
+    "structure": "call_response",
+    "intervals": {
+      "step": 0.58,
+      "third": 0.3,
+      "leap": 0.12
+    },
+    "contour": {
+      "riff": 0.55,
+      "descend": 0.28,
+      "arch": 0.17
+    },
+    "chordToneBias": 0.76,
+    "octaveJumpProb": 0.1,
+    "timbreHint": "clean_guitar"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.45,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.9,
+    "register": [
+      28,
+      45
+    ],
+    "glideProb": 0.35,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.12
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": 12,
+      "hook": 8,
+      "bridge": 4,
+      "outro": 4
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.5,
+        "beats": 2
+      },
+      "switchUpProb": 0.2
+    }
+  }
+}

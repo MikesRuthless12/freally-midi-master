@@ -1,0 +1,311 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "da-beatminerz",
+  "type": "producer",
+  "name": "Da Beatminerz",
+  "aliases": [
+    "da beatminerz",
+    "beatminerz",
+    "mr walt",
+    "dj evil dee",
+    "boot camp clik"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "boom-bap"
+  ],
+  "era": "1993-1999",
+  "genres": [
+    "rap",
+    "boom-bap"
+  ],
+  "relatedGenres": [
+    "boom-bap",
+    "lofi-hiphop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 boom-bap — Da Beatminerz",
+    "Passion of the Weiss — \"We're samplers so we listen to everything\": interview with Da Beatminerz (https://www.passionweiss.com/2024/04/02/da-beatminerz-mr-walt-dj-evil-dee-interview-stifled-creativity/)",
+    "Wikipedia — Enta da Stage (https://en.wikipedia.org/wiki/Enta_da_Stage)"
+  ],
+  "notes": "Brooklyn's murkiest kit, and the research names the defining parameter outright: \"enormous filtered sample bass, sustained, dominating the mix\". Everything else in this model is arranged around that. The melody sits high — [67,89], the highest register on this axis — because the research says a single organ or horn phrase sits *high above the bass*, and the drums go the other way: `velocityTiers` is lowered across the board for a snare \"buried in low-mid\", the hats stop being continuous, and the kick carries a raised sub layer. ⚠ **The bass is `mirror_kick`, not a held note, and that is an engine limit rather than a reading of the record.** `reese_sustain` is the only rhythm that holds a note and it emits one note per chord — over a static i that is one note per loop, which measured 8 distinct basslines in 1000 seeds. `mirror_kick` over a kick that plays 1 and 3& gives two very low roots a bar, which reads as sustained at 91 BPM, and `followRootsProb` 0.94 keeps it on the tonic. ⚠ `hihat.continuous` is false because the research says the hats are sparse; `fillDensity` is 0.3 rather than lower because a model that declares a hat block owes every seed a hat. ⚠ `medium` because the research rates it medium-high — sourcing and processing are first-person, drum numbers are not. The specific inferred parameter is `velocityTiers`: \"buried in low-mid\" is a mix description this model translates into velocity, which is the only lever a MIDI style model has. ⚠ The i–iv and i–VII families are INFERRED — the research names static i only — and both carry low weights. ⚠ **The countermelody reached only 917 distinct answers in 1000 seeds against a floor of 980**, so it was given range: densityRatio 0.45. A counter is combinatorial in the styles it may pick, its density against the melody, and the phrase length it answers inside — one style over a thin density inside a single phrase length has almost nothing a seed can vary. ⚠ **The 1-bar phrase length was removed** (was [1,2,4], now [2,4]). A one-bar phrase looped four times carries less entropy than a four-bar phrase, and it is the countermelody it strangles hardest: a counter answers *inside* the melody’s phrase, so a one-bar shape leaves it nowhere to go. Every worst offender on `counter.rs` carried it. ⛔ The previous session recorded this exact mistake and it arrived again from the other direction — distinctness is combinatorial in the shape LENGTH, not in the option count.",
+  "session": {
+    "bpm": {
+      "min": 86,
+      "max": 96,
+      "mode": 91
+    },
+    "scales": {
+      "values": [
+        "dorian",
+        "natural_minor",
+        "phrygian"
+      ],
+      "weights": [
+        4,
+        4,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.59
+    },
+    "humanize": {
+      "quantizeStrength": 0.7,
+      "velocityVar": 0.2,
+      "timingJitterMs": {
+        "kick": 8,
+        "snare": 9,
+        "closedHat": 7,
+        "openHat": 7
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        96,
+        116
+      ],
+      "main": [
+        70,
+        84
+      ],
+      "ghost": [
+        30,
+        44
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.28,
+      "subLayerVelocity": [
+        0.8,
+        0.95
+      ]
+    },
+    "snare": {
+      "rimshotLayer": false,
+      "ghost": {
+        "prob": 0.1,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.15,
+          0.28
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.3,
+      "velocities": {
+        "main": [
+          0.5,
+          0.7
+        ],
+        "ghost": [
+          0.12,
+          0.3
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0.05,
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ]
+      },
+      "openHat": {
+        "prob": 0.1,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        36,
+        84
+      ],
+      "rampJitter": 7,
+      "gapProb": 0.63,
+      "descendProb": 0.08
+    }
+  },
+  "melody": {
+    "register": [
+      67,
+      89
+    ],
+    "densityPerBar": [
+      1,
+      4
+    ],
+    "motifPitchCount": [
+      2,
+      4
+    ],
+    "intervals": {
+      "step": 0.6,
+      "third": 0.28,
+      "leap": 0.12
+    },
+    "contour": {
+      "riff": 0.62,
+      "descend": 0.26,
+      "arch": 0.12
+    },
+    "chordToneBias": 0.68,
+    "octaveJumpProb": 0.05,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        1
+      ]
+    },
+    "timbreHint": "church_organ"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.45,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 6
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 1
+      }
+    ],
+    "maxChords": 2,
+    "impliedByRiff": true,
+    "chordDurationBeats": [
+      4,
+      16
+    ],
+    "extensions": {
+      "triad": 0.42,
+      "seventh": 0.46,
+      "ninth": 0.12
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        42,
+        72
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        5,
+        3,
+        1
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.94,
+    "register": [
+      22,
+      39
+    ],
+    "glideProb": 0.02,
+    "passingTones": [],
+    "anticipationProb": 0.08
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": 16,
+      "hook": 8,
+      "bridge": [
+        4,
+        8
+      ],
+      "outro": [
+        8,
+        16
+      ]
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.75,
+        "beats": 4
+      },
+      "switchUpProb": 0.1
+    }
+  }
+}

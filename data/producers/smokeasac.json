@@ -1,0 +1,386 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "smokeasac",
+  "type": "producer",
+  "name": "Smokeasac",
+  "aliases": [
+    "smokeasac",
+    "dylan mullen",
+    "smoke asac",
+    "lil peep producer"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "dark-trap"
+  ],
+  "era": "2016-2019",
+  "genres": [
+    "rap",
+    "trap",
+    "dark-trap",
+    "emo-rap",
+    "producer"
+  ],
+  "relatedGenres": [
+    "dark-trap",
+    "emo-rap",
+    "cloud-rap"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 dark-trap — Smokeasac",
+    "https://en.wikipedia.org/wiki/Come_Over_When_You%27re_Sober,_Pt._2",
+    "https://en.wikipedia.org/wiki/Smokeasac"
+  ],
+  "notes": "The author of this lane's guitar-trap grammar, and the research names his construction unit exactly: \"a four-note melody over a minor riff\". That is not a paraphrase to be softened — `motifPitchCount` is a flat 4 and the families are the two the paragraph writes out, i–VI–III–VII and i–VII–VI, over 4 bars with no modulation. The second exact claim is the drums: \"triple-time (32nd/triplet) hi-hats as the Southern-rap signifier against the rock instrumentation; fills are hat rolls, **never kit fills**\". So `hihat.fill` fires at 0.8 in 32nds and triplets, `rolls.freqPerBar` sits at the top of this batch's band at 0.60, and `percs.lanes` is empty — there is no kit to fill with. The snare-roll block is the batch fingerprint rather than a reading of the record, and it is deliberately the quietest use of it here. Third, the sole melodic instrument is electric guitar treated with \"reverberation and low-pass filters\" for a cinematic haze: `timbreHint` `clean_guitar` in a guitar register of 52–76, `articulation` `legato`, and the 808 doubling that root one to two octaves down at `followRootsProb` 0.96 with `glideProb` 0.1 (\"minimal glide\"). \"Vocal doubles and moaned backing vocals as countermelody\" is `octave_echo` weighted over `answer_lick` at a +12 offset. ⚠ `medium` because the research rates it high-medium; his role, collaborators and the harmonic/effects grammar are directly documented, and the one INFERRED parameter is the tempo, which the paragraph derives from \"mid-tempo\" plus catalogue.",
+  "session": {
+    "bpm": {
+      "min": 140,
+      "max": 160,
+      "mode": 150
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "harmonic_minor"
+      ],
+      "weights": [
+        6,
+        1
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.91,
+      "velocityVar": 0.13
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        104,
+        122
+      ],
+      "main": [
+        80,
+        94
+      ],
+      "ghost": [
+        40,
+        54
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3",
+      "syncopation": 0.36,
+      "tresilloBias": 0.2,
+      "avoidPreSnareGap": "16th",
+      "lockTo808": 1
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "layered": true,
+      "layerClapOffsetMs": [
+        2,
+        6
+      ],
+      "ghost": {
+        "prob": 0.16,
+        "pos": [
+          "4&"
+        ],
+        "vel": [
+          0.32,
+          0.48
+        ]
+      },
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.6,
+      "velocities": {
+        "main": [
+          0.78,
+          1
+        ],
+        "ghost": [
+          0.36,
+          0.58
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "16T"
+          ],
+          "weights": [
+            1,
+            5
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "pre_snare"
+        ],
+        "freqPerBar": 0.6,
+        "velocityRamp": true
+      },
+      "fill": {
+        "prob": 0.8,
+        "subdivision": {
+          "values": [
+            "32",
+            "32T"
+          ],
+          "weights": [
+            3,
+            4
+          ]
+        },
+        "notes": 8
+      },
+      "openHat": {
+        "prob": 0.18,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "pitchBendProb": 0.06
+    },
+    "percs": {
+      "lanes": [],
+      "densityPerBar": [
+        0,
+        0
+      ]
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "monoCutSelf": true,
+      "slideProb": 0.15,
+      "slideIntervals": {
+        "values": [
+          "P8",
+          "P5"
+        ],
+        "weights": [
+          3,
+          2
+        ]
+      },
+      "slidePositions": [
+        "phrase_end"
+      ],
+      "register": [
+        26,
+        41
+      ],
+      "distortion": "light",
+      "distortionWet": [
+        0.1,
+        0.22
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 4
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th",
+        "32nd"
+      ],
+      "grouping": [
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        64,
+        114
+      ],
+      "gapProb": 0.26,
+      "descendProb": 0.14,
+      "rampJitter": 19
+    }
+  },
+  "melody": {
+    "register": [
+      52,
+      76
+    ],
+    "densityPerBar": [
+      3,
+      6
+    ],
+    "motifPitchCount": 4,
+    "structure": "riff_loop",
+    "articulation": "legato",
+    "intervals": {
+      "step": 0.64,
+      "third": 0.26,
+      "leap": 0.1
+    },
+    "contour": {
+      "riff": 0.44,
+      "descend": 0.42,
+      "arch": 0.14
+    },
+    "chordToneBias": 0.66,
+    "halfStepDissonance": 0.14,
+    "octaveJumpProb": 0.06,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    },
+    "timbreHint": "clean_guitar"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.35,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 1
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.78,
+      "seventh": 0.19,
+      "ninth": 0.03
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        44,
+        78
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    },
+    "chordDurationBeats": [
+      2,
+      12
+    ]
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.96,
+    "register": [
+      24,
+      41
+    ],
+    "glideProb": 0.1,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.16
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": [
+        8,
+        16
+      ],
+      "hook": 8,
+      "bridge": 4,
+      "outro": 4
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "hook",
+          "bridge",
+          "hook",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.65,
+        "beats": 4
+      },
+      "switchUpProb": 0.12
+    }
+  }
+}

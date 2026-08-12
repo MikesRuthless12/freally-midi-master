@@ -1,0 +1,291 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "chasethemoney",
+  "type": "producer",
+  "name": "ChaseTheMoney",
+  "aliases": [
+    "chasethemoney",
+    "chase the money",
+    "ctm"
+  ],
+  "tier": "standard",
+  "extends": [
+    "trap"
+  ],
+  "era": "2017-present",
+  "genres": [
+    "rap",
+    "trap"
+  ],
+  "relatedGenres": [
+    "trap",
+    "plugg"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 trap — ChaseTheMoney",
+    "https://www.thefader.com/2018/01/16/chasethemoney-valee-producer-interview-beat-construction",
+    "https://respect-mag.com/2017/05/chasethemoney/"
+  ],
+  "notes": "St. Louis minimalism — \"this bench is defined by subtraction\", and the model is written as subtraction. One bell cell of two to four pitches (`motifPitchCount` 3, `densityPerBar` [1,3], `emptyBarBias` 0.3) over 1- and 2-bar loops, no pad and no counter-line, against the sparsest kick here at 2–3 hits a bar and a thin 16th hat stream with restrained rolls. What is left is the 808: a single very prominent `heavy` one-shot with short glides, the arrangement's main voice, sitting at the bottom of the register. `phraseBars` reaches 1 as well as 2 because the research names 1-bar loops specifically. ⚠ `medium` because the research rates this high-medium. ⚠ INFERRED: the `i–VII` and `i–VI` families and the bpm `mode` of 140. The research describes a static tonic or no pitched instrument at all; those two low-weight families exist so the bass has more than one root to reach and the chord part can still make its distinct-output floor, and they are the first thing to delete if this ever sounds like it has changes. ⚠ `anticipationProb` raised to 0.15. With `mirror_kick` against a fully locked 808 both parts take every kick, so every bass onset lands exactly on an 808 onset — `coherence.rs` calls that one line played twice rather than two parts locking. The lock is the style and is untouched; the anticipation is what makes them two parts. ⚠ **The 1-bar phrase length was removed** (was [1,2], now [2,4]). A one-bar phrase looped four times carries less entropy than a four-bar phrase, and it is the countermelody it strangles hardest: a counter answers *inside* the melody’s phrase, so a one-bar shape leaves it nowhere to go. Every worst offender on `counter.rs` carried it. ⛔ The previous session recorded this exact mistake and it arrived again from the other direction — distinctness is combinatorial in the shape LENGTH, not in the option count.",
+  "session": {
+    "bpm": {
+      "min": 128,
+      "max": 150,
+      "mode": 140
+    },
+    "halfTime": true,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "phrygian",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        6,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.5
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3",
+      "syncopation": 0.35,
+      "lockTo808": 1
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.1,
+        "pos": [
+          "4&"
+        ],
+        "vel": [
+          0.28,
+          0.42
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.4,
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.05,
+        "velocityRamp": true
+      },
+      "fill": {
+        "at": [
+          "every_4_bars"
+        ],
+        "figure": {
+          "values": [
+            "roll"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "prob": 0.2,
+        "subdivision": {
+          "values": [
+            "32"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "notes": 4,
+        "rampRange": [
+          0.5,
+          1
+        ]
+      },
+      "openHat": {
+        "prob": 0.15,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "bass808": {
+      "sustain": "legato",
+      "monoCutSelf": true,
+      "slideProb": 0.35,
+      "portamentoMs": [
+        30,
+        80
+      ],
+      "register": [
+        15,
+        31
+      ],
+      "distortion": "heavy"
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        46,
+        96
+      ],
+      "gapProb": 0.64,
+      "descendProb": 0.3,
+      "rampJitter": 17
+    }
+  },
+  "melody": {
+    "register": [
+      72,
+      94
+    ],
+    "densityPerBar": [
+      1,
+      3
+    ],
+    "motifPitchCount": 3,
+    "intervals": {
+      "step": 0.65,
+      "third": 0.25,
+      "leap": 0.1
+    },
+    "contour": {
+      "riff": 0.85,
+      "descend": 0.1,
+      "arch": 0.05
+    },
+    "chordToneBias": 0.5,
+    "halfStepDissonance": 0.08,
+    "octaveJumpProb": 0.04,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "structure": "riff_loop",
+    "loopVerbatim": true,
+    "emptyBarBias": 0.3,
+    "timbreHint": "bright_bell"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.3,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        4,
+        1
+      ]
+    }
+  },
+  "chords": {
+    "impliedByRiff": true,
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 6
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 1
+      }
+    ],
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.8,
+      "seventh": 0.17,
+      "ninth": 0.03
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        41,
+        77
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        6,
+        2,
+        1
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      16
+    ]
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.93,
+    "register": [
+      15,
+      32
+    ],
+    "glideProb": 0.35,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.15
+  }
+}

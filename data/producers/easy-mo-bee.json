@@ -1,0 +1,298 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "easy-mo-bee",
+  "type": "producer",
+  "name": "Easy Mo Bee",
+  "aliases": [
+    "easy mo bee",
+    "mo bee",
+    "osten harvey",
+    "rappin' is fundamental"
+  ],
+  "tier": "standard",
+  "extends": [
+    "boom-bap"
+  ],
+  "era": "1993-1997",
+  "genres": [
+    "rap",
+    "boom bap",
+    "producer"
+  ],
+  "relatedGenres": [
+    "boom-bap",
+    "funk"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 boom-bap — Easy Mo Bee",
+    "https://cratekings.com/easy-mo-bee-interview-ready-to-die-top-5-producers/",
+    "https://www.revolt.tv/article/2019-11-06/84301/the-produce-section-11-of-easy-mo-bees-most-iconic-beats"
+  ],
+  "notes": "Biggie's first sound and the Bad Boy bridge from jazz-rap to street-radio. **The distinguishing method is that on some records there is no loop at all** — \"no loops, each sound purposefully and meticulously placed\" — so this model runs the highest kick `densityPerBar` floor of the SP-1200 group with layered percussion under it, and a `question_answer` melody structure rather than a riff that repeats. **Note density is deliberately reduced behind heavyweight vocals**, which is the counterweight: the melody tops out at 6 and the counter sits at 0.35. **His stated lineage is Marley Marl, Pete Rock, Large Professor, Bomb Squad and Erick Sermon**, and it shows in riff-based modal harmony — static `i7/I7` vamps with horn and guitar stab answers, so the families are short, `seventh` outweighs `triad`, and `minor_pentatonic` leads the scale set. The low end is **sampled or replayed funk bass doubling the riff plus a short 808 thump under the kick**: `mirror_kick` at a comparatively low 0.72 with three passing tones, which is a bass that doubles a riff rather than one that tracks roots. ⚠ `medium` matching the research's medium-high: the method is first-person but **gear detail is thin**, so the hat grammar, open hat, perc lanes and roll figures are all INFERRED. ⛔ **`chords.impliedByRiff` is set.** This model reached only 481 distinct harmonies in 1000 seeds, and every honest lever — chord duration, harmonic rhythm, voicing window — was already open. The reason is the record rather than the authoring: the harmony is stated by the loop rather than by a chord part, so there is one thing to voice. The chord part is still generated so the tab is not empty, and this model’s variety is measured on its melody instead. ⚠ If it ever grows a real progression, delete this flag.",
+  "session": {
+    "bpm": {
+      "min": 84,
+      "max": 100,
+      "mode": 92
+    },
+    "scales": {
+      "values": [
+        "minor_pentatonic",
+        "dorian",
+        "natural_minor",
+        "blues"
+      ],
+      "weights": [
+        3,
+        3,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.57
+    },
+    "humanize": {
+      "quantizeStrength": 0.8,
+      "velocityVar": 0.18
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.36,
+      "tresilloBias": 0.1
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "ghost": {
+        "prob": 0.26,
+        "pos": [
+          "1a",
+          "4e"
+        ],
+        "vel": [
+          0.22,
+          0.38
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.4,
+      "velocities": {
+        "main": [
+          0.8,
+          0.98
+        ],
+        "ghost": [
+          0.22,
+          0.42
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "16T"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "positions": [
+          "pre_snare"
+        ],
+        "freqPerBar": 0.36
+      },
+      "openHat": {
+        "prob": 0.23,
+        "pos": [
+          "1&",
+          "2&"
+        ],
+        "perBar": [
+          0,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "perc",
+        "tom"
+      ],
+      "densityPerBar": [
+        0,
+        2
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        59,
+        106
+      ],
+      "rampJitter": 16,
+      "descendProb": 0.35,
+      "gapProb": 0.13
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.32,
+      "seventh": 0.56,
+      "ninth": 0.12
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        46,
+        70
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      16
+    ],
+    "impliedByRiff": true
+  },
+  "melody": {
+    "register": [
+      62,
+      84
+    ],
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "structure": "question_answer",
+    "intervals": {
+      "step": 0.6,
+      "third": 0.32,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.44,
+      "descend": 0.34,
+      "arch": 0.22
+    },
+    "chordToneBias": 0.71,
+    "octaveJumpProb": 0.11,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        4
+      ]
+    },
+    "timbreHint": "horn_stab"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.35,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.72,
+    "register": [
+      28,
+      45
+    ],
+    "glideProb": 0.05,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M3"
+    ],
+    "anticipationProb": 0.28
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": 16,
+      "hook": 8,
+      "bridge": 4,
+      "outro": 4
+    }
+  }
+}

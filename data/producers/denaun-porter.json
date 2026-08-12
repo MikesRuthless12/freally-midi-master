@@ -1,0 +1,283 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "denaun-porter",
+  "type": "producer",
+  "name": "Denaun Porter",
+  "aliases": [
+    "denaun porter",
+    "mr porter",
+    "mr. porter",
+    "kon artis",
+    "d12"
+  ],
+  "tier": "standard",
+  "extends": [
+    "boom-bap"
+  ],
+  "era": "2001-2013",
+  "genres": [
+    "rap",
+    "boom-bap"
+  ],
+  "relatedGenres": [
+    "boom-bap",
+    "detroit-bounce",
+    "dark-trap"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 boom-bap — Denaun Porter (Mr. Porter)",
+    "Complex — Mr. Porter tells all (https://www.complex.com/music/a/daniel-isenberg/interview-mr-porter-classics)",
+    "Wikipedia — Mr. Porter production discography (https://en.wikipedia.org/wiki/Mr._Porter_production_discography)"
+  ],
+  "notes": "Shady-camp horror-comic minor, and the harmony is the fingerprint: \"chromatic and half-step-clash motifs\", \"film-score-derived tension harmony rather than soul consonance\". So `halfStepDissonance` is 0.3 — the second highest on this axis after Mobb Deep — over a Phrygian-first scale set. The drums pull the opposite way: Dre-adjacent polish gives 0.92 quantize and 0.53 swing, near-straight, with `velocityTiers` raised to the top of this axis for \"very dry, heavily compressed, Detroit-loud\". The occasional 16th snare ghost is a 0.3 ghost probability on e-and-a positions. ⛔ **i–bII is carried by the Phrygian scale weighting, not by a progression family.** The engine's roman-numeral vocabulary as it exists in `data/` has no attested flat-two token, and inventing `bII` would have been authoring something no generator can read. Phrygian at weight 4 plus `halfStepDissonance` 0.3 produces the half-step clash the research describes without spelling a chord the engine cannot parse. ⚠ The countermelody is not decoration here — the research says \"a plucked bass doubling the motif an octave down\", which is literally `octave_echo` at `registerOffset` -12, so that style carries double weight and `fillGapsOnly` is off. ⚠ `medium` because the research rates it medium-high: the catalog breakdown is first-person, the drum numbers are not. The specific inferred parameter is `session.swing.amount` — \"Dre-adjacent polish\" implies tightness but names no value. ⚠ The i–VII family is INFERRED; the research names i–iv and i–bII. ⚠ The bass ceiling came down from 44 to 43 so it stays under a chord part that starts at 44 — `coherence.rs` requires the highest bass note to sit at or below the lowest chord note, and this model overlapped by 1.",
+  "session": {
+    "bpm": {
+      "min": 88,
+      "max": 98,
+      "mode": 93
+    },
+    "scales": {
+      "values": [
+        "phrygian",
+        "harmonic_minor",
+        "natural_minor"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.53
+    },
+    "humanize": {
+      "quantizeStrength": 0.92,
+      "velocityVar": 0.1
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        112,
+        127
+      ],
+      "main": [
+        90,
+        104
+      ],
+      "ghost": [
+        34,
+        48
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.34
+    },
+    "snare": {
+      "rimshotLayer": false,
+      "ghost": {
+        "prob": 0.3,
+        "pos": [
+          "2e",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.2,
+          0.35
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.4,
+      "velocities": {
+        "main": [
+          0.76,
+          0.96
+        ],
+        "ghost": [
+          0.18,
+          0.42
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0.06,
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ]
+      },
+      "openHat": {
+        "prob": 0.15,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        54,
+        100
+      ],
+      "rampJitter": 20,
+      "gapProb": 0.31,
+      "descendProb": 0.09
+    }
+  },
+  "melody": {
+    "register": [
+      60,
+      84
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "intervals": {
+      "step": 0.6,
+      "third": 0.2,
+      "leap": 0.2
+    },
+    "contour": {
+      "riff": 0.6,
+      "descend": 0.28,
+      "arch": 0.12
+    },
+    "chordToneBias": 0.55,
+    "halfStepDissonance": 0.3,
+    "octaveJumpProb": 0.1,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "pluck_synth"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.5,
+    "fillGapsOnly": false,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.55,
+      "seventh": 0.36,
+      "ninth": 0.09
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        44,
+        78
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar",
+        "vamp"
+      ],
+      "weights": [
+        3,
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.9,
+    "register": [
+      26,
+      43
+    ],
+    "glideProb": 0.05,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.15
+  },
+  "arrangement": {
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.55,
+        "beats": 2
+      },
+      "switchUpProb": 0.4
+    }
+  }
+}

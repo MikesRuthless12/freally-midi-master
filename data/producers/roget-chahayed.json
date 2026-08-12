@@ -1,0 +1,277 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "roget-chahayed",
+  "type": "producer",
+  "name": "Rogét Chahayed",
+  "aliases": [
+    "roget chahayed",
+    "rogét chahayed",
+    "roget"
+  ],
+  "tier": "standard",
+  "extends": [
+    "trap"
+  ],
+  "era": "2017-present",
+  "genres": [
+    "rap",
+    "trap"
+  ],
+  "relatedGenres": [
+    "trap",
+    "dark-trap"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended vol.1 trap — Rogét Chahayed",
+    "https://www.soundonsound.com/techniques/inside-track-roget-chahayed",
+    "https://www.musicradar.com/artists/i-pulled-up-the-sound-played-this-chord-and-thought-whoa-ive-never-heard-a-crazy-organ-sound-like-that-before-roget-chahayed-on-how-a-kontakt-preset-based-on-a-90s-casio-toy-keyboard-made-the-intro-to-travis-scotts-sicko-mode",
+    "https://blog.native-instruments.com/roget-chahayed-interview/"
+  ],
+  "notes": "⛔ **This is a harmony model, and it deliberately overrides almost nothing on the drums** — the research is explicit that drums are \"not his department\", that he hands parts to trap producers who flip and chop them, and that his contribution shifts the beat's harmonic rhythm rather than its drum grammar. So the kit is inherited from `trap` apart from the band's fill fingerprint, and everything authored sits in `chords`, `melody` and `session.humanize`. His stated model is Rachmaninoff and Scriabin — \"normal tonal chord progressions, and then there's always one or two notes that stick out\" — which is `voicing.adjacentSecondProb` 0.35, `dissonanceBudget`, ninths at 0.25 and `halfStepDissonance` 0.18 over otherwise functional families. Parts are played live and looped by an engineer, so `quantizeStrength` falls to 0.72 and `velocityVar` rises to 0.22, the loosest pair on this bench. He supplies the chord roots the 808 then follows, which is `followRootsProb` 0.92. Orchestration by training (flute, cello, high tremolo strings) is why the melody register runs a full two octaves from 60. ⚠ **Ninth density, the sus substitution and the borrowed V were all reduced after chords.rs found a generated pitch that was neither a chord tone nor in the key** (Blues, seed 3, pitch class 0 against tones [9,1,4,8,11]). This model stacked a 0.25 ninth, a 0.2 sus substitution and a tripled borrowed V, and the exotic scales are where that combination stops being expressible as the chord it claims to be. ⚠ An authored `chords.dissonanceBudget` was removed: no generator reads it, so it was a knob that looked like a parameter and did nothing. ⚠ **The open voicing dropped its adjacentSecondProb and its stepwise top voice** after chords.rs found a generated pitch that was neither a chord tone nor in the key (Blues, seed 3). This was the only model of 495 to fail it, and it was the only one stacking an open voicing, a stepwise top voice and an added second at once — over an exotic scale that combination stops being expressible as the chord it claims to be.",
+  "session": {
+    "bpm": {
+      "min": 110,
+      "max": 150,
+      "mode": 132
+    },
+    "halfTime": true,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "major",
+        "harmonic_minor",
+        "dorian",
+        "lydian"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2,
+        1
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.5
+    },
+    "humanize": {
+      "quantizeStrength": 0.72,
+      "velocityVar": 0.22
+    }
+  },
+  "drums": {
+    "hihat": {
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.07,
+        "velocityRamp": true
+      }
+    },
+    "bass808": {
+      "slideProb": 0.5,
+      "slidePositions": [
+        "phrase_end",
+        "bar_2",
+        "bar_4"
+      ],
+      "register": [
+        17,
+        34
+      ],
+      "distortion": "light"
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        38,
+        84
+      ],
+      "gapProb": 0.44,
+      "descendProb": 0.46,
+      "rampJitter": 4
+    }
+  },
+  "melody": {
+    "register": [
+      60,
+      88
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "intervals": {
+      "step": 0.68,
+      "third": 0.24,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.3,
+      "descend": 0.3,
+      "arch": 0.4
+    },
+    "chordToneBias": 0.7,
+    "halfStepDissonance": 0.18,
+    "colorTones": [
+      2,
+      4,
+      6,
+      7
+    ],
+    "octaveJumpProb": 0.08,
+    "phraseBars": {
+      "values": [
+        4,
+        2,
+        8
+      ],
+      "weights": [
+        4,
+        2,
+        1
+      ]
+    },
+    "structure": "long_arc",
+    "articulation": "legato",
+    "timbreHint": "church_organ"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.45,
+    "styles": {
+      "values": [
+        "arp",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII",
+          "III"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "vi",
+          "IV",
+          "V"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "bII",
+          "VII"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.4,
+      "seventh": 0.45,
+      "ninth": 0.15
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        84
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "syncopated_cell"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      2,
+      8
+    ],
+    "susSubstitutionProb": 0,
+    "borrowed": {
+      "V": 0.1
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.92,
+    "register": [
+      17,
+      34
+    ],
+    "glideProb": 0.45,
+    "passingTones": [
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.12
+  }
+}

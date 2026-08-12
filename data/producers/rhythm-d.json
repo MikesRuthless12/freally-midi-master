@@ -1,0 +1,289 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "rhythm-d",
+  "type": "producer",
+  "name": "Rhythm D",
+  "aliases": [
+    "rhythm d",
+    "rhythum d",
+    "andre bolton",
+    "ruthless in-house"
+  ],
+  "tier": "standard",
+  "extends": [
+    "g-funk"
+  ],
+  "era": "1992-1995",
+  "genres": [
+    "rap",
+    "west coast",
+    "funk",
+    "sample rap",
+    "producer"
+  ],
+  "relatedGenres": [
+    "g-funk",
+    "boom-bap",
+    "funk"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 g-funk — Rhythm D",
+    "Wikipedia — It's On (Dr. Dre) 187um Killa — https://en.wikipedia.org/wiki/It%27s_On_(Dr._Dre)_187um_Killa",
+    "Wikipedia — Real Muthaphuckkin G's — https://en.wikipedia.org/wiki/Real_Muthaphuckkin_G%27s"
+  ],
+  "notes": "Positioned *against* g-funk, and the research says so twice: riff/loop-modal rather than progression-based, and \"deliberately **not** the played-synth g-funk palette.\" So this entry inherits the g-funk kit and then takes the two things that make g-funk itself away from it. `chords.impliedByRiff` is set with `maxChords` 2 because the harmony is inherited wholesale from the sample, and the top voice is `horn_stab` on the backbeat rather than the parent's portamento worm — the only entry in this batch that removes the worm lead outright. The kick is breakbeat-derived (1, and-of-2, 3) which the parent's secondary anchor already places, so what changes is the hard dry snare — the accent tier pushed to 106–127 — and the blues-scale lead, which is a low `chordToneBias` with `halfStepDissonance` raised. ⚠ The i–VII and i–iv families are INFERRED. The research names only 1-chord vamps; they hold the lowest weights and exist because the generated chord part still owes 55 distinct outputs over 200 seeds, and they are the first thing to delete if this ever moves more than the records do. ⚠ `medium` is the research's own rating; the credits and the sample sources are documented, the tempo band and the drum velocities are not. ⚠ The bass ceiling came down from 44 to 43 so it stays under a chord part that starts at 44 — `coherence.rs` requires the highest bass note to sit at or below the lowest chord note, and this model overlapped by 1.",
+  "session": {
+    "bpm": {
+      "min": 92,
+      "max": 102,
+      "mode": 97
+    },
+    "scales": {
+      "values": [
+        "blues",
+        "minor_pentatonic",
+        "mixolydian",
+        "dorian"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.58
+    },
+    "humanize": {
+      "quantizeStrength": 0.82,
+      "velocityVar": 0.16
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        106,
+        127
+      ],
+      "main": [
+        78,
+        92
+      ],
+      "ghost": [
+        34,
+        48
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "syncopation": 0.42,
+      "tresilloBias": 0.18,
+      "offbeat8thShare": 0.3
+    },
+    "snare": {
+      "rimshotLayer": false,
+      "ghost": {
+        "prob": 0.16,
+        "pos": [
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.2,
+          0.34
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.42,
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16T",
+            "32"
+          ],
+          "weights": [
+            5,
+            2
+          ]
+        },
+        "positions": [
+          "pre_snare",
+          "bar_4"
+        ],
+        "freqPerBar": 0.27
+      },
+      "openHat": {
+        "prob": 0.32,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "rim"
+      ],
+      "densityPerBar": [
+        1,
+        2
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th",
+        "16t"
+      ],
+      "grouping": [
+        "even",
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        50,
+        108
+      ],
+      "rampJitter": 22,
+      "descendProb": 0.18,
+      "gapProb": 0.22
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 2,
+    "impliedByRiff": true,
+    "chordDurationBeats": [
+      4,
+      16
+    ],
+    "extensions": {
+      "triad": 0.56,
+      "seventh": 0.36,
+      "ninth": 0.08
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        44,
+        80
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        5,
+        3,
+        1
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      67,
+      91
+    ],
+    "densityPerBar": [
+      2,
+      5
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "motifPitchCount": [
+      2,
+      4
+    ],
+    "intervals": {
+      "step": 0.42,
+      "third": 0.3,
+      "leap": 0.28
+    },
+    "chordToneBias": 0.55,
+    "halfStepDissonance": 0.1,
+    "octaveJumpProb": [
+      0.08,
+      0.18
+    ],
+    "timbreHint": "horn_stab"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.35,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.6,
+    "register": [
+      26,
+      43
+    ],
+    "glideProb": 0.15,
+    "passingTones": [
+      "m3",
+      "P4",
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.3
+  }
+}

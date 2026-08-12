@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 /**
- * Regenerates Appendix A of docs/dataset-protocol.md from `data/artists/`.
+ * Regenerates Appendix A of docs/dataset-protocol.md from `data/artists/` and
+ * `data/producers/`.
  *
  * The ledger answers one question that 500 files cannot answer by being listed:
  * "is this artist already encoded, and against which lane?" It is derived, so
@@ -25,7 +26,17 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
-const artistsDir = join(root, 'data', 'artists');
+/**
+ * The two folders a style a producer can pick lives in.
+ *
+ * ⛔ **`data/producers/` split out on 2026-08-12** — Mike: *"just put the
+ * producers only in there instead of having artists and producers all in one
+ * folder, so that way i know who is who."* This file read `data/artists` alone,
+ * and the loader needed no change for the split (`files::scan` recurses), so
+ * nothing would have failed: Appendix A would simply have started describing
+ * **344 of the 534 models** and gone on calling the number a roster.
+ */
+const styleDirs = [join(root, 'data', 'artists'), join(root, 'data', 'producers')];
 const docPath = join(root, 'docs', 'dataset-protocol.md');
 
 const BEGIN = '<!-- ROSTER-LEDGER:BEGIN -->';
@@ -35,14 +46,20 @@ const END = '<!-- ROSTER-LEDGER:END -->';
 const TIER_RANK = { flagship: 0, standard: 1, inherited: 2, undefined: 3 };
 
 function models() {
-  return readdirSync(artistsDir)
-    .filter((f) => f.endsWith('.json'))
-    .map((f) => {
-      const model = JSON.parse(readFileSync(join(artistsDir, f), 'utf8'));
+  return styleDirs
+    .flatMap((dir) =>
+      readdirSync(dir)
+        .filter((f) => f.endsWith('.json'))
+        .map((f) => join(dir, f)),
+    )
+    .map((path) => {
+      const model = JSON.parse(readFileSync(path, 'utf8'));
       return {
         id: model.id,
         name: model.name,
         tier: model.tier,
+        // Which of the two folders it came from, so Appendix A can say.
+        type: model.type,
         // A model with no `extends` sits on `_defaults` by definition, and
         // saying so is more useful than an empty cell.
         lane: model.extends?.[0] ?? '_defaults',
@@ -74,8 +91,12 @@ function render(rows) {
     else tiers.untiered += 1;
   }
 
+  // Counted rather than stated: "534 artists" was true when there was one
+  // folder and stopped being true the moment 190 of them became producers.
+  const producers = rows.filter((row) => row.type === 'producer').length;
   const out = [
-    `**${rows.length} artists** — ${tiers.flagship} flagship, ${tiers.standard} standard, ` +
+    `**${rows.length} models** — ${rows.length - producers} artists and ${producers} ` +
+      `producers; ${tiers.flagship} flagship, ${tiers.standard} standard, ` +
       `${tiers.inherited} inherited` +
       (tiers.untiered > 0 ? `, ${tiers.untiered} with no tier` : '') +
       `, across ${byLane.size} lanes.`,
@@ -126,5 +147,5 @@ if (process.argv.includes('--check')) {
   console.log('roster-ledger: Appendix A is current');
 } else {
   writeFileSync(docPath, updated);
-  console.log(`roster-ledger: Appendix A rewritten from ${models().length} artists`);
+  console.log(`roster-ledger: Appendix A rewritten from ${models().length} models`);
 }

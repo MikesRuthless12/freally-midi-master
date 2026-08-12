@@ -1525,8 +1525,76 @@ fn configure<'a>(
 /// That is a live suspect for the blank Windows standalone (TASK-P16), and it is
 /// poor hygiene regardless: a plugin should not be sharing its browser profile
 /// with whatever else happens to be running.
-fn web_data_dir() -> std::path::PathBuf {
-    std::env::temp_dir().join("freally-midi-master-webview")
+///
+/// ⛔⛔ **AND IT MUST NOT BE UNDER TEMP AT ALL** (2026-08-12). Naming a
+/// subdirectory fixed the *collision*; it left the profile somewhere Windows
+/// deletes on a schedule. Everything the page keeps in `localStorage` lives in
+/// here — the rail layout, the pad assignments, the browser's width, the theme
+/// and the language — and on this machine that was **17.9 MB sitting in
+/// `%LOCALAPPDATA%\Temp`**, one Storage Sense sweep or Disk Cleanup from being
+/// reset to defaults with nothing to explain it. Mike, 2026-08-12: *"even if
+/// there is a change in version of the app/vst/clap, then i still want the
+/// folders to persist and the history to persist."* A profile that survives an
+/// upgrade and not a disk cleanup honours the letter of that and not the point.
+///
+/// ⚠ **The same directory `presets::data_dir()` builds**, restated here because
+/// this crate is vendored and cannot reach into the plugin's own modules.
+/// `the_webview_profile_lives_beside_the_rest_of_the_user_data` in
+/// `plugin/src/editor.rs` is what stops the two spellings drifting.
+///
+/// ⚠ Falls back to the old temp path where there is no per-user directory to
+/// speak of, because a profile somewhere volatile still beats no editor at all.
+pub fn web_data_dir() -> std::path::PathBuf {
+    let legacy = std::env::temp_dir().join("freally-midi-master-webview");
+    let Some(durable) = user_data_dir().map(|base| base.join("webview")) else {
+        return legacy;
+    };
+
+    // ⚠ **Moved rather than abandoned**, once, on the first launch after the
+    // change. Leaving it behind would silently reset the layout and pads of
+    // everyone who already has one — which is the same class of loss this
+    // change exists to prevent, just spent all at once instead of gradually.
+    // Best effort throughout: a rename that fails leaves the producer with
+    // defaults, which is exactly where abandoning it would have left them.
+    if !durable.exists() && legacy.exists() {
+        if let Some(parent) = durable.parent() {
+            let _ = std::fs::create_dir_all(parent);
+        }
+        let _ = std::fs::rename(&legacy, &durable);
+    }
+    durable
+}
+
+/// `%APPDATA%`, `~/Library/Application Support` or `$XDG_DATA_HOME`, plus the
+/// product name — byte for byte what `presets::data_dir()` produces.
+fn user_data_dir() -> Option<std::path::PathBuf> {
+    use std::path::PathBuf;
+
+    #[cfg(target_os = "windows")]
+    {
+        std::env::var_os("APPDATA").map(|base| PathBuf::from(base).join("Freally MIDI Master"))
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        std::env::var_os("HOME").map(|home| {
+            PathBuf::from(home)
+                .join("Library")
+                .join("Application Support")
+                .join("Freally MIDI Master")
+        })
+    }
+
+    #[cfg(all(unix, not(target_os = "macos")))]
+    {
+        std::env::var_os("XDG_DATA_HOME")
+            .map(PathBuf::from)
+            .filter(|path| path.is_absolute())
+            .or_else(|| {
+                std::env::var_os("HOME").map(|home| PathBuf::from(home).join(".local/share"))
+            })
+            .map(|base| base.join("freally-midi-master"))
+    }
 }
 
 struct Instance {

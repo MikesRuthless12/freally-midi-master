@@ -1,0 +1,311 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "soopafly",
+  "type": "producer",
+  "name": "Soopafly",
+  "aliases": [
+    "soopafly",
+    "supafly",
+    "priest brooks"
+  ],
+  "tier": "standard",
+  "extends": [
+    "g-funk"
+  ],
+  "era": "1994-2002",
+  "genres": [
+    "rap",
+    "g-funk",
+    "west coast"
+  ],
+  "relatedGenres": [
+    "g-funk",
+    "neo-soul",
+    "west-coast-club"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 g-funk — Soopafly",
+    "https://hiphopdx.com/news/id.16662/title.soopafly-talks-work-on-the-new-detox-hits-with-dr-dre-tha-dogg-pound",
+    "https://en.wikipedia.org/wiki/Soopafly"
+  ],
+  "notes": "The keyboard and bass hands behind much of Death Row, and the research is explicit that he is *not* the drum source — his workflow is to hear a beat and play over it. So this model is authored as harmony-first and deliberately as the complement of the Daz Dillinger entry, which covers the same sessions from the drum side: the plainest kit here relative to its neighbours (`syncopation` 0.44, straightforward kick placement, no doubled clap) under the richest keyboard block — minor 7th and 9th voicings at 0.62 combined extension weight, 2- and 4-bar cycles, and a chord `voicing.register` reaching 80 because layered keyboards spread. Bass is played on keys, melodic and syncopated at E1–D2 with slides between chord roots, which is a high `glideProb` over a narrow-ish register — the narrowest of the producer group, because the research gives an actual two-octave window. ⚠ `medium` on the research's high-medium. INFERRED: all densities and velocities. The documented habit that could not be modelled is the collaborative one — parts get mutually edited note-by-note in the room, so voicings are optimized for a specific drum pocket rather than generically, and the engine has no way to condition harmony on the drum part that was generated beside it.",
+  "session": {
+    "bpm": {
+      "min": 90,
+      "max": 100,
+      "mode": 95
+    },
+    "scales": {
+      "values": [
+        "dorian",
+        "natural_minor",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.58
+    },
+    "humanize": {
+      "quantizeStrength": 0.86,
+      "velocityVar": 0.15
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.44,
+      "tresilloBias": 0.2,
+      "offbeat8thShare": 0.3
+    },
+    "snare": {
+      "rimshotLayer": false,
+      "ghost": {
+        "prob": 0.2,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.22,
+          0.4
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.43,
+      "velocities": {
+        "main": [
+          0.68,
+          0.92
+        ],
+        "ghost": [
+          0.22,
+          0.46
+        ]
+      },
+      "openHat": {
+        "prob": 0.26,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32",
+            "32T"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.59,
+        "velocityRamp": true
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "rim"
+      ],
+      "densityPerBar": [
+        1,
+        2
+      ],
+      "gainOffsetDb": -8
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 4
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "32nd"
+      ],
+      "grouping": [
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        55,
+        100
+      ],
+      "rampJitter": 10,
+      "gapProb": 0.41,
+      "descendProb": 0.37
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII",
+          "III"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "ii",
+          "v"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "v"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.24,
+      "seventh": 0.5,
+      "ninth": 0.26
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        50,
+        80
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      70,
+      92
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    },
+    "densityPerBar": [
+      3,
+      6
+    ],
+    "motifPitchCount": [
+      4,
+      6
+    ],
+    "intervals": {
+      "step": 0.57,
+      "third": 0.3,
+      "leap": 0.13
+    },
+    "contour": {
+      "riff": 0.36,
+      "descend": 0.3,
+      "arch": 0.34
+    },
+    "chordToneBias": 0.75,
+    "halfStepDissonance": 0.05,
+    "octaveJumpProb": 0.09,
+    "timbreHint": "rhodes"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.53,
+    "styles": {
+      "values": [
+        "arp",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.44,
+    "register": [
+      28,
+      45
+    ],
+    "glideProb": 0.66,
+    "passingTones": [
+      "M2",
+      "m3",
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.24,
+    "cellShapes": [
+      [
+        "1",
+        "5",
+        "b3",
+        "4"
+      ],
+      [
+        "1",
+        "b7",
+        "5",
+        "1"
+      ],
+      [
+        "1",
+        "5",
+        "4",
+        "5"
+      ]
+    ]
+  }
+}

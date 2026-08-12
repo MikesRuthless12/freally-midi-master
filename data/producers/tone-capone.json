@@ -1,0 +1,313 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "tone-capone",
+  "type": "producer",
+  "name": "Tone Capone",
+  "aliases": [
+    "tone capone",
+    "anthony gilmour",
+    "i got 5 on it producer",
+    "oakland replay producer"
+  ],
+  "tier": "standard",
+  "extends": [
+    "g-funk"
+  ],
+  "era": "1993-1997",
+  "genres": [
+    "rap",
+    "mobb music",
+    "bay area",
+    "g-funk",
+    "producer"
+  ],
+  "relatedGenres": [
+    "g-funk",
+    "hyphy",
+    "rnb-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 g-funk — Tone Capone",
+    "Micro-Chop — hidden origins of \"I Got 5 On It\" — https://medium.com/micro-chop/we-toured-the-planet-off-of-that-the-hidden-origins-of-lunizs-i-got-5-on-it-19048f358c24",
+    "Critical Minded — Bay Area mobb music — https://www.criticalminded.com/2016/11/27/bay-area-mobb-music/"
+  ],
+  "notes": "Two research facts fight each other here and both are modelled. The first is that his sources are late-80s Bay R&B rather than 70s P-Funk, and that he replayed rather than sampled them to \"control the breaks\" — so the harmony is the only ii–V material in the Bay half of this batch, with sevenths and ninths carrying three quarters of the extension mass. The second is the \"sluggishly monolithic trunk bass\": near-static, very long note values, tuned for car resonance. ⛔ That bass is `mirror_kick` at `followRootsProb` 0.94 over a kick that only plays two or three notes a bar, NOT `reese_sustain`. Reese emits one note per chord and saturates the part; two very low roots a bar under a dragging 90 BPM kick is the nearest honest thing the engine can hold, and `glideProb` 0.1 with no passing tones keeps it from moving. The dragging feel is `snare.offGridMs` 6 plus raised kick and snare jitter — the drums are behind the grid on purpose. ⚠ `hihat.continuous` is false for the research's \"sparse hats\"; `fillDensity` stays at 0.3 so every seed still gets hats. ⚠ `medium` because the research rates him high-medium — the replay decision and the gear are quoted from him, the tempo band and the drum placement are read from the record.",
+  "session": {
+    "bpm": {
+      "min": 88,
+      "max": 96,
+      "mode": 91
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.54
+    },
+    "humanize": {
+      "quantizeStrength": 0.78,
+      "velocityVar": 0.14,
+      "timingJitterMs": {
+        "kick": 6,
+        "snare": 8,
+        "closedHat": 5,
+        "openHat": 5,
+        "perc": 6
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "syncopation": 0.2,
+      "tresilloBias": 0.1,
+      "offbeat8thShare": 0.12
+    },
+    "snare": {
+      "rimshotLayer": false,
+      "offGridMs": 6,
+      "ghost": {
+        "prob": 0.08,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.16,
+          0.28
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.3,
+      "velocities": {
+        "main": [
+          0.5,
+          0.72
+        ],
+        "ghost": [
+          0.15,
+          0.32
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16T",
+            "32"
+          ],
+          "weights": [
+            1,
+            3
+          ]
+        },
+        "positions": [
+          "pre_snare",
+          "bar_4"
+        ],
+        "freqPerBar": 0.25
+      },
+      "openHat": {
+        "prob": 0.15,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "rim"
+      ],
+      "densityPerBar": [
+        0,
+        2
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th",
+        "16t"
+      ],
+      "grouping": [
+        "even",
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        46,
+        108
+      ],
+      "rampJitter": 3,
+      "descendProb": 0.07,
+      "gapProb": 0.62
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "ii",
+          "v",
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "ii",
+          "v"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "chordDurationBeats": [
+      4,
+      16
+    ],
+    "extensions": {
+      "triad": 0.28,
+      "seventh": 0.5,
+      "ninth": 0.22
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        46,
+        78
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "vamp",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      69,
+      91
+    ],
+    "densityPerBar": [
+      2,
+      5
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "intervals": {
+      "step": 0.58,
+      "third": 0.3,
+      "leap": 0.12
+    },
+    "chordToneBias": 0.76,
+    "octaveJumpProb": 0.06,
+    "timbreHint": "warm_keys"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.35,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.94,
+    "register": [
+      22,
+      40
+    ],
+    "glideProb": 0.1,
+    "passingTones": [],
+    "anticipationProb": 0.05
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 5
+      }
+    ],
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": 16,
+      "hook": 8,
+      "outro": [
+        8,
+        16
+      ]
+    }
+  }
+}

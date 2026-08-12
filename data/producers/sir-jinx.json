@@ -1,0 +1,272 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "sir-jinx",
+  "type": "producer",
+  "name": "Sir Jinx",
+  "aliases": [
+    "sir jinx",
+    "anthony wheaton",
+    "jinx",
+    "lench mob producer"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "g-funk"
+  ],
+  "era": "1990-1993",
+  "genres": [
+    "rap",
+    "g-funk",
+    "west coast",
+    "funk",
+    "producer"
+  ],
+  "relatedGenres": [
+    "g-funk",
+    "boom-bap",
+    "funk"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 g-funk — Sir Jinx",
+    "Cuepoint — The Making of AmeriKKKa's Most Wanted — https://medium.com/cuepoint/ice-cube-check-the-technique-202d2a794008",
+    "Ambrosia For Heads — Sir Jinx on Death Certificate — https://ambrosiaforheads.com/2016/11/ice-cube-death-certificate-sir-jinx-retrospective/"
+  ],
+  "notes": "The West Coast anchor inside an East Coast production room, and his stated brief — keep the record from sounding East Coast — is the parameter that shapes everything here. Against the Bomb Squad layering around him his kit is fewer, drier and more spacious, so `kick.densityPerBar` and `percs.densityPerBar` are both cut below the g-funk parent and the hats sit at a lower `fillDensity`. The harmony is not a progression at all: his documented signature build is a looped bassline plus guitar, so `chords.impliedByRiff` is set and the chord part's variety is carried by `chordDurationBeats` and three harmonic rhythms rather than by chord changes. ⚠ The i–VII and i–iv families are INFERRED. The research names only the loop-modal form; they carry low weights and exist because the generated chord part still owes 55 distinct outputs over 200 seeds. Delete them first if this ever reads busier than the records. ⚠ `melody.timbreHint` is `clean_guitar` for the documented live guitar overdub; the live flute on the other track has no vocabulary entry and is modelled as the same part in a higher register. ⚠ `medium` because the research rates him high-medium — the workflow and role are interviewed, the specific tempo and harmony numbers are catalog-level. ⚠ The bass ceiling came down from 46 to 44 so it stays under a chord part that starts at 45 — `coherence.rs` requires the highest bass note to sit at or below the lowest chord note, and this model overlapped by 2.",
+  "session": {
+    "bpm": {
+      "min": 92,
+      "max": 102,
+      "mode": 96
+    },
+    "scales": {
+      "values": [
+        "minor_pentatonic",
+        "dorian",
+        "blues",
+        "natural_minor"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.6
+    },
+    "humanize": {
+      "quantizeStrength": 0.82,
+      "velocityVar": 0.18
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "syncopation": 0.42,
+      "tresilloBias": 0.22,
+      "offbeat8thShare": 0.28
+    },
+    "snare": {
+      "rimshotLayer": false,
+      "ghost": {
+        "prob": 0.18,
+        "pos": [
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.2,
+          0.38
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.38,
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16T",
+            "32"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "positions": [
+          "pre_snare",
+          "bar_4"
+        ],
+        "freqPerBar": 0.28
+      },
+      "openHat": {
+        "prob": 0.3,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "conga",
+        "rim"
+      ],
+      "densityPerBar": [
+        1,
+        2
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th",
+        "16t"
+      ],
+      "grouping": [
+        "even",
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        48,
+        108
+      ],
+      "rampJitter": 8,
+      "descendProb": 0.21,
+      "gapProb": 0.3
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "impliedByRiff": true,
+    "chordDurationBeats": [
+      4,
+      16
+    ],
+    "extensions": {
+      "triad": 0.5,
+      "seventh": 0.4,
+      "ninth": 0.1
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        45,
+        79
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      69,
+      91
+    ],
+    "densityPerBar": [
+      2,
+      5
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    },
+    "motifPitchCount": [
+      3,
+      5
+    ],
+    "chordToneBias": 0.62,
+    "halfStepDissonance": 0.08,
+    "octaveJumpProb": [
+      0.1,
+      0.2
+    ],
+    "timbreHint": "clean_guitar"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.4,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.4,
+    "register": [
+      28,
+      44
+    ],
+    "glideProb": 0.35,
+    "passingTones": [
+      "M2",
+      "m3",
+      "P4",
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.2
+  }
+}

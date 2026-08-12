@@ -1917,6 +1917,39 @@ mod tests {
     use super::*;
 
     #[test]
+    fn the_webview_profile_lives_beside_the_rest_of_the_user_data() {
+        // ⛔⛔ **Two spellings of one directory, made to agree.** The vendored
+        // crate cannot reach `presets::data_dir()`, so it restates the
+        // `%APPDATA%`/`Application Support`/`XDG_DATA_HOME` walk itself — and a
+        // restatement nothing compares is how one of them drifts. The cost of
+        // drifting here is silent and total: the profile would go back to
+        // wherever the other spelling pointed, and every producer's rail layout,
+        // pad assignments, theme and language would reset with no error.
+        //
+        // ⚠ The *reason* it may not sit under temp is `web_data_dir`'s own doc:
+        // Windows deletes temp on a schedule, and 17.9 MB of `localStorage` was
+        // living there.
+        let Some(data) = crate::presets::data_dir() else {
+            // No per-user directory on this machine; the fallback is deliberate
+            // and there is nothing to compare against.
+            return;
+        };
+        let profile = nih_plug_webview::web_data_dir();
+        assert!(
+            profile.starts_with(&data),
+            "the webview profile ({}) must sit under the user data directory ({}) — \
+             see `web_data_dir`",
+            profile.display(),
+            data.display()
+        );
+        assert!(
+            !profile.starts_with(std::env::temp_dir()),
+            "the webview profile is back under temp, which the OS deletes: {}",
+            profile.display()
+        );
+    }
+
+    #[test]
     fn the_built_ui_is_embedded() {
         // The failure this catches is a build-order one: `cargo build` without
         // a prior `npm run build` embeds a stale or absent `dist/`, and the

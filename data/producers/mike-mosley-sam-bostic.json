@@ -1,0 +1,400 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "mike-mosley-sam-bostic",
+  "type": "producer",
+  "name": "Mike Mosley & Sam Bostic",
+  "aliases": [
+    "mike mosley",
+    "sam bostic",
+    "studio ton",
+    "sick wid it production",
+    "vallejo mobb production"
+  ],
+  "tier": "standard",
+  "extends": [
+    "g-funk"
+  ],
+  "era": "1993-1999",
+  "genres": [
+    "rap",
+    "mobb music",
+    "bay area",
+    "g-funk",
+    "producer"
+  ],
+  "relatedGenres": [
+    "g-funk",
+    "hyphy",
+    "memphis-rap"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 g-funk — Mike Mosley & Sam Bostic (with Studio Ton)",
+    "Wikipedia — Sprinkle Me — https://en.wikipedia.org/wiki/Sprinkle_Me",
+    "Critical Minded — Bay Area mobb music — https://www.criticalminded.com/2016/11/27/bay-area-mobb-music/"
+  ],
+  "notes": "The Vallejo mobb core, and the research describes it by subtraction: sparse, 2- to 4-bar motifs, no busy fills, one synth lead plus one pad, fewer P-Funk interpolations than LA. So this is the lowest note density in the batch outside the two half-time entries — melody at 2–4 a bar, three-to-four-pitch motifs, percussion cut to a shaker and a rim, and the fill band already at its widest. The documented harmony is the mobb pair `i–VI–VII` / `i–iv–VII`, which is what this entry authors instead of the parent's seven families. ⚠ The two-layer bass — a deep car-tuned sub under a rubbery funk mid-bass — has no 808 lane to sit in, because the g-funk parent nulls `drums.bass808` for a genre with no 808 anywhere. It is modelled as ONE bass part spanning both layers: `register` [24,44] is 20 semitones and covers sub and mid, `followRootsProb` 0.82 carries the research's \"simple root/fifth motion,\" and `passingTones` is the fifth alone. The split itself is not representable and is named here rather than faked. ⚠ `modes` are authored because the parent's Death Row moods pin 90–100 and this band is 84–95. ⚠ `medium` is the research's own rating; the producers and the drum lineage are documented, the voicing detail is inferred from the mobb description.",
+  "session": {
+    "bpm": {
+      "min": 84,
+      "max": 95,
+      "mode": 89
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.55
+    },
+    "humanize": {
+      "quantizeStrength": 0.89,
+      "velocityVar": 0.12
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "syncopation": 0.3,
+      "tresilloBias": 0.15,
+      "offbeat8thShare": 0.2
+    },
+    "snare": {
+      "rimshotLayer": true,
+      "ghost": {
+        "prob": 0.1,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.18,
+          0.32
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.35,
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16T",
+            "32"
+          ],
+          "weights": [
+            2,
+            1
+          ]
+        },
+        "positions": [
+          "pre_snare",
+          "bar_4"
+        ],
+        "freqPerBar": 0.25
+      },
+      "openHat": {
+        "prob": 0.2,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "rim"
+      ],
+      "densityPerBar": [
+        0,
+        2
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th",
+        "16t"
+      ],
+      "grouping": [
+        "even",
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        44,
+        104
+      ],
+      "rampJitter": 4,
+      "descendProb": 0.11,
+      "gapProb": 0.58
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.55,
+      "seventh": 0.37,
+      "ninth": 0.08
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        45,
+        75
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "vamp",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      74,
+      96
+    ],
+    "densityPerBar": [
+      2,
+      4
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "motifPitchCount": [
+      3,
+      4
+    ],
+    "chordToneBias": 0.68,
+    "octaveJumpProb": [
+      0.08,
+      0.18
+    ]
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.35,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "arp"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.82,
+    "register": [
+      24,
+      44
+    ],
+    "glideProb": 0.25,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.1
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 5
+      }
+    ],
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": [
+        12,
+        20
+      ],
+      "hook": 8,
+      "outro": [
+        4,
+        8
+      ]
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.3,
+        "beats": 2
+      },
+      "switchUpProb": 0.05
+    }
+  },
+  "modes": [
+    {
+      "name": "sick wid it",
+      "weight": 4,
+      "session": {
+        "bpm": {
+          "min": 86,
+          "max": 95,
+          "mode": 90
+        }
+      },
+      "drums": {
+        "kick": {
+          "densityPerBar": [
+            3,
+            4
+          ],
+          "syncopation": 0.36
+        },
+        "hihat": {
+          "fillDensity": 0.4
+        }
+      },
+      "melody": {
+        "densityPerBar": [
+          2,
+          5
+        ]
+      },
+      "bassline": {
+        "followRootsProb": 0.74,
+        "glideProb": 0.32
+      }
+    },
+    {
+      "name": "studio ton",
+      "weight": 3,
+      "session": {
+        "bpm": {
+          "min": 84,
+          "max": 90,
+          "mode": 87
+        },
+        "scales": {
+          "values": [
+            "natural_minor",
+            "harmonic_minor"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        }
+      },
+      "drums": {
+        "kick": {
+          "densityPerBar": [
+            2,
+            3
+          ],
+          "syncopation": 0.22
+        },
+        "percs": {
+          "densityPerBar": [
+            0,
+            1
+          ]
+        }
+      },
+      "chords": {
+        "extensions": {
+          "triad": 0.44,
+          "seventh": 0.46,
+          "ninth": 0.1
+        }
+      },
+      "melody": {
+        "densityPerBar": [
+          1,
+          3
+        ],
+        "register": [
+          76,
+          98
+        ]
+      },
+      "countermelody": {
+        "densityRatio": 0.32
+      },
+      "bassline": {
+        "followRootsProb": 0.88,
+        "glideProb": 0.18
+      }
+    }
+  ]
+}
