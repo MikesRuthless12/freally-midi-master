@@ -148,12 +148,18 @@
         "even"
       ],
       "velocityRampRange": [
-        66,
-        114
+        67,
+        120
       ],
       "rampJitter": 14,
-      "descendProb": 0.6,
-      "gapProb": 0.3
+      "descendProb": 0.65,
+      "gapProb": 0.29,
+      "ladder": [
+        "4",
+        "8",
+        "16"
+      ],
+      "pitchWalk": 3
     },
     "bass808": {
       "role": "counter_riff",

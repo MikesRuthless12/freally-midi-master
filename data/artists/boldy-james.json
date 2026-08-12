@@ -81,7 +81,13 @@
         "1"
       ],
       "secondaryAnchor": "3&",
-      "syncopation": 0.08
+      "syncopation": 0.04,
+      "tresilloBias": 0.12,
+      "subLayerVelocity": [
+        0.5,
+        0.6
+      ],
+      "lockTo808": 0
     },
     "snare": {
       "rimshotLayer": false,
@@ -94,7 +100,9 @@
           0.1,
           0.22
         ]
-      }
+      },
+      "placement": "backbeat_24",
+      "offGridMs": 0
     },
     "hihat": {
       "base": "8th",
@@ -158,9 +166,9 @@
       ],
       "velocityRampRange": [
         57,
-        111
+        110
       ],
-      "rampJitter": 6,
+      "rampJitter": 7,
       "gapProb": 0.48,
       "descendProb": 0.32
     }

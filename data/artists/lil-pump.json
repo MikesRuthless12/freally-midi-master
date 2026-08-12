@@ -119,10 +119,10 @@
         "strong_weak_weak_weak"
       ],
       "velocityRampRange": [
-        48,
-        100
+        54,
+        98
       ],
-      "rampJitter": 8
+      "rampJitter": 9
     },
     "bass808": {
       "role": "bassline",

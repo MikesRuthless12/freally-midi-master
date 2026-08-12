@@ -159,10 +159,10 @@
         "strong_weak_weak_weak"
       ],
       "velocityRampRange": [
-        58,
-        104
+        54,
+        99
       ],
-      "rampJitter": 19,
+      "rampJitter": 20,
       "gapProb": 0.14,
       "descendProb": 0.47
     }

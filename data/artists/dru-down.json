@@ -159,9 +159,9 @@
       ],
       "velocityRampRange": [
         57,
-        103
+        99
       ],
-      "rampJitter": 16,
+      "rampJitter": 19,
       "gapProb": 0.23,
       "descendProb": 0.4
     }

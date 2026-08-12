@@ -160,8 +160,8 @@
         "even"
       ],
       "velocityRampRange": [
-        46,
-        96
+        41,
+        100
       ],
       "gapProb": 0.64,
       "descendProb": 0.3,

@@ -67,12 +67,18 @@
         "1"
       ],
       "secondaryAnchor": "3&",
-      "syncopation": 0.25
+      "syncopation": 0.26,
+      "tresilloBias": 0.17,
+      "subLayerVelocity": [
+        0.5,
+        0.6
+      ],
+      "lockTo808": 0
     },
     "snare": {
       "rimshotLayer": false,
       "ghost": {
-        "prob": 0.08,
+        "prob": 0.09,
         "pos": [
           "3a"
         ],
@@ -80,7 +86,9 @@
           0.15,
           0.25
         ]
-      }
+      },
+      "placement": "backbeat_24",
+      "offGridMs": 0
     },
     "hihat": {
       "base": "8th",
@@ -131,10 +139,10 @@
         "even"
       ],
       "velocityRampRange": [
-        40,
-        90
+        35,
+        86
       ],
-      "rampJitter": 6
+      "rampJitter": 7
     },
     "fills": {
       "smallEveryBars": 8,

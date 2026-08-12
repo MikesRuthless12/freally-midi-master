@@ -159,12 +159,12 @@
         "even"
       ],
       "velocityRampRange": [
-        52,
-        96
+        58,
+        91
       ],
-      "rampJitter": 18,
-      "descendProb": 0.14,
-      "gapProb": 0.36
+      "rampJitter": 21,
+      "descendProb": 0.18,
+      "gapProb": 0.34
     },
     "bass808": {
       "slideProb": 0.07,

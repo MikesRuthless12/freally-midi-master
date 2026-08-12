@@ -153,12 +153,13 @@
         "even"
       ],
       "velocityRampRange": [
-        58,
-        102
+        51,
+        92
       ],
-      "rampJitter": 10,
-      "descendProb": 0.1,
-      "gapProb": 0.42
+      "rampJitter": 11,
+      "descendProb": 0.07,
+      "gapProb": 0.43,
+      "pitchWalk": 4
     },
     "bass808": {
       "sustain": "staccato",

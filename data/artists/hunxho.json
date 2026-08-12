@@ -69,8 +69,12 @@
       "anchors": [
         "1"
       ],
-      "syncopation": 0.28,
-      "tresilloBias": 0.1
+      "syncopation": 0.29,
+      "tresilloBias": 0.1,
+      "secondaryAnchor": "3",
+      "andOf4EveryOtherBar": 0.5,
+      "avoidPreSnareGap": "8th",
+      "lockTo808": 1
     },
     "snare": {
       "placement": "halftime_3",
@@ -81,7 +85,19 @@
       "detuneSemis": [
         -2,
         -1
-      ]
+      ],
+      "ghost": {
+        "prob": 0.27,
+        "pos": [
+          "4&"
+        ],
+        "vel": [
+          0.4,
+          0.6
+        ]
+      },
+      "offGridMs": 0,
+      "fullTimeVariantProb": 0.1
     },
     "hihat": {
       "base": "16th",
@@ -140,12 +156,21 @@
         "strong_weak_weak_weak"
       ],
       "velocityRampRange": [
-        70,
-        108
+        64,
+        109
       ],
-      "rampJitter": 5,
-      "descendProb": 0.27,
-      "gapProb": 0.38
+      "rampJitter": 6,
+      "descendProb": 0.23,
+      "gapProb": 0.42,
+      "ladder": [
+        "4",
+        "8",
+        "16",
+        "32"
+      ],
+      "buildAndStopProb": 0.3,
+      "dualLayerProb": 0.25,
+      "pitchWalk": 4
     },
     "bass808": {
       "sustain": "legato",

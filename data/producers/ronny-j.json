@@ -79,10 +79,11 @@
         "1"
       ],
       "secondaryAnchor": "3",
-      "syncopation": 0.44,
-      "tresilloBias": 0.3,
+      "syncopation": 0.48,
+      "tresilloBias": 0.28,
       "avoidPreSnareGap": "16th",
-      "lockTo808": 1
+      "lockTo808": 1,
+      "andOf4EveryOtherBar": true
     },
     "snare": {
       "placement": "halftime_3",
@@ -92,7 +93,7 @@
         2
       ],
       "ghost": {
-        "prob": 0.14,
+        "prob": 0.18,
         "pos": [
           "4&"
         ],
@@ -101,7 +102,12 @@
           0.68
         ]
       },
-      "offGridMs": 0
+      "offGridMs": 0,
+      "detuneSemis": [
+        -2,
+        -1
+      ],
+      "fullTimeVariantProb": 0.1
     },
     "hihat": {
       "base": "16th",
@@ -216,12 +222,12 @@
         "strong_weak_weak_weak"
       ],
       "velocityRampRange": [
-        70,
+        74,
         120
       ],
       "gapProb": 0.09,
       "descendProb": 0.55,
-      "rampJitter": 12
+      "rampJitter": 9
     }
   },
   "melody": {

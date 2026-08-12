@@ -172,12 +172,12 @@
         "even"
       ],
       "velocityRampRange": [
-        52,
-        98
+        45,
+        101
       ],
-      "rampJitter": 13,
-      "descendProb": 0.33,
-      "gapProb": 0.6
+      "rampJitter": 14,
+      "descendProb": 0.31,
+      "gapProb": 0.57
     },
     "bass808": {
       "role": "counter_riff",

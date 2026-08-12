@@ -166,12 +166,12 @@
         "strong_weak_weak_weak"
       ],
       "velocityRampRange": [
-        52,
-        106
+        46,
+        114
       ],
       "rampJitter": 9,
       "descendProb": 0.42,
-      "gapProb": 0.1
+      "gapProb": 0.11
     }
   },
   "chords": {

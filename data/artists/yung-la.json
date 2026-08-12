@@ -197,8 +197,8 @@
         "even"
       ],
       "velocityRampRange": [
-        50,
-        92
+        46,
+        96
       ],
       "rampJitter": 11,
       "descendProb": 0.28,

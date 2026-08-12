@@ -71,8 +71,11 @@
         "1"
       ],
       "secondaryAnchor": "3",
-      "syncopation": 0.14,
-      "beatSkipProb": 0.08
+      "syncopation": 0.16,
+      "beatSkipProb": 0.08,
+      "tresilloBias": 0.05,
+      "offbeat8thShare": 0.07,
+      "lockTo808": 1
     },
     "snare": {
       "layerClapOffsetMs": [
@@ -83,7 +86,19 @@
       "clusterHits": [
         2,
         2
-      ]
+      ],
+      "placement": "halftime_3",
+      "ghost": {
+        "prob": 0.14,
+        "pos": [
+          "4&"
+        ],
+        "vel": [
+          0.22,
+          0.4
+        ]
+      },
+      "offGridMs": 0
     },
     "hihat": {
       "base": {
@@ -139,10 +154,10 @@
         "even"
       ],
       "velocityRampRange": [
-        70,
-        116
+        71,
+        114
       ],
-      "rampJitter": 11,
+      "rampJitter": 9,
       "descendProb": 0.48,
       "gapProb": 0.22
     },

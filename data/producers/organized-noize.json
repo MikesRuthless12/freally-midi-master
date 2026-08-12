@@ -186,11 +186,11 @@
       ],
       "velocityRampRange": [
         62,
-        114
+        117
       ],
       "gapProb": 0.52,
       "descendProb": 0.22,
-      "rampJitter": 13
+      "rampJitter": 12
     },
     "bass808": {
       "role": "counter_riff",

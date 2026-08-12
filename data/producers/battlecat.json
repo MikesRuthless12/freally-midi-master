@@ -153,12 +153,13 @@
         "strong_weak_weak_weak"
       ],
       "velocityRampRange": [
-        57,
-        103
+        49,
+        110
       ],
       "rampJitter": 14,
-      "gapProb": 0.32,
-      "descendProb": 0.48
+      "gapProb": 0.33,
+      "descendProb": 0.53,
+      "pitchWalk": 4
     }
   },
   "chords": {

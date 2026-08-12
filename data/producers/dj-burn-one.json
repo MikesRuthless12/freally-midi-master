@@ -135,10 +135,13 @@
         "even"
       ],
       "velocityRampRange": [
-        44,
-        92
+        42,
+        89
       ],
-      "rampJitter": 6
+      "rampJitter": 5,
+      "descendProb": 0.17,
+      "gapProb": 0.27,
+      "pitchWalk": 3
     },
     "percs": {
       "lanes": [

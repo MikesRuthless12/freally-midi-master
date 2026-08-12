@@ -116,10 +116,10 @@
         "even"
       ],
       "velocityRampRange": [
-        52,
-        96
+        46,
+        91
       ],
-      "rampJitter": 9
+      "rampJitter": 10
     },
     "bass808": {
       "role": "bassline",

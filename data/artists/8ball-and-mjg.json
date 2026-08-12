@@ -69,8 +69,9 @@
         "1"
       ],
       "secondaryAnchor": "3&",
-      "syncopation": 0.24,
-      "tresilloBias": 0.3
+      "syncopation": 0.25,
+      "tresilloBias": 0.29,
+      "lockTo808": 1
     },
     "snare": {
       "ghost": {
@@ -82,7 +83,9 @@
           0.22,
           0.4
         ]
-      }
+      },
+      "placement": "halftime_3",
+      "offGridMs": 0
     },
     "hihat": {
       "base": "8th",
@@ -152,10 +155,10 @@
         "even"
       ],
       "velocityRampRange": [
-        58,
-        100
+        52,
+        102
       ],
-      "rampJitter": 20,
+      "rampJitter": 17,
       "descendProb": 0.52,
       "gapProb": 0.46
     },

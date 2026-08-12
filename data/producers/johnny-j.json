@@ -68,14 +68,18 @@
         4
       ],
       "secondaryAnchor": "3&",
-      "syncopation": 0.3,
+      "syncopation": 0.27,
       "tresilloBias": 0.15,
-      "offbeat8thShare": 0.2
+      "offbeat8thShare": 0.2,
+      "anchors": [
+        "1"
+      ],
+      "lockTo808": 0
     },
     "snare": {
       "rimshotLayer": false,
       "ghost": {
-        "prob": 0.12,
+        "prob": 0.11,
         "pos": [
           "4e"
         ],
@@ -83,7 +87,9 @@
           0.18,
           0.3
         ]
-      }
+      },
+      "placement": "backbeat_24",
+      "offGridMs": 0
     },
     "hihat": {
       "base": "8th",
@@ -141,8 +147,8 @@
         "strong_weak_weak_weak"
       ],
       "velocityRampRange": [
-        45,
-        105
+        43,
+        108
       ],
       "rampJitter": 13,
       "descendProb": 0.6,

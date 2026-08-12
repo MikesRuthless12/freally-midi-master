@@ -142,11 +142,17 @@
       ],
       "velocityRampRange": [
         66,
-        112
+        106
       ],
       "rampJitter": 11,
-      "descendProb": 0.08,
-      "gapProb": 0.56
+      "descendProb": 0.05,
+      "gapProb": 0.51,
+      "ladder": [
+        "4",
+        "8",
+        "16"
+      ],
+      "pitchWalk": 3
     },
     "bass808": {
       "register": [

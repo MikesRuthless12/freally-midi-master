@@ -92,8 +92,10 @@
       ],
       "secondaryAnchor": "3&",
       "syncopation": 0.4,
-      "tresilloBias": 0.3,
-      "offbeat8thShare": 0.32
+      "tresilloBias": 0.34,
+      "offbeat8thShare": 0.3,
+      "andOf4EveryOtherBar": 0.35,
+      "lockTo808": 1
     },
     "snare": {
       "placement": "halftime_3",
@@ -102,7 +104,7 @@
         14
       ],
       "ghost": {
-        "prob": 0.22,
+        "prob": 0.19,
         "pos": [
           "2&",
           "4&"
@@ -192,12 +194,13 @@
         "even"
       ],
       "velocityRampRange": [
-        72,
+        68,
         122
       ],
-      "rampJitter": 9,
+      "rampJitter": 8,
       "descendProb": 0.55,
-      "gapProb": 0.16
+      "gapProb": 0.11,
+      "pitchWalk": 3
     }
   },
   "chords": {

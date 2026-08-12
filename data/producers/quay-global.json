@@ -121,9 +121,9 @@
       ],
       "velocityRampRange": [
         56,
-        104
+        103
       ],
-      "rampJitter": 18
+      "rampJitter": 17
     },
     "bass808": {
       "role": "bassline",

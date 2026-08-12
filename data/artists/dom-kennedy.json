@@ -64,15 +64,21 @@
         "1"
       ],
       "secondaryAnchor": "3&",
-      "syncopation": 0.25,
-      "lockTo808": 0.6
+      "syncopation": 0.26,
+      "lockTo808": 0.6,
+      "tresilloBias": 0.2,
+      "offbeat8thShare": 0.33,
+      "sloppyOffsetMs": [
+        3,
+        9
+      ]
     },
     "snare": {
       "placement": "backbeat_24",
       "offGridMs": 8,
       "rimshotLayer": true,
       "ghost": {
-        "prob": 0.2,
+        "prob": 0.17,
         "pos": [
           "2e",
           "4e"
@@ -81,7 +87,15 @@
           0.2,
           0.35
         ]
-      }
+      },
+      "layerClapOffsetMs": [
+        2,
+        6
+      ],
+      "stack": [
+        "clap",
+        "snap"
+      ]
     },
     "hihat": {
       "base": "8th",
@@ -127,10 +141,10 @@
         "strong_weak_weak_weak"
       ],
       "velocityRampRange": [
-        48,
+        50,
         100
       ],
-      "rampJitter": 8
+      "rampJitter": 7
     },
     "bass808": {
       "role": "bassline",

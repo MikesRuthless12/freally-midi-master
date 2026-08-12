@@ -143,11 +143,11 @@
       ],
       "velocityRampRange": [
         64,
-        114
+        110
       ],
       "gapProb": 0.14,
       "descendProb": 0.48,
-      "rampJitter": 24
+      "rampJitter": 27
     }
   },
   "chords": {

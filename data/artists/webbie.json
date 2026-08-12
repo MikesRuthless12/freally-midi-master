@@ -163,12 +163,18 @@
         "strong_weak_weak_weak"
       ],
       "velocityRampRange": [
-        56,
-        102
+        53,
+        105
       ],
-      "rampJitter": 9,
-      "descendProb": 0.44,
-      "gapProb": 0.08
+      "rampJitter": 12,
+      "descendProb": 0.48,
+      "gapProb": 0.07,
+      "ladder": [
+        "4",
+        "8",
+        "16"
+      ],
+      "pitchWalk": 3
     },
     "bass808": {
       "slideProb": 0.02,

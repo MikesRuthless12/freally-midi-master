@@ -153,12 +153,12 @@
         "even"
       ],
       "velocityRampRange": [
-        58,
-        112
+        60,
+        114
       ],
       "gapProb": 0.32,
       "descendProb": 0.58,
-      "rampJitter": 18
+      "rampJitter": 19
     }
   },
   "chords": {

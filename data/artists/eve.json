@@ -147,11 +147,12 @@
       ],
       "velocityRampRange": [
         68,
-        120
+        108
       ],
-      "gapProb": 0.17,
-      "descendProb": 0.47,
-      "rampJitter": 19
+      "gapProb": 0.22,
+      "descendProb": 0.51,
+      "rampJitter": 16,
+      "pitchWalk": 2
     }
   },
   "melody": {
