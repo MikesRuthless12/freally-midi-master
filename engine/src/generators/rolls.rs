@@ -805,9 +805,39 @@ pub fn snare_ladder(
         steps
     };
 
-    let (from, to) = pair(block, "velocityRampRange")
-        .map(|(lo, hi)| (lo as u8, hi as u8))
-        .unwrap_or((16, 127));
+    let (base_from, base_to) = pair(block, "velocityRampRange")
+        .map(|(lo, hi)| (lo as f32, hi as f32))
+        .unwrap_or((16.0, 127.0));
+
+    // ⛔⛔ **`rampJitter`, `descendProb` and `gapProb` reached `snare_roll` and
+    // never reached here either** — the same omission as `pitchWalk` below, and
+    // by far the more audible one. Without them a ladder is a *deterministic*
+    // gesture: the same rungs, the same ramp ends, the same accents, every fill
+    // of every take. Only `buildAndStopProb` varied it at all.
+    //
+    // ⛔ **That is Mike's original 2026-08-05 report, still live in the half of
+    // the roster that prefers a big fill.** `a_fill_is_not_the_same_gesture
+    // _every_time` found 41 models under a floor of 25 distinct fills in 200
+    // seeds — most at 4, `killer-mike` and `lloyd-banks` at **1** — and every one
+    // of the 41 authors `bigEveryBars: 4` while every passing model authors 8. In
+    // a four-bar pattern that is the difference between the last fill being the
+    // ladder and it being the ordinary roll, which has had all three of these
+    // since the fix that closed the original report.
+    //
+    // ⚠ Drawn in the same order and with the same meanings as `snare_roll`, so
+    // one artist's two fill gestures vary the same way rather than each having
+    // its own dialect of the same four keys.
+    let jitter = number(block, "rampJitter", 12.0, rng).clamp(0.0, 48.0) as f32;
+    let from = (base_from + rng.random_range(-jitter..=jitter)).clamp(1.0, 127.0);
+    let to = (base_to + rng.random_range(-jitter..=jitter)).clamp(1.0, 127.0);
+    let descend = number(block, "descendProb", 0.15, rng).clamp(0.0, 1.0);
+    let (from, to) = if rng.random_bool(descend) {
+        (to, from)
+    } else {
+        (from, to)
+    };
+    let gap_chance = number(block, "gapProb", 0.25, rng).clamp(0.0, 1.0);
+    let gaps = rng.random_bool(gap_chance);
 
     // ⛔ **Read through the same helper  uses, and that is a fix.**
     // This read  as a bare *string* while  reads it as a
@@ -844,13 +874,13 @@ pub fn snare_ladder(
     // so the climb is continuous across the whole gesture rather than restarting
     // at every subdivision change.
     let slice = length / steps.len().max(1) as u32;
-    let span = f32::from(to) - f32::from(from);
+    let span = to - from;
     let mut notes = Vec::new();
 
     for (i, step) in steps.iter().enumerate() {
         let rung_start = start_tick + i as u32 * slice;
-        let low = f32::from(from) + span * (i as f32 / steps.len() as f32);
-        let high = f32::from(from) + span * ((i + 1) as f32 / steps.len() as f32);
+        let low = from + span * (i as f32 / steps.len() as f32);
+        let high = from + span * ((i + 1) as f32 / steps.len() as f32);
         // ⚠ The walk is sliced the same way as the ramp, so it runs across the
         // whole ladder rather than restarting at every rung — which would make a
         // four-rung ladder walk the same two semitones four times.
@@ -861,6 +891,7 @@ pub fn snare_ladder(
             Roll::new(lane, rung_start, rung_start + slice, *step)
                 .ramp(low.round().max(1.0) as u8, high.round().max(1.0) as u8)
                 .grouped(grouping)
+                .with_gaps(gaps)
                 .walking(pitch_at(i as f32), pitch_at((i + 1) as f32))
                 .render(rng),
         );
@@ -894,7 +925,7 @@ pub fn snare_ladder(
         let taken: Vec<u32> = notes.iter().map(|n| n.start_tick).collect();
         notes.extend(
             Roll::new(lane, start_tick, start_tick + length, beat)
-                .ramp(from.max(1), to.max(1))
+                .ramp(from.round().max(1.0) as u8, to.round().max(1.0) as u8)
                 .render(rng)
                 .into_iter()
                 .filter(|n| !taken.contains(&n.start_tick)),
