@@ -53,6 +53,29 @@ const SCHEME: &str = "freally";
 /// the rail away again.
 const LAYOUT: (u32, u32) = (1440, 900);
 
+/// The smallest the standalone frame may be dragged to, in physical pixels.
+///
+/// ⛔⛔ **This is not a layout minimum — it is the guarantee that the window can
+/// be made big again.** Mike, 2026-08-12: *"i want the end user to be able to
+/// resize my window to whatever size they want … if they size it too small, then
+/// it's their own fault, as long as you can ensure that they can resize to make
+/// it bigger."* Both halves are real. Left at zero, Windows will hand back a
+/// client area with no room for the resize grips, and a frame nobody can grab is
+/// a frame nobody can grow — the one outcome he ruled out. This is small enough
+/// to be "whatever size they want" and large enough that every edge and corner
+/// stays draggable.
+///
+/// ⚠ **Deliberately unrelated to [`LAYOUT`] and to the display scale.** It
+/// answers "can you still grab it", which is a question about window chrome and
+/// the same handful of pixels on every monitor — not about how much of the app
+/// fits, which `WindowFit` now answers by zooming the page to whatever the frame
+/// became.
+///
+/// ⚠ **Why the app no longer needs a layout floor at all:** the reason one
+/// existed — *"a little smaller and it ends up clipping the right panel"* — was
+/// a page pinned at `LAYOUT`. It reflows now.
+const MIN_FRAME: (u32, u32) = (360, 240);
+
 /// How large that layout is *drawn*, smallest first.
 ///
 /// The page always lays out at [`LAYOUT`] and always shows every panel, because
@@ -1533,13 +1556,33 @@ const PAGE: &str = "freally://localhost/index.html";
 
 pub fn create(shared: SharedState) -> Option<Box<dyn Editor>> {
     let editor = WebViewEditor::new(HTMLSource::URL(PAGE), window_size(&shared))
-        // ⛔ **The floor a drag stops at is the app's own default size** — Mike,
-        // 2026-08-09: *"a little smaller and it ends up clipping the right
-        // panel."* `physical(1.0)` is the `large` preset, which is what
-        // `LAYOUT` was drawn for, so nothing below it can be a size the UI was
-        // designed to survive. Passed from here rather than chosen in the
-        // adapter, so it tracks `LAYOUT` and the display scale automatically.
-        .with_minimum_size(physical(1.0).0)
+        // ⛔⛔ **The floor is a grab handle, not a layout rule** (2026-08-12).
+        //
+        // It used to be `physical(1.0)` — the whole `large` preset, ~1440×900 —
+        // from Mike, 2026-08-09: *"a little smaller and it ends up clipping the
+        // right panel."* He reversed it: *"i want the end user to be able to
+        // resize my window to whatever size they want … if they size it too
+        // small, then it's their own fault, as long as you can ensure that they
+        // can resize to make it bigger."*
+        //
+        // ▶ **Clipping is no longer the price of a small window.** `WindowFit`
+        // re-reads `window.innerWidth` on every `resize` and zooms the root, so
+        // the page reflows to whatever the frame becomes rather than being cut
+        // off at a fixed layout — which is why this can be relaxed now and could
+        // not have been then.
+        //
+        // ⚠ **What the remaining floor buys is the second half of his sentence.**
+        // At zero, Windows will happily hand back a client area with no room for
+        // the resize grips, and a window nobody can grab is a window nobody can
+        // make bigger again — the one outcome he ruled out. [`MIN_FRAME`] is
+        // small enough to be "any size you want" and large enough that every
+        // edge and corner stays draggable.
+        //
+        // ⚠ **Standalone only, and that is not a gap.** The floor is enforced
+        // through `WM_GETMINMAXINFO` on our own frame; inside a DAW the window
+        // belongs to the host, so VST3 and CLAP were never constrained by this
+        // and are as resizable as the host allows.
+        .with_minimum_size(MIN_FRAME)
         // ⛔⛔ **So the caption says it once** — Mike, 2026-08-11: *"can you
         // replace the window's title bar after the vst3/clap file opens … so it
         // just says it once?"* Ableton names a fresh track after the instrument
