@@ -531,6 +531,25 @@ fn kick_bar(
 /// The result is on the grid; the caller runs [`crate::humanize::humanize`]
 /// over it. Hats, percussion, rolls, fills and the 808 arrive with their own
 /// tasks — this is the kick, the snare and what layers onto them.
+/// How many *extra* takes are drawn when the hats come out empty.
+///
+/// Four is well past enough. The worst model on the roster is `plugg`, which
+/// empties a four-bar pattern about once in a hundred; five independent draws
+/// put that at one in ten billion, which is never for any practical purpose.
+const MAX_HAT_REDRAWS: usize = 4;
+
+/// The domain each redraw derives its seed from.
+///
+/// Named rather than numbered so a redraw's stream is auditable, and spelled out
+/// rather than formatted so the path allocates nothing — the same convention as
+/// `novelty::RETRY_DOMAINS`, which this mirrors deliberately.
+const HAT_REDRAW_DOMAINS: [&str; MAX_HAT_REDRAWS] = [
+    "drums/hats-empty:1",
+    "drums/hats-empty:2",
+    "drums/hats-empty:3",
+    "drums/hats-empty:4",
+];
+
 pub fn generate(model: &StyleModel, ctx: &SessionContext, seed: u64) -> Vec<LaneTrack> {
     let drums = model.blocks.get("drums");
     let tiers = VelocityTiers::from_json(drums);
@@ -660,7 +679,48 @@ pub fn generate(model: &StyleModel, ctx: &SessionContext, seed: u64) -> Vec<Lane
 
     let hihat = block(drums, "hihat");
     let mut hat_rng = rng::stream(seed, "drums/hats");
-    let (mut closed, open) = hats(hihat, ctx, &tiers, &mut hat_rng);
+    let (mut closed, mut open) = hats(hihat, ctx, &tiers, &mut hat_rng);
+
+    // ⛔⛔ **A MODEL THAT DECLARES A HAT BLOCK HAS TO PRODUCE HATS**, and the
+    // hat stream alone is redrawn until it does — Mike, 2026-08-12: *"redo just
+    // the hihat generation until you get hihats and they are not a blank row for
+    // the genres you need, not the entire generation."*
+    //
+    // ⛔ **The cause is the density doing exactly what it says.** A
+    // non-continuous stream spends `fillDensity` on *whether a beat plays at
+    // all*, so at `clipse`'s 0.28 a bar is silent 0.72⁴ ≈ 27% of the time and
+    // all four bars are silent about once in 190 seeds. **80 models can land on
+    // it and one is a shipped genre**: `plugg` authors 0.25, which empties a
+    // four-bar pattern about once in a hundred — a hatless beat roughly every
+    // hundredth press of Generate, with nothing on screen to explain it. Raising
+    // `clipse`'s number would have turned the gate green and left the other 79.
+    //
+    // ⚠ **Only this stream is redrawn**, which is why the retry sits here rather
+    // than around `generate`. Every stage already has its own seeded stream so
+    // that "rerolling the snare cannot move the kick"; redrawing the whole take
+    // would throw away a kick and snare the producer would otherwise have had,
+    // to fix a hat part. Injecting a hat instead was the first attempt and was
+    // worse — it invents a hit the model never asked for and makes every sparse
+    // style quietly less sparse.
+    //
+    // ⚠ **Still a pure function of its inputs**: the redraw domains are derived
+    // and spelled out, so one seed always walks the same chain and a saved seed
+    // rebuilds the pattern the producer heard. This is the convention
+    // `novelty::RETRY_DOMAINS` already sets for a rejected melody.
+    //
+    // ⚠ **The closed hat specifically.** An open hat *replaces* the closed hit
+    // underneath it — one hi-hat cannot be open and shut at one instant — so
+    // asking whether "some hat exists" would accept a take carrying nothing but
+    // the two open hats that ate their own stream.
+    if hihat.is_some() {
+        for domain in HAT_REDRAW_DOMAINS {
+            if !closed.is_empty() {
+                break;
+            }
+            let mut redraw = rng::stream(seed, domain);
+            (closed, open) = hats(hihat, ctx, &tiers, &mut redraw);
+        }
+    }
 
     // Hat rolls schedule themselves from the model's own `positions` and
     // `freqPerBar`, so they belong to the hat part rather than to the fill
