@@ -11,6 +11,7 @@ import { ExplorerPanel } from '../Explorer/ExplorerPanel';
 import { ArtistPane } from '../RosterList/ArtistPane';
 import { crossFilter } from '../../lib/cross-filter';
 import { search } from '../../lib/fuzzy';
+import type { RosterEntry } from '../../lib/ipc-types';
 import { useSession } from '../../state/session';
 import { useTranslation } from 'react-i18next';
 
@@ -62,18 +63,36 @@ export function LeftRail() {
 
   const selected = roster.find((entry) => entry.id === selectedId) ?? null;
 
-  // ⛔⛔ **The comboboxes offer the WHOLE roster, never the cross-filtered one.**
-  // Narrowing made sense for a list — it was the only way to make five hundred
-  // rows scannable — but a combobox is filtered by *typing*, so hiding entries
-  // only stops them being found. It broke immediately once the rail auto-selects
-  // an artist on load: `crossFilter` then trimmed the genres to that artist's
-  // own, and "UK Drill" could not be typed at all.
+  // ⛔⛔ **A QUERY reaches the whole roster; the OPEN LIST follows the genre.**
+  // Mike, 2026-08-12: *"changing to another genre doesn't change the actual
+  // names in the Roster to names within that Genre, it keeps the same names and
+  // then shows different genres within the Roster list."* Picking a genre and
+  // watching the roster answer with the same ten names is the genre box visibly
+  // doing nothing.
   //
-  // ⚠ `crossFilter` is still used, for the "filtered by" notice and the pane —
-  // saying what the selection *implies* is a different job from deciding what a
-  // producer is allowed to reach.
+  // ⛔ **The rule this replaces — "never cross-filter a combobox" — was drawn
+  // wider than the defect that taught it.** That defect was the rail
+  // auto-selecting an artist on load: `crossFilter` trimmed the genres to that
+  // artist's own and "UK Drill" could not be typed at all. The auto-select is
+  // gone, and the part worth keeping is narrower than the rule was: what must
+  // never be hidden is what a *query* can find. So these two pools stay whole
+  // and feed `filter` below, and the browse list is the half that narrows.
   const allArtists = roster.filter((entry) => entry.type !== 'genre');
   const allGenres = roster.filter((entry) => entry.type === 'genre');
+
+  // One row shape for both halves, so a name found by typing draws exactly as
+  // it does in the browse list — the two lists are the same control.
+  const option = (entry: RosterEntry) => ({
+    id: entry.id,
+    name: entry.name,
+    badge: entry.mine
+      ? t('styles.mine')
+      : entry.type === 'genre'
+        ? t('roster.genre')
+        : entry.tier === 'flagship'
+          ? t('roster.flagship')
+          : null,
+  });
 
   // ⛔⛔ **NOTHING IS SELECTED ON LOAD, AND THAT IS THE POINT.** Mike,
   // 2026-08-10: *"how about we go back to that landing screen, and ensure that
@@ -161,30 +180,41 @@ export function LeftRail() {
                 // so anything *inside* the roster can be filtered away; this is
                 // prepended after the filter for exactly that reason. It is the
                 // way in to building your own, so no genre may hide it.
-                // ⛔ **Artists AND genres, because that is what the roster held.**
-                // The list this replaced showed both, under two headings, and the
-                // search box found both — so splitting them across two comboboxes
-                // quietly meant a producer had to know which kind "UK Drill" was
-                // before they could find it. The genre combobox above is a
-                // shortcut, not the only door.
+                // ⛔ **Artists AND genres are still both *findable* — by typing.**
+                // The list this replaced showed both under two headings and the
+                // search box found both, so a producer must never have to know
+                // which kind "UK Drill" is before they can reach it. That is
+                // `filter`'s job below. Listing all fifty-odd genres under the
+                // artists as well is what made the browse list unreadable, and
+                // is half of what Mike reported.
+                // ⛔⛔ **The way in, then the names, and nothing else** — Mike,
+                // 2026-08-12: *"if there is no artist/producer then it should
+                // just have 'Original Workflow' or only 1 artist like ny-drill
+                // /uk-drill then it should just say 'Original Workflow' & 'Pop
+                // Smoke'."* Not even the selected genre gets a row of its own:
+                // the box above already says which genre it is, and repeating it
+                // here would put a genre back in a list whose whole job is to
+                // answer "who works in this".
+                //
+                // ⚠ **A genre is still *choosable* here, it just is not
+                // *listed*** — typing "UK Drill" into this box selects it, which
+                // is what keeps a producer from having to know which kind a name
+                // is. `valueLabel` is what lets the field say so; see below.
                 options={[
                   { id: ORIGINAL, name: t('styles.original'), action: true },
-                  ...allArtists.map((artist) => ({
-                    id: artist.id,
-                    name: artist.name,
-                    badge: artist.mine
-                      ? t('styles.mine')
-                      : artist.tier === 'flagship'
-                        ? t('roster.flagship')
-                        : null,
-                  })),
-                  ...allGenres.map((genre) => ({
-                    id: genre.id,
-                    name: genre.name,
-                    badge: t('roster.genre'),
-                  })),
+                  // ⚠ `crossFilter`'s artists: the whole list when an artist or
+                  // nothing is selected, and the genre's own when a genre is.
+                  ...artists.map(option),
                 ]}
                 value={selectedId}
+                // ⛔⛔ **Or the box empties the moment a genre is chosen in it.**
+                // `Combo` reads its text out of `options`, and genres no longer
+                // have a row — so typing "UK Drill" and pressing Enter selected
+                // UK Drill and left the field blank, discarding on screen exactly
+                // what the producer had just typed. Caught by
+                // `magic-moment.spec.ts`, which arrows to the last suggestion and
+                // asserts the box says what it took.
+                valueLabel={selected?.type === 'genre' ? selected.name : null}
                 // ⚠ It opens the editor rather than selecting anything: there is no
                 // style called "Original Workflow" to generate from, and putting a
                 // sentinel id into the session would be a selection the plugin
@@ -195,17 +225,21 @@ export function LeftRail() {
                 // ⚠ The roster's own matcher, not a substring test: it knows
                 // aliases and tolerates typos, which is most of what made the
                 // search box worth having.
-                filter={(query, options) => {
-                  const byId = new Map(options.map((option) => [option.id, option]));
+                //
+                // ⛔⛔ **Over the whole roster, however narrow the list above
+                // is.** Built from the pools rather than looked up in `options`,
+                // which is the difference that matters: a lookup would have
+                // silently dropped every result the genre had filtered out, so
+                // choosing Afroswing would have made Drake untypable. Narrowing
+                // what you *browse* is a convenience; narrowing what you can
+                // *find* is the defect the old no-cross-filtering rule existed
+                // to prevent, and it still is.
+                filter={(query) => {
                   // ⚠ Searched over both halves together, in one ranking — two
                   // separate searches concatenated would put every artist above
                   // every genre regardless of how well either matched.
                   const pool = [...allArtists, ...allGenres];
-                  return search(query, pool, pool.length)
-                    .map((entry) => byId.get(entry.id))
-                    .filter(
-                      (option): option is NonNullable<typeof option> => option !== undefined,
-                    );
+                  return search(query, pool, pool.length).map(option);
                 }}
               />
 

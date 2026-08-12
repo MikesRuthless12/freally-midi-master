@@ -63,6 +63,7 @@ export function Combo({
   label,
   options,
   value,
+  valueLabel,
   onChange,
   filter,
   placeholder,
@@ -71,6 +72,18 @@ export function Combo({
   label: string;
   options: ComboOption[];
   value: string | null;
+  /**
+   * What the field reads when `value` names something the list does not offer.
+   *
+   * ⛔ **Not the never-blank fallback in disguise** — that one borrowed the
+   * *first option's* name while nothing was selected, which is why it is
+   * forbidden below. This names the entry that is genuinely selected, for a
+   * control whose list is narrower than what can be chosen in it: the roster
+   * lists only artists and producers (2026-08-12), while typing a genre's name
+   * into it still selects the genre. Without this the producer typed "UK Drill",
+   * pressed Enter, and watched the box they had just typed into go empty.
+   */
+  valueLabel?: string | null;
   onChange: (id: string) => void;
   /** Narrow `options` for what has been typed. Defaults to a substring match. */
   filter?: (query: string, options: ComboOption[]) => ComboOption[];
@@ -99,10 +112,17 @@ export function Combo({
   // ⛔ Starts on the first real choice, never on an action — see `action` above.
   // Opening the list with the highlight already on "Original Workflow" meant one
   // Enter opened a modal nobody asked for.
-  const firstChoice = Math.max(
-    0,
-    options.findIndex((option) => option.action !== true),
-  );
+  //
+  // ⛔⛔ **-1 when there is no real choice at all, and the clamp to 0 that used
+  // to be here is exactly the bug.** A list of nothing but actions could not
+  // happen until the roster began narrowing to the selected genre (2026-08-12) —
+  // a genre nobody works in leaves "Original Workflow" alone in the list, and
+  // `Math.max(0, -1)` put the highlight straight onto it. Opening the box and
+  // pressing Enter then opened the style editor over the whole app, which is
+  // word for word the failure `action` exists to prevent. -1 highlights nothing
+  // and makes Enter a no-op; arrowing onto the row still reaches it, because
+  // that is deliberate.
+  const firstChoice = options.findIndex((option) => option.action !== true);
   const [active, setActive] = useState(firstChoice);
   const root = useRef<HTMLDivElement>(null);
   const menu = useRef<HTMLUListElement>(null);
@@ -110,7 +130,9 @@ export function Combo({
   const [at, setAt] = useState({ top: 0, left: 0, width: 0 });
 
   // What the box shows: what is being typed, or the selection when it is not.
-  const text = typed ?? selected?.name ?? '';
+  // `valueLabel` covers a selection the list does not carry a row for; the empty
+  // string — and so the placeholder — is left for nothing being selected at all.
+  const text = typed ?? selected?.name ?? valueLabel ?? '';
 
   const narrowed =
     typed === null || typed.trim() === ''

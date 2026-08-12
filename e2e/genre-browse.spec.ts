@@ -40,6 +40,61 @@ test('one box finds artists and genres alike, and says which is which', async ({
   await expect(options.first().locator('.combo__badge')).toHaveText('Genre');
 });
 
+test('picking a genre lists the way in and that genre’s names, and nothing else', async ({
+  page,
+}) => {
+  // ⛔⛔ **Mike, 2026-08-12**: *"changing to another genre doesn't change the
+  // actual names in the Roster to names within that Genre, it keeps the same
+  // names and then shows different genres within the Roster list"*, and then the
+  // shape he wanted it in: *"only 1 artist like ny-drill /uk-drill then it should
+  // just say 'Original Workflow' & 'Pop Smoke'."* Asserted as the **whole list**
+  // rather than as three `hasText` probes, because "and nothing else" is the
+  // half that was broken — a probe for what should be there passes just as
+  // happily with fifty genres stacked underneath.
+  await pickGenre(page, 'Trap');
+
+  const roster = page.getByRole('combobox', { name: 'Roster' });
+  await roster.click();
+
+  // ⚠ A regex for the artist because the row carries its tier badge in the same
+  // text node; "Original Workflow" has no badge and is matched exactly.
+  await expect(page.locator('.combo__menu').getByRole('option')).toHaveText([
+    'Original Workflow',
+    /Mock Artist/,
+  ]);
+});
+
+test('a genre nobody works in leaves only the way in, and hides nobody from a query', async ({
+  page,
+}) => {
+  // ⛔ The other half of the same instruction: *"if there is no artist/producer
+  // then it should just have 'Original Workflow'."*
+  await pickGenre(page, 'UK Drill');
+
+  const roster = page.getByRole('combobox', { name: 'Roster' });
+  await roster.click();
+  const options = page.locator('.combo__menu').getByRole('option');
+  await expect(options).toHaveText(['Original Workflow']);
+
+  // ⛔⛔ **Enter must do nothing here.** "Original Workflow" is an *action*, and
+  // it is now the only row — so the highlight the list opens with is the one
+  // thing that may never land on it. It did, for exactly as long as `Combo`
+  // clamped its starting index to 0: opening this box and pressing Enter threw
+  // the style editor over the whole app.
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('dialog', { name: 'Style editor' })).toHaveCount(0);
+
+  // ⛔⛔ **The line the narrowing is allowed to reach and no further.** The rule
+  // it replaced — the comboboxes offer the whole roster, never the cross-filtered
+  // one — was written against a real defect: hiding entries in a control that is
+  // searched by *typing* stops them being found at all. Narrowing what is
+  // *browsed* keeps the genre box meaningful; narrowing what a query reaches
+  // would make choosing a genre a way to lose the roster.
+  await roster.click();
+  await roster.fill('mock');
+  await expect(options.filter({ hasText: 'Mock Artist' })).toHaveCount(1);
+});
+
 test('picking a genre leaves the details clean of a filter notice', async ({ page }) => {
   // ⛔⛔ **INVERTED 2026-08-11.** This read `toContainText('Trap')` against
   // `.roster__filter`, and then pressed "Show all" for the way back. Mike:
