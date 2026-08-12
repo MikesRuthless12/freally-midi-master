@@ -1,0 +1,349 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "danny-brown",
+  "type": "artist",
+  "name": "Danny Brown",
+  "aliases": [
+    "danny brown",
+    "daniel sewell",
+    "hybrid",
+    "xxx"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "dark-trap"
+  ],
+  "era": "2011-2019",
+  "genres": [
+    "rap",
+    "art-rap",
+    "dark-trap"
+  ],
+  "relatedGenres": [
+    "dark-trap",
+    "boom-bap",
+    "trap"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended vol.1 dark-trap — Danny Brown",
+    "https://en.wikipedia.org/wiki/Atrocity_Exhibition_(album)",
+    "https://en.wikipedia.org/wiki/XXX_(Danny_Brown_album)"
+  ],
+  "notes": "Detroit's abrasive art-rap wing, and the one entry on this axis that is not a trap grid at all. The research says the tempo is genuinely bimodal — 85–105 straight with the backbeat on 2 and 4 for the sample-rap majority, 130–160 half-time for the trap cuts — and a model gets one range, so this one commits to the documented majority: `halfTime` is turned **off** against the genre, `snare.placement` is `backbeat_24`, and the bpm range spans 85–160 with its mode at 97 so the straight material dominates while the trap cuts stay reachable. The second research claim is that the kit is sampled breaks, not programming: velocity variation and swing \"come from the sampled source\", so `quantizeStrength` drops to 0.74, `velocityVar` rises to 0.22 and there is real 8th-note swing at 0.57 — the loosest feel in this batch. The third is the low end: \"often *no* 808 at all — the low end is a filtered sample or a distorted synth bass\". That is modelled as `bassline.rhythm` `independent_riff` at `followRootsProb` 0.5 over a sample-bass register of 28–47, with `bass808.sustain` `staccato` and light distortion for the times an 808 does appear. Harmony is a single unstable loop rather than a progression (Guru Guru, Delia Derbyshire, Cut Hands are the documented sources), so `whole_tone` and `chromatic` sit in the scale pool and `chordToneBias` is 0.35 with `halfStepDissonance` at 0.42; where it is functional the research names i–VII–VI and i–iv, and those are the only families here. ⚠ `high` matches the research: producer rosters, sample sources, chart data and the artist's own structural intent are documented. The one INFERRED parameter is the bpm split itself, which the research marks `[LOW-CONF]`. ⚠ **`lockTo808` raised from 0.3 to 0.61.** The 808 takes each kick with this probability, and at 0.3 over this model's 8-kick floor a seed could produce no 808 at all — which `bass808.rs` refuses, because a declared 808 that sometimes vanishes is a part a producer cannot rely on. It is still well under a lock: a good share of kicks carry no sub. ⚠ The bass ceiling came down from 47 to 43 so it stays under a chord part that starts at 44 — `coherence.rs` requires the highest bass note to sit at or below the lowest chord note, and this model overlapped by 4.",
+  "session": {
+    "bpm": {
+      "min": 85,
+      "max": 160,
+      "mode": 97
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "phrygian",
+        "whole_tone",
+        "chromatic"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2,
+        1
+      ]
+    },
+    "swing": {
+      "grid": "8th",
+      "amount": 0.57
+    },
+    "humanize": {
+      "quantizeStrength": 0.74,
+      "velocityVar": 0.22
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        104,
+        127
+      ],
+      "main": [
+        72,
+        96
+      ],
+      "ghost": [
+        30,
+        52
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3",
+      "syncopation": 0.38,
+      "tresilloBias": 0.08,
+      "lockTo808": 0.61
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "rimshotLayer": true,
+      "ghost": {
+        "prob": 0.34,
+        "pos": [
+          "2e",
+          "3a",
+          "4a"
+        ],
+        "vel": [
+          0.2,
+          0.42
+        ]
+      },
+      "offGridMs": 4
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.42,
+      "velocities": {
+        "main": [
+          0.55,
+          0.95
+        ],
+        "ghost": [
+          0.18,
+          0.45
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "16T"
+          ],
+          "weights": [
+            4,
+            3
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "pre_snare"
+        ],
+        "freqPerBar": 0.47,
+        "velocityRamp": true
+      },
+      "openHat": {
+        "prob": 0.3,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          0,
+          2
+        ]
+      },
+      "pitchBendProb": 0
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "reverse",
+        "perc"
+      ],
+      "densityPerBar": [
+        0,
+        3
+      ]
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "staccato",
+      "slideProb": 0.08,
+      "slidePositions": [
+        "phrase_end"
+      ],
+      "register": [
+        28,
+        45
+      ],
+      "distortion": "light",
+      "distortionWet": [
+        0.1,
+        0.25
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 4
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th",
+        "32nd"
+      ],
+      "grouping": [
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        60,
+        112
+      ],
+      "gapProb": 0.44,
+      "descendProb": 0.63,
+      "rampJitter": 27
+    }
+  },
+  "melody": {
+    "register": [
+      58,
+      86
+    ],
+    "densityPerBar": [
+      3,
+      8
+    ],
+    "structure": "riff_loop",
+    "intervals": {
+      "step": 0.48,
+      "third": 0.22,
+      "leap": 0.3
+    },
+    "contour": {
+      "riff": 0.6,
+      "descend": 0.25,
+      "arch": 0.15
+    },
+    "chordToneBias": 0.35,
+    "halfStepDissonance": 0.42,
+    "octaveJumpProb": 0.14,
+    "emptyBarBias": 0.1,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "timbreHint": "horn_stab"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.44,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 3
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.72,
+      "seventh": 0.22,
+      "ninth": 0.06
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        44,
+        80
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar",
+        "vamp"
+      ],
+      "weights": [
+        3,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      2,
+      16
+    ]
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.5,
+    "register": [
+      28,
+      43
+    ],
+    "glideProb": 0.05,
+    "passingTones": [
+      "m3",
+      "P4",
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.3
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        1,
+        2
+      ],
+      "verse": 16,
+      "hook": 8,
+      "bridge": [
+        4,
+        8
+      ],
+      "outro": 2
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.7,
+        "beats": 4
+      },
+      "switchUpProb": 0.4
+    }
+  }
+}

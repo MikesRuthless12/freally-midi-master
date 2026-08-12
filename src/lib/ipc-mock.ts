@@ -201,6 +201,27 @@ const handlers: Record<string, Handler> = {
         era: null,
         mine: false,
       },
+      {
+        // ⛔ **A producer, so the rail's two groups both have someone in them.**
+        // The roster splits into "Artists" and "Producers" (2026-08-12) and a
+        // heading is only drawn when its group is occupied — so with an
+        // artist-only fixture the producer half of that rule was unreachable
+        // from any spec, and "the separator is not selectable" could only ever
+        // have been asserted about the one heading that happened to render.
+        //
+        // ⚠ Named so it sorts *before* Mock Artist under a naive codepoint
+        // sort but after it alphabetically, which is what makes the A–Z
+        // assertion mean something.
+        id: 'mock-producer',
+        name: 'mock Producer',
+        aliases: ['boards'],
+        type: 'producer',
+        tier: 'standard',
+        genres: ['trap'],
+        relatedGenres: ['trap'],
+        era: null,
+        mine: false,
+      },
       // Appended rather than sorted in, exactly as `dataset::roster()` does it:
       // the rail decides where a producer's own styles appear, not the loader.
       ...[...userModels.values()].map((saved) => saved.entry),

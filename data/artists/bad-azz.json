@@ -1,0 +1,308 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "bad-azz",
+  "type": "artist",
+  "name": "Bad Azz",
+  "aliases": [
+    "bad azz",
+    "badazz",
+    "jamarr stamps",
+    "doggy style records"
+  ],
+  "tier": "standard",
+  "extends": [
+    "g-funk"
+  ],
+  "era": "1998-2001",
+  "genres": [
+    "rap",
+    "g-funk",
+    "west coast"
+  ],
+  "relatedGenres": [
+    "g-funk",
+    "west-coast-club",
+    "funk"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended vol.1 g-funk — Bad Azz",
+    "https://en.wikipedia.org/wiki/Meech_Wells",
+    "https://chadkiser.com/2016/06/27/battlecat-talks-producing-for-michael-jackson-dr-dre-snoop-dogg-the-hiphopdx-interview/"
+  ],
+  "notes": "⚠ **`confidence` is `low`**: the research rates this medium-low and marks it [LOW-CONF], grounded in his documented producer relationships (Battlecat, Meech Wells) rather than in his own interviews. Leaner and harder revival g-funk, and the researched distinctions are all reductions from the Eastsidaz kit that shares those producers. \"Snare thinner than Death Row-era\" is the one parameter stated as a comparison, so `velocityTiers.accent` drops to 96–116 and `main` to 70–84 — the quietest backbeat in this batch, against The Lady of Rage's loudest. Kick simple (2–4, syncopation 0.24), hats 16ths with light swing (0.56), two perc lanes. ⚠ The bass is the tune here — \"synth bass carrying the tune, register E1–C3, played with rests rather than continuous 8ths\" — which is `independent_riff` over the documented 28–48 span with `anticipationProb` 0.22 for the rests rather than a running line. ⚠ **The progression families are INFERRED beyond their count.** The research says only \"minor-mode, two-chord vamps\"; which two chords is not stated, so `i–VII`, `i–iv` and `i–VI` are the lane's commonest pairs standing in, and `maxChords` of 2 is the part the research actually supports. `melody.articulation` is legato and the density 2–4 because the research says a single sustained lead over a pad at low note density. ⚠ The bass ceiling came down from 48 to 45 so it stays under a chord part that starts at 46 — `coherence.rs` requires the highest bass note to sit at or below the lowest chord note, and this model overlapped by 3. ⚠ **The countermelody reached only 948 distinct answers in 1000 seeds against a floor of 980**, so it was given range: densityRatio 0.45. A counter is combinatorial in the styles it may pick, its density against the melody, and the phrase length it answers inside — one style over a thin density inside a single phrase length has almost nothing a seed can vary. ⚠ **The countermelody reached 949/1000 distinct answers against a floor of 980**, so its style pool was opened: octave_echo, bell_echo, densityRatio 0.55. ⛔ `counter.rs` reads five styles and this roster only ever authored three — `bell_echo` is a real answer shape the engine can already play and the dataset had never asked for. ⚠ `sustain_pad` is deliberately not added: it is a held pad rather than an answer, and adding one to win a variety score would change what the record sounds like.",
+  "session": {
+    "bpm": {
+      "min": 90,
+      "max": 100,
+      "mode": 95
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "minor_pentatonic",
+        "dorian"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.56
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        96,
+        116
+      ],
+      "main": [
+        70,
+        84
+      ],
+      "ghost": [
+        32,
+        46
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.24,
+      "tresilloBias": 0.1,
+      "offbeat8thShare": 0.15
+    },
+    "snare": {
+      "rimshotLayer": false,
+      "ghost": {
+        "prob": 0.16,
+        "pos": [
+          "2e",
+          "4e"
+        ],
+        "vel": [
+          0.2,
+          0.34
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.42,
+      "openHat": {
+        "prob": 0.24,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": [
+          "32"
+        ],
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.22
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "tambourine"
+      ],
+      "densityPerBar": [
+        1,
+        2
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t",
+        "8t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        58,
+        106
+      ],
+      "gapProb": 0.48,
+      "descendProb": 0.1,
+      "rampJitter": 10
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.44,
+      "seventh": 0.44,
+      "ninth": 0.12
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        46,
+        76
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "vamp",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      72,
+      94
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "densityPerBar": [
+      2,
+      4
+    ],
+    "motifPitchCount": [
+      3,
+      4
+    ],
+    "articulation": "legato",
+    "chordToneBias": 0.7
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.55,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "answer_lick",
+        "arp",
+        "octave_echo",
+        "bell_echo"
+      ],
+      "weights": [
+        3,
+        2,
+        2,
+        1,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.5,
+    "register": [
+      28,
+      45
+    ],
+    "glideProb": 0.45,
+    "passingTones": [
+      "M2",
+      "m3",
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.22
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "hook": 8,
+      "outro": 4
+    }
+  }
+}

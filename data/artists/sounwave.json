@@ -1,0 +1,276 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "sounwave",
+  "type": "artist",
+  "name": "Sounwave",
+  "aliases": [
+    "sounwave",
+    "mark spears"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "west-coast-club"
+  ],
+  "era": "2009-present",
+  "genres": [
+    "rap",
+    "west-coast-club"
+  ],
+  "relatedGenres": [
+    "west-coast-club",
+    "g-funk",
+    "neo-soul"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended vol.1 west-coast-club — Sounwave"
+  ],
+  "notes": "The architect of the TDE sound and Kendrick’s principal producer, and the research names his parameter as **adaptation across regimes** rather than a fixed grammar — he works the full 70–150 span. The one constant is the machine lineage ending at an **Akai MPC**, and the MPC feel persists: 2&4 clap and snap with small timing offsets, kicks on 1 and the late \"and-of-3\", 16th hats that thin out under vocals. ⚠ On the live records he **cedes the bass entirely to a played instrument**, which is why the bassline here is independent rather than kick-locked.",
+  "session": {
+    "bpm": {
+      "min": 70,
+      "max": 150,
+      "mode": 105
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "major",
+        "phrygian"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.54
+    },
+    "humanize": {
+      "quantizeStrength": 0.76,
+      "velocityVar": 0.2
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.4,
+      "lockTo808": 0.7
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "lowPassedClap": true,
+      "offGridMs": 4,
+      "ghost": {
+        "prob": 0.24,
+        "pos": [
+          "2e",
+          "4e"
+        ],
+        "vel": [
+          0.22,
+          0.4
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.42,
+      "velocities": {
+        "main": [
+          0.6,
+          0.85
+        ],
+        "ghost": [
+          0.2,
+          0.45
+        ]
+      },
+      "openHat": {
+        "prob": 0.28,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.14
+      }
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        52,
+        96
+      ],
+      "rampJitter": 9
+    },
+    "bass808": {
+      "role": "counter_riff",
+      "sustain": "legato",
+      "slideProb": 0.4,
+      "slidePositions": [
+        "phrase_end",
+        "bar_4"
+      ],
+      "register": [
+        18,
+        35
+      ],
+      "distortion": "none"
+    }
+  },
+  "melody": {
+    "register": [
+      62,
+      88
+    ],
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "rhodes"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.4,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "ii",
+          "v",
+          "i"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII",
+          "III"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "vi",
+          "ii",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.22,
+      "seventh": 0.5,
+      "ninth": 0.28
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        50,
+        84
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      16
+    ]
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.45,
+    "register": [
+      28,
+      47
+    ],
+    "glideProb": 0.1,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2"
+    ],
+    "anticipationProb": 0.34
+  }
+}

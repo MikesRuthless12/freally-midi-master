@@ -1,0 +1,283 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "dj-premier",
+  "type": "artist",
+  "name": "DJ Premier",
+  "aliases": [
+    "dj premier",
+    "premo",
+    "preemo",
+    "primo",
+    "christopher martin"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "boom-bap"
+  ],
+  "era": "1990-2005",
+  "genres": [
+    "rap",
+    "boom bap",
+    "producer"
+  ],
+  "relatedGenres": [
+    "boom-bap",
+    "lofi-hiphop"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended vol.1 boom-bap — DJ Premier",
+    "https://modeaudio.com/magazine/masters-of-sampling-dj-premier",
+    "https://www.mpc-forums.com/viewtopic.php?p=1534965"
+  ],
+  "notes": "The canonical boom-bap grammar, documented down to semitone and BPM values — which is why this is one of the few `high` entries in the batch. Four parameters carry it. **He pitches a break *down* to slow it rather than time-stretching**: a 100 BPM Kool & the Gang groove dropped ~16 BPM, \"Mass Appeal\" at 96 from a 118 BPM guitar source dropped 4 semitones, \"N.Y. State of Mind\" at 84. That is why the tempo band bottoms out at 84 and why the loops \"routinely land microtonally flat\" — the model cannot detune a MIDI note, so what carries it instead is a **narrow, low melody register and a very low note count**: 1–2 bar loops built from 1–2 second fragments. **The MPC swing is set low-to-moderate and the velocities are near-flat**, so `swing.amount` is 0.55 and `humanize` runs the highest `quantizeStrength` with the lowest `velocityVar` on this axis — the opposite end of the same control from J Dilla, which is the comparison worth having. **The kick is on 1 and the 4th 8th**, which reads as the &-of-2 counting from the downbeat, so `secondaryAnchor` is `2&` rather than the `3&` the rest of this lane uses; the snare is rigid on 2 and 4 with almost no ghosting. The bass is the sample's own bass filtered out: one or two notes a bar, sub used as kick weight and never as a melodic voice, so `mirror_kick` at `followRootsProb` 0.9 with a single passing tone. **The chorus melody is a scratch collage of other MCs' vocals rather than an instrument** — `timbreHint` says so and the countermelody is `answer_lick`-led, because a scratch hook answers a phrase, it does not sing over it. `percs.lanes` is empty on purpose: the research names no percussion layer, and inheriting the genre's five would be authoring one. ⛔ **`chords.impliedByRiff` is set.** This model reached only 356 distinct harmonies in 1000 seeds, and every honest lever — chord duration, harmonic rhythm, voicing window — was already open. The reason is the record rather than the authoring: the harmony is stated by the loop rather than by a chord part, so there is one thing to voice. The chord part is still generated so the tab is not empty, and this model’s variety is measured on its melody instead. ⚠ If it ever grows a real progression, delete this flag. ⚠ **The 1-bar phrase length was removed** (was [2,1,4], now [2,4]). A one-bar phrase looped four times carries less entropy than a four-bar phrase, and it is the countermelody it strangles hardest: a counter answers *inside* the melody’s phrase, so a one-bar shape leaves it nowhere to go. Every worst offender on `counter.rs` carried it. ⛔ The previous session recorded this exact mistake and it arrived again from the other direction — distinctness is combinatorial in the shape LENGTH, not in the option count.",
+  "session": {
+    "bpm": {
+      "min": 84,
+      "max": 98,
+      "mode": 90
+    },
+    "scales": {
+      "values": [
+        "dorian",
+        "natural_minor"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.55
+    },
+    "humanize": {
+      "quantizeStrength": 0.94,
+      "velocityVar": 0.07,
+      "timingJitterMs": {
+        "kick": 2,
+        "snare": 2,
+        "closedHat": 3
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.18,
+      "tresilloBias": 0
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "ghost": {
+        "prob": 0.1,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.16,
+          0.28
+        ]
+      },
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.3,
+      "velocities": {
+        "main": [
+          0.8,
+          0.9
+        ],
+        "ghost": [
+          0.3,
+          0.42
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "16T"
+          ],
+          "weights": [
+            5,
+            1
+          ]
+        },
+        "positions": [
+          "pre_snare"
+        ],
+        "freqPerBar": 0.31
+      },
+      "openHat": {
+        "prob": 0.09,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": []
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        59,
+        103
+      ],
+      "rampJitter": 5,
+      "descendProb": 0.08,
+      "gapProb": 0.36
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "ii",
+          "v",
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.5,
+      "seventh": 0.42,
+      "ninth": 0.08
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        44,
+        68
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        5,
+        3,
+        1
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      16
+    ],
+    "impliedByRiff": true
+  },
+  "melody": {
+    "register": [
+      58,
+      79
+    ],
+    "densityPerBar": [
+      2,
+      5
+    ],
+    "structure": "call_response",
+    "intervals": {
+      "step": 0.7,
+      "third": 0.24,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.56,
+      "descend": 0.34,
+      "arch": 0.1
+    },
+    "chordToneBias": 0.76,
+    "octaveJumpProb": 0.04,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        1
+      ]
+    },
+    "timbreHint": "chopped_vocal"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.3,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.9,
+    "register": [
+      26,
+      42
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.1
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": 16,
+      "hook": 8,
+      "outro": 4
+    }
+  }
+}

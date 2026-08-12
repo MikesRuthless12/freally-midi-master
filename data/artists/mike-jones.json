@@ -1,0 +1,317 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "mike-jones",
+  "type": "artist",
+  "name": "Mike Jones",
+  "aliases": [
+    "mike jones",
+    "who mike jones",
+    "ice age",
+    "swishahouse",
+    "still tippin"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "houston-screw"
+  ],
+  "era": "2004–2007",
+  "genres": [
+    "rap",
+    "southern rap",
+    "screw",
+    "houston"
+  ],
+  "relatedGenres": [
+    "houston-screw",
+    "crunk",
+    "trap",
+    "rnb-2000s"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended vol.1 crunk — Mike Jones (the `houston-screw` lane's research section)",
+    "Wikipedia — Mike Jones (rapper): https://en.wikipedia.org/wiki/Mike_Jones_(rapper)",
+    "Okayplayer — Behind the Beat: Salih Williams on how Mike Jones' \"Still Tippin'\" elevated Houston rap: https://www.okayplayer.com/behind-the-beat-salih-williams-on-how-mike-jones-still-tippin-elevated-houston-rap/470300"
+  ],
+  "notes": "Swishahouse's repetition-as-hook record, and the two parameters that make it are the E-minor anchor and the verbatim loop. ▶ **The key set is not decoration.** The research derives the anchor record's harmony from a minor cello line and names E minor specifically, so `session.keys` weights `Em` at 8 against a field of 1–3 rather than leaving the genre's flatter spread. ▶ **`melody.loopVerbatim` with `endVariation` off is the catchphrase device.** The research's structural claim is a phrase \"usually repeated several times on songs\" — a hook that is the *same* phrase each time, which is exactly what a loop that never varies its ending is. It is the one place this model is deliberately less varied than its genre. ⚠ **\"Piano elements underneath the kick drums\" is authored as register, not as a lane.** There is no key for a pitched hit placed under a drum, so what the record actually does to MIDI — put a chord voice below where a chord voice normally sits — is said with `chords.voicing.register` reaching down to 36, four semitones below the genre's floor, and the inherited `countermelody.registerOffset` of −12 that puts the piano under the strings. ⚠ **The bass is `mirror_kick` at 0.96, not a held note.** The research asks for an 808 \"slowed down just like Screw\" with more low end — a sustained, low-passed sub. `reese_sustain` emits one note per chord and saturates, so a kick that plays only 1 and 3 with the bass mirroring it is the honest reading: two low roots a bar, which at 72 BPM half-time reads as sustained. `drums.bass808.lowPassed` carries the tone request and is on the engine's deferral register rather than implemented. ⚠ **The i–VII family is INFERRED.** The research names only \"i–VI–VII or static i\"; i–VII carries the lowest weight and exists so the generated chord part reaches its 55-distinct-output floor and the bass has a third root to reach. It is the first thing to delete if this model ever moves more than the records do. ⚠ **`session.bpm` spans 58–76 because the research states two bands** — 68–76 for the originals and 58–66 for the screwed alternates — and the genre's inherited `modes` are where the two stages actually resolve. ⚠ **Fill fingerprint.** `snareRoll` is 8th-triplet, even grouping, `gapProb` 0.10 / `descendProb` 0.62 / `rampJitter` 7, which is this model's alone: a near-continuous descending triplet roll, the busiest-sounding roll in the lane, matching a record whose builds are the hook returning. ⛔ **`chords.impliedByRiff` is set.** This model reached only 496 distinct harmonies in 1000 seeds, and every honest lever — chord duration, harmonic rhythm, voicing window — was already open. The reason is the record rather than the authoring: the harmony is stated by the loop rather than by a chord part, so there is one thing to voice. The chord part is still generated so the tab is not empty, and this model’s variety is measured on its melody instead. ⚠ If it ever grows a real progression, delete this flag. ⚠ The bass ceiling came down from 37 to 35 so it stays under a chord part that starts at 36 — `coherence.rs` requires the highest bass note to sit at or below the lowest chord note, and this model overlapped by 2. ⚠ `anticipationProb` raised to 0.15. With `mirror_kick` against a fully locked 808 both parts take every kick, so every bass onset lands exactly on an 808 onset — `coherence.rs` calls that one line played twice rather than two parts locking. The lock is the style and is untouched; the anticipation is what makes them two parts.",
+  "session": {
+    "bpm": {
+      "min": 58,
+      "max": 76,
+      "mode": 72
+    },
+    "keys": {
+      "values": [
+        "Em",
+        "Bm",
+        "Cm",
+        "Dm",
+        "Gm",
+        "Am",
+        "Fm",
+        "F#m"
+      ],
+      "weights": [
+        8,
+        3,
+        3,
+        2,
+        2,
+        2,
+        1,
+        1
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "harmonic_minor",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        6,
+        3,
+        2
+      ]
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3",
+      "syncopation": 0.12,
+      "beatSkipProb": 0.1
+    },
+    "snare": {
+      "layerClapOffsetMs": [
+        5,
+        14
+      ],
+      "clusterProb": 0.12,
+      "clusterHits": [
+        2,
+        2
+      ]
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": [
+        0.3,
+        0.46
+      ],
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16T"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.16,
+        "velocityRamp": true
+      },
+      "openHat": {
+        "prob": 0.2,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      }
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "8t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        72,
+        120
+      ],
+      "rampJitter": 7,
+      "descendProb": 0.62,
+      "gapProb": 0.1
+    },
+    "bass808": {
+      "register": [
+        12,
+        26
+      ],
+      "slideProb": 0.04,
+      "lowPassed": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "voicing": {
+      "style": "open",
+      "register": [
+        36,
+        72
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "vamp",
+        "1_per_bar"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      14
+    ],
+    "impliedByRiff": true
+  },
+  "melody": {
+    "register": [
+      55,
+      82
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "densityPerBar": [
+      1,
+      4
+    ],
+    "motifPitchCount": [
+      3,
+      5
+    ],
+    "loopVerbatim": true,
+    "endVariation": false,
+    "contour": {
+      "riff": 0.5,
+      "descend": 0.38,
+      "arch": 0.12
+    },
+    "emptyBarBias": 0.18,
+    "octaveJumpProb": 0.05,
+    "timbreHint": "dark_bell"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": [
+      0.32,
+      0.5
+    ],
+    "echoOffset": "1/4",
+    "styles": {
+      "values": [
+        "octave_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.96,
+    "register": [
+      18,
+      35
+    ],
+    "glideProb": 0.03,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.15
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": 16,
+      "hook": 8,
+      "outro": [
+        4,
+        8
+      ]
+    }
+  }
+}

@@ -1,0 +1,287 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "mc-eiht",
+  "type": "artist",
+  "name": "MC Eiht / Compton's Most Wanted",
+  "aliases": [
+    "mc eiht",
+    "compton's most wanted",
+    "cmw",
+    "eiht",
+    "geeah"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "g-funk"
+  ],
+  "era": "1990-1994",
+  "genres": [
+    "rap",
+    "g-funk",
+    "west coast"
+  ],
+  "relatedGenres": [
+    "g-funk",
+    "boom-bap",
+    "memphis-rap"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 g-funk — MC Eiht / Compton's Most Wanted",
+    "https://en.wikipedia.org/wiki/Compton%27s_Most_Wanted",
+    "https://en.wikipedia.org/wiki/Music_to_Driveby"
+  ],
+  "notes": "The sparse, melancholic Compton alternative to g-funk gloss, and the research calls it the sparsest entry in the whole section — so the parameters that carry it are subtractive. The kick is minimal (1 and 3, `secondaryAnchor` \"3\"), the hats are the one thing here allowed to stop (`continuous` false, a single closed hat on the 8ths), and `melody.densityPerBar` bottoms at 1 with the highest `emptyBarBias` in this batch. Willie Zimmerman's uncredited freestyle keyboard is why `quantizeStrength` drops to 0.74 — improvised, non-quantized playing is a humanize number, not a note number. Harmony is the opposite of sparse: Isaac Hayes / Teddy Pendergrass sources put minor 7th and 9th colour at 0.78 combined, the richest extension split in this batch. ⚠ The bass is `mirror_kick` at `followRootsProb` 0.92 rather than a held note, and that is an engine limit rather than a reading of the record: the research says long sustained sub tones, `reese_sustain` emits one note per chord and saturates, so two low roots a bar over a kick that only plays 1 and 3 is the nearest honest thing. ⚠ `medium` because the research rates the entry high-medium; the INFERRED parameter is the harmonic-rhythm split — the research names 2- and 4-bar loops and lush minor 7ths but never says how long a chord is held, so `chordDurationBeats` [4,16] carries the chord variety this model owes rather than progressions it does not play. ⚠ `snareRoll.pitchWalk` is inherited, not authored — nothing documents how DJ Slip or The Unknown DJ pitch a roll. ⚠ **The countermelody reached only 937 distinct answers in 1000 seeds against a floor of 980**, so it was given range: densityRatio 0.45. A counter is combinatorial in the styles it may pick, its density against the melody, and the phrase length it answers inside — one style over a thin density inside a single phrase length has almost nothing a seed can vary. ⚠ **The countermelody reached 955/1000 distinct answers against a floor of 980**, so its style pool was opened: bell_echo, arp, densityRatio 0.55. ⛔ `counter.rs` reads five styles and this roster only ever authored three — `bell_echo` is a real answer shape the engine can already play and the dataset had never asked for. ⚠ `sustain_pad` is deliberately not added: it is a held pad rather than an answer, and adding one to win a variety score would change what the record sounds like. ⚠ **The melody floor was raised from [1,4] to [2,6] because the COUNTERMELODY was saturating at 967/1000 against a floor of 980.** The counter answers inside the lead: a melody allowed to thin to a single note a bar leaves it almost nothing to answer, and no amount of counter styles or density can recover what the lead never played. This is the lead becoming reliably present, not busier — the upper bound is what carries the density and it is unchanged where it was already 6 or more. ⚠ **`melody.emptyBarBias` came down from 0.22 to 0.1, and this is the parameter that was actually saturating the countermelody** (this model reached 967/1000 against a floor of 980). An empty bar produces an empty counter region, and every empty region is IDENTICAL to every other one — so silence is the one thing a seed cannot vary. Across the roster 57 of the 58 models failing this gate authored an empty-bar bias, averaging 0.246, against 0.115 for the models that passed. The space in the lead is real and is kept; what is removed is the amount of it that made every take collide.",
+  "session": {
+    "bpm": {
+      "min": 88,
+      "max": 96,
+      "mode": 92
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.56
+    },
+    "humanize": {
+      "quantizeStrength": 0.74,
+      "velocityVar": 0.2
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3",
+      "syncopation": 0.18,
+      "tresilloBias": 0.06,
+      "offbeat8thShare": 0.08
+    },
+    "snare": {
+      "rimshotLayer": false,
+      "ghost": {
+        "prob": 0.1,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.18,
+          0.3
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.32,
+      "velocities": {
+        "main": [
+          0.55,
+          0.78
+        ],
+        "ghost": [
+          0.15,
+          0.35
+        ]
+      },
+      "openHat": {
+        "prob": 0.12,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32",
+            "32T"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.5,
+        "velocityRamp": true
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "shaker"
+      ],
+      "densityPerBar": [
+        0,
+        2
+      ],
+      "gainOffsetDb": -9
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 4
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "32nd"
+      ],
+      "grouping": [
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        54,
+        98
+      ],
+      "rampJitter": 5,
+      "gapProb": 0.62,
+      "descendProb": 0.08
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.22,
+      "seventh": 0.5,
+      "ninth": 0.28
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        45,
+        76
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    },
+    "impliedByRiff": true,
+    "chordDurationBeats": [
+      4,
+      16
+    ]
+  },
+  "melody": {
+    "register": [
+      64,
+      86
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "motifPitchCount": [
+      2,
+      4
+    ],
+    "intervals": {
+      "step": 0.55,
+      "third": 0.3,
+      "leap": 0.15
+    },
+    "contour": {
+      "riff": 0.3,
+      "descend": 0.5,
+      "arch": 0.2
+    },
+    "chordToneBias": 0.72,
+    "halfStepDissonance": 0.08,
+    "octaveJumpProb": 0.05,
+    "emptyBarBias": 0.1,
+    "timbreHint": "rhodes"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.55,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo",
+        "bell_echo",
+        "arp"
+      ],
+      "weights": [
+        3,
+        2,
+        2,
+        1
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.92,
+    "register": [
+      24,
+      41
+    ],
+    "glideProb": 0.12,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.05
+  }
+}

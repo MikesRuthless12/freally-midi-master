@@ -1,0 +1,288 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "busta-rhymes",
+  "type": "artist",
+  "name": "Busta Rhymes",
+  "aliases": [
+    "busta rhymes",
+    "busta",
+    "trevor smith",
+    "flipmode squad"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "boom-bap"
+  ],
+  "era": "1996-2002",
+  "genres": [
+    "rap",
+    "boom-bap"
+  ],
+  "relatedGenres": [
+    "boom-bap",
+    "crunk",
+    "rnb-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 boom-bap — Busta Rhymes",
+    "Wikipedia — The Coming",
+    "Wikipedia — Woo-Hah!! Got You All in Check"
+  ],
+  "notes": "\"The fast end of the lane\", and the research ties two parameters directly to that tempo: hats on 16ths, which it calls out as \"denser than the genre norm to match the tempo\", and extra 16th-note kick pickups. So this is the only entry in the batch whose hat base is 16th outright, with `kick.densityPerBar` up at 4–6 and `syncopation` at 0.55 — both the highest here — while the tempo band tops out at 110. The melodic content moves the other way: \"frequently a repeated 3-note figure rather than a chord loop\", so `densityPerBar` stays low and `contour.riff` is 0.7. The bass is a syncopated 16th riff with short decay rather than a sustain, which is `independent_riff` with high anticipation and a small glide. Crash and reverse-cymbal transitions are the `percs` lanes; the mid-verse double-time switches are why `arrangement.transitions.switchUpProb` is 0.45, the highest here. ⚠ The `chromatic` scale entry is authored from the research's \"minor and chromatic\" and carries a low weight — it is a colour on a minority of seeds, not the model's centre. ⚠ `medium` because the research rates it medium-high and says the tempo range is catalog-level. The inferred parameters are the swing amount and the crash density. ⚠ The bass ceiling came down from 46 to 45 so it stays under a chord part that starts at 46 — `coherence.rs` requires the highest bass note to sit at or below the lowest chord note, and this model overlapped by 1.",
+  "session": {
+    "bpm": {
+      "min": 95,
+      "max": 110,
+      "mode": 102
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "phrygian",
+        "harmonic_minor",
+        "chromatic"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        1
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.53
+    },
+    "humanize": {
+      "quantizeStrength": 0.88,
+      "velocityVar": 0.15
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        4,
+        6
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.55,
+      "tresilloBias": 0.18
+    },
+    "snare": {
+      "rimshotLayer": false,
+      "ghost": {
+        "prob": 0.3,
+        "pos": [
+          "2e",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.24,
+          0.42
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.7,
+      "velocities": {
+        "main": [
+          0.8,
+          0.98
+        ],
+        "ghost": [
+          0.24,
+          0.5
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.2
+      },
+      "openHat": {
+        "prob": 0.35,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "crash",
+        "reverse",
+        "perc"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        50,
+        96
+      ],
+      "gapProb": 0.07,
+      "descendProb": 0.48,
+      "rampJitter": 21
+    }
+  },
+  "melody": {
+    "register": [
+      60,
+      84
+    ],
+    "densityPerBar": [
+      3,
+      6
+    ],
+    "intervals": {
+      "step": 0.5,
+      "third": 0.26,
+      "leap": 0.24
+    },
+    "contour": {
+      "riff": 0.7,
+      "descend": 0.2,
+      "arch": 0.1
+    },
+    "chordToneBias": 0.6,
+    "halfStepDissonance": 0.14,
+    "octaveJumpProb": 0.1,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "timbreHint": "synth_brass_stab"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.55,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.68,
+      "seventh": 0.28,
+      "ninth": 0.04
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        46,
+        80
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      2,
+      12
+    ]
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.5,
+    "register": [
+      26,
+      45
+    ],
+    "glideProb": 0.05,
+    "passingTones": [
+      "m3",
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.45
+  },
+  "arrangement": {
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.55,
+        "beats": 2
+      },
+      "switchUpProb": 0.45
+    }
+  }
+}

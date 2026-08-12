@@ -212,6 +212,7 @@
   },
   "roster": {
     "artists": "Künstler",
+    "producers": "Produzenten",
     "flagship": "Aushängeschild",
     "genre": "Stil",
     "noneInGenre": "Noch arbeitet niemand in {{name}}.",

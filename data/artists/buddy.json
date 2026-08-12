@@ -1,0 +1,265 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "buddy",
+  "type": "artist",
+  "name": "Buddy",
+  "aliases": [
+    "buddy",
+    "simmie sims"
+  ],
+  "tier": "standard",
+  "extends": [
+    "west-coast-club"
+  ],
+  "era": "2018-present",
+  "genres": [
+    "rap",
+    "west-coast-club"
+  ],
+  "relatedGenres": [
+    "west-coast-club",
+    "g-funk",
+    "trap"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended vol.1 west-coast-club — Buddy"
+  ],
+  "notes": "Compton’s melodic optimist — Pharrell-mentored and OutKast-referencing, and the stated lineage is the parameter: it puts **modal and gospel colour in the palette rather than 2-chord vamps**, with a fuller, more musical kit than the ratchet minimum because the arrangements are sung. ⚠ **`low`, and the research is explicit about why**: one measured tempo/key point (100 BPM, D♭ minor) plus a verified interview establishing lineage and collaborators. The harmony here is the inferred half and is marked `[LOW-CONF]` in the source.",
+  "session": {
+    "bpm": {
+      "min": 92,
+      "max": 108,
+      "mode": 100
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "major"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.54
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.34,
+      "lockTo808": 0.8
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "lowPassedClap": true,
+      "ghost": {
+        "prob": 0.22,
+        "pos": [
+          "2e",
+          "4e"
+        ],
+        "vel": [
+          0.22,
+          0.38
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.4,
+      "openHat": {
+        "prob": 0.25,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.3
+      }
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "8t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        70,
+        120
+      ],
+      "rampJitter": 11
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "slideProb": 0.3,
+      "register": [
+        24,
+        40
+      ],
+      "distortion": "none"
+    },
+    "percs": {
+      "lanes": [
+        "shaker"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      64,
+      88
+    ],
+    "densityPerBar": [
+      3,
+      6
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "church_organ"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.6,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII",
+          "III"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "ii",
+          "v",
+          "i"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.22,
+      "seventh": 0.5,
+      "ninth": 0.28
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        48,
+        82
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      16
+    ]
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.6,
+    "register": [
+      27,
+      45
+    ],
+    "glideProb": 0.2,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2"
+    ],
+    "anticipationProb": 0.3
+  }
+}

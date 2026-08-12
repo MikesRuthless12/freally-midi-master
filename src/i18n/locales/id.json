@@ -212,6 +212,7 @@
   },
   "roster": {
     "artists": "Artis",
+    "producers": "Produser",
     "flagship": "Unggulan",
     "genre": "Aliran",
     "noneInGenre": "Belum ada artis di {{name}}.",

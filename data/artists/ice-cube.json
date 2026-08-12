@@ -1,0 +1,300 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "ice-cube",
+  "type": "artist",
+  "name": "Ice Cube",
+  "aliases": [
+    "ice cube",
+    "oshea jackson",
+    "lench mob",
+    "amerikkkas most wanted",
+    "da lench mob"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "g-funk"
+  ],
+  "era": "1990-1998",
+  "genres": [
+    "rap",
+    "g-funk",
+    "west coast",
+    "gangsta rap"
+  ],
+  "relatedGenres": [
+    "g-funk",
+    "boom-bap",
+    "funk",
+    "west-coast-club"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended vol.1 g-funk — Ice Cube",
+    "https://medium.com/cuepoint/ice-cube-check-the-technique-202d2a794008",
+    "https://en.wikipedia.org/wiki/It_Was_a_Good_Day"
+  ],
+  "notes": "The solo run only, and it spans two production regimes the research treats as one model: the Bomb Squad-built 1990 record and the 1992–94 West Coast funk pivot. What survives both is the drum method, documented as a three-stage hierarchy — bottom beats assembled on an 8-track, then \"seasoned\" with additional percussion, then scratches — so this is the only entry in the batch with six perc lanes at 3–5 hits a bar and snare ghosts on all four 16th offbeats. The 1990–91 records swing harder and sit faster, which is why `bpm.max` is 102 against the lane's 100 and `swing` is 0.6. ⚠ The harmony is authored across both regimes on purpose: the 1990–91 material is riff/loop-modal with no functional progression and the 1992–94 pivot brings major-mode soul samples (Isley Brothers, The Moments) on diatonic 4-bar loops, so both a minor loop family and a major `I–vi–IV` family are present with `2_bars_per_chord` weighted top for \"fewer, longer loops\". ⚠ Sir Jinx's documented brief — keep the record from sounding East Coast — is turned into three numbers rather than a mood: melody register dropped to 67–89 for low-mid warmth, `articulation` legato for more sustain, and a chord voicing register capped at 73. `timbreHint` is `clean_guitar` for the live guitar and flute overdubs. ⚠ The bass is looped sampled bass plus added sub with live bass also used, so it is `independent_riff` but at a high `followRootsProb` of 0.6 — a sampled bass follows the record it came from. The hard cold opens are a 2–4 bar intro and `switchUpProb` 0.12 for the skit architecture. ⚠ The bass ceiling came down from 45 to 44 so it stays under a chord part that starts at 45 — `coherence.rs` requires the highest bass note to sit at or below the lowest chord note, and this model overlapped by 1.",
+  "session": {
+    "bpm": {
+      "min": 90,
+      "max": 102,
+      "mode": 95
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "major",
+        "minor_pentatonic",
+        "dorian"
+      ],
+      "weights": [
+        3,
+        3,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.6
+    },
+    "humanize": {
+      "quantizeStrength": 0.82,
+      "velocityVar": 0.18
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.44,
+      "tresilloBias": 0.24,
+      "offbeat8thShare": 0.3
+    },
+    "snare": {
+      "rimshotLayer": true,
+      "ghost": {
+        "prob": 0.3,
+        "pos": [
+          "1a",
+          "2e",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.22,
+          0.4
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.55,
+      "openHat": {
+        "prob": 0.3,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "rolls": {
+        "vocab": [
+          "32"
+        ],
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.27
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "shaker",
+        "conga",
+        "perc",
+        "rim",
+        "timbale"
+      ],
+      "densityPerBar": [
+        3,
+        5
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t",
+        "8t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        62,
+        114
+      ],
+      "gapProb": 0.16,
+      "descendProb": 0.32,
+      "rampJitter": 20
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "vi",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII",
+          "iv"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.34,
+      "seventh": 0.48,
+      "ninth": 0.18
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        45,
+        73
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      67,
+      89
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "densityPerBar": [
+      3,
+      6
+    ],
+    "contour": {
+      "riff": 0.5,
+      "descend": 0.3,
+      "arch": 0.2
+    },
+    "chordToneBias": 0.68,
+    "articulation": "legato",
+    "timbreHint": "clean_guitar"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.45,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.6,
+    "register": [
+      26,
+      44
+    ],
+    "glideProb": 0.28,
+    "passingTones": [
+      "m3",
+      "P4",
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.24
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": 16,
+      "hook": 8,
+      "outro": [
+        4,
+        8
+      ]
+    },
+    "transitions": {
+      "switchUpProb": 0.12
+    }
+  }
+}

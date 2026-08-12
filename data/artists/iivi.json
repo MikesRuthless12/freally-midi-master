@@ -1,0 +1,154 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "iivi",
+  "type": "artist",
+  "name": "IIVI (George Astasio)",
+  "aliases": ["iivi", "ii vi", "george astasio", "invisible men"],
+  "tier": "standard",
+  "extends": ["dark-trap"],
+  "era": "2017-2019",
+  "genres": ["rap", "trap", "dark-trap", "emo-rap", "producer"],
+  "relatedGenres": ["dark-trap", "emo-rap", "pop-2020s"],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 dark-trap — IIVI (George Astasio)",
+    "https://en.wikipedia.org/wiki/Come_Over_When_You%27re_Sober,_Pt._2",
+    "https://en.wikipedia.org/wiki/Awful_Things"
+  ],
+  "notes": "The Invisible Men member who co-produced both *Come Over When You're Sober* albums — documented as \"[helping] sandpaper [the songs] into shape\", the professional-studio counterweight to Smokeasac's SoundCloud instincts. He shares the grid (four-note minor motif, 808 under guitars, triple-time hats) so this file's job is to author the *difference*, and every parameter below is one of the four differences the research names. (1) \"Arranged in conventional pop sections with cleaner transitions; drums enter on the downbeat of a section rather than mid-phrase\" — `quantizeStrength` 0.97, `switchUpProb` 0.06 and `dropOutBeats` down to 0.3, against Smokeasac's 0.65, plus a verse/pre/chorus scaffolding in `structures`. (2) \"A lifted b7→1 or 5→6 move at the end of the hook to give a chorus its resolution\" — `borrowed.V` at 0.25 with `harmonic_minor` weighted into the scale pool, because a raised leading tone is what that lift is. (3) \"A second guitar layer and vocal harmony stacks that the pure-SoundCloud version lacks\" — `countermelody.densityRatio` 0.55 with `arp` and `answer_lick`, well above his co-producer's 0.35. (4) \"808 root doubling the guitar, sidechained under the vocal so the top line stays intelligible\" — the 808 velocity tier drops and `chordToneBias` rises to 0.74 so the top line resolves. ⚠ `medium` matches the research, and the honesty warning in the paragraph is unusually strong: his role and credits are documented, but **the bullets separating his contribution from Smokeasac's are themselves inference**, marked `[LOW-CONF]`. So the INFERRED parameters here are the borrowed-V lift, the drum-entry and sidechain readings, and the tempo — that is most of this file, and it is only defensible as *the pop-craft delta on the Smokeasac grid*.",
+  "session": {
+    "bpm": { "min": 140, "max": 160, "mode": 148 },
+    "scales": {
+      "values": ["natural_minor", "harmonic_minor"],
+      "weights": [4, 3]
+    },
+    "humanize": { "quantizeStrength": 0.97, "velocityVar": 0.09 }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [100, 118],
+      "main": [78, 92],
+      "ghost": [42, 56]
+    },
+    "kick": {
+      "densityPerBar": [3, 4],
+      "anchors": ["1"],
+      "secondaryAnchor": "3",
+      "syncopation": 0.28,
+      "tresilloBias": 0.14,
+      "lockTo808": 1
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "layered": true,
+      "layerClapOffsetMs": [4, 9],
+      "ghost": { "prob": 0.2, "pos": ["4&"], "vel": [0.34, 0.5] },
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.54,
+      "velocities": { "main": [0.74, 0.96], "ghost": [0.34, 0.54] },
+      "rolls": {
+        "vocab": { "values": ["16", "16T"], "weights": [2, 4] },
+        "positions": ["phrase_end", "pre_snare"],
+        "freqPerBar": 0.49,
+        "velocityRamp": true
+      },
+      "fill": {
+        "prob": 0.6,
+        "subdivision": { "values": ["32", "32T"], "weights": [3, 3] },
+        "notes": 6
+      },
+      "openHat": { "prob": 0.22, "pos": ["2&", "4&"], "perBar": [0, 1] },
+      "pitchBendProb": 0.04
+    },
+    "percs": {
+      "lanes": ["shaker", "rim"],
+      "densityPerBar": [0, 2]
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "monoCutSelf": true,
+      "slideProb": 0.18,
+      "slideIntervals": { "values": ["P8", "P5"], "weights": [3, 2] },
+      "slidePositions": ["phrase_end"],
+      "register": [26, 42],
+      "distortion": "light",
+      "distortionWet": [0.06, 0.16]
+    },
+    "fills": { "smallEveryBars": 2, "bigEveryBars": 4 },
+    "snareRoll": {
+      "subdivisions": ["16th", "32nd"],
+      "grouping": ["strong_weak_weak_weak"],
+      "velocityRampRange": [66, 110],
+      "gapProb": 0.12,
+      "descendProb": 0.29,
+      "rampJitter": 7
+    }
+  },
+  "melody": {
+    "register": [54, 80],
+    "densityPerBar": [3, 7],
+    "motifPitchCount": [4, 5],
+    "structure": "question_answer",
+    "articulation": "legato",
+    "intervals": { "step": 0.68, "third": 0.26, "leap": 0.06 },
+    "contour": { "riff": 0.32, "descend": 0.34, "arch": 0.34 },
+    "chordToneBias": 0.74,
+    "halfStepDissonance": 0.1,
+    "octaveJumpProb": 0.08,
+    "endVariation": true,
+    "phraseBars": { "values": [4, 8], "weights": [4, 3] },
+    "timbreHint": "guitar"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.55,
+    "styles": { "values": ["arp", "answer_lick"], "weights": [3, 3] }
+  },
+  "chords": {
+    "progressionFamilies": [
+      { "roman": ["i", "VI", "III", "VII"], "weight": 4 },
+      { "roman": ["i", "VII", "VI"], "weight": 3 },
+      { "roman": ["i", "iv", "VI", "VII"], "weight": 2 }
+    ],
+    "maxChords": 4,
+    "borrowed": { "V": 0.25 },
+    "extensions": { "triad": 0.6, "seventh": 0.32, "ninth": 0.08 },
+    "voicing": { "style": "close", "register": [46, 80], "topVoiceStepwise": true },
+    "harmonicRhythm": {
+      "values": ["1_per_bar", "2_bars_per_chord"],
+      "weights": [5, 2]
+    },
+    "chordDurationBeats": [2, 10]
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.9,
+    "register": [26, 43],
+    "glideProb": 0.14,
+    "passingTones": ["P5", "M2"],
+    "anticipationProb": 0.2
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "hook": 8,
+      "bridge": 8,
+      "outro": 4
+    },
+    "structures": [
+      { "sections": ["intro", "verse", "hook", "verse", "hook", "bridge", "hook", "outro"], "weight": 4 },
+      { "sections": ["intro", "hook", "verse", "hook", "verse", "hook", "outro"], "weight": 2 }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": { "prob": 0.3, "beats": 2 },
+      "switchUpProb": 0.06
+    }
+  }
+}

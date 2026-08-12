@@ -1,0 +1,144 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "flatbush-zombies",
+  "type": "artist",
+  "name": "Flatbush Zombies",
+  "aliases": ["flatbush zombies", "beast coast", "meechy darko", "zombie juice", "erick arc elliott"],
+  "tier": "flagship",
+  "extends": ["dark-trap"],
+  "era": "2013-2018",
+  "genres": ["rap", "psychedelic-rap", "dark-trap"],
+  "relatedGenres": ["dark-trap", "boom-bap", "cloud-rap"],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 dark-trap — Flatbush Zombies",
+    "https://en.wikipedia.org/wiki/3001:_A_Laced_Odyssey",
+    "https://en.wikipedia.org/wiki/Flatbush_Zombies"
+  ],
+  "notes": "Brooklyn psychedelic-horror rap, entirely in-house produced, and the research puts it at the *consonant* end of this axis: \"more harmonic movement than the trap-metal branch\", with string beds and detuned pads giving m7/m9/add9 colours over i–VI–III–VII and i–iv–VII. So this is the only entry in this batch with four-chord families, `maxChords` 4 and `extensions` weighted away from triads. Like Danny Brown it is not a half-time trap grid: the documented default is 80–100 straight with the snare on 2 and 4, so `halfTime` is off and `snare.placement` is `backbeat_24`, with the range reaching 150 for the trap-leaning cuts. The most specific drum claim is a mix one that is still a MIDI fact — the \"hard-hitting\" quality comes from parallel-compressed drum buses rather than clipping — which is authored as a *narrowed* dynamic range: accents at 104–120 over mains at 92–104 and ghosts that never drop below 58, so nothing is quiet and nothing is at the ceiling. Hats are 8ths or a ride, so `base` is `8th` with `ride` in `percs.lanes`. The three-voice arrangement (loop + drone + counter-line) is why `melody.densityPerBar` reaches 9 and `countermelody.densityRatio` is 0.6 with a `sustain_pad` alongside the two required styles — the research says note density here is above lane average. ⚠ `medium` because the research rates it high-medium; the INFERRED parameters are the tempi, which the paragraph says are inferred, and the specific `velocityTiers` numbers, which are my reading of \"parallel compression\" rather than a documented figure.",
+  "session": {
+    "bpm": { "min": 80, "max": 150, "mode": 92 },
+    "halfTime": false,
+    "scales": {
+      "values": ["natural_minor", "dorian", "harmonic_minor", "phrygian"],
+      "weights": [4, 3, 2, 1]
+    },
+    "swing": { "grid": "16th", "amount": 0.54 },
+    "humanize": { "quantizeStrength": 0.84, "velocityVar": 0.14 }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [104, 120],
+      "main": [92, 104],
+      "ghost": [58, 70]
+    },
+    "kick": {
+      "densityPerBar": [3, 5],
+      "anchors": ["1"],
+      "secondaryAnchor": "3",
+      "syncopation": 0.45,
+      "tresilloBias": 0.12,
+      "lockTo808": 0.5
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "rimshotLayer": true,
+      "ghost": { "prob": 0.28, "pos": ["2e", "4a"], "vel": [0.3, 0.5] },
+      "offGridMs": 2
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.44,
+      "velocities": { "main": [0.7, 0.95], "ghost": [0.34, 0.55] },
+      "rolls": {
+        "vocab": { "values": ["16", "16T"], "weights": [4, 2] },
+        "positions": ["phrase_end", "pre_snare"],
+        "freqPerBar": 0.46,
+        "velocityRamp": true
+      },
+      "openHat": { "prob": 0.26, "pos": ["2&", "4&"], "perBar": [0, 2] },
+      "pitchBendProb": 0
+    },
+    "percs": {
+      "lanes": ["ride", "shaker", "crash"],
+      "densityPerBar": [1, 4]
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "slideProb": 0.1,
+      "slidePositions": ["phrase_end"],
+      "register": [24, 41],
+      "distortion": "light",
+      "distortionWet": [0.05, 0.2]
+    },
+    "fills": { "smallEveryBars": 2, "bigEveryBars": 4 },
+    "snareRoll": {
+      "subdivisions": ["16th", "32nd"],
+      "grouping": ["strong_weak_weak_weak"],
+      "velocityRampRange": [66, 114],
+      "gapProb": 0.22,
+      "descendProb": 0.47,
+      "rampJitter": 21
+    }
+  },
+  "melody": {
+    "register": [62, 90],
+    "densityPerBar": [4, 9],
+    "structure": "long_arc",
+    "intervals": { "step": 0.66, "third": 0.24, "leap": 0.1 },
+    "contour": { "riff": 0.3, "descend": 0.35, "arch": 0.35 },
+    "chordToneBias": 0.68,
+    "halfStepDissonance": 0.22,
+    "colorTones": [2, 6, 7],
+    "octaveJumpProb": 0.1,
+    "phraseBars": { "values": [4, 8], "weights": [4, 3] },
+    "timbreHint": "gloom_pad"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.6,
+    "styles": {
+      "values": ["answer_lick", "arp", "sustain_pad"],
+      "weights": [3, 3, 2]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      { "roman": ["i", "VI", "III", "VII"], "weight": 4 },
+      { "roman": ["i", "iv", "VII"], "weight": 4 },
+      { "roman": ["i", "VI"], "weight": 2 }
+    ],
+    "maxChords": 4,
+    "extensions": { "triad": 0.35, "seventh": 0.45, "ninth": 0.2 },
+    "voicing": { "style": "open", "register": [46, 82], "topVoiceStepwise": true },
+    "harmonicRhythm": {
+      "values": ["1_per_bar", "2_bars_per_chord", "vamp"],
+      "weights": [4, 3, 1]
+    },
+    "chordDurationBeats": [2, 12]
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.82,
+    "register": [24, 43],
+    "glideProb": 0.08,
+    "passingTones": ["P5", "m7", "M2"],
+    "anticipationProb": 0.2
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [8, 12],
+      "verse": 16,
+      "hook": 8,
+      "bridge": [4, 8],
+      "outro": [4, 8]
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": { "prob": 0.55, "beats": 2 },
+      "switchUpProb": 0.42
+    }
+  }
+}

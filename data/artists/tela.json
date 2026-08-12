@@ -1,0 +1,367 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "tela",
+  "type": "artist",
+  "name": "Tela",
+  "aliases": [
+    "tela",
+    "winston rogers",
+    "sho nuff",
+    "suave house",
+    "tela type beat"
+  ],
+  "tier": "standard",
+  "extends": [
+    "memphis-rap"
+  ],
+  "era": "1996-2000",
+  "genres": [
+    "rap",
+    "memphis",
+    "southern rap",
+    "pimp soul"
+  ],
+  "relatedGenres": [
+    "memphis-rap",
+    "rnb-2000s",
+    "neo-soul",
+    "g-funk"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended vol.1 memphis-rap — Tela",
+    "https://en.wikipedia.org/wiki/Tela_(rapper)",
+    "https://en.wikipedia.org/wiki/Suave_House_Records"
+  ],
+  "notes": "The R&B-hook end of the Memphis spectrum, and the second Suave House entry — so like 8Ball & MJG it overrides the parent's harmony rather than tightening it: minor-7 and dominant-9 voicings with ii–v–i and i–iv motion, **real changes rather than drones**. What separates him from the duo is softness rather than harmony. The research says the 808 kit carries soul-record swing, that fills are **keyboard-led rather than snare-roll-led**, and that hats are 8ths with light 16th accents — so `session.swing` rises to 0.60 (the loosest in this batch), the hat-roll frequency sits at the bottom of its band and the snare roll is the gappiest of the Suave House pair. The played bass line walks the changes, hence `independent_riff` at `followRootsProb` 0.55 with four passing tones. The keyboard countermelody between vocal phrases is a described part, so it runs at 0.5 density with `fillGapsOnly` on — it fills the gaps, which is literally what \"between vocal phrases\" means, and it is the only entry here using `arp` alongside the answer lick. ⚠ `low`: the research rates it medium-low and says **the harmony and drum values are inherited from the documented Suave House / 8Ball & MJG template rather than sourced for him**, and marks the tempo band [LOW-CONF] (66–78 half-time = 132–156 straight). The label, the era and the hit single are what is sourced; `chords`, `drums.kick` and `session.bpm` are the inferred blocks. ⚠ The bass ceiling came down from 47 to 45 so it stays under a chord part that starts at 46 — `coherence.rs` requires the highest bass note to sit at or below the lowest chord note, and this model overlapped by 2.",
+  "session": {
+    "bpm": {
+      "min": 132,
+      "max": 156,
+      "mode": 144
+    },
+    "scales": {
+      "values": [
+        "dorian",
+        "natural_minor",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        4,
+        4,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.6
+    },
+    "humanize": {
+      "quantizeStrength": 0.8,
+      "velocityVar": 0.2
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        88,
+        110
+      ],
+      "main": [
+        60,
+        78
+      ],
+      "ghost": [
+        28,
+        42
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.28,
+      "tresilloBias": 0.26
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.2,
+        "pos": [
+          "4e",
+          "4a"
+        ],
+        "vel": [
+          0.22,
+          0.4
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.3,
+      "velocities": {
+        "main": [
+          0.52,
+          0.76
+        ],
+        "ghost": [
+          0.2,
+          0.4
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "16T"
+          ],
+          "weights": [
+            4,
+            3
+          ]
+        },
+        "positions": [
+          "pre_snare"
+        ],
+        "freqPerBar": 0.3,
+        "velocityRamp": false
+      },
+      "openHat": {
+        "prob": 0.2,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "shaker"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "placement": "offbeat",
+      "gainOffsetDb": -5
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        56,
+        100
+      ],
+      "rampJitter": 17,
+      "descendProb": 0.4,
+      "gapProb": 0.54
+    },
+    "bass808": {
+      "slideProb": 0.08,
+      "slideIntervals": {
+        "values": [
+          "P4",
+          "P5"
+        ],
+        "weights": [
+          3,
+          2
+        ]
+      },
+      "register": [
+        18,
+        33
+      ],
+      "distortion": "none"
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "ii",
+          "v",
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "ii",
+          "v"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.28,
+      "seventh": 0.52,
+      "ninth": 0.2
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        46,
+        76
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    },
+    "susOrDimProb": 0.04
+  },
+  "melody": {
+    "register": [
+      55,
+      79
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "densityPerBar": [
+      3,
+      6
+    ],
+    "structure": "question_answer",
+    "motifPitchCount": [
+      4,
+      7
+    ],
+    "intervals": {
+      "step": 0.66,
+      "third": 0.26,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.28,
+      "descend": 0.34,
+      "arch": 0.38
+    },
+    "chordToneBias": 0.78,
+    "halfStepDissonance": 0.05,
+    "emptyBarBias": 0.1,
+    "octaveJumpProb": 0.06,
+    "timbreHint": "soft_keys"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.5,
+    "fillGapsOnly": true,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.55,
+    "register": [
+      28,
+      45
+    ],
+    "glideProb": 0.05,
+    "passingTones": [
+      "M2",
+      "m3",
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.28
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "bridge",
+          "hook",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "sectionBars": {
+      "intro": 8,
+      "verse": 16,
+      "hook": 8,
+      "bridge": 8,
+      "outro": 8
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.25,
+        "beats": 2
+      },
+      "switchUpProb": 0.12
+    }
+  }
+}

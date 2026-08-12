@@ -2397,7 +2397,10 @@ fn every_flagship_artist_sounds_unlike_the_genre_it_extends() {
 
     let mut checked = 0;
     for (id, model) in models {
-        if model.model_type != engine::dataset::ModelType::Artist {
+        // ⚠ Producers are held to the same claim as artists — "Trap is not
+        // Metro Boomin" is *about* a producer — so this asks whether the model
+        // is a style rather than whether it is specifically an artist.
+        if !model.model_type.is_style() {
             continue;
         }
         let parent = model

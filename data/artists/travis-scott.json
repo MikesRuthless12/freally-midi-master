@@ -25,7 +25,7 @@
   "sources": [
     "style-research ch.3 Travis Scott (flagship)"
   ],
-  "notes": "Psychedelic trap. Sparse hats, hard 808-locked kicks, and a snare on 3 drenched in short reverb; the 808 is cavernous and slides into section downbeats.",
+  "notes": "Psychedelic trap. Sparse hats, hard 808-locked kicks, and a snare on 3 drenched in short reverb; the 808 is cavernous and slides into section downbeats. ⚠ `anticipationProb` raised to 0.15. With `mirror_kick` against a fully locked 808 both parts take every kick, so every bass onset lands exactly on an 808 onset — `coherence.rs` calls that one line played twice rather than two parts locking. The lock is the style and is untouched; the anticipation is what makes them two parts.",
   "session": {
     "bpm": {
       "min": 130,
@@ -310,5 +310,8 @@
   },
   "kit": {
     "preview": "trap-default"
+  },
+  "bassline": {
+    "anticipationProb": 0.15
   }
 }

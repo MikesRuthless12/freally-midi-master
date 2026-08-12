@@ -1,0 +1,290 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "trippie-redd",
+  "type": "artist",
+  "name": "Trippie Redd",
+  "aliases": [
+    "trippie redd",
+    "trippie",
+    "michael lamar white iv",
+    "1400"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "trap"
+  ],
+  "era": "2017-present",
+  "genres": [
+    "rap",
+    "trap"
+  ],
+  "relatedGenres": [
+    "trap",
+    "rage",
+    "emo-rap"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 trap — Trippie Redd",
+    "https://en.wikipedia.org/wiki/Trippie_Redd",
+    "https://en.wikipedia.org/wiki/Life%27s_a_Trip"
+  ],
+  "notes": "Distortion is the organising parameter, and the research says so twice: the 808 is deliberately overdriven as a timbral choice, and the distorted timbres blur the harmony. So this model carries the heaviest `distortionWet` and the highest `slideProb` in the batch, and pays for the blurred harmony with a lowered `chordToneBias` and a raised `halfStepDissonance`. The vocal parameter the research names — wide leaps into a strained top register — is authored as the batch's highest `leap` share and `octaveJumpProb` over a register that reaches 99. Guitar-derived i–VI–VII and i–VII–VI carry the harmony; `supersaw_guitar_hybrid` is the timbre for the distorted-guitar-plus-detuned-pad palette. The `crash` percussion lane is the live-feel kit the research says doubles the 808 kit on the rock-leaning cuts. ⚠ `medium` because the research rates era/palette medium-high and tempo specifics only medium. ⚠ ⛔ The upper BPM bound is marked [LOW-CONF] in the research — `max` 165 comes from the \"harder cuts push 150–165\" claim and is the least-sourced number in this file; `mode` 145 sits inside the well-sourced 130–160 band so the centre of gravity does not depend on it. ⚠ `anticipationProb` raised to 0.15. With `mirror_kick` against a fully locked 808 both parts take every kick, so every bass onset lands exactly on an 808 onset — `coherence.rs` calls that one line played twice rather than two parts locking. The lock is the style and is untouched; the anticipation is what makes them two parts.",
+  "session": {
+    "bpm": {
+      "min": 130,
+      "max": 165,
+      "mode": 145
+    },
+    "scales": {
+      "values": [
+        "harmonic_minor",
+        "phrygian",
+        "natural_minor"
+      ],
+      "weights": [
+        4,
+        3,
+        3
+      ]
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1"
+      ],
+      "syncopation": 0.5,
+      "tresilloBias": 0.25,
+      "avoidPreSnareGap": "8th"
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.62,
+      "velocities": {
+        "main": [
+          0.85,
+          1
+        ],
+        "ghost": [
+          0.4,
+          0.6
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "16T"
+          ],
+          "weights": [
+            4,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "pre_snare"
+        ],
+        "freqPerBar": 0.58,
+        "velocityRamp": true,
+        "rampRange": [
+          0.45,
+          1
+        ]
+      },
+      "openHat": {
+        "prob": 0.32,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "crash",
+        "rim"
+      ],
+      "densityPerBar": [
+        0,
+        2
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 4
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th",
+        "32nd"
+      ],
+      "grouping": [
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        66,
+        118
+      ],
+      "rampJitter": 12,
+      "descendProb": 0.62,
+      "gapProb": 0.2
+    },
+    "bass808": {
+      "sustain": "legato",
+      "monoCutSelf": true,
+      "slideProb": 0.7,
+      "slidesPer4Bars": [
+        2,
+        4
+      ],
+      "distortion": "heavy",
+      "distortionWet": [
+        0.35,
+        0.65
+      ],
+      "register": [
+        16,
+        32
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      74,
+      99
+    ],
+    "densityPerBar": [
+      5,
+      9
+    ],
+    "intervals": {
+      "step": 0.42,
+      "third": 0.26,
+      "leap": 0.32
+    },
+    "contour": {
+      "riff": 0.55,
+      "descend": 0.25,
+      "arch": 0.2
+    },
+    "chordToneBias": 0.55,
+    "halfStepDissonance": 0.14,
+    "octaveJumpProb": 0.38,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    },
+    "timbreHint": "supersaw_guitar_hybrid"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.55,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "arp"
+      ],
+      "weights": [
+        2,
+        3
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.75,
+      "seventh": 0.2,
+      "ninth": 0.05
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        50,
+        80
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        3,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      3,
+      8
+    ]
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.82,
+    "register": [
+      16,
+      32
+    ],
+    "glideProb": 0.72,
+    "passingTones": [
+      "P5",
+      "m7",
+      "m3"
+    ],
+    "anticipationProb": 0.15
+  }
+}

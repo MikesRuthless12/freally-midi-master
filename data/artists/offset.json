@@ -1,0 +1,365 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "offset",
+  "type": "artist",
+  "name": "Offset",
+  "aliases": [
+    "offset",
+    "kiari cephus",
+    "father of 4",
+    "set"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "trap"
+  ],
+  "era": "2019-present",
+  "genres": [
+    "rap",
+    "trap"
+  ],
+  "relatedGenres": [
+    "trap",
+    "dark-trap",
+    "atl-swag-rap"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 trap — Offset",
+    "https://en.wikipedia.org/wiki/Father_of_4",
+    "https://www.vice.com/en/article/migos-interview-offset/"
+  ],
+  "notes": "\"The rhythmically busiest of the three\", and the model says that in the kick: `densityPerBar` [6, 8] at `syncopation` 0.74 is the busiest kick in this batch by a clear margin, against Jeezy's [2, 3] at 0.18. The rest follows the darker half of the research paragraph. \"Often harmonic-minor with an augmented-2nd colour\" leads the scale weights — the only entry in the batch where `harmonic_minor` outranks everything — and the palette is choir and detuned brass rather than bell. \"Hard-attack distorted 808, pitch movement in 4ths/5ths, glides on the last 16th of the bar\" is `distortion: heavy` with a `P4`/`P5` interval set and `slidePositions` reduced to `phrase_end`, which is where the last 16th of a bar lands. \"Melody often just a rhythmic ostinato\" over a \"wide register spread\" and a \"low pitch count\" is `motifPitchCount` 4 across a 30-semitone melodic register with `contour.riff` at 0.82. The \"mid-song beat switch used more often than his peers\" is `transitions.switchUpProb` 0.32, the highest here. ⚠ **The roll frequency is capped at 0.20 by this batch's authoring band**, and the research asks for \"fast 32nd/64th rolls\": the vocabulary is fixed to 16ths in this band, so the aggression is carried by the roll's ramp (the widest velocity span in the batch, [45, 103]) and by `gapProb` 0.08 rather than by finer subdivisions. ⚠ `confidence` is `medium` — the research rates the entry high-medium with no per-session sourcing. INFERRED: every velocity figure, the reverse-crash as a perc lane, and the family weights. ⚠ `anticipationProb` raised to 0.15. With `mirror_kick` against a fully locked 808 both parts take every kick, so every bass onset lands exactly on an 808 onset — `coherence.rs` calls that one line played twice rather than two parts locking. The lock is the style and is untouched; the anticipation is what makes them two parts.",
+  "session": {
+    "bpm": {
+      "min": 130,
+      "max": 152,
+      "mode": 144
+    },
+    "scales": {
+      "values": [
+        "harmonic_minor",
+        "natural_minor",
+        "phrygian"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        6,
+        8
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2a",
+      "syncopation": 0.74,
+      "tresilloBias": 0.32,
+      "andOf4EveryOtherBar": 0.6,
+      "avoidPreSnareGap": "16th"
+    },
+    "snare": {
+      "layered": true,
+      "layerClapOffsetMs": [
+        3,
+        7
+      ],
+      "ghost": {
+        "prob": 0.34,
+        "pos": [
+          "3e",
+          "4a"
+        ],
+        "vel": [
+          0.4,
+          0.58
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8T",
+      "continuous": true,
+      "fillDensity": 0.7,
+      "velocities": {
+        "main": [
+          0.88,
+          1
+        ],
+        "ghost": [
+          0.44,
+          0.62
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.2,
+        "velocityRamp": true,
+        "rampRange": [
+          0.4,
+          1
+        ]
+      },
+      "openHat": {
+        "prob": 0.32,
+        "pos": [
+          "1a",
+          "3a"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "pitchBendProb": 0.18
+    },
+    "percs": {
+      "lanes": [
+        "reverse",
+        "crash"
+      ],
+      "densityPerBar": [
+        0,
+        2
+      ],
+      "placement": "downbeat"
+    },
+    "bass808": {
+      "sustain": "legato",
+      "slideProb": 0.6,
+      "slidesPer4Bars": [
+        2,
+        4
+      ],
+      "slideIntervals": {
+        "values": [
+          "P4",
+          "P5"
+        ],
+        "weights": [
+          4,
+          4
+        ]
+      },
+      "slidePositions": [
+        "phrase_end"
+      ],
+      "register": [
+        17,
+        31
+      ],
+      "distortion": "heavy"
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        45,
+        103
+      ],
+      "rampJitter": 22,
+      "descendProb": 0.2,
+      "gapProb": 0.08,
+      "dualLayerProb": 0.4
+    }
+  },
+  "melody": {
+    "register": [
+      59,
+      89
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "structure": "riff_loop",
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    },
+    "motifPitchCount": 4,
+    "intervals": {
+      "step": 0.4,
+      "third": 0.26,
+      "leap": 0.34
+    },
+    "contour": {
+      "riff": 0.82,
+      "descend": 0.12,
+      "arch": 0.06
+    },
+    "chordToneBias": 0.66,
+    "halfStepDissonance": 0.2,
+    "octaveJumpProb": 0.28,
+    "timbreHint": "chant_stab"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.36,
+    "styles": {
+      "values": [
+        "arp",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        4
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "bII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "borrowed": {
+      "V": 0.3
+    },
+    "extensions": {
+      "triad": 0.76,
+      "seventh": 0.2,
+      "ninth": 0.04
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        43,
+        77
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "syncopated_cell",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      2,
+      9
+    ]
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "bridge",
+          "verse",
+          "hook"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "sectionBars": {
+      "intro": 2,
+      "verse": {
+        "values": [
+          16,
+          20
+        ],
+        "weights": [
+          3,
+          2
+        ]
+      },
+      "hook": 4,
+      "bridge": 4,
+      "outro": 4
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.6,
+        "beats": 2
+      },
+      "switchUpProb": 0.32
+    }
+  },
+  "bassline": {
+    "anticipationProb": 0.15
+  }
+}

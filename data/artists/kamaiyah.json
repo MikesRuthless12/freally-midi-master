@@ -1,0 +1,344 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "kamaiyah",
+  "type": "artist",
+  "name": "Kamaiyah",
+  "aliases": [
+    "kamaiyah",
+    "kamaiyah jamesha johnson",
+    "oakland party rap"
+  ],
+  "tier": "standard",
+  "extends": [
+    "west-coast-club"
+  ],
+  "era": "2016-present",
+  "genres": [
+    "rap",
+    "west coast",
+    "club",
+    "funk"
+  ],
+  "relatedGenres": [
+    "west-coast-club",
+    "g-funk",
+    "hyphy"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 west-coast-club — Kamaiyah",
+    "https://songdata.io/search?query=Kamaiyah",
+    "https://djbooth.net/features/2020-06-24-kamaiyah-interview-achieving-indie-success/",
+    "https://en.wikipedia.org/wiki/Kamaiyah"
+  ],
+  "notes": "Oakland's 90s-revivalist party rap: g-funk and new-jack harmony rebuilt at the modern club spine, 90–105 straight 2&4. Three things separate it from the Mustard template it inherits. ⚠ **The bass is not an 808.** The research says \"synth bass playing a syncopated funk line rather than a kick-locked 808 — melodic, wide intervals, register E1–G2, no trap glides\", so `drums.bass808.role` moves off `bassline` to `counter_riff` and the real `bassline` part runs: `independent_riff`, `followRootsProb` 0.5, `glideProb` 0.06 for the stated absence of glides, and `anticipationProb` 0.3 for the syncopation. Register is the researched E1–G2 (28–43) exactly. ⚠ **The voicings are major-leaning over minor bass** — \"add9, maj7 keys over minor bass\" — so `major` joins the scale set the genre narrows to minor colours, `extensions` drops the triad share to 0.4, and `I–vi–IV–V` sits alongside `i–VII–VI–VII` because the research names both families. ⚠ **The tambourine on the 8ths is the 90s-revival tell**, so `tambourineMirrorsClap` is turned off — it is its own 8th-note lane, not a clap double — and `percs.lanes` carries shaker and tambourine over the genre's cowbell/triangle. ⚠ `confidence` is `medium` because the research rates this medium-high: the tempo/key cluster and the instrument list are sourced, but **`chords.extensions` and `susSubstitutionProb` are the INFERRED parameters** — \"add9, maj7\" is a colour description, not a measured distribution, and the numbers here are a reading of it. Fill fingerprint band G: `fills` 4/4, a 32nd `strong_weak_weak_weak` roll, hat rolls at 0.52 per bar; `pitchWalk` is inherited because nothing in the research says how these producers pitch a roll. ⚠ **`lockTo808` raised from 0.5 to 0.61.** The 808 takes each kick with this probability, and at 0.5 over this model's 8-kick floor a seed could produce no 808 at all — which `bass808.rs` refuses, because a declared 808 that sometimes vanishes is a part a producer cannot rely on. It is still well under a lock: a good share of kicks carry no sub.",
+  "session": {
+    "bpm": {
+      "min": 90,
+      "max": 105,
+      "mode": 98
+    },
+    "keys": {
+      "values": [
+        "Fm",
+        "Am",
+        "Cm",
+        "B",
+        "D",
+        "Ab"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "major",
+        "dorian",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.54
+    },
+    "humanize": {
+      "quantizeStrength": 0.82,
+      "velocityVar": 0.18
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.3,
+      "offbeat8thShare": 0.22,
+      "lockTo808": 0.61
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "stack": [
+        "clap",
+        "snare"
+      ],
+      "ghost": {
+        "prob": 0.18,
+        "pos": [
+          "2e",
+          "4e"
+        ],
+        "vel": [
+          0.3,
+          0.45
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.36,
+      "openHat": {
+        "prob": 0.35,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "rolls": {
+        "vocab": [
+          "32",
+          "32T"
+        ],
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.52
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "tambourine",
+        "snap"
+      ],
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "tambourineMirrorsClap": false
+    },
+    "bass808": {
+      "role": "counter_riff",
+      "sustain": "staccato",
+      "slideProb": 0.05,
+      "register": [
+        28,
+        43
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 4
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "32nd"
+      ],
+      "grouping": [
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        56,
+        102
+      ],
+      "rampJitter": 15,
+      "gapProb": 0.1,
+      "descendProb": 0.52
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "vi",
+          "IV",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.4,
+      "seventh": 0.4,
+      "ninth": 0.2
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        78
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    },
+    "susSubstitutionProb": 0.12
+  },
+  "melody": {
+    "register": [
+      64,
+      88
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "densityPerBar": [
+      3,
+      6
+    ],
+    "motifPitchCount": [
+      3,
+      5
+    ],
+    "intervals": {
+      "step": 0.55,
+      "third": 0.3,
+      "leap": 0.15
+    },
+    "contour": {
+      "riff": 0.4,
+      "descend": 0.3,
+      "arch": 0.3
+    },
+    "chordToneBias": 0.72,
+    "octaveJumpProb": 0.14,
+    "timbreHint": "bright_synth_lead"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.45,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.5,
+    "register": [
+      28,
+      43
+    ],
+    "glideProb": 0.06,
+    "passingTones": [
+      "M2",
+      "m3",
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.3
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "hook": 8,
+      "outro": 4
+    }
+  }
+}

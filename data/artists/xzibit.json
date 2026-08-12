@@ -1,0 +1,284 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "xzibit",
+  "type": "artist",
+  "name": "Xzibit",
+  "aliases": [
+    "xzibit",
+    "x to the z",
+    "alvin joiner"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "g-funk"
+  ],
+  "era": "1996-2002",
+  "genres": [
+    "rap",
+    "g-funk",
+    "west coast"
+  ],
+  "relatedGenres": [
+    "g-funk",
+    "west-coast-club",
+    "boom-bap"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 g-funk — Xzibit",
+    "https://en.wikipedia.org/wiki/Restless_(Xzibit_album)",
+    "https://hiphopdx.com/editorials/the-players-of-dr-dres-2001-where-are-they-now/"
+  ],
+  "notes": "The bridge out of 1993 synth funk into the 1999–2001 Aftermath idiom, and the two parameters that say so are the tightest quantize in this batch (0.94) against a genre that sits at 0.84, and a bass that is `mirror_kick` at `followRootsProb` 0.90 — the research calls the shift to \"simple root-motion lines locked to the kick\" a documented move away from the melodic-bass habit of 1993, and locking to the kick is exactly what this model does. Several 2000-era cuts read half-time, so the kick drops to 1 and 3 under a 2&4 snare (`secondaryAnchor` \"3\", `densityPerBar` [2,3]) while the snare gets the biggest layered crack here. Hats are sparse and stop (`continuous` false at 0.30) because the research says so twice: \"sparse hats\", \"louder and drier than mid-90s g-funk\". Harmony is rolling piano and strings in close position, so `voicing.style` is `close` and its register is the lowest here. ⚠ `medium` on the research's high-medium. INFERRED: the progression families — the research names \"2-bar minor loops\" and a producer roster (Battlecat, Quik, Rick Rock, Sir Jinx, Soopafly, Mel-Man, Nottz, Rockwilder, Erick Sermon) but no actual changes, so i–VI and i–VII–VI are the LA-minor default rather than a sourced claim.",
+  "session": {
+    "bpm": {
+      "min": 88,
+      "max": 98,
+      "mode": 93
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "harmonic_minor",
+        "dorian"
+      ],
+      "weights": [
+        4,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.53
+    },
+    "humanize": {
+      "quantizeStrength": 0.94,
+      "velocityVar": 0.09
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3",
+      "syncopation": 0.22,
+      "tresilloBias": 0.05,
+      "offbeat8thShare": 0.12
+    },
+    "snare": {
+      "rimshotLayer": false,
+      "ghost": {
+        "prob": 0.08,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.18,
+          0.28
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.3,
+      "velocities": {
+        "main": [
+          0.78,
+          1
+        ],
+        "ghost": [
+          0.18,
+          0.38
+        ]
+      },
+      "openHat": {
+        "prob": 0.18,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32",
+            "32T"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.55,
+        "velocityRamp": true
+      }
+    },
+    "percs": {
+      "lanes": [
+        "perc",
+        "rim"
+      ],
+      "densityPerBar": [
+        0,
+        2
+      ],
+      "gainOffsetDb": -8
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 4
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "32nd"
+      ],
+      "grouping": [
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        56,
+        102
+      ],
+      "rampJitter": 8,
+      "gapProb": 0.35,
+      "descendProb": 0.12
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.58,
+      "seventh": 0.34,
+      "ninth": 0.08
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        44,
+        72
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      67,
+      89
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "densityPerBar": [
+      2,
+      5
+    ],
+    "motifPitchCount": [
+      3,
+      5
+    ],
+    "intervals": {
+      "step": 0.58,
+      "third": 0.28,
+      "leap": 0.14
+    },
+    "contour": {
+      "riff": 0.4,
+      "descend": 0.35,
+      "arch": 0.25
+    },
+    "chordToneBias": 0.74,
+    "halfStepDissonance": 0.07,
+    "octaveJumpProb": 0.06,
+    "emptyBarBias": 0.14,
+    "timbreHint": "staccato_piano_stab"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.36,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        1
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.9,
+    "register": [
+      26,
+      43
+    ],
+    "glideProb": 0.1,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.08
+  }
+}

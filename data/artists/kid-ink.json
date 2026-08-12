@@ -1,0 +1,261 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "kid-ink",
+  "type": "artist",
+  "name": "Kid Ink",
+  "aliases": [
+    "kid ink",
+    "brian collins"
+  ],
+  "tier": "standard",
+  "extends": [
+    "west-coast-club"
+  ],
+  "era": "2012-2017",
+  "genres": [
+    "rap",
+    "west-coast-club"
+  ],
+  "relatedGenres": [
+    "west-coast-club",
+    "rnb-2000s",
+    "trap"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 west-coast-club — Kid Ink"
+  ],
+  "notes": "The LA radio-rap crossover of the ratchet era. Distinguished by **two tempo populations rather than one** — 130–134 half-time for the trap-leaning cuts and 95–105 straight for the club singles — and by features being structural: the sung guest hook supplies most of the melodic content, so the countermelody is dense rather than decorative. Tambourine and reverse-cymbal transitions are habitual, which is what the fill fingerprint carries.",
+  "session": {
+    "bpm": {
+      "min": 95,
+      "max": 134,
+      "mode": 102
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "major"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.54
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.38,
+      "lockTo808": 0.9
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "lowPassedClap": true,
+      "layerClapOffsetMs": [
+        3,
+        8
+      ],
+      "ghost": {
+        "prob": 0.22,
+        "pos": [
+          "2e",
+          "4e"
+        ],
+        "vel": [
+          0.25,
+          0.4
+        ]
+      }
+    },
+    "hihat": {
+      "base": {
+        "values": [
+          "16th",
+          "8th"
+        ],
+        "weights": [
+          3,
+          2
+        ]
+      },
+      "continuous": true,
+      "fillDensity": 0.5,
+      "openHat": {
+        "prob": 0.35,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.07
+      }
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        44,
+        92
+      ],
+      "rampJitter": 6
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "slideProb": 0.35,
+      "slidePositions": [
+        "phrase_end"
+      ],
+      "register": [
+        17,
+        33
+      ],
+      "distortion": "none"
+    }
+  },
+  "melody": {
+    "register": [
+      66,
+      90
+    ],
+    "densityPerBar": [
+      3,
+      6
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "bright_bell"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.7,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.45,
+      "seventh": 0.42,
+      "ninth": 0.13
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        48,
+        80
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      16
+    ]
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.8,
+    "register": [
+      26,
+      43
+    ],
+    "glideProb": 0.12,
+    "passingTones": [
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.25
+  }
+}

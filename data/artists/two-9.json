@@ -1,0 +1,582 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "two-9",
+  "type": "artist",
+  "name": "Two-9",
+  "aliases": [
+    "two 9",
+    "two-9",
+    "retro sushi",
+    "retro su$h!",
+    "fatkidsbrotha",
+    "key!",
+    "curtis williams",
+    "frvr"
+  ],
+  "tier": "standard",
+  "extends": [
+    "atl-swag-rap"
+  ],
+  "era": "2012-2017",
+  "genres": [
+    "rap",
+    "trap",
+    "swag rap"
+  ],
+  "relatedGenres": [
+    "atl-swag-rap",
+    "trap",
+    "cloud-rap",
+    "boom-bap"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended vol.1 atl-swag-rap — Two-9",
+    "http://www.xxlmag.com/news/2013/04/meet-two-9",
+    "https://en.wikipedia.org/wiki/Two-9"
+  ],
+  "notes": "The hinge between the origin wave and the ØWay/YSL-orbit underground, and the only entry in this batch whose harmony genuinely moves inside the cell. The collective's cited reference points are unusually wide for the lane (A Tribe Called Quest, N.W.A, Elton John), which the research reads as \"actual chord changes inside a 4-bar cell rather than a one-chord vamp\" — so this model gets four-chord families, `1_per_bar` weighted over `vamp`, and no `impliedByRiff`. Dorian over natural minor is the second marker. ⚠ `modes` is authored because the collective is documented as internally split, member by member, in an XXL interview: Retro Su$h! are \"a little bit more melody-driven. We work a lot with melody\", FatKidsBrotha are the grimy 90s-rooted half whose listening is \"old West coast\" and Dilla/Slum Village — \"loose, slightly-behind placement fighting the trap grid.\" That split is the entry. The loose-side mode drops `quantizeStrength` to 0.55 and pushes `snare.offGridMs` to [8,16]; it is also where the bass stops being an 808, because the research says the sampled/loop side \"sometimes uses a real bass line from the source material instead\" — hence `independent_riff` at `followRootsProb` 0.5 there against `mirror_kick` at 0.78 in the base. ⚠ `confidence` is \"low\" because the research rates it medium-low. Documented: member roles, the melodic/grimy split, and the production sources (Mike WiLL Made-It on the label cuts, DJ Osh Kosh on mix). INFERRED and marked [LOW-CONF] in the research: the BPM range (130-150 half-time), the drum and 808 detail, and **the chord numerals** — \"actual chord changes inside a 4-bar cell\" is the claim, the specific i-VII-VI-v and i-iv-VII families are this model's inference from it. ⚠ `arrangement` is the one place the research is concrete and it is not the genre default: posse-cut form, \"8- to 16-bar verses handed between four or five voices, one shared hook, no pre-chorus; long DJ-friendly intros on the mixtape cuts.\" Hence two verses before the first hook, verse lengths as a range, and an intro of 8-16 bars.",
+  "session": {
+    "bpm": {
+      "min": 130,
+      "max": 150,
+      "mode": 140
+    },
+    "scales": {
+      "values": [
+        "dorian",
+        "natural_minor",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.6
+    },
+    "humanize": {
+      "quantizeStrength": 0.66,
+      "velocityVar": 0.22,
+      "timingJitterMs": {
+        "kick": 5,
+        "snare": 9,
+        "clap": 9,
+        "closedHat": 8,
+        "openHat": 8,
+        "perc": 9,
+        "bass808": 5
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.5,
+      "tresilloBias": 0.34
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "layerClapOffsetMs": [
+        5,
+        13
+      ],
+      "ghost": {
+        "prob": 0.38,
+        "pos": [
+          "2&",
+          "3a",
+          "4&"
+        ],
+        "vel": [
+          0.26,
+          0.46
+        ]
+      },
+      "offGridMs": [
+        5,
+        12
+      ]
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.46,
+      "velocities": {
+        "main": [
+          0.68,
+          0.92
+        ],
+        "ghost": [
+          0.32,
+          0.56
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16T"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.21,
+        "velocityRamp": true
+      },
+      "openHat": {
+        "prob": 0.32,
+        "pos": [
+          "2&",
+          "4&",
+          "4a"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "shaker",
+        "perc"
+      ],
+      "placement": "offbeat",
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "gainOffsetDb": -7
+    },
+    "bass808": {
+      "sustain": "legato",
+      "slideProb": 0.36,
+      "register": [
+        22,
+        38
+      ],
+      "distortion": "light"
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "8t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        72,
+        124
+      ],
+      "rampJitter": 16,
+      "descendProb": 0.28,
+      "gapProb": 0.4
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI",
+          "v"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.42,
+      "seventh": 0.42,
+      "ninth": 0.16
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        50,
+        80
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "syncopated_cell"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      2,
+      6
+    ]
+  },
+  "melody": {
+    "register": [
+      65,
+      90
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    },
+    "structure": "call_response",
+    "intervals": {
+      "step": 0.52,
+      "third": 0.3,
+      "leap": 0.18
+    },
+    "contour": {
+      "riff": 0.38,
+      "descend": 0.3,
+      "arch": 0.32
+    },
+    "chordToneBias": 0.58,
+    "halfStepDissonance": 0.14,
+    "octaveJumpProb": 0.26,
+    "timbreHint": "detuned_bell"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.44,
+    "fillGapsOnly": true,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.78,
+    "register": [
+      22,
+      40
+    ],
+    "glideProb": 0.3,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2"
+    ],
+    "anticipationProb": 0.3
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "verse",
+          "hook",
+          "verse",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "verse",
+          "hook",
+          "verse",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "sectionBars": {
+      "intro": [
+        8,
+        16
+      ],
+      "verse": [
+        8,
+        16
+      ],
+      "hook": 8,
+      "outro": 4
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.5,
+        "beats": 2
+      },
+      "switchUpProb": 0.14
+    }
+  },
+  "modes": [
+    {
+      "name": "Retro Su$h! melodic",
+      "weight": 3,
+      "session": {
+        "scales": {
+          "values": [
+            "dorian",
+            "natural_minor"
+          ],
+          "weights": [
+            4,
+            3
+          ]
+        },
+        "humanize": {
+          "quantizeStrength": 0.74,
+          "velocityVar": 0.18
+        }
+      },
+      "drums": {
+        "snare": {
+          "offGridMs": [
+            3,
+            8
+          ]
+        },
+        "hihat": {
+          "fillDensity": 0.52
+        }
+      },
+      "chords": {
+        "extensions": {
+          "triad": 0.34,
+          "seventh": 0.46,
+          "ninth": 0.2
+        }
+      },
+      "melody": {
+        "densityPerBar": [
+          5,
+          10
+        ],
+        "phraseBars": {
+          "values": [
+            2,
+            4
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "structure": "call_response",
+        "chordToneBias": 0.6
+      },
+      "countermelody": {
+        "densityRatio": 0.5,
+        "styles": {
+          "values": [
+            "answer_lick",
+            "arp"
+          ],
+          "weights": [
+            3,
+            3
+          ]
+        }
+      }
+    },
+    {
+      "name": "FatKidsBrotha loop side",
+      "weight": 2,
+      "session": {
+        "bpm": {
+          "min": 130,
+          "max": 144,
+          "mode": 136
+        },
+        "swing": {
+          "grid": "16th",
+          "amount": 0.63
+        },
+        "humanize": {
+          "quantizeStrength": 0.55,
+          "velocityVar": 0.26,
+          "timingJitterMs": {
+            "kick": 7,
+            "snare": 14,
+            "clap": 14,
+            "closedHat": 10,
+            "openHat": 10,
+            "perc": 12,
+            "bass808": 7
+          }
+        }
+      },
+      "drums": {
+        "kick": {
+          "densityPerBar": [
+            2,
+            4
+          ],
+          "syncopation": 0.34,
+          "tresilloBias": 0.18
+        },
+        "snare": {
+          "offGridMs": [
+            8,
+            16
+          ],
+          "ghost": {
+            "prob": 0.5,
+            "vel": [
+              0.2,
+              0.4
+            ]
+          }
+        },
+        "hihat": {
+          "base": "8th",
+          "fillDensity": 0.38,
+          "rolls": {
+            "freqPerBar": 0.16
+          }
+        },
+        "percs": {
+          "densityPerBar": [
+            0,
+            2
+          ]
+        },
+        "bass808": {
+          "distortion": "none",
+          "slideProb": 0.12
+        }
+      },
+      "chords": {
+        "extensions": {
+          "triad": 0.36,
+          "seventh": 0.48,
+          "ninth": 0.16
+        },
+        "voicing": {
+          "style": "close",
+          "register": [
+            46,
+            74
+          ]
+        }
+      },
+      "melody": {
+        "register": [
+          62,
+          86
+        ],
+        "densityPerBar": [
+          3,
+          7
+        ],
+        "phraseBars": {
+          "values": [
+            4,
+            2
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "structure": "riff_loop",
+        "octaveJumpProb": 0.12,
+        "timbreHint": "chopped_vocal"
+      },
+      "countermelody": {
+        "registerOffset": 12,
+        "densityRatio": 0.36,
+        "styles": {
+          "values": [
+            "octave_echo",
+            "answer_lick"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        }
+      },
+      "bassline": {
+        "rhythm": "independent_riff",
+        "followRootsProb": 0.5,
+        "register": [
+          28,
+          47
+        ],
+        "glideProb": 0.05,
+        "passingTones": [
+          "P5",
+          "m7",
+          "M2",
+          "M3"
+        ],
+        "anticipationProb": 0.36
+      }
+    }
+  ]
+}

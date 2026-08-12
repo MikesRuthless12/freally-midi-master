@@ -1,0 +1,377 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "jay-z",
+  "type": "artist",
+  "name": "JAY-Z",
+  "aliases": [
+    "jay z",
+    "jayz",
+    "jay-z",
+    "hov",
+    "hova",
+    "shawn carter"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "boom-bap"
+  ],
+  "era": "1996-2003",
+  "genres": [
+    "rap",
+    "boom-bap"
+  ],
+  "relatedGenres": [
+    "boom-bap",
+    "trap"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended vol.1 boom-bap — Jay-Z",
+    "HipHopDX — Ski Beatz on \"Dead Presidents\"",
+    "Wikipedia — The Blueprint"
+  ],
+  "notes": "Two documented windows, and they are different enough to be modes rather than an average. Roc-A-Fella jazz/soul loop rap (1996–1998) is minor and Dorian; the Blueprint sound (2001–2003) is sped-up major-key gospel/soul, which reads sharp of its source record and brings genuine I–IV–V motion with it. Averaging the two would produce a model that is neither.",
+  "session": {
+    "bpm": {
+      "min": 88,
+      "max": 102,
+      "mode": 96
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "major"
+      ],
+      "weights": [
+        3,
+        3,
+        3
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.57
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.4
+    },
+    "snare": {
+      "rimshotLayer": false,
+      "lowPassedClap": false,
+      "layerClapOffsetMs": [
+        3,
+        7
+      ],
+      "ghost": {
+        "prob": 0.3,
+        "pos": [
+          "1a",
+          "2e",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.22,
+          0.4
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.55,
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "16T"
+          ],
+          "weights": [
+            4,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "pre_snare"
+        ],
+        "freqPerBar": 0.5,
+        "velocityRamp": true
+      },
+      "openHat": {
+        "prob": 0.35,
+        "pos": [
+          "1&",
+          "3&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th",
+        "32nd"
+      ],
+      "gapProb": 0.3,
+      "descendProb": 0.3,
+      "grouping": [
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        64,
+        116
+      ],
+      "rampJitter": 14
+    }
+  },
+  "melody": {
+    "register": [
+      64,
+      88
+    ],
+    "densityPerBar": [
+      3,
+      6
+    ],
+    "intervals": {
+      "step": 0.58,
+      "third": 0.32,
+      "leap": 0.1
+    },
+    "contour": {
+      "riff": 0.45,
+      "descend": 0.3,
+      "arch": 0.25
+    },
+    "chordToneBias": 0.72,
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "vi",
+          "IV",
+          "V"
+        ],
+        "weight": 3
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.45,
+      "seventh": 0.42,
+      "ninth": 0.13
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.9,
+    "register": [
+      26,
+      44
+    ],
+    "glideProb": 0.03,
+    "anticipationProb": 0.25
+  },
+  "modes": [
+    {
+      "name": "reasonable-doubt",
+      "weight": 3,
+      "session": {
+        "bpm": {
+          "min": 88,
+          "max": 96,
+          "mode": 92
+        },
+        "scales": {
+          "values": [
+            "dorian",
+            "natural_minor"
+          ],
+          "weights": [
+            4,
+            3
+          ]
+        }
+      },
+      "chords": {
+        "progressionFamilies": [
+          {
+            "roman": [
+              "i",
+              "VII",
+              "VI"
+            ],
+            "weight": 4
+          },
+          {
+            "roman": [
+              "i",
+              "iv"
+            ],
+            "weight": 3
+          },
+          {
+            "roman": [
+              "ii",
+              "v",
+              "i"
+            ],
+            "weight": 2
+          }
+        ],
+        "extensions": {
+          "triad": 0.3,
+          "seventh": 0.55,
+          "ninth": 0.15
+        }
+      },
+      "melody": {
+        "densityPerBar": [
+          2,
+          5
+        ],
+        "timbreHint": "soft_keys"
+      }
+    },
+    {
+      "name": "blueprint",
+      "weight": 3,
+      "session": {
+        "bpm": {
+          "min": 92,
+          "max": 102,
+          "mode": 98
+        },
+        "scales": {
+          "values": [
+            "major"
+          ],
+          "weights": [
+            1
+          ]
+        }
+      },
+      "chords": {
+        "progressionFamilies": [
+          {
+            "roman": [
+              "I",
+              "IV",
+              "V"
+            ],
+            "weight": 4
+          },
+          {
+            "roman": [
+              "I",
+              "vi",
+              "IV",
+              "V"
+            ],
+            "weight": 4
+          },
+          {
+            "roman": [
+              "I",
+              "V",
+              "vi",
+              "IV"
+            ],
+            "weight": 2
+          }
+        ],
+        "extensions": {
+          "triad": 0.55,
+          "seventh": 0.35,
+          "ninth": 0.1
+        }
+      },
+      "melody": {
+        "register": [
+          70,
+          92
+        ],
+        "densityPerBar": [
+          4,
+          7
+        ],
+        "contour": {
+          "riff": 0.35,
+          "descend": 0.3,
+          "arch": 0.35
+        },
+        "timbreHint": "vocal_chop"
+      },
+      "drums": {
+        "hihat": {
+          "rolls": {
+            "freqPerBar": 0.6
+          }
+        }
+      }
+    }
+  ]
+}

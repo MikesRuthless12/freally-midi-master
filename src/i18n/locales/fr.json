@@ -212,6 +212,7 @@
   },
   "roster": {
     "artists": "Artistes",
+    "producers": "Producteurs",
     "flagship": "Emblématique",
     "genre": "Style",
     "noneInGenre": "Aucun artiste ne travaille encore en {{name}}.",

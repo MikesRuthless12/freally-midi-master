@@ -1,0 +1,304 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "kurupt",
+  "type": "artist",
+  "name": "Kurupt",
+  "aliases": [
+    "kurupt",
+    "young gotti",
+    "kurupt young gotti",
+    "ricardo brown"
+  ],
+  "tier": "standard",
+  "extends": [
+    "g-funk"
+  ],
+  "era": "1995-2001",
+  "genres": [
+    "rap",
+    "g-funk",
+    "west coast"
+  ],
+  "relatedGenres": [
+    "g-funk",
+    "boom-bap",
+    "west-coast-club"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 g-funk — Kurupt",
+    "https://albumism.com/features/tha-dogg-pound-debut-album-dogg-food-turns-25-anniversary-retrospective",
+    "https://en.wikipedia.org/wiki/Restless_(Xzibit_album)"
+  ],
+  "notes": "The technical, double-time MC of the roster, and every parameter here exists to get out of the vocal's way. The research is unusually direct about it: harder and straighter 2&4 with fewer swing artifacts (`swing` 0.52 against the genre's 0.57, `quantizeStrength` 0.92), a kick that \"tightens toward two-per-bar\" (`densityPerBar` 2–3, syncopation cut to 0.22), hats \"mostly closed 16ths so the vocal density reads\" (open hats down to 0.08), sparse voicing leaving the mid-range clear (melody floor lifted to 76, counter `densityRatio` at the 0.32 minimum because the research says the countermelody is minimal *by design*). ⚠ **The bass is `mirror_kick`, and that is the research's reading rather than an engine limit**: \"sustained synth bass locked closer to the kick than classic g-funk — bass functions rhythmically, not melodically\". `followRootsProb` is 0.88 rather than 1.0 and the register spans 17 semitones so the line still has a reachable pool; `reese_sustain` is not used anywhere in this dataset. ⚠ `confidence` is `medium` and **the inferred block is `chords`** — the research marks the harmonic detail [LOW-CONF] and says it is deduced from his producer roster (Soopafly, Fredwreck, Battlecat) rather than from his records. The five families and the seventh-heavy extensions are that deduction; they are the first thing to revise if a better source appears. ⚠ The arrangement authors verses at 12–16 bars and a structure with no hook on two of its passes, because the research says album cuts have no chorus and posse cuts allocate 12–16 bars a voice.",
+  "session": {
+    "bpm": {
+      "min": 92,
+      "max": 104,
+      "mode": 98
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "minor_pentatonic",
+        "mixolydian"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        1
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.52
+    },
+    "humanize": {
+      "quantizeStrength": 0.92,
+      "velocityVar": 0.11
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3",
+      "syncopation": 0.22,
+      "tresilloBias": 0.08,
+      "offbeat8thShare": 0.12
+    },
+    "snare": {
+      "rimshotLayer": false,
+      "ghost": {
+        "prob": 0.1,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.18,
+          0.3
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.5,
+      "openHat": {
+        "prob": 0.08,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": [
+          "32"
+        ],
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.2
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "shaker"
+      ],
+      "densityPerBar": [
+        0,
+        2
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t",
+        "8t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        64,
+        110
+      ],
+      "gapProb": 0.52,
+      "descendProb": 0.14,
+      "rampJitter": 7
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "v"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.34,
+      "seventh": 0.5,
+      "ninth": 0.16
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        46,
+        76
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "vamp",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      76,
+      98
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "densityPerBar": [
+      2,
+      5
+    ],
+    "motifPitchCount": [
+      3,
+      4
+    ],
+    "chordToneBias": 0.68
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.32,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.88,
+    "register": [
+      26,
+      43
+    ],
+    "glideProb": 0.1,
+    "passingTones": [
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.1
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "verse",
+          "hook",
+          "verse",
+          "outro"
+        ],
+        "weight": 3
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "hook",
+          "verse",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": [
+        12,
+        16
+      ],
+      "hook": 8,
+      "outro": 4
+    }
+  }
+}

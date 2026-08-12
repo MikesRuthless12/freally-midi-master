@@ -1,0 +1,256 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "new-boyz",
+  "type": "artist",
+  "name": "New Boyz",
+  "aliases": [
+    "new boyz",
+    "legacy",
+    "ben j",
+    "jerkin"
+  ],
+  "tier": "standard",
+  "extends": [
+    "west-coast-club"
+  ],
+  "era": "2009-2012",
+  "genres": [
+    "rap",
+    "west-coast-club"
+  ],
+  "relatedGenres": [
+    "west-coast-club",
+    "pop-2000s"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended vol.1 west-coast-club — New Boyz"
+  ],
+  "notes": "The **jerkin’** wave that opens this era — 2009’s national breakout and the direct precursor to ratchet. The documented instrumentation is \"sampler, synthesizer, drums, keyboard and vocals\", which is a thin synth-pop kit rather than a rap one, and the tonality is bright major-mode pop cycles with minor kept for the harder posse cuts. ⚠ **`low`, and the research says so plainly: no measured key data exists.** The tempo band and the clap on 2&4 are documented; the key palette is marked `[LOW-CONF]`.",
+  "session": {
+    "bpm": {
+      "min": 98,
+      "max": 130,
+      "mode": 108
+    },
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.54
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.25,
+      "lockTo808": 1
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "lowPassedClap": true,
+      "ghost": {
+        "prob": 0.1,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.2,
+          0.35
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.35,
+      "velocities": {
+        "main": [
+          0.6,
+          0.8
+        ],
+        "ghost": [
+          0.2,
+          0.4
+        ]
+      },
+      "openHat": {
+        "prob": 0.2,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32",
+            "32T"
+          ],
+          "weights": [
+            2,
+            1
+          ]
+        },
+        "positions": [
+          "pre_snare"
+        ],
+        "freqPerBar": 0.6
+      }
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "32nd"
+      ],
+      "grouping": [
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        56,
+        104
+      ],
+      "rampJitter": 18
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "staccato",
+      "monoCutSelf": true,
+      "slideProb": 0,
+      "register": [
+        22,
+        36
+      ],
+      "distortion": "none"
+    }
+  },
+  "melody": {
+    "register": [
+      68,
+      92
+    ],
+    "densityPerBar": [
+      3,
+      6
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "square_lead"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.4,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.7,
+      "seventh": 0.26,
+      "ninth": 0.04
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        46,
+        78
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      16
+    ]
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.92,
+    "register": [
+      25,
+      41
+    ],
+    "glideProb": 0,
+    "passingTones": [
+      "P5",
+      "P8"
+    ],
+    "anticipationProb": 0.16
+  }
+}

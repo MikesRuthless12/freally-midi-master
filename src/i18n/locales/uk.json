@@ -212,6 +212,7 @@
   },
   "roster": {
     "artists": "Виконавці",
+    "producers": "Продюсери",
     "flagship": "Флагман",
     "genre": "Жанр",
     "noneInGenre": "У жанрі {{name}} поки немає артистів.",

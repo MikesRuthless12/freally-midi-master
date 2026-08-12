@@ -56,12 +56,16 @@ test('picking a genre lists the way in and that genre’s names, and nothing els
   const roster = page.getByRole('combobox', { name: 'Roster' });
   await roster.click();
 
-  // ⚠ A regex for the artist because the row carries its tier badge in the same
+  // ⚠ A regex for the two names because each row carries its badge in the same
   // text node; "Original Workflow" has no badge and is matched exactly.
   await expect(page.locator('.combo__menu').getByRole('option')).toHaveText([
     'Original Workflow',
     /Mock Artist/,
+    /mock Producer/,
   ]);
+  // Both of Trap's names, under their own rules — the genre's other kind is not
+  // dropped just because the group heading above it says "Artists".
+  await expect(page.locator('.combo__separator')).toHaveText(['Artists', 'Producers']);
 });
 
 test('a genre nobody works in leaves only the way in, and hides nobody from a query', async ({
@@ -93,6 +97,51 @@ test('a genre nobody works in leaves only the way in, and hides nobody from a qu
   await roster.click();
   await roster.fill('mock');
   await expect(options.filter({ hasText: 'Mock Artist' })).toHaveCount(1);
+});
+
+test('the roster reads Original Workflow, then Artists, then Producers', async ({ page }) => {
+  // ⛔⛔ **Mike, 2026-08-12**: *"put 'Original Workflow' then 'Artists'
+  // underlined and then list all artists in alphabetical order and then
+  // 'Producers' underlined and then put producers in alphabetical order."*
+  const roster = page.getByRole('combobox', { name: 'Roster' });
+  await roster.click();
+
+  // ⛔ **The separators are NOT options, which is the assertion and not an
+  // implementation detail.** A listbox reports its own size — "2 of 12" is read
+  // aloud — so a separator counted among the options misstates how many choices
+  // there are to everyone who cannot see the rule.
+  await expect(page.locator('.combo__menu').getByRole('option')).toHaveText([
+    'Original Workflow',
+    /Mock Artist/,
+    /mock Producer/,
+  ]);
+  await expect(page.locator('.combo__separator')).toHaveText(['Artists', 'Producers']);
+});
+
+test('a separator is never what typing its word lands on', async ({ page }) => {
+  // ⛔⛔ **Mike, 2026-08-12**: *"ensure that when you type 'Artists', that it
+  // doesn't let you add that as a roster item"*, and then, correcting a version
+  // of this that had reserved the words outright: *"no i don't want it to select
+  // the word 'Artists' or the word 'Producers' not the actual artist/producer
+  // themselves."* So the query still searches — landing on a real name the
+  // matcher considers close is the search working — and what is asserted is that
+  // the **separator itself** is never offered and never committed.
+  const roster = page.getByRole('combobox', { name: 'Roster' });
+
+  for (const word of ['Artists', 'Producers']) {
+    await roster.click();
+    await roster.fill(word);
+
+    // Not among the suggestions, and no rule is drawn in a typed list at all.
+    await expect(page.locator('.combo__menu').getByRole('option', { name: word })).toHaveCount(
+      0,
+    );
+    await expect(page.locator('.combo__separator')).toHaveCount(0);
+
+    await page.keyboard.press('Enter');
+    // Whatever it did or did not settle on, it did not settle on the word.
+    await expect(roster).not.toHaveValue(word);
+  }
 });
 
 test('picking a genre leaves the details clean of a filter notice', async ({ page }) => {

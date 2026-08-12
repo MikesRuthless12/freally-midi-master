@@ -1,0 +1,290 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "shawty-lo",
+  "type": "artist",
+  "name": "Shawty Lo",
+  "aliases": [
+    "shawty lo",
+    "carlos walker",
+    "d4l",
+    "bankhead",
+    "units in the city"
+  ],
+  "tier": "standard",
+  "extends": [
+    "trap"
+  ],
+  "era": "2007-2012",
+  "genres": [
+    "rap",
+    "trap"
+  ],
+  "relatedGenres": [
+    "trap",
+    "ringtone-club-rap",
+    "crunk"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 trap — Shawty Lo",
+    "https://en.wikipedia.org/wiki/Units_in_the_City",
+    "https://en.wikipedia.org/wiki/Dey_Know"
+  ],
+  "notes": "Bankhead's chant-hook lane, and the one entry here whose colour is authored as a *scale* rather than as a chord. The research: \"minor with a strong raised-4th/blues-3rd colouring in the lead line; single-mode, no modulation\" — the blues scale is the only thing in the vocabulary that carries both of those notes, so it leads the weights and `natural_minor` trails. \"Single bright saw/square lead as the entire hook, 2-bar loop, static i or i–VII; almost no pad layer\" is why `melody.loopVerbatim` is true and `maxChords` is 2: the lead *is* the harmonic content, so `chords.impliedByRiff` is set and the chord part's variety comes from `chordDurationBeats` and three `harmonicRhythm` values rather than from progressions the record does not contain. The doubled clap the research describes — \"clap on 3 with a doubled clap on the 4th 16th before it\" — is `snare.ghost` at `2a` with an unusually high probability (0.55), which is what makes this beat legible against every other clap-on-3 entry in the batch. ⚠ **[LOW-CONF] on the kick.** The research marks kick placement specifics low-confidence explicitly; `secondaryAnchor` `3&` is that claim, and `syncopation` 0.3 is a guess at how much else the pattern does. ⚠ `confidence` is `medium` overall: chart and era facts are solid, production detail is inferred from the released catalog. INFERRED: every velocity figure, the `slideProb`/`slidesPer4Bars` pair standing in for \"a rapid double-hit before the downbeat\" (the engine has no repeated-note device, so a slide into the bar line is the nearest honest thing), and the whole `intervals`/`contour` split. ⚠ `anticipationProb` raised to 0.15. With `mirror_kick` against a fully locked 808 both parts take every kick, so every bass onset lands exactly on an 808 onset — `coherence.rs` calls that one line played twice rather than two parts locking. The lock is the style and is untouched; the anticipation is what makes them two parts.",
+  "session": {
+    "bpm": {
+      "min": 138,
+      "max": 150,
+      "mode": 144
+    },
+    "scales": {
+      "values": [
+        "blues",
+        "minor_pentatonic",
+        "natural_minor"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.3,
+      "tresilloBias": 0.1
+    },
+    "snare": {
+      "layered": true,
+      "layerClapOffsetMs": [
+        2,
+        5
+      ],
+      "ghost": {
+        "prob": 0.55,
+        "pos": [
+          "2a"
+        ],
+        "vel": [
+          0.45,
+          0.62
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.5,
+      "velocities": {
+        "main": [
+          0.8,
+          0.98
+        ],
+        "ghost": [
+          0.36,
+          0.54
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.16,
+        "velocityRamp": true
+      },
+      "openHat": {
+        "prob": 0.22,
+        "pos": [
+          "4a"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "snap",
+        "clave"
+      ],
+      "densityPerBar": [
+        1,
+        2
+      ],
+      "placement": "offbeat"
+    },
+    "bass808": {
+      "sustain": "legato",
+      "slideProb": 0.35,
+      "slidesPer4Bars": [
+        2,
+        3
+      ],
+      "slideIntervals": {
+        "values": [
+          "M2",
+          "P5"
+        ],
+        "weights": [
+          3,
+          2
+        ]
+      },
+      "slidePositions": [
+        "bar_2",
+        "bar_4"
+      ],
+      "register": [
+        19,
+        33
+      ],
+      "distortion": "medium"
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        54,
+        94
+      ],
+      "rampJitter": 9,
+      "descendProb": 0.34,
+      "gapProb": 0.24
+    }
+  },
+  "melody": {
+    "register": [
+      76,
+      98
+    ],
+    "densityPerBar": [
+      4,
+      8
+    ],
+    "structure": "riff_loop",
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        5,
+        1
+      ]
+    },
+    "loopVerbatim": true,
+    "motifPitchCount": 5,
+    "intervals": {
+      "step": 0.52,
+      "third": 0.26,
+      "leap": 0.22
+    },
+    "contour": {
+      "riff": 0.72,
+      "descend": 0.18,
+      "arch": 0.1
+    },
+    "chordToneBias": 0.58,
+    "halfStepDissonance": 0.14,
+    "octaveJumpProb": 0.16,
+    "timbreHint": "square_lead"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.36,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "arp"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "VII",
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 2,
+    "impliedByRiff": true,
+    "extensions": {
+      "triad": 0.84,
+      "seventh": 0.14,
+      "ninth": 0.02
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        46,
+        78
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      2,
+      12
+    ]
+  },
+  "bassline": {
+    "anticipationProb": 0.15
+  }
+}

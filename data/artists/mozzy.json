@@ -1,0 +1,328 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "mozzy",
+  "type": "artist",
+  "name": "Mozzy",
+  "aliases": [
+    "mozzy",
+    "timothy patterson",
+    "mozzy twin",
+    "sacramento mobb"
+  ],
+  "tier": "standard",
+  "extends": [
+    "west-coast-club"
+  ],
+  "era": "2015-present",
+  "genres": [
+    "rap",
+    "west coast",
+    "street"
+  ],
+  "relatedGenres": [
+    "west-coast-club",
+    "g-funk",
+    "dark-trap"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 west-coast-club — Mozzy",
+    "https://songdata.io/search?query=Mozzy",
+    "https://djbooth.net/features/2018-02-07-mozzy-knew-he-had-to-kick-the-cup/",
+    "https://en.wikipedia.org/wiki/Mozzy"
+  ],
+  "notes": "Sacramento's mobb-lineage street rap, and the parameter that carries it is *slowness with nothing on top*. This is the only entry on this axis that sits **below** the lane's 95–107 spine: 80–92 straight 2&4, mode 86. Everything else follows from the research's one causal sentence — \"note density in the beat is deliberately low because the vocal density is very high\" — so `melody.densityPerBar` is 1–4, `loopVerbatim` is on for the two-bar cell the research says is \"repeated without variation\", and `percs.lanes` is emptied: \"almost no percussion layering — the sparseness is the Bay/Sacramento inheritance\". ⚠ **The 808 register is widened past what the research states, on purpose.** It says D1–A1, which is seven semitones, and a P4 or P5 slide inside seven semitones has nowhere to land — `bass808.rs` requires a slide target inside the register. `[26, 40]` keeps the researched D1 floor and buys the slide somewhere to go; the low end is the researched parameter and the ceiling is engine headroom. ⚠ The **808 stays the bass** (`role` inherited as `bassline`), because the research describes a long slow-decaying 808 moving between two chord roots — not a played instrument — so no separate `bassline` part is authored. ⚠ `maxChords` is 2 and the families are only `i–VI` and `i–VII`, which is exactly what the research names; the `i` family is INFERRED from \"repeated without variation\" and carries the lowest weight. ⚠ `confidence` is `medium` because the research rates this medium-high, and **`chords.extensions` is the inferred parameter** — \"minor-with-flat-6\" is a colour, not a measured seventh/ninth split. The secondary 130–160 half-time population the research measures is **not** modelled as a mode; this entry is the 80–92 record, and the half-time cuts are the lane's own half-time behaviour. Fill fingerprint band G: `fills` 4/4, a 32nd `strong_weak_weak_weak` roll at the highest gap probability in this batch (the \"32nd rolls only at bar-ends\" the research names), hat rolls 0.62 per bar at `phrase_end` only. ⚠ **`lockTo808` raised from 0.5 to 0.61.** The 808 takes each kick with this probability, and at 0.5 over this model's 8-kick floor a seed could produce no 808 at all — which `bass808.rs` refuses, because a declared 808 that sometimes vanishes is a part a producer cannot rely on. It is still well under a lock: a good share of kicks carry no sub.",
+  "session": {
+    "bpm": {
+      "min": 80,
+      "max": 92,
+      "mode": 86
+    },
+    "keys": {
+      "values": [
+        "D",
+        "Bbm",
+        "Db",
+        "Fm",
+        "F#m"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        3,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "minor_pentatonic",
+        "major"
+      ],
+      "weights": [
+        5,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.52
+    },
+    "humanize": {
+      "quantizeStrength": 0.86,
+      "velocityVar": 0.12
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.22,
+      "offbeat8thShare": 0.15,
+      "lockTo808": 0.61
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "stack": [
+        "clap",
+        "snare"
+      ],
+      "layerClapOffsetMs": [
+        2,
+        5
+      ],
+      "ghost": {
+        "prob": 0.1,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.3,
+          0.42
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.3,
+      "openHat": {
+        "prob": 0.28,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": [
+          "32",
+          "32T"
+        ],
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.62
+      }
+    },
+    "percs": {
+      "lanes": [],
+      "densityPerBar": [
+        0,
+        1
+      ]
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "slideProb": 0.35,
+      "slideIntervals": {
+        "values": [
+          "m3",
+          "P4",
+          "P5"
+        ],
+        "weights": [
+          3,
+          3,
+          2
+        ]
+      },
+      "slidePositions": [
+        "phrase_end",
+        "bar_2"
+      ],
+      "register": [
+        26,
+        40
+      ],
+      "distortion": "none"
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 4
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "32nd"
+      ],
+      "grouping": [
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        54,
+        100
+      ],
+      "rampJitter": 7,
+      "gapProb": 0.58,
+      "descendProb": 0.08
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.62,
+      "seventh": 0.3,
+      "ninth": 0.08
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        46,
+        78
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar",
+        "vamp"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    },
+    "susSubstitutionProb": 0.08
+  },
+  "melody": {
+    "register": [
+      60,
+      84
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "densityPerBar": [
+      1,
+      4
+    ],
+    "motifPitchCount": [
+      3,
+      5
+    ],
+    "loopVerbatim": true,
+    "intervals": {
+      "step": 0.62,
+      "third": 0.26,
+      "leap": 0.12
+    },
+    "contour": {
+      "riff": 0.6,
+      "descend": 0.3,
+      "arch": 0.1
+    },
+    "chordToneBias": 0.8,
+    "halfStepDissonance": 0.06,
+    "octaveJumpProb": 0.05,
+    "timbreHint": "piano"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.32,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "hook": 8,
+      "outro": 4
+    }
+  }
+}

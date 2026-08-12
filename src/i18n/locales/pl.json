@@ -212,6 +212,7 @@
   },
   "roster": {
     "artists": "Artyści",
+    "producers": "Producenci",
     "flagship": "Sztandarowy",
     "genre": "Gatunek",
     "noneInGenre": "Nikt jeszcze nie tworzy w {{name}}.",

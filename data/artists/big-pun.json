@@ -1,0 +1,422 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "big-pun",
+  "type": "artist",
+  "name": "Big Pun",
+  "aliases": [
+    "big pun",
+    "big punisher",
+    "christopher rios",
+    "punisher"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "boom-bap"
+  ],
+  "era": "1998-2000",
+  "genres": [
+    "rap",
+    "boom-bap",
+    "latin rap"
+  ],
+  "relatedGenres": [
+    "boom-bap",
+    "reggaeton",
+    "rnb-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 boom-bap — Big Pun",
+    "Wikipedia — Capital Punishment",
+    "Crack Magazine — 20 years of Capital Punishment"
+  ],
+  "notes": "Bronx Latin technician, and the one parameter the research calls out as unusual for the whole lane is accompaniment density: \"High note density in the accompaniment (unusual for the lane) to match the flow\". So `melody.densityPerBar` is the highest on this axis by a clear margin, and the montuno figure is what fills it — hence `arp` carrying half the countermelody weight rather than the answer-lick the rest of the axis uses. The salsa/mambo marker is authored as percussion and as bass anticipation, not as a mode: the research names timbale/bongo layers, a clave-adjacent 16th pattern and tumbao-style bass anticipation, and it names no scale, so inventing a Phrygian-dominant table here would have been fiction. ⚠ `medium` because the research rates it medium-high and says the workflow specifics come via the producers rather than from the artist. The genuinely inferred parameter is `swing` — 0.55 is chosen straighter than the boom-bap 0.58 default because a clave pattern does not survive MPC swing, and no source gives a number. ⚠ The research says \"Split personality\", so the two records are authored as `modes` rather than averaged: `capital punishment` is the minor album-cut half and `latin single` is the major-key interpolation half. Authoring modes replaces the boom-bap parent's dusty/jazzy/hard set, which is intended — those are not this artist's two records.",
+  "session": {
+    "bpm": {
+      "min": 90,
+      "max": 100,
+      "mode": 95
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "major",
+        "dorian"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.55
+    },
+    "humanize": {
+      "quantizeStrength": 0.84,
+      "velocityVar": 0.15
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.44,
+      "tresilloBias": 0.22
+    },
+    "snare": {
+      "rimshotLayer": true,
+      "ghost": {
+        "prob": 0.3,
+        "pos": [
+          "2e",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.22,
+          0.4
+        ]
+      }
+    },
+    "hihat": {
+      "base": {
+        "values": [
+          "8th",
+          "16th"
+        ],
+        "weights": [
+          3,
+          3
+        ]
+      },
+      "continuous": true,
+      "fillDensity": 0.55,
+      "velocities": {
+        "main": [
+          0.75,
+          0.95
+        ],
+        "ghost": [
+          0.2,
+          0.45
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.2
+      },
+      "openHat": {
+        "prob": 0.28,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "timbale",
+        "bongo",
+        "clave",
+        "conga"
+      ],
+      "densityPerBar": [
+        2,
+        4
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        54,
+        98
+      ],
+      "gapProb": 0.1,
+      "descendProb": 0.44,
+      "rampJitter": 15
+    }
+  },
+  "melody": {
+    "register": [
+      60,
+      86
+    ],
+    "densityPerBar": [
+      6,
+      11
+    ],
+    "intervals": {
+      "step": 0.66,
+      "third": 0.26,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.4,
+      "descend": 0.28,
+      "arch": 0.32
+    },
+    "chordToneBias": 0.76,
+    "octaveJumpProb": 0.12,
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "timbreHint": "piano"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.55,
+    "styles": {
+      "values": [
+        "arp",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "iv",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.4,
+      "seventh": 0.45,
+      "ninth": 0.15
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        48,
+        76
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.6,
+    "register": [
+      28,
+      46
+    ],
+    "glideProb": 0.03,
+    "passingTones": [
+      "P5",
+      "M6",
+      "m7"
+    ],
+    "anticipationProb": 0.55
+  },
+  "modes": [
+    {
+      "name": "capital punishment",
+      "weight": 4,
+      "session": {
+        "scales": {
+          "values": [
+            "natural_minor",
+            "dorian"
+          ],
+          "weights": [
+            4,
+            2
+          ]
+        }
+      },
+      "chords": {
+        "progressionFamilies": [
+          {
+            "roman": [
+              "i",
+              "iv",
+              "V"
+            ],
+            "weight": 4
+          },
+          {
+            "roman": [
+              "i",
+              "VI",
+              "VII"
+            ],
+            "weight": 3
+          },
+          {
+            "roman": [
+              "i"
+            ],
+            "weight": 2
+          }
+        ],
+        "extensions": {
+          "triad": 0.5,
+          "seventh": 0.42,
+          "ninth": 0.08
+        }
+      },
+      "melody": {
+        "densityPerBar": [
+          4,
+          8
+        ],
+        "chordToneBias": 0.72
+      }
+    },
+    {
+      "name": "latin single",
+      "weight": 3,
+      "session": {
+        "scales": {
+          "values": [
+            "major",
+            "mixolydian"
+          ],
+          "weights": [
+            5,
+            2
+          ]
+        }
+      },
+      "chords": {
+        "progressionFamilies": [
+          {
+            "roman": [
+              "I",
+              "IV",
+              "V"
+            ],
+            "weight": 4
+          },
+          {
+            "roman": [
+              "ii",
+              "V",
+              "I"
+            ],
+            "weight": 4
+          },
+          {
+            "roman": [
+              "I",
+              "vi",
+              "IV",
+              "V"
+            ],
+            "weight": 2
+          }
+        ],
+        "extensions": {
+          "triad": 0.3,
+          "seventh": 0.48,
+          "ninth": 0.22
+        }
+      },
+      "melody": {
+        "densityPerBar": [
+          7,
+          12
+        ],
+        "contour": {
+          "riff": 0.3,
+          "descend": 0.26,
+          "arch": 0.44
+        }
+      },
+      "countermelody": {
+        "densityRatio": 0.65,
+        "styles": {
+          "values": [
+            "arp",
+            "answer_lick"
+          ],
+          "weights": [
+            4,
+            2
+          ]
+        }
+      }
+    }
+  ]
+}

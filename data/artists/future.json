@@ -24,7 +24,7 @@
   "sources": [
     "style-research ch.3 Future (flagship)"
   ],
-  "notes": "Toxic opulent trap over the 808 Mafia grammar: dense rolling hats, a hard clap on 3, syncopated kicks under sliding subs, and a heavy saturated 808 that is the melodic counterweight to sparse keys.",
+  "notes": "Toxic opulent trap over the 808 Mafia grammar: dense rolling hats, a hard clap on 3, syncopated kicks under sliding subs, and a heavy saturated 808 that is the melodic counterweight to sparse keys. ⚠ `anticipationProb` raised to 0.15. With `mirror_kick` against a fully locked 808 both parts take every kick, so every bass onset lands exactly on an 808 onset — `coherence.rs` calls that one line played twice rather than two parts locking. The lock is the style and is untouched; the anticipation is what makes them two parts.",
   "session": {
     "bpm": {
       "min": 120,
@@ -351,5 +351,8 @@
   },
   "kit": {
     "preview": "trap-default"
+  },
+  "bassline": {
+    "anticipationProb": 0.15
   }
 }

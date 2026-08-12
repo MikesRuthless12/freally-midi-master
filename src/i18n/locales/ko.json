@@ -212,6 +212,7 @@
   },
   "roster": {
     "artists": "아티스트",
+    "producers": "프로듀서",
     "flagship": "대표",
     "genre": "장르",
     "noneInGenre": "{{name}}에서 활동하는 아티스트가 아직 없습니다.",

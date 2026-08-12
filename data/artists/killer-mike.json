@@ -1,0 +1,380 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "killer-mike",
+  "type": "artist",
+  "name": "Killer Mike",
+  "aliases": [
+    "killer mike",
+    "michael render",
+    "mike bigga",
+    "killer mike type beat"
+  ],
+  "tier": "standard",
+  "extends": [
+    "dungeon-family"
+  ],
+  "era": "2001–2008",
+  "genres": [
+    "rap",
+    "southern rap",
+    "crunk"
+  ],
+  "relatedGenres": [
+    "dungeon-family",
+    "crunk",
+    "trap",
+    "atl-swag-rap"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended vol.1 crunk — Killer Mike",
+    "Wikipedia — Killer Mike (https://en.wikipedia.org/wiki/Killer_Mike)",
+    "Wikipedia — OutKast (https://en.wikipedia.org/wiki/OutKast)"
+  ],
+  "notes": "The crunk-facing edge of the Dungeon Family, and the only entry in this batch whose research paragraph describes a *programmed* record rather than a played one — so it is the only one that pulls away from the archetype's live-band assumptions. Four things carry it. (1) **The kit is heavy and locked**: `velocityTiers.accent` [108,127] is the loudest here, and `kick.lockTo808` rises to 0.75 against the parent's 0.3, because the research says 808 reinforcement and played-bass *doubling* — the kick and the low end are one gesture here, not the two instruments the genre normally has. (2) **Marching-band snare figures** are the `snareRollLadder` turned back on (the parent switches it off for the subtractive soul records), a ghost field clustered on 3e/3a/4e/4a where a drum-line figure runs into the downbeat, and an authored `build` block — a 4-bar riser streaming 32nds from 24 up to 127 — for the \"snare-roll builds\" the paragraph names. (3) **The bass doubles rather than walks.** This is the one entry here whose `bassline.rhythm` is `mirror_kick` at `followRootsProb` 0.72; every sibling in this batch is `independent_riff` under 0.62, because every sibling's paragraph says played bass and this one says 808 sub plus doubling. (4) **Low-to-moderate melodic density under a loud vocal**: `densityPerBar` [2,5], `emptyBarBias` 0.18, `articulation` staccato and `timbreHint` `low_brass_stab` for the horn stabs, over the 2–4 bar loops the paragraph specifies. `extensions.triad` climbs back to 0.5 — brass and organ playing i–VI–VII is not the minor 7/9 stack the soul wing plays, and pretending otherwise would have made this entry sound like CeeLo's. ⛔ **Confidence is low, which is the research's own reading.** It rates this medium-low: \"DF affiliation and era documented; parameters inferred\". The INFERRED parameters are the tempo band (76–92 is marked [LOW-CONF] and mode 84 inside it is mine), every drum probability above, the chord weights, and the whole `build` block — the research says \"snare-roll builds\" and gives no shape for them. What is actually sourced is the affiliation, the era, the i–VI–VII vamp with brass and organ, the 16th hats, the 2–4 bar loops and the gang-chant/spoken-outro arrangement. ⚠ `countermelody.fillGapsOnly` goes back to true against the parent's false: a second sung voice through the lead is the DF sound, and this paragraph describes a loud rapped vocal with horn stabs answering it. That is a reading of \"under a loud vocal\", not a quoted claim. This model's fill band is `smallEveryBars` 2 / `bigEveryBars` 4 with a 16th/32nd strong-weak roll; inside it, `gapProb` 0.10 makes it the least gapped in the batch — a drum-line roll does not leave holes — with `descendProb` 0.28 and the widest `rampJitter` at 22. ⚠ The bass ceiling came down from 44 to 42 so it stays under a chord part that starts at 43 — `coherence.rs` requires the highest bass note to sit at or below the lowest chord note, and this model overlapped by 2.",
+  "session": {
+    "bpm": {
+      "min": 76,
+      "max": 92,
+      "mode": 84
+    },
+    "keys": {
+      "values": [
+        "Cm",
+        "Gm",
+        "Fm",
+        "Dm",
+        "Am",
+        "Ebm"
+      ],
+      "weights": [
+        4,
+        4,
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "minor_pentatonic",
+        "phrygian",
+        "harmonic_minor"
+      ],
+      "weights": [
+        5,
+        3,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.82,
+      "velocityVar": 0.16
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        108,
+        127
+      ],
+      "main": [
+        84,
+        104
+      ],
+      "ghost": [
+        24,
+        44
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3",
+      "syncopation": 0.34,
+      "tresilloBias": 0.16,
+      "offbeat8thShare": 0.12,
+      "lockTo808": 0.75
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "ghost": {
+        "prob": 0.34,
+        "pos": [
+          "3e",
+          "3a",
+          "4e",
+          "4a"
+        ],
+        "vel": [
+          0.2,
+          0.42
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.55,
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "16T"
+          ],
+          "weights": [
+            5,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "pre_snare"
+        ],
+        "freqPerBar": 0.58,
+        "velocityRamp": true
+      },
+      "openHat": {
+        "prob": 0.26,
+        "pos": [
+          "2&",
+          "3&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "cowbell",
+        "tambourine",
+        "crash"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "gainOffsetDb": -3
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 4,
+      "snareRollLadder": true
+    },
+    "build": {
+      "riserBars": 4,
+      "snareStreamSubdivision": "32",
+      "velocityRampRange": [
+        24,
+        127
+      ]
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th",
+        "32nd"
+      ],
+      "grouping": [
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        70,
+        120
+      ],
+      "gapProb": 0.1,
+      "descendProb": 0.28,
+      "rampJitter": 22
+    },
+    "bass808": {
+      "role": "counter_riff",
+      "slideProb": 0.06,
+      "register": [
+        21,
+        40
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "VI",
+          "VII",
+          "i"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.5,
+      "seventh": 0.38,
+      "ninth": 0.12
+    },
+    "susSubstitutionProb": 0.06,
+    "voicing": {
+      "style": "open",
+      "register": [
+        43,
+        76
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      2,
+      12
+    ]
+  },
+  "melody": {
+    "register": [
+      55,
+      81
+    ],
+    "densityPerBar": [
+      2,
+      5
+    ],
+    "structure": "riff_loop",
+    "phraseBars": {
+      "values": [
+        2,
+        4,
+        8
+      ],
+      "weights": [
+        4,
+        4,
+        2
+      ]
+    },
+    "contour": {
+      "riff": 0.5,
+      "descend": 0.32,
+      "arch": 0.18
+    },
+    "chordToneBias": 0.68,
+    "emptyBarBias": 0.18,
+    "octaveJumpProb": [
+      0.04,
+      0.14
+    ],
+    "articulation": "staccato",
+    "timbreHint": "low_brass_stab"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.42,
+    "fillGapsOnly": true,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.72,
+    "register": [
+      24,
+      42
+    ],
+    "glideProb": 0.12,
+    "passingTones": [
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.2
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": 16,
+      "hook": 8,
+      "bridge": [
+        4,
+        8
+      ],
+      "outro": [
+        4,
+        8
+      ]
+    },
+    "sectionRules": {
+      "outro": {
+        "parts": [
+          "drums",
+          "melody"
+        ],
+        "density": 0.5,
+        "decay": true
+      }
+    },
+    "transitions": {
+      "dropOutBeats": {
+        "prob": 0.45,
+        "beats": 2
+      },
+      "switchUpProb": 0.25
+    }
+  }
+}

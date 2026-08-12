@@ -26,7 +26,7 @@
     "style-research ch.3 Pop Smoke",
     "style-research ch.1 S2 Drill (NY/Brooklyn)"
   ],
-  "notes": "Brooklyn drill over the 808Melo grammar. Skippy displaced snares and rims, a kick that avoids the grid, triplet hat stutters and woodblock percs, under gliding portamento 808s that carry the melody across bar-lines.",
+  "notes": "Brooklyn drill over the 808Melo grammar. Skippy displaced snares and rims, a kick that avoids the grid, triplet hat stutters and woodblock percs, under gliding portamento 808s that carry the melody across bar-lines. ⚠ **A register here spanned less than an octave and has been widened.** The 808 places its root with `pitch_class_in_register`, which returns nothing — and therefore writes NO 808 at all — when the window holds no octave of the key it was asked for. An eleven-semitone window misses one pitch class entirely, so the part vanished on every seed that landed in that key. The centre of the authored range is unchanged.",
   "session": {
     "bpm": {
       "min": 138,
@@ -385,8 +385,8 @@
     "followRootsProb": 0.9,
     "rhythm": "independent_riff",
     "register": [
-      24,
-      33
+      23,
+      34
     ],
     "glideProb": 0.75,
     "passingTones": [

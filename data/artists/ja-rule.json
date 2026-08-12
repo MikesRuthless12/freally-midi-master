@@ -1,0 +1,259 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "ja-rule",
+  "type": "artist",
+  "name": "Ja Rule",
+  "aliases": [
+    "ja rule",
+    "jarule",
+    "jeffrey atkins",
+    "murder inc"
+  ],
+  "tier": "standard",
+  "extends": [
+    "boom-bap"
+  ],
+  "era": "1999-2002",
+  "genres": [
+    "rap",
+    "boom-bap",
+    "rnb"
+  ],
+  "relatedGenres": [
+    "boom-bap",
+    "rnb-2000s",
+    "pop-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 boom-bap — Ja Rule",
+    "Complex — Irv Gotti's 25 best productions",
+    "Wikipedia — Ja Rule"
+  ],
+  "notes": "Murder Inc. thug-love duet rap over sped-up 80s R&B — the major-key outlier on this axis, and the only one whose countermelody is structural rather than decorative: the female counter-hook is half the record, so `densityRatio` is set high on purpose. ⚠ `medium` because the research rates it medium-high and says the tempo range is catalog-level. ⚠ The research puts the vocal centres roughly F–Bb; that is a key preference rather than a scale, and `session.keys` is left to the artist because the engine takes only a root from it.",
+  "session": {
+    "bpm": {
+      "min": 88,
+      "max": 105,
+      "mode": 96
+    },
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.54
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.35
+    },
+    "snare": {
+      "rimshotLayer": false,
+      "lowPassedClap": false,
+      "layerClapOffsetMs": [
+        2,
+        5
+      ],
+      "ghost": {
+        "prob": 0.2,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.25,
+          0.4
+        ]
+      }
+    },
+    "hihat": {
+      "base": {
+        "values": [
+          "8th",
+          "16th"
+        ],
+        "weights": [
+          3,
+          3
+        ]
+      },
+      "continuous": true,
+      "fillDensity": 0.5,
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "16T"
+          ],
+          "weights": [
+            3,
+            3
+          ]
+        },
+        "freqPerBar": 0.35,
+        "positions": [
+          "phrase_end",
+          "pre_snare"
+        ]
+      },
+      "openHat": {
+        "prob": 0.3,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t"
+      ],
+      "gapProb": 0.35,
+      "descendProb": 0.38,
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        58,
+        104
+      ],
+      "rampJitter": 16
+    }
+  },
+  "melody": {
+    "register": [
+      67,
+      90
+    ],
+    "densityPerBar": [
+      4,
+      7
+    ],
+    "intervals": {
+      "step": 0.65,
+      "third": 0.27,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.25,
+      "descend": 0.3,
+      "arch": 0.45
+    },
+    "chordToneBias": 0.78,
+    "octaveJumpProb": 0.09,
+    "phraseBars": {
+      "values": [
+        4
+      ],
+      "weights": [
+        1
+      ]
+    },
+    "timbreHint": "soft_pad"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.8,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "vi",
+          "IV",
+          "V"
+        ],
+        "weight": 3
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.5,
+      "seventh": 0.4,
+      "ninth": 0.1
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        52,
+        78
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar"
+      ],
+      "weights": [
+        1
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.6,
+    "register": [
+      28,
+      45
+    ],
+    "glideProb": 0.06,
+    "passingTones": [
+      "P5",
+      "M6"
+    ],
+    "anticipationProb": 0.4
+  }
+}

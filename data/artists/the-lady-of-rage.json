@@ -1,0 +1,273 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "the-lady-of-rage",
+  "type": "artist",
+  "name": "The Lady of Rage",
+  "aliases": [
+    "the lady of rage",
+    "lady of rage",
+    "rage",
+    "robin allen",
+    "afro puffs"
+  ],
+  "tier": "standard",
+  "extends": [
+    "g-funk"
+  ],
+  "era": "1994-1997",
+  "genres": [
+    "rap",
+    "g-funk",
+    "west coast"
+  ],
+  "relatedGenres": [
+    "g-funk",
+    "boom-bap",
+    "west-coast-club"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 g-funk — The Lady of Rage",
+    "https://tidal.com/magazine/article/gangsta-raunch-the-making-of-snoop-doggs-doggystyle-2/1-29941",
+    "https://allhiphop.com/features/exclusive-chris-the-glove-taylor-talks-death-row-aftermath-and-dr-dre-part-1/"
+  ],
+  "notes": "Boom-bap drums inside a g-funk house, and the research's own phrase for the kit is \"hardest snare on the label\" — which is why `velocityTiers.accent` is lifted to 112–127 and `main` to 84–98, the loudest backbeat in this batch. Everything else is subtraction: kick on 1 and 3 only (`densityPerBar` 2–3, `syncopation` 0.16, `offbeat8thShare` 0.1), hats simple closed 8ths so the syllabic delivery reads, one perc lane, no pad. ⛔ **`chords.impliedByRiff` is set and it is a description, not an exemption.** The research: 2-bar loop, one lead voice (organ or filtered horn stab), no pad, \"static single-chord vamps are common — harmony deliberately minimal to leave the mid-range to the vocal\". One chord is the part. What carries the 55-distinct-outputs floor is `chordDurationBeats` 2–14 against a `syncopated_cell` harmonic rhythm — how long the loop sits, not what it sits on — plus a voicing register spanning 45–79. ⚠ **The `i–VII` and `i–iv` families are INFERRED**, not researched: the research names only the static form. They carry weight 2 against the static `i`'s 5 and are the first thing to delete if this ever sounds busier than the records. ⚠ `confidence` is `medium` per the research's own rating, which marks the per-track harmonic detail [LOW-CONF]. ⚠ The bass is `mirror_kick` because the research says single-note-per-chord and kick-adjacent; `followRootsProb` is 0.9 rather than 1.0 and the span is 18 semitones so the line still has a reachable pool.",
+  "session": {
+    "bpm": {
+      "min": 92,
+      "max": 100,
+      "mode": 96
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "minor_pentatonic",
+        "phrygian"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.55
+    },
+    "humanize": {
+      "quantizeStrength": 0.88,
+      "velocityVar": 0.14
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        112,
+        127
+      ],
+      "main": [
+        84,
+        98
+      ],
+      "ghost": [
+        36,
+        50
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3",
+      "syncopation": 0.16,
+      "tresilloBias": 0.06,
+      "offbeat8thShare": 0.1
+    },
+    "snare": {
+      "rimshotLayer": true,
+      "ghost": {
+        "prob": 0.06,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.15,
+          0.28
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.3,
+      "openHat": {
+        "prob": 0.12,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": [
+          "32"
+        ],
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.26
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim"
+      ],
+      "densityPerBar": [
+        0,
+        1
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t",
+        "8t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        66,
+        114
+      ],
+      "gapProb": 0.12,
+      "descendProb": 0.44,
+      "rampJitter": 17
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 2,
+    "impliedByRiff": true,
+    "chordDurationBeats": [
+      2,
+      14
+    ],
+    "extensions": {
+      "triad": 0.68,
+      "seventh": 0.28,
+      "ninth": 0.04
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        45,
+        79
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "syncopated_cell",
+        "vamp",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        3,
+        3,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      70,
+      92
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "densityPerBar": [
+      2,
+      5
+    ],
+    "motifPitchCount": [
+      2,
+      4
+    ],
+    "chordToneBias": 0.7,
+    "articulation": "staccato",
+    "timbreHint": "horn_stab"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.3,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.9,
+    "register": [
+      26,
+      44
+    ],
+    "glideProb": 0.05,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.06
+  },
+  "arrangement": {
+    "sectionBars": {
+      "verse": 16,
+      "hook": 8
+    }
+  }
+}

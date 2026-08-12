@@ -1,0 +1,258 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "mobb-deep",
+  "type": "artist",
+  "name": "Mobb Deep",
+  "aliases": [
+    "mobb deep",
+    "prodigy",
+    "havoc",
+    "the infamous"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "boom-bap"
+  ],
+  "era": "1995-1999",
+  "genres": [
+    "rap",
+    "boom-bap"
+  ],
+  "relatedGenres": [
+    "boom-bap",
+    "dark-trap",
+    "memphis-rap"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended vol.1 boom-bap — Mobb Deep",
+    "HipHopDX — Havoc on his production roots / Infamous kit",
+    "Wikipedia — Hell on Earth"
+  ],
+  "notes": "Queensbridge dread-minimalism, and the two parameters that make it are dissonance and absence. The motifs are two-note tritone-adjacent figures rather than chords, so `halfStepDissonance` is the highest on this axis by a wide margin and `maxChords` is the lowest. The hats are not continuous — often only the offbeats — which is the one place a boom-bap kit is allowed to stop. Melody sits high-mid on purpose so the sustained sub can own everything below it. ⚠ **The bass is `mirror_kick`, not a held note, and that is an engine limit rather than a reading of the record.** The research says a near-DC sine sustained on the tonic with no melodic movement. `reese_sustain` is the only rhythm that holds a note, and it emits exactly one note per chord — over this model's single static `i` that is one note, and `bass.rs` measured 8 distinct basslines in 1000 seeds. `mirror_kick` over a kick that only plays 1 and 3& is the nearest honest thing: two low roots a bar, which reads as sustained at this tempo. `followRootsProb` is 0.98 so it stays on the tonic. ⛔ `chords.impliedByRiff` is set, and it is a description rather than an exemption. The research: *\"2-bar loops built from a single sampled or played piano/vibe figure; i (static)\"*. One chord is the part. ⚠ `phraseBars` reaches 4 as well as 2 — weighted 4:1 so the 2-bar loop the research describes still dominates. At 2 bars alone the counter saturated at 0.93 of the 0.98 floor: shape length is what a counter's variety is combinatorial in, and one length is one shape. ⚠ `snareRoll.pitchWalk` is inherited rather than authored: the research says nothing about how these producers pitch a roll, and lowering it was an invention that `drum_pitch.rs` correctly refused — a roll owes a producer three pitches unless the style is a train beat. ⚠ `hihat.continuous` is false — the research says the hats are often only on the offbeats, and this is the one boom-bap kit allowed to stop. `fillDensity` is 0.3 rather than the 0.1 first authored because at 0.1 some seeds produced a bar with no hats at all, which `drums_hats.rs` refuses: a model that declares a hat block owes every seed a hat. ⚠ `chordDurationBeats` carries this model's chord variety rather than more progressions. Its harmony is one or two chords by description, and `melodic_variety.rs` still requires the generated chord part to reach 55 distinct outputs — so what varies is how long the loop sits on a chord, not what the chord is. Adding families it does not play would have been the dishonest fix. ⚠ The i–VII family is INFERRED, not researched — the research names only the static form. It carries a low weight and exists because the generated chord part still owes a producer 55 distinct outputs over 200 seeds; it is the first thing to delete if this model ever sounds busier than the records do.",
+  "session": {
+    "bpm": {
+      "min": 86,
+      "max": 95,
+      "mode": 90
+    },
+    "scales": {
+      "values": [
+        "harmonic_minor",
+        "phrygian",
+        "natural_minor"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.55
+    },
+    "humanize": {
+      "quantizeStrength": 0.8,
+      "velocityVar": 0.1
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.25
+    },
+    "snare": {
+      "rimshotLayer": false,
+      "ghost": {
+        "prob": 0.08,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.15,
+          0.25
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.3,
+      "velocities": {
+        "main": [
+          0.6,
+          0.8
+        ],
+        "ghost": [
+          0.1,
+          0.3
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0.05,
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ]
+      },
+      "openHat": {
+        "prob": 0.1,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "snareRoll": {
+      "gapProb": 0.62,
+      "descendProb": 0.05,
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        40,
+        90
+      ],
+      "rampJitter": 6
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "melody": {
+    "register": [
+      67,
+      88
+    ],
+    "densityPerBar": [
+      1,
+      4
+    ],
+    "intervals": {
+      "step": 0.5,
+      "third": 0.2,
+      "leap": 0.3
+    },
+    "contour": {
+      "riff": 0.75,
+      "descend": 0.18,
+      "arch": 0.07
+    },
+    "chordToneBias": 0.45,
+    "halfStepDissonance": 0.28,
+    "octaveJumpProb": 0.04,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        1
+      ]
+    },
+    "timbreHint": "vibraphone"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.48,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "ii"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.6,
+      "seventh": 0.3,
+      "ninth": 0.1
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        48,
+        84
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        5,
+        3,
+        1
+      ]
+    },
+    "impliedByRiff": true,
+    "chordDurationBeats": [
+      2,
+      16
+    ]
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.98,
+    "register": [
+      24,
+      41
+    ],
+    "glideProb": 0,
+    "passingTones": [],
+    "anticipationProb": 0.05
+  }
+}

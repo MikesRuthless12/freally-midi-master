@@ -1,0 +1,281 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "budda",
+  "type": "artist",
+  "name": "Bud'da",
+  "aliases": [
+    "bud'da",
+    "budda",
+    "buddha producer",
+    "dwayne dean"
+  ],
+  "tier": "standard",
+  "extends": [
+    "g-funk"
+  ],
+  "era": "1996-2001",
+  "genres": [
+    "rap",
+    "g-funk",
+    "west coast"
+  ],
+  "relatedGenres": [
+    "g-funk",
+    "boom-bap",
+    "west-coast-club"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended vol.1 g-funk — Bud'da",
+    "https://chadkiser.com/2018/06/01/budda-speaks-on-producing-bow-down-album-for-westside-connection/"
+  ],
+  "notes": "⛔ **\"Merging East Coast drums with West Coast sounds\" is a stated goal, and it is authored as a contradiction the model holds on purpose**: the drums are the most syncopated and least quantized of the producer group (`syncopation` 0.62, `quantizeStrength` 0.77) because he programmed his own patterns to emulate live drummers rather than using loops, while everything above them stays West Coast. ⚠ **The pitch-shift coupling on an SP-1200 is the entry's sharpest single fact and it is authored as note length, not tone**: \"higher = faster and shorter\", so the bass is short and percussive rather than sustained — `boom_chick` rather than the genre's `independent_riff`, `glideProb` 0.06 (the lowest here) and no legato behaviour asked for anywhere. Harmony arrives as sampled Moog and sampled jazz instrumentation, so voicings are monophonic or two-note and \"progressions reduce to `i–VII` or a static `i`\" — that is quoted, so `impliedByRiff` is set, `maxChords` is 2 and `chordDurationBeats` plus three harmonic rhythms carry the chord part's variety rather than families he does not play. `high` is the research's own rating, and it is the only entry here whose harmonic claim is a direct quotation rather than a genre inference. ⚠ Not modelled: triggering samples from the drum pads rather than over MIDI is a workflow, not a parameter, and the 12-bit grit is a tone. ⚠ The bass ceiling came down from 47 to 43 so it stays under a chord part that starts at 44 — `coherence.rs` requires the highest bass note to sit at or below the lowest chord note, and this model overlapped by 4.",
+  "session": {
+    "bpm": {
+      "min": 90,
+      "max": 96,
+      "mode": 93
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        4,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.57
+    },
+    "humanize": {
+      "quantizeStrength": 0.77,
+      "velocityVar": 0.21
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.62,
+      "tresilloBias": 0.38,
+      "offbeat8thShare": 0.34
+    },
+    "snare": {
+      "rimshotLayer": false,
+      "ghost": {
+        "prob": 0.36,
+        "pos": [
+          "1a",
+          "2e",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.26,
+          0.5
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.45,
+      "velocities": {
+        "main": [
+          0.72,
+          0.96
+        ],
+        "ghost": [
+          0.24,
+          0.5
+        ]
+      },
+      "openHat": {
+        "prob": 0.2,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          0,
+          2
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32",
+            "32T"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.63,
+        "velocityRamp": true
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "perc"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "gainOffsetDb": -7
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 4
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "32nd"
+      ],
+      "grouping": [
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        59,
+        106
+      ],
+      "rampJitter": 21,
+      "gapProb": 0.36,
+      "descendProb": 0.05
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 4
+      }
+    ],
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.78,
+      "seventh": 0.2,
+      "ninth": 0.02
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        44,
+        77
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "impliedByRiff": true,
+    "chordDurationBeats": [
+      2,
+      14
+    ]
+  },
+  "melody": {
+    "register": [
+      68,
+      91
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "motifPitchCount": [
+      2,
+      5
+    ],
+    "intervals": {
+      "step": 0.49,
+      "third": 0.29,
+      "leap": 0.22
+    },
+    "contour": {
+      "riff": 0.6,
+      "descend": 0.26,
+      "arch": 0.14
+    },
+    "chordToneBias": 0.52,
+    "halfStepDissonance": 0.12,
+    "octaveJumpProb": 0.12,
+    "emptyBarBias": 0.12,
+    "timbreHint": "low_brass_stab"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.35,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        3,
+        1
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "boom_chick",
+    "followRootsProb": 0.62,
+    "register": [
+      27,
+      43
+    ],
+    "glideProb": 0.06,
+    "passingTones": [
+      "m3",
+      "P4",
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.16
+  }
+}

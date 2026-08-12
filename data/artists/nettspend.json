@@ -26,7 +26,7 @@
     "style-research ch.4 Nettspend",
     "style-research ch.1 S5 Jerk"
   ],
-  "notes": "A jerk and rage hybrid - distorted cloud-rage. A clipping drum bus, jerked snare displacement, distorted 808s and ambient pads under trap grids.",
+  "notes": "A jerk and rage hybrid - distorted cloud-rage. A clipping drum bus, jerked snare displacement, distorted 808s and ambient pads under trap grids. ⚠ The chord voicing moved up to [44, 66] so the bass stays under the harmony — it started at 36 against a bass reaching 43, an overlap of 8. The span is preserved; a voicing that low was competing with the bass rather than sitting over it.",
   "session": {
     "bpm": {
       "min": 140,
@@ -328,8 +328,8 @@
     "voicing": {
       "style": "open",
       "register": [
-        36,
-        58
+        44,
+        66
       ],
       "topVoiceStepwise": false
     },

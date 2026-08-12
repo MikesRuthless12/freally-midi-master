@@ -1,0 +1,506 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "ty-dolla-sign",
+  "type": "artist",
+  "name": "Ty Dolla $ign",
+  "aliases": [
+    "ty dolla sign",
+    "ty dolla $ign",
+    "ty$",
+    "tyrone griffin"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "west-coast-club"
+  ],
+  "era": "2010–present",
+  "genres": [
+    "r&b",
+    "rap",
+    "west coast"
+  ],
+  "relatedGenres": [
+    "west-coast-club",
+    "trap-soul",
+    "rnb-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 west-coast-club — Ty Dolla $ign",
+    "https://songdata.io/search?query=Ty+Dolla+Sign",
+    "https://en.wikipedia.org/wiki/Ty_Dolla_Sign",
+    "https://en.wikipedia.org/wiki/Ratchet_music"
+  ],
+  "notes": "The research says to treat the self-harmonised vocal stack in 3rds and octaves as a chordal instrument, and that is the one instruction in this batch that maps to a single number: `countermelody.densityRatio` 0.6 with octave_echo weighted 4 to arp’s 2, the densest counter here. Everything else follows from the two populations, which are authored as modes because the research gives them different kits: 130–140 with the clap on 3, and 100–106 with the full ratchet 2&4 kit. Between those, three things are his and not the lane’s: real R&B motion instead of the 2-chord vamp (a ii–V–I borrowing with `borrowed.V` 0.25, seventh 0.5, ninth 0.28); the guitar he actually plays as `timbreHint`; and a bass authored as `offbeat_8ths` at `followRootsProb` 0.65, because the research says the electric bass plays syncopated 8ths against the kick on the R&B-leaning cuts, while the 808 keeps the slow portamento (`portamentoMs` 110, the longest in this batch). The drumless sung tag is `sectionRules.outro` with drums dropped. ⚠ `medium` because the research rates it high-medium. ⚠ The inferred parameter is the hand-percussion: conga and timbale are named as fills, but the [2,5] per-bar density that puts them in the kit is a reading of “layered”, not a sourced count. ⚠ **`lockTo808` raised from 0.6 to 0.61.** The 808 takes each kick with this probability, and at 0.6 over this model's 8-kick floor a seed could produce no 808 at all — which `bass808.rs` refuses, because a declared 808 that sometimes vanishes is a part a producer cannot rely on. It is still well under a lock: a good share of kicks carry no sub. ⚠ The bass ceiling came down from 46 to 44 so it stays under a chord part that starts at 45 — `coherence.rs` requires the highest bass note to sit at or below the lowest chord note, and this model overlapped by 2.",
+  "session": {
+    "bpm": {
+      "min": 96,
+      "max": 142,
+      "mode": 132
+    },
+    "halfTime": true,
+    "keys": {
+      "values": [
+        "D",
+        "Db",
+        "Fm",
+        "Ab",
+        "B",
+        "Dbm",
+        "Gm"
+      ],
+      "weights": [
+        3,
+        3,
+        3,
+        2,
+        2,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "dorian",
+        "natural_minor",
+        "major",
+        "mixolydian"
+      ],
+      "weights": [
+        3,
+        3,
+        3,
+        1
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.53
+    },
+    "humanize": {
+      "quantizeStrength": 0.76,
+      "velocityVar": 0.17
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.35,
+      "tresilloBias": 0.15,
+      "offbeat8thShare": 0.2,
+      "lockTo808": 0.61
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "stack": [
+        "clap",
+        "snap"
+      ],
+      "rimshotLayer": true,
+      "layerClapOffsetMs": [
+        2,
+        8
+      ],
+      "fullTimeVariantProb": 0.4,
+      "ghost": {
+        "prob": 0.2,
+        "pos": [
+          "2a",
+          "4e"
+        ],
+        "vel": [
+          0.25,
+          0.45
+        ]
+      }
+    },
+    "hihat": {
+      "base": {
+        "values": [
+          "16th",
+          "16T"
+        ],
+        "weights": [
+          3,
+          2
+        ]
+      },
+      "continuous": true,
+      "fillDensity": 0.35,
+      "velocities": {
+        "main": [
+          0.65,
+          0.9
+        ],
+        "ghost": [
+          0.3,
+          0.5
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.28,
+        "velocityRamp": true
+      },
+      "openHat": {
+        "prob": 0.3,
+        "pos": [
+          "3&",
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "snap",
+        "rim",
+        "conga",
+        "timbale",
+        "shaker"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "gainOffsetDb": -6
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "slideProb": 0.4,
+      "portamentoMs": 110,
+      "slideIntervals": {
+        "values": [
+          "m3",
+          "P4",
+          "P5",
+          "P8"
+        ],
+        "weights": [
+          3,
+          3,
+          2,
+          1
+        ]
+      },
+      "slidePositions": [
+        "phrase_end"
+      ],
+      "register": [
+        26,
+        46
+      ],
+      "distortion": "none"
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t",
+        "8t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        58,
+        108
+      ],
+      "rampJitter": 16,
+      "gapProb": 0.36,
+      "descendProb": 0.58
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII",
+          "III"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "vi",
+          "IV",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.22,
+      "seventh": 0.5,
+      "ninth": 0.28
+    },
+    "borrowed": {
+      "V": 0.25
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        45,
+        81
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      61,
+      85
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "structure": "call_response",
+    "motifPitchCount": [
+      4,
+      6
+    ],
+    "intervals": {
+      "step": 0.68,
+      "third": 0.24,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.3,
+      "descend": 0.34,
+      "arch": 0.36
+    },
+    "chordToneBias": 0.8,
+    "halfStepDissonance": 0.05,
+    "octaveJumpProb": 0.1,
+    "timbreHint": "clean_guitar"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.6,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "arp"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "offbeat_8ths",
+    "followRootsProb": 0.65,
+    "register": [
+      26,
+      44
+    ],
+    "glideProb": 0.35,
+    "passingTones": [
+      "M2",
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.24
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "hook",
+          "bridge",
+          "hook",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": 16,
+      "hook": 8,
+      "bridge": 8,
+      "outro": [
+        4,
+        8
+      ]
+    },
+    "sectionRules": {
+      "outro": {
+        "parts": [
+          "melody",
+          "chords"
+        ],
+        "density": 0.5,
+        "decay": true
+      }
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.5,
+        "beats": 2
+      },
+      "switchUpProb": 0.12
+    }
+  },
+  "modes": [
+    {
+      "name": "half-time sung",
+      "weight": 4,
+      "session": {
+        "bpm": {
+          "min": 130,
+          "max": 140,
+          "mode": 134
+        }
+      },
+      "drums": {
+        "snare": {
+          "placement": "halftime_3",
+          "fullTimeVariantProb": 0.1
+        }
+      },
+      "countermelody": {
+        "densityRatio": 0.65
+      }
+    },
+    {
+      "name": "ratchet",
+      "weight": 3,
+      "session": {
+        "bpm": {
+          "min": 100,
+          "max": 106,
+          "mode": 103
+        },
+        "halfTime": false
+      },
+      "drums": {
+        "snare": {
+          "placement": "backbeat_24",
+          "fullTimeVariantProb": 0
+        },
+        "hihat": {
+          "base": "16th",
+          "openHat": {
+            "prob": 0.55,
+            "pos": [
+              "2&",
+              "4&"
+            ],
+            "perBar": [
+              1,
+              2
+            ]
+          }
+        },
+        "bass808": {
+          "slideProb": 0.15,
+          "portamentoMs": 40
+        }
+      },
+      "chords": {
+        "extensions": {
+          "triad": 0.6,
+          "seventh": 0.32,
+          "ninth": 0.08
+        }
+      },
+      "melody": {
+        "timbreHint": "square_lead",
+        "densityPerBar": [
+          2,
+          5
+        ]
+      }
+    }
+  ]
+}

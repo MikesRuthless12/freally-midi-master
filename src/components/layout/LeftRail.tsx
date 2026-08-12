@@ -94,6 +94,55 @@ export function LeftRail() {
           : null,
   });
 
+  /**
+   * The browse list: the way in, then Artists A–Z, then Producers A–Z.
+   *
+   * ⛔⛔ **Mike, 2026-08-12**: *"put 'Original Workflow' then 'Artists'
+   * underlined and then list all artists in alphabetical order and then
+   * 'Producers' underlined and then put producers in alphabetical order after
+   * that … and can you do this for all genres?"*
+   *
+   * ⛔ **Sorted here rather than trusted from the loader.** `dataset::roster()`
+   * appends the producer's own styles after the shipped ones deliberately — the
+   * rail decides where those appear, not the loader — so the incoming order is
+   * "shipped, then yours", which is not alphabetical in either group.
+   *
+   * ⚠ **A heading only when its group has anyone in it.** Nine of the shipped
+   * genres are producer-only and several are artist-only; an "Artists" rule with
+   * nothing under it reads as a list that failed to load rather than as a group
+   * that is empty.
+   *
+   * ⚠ `localeCompare` rather than `<`: the roster has names like "Pi'erre
+   * Bourne" and "Ma$e", and a codepoint sort files the punctuation ahead of
+   * every letter.
+   */
+  const GROUPS = [
+    // ⛔ Double underscores for the same reason `ORIGINAL` has them: outside the
+    // slug alphabet `presets::is_safe_stem` accepts, so a separator's id cannot
+    // collide with a real style even by accident.
+    { id: '__artists__', label: t('roster.artists'), holds: 'artist' },
+    { id: '__producers__', label: t('roster.producers'), holds: 'producer' },
+  ] as const;
+
+  const grouped = (entries: RosterEntry[]) => {
+    const az = (list: RosterEntry[]) =>
+      [...list].sort((a, b) => a.name.localeCompare(b.name)).map(option);
+    return GROUPS.flatMap(({ id, label, holds }) => {
+      const list = entries.filter((entry) => entry.type === holds);
+      return list.length === 0 ? [] : [{ id, name: label, heading: true }, ...az(list)];
+    });
+  };
+
+  // ⛔⛔ **The separator WORDS are not reserved, and a version of this that
+  // reserved them was wrong** (Mike, 2026-08-12: *"no i don't want it to select
+  // the word 'Artists' or the word 'Producers' not the actual artist/producer
+  // themselves"*). What may never be selected is the **row** — the label that
+  // resolves to no style — and that is structural: a heading is not a
+  // `role="option"`, `step` walks over it, `commit` skips it and the mouse has
+  // no handler on it. Typing "Artists" and landing on a real name the matcher
+  // considers close is the search doing its job, and blocking it would take a
+  // way in away for no defect.
+
   // ⛔⛔ **NOTHING IS SELECTED ON LOAD, AND THAT IS THE POINT.** Mike,
   // 2026-08-10: *"how about we go back to that landing screen, and ensure that
   // they have to pick an artist before they ever even generate anything, because
@@ -203,8 +252,9 @@ export function LeftRail() {
                 options={[
                   { id: ORIGINAL, name: t('styles.original'), action: true },
                   // ⚠ `crossFilter`'s artists: the whole list when an artist or
-                  // nothing is selected, and the genre's own when a genre is.
-                  ...artists.map(option),
+                  // nothing is selected, and the genre's own when a genre is —
+                  // then split into the two named groups and sorted inside each.
+                  ...grouped(artists),
                 ]}
                 value={selectedId}
                 // ⛔⛔ **Or the box empties the moment a genre is chosen in it.**
@@ -235,6 +285,10 @@ export function LeftRail() {
                 // *find* is the defect the old no-cross-filtering rule existed
                 // to prevent, and it still is.
                 filter={(query) => {
+                  // ⚠ **No separators in here, and that is the whole guard.**
+                  // The results are built from the roster pools, which hold only
+                  // real models — so a typed query cannot surface a heading even
+                  // though the browse list above is full of them.
                   // ⚠ Searched over both halves together, in one ranking — two
                   // separate searches concatenated would put every artist above
                   // every genre regardless of how well either matched.

@@ -212,6 +212,7 @@
   },
   "roster": {
     "artists": "Artisti",
+    "producers": "Produttori",
     "flagship": "Di punta",
     "genre": "Genere",
     "noneInGenre": "Nessun artista lavora ancora in {{name}}.",

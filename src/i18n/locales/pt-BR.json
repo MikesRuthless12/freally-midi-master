@@ -212,6 +212,7 @@
   },
   "roster": {
     "artists": "Artistas",
+    "producers": "Produtores",
     "flagship": "Destaque",
     "genre": "Gênero",
     "noneInGenre": "Ainda não há artistas em {{name}}.",

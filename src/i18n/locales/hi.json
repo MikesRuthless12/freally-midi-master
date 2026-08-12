@@ -212,6 +212,7 @@
   },
   "roster": {
     "artists": "कलाकार",
+    "producers": "निर्माता",
     "flagship": "प्रमुख",
     "genre": "शैली",
     "noneInGenre": "{{name}} में अभी कोई कलाकार नहीं है।",

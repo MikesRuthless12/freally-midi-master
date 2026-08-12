@@ -1,0 +1,294 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "rich-homie-quan",
+  "type": "artist",
+  "name": "Rich Homie Quan",
+  "aliases": [
+    "rich homie quan",
+    "rich homie",
+    "quan",
+    "dequantes lamar",
+    "type of way"
+  ],
+  "tier": "standard",
+  "extends": [
+    "trap"
+  ],
+  "era": "2013-2016",
+  "genres": [
+    "rap",
+    "trap"
+  ],
+  "relatedGenres": [
+    "trap",
+    "atl-swag-rap",
+    "trap-soul"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 trap — Rich Homie Quan",
+    "https://en.wikipedia.org/wiki/Rich_Homie_Quan",
+    "https://en.wikipedia.org/wiki/Type_of_Way"
+  ],
+  "notes": "The hinge the research names — between the Gucci-era chant and the Thug-orbit sung flow — and the parameter that carries it is the melody, not the drums. \"The vocal is the melody engine — long sustained notes, wide leaps into falsetto, moderate-to-high syllable density with sung tails\" is `articulation: legato` with `intervals.leap` 0.3 and `octaveJumpProb` 0.32, which is the leapiest sung line in this batch against 2 Chainz's repeated-interval motif at the other end. `dorian` is authored beside `natural_minor` because the research names it and because \"hooks orbit the ♭3 and 5\" is a modal claim rather than a functional one — `colorTones` carries that. The 808 \"tracks the sung melody's root motion\" with a \"frequent up-glide into the bar\", which is `followsLeadRoot` with slides positioned on the bar lines and a `M2`/`P4` interval set rather than the octave. Hats are triplet-based and \"thicken under hooks\": `8T` at `fillDensity` 0.6. ⚠ **[LOW-CONF] on the kick grammar**, marked as such in the research; `syncopation` 0.58 spread across the bar's 16ths is that claim. ⚠ `confidence` is `medium` — flow and era are well attested, production specifics generalized. ⚠ `followsLeadRoot` is authored intent the engine does not read yet; it is named because \"tracking the sung melody's root motion\" is the entry's most specific 808 claim and dropping it would lose it. INFERRED: every velocity figure, the three-deep clap as a layer offset, and the family weights. ⚠ `anticipationProb` raised to 0.15. With `mirror_kick` against a fully locked 808 both parts take every kick, so every bass onset lands exactly on an 808 onset — `coherence.rs` calls that one line played twice rather than two parts locking. The lock is the style and is untouched; the anticipation is what makes them two parts.",
+  "session": {
+    "bpm": {
+      "min": 130,
+      "max": 150,
+      "mode": 140
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        4,
+        4,
+        2
+      ]
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2a",
+      "syncopation": 0.58,
+      "tresilloBias": 0.22
+    },
+    "snare": {
+      "layered": true,
+      "layerClapOffsetMs": [
+        2,
+        8
+      ],
+      "ghost": {
+        "prob": 0.26,
+        "pos": [
+          "3a",
+          "4&"
+        ],
+        "vel": [
+          0.38,
+          0.54
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8T",
+      "continuous": true,
+      "fillDensity": 0.6,
+      "velocities": {
+        "main": [
+          0.8,
+          0.98
+        ],
+        "ghost": [
+          0.4,
+          0.58
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.17,
+        "velocityRamp": true
+      },
+      "openHat": {
+        "prob": 0.24,
+        "pos": [
+          "2&",
+          "3&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "bass808": {
+      "sustain": "legato",
+      "slideProb": 0.55,
+      "slidesPer4Bars": [
+        2,
+        4
+      ],
+      "followsLeadRoot": true,
+      "slideIntervals": {
+        "values": [
+          "M2",
+          "P4",
+          "P5"
+        ],
+        "weights": [
+          4,
+          3,
+          2
+        ]
+      },
+      "slidePositions": [
+        "bar_2",
+        "bar_4"
+      ],
+      "register": [
+        19,
+        34
+      ],
+      "distortion": "medium"
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        57,
+        99
+      ],
+      "rampJitter": 14,
+      "descendProb": 0.4,
+      "gapProb": 0.2
+    }
+  },
+  "melody": {
+    "register": [
+      65,
+      87
+    ],
+    "densityPerBar": [
+      4,
+      7
+    ],
+    "structure": "question_answer",
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    },
+    "intervals": {
+      "step": 0.5,
+      "third": 0.2,
+      "leap": 0.3
+    },
+    "contour": {
+      "riff": 0.28,
+      "descend": 0.42,
+      "arch": 0.3
+    },
+    "chordToneBias": 0.6,
+    "colorTones": [
+      3,
+      5
+    ],
+    "halfStepDissonance": 0.08,
+    "octaveJumpProb": 0.32,
+    "articulation": "legato",
+    "timbreHint": "warm_grand_piano"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.46,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        4
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "iv"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.5,
+      "seventh": 0.4,
+      "ninth": 0.1
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        51,
+        80
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        4,
+        1
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ]
+  },
+  "bassline": {
+    "anticipationProb": 0.15
+  }
+}

@@ -212,6 +212,7 @@
   },
   "roster": {
     "artists": "艺人",
+    "producers": "制作人",
     "flagship": "旗舰",
     "genre": "流派",
     "noneInGenre": "{{name}} 中还没有艺人。",

@@ -1,0 +1,284 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "lord-finesse",
+  "type": "artist",
+  "name": "Lord Finesse",
+  "aliases": [
+    "lord finesse",
+    "finesse",
+    "robert hall",
+    "funky technician",
+    "d.i.t.c."
+  ],
+  "tier": "standard",
+  "extends": [
+    "boom-bap"
+  ],
+  "era": "1990-1996",
+  "genres": [
+    "rap",
+    "boom bap",
+    "producer"
+  ],
+  "relatedGenres": [
+    "boom-bap",
+    "lofi-hiphop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 boom-bap — Lord Finesse",
+    "https://passionweiss.com/2025/04/30/lord-finesse-interview-ditc-funky-technician-the-awakening-the-sp-1200-project",
+    "https://thefindmag.com/features/hip-hop-interviews/interview-lord-finesse/"
+  ],
+  "notes": "**An SP-1200 purist, and the sampler's limits are the style.** The research is unusually direct about the causal chain: sample time constraints force short, repeated patterns, and the 12-bit crunch is kept as a feature rather than worked around. So this is the narrowest model of the three D.I.T.C. producers here — `maxChords` 2 over static `i` and `i–iv`, 2-bar loops, `phraseBars` weighted hard toward 2, the lowest kick `densityPerBar` in the batch alongside Premier's, and `melody.densityPerBar` topping out at 5. A **single horn or organ phrase** is the whole melodic content, so `timbreHint` is `church_organ` and the counter is a sparse `answer_lick`. **The bass is filtered sample bass on the root with an occasional 5th and a sparse sub** — that is precisely what `boom_chick` describes, root on the beat and fifth on the offbeat, at the highest `followRootsProb` of the three `boom_chick` models in this batch and with `P5` as the only passing tone. Swung 8th hats at 0.59 and a hard snare on 2 and 4 complete the kit; **scratch choruses and loop-only breaks with DJ-friendly outros** are authored as an 8-bar intro, an 8-bar hook and an 8-bar outro. ⚠ `medium` matching the research's medium-high: multiple first-person interviews about the machine and the flips, but nothing about hat density, open hats or fills — all three are INFERRED. ⛔ **`chords.impliedByRiff` is set.** This model reached only 350 distinct harmonies in 1000 seeds, and every honest lever — chord duration, harmonic rhythm, voicing window — was already open. The reason is the record rather than the authoring: the harmony is stated by the sample rather than by a chord part, so there is one thing to voice. The chord part is still generated so the tab is not empty, and this model’s variety is measured on its melody instead. ⚠ If it ever grows a real progression, delete this flag.",
+  "session": {
+    "bpm": {
+      "min": 90,
+      "max": 100,
+      "mode": 95
+    },
+    "scales": {
+      "values": [
+        "dorian",
+        "natural_minor",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        3,
+        4,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "8th",
+      "amount": 0.59
+    },
+    "humanize": {
+      "quantizeStrength": 0.79,
+      "velocityVar": 0.15
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.24,
+      "tresilloBias": 0.04
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "ghost": {
+        "prob": 0.2,
+        "pos": [
+          "2e",
+          "4a"
+        ],
+        "vel": [
+          0.2,
+          0.36
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.38,
+      "velocities": {
+        "main": [
+          0.78,
+          0.94
+        ],
+        "ghost": [
+          0.18,
+          0.4
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "16T"
+          ],
+          "weights": [
+            4,
+            3
+          ]
+        },
+        "positions": [
+          "pre_snare"
+        ],
+        "freqPerBar": 0.31
+      },
+      "openHat": {
+        "prob": 0.17,
+        "pos": [
+          "3&",
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "ride"
+      ],
+      "densityPerBar": [
+        0,
+        1
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        57,
+        100
+      ],
+      "rampJitter": 7,
+      "descendProb": 0.18,
+      "gapProb": 0.41
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.46,
+      "seventh": 0.44,
+      "ninth": 0.1
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        44,
+        69
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        4,
+        1
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      16
+    ],
+    "impliedByRiff": true
+  },
+  "melody": {
+    "register": [
+      59,
+      81
+    ],
+    "densityPerBar": [
+      2,
+      5
+    ],
+    "structure": "riff_loop",
+    "intervals": {
+      "step": 0.68,
+      "third": 0.26,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.64,
+      "descend": 0.28,
+      "arch": 0.08
+    },
+    "chordToneBias": 0.73,
+    "octaveJumpProb": 0.05,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    },
+    "timbreHint": "church_organ"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.31,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "boom_chick",
+    "followRootsProb": 0.78,
+    "register": [
+      26,
+      43
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.16
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 8,
+      "verse": 16,
+      "hook": 8,
+      "outro": 8
+    }
+  }
+}

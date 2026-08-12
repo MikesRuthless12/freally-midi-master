@@ -1,0 +1,312 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "j-dilla",
+  "type": "artist",
+  "name": "J Dilla",
+  "aliases": [
+    "j dilla",
+    "jay dee",
+    "dilla",
+    "james yancey",
+    "dilla dawg"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "boom-bap"
+  ],
+  "era": "1996-2006",
+  "genres": [
+    "rap",
+    "boom bap",
+    "producer"
+  ],
+  "relatedGenres": [
+    "boom-bap",
+    "lofi-hiphop",
+    "neo-soul"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended vol.1 boom-bap — J Dilla",
+    "https://www.musicradar.com/artists/djs-producers/every-producer-bows-down-to-dilla-whether-they-like-it-or-not-how-j-dilla-and-his-mpc-changed-beatmaking-forever",
+    "https://musictech.com/features/boss-sp-303-hip-hop-connection-j-dilla-madlib-mf-doom/"
+  ],
+  "notes": "⛔ **The feel is the variable, not the tempo** — the research says so outright, and it is the only entry in this batch whose defining parameters live entirely in `session.humanize`. The MPC3000 was played by hand and left unquantised: \"a kick hits 30ms early here, a snare drags by 20ms there\", with swing applied per-sound and per-note rather than globally. So `quantizeStrength` is 0.32, the lowest on this axis by a wide margin, `velocityVar` is the highest, and `timingJitterMs` is authored per lane rather than inherited — the kick pushes, **the snare drags**, and the hats are the loosest of the three. `snare.offGridMs` is 18 because the research says the snare sits *late* of 2 and 4, which is a placement fact and not a jitter one. **The hats are irregular**, so `continuous` is false; `fillDensity` stays at 0.40 because a model that declares a hat block owes every seed a hat, and irregular is not absent. The kick clusters around 1 and 3.5 rather than landing on them, which is the widest `densityPerBar` and the highest `syncopation` among the SP-1200 producers here. **Loops are chopped into many small pieces and re-sequenced off-grid**, which is `structure: long_arc` over a wide `phraseBars` set rather than a 2-bar riff, and the harmony is warm minor soul and jazz with 7ths and 9ths over `i–iv`, `ii–V–i` and modal vamps. The bass is a sub or Moog **placed deliberately behind the kick** with low notes sustained through the bar — `mirror_kick` at 0.88 with the highest `glideProb` here, which is the nearest honest reading of a note that arrives late and holds. `high` because the timing method is documented with millisecond examples.",
+  "session": {
+    "bpm": {
+      "min": 85,
+      "max": 100,
+      "mode": 92
+    },
+    "scales": {
+      "values": [
+        "dorian",
+        "natural_minor",
+        "minor_pentatonic",
+        "blues"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.61
+    },
+    "humanize": {
+      "quantizeStrength": 0.32,
+      "velocityVar": 0.28,
+      "timingJitterMs": {
+        "kick": 22,
+        "snare": 20,
+        "closedHat": 26,
+        "openHat": 26,
+        "perc": 24
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.52,
+      "tresilloBias": 0.18
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "offGridMs": 18,
+      "ghost": {
+        "prob": 0.42,
+        "pos": [
+          "1a",
+          "2e",
+          "3a",
+          "4a"
+        ],
+        "vel": [
+          0.18,
+          0.4
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.4,
+      "velocities": {
+        "main": [
+          0.6,
+          0.94
+        ],
+        "ghost": [
+          0.14,
+          0.5
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "16T"
+          ],
+          "weights": [
+            3,
+            4
+          ]
+        },
+        "positions": [
+          "pre_snare"
+        ],
+        "freqPerBar": 0.35
+      },
+      "openHat": {
+        "prob": 0.24,
+        "pos": [
+          "1&",
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          0,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "perc",
+        "shaker"
+      ],
+      "densityPerBar": [
+        0,
+        2
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        54,
+        99
+      ],
+      "rampJitter": 22,
+      "descendProb": 0.3,
+      "gapProb": 0.62
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "ii",
+          "v",
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI",
+          "v"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.2,
+      "seventh": 0.52,
+      "ninth": 0.28
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        42,
+        68
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "vamp",
+        "1_per_bar"
+      ],
+      "weights": [
+        3,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      2,
+      12
+    ]
+  },
+  "melody": {
+    "register": [
+      59,
+      83
+    ],
+    "densityPerBar": [
+      3,
+      8
+    ],
+    "structure": "long_arc",
+    "intervals": {
+      "step": 0.56,
+      "third": 0.32,
+      "leap": 0.12
+    },
+    "contour": {
+      "riff": 0.3,
+      "descend": 0.38,
+      "arch": 0.32
+    },
+    "chordToneBias": 0.6,
+    "halfStepDissonance": 0.1,
+    "octaveJumpProb": 0.14,
+    "phraseBars": {
+      "values": [
+        2,
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        4,
+        2
+      ]
+    },
+    "timbreHint": "detuned_piano"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.5,
+    "styles": {
+      "values": [
+        "arp",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.88,
+    "register": [
+      24,
+      40
+    ],
+    "glideProb": 0.1,
+    "passingTones": [
+      "m7",
+      "P5"
+    ],
+    "anticipationProb": 0.18
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "hook": 8,
+      "bridge": 8,
+      "outro": 4
+    }
+  }
+}

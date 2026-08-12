@@ -1,0 +1,286 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "2nd-ii-none-amg-hi-c",
+  "type": "artist",
+  "name": "2nd II None, AMG & Hi-C",
+  "aliases": [
+    "2nd ii none",
+    "second ii none",
+    "amg",
+    "hi-c",
+    "hi c",
+    "dj quik clique",
+    "compton clique",
+    "penthouse players"
+  ],
+  "tier": "standard",
+  "extends": [
+    "g-funk"
+  ],
+  "era": "1991-1999",
+  "genres": [
+    "rap",
+    "g-funk",
+    "west coast",
+    "funk"
+  ],
+  "relatedGenres": [
+    "g-funk",
+    "funk",
+    "west-coast-club",
+    "rnb-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 g-funk — 2nd II None, AMG & Hi-C (DJ Quik’s Compton clique)",
+    "https://ambrosiaforheads.com/2017/03/dj-quik-amg-2nd-ii-none-hi-c-video/",
+    "https://www.frannieandali.com/home/2015/1/30/dj-quik"
+  ],
+  "notes": "⚠ **One model for three acts, because the research treats them as one** — a satellite roster around DJ Quik sharing an SP-1200, an MPC60 and a Roland D-50 between them, and it says outright that the individual album parameters are partly inferred [LOW-CONF]. What is documented is the clique's method, and that is what is authored. Quik's habit of replaying records with \"notes strategically changed but kept at the same tempo\" means the progressions are near-quotations of 70s funk, so `I–IV` sits at the top with the `i–iv–VII` alternation the research names beside it and `major`/`mixolydian` carrying the scale weight over minor-inflected bass. The drums are live-feel with pronounced 16th swing — 0.64, joint-heaviest here — with `percs.tambourine` steady on the 8ths as the research specifies. ⚠ The bass is the clearest researched thing: continuous 8th-note funk lines with slides and grace notes over E1–E2, so `glideProb` is 0.6 and `anticipationProb` 0.34 with `followRootsProb` at 0.44. **The register is authored 28–45 rather than the documented 28–40** because `bass.rs` needs a reachable pool and a twelve-semitone span cannot supply one; the documented octave is where the weight of the line sits. ⚠ `confidence` is `medium` and **the inferred parameters are the progression-family weights and the melody's density** — talkbox and clean-guitar leads with \"note density moderate\" is a description, and 3–6 notes a bar is this author's reading of moderate.",
+  "session": {
+    "bpm": {
+      "min": 92,
+      "max": 102,
+      "mode": 96
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "minor_pentatonic",
+        "dorian"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.64
+    },
+    "humanize": {
+      "quantizeStrength": 0.78,
+      "velocityVar": 0.2
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.42,
+      "tresilloBias": 0.22,
+      "offbeat8thShare": 0.3
+    },
+    "snare": {
+      "rimshotLayer": true,
+      "ghost": {
+        "prob": 0.3,
+        "pos": [
+          "2e",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.24,
+          0.42
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.5,
+      "openHat": {
+        "prob": 0.32,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "rolls": {
+        "vocab": [
+          "32"
+        ],
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.29
+      }
+    },
+    "percs": {
+      "lanes": [
+        "conga",
+        "shaker",
+        "timbale"
+      ],
+      "tambourine": true,
+      "densityPerBar": [
+        2,
+        4
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t",
+        "8t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        62,
+        110
+      ],
+      "gapProb": 0.38,
+      "descendProb": 0.3,
+      "rampJitter": 22
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "vi",
+          "IV"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.3,
+      "seventh": 0.5,
+      "ninth": 0.2
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        78
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      70,
+      92
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "densityPerBar": [
+      3,
+      6
+    ],
+    "chordToneBias": 0.66,
+    "timbreHint": "clean_guitar"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.5,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.44,
+    "register": [
+      28,
+      45
+    ],
+    "glideProb": 0.6,
+    "passingTones": [
+      "M2",
+      "m3",
+      "P4",
+      "P5",
+      "M6",
+      "m7"
+    ],
+    "anticipationProb": 0.34
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": 16,
+      "hook": 8,
+      "outro": [
+        8,
+        16
+      ]
+    }
+  }
+}

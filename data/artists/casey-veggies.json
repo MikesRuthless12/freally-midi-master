@@ -1,0 +1,252 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "casey-veggies",
+  "type": "artist",
+  "name": "Casey Veggies",
+  "aliases": [
+    "casey veggies",
+    "casey jones",
+    "peas and carrots"
+  ],
+  "tier": "standard",
+  "extends": [
+    "west-coast-club"
+  ],
+  "era": "2011-2017",
+  "genres": [
+    "rap",
+    "west-coast-club"
+  ],
+  "relatedGenres": [
+    "west-coast-club",
+    "lofi-hiphop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 west-coast-club — Casey Veggies"
+  ],
+  "notes": "Inglewood skate-rap — the bridge between the Odd Future milieu and LA cool-rap. Light-touch programming is the parameter: rim and snap layers over the clap, kick on 1 and the \"and-of-2\" rather than the lane’s usual \"and-of-3\", and **no rolls at all in the 80–102 band**. Two tempo populations, 80–102 straight and 130–145 half-time. ⚠ `medium`: tempo and key measured, drum detail lane-inherited and marked `[LOW-CONF]` in the research.",
+  "session": {
+    "bpm": {
+      "min": 80,
+      "max": 145,
+      "mode": 94
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "major",
+        "dorian"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.54
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.3,
+      "lockTo808": 0.7
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "rimshotLayer": true,
+      "ghost": {
+        "prob": 0.18,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.2,
+          0.35
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.25,
+      "velocities": {
+        "main": [
+          0.6,
+          0.8
+        ],
+        "ghost": [
+          0.2,
+          0.4
+        ]
+      },
+      "openHat": {
+        "prob": 0.15,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.14
+      }
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        52,
+        96
+      ],
+      "rampJitter": 9
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "staccato",
+      "slideProb": 0.05,
+      "register": [
+        17,
+        33
+      ],
+      "distortion": "none"
+    }
+  },
+  "melody": {
+    "register": [
+      63,
+      86
+    ],
+    "densityPerBar": [
+      2,
+      5
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "fingerpicked_guitar"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.4,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.3,
+      "seventh": 0.5,
+      "ninth": 0.2
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        47,
+        79
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      16
+    ]
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.82,
+    "register": [
+      26,
+      42
+    ],
+    "glideProb": 0.04,
+    "passingTones": [
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.2
+  }
+}

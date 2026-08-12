@@ -1,0 +1,271 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "dem-jointz",
+  "type": "artist",
+  "name": "Dem Jointz",
+  "aliases": [
+    "dem jointz",
+    "dwayne abernathy"
+  ],
+  "tier": "standard",
+  "extends": [
+    "west-coast-club"
+  ],
+  "era": "2005-present",
+  "genres": [
+    "rap",
+    "west-coast-club"
+  ],
+  "relatedGenres": [
+    "west-coast-club",
+    "trap",
+    "pop-2020s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 west-coast-club — Dem Jointz"
+  ],
+  "notes": "Compton’s drum-first producer, working across Dr. Dre-orbit rap, pop and K-pop — the widest stylistic range in this section. The research is unambiguous that **the drums are the identity**: he came up playing drums in church, and the records are heavy, live-feel, gospel-derived kit programming — ghost 16ths and rimshots on the backbeat, busy kick patterns with two or three hits a bar. Harmony is minor with industrial colour: static beds, chromatic stabs, and the abrupt key and section changes carried over from his pop work. ⚠ `medium`: background, drum lineage and credits are documented; harmonic detail inferred `[LOW-CONF]`.",
+  "session": {
+    "bpm": {
+      "min": 85,
+      "max": 150,
+      "mode": 104
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "phrygian",
+        "harmonic_minor"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.54
+    },
+    "humanize": {
+      "quantizeStrength": 0.68,
+      "velocityVar": 0.3
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.45,
+      "lockTo808": 0.75
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "rimshotLayer": true,
+      "ghost": {
+        "prob": 0.55,
+        "pos": [
+          "1a",
+          "2e",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.2,
+          0.45
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.6,
+      "velocities": {
+        "main": [
+          0.6,
+          0.95
+        ],
+        "ghost": [
+          0.2,
+          0.5
+        ]
+      },
+      "openHat": {
+        "prob": 0.35,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          3
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16T",
+            "32"
+          ],
+          "weights": [
+            2,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.36
+      }
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 4
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t",
+        "8t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        62,
+        112
+      ],
+      "rampJitter": 14
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "staccato",
+      "slideProb": 0.15,
+      "register": [
+        20,
+        36
+      ],
+      "distortion": "saturated"
+    },
+    "percs": {
+      "lanes": [
+        "tomHigh",
+        "tomLow"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      62,
+      88
+    ],
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "synth_brass_stab"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.4,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "bII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 3
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.6,
+      "seventh": 0.32,
+      "ninth": 0.08
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        47,
+        79
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    },
+    "chordDurationBeats": [
+      2,
+      12
+    ]
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.85,
+    "register": [
+      24,
+      42
+    ],
+    "glideProb": 0.1,
+    "passingTones": [
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.24
+  }
+}

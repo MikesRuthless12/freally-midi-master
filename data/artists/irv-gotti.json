@@ -1,0 +1,351 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "irv-gotti",
+  "type": "artist",
+  "name": "Irv Gotti",
+  "aliases": [
+    "irv gotti",
+    "irving lorenzo",
+    "dj irv",
+    "murder inc"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "boom-bap"
+  ],
+  "era": "1998-2003",
+  "genres": [
+    "rap",
+    "boom-bap"
+  ],
+  "relatedGenres": [
+    "boom-bap",
+    "rnb-2000s",
+    "pop-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 boom-bap — Irv Gotti",
+    "Complex — Irv Gotti's 25 best productions (https://www.complex.com/music/a/john-morrison/irv-gotti-songs-ja-rule-ashanti-murda-inc)",
+    "Wikipedia — Irv Gotti (https://en.wikipedia.org/wiki/Irv_Gotti)"
+  ],
+  "notes": "Murder Inc.'s sped-up 80s R&B, and the sharp key set is the parameter, not a decoration: the research says the interpolations are sped up \"so keys read sharp\", so `session.keys` is the sharp side — E, B, F#, A, D and their relative minors — where every other entry on this axis sits in the flat-side minor pool the genre inherits. The second parameter is the kick: 1 and **3**, not 1 and 3.5, which is the disco-adjacent pull that separates his kit from the boom-bap norm. The third is the counter-hook — \"a sung female counter-hook is a structural fixture\" — so `countermelody.densityRatio` is 0.65 with `fillGapsOnly` off, which is the highest on this axis. ⚠ `medium` and the research says medium as well: the method is documented journalistically rather than technically, so every drum probability here is inference from prose. The specific inferred parameter is `drums.hihat.fillDensity` — \"hats 8ths plus 16th shuffles\" gives a vocabulary but no rate. ⚠ The I–vi–IV–V family is INFERRED; the research names I–V–vi–IV and vi–IV–I–V, and it carries the lowest weight. ⚠ `countermelody.fillGapsOnly` returned to true. With it off and a density of 0.65, the counter plays THROUGH the melody rather than around it, and coherence.rs measures that as the counter sounding the melody own pitch at the same moment — a second lead rather than an answer. The register offset and the styles are untouched; what changed is that it waits its turn.",
+  "session": {
+    "bpm": {
+      "min": 88,
+      "max": 105,
+      "mode": 96
+    },
+    "keys": {
+      "values": [
+        "E",
+        "B",
+        "F#",
+        "A",
+        "D",
+        "C#m",
+        "F#m",
+        "Bm"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        3,
+        2,
+        2,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor",
+        "mixolydian"
+      ],
+      "weights": [
+        5,
+        2,
+        1
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.53
+    },
+    "humanize": {
+      "quantizeStrength": 0.9,
+      "velocityVar": 0.11
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3",
+      "syncopation": 0.22,
+      "tresilloBias": 0.05
+    },
+    "snare": {
+      "rimshotLayer": false,
+      "layerClapOffsetMs": [
+        3,
+        8
+      ],
+      "ghost": {
+        "prob": 0.14,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.22,
+          0.36
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.5,
+      "velocities": {
+        "main": [
+          0.78,
+          0.98
+        ],
+        "ghost": [
+          0.22,
+          0.48
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0.11,
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ]
+      },
+      "openHat": {
+        "prob": 0.25,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "shaker",
+        "perc"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "gainOffsetDb": -5
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        48,
+        94
+      ],
+      "rampJitter": 6,
+      "gapProb": 0.24,
+      "descendProb": 0.36
+    }
+  },
+  "melody": {
+    "register": [
+      64,
+      88
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "intervals": {
+      "step": 0.6,
+      "third": 0.28,
+      "leap": 0.12
+    },
+    "contour": {
+      "riff": 0.3,
+      "descend": 0.3,
+      "arch": 0.4
+    },
+    "chordToneBias": 0.8,
+    "octaveJumpProb": 0.14,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "timbreHint": "pitched_vocal_chop"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.65,
+    "fillGapsOnly": true,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "vi",
+          "IV",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.6,
+      "seventh": 0.32,
+      "ninth": 0.08
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        50,
+        78
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.6,
+    "register": [
+      26,
+      45
+    ],
+    "glideProb": 0.08,
+    "passingTones": [
+      "P5",
+      "M6"
+    ],
+    "anticipationProb": 0.3
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "hook",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "bridge",
+          "hook",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": 16,
+      "hook": 8,
+      "bridge": [
+        4,
+        8
+      ],
+      "outro": 4
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.5,
+        "beats": 2
+      },
+      "switchUpProb": 0.08
+    }
+  }
+}

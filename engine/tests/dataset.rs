@@ -326,7 +326,10 @@ fn every_shipped_artist_says_which_genres_it_works_in() {
         .summary
         .entries
         .iter()
-        .filter(|e| e.model_type == engine::dataset::ModelType::Artist)
+        // ⚠ `is_style`, not `== Artist`: producers became their own variant on
+        // 2026-08-12 and cross-filter narrowing them away is exactly the defect
+        // this test guards, so it has to cover them too.
+        .filter(|e| e.model_type.is_style())
         .collect();
 
     assert!(artists.len() >= 10, "expected the shipped roster");

@@ -1,0 +1,595 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "childish-gambino",
+  "type": "artist",
+  "name": "Childish Gambino",
+  "aliases": [
+    "childish gambino",
+    "gambino",
+    "donald glover",
+    "bino"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "boom-bap"
+  ],
+  "era": "2011-2018",
+  "genres": [
+    "rap",
+    "funk",
+    "boom bap"
+  ],
+  "relatedGenres": [
+    "boom-bap",
+    "funk",
+    "neo-soul"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 boom-bap — Childish Gambino",
+    "https://en.wikipedia.org/wiki/Childish_Gambino",
+    "https://en.wikipedia.org/wiki/Camp_(Childish_Gambino_album)",
+    "https://en.wikipedia.org/wiki/Because_the_Internet",
+    "https://en.wikipedia.org/wiki/Awaken,_My_Love!",
+    "https://en.wikipedia.org/wiki/This_Is_America_(song)",
+    "https://www.mixonline.com/recording/recording-childish-gambino-on-the-road-genelec-monitor-studio-pro-audio"
+  ],
+  "notes": "⛔ **The research asks for a three-mode model and this authors exactly that**, in the manner of the Kanye West entry, \"because the modes do not share a parameter set\" — with one constant, Ludwig Göransson, who produces or co-produces all four records. `concept rap` is 2011–2013: live drums over programming (Questlove and Chris Hartz on kit, Göransson *and* Glover both credited for programming), snare on 2&4, orchestral-hit accents, **no hat carpet**, D♭ minor recurring across four cuts, and string arrangements as a standing layer. `psych funk` is 2016: a live funk kit with hand percussion and glockenspiel, ghosted 16ths, **major-mode funk harmony with real changes rather than vamps** voiced on Rhodes, Wurlitzer, Mellotron, B3 and harpsichord, and played bass that is syncopated and melodic in the P-Funk manner rather than sustained. `gospel switch` is 2018: F major choral writing against a minor-coloured trap half, and the **switch itself is the modellable device** — at 0:53, after the gunshot, a hard cut to a backbeat on beat 3, which is authored as `snare.placement: halftime_3` plus `session.halfTime`. ⚠ **The 808 half of `gospel switch` is not modelled.** This parent is a sampled kit with `drums.bass808` set to null, and grafting a sub department onto it through a mode would be a bigger claim than the mode makes; what is authored is the placement flip and the tempo, which is what the research calls load-bearing. ⚠ `medium` because the research rates it high-medium: per-album personnel, instrument-by-instrument credits and the structural switch are sourced, tempo readings are algorithmic `[LOW-CONF]`, and Göransson's DAW and gear are not documented anywhere reachable — so the hat, perc and roll numbers are INFERRED. ⚠ **Placement friction, stated honestly by the research**: this section's boundary rule is *sampled* harmonic material and Gambino's is *played*; he is here on era, lane and roadmap assignment rather than on that rule, and `funk.md` should cross-reference rather than duplicate.",
+  "session": {
+    "bpm": {
+      "min": 80,
+      "max": 120,
+      "mode": 92
+    },
+    "keys": {
+      "values": [
+        "Dbm",
+        "Dm",
+        "F",
+        "Cm",
+        "Am"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "major",
+        "dorian",
+        "mixolydian"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.55
+    },
+    "humanize": {
+      "quantizeStrength": 0.62,
+      "velocityVar": 0.22
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.34,
+      "tresilloBias": 0.05
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "ghost": {
+        "prob": 0.32,
+        "pos": [
+          "1a",
+          "2e",
+          "4e"
+        ],
+        "vel": [
+          0.2,
+          0.42
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.46,
+      "velocities": {
+        "main": [
+          0.68,
+          0.9
+        ],
+        "ghost": [
+          0.18,
+          0.44
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "16T"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "positions": [
+          "pre_snare"
+        ],
+        "freqPerBar": 0.38
+      },
+      "openHat": {
+        "prob": 0.18,
+        "pos": [
+          "1&",
+          "3&"
+        ],
+        "perBar": [
+          0,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "conga",
+        "shaker",
+        "woodblock"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        55,
+        100
+      ],
+      "rampJitter": 19,
+      "descendProb": 0.2,
+      "gapProb": 0.58
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII",
+          "III"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "vi",
+          "ii",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.24,
+      "seventh": 0.5,
+      "ninth": 0.26
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        50,
+        76
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      61,
+      86
+    ],
+    "densityPerBar": [
+      3,
+      8
+    ],
+    "structure": "call_response",
+    "intervals": {
+      "step": 0.6,
+      "third": 0.28,
+      "leap": 0.12
+    },
+    "contour": {
+      "riff": 0.34,
+      "descend": 0.28,
+      "arch": 0.38
+    },
+    "chordToneBias": 0.7,
+    "octaveJumpProb": 0.12,
+    "phraseBars": {
+      "values": [
+        4,
+        8,
+        2
+      ],
+      "weights": [
+        4,
+        2,
+        2
+      ]
+    },
+    "timbreHint": "rhodes"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.56,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.4,
+    "register": [
+      31,
+      49
+    ],
+    "glideProb": 0.08,
+    "passingTones": [
+      "M2",
+      "M3",
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.4
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": 16,
+      "hook": 8,
+      "bridge": 8,
+      "outro": 8
+    }
+  },
+  "modes": [
+    {
+      "name": "concept rap",
+      "weight": 4,
+      "session": {
+        "bpm": {
+          "min": 80,
+          "max": 103,
+          "mode": 88
+        },
+        "scales": {
+          "values": [
+            "natural_minor",
+            "dorian"
+          ],
+          "weights": [
+            4,
+            2
+          ]
+        }
+      },
+      "drums": {
+        "hihat": {
+          "base": "8th",
+          "continuous": false,
+          "fillDensity": 0.3
+        },
+        "percs": {
+          "lanes": [
+            "perc",
+            "tom"
+          ],
+          "densityPerBar": [
+            0,
+            2
+          ]
+        }
+      },
+      "melody": {
+        "register": [
+          60,
+          84
+        ],
+        "densityPerBar": [
+          2,
+          7
+        ],
+        "contour": {
+          "riff": 0.5,
+          "descend": 0.34,
+          "arch": 0.16
+        },
+        "chordToneBias": 0.66
+      },
+      "chords": {
+        "extensions": {
+          "triad": 0.44,
+          "seventh": 0.42,
+          "ninth": 0.14
+        }
+      }
+    },
+    {
+      "name": "psych funk",
+      "weight": 3,
+      "session": {
+        "bpm": {
+          "min": 88,
+          "max": 120,
+          "mode": 104
+        },
+        "scales": {
+          "values": [
+            "major",
+            "mixolydian",
+            "dorian"
+          ],
+          "weights": [
+            4,
+            3,
+            2
+          ]
+        },
+        "swing": {
+          "grid": "16th",
+          "amount": 0.58
+        }
+      },
+      "drums": {
+        "hihat": {
+          "base": "16th",
+          "continuous": true,
+          "fillDensity": 0.62
+        },
+        "percs": {
+          "lanes": [
+            "conga",
+            "shaker",
+            "tambourine",
+            "triangle"
+          ],
+          "densityPerBar": [
+            2,
+            4
+          ]
+        }
+      },
+      "melody": {
+        "register": [
+          64,
+          88
+        ],
+        "densityPerBar": [
+          4,
+          9
+        ],
+        "structure": "long_arc",
+        "contour": {
+          "riff": 0.2,
+          "descend": 0.28,
+          "arch": 0.52
+        },
+        "chordToneBias": 0.6,
+        "octaveJumpProb": 0.18
+      },
+      "chords": {
+        "extensions": {
+          "triad": 0.14,
+          "seventh": 0.52,
+          "ninth": 0.34
+        },
+        "voicing": {
+          "style": "open",
+          "register": [
+            50,
+            78
+          ]
+        }
+      },
+      "bassline": {
+        "followRootsProb": 0.3,
+        "register": [
+          31,
+          49
+        ],
+        "anticipationProb": 0.5,
+        "passingTones": [
+          "M2",
+          "M3",
+          "P4",
+          "P5",
+          "M6",
+          "m7"
+        ]
+      }
+    },
+    {
+      "name": "gospel switch",
+      "weight": 2,
+      "session": {
+        "bpm": {
+          "min": 116,
+          "max": 124,
+          "mode": 120
+        },
+        "halfTime": true,
+        "keys": {
+          "values": [
+            "F",
+            "Fm",
+            "C"
+          ],
+          "weights": [
+            4,
+            2,
+            2
+          ]
+        },
+        "scales": {
+          "values": [
+            "major",
+            "natural_minor"
+          ],
+          "weights": [
+            4,
+            3
+          ]
+        }
+      },
+      "drums": {
+        "snare": {
+          "placement": "halftime_3"
+        },
+        "kick": {
+          "densityPerBar": [
+            3,
+            5
+          ],
+          "syncopation": 0.46
+        },
+        "hihat": {
+          "base": "16th",
+          "continuous": true,
+          "fillDensity": 0.7
+        },
+        "percs": {
+          "lanes": [
+            "snap",
+            "perc"
+          ],
+          "densityPerBar": [
+            1,
+            3
+          ]
+        }
+      },
+      "melody": {
+        "register": [
+          62,
+          87
+        ],
+        "densityPerBar": [
+          3,
+          8
+        ],
+        "structure": "question_answer",
+        "contour": {
+          "riff": 0.3,
+          "descend": 0.44,
+          "arch": 0.26
+        },
+        "chordToneBias": 0.8
+      },
+      "chords": {
+        "progressionFamilies": [
+          {
+            "roman": [
+              "I",
+              "IV",
+              "I",
+              "V"
+            ],
+            "weight": 4
+          },
+          {
+            "roman": [
+              "I",
+              "vi",
+              "IV",
+              "V"
+            ],
+            "weight": 3
+          },
+          {
+            "roman": [
+              "i",
+              "VI",
+              "VII"
+            ],
+            "weight": 2
+          }
+        ],
+        "extensions": {
+          "triad": 0.4,
+          "seventh": 0.42,
+          "ninth": 0.18
+        }
+      }
+    }
+  ]
+}

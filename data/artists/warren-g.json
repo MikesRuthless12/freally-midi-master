@@ -1,0 +1,307 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "warren-g",
+  "type": "artist",
+  "name": "Warren G",
+  "aliases": [
+    "warren g",
+    "warren griffin",
+    "regulate",
+    "g funk era"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "g-funk"
+  ],
+  "era": "1994-1997",
+  "genres": [
+    "rap",
+    "g-funk",
+    "west coast"
+  ],
+  "relatedGenres": [
+    "g-funk",
+    "funk",
+    "rnb-2000s",
+    "boom-bap"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended vol.1 g-funk — Warren G",
+    "https://en.wikipedia.org/wiki/Regulate_(song)",
+    "https://www.grammy.com/news/warren-g-interview-regulate-g-funk-era-nate-dogg-30th-anniversary/"
+  ],
+  "notes": "The most reproducible construction in this lane, and the entry where the *arrangement* carries as much of the identity as the groove. \"Regulate\" is documented at 95.3 BPM and called languid, so `bpm.mode` is 95 with the swing pushed to 0.58 and `quantizeStrength` down to 0.82. The MPC60 loop is 4 bars long and deliberately unbusy: kick 2–4 a bar with the doubled pickup on the and-of-4 (`secondaryAnchor` `4&`, which nothing else in this batch uses), 8th hats at the lowest `fillDensity` here, and `phraseBars` weighted 4:1 toward four bars because the loop length is the researched fact. ⚠ **The structure is the headline claim and is authored literally**: verses-only, no traditional chorus. Both `structures` entries omit `hook` entirely, the film-dialogue cold open is the 4–8 bar intro, and the sung answer-phrase that stands where a hook would be is the bridge. ⚠ `timbreHint` is `church_organ` for the SY77 Hammond-styled swells; the research places them every fourth bar, which is an arrangement rule this engine has no field for, so **the every-fourth-bar placement is authored intent that is currently unexpressed** and only the 4-bar phrase length carries it. ⛔ **The bass is `mirror_kick`, not a held note.** The research says a single sustained sub reinforcing the loop's root motion, low and static, no glides. `reese_sustain` emits one note per chord and saturates, so the honest substitute is `mirror_kick` at `followRootsProb` 0.92 over a kick that plays twice a bar — two low roots a bar, which reads as sustained at 95. ⚠ `fills.smallEveryBars` of 2 sits against the research's \"minimal fills\"; `gapProb` at 0.58 is what compensates, dropping most of the roll's slots so the gesture stays sparse.",
+  "session": {
+    "bpm": {
+      "min": 92,
+      "max": 98,
+      "mode": 95
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "dorian",
+        "natural_minor"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.58
+    },
+    "humanize": {
+      "quantizeStrength": 0.82,
+      "velocityVar": 0.16
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "4&",
+      "syncopation": 0.26,
+      "tresilloBias": 0.1,
+      "offbeat8thShare": 0.18
+    },
+    "snare": {
+      "rimshotLayer": false,
+      "ghost": {
+        "prob": 0.08,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.18,
+          0.3
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.34,
+      "openHat": {
+        "prob": 0.2,
+        "pos": [
+          "2&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": [
+          "32"
+        ],
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.2
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "tambourine"
+      ],
+      "densityPerBar": [
+        0,
+        2
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t",
+        "8t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        60,
+        104
+      ],
+      "gapProb": 0.58,
+      "descendProb": 0.08,
+      "rampJitter": 5
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "vi",
+          "ii",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.28,
+      "seventh": 0.52,
+      "ninth": 0.2
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        78
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      72,
+      94
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        4,
+        1
+      ]
+    },
+    "densityPerBar": [
+      2,
+      5
+    ],
+    "contour": {
+      "riff": 0.4,
+      "descend": 0.3,
+      "arch": 0.3
+    },
+    "chordToneBias": 0.74,
+    "articulation": "legato",
+    "timbreHint": "church_organ"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.35,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.92,
+    "register": [
+      26,
+      42
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.05
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "verse",
+          "bridge",
+          "verse",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "verse",
+          "verse",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": 16,
+      "bridge": 8,
+      "outro": [
+        4,
+        8
+      ]
+    },
+    "transitions": {
+      "switchUpProb": 0.05,
+      "dropOutBeats": {
+        "prob": 0.4,
+        "beats": 2
+      }
+    }
+  }
+}

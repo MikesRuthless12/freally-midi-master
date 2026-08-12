@@ -1,0 +1,281 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "mausberg",
+  "type": "artist",
+  "name": "Mausberg",
+  "aliases": [
+    "mausberg",
+    "jamal breedlove",
+    "non fiction",
+    "get nekkid"
+  ],
+  "tier": "standard",
+  "extends": [
+    "g-funk"
+  ],
+  "era": "2000",
+  "genres": [
+    "rap",
+    "g-funk",
+    "west coast"
+  ],
+  "relatedGenres": [
+    "g-funk",
+    "west-coast-club",
+    "funk"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 g-funk — Mausberg",
+    "https://www.frannieandali.com/home/2015/1/30/dj-quik",
+    "https://equipboard.com/pros/dj-quik"
+  ],
+  "notes": "The last of the Quik-produced Compton protégés, and a one-year window. ⚠ **`confidence` is `medium` and the research says why** — the production lineage is documented and the artist-specific analysis is thin [LOW-CONF] — so what is authored is Quik's rig applied to a minor-mode record. That rig is specific enough to be useful: MPC-sequenced live-feel kit (`quantizeStrength` 0.8, swing 0.6), a dry snare with short room decay and no rimshot layer, and JD-800/XV-5080-era synth leads with SH-101 bass textures, which is `bright_synth_lead` over a single sustained voice at 2–5 notes a bar with `articulation` legato. ⚠ **The 808 is deliberately not a second lane.** The research names \"live bass plus 808 sub sine underneath — a documented Quik combination\", and *underneath* is reinforcement rather than a part: the g-funk archetype sets `drums.bass808` to null because this lane's low end is a played instrument, and re-enabling it here would generate an independent 808 line the research does not describe. The sub sits under `bassline` as a layer the kit provides, so `bassline` is the live bass — `independent_riff` at 0.52 with `glideProb` 0.45. ⚠ The major-mode chorus lift the research names is authored as `major` and `mixolydian` in the scale weights and a `i–VI–III` family rather than as a modulation, which this engine has no field for; **that reading is inferred.**",
+  "session": {
+    "bpm": {
+      "min": 92,
+      "max": 100,
+      "mode": 96
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "minor_pentatonic",
+        "major",
+        "mixolydian"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.6
+    },
+    "humanize": {
+      "quantizeStrength": 0.8,
+      "velocityVar": 0.18
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.4,
+      "tresilloBias": 0.2,
+      "offbeat8thShare": 0.28
+    },
+    "snare": {
+      "rimshotLayer": false,
+      "ghost": {
+        "prob": 0.26,
+        "pos": [
+          "2e",
+          "3a"
+        ],
+        "vel": [
+          0.22,
+          0.38
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.46,
+      "openHat": {
+        "prob": 0.26,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": [
+          "32"
+        ],
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.23
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "tambourine",
+        "conga"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t",
+        "8t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        60,
+        108
+      ],
+      "gapProb": 0.42,
+      "descendProb": 0.2,
+      "rampJitter": 26
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.4,
+      "seventh": 0.44,
+      "ninth": 0.16
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        47,
+        76
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      72,
+      94
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "densityPerBar": [
+      2,
+      5
+    ],
+    "motifPitchCount": [
+      3,
+      5
+    ],
+    "articulation": "legato",
+    "chordToneBias": 0.68,
+    "timbreHint": "bright_synth_lead"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.42,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.52,
+    "register": [
+      26,
+      46
+    ],
+    "glideProb": 0.45,
+    "passingTones": [
+      "M2",
+      "m3",
+      "P4",
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.28
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": 16,
+      "hook": 8,
+      "outro": [
+        4,
+        8
+      ]
+    }
+  }
+}

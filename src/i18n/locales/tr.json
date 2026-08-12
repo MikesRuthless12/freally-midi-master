@@ -212,6 +212,7 @@
   },
   "roster": {
     "artists": "Sanatçılar",
+    "producers": "Prodüktörler",
     "flagship": "Öne çıkan",
     "genre": "Tür",
     "noneInGenre": "{{name}} türünde henüz sanatçı yok.",

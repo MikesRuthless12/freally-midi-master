@@ -212,6 +212,7 @@
   },
   "roster": {
     "artists": "الفنانون",
+    "producers": "المنتجون",
     "flagship": "مميّز",
     "genre": "نوع",
     "noneInGenre": "لا يعمل أي فنان في {{name}} بعد.",

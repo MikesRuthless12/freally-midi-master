@@ -212,6 +212,7 @@
   },
   "roster": {
     "artists": "アーティスト",
+    "producers": "プロデューサー",
     "flagship": "主要",
     "genre": "ジャンル",
     "noneInGenre": "{{name}} のアーティストはまだいません。",

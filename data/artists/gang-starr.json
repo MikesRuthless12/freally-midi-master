@@ -1,0 +1,259 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "gang-starr",
+  "type": "artist",
+  "name": "Gang Starr",
+  "aliases": [
+    "gang starr",
+    "gangstarr",
+    "premier and guru",
+    "moment of truth"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "boom-bap"
+  ],
+  "era": "1992-1998",
+  "genres": [
+    "rap",
+    "boom-bap"
+  ],
+  "relatedGenres": [
+    "boom-bap",
+    "lofi-hiphop",
+    "neo-soul"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended vol.1 boom-bap — Gang Starr",
+    "ModeAudio — Masters of Sampling: DJ Premier",
+    "MPC Forums — DJ Premier on the swing function"
+  ],
+  "notes": "The reference implementation of the lane, and the research calls the distinguishing thing out twice: firmness. \"Snare 2&4 with almost no velocity variation\" and \"SP/MPC swing set low-to-mid so the feel is firm rather than lazy\" are two statements about the same parameter pair, so `velocityVar` is 0.06 — the lowest of any entry on this axis — `quantizeStrength` is 0.9, and `swing` sits at 0.56 rather than the 0.58 boom-bap default. The bass is the other half: sampled upright or filtered electric playing walking quarters or dotted figures, so `independent_riff` at `followRootsProb` 0.4 with a wide register and four passing tones, and the sub exists only as kick weight, which is why the register floor is not down at 24. Premier's scratch hook is the \"chorus melody\", so the countermelody carries real density rather than a decorative answer lick. ⚠ The research notes some loops sit microtonally flat because they were pitched down by cents; the engine has no sample and no cents, so that is recorded here and authored nowhere — it is a mix property of the source, not a generator parameter. ⚠ `snareRoll.pitchWalk` is inherited rather than authored: nothing in the research says how Premier pitches a roll, and a roll owes a producer three pitches unless the style is a train beat. ⚠ The bass ceiling came down from 47 to 46 so it stays under a chord part that starts at 47 — `coherence.rs` requires the highest bass note to sit at or below the lowest chord note, and this model overlapped by 1.",
+  "session": {
+    "bpm": {
+      "min": 84,
+      "max": 98,
+      "mode": 91
+    },
+    "scales": {
+      "values": [
+        "dorian",
+        "natural_minor",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.56
+    },
+    "humanize": {
+      "quantizeStrength": 0.9,
+      "velocityVar": 0.06
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.32,
+      "tresilloBias": 0.06
+    },
+    "snare": {
+      "rimshotLayer": false,
+      "ghost": {
+        "prob": 0.18,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.24,
+          0.34
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.44,
+      "velocities": {
+        "main": [
+          0.78,
+          0.9
+        ],
+        "ghost": [
+          0.24,
+          0.4
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.13
+      },
+      "openHat": {
+        "prob": 0.25,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        58,
+        98
+      ],
+      "gapProb": 0.38,
+      "descendProb": 0.12,
+      "rampJitter": 5
+    }
+  },
+  "melody": {
+    "register": [
+      62,
+      84
+    ],
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "intervals": {
+      "step": 0.6,
+      "third": 0.32,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.55,
+      "descend": 0.3,
+      "arch": 0.15
+    },
+    "chordToneBias": 0.74,
+    "octaveJumpProb": 0.06,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "timbreHint": "rhodes"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.52,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "ii",
+          "v",
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.3,
+      "seventh": 0.52,
+      "ninth": 0.18
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        47,
+        73
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.4,
+    "register": [
+      28,
+      46
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "M2",
+      "m3",
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.25
+  }
+}

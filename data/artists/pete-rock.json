@@ -1,0 +1,296 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "pete-rock",
+  "type": "artist",
+  "name": "Pete Rock",
+  "aliases": [
+    "pete rock",
+    "the chocolate boy wonder",
+    "peter phillips",
+    "soul brother #1"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "boom-bap"
+  ],
+  "era": "1991-2004",
+  "genres": [
+    "rap",
+    "boom bap",
+    "producer"
+  ],
+  "relatedGenres": [
+    "boom-bap",
+    "lofi-hiphop",
+    "neo-soul"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended vol.1 boom-bap — Pete Rock",
+    "https://create.routenote.com/blog/producer-profile-pete-rock/",
+    "https://reverb.com/news/video-the-enduring-appeal-of-the-e-mu-sp-1200"
+  ],
+  "notes": "Mount Vernon horn-loop soul-jazz, and the research names the two things that make it: **the fattest layered drums of the era** and **a rigidly quantised 8th-note hi-hat cutting through them**. Those pull in opposite directions and both are authored — `percs.lanes` carries three break sources at a real density because the kit is heavy layering of several breaks, while `humanize.quantizeStrength` is high and the hat is a plain continuous 8th, because the signature is that the hat does *not* drift. **The harmony is the richest thing here**: Dorian/Aeolian jazz with 7th and 9th colour, `ii–V–i` and `i–iv` over 2–4 bar loops, so `seventh` outweighs `triad` and the families carry real motion. **Muted trumpet and sax fragments with tape-delay throws** are what the countermelody is: `octave_echo` weighted alongside `answer_lick`, because a tape throw *is* a delayed copy, and `registerOffset` sends it up rather than down. The bass department earns `independent_riff` on the research's own words — early work filters sampled basslines through the S950, later work is programmed and then played live with \"genuine melodic lines that unify the loop harmonically\", which is not a part that follows a kick. `sectionBars.intro` is 8 because the research states the horn hook is stated alone first, and the outro is long because these arrangements end with extended instrumentals for DJs.",
+  "session": {
+    "bpm": {
+      "min": 88,
+      "max": 98,
+      "mode": 93
+    },
+    "scales": {
+      "values": [
+        "dorian",
+        "natural_minor",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.57
+    },
+    "humanize": {
+      "quantizeStrength": 0.9,
+      "velocityVar": 0.12
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.26,
+      "tresilloBias": 0.04
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "ghost": {
+        "prob": 0.28,
+        "pos": [
+          "2e",
+          "3a"
+        ],
+        "vel": [
+          0.22,
+          0.38
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.38,
+      "velocities": {
+        "main": [
+          0.84,
+          0.96
+        ],
+        "ghost": [
+          0.24,
+          0.4
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "16T"
+          ],
+          "weights": [
+            4,
+            3
+          ]
+        },
+        "positions": [
+          "pre_snare"
+        ],
+        "freqPerBar": 0.39
+      },
+      "openHat": {
+        "prob": 0.16,
+        "pos": [
+          "1&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "ride",
+        "tom",
+        "perc"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        57,
+        105
+      ],
+      "rampJitter": 17,
+      "descendProb": 0.46,
+      "gapProb": 0.28
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "ii",
+          "v",
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "ii",
+          "v"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.22,
+      "seventh": 0.54,
+      "ninth": 0.24
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        47,
+        72
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      65,
+      87
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "structure": "question_answer",
+    "intervals": {
+      "step": 0.62,
+      "third": 0.32,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.36,
+      "descend": 0.28,
+      "arch": 0.36
+    },
+    "chordToneBias": 0.72,
+    "octaveJumpProb": 0.1,
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "timbreHint": "horn_stab"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.48,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.52,
+    "register": [
+      29,
+      46
+    ],
+    "glideProb": 0.04,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2"
+    ],
+    "anticipationProb": 0.34
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 8,
+      "verse": 16,
+      "hook": 8,
+      "outro": [
+        8,
+        16
+      ]
+    }
+  }
+}

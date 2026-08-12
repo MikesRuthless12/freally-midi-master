@@ -43,7 +43,7 @@ export type Lane = "kick" | "subKick" | "snare" | "offSnare" | "ghostSnare" | "c
 
 export type LaneTrack = { lane: Lane, notes: Array<Note>, };
 
-export type ModelType = "artist" | "genre";
+export type ModelType = "artist" | "producer" | "genre";
 
 /**
  * A single note event. Ticks are absolute from the start of the pattern.
