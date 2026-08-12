@@ -69,6 +69,15 @@ const GATES = [
   { name: 'dataset validate', cmd: 'npm', args: ['run', '-s', 'dataset:validate'] },
   { name: 'denylist', cmd: 'node', args: ['scripts/check-denylist.mjs'] },
   { name: 'e2e', cmd: 'npm', args: ['run', '-s', 'test:e2e'], slow: true },
+  // ⛔⛔ **The gallery is a SECOND Playwright run under its own config**, and
+  // this file did not have it — so `e2e` above passed locally while
+  // `features.spec.ts` failed on every OS in CI. It clicked a footer `Clear`
+  // button that had moved onto the generator tabs as an ✕; nothing in the main
+  // suite touches it, so nothing local could have caught it.
+  //
+  // ⚠ Exactly the failure this file's own header describes: a gate CI runs and
+  // this does not is a gate this file is lying about.
+  { name: 'gallery', cmd: 'npm', args: ['run', '-s', 'test:gallery'], slow: true },
   // Runs in CI's supply-chain job but was missing here, so a newly published
   // npm advisory failed CI on a tree where every local gate had just passed.
   // A gate that CI runs and this does not is a gate this file is lying about.
