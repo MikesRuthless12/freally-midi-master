@@ -567,6 +567,21 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
                 match crate::audio::import::decode_file(std::path::Path::new(path)) {
                     Ok(audio) => {
                         shared.preview.load(audio.samples, audio.sample_rate);
+                        // ⛔ **Recorded here, because this is the moment a
+                        // producer actually looked at a file.** `select`
+                        // auditions on a click, an arrow key and a starred row
+                        // alike, and all three arrive as `preview_load` — so one
+                        // call covers every way into the browser. Recording on
+                        // *drop* instead would miss everything auditioned and
+                        // rejected, which is most of what browsing is.
+                        //
+                        // ⚠ **A failure here must not fail the audition.** The
+                        // sample has already been decoded and handed to the
+                        // player; a producer whose `%APPDATA%` is read-only
+                        // should still hear it. The history is a convenience and
+                        // refusing the preview to protect the bookkeeping would
+                        // be the wrong trade.
+                        let _ = crate::recent::note(path);
                         Ok(Value::Null)
                     }
                     Err(reason) => Err(reason),
@@ -655,6 +670,14 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
             };
             return Some(
                 crate::explorer::midi_pattern(&shared.explorer, path, part)
+                    .inspect(|_| {
+                        // ⚠ The MIDI half of the same moment `preview_load`
+                        // records. A `.mid` is never decoded by the audio
+                        // player, so without this the history would show only
+                        // the samples a producer auditioned and none of the
+                        // loops they opened.
+                        let _ = crate::recent::note(path);
+                    })
                     .and_then(|p| serde_json::to_value(p).map_err(|e| e.to_string())),
             );
         }
@@ -889,6 +912,24 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
         "favourites_list" => {
             return Some(
                 serde_json::to_value(crate::favourites::list()).map_err(|e| e.to_string()),
+            );
+        }
+
+        // ── The browser's history (TASK-058) ─────────────────────────────
+        //
+        // ⛔ Read-only from the page. Nothing adds to the history over the
+        // bridge: entries only ever come from `preview_load` and `explorer_midi`
+        // above, which are already bounded by `Explorer::contains`. A
+        // `recent_add` would be a way for the page to name an arbitrary path and
+        // have it stored and shown as somewhere the producer had been.
+        "recent_list" => {
+            return Some(serde_json::to_value(crate::recent::list()).map_err(|e| e.to_string()));
+        }
+
+        "recent_clear" => {
+            return Some(
+                crate::recent::clear()
+                    .and_then(|list| serde_json::to_value(list).map_err(|e| e.to_string())),
             );
         }
 

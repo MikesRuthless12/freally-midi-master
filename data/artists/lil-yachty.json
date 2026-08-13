@@ -71,14 +71,14 @@
   "drums": {
     "kick": {
       "densityPerBar": [
-        2,
-        4
+        3,
+        6
       ],
       "anchors": [
         "1"
       ],
-      "secondaryAnchor": "3",
-      "syncopation": 0.27,
+      "secondaryAnchor": "2&",
+      "syncopation": 0.63,
       "tresilloBias": 0.13,
       "andOf4EveryOtherBar": 0.5,
       "avoidPreSnareGap": "8th",
@@ -134,15 +134,14 @@
     },
     "snareRoll": {
       "subdivisions": [
-        "16th",
-        "32nd"
+        "8t"
       ],
       "grouping": [
-        "strong_weak_weak_weak"
+        "even"
       ],
       "velocityRampRange": [
-        64,
-        112
+        56,
+        104
       ],
       "rampJitter": 11,
       "descendProb": 0.43,

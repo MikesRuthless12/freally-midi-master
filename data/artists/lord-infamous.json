@@ -266,7 +266,7 @@
   },
   "countermelody": {
     "registerOffset": -12,
-    "densityRatio": 0.55,
+    "densityRatio": 0.58,
     "fillGapsOnly": true,
     "styles": {
       "values": [
@@ -281,7 +281,8 @@
         2,
         2
       ]
-    }
+    },
+    "echoOffset": "8th"
   },
   "bassline": {
     "rhythm": "mirror_kick",

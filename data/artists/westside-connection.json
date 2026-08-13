@@ -224,8 +224,25 @@
       4
     ],
     "articulation": "staccato",
-    "chordToneBias": 0.6,
-    "timbreHint": "horn_stab"
+    "chordToneBias": 0.58,
+    "timbreHint": "horn_stab",
+    "structure": "riff_loop",
+    "intervals": {
+      "step": 0.5,
+      "third": 0.35,
+      "leap": 0.3
+    },
+    "contour": {
+      "riff": 0.6,
+      "descend": 0.3,
+      "arch": 0.25
+    },
+    "halfStepDissonance": 0.06,
+    "endVariation": true,
+    "octaveJumpProb": [
+      0.14,
+      0.28
+    ]
   },
   "countermelody": {
     "registerOffset": -12,

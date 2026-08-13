@@ -13,6 +13,7 @@ import { useKit } from '../../state/kit';
 import { useSession } from '../../state/session';
 import { padsOf, useUi } from '../../state/ui';
 import { Favourites } from './Favourites';
+import { Recent } from './Recent';
 import { FileTree } from './FileTree';
 import { PreviewPlayer } from './PreviewPlayer';
 import type { Lane } from '../../lib/ipc-types';
@@ -46,6 +47,7 @@ export function ExplorerPanel() {
   const error = useExplorer((s) => s.error);
   const refresh = useExplorer((s) => s.refresh);
   const loadFavourites = useExplorer((s) => s.loadFavourites);
+  const loadRecent = useExplorer((s) => s.loadRecent);
   const addFolder = useExplorer((s) => s.addFolder);
   const removeFolder = useExplorer((s) => s.removeFolder);
   const collapse = useExplorer((s) => s.collapse);
@@ -87,7 +89,8 @@ export function ExplorerPanel() {
   useEffect(() => {
     void refresh();
     void loadFavourites();
-  }, [refresh, loadFavourites]);
+    void loadRecent();
+  }, [refresh, loadFavourites, loadRecent]);
 
   /**
    * The lane `Ctrl`+arrow will put the selected sample on, or `null`.
@@ -362,6 +365,7 @@ export function ExplorerPanel() {
           drops to when they know what they are after — and above the player, so
           clicking a favourite and hearing it are next to each other. */}
       <Favourites />
+      <Recent />
 
       <PreviewPlayer />
 

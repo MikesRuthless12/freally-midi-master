@@ -65,9 +65,9 @@
     "kick": {
       "densityPerBar": [
         2,
-        4
+        5
       ],
-      "secondaryAnchor": "3&",
+      "secondaryAnchor": "4&",
       "syncopation": 0.27,
       "tresilloBias": 0.15,
       "offbeat8thShare": 0.2,

@@ -52,7 +52,7 @@
     "kick": {
       "densityPerBar": [
         3,
-        5
+        6
       ],
       "anchors": [
         "1"
@@ -123,10 +123,12 @@
     },
     "snareRoll": {
       "subdivisions": [
-        "8t"
+        "16th",
+        "16t"
       ],
       "grouping": [
-        "even"
+        "even",
+        "strong_weak_weak_weak"
       ],
       "velocityRampRange": [
         80,
@@ -175,7 +177,7 @@
   },
   "countermelody": {
     "registerOffset": 12,
-    "densityRatio": 0.4,
+    "densityRatio": 0.39,
     "styles": {
       "values": [
         "answer_lick",
@@ -185,7 +187,8 @@
         3,
         2
       ]
-    }
+    },
+    "fillGapsOnly": true
   },
   "chords": {
     "progressionFamilies": [

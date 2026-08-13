@@ -50,7 +50,7 @@
   "drums": {
     "kick": {
       "densityPerBar": [
-        3,
+        2,
         6
       ],
       "anchors": [
@@ -214,7 +214,7 @@
     "timbreHint": "horror_organ"
   },
   "countermelody": {
-    "registerOffset": -12,
+    "registerOffset": 0,
     "densityRatio": 0.3,
     "styles": {
       "values": [
@@ -222,10 +222,11 @@
         "answer_lick"
       ],
       "weights": [
-        3,
-        2
+        4,
+        3
       ]
-    }
+    },
+    "fillGapsOnly": true
   },
   "chords": {
     "progressionFamilies": [

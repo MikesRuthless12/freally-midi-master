@@ -12,6 +12,55 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added — every drum lane expands into a pitch lane, 2026-08-13
+
+- **Any lane can open into pitch rows** (TASK-161). A chevron on every one of the
+  33 lanes opens it into a seven-row window — the lane's root, three semitones up
+  and three down — so a hit's pitch is something you can see and drag rather than
+  a value the grid threw away. The 808 is the case that asked for it, but the
+  mechanism is the same for all of them, so none is exempt. (A lane with no hits
+  yet has nothing to measure a window from, so its chevron waits until it does.)
+- **Travel is unbounded while the row stays seven tall.** Dragging a hit past the
+  top or bottom **pans that lane's window** instead of stopping, and every lane
+  keeps its own offset — the kick can sit at its root while the 808 is panned up.
+- **`sub` and `subLow` label their rows as notes; every other lane labels them in
+  semitones**, because there the offset is a sample transposition rather than a
+  pitch, and calling a shaker "D#2" would be a readout that lies.
+- **Hits outside the window are marked, not hidden.** The top and bottom rows
+  carry an edge on any column holding notes beyond them, so a sliding 808 can
+  never be audible and invisible.
+- **A pitch drag is one undo step.** The window follows the finger as you drag,
+  but the note itself lands on release — `patterns` never coalesces in the undo
+  stack, so writing per semitone would have cost a Ctrl+Z for each one and left
+  the hit on pitches nobody chose along the way.
+- **Drag the preview waveform to scrub** (TASK-058B). The File Explorer's
+  transport already seeked on click; now the audio follows the finger, which is
+  how you hunt for the start of a transient without clicking twenty times.
+
+### Fixed
+
+- **A held part no longer collapses over a vamp** (TASK-162, TASK-165). Both
+  `sustain_pad` and `reese_sustain` wrote one note per chord, so a model whose
+  harmony sits on one chord got one note for the whole clip — `bnyx` and
+  `clams-casino` reached 959 and 963 distinct counters per 1,000 against a 0.98
+  floor, and `mobb-deep` measured 8 distinct basslines in 1,000 seeds. A held
+  span longer than two bars now re-articulates on a phrase drawn per span.
+  `bnyx` and `clams-casino` have had their `sustain_pad` weights restored from
+  the workaround value of 1 back to 3 and clear the floor with them.
+- **KRS-One's bassline is its own again.** It and Wu-Tang Clan had been moved to
+  the same rhythm with the same passing tone, and were writing the same bassline
+  on 42 of 200 seeds. `mirror_kick` takes its onsets from the kick and 62
+  boom-bap models share it, so a model with no opinion of its own about pitch or
+  placement writes whichever neighbour shares its kick. KRS-One's now says what
+  the research always did — reggae: the dub slide, the flat seven, and a bass
+  that plays before the one rather than on it.
+- **`country-train` writes 73 distinct beats over 200 seeds, up from 24.** Its
+  kick could not move and should not — the train beat is quarters, and a genre
+  invariant asserts it — so the variety came from a second open-hat position and
+  a higher roll frequency. **`rapsody` goes from 136 to 199**, and its distinct
+  kicks from 77 to 193: two anchors against `densityPerBar: [1,3]` left the fill
+  loop with nothing to do.
+
 ### Added — the drum grid becomes an editor, 2026-08-11
 
 - **Drag a box to select.** Shift-drag draws a rubber band and selects every cell

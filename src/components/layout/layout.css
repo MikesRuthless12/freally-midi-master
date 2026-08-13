@@ -8,9 +8,20 @@
    The fallback is the width the rail has always been, so a page rendered before
    `App` sets the property (or in a test that mounts a rail on its own) lays out
    exactly as it used to. */
+/* ⛔⛔ **BOTH RAILS ARE `minmax(0, …)`, AND THAT IS THE FIX FOR A BUG, NOT
+   TIDYING.** Mike, 2026-08-12: *"if you resize to too small of a size, the right
+   rail is never visible."* The tracks were a *fixed* `280px` and a *fixed*
+   `320px` either side of a `1fr` stage — so below about 600px the stage was
+   already at zero and the grid was **wider than the window**, and the overflow
+   carried the right rail off the right-hand edge. It was not being crowded out
+   by a greedy stage; it could not shrink. `minmax(0, …)` keeps the same
+   preferred widths and lets them compress instead of overflowing. */
 .studio {
   display: grid;
-  grid-template-columns: var(--rail-left-width, 280px) minmax(0, 1fr) 320px;
+  grid-template-columns:
+    minmax(0, var(--rail-left-width, 280px))
+    minmax(0, 1fr)
+    minmax(0, 320px);
   grid-template-rows: minmax(0, 1fr) 56px;
   grid-template-areas:
     'left center right'
@@ -20,10 +31,31 @@
 }
 
 .studio[data-right-rail='closed'] {
-  grid-template-columns: var(--rail-left-width, 280px) minmax(0, 1fr);
+  grid-template-columns: minmax(0, var(--rail-left-width, 280px)) minmax(0, 1fr);
   grid-template-areas:
     'left center'
     'transport transport';
+}
+
+/* ⛔ **The stage collapsed, so the two rails own the window** — Mike, same day:
+   *"if you have a generation that you like, that the center can be collapsed so
+   that the 'right rail' will always show … like the whole generation part."* The
+   right rail takes the `1fr` here rather than its fixed width, because the point
+   of collapsing the stage is to give that space to what is left. */
+.studio[data-stage='closed'] {
+  grid-template-columns: minmax(0, var(--rail-left-width, 280px)) minmax(0, 1fr);
+  grid-template-areas:
+    'left right'
+    'transport transport';
+}
+
+/* Both away: the left rail is the window. Reachable by design — the stage
+   toggle and K are independent, and nothing should make one of them refuse. */
+.studio[data-stage='closed'][data-right-rail='closed'] {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    'left'
+    'transport';
 }
 
 /* ── Rails ──────────────────────────────────────────────────────────────── */

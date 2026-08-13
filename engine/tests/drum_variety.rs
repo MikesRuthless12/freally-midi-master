@@ -156,11 +156,21 @@ fn report_how_many_distinct_beats_each_artist_writes() {
     );
 
     // ⚠ **A floor, not a target, and a low one deliberately.** `country-train`
-    // sits at 24 because a train beat *is* four-on-the-floor with `syncopation:
+    // sat at 24 because a train beat *is* four-on-the-floor with `syncopation:
     // 0` — that is the style, not a saturation, and raising this to punish it
     // would be asking the generator to stop sounding like country. What this
     // catches is a model collapsing toward one beat, which is what
     // `uk-drill`'s kick did before anyone measured it.
+    //
+    // ▶ **It reaches 73 since 2026-08-13, and its kick is still 1.** The kick
+    // could not move and should not: `the_train_beat_is_a_sixteenth_stream_over_
+    // walking_quarters` asserts every country kick lands on a quarter, and with
+    // four anchors against `densityPerBar: 4` the fill loop never runs, so the
+    // lane draws no random numbers at all. The variety came from the two lanes
+    // the invariants leave free — a second open-hat position and a higher roll
+    // frequency. ⚠ `percs` is NOT one of them: widening it from [1,2] to [2,5]
+    // moved this number by exactly zero, because `shape` drops anything under
+    // velocity 50 and the perc lanes generate below it.
     const FLOOR: usize = 20;
     let thin: Vec<&(String, usize, usize, usize)> = rows
         .iter()

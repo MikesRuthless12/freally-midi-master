@@ -224,7 +224,7 @@
   },
   "countermelody": {
     "registerOffset": 12,
-    "densityRatio": 0.55,
+    "densityRatio": 0.58,
     "styles": {
       "values": [
         "answer_lick",
@@ -238,7 +238,9 @@
         2,
         2
       ]
-    }
+    },
+    "fillGapsOnly": true,
+    "echoOffset": "8th"
   },
   "chords": {
     "maxChords": 2,

@@ -58,7 +58,7 @@
     "kick": {
       "densityPerBar": [
         2,
-        3
+        4
       ],
       "anchors": [
         "1"
@@ -159,8 +159,8 @@
   },
   "melody": {
     "register": [
-      61,
-      84
+      60,
+      85
     ],
     "densityPerBar": [
       2,
@@ -172,15 +172,34 @@
         2
       ],
       "weights": [
-        3,
+        4,
         2
       ]
     },
-    "timbreHint": "warm_keys"
+    "timbreHint": "warm_keys",
+    "structure": "riff_loop",
+    "motifPitchCount": [
+      3,
+      5
+    ],
+    "intervals": {
+      "step": 0.51,
+      "third": 0.25,
+      "leap": 0.11
+    },
+    "contour": {
+      "riff": 0.56,
+      "descend": 0.2,
+      "arch": 0.11
+    },
+    "chordToneBias": 0.81,
+    "halfStepDissonance": 0.04,
+    "endVariation": true,
+    "octaveJumpProb": 0.13
   },
   "countermelody": {
     "registerOffset": 12,
-    "densityRatio": 0.4,
+    "densityRatio": 0.48,
     "styles": {
       "values": [
         "answer_lick",
@@ -190,7 +209,8 @@
         3,
         2
       ]
-    }
+    },
+    "fillGapsOnly": true
   },
   "chords": {
     "progressionFamilies": [

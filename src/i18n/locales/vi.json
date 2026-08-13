@@ -157,7 +157,8 @@
   "view": {
     "button": "Hiển thị",
     "panels": "Bảng",
-    "rightRail": "Thanh phải"
+    "rightRail": "Thanh phải",
+    "stage": "Sân khấu"
   },
   "settings": {
     "title": "Cài đặt",
@@ -208,7 +209,12 @@
     "rollCount": "{{count}} tiếng",
     "addFill": "Thêm fill vào {{lane}}",
     "reassignLane": "Đổi {{lane}} sang trống khác",
-    "lockLane": "Giữ {{lane}} khi tạo lại"
+    "lockLane": "Giữ {{lane}} khi tạo lại",
+    "pitchRows": "Hàng cao độ cho {{lane}}",
+    "pitchCell": "{{lane}} {{pitch}}, bước {{step}}",
+    "semitoneRow": "{{offset}} nửa cung từ nốt gốc",
+    "hitsAbove": "{{count}} tiếng đánh phía trên cửa sổ",
+    "hitsBelow": "{{count}} tiếng đánh phía dưới cửa sổ"
   },
   "roster": {
     "artists": "Nghệ sĩ",
@@ -412,6 +418,8 @@
     "resize": "Thay đổi chiều rộng trình duyệt",
     "folderLimit": "Bạn có thể duyệt 8 thư mục cùng lúc — đóng một thư mục để thêm thư mục khác",
     "favourites": "Mục yêu thích",
+    "recent": "Gần đây",
+    "clearRecent": "Xóa lịch sử",
     "star": "Gắn sao {{name}}",
     "unstar": "Bỏ gắn sao {{name}}",
     "revealHint": "Hiện {{path}} trong trình quản lý tệp",

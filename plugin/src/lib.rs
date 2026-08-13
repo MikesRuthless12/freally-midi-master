@@ -37,6 +37,7 @@ pub mod oneshot;
 pub mod patterns;
 pub mod presets;
 pub mod preview;
+pub mod recent;
 pub mod roles;
 pub mod shared;
 pub mod state;

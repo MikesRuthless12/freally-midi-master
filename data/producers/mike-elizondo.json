@@ -105,12 +105,12 @@
     "kick": {
       "densityPerBar": [
         3,
-        5
+        6
       ],
       "anchors": [
         "1"
       ],
-      "secondaryAnchor": "2&",
+      "secondaryAnchor": "3&",
       "syncopation": 0.47,
       "tresilloBias": 0.28,
       "offbeat8thShare": 0.35,

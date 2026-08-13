@@ -49,14 +49,14 @@
     "kick": {
       "densityPerBar": [
         2,
-        4
+        5
       ],
       "anchors": [
         "1"
       ],
-      "syncopation": 0.34,
+      "syncopation": 0.58,
       "tresilloBias": 0.16,
-      "secondaryAnchor": "3",
+      "secondaryAnchor": "4&",
       "andOf4EveryOtherBar": 0.5,
       "avoidPreSnareGap": "8th",
       "lockTo808": 1

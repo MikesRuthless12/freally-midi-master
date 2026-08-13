@@ -189,8 +189,8 @@
   },
   "melody": {
     "register": [
-      50,
-      70
+      49,
+      69
     ],
     "densityPerBar": [
       2,
@@ -202,7 +202,7 @@
         4
       ],
       "weights": [
-        3,
+        4,
         3
       ]
     },
@@ -220,7 +220,13 @@
     "halfStepDissonance": 0.24,
     "emptyBarBias": 0.1,
     "octaveJumpProb": 0.06,
-    "timbreHint": "clean_guitar"
+    "timbreHint": "clean_guitar",
+    "structure": "riff_loop",
+    "motifPitchCount": [
+      3,
+      6
+    ],
+    "endVariation": true
   },
   "countermelody": {
     "registerOffset": 12,

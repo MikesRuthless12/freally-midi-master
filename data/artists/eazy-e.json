@@ -235,18 +235,33 @@
       5
     ],
     "contour": {
-      "riff": 0.7,
-      "descend": 0.2,
+      "riff": 0.66,
+      "descend": 0.16,
       "arch": 0.1
     },
-    "chordToneBias": 0.52,
+    "chordToneBias": 0.46,
     "halfStepDissonance": 0.12,
     "articulation": "staccato",
-    "timbreHint": "horn_stab"
+    "timbreHint": "horn_stab",
+    "structure": "riff_loop",
+    "motifPitchCount": [
+      3,
+      5
+    ],
+    "intervals": {
+      "step": 0.41,
+      "third": 0.26,
+      "leap": 0.25
+    },
+    "endVariation": true,
+    "octaveJumpProb": [
+      0.14,
+      0.28
+    ]
   },
   "countermelody": {
     "registerOffset": -12,
-    "densityRatio": 0.38,
+    "densityRatio": 0.46,
     "styles": {
       "values": [
         "answer_lick",
@@ -256,7 +271,8 @@
         3,
         2
       ]
-    }
+    },
+    "fillGapsOnly": true
   },
   "bassline": {
     "rhythm": "mirror_kick",

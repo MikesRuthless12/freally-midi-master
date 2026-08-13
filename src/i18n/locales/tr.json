@@ -157,7 +157,8 @@
   "view": {
     "button": "Görünüm",
     "panels": "Paneller",
-    "rightRail": "Sağ panel"
+    "rightRail": "Sağ panel",
+    "stage": "Sahne"
   },
   "settings": {
     "title": "Ayarlar",
@@ -208,7 +209,12 @@
     "rollCount": "{{count}} vuruş",
     "addFill": "{{lane}} için fill ekle",
     "reassignLane": "{{lane}} yerine başka bir davul seç",
-    "lockLane": "Yeniden üretirken {{lane}} korunsun"
+    "lockLane": "Yeniden üretirken {{lane}} korunsun",
+    "pitchRows": "{{lane}} için perde satırları",
+    "pitchCell": "{{lane}} {{pitch}}, adım {{step}}",
+    "semitoneRow": "Kök sesten {{offset}} yarım ses",
+    "hitsAbove": "Pencerenin üstünde {{count}} vuruş",
+    "hitsBelow": "Pencerenin altında {{count}} vuruş"
   },
   "roster": {
     "artists": "Sanatçılar",
@@ -412,6 +418,8 @@
     "resize": "Tarayıcı genişliğini değiştir",
     "folderLimit": "Aynı anda 8 klasöre göz atabilirsin — başka eklemek için birini kapat",
     "favourites": "Yıldızlı favoriler",
+    "recent": "Son kullanılanlar",
+    "clearRecent": "Geçmişi temizle",
     "star": "{{name}} favorilere ekle",
     "unstar": "{{name}} favorilerden çıkar",
     "revealHint": "{{path}} dosya yöneticisinde göster",

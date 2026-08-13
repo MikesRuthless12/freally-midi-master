@@ -62,7 +62,7 @@
   "drums": {
     "kick": {
       "densityPerBar": [
-        3,
+        2,
         6
       ],
       "anchors": [
@@ -174,7 +174,8 @@
     },
     "snareRoll": {
       "subdivisions": [
-        "8t"
+        "16th",
+        "32nd"
       ],
       "grouping": [
         "even"

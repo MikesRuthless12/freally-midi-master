@@ -157,7 +157,7 @@
   },
   "countermelody": {
     "registerOffset": 12,
-    "densityRatio": 0.55,
+    "densityRatio": 0.6,
     "styles": {
       "values": [
         "answer_lick",
@@ -171,7 +171,8 @@
         2,
         1
       ]
-    }
+    },
+    "fillGapsOnly": true
   },
   "chords": {
     "progressionFamilies": [

@@ -64,13 +64,13 @@
   "drums": {
     "kick": {
       "densityPerBar": [
-        2,
-        3
+        3,
+        5
       ],
       "anchors": [
         "1"
       ],
-      "secondaryAnchor": "3",
+      "secondaryAnchor": "2&",
       "syncopation": 0.16,
       "beatSkipProb": 0.08,
       "tresilloBias": 0.05,

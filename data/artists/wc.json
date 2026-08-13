@@ -214,7 +214,7 @@
     },
     "densityPerBar": [
       2,
-      5
+      6
     ],
     "motifPitchCount": [
       2,
@@ -222,7 +222,24 @@
     ],
     "chordToneBias": 0.62,
     "articulation": "staccato",
-    "timbreHint": "clean_guitar"
+    "timbreHint": "clean_guitar",
+    "structure": "riff_loop",
+    "intervals": {
+      "step": 0.48,
+      "third": 0.35,
+      "leap": 0.22
+    },
+    "contour": {
+      "riff": 0.58,
+      "descend": 0.3,
+      "arch": 0.17
+    },
+    "halfStepDissonance": 0.06,
+    "endVariation": true,
+    "octaveJumpProb": [
+      0.14,
+      0.28
+    ]
   },
   "countermelody": {
     "registerOffset": -12,
@@ -240,19 +257,45 @@
   },
   "bassline": {
     "rhythm": "independent_riff",
-    "followRootsProb": 0.6,
+    "followRootsProb": 0.67,
     "register": [
       26,
       43
     ],
-    "glideProb": 0.2,
+    "glideProb": 0.17,
     "passingTones": [
       "M2",
       "m3",
       "P4",
       "P5"
     ],
-    "anticipationProb": 0.18
+    "anticipationProb": 0.18,
+    "cellShapes": [
+      [
+        "1",
+        "3",
+        "4",
+        "5"
+      ],
+      [
+        "1",
+        "5",
+        "7",
+        "5"
+      ],
+      [
+        "1",
+        "2",
+        "3",
+        "5"
+      ],
+      [
+        "5",
+        "1",
+        "7",
+        "4"
+      ]
+    ]
   },
   "arrangement": {
     "sectionBars": {

@@ -318,6 +318,34 @@ test('the loop and reverse toggles report their own state', async ({ page }) => 
   await expect(reverse).toHaveAttribute('aria-pressed', 'true');
 });
 
+test('the waveform seeks where it is clicked, and keeps up while it is dragged', async ({
+  page,
+}) => {
+  // TASK-058B's remaining half. The click was already there; dragging along the
+  // waveform to hunt for a transient — the tape-rub every sample browser has —
+  // was not, so the pointer had to be lifted and put down for every guess.
+  await browserRow(page, 'Samples').click();
+  await browserRow(page, 'kick-808.wav').click();
+
+  const wave = page.locator('.preview__wave');
+  const box = (await wave.boundingBox())!;
+  const time = page.locator('.preview__time');
+  await expect(time).toHaveText('0:00.0 / 0:01.5');
+
+  // Press at 60% of the width: 60% of a 1.5s sample is ~0.9s.
+  await page.mouse.move(box.x + box.width * 0.6, box.y + box.height / 2);
+  await page.mouse.down();
+  await expect(time).toHaveText('0:00.9 / 0:01.5');
+
+  // ⛔ Still held: the position has to follow the finger rather than waiting for
+  // it to be lifted, which is the whole difference between a scrub and a click.
+  await page.mouse.move(box.x + box.width * 0.2, box.y + box.height / 2);
+  await expect(time).toHaveText('0:00.3 / 0:01.5');
+
+  await page.mouse.up();
+  await expect(time).toHaveText('0:00.3 / 0:01.5');
+});
+
 test('the rail widens as it is dragged, and the stage gives up the pixels', async ({
   page,
 }) => {
@@ -357,4 +385,47 @@ test('it cannot be dragged absurdly wide', async ({ page }) => {
   expect(after.width).toBeLessThanOrEqual(560);
   // ...and the stage is still a usable size rather than a sliver.
   expect((await page.locator('.stage').boundingBox())!.width).toBeGreaterThan(300);
+});
+
+/**
+ * The browser remembers what you opened (TASK-058).
+ *
+ * ⛔⛔ **Mike, 2026-08-12**: *"the history needs to persist with the new versions
+ * and so does the file explorer's folder's list."* The folder list already did —
+ * `library.json` sits in `%APPDATA%\Freally MIDI Master`, with no version segment
+ * anywhere in the path — and there was **no history at all**, in the plugin or on
+ * the page, to make persist. `plugin/src/recent.rs` writes into that same
+ * directory so it inherits the property rather than being given its own; the
+ * per-user path is pinned by a Rust test, and this pins the behaviour.
+ */
+test('auditioning a sample puts it at the top of the history', async ({ page }) => {
+  await openPanel(page, 'explorer');
+  await browserRow(page, 'Samples').click();
+
+  await browserRow(page, 'kick-808.wav').click();
+  const history = page.getByRole('list', { name: 'Recent' });
+  await expect(history.getByRole('listitem')).toHaveText([/kick-808\.wav/]);
+
+  // ⛔ **Newest first, and one entry per file.** A history that appends a
+  // duplicate every time you audition the same kick is a history you cannot
+  // read — so re-opening promotes rather than repeats.
+  await browserRow(page, 'clap-01.wav').click();
+  await expect(history.getByRole('listitem')).toHaveText([/clap-01\.wav/, /kick-808\.wav/]);
+
+  await browserRow(page, 'kick-808.wav').click();
+  await expect(history.getByRole('listitem')).toHaveText([/kick-808\.wav/, /clap-01\.wav/]);
+});
+
+test('the history can be emptied', async ({ page }) => {
+  // ⚠ It is a record of where somebody has been, so being able to clear it is
+  // not a convenience.
+  await openPanel(page, 'explorer');
+  await browserRow(page, 'Samples').click();
+  await browserRow(page, 'kick-808.wav').click();
+
+  const history = page.getByRole('list', { name: 'Recent' });
+  await expect(history.getByRole('listitem')).toHaveCount(1);
+
+  await page.getByRole('button', { name: 'Clear history' }).click();
+  await expect(page.getByRole('list', { name: 'Recent' })).toHaveCount(0);
 });

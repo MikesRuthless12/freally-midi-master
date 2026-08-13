@@ -132,19 +132,19 @@
   },
   "melody": {
     "register": [
-      62,
-      84
+      60,
+      82
     ],
     "densityPerBar": [
       1,
       4
     ],
     "contour": {
-      "riff": 0.6,
+      "riff": 0.45,
       "descend": 0.28,
       "arch": 0.12
     },
-    "chordToneBias": 0.78,
+    "chordToneBias": 0.64,
     "octaveJumpProb": 0.05,
     "phraseBars": {
       "values": [
@@ -156,7 +156,12 @@
         2
       ]
     },
-    "timbreHint": "soft_keys"
+    "timbreHint": "soft_keys",
+    "intervals": {
+      "step": 0.6,
+      "third": 0.3,
+      "leap": 0.1
+    }
   },
   "countermelody": {
     "registerOffset": -12,

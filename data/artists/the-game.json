@@ -139,7 +139,6 @@
     },
     "snareRoll": {
       "subdivisions": [
-        "16th",
         "32nd"
       ],
       "grouping": [

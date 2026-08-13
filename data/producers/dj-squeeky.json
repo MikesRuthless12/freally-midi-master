@@ -236,7 +236,7 @@
   },
   "countermelody": {
     "registerOffset": -12,
-    "densityRatio": 0.55,
+    "densityRatio": 0.54,
     "styles": {
       "values": [
         "octave_echo",
@@ -250,7 +250,9 @@
         2,
         2
       ]
-    }
+    },
+    "fillGapsOnly": true,
+    "echoOffset": "8th"
   },
   "chords": {
     "maxChords": 2,

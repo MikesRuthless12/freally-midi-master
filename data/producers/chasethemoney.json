@@ -61,9 +61,12 @@
       "anchors": [
         "1"
       ],
-      "secondaryAnchor": "3",
+      "secondaryAnchor": "4&",
       "syncopation": 0.35,
-      "lockTo808": 1
+      "lockTo808": 1,
+      "andOf4EveryOtherBar": 0.5,
+      "tresilloBias": 0.2,
+      "avoidPreSnareGap": "8th"
     },
     "snare": {
       "ghost": {

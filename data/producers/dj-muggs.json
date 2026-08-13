@@ -198,7 +198,7 @@
   },
   "countermelody": {
     "registerOffset": -12,
-    "densityRatio": 0.34,
+    "densityRatio": 0.28,
     "styles": {
       "values": [
         "octave_echo",
@@ -267,14 +267,14 @@
   },
   "bassline": {
     "rhythm": "mirror_kick",
-    "followRootsProb": 0.93,
+    "followRootsProb": 0.8,
     "register": [
-      24,
-      41
+      23,
+      40
     ],
-    "glideProb": 0.02,
+    "glideProb": 0.03,
     "passingTones": [],
-    "anticipationProb": 0.1
+    "anticipationProb": 0.22
   },
   "arrangement": {
     "sectionBars": {

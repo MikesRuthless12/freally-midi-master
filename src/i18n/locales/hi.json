@@ -157,7 +157,8 @@
   "view": {
     "button": "दृश्य",
     "panels": "पैनल",
-    "rightRail": "दायाँ पैनल"
+    "rightRail": "दायाँ पैनल",
+    "stage": "स्टेज"
   },
   "settings": {
     "title": "सेटिंग्स",
@@ -208,7 +209,12 @@
     "rollCount": "{{count}} हिट",
     "addFill": "{{lane}} में फिल जोड़ें",
     "reassignLane": "{{lane}} को दूसरे ड्रम में बदलें",
-    "lockLane": "दोबारा जनरेट करते समय {{lane}} बनाए रखें"
+    "lockLane": "दोबारा जनरेट करते समय {{lane}} बनाए रखें",
+    "pitchRows": "{{lane}} के लिए पिच पंक्तियाँ",
+    "pitchCell": "{{lane}} {{pitch}}, चरण {{step}}",
+    "semitoneRow": "मूल स्वर से {{offset}} अर्धस्वर",
+    "hitsAbove": "विंडो के ऊपर {{count}} आघात",
+    "hitsBelow": "विंडो के नीचे {{count}} आघात"
   },
   "roster": {
     "artists": "कलाकार",
@@ -412,6 +418,8 @@
     "resize": "ब्राउज़र का आकार बदलें",
     "folderLimit": "आप एक बार में 8 फ़ोल्डर ब्राउज़ कर सकते हैं — दूसरा जोड़ने के लिए एक बंद करें",
     "favourites": "तारांकित पसंदीदा",
+    "recent": "हाल के",
+    "clearRecent": "इतिहास साफ़ करें",
     "star": "{{name}} को तारांकित करें",
     "unstar": "{{name}} से तारा हटाएँ",
     "revealHint": "{{path}} को फ़ाइल मैनेजर में दिखाएँ",

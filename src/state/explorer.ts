@@ -64,6 +64,20 @@ export type Favourite = {
   kind: 'audio' | 'midi';
 };
 
+/**
+ * One file the browser opened lately (TASK-058). Mirrors `recent::Recent`.
+ *
+ * ⚠ **The same shape as [`Favourite`] deliberately**, so one row component draws
+ * both lists. They are separate *types* because they answer different questions —
+ * a star is a choice and a history is a record — and collapsing them into one
+ * would make "clear the history" reach for the favourites too.
+ */
+export type Recent = {
+  path: string;
+  name: string;
+  kind: 'audio' | 'midi';
+};
+
 /** What `explorer_state` answers with. Mirrors `explorer::State`. */
 type ExplorerReply = {
   roots: ExplorerEntry[];
@@ -325,6 +339,14 @@ type ExplorerStore = {
   /** Starred samples, one-shots and MIDI. Mirrors `favourites::Favourite`. */
   favourites: Favourite[];
   /**
+   * The files the browser opened lately, newest first (TASK-058).
+   *
+   * ⛔ **Read-only from here.** The plugin records an entry when it auditions a
+   * sample or reads a `.mid`; nothing on the page adds to it. See the
+   * `recent_list` handler for why there is no `recent_add`.
+   */
+  recent: Recent[];
+  /**
    * What the selected `.mid` was found to contain, or `null`.
    *
    * ⛔ **Read when the file is selected, not when a button is pressed.** The
@@ -367,6 +389,10 @@ type ExplorerStore = {
   refresh: () => Promise<void>;
   /** Read the starred list. ⚠ At mount and after a star — never on the poll. */
   loadFavourites: () => Promise<void>;
+  /** Re-read the history. Cheap, and only worth doing when it can have moved. */
+  loadRecent: () => Promise<void>;
+  /** Forget where you have been. */
+  clearRecent: () => Promise<void>;
   addFolder: () => Promise<void>;
   removeFolder: (path: string) => Promise<void>;
   /** Open a folder's twisty if it is shut, shut it if it is open. */
@@ -412,6 +438,7 @@ export const useExplorer = create<ExplorerStore>((set, get) => ({
   truncatedIn: [],
   activeRoot: null,
   favourites: [],
+  recent: [],
   starred: new Set(),
   midiSplit: null,
   picking: false,
@@ -460,6 +487,26 @@ export const useExplorer = create<ExplorerStore>((set, get) => ({
       set({ favourites, starred: new Set(favourites.map((held) => held.path)) });
     } catch {
       // No stars is not a broken browser — the listing is unaffected.
+    }
+  },
+
+  // ⚠ **Not on `refresh`**, for the reason `loadFavourites` gives above: that
+  // runs every 400 ms while the folder dialog is open, and the history changes
+  // only when something is auditioned. It is read at mount and after a select
+  // that actually loaded something.
+  async loadRecent() {
+    try {
+      set({ recent: await invoke<Recent[]>('recent_list') });
+    } catch {
+      // No history is not a broken browser.
+    }
+  },
+
+  async clearRecent() {
+    try {
+      set({ recent: await invoke<Recent[]>('recent_clear') });
+    } catch (error) {
+      set({ error: reason(error) });
     }
   },
 
@@ -733,6 +780,9 @@ export const useExplorer = create<ExplorerStore>((set, get) => ({
         // the same rule the waveform follows two branches down.
         if (get().selected !== path) return;
         set({ midiSplit: parts });
+        // The plugin wrote the entry; this is the page catching up. Only here
+        // and after an audio load — the two places a file is really opened.
+        void get().loadRecent();
       } catch (error) {
         if (get().selected !== path) return;
         set({ error: reason(error) });
@@ -755,6 +805,7 @@ export const useExplorer = create<ExplorerStore>((set, get) => ({
       // waveform carries its own path precisely so this check is possible.
       if (get().selected !== wave.path) return;
       set({ waveform: wave });
+      void get().loadRecent();
     } catch (error) {
       if (get().selected !== path) return;
       set({ error: reason(error), waveform: null });

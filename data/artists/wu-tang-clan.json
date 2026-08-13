@@ -155,10 +155,12 @@
     },
     "snareRoll": {
       "subdivisions": [
-        "16th"
+        "16th",
+        "16t"
       ],
       "grouping": [
-        "even"
+        "even",
+        "strong_weak_weak_weak"
       ],
       "velocityRampRange": [
         55,
@@ -166,7 +168,8 @@
       ],
       "gapProb": 0.52,
       "descendProb": 0.14,
-      "rampJitter": 5
+      "rampJitter": 5,
+      "pitchWalk": 2
     }
   },
   "melody": {
@@ -273,15 +276,17 @@
     "impliedByRiff": true
   },
   "bassline": {
-    "rhythm": "mirror_kick",
+    "rhythm": "independent_riff",
     "followRootsProb": 0.95,
     "register": [
       22,
       41
     ],
     "glideProb": 0,
-    "passingTones": [],
-    "anticipationProb": 0.06
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.16
   },
   "arrangement": {
     "structures": [

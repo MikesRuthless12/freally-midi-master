@@ -21,6 +21,7 @@ function Studio() {
   const [aboutOpen, setAboutOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const rightRailOpen = useUi((s) => s.rightRailOpen);
+  const stageOpen = useUi((s) => s.stageOpen);
   const railWidth = useExplorer((s) => s.railWidth);
   const setWide = useUi((s) => s.setWide);
   const toggleRightRail = useUi((s) => s.toggleRightRail);
@@ -294,9 +295,13 @@ function Studio() {
   // inside it is both redundant and a lie, since our minimise and close cannot
   // move a window we do not own. Settings and About live in the transport bar.
   return (
-    <div className="studio" data-right-rail={rightRailOpen ? 'open' : 'closed'}>
+    <div
+      className="studio"
+      data-right-rail={rightRailOpen ? 'open' : 'closed'}
+      data-stage={stageOpen ? 'open' : 'closed'}
+    >
       <LeftRail />
-      <CenterStage />
+      {stageOpen && <CenterStage />}
       {rightRailOpen && <RightRail />}
       <TransportBar
         onOpenSettings={() => setSettingsOpen(true)}

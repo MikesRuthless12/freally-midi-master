@@ -49,15 +49,15 @@
   "drums": {
     "kick": {
       "densityPerBar": [
-        3,
+        2,
         5
       ],
       "anchors": [
         "1"
       ],
-      "syncopation": 0.54,
+      "syncopation": 0.42,
       "tresilloBias": 0.2,
-      "secondaryAnchor": "3",
+      "secondaryAnchor": "2a",
       "andOf4EveryOtherBar": 0.5,
       "avoidPreSnareGap": "8th",
       "lockTo808": 1

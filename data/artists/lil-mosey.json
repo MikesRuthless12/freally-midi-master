@@ -83,15 +83,15 @@
     },
     "kick": {
       "densityPerBar": [
-        2,
-        4
+        3,
+        6
       ],
       "anchors": [
         "1"
       ],
       "syncopation": 0.28,
       "tresilloBias": 0.11,
-      "secondaryAnchor": "3",
+      "secondaryAnchor": "2&",
       "andOf4EveryOtherBar": 0.5,
       "avoidPreSnareGap": "8th",
       "lockTo808": 1

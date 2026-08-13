@@ -110,7 +110,8 @@
     },
     "snareRoll": {
       "subdivisions": [
-        "16t"
+        "16t",
+        "8t"
       ],
       "grouping": [
         "even"
@@ -121,7 +122,8 @@
       ],
       "rampJitter": 22,
       "descendProb": 0.12,
-      "gapProb": 0.58
+      "gapProb": 0.58,
+      "pitchWalk": 4
     },
     "bass808": {
       "slideProb": 0.01,

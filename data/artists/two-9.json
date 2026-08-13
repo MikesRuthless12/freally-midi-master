@@ -81,9 +81,12 @@
       "anchors": [
         "1"
       ],
-      "secondaryAnchor": "3&",
+      "secondaryAnchor": "4&",
       "syncopation": 0.5,
-      "tresilloBias": 0.34
+      "tresilloBias": 0.34,
+      "offbeat8thShare": 0.45,
+      "andOf4EveryOtherBar": 0.35,
+      "lockTo808": 1
     },
     "snare": {
       "placement": "halftime_3",
@@ -178,10 +181,10 @@
     },
     "snareRoll": {
       "subdivisions": [
-        "8t"
+        "16t"
       ],
       "grouping": [
-        "even"
+        "strong_weak_weak_weak"
       ],
       "velocityRampRange": [
         76,

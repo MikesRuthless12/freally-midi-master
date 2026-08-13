@@ -280,7 +280,7 @@
   },
   "countermelody": {
     "registerOffset": 12,
-    "densityRatio": 0.32,
+    "densityRatio": 0.34,
     "styles": {
       "values": [
         "answer_lick",
@@ -290,7 +290,8 @@
         3,
         2
       ]
-    }
+    },
+    "fillGapsOnly": true
   },
   "arrangement": {
     "structures": [

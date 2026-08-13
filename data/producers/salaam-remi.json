@@ -382,6 +382,30 @@
           46
         ],
         "anticipationProb": 0.45
+      },
+      "melody": {
+        "register": [
+          58,
+          79
+        ],
+        "densityPerBar": [
+          2,
+          5
+        ],
+        "phraseBars": {
+          "values": [
+            8
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "contour": {
+          "riff": 0.5,
+          "descend": 0.3,
+          "arch": 0.2
+        },
+        "chordToneBias": 0.86
       }
     },
     {

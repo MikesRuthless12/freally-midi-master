@@ -223,7 +223,7 @@
   },
   "melody": {
     "register": [
-      72,
+      71,
       93
     ],
     "phraseBars": {
@@ -232,13 +232,13 @@
         4
       ],
       "weights": [
-        4,
-        3
+        5,
+        2
       ]
     },
     "densityPerBar": [
       2,
-      5
+      6
     ],
     "motifPitchCount": [
       2,
@@ -247,22 +247,25 @@
     "monophonicBias": 1,
     "articulation": "staccato",
     "intervals": {
-      "step": 0.55,
-      "third": 0.3,
+      "step": 0.52,
+      "third": 0.25,
       "leap": 0.15
     },
     "contour": {
-      "riff": 0.9,
-      "descend": 0.07,
+      "riff": 0.87,
+      "descend": 0.02,
       "arch": 0.03
     },
-    "chordToneBias": 0.75,
+    "chordToneBias": 0.78,
     "emptyBarBias": 0.18,
     "octaveJumpProb": [
       0.02,
       0.08
     ],
-    "timbreHint": "church_organ"
+    "timbreHint": "church_organ",
+    "structure": "riff_loop",
+    "halfStepDissonance": 0.02,
+    "endVariation": true
   },
   "countermelody": {
     "registerOffset": -12,

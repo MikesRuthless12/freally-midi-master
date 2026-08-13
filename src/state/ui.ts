@@ -376,6 +376,22 @@ type UiState = {
    *  overrides it with K, which is why it is stored rather than derived. */
   rightRailOpen: boolean;
   /**
+   * Whether the generator stage — the tabs, the grid, the roll — is showing.
+   *
+   * ⛔⛔ **Mike, 2026-08-12**: *"can we make the center window collapsible, so
+   * that way if you have a generation that you like, that the center can be
+   * collapsed so that the 'right rail' will always show … like the whole
+   * generation part."* Once a take is settled the stage is the part you have
+   * finished with, and STEMS is the part you still need — this lets the two
+   * rails own the window so a small one is still a working one.
+   *
+   * ⚠ **Not persisted, unlike the panel groups.** Collapsing the thing you
+   * generate in is a moment ("I like this, now let me drag it out"), not a
+   * layout preference, and an app that reopened with its stage hidden would look
+   * broken to the producer who did it once yesterday.
+   */
+  stageOpen: boolean;
+  /**
    * Which panels are on screen.
    *
    * ⛔ **Derived from [`openGroups`] and never written on its own.** It is what
@@ -499,6 +515,8 @@ type UiState = {
    */
   setLooping: (on: boolean) => void;
   toggleRightRail: () => void;
+  /** Collapse the generator stage so the rails own the window, or bring it back. */
+  toggleStage: () => void;
   /** Called when the viewport crosses WIDE_BREAKPOINT. */
   setWide: (wide: boolean) => void;
   /**
@@ -654,6 +672,7 @@ const initialGroups = loadGroups();
 export const useUi = create<UiState>((set) => ({
   activeTab: 'drums',
   rightRailOpen: startsWide,
+  stageOpen: true,
   // ⛔ **Derived, never set directly.** `openGroups` is the truth; this is what
   // every consumer already reads, so keeping it means `Section`, the View menu
   // and the tests did not have to learn about groups. The pair can only ever
@@ -759,6 +778,21 @@ export const useUi = create<UiState>((set) => ({
         : [...s.partsOff, part],
     })),
   toggleRightRail: () => set((s) => ({ rightRailOpen: !s.rightRailOpen })),
+  // ⛔⛔ **Collapsing the stage OPENS the right rail, and without that the
+  // feature does nothing at the size it was asked for.** Mike, 2026-08-12:
+  // *"the center can be collapsed so that the 'right rail' will always show
+  // because right now if you resize to too small of a size, the right rail is
+  // never visible."* The second half is a separate mechanism from the first:
+  // `WIDE_BREAKPOINT` auto-closes the rail below 1440, so at the small window he
+  // was describing the rail is **not mounted at all** — collapsing the stage
+  // there would have left him looking at the left rail and a hole where he
+  // expected STEMS.
+  //
+  // ⚠ **Only on the way in.** Bringing the stage back does not close the rail:
+  // that would undo a choice the producer may have made by hand, and there is
+  // room for both once the window is wide enough to want the stage again.
+  toggleStage: () =>
+    set((s) => (s.stageOpen ? { stageOpen: false, rightRailOpen: true } : { stageOpen: true })),
   // ⛔ Only on a *crossing* — see [`lastBreakpoint`]. Called with the same
   // answer as last time this does nothing, so a manual K toggle survives.
   setWide: (wide) => {

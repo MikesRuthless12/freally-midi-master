@@ -157,7 +157,8 @@
   "view": {
     "button": "视图",
     "panels": "面板",
-    "rightRail": "右侧栏"
+    "rightRail": "右侧栏",
+    "stage": "舞台"
   },
   "settings": {
     "title": "设置",
@@ -208,7 +209,12 @@
     "rollCount": "{{count}} 击",
     "addFill": "为 {{lane}} 添加加花",
     "reassignLane": "将 {{lane}} 改为其他鼓",
-    "lockLane": "再次生成时保留 {{lane}}"
+    "lockLane": "再次生成时保留 {{lane}}",
+    "pitchRows": "{{lane}} 的音高行",
+    "pitchCell": "{{lane}} {{pitch}}，第 {{step}} 步",
+    "semitoneRow": "距根音 {{offset}} 个半音",
+    "hitsAbove": "窗口上方 {{count}} 个音符",
+    "hitsBelow": "窗口下方 {{count}} 个音符"
   },
   "roster": {
     "artists": "艺人",
@@ -412,6 +418,8 @@
     "resize": "调整浏览器宽度",
     "folderLimit": "一次最多浏览 8 个文件夹 — 关闭一个才能再添加",
     "favourites": "收藏夹",
+    "recent": "最近",
+    "clearRecent": "清除历史",
     "star": "收藏 {{name}}",
     "unstar": "取消收藏 {{name}}",
     "revealHint": "在文件管理器中显示 {{path}}",

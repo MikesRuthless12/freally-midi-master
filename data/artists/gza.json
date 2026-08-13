@@ -60,7 +60,7 @@
   "drums": {
     "kick": {
       "densityPerBar": [
-        2,
+        1,
         3
       ],
       "anchors": [

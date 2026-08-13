@@ -57,12 +57,12 @@
     "kick": {
       "densityPerBar": [
         2,
-        4
+        5
       ],
       "anchors": [
         "1"
       ],
-      "secondaryAnchor": "2&",
+      "secondaryAnchor": "3",
       "syncopation": 0.37,
       "lockTo808": 1,
       "tresilloBias": 0.31,

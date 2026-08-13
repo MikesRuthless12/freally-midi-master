@@ -253,16 +253,42 @@
   },
   "bassline": {
     "rhythm": "mirror_kick",
-    "followRootsProb": 0.9,
+    "followRootsProb": 0.79,
     "register": [
       24,
-      42
+      41
     ],
-    "glideProb": 0.05,
+    "glideProb": 0.08,
     "passingTones": [
       "P5"
     ],
-    "anticipationProb": 0.05
+    "anticipationProb": 0,
+    "cellShapes": [
+      [
+        "1",
+        "3",
+        "4",
+        "5"
+      ],
+      [
+        "1",
+        "5",
+        "7",
+        "5"
+      ],
+      [
+        "1",
+        "2",
+        "3",
+        "5"
+      ],
+      [
+        "5",
+        "1",
+        "7",
+        "4"
+      ]
+    ]
   },
   "arrangement": {
     "structures": [

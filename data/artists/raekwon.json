@@ -62,7 +62,7 @@
     "kick": {
       "densityPerBar": [
         2,
-        3
+        4
       ],
       "anchors": [
         "1"
@@ -186,7 +186,7 @@
   },
   "countermelody": {
     "registerOffset": 12,
-    "densityRatio": 0.34,
+    "densityRatio": 0.42,
     "styles": {
       "values": [
         "answer_lick",
@@ -255,7 +255,7 @@
   },
   "bassline": {
     "rhythm": "mirror_kick",
-    "followRootsProb": 0.9,
+    "followRootsProb": 0.73,
     "register": [
       24,
       42
@@ -264,7 +264,7 @@
     "passingTones": [
       "P5"
     ],
-    "anticipationProb": 0.08
+    "anticipationProb": 0.17
   },
   "arrangement": {
     "sectionBars": {

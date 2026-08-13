@@ -60,12 +60,12 @@
     "kick": {
       "densityPerBar": [
         2,
-        3
+        4
       ],
       "anchors": [
         "1"
       ],
-      "secondaryAnchor": "3&",
+      "secondaryAnchor": "2&",
       "syncopation": 0.23,
       "subLayerVelocity": [
         0.8,
@@ -161,8 +161,8 @@
   },
   "melody": {
     "register": [
-      59,
-      81
+      60,
+      84
     ],
     "densityPerBar": [
       1,
@@ -170,21 +170,21 @@
     ],
     "motifPitchCount": [
       2,
-      4
+      6
     ],
     "intervals": {
-      "step": 0.64,
+      "step": 0.59,
       "third": 0.24,
-      "leap": 0.12
+      "leap": 0.14
     },
     "contour": {
-      "riff": 0.56,
+      "riff": 0.66,
       "descend": 0.34,
-      "arch": 0.1
+      "arch": 0.12
     },
-    "chordToneBias": 0.66,
+    "chordToneBias": 0.74,
     "halfStepDissonance": 0.14,
-    "octaveJumpProb": 0.05,
+    "octaveJumpProb": 0.08,
     "phraseBars": {
       "values": [
         2,
@@ -192,7 +192,7 @@
       ],
       "weights": [
         4,
-        2
+        1
       ]
     },
     "timbreHint": "piano"
@@ -268,14 +268,14 @@
   },
   "bassline": {
     "rhythm": "mirror_kick",
-    "followRootsProb": 0.96,
+    "followRootsProb": 0.61,
     "register": [
       22,
       40
     ],
-    "glideProb": 0.02,
+    "glideProb": 0.04,
     "passingTones": [],
-    "anticipationProb": 0.08
+    "anticipationProb": 0.3
   },
   "arrangement": {
     "sectionBars": {

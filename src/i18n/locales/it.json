@@ -157,7 +157,8 @@
   "view": {
     "button": "Vista",
     "panels": "Pannelli",
-    "rightRail": "Pannello destro"
+    "rightRail": "Pannello destro",
+    "stage": "Palco"
   },
   "settings": {
     "title": "Impostazioni",
@@ -208,7 +209,12 @@
     "rollCount": "{{count}} colpi",
     "addFill": "Aggiungi un fill a {{lane}}",
     "reassignLane": "Cambia {{lane}} con un altro strumento",
-    "lockLane": "Mantieni {{lane}} alla prossima generazione"
+    "lockLane": "Mantieni {{lane}} alla prossima generazione",
+    "pitchRows": "Righe di intonazione per {{lane}}",
+    "pitchCell": "{{lane}} {{pitch}}, passo {{step}}",
+    "semitoneRow": "{{offset}} semitoni dalla fondamentale",
+    "hitsAbove": "{{count}} colpi sopra la finestra",
+    "hitsBelow": "{{count}} colpi sotto la finestra"
   },
   "roster": {
     "artists": "Artisti",
@@ -412,6 +418,8 @@
     "resize": "Ridimensiona il browser",
     "folderLimit": "Puoi sfogliare 8 cartelle alla volta: chiudine una per aggiungerne un’altra",
     "favourites": "Preferiti con stella",
+    "recent": "Recenti",
+    "clearRecent": "Cancella cronologia",
     "star": "Aggiungi {{name}} ai preferiti",
     "unstar": "Rimuovi {{name}} dai preferiti",
     "revealHint": "Mostra {{path}} nel file manager",

@@ -144,7 +144,7 @@
     ],
     "densityPerBar": [
       3,
-      7
+      8
     ],
     "phraseBars": {
       "values": [
@@ -158,11 +158,27 @@
     },
     "timbreHint": "supersaw_guitar_hybrid",
     "intervals": {
-      "step": 0.4,
-      "third": 0.2,
-      "leap": 0.4
+      "step": 0.42,
+      "third": 0.23,
+      "leap": 0.36
     },
-    "halfStepDissonance": 0.25
+    "halfStepDissonance": 0.25,
+    "structure": "riff_loop",
+    "twoBarCellRepeat": true,
+    "contour": {
+      "riff": 0.47,
+      "descend": 0.43,
+      "arch": 0.11
+    },
+    "chordToneBias": 0.47,
+    "monophonicBias": 0.85,
+    "endVariation": true,
+    "octaveJumpProb": 0.07,
+    "colorTones": [
+      2,
+      4,
+      6
+    ]
   },
   "countermelody": {
     "registerOffset": 12,

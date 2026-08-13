@@ -170,19 +170,20 @@
     },
     "snareRoll": {
       "subdivisions": [
-        "16t",
-        "8t"
+        "16t"
       ],
       "grouping": [
-        "even"
+        "even",
+        "strong_weak_weak_weak"
       ],
       "velocityRampRange": [
-        60,
-        108
+        53,
+        101
       ],
       "gapProb": 0.44,
       "descendProb": 0.36,
-      "rampJitter": 15
+      "rampJitter": 15,
+      "pitchWalk": 4
     }
   },
   "chords": {
@@ -290,19 +291,45 @@
   },
   "bassline": {
     "rhythm": "independent_riff",
-    "followRootsProb": 0.6,
+    "followRootsProb": 0.58,
     "register": [
       28,
       45
     ],
-    "glideProb": 0.05,
+    "glideProb": 0.01,
     "passingTones": [
       "M2",
       "P5",
       "m7",
       "P8"
     ],
-    "anticipationProb": 0.2
+    "anticipationProb": 0.23,
+    "cellShapes": [
+      [
+        "1",
+        "3",
+        "4",
+        "5"
+      ],
+      [
+        "1",
+        "5",
+        "7",
+        "5"
+      ],
+      [
+        "1",
+        "2",
+        "3",
+        "5"
+      ],
+      [
+        "5",
+        "1",
+        "7",
+        "4"
+      ]
+    ]
   },
   "arrangement": {
     "sectionBars": {

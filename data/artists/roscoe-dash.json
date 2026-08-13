@@ -84,13 +84,13 @@
   "drums": {
     "kick": {
       "densityPerBar": [
-        2,
+        1,
         4
       ],
       "anchors": [
         "1"
       ],
-      "secondaryAnchor": "3&",
+      "secondaryAnchor": "2&",
       "syncopation": 0.4,
       "tresilloBias": 0.34,
       "offbeat8thShare": 0.3,
@@ -191,7 +191,8 @@
         "8t"
       ],
       "grouping": [
-        "even"
+        "even",
+        "strong_weak_weak_weak"
       ],
       "velocityRampRange": [
         68,

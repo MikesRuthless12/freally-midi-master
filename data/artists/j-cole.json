@@ -145,7 +145,8 @@
         "8t"
       ],
       "grouping": [
-        "even"
+        "even",
+        "strong_weak_weak_weak"
       ],
       "velocityRampRange": [
         83,
@@ -159,25 +160,25 @@
   },
   "melody": {
     "register": [
-      61,
-      85
+      62,
+      86
     ],
     "densityPerBar": [
       3,
-      7
+      8
     ],
     "intervals": {
-      "step": 0.6,
-      "third": 0.3,
-      "leap": 0.1
+      "step": 0.59,
+      "third": 0.32,
+      "leap": 0.07
     },
     "contour": {
-      "riff": 0.42,
-      "descend": 0.36,
-      "arch": 0.22
+      "riff": 0.41,
+      "descend": 0.38,
+      "arch": 0.19
     },
-    "chordToneBias": 0.72,
-    "octaveJumpProb": 0.13,
+    "chordToneBias": 0.78,
+    "octaveJumpProb": 0.12,
     "phraseBars": {
       "values": [
         2,
@@ -185,7 +186,7 @@
       ],
       "weights": [
         3,
-        3
+        4
       ]
     },
     "timbreHint": "vocal_chop"

@@ -201,8 +201,8 @@
   },
   "melody": {
     "register": [
-      70,
-      94
+      63,
+      87
     ],
     "phraseBars": {
       "values": [
@@ -211,7 +211,7 @@
       ],
       "weights": [
         3,
-        2
+        3
       ]
     },
     "densityPerBar": [
@@ -228,15 +228,17 @@
       "leap": 0.22
     },
     "contour": {
-      "riff": 0.88,
+      "riff": 0.43,
       "descend": 0.08,
       "arch": 0.04
     },
-    "chordToneBias": 0.88,
+    "chordToneBias": 0.46,
     "halfStepDissonance": 0.02,
     "emptyBarBias": 0.1,
     "octaveJumpProb": 0.08,
-    "timbreHint": "bright_pluck"
+    "timbreHint": "bright_pluck",
+    "structure": "riff_loop",
+    "endVariation": true
   },
   "countermelody": {
     "registerOffset": -12,

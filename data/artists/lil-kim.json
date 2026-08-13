@@ -62,7 +62,7 @@
     "kick": {
       "densityPerBar": [
         3,
-        4
+        5
       ],
       "anchors": [
         "1"
@@ -153,7 +153,7 @@
     },
     "snareRoll": {
       "subdivisions": [
-        "16th"
+        "16t"
       ],
       "grouping": [
         "even"
@@ -164,7 +164,8 @@
       ],
       "gapProb": 0.2,
       "descendProb": 0.24,
-      "rampJitter": 24
+      "rampJitter": 24,
+      "pitchWalk": 2
     }
   },
   "melody": {

@@ -157,7 +157,8 @@
   "view": {
     "button": "View",
     "panels": "Panels",
-    "rightRail": "Right rail"
+    "rightRail": "Right rail",
+    "stage": "Stage"
   },
   "settings": {
     "title": "Settings",
@@ -208,7 +209,12 @@
     "rollCount": "{{count}} hits",
     "addFill": "Add a fill to {{lane}}",
     "reassignLane": "Change {{lane}} to another drum",
-    "lockLane": "Hold {{lane}} when you generate again"
+    "lockLane": "Hold {{lane}} when you generate again",
+    "pitchRows": "Pitch rows for {{lane}}",
+    "pitchCell": "{{lane}} {{pitch}}, step {{step}}",
+    "semitoneRow": "{{offset}} semitones from the root",
+    "hitsAbove": "{{count}} hits above the window",
+    "hitsBelow": "{{count}} hits below the window"
   },
   "roster": {
     "artists": "Artists",
@@ -412,6 +418,8 @@
     "resize": "Resize the browser",
     "folderLimit": "You can browse 8 folders at a time — close one to add another",
     "favourites": "Starred favourites",
+    "recent": "Recent",
+    "clearRecent": "Clear history",
     "star": "Star {{name}}",
     "unstar": "Unstar {{name}}",
     "revealHint": "Show {{path}} in your file manager",

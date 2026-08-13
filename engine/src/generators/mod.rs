@@ -61,6 +61,58 @@ pub fn fit_track_to_clip(track: &mut LaneTrack, ctx: &SessionContext) {
 /// That is *dataset* knowledge rather than drum knowledge, so it lives here —
 /// one level above the generators — instead of being copied into each of them.
 /// The melodic generators arriving in Phase 2 use the same readers.
+/// Split a held span into phrase-length re-articulations (TASK-162, TASK-165).
+///
+/// ⛔⛔ **A part that holds one note per chord collapses over a vamp**, and it
+/// did so twice for the same reason. `counter.rs::pad_notes` wrote one note per
+/// chord event, so `bnyx` and `clams-casino` — `maxChords: 2`, a `harmonicRhythm`
+/// weighted to `vamp` — spent half their seeds on a single held note and reached
+/// 959 and 963 distinct counters per 1,000 against a 0.98 floor, after four
+/// authoring rounds that each fixed something that was not the cause.
+/// `bass.rs`'s `reese_sustain` has the identical shape: `mobb-deep` scored **8
+/// distinct basslines in 1,000 seeds**, and every model whose research describes
+/// a sustained sub ships as `mirror_kick` instead, recording the substitution in
+/// its own `notes`.
+///
+/// ▶ **The variety comes from *where* it takes the note again**, not from the
+/// chord count — which is what the roadmap asks for in both entries.
+///
+/// ⚠ **Only a span longer than two bars is split, so nothing else moves.** A
+/// model whose harmony turns over every bar or two gets exactly the one span it
+/// had before this existed.
+///
+/// ⛔⛔ **Two bars, not four, and four was a silent no-op.** The models author
+/// `chordDurationBeats` up to 28–32 beats, which reads as seven or eight bars —
+/// but a chord is **clipped to the pattern**, and the pattern is four. So
+/// "longer than four bars" was a condition a drone could never meet: it changed
+/// no output at all, and the two models still failed the floor the moment their
+/// `sustain_pad` weight was put back. Measure against the clip a producer
+/// actually generates, not the duration the model asks for.
+pub fn phrase_spans(
+    ctx: &SessionContext,
+    start: u32,
+    len: u32,
+    rng: &mut impl Rng,
+) -> Vec<(u32, u32)> {
+    let bar = ctx.ticks_per_bar();
+    let end = start + len;
+    if bar == 0 || len <= bar * 2 {
+        return vec![(start, end)];
+    }
+
+    // One, two or four bars, drawn per span: the re-attack point is what differs
+    // between seeds once the pitch and the length are exhausted.
+    let phrase = bar * [1u32, 2, 4][rng.random_range(0..3)];
+    let mut spans = Vec::new();
+    let mut at = start;
+    while at < end {
+        let next = (at + phrase).min(end);
+        spans.push((at, next));
+        at = next;
+    }
+    spans
+}
+
 pub mod read {
     use super::*;
 

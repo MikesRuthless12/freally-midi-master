@@ -171,7 +171,8 @@
         "16th"
       ],
       "grouping": [
-        "even"
+        "even",
+        "strong_weak_weak_weak"
       ],
       "velocityRampRange": [
         44,
@@ -180,7 +181,15 @@
       "rampJitter": 13,
       "descendProb": 0.08,
       "gapProb": 0.06,
-      "buildAndStopProb": 0.45
+      "buildAndStopProb": 0.45,
+      "ladder": [
+        "4",
+        "8",
+        "16",
+        "32"
+      ],
+      "dualLayerProb": 0.25,
+      "pitchWalk": 4
     }
   },
   "melody": {

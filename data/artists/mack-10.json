@@ -130,8 +130,7 @@
     },
     "snareRoll": {
       "subdivisions": [
-        "16t",
-        "8t"
+        "16th"
       ],
       "grouping": [
         "even"
@@ -220,14 +219,32 @@
     },
     "densityPerBar": [
       2,
-      5
+      6
     ],
     "motifPitchCount": [
       3,
       4
     ],
     "articulation": "staccato",
-    "chordToneBias": 0.66
+    "chordToneBias": 0.62,
+    "structure": "riff_loop",
+    "intervals": {
+      "step": 0.4,
+      "third": 0.35,
+      "leap": 0.21
+    },
+    "contour": {
+      "riff": 0.5,
+      "descend": 0.3,
+      "arch": 0.16
+    },
+    "halfStepDissonance": 0.06,
+    "endVariation": true,
+    "octaveJumpProb": [
+      0.14,
+      0.28
+    ],
+    "timbreHint": "portamento_worm_lead"
   },
   "countermelody": {
     "registerOffset": -12,

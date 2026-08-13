@@ -62,7 +62,7 @@
   "drums": {
     "kick": {
       "densityPerBar": [
-        2,
+        1,
         3
       ],
       "anchors": [
@@ -268,13 +268,13 @@
   },
   "bassline": {
     "rhythm": "mirror_kick",
-    "followRootsProb": 0.95,
+    "followRootsProb": 0.86,
     "register": [
       21,
       38
     ],
     "glideProb": 0.05,
     "passingTones": [],
-    "anticipationProb": 0.03
+    "anticipationProb": 0.14
   }
 }

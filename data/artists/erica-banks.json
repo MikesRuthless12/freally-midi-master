@@ -71,13 +71,13 @@
   "drums": {
     "kick": {
       "densityPerBar": [
-        3,
+        2,
         5
       ],
       "anchors": [
         "1"
       ],
-      "secondaryAnchor": "3",
+      "secondaryAnchor": "2a",
       "syncopation": 0.48,
       "tresilloBias": 0.18,
       "andOf4EveryOtherBar": 0.5,
@@ -169,7 +169,7 @@
     },
     "snareRoll": {
       "subdivisions": [
-        "8t"
+        "16t"
       ],
       "grouping": [
         "even"

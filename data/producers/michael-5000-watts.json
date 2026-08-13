@@ -88,7 +88,7 @@
     "kick": {
       "densityPerBar": [
         2,
-        3
+        4
       ],
       "anchors": [
         "1"
@@ -175,10 +175,10 @@
     },
     "snareRoll": {
       "subdivisions": [
-        "8t"
+        "16th"
       ],
       "grouping": [
-        "even"
+        "strong_weak_weak_weak"
       ],
       "velocityRampRange": [
         69,
@@ -252,8 +252,8 @@
   },
   "melody": {
     "register": [
-      50,
-      80
+      51,
+      81
     ],
     "phraseBars": {
       "values": [
@@ -261,8 +261,8 @@
         4
       ],
       "weights": [
-        5,
-        3
+        4,
+        2
       ]
     },
     "densityPerBar": [
@@ -271,18 +271,26 @@
     ],
     "motifPitchCount": [
       3,
-      5
+      6
     ],
     "loopVerbatim": true,
     "endVariation": false,
     "contour": {
-      "riff": 0.4,
+      "riff": 0.35,
       "descend": 0.46,
-      "arch": 0.14
+      "arch": 0.13
     },
     "emptyBarBias": 0.2,
-    "octaveJumpProb": 0.05,
-    "timbreHint": "detuned_bell"
+    "octaveJumpProb": 0.06,
+    "timbreHint": "detuned_bell",
+    "structure": "riff_loop",
+    "intervals": {
+      "step": 0.61,
+      "third": 0.24,
+      "leap": 0.09
+    },
+    "chordToneBias": 0.68,
+    "halfStepDissonance": 0.06
   },
   "countermelody": {
     "registerOffset": -12,

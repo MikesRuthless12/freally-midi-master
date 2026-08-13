@@ -178,18 +178,18 @@
       4
     ],
     "intervals": {
-      "step": 0.5,
-      "third": 0.22,
-      "leap": 0.28
+      "step": 0.54,
+      "third": 0.17,
+      "leap": 0.33
     },
     "contour": {
-      "riff": 0.72,
-      "descend": 0.2,
-      "arch": 0.08
+      "riff": 0.76,
+      "descend": 0.15,
+      "arch": 0.13
     },
-    "chordToneBias": 0.5,
+    "chordToneBias": 0.51,
     "halfStepDissonance": 0.16,
-    "octaveJumpProb": 0.04,
+    "octaveJumpProb": 0.01,
     "phraseBars": {
       "values": [
         2,
@@ -275,7 +275,7 @@
     "rhythm": "mirror_kick",
     "followRootsProb": 0.9,
     "register": [
-      22,
+      23,
       44
     ],
     "glideProb": 0,

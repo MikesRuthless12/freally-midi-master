@@ -75,12 +75,12 @@
     "kick": {
       "densityPerBar": [
         2,
-        3
+        4
       ],
       "anchors": [
         "1"
       ],
-      "secondaryAnchor": "3&",
+      "secondaryAnchor": "2&",
       "syncopation": 0.32,
       "tresilloBias": 0.19,
       "subLayerVelocity": [
@@ -162,7 +162,7 @@
     },
     "snareRoll": {
       "subdivisions": [
-        "8t"
+        "16t"
       ],
       "grouping": [
         "even"

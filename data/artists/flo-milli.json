@@ -73,7 +73,7 @@
     "kick": {
       "densityPerBar": [
         3,
-        6
+        7
       ],
       "anchors": [
         "1"

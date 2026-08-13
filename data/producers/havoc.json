@@ -213,8 +213,8 @@
   },
   "melody": {
     "register": [
-      67,
-      89
+      68,
+      90
     ],
     "densityPerBar": [
       1,
@@ -222,16 +222,16 @@
     ],
     "structure": "riff_loop",
     "intervals": {
-      "step": 0.48,
-      "third": 0.2,
-      "leap": 0.32
+      "step": 0.45,
+      "third": 0.17,
+      "leap": 0.27
     },
     "contour": {
-      "riff": 0.74,
-      "descend": 0.2,
-      "arch": 0.06
+      "riff": 0.71,
+      "descend": 0.17,
+      "arch": 0.01
     },
-    "chordToneBias": 0.44,
+    "chordToneBias": 0.49,
     "halfStepDissonance": 0.26,
     "octaveJumpProb": 0.03,
     "phraseBars": {
@@ -240,8 +240,8 @@
         4
       ],
       "weights": [
-        4,
-        2
+        3,
+        3
       ]
     },
     "timbreHint": "vibraphone"
@@ -262,14 +262,14 @@
   },
   "bassline": {
     "rhythm": "mirror_kick",
-    "followRootsProb": 0.94,
+    "followRootsProb": 1,
     "register": [
       24,
       40
     ],
-    "glideProb": 0,
+    "glideProb": 0.01,
     "passingTones": [],
-    "anticipationProb": 0.06
+    "anticipationProb": 0.05
   },
   "arrangement": {
     "sectionBars": {

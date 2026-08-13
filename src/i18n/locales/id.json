@@ -157,7 +157,8 @@
   "view": {
     "button": "Tampilan",
     "panels": "Panel",
-    "rightRail": "Panel kanan"
+    "rightRail": "Panel kanan",
+    "stage": "Panggung"
   },
   "settings": {
     "title": "Pengaturan",
@@ -208,7 +209,12 @@
     "rollCount": "{{count}} pukulan",
     "addFill": "Tambahkan fill ke {{lane}}",
     "reassignLane": "Ubah {{lane}} ke drum lain",
-    "lockLane": "Pertahankan {{lane}} saat generate lagi"
+    "lockLane": "Pertahankan {{lane}} saat generate lagi",
+    "pitchRows": "Baris nada untuk {{lane}}",
+    "pitchCell": "{{lane}} {{pitch}}, langkah {{step}}",
+    "semitoneRow": "{{offset}} seminada dari nada dasar",
+    "hitsAbove": "{{count}} pukulan di atas jendela",
+    "hitsBelow": "{{count}} pukulan di bawah jendela"
   },
   "roster": {
     "artists": "Artis",
@@ -412,6 +418,8 @@
     "resize": "Ubah lebar peramban",
     "folderLimit": "Kamu bisa menjelajahi 8 folder sekaligus — tutup satu untuk menambah yang lain",
     "favourites": "Favorit berbintang",
+    "recent": "Terbaru",
+    "clearRecent": "Hapus riwayat",
     "star": "Bintangi {{name}}",
     "unstar": "Hapus bintang {{name}}",
     "revealHint": "Tampilkan {{path}} di pengelola berkas",

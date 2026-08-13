@@ -333,19 +333,20 @@
       5
     ],
     "intervals": {
-      "step": 0.58,
-      "third": 0.28,
-      "leap": 0.14
+      "step": 0.62,
+      "third": 0.29,
+      "leap": 0.16
     },
     "contour": {
-      "riff": 0.5,
-      "descend": 0.28,
-      "arch": 0.22
+      "riff": 0.54,
+      "descend": 0.29,
+      "arch": 0.24
     },
-    "chordToneBias": 0.7,
+    "chordToneBias": 0.66,
     "halfStepDissonance": 0.08,
-    "octaveJumpProb": 0.12,
-    "timbreHint": "square_lead"
+    "octaveJumpProb": 0.09,
+    "timbreHint": "square_lead",
+    "endVariation": true
   },
   "countermelody": {
     "registerOffset": 12,

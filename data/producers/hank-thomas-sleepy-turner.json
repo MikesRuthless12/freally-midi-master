@@ -298,12 +298,12 @@
   },
   "bassline": {
     "rhythm": "independent_riff",
-    "followRootsProb": 0.55,
+    "followRootsProb": 0.61,
     "register": [
       28,
       47
     ],
-    "glideProb": 0.45,
+    "glideProb": 0.4,
     "passingTones": [
       "M2",
       "M3",
@@ -312,7 +312,33 @@
       "M6",
       "m7"
     ],
-    "anticipationProb": 0.2
+    "anticipationProb": 0.22,
+    "cellShapes": [
+      [
+        "1",
+        "3",
+        "4",
+        "5"
+      ],
+      [
+        "1",
+        "5",
+        "7",
+        "5"
+      ],
+      [
+        "1",
+        "2",
+        "3",
+        "5"
+      ],
+      [
+        "5",
+        "1",
+        "7",
+        "4"
+      ]
+    ]
   },
   "arrangement": {
     "structures": [

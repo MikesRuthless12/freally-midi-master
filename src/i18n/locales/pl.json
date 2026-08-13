@@ -157,7 +157,8 @@
   "view": {
     "button": "Widok",
     "panels": "Panele",
-    "rightRail": "Prawy panel"
+    "rightRail": "Prawy panel",
+    "stage": "Scena"
   },
   "settings": {
     "title": "Ustawienia",
@@ -208,7 +209,12 @@
     "rollCount": "{{count}} uderzeń",
     "addFill": "Dodaj przejście do {{lane}}",
     "reassignLane": "Zmień {{lane}} na inny bęben",
-    "lockLane": "Zachowaj {{lane}} przy ponownym generowaniu"
+    "lockLane": "Zachowaj {{lane}} przy ponownym generowaniu",
+    "pitchRows": "Wiersze wysokości dla {{lane}}",
+    "pitchCell": "{{lane}} {{pitch}}, krok {{step}}",
+    "semitoneRow": "{{offset}} półtonów od dźwięku podstawowego",
+    "hitsAbove": "{{count}} uderzeń powyżej okna",
+    "hitsBelow": "{{count}} uderzeń poniżej okna"
   },
   "roster": {
     "artists": "Artyści",
@@ -412,6 +418,8 @@
     "resize": "Zmień szerokość przeglądarki",
     "folderLimit": "Możesz przeglądać 8 folderów naraz — zamknij jeden, aby dodać kolejny",
     "favourites": "Ulubione z gwiazdką",
+    "recent": "Ostatnie",
+    "clearRecent": "Wyczyść historię",
     "star": "Dodaj {{name}} do ulubionych",
     "unstar": "Usuń {{name}} z ulubionych",
     "revealHint": "Pokaż {{path}} w menedżerze plików",

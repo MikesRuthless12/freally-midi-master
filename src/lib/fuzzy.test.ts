@@ -14,7 +14,18 @@ function shippedRoster(): RosterEntry[] {
   const root = join(__dirname, '..', '..', 'data');
   const entries: RosterEntry[] = [];
 
-  for (const dir of ['genres', 'artists']) {
+  // ⛔⛔ **`producers` is not optional here, and leaving it out looked exactly
+  // like a matcher regression.** The producers moved into a folder of their own
+  // on 2026-08-12; this loader kept reading two directories, so Metro Boomin,
+  // Southside and Pi'erre Bourne vanished from the fixture — and the failure
+  // reads as *"searching 'metro' no longer finds Metro Boomin"*, which is a
+  // product defect, not a missing file. Measured against the whole roster he
+  // still wins by 10275 to dark-trap's 8250.
+  //
+  // ⚠ Third reader of `data/artists` the split caught out, after
+  // `scripts/roster-ledger.mjs` and `engine/tests/dataset.rs`. `STYLE_DIRS`
+  // there and `styleDirs` in the ledger are the same list; keep all three.
+  for (const dir of ['genres', 'artists', 'producers']) {
     let files: string[];
     try {
       files = readdirSync(join(root, dir));

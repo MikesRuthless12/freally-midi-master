@@ -137,8 +137,8 @@
     },
     "snareRoll": {
       "subdivisions": [
-        "16t",
-        "8t"
+        "16th",
+        "16t"
       ],
       "grouping": [
         "even"

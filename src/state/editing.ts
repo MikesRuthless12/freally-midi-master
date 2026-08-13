@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 
 import type { NoteId, Snap } from '../components/PianoRoll/notes';
+import type { Lane } from '../lib/ipc-types';
 
 /**
  * What the piano roll is looking at and what is selected (TASK-041).
@@ -32,6 +33,42 @@ const DEFAULT_ZOOM = 64;
 /** Row heights the zoom walks between, so a row is never a fractional pixel. */
 export const MIN_ROW_HEIGHT = 8;
 export const MAX_ROW_HEIGHT = 48;
+
+/**
+ * How far a lane's window may be panned from its root, in semitones.
+ *
+ * ⚠ **A backstop on an unbounded integer, and nothing more.** The real limit is
+ * MIDI's own 0–127, applied where the drag happens — this only has to be wide
+ * enough that it can never bite first. ⛔ It was 60, and 60 was too small: a
+ * `sub` lane rooted at 36 needs a pan of +91 to reach pitch 127, so the clamp
+ * would have stopped the window following the note before MIDI did, which is
+ * the one thing panning exists to do.
+ */
+const MAX_LANE_WINDOW_PAN = 127;
+
+/** Where one open lane's seven-row window is looking. */
+export type LaneWindow = {
+  /**
+   * The pitch the rows are measured from, frozen when the lane opened.
+   *
+   * ⛔⛔ **Frozen, and that is a correctness fix rather than an optimisation.**
+   * The root is the lane's most common pitch, so in a lane holding one hit it is
+   * *that hit* — and recomputing it per render meant dragging the only note up
+   * two semitones moved the root up two semitones with it, re-centred the
+   * window, and drew the note back in the middle. The note moved and the screen
+   * said it had not. Freezing at open time makes the rows a fixed ruler that
+   * edits move against, which is what a producer is looking at them for.
+   */
+  root: number;
+  /**
+   * How far the window has been slid from that root, in semitones.
+   *
+   * ⛔ **Per lane, deliberately.** The kick can sit at its root while the 808 is
+   * panned five semitones up; one shared offset would move every open lane at
+   * once, which is not what "each row has its own pitch" means.
+   */
+  pan: number;
+};
 
 /**
  * A drag in progress.
@@ -100,6 +137,28 @@ type EditingState = {
    * press. The same blend `engine::humanize`'s `quantize_strength` applies.
    */
   quantizeStrength: number;
+  /**
+   * The drum lanes expanded into a pitch lane, and where each one is looking
+   * (TASK-161). A lane is open exactly when it has an entry here.
+   *
+   * ⛔ **Every lane may expand, not a chosen few.** Mike, 2026-08-12: *"i want
+   * all the lanes to have the ability to expand into a pitch lane."* The
+   * mechanism is the same whatever the lane — a hit's pitch against the lane's
+   * root — so an allowlist would be more code than uniformity and would raise
+   * the question of why the cowbell is exempt. The 808 is merely the loudest
+   * case: `sub` and `subLow` carry musical pitch, and every other lane reads its
+   * offset as the sample transposition `pitch - gm_drum_note(lane)`, which is
+   * already how `snareRoll.pitchWalk` climbs a roll.
+   *
+   * ⚠ **Empty by default**, so a producer who never opens one sees the grid they
+   * had before this existed.
+   *
+   * ⛔ **One map rather than a Set and two records.** The three were only ever
+   * written together and only ever read together, and splitting them made
+   * "expanded" and "has a root" two facts that could disagree — plus two `??`
+   * fallbacks for a state that cannot occur.
+   */
+  openLanes: Readonly<Partial<Record<Lane, LaneWindow>>>;
 
   setSnap: (snap: Snap) => void;
   setZoom: (zoom: number) => void;
@@ -155,6 +214,38 @@ type EditingState = {
   setQuantizeStrength: (strength: number) => void;
 
   /**
+   * Open or close a lane's pitch rows (TASK-161).
+   *
+   * `root` is the pitch the window freezes around, and the caller supplies it
+   * because it is read off the pattern — this store does not see patterns, and
+   * `engine::midi::gm_drum_note` is deliberately not mirrored on the page.
+   */
+  toggleLaneExpanded: (lane: Lane, root: number) => void;
+  /**
+   * Slide a lane's window up or down by `semitones`.
+   *
+   * ⛔ **This is what makes travel unbounded while the row stays seven tall.**
+   * Dragging a hit past the top or bottom row pans rather than stopping, so the
+   * reachable range is all of MIDI — the window is a viewport onto the lane's
+   * pitch, not a limit on it.
+   */
+  panLaneWindow: (lane: Lane, semitones: number) => void;
+  /**
+   * Re-measure every open lane against a new pattern (TASK-161).
+   *
+   * ⛔⛔ **A frozen root belongs to the pattern it was frozen against.** Nothing
+   * closed these on Generate, so a lane left open across one kept yesterday's
+   * root: open `sub` on a track rooted at 36, generate one rooted at 45, and all
+   * seven rows drew empty with an edge marker on every column — a lane full of
+   * hits presented as a lane with none.
+   *
+   * `roots` carries the new root per lane, read off the new pattern by the
+   * caller; a lane whose entry is missing or `null` has no hits to measure and
+   * closes rather than showing a window around a pitch that is not there.
+   */
+  refreezeOpenLanes: (roots: Readonly<Partial<Record<Lane, number | null>>>) => void;
+
+  /**
    * Start, update or clear the gesture in flight.
    *
    * One setter rather than the three this had. `beginDrag` and `updateDrag`
@@ -179,6 +270,7 @@ export const useEditing = create<EditingState>((set, get) => ({
   // Hard by default, which is what "quantize" means to anyone who has not
   // opened the slider yet.
   quantizeStrength: 1,
+  openLanes: {},
 
   setSnap: (snap) => set({ snap }),
   setZoom: (zoom) => set({ zoom: Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoom)) }),
@@ -270,6 +362,56 @@ export const useEditing = create<EditingState>((set, get) => ({
   setFoldToNotes: (foldToNotes) => set({ foldToNotes }),
   setQuantizeStrength: (strength) =>
     set({ quantizeStrength: Math.min(1, Math.max(0, strength)) }),
+
+  toggleLaneExpanded: (lane, root) =>
+    set((state) => {
+      // Replaced wholesale rather than mutated, for the reason `selection`
+      // gives above: a component that subscribes by reference has to see it.
+      const openLanes = { ...state.openLanes };
+      if (openLanes[lane]) {
+        delete openLanes[lane];
+        return { openLanes };
+      }
+      // ⚠ Opening re-freezes the root and re-centres the pan, so a lane always
+      // opens showing where its hits actually are. Carrying yesterday's pan into
+      // a freshly generated pattern would open on seven empty rows.
+      openLanes[lane] = { root, pan: 0 };
+      return { openLanes };
+    }),
+
+  panLaneWindow: (lane, semitones) =>
+    set((state) => {
+      const open = state.openLanes[lane];
+      // Panning a closed lane is not a thing the grid can ask for, and writing
+      // an entry here would silently open one.
+      if (!open) return {};
+
+      const pan = Math.min(
+        MAX_LANE_WINDOW_PAN,
+        Math.max(-MAX_LANE_WINDOW_PAN, open.pan + semitones),
+      );
+      // ⚠ A pan that changes nothing must not write, or holding a drag against
+      // the clamp would publish a new `openLanes` object every pointermove and
+      // re-render every open lane at screen rate.
+      if (pan === open.pan) return {};
+      return { openLanes: { ...state.openLanes, [lane]: { ...open, pan } } };
+    }),
+
+  refreezeOpenLanes: (roots) =>
+    set((state) => {
+      const open = Object.keys(state.openLanes) as Lane[];
+      if (open.length === 0) return {};
+
+      const openLanes: Partial<Record<Lane, LaneWindow>> = {};
+      for (const lane of open) {
+        const root = roots[lane];
+        if (root === null || root === undefined) continue;
+        // ⚠ The pan resets with the root. Carrying an offset measured against a
+        // different pattern's root is the same bug one level down.
+        openLanes[lane] = { root, pan: 0 };
+      }
+      return { openLanes };
+    }),
 
   setDrag: (drag) => set({ drag }),
 }));

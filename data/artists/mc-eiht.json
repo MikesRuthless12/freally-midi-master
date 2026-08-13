@@ -63,7 +63,7 @@
     "kick": {
       "densityPerBar": [
         2,
-        3
+        4
       ],
       "anchors": [
         "1"
@@ -276,15 +276,41 @@
   },
   "bassline": {
     "rhythm": "mirror_kick",
-    "followRootsProb": 0.92,
+    "followRootsProb": 1,
     "register": [
       24,
-      41
+      40
     ],
-    "glideProb": 0.12,
+    "glideProb": 0.14,
     "passingTones": [
       "P5"
     ],
-    "anticipationProb": 0.05
+    "anticipationProb": 0,
+    "cellShapes": [
+      [
+        "1",
+        "3",
+        "4",
+        "5"
+      ],
+      [
+        "1",
+        "5",
+        "7",
+        "5"
+      ],
+      [
+        "1",
+        "2",
+        "3",
+        "5"
+      ],
+      [
+        "5",
+        "1",
+        "7",
+        "4"
+      ]
+    ]
   }
 }

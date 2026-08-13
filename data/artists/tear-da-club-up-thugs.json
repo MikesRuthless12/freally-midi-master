@@ -71,12 +71,12 @@
     "kick": {
       "densityPerBar": [
         2,
-        3
+        4
       ],
       "anchors": [
         "1"
       ],
-      "secondaryAnchor": "2&",
+      "secondaryAnchor": "4&",
       "syncopation": 0.16,
       "tresilloBias": 0.39,
       "lockTo808": 1
@@ -151,7 +151,7 @@
     },
     "snareRoll": {
       "subdivisions": [
-        "16t"
+        "32nd"
       ],
       "grouping": [
         "even"
@@ -279,7 +279,7 @@
   },
   "countermelody": {
     "registerOffset": -12,
-    "densityRatio": 0.45,
+    "densityRatio": 0.5,
     "fillGapsOnly": true,
     "styles": {
       "values": [
@@ -287,10 +287,11 @@
         "octave_echo"
       ],
       "weights": [
-        3,
-        2
+        2,
+        1
       ]
-    }
+    },
+    "echoOffset": "8th"
   },
   "bassline": {
     "rhythm": "mirror_kick",

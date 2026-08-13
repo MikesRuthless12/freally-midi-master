@@ -161,7 +161,8 @@
     },
     "snareRoll": {
       "subdivisions": [
-        "8t"
+        "16th",
+        "32nd"
       ],
       "grouping": [
         "even"
@@ -178,26 +179,26 @@
   },
   "melody": {
     "register": [
-      57,
-      80
+      56,
+      81
     ],
     "densityPerBar": [
       2,
       5
     ],
     "intervals": {
-      "step": 0.55,
-      "third": 0.25,
+      "step": 0.53,
+      "third": 0.3,
       "leap": 0.2
     },
     "contour": {
-      "riff": 0.65,
-      "descend": 0.25,
+      "riff": 0.63,
+      "descend": 0.3,
       "arch": 0.1
     },
-    "chordToneBias": 0.6,
+    "chordToneBias": 0.62,
     "halfStepDissonance": 0.1,
-    "octaveJumpProb": 0.05,
+    "octaveJumpProb": 0.06,
     "phraseBars": {
       "values": [
         2,
@@ -212,7 +213,7 @@
   },
   "countermelody": {
     "registerOffset": -12,
-    "densityRatio": 0.34,
+    "densityRatio": 0.3,
     "styles": {
       "values": [
         "answer_lick",
@@ -286,11 +287,11 @@
       23,
       39
     ],
-    "glideProb": 0,
+    "glideProb": 0.02,
     "passingTones": [
       "P5"
     ],
-    "anticipationProb": 0.08
+    "anticipationProb": 0.13
   },
   "arrangement": {
     "sectionBars": {

@@ -187,16 +187,16 @@
     },
     "snareRoll": {
       "subdivisions": [
-        "8t"
+        "16th"
       ],
       "grouping": [
         "even"
       ],
       "velocityRampRange": [
-        70,
-        127
+        40,
+        80
       ],
-      "rampJitter": 12,
+      "rampJitter": 4,
       "descendProb": 0.22,
       "gapProb": 0.67,
       "ladder": [

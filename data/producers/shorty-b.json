@@ -159,12 +159,12 @@
   },
   "melody": {
     "register": [
-      64,
-      88
+      63,
+      87
     ],
     "densityPerBar": [
       3,
-      7
+      8
     ],
     "phraseBars": {
       "values": [
@@ -172,32 +172,48 @@
         4
       ],
       "weights": [
-        3,
-        3
+        2,
+        2
       ]
     },
     "intervals": {
-      "step": 0.5,
-      "third": 0.32,
-      "leap": 0.18
+      "step": 0.52,
+      "third": 0.37,
+      "leap": 0.15
     },
-    "chordToneBias": 0.64,
+    "chordToneBias": 0.7,
     "halfStepDissonance": 0.1,
-    "timbreHint": "clean_guitar"
+    "timbreHint": "clean_guitar",
+    "structure": "riff_loop",
+    "motifPitchCount": [
+      3,
+      5
+    ],
+    "contour": {
+      "riff": 0.57,
+      "descend": 0.3,
+      "arch": 0.17
+    },
+    "endVariation": true,
+    "octaveJumpProb": [
+      0.14,
+      0.28
+    ]
   },
   "countermelody": {
-    "registerOffset": -12,
-    "densityRatio": 0.7,
+    "registerOffset": -7,
+    "densityRatio": 0.84,
     "styles": {
       "values": [
         "answer_lick",
         "arp"
       ],
       "weights": [
-        3,
-        3
+        2,
+        2
       ]
-    }
+    },
+    "fillGapsOnly": true
   },
   "bassline": {
     "rhythm": "independent_riff",
@@ -328,5 +344,88 @@
         "anticipationProb": 0.3
       }
     }
-  ]
+  ],
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "iv",
+          "i"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI",
+          "v"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "III",
+          "iv"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "v"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.45,
+      "seventh": 0.4,
+      "ninth": 0.15
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        53,
+        81
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        2,
+        1,
+        2
+      ]
+    },
+    "susSubstitutionProb": 0.2
+  }
 }

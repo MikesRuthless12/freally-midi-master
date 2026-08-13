@@ -81,7 +81,7 @@
     "kick": {
       "densityPerBar": [
         2,
-        3
+        4
       ],
       "anchors": [
         "1"
@@ -277,14 +277,14 @@
   },
   "bassline": {
     "rhythm": "mirror_kick",
-    "followRootsProb": 0.94,
+    "followRootsProb": 0.84,
     "register": [
       22,
       39
     ],
-    "glideProb": 0.02,
+    "glideProb": 0.04,
     "passingTones": [],
-    "anticipationProb": 0.08
+    "anticipationProb": 0.24
   },
   "arrangement": {
     "sectionBars": {

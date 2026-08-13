@@ -212,24 +212,26 @@
       4
     ],
     "intervals": {
-      "step": 0.56,
-      "third": 0.14,
-      "leap": 0.3
+      "step": 0.61,
+      "third": 0.17,
+      "leap": 0.35
     },
     "contour": {
-      "riff": 0.6,
-      "descend": 0.3,
-      "arch": 0.1
+      "riff": 0.65,
+      "descend": 0.33,
+      "arch": 0.15
     },
-    "chordToneBias": 0.48,
+    "chordToneBias": 0.5,
     "halfStepDissonance": 0.32,
     "emptyBarBias": 0.1,
-    "octaveJumpProb": 0.12,
-    "timbreHint": "spacey_keys"
+    "octaveJumpProb": 0.09,
+    "timbreHint": "spacey_keys",
+    "structure": "riff_loop",
+    "endVariation": true
   },
   "countermelody": {
     "registerOffset": -12,
-    "densityRatio": 0.55,
+    "densityRatio": 0.62,
     "styles": {
       "values": [
         "answer_lick",
@@ -243,7 +245,9 @@
         2,
         2
       ]
-    }
+    },
+    "fillGapsOnly": true,
+    "echoOffset": "8th"
   },
   "chords": {
     "maxChords": 2,

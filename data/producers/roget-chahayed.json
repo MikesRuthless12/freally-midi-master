@@ -110,6 +110,21 @@
       "gapProb": 0.44,
       "descendProb": 0.46,
       "rampJitter": 4
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2a",
+      "andOf4EveryOtherBar": 0.5,
+      "syncopation": 0.5,
+      "tresilloBias": 0.2,
+      "avoidPreSnareGap": "8th",
+      "lockTo808": 1
     }
   },
   "melody": {

@@ -30,7 +30,7 @@
     "Wikipedia — Return of the Boom Bap",
     "ModeAudio — Masters of Sampling: DJ Premier"
   ],
-  "notes": "The 1993–1997 solo window only — the research is explicit that the 1980s BDP run is not what is modelled. The distinguishing parameter is reggae: \"minor/modal with reggae-derived tonic drones; dub-influenced use of a single bass note as key centre\", and \"heavy dub bassline, sustained and forward, often the loudest element after the vocal\". So the bass is the loudest and least mobile thing here — `followRootsProb` 0.94, `glideProb` low but non-zero for the dub slide, register floored at 24 — and the harmony is a drone with `impliedByRiff` set. The ragga rimshot accents are the `percs` lane plus `rimshotLayer`, and the dub delay throws and drop-outs are why `arrangement.transitions.dropOutBeats.prob` is 0.75, the highest here. `timbreHint` is `dub_stab`, which the vocabulary already carries. ⚠ **The bass is `mirror_kick`, not a held note, and that is an engine limit rather than a reading of the record.** `reese_sustain` is the only rhythm that holds a note and it emits one note per chord, which over a static drone is one note; `mirror_kick` over a kick that plays 1 and 3& is two low roots a bar, which reads as sustained at this tempo. ⚠ The `i–iv` family is the research's own \"occasional i–iv\", not an inference. ⚠ `medium` because the research rates it medium-high and says the documentation is window-appropriate album production rather than session detail; the inferred parameters are the swing amount and the ghost-snare rate. ⚠ **The 1-bar phrase length was removed** (was [2,1,4], now [2,4]). A one-bar phrase looped four times carries less entropy than a four-bar phrase, and it is the countermelody it strangles hardest: a counter answers *inside* the melody’s phrase, so a one-bar shape leaves it nowhere to go. Every worst offender on `counter.rs` carried it. ⛔ The previous session recorded this exact mistake and it arrived again from the other direction — distinctness is combinatorial in the shape LENGTH, not in the option count.",
+  "notes": "The 1993–1997 solo window only — the research is explicit that the 1980s BDP run is not what is modelled. The distinguishing parameter is reggae: \"minor/modal with reggae-derived tonic drones; dub-influenced use of a single bass note as key centre\", and \"heavy dub bassline, sustained and forward, often the loudest element after the vocal\". So the bass is the loudest and least mobile thing here — `mirror_kick`, register floored at 24, and the rest of the block says **reggae**: `glideProb` 0.22 for the dub slide, `passingTones` carrying the flat seven a reggae line leans on, and `anticipationProb` 0.26 because a reggae bass plays *before* the one rather than on it. ⛔⛔ **Every one of those was mid-cluster until 2026-08-13, and that is why this model kept colliding** — 62 boom-bap models share `mirror_kick`, which takes its onsets from the kick, so a model with no opinion of its own about pitch or placement writes whichever neighbour shares its kick pattern: `wu-tang-clan` at 42/200, then `rza` at 23. ⚠ **The first attempt went the wrong way and is worth recording**: `followRootsProb` was raised to 0.99 on the \"single bass note as key centre\" line, and the collision with `rza` got *worse* (23 → 51) because `rza` is already all-root — 0.88 with no passing tones at all. Against a neighbour that plays nothing but roots, the way to differ is to move, not to lock down harder. ⛔⛔ **The rhythm has been all three, and both alternatives were measured — do not cycle it again.** `independent_riff` (volume-1 repair, one night) is a bass that plays its own moving line, which is the opposite of what the research describes, and it collided with `wu-tang-clan` on **42 of 200 seeds** because that model was moved to the same rhythm with the same passing tone in the same pass. `reese_sustain` is the rhythm the research actually names, and TASK-162 made it re-articulate per phrase instead of emitting one note per chord — but it **still fails the bassline novelty floor here**, measured 2026-08-13. ▶ The reason is worth keeping: the *pad* got real variety from that fix because `pad_notes` picks a chord tone and an octave per re-attack, while the bass locks to the root in a narrow register, so every re-articulated span lands on the same pitch. Re-articulation alone cannot vary a part that only ever plays one note. `mirror_kick` over a kick that leaves gaps is the roster-wide substitution for a sustained sub, and it reads as held at this tempo. and the harmony is a drone with `impliedByRiff` set. The ragga rimshot accents are the `percs` lane plus `rimshotLayer`, and the dub delay throws and drop-outs are why `arrangement.transitions.dropOutBeats.prob` is 0.75, the highest here. `timbreHint` is `dub_stab`, which the vocabulary already carries. ⚠ **The bass is `mirror_kick`, not a held note, and that is an engine limit rather than a reading of the record.** `reese_sustain` is the only rhythm that holds a note and it emits one note per chord, which over a static drone is one note; `mirror_kick` over a kick that plays 1 and 3& is two low roots a bar, which reads as sustained at this tempo. ⚠ The `i–iv` family is the research's own \"occasional i–iv\", not an inference. ⚠ `medium` because the research rates it medium-high and says the documentation is window-appropriate album production rather than session detail; the inferred parameters are the swing amount and the ghost-snare rate. ⚠ **The 1-bar phrase length was removed** (was [2,1,4], now [2,4]). A one-bar phrase looped four times carries less entropy than a four-bar phrase, and it is the countermelody it strangles hardest: a counter answers *inside* the melody’s phrase, so a one-bar shape leaves it nowhere to go. Every worst offender on `counter.rs` carried it. ⛔ The previous session recorded this exact mistake and it arrived again from the other direction — distinctness is combinatorial in the shape LENGTH, not in the option count.",
   "session": {
     "bpm": {
       "min": 90,
@@ -143,10 +143,12 @@
     },
     "snareRoll": {
       "subdivisions": [
-        "16th"
+        "16th",
+        "16t"
       ],
       "grouping": [
-        "even"
+        "even",
+        "strong_weak_weak_weak"
       ],
       "velocityRampRange": [
         46,
@@ -255,16 +257,17 @@
   },
   "bassline": {
     "rhythm": "mirror_kick",
-    "followRootsProb": 0.94,
+    "followRootsProb": 0.9,
     "register": [
       24,
       42
     ],
-    "glideProb": 0.08,
+    "glideProb": 0.22,
     "passingTones": [
-      "P5"
+      "P5",
+      "m7"
     ],
-    "anticipationProb": 0.12
+    "anticipationProb": 0.26
   },
   "arrangement": {
     "sectionBars": {

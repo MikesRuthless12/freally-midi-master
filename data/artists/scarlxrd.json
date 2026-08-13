@@ -55,12 +55,12 @@
     "kick": {
       "densityPerBar": [
         3,
-        5
+        6
       ],
       "anchors": [
         "1"
       ],
-      "secondaryAnchor": "2&",
+      "secondaryAnchor": "3",
       "syncopation": 0.51,
       "lockTo808": 1,
       "tresilloBias": 0.33,
@@ -185,11 +185,27 @@
     },
     "timbreHint": "supersaw_guitar_hybrid",
     "intervals": {
-      "step": 0.42,
-      "third": 0.18,
-      "leap": 0.4
+      "step": 0.4,
+      "third": 0.14,
+      "leap": 0.38
     },
-    "halfStepDissonance": 0.28
+    "halfStepDissonance": 0.28,
+    "structure": "riff_loop",
+    "twoBarCellRepeat": true,
+    "contour": {
+      "riff": 0.43,
+      "descend": 0.36,
+      "arch": 0.13
+    },
+    "chordToneBias": 0.51,
+    "monophonicBias": 0.85,
+    "endVariation": true,
+    "octaveJumpProb": 0.09,
+    "colorTones": [
+      2,
+      4,
+      6
+    ]
   },
   "countermelody": {
     "registerOffset": 12,

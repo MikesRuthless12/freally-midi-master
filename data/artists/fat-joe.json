@@ -162,33 +162,33 @@
   },
   "melody": {
     "register": [
-      62,
-      85
+      63,
+      84
     ],
     "densityPerBar": [
       3,
-      7
+      8
     ],
     "intervals": {
-      "step": 0.62,
-      "third": 0.28,
-      "leap": 0.1
+      "step": 0.58,
+      "third": 0.31,
+      "leap": 0.07
     },
     "contour": {
-      "riff": 0.45,
-      "descend": 0.3,
-      "arch": 0.25
+      "riff": 0.41,
+      "descend": 0.33,
+      "arch": 0.22
     },
-    "chordToneBias": 0.72,
-    "octaveJumpProb": 0.1,
+    "chordToneBias": 0.78,
+    "octaveJumpProb": 0.09,
     "phraseBars": {
       "values": [
         2,
         4
       ],
       "weights": [
-        3,
-        3
+        4,
+        4
       ]
     },
     "timbreHint": "synth_brass_stab"

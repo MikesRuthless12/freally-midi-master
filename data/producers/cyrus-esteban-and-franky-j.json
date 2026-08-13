@@ -82,7 +82,7 @@
   "drums": {
     "kick": {
       "densityPerBar": [
-        3,
+        2,
         5
       ],
       "syncopation": 0.39,

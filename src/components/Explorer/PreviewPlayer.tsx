@@ -1,4 +1,4 @@
-import { useMemo, type PointerEvent } from 'react';
+import { useMemo, useRef, type PointerEvent } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pause, Play, Repeat, Rewind, Square } from 'lucide-react';
 
@@ -42,6 +42,18 @@ export function PreviewPlayer() {
     // on `peaks` alone would miss a same-length sample replacing another.
     [waveform],
   );
+  /**
+   * The scrub in flight: the strip's box, measured once, and the last x it acted
+   * on. `null` between drags.
+   *
+   * ⛔ **A ref, not state.** It changes on every pointermove and nothing renders
+   * from it — the playhead is already driven by the polled `position`, and a
+   * second copy could only disagree with the thing actually making the sound.
+   *
+   * ⚠ **Declared above the two early returns below**, because a hook after a
+   * conditional return is a hook that does not run in every render.
+   */
+  const scrubbing = useRef<{ box: DOMRect; x: number } | null>(null);
 
   if (selected === null) {
     return <p className="browser__hint preview__idle">{t('explorer.pickAFile')}</p>;
@@ -64,15 +76,57 @@ export function PreviewPlayer() {
   const total = position.total > 0 ? position.total : (waveform?.seconds ?? 0);
   const fraction = total > 0 ? Math.min(1, Math.max(0, position.seconds / total)) : 0;
 
+  const secondsAt = (clientX: number, box: DOMRect): number | null => {
+    if (total <= 0 || box.width <= 0) return null;
+    const at = ((clientX - box.left) / box.width) * total;
+    return Math.min(total, Math.max(0, at));
+  };
+
   const seekTo = (event: PointerEvent<HTMLDivElement>) => {
-    if (total <= 0) return;
+    // ⚠ **The box is measured ONCE, here, not per pointermove.** Pointer capture
+    // is set below so it cannot move under the drag, and this element carries an
+    // inline `--preview-progress` that React rewrites on every position poll —
+    // so measuring in the move handler would be a layout read after a style
+    // write, every frame. The grid's marquee records the same rule.
     const box = event.currentTarget.getBoundingClientRect();
-    if (box.width <= 0) return;
-    const at = ((event.clientX - box.left) / box.width) * total;
+    const at = secondsAt(event.clientX, box);
+    if (at === null) return;
+    scrubbing.current = { box, x: event.clientX };
     // ⛔ **Seek *and* play** — Mike asked to "click anywhere in the sample and
     // play from there", which is one gesture. Seeking silently and waiting for a
     // second press on Play is not what he described.
-    void seek(Math.min(total, Math.max(0, at))).then(() => play());
+    void seek(at).then(() => play());
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  /**
+   * Drag along the waveform and the audio follows the finger (TASK-058B).
+   *
+   * ⛔ **It seeks without re-playing.** The press already started playback, and
+   * calling `play()` again on every pointermove would retrigger the voice ~60
+   * times a second — a stutter rather than the tape-rub this gesture is for.
+   *
+   * ⛔⛔ **Throttled in PIXELS, not seconds.** A "hundredth of a second" reads
+   * like a fine threshold and is not one: its pixel size is `0.01 / total *
+   * width`, so it is ~4px on a 1.5s one-shot and ~0.2px on a 30s loop — no
+   * throttle at all on exactly the long files where a drag produces the most
+   * moves. Each accepted move costs a `seek` *and* a forced extra position poll
+   * across the bridge, so the units have to be the ones the pointer moves in.
+   */
+  const scrub = (event: PointerEvent<HTMLDivElement>) => {
+    const live = scrubbing.current;
+    if (!live || Math.abs(event.clientX - live.x) < 1) return;
+    const at = secondsAt(event.clientX, live.box);
+    if (at === null) return;
+    live.x = event.clientX;
+    void seek(at);
+  };
+
+  const endScrub = (event: PointerEvent<HTMLDivElement>) => {
+    scrubbing.current = null;
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
   };
 
   return (
@@ -83,6 +137,9 @@ export function PreviewPlayer() {
           { '--preview-progress': `${(fraction * 100).toFixed(3)}%` } as React.CSSProperties
         }
         onPointerDown={seekTo}
+        onPointerMove={scrub}
+        onPointerUp={endScrub}
+        onPointerCancel={endScrub}
         role="presentation"
         aria-label={waveform ? t('explorer.waveformOf', { name: waveform.name }) : undefined}
       >

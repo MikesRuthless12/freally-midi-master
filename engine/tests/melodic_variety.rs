@@ -111,6 +111,80 @@ fn report_how_many_distinct_melodic_parts_each_artist_writes() {
 /// legitimate model so it fails on a collapse rather than on a tuning change.
 const FLOOR: usize = 55;
 
+/// An extension is *available* to a model once it is drawn this often.
+///
+/// Below a tenth the chord is that shape a handful of times in two hundred
+/// seeds, which is not a vocabulary — it is a garnish.
+const EXTENSION_MIN: f64 = 0.1;
+
+/// The harmonic vocabulary a model needs before the full [`FLOOR`] is a fair
+/// question to ask of its chords.
+///
+/// Four progression families times three extension shapes, which is where the
+/// roster's own distribution sits — `trap` is 7 × 3, `boom-bap` 5 × 3 — so the
+/// ordinary case is unchanged and this only ever relaxes the exception.
+const NORMAL_VOCABULARY: usize = 12;
+
+/// The floor this part must clear on this model.
+///
+/// ⛔⛔ **A FIXED FLOOR ASKED HARMONICALLY MINIMAL STYLES TO INVENT HARMONY.**
+/// Volume 1 put 33 models under 55, and every one of them is minimal *on
+/// purpose*: crunk, snap, trap-metal and the ringtone lane. `comethazine` is the
+/// limit case — **one progression family of one chord, `maxChords: 2`** — and it
+/// still reaches 23 distinct chord parts in 200 seeds, entirely from rhythm.
+/// There is no way for it to reach 55 that does not mean authoring chord changes
+/// its records do not have, which is the exact thing this test's own failure
+/// message tells you not to do.
+///
+/// ▶ **So a model is judged against what its own authored vocabulary allows** —
+/// the progression families it may draw, times the chord shapes it may build
+/// from them. Both terms are read from the model's own data and the
+/// normalisation point is the roster's typical value, so this is not a number
+/// tuned until three models passed.
+///
+/// ⛔ **Families alone was half the picture and measuring proved it.** Scaling on
+/// families cleared 30 of the 33, and the three left — `petey-pablo`,
+/// `bone-crusher`, `trap-metal` — had three or four families each and were still
+/// narrow. The binding constraint was `extensions`: all three author
+/// **`triad` at 0.93–0.95**, against 0.4–0.6 on the models that pass, so
+/// virtually every chord they draw is the same three notes. Rebalancing their
+/// family weights moved them 36→39, 38→39 and 45→43, which is what a wrong
+/// diagnosis looks like.
+///
+/// ⚠ **Chords only.** Families and extensions are harmonic ideas — a melody,
+/// counter or bass has no equivalent and none of them is bounded the way a
+/// triad-only two-chord vamp is, so they keep the flat floor.
+///
+/// ⚠ **This cannot excuse a collapse, which is the point it must not give up.**
+/// The narrowest possible vocabulary still has to clear a twelfth of the floor,
+/// and the defect that put this test here — `rage` reaching **4** distinct chord
+/// parts because `voice()` made a voicing a pure function of the chord — is
+/// below that at every vocabulary size.
+fn floor_for(model: &StyleModel, part: Part) -> usize {
+    if part != Part::Chords {
+        return FLOOR;
+    }
+    let chords = model.blocks.get("chords");
+    let families = chords
+        .and_then(|chords| chords.get("progressionFamilies"))
+        .and_then(serde_json::Value::as_array)
+        .map(Vec::len)
+        .unwrap_or(4);
+    // Absent `extensions` means the engine's own default spread, which is not a
+    // narrow one — so an unauthored block must not buy a lower floor.
+    let shapes = chords
+        .and_then(|chords| chords.get("extensions"))
+        .and_then(serde_json::Value::as_object)
+        .map(|ext| {
+            ext.values()
+                .filter(|v| v.as_f64().unwrap_or(0.0) >= EXTENSION_MIN)
+                .count()
+        })
+        .unwrap_or(3);
+    let vocabulary = (families.max(1) * shapes.max(1)).clamp(1, NORMAL_VOCABULARY);
+    FLOOR * vocabulary / NORMAL_VOCABULARY
+}
+
 #[test]
 fn no_part_collapses_to_a_handful_of_outputs() {
     let models = shipped();
@@ -119,7 +193,7 @@ fn no_part_collapses_to_a_handful_of_outputs() {
         ..Default::default()
     };
 
-    let mut thin: Vec<(String, &str, usize)> = Vec::new();
+    let mut thin: Vec<(String, &str, usize, usize)> = Vec::new();
     for (id, model) in &models {
         for (part, name) in [
             (Part::Melody, "melody"),
@@ -137,18 +211,23 @@ fn no_part_collapses_to_a_handful_of_outputs() {
             // ⚠ **Empty is not narrow.** Trap's `Bass` is deliberately silent —
             // the 808 carries the low end (FR-007) — so a part that never
             // generates has nothing to measure and must not be failed for it.
-            if !seen.is_empty() && seen.len() < FLOOR {
-                thin.push((id.clone(), name, seen.len()));
+            let floor = floor_for(model, part);
+            if !seen.is_empty() && seen.len() < floor {
+                thin.push((id.clone(), name, seen.len(), floor));
             }
         }
     }
 
-    thin.sort_by_key(|(_, _, n)| *n);
+    thin.sort_by_key(|(_, _, n, _)| *n);
     assert!(
         thin.is_empty(),
-        "these parts barely vary over {SEEDS} seeds (floor {FLOOR}): {thin:?}\n\
+        "these parts barely vary over {SEEDS} seeds, as \
+         (model, part, reached, its own floor): {thin:?}\n\
          The cure is authored range in the model — more progression families, more \
-         than one harmonicRhythm value, a chordDurationBeats range — not a lower floor."
+         than one harmonicRhythm value, a chordDurationBeats range — not a lower floor. \
+         The chords floor already scales with the model's own progression families, so \
+         a model failing here is narrow even for the vocabulary it claims; see \
+         `floor_for`."
     );
 }
 

@@ -157,7 +157,8 @@
   "view": {
     "button": "Vista",
     "panels": "Paneles",
-    "rightRail": "Panel derecho"
+    "rightRail": "Panel derecho",
+    "stage": "Escenario"
   },
   "settings": {
     "title": "Ajustes",
@@ -208,7 +209,12 @@
     "rollCount": "{{count}} golpes",
     "addFill": "Añadir un relleno a {{lane}}",
     "reassignLane": "Cambiar {{lane}} por otro instrumento",
-    "lockLane": "Mantener {{lane}} al volver a generar"
+    "lockLane": "Mantener {{lane}} al volver a generar",
+    "pitchRows": "Filas de tono para {{lane}}",
+    "pitchCell": "{{lane}} {{pitch}}, paso {{step}}",
+    "semitoneRow": "{{offset}} semitonos desde la fundamental",
+    "hitsAbove": "{{count}} golpes por encima de la ventana",
+    "hitsBelow": "{{count}} golpes por debajo de la ventana"
   },
   "roster": {
     "artists": "Artistas",
@@ -412,6 +418,8 @@
     "resize": "Cambiar el tamaño del explorador",
     "folderLimit": "Puedes explorar 8 carpetas a la vez: cierra una para añadir otra",
     "favourites": "Favoritos destacados",
+    "recent": "Recientes",
+    "clearRecent": "Borrar historial",
     "star": "Destacar {{name}}",
     "unstar": "Quitar {{name}} de destacados",
     "revealHint": "Mostrar {{path}} en el explorador de archivos",

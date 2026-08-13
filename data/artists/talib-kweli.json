@@ -61,7 +61,7 @@
     "kick": {
       "densityPerBar": [
         2,
-        4
+        5
       ],
       "anchors": [
         "1"
@@ -150,13 +150,15 @@
     },
     "snareRoll": {
       "subdivisions": [
+        "16t",
         "8t"
       ],
       "grouping": [
-        "even"
+        "even",
+        "strong_weak_weak_weak"
       ],
       "velocityRampRange": [
-        76,
+        78,
         120
       ],
       "rampJitter": 14,

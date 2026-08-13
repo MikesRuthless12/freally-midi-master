@@ -326,18 +326,19 @@
     "timbreHint": "synth_brass_stab"
   },
   "countermelody": {
-    "registerOffset": -12,
-    "densityRatio": 0.45,
+    "registerOffset": -24,
+    "densityRatio": 0.48,
     "styles": {
       "values": [
         "answer_lick",
         "octave_echo"
       ],
       "weights": [
-        4,
-        3
+        5,
+        4
       ]
-    }
+    },
+    "fillGapsOnly": true
   },
   "arrangement": {
     "structures": [

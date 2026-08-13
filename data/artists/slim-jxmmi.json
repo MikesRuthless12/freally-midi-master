@@ -53,13 +53,13 @@
     "kick": {
       "densityPerBar": [
         3,
-        6
+        7
       ],
       "anchors": [
         "1"
       ],
-      "secondaryAnchor": "3",
-      "syncopation": 0.6,
+      "secondaryAnchor": "4&",
+      "syncopation": 0.48,
       "tresilloBias": 0.32,
       "andOf4EveryOtherBar": 0.5,
       "avoidPreSnareGap": "8th",
@@ -174,7 +174,7 @@
     },
     "snareRoll": {
       "subdivisions": [
-        "8t"
+        "16t"
       ],
       "grouping": [
         "even"

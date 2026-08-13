@@ -234,7 +234,25 @@
       4
     ],
     "articulation": "legato",
-    "chordToneBias": 0.7
+    "chordToneBias": 0.7,
+    "structure": "riff_loop",
+    "intervals": {
+      "step": 0.4,
+      "third": 0.3,
+      "leap": 0.3
+    },
+    "contour": {
+      "riff": 0.5,
+      "descend": 0.25,
+      "arch": 0.25
+    },
+    "halfStepDissonance": 0.06,
+    "endVariation": true,
+    "octaveJumpProb": [
+      0.14,
+      0.28
+    ],
+    "timbreHint": "portamento_worm_lead"
   },
   "countermelody": {
     "registerOffset": -12,

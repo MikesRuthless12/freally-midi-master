@@ -53,14 +53,14 @@
     "kick": {
       "densityPerBar": [
         3,
-        5
+        6
       ],
       "anchors": [
         "1"
       ],
       "syncopation": 0.55,
       "tresilloBias": 0.22,
-      "secondaryAnchor": "3",
+      "secondaryAnchor": "2a",
       "andOf4EveryOtherBar": 0.5,
       "avoidPreSnareGap": "8th",
       "lockTo808": 1

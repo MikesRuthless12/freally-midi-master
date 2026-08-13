@@ -236,7 +236,7 @@
     },
     "densityPerBar": [
       2,
-      6
+      7
     ],
     "motifPitchCount": [
       2,
@@ -245,27 +245,29 @@
     "monophonicBias": 1,
     "articulation": "staccato",
     "intervals": {
-      "step": 0.5,
-      "third": 0.34,
-      "leap": 0.16
+      "step": 0.53,
+      "third": 0.37,
+      "leap": 0.19
     },
     "contour": {
-      "riff": 0.95,
-      "descend": 0.03,
-      "arch": 0.02
+      "riff": 0.98,
+      "descend": 0.06,
+      "arch": 0.05
     },
-    "chordToneBias": 0.72,
+    "chordToneBias": 0.66,
     "halfStepDissonance": 0.01,
     "emptyBarBias": 0.1,
     "octaveJumpProb": [
       0.01,
       0.05
     ],
-    "timbreHint": "square_lead"
+    "timbreHint": "square_lead",
+    "structure": "riff_loop",
+    "endVariation": true
   },
   "countermelody": {
     "registerOffset": -12,
-    "densityRatio": 0.55,
+    "densityRatio": 0.61,
     "styles": {
       "values": [
         "answer_lick",
@@ -279,7 +281,8 @@
         2,
         2
       ]
-    }
+    },
+    "fillGapsOnly": true
   },
   "arrangement": {
     "structures": [

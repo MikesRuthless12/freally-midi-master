@@ -75,13 +75,13 @@
     "kick": {
       "densityPerBar": [
         1,
-        2
+        3
       ],
       "anchors": [
         "1"
       ],
-      "secondaryAnchor": "3&",
-      "syncopation": 0.12,
+      "secondaryAnchor": "4&",
+      "syncopation": 0,
       "tresilloBias": 0.13,
       "subLayerVelocity": [
         0.5,
@@ -185,18 +185,18 @@
       5
     ],
     "intervals": {
-      "step": 0.58,
-      "third": 0.22,
-      "leap": 0.2
+      "step": 0.56,
+      "third": 0.17,
+      "leap": 0.18
     },
     "contour": {
-      "riff": 0.68,
-      "descend": 0.24,
-      "arch": 0.08
+      "riff": 0.66,
+      "descend": 0.19,
+      "arch": 0.06
     },
-    "chordToneBias": 0.55,
+    "chordToneBias": 0.6,
     "halfStepDissonance": 0.12,
-    "octaveJumpProb": 0.03,
+    "octaveJumpProb": 0,
     "phraseBars": {
       "values": [
         2,
@@ -211,7 +211,7 @@
   },
   "countermelody": {
     "registerOffset": -12,
-    "densityRatio": 0.5,
+    "densityRatio": 0.57,
     "styles": {
       "values": [
         "answer_lick",
@@ -282,17 +282,17 @@
   },
   "bassline": {
     "rhythm": "mirror_kick",
-    "followRootsProb": 0.86,
+    "followRootsProb": 0.77,
     "register": [
       21,
-      43
+      42
     ],
     "glideProb": 0,
     "passingTones": [
       "P5",
       "m7"
     ],
-    "anticipationProb": 0.24
+    "anticipationProb": 0.3
   },
   "arrangement": {
     "structures": [

@@ -157,7 +157,8 @@
   "view": {
     "button": "عرض",
     "panels": "اللوحات",
-    "rightRail": "الشريط الجانبي"
+    "rightRail": "الشريط الجانبي",
+    "stage": "المسرح"
   },
   "settings": {
     "title": "الإعدادات",
@@ -208,7 +209,12 @@
     "rollCount": "{{count}} ضربات",
     "addFill": "أضف فيل إلى {{lane}}",
     "reassignLane": "غيّر {{lane}} إلى طبل آخر",
-    "lockLane": "ثبّت {{lane}} عند التوليد مجددًا"
+    "lockLane": "ثبّت {{lane}} عند التوليد مجددًا",
+    "pitchRows": "صفوف الطبقة الصوتية لـ {{lane}}",
+    "pitchCell": "{{lane}} {{pitch}}، الخطوة {{step}}",
+    "semitoneRow": "{{offset}} أنصاف نغمة من الأساس",
+    "hitsAbove": "{{count}} ضربات فوق النافذة",
+    "hitsBelow": "{{count}} ضربات تحت النافذة"
   },
   "roster": {
     "artists": "الفنانون",
@@ -412,6 +418,8 @@
     "resize": "تغيير حجم المتصفح",
     "folderLimit": "يمكنك تصفح 8 مجلدات في المرة الواحدة — أغلق واحدًا لإضافة آخر",
     "favourites": "المفضلة المميزة بنجمة",
+    "recent": "الأخيرة",
+    "clearRecent": "مسح السجل",
     "star": "إضافة {{name}} إلى المفضلة",
     "unstar": "إزالة {{name}} من المفضلة",
     "revealHint": "إظهار {{path}} في مدير الملفات",

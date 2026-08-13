@@ -189,7 +189,29 @@
         2
       ]
     },
-    "timbreHint": "dark_bell"
+    "timbreHint": "dark_bell",
+    "structure": "riff_loop",
+    "twoBarCellRepeat": true,
+    "intervals": {
+      "step": 0.5,
+      "third": 0.3,
+      "leap": 0.11
+    },
+    "contour": {
+      "riff": 0.4,
+      "descend": 0.4,
+      "arch": 0.11
+    },
+    "chordToneBias": 0.45,
+    "halfStepDissonance": 0.3,
+    "monophonicBias": 0.85,
+    "endVariation": true,
+    "octaveJumpProb": 0.05,
+    "colorTones": [
+      2,
+      4,
+      6
+    ]
   },
   "countermelody": {
     "registerOffset": 12,

@@ -168,11 +168,30 @@
         2
       ]
     },
-    "timbreHint": "bright_bell"
+    "timbreHint": "bright_bell",
+    "structure": "riff_loop",
+    "motifPitchCount": [
+      3,
+      4
+    ],
+    "intervals": {
+      "step": 0.52,
+      "third": 0.27,
+      "leap": 0.1
+    },
+    "contour": {
+      "riff": 0.57,
+      "descend": 0.22,
+      "arch": 0.1
+    },
+    "chordToneBias": 0.79,
+    "halfStepDissonance": 0.04,
+    "endVariation": true,
+    "octaveJumpProb": 0.14
   },
   "countermelody": {
     "registerOffset": 12,
-    "densityRatio": 0.7,
+    "densityRatio": 0.73,
     "styles": {
       "values": [
         "answer_lick",
@@ -182,7 +201,8 @@
         3,
         2
       ]
-    }
+    },
+    "fillGapsOnly": true
   },
   "chords": {
     "progressionFamilies": [

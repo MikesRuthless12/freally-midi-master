@@ -71,12 +71,12 @@
     "kick": {
       "densityPerBar": [
         2,
-        4
+        5
       ],
       "anchors": [
         "1"
       ],
-      "syncopation": 0.29,
+      "syncopation": 0.41,
       "tresilloBias": 0.08,
       "secondaryAnchor": "3",
       "andOf4EveryOtherBar": 0.5,
@@ -165,15 +165,14 @@
     },
     "snareRoll": {
       "subdivisions": [
-        "16th",
-        "32nd"
+        "8t"
       ],
       "grouping": [
         "strong_weak_weak_weak"
       ],
       "velocityRampRange": [
-        61,
-        122
+        54,
+        115
       ],
       "rampJitter": 19,
       "descendProb": 0.5,
@@ -209,17 +208,17 @@
     ],
     "intervals": {
       "step": 0.7,
-      "third": 0.24,
-      "leap": 0.06
+      "third": 0.22,
+      "leap": 0.04
     },
     "contour": {
       "riff": 0.25,
-      "descend": 0.4,
-      "arch": 0.35
+      "descend": 0.38,
+      "arch": 0.33
     },
-    "chordToneBias": 0.8,
+    "chordToneBias": 0.81,
     "halfStepDissonance": 0.03,
-    "octaveJumpProb": 0.1,
+    "octaveJumpProb": 0.12,
     "phraseBars": {
       "values": [
         4,
@@ -230,7 +229,14 @@
         2
       ]
     },
-    "timbreHint": "fingerpicked_guitar"
+    "timbreHint": "fingerpicked_guitar",
+    "structure": "question_answer",
+    "colorTones": [
+      2,
+      4,
+      6
+    ],
+    "endVariation": true
   },
   "countermelody": {
     "registerOffset": 12,

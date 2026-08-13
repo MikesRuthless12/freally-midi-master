@@ -157,7 +157,7 @@
     },
     "snareRoll": {
       "subdivisions": [
-        "16t"
+        "8t"
       ],
       "grouping": [
         "even"

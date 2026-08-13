@@ -194,6 +194,9 @@ describe('Studio shell', () => {
     const items = screen.getAllByRole('menuitemcheckbox');
     expect(items.map((i) => i.textContent?.replace(/K$/, '').trim())).toEqual([
       'Right rail',
+      // ⚠ Beside the right rail because they are the same decision from opposite
+      // ends: hiding the stage is how the rails get a small window (2026-08-12).
+      'Stage',
       'Genres',
       'Roster',
       'Browser',

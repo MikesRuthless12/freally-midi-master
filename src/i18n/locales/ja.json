@@ -157,7 +157,8 @@
   "view": {
     "button": "表示",
     "panels": "パネル",
-    "rightRail": "右パネル"
+    "rightRail": "右パネル",
+    "stage": "ステージ"
   },
   "settings": {
     "title": "設定",
@@ -208,7 +209,12 @@
     "rollCount": "{{count}} 打",
     "addFill": "{{lane}}にフィルを追加",
     "reassignLane": "{{lane}}を別の音色に変更",
-    "lockLane": "再生成しても{{lane}}を保持"
+    "lockLane": "再生成しても{{lane}}を保持",
+    "pitchRows": "{{lane}} のピッチ行",
+    "pitchCell": "{{lane}} {{pitch}}、ステップ {{step}}",
+    "semitoneRow": "基音から {{offset}} 半音",
+    "hitsAbove": "ウィンドウの上に {{count}} ヒット",
+    "hitsBelow": "ウィンドウの下に {{count}} ヒット"
   },
   "roster": {
     "artists": "アーティスト",
@@ -412,6 +418,8 @@
     "resize": "ブラウザーの幅を変更",
     "folderLimit": "同時に開けるフォルダーは8つです。追加するには1つ閉じてください",
     "favourites": "スター付きのお気に入り",
+    "recent": "最近",
+    "clearRecent": "履歴を消去",
     "star": "{{name}} にスターを付ける",
     "unstar": "{{name}} のスターを外す",
     "revealHint": "{{path}} をファイルマネージャーで表示",

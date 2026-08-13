@@ -108,8 +108,14 @@
       "anchors": [
         "1"
       ],
-      "secondaryAnchor": "3&",
-      "syncopation": 0.5
+      "secondaryAnchor": "4&",
+      "syncopation": 0.5,
+      "tresilloBias": 0.15,
+      "subLayerVelocity": [
+        0.5,
+        0.6
+      ],
+      "lockTo808": 0
     },
     "snare": {
       "rimshotLayer": false,

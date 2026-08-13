@@ -105,11 +105,16 @@ test('a rail swaps groups from its tab and remembers it across a reload', async 
 test('the View menu lists every panel', async ({ page }) => {
   await page.getByRole('button', { name: /View/i }).click();
   const items = page.getByRole('menuitemcheckbox');
-  // The right rail plus one per `SECTIONS` in `src/state/ui.ts`: genres, roster,
-  // browser, kit, stems, session, presets, pattern library. The menu is built
-  // from that list, so adding a panel is meant to land here — this count is the
-  // reminder to check the new one actually appears rather than a number to bump.
-  await expect(items).toHaveCount(9);
+  // The right rail and the stage, plus one per `SECTIONS` in `src/state/ui.ts`:
+  // genres, roster, browser, kit, stems, session, presets, pattern library. The
+  // menu is built from that list, so adding a panel is meant to land here — this
+  // count is the reminder to check the new one actually appears rather than a
+  // number to bump.
+  // ⚠ **Stage joined the two that are not sections** (2026-08-12): collapsing
+  // the generator stage is how the rails get a small window, and it sits beside
+  // the right rail because they are the same decision from opposite ends.
+  await expect(items).toHaveCount(10);
+  await expect(page.getByRole('menuitemcheckbox', { name: 'Stage' })).toHaveCount(1);
   // ⚠ And the newest one by name, which is what the count is a reminder to do.
   // A panel the View menu cannot reach is one a producer who collapsed it
   // cannot get back.

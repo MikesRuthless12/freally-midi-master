@@ -204,8 +204,8 @@
     "timbreHint": "soft_pad"
   },
   "countermelody": {
-    "registerOffset": -12,
-    "densityRatio": 0.5,
+    "registerOffset": -17,
+    "densityRatio": 0.35,
     "styles": {
       "values": [
         "octave_echo",
@@ -215,7 +215,7 @@
       "weights": [
         4,
         3,
-        2
+        3
       ]
     }
   },

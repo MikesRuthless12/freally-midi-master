@@ -75,7 +75,7 @@
     },
     "kick": {
       "densityPerBar": [
-        2,
+        1,
         3
       ],
       "anchors": [
@@ -162,7 +162,7 @@
     },
     "snareRoll": {
       "subdivisions": [
-        "16t"
+        "32nd"
       ],
       "grouping": [
         "even"

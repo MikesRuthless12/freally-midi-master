@@ -78,6 +78,16 @@ const droppedSamples = new Map<string, string>();
 const starred = new Map<string, Favourite>();
 
 /**
+ * Files the browser opened this page load (TASK-058), newest first.
+ *
+ * ⚠ It genuinely mutates, for the reason the favourites map does: a mock that
+ * answered a constant would let a spec audition a sample and have nothing to
+ * assert. The store, its cap and its per-user file are Rust and are tested
+ * there — what a browser can show is the list.
+ */
+let recent: Favourite[] = [];
+
+/**
  * The library folders, which a spec can actually remove.
  *
  * ⚠ Mutable for the reason `droppedSamples` gives: `explorer_remove` answered
@@ -654,6 +664,11 @@ const handlers: Record<string, Handler> = {
   // answered a constant would let a spec press the star and have nothing to
   // assert.
   favourites_list: () => [...starred.values()],
+  recent_list: () => recent,
+  recent_clear: () => {
+    recent = [];
+    return recent;
+  },
   favourites_add: (args?: InvokeArgs) => {
     const path = String((args as { path?: unknown } | undefined)?.path ?? '');
     const name = path.split(/[\\/]/).pop() ?? path;
@@ -794,7 +809,27 @@ const handlers: Record<string, Handler> = {
   // The audition voice. No audio thread here, so the position never advances —
   // a mock that animated one would make a broken transport look like a working
   // one, which is the rule this whole file is written to.
-  preview_load: () => undefined,
+  // ⚠ **The mock records the history here because the PLUGIN does.**
+  //  calls  inside , so a mock that
+  // only answered  would show a history that never grew and the
+  // e2e specs would be asserting a fixture rather than the behaviour.
+  // ⚠ **The mock records the history here because the PLUGIN does.**
+  // `editor::rpc` calls `recent::note` inside `preview_load`, so a mock that
+  // only answered `recent_list` would show a history that never grew — and the
+  // specs would be asserting a fixture rather than the behaviour.
+  preview_load: (args?: InvokeArgs) => {
+    const path = String((args as { path?: unknown } | undefined)?.path ?? '');
+    if (path !== '') {
+      const name = path.split(/[\\/]/).pop() ?? path;
+      const kind: Favourite['kind'] = /\.mid$/i.test(path) ? 'midi' : 'audio';
+      recent = [
+        { path, name, kind },
+        // Newest first and one entry per file, the rule `recent::note` keeps.
+        ...recent.filter((held) => held.path !== path),
+      ].slice(0, 30);
+    }
+    return undefined;
+  },
   preview_play: () => undefined,
   preview_pause: () => undefined,
   preview_stop: () => undefined,

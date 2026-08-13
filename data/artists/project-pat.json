@@ -135,11 +135,11 @@
         "16t"
       ],
       "grouping": [
-        "even"
+        "strong_weak_weak_weak"
       ],
       "velocityRampRange": [
-        60,
-        98
+        69,
+        107
       ],
       "rampJitter": 10,
       "descendProb": 0.23,

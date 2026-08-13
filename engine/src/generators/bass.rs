@@ -491,13 +491,36 @@ fn onsets_for(
             held_to_next(ticks, total)
         }
 
-        // One note per chord, held. The detune that makes a reese is a *sound*,
-        // not a note, so nothing here doubles it.
-        Rhythm::ReeseSustain => chords
-            .events
-            .iter()
-            .map(|event| (event.start_tick, event.len_ticks))
-            .collect(),
+        // One note per chord, held — but a chord that outlasts a phrase takes
+        // the note again rather than holding for the whole clip. The detune that
+        // makes a reese is a *sound*, not a note, so nothing here doubles it.
+        //
+        // ⛔⛔ **Held meant one note per chord, and over a vamp that is one note
+        // per clip** (TASK-162). `mobb-deep` scored **8 distinct basslines in
+        // 1,000 seeds** against a floor of 500; `dmx` 98; `capone-n-noreaga`
+        // 208. All three describe a sustained sub in the research and none of
+        // them could be authored that way, so every such model ships as
+        // `mirror_kick` with a high root lock and records the substitution in its
+        // own `notes` — a workaround, not the thing the research describes.
+        // `grid::phrase_spans` is the same fix `sustain_pad` needed, and the
+        // variety comes from *where* it re-articulates rather than the chord
+        // count.
+        Rhythm::ReeseSustain => {
+            // ⚠ **Through `held_to_next` like the other four arms**, rather than
+            // converting each span's end to a length here. The clamp-and-floor
+            // rule for "how long is a note that runs to the next boundary"
+            // belongs in one place — this file's own note on `fit_to_clip`
+            // records what it cost when three call sites each spelled it.
+            let mut ticks = Vec::new();
+            for event in &chords.events {
+                ticks.extend(
+                    super::phrase_spans(ctx, event.start_tick, event.len_ticks, rng)
+                        .into_iter()
+                        .map(|(start, _)| start),
+                );
+            }
+            held_to_next(ticks, total)
+        }
     }
 }
 

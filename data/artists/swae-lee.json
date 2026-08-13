@@ -75,13 +75,13 @@
     "kick": {
       "densityPerBar": [
         2,
-        4
+        5
       ],
       "anchors": [
         "1"
       ],
-      "secondaryAnchor": "3",
-      "syncopation": 0.27,
+      "secondaryAnchor": "2&",
+      "syncopation": 0.39,
       "tresilloBias": 0.05,
       "andOf4EveryOtherBar": 0.5,
       "avoidPreSnareGap": "8th",
@@ -190,14 +190,15 @@
     },
     "snareRoll": {
       "subdivisions": [
-        "8t"
+        "16t"
       ],
       "grouping": [
-        "even"
+        "even",
+        "strong_weak_weak_weak"
       ],
       "velocityRampRange": [
-        78,
-        120
+        71,
+        113
       ],
       "rampJitter": 20,
       "descendProb": 0.2,

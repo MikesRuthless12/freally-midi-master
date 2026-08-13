@@ -135,7 +135,7 @@
     },
     "snareRoll": {
       "subdivisions": [
-        "16t"
+        "16th"
       ],
       "grouping": [
         "even"
@@ -146,7 +146,16 @@
       ],
       "gapProb": 0.21,
       "descendProb": 0.4,
-      "rampJitter": 16
+      "rampJitter": 16,
+      "ladder": [
+        "4",
+        "8",
+        "16",
+        "32"
+      ],
+      "buildAndStopProb": 0.3,
+      "dualLayerProb": 0.25,
+      "pitchWalk": 4
     },
     "bass808": {
       "role": "bassline",

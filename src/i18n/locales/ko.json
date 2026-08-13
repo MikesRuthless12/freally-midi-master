@@ -157,7 +157,8 @@
   "view": {
     "button": "보기",
     "panels": "패널",
-    "rightRail": "오른쪽 레일"
+    "rightRail": "오른쪽 레일",
+    "stage": "스테이지"
   },
   "settings": {
     "title": "설정",
@@ -208,7 +209,12 @@
     "rollCount": "{{count}}타",
     "addFill": "{{lane}}에 필 추가",
     "reassignLane": "{{lane}}을(를) 다른 드럼으로 변경",
-    "lockLane": "다시 생성해도 {{lane}} 유지"
+    "lockLane": "다시 생성해도 {{lane}} 유지",
+    "pitchRows": "{{lane}} 피치 행",
+    "pitchCell": "{{lane}} {{pitch}}, {{step}}단계",
+    "semitoneRow": "루트에서 {{offset}} 반음",
+    "hitsAbove": "창 위에 {{count}}개 타격",
+    "hitsBelow": "창 아래에 {{count}}개 타격"
   },
   "roster": {
     "artists": "아티스트",
@@ -412,6 +418,8 @@
     "resize": "브라우저 너비 조절",
     "folderLimit": "폴더는 한 번에 8개까지 탐색할 수 있습니다 — 추가하려면 하나를 닫으세요",
     "favourites": "즐겨찾기",
+    "recent": "최근",
+    "clearRecent": "기록 지우기",
     "star": "{{name}} 즐겨찾기에 추가",
     "unstar": "{{name}} 즐겨찾기에서 제거",
     "revealHint": "파일 관리자에서 {{path}} 표시",

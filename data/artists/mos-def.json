@@ -144,8 +144,8 @@
     },
     "snareRoll": {
       "subdivisions": [
-        "16th",
-        "32nd"
+        "16t",
+        "8t"
       ],
       "grouping": [
         "strong_weak_weak_weak"
@@ -156,7 +156,8 @@
       ],
       "gapProb": 0.55,
       "descendProb": 0.36,
-      "rampJitter": 5
+      "rampJitter": 5,
+      "pitchWalk": 2
     }
   },
   "melody": {

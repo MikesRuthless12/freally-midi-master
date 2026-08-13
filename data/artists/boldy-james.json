@@ -75,7 +75,7 @@
     "kick": {
       "densityPerBar": [
         1,
-        2
+        3
       ],
       "anchors": [
         "1"
@@ -183,18 +183,18 @@
       5
     ],
     "intervals": {
-      "step": 0.62,
-      "third": 0.2,
-      "leap": 0.18
+      "step": 0.58,
+      "third": 0.15,
+      "leap": 0.15
     },
     "contour": {
-      "riff": 0.6,
-      "descend": 0.32,
-      "arch": 0.08
+      "riff": 0.56,
+      "descend": 0.27,
+      "arch": 0.05
     },
-    "chordToneBias": 0.58,
+    "chordToneBias": 0.52,
     "halfStepDissonance": 0.1,
-    "octaveJumpProb": 0.03,
+    "octaveJumpProb": 0.05,
     "phraseBars": {
       "values": [
         2,
@@ -209,7 +209,7 @@
   },
   "countermelody": {
     "registerOffset": -12,
-    "densityRatio": 0.5,
+    "densityRatio": 0.52,
     "styles": {
       "values": [
         "octave_echo",
@@ -219,7 +219,7 @@
       "weights": [
         4,
         3,
-        2
+        3
       ]
     }
   },
@@ -280,17 +280,17 @@
   },
   "bassline": {
     "rhythm": "mirror_kick",
-    "followRootsProb": 0.84,
+    "followRootsProb": 0.94,
     "register": [
-      20,
-      44
+      21,
+      43
     ],
-    "glideProb": 0,
+    "glideProb": 0.01,
     "passingTones": [
       "P5",
       "m7"
     ],
-    "anticipationProb": 0.26
+    "anticipationProb": 0.27
   },
   "arrangement": {
     "structures": [
