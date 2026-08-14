@@ -1570,12 +1570,15 @@ describe('the base genre', () => {
   });
 
   it('is carried into the undo snapshot, so Ctrl+Z puts it back', async () => {
-    // ⚠ `SAVED_FIELDS` drives both the project payload and the snapshot; a field
-    // in one and not the other is the drift that list exists to prevent.
+    // ⛔ `SAVED_FIELDS` drives both the project payload and the undo snapshot,
+    // and `SAVED_FIELDS_MATCH_SNAPSHOT` is a *compile-time* check that the two
+    // lists agree. What it cannot check is that the value actually travels —
+    // a field in the list and missing from `snapshotOf`'s destructure would
+    // save less than it undoes, which is the drift that list exists to prevent.
     const { useHistory } = await import('./history');
-    useHistory.setState({ past: [], future: [] });
     useSession.getState().setBase('boom-bap');
-    await vi.waitFor(() => expect(useSession.getState().base).toBe('boom-bap'));
-    expect(useHistory.getState().past.at(-1)?.base ?? null).toBeDefined();
+    await vi.waitFor(() =>
+      expect(useHistory.getState().present?.state.base).toBe('boom-bap'),
+    );
   });
 });

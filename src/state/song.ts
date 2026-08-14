@@ -556,6 +556,12 @@ export const useSong = create<SongState>((set, get) => ({
           seed: null,
           locked: lockedPartsIn(locks, index),
           mood,
+          // ⛔ **The genre the record was generated over** (TASK-158C). Sent
+          // rather than read from the store on the far side, exactly as `mood`
+          // is: a re-roll has to come from the same resolved model as the rest
+          // of the record, and one section over a different foundation from
+          // every other would be reproducible enough to read as deliberate.
+          base: useSession.getState().base,
           // Only swing and half-time are read on the far side — everything
           // else a session pins is already carried by the song itself.
           session: useSession.getState().pins,

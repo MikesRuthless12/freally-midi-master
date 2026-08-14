@@ -384,7 +384,19 @@ pub fn dispatch(
         // song" are not the same thing, and the picker says so.
         "song_structures" => {
             let id = request.args["styleId"].as_str().unwrap_or_default();
-            let model = dataset::model(id)?;
+            // ⛔ **Through the pinned base**, for the reason `session_defaults`
+            // gives: `generate_song` builds from the resolved model, and a genre
+            // can author its own song forms — so listing the *authored* model's
+            // would offer a form the generation is not going to use.
+            // ⚠ Falls back rather than failing, as `session_defaults` does: a
+            // stale pin must not stop the picker rendering.
+            let base = state::with(session, |s| s.base.clone()).flatten();
+            let model = match base.as_deref() {
+                Some(base) => {
+                    dataset::model_over(id, Some(base)).or_else(|_| dataset::model(id))?
+                }
+                None => dataset::model(id)?,
+            };
             let forms =
                 engine::arrange::structures_of(&model).map_err(|error| error.to_string())?;
             Ok(json!({ "structures": forms }))
@@ -820,6 +832,18 @@ struct RerollArgs {
     locked: Vec<Part>,
     #[serde(default)]
     mood: Option<String>,
+    /// The genre the record was generated over, or absent for the artist's own
+    /// (TASK-158C).
+    ///
+    /// ⛔ **Sent by the page rather than read from the store**, exactly as the
+    /// mood beside it is: a re-roll has to come from the *same resolved model*
+    /// as the rest of the record, and the store is what is pinned **now**. The
+    /// two are usually equal and the one time they are not is the one that
+    /// matters — a producer who changes the chip and then re-rolls a verse would
+    /// otherwise get one section over a different foundation from every other,
+    /// reproducibly, so it would read as deliberate.
+    #[serde(default)]
+    base: Option<String>,
     /// The pins the producer set. Only  and  are read — every
     /// other session value is carried by the  itself.
     #[serde(default)]
@@ -846,7 +870,7 @@ fn reroll_section(args: RerollArgs, host: &HostSession) -> Result<engine::patter
         _ => fresh_seed(),
     };
 
-    let model = dataset::model(&args.song.artist_id)?;
+    let model = dataset::model_over(&args.song.artist_id, args.base.as_deref())?;
     // Applied before the context is built, as everywhere else — a mode retunes
     // the `session` block.
     //
@@ -2067,6 +2091,48 @@ mod tests {
         )
         .unwrap();
         assert_eq!(value["artistId"], json!(artist));
+    }
+
+    #[test]
+    fn a_re_rolled_section_comes_from_the_same_base_as_the_rest_of_the_record() {
+        // ⛔⛔ **A song generated over another genre must not re-roll one verse
+        // from the artist's authored one.** The rest of the record is that
+        // genre's foundation; a single section from a different one is
+        // reproducible enough to read as deliberate, which is the same failure
+        // this function's own doc records for the key and the mode.
+        //
+        // ⚠ **The base rides in the request rather than being read from the
+        // store on this side**, exactly as `mood` does — the store is what is
+        // pinned *now*, and the one case that matters is a producer who moved
+        // the chip and then re-rolled.
+        let (artist, genre) = a_cross_genre_pair();
+        let song = dispatch(
+            &request(
+                "generate_song",
+                json!({ "request": { "styleId": artist, "seed": "9", "base": genre } }),
+            ),
+            &host(),
+        )
+        .unwrap();
+
+        let reroll = |base: Option<&str>| {
+            let mut args = json!({ "song": song, "index": 1, "seed": "77" });
+            if let Some(base) = base {
+                args["base"] = json!(base);
+            }
+            dispatch(
+                &request("reroll_section", json!({ "request": args })),
+                &host(),
+            )
+            .unwrap()["patterns"]
+                .clone()
+        };
+
+        assert_ne!(
+            reroll(Some(&genre)),
+            reroll(None),
+            "the re-roll ignored the base the record was built over"
+        );
     }
 
     #[test]
