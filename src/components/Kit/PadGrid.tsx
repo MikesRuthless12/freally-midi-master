@@ -37,6 +37,7 @@ export function PadGrid() {
   const loaded = useKit((s) => s.loaded);
   const assigning = useKit((s) => s.assigning);
   const refresh = useKit((s) => s.refresh);
+  const editPad = useKit((s) => s.editPad);
   const assign = useKit((s) => s.assign);
   const randomize = useKit((s) => s.randomize);
   const mutedLanes = useSession((s) => s.mutedLanes);
@@ -195,7 +196,13 @@ export function PadGrid() {
               event.preventDefault();
               // Refreshed after, because the pad's own label is the only thing
               // that says the drop landed.
-              void dropOn(lane, path).then(() => refresh());
+              // ⛔ **…and its editor opens** (TASK-059), which also brings the
+              // KIT panel on screen — this pad is on the stage and the editor
+              // is drawn in the rail, so `editPad` shows the panel too.
+              void dropOn(lane, path).then(() => {
+                void refresh();
+                editPad(lane);
+              });
             }}
           >
             {/* ⛔ **The pad itself mutes.** Mike: *"a way to mute/unmute by
@@ -305,7 +312,12 @@ export function PadGrid() {
                 disabled={assigning !== null}
                 aria-label={t('kit.useSelected', { lane: name })}
                 title={t('kit.useSelected', { lane: name })}
-                onClick={() => void dropOn(lane, selectedSample).then(() => refresh())}
+                onClick={() =>
+                  void dropOn(lane, selectedSample).then(() => {
+                    void refresh();
+                    editPad(lane);
+                  })
+                }
               >
                 <CornerDownLeft size={12} aria-hidden="true" />
               </button>

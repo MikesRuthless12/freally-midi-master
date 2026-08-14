@@ -6,6 +6,7 @@ import { invoke } from '../../lib/ipc';
 import { useKit, type KitLane, type PadTweaks } from '../../state/kit';
 import { outlineOf, VIEW_H, VIEW_W } from '../Explorer/waveform';
 import { auditionLane } from '../DrumGrid/audition';
+import { ENV_H, ENV_SPAN_MS, ENV_W, MIN_DB, envelopePath } from './padEnvelope';
 
 /**
  * The per-pad sound editor (TASK-055A, TASK-164).
@@ -30,57 +31,6 @@ import { auditionLane } from '../DrumGrid/audition';
  * per-*hit* pitch inside the pattern — the 808 climbing semitones across a bar.
  * `semis`/`cents` here are per-*pad*: one offset for the whole lane.
  */
-
-/** Where the envelope is drawn. Unitless — the SVG scales to the panel. */
-const ENV_W = 320;
-const ENV_H = 96;
-/**
- * The longest stage the graph draws at full width, in ms.
- *
- * ⚠ **A drawing bound, not a limit on the value.** A 10-second release is a
- * legitimate thing to ask for and the sampler honours it; past this the handle
- * simply stops travelling, because a graph that rescaled itself as you dragged
- * would move the handle you are holding away from the pointer.
- */
-const ENV_SPAN_MS = 2_000;
-
-/** dB floor for the sustain handle, matching `pad_tweaks::MIN_GAIN_DB`. */
-const MIN_DB = -60;
-
-function clamp(value: number, low: number, high: number): number {
-  return Math.max(low, Math.min(high, value));
-}
-
-/**
- * The envelope as a polyline: attack up, decay to sustain, hold, release down.
- *
- * ⚠ **Pure, and exported, so it can be tested without a DOM.** The same reason
- * `Explorer/waveform.ts` and `PianoRoll/geometry.ts` are separate from their
- * components.
- */
-export function envelopePath(adsr: PadTweaks['adsr']): string {
-  const x = (ms: number) => (clamp(ms, 0, ENV_SPAN_MS) / ENV_SPAN_MS) * (ENV_W / 3);
-  // dB to a height. ⚠ Linear in dB rather than in amplitude, because the handle
-  // is dragged against a dB readout — a graph in amplitude would put −6 dB
-  // halfway up and −36 dB on the floor, and the drag would not match the number.
-  const y = (db: number) => ENV_H - (clamp(db, MIN_DB, 0) - MIN_DB) / -MIN_DB * ENV_H;
-
-  const attackAt = x(adsr.attackMs);
-  const decayAt = attackAt + x(adsr.decayMs);
-  const sustainY = y(adsr.sustainDb);
-  // The sustain leg is drawn at a fixed width: it is a *level*, not a duration —
-  // how long it lasts is the note's length, which this graph does not know.
-  const releaseAt = decayAt + ENV_W / 4;
-  const endAt = releaseAt + x(adsr.releaseMs);
-
-  return [
-    `M0,${ENV_H}`,
-    `L${attackAt.toFixed(1)},0`,
-    `L${decayAt.toFixed(1)},${sustainY.toFixed(1)}`,
-    `L${releaseAt.toFixed(1)},${sustainY.toFixed(1)}`,
-    `L${endAt.toFixed(1)},${ENV_H}`,
-  ].join('');
-}
 
 type Peaks = readonly [number, number][];
 
@@ -137,7 +87,21 @@ export function PadEditor({ entry, onClose }: { entry: KitLane; onClose: () => v
   const { t } = useTranslation();
   const setTweaks = useKit((s) => s.setTweaks);
   const tweaks = entry.tweaks;
-  const [peaks, setPeaks] = useState<Peaks>([]);
+  /**
+   * The peaks that arrived, **with the path they were read for**.
+   *
+   * ⛔ **Paired rather than cleared, and that is not style.** Clearing on a path
+   * change means a `setState` in the effect body, which is a cascading render —
+   * and the lint rule that names it is right here for a second reason: a reply
+   * for the *previous* path can land after the switch, and comparing the path is
+   * what makes that impossible to draw. Nothing below sets state outside an
+   * async callback.
+   */
+  const [drawn, setDrawn] = useState<{ path: string | null; peaks: Peaks }>({
+    path: null,
+    peaks: [],
+  });
+  const peaks: Peaks = drawn.path === entry.path ? drawn.peaks : [];
   const dialogRef = useRef<HTMLDivElement>(null);
 
   /**
@@ -151,21 +115,19 @@ export function PadEditor({ entry, onClose }: { entry: KitLane; onClose: () => v
    * so the handles run over a plain track instead and the panel says why.
    */
   useEffect(() => {
+    const path = entry.path;
+    if (path === null) return;
     let live = true;
-    if (entry.path === null) {
-      setPeaks([]);
-      return;
-    }
-    void invoke<{ peaks: Peaks }>('explorer_waveform', { path: entry.path })
+    void invoke<{ peaks: Peaks }>('explorer_waveform', { path })
       .then((reply) => {
-        if (live) setPeaks(reply.peaks);
+        if (live) setDrawn({ path, peaks: reply.peaks });
       })
       // ⚠ Swallowed to an empty waveform rather than surfaced: the store's
       // `error` slot is for a failed *edit*, and a sample whose picture could
       // not be drawn still edits perfectly well. The empty track and its note
       // are the honest report.
       .catch(() => {
-        if (live) setPeaks([]);
+        if (live) setDrawn({ path, peaks: [] });
       });
     return () => {
       live = false;

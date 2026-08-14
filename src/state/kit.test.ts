@@ -245,3 +245,36 @@ it('does nothing for a lane the kit has never reported', async () => {
   await useKit.getState().setTweaks('kick', { gainDb: -6 });
   expect(invoke).not.toHaveBeenCalled();
 });
+
+/**
+ * The assignment gesture opens the editor it lands in (TASK-059).
+ *
+ * ⛔ This lives in the store rather than in `KitPanel`, and the test is here for
+ * the same reason: **three** gestures assign a sample — the KIT row's drop, a
+ * pad's drop, and the pad grid's "use selected" — and only the first is in that
+ * component. A `useState` there could serve one of the three.
+ */
+it('opens one pad editor at a time and brings its panel on screen', async () => {
+  const { useUi } = await import('./ui');
+  // Somewhere else entirely, so showing KIT is a visible change.
+  useUi.getState().showSection('genres');
+
+  useKit.getState().editPad('kick');
+  expect(useKit.getState().editingPad).toBe('kick');
+  expect(useUi.getState().sections.kit).toBe(true);
+
+  useKit.getState().editPad('snare');
+  expect(useKit.getState().editingPad).toBe('snare');
+});
+
+it('does not rearrange the rail when an editor is closed', async () => {
+  // ⚠ Only on the way *in*. Closing an editor must not move the panel the
+  // producer is looking at out from under them.
+  const { useUi } = await import('./ui');
+  useKit.getState().editPad('kick');
+  useUi.getState().showSection('genres');
+
+  useKit.getState().editPad(null);
+  expect(useKit.getState().editingPad).toBeNull();
+  expect(useUi.getState().sections.genres).toBe(true);
+});

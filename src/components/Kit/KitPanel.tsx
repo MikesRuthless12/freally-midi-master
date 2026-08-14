@@ -53,14 +53,10 @@ export function KitPanel() {
   // the producer lets go. Local: it is a property of this gesture, not of the
   // kit, and nothing outside this panel can act on it.
   const [over, setOver] = useState<Lane | null>(null);
-  /**
-   * Which pad's sound editor is open, or `null` (TASK-164).
-   *
-   * ⚠ **One at a time, and local.** It is a property of what this panel is
-   * showing, not of the kit — nothing outside here acts on it, and two open
-   * editors would be two sets of controls over one audio thread.
-   */
-  const [editing, setEditing] = useState<Lane | null>(null);
+  // ⛔ **In the store, not local** (TASK-059). Three gestures open this editor
+  // and only one of them is in this file — see `useKit.editingPad`.
+  const editing = useKit((s) => s.editingPad);
+  const setEditing = useKit((s) => s.editPad);
 
   /**
    * The eight lanes on the pads first, in pad order, then everything else.
@@ -205,7 +201,14 @@ export function KitPanel() {
                 // ⚠ Refreshed after, because the row's own label is what says
                 // whether the drop landed — the panel is the only feedback the
                 // producer gets, and it would otherwise still read "Shipped".
-                void dropOn(entry.lane, path).then(() => refresh());
+                // ⛔ **…and open its editor** (TASK-059): the gesture is
+                // "imports, assigns, and opens the per-one-shot editor". A
+                // sample that lands with no way to shape it is where this
+                // stopped before the editor existed.
+                void dropOn(entry.lane, path).then(() => {
+                  void refresh();
+                  setEditing(entry.lane);
+                });
               }}
             >
               <button
@@ -286,7 +289,7 @@ export function KitPanel() {
                   aria-label={t('kit.editPad', { lane: t(`lanes.${entry.lane}`) })}
                   title={t('kit.editPad', { lane: t(`lanes.${entry.lane}`) })}
                   aria-expanded={editing === entry.lane}
-                  onClick={() => setEditing((open) => (open === entry.lane ? null : entry.lane))}
+                  onClick={() => setEditing(editing === entry.lane ? null : entry.lane)}
                 >
                   <SlidersHorizontal size={12} aria-hidden="true" />
                 </button>

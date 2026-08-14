@@ -16,6 +16,10 @@ import { reason, useSession } from './session';
 // ⚠ A store-to-store read, not a subscription: the re-roll asks where the
 // browser is standing at the moment it fires, and nothing here re-renders on it.
 import { standingIn, useExplorer } from './explorer';
+// ⚠ Another store-to-store read, for the same reason: opening the editor has to
+// bring the panel that draws it on screen, and nothing here re-renders on the
+// rail's layout.
+import { useUi } from './ui';
 import type { Lane } from '../lib/ipc-types';
 
 // ⚠ Re-exported so every existing importer keeps working; the list itself
@@ -155,6 +159,20 @@ type KitState = {
   loaded: boolean;
   /** The lane whose dialog is open, or `null`. */
   assigning: Lane | null;
+  /**
+   * The lane whose sound editor is open, or `null` (TASK-059, TASK-164).
+   *
+   * ⛔ **In the store rather than inside `KitPanel`, because three gestures
+   * open it and only one of them is in that file.** A sample lands on a lane
+   * from the KIT row, from a pad in the grid, and from the grid's *"use
+   * selected"* button — TASK-059 asks that each of them *"assigns, and opens
+   * the per-one-shot editor"*, and a `useState` in the panel could only ever
+   * serve the first.
+   *
+   * ⚠ One at a time. Two open editors would be two sets of controls over one
+   * audio thread.
+   */
+  editingPad: Lane | null;
   /** The last thing that went wrong, for the panel to show. */
   error: string | null;
   refresh: () => Promise<void>;
@@ -188,6 +206,15 @@ type KitState = {
    */
   setTweaks: (lane: Lane, patch: Partial<PadTweaks>) => Promise<void>;
   /**
+   * Open a lane's sound editor, or close whatever is open.
+   *
+   * ⚠ **Brings the KIT panel on screen too.** Two of the three gestures that
+   * call this are in the *pad grid*, which is on the stage — setting state a
+   * rail panel draws and leaving that panel closed would be an editor that
+   * opened where nobody could see it.
+   */
+  editPad: (lane: Lane | null) => void;
+  /**
    * Wait for the loader thread to finish, then refresh and surface any failure.
    *
    * ⛔ Shared by the re-roll and by loading a saved kit, because both hand the
@@ -202,6 +229,7 @@ export const useKit = create<KitState>((set, get) => ({
   lanes: [],
   loaded: false,
   assigning: null,
+  editingPad: null,
   error: null,
 
   /**
@@ -327,6 +355,13 @@ export const useKit = create<KitState>((set, get) => ({
       return;
     }
     await get().awaitLoader();
+  },
+
+  editPad(lane) {
+    set({ editingPad: lane });
+    // ⚠ Only on the way *in*: closing an editor should not rearrange the rail
+    // the producer is looking at.
+    if (lane !== null) useUi.getState().showSection('kit');
   },
 
   async setTweaks(lane, patch) {

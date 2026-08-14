@@ -6,7 +6,8 @@ vi.mock('../../lib/ipc', () => ({
   invoke: (command: string, args?: unknown) => invoke(command, args),
 }));
 
-const { PadEditor, envelopePath } = await import('./PadEditor');
+const { PadEditor } = await import('./PadEditor');
+const { envelopePath } = await import('./padEnvelope');
 const { useKit } = await import('../../state/kit');
 const { untouchedPad } = await import('../../lib/ipc-mock');
 
