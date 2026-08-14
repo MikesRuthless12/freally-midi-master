@@ -1,0 +1,366 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "b-g",
+  "type": "artist",
+  "name": "B.G.",
+  "aliases": [
+    "b.g.",
+    "bg",
+    "b g",
+    "baby gangsta",
+    "christopher dorsey",
+    "bling bling",
+    "chopper city"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "nola-bounce"
+  ],
+  "era": "1997–2003",
+  "genres": [
+    "rap",
+    "bounce",
+    "southern rap"
+  ],
+  "relatedGenres": [
+    "nola-bounce",
+    "crunk",
+    "funk"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 nola-bounce — B.G.",
+    "https://www.complex.com/music/a/insanul-ahmed/mannie-fresh-interview-the-making-of-cash-money",
+    "https://en.wikipedia.org/wiki/B.G._(rapper)"
+  ],
+  "notes": "Cash Money's melodic-menace mode: the same Mannie kit as `juvenile`, turned minor and pointed at a single electro synth lead. Three overrides carry it. ⛔ **Minor with a bright synth lead on top**, so `session.scales` is minor where the parent is mixolydian, and `chords.progressionFamilies` is led by `i–VII` — which the research names as the most common motion — over 2-bar vamps. ⛔ **`drums.bass808.role` flips to `bassline`.** The research says \"kick and sub are one voice\", which is the engine's `role: \"bassline\"` exactly: the 808 *is* the bass and `bass::generate` returns nothing, against a parent whose whole low end is deliberately two voices. This is the parameter that most separates B.G. from Juvenile, who kept Mannie's played Moog. ⛔ **The lead is electro-derived** — Mannie cited Jonzun Crew's \"Space Is the Place\" as the reference — so `timbreHint` is `square_lead`, the register sits mid-high (the highest floor in this batch), `octaveJumpProb` rises and `motifPitchCount` narrows to the short bright saw/square figure the research describes. ⚠ **`sectionRules.bridge` is the keyboard-only breakdown** the research names, cut to `chords` and `melody` at 0.4 density; `hook` is pinned to 8 bars and the verse spread is short because the records trade four ways across a crew. ⚠ **Confidence is `medium` because the research rates it medium-high**, and the tempo band 90–100 is marked **[LOW-CONF]**. Inferred rather than sourced: the key list, every velocity and register bound, the `intervals`/`contour` split, `openHat.prob`, and the exact `offSnare.prob` — the research says the Triggerman snare answer is present, not how often. ⚠ `snareRoll.pitchWalk` is inherited; nothing in the research says how a Cash Money roll is pitched. ⛔ **`chords.impliedByRiff` is set.** This model reached only 461 distinct harmonies in 1000 seeds, and every honest lever — chord duration, harmonic rhythm, voicing window — was already open. The reason is the record rather than the authoring: the harmony is stated by the vamp rather than by a chord part, so there is one thing to voice. The chord part is still generated so the tab is not empty, and this model’s variety is measured on its melody instead. ⚠ If it ever grows a real progression, delete this flag.",
+  "session": {
+    "bpm": {
+      "min": 90,
+      "max": 100,
+      "mode": 95
+    },
+    "keys": {
+      "values": [
+        "Gm",
+        "Cm",
+        "Fm",
+        "Dm",
+        "Am",
+        "Bm"
+      ],
+      "weights": [
+        4,
+        4,
+        3,
+        2,
+        2,
+        1
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        5,
+        2,
+        3
+      ]
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "syncopation": 0.46,
+      "tresilloBias": 0.3,
+      "offbeat8thShare": 0.2
+    },
+    "snare": {
+      "offSnare": {
+        "prob": 0.88,
+        "pos": [
+          "2&"
+        ]
+      },
+      "ghost": {
+        "prob": 0.2,
+        "pos": [
+          "1a",
+          "4a"
+        ],
+        "vel": [
+          0.28,
+          0.46
+        ]
+      }
+    },
+    "hihat": {
+      "base": {
+        "values": [
+          "8T",
+          "16th",
+          "8th"
+        ],
+        "weights": [
+          5,
+          3,
+          2
+        ]
+      },
+      "continuous": false,
+      "fillDensity": [
+        0.72,
+        0.94
+      ],
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.16,
+        "velocityRamp": true
+      },
+      "openHat": {
+        "prob": 0.32,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "tambourine": true,
+      "lanes": [
+        "tom",
+        "cowbell",
+        "rim"
+      ],
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "gainOffsetDb": -4
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        55,
+        96
+      ],
+      "rampJitter": 8,
+      "descendProb": 0.55,
+      "gapProb": 0.09
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "slideProb": 0.08,
+      "register": [
+        21,
+        35
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.78,
+      "seventh": 0.2,
+      "ninth": 0.02
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        49,
+        77
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "vamp",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      12
+    ],
+    "impliedByRiff": true
+  },
+  "melody": {
+    "register": [
+      66,
+      90
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    },
+    "densityPerBar": [
+      4,
+      8
+    ],
+    "structure": "riff_loop",
+    "motifPitchCount": [
+      3,
+      5
+    ],
+    "intervals": {
+      "step": 0.46,
+      "third": 0.28,
+      "leap": 0.26
+    },
+    "contour": {
+      "riff": 0.66,
+      "descend": 0.2,
+      "arch": 0.14
+    },
+    "chordToneBias": 0.66,
+    "halfStepDissonance": 0.05,
+    "emptyBarBias": 0.08,
+    "octaveJumpProb": 0.26,
+    "timbreHint": "square_lead"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": [
+      0.38,
+      0.6
+    ],
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    }
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": {
+        "values": [
+          8,
+          12,
+          16
+        ],
+        "weights": [
+          3,
+          2,
+          3
+        ]
+      },
+      "hook": 8,
+      "bridge": [
+        4,
+        8
+      ],
+      "outro": {
+        "values": [
+          4,
+          8
+        ],
+        "weights": [
+          2,
+          1
+        ]
+      }
+    },
+    "sectionRules": {
+      "bridge": {
+        "parts": [
+          "chords",
+          "melody"
+        ],
+        "density": 0.4
+      }
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.68,
+        "beats": 4
+      },
+      "switchUpProb": 0.18
+    }
+  }
+}

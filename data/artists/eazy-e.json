@@ -1,0 +1,330 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "eazy-e",
+  "type": "artist",
+  "name": "Eazy-E",
+  "aliases": [
+    "eazy e",
+    "eazy-e",
+    "eric wright",
+    "ruthless records",
+    "187um killa"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "g-funk"
+  ],
+  "era": "1992-1993",
+  "genres": [
+    "rap",
+    "g-funk",
+    "west coast",
+    "gangsta rap"
+  ],
+  "relatedGenres": [
+    "g-funk",
+    "boom-bap",
+    "funk",
+    "west-coast-club"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 g-funk — Eazy-E",
+    "https://en.wikipedia.org/wiki/It%27s_On_(Dr._Dre)_187um_Killa",
+    "https://en.wikipedia.org/wiki/Real_Muthaphuckkin_G%27s"
+  ],
+  "notes": "The Ruthless answer-record era only, and the research frames it as sample-heavy funk positioned *deliberately against* Dre's g-funk — so this entry is the one in the lane whose melodic layer is sampled rather than played. Its drums are the breakbeat the sample came with: kick on 1, and-of-2 and 3 (`secondaryAnchor` `2&`, `tresilloBias` 0.22), a hard dry snare with `accent` at 106–127, 8th hats. ⛔ `chords.impliedByRiff` is set because the research says it in so many words: the harmony is modal and riff-based rather than progression-based, \"whatever the loop implies\", so model 1-chord vamps. The chord part still owes a producer 55 distinct outputs, and what supplies them is `chordDurationBeats` 2–16 against a `syncopated_cell` harmonic rhythm — the loop's length varying, not its chord. ⚠ **The `i–VII` and `i–iv` families are INFERRED** and carry weight 2 against the static `i`'s 5; the research names no second chord. ⚠ `confidence` is `medium` per the research's high-medium rating. ⚠ The bass is `mirror_kick` at `followRootsProb` 0.88 because the research is explicit that it is sampled funk bass reinforced with a sine sub, \"not a played synth line\", rhythmically identical to the sample — which in this engine means it follows the kick it was sampled with rather than walking. `timbreHint` is `horn_stab` for the backbeat stabs, and the diss-record architecture is authored as a 2–4 bar intro into a target-naming hook with 12–16 bar verses and a short outro.",
+  "session": {
+    "bpm": {
+      "min": 92,
+      "max": 102,
+      "mode": 96
+    },
+    "scales": {
+      "values": [
+        "blues",
+        "minor_pentatonic",
+        "natural_minor"
+      ],
+      "weights": [
+        4,
+        4,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.57
+    },
+    "humanize": {
+      "quantizeStrength": 0.8,
+      "velocityVar": 0.2
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        106,
+        127
+      ],
+      "main": [
+        80,
+        94
+      ],
+      "ghost": [
+        36,
+        50
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.42,
+      "tresilloBias": 0.22,
+      "offbeat8thShare": 0.3
+    },
+    "snare": {
+      "rimshotLayer": false,
+      "ghost": {
+        "prob": 0.18,
+        "pos": [
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.2,
+          0.36
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.36,
+      "openHat": {
+        "prob": 0.28,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": [
+          "32"
+        ],
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.23
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "conga"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t",
+        "8t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        67,
+        112
+      ],
+      "gapProb": 0.22,
+      "descendProb": 0.56,
+      "rampJitter": 7
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 2,
+    "impliedByRiff": true,
+    "chordDurationBeats": [
+      2,
+      16
+    ],
+    "extensions": {
+      "triad": 0.62,
+      "seventh": 0.3,
+      "ninth": 0.08
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        44,
+        78
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "syncopated_cell",
+        "vamp",
+        "1_per_bar"
+      ],
+      "weights": [
+        3,
+        3,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      69,
+      91
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "densityPerBar": [
+      2,
+      5
+    ],
+    "contour": {
+      "riff": 0.66,
+      "descend": 0.16,
+      "arch": 0.1
+    },
+    "chordToneBias": 0.46,
+    "halfStepDissonance": 0.12,
+    "articulation": "staccato",
+    "timbreHint": "horn_stab",
+    "structure": "riff_loop",
+    "motifPitchCount": [
+      3,
+      5
+    ],
+    "intervals": {
+      "step": 0.41,
+      "third": 0.26,
+      "leap": 0.25
+    },
+    "endVariation": true,
+    "octaveJumpProb": [
+      0.14,
+      0.28
+    ]
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.46,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "fillGapsOnly": true
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.88,
+    "register": [
+      26,
+      43
+    ],
+    "glideProb": 0.08,
+    "passingTones": [
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.1
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": [
+        12,
+        16
+      ],
+      "hook": 8,
+      "outro": 4
+    }
+  }
+}

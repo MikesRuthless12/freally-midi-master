@@ -134,3 +134,71 @@ test('a collapsed panel clips its own content rather than spilling', async ({ pa
 
   expect(spills).toEqual([]);
 });
+
+/**
+ * The right rail stays on screen at a small window, and the stage can get out
+ * of its way.
+ *
+ * ⛔⛔ **Mike, 2026-08-12**: *"if you resize to too small of a size, the right
+ * rail is never visible"* — reported while asking for a collapsible centre,
+ * which is the fix he had in mind. The cause was narrower: `.studio` sized both
+ * rails as **fixed** tracks either side of a `1fr` stage, so below about 600px
+ * the stage was already at zero and the grid was *wider than the window*. The
+ * overflow carried the right rail off the right-hand edge — it was never being
+ * crowded out, it simply could not shrink.
+ *
+ * ⚠ **Measured against the viewport, not against a class.** "Is it visible" is a
+ * question about pixels: the rail was mounted, styled and present in the DOM the
+ * whole time it was off-screen, so every assertion that reads the DOM would have
+ * passed while Mike was looking at a window without it.
+ */
+const SMALL = { width: 520, height: 700 };
+
+test('the right rail stays inside a small window instead of overflowing it', async ({
+  page,
+}) => {
+  await page.setViewportSize(SMALL);
+  await page.goto('/');
+  await expect(page.getByRole('tablist', { name: 'Generator' })).toBeVisible();
+
+  // ⚠ **Opened by hand, because `WIDE_BREAKPOINT` closed it on the way in.**
+  // That is the *other* half of Mike's report and it is worth stating here: at
+  // this size the rail is not merely off-screen, it is not mounted. K is what
+  // brings it back, and the overflow is what used to happen next.
+  await page.keyboard.press('k');
+
+  const rail = page.locator('.rail--right');
+  const box = await rail.boundingBox();
+  expect(box, 'the right rail should be laid out at all').not.toBeNull();
+  expect(
+    box!.x + box!.width,
+    `the rail ends at ${box!.x + box!.width}px in a ${SMALL.width}px window`,
+  ).toBeLessThanOrEqual(SMALL.width + 1);
+});
+
+test('collapsing the stage gives the window to the rails', async ({ page }) => {
+  // ⛔ *"if you have a generation that you like, that the center can be collapsed
+  // so that the 'right rail' will always show … like the whole generation
+  // part."* The stage is what you have finished with once a take is settled;
+  // STEMS is what you still need.
+  await page.setViewportSize(SMALL);
+  await page.goto('/');
+  await expect(page.getByRole('tablist', { name: 'Generator' })).toBeVisible();
+
+  // ⚠ The menu stays open after a click on purpose — it is a list of toggles —
+  // so it is opened once and the same row is used twice.
+  await page.getByRole('button', { name: /View/i }).click();
+  const stage = page.getByRole('menuitemcheckbox', { name: 'Stage' });
+  await stage.click();
+
+  // The generator tabs are gone with the stage, and the right rail is *there*:
+  // at this width the breakpoint had closed it, so collapsing the stage has to
+  // bring it back or the producer is left looking at a hole.
+  await expect(page.getByRole('tablist', { name: 'Generator' })).toHaveCount(0);
+  const wide = (await page.locator('.rail--right').boundingBox())!;
+  expect(wide.x + wide.width).toBeLessThanOrEqual(SMALL.width + 1);
+
+  // And it comes back — a collapse nobody can undo is a panel you have lost.
+  await stage.click();
+  await expect(page.getByRole('tablist', { name: 'Generator' })).toBeVisible();
+});

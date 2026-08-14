@@ -1,0 +1,267 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "getter",
+  "type": "producer",
+  "name": "Getter",
+  "aliases": [
+    "getter",
+    "tanner petulla",
+    "terror reid"
+  ],
+  "tier": "standard",
+  "extends": [
+    "dark-trap"
+  ],
+  "era": "2013-present",
+  "genres": [
+    "rap",
+    "dark-trap"
+  ],
+  "relatedGenres": [
+    "dark-trap",
+    "edm-rage",
+    "neurofunk"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended vol.1 dark-trap — Getter"
+  ],
+  "notes": "The bass-music producer who supplied this lane’s most metal-adjacent record, and the parameter he brings from dubstep is **weight rather than speed**: a half-time trap grid with a long-tailed snare, and a low end built as **layered sub plus a mid-range growl/reese with LFO movement** — the bass is the lead instrument, not the foundation. Noise risers and reverse-reverb swells replace pads entirely. ⚠ **`low`**: his sound is described in sourced terms and the collaboration is documented, but the per-parameter detail is inferred.",
+  "session": {
+    "bpm": {
+      "min": 130,
+      "max": 160,
+      "mode": 144
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "phrygian"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.54
+    },
+    "halfTime": true
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.4,
+      "lockTo808": 0.9,
+      "tresilloBias": 0.34,
+      "avoidPreSnareGap": "8th",
+      "andOf4EveryOtherBar": true
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "lowPassedClap": false,
+      "ghost": {
+        "prob": 0.12,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.2,
+          0.38
+        ]
+      },
+      "layerClapOffsetMs": [
+        3,
+        7
+      ],
+      "offGridMs": 0,
+      "detuneSemis": [
+        -2,
+        -1
+      ],
+      "fullTimeVariantProb": 0.1
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.58,
+      "openHat": {
+        "prob": 0.26,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16T"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.22
+      }
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        65,
+        105
+      ],
+      "rampJitter": 14,
+      "descendProb": 0.23,
+      "gapProb": 0.39,
+      "pitchWalk": 5,
+      "ladder": [
+        "4",
+        "8",
+        "16",
+        "32"
+      ],
+      "buildAndStopProb": 0.3,
+      "dualLayerProb": 0.25
+    },
+    "bass808": {
+      "role": "counter_riff",
+      "sustain": "legato",
+      "monoCutSelf": true,
+      "slideProb": 0.45,
+      "slidesPer4Bars": [
+        2,
+        3
+      ],
+      "register": [
+        17,
+        35
+      ],
+      "distortion": "saturated"
+    }
+  },
+  "melody": {
+    "register": [
+      58,
+      82
+    ],
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "reese_stab"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.4,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "bII"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.8,
+      "seventh": 0.18,
+      "ninth": 0.02
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        47,
+        79
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      2,
+      12
+    ],
+    "impliedByRiff": true
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.6,
+    "register": [
+      24,
+      42
+    ],
+    "glideProb": 0.35,
+    "passingTones": [
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.3
+  }
+}

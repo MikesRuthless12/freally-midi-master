@@ -2,6 +2,7 @@ import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ChevronDown } from 'lucide-react';
 
+import { rootZoom } from '../../state/ui';
 import './Combo.css';
 
 /**
@@ -34,6 +35,22 @@ export type ComboOption = {
    * and never what an empty query commits.
    */
   action?: boolean;
+  /**
+   * A separator naming the group beneath it, not a row you can land on.
+   *
+   * ⛔⛔ **Unreachable by every path, which is stronger than `action` above.**
+   * An action is merely never a *fallback* — it can still be clicked or arrowed
+   * onto, because choosing "Original Workflow" is a real thing to do. A heading
+   * is not a choice at all: it carries no id anything could resolve, so the
+   * arrow keys step over it, the mouse cannot commit it, blur never falls back
+   * to it, and it is not a `role="option"` — a listbox whose options include
+   * two unselectable ones misreports its own size to a screen reader.
+   *
+   * Mike, 2026-08-12: *"put 'Artists' underlined and then list all artists in
+   * alphabetical order and then 'Producers' underlined … and ensure that you
+   * cannot select the underlined words."*
+   */
+  heading?: boolean;
 };
 
 /**
@@ -62,6 +79,7 @@ export function Combo({
   label,
   options,
   value,
+  valueLabel,
   onChange,
   filter,
   placeholder,
@@ -70,6 +88,18 @@ export function Combo({
   label: string;
   options: ComboOption[];
   value: string | null;
+  /**
+   * What the field reads when `value` names something the list does not offer.
+   *
+   * ⛔ **Not the never-blank fallback in disguise** — that one borrowed the
+   * *first option's* name while nothing was selected, which is why it is
+   * forbidden below. This names the entry that is genuinely selected, for a
+   * control whose list is narrower than what can be chosen in it: the roster
+   * lists only artists and producers (2026-08-12), while typing a genre's name
+   * into it still selects the genre. Without this the producer typed "UK Drill",
+   * pressed Enter, and watched the box they had just typed into go empty.
+   */
+  valueLabel?: string | null;
   onChange: (id: string) => void;
   /** Narrow `options` for what has been typed. Defaults to a substring match. */
   filter?: (query: string, options: ComboOption[]) => ComboOption[];
@@ -98,9 +128,18 @@ export function Combo({
   // ⛔ Starts on the first real choice, never on an action — see `action` above.
   // Opening the list with the highlight already on "Original Workflow" meant one
   // Enter opened a modal nobody asked for.
-  const firstChoice = Math.max(
-    0,
-    options.findIndex((option) => option.action !== true),
+  //
+  // ⛔⛔ **-1 when there is no real choice at all, and the clamp to 0 that used
+  // to be here is exactly the bug.** A list of nothing but actions could not
+  // happen until the roster began narrowing to the selected genre (2026-08-12) —
+  // a genre nobody works in leaves "Original Workflow" alone in the list, and
+  // `Math.max(0, -1)` put the highlight straight onto it. Opening the box and
+  // pressing Enter then opened the style editor over the whole app, which is
+  // word for word the failure `action` exists to prevent. -1 highlights nothing
+  // and makes Enter a no-op; arrowing onto the row still reaches it, because
+  // that is deliberate.
+  const firstChoice = options.findIndex(
+    (option) => option.action !== true && option.heading !== true,
   );
   const [active, setActive] = useState(firstChoice);
   const root = useRef<HTMLDivElement>(null);
@@ -109,7 +148,9 @@ export function Combo({
   const [at, setAt] = useState({ top: 0, left: 0, width: 0 });
 
   // What the box shows: what is being typed, or the selection when it is not.
-  const text = typed ?? selected?.name ?? '';
+  // `valueLabel` covers a selection the list does not carry a row for; the empty
+  // string — and so the placeholder — is left for nothing being selected at all.
+  const text = typed ?? selected?.name ?? valueLabel ?? '';
 
   const narrowed =
     typed === null || typed.trim() === ''
@@ -142,8 +183,37 @@ export function Combo({
     // Pulled back inside the window when widening would push it off the right
     // edge, which is where a narrow trigger in a right-hand panel would put it.
     const left = Math.max(8, Math.min(field.left, window.innerWidth - width - 8));
-    setAt({ top, left, width });
+    // ⛔ **Out of the root's zoom, because this menu is `position: fixed`.**
+    // `state/ui.ts::rootZoom` carries the units rule in full: the measurements
+    // above are viewport pixels with the zoom already in them, and a `top`/`left`
+    // on a fixed element is resolved before the zoom is applied — so at any zoom
+    // but 1 the menu lands at `rect × zoom`, further out the further right the
+    // field sits. The drum-lane menu in the right rail is where that first showed
+    // up; every combobox in the plugin has the same exposure, including the eight
+    // pad pickers. ⚠ A no-op at `zoom: 1`, which is the standalone and every
+    // browser.
+    const zoom = rootZoom();
+    setAt({ top: top / zoom, left: left / zoom, width: width / zoom });
   }, [open, narrowed.length]);
+
+  /**
+   * The next row the keyboard may land on, stepping over the headings.
+   *
+   * ⚠ `-1` means "nothing is highlighted" and is a real state — an empty genre
+   * leaves a list of one action, and a list of nothing but headings would leave
+   * no landing place at all. The bounded loop is what makes both terminate
+   * instead of spinning; `from < 0` is normalised so ArrowUp from nowhere wraps
+   * to the *last* row rather than the second to last.
+   */
+  function step(from: number, delta: number): number {
+    if (narrowed.length === 0) return -1;
+    let at = from < 0 ? (delta > 0 ? -1 : 0) : from;
+    for (let tried = 0; tried < narrowed.length; tried += 1) {
+      at = (at + delta + narrowed.length) % narrowed.length;
+      if (narrowed[at]?.heading !== true) return at;
+    }
+    return -1;
+  }
 
   // ⛔ **Every exit lands on a real selection.** Committing the top match is the
   // "even if you stop typing" half; falling back to `value` is what makes a
@@ -160,10 +230,16 @@ export function Combo({
     // and click off of it, it should automatically select the first one"*).
     // With an untouched box there is no query to resolve, so there is nothing to
     // commit.
+    // ⛔ **A heading is never what a blur settles on**, the same way an action
+    // is not — it names the group under it and resolves to no style at all, so
+    // committing one would put an id into the session that nothing can load.
     const query = typed?.trim() ?? '';
     const landed =
       id ??
-      (query === '' ? value : (narrowed.find((option) => option.action !== true)?.id ?? value));
+      (query === ''
+        ? value
+        : (narrowed.find((option) => option.action !== true && option.heading !== true)?.id ??
+          value));
     if (landed != null && landed !== value) onChange(landed);
     setTyped(null);
     setOpen(false);
@@ -217,14 +293,14 @@ export function Combo({
             if (event.key === 'ArrowDown') {
               event.preventDefault();
               setOpen(true);
-              setActive((at) => (narrowed.length === 0 ? 0 : (at + 1) % narrowed.length));
+              setActive((at) => step(at, 1));
             } else if (event.key === 'ArrowUp') {
               event.preventDefault();
-              setActive((at) =>
-                narrowed.length === 0 ? 0 : (at - 1 + narrowed.length) % narrowed.length,
-              );
+              setActive((at) => step(at, -1));
             } else if (event.key === 'Enter') {
               event.preventDefault();
+              // ⚠ `step` cannot leave the highlight on a heading, so this reads
+              // an id or `undefined` — never a separator's.
               commit(narrowed[active]?.id);
             } else if (event.key === 'Escape') {
               event.preventDefault();
@@ -293,35 +369,49 @@ export function Combo({
             aria-label={label}
             style={{ top: at.top, left: at.left, width: at.width }}
           >
-            {narrowed.map((option, index) => (
-              <li key={option.id}>
-                <button
-                  type="button"
-                  role="option"
-                  // ⛔ **`aria-selected` tracks the HIGHLIGHT, not the stored
-                  // value.** In an autocomplete listbox the selected option is
-                  // the one the keyboard is on — it is what Enter takes, and it
-                  // is what a screen reader announces as you arrow down. Keying
-                  // it to the current value instead left the highlight invisible
-                  // to assistive tech and to any test that asks the accessible
-                  // question rather than reading a class.
-                  aria-selected={index === active}
-                  data-active={index === active}
-                  data-current={option.id === value}
-                  onMouseEnter={() => setActive(index)}
-                  // ⚠ `onMouseDown`, not `onClick`: the input's blur fires first
-                  // and would close the list before a click could land, so the
-                  // row picked with the mouse never got chosen.
-                  onMouseDown={(event) => {
-                    event.preventDefault();
-                    commit(option.id);
-                  }}
-                >
-                  <span className="combo__name">{option.name}</span>
-                  {option.badge != null && <span className="combo__badge">{option.badge}</span>}
-                </button>
-              </li>
-            ))}
+            {narrowed.map((option, index) =>
+              option.heading === true ? (
+                // ⛔ **`role="presentation"`, not a disabled option.** A listbox
+                // counts its options — "2 of 12" is read aloud — so leaving a
+                // separator in that count misreports the list's size to anyone
+                // using a screen reader, and `getByRole('option')` in the specs
+                // would count it too. It is a label, and a label is not an
+                // option that happens to be unavailable.
+                <li key={option.id} className="combo__separator" role="presentation">
+                  <span>{option.name}</span>
+                </li>
+              ) : (
+                <li key={option.id}>
+                  <button
+                    type="button"
+                    role="option"
+                    // ⛔ **`aria-selected` tracks the HIGHLIGHT, not the stored
+                    // value.** In an autocomplete listbox the selected option is
+                    // the one the keyboard is on — it is what Enter takes, and it
+                    // is what a screen reader announces as you arrow down. Keying
+                    // it to the current value instead left the highlight invisible
+                    // to assistive tech and to any test that asks the accessible
+                    // question rather than reading a class.
+                    aria-selected={index === active}
+                    data-active={index === active}
+                    data-current={option.id === value}
+                    onMouseEnter={() => setActive(index)}
+                    // ⚠ `onMouseDown`, not `onClick`: the input's blur fires first
+                    // and would close the list before a click could land, so the
+                    // row picked with the mouse never got chosen.
+                    onMouseDown={(event) => {
+                      event.preventDefault();
+                      commit(option.id);
+                    }}
+                  >
+                    <span className="combo__name">{option.name}</span>
+                    {option.badge != null && (
+                      <span className="combo__badge">{option.badge}</span>
+                    )}
+                  </button>
+                </li>
+              ),
+            )}
           </ul>,
           document.body,
         )}

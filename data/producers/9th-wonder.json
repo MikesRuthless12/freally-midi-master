@@ -1,0 +1,302 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "9th-wonder",
+  "type": "producer",
+  "name": "9th Wonder",
+  "aliases": [
+    "9th wonder",
+    "ninth wonder",
+    "patrick douthit",
+    "jamla",
+    "little brother"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "boom-bap"
+  ],
+  "era": "2002-2019",
+  "genres": [
+    "rap",
+    "boom-bap"
+  ],
+  "relatedGenres": [
+    "boom-bap",
+    "lofi-hiphop",
+    "neo-soul"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 boom-bap — 9th Wonder",
+    "XLR8R — In the Studio: 9th Wonder (https://xlr8r.com/features/in-the-studio-9th-wonder/)",
+    "Micro-Chop — micro-chopping in Fruity Loops / FL Studio (https://medium.com/micro-chop/micro-chopping-fruity-loops-fl-studio-52e5bf4c174a)"
+  ],
+  "notes": "The documented fact about this producer is the tool: FL Studio's step sequencer rather than an MPC, made \"entirely in FL Studio\". That is a number in this model — `quantizeStrength` 0.95 with 2–3 ms of jitter, the tightest on this axis, against Apollo Brown's 0.62 at the other end. The second documented fact is micro-chopping: \"many short slices re-sequenced into a new melody\", so the melody is the densest here at [5,10] with `motifPitchCount` up to 7 and `intervals.leap` at 0.28 — a re-sequenced slice pile leaps where a played line steps. The counterweight is the mix philosophy: \"soft transients so the soul loop dominates\", which is `velocityTiers` pulled down even though the programming is tight, and \"snare/clap layering modest\" is a 2–4 ms clap offset rather than the 8–10 ms the Bad Boy entries carry. Gospel flips are why `major` sits in the scale set and I–vi in the progressions. ⚠ `medium` because the research rates it high-medium: the DAW workflow is documented first-person, the drum probabilities are not. The specific inferred parameter is `drums.velocityTiers` — \"soft transients\" is a mix word this model translates into velocity, which is the only lever a MIDI style model has. ⚠ The i–VI–VII family is INFERRED; the research names i–iv, ii–V–i and I–vi.",
+  "session": {
+    "bpm": {
+      "min": 85,
+      "max": 95,
+      "mode": 90
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "major"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.55
+    },
+    "humanize": {
+      "quantizeStrength": 0.95,
+      "velocityVar": 0.1,
+      "timingJitterMs": {
+        "kick": 2,
+        "snare": 2,
+        "closedHat": 3,
+        "openHat": 3
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        92,
+        108
+      ],
+      "main": [
+        66,
+        80
+      ],
+      "ghost": [
+        28,
+        42
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.3,
+      "tresilloBias": 0.12,
+      "subLayerVelocity": [
+        0.5,
+        0.6
+      ],
+      "lockTo808": 0
+    },
+    "snare": {
+      "rimshotLayer": false,
+      "layerClapOffsetMs": [
+        2,
+        4
+      ],
+      "ghost": {
+        "prob": 0.18,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.2,
+          0.34
+        ]
+      },
+      "placement": "backbeat_24",
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.35,
+      "velocities": {
+        "main": [
+          0.68,
+          0.86
+        ],
+        "ghost": [
+          0.18,
+          0.4
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0.07,
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ]
+      },
+      "openHat": {
+        "prob": 0.2,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        42,
+        90
+      ],
+      "rampJitter": 11,
+      "gapProb": 0.09,
+      "descendProb": 0.26
+    }
+  },
+  "melody": {
+    "register": [
+      63,
+      87
+    ],
+    "densityPerBar": [
+      5,
+      10
+    ],
+    "motifPitchCount": [
+      4,
+      7
+    ],
+    "intervals": {
+      "step": 0.42,
+      "third": 0.3,
+      "leap": 0.28
+    },
+    "contour": {
+      "riff": 0.55,
+      "descend": 0.25,
+      "arch": 0.2
+    },
+    "chordToneBias": 0.68,
+    "octaveJumpProb": 0.15,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    },
+    "timbreHint": "vocal_chop"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.45,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "ii",
+          "v",
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "vi"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 1
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.3,
+      "seventh": 0.5,
+      "ninth": 0.2
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        48,
+        76
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.86,
+    "register": [
+      28,
+      45
+    ],
+    "glideProb": 0.03,
+    "passingTones": [
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.2
+  }
+}

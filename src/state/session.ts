@@ -13,7 +13,9 @@ import type {
   Song,
   SplitPart,
 } from '../lib/ipc-types';
-import { patternTicks } from '../components/PianoRoll/notes';
+// ⚠ Leaf helpers over `Pattern` — meter-aware bar arithmetic, defined once so the
+// roll, the grid and the bar switch cannot disagree about how long a clip is.
+import { barTicks, patternTicks } from '../components/PianoRoll/notes';
 import { useHistory, type Snapshot } from './history';
 import { entryFor, useVariations, type Variation } from './variations';
 import { useUi, type GeneratorTab } from './ui';
@@ -215,6 +217,32 @@ export const TAB_PART: Record<GeneratorTab, Part | null> = {
 };
 
 /** The clip the tab now showing would draw, or `null` if it has none. */
+/**
+ * Can this lane be heard right now, given the mutes **and** the solo set?
+ *
+ * ⛔⛔ **ONE PREDICATE, BECAUSE THREE PLACES DRAW FROM IT AND MUST AGREE.** A lane
+ * nobody muted is still silent while another lane is soloed, so "muted" alone is
+ * the wrong question — and a control that says a lane sounds while it does not is
+ * the readout-that-lies failure this codebase keeps recording.
+ *
+ * The three: `PadGrid`'s `data-audible` (which dims the pad and colours its dot),
+ * `DrumGrid`'s row shading, and `padBlink`'s decision about whether a pad flashes
+ * as the playhead crosses a hit. The last two were each restating it, so a change
+ * to solo semantics could light a pad the producer cannot hear.
+ *
+ * ⚠ `readonly string[]` rather than `SessionState`, so a caller can select the
+ * two arrays it actually depends on instead of re-rendering on every session
+ * write.
+ */
+export function laneAudible(
+  lane: string,
+  mutedLanes: readonly string[],
+  soloedLanes: readonly string[],
+): boolean {
+  if (mutedLanes.includes(lane)) return false;
+  return soloedLanes.length === 0 || soloedLanes.includes(lane);
+}
+
 export function patternForTab(state: SessionState, tab: GeneratorTab): Pattern | null {
   const part = TAB_PART[tab];
   return part === null ? null : (state.patterns[part] ?? null);
@@ -394,6 +422,21 @@ type SessionState = {
   playing: boolean;
   /** Position through the loop, 0–1, from the audio thread at 30 Hz. */
   playhead: number;
+  /**
+   * Bumped by every [`seek`], so a jump can be told apart from a loop wrap.
+   *
+   * ⛔⛔ **THE PLAYHEAD ALONE CANNOT SAY WHICH HAPPENED**, and `padBlink` has to
+   * know: both are "the position moved backwards while the transport rolls". At
+   * a **wrap** everything between the old position and the end really did sound,
+   * and so did everything from zero to the new one — two ranges, both correct to
+   * light. At a **scrub** nothing sounded at all, and treating it as a wrap
+   * flashes every pad with a hit in either range at once.
+   *
+   * ⚠ A counter rather than a boolean, because it has to survive being read by a
+   * subscriber that only ever compares `state` with `before` — there is no
+   * moment at which anything could clear a flag.
+   */
+  seekNonce: number;
   /**
    * Why the transport cannot be driven from here, if it cannot.
    *
@@ -1457,6 +1500,7 @@ export const useSession = create<SessionState>((set, get) => ({
 
   playing: false,
   playhead: 0,
+  seekNonce: 0,
   playbackFailure: null,
   standalone: false,
 
@@ -1605,9 +1649,101 @@ export const useSession = create<SessionState>((set, get) => ({
   },
 
   setBars(bars) {
-    set({ bars });
-  },
+    // ⚠ **The window does NOT follow this any more** (Mike, 2026-08-12: *"i also
+    // think we need to get rid of the resizing … i think the smaller size is big
+    // enough, even for the 8 bars"*). Eight bars used to ask `WindowFit` for the
+    // wider preset; the grid always drew all eight either way, at half the cell
+    // width, so what was lost is readability rather than notes.
+    const was = get().bars;
+    if (bars === was) return;
 
+    // ⛔⛔ **GROWING KEEPS WHAT IS THERE AND REPEATS IT** — Mike, 2026-08-11:
+    // *"if you already have a generation and you switch to 8 bars, then it
+    // should copy the first 4 bars to the second 4 bars"*, and earlier *"the
+    // chords/melodies, etc. should double or go back to 4 bars."*
+    //
+    // ▶ **Without this, switching to 8 gave four bars of music and four of
+    // silence** — the producer's beat, followed by nothing, which reads as the
+    // switch having half-broken the pattern. Repeating it is also the musically
+    // right default: an eight-bar loop built from a four-bar one starts as two
+    // passes, and the second is then something to edit rather than something to
+    // write from scratch.
+    //
+    // ⛔⛔ **TILED FROM THE CLIP'S OWN LENGTH, NOT FROM THE STORE'S.** A clip does
+    // not have to be `was` bars long: drop a two-bar `.mid` on the Melody tab and
+    // `openClip` stores it with `bars: 2` while the store stays at 4. Doubling by
+    // "the store moved 4→8, so copy once at +4 bars" then put the copy at bar 5 of
+    // a clip holding two bars of music, and rewrote its length to 8 — four bars of
+    // silence in the middle and the promise broken. Worse in the mirror case: a
+    // sixteen-bar import copied to bar 17, outside the new clip, invisible in the
+    // roll and still in `patterns` for export.
+    //
+    // ▶ **So the rule is "fill the new length with what the clip has":** repeat
+    // its own span as many times as fits, then keep whatever starts inside. That
+    // is one expression for both directions — a clip longer than the new length
+    // tiles once and is trimmed, which *is* the truncation — and it reduces to
+    // exactly Mike's "copy the first four bars into the second four" whenever the
+    // clip's own length is the store's, which is every generated clip.
+    //
+    // ⚠ **Shrinking truncating is the honest inverse.** Notes past the new end
+    // would still be in the file and inaudible — the boundary this codebase has
+    // already been bitten by twice (`within_clip`, and the seven empty stems out
+    // of eight).
+    //
+    // ⚠ **The clip's own bar, not `bars * PPQ * 4`.** `barTicks` honours the
+    // meter, so a pattern in 6/8 is measured by its own bar rather than a 4/4 one.
+    const patterns = get().patterns;
+    const changed = Object.keys(patterns) as Part[];
+    const grown = Object.fromEntries(
+      Object.entries(patterns).map(([part, clip]) => {
+        if (clip === undefined) return [part, clip];
+        const span = patternTicks(clip);
+        const end = barTicks(clip) * bars;
+        // At least one pass, so a degenerate clip cannot divide by zero or vanish.
+        const passes = span > 0 ? Math.max(1, Math.ceil(end / span)) : 1;
+        const next: Pattern = {
+          ...clip,
+          bars,
+          lanes: clip.lanes.map((track) => ({
+            ...track,
+            notes: Array.from({ length: passes }, (_, pass) =>
+              track.notes.map((note) => ({
+                ...note,
+                startTick: note.startTick + pass * span,
+              })),
+            )
+              .flat()
+              // ⚠ Kept if it *starts* inside the new length. A note that
+              // straddles the new end is trimmed by the clip boundary, which is
+              // the same rule the roll already draws by.
+              .filter((note) => note.startTick < end),
+          })),
+        };
+        return [part, next];
+      }),
+    ) as PatternsByPart;
+
+    // ⛔⛔ **ONE `set`, AND IT LATCHES `edited`.** Two things were wrong with the
+    // pair of writes this replaces:
+    //
+    // - `set({ bars })` landed before the patterns were rebuilt, so `history`
+    //   recorded **two** entries (its coalescing needs the same field) and one
+    //   Ctrl+Z restored the old notes while leaving `bars: 8` — the four-bars-of-
+    //   silence state the doubling exists to remove, reachable by undoing it.
+    // - Neither write set `edited`, and `editPattern` is the only other writer of
+    //   `patterns` that does. Without it `send()` does not store the clip, so the
+    //   project replays from the seed on reopen: the producer saw two passes,
+    //   saved, and got eight bars of *different* material back.
+    //
+    // ⚠ `edited` only when there was something to edit. Pressing 8 on an empty
+    // session must not mark a project dirty.
+    set((state) => ({
+      bars,
+      patterns: grown,
+      editedParts: changed.reduce(withEdit, state.editedParts),
+      edited: state.edited || changed.length > 0,
+    }));
+  },
   setPin(field, value) {
     set({ pins: { ...get().pins, [field]: value } });
   },
@@ -2164,7 +2300,10 @@ export const useSession = create<SessionState>((set, get) => ({
     // Moved locally first so the marker lands under the pointer on the same
     // frame as the click. The audio thread is a block behind at worst, and a
     // marker that waits for a round trip reads as a click that missed.
-    set({ playhead: to });
+    //
+    // ⚠ `seekNonce` rides with it — see its own note. Without it `padBlink`
+    // reads a backwards scrub as a loop point.
+    set((state) => ({ playhead: to, seekNonce: state.seekNonce + 1 }));
     try {
       await invoke('seek', { progress: to });
     } catch {

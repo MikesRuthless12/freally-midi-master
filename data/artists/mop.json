@@ -1,0 +1,284 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "mop",
+  "type": "artist",
+  "name": "M.O.P.",
+  "aliases": [
+    "mop",
+    "m.o.p.",
+    "mash out posse",
+    "billy danze",
+    "lil fame"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "boom-bap"
+  ],
+  "era": "1994-2001",
+  "genres": [
+    "rap",
+    "boom-bap"
+  ],
+  "relatedGenres": [
+    "boom-bap",
+    "crunk"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 boom-bap — M.O.P.",
+    "Wikipedia — Ante Up",
+    "Wikipedia — Firing Squad"
+  ],
+  "notes": "The loudest, most percussive corner of the lane, and the research states the defining parameter as a negative: \"almost no dynamic range by design\". That is authored as a `velocityTiers` override — the only one that matters here — with the ghost tier lifted to 92 so a ghost stroke is still an event rather than a whisper, and `velocityVar` at 0.05. The kick grammar is the other marker: 1, 2.5 and 3.5 is three hits, not two, so `anchors` carries `2&` alongside 1 and `densityPerBar` starts at 3. Snare is layered with both a clap and a rimshot, which is why `rimshotLayer` and `layerClapOffsetMs` are both set, and the crash accents every 4 bars are the `percs` lane. The bass is short punchy hits on the downbeats rather than a sustained sub, so `mirror_kick` with `glideProb` 0 and near-zero anticipation. ⛔ `chords.impliedByRiff` is set as a description: \"static minor with one riff; the riff *is* the hook\". Its chord variety therefore comes from `chordDurationBeats` and three `harmonicRhythm` values, and the `i–VII` family is INFERRED at the lowest weight so the bass has a second reachable root — delete it first if this ever sounds busier than the records. ⚠ `snareRoll.velocityRampRange` is [72,112] rather than this band's usual [52,96]. That is a deliberate, research-driven deviation: a roll that ramps up from 52 contradicts the entry's central claim, and the rest of the band fingerprint (16th subdivisions, even grouping, fills every 2 and 8) is unchanged. ⚠ `medium` because the research rates it medium-high and the documentation is song-and-roster level rather than session level. ⚠ The bass ceiling came down from 44 to 43 so it stays under a chord part that starts at 44 — `coherence.rs` requires the highest bass note to sit at or below the lowest chord note, and this model overlapped by 1.",
+  "session": {
+    "bpm": {
+      "min": 92,
+      "max": 102,
+      "mode": 97
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "phrygian",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.53
+    },
+    "humanize": {
+      "quantizeStrength": 0.9,
+      "velocityVar": 0.05
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        118,
+        127
+      ],
+      "main": [
+        106,
+        116
+      ],
+      "ghost": [
+        92,
+        104
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1",
+        "2&"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.3
+    },
+    "snare": {
+      "rimshotLayer": true,
+      "layerClapOffsetMs": [
+        1,
+        3
+      ],
+      "ghost": {
+        "prob": 0.2,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.7,
+          0.85
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.52,
+      "velocities": {
+        "main": [
+          0.9,
+          1
+        ],
+        "ghost": [
+          0.7,
+          0.85
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.19
+      },
+      "openHat": {
+        "prob": 0.35,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "crash",
+        "rim",
+        "tambourine"
+      ],
+      "densityPerBar": [
+        1,
+        2
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        72,
+        112
+      ],
+      "gapProb": 0.05,
+      "descendProb": 0.62,
+      "rampJitter": 22
+    }
+  },
+  "melody": {
+    "register": [
+      59,
+      81
+    ],
+    "densityPerBar": [
+      2,
+      5
+    ],
+    "intervals": {
+      "step": 0.5,
+      "third": 0.28,
+      "leap": 0.22
+    },
+    "contour": {
+      "riff": 0.75,
+      "descend": 0.18,
+      "arch": 0.07
+    },
+    "chordToneBias": 0.72,
+    "halfStepDissonance": 0.12,
+    "octaveJumpProb": 0.06,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "timbreHint": "low_brass_stab"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.5,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 6
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.78,
+      "seventh": 0.2,
+      "ninth": 0.02
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        44,
+        80
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        5,
+        2,
+        1
+      ]
+    },
+    "impliedByRiff": true,
+    "chordDurationBeats": [
+      2,
+      16
+    ]
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.88,
+    "register": [
+      26,
+      43
+    ],
+    "glideProb": 0,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.08
+  }
+}

@@ -1,0 +1,344 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "coolio",
+  "type": "artist",
+  "name": "Coolio",
+  "aliases": [
+    "coolio",
+    "artis ivey",
+    "gangstas paradise",
+    "it takes a thief"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "g-funk"
+  ],
+  "era": "1994-1997",
+  "genres": [
+    "rap",
+    "g-funk",
+    "west coast",
+    "pop rap"
+  ],
+  "relatedGenres": [
+    "g-funk",
+    "pop-2000s",
+    "rnb-2000s",
+    "funk"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 g-funk — Coolio",
+    "https://en.wikipedia.org/wiki/Gangsta%27s_Paradise",
+    "https://albumism.com/features/coolio-debut-album-it-takes-a-thief-album-anniversary"
+  ],
+  "notes": "The crossover pop-funk edge, and the tempo range is the widest in this batch for a documented reason: 78–96, because the signature record is slow and the party records sit at 92–96. ⚠ **`session.halfTime` is deliberately left false.** The research is precise — the backbeat is still on 2 and 4, and it only *reads* half-time because the kick pattern is halved. Setting `halfTime` would move the snare to beat 3 and produce a different record; the halving is authored where it belongs, in `kick.densityPerBar` 2–3 with `syncopation` at 0.12 and `offbeat8thShare` at 0.06, the least syncopated kick in this batch. \"A beat ticking time\" is `quantizeStrength` 0.95, `velocityVar` 0.08 and `swing` 0.51 — metronomic, and the only near-straight grid here. The harmony is the interpolated Stevie Wonder string cycle, so the `i–v–i–VI` family the research names carries weight 5 and the voicing register runs to 84 for strings over choir. ⚠ The choir is authored as `sustain_pad` at weight 4 in the countermelody because the research says explicitly that it is used as a chordal pad, not a hook; `octave_echo` and `answer_lick` sit under it so the layer keeps a reachable pool. ⚠ The bass is `mirror_kick` at `followRootsProb` 0.9 for the pedal the research names — sustained sub doubling the string root motion, minimal movement — rather than `reese_sustain`, which emits one note per chord and saturates. ⚠ `confidence` is `medium` per the research's high-medium rating, and **the `i–VII–VI–v` family at weight 2 is the INFERRED parameter** — the research names only the `i–v–i–VI` cycle the Stevie Wonder interpolation supplies, and the fourth family exists so the chord part clears the variety floor rather than because a record plays it. It is the first thing to delete. The gradual layer-addition intro is a 4–8 bar `intro` rule carrying `chords` alone.",
+  "session": {
+    "bpm": {
+      "min": 78,
+      "max": 96,
+      "mode": 88
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "harmonic_minor",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        5,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.51
+    },
+    "humanize": {
+      "quantizeStrength": 0.95,
+      "velocityVar": 0.08
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.12,
+      "tresilloBias": 0.04,
+      "offbeat8thShare": 0.06
+    },
+    "snare": {
+      "rimshotLayer": false,
+      "ghost": {
+        "prob": 0.04,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.15,
+          0.25
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.28,
+      "openHat": {
+        "prob": 0.08,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": [
+          "32"
+        ],
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.2
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker"
+      ],
+      "densityPerBar": [
+        0,
+        1
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t",
+        "8t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        52,
+        100
+      ],
+      "gapProb": 0.5,
+      "descendProb": 0.16,
+      "rampJitter": 3
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "v",
+          "i",
+          "VI"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "v"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "v"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI",
+          "v"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.5,
+      "seventh": 0.4,
+      "ninth": 0.1
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        84
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      67,
+      91
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "densityPerBar": [
+      2,
+      5
+    ],
+    "contour": {
+      "riff": 0.3,
+      "descend": 0.4,
+      "arch": 0.3
+    },
+    "chordToneBias": 0.78,
+    "octaveJumpProb": 0.06,
+    "articulation": "legato",
+    "timbreHint": "pad"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.4,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "octave_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        4,
+        2,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.79,
+    "register": [
+      24,
+      41
+    ],
+    "glideProb": 0.08,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0,
+    "cellShapes": [
+      [
+        "1",
+        "3",
+        "4",
+        "5"
+      ],
+      [
+        "1",
+        "5",
+        "7",
+        "5"
+      ],
+      [
+        "1",
+        "2",
+        "3",
+        "5"
+      ],
+      [
+        "5",
+        "1",
+        "7",
+        "4"
+      ]
+    ]
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": [
+        16,
+        24
+      ],
+      "hook": 8,
+      "outro": [
+        4,
+        8
+      ]
+    },
+    "sectionRules": {
+      "intro": {
+        "parts": [
+          "chords"
+        ],
+        "density": 0.35
+      }
+    }
+  }
+}

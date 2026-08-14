@@ -91,20 +91,96 @@ function isSubsequence(query: string, text: string): boolean {
   return query.length === 0;
 }
 
-/** The band a single field earns against the query. */
-function bandFor(query: string, field: string): number {
+/**
+ * The band a single field earns against the query.
+ *
+ * ⚠ **`words` is passed in rather than split here.** It was `field.split(' ')`
+ * *twice* in this function, which is two array allocations per field per
+ * keystroke — around ten thousand of them to answer one character typed into the
+ * roster box at the size `data/` ships. It is a property of the field, so it is
+ * cached with the field; see `fieldsOf`.
+ */
+function bandFor(query: string, field: string, words: string[]): number {
   if (!field) return BAND.none;
   if (field === query) return BAND.exact;
   if (field.startsWith(query)) return BAND.prefix;
-  if (field.split(' ').some((word) => word.startsWith(query))) return BAND.wordStart;
+  if (words.some((word) => word.startsWith(query))) return BAND.wordStart;
   if (field.includes(query)) return BAND.substring;
   if (isSubsequence(query, field)) return BAND.subsequence;
 
   // Typos are compared word by word as well as whole: "drakee" should find
   // "drake", and "trvis scott" should find "travis scott" on the first word.
   if (editDistance(query, field) <= MAX_EDITS) return BAND.typo;
-  if (field.split(' ').some((word) => editDistance(query, word) <= MAX_EDITS)) return BAND.typo;
+  if (words.some((word) => editDistance(query, word) <= MAX_EDITS)) return BAND.typo;
   return BAND.none;
+}
+
+/**
+ * One entry's searchable fields, normalized, weighted, and kept.
+ *
+ * ⛔⛔ **Because this was re-derived on every keystroke, for every entry**
+ * (TASK-158E). A roster entry carries a name, an id, its aliases and its genres
+ * — call it nine strings — and each one was run through `normalize` (a Unicode
+ * NFD decomposition and two regex passes) every time a character was typed. At
+ * the **590 entries `data/` ships today** that is over five thousand
+ * normalizations per keystroke, for strings that have not changed since the
+ * roster was read at startup. Measured at 5.5 ms a keystroke before this, on top
+ * of React rebuilding up to 534 menu rows in the same frame.
+ *
+ * ⚠ **A `WeakMap`, so nothing is pinned in memory.** The roster is replaced
+ * wholesale when a user model is saved, and a `Map` keyed on entries would hold
+ * every superseded copy alive for the life of the page.
+ *
+ * ⚠ **Keyed on the entry object, not on its id.** Two objects with one id is
+ * exactly what a save-and-reload produces, and the *new* one is the one whose
+ * fields must be read.
+ */
+type Field = { weight: number; text: string; words: string[] };
+
+const FIELDS = new WeakMap<RosterEntry, Field[]>();
+
+function fieldsOf(entry: RosterEntry): Field[] {
+  const held = FIELDS.get(entry);
+  if (held !== undefined) return held;
+  const of = (weight: number, raw: string): Field => {
+    const text = normalize(raw);
+    return { weight, text, words: text.split(' ') };
+  };
+  const built: Field[] = [
+    of(FIELD_WEIGHT.name, entry.name),
+    of(FIELD_WEIGHT.id, entry.id),
+    ...entry.aliases.map((alias) => of(FIELD_WEIGHT.alias, alias)),
+    ...entry.genres.map((genre) => of(FIELD_WEIGHT.genre, genre)),
+  ];
+  FIELDS.set(entry, built);
+  return built;
+}
+
+/**
+ * Score one entry against a query that is **already normalized**.
+ *
+ * ⚠ Split out from [`scoreEntry`] so `search` can normalize the query once
+ * rather than once per entry — the same string was being NFD-decomposed 590
+ * times to answer one keystroke.
+ */
+function scoreNormalized(normalized: string, entry: RosterEntry): number {
+  if (!normalized) return BAND.none;
+
+  let best: number = BAND.none;
+  for (const field of fieldsOf(entry)) {
+    const band = bandFor(normalized, field.text, field.words);
+    if (band === BAND.none) continue;
+
+    // Shorter fields win inside a band: a query that is most of the name is a
+    // better answer than one that is a fragment of a longer one. Capped so it
+    // can never outweigh the field weight it sits beneath.
+    const brevity = Math.max(0, 40 - field.text.length);
+    const total = band + field.weight + brevity;
+    if (total > best) best = total;
+  }
+
+  if (best === BAND.none) return BAND.none;
+  return best + (entry.tier ? TIER_BONUS[entry.tier] : 0);
 }
 
 /**
@@ -115,31 +191,7 @@ function bandFor(query: string, field: string): number {
  * scores than as a reordered list.
  */
 export function scoreEntry(query: string, entry: RosterEntry): number {
-  const normalized = normalize(query);
-  if (!normalized) return BAND.none;
-
-  const candidates: [number, string][] = [
-    [FIELD_WEIGHT.name, normalize(entry.name)],
-    [FIELD_WEIGHT.id, normalize(entry.id)],
-    ...entry.aliases.map((alias): [number, string] => [FIELD_WEIGHT.alias, normalize(alias)]),
-    ...entry.genres.map((genre): [number, string] => [FIELD_WEIGHT.genre, normalize(genre)]),
-  ];
-
-  let best: number = BAND.none;
-  for (const [weight, field] of candidates) {
-    const band = bandFor(normalized, field);
-    if (band === BAND.none) continue;
-
-    // Shorter fields win inside a band: a query that is most of the name is a
-    // better answer than one that is a fragment of a longer one. Capped so it
-    // can never outweigh the field weight it sits beneath.
-    const brevity = Math.max(0, 40 - field.length);
-    const total = band + weight + brevity;
-    if (total > best) best = total;
-  }
-
-  if (best === BAND.none) return BAND.none;
-  return best + (entry.tier ? TIER_BONUS[entry.tier] : 0);
+  return scoreNormalized(normalize(query), entry);
 }
 
 /**
@@ -149,9 +201,12 @@ export function scoreEntry(query: string, entry: RosterEntry): number {
  * more is what the roster list does.
  */
 export function search(query: string, entries: RosterEntry[], limit = 8): RosterEntry[] {
+  // ⛔ **Once, not once per entry.** See `fieldsOf` — this is the other half of
+  // the same waste, and it is the cheaper half to fix.
+  const normalized = normalize(query);
   const scored: { entry: RosterEntry; score: number }[] = [];
   for (const entry of entries) {
-    const score = scoreEntry(query, entry);
+    const score = scoreNormalized(normalized, entry);
     if (score > BAND.none) scored.push({ entry, score });
   }
 

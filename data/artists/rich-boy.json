@@ -1,0 +1,294 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "rich-boy",
+  "type": "artist",
+  "name": "Rich Boy",
+  "aliases": [
+    "rich boy",
+    "maurice richards",
+    "throw some ds type",
+    "polow da don type",
+    "mobile alabama rap"
+  ],
+  "tier": "standard",
+  "extends": [
+    "crunk"
+  ],
+  "era": "2006-2009",
+  "genres": [
+    "rap",
+    "club",
+    "southern rap"
+  ],
+  "relatedGenres": [
+    "crunk",
+    "trap",
+    "ringtone-club-rap",
+    "atl-swag-rap"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended vol.1 crunk — Rich Boy",
+    "https://en.wikipedia.org/wiki/Rich_Boy",
+    "https://www.miaminewtimes.com/music/jim-jonsin-rich-boy-and-yelawolf-in-the-studio-6471627/"
+  ],
+  "notes": "Heavy-808 club rap with soul-sample harmony under it, which the research calls out as *more harmonic content than the snap records*. So this file inverts the usual crunk balance: the chord block is the richest here after David Banner's — four-chord soul families, `extensions.seventh` at 0.36, an open voicing with stepwise top motion, `harmonicRhythm` weighted toward two bars a chord and `chordDurationBeats` running 4–10 — while the drums are the sparsest, at 8th hats with `fillDensity` 0.31–0.48. The kick carries the research's one specific placement, *syncopated on the \"a\" of 4*, as `syncopation` 0.24 with `tresilloBias` 0.12 rather than as a fixed anchor, because the engine's anchors name a position and the research names a tendency. The `riser` perc lane is the snare-roll build. ⛔ The 808 sits *well below the sample's bass* and pitches down at phrase ends: `bass808.register` starts at 14, the lowest floor in this batch, with `slideProb` 0.12 into P8 and P5 at phrase ends. ⚠ `confidence` is low: the research rates the entry medium-low, documents only the era, producer and label, and marks the 74–84 half-time band [LOW-CONF]. **The harmony is the specific inferred parameter** — \"a looped 4-bar soul progression\" names no degrees, so the three four-chord families below are INFERRED from that phrase and are the first thing to change if this ever sounds more written than the records. ⚠ Fill fingerprint for this batch: `gapProb` 0.44 / `descendProb` 0.26 / `rampJitter` 22. ⛔ `session.scales` **widens** its parent's set rather than narrowing it: `dorian` is not one of crunk's four, and the convention elsewhere is that an artist narrows its genre's scales and never reaches outside them. It is here because a looped soul sample is where the natural sixth in this lane comes from, and the iv the families use is a minor chord only in dorian. ⚠ `anticipationProb` raised to 0.15. With `mirror_kick` against a fully locked 808 both parts take every kick, so every bass onset lands exactly on an 808 onset — `coherence.rs` calls that one line played twice rather than two parts locking. The lock is the style and is untouched; the anticipation is what makes them two parts.",
+  "session": {
+    "bpm": {
+      "min": 148,
+      "max": 168,
+      "mode": 156
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "harmonic_minor"
+      ],
+      "weights": [
+        5,
+        3,
+        1
+      ]
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3",
+      "syncopation": 0.24,
+      "tresilloBias": 0.12,
+      "offbeat8thShare": 0.12
+    },
+    "snare": {
+      "layerClapOffsetMs": [
+        6,
+        14
+      ],
+      "ghost": {
+        "prob": 0.08,
+        "pos": [
+          "4&"
+        ],
+        "vel": [
+          0.26,
+          0.42
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": [
+        0.31,
+        0.48
+      ],
+      "openHat": {
+        "prob": 0.14,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.2
+      }
+    },
+    "percs": {
+      "lanes": [
+        "riser",
+        "crash"
+      ],
+      "densityPerBar": [
+        1,
+        2
+      ],
+      "placement": "downbeat",
+      "gainOffsetDb": -4
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t",
+        "8t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        56,
+        102
+      ],
+      "rampJitter": 22,
+      "descendProb": 0.26,
+      "gapProb": 0.44
+    },
+    "bass808": {
+      "register": [
+        14,
+        26
+      ],
+      "slideProb": 0.12,
+      "slideIntervals": {
+        "values": [
+          "P8",
+          "P5"
+        ],
+        "weights": [
+          3,
+          1
+        ]
+      },
+      "slidePositions": [
+        "phrase_end"
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII",
+          "III"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.55,
+      "seventh": 0.36,
+      "ninth": 0.09
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        44,
+        70
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        3,
+        4
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      10
+    ]
+  },
+  "melody": {
+    "register": [
+      56,
+      82
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        1,
+        4
+      ]
+    },
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "motifPitchCount": [
+      4,
+      6
+    ],
+    "intervals": {
+      "step": 0.6,
+      "third": 0.27,
+      "leap": 0.13
+    },
+    "contour": {
+      "riff": 0.55,
+      "descend": 0.28,
+      "arch": 0.17
+    },
+    "chordToneBias": 0.72,
+    "halfStepDissonance": 0.07,
+    "emptyBarBias": 0.08,
+    "octaveJumpProb": 0.1,
+    "timbreHint": "chopped_vocal"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.44,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "octave_echo",
+        "arp"
+      ],
+      "weights": [
+        3,
+        2,
+        1
+      ]
+    }
+  },
+  "bassline": {
+    "anticipationProb": 0.15
+  }
+}

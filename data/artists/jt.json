@@ -1,0 +1,356 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "jt",
+  "type": "artist",
+  "name": "JT",
+  "aliases": [
+    "jt",
+    "jatavia johnson",
+    "jt city girls"
+  ],
+  "tier": "standard",
+  "extends": [
+    "trap"
+  ],
+  "era": "2023-present",
+  "genres": [
+    "rap",
+    "trap"
+  ],
+  "relatedGenres": [
+    "trap",
+    "bouncy-trap",
+    "pop-2020s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 trap — JT",
+    "https://en.wikipedia.org/wiki/JT_(rapper)",
+    "https://en.wikipedia.org/wiki/City_Cinderella"
+  ],
+  "notes": "The solo City Girls half that went *harder*: 128–150 half-time with the clap on 3, a syncopated 16th kick, and claps layered tighter than the duo records. Distinguished from `city-girls` on three axes at once — half-time instead of the fast Miami feel, a real two-chord bed instead of no chord instrument, and `question_answer` phrasing for the end-of-bar sung tags the research names. The 808 glides specifically between root and 5th, which is why `slideIntervals` is weighted to `P5` rather than trap's even P8/P5/M2 spread. ⚠ `confidence` medium, and the INFERRED parameters are the kick and hat figures: \"syncopated 16th kick\" and \"triplet hats with 32nd rolls\" are prose, and `syncopation` 0.58 / `fillDensity` 0.64 are this author's reading of them. The catalog-level facts — era, tempo band, two-chord beds, features after verse 2 — are what the sources actually carry. ⚠ `session.scales` keeps a small `major` weight for the \"occasional pop-leaning major cuts\"; it is deliberately the smallest weight in the block so the street cuts still dominate. ⚠ `anticipationProb` raised to 0.15. With `mirror_kick` against a fully locked 808 both parts take every kick, so every bass onset lands exactly on an 808 onset — `coherence.rs` calls that one line played twice rather than two parts locking. The lock is the style and is untouched; the anticipation is what makes them two parts.",
+  "session": {
+    "bpm": {
+      "min": 128,
+      "max": 150,
+      "mode": 140
+    },
+    "halfTime": true,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "minor_pentatonic",
+        "major"
+      ],
+      "weights": [
+        6,
+        2,
+        1
+      ]
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "4&",
+      "syncopation": 0.59,
+      "tresilloBias": 0.17,
+      "andOf4EveryOtherBar": 0.5,
+      "avoidPreSnareGap": "8th",
+      "lockTo808": 1
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "layered": true,
+      "layerClapOffsetMs": [
+        1,
+        4
+      ],
+      "ghost": {
+        "prob": 0.22,
+        "pos": [
+          "4&"
+        ],
+        "vel": [
+          0.38,
+          0.55
+        ]
+      },
+      "detuneSemis": [
+        -2,
+        -1
+      ],
+      "offGridMs": 0,
+      "fullTimeVariantProb": 0.1
+    },
+    "hihat": {
+      "base": {
+        "values": [
+          "16th",
+          "8th"
+        ],
+        "weights": [
+          3,
+          2
+        ]
+      },
+      "continuous": true,
+      "fillDensity": 0.64,
+      "openHat": {
+        "prob": 0.26,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16T"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.24,
+        "velocityRamp": true
+      }
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "slideProb": 0.55,
+      "slideIntervals": {
+        "values": [
+          "P5",
+          "P8"
+        ],
+        "weights": [
+          4,
+          2
+        ]
+      },
+      "slidePositions": [
+        "phrase_end",
+        "bar_2",
+        "bar_4"
+      ],
+      "register": [
+        17,
+        31
+      ],
+      "distortion": "medium"
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8,
+      "snareRollLadder": false
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th",
+        "16t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        58,
+        113
+      ],
+      "rampJitter": 11,
+      "descendProb": 0.05,
+      "gapProb": 0.48,
+      "ladder": [
+        "4",
+        "8",
+        "16",
+        "32"
+      ],
+      "buildAndStopProb": 0.3,
+      "dualLayerProb": 0.25,
+      "pitchWalk": 4
+    }
+  },
+  "melody": {
+    "register": [
+      70,
+      92
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "motifPitchCount": [
+      3,
+      5
+    ],
+    "structure": "question_answer",
+    "intervals": {
+      "step": 0.57,
+      "third": 0.28,
+      "leap": 0.15
+    },
+    "contour": {
+      "riff": 0.6,
+      "descend": 0.28,
+      "arch": 0.12
+    },
+    "chordToneBias": 0.66,
+    "halfStepDissonance": 0.1,
+    "octaveJumpProb": 0.18,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    },
+    "timbreHint": "detuned_bell"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.44,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III"
+        ],
+        "weight": 1
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.64,
+      "seventh": 0.3,
+      "ninth": 0.06
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        74
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "vamp",
+        "syncopated_cell"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      3,
+      8
+    ]
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "hook",
+          "bridge",
+          "hook",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "hook": 8,
+      "bridge": 4,
+      "outro": 4
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.65,
+        "beats": 2
+      },
+      "switchUpProb": 0.18
+    }
+  },
+  "bassline": {
+    "anticipationProb": 0.15
+  }
+}

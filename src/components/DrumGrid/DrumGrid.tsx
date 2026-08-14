@@ -1,18 +1,30 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Headphones, Lock, LockOpen, Volume2, VolumeX, Waves } from 'lucide-react';
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import {
+  ChevronDown,
+  ChevronRight,
+  Headphones,
+  Lock,
+  LockOpen,
+  Volume2,
+  VolumeX,
+  Waves,
+} from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { isTypingTarget } from '../../lib/keyboard';
-import { useSession } from '../../state/session';
+import { laneAudible, useSession } from '../../state/session';
+import { useEditing } from '../../state/editing';
 import type { Lane, Pattern } from '../../lib/ipc-types';
 import { Combo } from '../Combo/Combo';
 import { VelocityLane } from '../PianoRoll/VelocityLane';
-import { patternTicks } from '../PianoRoll/notes';
+import { MAX_PITCH, MIN_PITCH, patternTicks } from '../PianoRoll/notes';
+import { pitchName } from '../PianoRoll/geometry';
 import { auditionLane } from './audition';
 import {
   addFill,
   clearCell,
   clearCells,
+  reverseCells,
   cloneBar,
   copyCells,
   pasteCells,
@@ -22,6 +34,13 @@ import {
   tuplet,
   unusedLanes,
   cellKey,
+  toPitchLane,
+  laneRoot,
+  toggleHitAt,
+  setHitPitch,
+  PITCH_WINDOW_RADIUS,
+  PITCHED_LANES,
+  type Cell,
   type CellClip,
   type CellRef,
 } from './cells';
@@ -64,6 +83,26 @@ const ROLL_COUNTS = [2, 3, 4, 6, 8] as const;
 const JITTER_PX = 3;
 
 /**
+ * How a cell is drawn — the same box in a lane row and in a pitch row.
+ *
+ * ⛔ **One definition, because it was briefly two.** The on/roll/beat classes and
+ * the velocity-to-opacity curve were byte-identical in both places, so any change
+ * to how a hit reads would have had to be made twice — and an expanded lane would
+ * have quietly stopped matching the collapsed row above it the first time it was
+ * not. Only the handlers and the labels differ between the two; the box does not.
+ */
+function cellVisuals(cell: Cell, index: number) {
+  return {
+    className:
+      'grid__cell' +
+      (cell.hits > 0 ? ' grid__cell--on' : '') +
+      (cell.hits > 1 ? ' grid__cell--roll' : '') +
+      (index % 4 === 0 ? ' grid__cell--beat' : ''),
+    style: cell.hits > 0 ? { opacity: 0.35 + (cell.velocity / 127) * 0.65 } : undefined,
+  };
+}
+
+/**
  * The generated pattern, drawn and **edited** (US-001, TASK-131G).
  *
  * ⚠ **This was read-only until 2026-08-05 and its header said so** — "editing
@@ -102,6 +141,13 @@ export function DrumGrid({ pattern, playhead }: { pattern: Pattern; playhead: nu
   const lockedLanes = useSession((s) => s.lockedLanes);
   const setLaneLocked = useSession((s) => s.setLaneLocked);
   const editPattern = useSession((s) => s.editPattern);
+  // ⛔ **Which lanes are open, and where each one's window sits (TASK-161).**
+  // View state, so it lives beside the roll's zoom and scroll and stays out of
+  // the undo snapshot — panning a lane must not cost a Ctrl+Z.
+  const openLanes = useEditing((s) => s.openLanes);
+  const toggleLaneExpanded = useEditing((s) => s.toggleLaneExpanded);
+  const panLaneWindow = useEditing((s) => s.panLaneWindow);
+  const refreezeOpenLanes = useEditing((s) => s.refreezeOpenLanes);
   /** The cell the roll palette is open over, or `null`. */
   const [palette, setPalette] = useState<{ lane: Lane; column: number } | null>(null);
   /**
@@ -145,7 +191,19 @@ export function DrumGrid({ pattern, playhead }: { pattern: Pattern; playhead: nu
     if (selectedFor.current === pattern.id) return;
     selectedFor.current = pattern.id;
     setSelection((current) => (current.size === 0 ? current : new Map()));
-  }, [pattern.id]);
+    // ⛔ **An open lane's frozen root belongs to the pattern it was frozen
+    // against** (TASK-161), so it is re-measured here for the same reason the
+    // selection is dropped: a window built on the old clip draws seven empty
+    // rows over a lane that is full of hits.
+    refreezeOpenLanes(
+      Object.fromEntries(
+        (Object.keys(useEditing.getState().openLanes) as Lane[]).map((lane) => [
+          lane,
+          laneRoot(pattern, lane),
+        ]),
+      ),
+    );
+  }, [pattern, refreezeOpenLanes]);
   // ⛔ **Computed once for the whole grid, not per row.** It is a property of
   // the *pattern* — which lanes are free — and building it inside the row map
   // would walk every lane once per row for an answer that cannot differ.
@@ -304,6 +362,31 @@ export function DrumGrid({ pattern, playhead }: { pattern: Pattern; playhead: nu
       // reports `C` while Shift is down, and a producer holding Shift from the
       // marquee they just drew is the common case rather than a rare one.
       const key = event.key.toLowerCase();
+
+      // ⛔⛔ **`Ctrl`/`⌘` + R plays the selected hits backwards** — Mike,
+      // 2026-08-11: *"if you have a drum pad or something playing forward in the
+      // pad, but you want it to play backwards in the drum pattern, you should be
+      // able to switch it … press like 'Ctrl+R' or 'Command+R'."*
+      //
+      // ⚠ **Selection only.** Every other key here falls back to "the cell under
+      // the cursor" when nothing is selected; this does not, because reversing is
+      // not a gesture anyone makes by accident and a single cell is one click
+      // away from being selected. The roll's binding is the same shortcut on the
+      // same rule.
+      // ⛔⛔ **`preventDefault` BEFORE the selection test, not after it.** Ctrl+R
+      // is the host's **Reload**, and returning early handed it straight to the
+      // webview: press it in the standalone with nothing selected and the page
+      // reloads, taking every unsaved pattern with it. The shortcut is ours the
+      // moment the modifier is down — whether it has anything to act on is a
+      // separate question, and the answer to "nothing selected" is *do nothing*,
+      // never *reload the app*.
+      if (key === 'r') {
+        event.preventDefault();
+        if (!hasSelection) return;
+        editPattern(reverseCells(pattern, picked()));
+        return;
+      }
+
       if (key === 'c') {
         if (!hasSelection) return;
         event.preventDefault();
@@ -454,7 +537,14 @@ export function DrumGrid({ pattern, playhead }: { pattern: Pattern; playhead: nu
     const found = new Map<string, CellRef>();
     const grid = gridRef.current;
     if (grid === null) return found;
-    for (const node of grid.querySelectorAll<HTMLElement>('.grid__cell')) {
+    // ⛔⛔ **The flat rows only** (TASK-161). A pitch row's cells carry the same
+    // `.grid__cell` class and the same `data-lane`/`data-col`, and `cellKey`
+    // knows nothing about pitch — so a band dragged through an open lane's
+    // seven rows selected that lane's whole *columns*, and Delete then wiped
+    // every pitch in them including rows the band never crossed.
+    for (const node of grid.querySelectorAll<HTMLElement>(
+      '.grid__row:not(.grid__row--pitch) .grid__cell',
+    )) {
       const lane = node.dataset.lane;
       const column = Number(node.dataset.col);
       if (lane === undefined || !Number.isInteger(column)) continue;
@@ -616,6 +706,147 @@ export function DrumGrid({ pattern, playhead }: { pattern: Pattern; playhead: nu
     [totalTicks],
   );
 
+  /**
+   * The pitch drag in flight, or `null` (TASK-161).
+   *
+   * ⛔ **A ref, and the whole gesture accumulates in it.** It changes on every
+   * pointermove and nothing renders from it.
+   *
+   * ⛔⛔ **The note does NOT move until the pointer is released**, which is the
+   * rule `clearCells` and the sweep gesture above already follow: `patterns` is
+   * in `history.ts`'s `DISCRETE` list and never coalesces, so writing per step
+   * made one drag cost one Ctrl+Z *per semitone* — and the intermediate presses
+   * left the hit on pitches the producer never chose. What follows the finger
+   * live is the window, which is view state and costs no undo.
+   */
+  const pitchDrag = useRef<{
+    lane: Lane;
+    column: number;
+    /** The pitch the hit started on — the gesture's origin, never rewritten. */
+    from: number;
+    /** Where it is currently headed. */
+    to: number;
+    /** The pitch at the middle row, tracked here so a pan cannot double-apply. */
+    centre: number;
+    startY: number;
+    rowHeight: number;
+  } | null>(null);
+
+  /**
+   * Set when a drag actually moved something, and read by the pitch cell's
+   * `onClick` (TASK-161).
+   *
+   * ⛔⛔ **A click fires after every drag that begins and ends in one cell**, and
+   * without this it ran `toggleHitAt` on the hit that had just been dragged. On
+   * a *refused* drag that deleted the note the refusal existed to protect; on a
+   * successful one it placed a second hit on the pitch the note had just left.
+   * The flat grid solves the same problem with `handled`; this is its twin, kept
+   * separate so the two gestures cannot consume each other's flag.
+   */
+  const pitchHandled = useRef(false);
+
+  const onPitchDown = useCallback(
+    (
+      event: React.PointerEvent<HTMLButtonElement>,
+      lane: Lane,
+      column: number,
+      pitch: number,
+      centre: number,
+      hits: number,
+    ) => {
+      // An empty cell is a place-a-hit click; only a hit can be dragged.
+      if (hits === 0 || event.button !== 0) return;
+
+      // ⛔ **Row-to-row distance, not the cell's own height.** `.grid` is a flex
+      // column with a 2px gap, so the cell box is ~1.5px short of the distance
+      // the pointer actually travels between rows — and since a step lands at
+      // half a row, that error compounded into the hit running away from the
+      // finger at more than two semitones per row crossed.
+      const row = event.currentTarget.closest('.grid__row--pitch');
+      const next = row?.nextElementSibling;
+      const box = event.currentTarget.getBoundingClientRect();
+      const rowHeight =
+        row && next
+          ? next.getBoundingClientRect().top - row.getBoundingClientRect().top
+          : box.height;
+      if (rowHeight <= 0) return;
+
+      pitchHandled.current = false;
+      pitchDrag.current = {
+        lane,
+        column,
+        from: pitch,
+        to: pitch,
+        centre,
+        startY: event.clientY,
+        rowHeight,
+      };
+      // ⚠ Captured, so the gesture survives the pointer leaving the 12px cell it
+      // started in — which it does immediately, because the drag is vertical.
+      event.currentTarget.setPointerCapture(event.pointerId);
+    },
+    [],
+  );
+
+  const onPitchMove = useCallback(
+    (event: React.PointerEvent<HTMLButtonElement>) => {
+      const drag = pitchDrag.current;
+      if (!drag) return;
+
+      // ⛔⛔ **The button has to still be down.** Panning far enough unmounts the
+      // row the pointer was captured on — the rows are keyed by pitch — and the
+      // browser then releases capture implicitly, so `pointerup` can land
+      // somewhere that never clears this ref. Without this guard the drag stayed
+      // armed and a later *hover* over any pitch cell re-pitched the note.
+      if ((event.buttons & 1) === 0) {
+        pitchDrag.current = null;
+        return;
+      }
+
+      // ⚠ Measured from the gesture's own origin, so the sub-row remainder is
+      // never discarded and one row of travel is one semitone.
+      const steps = Math.round((drag.startY - event.clientY) / drag.rowHeight);
+      const wanted = drag.from + steps;
+      // MIDI's own range is the only real limit on travel.
+      if (wanted === drag.to || wanted < MIN_PITCH || wanted > MAX_PITCH) return;
+      drag.to = wanted;
+
+      // ⛔ **The window follows the note**, rather than the note stopping at the
+      // window — "dragging a hit past the edge pans that lane's window". The
+      // centre is tracked on the drag rather than read back from the store, so a
+      // pan cannot be applied twice from one render's stale value.
+      if (wanted > drag.centre + PITCH_WINDOW_RADIUS) {
+        const by = wanted - drag.centre - PITCH_WINDOW_RADIUS;
+        drag.centre += by;
+        panLaneWindow(drag.lane, by);
+      } else if (wanted < drag.centre - PITCH_WINDOW_RADIUS) {
+        const by = wanted - drag.centre + PITCH_WINDOW_RADIUS;
+        drag.centre += by;
+        panLaneWindow(drag.lane, by);
+      }
+    },
+    [panLaneWindow],
+  );
+
+  const endPitchDrag = useCallback(
+    (event: React.PointerEvent<HTMLButtonElement>) => {
+      const drag = pitchDrag.current;
+      pitchDrag.current = null;
+      if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+        event.currentTarget.releasePointerCapture(event.pointerId);
+      }
+      if (!drag || drag.to === drag.from) return;
+
+      // The click that follows this pointerup belongs to the drag, not to the
+      // cell underneath it.
+      pitchHandled.current = true;
+      // ⚠ `setHitPitch` refuses onto an occupied `(tick, pitch)` and hands the
+      // pattern back by identity, so a refused drag commits nothing at all.
+      editPattern(setHitPitch(pattern, drag.lane, drag.column, drag.from, drag.to));
+    },
+    [pattern, editPattern],
+  );
+
   // ⛔ **Memoised for the same reason `rows` is: nothing in here reads the
   // playhead.** The marker moves 30 times a second, and every lane header and
   // all ~1,150 cell spans were being rebuilt alongside it — each header costing
@@ -628,13 +859,38 @@ export function DrumGrid({ pattern, playhead }: { pattern: Pattern; playhead: nu
         const muted = mutedLanes.includes(lane);
         const soloed = soloedLanes.includes(lane);
         const locked = lockedLanes.includes(lane);
+        const open = openLanes[lane];
+        // ⛔ **An empty lane does not open, and the chevron says so.** There is
+        // no root to hang a ruler off one: the page derives a lane's root from
+        // its own notes, and an empty lane has none.
+        //
+        // ⚠ **That derivation is a gap, not a principle.**
+        // `engine::midi::gm_drum_note` is the real authority for 31 of these 33
+        // lanes, and the page has no binding for it — so the root is *guessed*
+        // from note data rather than asked for. It agrees with GM only while a
+        // lane's most common note is still its GM note. The honest fix is a
+        // `drum_roots` bridge command answering the 33-entry table once, cached
+        // page-side the way `scale_pitches` already is; then an empty lane opens
+        // too and this disabled state goes away.
+        //
+        // ⚠ **Asked of the cells, not of `laneRoot`.** The root is only needed
+        // at the moment of opening; `laneRoot` walks every note in the lane and
+        // builds a Map, and doing that for all 33 lanes on every pattern edit
+        // just to decide one boolean is the cost this memo exists to avoid.
+        const hasHits = cells.some((cell) => cell.hits > 0);
+        // ⚠ Built only for an open lane, for the same reason.
+        const pitchLane = open ? toPitchLane(pattern, lane, open.root, open.pan) : null;
+        /** The pitch on the middle row — where a drag starts panning from. */
+        const pitchCentre = open ? open.root + open.pan : 0;
+        // Constant down the whole lane, so it is not re-derived per pitch row.
+        const musical = PITCHED_LANES.includes(lane);
         // ⛔ **What the row *sounds like*, not what its own buttons say.** A
         // lane nobody muted is still silent while another lane is soloed, and a
         // row that looked live while playing nothing would be the
         // readout-that-lies failure in the one control that says what you can
         // hear. Mute wins over solo here for the same reason it does on the
         // audio thread — see `Shared::set_lane_audio`.
-        const silent = muted || (soloedLanes.length > 0 && !soloed);
+        const silent = !laneAudible(lane, mutedLanes, soloedLanes);
         const name = t(`lanes.${lane}`);
         // ⛔ **The name does not change with the state, because `aria-pressed`
         // already carries it.** WAI-ARIA's toggle-button pattern asks for one or
@@ -649,98 +905,125 @@ export function DrumGrid({ pattern, playhead }: { pattern: Pattern; playhead: nu
         const slotLabel = t('grid.reassignLane', { lane: name });
         const lockLabel = t('grid.lockLane', { lane: name });
         return (
-          <div
-            className="grid__row"
-            role="row"
-            key={lane}
-            data-muted={silent || undefined}
-            data-locked={locked || undefined}
-            // ⛔ **`L` on the *row*, not on `window`** (TASK-044). A global
-            // binding would have to guess which lane the producer meant, and
-            // there is no "current lane" anywhere in this app — the grid has
-            // seventeen rows and no selection model. Focus is the answer the
-            // browser already has, and it bubbles from every control in the
-            // header, so tabbing to a row and pressing L is unambiguous.
-            onKeyDown={(event) => {
-              if (event.key !== 'l' && event.key !== 'L') return;
-              if (event.ctrlKey || event.metaKey || event.altKey) return;
-              // ⛔ **The row holds a slot picker since TASK-043A**, and `l` is
-              // typed into it — so without this, picking a lane starting with L
-              // toggled the lock instead. `isTypingTarget`'s selector names
-              // `input` and `select` for exactly this reason, which is why the
-              // guard still holds now that the picker is a `Combo`.
-              if (isTypingTarget(event.target)) return;
-              event.preventDefault();
-              setLaneLocked(lane, !locked);
-            }}
-          >
-            <span className="grid__lane" role="rowheader">
-              {/* ⛔ **Silences the preview, not the pattern** (FMM-S02). The
+          <Fragment key={lane}>
+            <div
+              className="grid__row"
+              role="row"
+              data-muted={silent || undefined}
+              data-locked={locked || undefined}
+              // ⛔ **`L` on the *row*, not on `window`** (TASK-044). A global
+              // binding would have to guess which lane the producer meant, and
+              // there is no "current lane" anywhere in this app — the grid has
+              // seventeen rows and no selection model. Focus is the answer the
+              // browser already has, and it bubbles from every control in the
+              // header, so tabbing to a row and pressing L is unambiguous.
+              onKeyDown={(event) => {
+                if (event.key !== 'l' && event.key !== 'L') return;
+                if (event.ctrlKey || event.metaKey || event.altKey) return;
+                // ⛔ **The row holds a slot picker since TASK-043A**, and `l` is
+                // typed into it — so without this, picking a lane starting with L
+                // toggled the lock instead. `isTypingTarget`'s selector names
+                // `input` and `select` for exactly this reason, which is why the
+                // guard still holds now that the picker is a `Combo`.
+                if (isTypingTarget(event.target)) return;
+                event.preventDefault();
+                setLaneLocked(lane, !locked);
+              }}
+            >
+              <span className="grid__lane" role="rowheader">
+                {/* ⛔ **Every lane can open, not just the 808** (TASK-161). Mike,
+                  2026-08-12: *"i want all the lanes to have the ability to
+                  expand into a pitch lane."* The chevron is first in the header
+                  because a disclosure control that moves depending on which
+                  other buttons the hover has collapsed is one nobody can aim
+                  at — and `.grid__lane` is already 5.5rem with the name cut to
+                  a letter, so this is the one thing here that must not shift. */}
+                <button
+                  type="button"
+                  className="grid__expand"
+                  aria-expanded={open !== undefined}
+                  aria-label={t('grid.pitchRows', { lane: name })}
+                  title={t('grid.pitchRows', { lane: name })}
+                  disabled={!hasHits}
+                  onClick={() => {
+                    // The root is measured once, here, rather than for every
+                    // lane on every render — see `hasHits` above.
+                    const root = laneRoot(pattern, lane);
+                    if (root !== null) toggleLaneExpanded(lane, root);
+                  }}
+                >
+                  {open ? (
+                    <ChevronDown size={11} aria-hidden="true" />
+                  ) : (
+                    <ChevronRight size={11} aria-hidden="true" />
+                  )}
+                </button>
+                {/* ⛔ **Silences the preview, not the pattern** (FMM-S02). The
                   notes have already gone out to the host's track by the time
                   the sampler renders, so this mutes our kick without removing
                   the kick anyone routed away. The label says "preview" for
                   exactly that reason — "Mute kick" would be a lie in the one
                   place it matters. */}
-              <button
-                type="button"
-                className="grid__lock"
-                aria-pressed={locked}
-                aria-label={lockLabel}
-                title={lockLabel}
-                onClick={() => setLaneLocked(lane, !locked)}
-              >
-                {locked ? (
-                  <Lock size={12} aria-hidden="true" />
-                ) : (
-                  <LockOpen size={12} aria-hidden="true" />
-                )}
-              </button>
-              <button
-                type="button"
-                className="grid__mute"
-                aria-pressed={muted}
-                aria-label={label}
-                title={label}
-                onClick={() => setLaneMuted(lane, !muted)}
-              >
-                {muted ? (
-                  <VolumeX size={12} aria-hidden="true" />
-                ) : (
-                  <Volume2 size={12} aria-hidden="true" />
-                )}
-              </button>
-              {/* ⛔ **Solo, beside the mute rather than folded into it**
+                <button
+                  type="button"
+                  className="grid__lock"
+                  aria-pressed={locked}
+                  aria-label={lockLabel}
+                  title={lockLabel}
+                  onClick={() => setLaneLocked(lane, !locked)}
+                >
+                  {locked ? (
+                    <Lock size={12} aria-hidden="true" />
+                  ) : (
+                    <LockOpen size={12} aria-hidden="true" />
+                  )}
+                </button>
+                <button
+                  type="button"
+                  className="grid__mute"
+                  aria-pressed={muted}
+                  aria-label={label}
+                  title={label}
+                  onClick={() => setLaneMuted(lane, !muted)}
+                >
+                  {muted ? (
+                    <VolumeX size={12} aria-hidden="true" />
+                  ) : (
+                    <Volume2 size={12} aria-hidden="true" />
+                  )}
+                </button>
+                {/* ⛔ **Solo, beside the mute rather than folded into it**
                   (TASK-043). They answer different questions — "never play
                   this" and "only play this, for now" — and one control could
                   not express both. Like the mute it is *view and playback*
                   state: what is exported and what reaches the host's track is
                   identical either way. */}
-              <button
-                type="button"
-                className="grid__solo"
-                aria-pressed={soloed}
-                aria-label={soloLabel}
-                title={soloLabel}
-                onClick={() => setLaneSolo(lane, !soloed)}
-              >
-                <Headphones size={12} aria-hidden="true" />
-              </button>
-              {/* ⛔ **The lane's name is the audition button** (TASK-043).
+                <button
+                  type="button"
+                  className="grid__solo"
+                  aria-pressed={soloed}
+                  aria-label={soloLabel}
+                  title={soloLabel}
+                  onClick={() => setLaneSolo(lane, !soloed)}
+                >
+                  <Headphones size={12} aria-hidden="true" />
+                </button>
+                {/* ⛔ **The lane's name is the audition button** (TASK-043).
                   Mike's ask was "clicking a lane's header plays that lane's
                   sound on its own, so a producer can hear which pad they are
                   about to edit without soloing and pressing play" — so the
                   target is the *name*, the largest thing in the header, and not
                   a fourth icon nobody would find. */}
-              <button
-                type="button"
-                className="grid__lanename"
-                aria-label={hearLabel}
-                title={hearLabel}
-                onClick={() => void auditionLane(lane)}
-              >
-                {name}
-              </button>
-              {/* ⛔ **The slot picker (TASK-043A).** *"A slot can be
+                <button
+                  type="button"
+                  className="grid__lanename"
+                  aria-label={hearLabel}
+                  title={hearLabel}
+                  onClick={() => void auditionLane(lane)}
+                >
+                  {name}
+                </button>
+                {/* ⛔ **The slot picker (TASK-043A).** *"A slot can be
                   reassigned to any lane the kit is not already using. The
                   picker offers the unused lanes only, because two slots
                   claiming the same lane is a pattern where one of them
@@ -768,34 +1051,34 @@ export function DrumGrid({ pattern, playhead }: { pattern: Pattern; playhead: nu
                   the footprint the `<select>` had.
                   ⚠ It shows no visible label because the row's name is beside
                   it — the accessible name carries the whole sentence. */}
-              <span className="grid__slot">
-                <Combo
-                  label={slotLabel}
-                  // The current lane first, so the list reads as "this row is a
-                  // kick" rather than as an empty chooser.
-                  options={[{ id: lane, name }, ...freeOptions]}
-                  value={lane}
-                  onChange={(id) => editPattern(reassignLane(pattern, lane, id as Lane))}
-                />
-              </span>
-              {/* The per-lane "add fill" (TASK-043H) — one press writes the
+                <span className="grid__slot">
+                  <Combo
+                    label={slotLabel}
+                    // The current lane first, so the list reads as "this row is a
+                    // kick" rather than as an empty chooser.
+                    options={[{ id: lane, name }, ...freeOptions]}
+                    value={lane}
+                    onChange={(id) => editPattern(reassignLane(pattern, lane, id as Lane))}
+                  />
+                </span>
+                {/* The per-lane "add fill" (TASK-043H) — one press writes the
                   phrase-end figure the generator would have written, in the
                   same window `rolls::hat_fills` uses, so an added fill and a
                   generated one are the same gesture. */}
-              {FILL_LANES.includes(lane) && (
-                <button
-                  type="button"
-                  className="grid__fill"
-                  aria-label={fillLabel}
-                  title={fillLabel}
-                  onClick={() => editPattern(addFill(pattern, lane))}
-                >
-                  <Waves size={12} aria-hidden="true" />
-                </button>
-              )}
-            </span>
-            <div className="grid__track" onMouseDown={seekTo}>
-              {/* ⛔ **The cell role goes on the wrapper, the button keeps its
+                {FILL_LANES.includes(lane) && (
+                  <button
+                    type="button"
+                    className="grid__fill"
+                    aria-label={fillLabel}
+                    title={fillLabel}
+                    onClick={() => editPattern(addFill(pattern, lane))}
+                  >
+                    <Waves size={12} aria-hidden="true" />
+                  </button>
+                )}
+              </span>
+              <div className="grid__track" onMouseDown={seekTo}>
+                {/* ⛔ **The cell role goes on the wrapper, the button keeps its
                   own.** These became interactive buttons and kept `role="cell"`
                   on the button itself, which OVERRIDES the implicit button role
                   — so the whole editing affordance announced as static table
@@ -803,46 +1086,121 @@ export function DrumGrid({ pattern, playhead }: { pattern: Pattern; playhead: nu
                   places a hit. It was harmless on the old `<span>`, which had no
                   role to mask. Wrapping keeps the table structure the grid is
                   built on *and* exposes the control inside it. */}
-              {cells.map((cell, index) => {
-                // ⚠ One key and one lookup per cell rather than two of each: an
-                // 8-bar pattern draws ~1,150 of these, and this file memoises
-                // `lanes` precisely because per-cell cost here is real.
-                const chosen = selection.has(cellKey(lane, index));
-                return (
-                  <span role="cell" key={index} className="grid__cellwrap">
-                    <button
-                      type="button"
-                      aria-label={t('grid.cell', { lane: name, step: index + 1 })}
-                      onClick={(event) => onCell(event, lane, index)}
-                      onPointerDown={(event) => onCellDown(event, lane, index)}
-                      onPointerEnter={(event) => onCellEnter(event, lane, index)}
-                      onContextMenu={onCellMenu}
-                      onKeyDown={(event) => onCellKey(event, lane, index)}
-                      data-lane={lane}
-                      data-col={index}
-                      data-hits={cell.hits || undefined}
-                      // ⛔ `aria-selected` as well as the class: a selection a
-                      // screen reader cannot read is a selection only some of the
-                      // people using this app have.
-                      aria-selected={chosen || undefined}
-                      data-selected={chosen || undefined}
-                      className={
-                        'grid__cell' +
-                        (cell.hits > 0 ? ' grid__cell--on' : '') +
-                        (cell.hits > 1 ? ' grid__cell--roll' : '') +
-                        (index % 4 === 0 ? ' grid__cell--beat' : '')
-                      }
-                      style={
-                        cell.hits > 0
-                          ? { opacity: 0.35 + (cell.velocity / 127) * 0.65 }
-                          : undefined
-                      }
-                    />
-                  </span>
-                );
-              })}
+                {cells.map((cell, index) => {
+                  // ⚠ One key and one lookup per cell rather than two of each: an
+                  // 8-bar pattern draws ~1,150 of these, and this file memoises
+                  // `lanes` precisely because per-cell cost here is real.
+                  const chosen = selection.has(cellKey(lane, index));
+                  return (
+                    <span role="cell" key={index} className="grid__cellwrap">
+                      <button
+                        type="button"
+                        aria-label={t('grid.cell', { lane: name, step: index + 1 })}
+                        onClick={(event) => onCell(event, lane, index)}
+                        onPointerDown={(event) => onCellDown(event, lane, index)}
+                        onPointerEnter={(event) => onCellEnter(event, lane, index)}
+                        onContextMenu={onCellMenu}
+                        onKeyDown={(event) => onCellKey(event, lane, index)}
+                        data-lane={lane}
+                        data-col={index}
+                        data-hits={cell.hits || undefined}
+                        // ⛔ `aria-selected` as well as the class: a selection a
+                        // screen reader cannot read is a selection only some of the
+                        // people using this app have.
+                        aria-selected={chosen || undefined}
+                        data-selected={chosen || undefined}
+                        {...cellVisuals(cell, index)}
+                      />
+                    </span>
+                  );
+                })}
+              </div>
             </div>
-          </div>
+            {pitchLane?.rows.map((row, rowIndex) => {
+              // ⛔ **A pitched lane's rows are notes; every other lane's are one
+              // sample transposed.** Labelling a shaker "D#2" would claim it is
+              // playing a pitch it has no idea about, so unpitched lanes read in
+              // signed semitones from their own root instead.
+              const rowText = musical
+                ? pitchName(row.pitch)
+                : `${row.offset > 0 ? '+' : ''}${row.offset}`;
+              const rowTitle = musical
+                ? pitchName(row.pitch)
+                : t('grid.semitoneRow', { offset: row.offset });
+              const top = rowIndex === 0;
+              const bottom = rowIndex === pitchLane.rows.length - 1;
+              return (
+                <div
+                  className="grid__row grid__row--pitch"
+                  role="row"
+                  key={row.pitch}
+                  data-muted={silent || undefined}
+                  data-root={row.offset === 0 || undefined}
+                >
+                  <span className="grid__lane grid__lane--pitch" role="rowheader">
+                    <span className="grid__pitchname" title={rowTitle}>
+                      {rowText}
+                    </span>
+                  </span>
+                  <div className="grid__track">
+                    {row.cells.map((cell, index) => {
+                      // ⛔ **Hits the window cannot show still have to be
+                      // announced.** A seven-row window onto an 808 that slides a
+                      // fifth would otherwise leave notes audible and invisible —
+                      // the failure the folded roll already draws markers for.
+                      const off = top
+                        ? pitchLane.above[index]
+                        : bottom
+                          ? pitchLane.below[index]
+                          : 0;
+                      const cellLabel = t('grid.pitchCell', {
+                        lane: name,
+                        pitch: rowTitle,
+                        step: index + 1,
+                      });
+                      // ⚠ Announced as well as drawn. The marker is a 2px edge on
+                      // the cell — `.grid__cellwrap` is `display: contents`, so
+                      // there is no box to hang a separate element in and a
+                      // sibling would shift every column of the track.
+                      const offLabel =
+                        off > 0
+                          ? t(top ? 'grid.hitsAbove' : 'grid.hitsBelow', { count: off })
+                          : '';
+                      return (
+                        <span role="cell" key={index} className="grid__cellwrap">
+                          <button
+                            type="button"
+                            aria-label={offLabel ? `${cellLabel}, ${offLabel}` : cellLabel}
+                            title={offLabel || undefined}
+                            data-offwindow={off > 0 ? (top ? 'above' : 'below') : undefined}
+                            onClick={() => {
+                              // The click that ends a drag belongs to the drag.
+                              if (pitchHandled.current) {
+                                pitchHandled.current = false;
+                                return;
+                              }
+                              editPattern(toggleHitAt(pattern, lane, index, row.pitch));
+                            }}
+                            onPointerDown={(event) =>
+                              onPitchDown(event, lane, index, row.pitch, pitchCentre, cell.hits)
+                            }
+                            onPointerMove={onPitchMove}
+                            onPointerUp={endPitchDrag}
+                            onPointerCancel={endPitchDrag}
+                            data-lane={lane}
+                            data-col={index}
+                            data-pitch={row.pitch}
+                            data-hits={cell.hits || undefined}
+                            {...cellVisuals(cell, index)}
+                          />
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })}
+          </Fragment>
         );
       }),
     [
@@ -863,6 +1221,11 @@ export function DrumGrid({ pattern, playhead }: { pattern: Pattern; playhead: nu
       selection,
       editPattern,
       pattern,
+      openLanes,
+      toggleLaneExpanded,
+      onPitchDown,
+      onPitchMove,
+      endPitchDrag,
       t,
     ],
   );

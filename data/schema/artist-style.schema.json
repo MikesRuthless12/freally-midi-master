@@ -15,7 +15,7 @@
       "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$|^_defaults$",
       "description": "kebab-case, unique across the whole dataset. This is what `extends` refers to — not the filename."
     },
-    "type": { "enum": ["artist", "genre"] },
+    "type": { "enum": ["artist", "producer", "genre"] },
     "name": { "type": "string", "minLength": 1 },
     "aliases": {
       "type": "array",

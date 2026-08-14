@@ -1,0 +1,225 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "chris-the-glove-taylor",
+  "type": "producer",
+  "name": "Chris \"The Glove\" Taylor",
+  "aliases": [
+    "chris the glove taylor",
+    "the glove",
+    "chris taylor",
+    "death row keyboards"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "g-funk"
+  ],
+  "era": "1992-2001",
+  "genres": [
+    "rap",
+    "g-funk",
+    "west coast",
+    "producer",
+    "engineer"
+  ],
+  "relatedGenres": [
+    "g-funk",
+    "west-coast-club",
+    "rnb-2000s"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended vol.1 g-funk — Chris \"The Glove\" Taylor",
+    "AllHipHop — Chris \"The Glove\" Taylor interview — https://allhiphop.com/features/exclusive-chris-the-glove-taylor-talks-death-row-aftermath-and-dr-dre-part-1/",
+    "Gearspace — Chris \"The Glove\" Taylor — https://gearspace.com/board/rap-hip-hop-engineering-and-production/846964-another-guy-made-dr-dre-chris-glove-taylor.html"
+  ],
+  "notes": "A keys-and-console model, and the research is unusually explicit about what he does *not* do: he did not program the drums. The documented division was kick/snare/hat from the lead producer, keys and bass from him — so this entry deliberately inherits its kit from the g-funk parent and overrides only the fill band, and that inheritance is the finding rather than a gap. What it does own is harmony and low end. Church-organ and piano training gives functional, full voicings, which is `extensions` at a quarter triad and a quarter ninth with a wide open register and stepwise top voice — the densest chord block on this axis. The Moog bass was played by hand when a session bassist could not deliver, so `humanize.quantizeStrength` drops to 0.7 and `bassline.glideProb` goes to 0.88 for the portamento between roots. ⚠ The research gives that bass as E1–C2, an 8-semitone window. The register here is [28,46] because a range that narrow gives the bass generator no reachable pool and `bass.rs` measures distinctness over it; E1 is still the floor and the top is the widening, not a reading of the record. ⚠ He introduced SSL automation to the lane and the research says that is *why* these records transition on moving mutes and layer entries rather than drum fills — so `drums.fills.fillBeforeSection` is false and `arrangement.transitions.switchUpProb` is raised instead. `high` is the research's own rating.",
+  "session": {
+    "bpm": {
+      "min": 90,
+      "max": 100,
+      "mode": 95
+    },
+    "humanize": {
+      "quantizeStrength": 0.7,
+      "velocityVar": 0.22
+    }
+  },
+  "drums": {
+    "hihat": {
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16T",
+            "32"
+          ],
+          "weights": [
+            3,
+            4
+          ]
+        },
+        "positions": [
+          "pre_snare",
+          "bar_4"
+        ],
+        "freqPerBar": 0.3
+      }
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8,
+      "fillBeforeSection": false
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th",
+        "16t"
+      ],
+      "grouping": [
+        "even",
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        47,
+        109
+      ],
+      "rampJitter": 20,
+      "descendProb": 0.51,
+      "gapProb": 0.1
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII",
+          "III"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "ii",
+          "v"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "v",
+          "i",
+          "VI"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.25,
+      "seventh": 0.5,
+      "ninth": 0.25
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        79
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      67,
+      91
+    ],
+    "densityPerBar": [
+      3,
+      6
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "intervals": {
+      "step": 0.55,
+      "third": 0.3,
+      "leap": 0.15
+    },
+    "chordToneBias": 0.78,
+    "octaveJumpProb": [
+      0.08,
+      0.18
+    ],
+    "timbreHint": "church_organ"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.45,
+    "styles": {
+      "values": [
+        "arp",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.72,
+    "register": [
+      28,
+      46
+    ],
+    "glideProb": 0.88,
+    "passingTones": [
+      "m3",
+      "P4",
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.2
+  },
+  "arrangement": {
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.75,
+        "beats": 4
+      },
+      "switchUpProb": 0.35
+    }
+  }
+}

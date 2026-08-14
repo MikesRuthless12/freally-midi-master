@@ -180,7 +180,7 @@ pub fn generate(
         Style::AnswerLick => {
             lick_notes(ctx, chords, degrees, low, high, &sixteenths, &mut pitch_rng)
         }
-        Style::SustainPad => pad_notes(chords, low, high, &sixteenths, &mut pitch_rng),
+        Style::SustainPad => pad_notes(ctx, chords, low, high, &sixteenths, &mut pitch_rng),
     };
 
     // The echoes are the one family whose onsets are decided by the melody
@@ -258,6 +258,7 @@ fn echo_notes(
                 vel: note.vel.saturating_sub(drop).max(1),
                 slide_to_pitch: None,
                 articulation: None,
+                reversed: false,
             })
         })
         .collect()
@@ -306,6 +307,7 @@ fn arp_notes(
                 vel: COUNTER_VELOCITY,
                 slide_to_pitch: None,
                 articulation: None,
+                reversed: false,
             });
         }
     }
@@ -366,6 +368,7 @@ fn lick_notes(
                     vel: COUNTER_VELOCITY,
                     slide_to_pitch: None,
                     articulation: None,
+                    reversed: false,
                 });
             }
         }
@@ -387,74 +390,84 @@ fn lick_notes(
 /// the root was both the least interesting voicing available and — because
 /// uk-drill weights this style at 60% — the reason its counter reached only 264
 /// distinct shapes in 500 seeds where every other model reached 500.
-fn pad_notes(chords: &Chords, low: u8, high: u8, on: &[u32], rng: &mut impl Rng) -> Vec<Note> {
+fn pad_notes(
+    ctx: &SessionContext,
+    chords: &Chords,
+    low: u8,
+    high: u8,
+    on: &[u32],
+    rng: &mut impl Rng,
+) -> Vec<Note> {
     let mut notes = Vec::new();
 
     for event in &chords.events {
-        let end = event.start_tick + event.len_ticks;
-        let Some(start) = on
-            .iter()
-            .copied()
-            .find(|tick| *tick >= event.start_tick && *tick < end)
-        else {
-            continue;
-        };
-
-        // ⛔ **One or two tones, and it may breathe.** A pad that always held a
-        // single note for the whole chord was the least interesting voicing
-        // available *and* the reason uk-drill — which weights this style at 60%
-        // — reached only 264 of 500 distinct counters where every other model
-        // reached 500. Strings in drill are a held two-note voicing that lifts
-        // before the change as often as not, so the musical fix and the variety
-        // fix are the same fix.
-        let voices = if event.tones.len() > 1 && rng.random_bool(0.5) {
-            2
-        } else {
-            1
-        };
-        let breathe = rng.random_bool(0.4);
-        let len = if breathe {
-            // Up before the chord turns over, so the next one lands.
-            (end - start)
-                .saturating_sub(grid::SIXTEENTH * 2)
-                .max(grid::SIXTEENTH)
-        } else {
-            end - start
-        };
-
-        let mut used: Vec<u8> = Vec::with_capacity(voices);
-        for voice in 0..voices {
-            let tone = if event.tones.is_empty() {
-                event.root
-            } else {
-                event.tones[rng.random_range(0..event.tones.len())]
+        for (segment_start, end) in super::phrase_spans(ctx, event.start_tick, event.len_ticks, rng)
+        {
+            let Some(start) = on
+                .iter()
+                .copied()
+                .find(|tick| *tick >= segment_start && *tick < end)
+            else {
+                continue;
             };
-            // Which octave the voicing sits in, rather than always the lowest
-            // one the register allows. `pitch_class_in_register` answers with
-            // the bottom-most, and a pad pinned to the floor of its register is
-            // both a narrower grammar and a less musical one — strings in drill
-            // sit high as often as low.
-            let places = octaves_of(tone, low, high);
-            if places.is_empty() {
-                continue;
-            }
-            let pitch = places[rng.random_range(0..places.len())];
-            if used.contains(&pitch) {
-                continue;
-            }
-            used.push(pitch);
 
-            notes.push(Note {
-                model_vel: None,
-                start_tick: start,
-                len_ticks: len,
-                pitch,
-                // The upper voice sits under the lower one, so the voicing reads
-                // as one sound rather than two parts.
-                vel: COUNTER_VELOCITY.saturating_sub(8 + voice as u8 * 6).max(1),
-                slide_to_pitch: None,
-                articulation: None,
-            });
+            // ⛔ **One or two tones, and it may breathe.** A pad that always held a
+            // single note for the whole chord was the least interesting voicing
+            // available *and* the reason uk-drill — which weights this style at 60%
+            // — reached only 264 of 500 distinct counters where every other model
+            // reached 500. Strings in drill are a held two-note voicing that lifts
+            // before the change as often as not, so the musical fix and the variety
+            // fix are the same fix.
+            let voices = if event.tones.len() > 1 && rng.random_bool(0.5) {
+                2
+            } else {
+                1
+            };
+            let breathe = rng.random_bool(0.4);
+            let len = if breathe {
+                // Up before the chord turns over, so the next one lands.
+                (end - start)
+                    .saturating_sub(grid::SIXTEENTH * 2)
+                    .max(grid::SIXTEENTH)
+            } else {
+                end - start
+            };
+
+            let mut used: Vec<u8> = Vec::with_capacity(voices);
+            for voice in 0..voices {
+                let tone = if event.tones.is_empty() {
+                    event.root
+                } else {
+                    event.tones[rng.random_range(0..event.tones.len())]
+                };
+                // Which octave the voicing sits in, rather than always the lowest
+                // one the register allows. `pitch_class_in_register` answers with
+                // the bottom-most, and a pad pinned to the floor of its register is
+                // both a narrower grammar and a less musical one — strings in drill
+                // sit high as often as low.
+                let places = octaves_of(tone, low, high);
+                if places.is_empty() {
+                    continue;
+                }
+                let pitch = places[rng.random_range(0..places.len())];
+                if used.contains(&pitch) {
+                    continue;
+                }
+                used.push(pitch);
+
+                notes.push(Note {
+                    model_vel: None,
+                    start_tick: start,
+                    len_ticks: len,
+                    pitch,
+                    // The upper voice sits under the lower one, so the voicing reads
+                    // as one sound rather than two parts.
+                    vel: COUNTER_VELOCITY.saturating_sub(8 + voice as u8 * 6).max(1),
+                    slide_to_pitch: None,
+                    articulation: None,
+                    reversed: false,
+                });
+            }
         }
     }
 

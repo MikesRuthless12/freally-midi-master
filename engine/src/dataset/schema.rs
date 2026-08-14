@@ -229,7 +229,36 @@ impl BpmSpec {
 #[serde(rename_all = "lowercase")]
 pub enum ModelType {
     Artist,
+    /**
+    Someone who makes the record rather than fronts it.
+
+    ⛔ **A third kind rather than a flag on `Artist`, because the roster groups
+    by it** — Mike, 2026-08-12: *"put 'Artists' underlined and then list all
+    artists in alphabetical order and then 'Producers' underlined and then put
+    producers in alphabetical order."* His research volumes have said which is
+    which all along, in their `### ARTISTS` and `### PRODUCERS` sections; the
+    models simply had nowhere to record it.
+
+    ⚠ **It carries no musical behaviour whatsoever.** A producer model
+    inherits, generates, re-rolls and trains exactly as an artist does — every
+    generator reads `blocks`, and not one of them asks what `model_type` is.
+    This exists so the roster can *say* what a name is. `dataset.rs`'s
+    `every_model_sits_in_the_folder_its_type_names` is what keeps it honest.
+    */
+    Producer,
     Genre,
+}
+
+impl ModelType {
+    /// A name a producer chooses from, rather than an archetype underneath one.
+    ///
+    /// ⛔ Written once because four call sites asked the question as
+    /// `== Artist`, and every one of them silently began excluding producers
+    /// the moment the variant above existed — a filter that reads "the artists"
+    /// and means "everyone who is not a genre" is the shape of that bug.
+    pub fn is_style(self) -> bool {
+        !matches!(self, Self::Genre)
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]

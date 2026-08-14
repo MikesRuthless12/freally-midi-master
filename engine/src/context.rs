@@ -456,6 +456,26 @@ impl SessionContext {
 pub struct SessionDefaults {
     /// The tempo a generation will use: `BpmSpec::nominal`, not a sample.
     pub bpm: f32,
+    /// The tempo range the model authored, or `bpm` twice when it authored none
+    /// (TASK-158D).
+    ///
+    /// ⛔ **A range, because a single number is not what a producer is choosing
+    /// between.** *"tempo range"* is Mike's own word in TASK-158D: an artist who
+    /// works at 68–96 and one who works at 138–142 are different propositions at
+    /// the same nominal 82, and the pane exists so that is visible before
+    /// Generate rather than after.
+    ///
+    /// ⚠ **Not overwritten by the host's tempo the way `bpm` is.** That
+    /// substitution is TASK-033's, and it is right for "what will this come out
+    /// at" — but the range is a fact about the *model*, and replacing it with the
+    /// DAW's one tempo would say the artist only ever works there.
+    pub bpm_min: f32,
+    pub bpm_max: f32,
+    /// Which parts this model will actually write notes for (TASK-158D).
+    ///
+    /// See [`parts_of`] — this is the "and does **not** cover" half of what the
+    /// detail pane owes a producer.
+    pub parts: Vec<crate::pattern::Part>,
     /// Key names the model draws from, in authored order. Empty when it
     /// authors none, in which case the engine's own default key applies.
     pub keys: Vec<String>,
@@ -508,6 +528,51 @@ fn narrow_by_character(scales: Vec<Scale>, character: Option<ScaleCharacter>) ->
     }
 }
 
+/// Which parts a model will actually write notes for (TASK-158D).
+///
+/// ⛔⛔ **This is the readout-that-lies failure in the place it costs most.** A
+/// generator whose block is absent returns an **empty** track — `bass.rs`,
+/// `chords.rs`, `melody.rs` and `counter.rs` each open with a `let … else {
+/// return empty }` on exactly that. So an artist who authored no `melody` block
+/// answers Generate on the Melody tab with silence, and before this there was no
+/// way to know that except by pressing it. Mike's TASK-158D asks for *"what the
+/// model does and does **not** cover"*, and this is the exact answer rather than
+/// an approximation of one.
+///
+/// ⛔ **Drums are always covered**, and that is not an oversight: `drums.rs`
+/// reads its block as an `Option` and falls back to a real kit — backbeat snare,
+/// a kick grammar, hats — so a model with no `drums` block still writes drums.
+/// Listing it conditionally would be the same lie in the other direction.
+///
+/// ⛔ **An 808 that plays the bassline counts as bass.** `bass.rs` returns empty
+/// for such a model *deliberately* — FR-007's "unify with the 808 lane", because
+/// doubling it is a production mistake — but the producer does get a bassline;
+/// it comes out of the drum kit's `bass808` lane. Reporting "no bass" for most of
+/// trap would be worse than saying nothing.
+///
+/// ⚠ **Asked of a RESOLVED model.** `extends` is merged before this sees it, so
+/// an artist inherits their genre's blocks — which is what they actually
+/// generate from.
+pub fn parts_of(model: &crate::StyleModel) -> Vec<crate::pattern::Part> {
+    use crate::pattern::Part;
+    let has = |name: &str| model.blocks.contains_key(name);
+    crate::pattern::PART_ORDER
+        .into_iter()
+        .filter(|part| match part {
+            Part::Drums => true,
+            Part::Chords => has("chords"),
+            Part::Melody => has("melody"),
+            // A counter answers a melody, and `counter.rs` returns empty when
+            // the melody did — so a countermelody block with no melody beside it
+            // writes nothing.
+            Part::Counter => has("countermelody") && has("melody"),
+            Part::Bass => {
+                has("bassline") || crate::generators::bass::eight_o_eight_is_the_bass(model)
+            }
+        })
+        .collect()
+}
+
 impl SessionDefaults {
     /// Read a resolved model's session block. No seed, and no sampling.
     pub fn of(model: &crate::StyleModel) -> Self {
@@ -515,12 +580,19 @@ impl SessionDefaults {
         let fallback = SessionContext::default();
 
         let authored_swing = session.and_then(|s| s.swing.as_ref());
+        let bpm = session.and_then(|s| s.bpm.as_ref());
 
         Self {
-            bpm: session
-                .and_then(|s| s.bpm.as_ref())
+            bpm: bpm
                 .map(|spec| spec.nominal() as f32)
                 .unwrap_or(fallback.bpm),
+            // ⚠ The nominal twice when nothing was authored, rather than the
+            // engine's whole legal range: a model that said nothing about tempo
+            // has not said it works from 40 to 300, and drawing that would be an
+            // invention rather than a summary.
+            bpm_min: bpm.map(|spec| spec.min as f32).unwrap_or(fallback.bpm),
+            bpm_max: bpm.map(|spec| spec.max as f32).unwrap_or(fallback.bpm),
+            parts: parts_of(model),
             keys: session
                 .and_then(|s| s.keys.as_ref())
                 .map(|spec| spec.options())

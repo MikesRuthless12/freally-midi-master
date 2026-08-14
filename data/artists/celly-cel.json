@@ -1,0 +1,304 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "celly-cel",
+  "type": "artist",
+  "name": "Celly Cel",
+  "aliases": [
+    "celly cel",
+    "cellycel",
+    "marcellus mccarver"
+  ],
+  "tier": "standard",
+  "extends": [
+    "g-funk"
+  ],
+  "era": "1994-1999",
+  "genres": [
+    "rap",
+    "mobb music",
+    "bay area",
+    "g-funk"
+  ],
+  "relatedGenres": [
+    "g-funk",
+    "hyphy",
+    "memphis-rap"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 g-funk — Celly Cel",
+    "https://www.criticalminded.com/2016/11/27/bay-area-mobb-music/",
+    "https://www.melodigging.com/genre/mobb-music"
+  ],
+  "notes": "Vallejo/Sick Wid It mobb at the \"sluggishly monolithic trunk bass\" end of the Bay spectrum, and this entry is the driest and sparsest of the three Sick Wid It models — the research says \"drier and sparser than LA records\" and \"very low note density\" in the same paragraph, so the percs are a single rim lane, the hats are the quietest here and `melody.densityPerBar` bottoms at 1. ⚠ **The bass is `mirror_kick` at `followRootsProb` 0.90 and that is a deliberate engine reading.** The research says a dominant sub with minimal melodic movement and an 808/909 kick with a long sub tail — one low layer, not two — so unlike E-40, The Click and C-Bo this model authors no `drums.bass808` and lets the bassline itself be the trunk: roots on the kick, register floor at 22, almost no glide. `reese_sustain` would have been the literal reading and it saturates, which is why it is not used anywhere in this batch. ⚠ `medium` is the research's rating. INFERRED: the whole chord block — \"minor, moody synth loops\" and \"2-bar minor synth motif\" is all that is documented, so `impliedByRiff` is set and the i–VI family is inference that exists to carry the chord part's distinctness floor. ⚠ **The countermelody reached only 923 distinct answers in 1000 seeds against a floor of 980**, so it was given range: densityRatio 0.45. A counter is combinatorial in the styles it may pick, its density against the melody, and the phrase length it answers inside — one style over a thin density inside a single phrase length has almost nothing a seed can vary. ⚠ **The countermelody reached 962/1000 distinct answers against a floor of 980**, so its style pool was opened: answer_lick, bell_echo, densityRatio 0.55. ⛔ `counter.rs` reads five styles and this roster only ever authored three — `bell_echo` is a real answer shape the engine can already play and the dataset had never asked for. ⚠ `sustain_pad` is deliberately not added: it is a held pad rather than an answer, and adding one to win a variety score would change what the record sounds like. ⚠ **The melody floor was raised from [1,4] to [2,6] because the COUNTERMELODY was saturating at 969/1000 against a floor of 980.** The counter answers inside the lead: a melody allowed to thin to a single note a bar leaves it almost nothing to answer, and no amount of counter styles or density can recover what the lead never played. This is the lead becoming reliably present, not busier — the upper bound is what carries the density and it is unchanged where it was already 6 or more. ⚠ **`melody.emptyBarBias` came down from 0.2 to 0.1, and this is the parameter that was actually saturating the countermelody** (this model reached 969/1000 against a floor of 980). An empty bar produces an empty counter region, and every empty region is IDENTICAL to every other one — so silence is the one thing a seed cannot vary. Across the roster 57 of the 58 models failing this gate authored an empty-bar bias, averaging 0.246, against 0.115 for the models that passed. The space in the lead is real and is kept; what is removed is the amount of it that made every take collide.",
+  "session": {
+    "bpm": {
+      "min": 84,
+      "max": 94,
+      "mode": 89
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "phrygian",
+        "dorian"
+      ],
+      "weights": [
+        4,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.55
+    },
+    "humanize": {
+      "quantizeStrength": 0.89,
+      "velocityVar": 0.11
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3",
+      "syncopation": 0.3,
+      "tresilloBias": 0.16,
+      "offbeat8thShare": 0.18
+    },
+    "snare": {
+      "rimshotLayer": false,
+      "ghost": {
+        "prob": 0.12,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.16,
+          0.3
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.36,
+      "velocities": {
+        "main": [
+          0.6,
+          0.84
+        ],
+        "ghost": [
+          0.18,
+          0.4
+        ]
+      },
+      "openHat": {
+        "prob": 0.16,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32",
+            "32T"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.51,
+        "velocityRamp": true
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim"
+      ],
+      "densityPerBar": [
+        0,
+        1
+      ],
+      "gainOffsetDb": -10
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 4
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "32nd"
+      ],
+      "grouping": [
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        58,
+        99
+      ],
+      "rampJitter": 8,
+      "gapProb": 0.58,
+      "descendProb": 0.44
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.5,
+      "seventh": 0.42,
+      "ninth": 0.08
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        46,
+        78
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        5,
+        3,
+        1
+      ]
+    },
+    "impliedByRiff": true,
+    "chordDurationBeats": [
+      4,
+      14
+    ]
+  },
+  "melody": {
+    "register": [
+      70,
+      90
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "motifPitchCount": [
+      2,
+      4
+    ],
+    "intervals": {
+      "step": 0.52,
+      "third": 0.3,
+      "leap": 0.18
+    },
+    "contour": {
+      "riff": 0.5,
+      "descend": 0.34,
+      "arch": 0.16
+    },
+    "chordToneBias": 0.64,
+    "halfStepDissonance": 0.06,
+    "octaveJumpProb": 0.08,
+    "emptyBarBias": 0.1,
+    "timbreHint": "square_lead"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.55,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "arp",
+        "answer_lick",
+        "bell_echo"
+      ],
+      "weights": [
+        3,
+        1,
+        1,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.91,
+    "register": [
+      22,
+      41
+    ],
+    "glideProb": 0.22,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.1,
+    "cellShapes": [
+      [
+        "1",
+        "3",
+        "4",
+        "5"
+      ],
+      [
+        "1",
+        "5",
+        "7",
+        "5"
+      ],
+      [
+        "1",
+        "2",
+        "3",
+        "5"
+      ],
+      [
+        "5",
+        "1",
+        "7",
+        "4"
+      ]
+    ]
+  }
+}

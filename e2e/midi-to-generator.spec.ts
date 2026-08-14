@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 
-import { browserRow, pickArtist } from './app';
+import { browserRow, openPanel, pickArtist } from './app';
 
 /**
  * Dragging a `.mid` from the browser onto a generator (TASK-058 / TASK-040T).
@@ -29,6 +29,8 @@ test.beforeEach(async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('tablist', { name: 'Generator' })).toBeVisible();
   await pickArtist(page, 'Mock Artist');
+  // ⛔ The panel is behind a vertical tab now — `openPanel` presses it.
+  await openPanel(page, 'explorer');
   await browserRow(page, 'Samples').click();
 });
 

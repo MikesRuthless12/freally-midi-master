@@ -1,0 +1,293 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "epmd",
+  "type": "artist",
+  "name": "EPMD",
+  "aliases": [
+    "epmd",
+    "erick and parrish",
+    "erick sermon",
+    "parrish smith",
+    "def squad"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "boom-bap"
+  ],
+  "era": "1990-1992",
+  "genres": [
+    "rap",
+    "boom-bap",
+    "funk"
+  ],
+  "relatedGenres": [
+    "boom-bap",
+    "funk",
+    "g-funk"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 boom-bap — EPMD",
+    "Wikipedia — Business Never Personal",
+    "Complex — Erick Sermon tells all"
+  ],
+  "notes": "The research names one defining feature and this model is built around it: \"Thick filtered funk bass riff as the main melodic element; a defining feature — the bass carries the tune.\" So `followRootsProb` is 0.25, the lowest on this axis by a distance, over a 22-semitone register with five passing tones and heavy anticipation — the bass part is the lead, and every other parameter here gets out of its way. `melody.densityPerBar` is correspondingly low and its `timbreHint` is the guitar skank rather than a keyboard. The harmony is funk-modal: mixolydian and Dorian, static I7 or i7 vamps, \"almost no chord movement\", which is why `extensions.seventh` is 0.75 and `impliedByRiff` is set. Drums are \"intentionally louder than the sample\", authored as a lifted `velocityTiers` block. ⚠ The `I–IV` family is INFERRED and carries the lowest weight — the research names only static vamps, and it exists so the bass has more than one reachable root and the chord part clears its distinctness floor. Delete it first if this ever sounds busier than the records. ⚠ `medium` because the research rates it medium-high; the window is hard-bounded to 1990–1992 by the research itself, and the 1988–89 material this name is also known for is deliberately out of model. The inferred parameters are the swing amount and the tambourine density. ⚠ The chord voicing moved up to [51, 85] so the bass stays under the harmony — it started at 44 against a bass reaching 50, an overlap of 7. The span is preserved; a voicing that low was competing with the bass rather than sitting over it.",
+  "session": {
+    "bpm": {
+      "min": 90,
+      "max": 98,
+      "mode": 94
+    },
+    "scales": {
+      "values": [
+        "mixolydian",
+        "dorian",
+        "minor_pentatonic",
+        "blues"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.59
+    },
+    "humanize": {
+      "quantizeStrength": 0.79,
+      "velocityVar": 0.14
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        110,
+        127
+      ],
+      "main": [
+        92,
+        108
+      ],
+      "ghost": [
+        44,
+        58
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.36,
+      "tresilloBias": 0.1
+    },
+    "snare": {
+      "rimshotLayer": false,
+      "ghost": {
+        "prob": 0.24,
+        "pos": [
+          "1a",
+          "3a"
+        ],
+        "vel": [
+          0.22,
+          0.38
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.46,
+      "velocities": {
+        "main": [
+          0.8,
+          0.96
+        ],
+        "ghost": [
+          0.2,
+          0.44
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.12
+      },
+      "openHat": {
+        "prob": 0.28,
+        "pos": [
+          "1&",
+          "3&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "rim"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        64,
+        104
+      ],
+      "gapProb": 0.42,
+      "descendProb": 0.22,
+      "rampJitter": 8
+    }
+  },
+  "melody": {
+    "register": [
+      59,
+      81
+    ],
+    "densityPerBar": [
+      2,
+      5
+    ],
+    "intervals": {
+      "step": 0.56,
+      "third": 0.3,
+      "leap": 0.14
+    },
+    "contour": {
+      "riff": 0.68,
+      "descend": 0.22,
+      "arch": 0.1
+    },
+    "chordToneBias": 0.66,
+    "octaveJumpProb": 0.06,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "timbreHint": "clean_guitar"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.38,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.15,
+      "seventh": 0.75,
+      "ninth": 0.1
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        51,
+        85
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        5,
+        3,
+        1
+      ]
+    },
+    "impliedByRiff": true,
+    "chordDurationBeats": [
+      4,
+      16
+    ]
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.25,
+    "register": [
+      28,
+      50
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "M2",
+      "m3",
+      "P4",
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.4
+  }
+}

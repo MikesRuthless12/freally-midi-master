@@ -1,0 +1,291 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "raekwon",
+  "type": "artist",
+  "name": "Raekwon",
+  "aliases": [
+    "raekwon",
+    "the chef",
+    "lex diamonds",
+    "corey woods",
+    "purple tape"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "boom-bap"
+  ],
+  "era": "1995-2009",
+  "genres": [
+    "rap",
+    "boom-bap"
+  ],
+  "relatedGenres": [
+    "boom-bap",
+    "dark-trap",
+    "lofi-hiphop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 boom-bap — Raekwon",
+    "Wikipedia — Only Built 4 Cuban Linx...",
+    "Sweetwater — the gear behind Wu-Tang Clan's Enter the Wu-Tang (36 Chambers)"
+  ],
+  "notes": "The purple-tape palette, and the parameter nothing else on this axis has is the scale table: the research names melodic-minor and harmonic-minor motifs specifically, so `melodic_minor` sits at real weight rather than as a colour — that raised 6th and 7th over a minor tonic is the cinematic string sound the entry describes. The other identifying claim is negative space: \"Long silences between motif statements\" and \"heavy use of loop-only bars with drums muted\", authored as `melody.densityPerBar` 1–4 and `arrangement.transitions.dropOutBeats.prob` 0.8, the highest in this batch. Hats are sparse, so the hat block is non-continuous; `fillDensity` is held at 0.3 because a model that declares a hat block owes every seed a hat. `timbreHint` is `piano` for the solo piano or violin figure, and there are no pads, which is why the countermelody is an answer lick rather than an `arp` wash. ⚠ **The bass is `mirror_kick`, not a held note, and that is an engine limit rather than a reading of the record.** The research says sustained sub on the tonic with an occasional two-note motion; `followRootsProb` 0.9 with `P5` as the only passing tone is that two-note motion, and `reese_sustain` is refused because it saturates. ⚠ `medium` because the research rates it high-medium; the album production and RZA's method are documented but the tempo band is catalog-level.",
+  "session": {
+    "bpm": {
+      "min": 84,
+      "max": 95,
+      "mode": 89
+    },
+    "scales": {
+      "values": [
+        "harmonic_minor",
+        "melodic_minor",
+        "natural_minor"
+      ],
+      "weights": [
+        4,
+        3,
+        3
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.54
+    },
+    "humanize": {
+      "quantizeStrength": 0.79,
+      "velocityVar": 0.12
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.29,
+      "tresilloBias": 0.15,
+      "subLayerVelocity": [
+        0.5,
+        0.6
+      ],
+      "lockTo808": 0
+    },
+    "snare": {
+      "rimshotLayer": false,
+      "ghost": {
+        "prob": 0.1,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.18,
+          0.32
+        ]
+      },
+      "placement": "backbeat_24",
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.3,
+      "velocities": {
+        "main": [
+          0.58,
+          0.8
+        ],
+        "ghost": [
+          0.12,
+          0.32
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.1
+      },
+      "openHat": {
+        "prob": 0.1,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        46,
+        90
+      ],
+      "gapProb": 0.56,
+      "descendProb": 0.18,
+      "rampJitter": 2
+    }
+  },
+  "melody": {
+    "register": [
+      59,
+      82
+    ],
+    "densityPerBar": [
+      1,
+      4
+    ],
+    "intervals": {
+      "step": 0.6,
+      "third": 0.26,
+      "leap": 0.14
+    },
+    "contour": {
+      "riff": 0.42,
+      "descend": 0.42,
+      "arch": 0.16
+    },
+    "chordToneBias": 0.66,
+    "halfStepDissonance": 0.14,
+    "octaveJumpProb": 0.05,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "timbreHint": "piano"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.42,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 3
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.42,
+      "seventh": 0.44,
+      "ninth": 0.14
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        46,
+        81
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "vamp",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    },
+    "chordDurationBeats": [
+      2,
+      16
+    ]
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.73,
+    "register": [
+      24,
+      42
+    ],
+    "glideProb": 0,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.17
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": 24,
+      "hook": 8,
+      "bridge": [
+        4,
+        8
+      ],
+      "outro": 4
+    },
+    "transitions": {
+      "dropOutBeats": {
+        "prob": 0.8,
+        "beats": 2
+      },
+      "switchUpProb": 0.4
+    }
+  }
+}

@@ -30,9 +30,8 @@
     "generating": "Genereren…",
     "readyBody": "{{name}} staat klaar. Klik op Genereren.",
     "generateAll": "Alles genereren",
-    "clear": "Wissen",
-    "clearAll": "Alles wissen",
-    "clearLabel": "Gegenereerde partijen wissen"
+    "clearOne": "{{part}} wissen",
+    "clearAll": "Alles wissen"
   },
   "rails": {
     "searchPlaceholder": "Zoek een artiest…",
@@ -141,7 +140,6 @@
     "loop": "Loop",
     "masterLevel": "Masterniveau: stil",
     "toggleRightRail": "Rechterbalk tonen of verbergen (K)",
-    "windowSize": "Venstergrootte",
     "loopAlways": "Afspelen loopt in deze fase altijd door.",
     "unavailable": "Afspelen is niet beschikbaar: {{reason}}"
   },
@@ -160,8 +158,7 @@
     "button": "Weergave",
     "panels": "Panelen",
     "rightRail": "Rechterbalk",
-    "showAll": "Alle panelen tonen",
-    "hideAll": "Alle panelen verbergen"
+    "stage": "Podium"
   },
   "settings": {
     "title": "Instellingen",
@@ -212,14 +209,18 @@
     "rollCount": "{{count}} slagen",
     "addFill": "Fill toevoegen aan {{lane}}",
     "reassignLane": "{{lane}} wijzigen in een ander drumgeluid",
-    "lockLane": "{{lane}} behouden bij opnieuw genereren"
+    "lockLane": "{{lane}} behouden bij opnieuw genereren",
+    "pitchRows": "Toonhoogterijen voor {{lane}}",
+    "pitchCell": "{{lane}} {{pitch}}, stap {{step}}",
+    "semitoneRow": "{{offset}} halve tonen vanaf de grondtoon",
+    "hitsAbove": "{{count}} aanslagen boven het venster",
+    "hitsBelow": "{{count}} aanslagen onder het venster"
   },
   "roster": {
     "artists": "Artiesten",
+    "producers": "Producers",
     "flagship": "Vlaggenschip",
     "genre": "Stijl",
-    "filteredBy": "Gefilterd op {{name}}",
-    "showAll": "Alles tonen",
     "noneInGenre": "Nog geen artiesten in {{name}}.",
     "standard": "Standaard",
     "inherited": "Overgeërfd"
@@ -382,6 +383,7 @@
       "nudge": "In de tijd verschuiven",
       "stretch": "Naar dubbele lengte rekken",
       "compress": "Naar halve lengte comprimeren",
+      "reverseNote": "Geselecteerde noot omkeren",
       "triplet": "Triool in deze cel",
       "quintuplet": "Kwintool in deze cel",
       "septuplet": "Septool in deze cel",
@@ -409,15 +411,20 @@
     "up": "Omhoog",
     "empty": "Geen samples in deze map.",
     "truncated": "Deze map bevat meer bestanden dan er worden getoond.",
+    "filter": "Filteren op naam",
+    "filterScope": "Er wordt gezocht in de mappen die je hebt geopend.",
+    "noMatches": "Hier komt niets overeen.",
+    "missing": "{{name}} is momenteel niet bereikbaar.",
+    "recheck": "Opnieuw controleren",
     "pickAFile": "Kies een sample om het te beluisteren.",
     "decoding": "Bezig met lezen…",
     "waveformOf": "Golfvorm van {{name}}",
     "reverse": "Achterstevoren afspelen",
     "resize": "Breedte van de browser aanpassen",
-    "fillRail": "Geef de browser de hele balk",
-    "restoreRail": "Toon de roster weer",
     "folderLimit": "Je kunt 8 mappen tegelijk doorzoeken — sluit er een om er een toe te voegen",
     "favourites": "Favorieten met ster",
+    "recent": "Recent",
+    "clearRecent": "Geschiedenis wissen",
     "star": "{{name}} als favoriet markeren",
     "unstar": "Ster van {{name}} verwijderen",
     "revealHint": "{{path}} tonen in de verkenner",
@@ -434,7 +441,8 @@
       "kitShape": "Speelt als een drumkit"
     },
     "midiFound": "Inhoud van dit MIDI-bestand",
-    "midiNotes": "Noten"
+    "midiNotes": "Noten",
+    "midiAuditionClipped": "Alleen de eerste twee minuten worden beluisterd."
   },
   "patterns": {
     "name": "Geef dit patroon een naam",
@@ -456,13 +464,23 @@
     "none": "Nog geen takes",
     "made": "{{bpm}} BPM · {{scale}}"
   },
+  "takes": {
+    "label": "Takegeschiedenis",
+    "none": "Nog niets gegenereerd.",
+    "clear": "Takegeschiedenis wissen",
+    "close": "Sluiten",
+    "detail": "{{bars}} maten · {{bpm}} BPM"
+  },
   "artist": {
     "label": "Over deze selectie",
     "tendsTo": "Neigt naar",
     "tempo": "{{bpm}} BPM",
+    "tempoRange": "{{low}}–{{high}} BPM",
     "key": "{{key}} {{scale}}",
     "halfTime": "half-time",
-    "moods": "{{count}} moods"
+    "moods": "Sferen",
+    "writes": "Schrijft",
+    "doesNotWrite": "Schrijft niet"
   },
   "styles": {
     "original": "Eigen workflow",

@@ -173,6 +173,7 @@ fn read(bytes: &[u8]) -> Result<Parsed, String> {
                     model_vel: None,
                     slide_to_pitch: None,
                     articulation: None,
+                    reversed: false,
                 },
             ));
         }
@@ -1209,6 +1210,7 @@ fn close(
             model_vel: None,
             slide_to_pitch: None,
             articulation: None,
+            reversed: false,
         },
     ));
 }
@@ -1296,6 +1298,7 @@ mod tests {
                         model_vel: None,
                         slide_to_pitch: None,
                         articulation: None,
+                        reversed: false,
                     })
                     .collect(),
             }],
@@ -1342,6 +1345,7 @@ mod tests {
                 model_vel: None,
                 slide_to_pitch: None,
                 articulation: None,
+                reversed: false,
             }],
         });
 

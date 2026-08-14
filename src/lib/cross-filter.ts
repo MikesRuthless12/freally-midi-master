@@ -24,7 +24,12 @@ export type CrossFiltered = {
 };
 
 export function crossFilter(roster: RosterEntry[], selectedId: string | null): CrossFiltered {
-  const artists = roster.filter((entry) => entry.type === 'artist');
+  // ⛔ **`!== 'genre'`, not `=== 'artist'`.** Producers became their own type on
+  // 2026-08-12, and every filter here spelled as "the artists" would have begun
+  // hiding 190 of the 534 names the day that variant landed — silently, because
+  // a shorter list is not an error. The question this asks has always been "is
+  // it a style a producer picks", never "is it specifically an artist".
+  const artists = roster.filter((entry) => entry.type !== 'genre');
   const genres = roster.filter((entry) => entry.type === 'genre');
   const everything: CrossFiltered = { artists, genres, filteredBy: null };
 

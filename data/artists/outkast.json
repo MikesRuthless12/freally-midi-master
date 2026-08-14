@@ -1,0 +1,383 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "outkast",
+  "type": "artist",
+  "name": "OutKast",
+  "aliases": [
+    "outkast",
+    "out kast",
+    "andre 3000",
+    "andre 3k",
+    "outkast type beat",
+    "atliens",
+    "stankonia"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "dungeon-family"
+  ],
+  "era": "1994–2006",
+  "genres": [
+    "rap",
+    "southern rap",
+    "soul",
+    "funk",
+    "psychedelic"
+  ],
+  "relatedGenres": [
+    "dungeon-family",
+    "funk",
+    "neo-soul",
+    "pop-2000s",
+    "crunk",
+    "atl-swag-rap"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended vol.1 crunk — OutKast",
+    "Wikipedia — OutKast (https://en.wikipedia.org/wiki/OutKast)",
+    "Wikipedia — Hey Ya! (https://en.wikipedia.org/wiki/Hey_Ya!)"
+  ],
+  "notes": "The one entry on this axis whose tempo is two bands rather than one: the research documents 68–92 half-time or straight on the 1994–98 records and a deliberate jump to \"faster, more chaotic tempos to reflect rave culture\" on the 2000+ material, with the 2003 pop single at 159 BPM in G major. `bpm` therefore spans 68–160 with mode 90, and the two ends are reachable separately through the inherited `soul band` and `rave` modes rather than by averaging them into a lane that neither record sits in. G is the top-weighted key because it is the one documented one. ⛔ **The harmony is the reason this is not crunk.** The research says \"real harmonic motion, unlike the rest of this section\" and names the 2003 single's I–IV–V–VI outright, so that family carries the top weight and is authored as written — VI rather than vi, which is what makes its cadence deceptive. The minor 7/9 soul vamps and the gospel plagal IV–I tag are the other named families; `extensions.ninth` at 0.30 is what \"minor 7/9\" means in this engine, and `borrowed.V` at 0.30 is the documented modal mixture. ⚠ **The metric signature is only half-expressible, exactly as its parent says.** The research asks for a meter change on the fourth measure of each six-measure phrase — 22 quarter-note beats per phrase — and the schema has no time signature. What is reachable is the phrase length, so `melody.phraseBars` puts 6 at the top weight alongside 4; every bar is still 4/4 and the signature figure itself is not in this file. The documented beat switches inside tracks are `arrangement.transitions.switchUpProb` 0.5. ⚠ `snare.placement` is `backbeat_24` because that is the research's *fast* mode; the backbeat-on-3 half-time reading is the inherited `dark church` mode's `halftime_3`, so both placements the paragraph names are reachable without this file claiming one is the default for both feels. ⚠ `humanize.quantizeStrength` 0.6 and `velocityVar` 0.28 are a reading of \"live-feel kit\", not a counted figure — they are looser than the parent's because the research puts the programmed snares *on top of* a played kit here rather than the other way round. `timbreHint` is `acoustic_guitar` for the named \"Southern-styled guitar licks\" and acoustic guitar; the vocoder-treated backing vocals are the countermelody, which is why `fillGapsOnly` stays false and it sits an octave above the lead. This model's fill band is `smallEveryBars` 2 / `bigEveryBars` 4 with a 16th/32nd strong-weak roll; within that band its `gapProb` 0.30, `descendProb` 0.58 and `rampJitter` 19 are its own, so it does not write its parent's fill. ⚠ **`lockTo808` raised from 0.3 to 0.47.** The 808 takes each kick with this probability, and at 0.3 over this model's 12-kick floor a seed could produce no 808 at all — which `bass808.rs` refuses, because a declared 808 that sometimes vanishes is a part a producer cannot rely on. It is still well under a lock: a good share of kicks carry no sub. ⚠ The chord voicing moved up to [56, 92] so the bass stays under the harmony — it started at 45 against a bass reaching 55, an overlap of 11. The span is preserved; a voicing that low was competing with the bass rather than sitting over it. ⚠ `countermelody.fillGapsOnly` returned to true. With it off and a density of 0.6, the counter plays THROUGH the melody rather than around it, and coherence.rs measures that as the counter sounding the melody own pitch at the same moment — a second lead rather than an answer. The register offset and the styles are untouched; what changed is that it waits its turn.",
+  "session": {
+    "bpm": {
+      "min": 68,
+      "max": 160,
+      "mode": 90
+    },
+    "keys": {
+      "values": [
+        "G",
+        "Fm",
+        "Cm",
+        "Gm",
+        "Dm",
+        "Am",
+        "C",
+        "F",
+        "Bb"
+      ],
+      "weights": [
+        5,
+        4,
+        4,
+        3,
+        3,
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "dorian",
+        "mixolydian",
+        "natural_minor",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        4,
+        4,
+        3,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.6,
+      "velocityVar": 0.28
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.52,
+      "offbeat8thShare": 0.26,
+      "lockTo808": 0.47
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "layerClapOffsetMs": [
+        4,
+        12
+      ],
+      "ghost": {
+        "prob": 0.46,
+        "pos": [
+          "1a",
+          "2e",
+          "3e",
+          "3a",
+          "4a"
+        ],
+        "vel": [
+          0.18,
+          0.4
+        ]
+      }
+    },
+    "hihat": {
+      "base": {
+        "values": [
+          "16th",
+          "8th"
+        ],
+        "weights": [
+          4,
+          3
+        ]
+      },
+      "continuous": true,
+      "fillDensity": 0.52,
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "16T"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "pre_snare"
+        ],
+        "freqPerBar": 0.56,
+        "velocityRamp": true
+      },
+      "openHat": {
+        "prob": 0.38,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "conga",
+        "shaker",
+        "ride",
+        "crash"
+      ],
+      "densityPerBar": [
+        2,
+        4
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 4
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th",
+        "32nd"
+      ],
+      "grouping": [
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        63,
+        127
+      ],
+      "gapProb": 0.29,
+      "descendProb": 0.61,
+      "rampJitter": 19,
+      "pitchWalk": 3
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V",
+          "VI"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII",
+          "III"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "ii",
+          "v",
+          "i"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "IV",
+          "I"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "I",
+          "vi",
+          "IV",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.24,
+      "seventh": 0.46,
+      "ninth": 0.3
+    },
+    "borrowed": {
+      "V": 0.3
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        56,
+        92
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "syncopated_cell"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      2,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      55,
+      86
+    ],
+    "densityPerBar": [
+      3,
+      8
+    ],
+    "phraseBars": {
+      "values": [
+        6,
+        4,
+        8,
+        2
+      ],
+      "weights": [
+        4,
+        4,
+        3,
+        2
+      ]
+    },
+    "contour": {
+      "riff": 0.3,
+      "descend": 0.3,
+      "arch": 0.4
+    },
+    "chordToneBias": 0.6,
+    "octaveJumpProb": [
+      0.06,
+      0.24
+    ],
+    "timbreHint": "acoustic_guitar"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.6,
+    "fillGapsOnly": true,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.42,
+    "register": [
+      28,
+      55
+    ],
+    "glideProb": 0.05,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2",
+      "M6",
+      "m3"
+    ],
+    "anticipationProb": 0.45
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        4,
+        12
+      ],
+      "verse": 16,
+      "hook": 8,
+      "outro": [
+        8,
+        16
+      ]
+    },
+    "transitions": {
+      "dropOutBeats": {
+        "prob": 0.35,
+        "beats": 2
+      },
+      "switchUpProb": 0.5
+    }
+  }
+}

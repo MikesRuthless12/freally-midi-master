@@ -1,0 +1,329 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "fenix-flexin",
+  "type": "artist",
+  "name": "Fenix Flexin",
+  "aliases": [
+    "fenix flexin",
+    "fenix",
+    "shoreline mafia"
+  ],
+  "tier": "standard",
+  "extends": [
+    "west-coast-club"
+  ],
+  "era": "2019-present",
+  "genres": [
+    "rap",
+    "west coast",
+    "club"
+  ],
+  "relatedGenres": [
+    "west-coast-club",
+    "jerk",
+    "detroit-bounce"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 west-coast-club — Fenix Flexin",
+    "https://djbooth.net/features/2021-10-18-fenix-flexin-interview-audiomack/",
+    "https://songdata.io/search?query=Shoreline+Mafia"
+  ],
+  "notes": "Shoreline's rawer voice solo, over the same bench (Ron-Ron, Cypress Moreno, Bruce24k). Two things are genuinely his rather than the bench's. ⚠ **\"Subtly innovative\" is a timing parameter, not an instrument one.** The research spells it out — the innovation is \"small displacements in the clap and hat grid rather than new instruments\" — so nothing new is added to the kit and instead `snare.offGridMs` is 6, the hat swing goes to 0.56, and `timingJitterMs` on clap and closed hat is the highest in this batch. ⚠ **The recording process is a real parameter here**, and the research says so: he moved from following other voices to leading the session and navigates the beat \"fluid\"ly \"rather than gridded 16s\". That is `quantizeStrength` 0.72 — the loosest of my nineteen — and `sectionBars.verse` as a 10–16 range instead of a fixed 16. **The band is 97–119**, wider than his group's, because \"RUBBERZ\" measures 119 in B♭ major against group cuts at 97–105. ⛔ `chords.impliedByRiff` is set for the researched reason: \"single synth or guitar motif over a static minor **or major** chord; 2-bar loops\" — so both a static `i` and a static `I` are authored, which is the balanced major/minor key profile the research measures, and no progression beyond them is invented. ⚠ `confidence` is `medium` and the research marks the **harmonic detail specifically [LOW-CONF]** — `extensions` and `voicing` are the inferred parameters; the tempo, the keys and the process are the sourced ones. Fill fingerprint band G.",
+  "session": {
+    "bpm": {
+      "min": 97,
+      "max": 119,
+      "mode": 103
+    },
+    "keys": {
+      "values": [
+        "Bb",
+        "Abm",
+        "A",
+        "Bm"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        3
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "major",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        3,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.56
+    },
+    "humanize": {
+      "quantizeStrength": 0.72,
+      "velocityVar": 0.2,
+      "timingJitterMs": {
+        "kick": 5,
+        "snare": 6,
+        "clap": 8,
+        "snap": 8,
+        "closedHat": 7,
+        "openHat": 6
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.4,
+      "lockTo808": 0.8
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "stack": [
+        "clap",
+        "snap"
+      ],
+      "offGridMs": 6,
+      "ghost": {
+        "prob": 0.14,
+        "pos": [
+          "4e",
+          "4a"
+        ],
+        "vel": [
+          0.32,
+          0.48
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.34,
+      "openHat": {
+        "prob": 0.4,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "rolls": {
+        "vocab": [
+          "32",
+          "32T"
+        ],
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.55
+      }
+    },
+    "percs": {
+      "lanes": [
+        "snap",
+        "perc"
+      ],
+      "densityPerBar": [
+        1,
+        2
+      ]
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "slideProb": 0.5,
+      "slideIntervals": {
+        "values": [
+          "m3",
+          "P4",
+          "P5"
+        ],
+        "weights": [
+          3,
+          2,
+          2
+        ]
+      },
+      "slidePositions": [
+        "phrase_end"
+      ],
+      "register": [
+        28,
+        42
+      ],
+      "distortion": "medium"
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 4
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "32nd"
+      ],
+      "grouping": [
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        57,
+        103
+      ],
+      "rampJitter": 21,
+      "gapProb": 0.22,
+      "descendProb": 0.4
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I"
+        ],
+        "weight": 3
+      }
+    ],
+    "maxChords": 2,
+    "impliedByRiff": true,
+    "chordDurationBeats": [
+      5,
+      14
+    ],
+    "extensions": {
+      "triad": 0.74,
+      "seventh": 0.22,
+      "ninth": 0.04
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        45,
+        79
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "syncopated_cell",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      63,
+      87
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        1
+      ]
+    },
+    "densityPerBar": [
+      2,
+      5
+    ],
+    "motifPitchCount": [
+      3,
+      5
+    ],
+    "intervals": {
+      "step": 0.54,
+      "third": 0.3,
+      "leap": 0.16
+    },
+    "contour": {
+      "riff": 0.6,
+      "descend": 0.25,
+      "arch": 0.15
+    },
+    "chordToneBias": 0.74,
+    "octaveJumpProb": 0.1,
+    "timbreHint": "clean_guitar"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.36,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "sectionBars": {
+      "intro": 4,
+      "verse": [
+        10,
+        16
+      ],
+      "hook": 8,
+      "outro": 4
+    }
+  }
+}

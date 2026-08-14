@@ -1,0 +1,321 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "yo-yo",
+  "type": "artist",
+  "name": "Yo-Yo",
+  "aliases": [
+    "yo yo",
+    "yo-yo",
+    "yolanda whitaker",
+    "ibwc",
+    "intelligent black womens coalition"
+  ],
+  "tier": "standard",
+  "extends": [
+    "g-funk"
+  ],
+  "era": "1991-1996",
+  "genres": [
+    "rap",
+    "g-funk",
+    "west coast"
+  ],
+  "relatedGenres": [
+    "g-funk",
+    "funk",
+    "rnb-2000s",
+    "boom-bap"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended vol.1 g-funk — Yo-Yo",
+    "https://medium.com/cuepoint/ice-cube-check-the-technique-202d2a794008",
+    "https://ambrosiaforheads.com/2016/11/ice-cube-death-certificate-sir-jinx-retrospective/"
+  ],
+  "notes": "⚠ **`confidence` is `low`**: the research rates this medium-low and marks it [LOW-CONF] with the reason stated — her production camp (Sir Jinx, the Boogie Men) is documented, her own workflow is not. Everything here is the camp's idiom with her records' two named differences applied on top. Those two are worth the entry: a bright, high-tuned snare with clap doubling, which is `velocityTiers.accent` at 104–124 with a `main` tier lifted to 78–92; and \"more percussion (congas, tambourine) than the male Lench Mob records\", which is four perc lanes at 3–5 a bar with `percs.tambourine` steady on the 8ths. The swung 16th hats are the heaviest swing in this batch at 0.62. ⚠ The harmony is authored major-first because the research says major-mode soul and funk loop sources with minor-mode bridges — so `major` and `mixolydian` carry the scale weight and a `I–vi–IV–V` family sits at the top, with the minor families present for the bridges rather than the loops. ⚠ Melody register 64–84 is not a guess: the research says mid-register lead voices deliberately placed to sit *under* her vocal, which is the only entry in this batch where the lead is instructed to stay low. The bass walks rather than sits on roots (`followRootsProb` 0.38), and the sung female backing hooks are `octave_echo` above the line.",
+  "session": {
+    "bpm": {
+      "min": 92,
+      "max": 102,
+      "mode": 96
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "natural_minor",
+        "dorian"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.62
+    },
+    "humanize": {
+      "quantizeStrength": 0.8,
+      "velocityVar": 0.18
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        104,
+        124
+      ],
+      "main": [
+        78,
+        92
+      ],
+      "ghost": [
+        34,
+        48
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.38,
+      "tresilloBias": 0.18,
+      "offbeat8thShare": 0.28
+    },
+    "snare": {
+      "rimshotLayer": true,
+      "ghost": {
+        "prob": 0.24,
+        "pos": [
+          "2e",
+          "4e"
+        ],
+        "vel": [
+          0.22,
+          0.4
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.48,
+      "openHat": {
+        "prob": 0.3,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "rolls": {
+        "vocab": [
+          "32"
+        ],
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.26
+      }
+    },
+    "percs": {
+      "lanes": [
+        "conga",
+        "shaker",
+        "bongo"
+      ],
+      "tambourine": true,
+      "densityPerBar": [
+        3,
+        5
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t",
+        "8t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        72,
+        113
+      ],
+      "gapProb": 0.27,
+      "descendProb": 0.5,
+      "rampJitter": 13,
+      "pitchWalk": 4
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "vi",
+          "IV",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.32,
+      "seventh": 0.5,
+      "ninth": 0.18
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        49,
+        77
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      64,
+      84
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "densityPerBar": [
+      3,
+      6
+    ],
+    "chordToneBias": 0.72,
+    "octaveJumpProb": 0.1,
+    "timbreHint": "horn_stab"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.5,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.38,
+    "register": [
+      28,
+      47
+    ],
+    "glideProb": 0.3,
+    "passingTones": [
+      "M2",
+      "m3",
+      "P4",
+      "P5",
+      "M6",
+      "m7"
+    ],
+    "anticipationProb": 0.28
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "bridge",
+          "hook",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": 16,
+      "hook": 8,
+      "bridge": 8,
+      "outro": 4
+    }
+  }
+}

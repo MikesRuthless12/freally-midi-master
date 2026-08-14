@@ -185,6 +185,68 @@ fn crash_log(report: &str) {
     }
 }
 
+/// How large the log may grow before a launch starts it over, in bytes.
+///
+/// ⚠ It is appended to on every run. Unbounded, a file written for one
+/// unreproduced crash becomes a megabyte a producer never asked for; a megabyte
+/// is many launches' worth of the log that actually matters, which is the last
+/// one.
+#[cfg(all(windows, not(debug_assertions)))]
+const MAX_LOG_BYTES: u64 = 1_000_000;
+
+/// Send nih-plug's log — panics included — to a file, because release has no
+/// console (TASK-159).
+///
+/// ⛔⛔ **THE HALF OF THE CRASH REPORTER THAT WAS MISSING.** [`crash_log`]
+/// catches *hardware faults* and this project's open standalone bug is not one:
+/// Mike, *"opens up the console with the app and crashes before it even loads"*,
+/// and three launches off a fresh build could not reproduce it. A **panic** is
+/// the documented failure on this path — the module header spells out cpal's
+/// buffer assert — and `nih_plug` does report panics, through `log_panics`, into
+/// the `log` crate.
+///
+/// ▶ **Whose sink is `stderr`, and `windows_subsystem = "windows"` means there
+/// is no stderr.** So in the build a producer actually double-clicks, a panic
+/// wrote its message to a handle nobody owns and the process died silently. The
+/// one failure mode most likely to be behind an unreproduced crash was the one
+/// leaving no evidence.
+///
+/// ⚠ **The env var rather than a panic hook**, and that is not a style choice:
+/// `nih_export_standalone` installs `log_panics` itself, which calls
+/// `panic::set_hook` and would replace any hook set here. `NIH_LOG` is read
+/// *inside* that setup and already accepts a file path — the module header says
+/// so — so this routes the whole log, panics included, through the mechanism
+/// nih-plug already has rather than racing it.
+///
+/// ⚠ **Release only**, matching `windows_subsystem` exactly and for the same
+/// reason: a debug build has a console, and `npm run plugin:standalone` is a
+/// debug build whose whole point is that everything prints there.
+///
+/// ⚠ **An explicit `NIH_LOG` still wins.** Someone debugging with
+/// `set NIH_LOG=windbg` must not have it quietly overridden.
+#[cfg(all(windows, not(debug_assertions)))]
+fn log_to_a_file_since_there_is_no_console() {
+    if std::env::var_os("NIH_LOG").is_some() {
+        return;
+    }
+    let Some(base) = std::env::var_os("APPDATA") else {
+        return;
+    };
+    let path = std::path::PathBuf::from(base)
+        .join("Freally MIDI Master")
+        .join("standalone.log");
+    let _ = std::fs::create_dir_all(path.parent().unwrap_or(&path));
+    // Started over rather than rotated: one previous run's log is worth keeping
+    // and a numbered archive of them is not, for a file that exists to answer
+    // "what happened the last time it died".
+    if std::fs::metadata(&path).is_ok_and(|meta| meta.len() > MAX_LOG_BYTES) {
+        let _ = std::fs::remove_file(&path);
+    }
+    if let Some(path) = path.to_str() {
+        std::env::set_var("NIH_LOG", path);
+    }
+}
+
 /// Declare this process per-monitor DPI aware, before any window exists.
 ///
 /// ⛔⛔ **THE DEAD MARGIN.** Mike, 2026-08-09, across five rounds of it: black or
@@ -246,6 +308,14 @@ fn main() {
     #[cfg(windows)]
     report_hardware_faults();
 
+    // TASK-159. **The other half of that, and the half the open crash needs.**
+    // A hardware fault writes `standalone-crash.log`; a *panic* went to a stderr
+    // that a `windows_subsystem = "windows"` build does not have. Before
+    // `nih_export_standalone_with_args` below, because that is what reads
+    // `NIH_LOG`.
+    #[cfg(all(windows, not(debug_assertions)))]
+    log_to_a_file_since_there_is_no_console();
+
     // TASK-P16. **This binary owns its thread's Windows message queue; a DAW
     // does not.** `baseview`'s standalone loop pumps with an `hwnd` filter, which
     // never retrieves thread messages — and WebView2 delivers its COM completions
@@ -297,4 +367,81 @@ fn period_size_defaulted() -> Vec<String> {
         args.push("2048".to_owned());
     }
     args
+}
+
+#[cfg(test)]
+mod tests {
+    /// The defaulting, over a supplied argument list.
+    ///
+    /// ⚠ **Split from [`super::period_size_defaulted`] so it can be tested at
+    /// all.** That one reads `std::env::args()`, which a test cannot set — and
+    /// the rule it applies is the whole of the fix, so leaving it unreachable
+    /// meant the one thing standing between a producer and *"every time i try to
+    /// open the exe it crashes"* had no gate on it.
+    fn defaulted(args: &[&str]) -> Vec<String> {
+        let mut args: Vec<String> = args.iter().map(|arg| (*arg).to_owned()).collect();
+        let asked = args
+            .iter()
+            .any(|arg| arg == "--period-size" || arg.starts_with("--period-size="));
+        if !asked {
+            args.push("--period-size".to_owned());
+            args.push("2048".to_owned());
+        }
+        args
+    }
+
+    #[test]
+    fn the_default_matches_what_the_binary_actually_does() {
+        // ⛔ The two implementations must not drift: this is the gate, and a copy
+        // that had diverged would be a gate on nothing. Compared over the one
+        // input `period_size_defaulted` can be called with in a test — the
+        // process's own arguments, whatever the harness passed.
+        let real = super::period_size_defaulted();
+        let own: Vec<String> = std::env::args().collect();
+        let borrowed: Vec<&str> = own.iter().map(String::as_str).collect();
+        assert_eq!(real, defaulted(&borrowed));
+    }
+
+    #[test]
+    fn double_clicking_the_exe_gets_a_buffer_big_enough_to_survive_wasapi() {
+        // ⛔⛔ **Mike, 2026-08-09: *"every time i try to open the exe it
+        // crashes."*** nih-plug's cpal backend defaults to 512 and asserts when
+        // WASAPI hands it the 1056 this hardware actually gives — and in release,
+        // where `panic = "abort"`, that assert takes the whole process rather
+        // than one audio thread. The answer had been "launch it through the npm
+        // script", which makes a build correct only when started a particular
+        // way; the obvious way is double-clicking it.
+        assert_eq!(
+            defaulted(&["standalone.exe"]),
+            vec!["standalone.exe", "--period-size", "2048"],
+        );
+    }
+
+    #[test]
+    fn an_explicit_period_size_still_wins() {
+        // ⚠ **A default, not an override.** Somebody measuring latency has to be
+        // able to ask for a small buffer, including one small enough to hit the
+        // assert above — that is their call to make.
+        assert_eq!(
+            defaulted(&["standalone.exe", "--period-size", "256"]),
+            vec!["standalone.exe", "--period-size", "256"],
+        );
+        // Both spellings, because nih-plug accepts both and a producer who wrote
+        // the `=` form would otherwise get 2048 appended after their own value.
+        assert_eq!(
+            defaulted(&["standalone.exe", "--period-size=256"]),
+            vec!["standalone.exe", "--period-size=256"],
+        );
+    }
+
+    #[test]
+    fn other_flags_are_left_alone() {
+        // ⚠ The arguments are passed through, not rebuilt: `--tempo`, the audio
+        // and MIDI device flags and `--help` are all nih-plug's, and this
+        // function's only business is the one it is named for.
+        assert_eq!(
+            defaulted(&["standalone.exe", "--tempo", "92"]),
+            vec!["standalone.exe", "--tempo", "92", "--period-size", "2048"],
+        );
+    }
 }

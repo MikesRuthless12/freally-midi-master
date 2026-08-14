@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { browserRow } from './app';
+import { browserRow, openPanel } from './app';
 
 /**
  * The sample browser and its audition player, end to end (TASK-132).
@@ -23,6 +23,8 @@ import { browserRow } from './app';
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('tablist', { name: 'Generator' })).toBeVisible();
+  // ⛔ The panel is behind a vertical tab now — `openPanel` presses it.
+  await openPanel(page, 'explorer');
 });
 
 test('starts as a list of roots, named rather than shown as full paths', async ({ page }) => {
@@ -132,24 +134,38 @@ test('the arrows open and shut folders', async ({ page }) => {
   await expect(browserRow(page, 'Kicks')).toBeHidden();
 });
 
-test('up and down walk the tree without auditioning anything', async ({ page }) => {
-  // TASK-058A: *"`↑`/`↓` move the selection, so a producer can walk a folder and
-  // hear every file … without touching the mouse."* Paired with →, which is what
-  // actually plays — auditioning on every step would make ↓ unusable for simply
-  // getting past a folder.
+test('up and down walk the tree, and a sample auditions as it is reached', async ({ page }) => {
+  // ⛔⛔ **THIS ASSERTED THE OPPOSITE UNTIL 2026-08-11**, and the old rule was
+  // TASK-058A's: *"↑/↓ move the selection … paired with →, which is what actually
+  // plays — auditioning on every step would make ↓ unusable for simply getting
+  // past a folder."* Mike overruled it by name: *"the files need to play as you
+  // go up and down in the list with the up/down arrow or by clicking on them."*
+  //
+  // ⚠ **The folder case is what the old rule was protecting, and it still holds:**
+  // walking onto a *directory* auditions nothing, because a directory has no
+  // sample. So ↓ past a folder is still silent; it is only files that sound.
   await browserRow(page, 'Samples').click();
+  // The listing arrives from the bridge, so the rows below Samples only exist a
+  // tick later — arrowing before then walks a one-row tree.
+  await expect(browserRow(page, 'Kicks')).toBeVisible();
   await browserRow(page, 'Samples').focus();
 
   await page.keyboard.press('ArrowDown');
   await expect(browserRow(page, 'Kicks')).toBeFocused();
+  // A folder: nothing to hear, so the preview is still empty.
+  await expect(page.getByText('Pick a sample to preview it.')).toBeVisible();
+
   await page.keyboard.press('ArrowDown');
   await expect(browserRow(page, 'clap-01.wav')).toBeFocused();
+  // A file: reaching it selects it, and selecting is what auditions. The
+  // waveform itself is the click test's business one screen down; what this one
+  // pins is that walking moves the *selection* rather than only the highlight,
+  // which is what the old behaviour did not do.
+  await expect(browserRow(page, 'clap-01.wav')).toHaveAttribute('aria-selected', 'true');
+  await expect(page.getByText('Pick a sample to preview it.')).toBeHidden();
+
   await page.keyboard.press('ArrowUp');
   await expect(browserRow(page, 'Kicks')).toBeFocused();
-
-  // ⚠ Walking is not selecting: nothing has been auditioned, so the preview is
-  // still empty.
-  await expect(page.getByText('Pick a sample to preview it.')).toBeVisible();
 });
 
 test('the arrows audition a sample forwards and backwards', async ({ page }) => {
@@ -191,8 +207,47 @@ test('a .mid is listed, and is not offered as a drum sample', async ({ page }) =
   await browserRow(page, 'riff.mid').click();
   // ⚠ No waveform is even asked for: a `.mid` has no PCM, and requesting one
   // would put a refusal on screen every time a producer clicked a perfectly good
-  // file. Auditioning it is TASK-058's MIDI playback and is not built yet.
+  // file. ⛔ It can now be *heard* (TASK-160) — but through a render made on the
+  // press, not through peaks drawn from a file that has none.
   await expect(page.locator('.preview__outline')).toHaveCount(0);
+});
+
+/**
+ * Hearing a `.mid` from the browser (TASK-160).
+ *
+ * ⛔⛔ Mike, 2026-08-10: *".mid files … have its own sound like Ableton does that
+ * can play the .mid file"*.
+ *
+ * ▶ **The roadmap costed this as "its own note scheduler" and it did not need
+ * one.** `midi_audition::render` builds the same `Vec<f32>` a decoded `.wav`
+ * arrives as, so the audition voice plays a MIDI file with the transport that
+ * already exists — and `plugin/src/midi_audition.rs` owns the render's rules.
+ * What only a browser shows is that the panel offers the controls and asks for
+ * the render on the press rather than on the click.
+ *
+ * ⚠ The mock has no audio thread, so the position never advances. What is
+ * checkable here is the wiring.
+ */
+test('a .mid can be played, and is not rendered until it is asked for', async ({ page }) => {
+  await browserRow(page, 'Samples').click();
+
+  await browserRow(page, 'riff.mid').click();
+  // ⛔ **Selecting does not render**, and the disabled controls are how that is
+  // visible: Stop and Loop act on a buffer, and there is not one yet. Building
+  // the audio is the slow half, and walking a folder with ↓ would render every
+  // `.mid` stepped past.
+  const transport = page.locator('.midi__transport');
+  await expect(transport).toBeVisible();
+  await expect(transport.getByRole('button', { name: 'Stop' })).toBeDisabled();
+
+  // ...and pressing Play is what asks for it, after which the rest of the
+  // transport is live.
+  await transport.getByRole('button', { name: 'Play' }).click();
+  await expect(transport.getByRole('button', { name: 'Stop' })).toBeEnabled();
+  await expect(transport.getByRole('button', { name: 'Loop' })).toBeEnabled();
+  // The readout appears once something is loaded, rather than sitting at
+  // `0:00 / 0:00` over a file nothing has rendered.
+  await expect(transport.locator('.preview__time')).toBeVisible();
 });
 
 /**
@@ -220,22 +275,35 @@ test('Add folder is disabled once eight folders are open', async ({ page }) => {
   await expect(page.getByRole('button', { name: 'Add folder' })).toBeEnabled();
 });
 
-test('the browser can take the whole rail, and give it back', async ({ page }) => {
-  // ⛔ Mike, 2026-08-10: it must *"expand as high as it can, not just a little
-  // bit or half-way up the side of the left rail."* The roster and the browser
-  // were both `flex: 1 1 0`, so each got half the rail however deep the tree ran.
-  const tree = page.locator('.tree');
-  const before = (await tree.boundingBox())!;
-
-  await page.getByRole('button', { name: 'Give the browser the whole rail' }).click();
+/**
+ * ⛔⛔ **`the browser can take the whole rail, and give it back` was deleted on
+ * 2026-08-12, and what it was gating is now structural.**
+ *
+ * It covered a "Give the browser the whole rail" button that hid the roster, for
+ * Mike's 2026-08-10 request that the tree *"expand as high as it can, not just a
+ * little bit or half-way up the side of the left rail"* — the roster and the
+ * browser were both `flex: 1 1 0` and each got half the rail however deep the
+ * tree ran.
+ *
+ * ▶ **The rail groups replaced the button with the layout.** `explorer` is a
+ * group of its own (`RAIL_GROUPS` in `state/ui.ts`), so opening the browser
+ * *already* takes the whole rail and the roster is not merely hidden — it is not
+ * in that group. There is no button left to press and nothing to give back, and
+ * the `explorer.fillRail` / `explorer.restoreRail` strings went with it.
+ *
+ * ⚠ The test below is what remains worth asserting: that the group really does
+ * hand the browser the full height rather than a slot.
+ */
+test('the browser gets the whole rail, because it is a group of its own', async ({ page }) => {
+  const rail = page.locator('.rail--left');
+  const section = page.locator('.rail__section[data-section="explorer"]');
 
   await expect(page.getByRole('combobox', { name: 'Roster' })).toBeHidden();
-  const after = (await tree.boundingBox())!;
-  expect(after.height).toBeGreaterThan(before.height);
-
-  // ...and back, because hiding the roster permanently would be a worse trade.
-  await page.getByRole('button', { name: 'Show the roster again' }).click();
-  await expect(page.getByRole('combobox', { name: 'Roster' })).toBeVisible();
+  const railBox = (await rail.boundingBox())!;
+  const sectionBox = (await section.boundingBox())!;
+  // The one panel in the group, so it is the rail minus its own padding rather
+  // than a half of it.
+  expect(sectionBox.height).toBeGreaterThan(railBox.height * 0.8);
 });
 
 test('clicking a sample draws its waveform and offers the transport', async ({ page }) => {
@@ -257,9 +325,15 @@ test('clicking a sample draws its waveform and offers the transport', async ({ p
   // `transport.*` strings rather than inventing a second set. An unscoped
   // locator matches both and tells you nothing about either.
   const bar = page.locator('.preview__bar');
-  for (const label of ['Play', 'Stop', 'Loop', 'Play backwards']) {
+  for (const label of ['Stop', 'Loop', 'Play backwards']) {
     await expect(bar.getByRole('button', { name: label, exact: true })).toBeVisible();
   }
+  // ⛔⛔ **`Pause`, not `Play`, and that is the point** — Mike, 2026-08-11: *"the
+  // files need to play as you go up and down in the list with the up/down arrow
+  // or by clicking on them."* Clicking the row auditions it, so by the time this
+  // runs the one button that is both has already flipped. Asserting `Play` here
+  // is what the old, silent-on-click behaviour looked like.
+  await expect(bar.getByRole('button', { name: 'Pause', exact: true })).toBeVisible();
   // "Playback time out of total time", verbatim from Mike's spec.
   await expect(page.locator('.preview__time')).toHaveText('0:00.0 / 0:01.5');
 });
@@ -281,6 +355,34 @@ test('the loop and reverse toggles report their own state', async ({ page }) => 
   await expect(reverse).toHaveAttribute('aria-pressed', 'false');
   await reverse.click();
   await expect(reverse).toHaveAttribute('aria-pressed', 'true');
+});
+
+test('the waveform seeks where it is clicked, and keeps up while it is dragged', async ({
+  page,
+}) => {
+  // TASK-058B's remaining half. The click was already there; dragging along the
+  // waveform to hunt for a transient — the tape-rub every sample browser has —
+  // was not, so the pointer had to be lifted and put down for every guess.
+  await browserRow(page, 'Samples').click();
+  await browserRow(page, 'kick-808.wav').click();
+
+  const wave = page.locator('.preview__wave');
+  const box = (await wave.boundingBox())!;
+  const time = page.locator('.preview__time');
+  await expect(time).toHaveText('0:00.0 / 0:01.5');
+
+  // Press at 60% of the width: 60% of a 1.5s sample is ~0.9s.
+  await page.mouse.move(box.x + box.width * 0.6, box.y + box.height / 2);
+  await page.mouse.down();
+  await expect(time).toHaveText('0:00.9 / 0:01.5');
+
+  // ⛔ Still held: the position has to follow the finger rather than waiting for
+  // it to be lifted, which is the whole difference between a scrub and a click.
+  await page.mouse.move(box.x + box.width * 0.2, box.y + box.height / 2);
+  await expect(time).toHaveText('0:00.3 / 0:01.5');
+
+  await page.mouse.up();
+  await expect(time).toHaveText('0:00.3 / 0:01.5');
 });
 
 test('the rail widens as it is dragged, and the stage gives up the pixels', async ({
@@ -322,4 +424,149 @@ test('it cannot be dragged absurdly wide', async ({ page }) => {
   expect(after.width).toBeLessThanOrEqual(560);
   // ...and the stage is still a usable size rather than a sliver.
   expect((await page.locator('.stage').boundingBox())!.width).toBeGreaterThan(300);
+});
+
+/**
+ * The browser remembers what you opened (TASK-058).
+ *
+ * ⛔⛔ **Mike, 2026-08-12**: *"the history needs to persist with the new versions
+ * and so does the file explorer's folder's list."* The folder list already did —
+ * `library.json` sits in `%APPDATA%\Freally MIDI Master`, with no version segment
+ * anywhere in the path — and there was **no history at all**, in the plugin or on
+ * the page, to make persist. `plugin/src/recent.rs` writes into that same
+ * directory so it inherits the property rather than being given its own; the
+ * per-user path is pinned by a Rust test, and this pins the behaviour.
+ */
+test('auditioning a sample puts it at the top of the history', async ({ page }) => {
+  await openPanel(page, 'explorer');
+  await browserRow(page, 'Samples').click();
+
+  await browserRow(page, 'kick-808.wav').click();
+  const history = page.getByRole('list', { name: 'Recent' });
+  await expect(history.getByRole('listitem')).toHaveText([/kick-808\.wav/]);
+
+  // ⛔ **Newest first, and one entry per file.** A history that appends a
+  // duplicate every time you audition the same kick is a history you cannot
+  // read — so re-opening promotes rather than repeats.
+  await browserRow(page, 'clap-01.wav').click();
+  await expect(history.getByRole('listitem')).toHaveText([/clap-01\.wav/, /kick-808\.wav/]);
+
+  await browserRow(page, 'kick-808.wav').click();
+  await expect(history.getByRole('listitem')).toHaveText([/kick-808\.wav/, /clap-01\.wav/]);
+});
+
+/**
+ * ⛔⛔ **Opening a `.mid` counts as opening a file, and it did not.**
+ *
+ * The last security review found the page calling `loadRecent()` after
+ * `explorer_midi_split` under a comment saying the plugin had written the
+ * entry — and `recent::note` ran only from `preview_load` (a sample) and
+ * `explorer_midi` (the *drop* into a part). So clicking twenty loops and
+ * importing one gave a history of the one, which is `recent.rs`'s own recording
+ * rule — *"recorded on audition, not on drop"* — backwards.
+ *
+ * ⚠ A separate test rather than another click in the one above, because the two
+ * kinds go down two different commands: a sample records from `preview_load`
+ * and a `.mid` has no PCM to load at all.
+ */
+test('opening a MIDI file records it too', async ({ page }) => {
+  await openPanel(page, 'explorer');
+  await browserRow(page, 'Samples').click();
+
+  await browserRow(page, 'riff.mid').click();
+  const history = page.getByRole('list', { name: 'Recent' });
+  await expect(history.getByRole('listitem')).toHaveText([/riff\.mid/]);
+
+  // And it takes its place in one list with the samples, newest first — the
+  // history is of files opened, not of two histories that happen to be adjacent.
+  await browserRow(page, 'kick-808.wav').click();
+  await expect(history.getByRole('listitem')).toHaveText([/kick-808\.wav/, /riff\.mid/]);
+});
+
+/**
+ * A real sample library, at the size the plugin actually sends (TASK-058).
+ *
+ * ⛔⛔ **Mike's bound, verbatim: *"a 2,000-file folder under 300 ms"*.** 2,000 is
+ * `explorer::MAX_ENTRIES` — the most rows the plugin will ever answer for one
+ * folder — and the tree that shipped before this drew every one of them, as six
+ * elements each, inside nested `<ul>`s built by a component that called itself.
+ * Several folders can be open at once.
+ *
+ * ⚠ **The row count is the assertion that cannot be faked.** A timing bound alone
+ * would pass on a fast machine with the old tree; the DOM holding thirty rows out
+ * of two thousand is what proves the window exists.
+ */
+test('a two-thousand-file folder draws a window, not two thousand rows', async ({ page }) => {
+  await openPanel(page, 'explorer');
+  await browserRow(page, 'Samples').click();
+  await browserRow(page, 'Kicks').click();
+
+  // ⚠ **A smoke alarm, not the proof.** Mike's bound is 300 ms, but wall-clock
+  // measured across a click and an auto-retrying assertion is as much a
+  // measurement of the CI runner's afternoon as of the code — so this is set an
+  // order of magnitude above it, to catch a change that puts the whole folder
+  // back rather than to police a hundred milliseconds. **The row count below is
+  // what actually proves virtualization**, and it cannot flake.
+  const started = Date.now();
+  await browserRow(page, 'Loops').click();
+  await expect(browserRow(page, 'loop-0000.wav')).toBeVisible();
+  expect(Date.now() - started).toBeLessThan(3_000);
+
+  // ⛔ The whole point: the rows on screen plus the overscan, not the folder.
+  const drawn = await page.locator('.tree__row').count();
+  expect(drawn).toBeGreaterThan(0);
+  expect(drawn).toBeLessThan(200);
+
+  // ⚠ **The scrollbar still measures the whole list**, because the spacers hold
+  // the height the un-drawn rows would have taken. Without that the list would
+  // look 30 rows long and there would be nothing to scroll to row 1,999 with.
+  const height = await page.locator('.tree').evaluate((box) => box.scrollHeight);
+  expect(height).toBeGreaterThan(2_000 * 20);
+});
+
+/**
+ * Type-to-filter (TASK-058), and the honest statement of what it searched.
+ *
+ * ⛔ The filter narrows the folders that have been **read** — the plugin reads one
+ * folder per call, because walking a whole library on the host's editor thread is
+ * what `Explorer::list_one` refuses to do. A box that looked like it searched the
+ * whole library while searching part of it is the readout-that-lies failure, so
+ * the scope line is part of the feature rather than decoration.
+ */
+test('type-to-filter narrows the tree, and says what it searched', async ({ page }) => {
+  await openPanel(page, 'explorer');
+  await browserRow(page, 'Samples').click();
+  await browserRow(page, 'Kicks').click();
+  await browserRow(page, 'Loops').click();
+
+  await page.getByRole('searchbox', { name: 'Filter by name' }).fill('loop-1234');
+  await expect(browserRow(page, 'loop-1234.wav')).toBeVisible();
+  await expect(browserRow(page, 'loop-0000.wav')).toHaveCount(0);
+  // The folders that lead to a match survive, or there is no path to it on screen.
+  await expect(browserRow(page, 'Loops')).toBeVisible();
+  await expect(page.getByText('Searching the folders you have opened.')).toBeVisible();
+
+  // ⚠ **The root stays when nothing matches.** An empty panel reads as the
+  // library having gone rather than as the query being too narrow.
+  await page.getByRole('searchbox', { name: 'Filter by name' }).fill('nothing-is-called-this');
+  await expect(page.getByText('Nothing here matches.')).toBeVisible();
+  await expect(browserRow(page, 'Samples')).toBeVisible();
+
+  // Escape is the way back, and without it the only one is select-all-delete.
+  await page.getByRole('searchbox', { name: 'Filter by name' }).press('Escape');
+  await expect(browserRow(page, 'loop-0000.wav')).toBeVisible();
+});
+
+test('the history can be emptied', async ({ page }) => {
+  // ⚠ It is a record of where somebody has been, so being able to clear it is
+  // not a convenience.
+  await openPanel(page, 'explorer');
+  await browserRow(page, 'Samples').click();
+  await browserRow(page, 'kick-808.wav').click();
+
+  const history = page.getByRole('list', { name: 'Recent' });
+  await expect(history.getByRole('listitem')).toHaveCount(1);
+
+  await page.getByRole('button', { name: 'Clear history' }).click();
+  await expect(page.getByRole('list', { name: 'Recent' })).toHaveCount(0);
 });

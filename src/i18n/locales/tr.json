@@ -30,9 +30,8 @@
     "generating": "Oluşturuluyor…",
     "readyBody": "{{name}} hazır. Oluştur’a bas.",
     "generateAll": "Tümünü üret",
-    "clear": "Temizle",
-    "clearAll": "Tümünü temizle",
-    "clearLabel": "Üretilen partisyonları temizle"
+    "clearOne": "{{part}} temizle",
+    "clearAll": "Tümünü temizle"
   },
   "rails": {
     "searchPlaceholder": "Sanatçı ara…",
@@ -141,7 +140,6 @@
     "loop": "Döngü",
     "masterLevel": "Master seviyesi: sessiz",
     "toggleRightRail": "Sağ paneli aç/kapat (K)",
-    "windowSize": "Pencere boyutu",
     "loopAlways": "Bu aşamada çalma her zaman döngüdedir.",
     "unavailable": "Çalma kullanılamıyor: {{reason}}"
   },
@@ -160,8 +158,7 @@
     "button": "Görünüm",
     "panels": "Paneller",
     "rightRail": "Sağ panel",
-    "showAll": "Tüm panelleri göster",
-    "hideAll": "Tüm panelleri gizle"
+    "stage": "Sahne"
   },
   "settings": {
     "title": "Ayarlar",
@@ -212,14 +209,18 @@
     "rollCount": "{{count}} vuruş",
     "addFill": "{{lane}} için fill ekle",
     "reassignLane": "{{lane}} yerine başka bir davul seç",
-    "lockLane": "Yeniden üretirken {{lane}} korunsun"
+    "lockLane": "Yeniden üretirken {{lane}} korunsun",
+    "pitchRows": "{{lane}} için perde satırları",
+    "pitchCell": "{{lane}} {{pitch}}, adım {{step}}",
+    "semitoneRow": "Kök sesten {{offset}} yarım ses",
+    "hitsAbove": "Pencerenin üstünde {{count}} vuruş",
+    "hitsBelow": "Pencerenin altında {{count}} vuruş"
   },
   "roster": {
     "artists": "Sanatçılar",
+    "producers": "Prodüktörler",
     "flagship": "Öne çıkan",
     "genre": "Tür",
-    "filteredBy": "{{name}} ile filtrelendi",
-    "showAll": "Tümünü göster",
     "noneInGenre": "{{name}} türünde henüz sanatçı yok.",
     "standard": "Standart",
     "inherited": "Devralınan"
@@ -382,6 +383,7 @@
       "nudge": "Zamanda kaydır",
       "stretch": "İki katına uzat",
       "compress": "Yarıya sıkıştır",
+      "reverseNote": "Seçili notayı ters çevir",
       "triplet": "Bu hücrede triole",
       "quintuplet": "Bu hücrede kentole",
       "septuplet": "Bu hücrede septole",
@@ -409,15 +411,20 @@
     "up": "Yukarı",
     "empty": "Bu klasörde örnek yok.",
     "truncated": "Bu klasörde gösterilenden daha fazla dosya var.",
+    "filter": "Ada göre filtrele",
+    "filterScope": "Açtığınız klasörlerde arama yapılır.",
+    "noMatches": "Burada eşleşen bir şey yok.",
+    "missing": "{{name}} şu anda erişilebilir değil.",
+    "recheck": "Yeniden denetle",
     "pickAFile": "Dinlemek için bir örnek seçin.",
     "decoding": "Okunuyor…",
     "waveformOf": "{{name}} dalga biçimi",
     "reverse": "Geriye doğru çal",
     "resize": "Tarayıcı genişliğini değiştir",
-    "fillRail": "Tarayıcıya tüm sütunu ver",
-    "restoreRail": "Kadroyu yeniden göster",
     "folderLimit": "Aynı anda 8 klasöre göz atabilirsin — başka eklemek için birini kapat",
     "favourites": "Yıldızlı favoriler",
+    "recent": "Son kullanılanlar",
+    "clearRecent": "Geçmişi temizle",
     "star": "{{name}} favorilere ekle",
     "unstar": "{{name}} favorilerden çıkar",
     "revealHint": "{{path}} dosya yöneticisinde göster",
@@ -434,7 +441,8 @@
       "kitShape": "Davul seti gibi çalıyor"
     },
     "midiFound": "Bu MIDI dosyasının içeriği",
-    "midiNotes": "Notalar"
+    "midiNotes": "Notalar",
+    "midiAuditionClipped": "Yalnızca ilk iki dakika dinlenir."
   },
   "patterns": {
     "name": "Bu pattern’e ad ver",
@@ -456,13 +464,23 @@
     "none": "Henüz alma yok",
     "made": "{{bpm}} BPM · {{scale}}"
   },
+  "takes": {
+    "label": "Çekim geçmişi",
+    "none": "Henüz bir şey üretilmedi.",
+    "clear": "Çekim geçmişini temizle",
+    "close": "Kapat",
+    "detail": "{{bars}} ölçü · {{bpm}} BPM"
+  },
   "artist": {
     "label": "Bu seçim hakkında",
     "tendsTo": "Genelde",
     "tempo": "{{bpm}} BPM",
+    "tempoRange": "{{low}}–{{high}} BPM",
     "key": "{{key}} {{scale}}",
     "halfTime": "half-time",
-    "moods": "{{count}} mod"
+    "moods": "Ruh halleri",
+    "writes": "Yazar",
+    "doesNotWrite": "Yazmaz"
   },
   "styles": {
     "original": "Kendi akışın",

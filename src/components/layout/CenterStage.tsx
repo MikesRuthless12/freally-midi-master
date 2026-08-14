@@ -1,8 +1,8 @@
-import { useMemo, useState } from 'react';
-import { AudioWaveform, Drum, ListMusic, Music2, Piano, Waves } from 'lucide-react';
+import { Fragment, useMemo, useState } from 'react';
+import { AudioWaveform, Drum, ListMusic, Music2, Piano, Waves, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { GENERATOR_TABS, useUi, type GeneratorTab } from '../../state/ui';
-import type { Part } from '../../lib/ipc-types';
+import type { Lane, Part } from '../../lib/ipc-types';
 import {
   armCurrentPattern,
   BAR_CHOICES,
@@ -21,7 +21,9 @@ import { SeedChip } from '../SeedChip/SeedChip';
 import { SessionSwitchPrompt } from '../SessionChips/SessionChips';
 import { TransportControls } from './TransportBar';
 import { VariationNav } from '../VariationNav';
-import { MIDI_TYPE, droppedMidi } from '../../lib/dnd';
+import { MIDI_TYPE, SAMPLE_TYPE, droppedMidi, droppedSample } from '../../lib/dnd';
+import { useExplorer } from '../../state/explorer';
+import { useKit } from '../../state/kit';
 import { PadGrid } from '../Kit/PadGrid';
 import { useTranslation } from 'react-i18next';
 
@@ -63,6 +65,7 @@ function GeneratorTabs() {
   const patterns = useSession((s) => s.patterns);
   const partsOff = useUi((s) => s.partsOff);
   const togglePart = useUi((s) => s.togglePart);
+  const clearPart = useSession((s) => s.clearPart);
   const importMidi = useSession((s) => s.importMidi);
   const importSong = useSong((s) => s.importSong);
   const [over, setOver] = useState<string | null>(null);
@@ -180,6 +183,43 @@ function GeneratorTabs() {
                 }}
               />
             )}
+
+            {/* ⛔⛔ **Clear THIS generator, from its own tab** — Mike,
+                2026-08-11: *"there should be a 'C' or an 'X' in the tab for the
+                generators, so that way you can clear just the single
+                generator"* — *"just like the drum pad lanes."*
+
+                ▶ **It replaces the `Clear` half of the footer pair**, which sat
+                beside `Clear all` with no styling between them and read as one
+                control saying *"Clear Clear all"*. Splitting them by *place*
+                rather than by label is the fix he described: the one that clears
+                a part lives on the part, and the footer keeps only the one that
+                clears everything.
+
+                ⚠ **Only once there is something to clear**, the same rule the
+                mute dot follows — an ✕ on an empty generator is a control that
+                can only do nothing.
+
+                ⚠ A sibling of the tab, never a child: `role="tab"` may not
+                contain a second button, which is the constraint this file's
+                header already records for the dot. */}
+            {hasClip && part !== undefined && (
+              <button
+                type="button"
+                className="tab-clear"
+                aria-label={t('stage.clearOne', { part: t(`tabs.${tab}`) })}
+                title={t('stage.clearOne', { part: t(`tabs.${tab}`) })}
+                onClick={() => {
+                  clearPart(part);
+                  // Re-armed for the same reason the mute switch is: the
+                  // schedule holds one merged clip, so clearing a part without
+                  // re-arming leaves Play sounding the one that is gone.
+                  if (activeTab !== 'song') armCurrentPattern();
+                }}
+              >
+                <X size={11} aria-hidden="true" />
+              </button>
+            )}
           </div>
         );
       })}
@@ -263,9 +303,10 @@ export function CenterStage() {
   const error = useSession((s) => s.error);
   const generate = useSession((s) => s.generate);
   const generateAll = useSession((s) => s.generateAll);
-  const clearPart = useSession((s) => s.clearPart);
   const clearAll = useSession((s) => s.clearAll);
   const playhead = useSession((s) => s.playhead);
+  const dropOn = useExplorer((s) => s.dropOn);
+  const refreshKit = useKit((s) => s.refresh);
 
   const song = useSong((s) => s.song);
   const songGenerating = useSong((s) => s.generating);
@@ -285,6 +326,12 @@ export function CenterStage() {
 
   const selected = roster.find((entry) => entry.id === selectedId) ?? null;
   const part = TAB_PART[activeTab];
+
+  // ⛔ **A melodic part's id *is* its lane id** — `melody`, `counter`, `bass`,
+  // `chords` — which is what makes the editor able to name its own target
+  // without a lookup. `ExplorerPanel` leans on the same identity for `Ctrl`+←/→.
+  const dropTarget: Lane | null = part === null || part === 'drums' ? null : (part as Lane);
+  const [sampleOver, setSampleOver] = useState(false);
 
   // This tab's own slot. Absent means nobody has generated it — not that
   // another part took its place.
@@ -317,6 +364,52 @@ export function CenterStage() {
         role="tabpanel"
         id="generator-panel"
         aria-labelledby={`tab-${activeTab}`}
+        data-sample-over={sampleOver}
+        // ⛔⛔ **THE EDITOR IS A DROP TARGET FOR A SAMPLE** — Mike, 2026-08-12:
+        // *"you should be able to drag a sample to the actual generator's piano
+        // roll and it should drop the sample on there for that specific
+        // generator as well … so that way you don't have to drag all the way to
+        // the other side and try to land on a small button."* The small button
+        // is `pad__use` in the right rail; the roll is the largest surface on
+        // screen and it is already the thing the producer is looking at.
+        //
+        // ⛔⛔ **Melodic only. The drum grid refuses**, on his instruction in the
+        // same breath: *"the drum generator, you should only be able to drag a
+        // sample to the drum pads themselves."* Which is right — a drum kit has
+        // eight lanes showing at once and the panel could only ever guess one of
+        // them, whereas a melodic generator *is* one lane, so there is nothing
+        // to guess. `dropTarget` is `null` on Drums and on Song, and a `null`
+        // target never calls `preventDefault`, so the cursor says no.
+        //
+        // ⚠ `SAMPLE_TYPE`, so the `.mid` that the tabs above take cannot land
+        // here instead — the two gestures mean completely different things and
+        // `FileTree` puts them on different MIME types precisely so each target
+        // can refuse the other before the producer lets go.
+        onDragOver={(event) => {
+          if (dropTarget === null || !event.dataTransfer.types.includes(SAMPLE_TYPE)) return;
+          event.preventDefault();
+          event.dataTransfer.dropEffect = 'copy';
+          if (!sampleOver) setSampleOver(true);
+        }}
+        // ⚠ **`relatedTarget`, because `dragleave` bubbles from every child.**
+        // Without the containment test, dragging a sample *across* the roll fires
+        // a leave at each element boundary crossed and the next `dragover` sets
+        // it back — two full re-renders of the stage per crossing, and a drop
+        // outline that flickers all the way in.
+        onDragLeave={(event) => {
+          if (event.currentTarget.contains(event.relatedTarget as Node | null)) return;
+          setSampleOver(false);
+        }}
+        onDrop={(event) => {
+          setSampleOver(false);
+          if (dropTarget === null) return;
+          const path = droppedSample(event.dataTransfer);
+          if (path === null) return;
+          event.preventDefault();
+          // Refreshed after, because the Kit rail's row for this lane is the
+          // only thing on screen that names what landed.
+          void dropOn(dropTarget, path).then(() => refreshKit());
+        }}
       >
         {/* The ripple wraps whatever the stage is showing, so it sweeps the
             grid the notes are landing in rather than a layer beside it. */}
@@ -408,19 +501,48 @@ export function CenterStage() {
         <div className="stage__controls">
           <SeedChip />
 
-          <span className="chip chip--mono" role="group" aria-label={t('stage.barsLabel')}>
-            {BAR_CHOICES.map((choice) => (
-              <button
-                key={choice}
-                type="button"
-                className="chip__option"
-                aria-pressed={bars === choice}
-                onClick={() => setBars(choice)}
-              >
-                {choice}
-              </button>
+          {/* ⛔⛔ **`4 / 8 Bars`, with the live one filled in** — Mike,
+              2026-08-11: *"the button should say '4/8 Bars' and it should switch
+              colors or it should be a toggle when it is 4 or 8 bars so that way
+              you know which one you are on, and it won't let me switch back to 4
+              after switching to 8 bars."*
+
+              ▶ **`.chip__option` had no CSS whatsoever**, which is the whole
+              report: zero padding made the pair render as the single word `48`,
+              so `4` was a seven-pixel target sharing an edge with `8` and there
+              was no pressed state to say which had won. Nothing was wrong with
+              `setBars` — `session.test.ts` round-trips 4→8→4 — the switch back
+              was simply unhittable and, once hit, invisible.
+
+              ⚠ **Two buttons and not one toggle.** He offered either ("or it
+              should be a toggle"); a toggle costs a press to *discover* which
+              state it is in, and these are two named lengths, not on/off. */}
+          <span
+            className="chip chip--mono stage__bars"
+            role="group"
+            aria-label={t('stage.barsLabel')}
+          >
+            {BAR_CHOICES.map((choice, index) => (
+              <Fragment key={choice}>
+                {index > 0 && (
+                  <span className="chip__slash" aria-hidden="true">
+                    /
+                  </span>
+                )}
+                <button
+                  type="button"
+                  className="chip__option"
+                  aria-pressed={bars === choice}
+                  title={`${choice} ${t('stage.bars')}`}
+                  onClick={() => setBars(choice)}
+                >
+                  {choice}
+                </button>
+              </Fragment>
             ))}
-            {t('stage.bars')}
+            {/* ⚠ A span, because the chip is `display: inline-flex` now and a
+                bare text node's leading space would collapse — `8bars`. */}
+            <span className="chip__unit">{t('stage.bars')}</span>
           </span>
 
           {/* Clear this tab's own part, and all five (TASK-121). Hidden on
@@ -429,24 +551,20 @@ export function CenterStage() {
                 slot is empty, so the control does not move under the pointer as
                 parts fill in. */}
           {part !== null && (
-            <span className="chip chip--mono" role="group" aria-label={t('stage.clearLabel')}>
-              <button
-                type="button"
-                className="chip__option"
-                onClick={() => clearPart(part)}
-                disabled={patterns[part] === undefined}
-              >
-                {t('stage.clear')}
-              </button>
-              <button
-                type="button"
-                className="chip__option"
-                onClick={clearAll}
-                disabled={Object.keys(patterns).length === 0}
-              >
-                {t('stage.clearAll')}
-              </button>
-            </span>
+            // ⛔ **One button, and it clears everything** — Mike, 2026-08-11:
+            // *"the button should say 'Clear All' not 'Clear Clear All'"*, and
+            // *"it should clear all generators."* The per-part half moved onto
+            // the generator tabs, where it says which part it means by *being
+            // there*; the two of them side by side with no styling between read
+            // as one nonsense label.
+            <button
+              type="button"
+              className="btn-ghost stage__clear"
+              onClick={clearAll}
+              disabled={Object.keys(patterns).length === 0}
+            >
+              {t('stage.clearAll')}
+            </button>
           )}
 
           {/* Fill all five from one seed (TASK-120). Not offered on Song,

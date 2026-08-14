@@ -30,9 +30,8 @@
     "generating": "Đang tạo…",
     "readyBody": "{{name}} đã sẵn sàng. Nhấn Tạo.",
     "generateAll": "Tạo tất cả",
-    "clear": "Xóa",
-    "clearAll": "Xóa tất cả",
-    "clearLabel": "Xóa các phần đã tạo"
+    "clearOne": "Xóa {{part}}",
+    "clearAll": "Xóa tất cả"
   },
   "rails": {
     "searchPlaceholder": "Tìm nghệ sĩ…",
@@ -141,7 +140,6 @@
     "loop": "Lặp",
     "masterLevel": "Mức master: im lặng",
     "toggleRightRail": "Bật/tắt thanh phải (K)",
-    "windowSize": "Kích thước cửa sổ",
     "loopAlways": "Ở giai đoạn này, phát lại luôn lặp.",
     "unavailable": "Không thể phát: {{reason}}"
   },
@@ -160,8 +158,7 @@
     "button": "Hiển thị",
     "panels": "Bảng",
     "rightRail": "Thanh phải",
-    "showAll": "Hiện tất cả bảng",
-    "hideAll": "Ẩn tất cả bảng"
+    "stage": "Sân khấu"
   },
   "settings": {
     "title": "Cài đặt",
@@ -212,14 +209,18 @@
     "rollCount": "{{count}} tiếng",
     "addFill": "Thêm fill vào {{lane}}",
     "reassignLane": "Đổi {{lane}} sang trống khác",
-    "lockLane": "Giữ {{lane}} khi tạo lại"
+    "lockLane": "Giữ {{lane}} khi tạo lại",
+    "pitchRows": "Hàng cao độ cho {{lane}}",
+    "pitchCell": "{{lane}} {{pitch}}, bước {{step}}",
+    "semitoneRow": "{{offset}} nửa cung từ nốt gốc",
+    "hitsAbove": "{{count}} tiếng đánh phía trên cửa sổ",
+    "hitsBelow": "{{count}} tiếng đánh phía dưới cửa sổ"
   },
   "roster": {
     "artists": "Nghệ sĩ",
+    "producers": "Nhà sản xuất",
     "flagship": "Tiêu biểu",
     "genre": "Thể loại",
-    "filteredBy": "Đã lọc theo {{name}}",
-    "showAll": "Hiện tất cả",
     "noneInGenre": "Chưa có nghệ sĩ nào thuộc {{name}}.",
     "standard": "Tiêu chuẩn",
     "inherited": "Kế thừa"
@@ -382,6 +383,7 @@
       "nudge": "Dịch theo thời gian",
       "stretch": "Kéo dài gấp đôi",
       "compress": "Nén còn một nửa",
+      "reverseNote": "Đảo ngược nốt đã chọn",
       "triplet": "Chùm ba ở ô này",
       "quintuplet": "Chùm năm ở ô này",
       "septuplet": "Chùm bảy ở ô này",
@@ -409,15 +411,20 @@
     "up": "Lên",
     "empty": "Không có sample nào trong thư mục này.",
     "truncated": "Thư mục này có nhiều tệp hơn số được hiển thị.",
+    "filter": "Lọc theo tên",
+    "filterScope": "Chỉ tìm trong các thư mục bạn đã mở.",
+    "noMatches": "Không có gì khớp ở đây.",
+    "missing": "{{name}} hiện không truy cập được.",
+    "recheck": "Kiểm tra lại",
     "pickAFile": "Chọn một sample để nghe thử.",
     "decoding": "Đang đọc…",
     "waveformOf": "Dạng sóng của {{name}}",
     "reverse": "Phát ngược",
     "resize": "Thay đổi chiều rộng trình duyệt",
-    "fillRail": "Cho trình duyệt toàn bộ thanh bên",
-    "restoreRail": "Hiện lại danh sách nghệ sĩ",
     "folderLimit": "Bạn có thể duyệt 8 thư mục cùng lúc — đóng một thư mục để thêm thư mục khác",
     "favourites": "Mục yêu thích",
+    "recent": "Gần đây",
+    "clearRecent": "Xóa lịch sử",
     "star": "Gắn sao {{name}}",
     "unstar": "Bỏ gắn sao {{name}}",
     "revealHint": "Hiện {{path}} trong trình quản lý tệp",
@@ -434,7 +441,8 @@
       "kitShape": "Chơi như một bộ trống"
     },
     "midiFound": "Nội dung tệp MIDI này",
-    "midiNotes": "Nốt"
+    "midiNotes": "Nốt",
+    "midiAuditionClipped": "Chỉ nghe thử hai phút đầu."
   },
   "patterns": {
     "name": "Đặt tên cho pattern này",
@@ -456,13 +464,23 @@
     "none": "Chưa có bản nào",
     "made": "{{bpm}} BPM · {{scale}}"
   },
+  "takes": {
+    "label": "Lịch sử bản thu",
+    "none": "Chưa tạo ra gì cả.",
+    "clear": "Xoá lịch sử bản thu",
+    "close": "Đóng",
+    "detail": "{{bars}} ô nhịp · {{bpm}} BPM"
+  },
   "artist": {
     "label": "Về lựa chọn này",
     "tendsTo": "Thường",
     "tempo": "{{bpm}} BPM",
+    "tempoRange": "{{low}}–{{high}} BPM",
     "key": "{{key}} {{scale}}",
     "halfTime": "half-time",
-    "moods": "{{count}} tâm trạng"
+    "moods": "Sắc thái",
+    "writes": "Viết",
+    "doesNotWrite": "Không viết"
   },
   "styles": {
     "original": "Quy trình riêng",

@@ -30,9 +30,8 @@
     "generating": "Generando…",
     "readyBody": "{{name}} está listo. Pulsa Generar.",
     "generateAll": "Generar todo",
-    "clear": "Vaciar",
-    "clearAll": "Vaciar todo",
-    "clearLabel": "Vaciar las partes generadas"
+    "clearOne": "Vaciar {{part}}",
+    "clearAll": "Vaciar todo"
   },
   "rails": {
     "searchPlaceholder": "Busca un artista…",
@@ -141,7 +140,6 @@
     "loop": "Bucle",
     "masterLevel": "Nivel máster: en silencio",
     "toggleRightRail": "Alternar el panel derecho (K)",
-    "windowSize": "Tamaño de la ventana",
     "loopAlways": "La reproducción siempre se repite en esta fase.",
     "unavailable": "La reproducción no está disponible: {{reason}}"
   },
@@ -160,8 +158,7 @@
     "button": "Vista",
     "panels": "Paneles",
     "rightRail": "Panel derecho",
-    "showAll": "Mostrar todos los paneles",
-    "hideAll": "Ocultar todos los paneles"
+    "stage": "Escenario"
   },
   "settings": {
     "title": "Ajustes",
@@ -212,14 +209,18 @@
     "rollCount": "{{count}} golpes",
     "addFill": "Añadir un relleno a {{lane}}",
     "reassignLane": "Cambiar {{lane}} por otro instrumento",
-    "lockLane": "Mantener {{lane}} al volver a generar"
+    "lockLane": "Mantener {{lane}} al volver a generar",
+    "pitchRows": "Filas de tono para {{lane}}",
+    "pitchCell": "{{lane}} {{pitch}}, paso {{step}}",
+    "semitoneRow": "{{offset}} semitonos desde la fundamental",
+    "hitsAbove": "{{count}} golpes por encima de la ventana",
+    "hitsBelow": "{{count}} golpes por debajo de la ventana"
   },
   "roster": {
     "artists": "Artistas",
+    "producers": "Productores",
     "flagship": "Destacado",
     "genre": "Género",
-    "filteredBy": "Filtrado por {{name}}",
-    "showAll": "Mostrar todo",
     "noneInGenre": "Todavía no hay artistas en {{name}}.",
     "standard": "Estándar",
     "inherited": "Heredado"
@@ -382,6 +383,7 @@
       "nudge": "Desplazar en el tiempo",
       "stretch": "Estirar al doble",
       "compress": "Comprimir a la mitad",
+      "reverseNote": "Invertir la nota seleccionada",
       "triplet": "Tresillo en esta celda",
       "quintuplet": "Quintillo en esta celda",
       "septuplet": "Septillo en esta celda",
@@ -409,15 +411,20 @@
     "up": "Subir",
     "empty": "No hay samples en esta carpeta.",
     "truncated": "Esta carpeta tiene más archivos de los que se muestran.",
+    "filter": "Filtrar por nombre",
+    "filterScope": "Se buscan las carpetas que has abierto.",
+    "noMatches": "Aquí no coincide nada.",
+    "missing": "{{name}} no está disponible ahora mismo.",
+    "recheck": "Comprobar de nuevo",
     "pickAFile": "Elige un sample para escucharlo.",
     "decoding": "Leyendo…",
     "waveformOf": "Forma de onda de {{name}}",
     "reverse": "Reproducir al revés",
     "resize": "Cambiar el tamaño del explorador",
-    "fillRail": "Dar al navegador toda la columna",
-    "restoreRail": "Mostrar el roster de nuevo",
     "folderLimit": "Puedes explorar 8 carpetas a la vez: cierra una para añadir otra",
     "favourites": "Favoritos destacados",
+    "recent": "Recientes",
+    "clearRecent": "Borrar historial",
     "star": "Destacar {{name}}",
     "unstar": "Quitar {{name}} de destacados",
     "revealHint": "Mostrar {{path}} en el explorador de archivos",
@@ -434,7 +441,8 @@
       "kitShape": "Suena como una batería"
     },
     "midiFound": "Contenido de este archivo MIDI",
-    "midiNotes": "Notas"
+    "midiNotes": "Notas",
+    "midiAuditionClipped": "Solo se escuchan los dos primeros minutos."
   },
   "patterns": {
     "name": "Nombra este patrón",
@@ -456,13 +464,23 @@
     "none": "Aún no hay tomas",
     "made": "{{bpm}} BPM · {{scale}}"
   },
+  "takes": {
+    "label": "Historial de tomas",
+    "none": "Aún no has generado nada.",
+    "clear": "Borrar el historial de tomas",
+    "close": "Cerrar",
+    "detail": "{{bars}} compases · {{bpm}} BPM"
+  },
   "artist": {
     "label": "Sobre esta selección",
     "tendsTo": "Suele",
     "tempo": "{{bpm}} BPM",
+    "tempoRange": "{{low}}–{{high}} BPM",
     "key": "{{key}} {{scale}}",
     "halfTime": "medio tiempo",
-    "moods": "{{count}} moods"
+    "moods": "Estados de ánimo",
+    "writes": "Escribe",
+    "doesNotWrite": "No escribe"
   },
   "styles": {
     "original": "Flujo original",

@@ -32,14 +32,17 @@ pub mod export;
 pub mod favourites;
 pub mod host;
 pub mod kits;
+pub mod midi_audition;
 pub mod models;
 pub mod oneshot;
 pub mod patterns;
 pub mod presets;
 pub mod preview;
+pub mod recent;
 pub mod roles;
 pub mod shared;
 pub mod state;
+pub mod takes;
 pub mod voice;
 
 pub use bridge::{dispatch, Request};
@@ -796,10 +799,27 @@ impl FreallyMidiMaster {
                     self.sampler.trigger_with(
                         kit,
                         pad_index,
-                        note.velocity,
-                        semis,
                         f64::from(self.shared.sample_rate()),
-                        glide,
+                        audio::sampler::Hit {
+                            velocity: note.velocity,
+                            semis,
+                            glide,
+                            // ⛔ The note's own direction, so the preview sounds
+                            // what the render writes — the rule this file keeps:
+                            // a stem must sound like what was heard.
+                            reversed: note.reversed,
+                            // ⛔⛔ **A melodic one-shot stops at the end of its
+                            // note** — Mike, 2026-08-12, on dropping a sub 808 on
+                            // Melody: *"it had a lot of static and kept playing
+                            // it throughout the actual melody over and over
+                            // again."* A drum still rings out.
+                            //
+                            // ⛔ `hold_for`, not the branch spelled out here: the
+                            // offline renderer must reach the same answer or a
+                            // dragged stem stops sounding like the preview. See
+                            // its doc, and `sampler::Voice::hold` for the rule.
+                            hold: audio::sampler::hold_for(note.lane, note.frames, glide.is_some()),
+                        },
                     );
                 }
                 next += 1;

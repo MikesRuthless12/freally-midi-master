@@ -1,0 +1,316 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "tha-alkaholiks",
+  "type": "artist",
+  "name": "Tha Alkaholiks",
+  "aliases": [
+    "tha alkaholiks",
+    "alkaholiks",
+    "tha liks",
+    "liks",
+    "e-swift"
+  ],
+  "tier": "standard",
+  "extends": [
+    "g-funk"
+  ],
+  "era": "1993-1997",
+  "genres": [
+    "rap",
+    "g-funk",
+    "west coast",
+    "party rap"
+  ],
+  "relatedGenres": [
+    "g-funk",
+    "boom-bap",
+    "funk"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 g-funk — Tha Alkaholiks",
+    "https://passionweiss.com/2025/08/05/my-collection-tha-alkaholiks-daaam",
+    "https://en.wikipedia.org/wiki/Likwidation"
+  ],
+  "notes": "The West Coast record that sounds least like g-funk while still being West Coast, and the research is explicit about why: the drums are \"the priority layer\". So this is the fastest entry of the LA group (94–104), the loudest and least quantized kit (`quantizeStrength` 0.76, `velocityVar` 0.22, `percs.gainOffsetDb` -3), the heaviest ghost-note 16ths (`ghost.prob` 0.42 across all four e/a slots) and the busiest hats (`fillDensity` 0.62). Everything melodic is deliberately thin against it: one horn or keys stab, `densityPerBar` [2,5], and harmony described as \"incidental\" — hence `impliedByRiff` and a two-family chord set. The bass is jazz-funk upright walking rather than sub, which is why its register floor is 31 — the highest bass in this batch, because the research says the low end is drums-first. ⚠ `medium` on the research's medium-high rating. The INFERRED parameters are the chord families and `chordDurationBeats` [2,10]: \"static single-chord vamps\" is all the research states, so the i–iv family is inference carrying the chord part's variety floor, and it is the first thing to delete. ⚠ The bass ceiling came down from 50 to 49 so it stays under a chord part that starts at 50 — `coherence.rs` requires the highest bass note to sit at or below the lowest chord note, and this model overlapped by 1.",
+  "session": {
+    "bpm": {
+      "min": 94,
+      "max": 104,
+      "mode": 99
+    },
+    "scales": {
+      "values": [
+        "blues",
+        "minor_pentatonic",
+        "dorian",
+        "mixolydian"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.63
+    },
+    "humanize": {
+      "quantizeStrength": 0.76,
+      "velocityVar": 0.22
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.55,
+      "tresilloBias": 0.26,
+      "offbeat8thShare": 0.42
+    },
+    "snare": {
+      "rimshotLayer": false,
+      "ghost": {
+        "prob": 0.42,
+        "pos": [
+          "1a",
+          "2e",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.3,
+          0.55
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.62,
+      "velocities": {
+        "main": [
+          0.75,
+          1
+        ],
+        "ghost": [
+          0.3,
+          0.55
+        ]
+      },
+      "openHat": {
+        "prob": 0.4,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          3
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32",
+            "32T"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.7,
+        "velocityRamp": true
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "ride",
+        "perc"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "gainOffsetDb": -3
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 4
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t",
+        "8t"
+      ],
+      "grouping": [
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        58,
+        105
+      ],
+      "rampJitter": 20,
+      "gapProb": 0.08,
+      "descendProb": 0.3,
+      "pitchWalk": 4
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.6,
+      "seventh": 0.34,
+      "ninth": 0.06
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        50,
+        78
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        2,
+        2
+      ]
+    },
+    "impliedByRiff": true,
+    "chordDurationBeats": [
+      2,
+      10
+    ]
+  },
+  "melody": {
+    "register": [
+      72,
+      93
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        1
+      ]
+    },
+    "densityPerBar": [
+      2,
+      5
+    ],
+    "motifPitchCount": [
+      3,
+      4
+    ],
+    "intervals": {
+      "step": 0.45,
+      "third": 0.35,
+      "leap": 0.2
+    },
+    "contour": {
+      "riff": 0.6,
+      "descend": 0.25,
+      "arch": 0.15
+    },
+    "chordToneBias": 0.5,
+    "halfStepDissonance": 0.1,
+    "octaveJumpProb": 0.1,
+    "timbreHint": "piano_stab"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.38,
+    "styles": {
+      "values": [
+        "arp",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.38,
+    "register": [
+      31,
+      49
+    ],
+    "glideProb": 0.05,
+    "passingTones": [
+      "M2",
+      "m3",
+      "P4",
+      "P5",
+      "M6",
+      "m7"
+    ],
+    "anticipationProb": 0.4,
+    "cellShapes": [
+      [
+        "1",
+        "2",
+        "3",
+        "5"
+      ],
+      [
+        "1",
+        "5",
+        "6",
+        "5"
+      ],
+      [
+        "5",
+        "1",
+        "7",
+        "4"
+      ],
+      [
+        "1",
+        "3",
+        "5",
+        "7"
+      ]
+    ]
+  }
+}

@@ -1,0 +1,235 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "nas",
+  "type": "artist",
+  "name": "Nas",
+  "aliases": [
+    "nas",
+    "nasir",
+    "nasty nas",
+    "escobar"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "boom-bap"
+  ],
+  "era": "1994-2012",
+  "genres": [
+    "rap",
+    "boom-bap"
+  ],
+  "relatedGenres": [
+    "boom-bap",
+    "lofi-hiphop"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended vol.1 boom-bap — Nas",
+    "ModeAudio — Masters of Sampling: DJ Premier",
+    "Wikipedia — Illmatic"
+  ],
+  "notes": "Queensbridge reportage over jazz-loop minimalism. The distinguishing parameter is emptiness: the lowest melodic density on the boom-bap axis, because the harmony is implied by the sampled loop rather than written, and the beat is furniture the verse stands on. Premier's Illmatic-era drums are pitched down — a 100 BPM break dropped roughly 16 BPM — which is modelled as a slack quantize rather than as a tempo, since the engine has no sample to stretch. ⛔ `chords.impliedByRiff` is set, and it is a description rather than an exemption. The research is literal about this: *\"harmonic movement is implied by the sample, not written\"*. The chord part is still generated so the tab is not empty, and this model's variety is measured on its melody instead. ⚠ `snareRoll.pitchWalk` is inherited rather than authored: the research says nothing about how these producers pitch a roll, and lowering it was an invention that `drum_pitch.rs` correctly refused — a roll owes a producer three pitches unless the style is a train beat. ⚠ The bass ceiling came down from 45 to 44 so it stays under a chord part that starts at 45 — `coherence.rs` requires the highest bass note to sit at or below the lowest chord note, and this model overlapped by 1.",
+  "session": {
+    "bpm": {
+      "min": 84,
+      "max": 96,
+      "mode": 90
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.56
+    },
+    "humanize": {
+      "quantizeStrength": 0.72,
+      "velocityVar": 0.16
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "4a",
+      "syncopation": 0.3,
+      "tresilloBias": 0.05
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.2,
+      "rolls": {
+        "freqPerBar": 0.1,
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ]
+      },
+      "openHat": {
+        "prob": 0.15,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.15,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.2,
+          0.35
+        ]
+      }
+    },
+    "snareRoll": {
+      "gapProb": 0.5,
+      "descendProb": 0.1,
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        52,
+        96
+      ],
+      "rampJitter": 8
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 16
+    }
+  },
+  "melody": {
+    "register": [
+      60,
+      82
+    ],
+    "densityPerBar": [
+      1,
+      4
+    ],
+    "contour": {
+      "riff": 0.45,
+      "descend": 0.28,
+      "arch": 0.12
+    },
+    "chordToneBias": 0.64,
+    "octaveJumpProb": 0.05,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "soft_keys",
+    "intervals": {
+      "step": 0.6,
+      "third": 0.3,
+      "leap": 0.1
+    }
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.42,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.35,
+      "seventh": 0.5,
+      "ninth": 0.15
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "impliedByRiff": true
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.55,
+    "register": [
+      28,
+      44
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.2
+  }
+}

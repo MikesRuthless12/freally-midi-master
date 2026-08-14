@@ -373,22 +373,30 @@ describe('one part, one instrument at a time', () => {
       expect(screen.getByText('All Parts')).toBeTruthy();
     });
 
-    it('leaves the drums out of it, because its instruments are its lanes', () => {
-      // ⛔ Drums has its own All Tracks inside its menu, and it means something
-      // different — every *lane*, not every *part*. Folding it in would make
-      // one gesture mean two things depending on which part it caught.
+    it('takes the drums in with everything else', () => {
+      // ⛔⛔ **INVERTED 2026-08-11.** This read "leaves the drums out of it,
+      // because its instruments are its lanes" and came from Mike's own
+      // 2026-08-06 sentence — *"just the drums has to be separate because it has
+      // it's own separate lanes per the generator."* He has since named drums in
+      // the list: *"it should be all parts of the chords/melody/counter melody/
+      // basslines/drums one clip after the next."*
+      //
+      // ⚠ The rule that did **not** move is the one about the Drums row's own
+      // MIDI chip — no whole-kit `.mid` from there — and the test above still
+      // pins it. The drums arriving as one clip *inside a five-clip sequence* is
+      // a different gesture.
       useSession.setState({ patterns: { drums: DRUMS, bass: BASS, melody: MELODY } });
       render(<DragRows />);
       const row = screen.getByText('All Parts').closest('li') as HTMLElement;
 
-      // The row drags exactly the melodic parts; the drum row is still its own.
       expect(within(row).getByRole('button', { name: 'MIDI' })).toBeTruthy();
+      // And the drum row is still its own, with its own per-lane menu.
       expect(screen.getByText('Drums')).toBeTruthy();
     });
 
     it('is not offered when only one part could go in it', () => {
       // ⚠ It would be a second way to drag the row directly above it.
-      useSession.setState({ patterns: { drums: DRUMS, bass: BASS } });
+      useSession.setState({ patterns: { drums: DRUMS } });
       render(<DragRows />);
 
       expect(screen.queryByText('All Parts')).toBeNull();
@@ -405,5 +413,71 @@ describe('one part, one instrument at a time', () => {
     expect(
       within(row).getByRole('button', { name: 'MIDI' }).getAttribute('aria-expanded'),
     ).toBe(null);
+  });
+
+  /**
+   * ⛔⛔ **THE MELODIC PARTS HAD NO AUDIO CHIP AT ALL, ON ANY KIT** (2026-08-11).
+   *
+   * Mike: *"when I have samples dragged to my kit for the Melody/Chords/Counter
+   * melody, they do not have an 'Audio' button able to drag audio to my DAW, but
+   * they play in the generators."* The samples were a red herring — `written`
+   * was built as `LANE_ORDER.filter(…)`, and `LANE_ORDER` is the **drum** lane
+   * list, so it matched nothing for a part whose lane is `melody`, `chords`,
+   * `counter` or `bass`. `Row.audio` is `written.length > 0`, so the chip could
+   * never appear whatever was on the pads.
+   *
+   * ⚠ **Every one of the four is named**, rather than one standing for the rest:
+   * the bug was that a whole *class* of lane fell outside a list, and a single
+   * example would go on passing if three of the four were dropped again.
+   */
+  describe('a melodic part drags as audio too', () => {
+    const melodic = (part: string, lane: string): Pattern => ({
+      ...BASS,
+      id: `trap-${part}`,
+      part: part as Pattern['part'],
+      lanes: [{ lane: lane as Pattern['lanes'][number]['lane'], notes: BASS.lanes[0].notes }],
+    });
+
+    it.each([
+      ['Melody', 'melody', 'melody'],
+      ['Chords', 'chords', 'chords'],
+      ['Counter', 'counter', 'counter'],
+      ['Bass', 'bass', 'bass'],
+    ])('offers %s an Audio chip beside its MIDI one', (label, part, lane) => {
+      useSession.setState({ patterns: { [part]: melodic(part, lane) } });
+      render(<DragRows />);
+      const row = screen.getByText(label).closest('li') as HTMLElement;
+
+      expect(within(row).getByRole('button', { name: 'MIDI' })).toBeTruthy();
+      expect(within(row).getByRole('button', { name: 'Audio' })).toBeTruthy();
+    });
+
+    it('withholds Audio from a part the generator never wrote to', () => {
+      // ⚠ The half of the old rule that was right, and it must survive the fix:
+      // widening `written` past the drum lanes must not start offering audio for
+      // a lane that carries no notes, because that render is a file of nothing.
+      useSession.setState({
+        patterns: {
+          melody: { ...BASS, part: 'melody', lanes: [{ lane: 'melody', notes: [] }] },
+        },
+      });
+      render(<DragRows />);
+      const row = screen.getByText('Melody').closest('li') as HTMLElement;
+
+      expect(within(row).queryByRole('button', { name: 'Audio' })).toBeNull();
+    });
+
+    it('still reads a drum menu in the grid order rather than the engine order', () => {
+      // ⚠ `LANE_ORDER` is now a *ranking* rather than a filter, so this is the
+      // property that could have been lost silently: hats above snare above
+      // kick is how the drum grid draws them, and the menu has to agree.
+      render(<DragRows />);
+      const menu = openMenu('Drums', 'MIDI');
+
+      const entries = within(menu)
+        .getAllByRole('listitem')
+        .map((item) => item.textContent);
+      expect(entries).toEqual(['Closed hat', 'Snare', 'Kick']);
+    });
   });
 });

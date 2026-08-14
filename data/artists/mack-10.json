@@ -1,0 +1,288 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "mack-10",
+  "type": "artist",
+  "name": "Mack 10",
+  "aliases": [
+    "mack 10",
+    "mack ten",
+    "dedrick rolison",
+    "hoo bangin",
+    "inglewood swangin"
+  ],
+  "tier": "standard",
+  "extends": [
+    "g-funk"
+  ],
+  "era": "1995-2001",
+  "genres": [
+    "rap",
+    "g-funk",
+    "west coast"
+  ],
+  "relatedGenres": [
+    "g-funk",
+    "west-coast-club",
+    "boom-bap"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 g-funk — Mack 10",
+    "https://chadkiser.com/2018/06/01/budda-speaks-on-producing-bow-down-album-for-westside-connection/",
+    "https://en.wikipedia.org/wiki/Westside_Connection"
+  ],
+  "notes": "Inglewood hard-funk, and the research's usable material is almost entirely about *how the machine was played* — which is the right kind of material, because it determines note placement. Bud'da's documented habit is writing drum patterns to emulate live drummers rather than using canned loops, so `quantizeStrength` drops to 0.78 with `velocityVar` at 0.2, and the snare carries ghost-note 16ths before the backbeat at `prob` 0.42 across all four offbeat slots — the busiest ghost layer in this batch. ⚠ **The melodic layer is authored from the interface, not the instrument**: sampled Moog and jazz instrumentation played *from drum-machine pads* rather than over MIDI, so the motifs are short (`motifPitchCount` 3–4), `articulation` is staccato, and `densityPerBar` stays 2–5 — a hand on eight pads does not play a run. ⚠ The bass follows from the same fact: SP-1200-sampled bass tones triggered from pads, pitch-shifted, which on that machine couples speed to length, so the notes are inherently clipped and percussive. That is `mirror_kick` at `followRootsProb` 0.82 with `glideProb` 0 — a pad-triggered sample cannot glide. ⚠ `confidence` is `medium`: the research rates the production method medium-high through Bud'da but only medium on his solo records, and **the inferred parameters are the chord families** — \"minor with a sampled-Moog top line; two-chord vamps, no modulation\" names the count and not the chords, so `maxChords` 2 is researched and which two is not.",
+  "session": {
+    "bpm": {
+      "min": 90,
+      "max": 98,
+      "mode": 94
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "minor_pentatonic",
+        "dorian"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.56
+    },
+    "humanize": {
+      "quantizeStrength": 0.78,
+      "velocityVar": 0.2
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.3,
+      "tresilloBias": 0.14,
+      "offbeat8thShare": 0.2
+    },
+    "snare": {
+      "rimshotLayer": true,
+      "ghost": {
+        "prob": 0.42,
+        "pos": [
+          "1a",
+          "2e",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.25,
+          0.45
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.44,
+      "openHat": {
+        "prob": 0.2,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": [
+          "32"
+        ],
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.21
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "shaker"
+      ],
+      "densityPerBar": [
+        1,
+        2
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        66,
+        109
+      ],
+      "gapProb": 0.61,
+      "descendProb": 0.27,
+      "rampJitter": 11,
+      "pitchWalk": 4
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.5,
+      "seventh": 0.4,
+      "ninth": 0.1
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        46,
+        74
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "vamp",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      72,
+      94
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "motifPitchCount": [
+      3,
+      4
+    ],
+    "articulation": "staccato",
+    "chordToneBias": 0.62,
+    "structure": "riff_loop",
+    "intervals": {
+      "step": 0.4,
+      "third": 0.35,
+      "leap": 0.21
+    },
+    "contour": {
+      "riff": 0.5,
+      "descend": 0.3,
+      "arch": 0.16
+    },
+    "halfStepDissonance": 0.06,
+    "endVariation": true,
+    "octaveJumpProb": [
+      0.14,
+      0.28
+    ],
+    "timbreHint": "portamento_worm_lead"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.35,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.82,
+    "register": [
+      26,
+      44
+    ],
+    "glideProb": 0,
+    "passingTones": [
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.15
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 2,
+      "verse": 16,
+      "hook": 8,
+      "outro": 4
+    },
+    "transitions": {
+      "switchUpProb": 0.06
+    }
+  }
+}

@@ -22,7 +22,7 @@
 use engine::pattern::{Pattern, PPQ};
 
 use super::kit::Kit;
-use super::sampler::{self, Glide, Sampler};
+use super::sampler::{self, Glide, Hit, Sampler};
 
 /// The rate stems are written at. 44.1 kHz because that is what the kit is, so
 /// the common case resamples nothing.
@@ -117,7 +117,10 @@ pub fn to_stereo(pattern: &Pattern, kit: &Kit) -> Option<Vec<f32>> {
     // Every note in the pattern, in time order, with the frame it starts on.
     // Collected first so the render is one pass over a sorted list rather than
     // a search per frame.
-    let mut hits: Vec<(usize, usize, f32, f32, Option<Glide>)> = Vec::new();
+    // ⚠ Frame, pad, and everything the *note* says — see `sampler::Hit`. The
+    // shape travels per hit rather than per pad, because the same pad may sound
+    // two different ways inside one pattern.
+    let mut hits: Vec<(usize, usize, Hit)> = Vec::new();
     for track in &pattern.lanes {
         let Some(pad_index) = kit.pad_for(track.lane) else {
             // ⛔ Skipped, never defaulted to a nearby pad — `pad_for` refuses to
@@ -142,26 +145,40 @@ pub fn to_stereo(pattern: &Pattern, kit: &Kit) -> Option<Vec<f32>> {
             // dead-flat `.wav` out of the same drag. Mike: *"ensure i have 808
             // slides … for my audio being dragged into the DAW or audio being
             // exported."*
-            let glide = note.slide_to_pitch.map(|target| {
-                let frames =
-                    (f64::from(note.len_ticks) * seconds_per_tick * f64::from(RATE)) as u32;
-                Glide {
-                    // Travel measured the same way the pitch was, so a pad with
-                    // its own root or offset cannot make the two disagree.
-                    semis: Kit::semitones_for(pad, track.lane, target) - semis,
-                    // ⚠ Half the note each, matching where `midi.rs` puts the
-                    // destination note-on — the origin is held, then it moves.
-                    delay: frames / 2,
-                    frames: frames - frames / 2,
-                }
+            // ⚠ Hoisted out of the closure below, because the gate needs the same
+            // number: how long this note lasts in output frames. Two derivations
+            // of it would be two ideas of where the note ends.
+            let len_frames =
+                (f64::from(note.len_ticks) * seconds_per_tick * f64::from(RATE)) as u32;
+            let glide = note.slide_to_pitch.map(|target| Glide {
+                // Travel measured the same way the pitch was, so a pad with its
+                // own root or offset cannot make the two disagree.
+                semis: Kit::semitones_for(pad, track.lane, target) - semis,
+                // ⚠ Half the note each, matching where `midi.rs` puts the
+                // destination note-on — the origin is held, then it moves.
+                delay: len_frames / 2,
+                frames: len_frames - len_frames / 2,
             });
-            hits.push((at, pad_index, f32::from(note.vel) / 127.0, semis, glide));
+            hits.push((
+                at,
+                pad_index,
+                Hit {
+                    velocity: f32::from(note.vel) / 127.0,
+                    semis,
+                    glide,
+                    reversed: note.reversed,
+                    // ⛔ The gate Mike asked for, 2026-08-12 — through the same
+                    // function the live preview calls, because a rendered stem
+                    // must sound like what was heard. See `sampler::hold_for`.
+                    hold: sampler::hold_for(track.lane, len_frames, glide.is_some()),
+                },
+            ));
         }
     }
     if hits.is_empty() {
         return None;
     }
-    hits.sort_by_key(|(at, _, _, _, _)| *at);
+    hits.sort_by_key(|(at, _, _)| *at);
 
     let mut out = vec![0.0f32; frames * 2];
     let mut sampler = Sampler::default();
@@ -169,8 +186,8 @@ pub fn to_stereo(pattern: &Pattern, kit: &Kit) -> Option<Vec<f32>> {
     let mut at = 0usize;
     while at < frames {
         while next < hits.len() && hits[next].0 <= at {
-            let (_, pad, velocity, semis, glide) = hits[next];
-            sampler.trigger_with(kit, pad, velocity, semis, f64::from(RATE), glide);
+            let (_, pad, hit) = hits[next];
+            sampler.trigger_with(kit, pad, f64::from(RATE), hit);
             next += 1;
         }
         // Render up to the next trigger, so a hit lands on its own frame rather
@@ -178,7 +195,7 @@ pub fn to_stereo(pattern: &Pattern, kit: &Kit) -> Option<Vec<f32>> {
         // splits its block.
         let until = hits
             .get(next)
-            .map(|(frame, _, _, _, _)| (*frame).min(frames))
+            .map(|(frame, _, _)| (*frame).min(frames))
             .unwrap_or(frames)
             .max(at + 1);
         sampler.render(kit, &mut out[at * 2..until * 2], 2);
@@ -202,7 +219,7 @@ const ACID_BODY: usize = 24;
 /// into a chunk a DAW believes — so if the two guards ever drifted, the WAV
 /// would declare a tempo the samples inside it were not rendered at. That is the
 /// exact defect the `acid` chunk was added to fix, arriving from the other side.
-fn tempo(pattern: &Pattern) -> f32 {
+pub(crate) fn tempo(pattern: &Pattern) -> f32 {
     if pattern.bpm.is_finite() && pattern.bpm > 1.0 {
         pattern.bpm
     } else {
@@ -234,6 +251,7 @@ pub fn to_wav(samples: &[f32], pattern: &Pattern) -> Vec<u8> {
     const CHANNELS: u16 = 2;
     const BITS: u16 = 16;
 
+    let samples = &samples[..loop_samples(samples.len(), pattern)];
     let data_len = samples.len() * 2;
     let acid_len = 8 + ACID_BODY;
     let mut out = Vec::with_capacity(44 + acid_len + data_len);
@@ -252,15 +270,118 @@ pub fn to_wav(samples: &[f32], pattern: &Pattern) -> Vec<u8> {
     out.extend_from_slice(b"data");
     out.extend_from_slice(&(data_len as u32).to_le_bytes());
 
-    for sample in samples {
+    // Where the fade begins, as an index into the interleaved buffer.
+    let fade_from = samples.len().saturating_sub(FADE_SAMPLES);
+    for (at, sample) in samples.iter().enumerate() {
+        // ⚠ **A few milliseconds of ramp at the cut, and nothing else touches
+        // the audio.** Trimming to the bar line can land in the middle of a
+        // ringing voice, and a waveform that stops mid-cycle is a click on every
+        // repeat of the loop. Linear over ~5 ms is short enough to be inaudible
+        // as a level change and long enough to remove the step.
+        //
+        // ⚠ **Capped at 1.0**, which only matters for a clip shorter than the
+        // ramp: `saturating_sub` puts `fade_from` at zero there, so without the
+        // cap the *whole* file would be scaled by `len / FADE_SAMPLES` — a
+        // 4 ms stem written at a quarter of its level, quietly.
+        let gain = if at >= fade_from {
+            ((samples.len() - at) as f32 / FADE_SAMPLES as f32).min(1.0)
+        } else {
+            1.0
+        };
         // ⛔ Clamped before the cast. `as i16` on an out-of-range float
         // saturates in Rust, but the limiter has already bounded this to ±1 and
         // relying on the cast's behaviour instead of saying so is how a
         // rounding change becomes a click.
-        let scaled = (sample.clamp(-1.0, 1.0) * f32::from(i16::MAX)).round() as i16;
+        let scaled = ((sample * gain).clamp(-1.0, 1.0) * f32::from(i16::MAX)).round() as i16;
         out.extend_from_slice(&scaled.to_le_bytes());
     }
     out
+}
+
+/// How long the ramp at the trim point is, in interleaved samples (~5 ms).
+const FADE_SAMPLES: usize = 220 * 2;
+
+/// The clip's length in quarter notes — the number [`write_acid`] declares.
+///
+/// ⛔ **One function, because two readers of this number have to agree
+/// exactly.** The `acid` chunk says how many beats the file holds and
+/// [`loop_samples`] cuts the file to hold precisely that many; derive them
+/// separately and the rounding below is enough to make them disagree.
+///
+/// ⛔⛔ **QUARTER notes, not bars × numerator — and the difference is the whole
+/// defect for any meter whose denominator is not 4.** A reader takes this field
+/// with the tempo beside it, and that tempo is *beats per minute* in the only
+/// sense [`to_stereo`] renders: `60 / bpm / PPQ` seconds a tick, so one beat is
+/// one `PPQ`, so one beat is a quarter note.
+///
+/// `bars * num` is quarter notes only when `den == 4`. Four bars of 6/8 is 12
+/// quarter notes of audio and this used to declare 24 — so Ableton read twice
+/// the music out of the file, warped the stem to half speed, and the loop played
+/// at the wrong tempo. Deriving it from `ticks_per_bar` instead means it cannot
+/// disagree with what was rendered, because it is the same expression.
+///
+/// ⚠ **Rounded, because the field is an integer and some meters are not.** One
+/// bar of 7/8 is three and a half quarter notes and `acid` has nowhere to put
+/// the half. Rounding is at worst half a beat out over the whole clip;
+/// truncating would be up to a whole one, always short.
+fn loop_beats(pattern: &Pattern) -> u32 {
+    let ticks = pattern
+        .ticks_per_bar()
+        .saturating_mul(u32::from(pattern.bars));
+    ((f64::from(ticks) / f64::from(PPQ)).round() as u32).max(1)
+}
+
+/// How much of a rendered buffer belongs in the file, in interleaved samples.
+///
+/// ⛔⛔ **THIS IS THE WRONG-TEMPO BUG, AND THE COMMENT THAT USED TO STAND HERE
+/// HAD IT EXACTLY BACKWARDS** (Mike, 2026-08-11: *"the 'Drum Pattern' audio and
+/// 'All Parts' audio when dragged to Ableton do not set the right bpm"*).
+///
+/// [`to_stereo`] renders [`TAIL_SECONDS`] past the last bar so a decaying cymbal
+/// rings out, and `write_acid` deliberately declared the **musical** length
+/// rather than the file's, reasoning that *"declaring the file's length here
+/// would tell the host to squeeze a decaying cymbal into the bar count"*.
+///
+/// ▶ **That reasoning assumes the reader takes the tempo field. It does not.**
+/// Ableton — and Acid, and FL — take the *beat count* and divide it by the
+/// file's real duration. So four bars at 120 BPM is 8 seconds of music in a
+/// 10-second file, and a declared 16 beats reads as `16 × 60 / 10` = **96 BPM**.
+/// That is the exact figure in Mike's screenshot of Ableton's clip view, against
+/// a clip our own naming had already labelled `… - 120 BPM - E Minor`.
+///
+/// ⛔ **So the two numbers cannot both be free: the file must contain exactly
+/// the beats it claims.** There is no arrangement of this chunk that keeps a
+/// tail *and* reports the right tempo — the tail is the error term. The tail is
+/// therefore cut here, at the point where the contract is written, and
+/// [`to_wav`] ramps the last few milliseconds so the cut is not a click.
+///
+/// ⚠ **`to_stereo` still renders it**, and that is deliberate: the tail is what
+/// lets a voice that starts near the end be *mixed* correctly before the cut,
+/// and the preview player wants the whole thing. Only the file is trimmed.
+///
+/// ⚠ Never lengthens. A buffer already shorter than the bar count — clamped by
+/// [`MAX_SECONDS`], which `refuse_if_too_long` is supposed to have caught first
+/// — is written as it is rather than sliced past its end.
+fn loop_samples(len: usize, pattern: &Pattern) -> usize {
+    // Interleaved stereo, so two samples a frame — and never past what was
+    // actually rendered.
+    (loop_frames(pattern) * 2).min(len)
+}
+
+/// The clip's musical length in frames — the audio, without the ring-out.
+///
+/// ⛔ **The same number [`loop_samples`] trims to and [`write_acid`] declares.**
+/// A second expression for "how long is this clip" is how the trim and the
+/// declared length come to disagree, and that disagreement is audible: a loop
+/// that does not land on its own bar line drifts a little further every pass.
+///
+/// ⚠ Private again. It was `pub(crate)` for the sequential multi-part layout
+/// that was reverted on 2026-08-11 — Mike: *"i do not need the Song arrangement
+/// part split into separate rows"* — and nothing outside this module has called
+/// it since.
+fn loop_frames(pattern: &Pattern) -> usize {
+    let seconds = f64::from(loop_beats(pattern)) * 60.0 / f64::from(tempo(pattern));
+    (seconds * f64::from(RATE)).round() as usize
 }
 
 /// Say how fast this is meant to play, in the chunk loop libraries use.
@@ -298,42 +419,18 @@ fn write_acid(out: &mut Vec<u8>, pattern: &Pattern) {
     out.extend_from_slice(&0x8000u16.to_le_bytes());
     out.extend_from_slice(&0.0f32.to_le_bytes());
 
-    // ⚠ **The musical loop, not the length of the file.** `to_stereo` renders
-    // `TAIL_SECONDS` past the end so the last hit rings out rather than being
-    // cut dead, so the file is deliberately longer than the loop it contains.
-    // Declaring the file's length here would tell the host to squeeze a decaying
-    // cymbal into the bar count and stretch everything by however long the tail
-    // happened to be.
-    //
     // ⚠ The clip's effective meter, from the one place that decides it —
     // `pattern::normalise_meter`, which `ticks_per_bar` is also built on. This
     // used to restate the zero-denominator fallback inline, which made it the
     // fourth copy of a rule whose own comments insisted the copies agreed.
     let (num, den) = pattern.time_sig();
 
-    // ⛔⛔ **QUARTER notes, not bars × numerator — and the difference is the
-    // whole defect for any meter whose denominator is not 4.** A reader takes
-    // this field with the tempo below it, and that tempo is *beats per minute*
-    // in the only sense `to_stereo` renders: `60 / bpm / PPQ` seconds a tick,
-    // so one beat is one `PPQ`, so one beat is a quarter note.
-    //
-    // `bars * num` is quarter notes only when `den == 4`. Four bars of 6/8 is 12
-    // quarter notes of audio and this used to declare 24 — so Ableton read twice
-    // the music out of the file, warped the stem to half speed, and the loop
-    // played at the wrong tempo. That is the exact defect this chunk was added
-    // to fix, reintroduced through the meter picker, which offers 6/8, 9/8, 12/8
-    // and 7/8. Deriving it from `ticks_per_bar` instead means it cannot disagree
-    // with what was rendered, because it is the same expression.
-    //
-    // ⚠ **Rounded, because the field is an integer and some meters are not.**
-    // One bar of 7/8 is three and a half quarter notes and `acid` has nowhere to
-    // put the half. Rounding is at worst half a beat out over the whole clip;
-    // truncating would be up to a whole one, always short.
-    let ticks = pattern
-        .ticks_per_bar()
-        .saturating_mul(u32::from(pattern.bars));
-    let beats = ((f64::from(ticks) / f64::from(PPQ)).round() as u32).max(1);
-    out.extend_from_slice(&beats.to_le_bytes());
+    // ⛔ **[`loop_beats`], which is also what the file is CUT to.** The two are
+    // one number: every reader of this chunk derives the tempo as
+    // `beats × 60 / duration`, so a file holding any other amount of audio
+    // reports a tempo nobody chose. `loop_samples` carries the measurement that
+    // caught it.
+    out.extend_from_slice(&loop_beats(pattern).to_le_bytes());
     out.extend_from_slice(&u16::from(den).to_le_bytes());
     out.extend_from_slice(&u16::from(num).to_le_bytes());
 
@@ -371,6 +468,7 @@ mod tests {
                     model_vel: None,
                     slide_to_pitch: None,
                     articulation: None,
+                    reversed: false,
                 }],
             }],
             ppq: PPQ,
@@ -512,9 +610,6 @@ mod tests {
 
     #[test]
     fn the_declared_length_is_the_loop_rather_than_the_rendered_file() {
-        // ⚠ `to_stereo` renders `TAIL_SECONDS` past the end so the last hit
-        // rings out. Declaring the *file* here would tell the host to squeeze
-        // that decay into the bar count and stretch the whole loop with it.
         let pattern = at_140_over_four_bars();
         let bytes = to_wav(&[0.0f32; 8], &pattern);
         let acid = chunk(&bytes, b"acid").unwrap();
@@ -524,12 +619,81 @@ mod tests {
         assert_eq!(u16::from_le_bytes(acid[16..18].try_into().unwrap()), 4);
         assert_eq!(u16::from_le_bytes(acid[18..20].try_into().unwrap()), 4);
 
-        // And the rendered audio really is longer than that, which is what makes
-        // the distinction above worth asserting rather than theoretical.
+        // And the rendered buffer really is longer than that, which is what
+        // makes the trim below worth asserting rather than theoretical.
         let kit = crate::audio::preview_kit().unwrap();
         let rendered = to_stereo(&pattern, kit).unwrap();
         let loop_frames = f64::from(beats) * 60.0 / 140.0 * f64::from(RATE);
         assert!((rendered.len() / 2) as f64 > loop_frames);
+    }
+
+    /// ⛔⛔ **THE 96-BPM BUG, IN THE ARITHMETIC THAT PRODUCED IT** (2026-08-11).
+    ///
+    /// Mike: *"the 'Drum Pattern' audio and 'All Parts' audio when dragged to
+    /// Ableton do not set the right bpm."* His screenshot shows a clip our own
+    /// naming had labelled `drake - Chords - 120 BPM - E Minor` sitting in
+    /// Ableton's clip view reading **BPM 96.00**.
+    ///
+    /// ▶ **96 is not a wrong tempo, it is the right arithmetic on a wrong file.**
+    /// Four bars at 120 is 8 seconds of music; `to_stereo` adds `TAIL_SECONDS`,
+    /// making the file 10; the chunk declared 16 beats. Ableton does not read the
+    /// tempo field — it divides: `16 × 60 / 10 = 96`. Exactly the figure on
+    /// screen, and the two-second tail is the whole of the error.
+    ///
+    /// ⚠ **Asserted the way a host reads it**, not by inspecting the field. A
+    /// test that checked `beats == 16` passed throughout the bug — one is above
+    /// this — because both numbers were individually defensible and only their
+    /// *ratio* was wrong.
+    #[test]
+    fn a_host_dividing_beats_by_the_duration_gets_the_tempo_back() {
+        let kit = crate::audio::preview_kit().unwrap();
+        // 120 and 140, because 120 is every fallback in this file: at 120 alone a
+        // writer that had stopped reading the pattern would still pass.
+        for bpm in [120.0f32, 140.0] {
+            let pattern = Pattern {
+                bpm,
+                bars: 4,
+                ..pattern_with(Lane::Kick, 36)
+            };
+            let bytes = to_wav(&to_stereo(&pattern, kit).unwrap(), &pattern);
+            let acid = chunk(&bytes, b"acid").unwrap();
+            let beats = f64::from(u32::from_le_bytes(acid[12..16].try_into().unwrap()));
+
+            // The `data` chunk as a host measures it: bytes → frames → seconds.
+            let data = chunk(&bytes, b"data").expect("a wav with no audio in it");
+            let seconds = (data.len() / 4) as f64 / f64::from(RATE);
+            let read_back = beats * 60.0 / seconds;
+
+            assert!(
+                (read_back - f64::from(bpm)).abs() < 0.5,
+                "a host reads {read_back:.2} BPM out of a {bpm} BPM stem \
+                 ({beats} beats over {seconds:.3}s)"
+            );
+        }
+    }
+
+    #[test]
+    fn the_trim_lands_on_the_bar_line_and_does_not_click() {
+        // ⚠ The two halves of the cut, together: the file has to *stop* at the
+        // loop, and it has to stop quietly. A hard cut through a ringing voice
+        // is a click on every repeat, which is a defect that only shows up once
+        // the loop is actually looping.
+        let kit = crate::audio::preview_kit().unwrap();
+        let pattern = at_140_over_four_bars();
+        let rendered = to_stereo(&pattern, kit).unwrap();
+        let bytes = to_wav(&rendered, &pattern);
+
+        let frames = chunk(&bytes, b"data").unwrap().len() / 4;
+        let want = (16.0 * 60.0 / 140.0 * f64::from(RATE)).round() as usize;
+        assert_eq!(frames, want, "the file is not four bars of 140");
+        assert!(
+            rendered.len() / 2 > frames,
+            "nothing was trimmed, so this proves nothing"
+        );
+
+        let decoded = crate::audio::kit::decode_wav(&bytes).unwrap();
+        let last = decoded.samples.last().copied().unwrap_or(0.0);
+        assert!(last.abs() < 0.01, "the file ends mid-cycle at {last}");
     }
 
     /// ⛔⛔ **The declared length is in QUARTER notes, so an x/8 meter is not

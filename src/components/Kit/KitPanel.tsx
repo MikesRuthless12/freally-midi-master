@@ -1,11 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Dices, X } from 'lucide-react';
+import { Dices, Play, X } from 'lucide-react';
 
 import { canSound, useKit } from '../../state/kit';
 import { SAMPLE_TYPE, droppedSample } from '../../lib/dnd';
+import { auditionLane } from '../DrumGrid/audition';
 import { SavedKits } from './SavedKits';
 import { useExplorer } from '../../state/explorer';
+import { useSession } from '../../state/session';
+import { padsOf, useUi } from '../../state/ui';
 import type { Lane } from '../../lib/ipc-types';
 
 /**
@@ -36,7 +39,7 @@ import type { Lane } from '../../lib/ipc-types';
  */
 export function KitPanel() {
   const { t } = useTranslation();
-  const lanes = useKit((s) => s.lanes);
+  const allLanes = useKit((s) => s.lanes);
   const loaded = useKit((s) => s.loaded);
   const assigning = useKit((s) => s.assigning);
   const error = useKit((s) => s.error);
@@ -49,6 +52,58 @@ export function KitPanel() {
   // the producer lets go. Local: it is a property of this gesture, not of the
   // kit, and nothing outside this panel can act on it.
   const [over, setOver] = useState<Lane | null>(null);
+
+  /**
+   * The eight lanes on the pads first, in pad order, then everything else.
+   *
+   * ⛔⛔ **Mike, 2026-08-11:** *"on the right side for the 'Kit' the top 8 names
+   * should always be the one's that are visible at the time, and when you swap
+   * them for the others, then those names should be at the top 8 in the same
+   * order as the drum pads are."*
+   *
+   * ▶ The list arrives in the plugin's own order — thirty-odd lanes, of which
+   * eight are on screen as pads and the rest are not. So finding the row for the
+   * pad you are looking at meant scrolling past twenty you are not using, and
+   * changing a pad's lane moved its row somewhere unrelated. Sorting by the pad
+   * layout makes the panel and the grid read the same way round.
+   *
+   * ⚠ **A stable sort on the pad index**, so the remaining lanes keep the
+   * plugin's ordering rather than being shuffled into whatever the comparison
+   * happens to do with two equal keys.
+   *
+   * ⚠ A lane on two pads — the layering case `PAD_LIMIT` allows — sorts by its
+   * *first* pad, because `indexOf` answers the first and one row cannot be in two
+   * places.
+   */
+  // ⛔⛔ **The selector returns the stored MAP; the pick happens outside it.**
+  // A selector that built the default layout itself would hand back a **new
+  // array on every call**, zustand's equality check would never hold, the
+  // component would re-render forever and React would give up and paint a blank
+  // panel — Mike screenshotted exactly that on 2026-08-09, and it was
+  // reintroduced here the first time this sort was written. `s.pads` is stable
+  // and `padsOf` answers with one frozen constant.
+  const selectedId = useSession((s) => s.selectedId);
+  const padsByStyle = useUi((s) => s.pads);
+  const pads = padsOf(padsByStyle, selectedId);
+  const lanes = useMemo(() => {
+    // ⚠ A lookup table rather than `pads.indexOf` inside the comparator: a sort
+    // of ~30 lanes asks the comparator ~150 times and each call scanned the pad
+    // array twice.
+    //
+    // ⛔⛔ **THE FIRST SLOT WINS, WHICH IS WHAT `indexOf` ANSWERED.** Two pads may
+    // hold the same lane — `PAD_LIMIT` allows it so a snare can be layered — and
+    // a plain `new Map(pads.map(...))` keeps the *last* of a duplicate key. Point
+    // pads 1 and 7 at the kick and the KIT list sorted Kick seventh while its pad
+    // was first, which is the ordering Mike asked for failing on the one case
+    // this comment claims to cover: *"the top 8 names should … be at the top 8 in
+    // the same order as the drum pads are."*
+    const rank = new Map<string, number>();
+    pads.forEach((lane, at) => {
+      if (!rank.has(lane)) rank.set(lane, at);
+    });
+    const at = (lane: Lane) => rank.get(lane) ?? pads.length;
+    return [...allLanes].sort((a, b) => at(a.lane) - at(b.lane));
+  }, [allLanes, pads]);
 
   // Read once when the panel mounts. `Section` unmounts a collapsed panel's
   // content, so reopening it re-reads — which is what keeps it in step with an
@@ -157,6 +212,37 @@ export function KitPanel() {
                 <span className="kit-lane__name">{t(`lanes.${entry.lane}`)}</span>
                 <span className="kit-lane__source">{busy ? t('kit.choosing') : source}</span>
               </button>
+
+              {/* ⛔⛔ **HEAR THIS LANE'S SAMPLE ON ITS OWN** — Mike, 2026-08-11:
+                  *"the melody/chords/basslines/counter melody should be able to
+                  play back their samples with a play button as well, not just
+                  with the generated playback pattern"* and *"you should be able
+                  to hear just the sample or one shot you are using."*
+
+                  ▶ **The plugin could already do this; there was no button.**
+                  `Audition::Lane` resolves through `Kit::pad_for` and triggers
+                  the pad **as sampled** — zero transposition, no generated part,
+                  which is exactly "just the sample". The drum lanes have reached
+                  it from `PadGrid` and the drum grid's row headers since
+                  TASK-043; the melodic lanes live only in this list, and this
+                  list had no way in.
+
+                  ⚠ **Only where something can sound.** `canSound` is the shared
+                  predicate this row already keys `data-silent` on — a Play
+                  button over a lane with no voice is a control that can only do
+                  nothing, which is the readout-that-lies failure this panel
+                  keeps guarding against. */}
+              {canSound(entry) && (
+                <button
+                  type="button"
+                  className="kit-lane__play"
+                  aria-label={t('kit.playLane', { lane: t(`lanes.${entry.lane}`) })}
+                  title={t('kit.playLane', { lane: t(`lanes.${entry.lane}`) })}
+                  onClick={() => void auditionLane(entry.lane)}
+                >
+                  <Play size={12} aria-hidden="true" />
+                </button>
+              )}
 
               {/* ⛔ **The dice** (TASK-050A). Per pad, re-rolling it from the
                   folder the browser is showing — filtered by what the filename

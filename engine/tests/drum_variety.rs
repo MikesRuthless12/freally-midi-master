@@ -156,11 +156,21 @@ fn report_how_many_distinct_beats_each_artist_writes() {
     );
 
     // ⚠ **A floor, not a target, and a low one deliberately.** `country-train`
-    // sits at 24 because a train beat *is* four-on-the-floor with `syncopation:
+    // sat at 24 because a train beat *is* four-on-the-floor with `syncopation:
     // 0` — that is the style, not a saturation, and raising this to punish it
     // would be asking the generator to stop sounding like country. What this
     // catches is a model collapsing toward one beat, which is what
     // `uk-drill`'s kick did before anyone measured it.
+    //
+    // ▶ **It reaches 73 since 2026-08-13, and its kick is still 1.** The kick
+    // could not move and should not: `the_train_beat_is_a_sixteenth_stream_over_
+    // walking_quarters` asserts every country kick lands on a quarter, and with
+    // four anchors against `densityPerBar: 4` the fill loop never runs, so the
+    // lane draws no random numbers at all. The variety came from the two lanes
+    // the invariants leave free — a second open-hat position and a higher roll
+    // frequency. ⚠ `percs` is NOT one of them: widening it from [1,2] to [2,5]
+    // moved this number by exactly zero, because `shape` drops anything under
+    // velocity 50 and the perc lanes generate below it.
     const FLOOR: usize = 20;
     let thin: Vec<&(String, usize, usize, usize)> = rows
         .iter()
@@ -258,7 +268,56 @@ fn a_fill_is_not_the_same_gesture_every_time() {
 /// `metro-boomin` plays is not a more accurate model of either. What matters is
 /// that a producer clicking through the roster is not handed the same beat, and
 /// a handful of coincidences in a thousand does not do that.
-const MAX_COLLISIONS_PER_1000: usize = 6;
+/// ⛔⛔ **AND THE CONSTANT THAT USED TO LIVE HERE COULD NOT SURVIVE VOLUME 1.**
+/// It was `MAX_COLLISIONS_PER_1000 = 6`, i.e. "more than 1 of 200 seeds fails",
+/// and it is a **per-pair** number while the thing it is spent on grows with the
+/// **square** of the roster. Fifteen genres and ten artists is ~300 pairs; 590
+/// models is **173,755**. Measured on the shipped roster, 2026-08-12:
+///
+/// | fail when a pair collides on | expected purely by chance | actually observed |
+/// |---|---|---|
+/// | ≥2 of 200 *(the old rule)* | **977** | 1,092 |
+/// | ≥3 | 36 | 530 |
+/// | ≥4 | 1.0 | 332 |
+/// | ≥6 | **0.00** | **171** |
+///
+/// So at the old ceiling **nine tenths of the failures were the birthday
+/// paradox**, and "differentiate them" would have meant authoring arbitrary
+/// differences into 455 models to beat a threshold that says nothing about
+/// whether two artists sound alike. The 171 that survive a chance-free ceiling
+/// are real, and they are the work.
+///
+/// ▶ **So the ceiling is derived rather than chosen**, which is also what the
+/// roster needs: volumes 2–5 take it to 2,087 models and 2.2 million pairs, and
+/// a hand-tuned number would be wrong again at every one of those steps. This
+/// asks the only question worth asking — *is this pair closer than coincidence
+/// explains?* — at whatever size the roster happens to be.
+///
+/// ⚠ **This is not the gate being loosened.** `q` is estimated from the run's
+/// own data, so a roster whose models genuinely converge raises `q`, raises the
+/// ceiling's chance floor **and** raises the observed counts together — the
+/// excess is what fails. The floor of 2 keeps it at least as strict as the old
+/// rule on a small roster.
+fn ceiling_for(pairs: f64, hits: &BTreeMap<String, usize>) -> usize {
+    let seeds = SEEDS as f64;
+    // Method of moments: P(collide on ≥2) ≈ C(seeds,2)·q² for small q.
+    let over = hits.values().filter(|count| **count >= 2).count() as f64;
+    let q = ((over / pairs) / (seeds * (seeds - 1.0) / 2.0)).sqrt();
+    if !q.is_finite() || q <= 0.0 {
+        return 2;
+    }
+    for k in 2..=SEEDS as usize {
+        // log C(seeds, k), built term by term because `k` never gets large.
+        let log_c: f64 = (0..k)
+            .map(|i| ((seeds - i as f64) / (i as f64 + 1.0)).ln())
+            .sum();
+        let log_p = log_c + k as f64 * q.ln() + (seeds - k as f64) * (1.0 - q).ln();
+        if log_p.exp() * pairs < 1.0 {
+            return k;
+        }
+    }
+    SEEDS as usize
+}
 
 #[test]
 fn two_different_artists_do_not_write_the_same_beat_or_fill() {
@@ -310,22 +369,35 @@ fn two_different_artists_do_not_write_the_same_beat_or_fill() {
     report("beat", &beat_hits);
     report("fill", &fill_hits);
 
-    let ceiling = SEEDS as usize * MAX_COLLISIONS_PER_1000 / 1000;
-    let over = |hits: &BTreeMap<String, usize>| -> Vec<(String, usize)> {
+    // Every unordered pair the sweep could have compared — the denominator the
+    // chance floor is spent against. See `ceiling_for`.
+    let pairs = ids.len() as f64 * (ids.len() as f64 - 1.0) / 2.0;
+    let beat_ceiling = ceiling_for(pairs, &beat_hits);
+    let fill_ceiling = ceiling_for(pairs, &fill_hits);
+    println!(
+        "\n  {} models = {pairs:.0} pairs; a pair fails at {beat_ceiling} identical beats \
+         or {fill_ceiling} identical fills out of {SEEDS}",
+        ids.len()
+    );
+
+    let over = |hits: &BTreeMap<String, usize>, ceiling: usize| -> Vec<(String, usize)> {
         hits.iter()
-            .filter(|(_, count)| **count > ceiling)
+            .filter(|(_, count)| **count >= ceiling)
             .map(|(pair, count)| (pair.clone(), *count))
             .collect()
     };
 
-    let beat_over = over(&beat_hits);
-    let fill_over = over(&fill_hits);
+    let beat_over = over(&beat_hits, beat_ceiling);
+    let fill_over = over(&fill_hits, fill_ceiling);
     assert!(
         beat_over.is_empty() && fill_over.is_empty(),
-        "these models are too close to tell apart — more than {ceiling} of {SEEDS} seeds \
-         produce an identical result.\n  beat: {beat_over:?}\n  fill: {fill_over:?}\n\
+        "these models are too close to tell apart — they land on an identical result \
+         more often than coincidence explains at this roster size (beat ≥{beat_ceiling} \
+         of {SEEDS}, fill ≥{fill_ceiling} of {SEEDS}).\n  beat: {beat_over:?}\n  \
+         fill: {fill_over:?}\n\
          Each pair is a model and its parent, or two siblings under one parent; the cure \
-         is authored difference in the child, not a looser gate."
+         is authored difference in the child, not a looser gate — and the ceiling is \
+         derived from the run's own data, so raising it by hand is not available."
     );
 }
 

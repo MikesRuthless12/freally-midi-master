@@ -60,6 +60,14 @@ const SET_AT_RUNTIME = new Set([
   '--preview-progress',
   // `App.tsx` writes the browser rail's dragged width (TASK-132).
   '--rail-left-width',
+  // ⛔ **`state/ui.ts::SWAP_STYLE` writes both, and that is deliberate** — the
+  // rail's slide-out animation and the `setTimeout` that unmounts the departing
+  // group are the same duration *by definition*, so the numbers live once, in
+  // TypeScript, and reach the stylesheet as properties. Declared in CSS as well
+  // they would agree only by hand, and a few milliseconds out is the old panels
+  // blinking away mid-slide — which reads as jank rather than as a wrong number.
+  '--rail-swap-out',
+  '--rail-swap-in',
 ]);
 
 /**

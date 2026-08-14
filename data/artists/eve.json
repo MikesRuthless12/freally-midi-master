@@ -1,0 +1,279 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "eve",
+  "type": "artist",
+  "name": "Eve",
+  "aliases": [
+    "eve",
+    "eve jeffers",
+    "ruff ryders first lady",
+    "e-v-e"
+  ],
+  "tier": "standard",
+  "extends": [
+    "boom-bap"
+  ],
+  "era": "1999-2002",
+  "genres": [
+    "rap",
+    "boom-bap"
+  ],
+  "relatedGenres": [
+    "boom-bap",
+    "rnb-2000s",
+    "pop-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 boom-bap — Eve",
+    "https://en.wikipedia.org/wiki/Let_There_Be_Eve...Ruff_Ryders%27_First_Lady",
+    "https://en.wikipedia.org/wiki/Eve_(rapper)"
+  ],
+  "notes": "The research's phrase is \"more four-on-the-floor pull than the NY norm\", and that is the one parameter here that is not boom-bap: kick anchors on 1 and 3, `fourOnFloorInChorus` true, `syncopation` down to 0.22 and swing flattened to 0.53. The second distinctive is the open hat — offbeats on all four ands at `prob` 0.55 and up to four a bar, the highest in this batch. The third is that a sung counter-hook carries the melody, so `countermelody.densityRatio` is 0.55 and its register sits above the lead. ⚠ `medium` and the research marks the harmonic detail `[LOW-CONF]` explicitly — the INFERRED parameters are the chord families: i–VI–VII and I–V–vi–IV come from label-sound documentation rather than from any per-record analysis, and the i–iv and I–IV–V families at weight 2 are reductions of them rather than separately researched.",
+  "session": {
+    "bpm": {
+      "min": 92,
+      "max": 102,
+      "mode": 97
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "mixolydian",
+        "major"
+      ],
+      "weights": [
+        4,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.53
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "secondaryAnchor": "3",
+      "syncopation": 0.22,
+      "fourOnFloorInChorus": true
+    },
+    "snare": {
+      "layered": true,
+      "rimshotLayer": false,
+      "layerClapOffsetMs": [
+        2,
+        5
+      ],
+      "ghost": {
+        "prob": 0.14,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.18,
+          0.3
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.5,
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "16T"
+          ],
+          "weights": [
+            3,
+            3
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "pre_snare"
+        ],
+        "freqPerBar": 0.58,
+        "velocityRamp": true
+      },
+      "openHat": {
+        "prob": 0.55,
+        "pos": [
+          "1&",
+          "2&",
+          "3&",
+          "4&"
+        ],
+        "perBar": [
+          2,
+          4
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "perc",
+        "crash",
+        "ride"
+      ],
+      "densityPerBar": [
+        1,
+        2
+      ],
+      "gainOffsetDb": -5
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 4
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th",
+        "32nd"
+      ],
+      "grouping": [
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        68,
+        108
+      ],
+      "gapProb": 0.22,
+      "descendProb": 0.51,
+      "rampJitter": 16,
+      "pitchWalk": 2
+    }
+  },
+  "melody": {
+    "register": [
+      66,
+      88
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "intervals": {
+      "step": 0.6,
+      "third": 0.3,
+      "leap": 0.1
+    },
+    "contour": {
+      "riff": 0.3,
+      "descend": 0.3,
+      "arch": 0.4
+    },
+    "chordToneBias": 0.8,
+    "octaveJumpProb": 0.1,
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "timbreHint": "supersaw_stab"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.55,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.58,
+      "seventh": 0.35,
+      "ninth": 0.07
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        50,
+        78
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.88,
+    "register": [
+      26,
+      44
+    ],
+    "glideProb": 0.18,
+    "passingTones": [
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.28
+  }
+}

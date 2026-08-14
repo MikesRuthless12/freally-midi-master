@@ -1,0 +1,276 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "nate-dogg",
+  "type": "artist",
+  "name": "Nate Dogg",
+  "aliases": [
+    "nate dogg",
+    "nathaniel hale",
+    "nate d o double g",
+    "gangsta singing"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "g-funk"
+  ],
+  "era": "1993-2004",
+  "genres": [
+    "rap",
+    "g-funk",
+    "west coast",
+    "rnb"
+  ],
+  "relatedGenres": [
+    "g-funk",
+    "rnb-2000s",
+    "west-coast-club",
+    "funk"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 g-funk — Nate Dogg",
+    "https://en.wikipedia.org/wiki/Nate_Dogg",
+    "https://en.wikipedia.org/wiki/Regulate_(song)"
+  ],
+  "notes": "⚠ **This is a top-line model, not a beat model** — the research says outright that he is not the rhythm source — so the drums stay close to the parent and everything authored sits in `melody`, `countermelody` and `bassline`. What is his: 2- or 4-bar melodic cells (`phraseBars` weighted evenly across both, which also keeps trap 6 satisfied), small intervals with one leap per phrase (`step` 0.6 / `third` 0.32 / `leap` 0.08), long held notes across 2 and 4 so `densityPerBar` runs 2–5, and self-harmonising in stacked 3rds and octaves over 2–4 tracks — which is `octave_echo` at weight 4 with `densityRatio` 0.6, the densest counter on this axis. Gospel-choir background drives `blues` and `minor_pentatonic` to the top of the scale weights with the blue-3 and flat-7 the research names. ⚠ **`melody.register` 50–74 is inferred**: the research gives a tenor-to-baritone voice and no numbers, so this is the standard tenor span rather than a measurement, and it is the parameter to correct first. ⚠ `timbreHint` is `vocal_chant`, the nearest token in this dataset's existing vocabulary for a sung hook line — none of the available hints describe a lead vocal. ⚠ The bass matters here for an unusual reason: \"hooks are written against the bassline rather than the chords\", contour mirroring or answering it in contrary motion, so the bass is authored melodic (`independent_riff`, `followRootsProb` 0.42) rather than as an accompaniment. ⚠ `confidence` is `medium`, matching the research's high-medium rating. The arrangement opens on the hook because the research says he frequently opens the record before any rap enters, and the 4-bar pre-hook is modelled as a bridge because this engine's section vocabulary has no pre-hook at this length.",
+  "session": {
+    "bpm": {
+      "min": 88,
+      "max": 100,
+      "mode": 92
+    },
+    "scales": {
+      "values": [
+        "minor_pentatonic",
+        "blues",
+        "natural_minor"
+      ],
+      "weights": [
+        5,
+        4,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.58
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3",
+      "syncopation": 0.28,
+      "tresilloBias": 0.12
+    },
+    "hihat": {
+      "continuous": true,
+      "fillDensity": 0.38,
+      "rolls": {
+        "vocab": [
+          "32"
+        ],
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.21
+      }
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t",
+        "8t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        56,
+        106
+      ],
+      "gapProb": 0.26,
+      "descendProb": 0.6,
+      "rampJitter": 12
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "iv",
+          "i"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "v",
+          "i",
+          "VI"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.4,
+      "seventh": 0.45,
+      "ninth": 0.15
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        76
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      50,
+      74
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    },
+    "densityPerBar": [
+      2,
+      5
+    ],
+    "intervals": {
+      "step": 0.6,
+      "third": 0.32,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.4,
+      "descend": 0.35,
+      "arch": 0.25
+    },
+    "chordToneBias": 0.8,
+    "octaveJumpProb": 0.05,
+    "endVariation": true,
+    "timbreHint": "vocal_chant"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.6,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.42,
+    "register": [
+      28,
+      46
+    ],
+    "glideProb": 0.4,
+    "passingTones": [
+      "M2",
+      "m3",
+      "P4",
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.28
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "bridge",
+          "hook",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "hook": 8,
+      "bridge": 4,
+      "outro": 4
+    }
+  }
+}

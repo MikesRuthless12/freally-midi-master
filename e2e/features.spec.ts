@@ -71,8 +71,8 @@ const UNREACHABLE: { area: string; feature: string; why: string }[] = [
   },
   {
     area: 'Plugin window',
-    feature: 'The two window sizes, and the zoom matching the window',
-    why: 'There is no host window in a browser tab. `WindowSize` renders nothing outside the plugin.',
+    feature: 'The page zoom matching the window it was given',
+    why: 'There is no host window in a browser tab. `WindowFit` draws nothing anywhere, and outside the plugin it does nothing at all.',
   },
   {
     area: 'Host',
@@ -153,7 +153,7 @@ test.afterAll(() => {
   writeFileSync(join(SHOTS, 'FEATURES.md'), lines.join('\n'), 'utf8');
 });
 
-test('the stage: Generate, Generate all, Clear, Clear all, bars', async ({ page }) => {
+test('the stage: Generate, Generate all, the tab ✕, Clear all, bars', async ({ page }) => {
   await open(page);
 
   // Generate is refused until somebody is chosen — the empty state is a
@@ -176,13 +176,24 @@ test('the stage: Generate, Generate all, Clear, Clear all, bars', async ({ page 
   }
   await feature(page, 'Stage', 'Generate all', 'counter, bass and chords are all filled');
 
-  // Clear empties this part and leaves the others — the distinction the store
-  // was rewritten for.
-  await page.getByRole('button', { name: 'Clear', exact: true }).click();
+  // ⛔⛔ **The per-part clear is an ✕ ON THE TAB now, not a footer button.**
+  // Mike, 2026-08-11: *"there should be a 'C' or an 'X' in the tab for the
+  // generators, so that way you can clear just the single generator"* — *"just
+  // like the drum pad lanes."* The footer pair it replaces sat with no styling
+  // between them and read as one control saying "Clear Clear all".
+  //
+  // ⚠ It still empties this part and leaves the others, which is the
+  // distinction the store was rewritten for and the only thing worth asserting.
+  await page.getByRole('button', { name: 'Clear Chords' }).click();
   expect(await notes(page)).toBe(0);
   await page.getByRole('tab', { name: 'Melody' }).click();
   expect(await notes(page), 'clearing chords emptied the melody too').toBeGreaterThan(0);
-  await feature(page, 'Stage', 'Clear', 'the shown part empties and the others survive');
+  await feature(
+    page,
+    'Stage',
+    'Clear one part',
+    'the tab’s ✕ empties it and the others survive',
+  );
 
   await page.getByRole('button', { name: 'Clear all' }).click();
   expect(await notes(page)).toBe(0);

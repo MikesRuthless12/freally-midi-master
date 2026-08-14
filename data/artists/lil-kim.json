@@ -1,0 +1,417 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "lil-kim",
+  "type": "artist",
+  "name": "Lil' Kim",
+  "aliases": [
+    "lil kim",
+    "lil' kim",
+    "kimberly jones",
+    "queen bee",
+    "junior mafia"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "boom-bap"
+  ],
+  "era": "1996-2000",
+  "genres": [
+    "rap",
+    "boom-bap"
+  ],
+  "relatedGenres": [
+    "boom-bap",
+    "rnb-2000s",
+    "pop-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 boom-bap — Lil' Kim",
+    "Wikipedia — Hard Core (Lil' Kim album)",
+    "Vibe — Bad Boy's Hitmen dream team"
+  ],
+  "notes": "The research opens on the word \"Split\" — minor soul loops on album cuts, major-key pop and disco interpolations on singles — so the two records are authored as `modes` (`hard core` and `interpolation single`) rather than averaged into one that is neither. Authoring modes replaces the boom-bap parent's dusty/jazzy/hard set, which is intended: these are the two records this name actually makes. The parameter that is constant across both is the countermelody: \"sung female hook is structural\", not decorative, so `densityRatio` is 0.7 — the highest in this batch — and the string/harp glisses the research names as sweeteners are why `arp` sits alongside the answer lick rather than being absent. `timbreHint` is `bright_bell` for that harp-and-gliss colour. Drums are \"mixed for radio, less dry than the Wu/Mobb end\", authored as a high `quantizeStrength` with moderate velocity variance and a clap layered onto the backbeat. ⚠ `bassline` is authored at the top level with a mid `followRootsProb`, and the modes pull it apart: the single mode moves the bass (\"replayed bass with melodic movement on singles\") and the hardcore mode pins it (\"static sub on hardcore cuts\"). ⚠ `medium` because the research rates it medium-high; album production is well documented but the tempo band is catalog-level, and the swing amount is inferred.",
+  "session": {
+    "bpm": {
+      "min": 90,
+      "max": 102,
+      "mode": 96
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "major",
+        "dorian"
+      ],
+      "weights": [
+        4,
+        4,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.56
+    },
+    "humanize": {
+      "quantizeStrength": 0.87,
+      "velocityVar": 0.12
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.31,
+      "tresilloBias": 0.17,
+      "subLayerVelocity": [
+        0.5,
+        0.6
+      ],
+      "lockTo808": 0
+    },
+    "snare": {
+      "rimshotLayer": false,
+      "layerClapOffsetMs": [
+        2,
+        7
+      ],
+      "ghost": {
+        "prob": 0.16,
+        "pos": [
+          "2e",
+          "4e"
+        ],
+        "vel": [
+          0.22,
+          0.38
+        ]
+      },
+      "placement": "backbeat_24",
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.48,
+      "velocities": {
+        "main": [
+          0.74,
+          0.92
+        ],
+        "ghost": [
+          0.2,
+          0.46
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.18
+      },
+      "openHat": {
+        "prob": 0.26,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "shaker",
+        "rim"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        52,
+        97
+      ],
+      "gapProb": 0.2,
+      "descendProb": 0.24,
+      "rampJitter": 24,
+      "pitchWalk": 2
+    }
+  },
+  "melody": {
+    "register": [
+      64,
+      88
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "intervals": {
+      "step": 0.62,
+      "third": 0.3,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.36,
+      "descend": 0.3,
+      "arch": 0.34
+    },
+    "chordToneBias": 0.76,
+    "octaveJumpProb": 0.12,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        4
+      ]
+    },
+    "timbreHint": "bright_bell"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.7,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "vi",
+          "IV",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.44,
+      "seventh": 0.44,
+      "ninth": 0.12
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        49,
+        77
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.55,
+    "register": [
+      28,
+      47
+    ],
+    "glideProb": 0.04,
+    "passingTones": [
+      "P5",
+      "M6",
+      "m7"
+    ],
+    "anticipationProb": 0.3
+  },
+  "modes": [
+    {
+      "name": "hard core",
+      "weight": 4,
+      "session": {
+        "scales": {
+          "values": [
+            "natural_minor",
+            "dorian"
+          ],
+          "weights": [
+            4,
+            2
+          ]
+        }
+      },
+      "chords": {
+        "progressionFamilies": [
+          {
+            "roman": [
+              "i",
+              "iv"
+            ],
+            "weight": 5
+          },
+          {
+            "roman": [
+              "i",
+              "VI",
+              "VII"
+            ],
+            "weight": 3
+          },
+          {
+            "roman": [
+              "i"
+            ],
+            "weight": 2
+          }
+        ],
+        "extensions": {
+          "triad": 0.36,
+          "seventh": 0.5,
+          "ninth": 0.14
+        }
+      },
+      "melody": {
+        "densityPerBar": [
+          2,
+          6
+        ],
+        "contour": {
+          "riff": 0.5,
+          "descend": 0.34,
+          "arch": 0.16
+        }
+      },
+      "bassline": {
+        "rhythm": "mirror_kick",
+        "followRootsProb": 0.9,
+        "anticipationProb": 0.12
+      }
+    },
+    {
+      "name": "interpolation single",
+      "weight": 3,
+      "session": {
+        "scales": {
+          "values": [
+            "major",
+            "mixolydian"
+          ],
+          "weights": [
+            5,
+            2
+          ]
+        }
+      },
+      "chords": {
+        "progressionFamilies": [
+          {
+            "roman": [
+              "I",
+              "vi",
+              "IV",
+              "V"
+            ],
+            "weight": 5
+          },
+          {
+            "roman": [
+              "I",
+              "V",
+              "vi",
+              "IV"
+            ],
+            "weight": 3
+          },
+          {
+            "roman": [
+              "ii",
+              "V",
+              "I"
+            ],
+            "weight": 2
+          }
+        ],
+        "extensions": {
+          "triad": 0.5,
+          "seventh": 0.4,
+          "ninth": 0.1
+        }
+      },
+      "melody": {
+        "densityPerBar": [
+          4,
+          8
+        ],
+        "contour": {
+          "riff": 0.24,
+          "descend": 0.28,
+          "arch": 0.48
+        }
+      },
+      "bassline": {
+        "followRootsProb": 0.4,
+        "anticipationProb": 0.42
+      }
+    }
+  ]
+}

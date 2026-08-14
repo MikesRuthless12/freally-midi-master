@@ -30,9 +30,8 @@
     "generating": "Generating…",
     "readyBody": "{{name}} is ready. Hit Generate.",
     "generateAll": "Generate all",
-    "clear": "Clear",
-    "clearAll": "Clear all",
-    "clearLabel": "Clear generated parts"
+    "clearOne": "Clear {{part}}",
+    "clearAll": "Clear all"
   },
   "rails": {
     "searchPlaceholder": "Search an artist…",
@@ -141,7 +140,6 @@
     "loop": "Loop",
     "masterLevel": "Master level: silent",
     "toggleRightRail": "Toggle right rail (K)",
-    "windowSize": "Window size",
     "loopAlways": "Playback always loops in this phase.",
     "unavailable": "Playback is unavailable: {{reason}}"
   },
@@ -160,8 +158,7 @@
     "button": "View",
     "panels": "Panels",
     "rightRail": "Right rail",
-    "showAll": "Show all panels",
-    "hideAll": "Hide all panels"
+    "stage": "Stage"
   },
   "settings": {
     "title": "Settings",
@@ -212,14 +209,18 @@
     "rollCount": "{{count}} hits",
     "addFill": "Add a fill to {{lane}}",
     "reassignLane": "Change {{lane}} to another drum",
-    "lockLane": "Hold {{lane}} when you generate again"
+    "lockLane": "Hold {{lane}} when you generate again",
+    "pitchRows": "Pitch rows for {{lane}}",
+    "pitchCell": "{{lane}} {{pitch}}, step {{step}}",
+    "semitoneRow": "{{offset}} semitones from the root",
+    "hitsAbove": "{{count}} hits above the window",
+    "hitsBelow": "{{count}} hits below the window"
   },
   "roster": {
     "artists": "Artists",
+    "producers": "Producers",
     "flagship": "Flagship",
     "genre": "Genre",
-    "filteredBy": "Filtered by {{name}}",
-    "showAll": "Show all",
     "noneInGenre": "No artists work in {{name}} yet.",
     "standard": "Standard",
     "inherited": "Inherited"
@@ -382,6 +383,7 @@
       "nudge": "Nudge in time",
       "stretch": "Stretch to double length",
       "compress": "Compress to half length",
+      "reverseNote": "Reverse the selected note",
       "triplet": "Triplet in this cell",
       "quintuplet": "Quintuplet in this cell",
       "septuplet": "Septuplet in this cell",
@@ -409,15 +411,20 @@
     "up": "Up",
     "empty": "No samples in this folder.",
     "truncated": "This folder has more files than are shown.",
+    "filter": "Filter by name",
+    "filterScope": "Searching the folders you have opened.",
+    "noMatches": "Nothing here matches.",
+    "missing": "{{name}} is not reachable right now.",
+    "recheck": "Check again",
     "pickAFile": "Pick a sample to preview it.",
     "decoding": "Reading…",
     "waveformOf": "Waveform of {{name}}",
     "reverse": "Play backwards",
     "resize": "Resize the browser",
-    "fillRail": "Give the browser the whole rail",
-    "restoreRail": "Show the roster again",
     "folderLimit": "You can browse 8 folders at a time — close one to add another",
     "favourites": "Starred favourites",
+    "recent": "Recent",
+    "clearRecent": "Clear history",
     "star": "Star {{name}}",
     "unstar": "Unstar {{name}}",
     "revealHint": "Show {{path}} in your file manager",
@@ -434,7 +441,8 @@
       "kitShape": "Plays like a drum kit"
     },
     "midiFound": "What this MIDI file contains",
-    "midiNotes": "Notes"
+    "midiNotes": "Notes",
+    "midiAuditionClipped": "Only the first two minutes are auditioned."
   },
   "patterns": {
     "name": "Name this pattern",
@@ -456,13 +464,23 @@
     "none": "No takes yet",
     "made": "{{bpm}} BPM · {{scale}}"
   },
+  "takes": {
+    "label": "Take history",
+    "none": "Nothing generated yet.",
+    "clear": "Clear take history",
+    "close": "Close",
+    "detail": "{{bars}} bars · {{bpm}} BPM"
+  },
   "artist": {
     "label": "About this selection",
     "tendsTo": "Tends to",
     "tempo": "{{bpm}} BPM",
+    "tempoRange": "{{low}}–{{high}} BPM",
     "key": "{{key}} {{scale}}",
     "halfTime": "half-time",
-    "moods": "{{count}} moods"
+    "moods": "Moods",
+    "writes": "Writes",
+    "doesNotWrite": "Does not write"
   },
   "styles": {
     "original": "Original Workflow",

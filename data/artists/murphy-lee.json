@@ -1,0 +1,310 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "murphy-lee",
+  "type": "artist",
+  "name": "Murphy Lee",
+  "aliases": [
+    "murphy lee",
+    "tohri harper",
+    "st lunatics",
+    "jay e type",
+    "wat da hook gon be type"
+  ],
+  "tier": "standard",
+  "extends": [
+    "crunk"
+  ],
+  "era": "2003-2005",
+  "genres": [
+    "rap",
+    "club",
+    "pop rap"
+  ],
+  "relatedGenres": [
+    "crunk",
+    "ringtone-club-rap",
+    "pop-2000s",
+    "rnb-2000s"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended vol.1 crunk — Murphy Lee",
+    "https://en.wikipedia.org/wiki/Murphy_Lee",
+    "https://en.wikipedia.org/wiki/Country_Grammar_(song)"
+  ],
+  "notes": "The Jay E side of the St. Lunatics sound: major/mixolydian, a 2-bar I–IV or I–V shuffle, and swung 8th/16th hats. `session.halfTime` is **false** with the snare on 2 and 4, `swing.amount` is 0.55 for the shuffle, and the melody is written as a bright organ riff under a sung hook with 4-bar phrases — `structure` is `call_response`, which no other entry in this batch uses, because the research's arrangement is a riff answered by a group chant. ⛔ **The low end is a synth bass following the loop, with the 808 for reinforcement only**, so `drums.bass808.role` is `counter_riff` — the engine's only way to stop the 808 taking the bassline — and the real part is the `bassline` block at `followRootsProb` 0.64 with 1–3–5 cell shapes. ⚠ That role also makes the 808 keep a pitch it slid to, which is a drill behaviour rather than a Jay E one; `slideProb` 0.08 keeps it rare, and `distortion` is `none` because this 808 is reinforcement rather than the sound. ⚠ `confidence` is low: the research rates the entry medium-low, documents only the era and the production family, and marks the 90–100 straight band [LOW-CONF]. **Every harmonic and drum number here is inference**, the tempo included. ⚠ Fill fingerprint for this batch: `gapProb` 0.19 / `descendProb` 0.06 / `rampJitter` 12. ⛔ `session.scales` **widens** its parent's set rather than narrowing it: none of `major`, `mixolydian` or `dorian` is among crunk's four, and the convention elsewhere is that an artist narrows its genre's scales and never reaches outside them. This is the furthest-out case in the batch — the whole scale set is outside the parent — because the research's keys row is \"major/mixolydian\" and a I–IV shuffle is not a minor-scale figure. Like Nelly and Baby Bash, this model is parked in crunk for want of a pop-rap archetype.",
+  "session": {
+    "halfTime": false,
+    "bpm": {
+      "min": 90,
+      "max": 100,
+      "mode": 95
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "dorian"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.55
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.24,
+      "lockTo808": 0.5
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "layerClapOffsetMs": [
+        1,
+        5
+      ],
+      "ghost": {
+        "prob": 0.18,
+        "pos": [
+          "1a",
+          "3a"
+        ],
+        "vel": [
+          0.22,
+          0.4
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": [
+        0.45,
+        0.7
+      ],
+      "openHat": {
+        "prob": 0.28,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.21
+      }
+    },
+    "percs": {
+      "lanes": [
+        "ride",
+        "perc"
+      ],
+      "densityPerBar": [
+        1,
+        2
+      ],
+      "placement": "downbeat",
+      "gainOffsetDb": -6
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t",
+        "8t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        70,
+        112
+      ],
+      "rampJitter": 12,
+      "descendProb": 0.06,
+      "gapProb": 0.19
+    },
+    "bass808": {
+      "role": "counter_riff",
+      "register": [
+        24,
+        37
+      ],
+      "slideProb": 0.08,
+      "distortion": "none"
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.64,
+    "register": [
+      29,
+      47
+    ],
+    "glideProb": 0.04,
+    "passingTones": [
+      "P5",
+      "M3",
+      "M2"
+    ],
+    "anticipationProb": 0.26,
+    "cellShapes": [
+      [
+        "1",
+        "5"
+      ],
+      [
+        "1",
+        "3",
+        "5"
+      ],
+      [
+        "1"
+      ]
+    ]
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "I"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.66,
+      "seventh": 0.3,
+      "ninth": 0.04
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        52,
+        78
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      2,
+      6
+    ]
+  },
+  "melody": {
+    "register": [
+      60,
+      84
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        1,
+        4
+      ]
+    },
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "motifPitchCount": [
+      4,
+      7
+    ],
+    "structure": "call_response",
+    "intervals": {
+      "step": 0.6,
+      "third": 0.3,
+      "leap": 0.1
+    },
+    "contour": {
+      "riff": 0.4,
+      "descend": 0.3,
+      "arch": 0.3
+    },
+    "chordToneBias": 0.74,
+    "halfStepDissonance": 0.03,
+    "emptyBarBias": 0.04,
+    "octaveJumpProb": 0.08,
+    "timbreHint": "church_organ"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.52,
+    "styles": {
+      "values": [
+        "arp",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  }
+}

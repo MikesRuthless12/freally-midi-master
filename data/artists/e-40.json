@@ -1,0 +1,332 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "e-40",
+  "type": "artist",
+  "name": "E-40",
+  "aliases": [
+    "e-40",
+    "e40",
+    "earl stevens",
+    "forty water",
+    "sick wid it"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "g-funk"
+  ],
+  "era": "1993-1999",
+  "genres": [
+    "rap",
+    "mobb music",
+    "bay area",
+    "g-funk"
+  ],
+  "relatedGenres": [
+    "g-funk",
+    "hyphy",
+    "memphis-rap"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 g-funk — E-40",
+    "https://www.melodigging.com/genre/mobb-music",
+    "https://en.wikipedia.org/wiki/In_a_Major_Way",
+    "https://www.rollingstone.com/music/music-features/e-40-new-album-interview-1234899757/"
+  ],
+  "notes": "⛔ **This is the Bay half of the archetype, and the parameter that says so is `drums.bass808`, which the g-funk genre sets to `null`.** The research states the two-bass-layer split as the mobb signature — \"sub-bass is 'the star' — ultra-deep, tuned for car resonance, plus a separate rubbery mid-bass funk line\" — and the engine has exactly one way to say that: an 808 lane with `role: \"counter_riff\"` (so it is a tuned pedal and *not* the bass part) riding the kick at `lockTo808` 0.9, under a separate `bassline` that plays the rubbery funk line. With `role: \"bassline\"` the melodic bass would not generate at all, which would be the wrong half. `slideProb` is 0.06 so the sub stays a pedal — this is a long sine tail on the kick, not a trap glide. The rest is mobb rather than LA: slower than the genre (84–96), crisp claps/rimshots on 2 and 4, steady swung 16th hats, and \"simple looping 2–4 bar motifs, sparser than LA g-funk and less dependent on P-Funk interpolation\", hence a low `densityPerBar` against the genre's whining worm lead, which is inherited unchanged. Documented progressions `i–VI–VII` and `i–iv–VII` are authored as-is. ⚠ `medium` on the research's high-medium. The INFERRED parameter is the vocal one that cannot be modelled at all: the research calls his rhythmic displacement — triplet and sextuplet bursts against straight 16ths, 2 to 9 syllables a beat — the load-bearing parameter of the entry, and there is no vocal generator, so it survives only as the melody's wide `octaveJumpProb` and leap share.",
+  "session": {
+    "bpm": {
+      "min": 84,
+      "max": 96,
+      "mode": 90
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        4,
+        4,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.56
+    },
+    "humanize": {
+      "quantizeStrength": 0.88,
+      "velocityVar": 0.13
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.4,
+      "tresilloBias": 0.24,
+      "offbeat8thShare": 0.28,
+      "lockTo808": 0.9
+    },
+    "snare": {
+      "rimshotLayer": true,
+      "ghost": {
+        "prob": 0.18,
+        "pos": [
+          "2e",
+          "4e"
+        ],
+        "vel": [
+          0.2,
+          0.38
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.46,
+      "velocities": {
+        "main": [
+          0.68,
+          0.92
+        ],
+        "ghost": [
+          0.22,
+          0.46
+        ]
+      },
+      "openHat": {
+        "prob": 0.22,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32",
+            "32T"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.6,
+        "velocityRamp": true
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "shaker"
+      ],
+      "densityPerBar": [
+        1,
+        2
+      ],
+      "gainOffsetDb": -8
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 4
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "32nd"
+      ],
+      "grouping": [
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        54,
+        108
+      ],
+      "rampJitter": 15,
+      "gapProb": 0.32,
+      "descendProb": 0.34,
+      "pitchWalk": 4
+    },
+    "bass808": {
+      "role": "counter_riff",
+      "sustain": "legato",
+      "register": [
+        17,
+        33
+      ],
+      "slideProb": 0.06,
+      "slideIntervals": {
+        "values": [
+          "P5",
+          "P8"
+        ],
+        "weights": [
+          2,
+          1
+        ]
+      },
+      "slidePositions": [
+        "phrase_end"
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.56,
+      "seventh": 0.36,
+      "ninth": 0.08
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        77
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        2,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      74,
+      96
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "densityPerBar": [
+      2,
+      5
+    ],
+    "motifPitchCount": [
+      3,
+      5
+    ],
+    "intervals": {
+      "step": 0.42,
+      "third": 0.28,
+      "leap": 0.3
+    },
+    "contour": {
+      "riff": 0.62,
+      "descend": 0.26,
+      "arch": 0.12
+    },
+    "chordToneBias": 0.58,
+    "halfStepDissonance": 0.07,
+    "octaveJumpProb": [
+      0.16,
+      0.3
+    ]
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.32,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        2,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.55,
+    "register": [
+      26,
+      45
+    ],
+    "glideProb": 0.5,
+    "passingTones": [
+      "m3",
+      "P4",
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.28,
+    "cellShapes": [
+      [
+        "1",
+        "5",
+        "b7",
+        "1"
+      ],
+      [
+        "1",
+        "1",
+        "5",
+        "4"
+      ],
+      [
+        "1",
+        "b3",
+        "5",
+        "1"
+      ]
+    ]
+  }
+}

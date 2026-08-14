@@ -1,0 +1,290 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "dame-grease",
+  "type": "producer",
+  "name": "Dame Grease",
+  "aliases": [
+    "dame grease",
+    "damon blackmon",
+    "vacant lot",
+    "ruff ryders"
+  ],
+  "tier": "standard",
+  "extends": [
+    "boom-bap"
+  ],
+  "era": "1997-2001",
+  "genres": [
+    "rap",
+    "boom-bap"
+  ],
+  "relatedGenres": [
+    "boom-bap",
+    "dark-trap",
+    "ny-drill"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 boom-bap — Dame Grease",
+    "Okayplayer — Dame Grease on how disco inspired DMX's \"Get At Me Dog\" (https://www.okayplayer.com/behind-the-beat-dame-grease-on-how-disco-music-inspired-dmxs-get-at-me-dog/755469)",
+    "HipHopDX — Producer's Corner: Dame Grease (https://hiphopdx.com/interviews/id.1662/title.producers-corner-dame-grease)"
+  ],
+  "notes": "Ruff Ryders' first sound, and the research's phrase is the parameter: \"disco-derived four-on-the-floor pull inside a boom-bap frame\". So the kick anchors 1 **and** 3 with `syncopation` down at 0.12 — the straightest kick on this axis, where the genre sits at 0.45 — the swing drops to 0.52, and the open hats are on all four offbeat 8ths at a 0.75 probability, which is a disco hat pattern wearing a boom-bap kit. The harmony goes the other way: \"simple tonic-heavy vamps chosen so a barked vocal isn't fighting harmony\" is Phrygian-and-natural-minor over i–VI or a single-chord drone, with the melody a single stab at [1,4] notes a bar. ⚠ **The bass is `mirror_kick`, not a held note, and that is an engine limit rather than a reading of the record.** The research is specific — a sustained low sine on the root held across bars, deliberately separated from the kick in register, no portamento — and `reese_sustain` is the only rhythm that holds a note but emits one note per chord, which over a static i saturates. `mirror_kick` at `followRootsProb` 0.96 with `glideProb` 0 and the register at [21,38], the lowest on this axis, is the nearest honest thing; the \"separated from the kick in register\" half of the claim *is* modelled. ⚠ `medium` because the research rates it medium-high: the defining record is broken down first-person, the rest is catalog-level. The specific inferred parameter is `drums.hihat.openHat.prob` at 0.75 — \"open hats on the offbeat 8ths\" gives placement, not frequency. ⚠ The i–VII family is INFERRED; the research names i–VI and a single-chord drone.",
+  "session": {
+    "bpm": {
+      "min": 90,
+      "max": 100,
+      "mode": 95
+    },
+    "scales": {
+      "values": [
+        "phrygian",
+        "natural_minor"
+      ],
+      "weights": [
+        4,
+        4
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.52
+    },
+    "humanize": {
+      "quantizeStrength": 0.9,
+      "velocityVar": 0.12
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        4
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "secondaryAnchor": "3",
+      "syncopation": 0.12,
+      "tresilloBias": 0
+    },
+    "snare": {
+      "rimshotLayer": false,
+      "layerClapOffsetMs": [
+        2,
+        6
+      ],
+      "ghost": {
+        "prob": 0.12,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.2,
+          0.34
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.4,
+      "velocities": {
+        "main": [
+          0.72,
+          0.92
+        ],
+        "ghost": [
+          0.18,
+          0.4
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0.06,
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ]
+      },
+      "openHat": {
+        "prob": 0.75,
+        "pos": [
+          "1&",
+          "2&",
+          "3&",
+          "4&"
+        ],
+        "perBar": [
+          2,
+          4
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "crash",
+        "rim",
+        "perc"
+      ],
+      "densityPerBar": [
+        0,
+        2
+      ],
+      "gainOffsetDb": -5
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        46,
+        94
+      ],
+      "rampJitter": 23,
+      "gapProb": 0.41,
+      "descendProb": 0.16
+    }
+  },
+  "melody": {
+    "register": [
+      60,
+      82
+    ],
+    "densityPerBar": [
+      1,
+      4
+    ],
+    "motifPitchCount": [
+      2,
+      5
+    ],
+    "intervals": {
+      "step": 0.62,
+      "third": 0.29,
+      "leap": 0.09
+    },
+    "contour": {
+      "riff": 0.66,
+      "descend": 0.31,
+      "arch": 0.03
+    },
+    "chordToneBias": 0.76,
+    "octaveJumpProb": 0.07,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    },
+    "timbreHint": "piano_stab"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.32,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 1
+      }
+    ],
+    "maxChords": 2,
+    "impliedByRiff": true,
+    "chordDurationBeats": [
+      4,
+      16
+    ],
+    "extensions": {
+      "triad": 0.62,
+      "seventh": 0.32,
+      "ninth": 0.06
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        44,
+        76
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.96,
+    "register": [
+      21,
+      38
+    ],
+    "glideProb": 0,
+    "passingTones": [],
+    "anticipationProb": 0.05
+  },
+  "arrangement": {
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.8,
+        "beats": 4
+      },
+      "switchUpProb": 0.1
+    }
+  }
+}

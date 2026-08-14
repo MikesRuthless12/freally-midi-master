@@ -144,6 +144,60 @@ carried across whole.
     undocumented `OleDropTargetInterface` window property to get it back.
   - ⛔ Standalone only, because `request` returns early when the pump is off. A
     host's drop target must never be revoked.
+- **`top_level` is now `host_frame`, and it is exactly ONE level: `GetParent`
+  (2026-08-11).** This has been wrong **twice, in opposite directions**, and both
+  belong in the record:
+  - **A `GetParent` loop to "parent is null"** climbed out of the plugin
+    entirely. `GetParent` answers *"parent **or owner**"*, and a host's floating
+    plugin window is *owned* by its main window — so the loop returned **the
+    DAW's own application frame**, and `fill_frame` bounded the webview to that.
+    ▶ Mike on the Ableton VST3: *"it looks like the GUI size stretched and got
+    bigger, but the actual size of the GUI's part did not, so it zoomed in."*
+  - **`GetAncestor(GA_ROOT)`** fixed Ableton and was still wrong for **FL
+    Studio**, which *docks* plugin editors inside its own window. There the root
+    genuinely **is** FL's main frame, so the webview would be bounded to the
+    whole DAW — the black square and torn arrangement view Mike screenshotted.
+  - ▶ **`baseview::Window::open_parented` puts the editor directly inside the
+    handle the host gave us**, so its immediate parent *is* that container in
+    every case: the floating window in Ableton, the docked panel in FL,
+    `nih_plug`'s wrapper frame in the standalone. There is no case where the
+    right answer is further up, and every case where it is further up is one
+    where we are measuring somebody else's window.
+  - ⚠ It also makes the caption rename safe in FL for free: a docked panel has no
+    title, `GetWindowTextW` returns nothing, and `retitle` bails before it can
+    touch anything.
+- ⛔⛔ **`fill_frame` MUST keep running in hosts, and gating it to the standalone
+  blanked the Ableton VST3.** It was gated for exactly one build, on the
+  reasoning that a host resizes through `IPlugView::onSize` → baseview →
+  `Event::Window(Resized)` and therefore needs no polling. **That reasoning was
+  wrong and Mike's screenshot settled it in one frame: a white, empty plugin
+  window.** Whatever the theory says, `fill_frame` is what actually sizes the
+  webview in Ableton — without it the webview kept its creation bounds, covered
+  none of the window, and the host's own background showed through.
+  - ⚠ **The lesson is the shape of the mistake, not the flag.** The defect was in
+    `top_level`; the gate treated the symptom by deleting the feature, and it was
+    reasoned about rather than observed because no DAW was available to check it
+    in. Anything in this module that looks like standalone-only surgery should be
+    *tested* in a host before it is fenced off from one.
+- **`WebViewEditor::with_window_title` and `windows_pump::retitle` (new,
+  2026-08-11).** Mike: *"can you replace the window's title bar after the vst3/
+  clap file opens … so it just says it once?"* Ableton auto-names a fresh track
+  after the instrument dropped on it and then builds the plugin window's caption
+  from the device **and** the track, so a long name lands on both sides of a
+  slash: `Freally MIDI Master By: Mike Weaver/1-Freally MIDI Master By: Mike
+  Weaver`. How a host joins those is not ours to change; what the caption ends up
+  saying is, so the frame loop overwrites it.
+  - ⛔⛔ **THE GUARD IS THE WHOLE FEATURE: only a window whose caption ALREADY
+    CONTAINS the plugin's name is renamed.** A plugin editor is not always in a
+    window of its own — **FL Studio docks them**, and there `top_level` is FL's
+    main application frame. Renaming that would retitle the whole of FL Studio
+    from inside a plugin. A caption that already names us was built by the host
+    *for this plugin*; `FL Studio 21 - project.flp` was not, and is left alone.
+  - ⚠ Re-checked about twice a second rather than done once, because Ableton
+    rewrites the caption whenever the track is renamed. It early-returns as soon
+    as the caption is already right, so the steady state is one `WM_GETTEXT`.
+  - ⚠ Safe from `on_frame`'s borrowed stack for the same reason `set_bounds` is:
+    the messages go to the **host's** window procedure, never to baseview's.
 
 `src/linux.rs` (**new, TASK-P12**): the X11 + WebKitGTK editor. Upstream is
 macOS/Windows only and this is the whole of the difference.

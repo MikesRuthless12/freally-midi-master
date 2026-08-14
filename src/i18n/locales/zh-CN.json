@@ -30,9 +30,8 @@
     "generating": "生成中…",
     "readyBody": "{{name}} 已就绪。点击生成。",
     "generateAll": "全部生成",
-    "clear": "清除",
-    "clearAll": "全部清除",
-    "clearLabel": "清除已生成的声部"
+    "clearOne": "清除{{part}}",
+    "clearAll": "全部清除"
   },
   "rails": {
     "searchPlaceholder": "搜索艺人…",
@@ -141,7 +140,6 @@
     "loop": "循环",
     "masterLevel": "主输出电平：静音",
     "toggleRightRail": "切换右侧栏 (K)",
-    "windowSize": "窗口大小",
     "loopAlways": "当前阶段播放始终循环。",
     "unavailable": "无法播放：{{reason}}"
   },
@@ -160,8 +158,7 @@
     "button": "视图",
     "panels": "面板",
     "rightRail": "右侧栏",
-    "showAll": "显示所有面板",
-    "hideAll": "隐藏所有面板"
+    "stage": "舞台"
   },
   "settings": {
     "title": "设置",
@@ -212,14 +209,18 @@
     "rollCount": "{{count}} 击",
     "addFill": "为 {{lane}} 添加加花",
     "reassignLane": "将 {{lane}} 改为其他鼓",
-    "lockLane": "再次生成时保留 {{lane}}"
+    "lockLane": "再次生成时保留 {{lane}}",
+    "pitchRows": "{{lane}} 的音高行",
+    "pitchCell": "{{lane}} {{pitch}}，第 {{step}} 步",
+    "semitoneRow": "距根音 {{offset}} 个半音",
+    "hitsAbove": "窗口上方 {{count}} 个音符",
+    "hitsBelow": "窗口下方 {{count}} 个音符"
   },
   "roster": {
     "artists": "艺人",
+    "producers": "制作人",
     "flagship": "旗舰",
     "genre": "流派",
-    "filteredBy": "按 {{name}} 筛选",
-    "showAll": "显示全部",
     "noneInGenre": "{{name}} 中还没有艺人。",
     "standard": "标准",
     "inherited": "继承"
@@ -382,6 +383,7 @@
       "nudge": "在时间上微调",
       "stretch": "拉伸至两倍长度",
       "compress": "压缩至一半长度",
+      "reverseNote": "反向播放选中的音符",
       "triplet": "此格三连音",
       "quintuplet": "此格五连音",
       "septuplet": "此格七连音",
@@ -409,15 +411,20 @@
     "up": "上一级",
     "empty": "此文件夹中没有采样。",
     "truncated": "此文件夹中的文件多于所显示的数量。",
+    "filter": "按名称筛选",
+    "filterScope": "仅搜索你已展开的文件夹。",
+    "noMatches": "这里没有匹配项。",
+    "missing": "当前无法访问 {{name}}。",
+    "recheck": "重新检查",
     "pickAFile": "选择一个采样即可试听。",
     "decoding": "正在读取…",
     "waveformOf": "{{name}} 的波形",
     "reverse": "倒放",
     "resize": "调整浏览器宽度",
-    "fillRail": "让浏览器占满整栏",
-    "restoreRail": "重新显示艺人列表",
     "folderLimit": "一次最多浏览 8 个文件夹 — 关闭一个才能再添加",
     "favourites": "收藏夹",
+    "recent": "最近",
+    "clearRecent": "清除历史",
     "star": "收藏 {{name}}",
     "unstar": "取消收藏 {{name}}",
     "revealHint": "在文件管理器中显示 {{path}}",
@@ -434,7 +441,8 @@
       "kitShape": "像鼓组一样演奏"
     },
     "midiFound": "此 MIDI 文件的内容",
-    "midiNotes": "音符"
+    "midiNotes": "音符",
+    "midiAuditionClipped": "仅试听前两分钟。"
   },
   "patterns": {
     "name": "为此样式命名",
@@ -456,13 +464,23 @@
     "none": "还没有版本",
     "made": "{{bpm}} BPM · {{scale}}"
   },
+  "takes": {
+    "label": "生成记录",
+    "none": "还没有生成任何内容。",
+    "clear": "清空生成记录",
+    "close": "关闭",
+    "detail": "{{bars}} 小节 · {{bpm}} BPM"
+  },
   "artist": {
     "label": "关于此选择",
     "tendsTo": "通常",
     "tempo": "{{bpm}} BPM",
+    "tempoRange": "{{low}}–{{high}} BPM",
     "key": "{{key}} {{scale}}",
     "halfTime": "半速",
-    "moods": "{{count}} 种氛围"
+    "moods": "氛围",
+    "writes": "会写",
+    "doesNotWrite": "不会写"
   },
   "styles": {
     "original": "我的工作流",

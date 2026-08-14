@@ -28,6 +28,15 @@
   color: var(--color-text-2);
 }
 
+/* ⚠ **Quieter than the rest, not louder.** "Does not write a bassline" is a fact
+   about the artist rather than a fault — plenty of producers want exactly the
+   drums-and-melody model — so it reads as the footnote it is. What it must not
+   be is absent: that is the silence-with-no-warning failure TASK-158D closes. */
+.artistpane__missing {
+  opacity: 0.75;
+  font-style: italic;
+}
+
 .artistpane__tags {
   display: flex;
   flex-wrap: wrap;

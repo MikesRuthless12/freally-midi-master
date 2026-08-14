@@ -64,6 +64,20 @@ export type Favourite = {
   kind: 'audio' | 'midi';
 };
 
+/**
+ * One file the browser opened lately (TASK-058). Mirrors `recent::Recent`.
+ *
+ * ⚠ **The same shape as [`Favourite`] deliberately**, so one row component draws
+ * both lists. They are separate *types* because they answer different questions —
+ * a star is a choice and a history is a record — and collapsing them into one
+ * would make "clear the history" reach for the favourites too.
+ */
+export type Recent = {
+  path: string;
+  name: string;
+  kind: 'audio' | 'midi';
+};
+
 /** What `explorer_state` answers with. Mirrors `explorer::State`. */
 type ExplorerReply = {
   roots: ExplorerEntry[];
@@ -73,6 +87,14 @@ type ExplorerReply = {
   truncated: boolean;
   /** Whether a folder dialog is open right now — see `addFolder`. */
   picking: boolean;
+  /**
+   * Library roots that are not readable folders right now.
+   *
+   * ⚠ **Optional, because it genuinely is.** The reply also comes from
+   * `ipc-mock` and from a plugin build older than the field; declaring it
+   * required made the type forbid the very input `refresh` is written to handle.
+   */
+  missing?: string[];
 };
 
 /** What `explorer_waveform` answers with. Mirrors `explorer::Waveform`. */
@@ -248,6 +270,155 @@ export function innermostExpanded(expanded: string[]): string | null {
   return expanded.reduce((deepest, held) => (isInside(held, deepest) ? held : deepest));
 }
 
+/**
+ * One line of the tree, once the nesting has been flattened away (TASK-058).
+ *
+ * ⛔⛔ **Flat, because a virtualized list cannot be recursive.** `FileTree` drew
+ * nested `<ul>`s and its own note said so: *"flattening is what a virtualized
+ * tree needs and this one is not virtualized yet."* Rendering every row of every
+ * open folder is 2,000 rows × six elements per folder the producer left open,
+ * which is the panel the 300 ms bound is about.
+ *
+ * ⚠ **The status lines are rows too** — "Reading…", "no samples", "more files
+ * than are shown". They occupy a line each on screen, so a windowing pass that
+ * modelled only the entries would put them outside its own arithmetic and draw
+ * them in the wrong place.
+ */
+export type TreeRow = {
+  /** Stable across renders: the path, or the folder's path plus the note. */
+  key: string;
+  /** How many levels in, for the row's indent. */
+  depth: number;
+  /** The entry this row draws, or `null` when it is a status line. */
+  entry: ExplorerEntry | null;
+  /** The i18n key of a status line, or `null` when this row is an entry. */
+  note: 'explorer.decoding' | 'explorer.empty' | 'explorer.truncated' | null;
+  /** Whether this row's folder is expanded. `false` for files and notes. */
+  isOpen: boolean;
+};
+
+/**
+ * Every visible line under `root`, in the order they are drawn.
+ *
+ * ⛔ **The order is the tree's own**, so nothing has to reconcile a flat model
+ * with what is on screen — which is exactly what `ExplorerPanel`'s ↑/↓ walk used
+ * to do by reading `.tree__row` out of the DOM. Under virtualization the DOM
+ * holds only the rows in view, so that walk would have stopped at the edge of
+ * the window; it reads this instead.
+ *
+ * ⛔⛔ **`query` narrows to matching files and the folders that lead to them.**
+ * Mike's TASK-058 asks for type-to-filter, and the honest scope is *what has
+ * been read*: `children` only holds folders the producer expanded, because the
+ * plugin reads one folder per call and walking a whole library on the host's
+ * editor thread is the thing `Explorer::list_one` refuses to do. A filter that
+ * silently searched only part of the library while looking like it searched all
+ * of it would be the readout-that-lies failure — so the panel says which it is,
+ * beside the box.
+ *
+ * ⚠ **A matching folder brings its whole subtree**, the way every file manager's
+ * filter behaves: typing "Kicks" is how you get to the kicks, not how you make
+ * them disappear.
+ */
+export function flattenTree(
+  root: ExplorerEntry,
+  view: {
+    expanded: string[];
+    children: Record<string, ExplorerEntry[]>;
+    truncatedIn: string[];
+    query: string;
+  },
+): TreeRow[] {
+  const needle = view.query.trim().toLowerCase();
+  const line = (path: string, depth: number, note: NonNullable<TreeRow['note']>): TreeRow => ({
+    key: `${path}|${note}`,
+    depth,
+    entry: null,
+    note,
+    isOpen: false,
+  });
+
+  const walk = (entry: ExplorerEntry, depth: number, forced: boolean): TreeRow[] => {
+    const open = entry.isDir && view.expanded.some((held) => samePath(held, entry.path));
+    // ⚠ `forced` is how a matching folder brings its whole subtree: once a
+    // folder's own name has matched, everything under it is shown regardless.
+    const hit = forced || needle === '' || entry.name.toLowerCase().includes(needle);
+    const kids = open ? view.children[entry.path] : undefined;
+
+    const under: TreeRow[] = [];
+    if (kids !== undefined) {
+      for (const kid of kids) under.push(...walk(kid, depth + 1, hit));
+    }
+
+    // ⛔ A folder that neither matched nor holds a match is not drawn, and
+    // neither is a file that did not match. Decided **before** the status lines
+    // below, or "no samples in this folder" would keep every filtered-out
+    // folder on screen with a line under it saying the wrong thing.
+    //
+    // ⚠ **"Reading…" is below this line too, and it used to be above it.** A
+    // folder whose listing had not arrived counted as one line of content, so a
+    // folder the query did not match stayed on screen for as long as its read
+    // took — the same failure, arriving on a timer rather than on a name.
+    if (!hit && under.length === 0) return [];
+
+    if (open && kids === undefined)
+      under.push(line(entry.path, depth + 1, 'explorer.decoding'));
+    if (kids !== undefined) {
+      if (kids.length === 0) under.push(line(entry.path, depth + 1, 'explorer.empty'));
+      if (view.truncatedIn.some((held) => samePath(held, entry.path))) {
+        under.push(line(entry.path, depth + 1, 'explorer.truncated'));
+      }
+    }
+    return [{ key: entry.path, depth, entry, note: null, isOpen: open }, ...under];
+  };
+
+  const rows = walk(root, 0, false);
+  // ⚠ **The root survives a filter that matches nothing.** It is the tab the
+  // producer is standing on, and an empty panel would read as the library
+  // having gone rather than as the query being too narrow — which is what the
+  // no-matches line beside the box is for.
+  return rows.length > 0
+    ? rows
+    : [{ key: root.path, depth: 0, entry: root, note: null, isOpen: false }];
+}
+
+/**
+ * The folder the producer is standing in — the one a re-roll draws from.
+ *
+ * ⛔⛔ **Mike, 2026-08-11:** *"if i am on an actual sample in the file explorer,
+ * or i am on a folder in file explorer, either way, it should remember the
+ * folder's name that i am in, and it should randomize a sample from that
+ * specific folder for the 'Re-roll'."*
+ *
+ * ▶ **Two selections, one answer.** A *file* means the folder it is in; a
+ * *folder* means itself. Before this the plugin answered from its own "current
+ * folder", which the tree view stopped maintaining the moment navigation became
+ * expand-in-place — so the dice re-rolled from wherever the old list had last
+ * been opened, or from nothing.
+ *
+ * ⚠ **Falls back to the deepest expanded branch**, so the dice still has a
+ * sensible source before anything has been clicked. `null` only when the browser
+ * is closed or empty, and the plugin then keeps its own answer.
+ *
+ * ⚠ **Derived here rather than in Rust**, because the *selection* lives here.
+ * Deriving it on the other side would be a second idea of where the producer is
+ * standing, and the two would part company the first time one of them changed.
+ */
+export function standingIn(state: {
+  selected: string | null;
+  selectedKind: 'audio' | 'midi' | null;
+  expanded: string[];
+}): string | null {
+  if (state.selected !== null) {
+    // A selection is always a file — folders are expanded, not selected — so
+    // this is its parent. Windows and POSIX separators both, because a root the
+    // producer typed and a path the plugin canonicalised are spelled differently
+    // (see `normalizePath`).
+    const at = Math.max(state.selected.lastIndexOf('/'), state.selected.lastIndexOf('\\'));
+    if (at > 0) return state.selected.slice(0, at);
+  }
+  return innermostExpanded(state.expanded);
+}
+
 type ExplorerStore = {
   roots: ExplorerEntry[];
   /**
@@ -284,8 +455,27 @@ type ExplorerStore = {
   activeRoot: string | null;
   /** Folders whose listing hit the plugin's row cap. */
   truncatedIn: string[];
+  /**
+   * Library roots that are not readable folders right now (TASK-058).
+   *
+   * ⛔ **The unplugged-drive case, said out loud.** `explorer::merge_folders`
+   * keeps a root whose disk is not mounted on purpose — a producer who unplugs
+   * their sample drive has not left the library — but nothing told the panel
+   * which those were, so the root drew as an ordinary folder that refused to
+   * open. See `explorer::State::missing` for why naming these is not the
+   * filesystem oracle `Explorer::open` refuses to be.
+   */
+  missingRoots: string[];
   /** Starred samples, one-shots and MIDI. Mirrors `favourites::Favourite`. */
   favourites: Favourite[];
+  /**
+   * The files the browser opened lately, newest first (TASK-058).
+   *
+   * ⛔ **Read-only from here.** The plugin records an entry when it auditions a
+   * sample or reads a `.mid`; nothing on the page adds to it. See the
+   * `recent_list` handler for why there is no `recent_add`.
+   */
+  recent: Recent[];
   /**
    * What the selected `.mid` was found to contain, or `null`.
    *
@@ -295,6 +485,19 @@ type ExplorerStore = {
    * commit is the shape TASK-058D refuses: it would present a guess as a result.
    */
   midiSplit: SplitPart[] | null;
+  /**
+   * Whether the audition voice is holding a render of the selected `.mid`
+   * (TASK-160).
+   *
+   * ⛔ **Because `preview_position` cannot tell you *what* is loaded.** It
+   * answers seconds and total for whatever the voice holds, and the voice is
+   * shared with sample auditioning — so without this the MIDI transport would
+   * draw itself over the last `.wav` a producer clicked, and Play would sound
+   * that instead.
+   */
+  midiAudition: { clipped: boolean } | null;
+  /** Render the selected `.mid` into the audition voice, ready to play. */
+  auditionMidi: () => Promise<void>;
   /** Whether a folder dialog is open — drives the poll in `addFolder`. */
   picking: boolean;
   /** Whether `explorer_state` has ever answered — "empty" is not "not asked". */
@@ -329,6 +532,10 @@ type ExplorerStore = {
   refresh: () => Promise<void>;
   /** Read the starred list. ⚠ At mount and after a star — never on the poll. */
   loadFavourites: () => Promise<void>;
+  /** Re-read the history. Cheap, and only worth doing when it can have moved. */
+  loadRecent: () => Promise<void>;
+  /** Forget where you have been. */
+  clearRecent: () => Promise<void>;
   addFolder: () => Promise<void>;
   removeFolder: (path: string) => Promise<void>;
   /** Open a folder's twisty if it is shut, shut it if it is open. */
@@ -352,7 +559,17 @@ type ExplorerStore = {
   toggleLoop: () => Promise<void>;
   setReverse: (on: boolean) => Promise<void>;
   /** Put the selected sample on a drum lane. */
-  dropOn: (lane: Lane, path: string) => Promise<void>;
+  /**
+   * Put the selected sample on a drum lane.
+   *
+   * ⛔ **`reversed` plays the one-shot backwards** — Mike, 2026-08-11: *"Ctrl +
+   * left arrow when you have a sample selected should add the sample to that
+   * selected drum pad lane in reverse and Ctrl + right arrow should add the
+   * sample to that selected drum pad lane playing regularly."* It travels to the
+   * plugin and is stored with the project, so a reopened session does not
+   * silently play it forwards.
+   */
+  dropOn: (lane: Lane, path: string, reversed?: boolean) => Promise<void>;
   setRailWidth: (px: number) => void;
 };
 
@@ -362,10 +579,13 @@ export const useExplorer = create<ExplorerStore>((set, get) => ({
   children: {},
   expanded: [],
   truncatedIn: [],
+  missingRoots: [],
   activeRoot: null,
   favourites: [],
+  recent: [],
   starred: new Set(),
   midiSplit: null,
+  midiAudition: null,
   picking: false,
   loaded: false,
   selected: null,
@@ -385,6 +605,10 @@ export const useExplorer = create<ExplorerStore>((set, get) => ({
         roots: reply.roots,
         folder: reply.folder,
         picking: reply.picking,
+        // ⚠ `?? []` because this reply also arrives from `ipc-mock` and from a
+        // plugin build older than the field — an absent list means "nothing is
+        // known to be missing", which is the safe reading either way.
+        missingRoots: reply.missing ?? [],
         loaded: true,
       });
     } catch (error) {
@@ -412,6 +636,26 @@ export const useExplorer = create<ExplorerStore>((set, get) => ({
       set({ favourites, starred: new Set(favourites.map((held) => held.path)) });
     } catch {
       // No stars is not a broken browser — the listing is unaffected.
+    }
+  },
+
+  // ⚠ **Not on `refresh`**, for the reason `loadFavourites` gives above: that
+  // runs every 400 ms while the folder dialog is open, and the history changes
+  // only when something is auditioned. It is read at mount and after a select
+  // that actually loaded something.
+  async loadRecent() {
+    try {
+      set({ recent: await invoke<Recent[]>('recent_list') });
+    } catch {
+      // No history is not a broken browser.
+    }
+  },
+
+  async clearRecent() {
+    try {
+      set({ recent: await invoke<Recent[]>('recent_clear') });
+    } catch (error) {
+      set({ error: reason(error) });
     }
   },
 
@@ -636,6 +880,34 @@ export const useExplorer = create<ExplorerStore>((set, get) => ({
     set({ activeRoot: path, error: null });
   },
 
+  /**
+   * Hear the selected `.mid` (TASK-160).
+   *
+   * ⛔ **It loads and does not play**, the rule `Preview::load` states for a
+   * sample: pressing the button is what makes a noise, and the same transport
+   * below then drives it. The play press is `play()` — this is only the load,
+   * because rendering a file is the slow half and a producer who presses Play
+   * twice must not re-render it.
+   */
+  async auditionMidi() {
+    const path = get().selected;
+    if (path === null || get().selectedKind !== 'midi') return;
+    set({ error: null });
+    try {
+      const rendered = await invoke<{ seconds: number; clipped: boolean }>(
+        'explorer_midi_audition',
+        { path },
+      );
+      // A late reply must not claim to describe a file that is no longer
+      // selected — the same rule `select` follows for the waveform.
+      if (get().selected !== path) return;
+      set({ midiAudition: { clipped: rendered.clipped } });
+    } catch (error) {
+      if (get().selected !== path) return;
+      set({ error: reason(error), midiAudition: null });
+    }
+  },
+
   collapse(path) {
     // ⛔ **Descendants too.** Leaving them in `expanded` means re-opening a
     // folder silently re-opens every branch that was under it — the producer
@@ -664,7 +936,16 @@ export const useExplorer = create<ExplorerStore>((set, get) => ({
     // ⛔ **Set before either call, so the panel switches immediately** and a
     // slow decode cannot leave the previous sample's waveform on screen looking
     // like the one that was just clicked.
-    set({ selected: path, selectedKind: kind, waveform: null, error: null });
+    // ⚠ `midiAudition` goes with it: the audition voice still holds whatever was
+    // rendered or decoded last, and a transport that went on describing the
+    // previous `.mid` under this file's name would sound it on the next Play.
+    set({
+      selected: path,
+      selectedKind: kind,
+      waveform: null,
+      midiAudition: null,
+      error: null,
+    });
 
     // ⛔⛔ **A `.mid` has no waveform and no PCM, so neither is asked for.**
     // `explorer_waveform` refuses anything that is not audio and `preview_load`
@@ -685,6 +966,15 @@ export const useExplorer = create<ExplorerStore>((set, get) => ({
         // the same rule the waveform follows two branches down.
         if (get().selected !== path) return;
         set({ midiSplit: parts });
+        // `explorer_midi_split` wrote the entry; this is the page catching up.
+        // Only here and after an audio load — the two places a file is really
+        // opened.
+        //
+        // ⚠ **The plugin side of this was missing until 2026-08-13** and the
+        // comment that stood here asserted it anyway, so clicking a `.mid`
+        // refreshed a history nothing had been added to. `recent::note` now runs
+        // on the split, which is what makes the sentence above true.
+        void get().loadRecent();
       } catch (error) {
         if (get().selected !== path) return;
         set({ error: reason(error) });
@@ -707,9 +997,55 @@ export const useExplorer = create<ExplorerStore>((set, get) => ({
       // waveform carries its own path precisely so this check is possible.
       if (get().selected !== wave.path) return;
       set({ waveform: wave });
+      void get().loadRecent();
     } catch (error) {
       if (get().selected !== path) return;
       set({ error: reason(error), waveform: null });
+      // ⛔⛔ **AND NOTHING PLAYS, BECAUSE NOTHING WAS LOADED.** `preview_load` is
+      // in the `Promise.all` above, so this catch is also the case where the
+      // plugin still holds the *previous* file. Falling through to
+      // `preview_play` started that one — so landing on a corrupt `.wav` showed
+      // an error and a blank waveform for the file under the cursor while the
+      // last good sample sounded, and the transport said `playing` for a file
+      // that was not the one being heard.
+      return;
+    }
+
+    // ⛔⛔ **LANDING ON A FILE PLAYS IT** (Mike, 2026-08-11): *"the files need to
+    // play as you go up and down in the list with the up/down arrow or by
+    // clicking on them."*
+    //
+    // ⚠ **This reverses a documented judgement, and the note it reverses is
+    // still in `ExplorerPanel`'s arrow handler.** That one argued auditioning on
+    // every step *"would make ↓ unusable for simply getting past a folder"* and
+    // paired ↓ with → instead — step onto a row, press → to hear it. Mike has
+    // now asked for the other behaviour by name, twice over (arrows *and*
+    // clicks), so the two-key gesture is gone and → keeps working for anyone who
+    // still reaches for it.
+    //
+    // ⛔ **In `select`, not in the two callers.** A click goes through
+    // `FileTree`, an arrow through `ExplorerPanel`, and a starred file through
+    // `reveal` — three doors onto one behaviour, and putting it behind them all
+    // is how one of them ends up silent.
+    //
+    // ⚠ **Guarded on the selection, because a fast walk overlaps.** Holding ↓
+    // starts a load per row and they resolve out of order; without this the
+    // *previous* row's reply would start the *current* row's sample a second
+    // time. `preview_load` replaces what is loaded, so the last one to land is
+    // the one that sounds.
+    if (get().selected !== path) return;
+    // ⛔ **Silent on failure, unlike the transport buttons.** An audition is
+    // feedback on a gesture that has already happened — the same argument
+    // `DrumGrid/audition.ts` spells out. Putting `play`'s error on screen here
+    // would mean a browser with no audio thread shows a failure every time a
+    // producer clicks a file, for a click that did nothing wrong.
+    try {
+      await invoke('preview_play');
+      if (get().selected !== path) return;
+      poke();
+      set({ position: { ...get().position, playing: true } });
+    } catch {
+      // See above.
     }
   },
 
@@ -778,10 +1114,10 @@ export const useExplorer = create<ExplorerStore>((set, get) => ({
     }
   },
 
-  async dropOn(lane, path) {
+  async dropOn(lane, path, reversed = false) {
     set({ error: null });
     try {
-      await invoke('explorer_drop', { lane, path });
+      await invoke('explorer_drop', { lane, path, reversed });
     } catch (error) {
       set({ error: reason(error) });
     }

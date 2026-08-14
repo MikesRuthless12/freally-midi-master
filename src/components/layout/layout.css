@@ -8,9 +8,20 @@
    The fallback is the width the rail has always been, so a page rendered before
    `App` sets the property (or in a test that mounts a rail on its own) lays out
    exactly as it used to. */
+/* ⛔⛔ **BOTH RAILS ARE `minmax(0, …)`, AND THAT IS THE FIX FOR A BUG, NOT
+   TIDYING.** Mike, 2026-08-12: *"if you resize to too small of a size, the right
+   rail is never visible."* The tracks were a *fixed* `280px` and a *fixed*
+   `320px` either side of a `1fr` stage — so below about 600px the stage was
+   already at zero and the grid was **wider than the window**, and the overflow
+   carried the right rail off the right-hand edge. It was not being crowded out
+   by a greedy stage; it could not shrink. `minmax(0, …)` keeps the same
+   preferred widths and lets them compress instead of overflowing. */
 .studio {
   display: grid;
-  grid-template-columns: var(--rail-left-width, 280px) minmax(0, 1fr) 320px;
+  grid-template-columns:
+    minmax(0, var(--rail-left-width, 280px))
+    minmax(0, 1fr)
+    minmax(0, 320px);
   grid-template-rows: minmax(0, 1fr) 56px;
   grid-template-areas:
     'left center right'
@@ -20,19 +31,72 @@
 }
 
 .studio[data-right-rail='closed'] {
-  grid-template-columns: var(--rail-left-width, 280px) minmax(0, 1fr);
+  grid-template-columns: minmax(0, var(--rail-left-width, 280px)) minmax(0, 1fr);
   grid-template-areas:
     'left center'
     'transport transport';
 }
 
+/* ⛔ **The stage collapsed, so the two rails own the window** — Mike, same day:
+   *"if you have a generation that you like, that the center can be collapsed so
+   that the 'right rail' will always show … like the whole generation part."* The
+   right rail takes the `1fr` here rather than its fixed width, because the point
+   of collapsing the stage is to give that space to what is left. */
+.studio[data-stage='closed'] {
+  grid-template-columns: minmax(0, var(--rail-left-width, 280px)) minmax(0, 1fr);
+  grid-template-areas:
+    'left right'
+    'transport transport';
+}
+
+/* Both away: the left rail is the window. Reachable by design — the stage
+   toggle and K are independent, and nothing should make one of them refuse. */
+.studio[data-stage='closed'][data-right-rail='closed'] {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    'left'
+    'transport';
+}
+
 /* ── Rails ──────────────────────────────────────────────────────────────── */
+/* ⛔⛔ **A ROW NOW, NOT A COLUMN: the panels and a vertical tab strip beside
+   them.** Mike, 2026-08-11: *"you could have tabs coming off the left or right
+   side of the app itself like vertical tabs … only leave 2 open at a time that
+   both take up half the space."* The strip is the rail's outer edge and the
+   panels take the rest; `.rail__panels` is the column the sections used to be. */
 .rail {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   min-height: 0;
   background: var(--color-surface);
   overflow: hidden;
+}
+
+/* ⚠ **Order, not `row-reverse`.** The strip has to be on the *outer* edge of
+   each rail — left of the left rail, right of the right one — and these are
+   logical properties so it stays outer under `dir="rtl"` too. */
+.rail--left .railtabs {
+  order: -1;
+}
+
+/* ⚠ `position: relative` is what the departing group is pinned against while it
+   slides out — see `.rail__section[data-phase='out']`. */
+.rail__panels {
+  position: relative;
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+
+/* Something that sits above the slots at its own height — the Original Workflow
+   button, which is not a panel and must never be closeable. */
+.rail__pinned {
+  flex: none;
+  padding: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
 }
 
 .rail--left {
@@ -84,7 +148,24 @@
    exactly that on 2026-08-06 and said it is there "all the time".
    ⚠ Safe for the drag menu: `.drag__lanes` is portalled into `document.body`,
    so it is not a descendant of any section and cannot be clipped by this. */
+/* ⛔⛔ **EQUAL SLOTS: `1 1 0`, so two panels are half the rail each whatever is
+   in them.** Mike, 2026-08-11: *"only leave 2 open at a time that both take up
+   half the space."*
+
+   ▶ **This replaces a fight the old layout never stopped having.** Sections were
+   `flex: 0 1 auto` with one `--grow` exception, so the tallest panel's *content*
+   set its share: KIT going from 13 lanes to 21 in TASK-140 starved STEMS by 5px
+   and SESSION by 3px, and before that a zero-basis KIT collapsed to one pixel
+   and painted over STEMS — Mike screenshotted both. A zero basis on every slot
+   means content height cannot buy space from a neighbour, and with only two
+   slots there is no floor to negotiate: half each, always.
+
+   ⚠ **`overflow: hidden` stays and is not tidiness.** It is what makes a
+   squashed panel *clip* rather than paint over the one below it — the 287x15px
+   overlap of `kit.assignHint` and `stems.hint` measured at 1440x620. Safe for
+   the drag menu: `.drag__lanes` is portalled into `document.body`. */
 .rail__section {
+  flex: 1 1 0;
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -92,76 +173,262 @@
   border-bottom: 1px solid var(--color-border);
 }
 
-/* ⛔ **This has now failed in BOTH directions, and the fix is the pair.**
-
-   `flex: 1` is `1 1 0%` — flex-basis ZERO — and that collapsed this section to
-   nothing the moment the rail ran out of room (TASK-136/18b): with no leftover
-   space to distribute a zero-basis item gets zero, while `flex: 0 1 auto`
-   siblings keep their content height. KIT became one pixel and painted its
-   contents straight out over STEMS.
-
-   `flex: 1 1 auto` fixed that and caused the opposite: the basis becomes this
-   section's *own content height*, so when TASK-140 took the KIT panel from 13
-   lanes to 21 it claimed far more of a short rail than its share and starved
-   its neighbours — `stems` spilled 5px and `session` 3px, which is the same
-   defect one panel over.
-
-   ▶ So: a zero basis **with a floor**. Zero means a taller KIT cannot take
-   space from anyone; `min-height` means it can never vanish either. The floor
-   is a header plus a couple of rows — enough to be recognisably a panel with
-   something in it, and `.rail__content` scrolls the rest.
-
-   ⚠ **The floor must stay smaller than the shortest supported rail can give
-   this section**, or it becomes the new starvation. `e2e/rail-layout.spec.ts`
-   is what holds that, at the SHORT viewport. */
-.rail__section--grow {
-  flex: 1 1 0;
-  min-height: 6rem;
+/* ⚠ The last panel in a rail owns the bottom edge, so it needs no rule of its
+   own — the border would draw against the rail's own boundary. */
+.rail__section:last-child {
+  border-bottom: none;
 }
 
-.rail__content {
-  padding: var(--space-4);
-  padding-top: 0;
-  min-height: 0;
-  overflow-y: auto;
+/* ── What each panel's share of its group is ─────────────────────────────── */
+/* ⛔⛔ **THE SHARES ARE MIKE'S AND THEY ARE NOT ALL EQUAL** (2026-08-11):
+   *"kits and stems are your biggest ones that take up the most space, the other
+   3 can fit as a unit and split it 1/3, 1/3, and 1/3 or 1/4, 1/4, and 1/2 for the
+   ratio to the right panel."*
+
+   He offered both splits for the second group and this takes the **1/4, 1/4,
+   1/2**, because the three are not the same size: SESSION is a handful of chips
+   and PRESETS is a combobox with a name field, while PATTERN LIBRARY is the only
+   *list* of the three and the only one that grows without bound. Thirds would
+   give the two fixed-height panels room they cannot use and take it from the one
+   that can. */
+.rail__section[data-section='session'],
+.rail__section[data-section='presets'] {
+  flex-grow: 1;
 }
 
-/* The search box has no collapsible header, so it keeps its top padding. */
-.rail__section:not([data-section]) .rail__content {
-  padding-top: var(--space-4);
+.rail__section[data-section='patterns'] {
+  flex-grow: 2;
 }
 
-/* Collapsible panel header. */
-.rail__toggle {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  width: 100%;
+/* ⚠ **GENRES is one combobox and takes only the height of one.** Splitting the
+   left rail evenly would give a single field half the column and leave the
+   roster — a combobox *and* the artist pane under it — squeezed into the other
+   half. Mike's pairing (*"roster and genres should be shown"*) is about which
+   two are up, not about them being the same size. */
+.rail__section[data-section='genres'] {
+  flex: none;
+}
+
+/* ── The swap ────────────────────────────────────────────────────────────── */
+/* ⛔⛔ **TWO STAGES, AND THE SECOND WAITS FOR THE FIRST** — Mike, 2026-08-11:
+   *"you need to have a cool switch out, like slide one panel to the right and
+   out and then slide the other one out for the rail switch"* … *"do it so it
+   looks cool as it's doing it, like you can actually see it hiding and can
+   visibly see the other one starting to slide out."*
+
+   So it is deliberately **not** a crossfade and not a simultaneous slide. The
+   outgoing group leaves first, on its own; only when it is gone does the
+   incoming one arrive. The delay on the `in` half is exactly the duration of the
+   `out` half — both come from `state/ui.ts`, which also owns the timer that
+   finally unmounts the old panels, so the three cannot drift.
+
+   ⛔ **Outwards, through the rail's own edge**: the left rail's panels leave to
+   the left and arrive from the left, the right rail's to and from the right.
+   Sliding a right-rail panel out to the *left* would send it across the piano
+   roll, which reads as the editor being disturbed rather than the rail changing.
+
+   ⚠ **The leaving group is taken out of the flow.** Without that the rail would
+   briefly hold five panels and the arriving group would lay out at a third of
+   its final height, animate in at the wrong size, and snap when the old one
+   unmounted. Absolute over the panel area means the two simply overlap. */
+.rail__section[data-phase='out'] {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  animation: rail-slide-out var(--rail-swap-out) var(--ease-standard) forwards;
+}
+
+.rail__section[data-phase='in'] {
+  /* ⚠ `both`, so the panel holds its *start* position through the delay rather
+     than sitting in place and then jumping — the delay is the whole point. */
+  animation: rail-slide-in var(--rail-swap-in) var(--ease-standard) var(--rail-swap-out) both;
+}
+
+/* The direction each rail travels. `--rail-away` is the offset that takes a
+   panel off the outer edge; logical sign, so RTL is handled by the rails' own
+   mirroring rather than by a second pair of keyframes. */
+.rail--left {
+  --rail-away: -110%;
+}
+
+.rail--right {
+  --rail-away: 110%;
+}
+
+@keyframes rail-slide-out {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(var(--rail-away));
+    opacity: 0;
+  }
+}
+
+@keyframes rail-slide-in {
+  from {
+    transform: translateX(var(--rail-away));
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+/* ⛔ **No movement at all when the producer has asked for none**, and the panels
+   still have to swap: the incoming group appears at once and the outgoing one is
+   simply not drawn. A zero-length animation rather than none, so the timer in
+   `showSection` still has something to be the length of. */
+@media (prefers-reduced-motion: reduce) {
+  .rail__section[data-phase='out'] {
+    display: none;
+  }
+
+  .rail__section[data-phase='in'] {
+    animation: none;
+  }
+}
+
+/* ── The panel header ────────────────────────────────────────────────────── */
+/* ⛔ **A label, and nothing else.** The chevron went with the accordion — a panel
+   is either in a slot or it is not, and `RailTabs` decides. What a header is
+   still for is telling two stacked panels apart.
+
+   ⛔⛔ **`.rail__head` and `.rail__close` were deleted on 2026-08-12, and one of
+   them was hiding a visible bug.** They styled a header wrapper and a dismiss
+   `×` that `Section.tsx` decided against and never rendered — see the comment
+   there. The `padding` that indented the title lived on the wrapper, so with the
+   wrapper gone the title sat flush against the rail edge while `.rail__content`
+   below it stayed indented. The padding is on the title now, where the element
+   that needs it actually is. */
+.rail__title {
+  margin: 0;
+  min-width: 0;
   padding: var(--space-3) var(--space-4);
-  border: none;
-  background: none;
+  overflow: hidden;
   color: var(--color-text-3);
   font-family: var(--font-ui);
   font-size: var(--text-micro);
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ── The vertical tab strip ──────────────────────────────────────────────── */
+/* ⛔ **Always drawn, even with every panel closed**, and that is what makes
+   closing them survivable: there are no headers left to reopen from, so if this
+   could disappear a producer could hide a panel and have no route back to it. */
+/* ⚠ **`center`, so the label sits in the middle of the rail's height on both
+   sides** — Mike, 2026-08-11: *"can you put the vertical tabs text in the center
+   vertically for both sides?"* With one tab per hidden group the strip is mostly
+   empty, and a label pinned to the top of a 900px column reads as something that
+   got stuck there rather than as a control. */
+.railtabs {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 2px;
+  padding: var(--space-1) 2px;
+  background: var(--color-surface-2);
+}
+
+.rail--left .railtabs {
+  border-inline-end: 1px solid var(--color-border);
+}
+
+.rail--right .railtabs {
+  border-inline-start: 1px solid var(--color-border);
+}
+
+/* ⚠ **`vertical-rl` + `180deg`, which reads bottom-to-top.** That is the
+   convention every editor sidebar uses and the one that keeps the first tab
+   nearest the top of the rail rather than nearest the bottom. */
+/* ⚠ `text-align: center` is what centres the glyphs *along* the tab once the
+   strip has centred the tab itself — in `vertical-rl` the inline axis runs down
+   the column, so this is the vertical centring, not `align-items`. */
+.railtabs__tab {
+  flex: 0 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  text-align: center;
+  padding: var(--space-3) 3px;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-text-3);
+  font-family: var(--font-ui);
+  font-size: var(--text-micro);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   cursor: pointer;
   transition: color var(--duration-fast) var(--ease-standard);
 }
 
-.rail__toggle:hover {
-  color: var(--color-text-2);
+/* ⛔ **Counter-rotated, or the chevron points the wrong way.** The tab carries
+   `rotate(180deg)` so its label reads bottom-to-top, and that turns a right
+   chevron into a left one. Undoing it here keeps the arrow saying what it means
+   while the text keeps reading the way it should.
+   ⚠ `display: flex` so the glyph centres in the tab width rather than sitting on
+   the text baseline, which in vertical writing is the *side* of the tab. */
+.railtabs__arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: rotate(180deg);
 }
 
-.rail__chevron {
-  flex: none;
-  transition: transform var(--duration-fast) var(--ease-standard);
+/* ⚠ The gap goes on the side the text is, which is the opposite end for each
+   rail — see `RailTabs` for why the two mirror. */
+.rail--left .railtabs__arrow {
+  margin-block-end: var(--space-1);
 }
 
-.rail__chevron[data-rotated='true'] {
-  transform: rotate(-90deg);
+.rail--right .railtabs__arrow {
+  margin-block-start: var(--space-1);
+}
+
+.railtabs__tab:hover {
+  color: var(--color-text);
+}
+
+/* The two in slots read as on. Accent plus a spine down the outer edge, so the
+   state survives at a glance in either theme. */
+.railtabs__tab[data-on='true'] {
+  background: var(--color-surface);
+  color: var(--color-primary);
+  box-shadow: inset 2px 0 0 var(--color-primary);
+}
+
+.rail--right .railtabs__tab[data-on='true'] {
+  box-shadow: inset -2px 0 0 var(--color-primary);
+}
+
+/* ⚠ **`.rail__section--grow`, `.rail__toggle` and `.rail__chevron` went with the
+   accordion** (2026-08-11). `--grow` existed because sections competed for the
+   rail's height and one of them had to win; two equal slots is the answer to
+   that argument rather than a new position in it, and the long note it carried
+   — a zero basis starving KIT to one pixel, then an `auto` basis letting a
+   21-lane KIT starve STEMS by 5px — now lives on `.rail__section` above, which
+   is where the rule it describes ended up. The header's toggle and chevron are
+   `.rail__head` and `RailTabs`. */
+.rail__content {
+  flex: 1 1 auto;
+  padding: var(--space-4);
+  padding-top: 0;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .rail__hint {
@@ -338,6 +605,73 @@
 .chip--mono strong {
   color: var(--color-text);
   font-weight: 500;
+}
+
+/* ── The little segmented buttons inside a chip ──────────────────────────── */
+/* ⛔⛔ **`.chip__option` HAD NO STYLES AT ALL**, and that is why Mike read the
+   two of them as one word. The bar switch rendered as `48 bars` and the clear
+   pair as `Clear Clear all` — two bare `<button>`s with the UA's own zero
+   padding, no separator, and **no visible pressed state**, so there was also no
+   way to tell which bar count you were on. 2026-08-11: *"the button should say
+   '4/8 Bars' and it should switch colors or it should be a toggle when it is 4
+   or 8 bars so that way you know which one you are on."*
+
+   ⚠ **The `aria-pressed` rule below is the readout**, not decoration: `bars ===
+   choice` was already on the element and nothing was drawing it. */
+.chip__option {
+  padding: 2px var(--space-2);
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-text-2);
+  font: inherit;
+  cursor: pointer;
+}
+
+.chip__option:hover:not(:disabled) {
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+}
+
+.chip__option:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+/* The one you are on. Colour *and* weight, because a colour alone is the one
+   signal a producer with a contrast-reduced display may not get. */
+.chip__option[aria-pressed='true'] {
+  background: var(--color-primary);
+  color: var(--color-on-primary, #fff);
+  font-weight: 600;
+}
+
+/* ⚠ **The slash is a real element, not a border.** Mike named the label — *"the
+   button should say '4/8 Bars'"* — so the separator has to be the character he
+   asked for and it has to survive both segments being unpressed. `aria-hidden`
+   in the markup, because a screen reader reads the group label instead. */
+.chip__slash {
+  margin-inline: 1px;
+  color: var(--color-text-3);
+}
+
+/* ⛔ **The bar switch stands the same height as Generate** — Mike, 2026-08-12:
+   *"the height of the 'Clear All' button should be the same as the height for
+   the '4/8 bars' toggle and the 'Generate/Generate All' buttons."* 44px is
+   `.btn-generate`'s, which is the tallest thing in the row and therefore already
+   the row's height — so matching it costs the velocity lane nothing.
+
+   ⚠ **A class of its own rather than `.chip--mono`.** The seed chip and the
+   session readouts wear that too and are not in this row. */
+.stage__bars {
+  display: inline-flex;
+  align-items: center;
+  height: 44px;
+  padding: 0 var(--space-3);
+}
+
+.chip__unit {
+  margin-inline-start: var(--space-2);
 }
 
 /* ── Center stage ───────────────────────────────────────────────────────── */
@@ -533,6 +867,18 @@
   background-size: 48px 32px;
 }
 
+/* ⛔ **The editor lights up while a sample is over it** — the drop assigns that
+   sample to the generator showing (Mike, 2026-08-12). Without it the only
+   feedback is the cursor, and the whole point of the gesture is that it is a
+   short drag you can make without aiming.
+   ⚠ Inset, so the outline is not eaten by the panel's own edge — and drawn on
+   the panel rather than on `.genfx`, which is `position: absolute; inset: 0`
+   over it and would put the ring under the notes. */
+.stage__body[data-sample-over='true'] {
+  outline: 2px dashed var(--color-primary);
+  outline-offset: -2px;
+}
+
 .stage__empty {
   position: absolute;
   inset: 0;
@@ -626,10 +972,37 @@
   flex-wrap: nowrap;
 }
 
+/* ⛔⛔ **THE ROW WRAPS *INSIDE* ITS CONTROLS, NOT BETWEEN THEM** — Mike,
+   2026-08-12, with a screenshot of `4 / 8` over `bars` and `Clear` over `all`:
+   *"ensure that these buttons are all on one line."*
+
+   ▶ **`flex-wrap: nowrap` above only stops the row breaking between items.** It
+   says nothing about a label breaking inside one, and every item here is a flex
+   item whose `min-width: auto` resolves to its longest *word* — so the row
+   happily squeezed each control down to one word wide and let the text stack.
+   `.btn-generate` already carried its own `white-space: nowrap` for exactly this
+   reason, discovered the same way ("Generate" over "All"); this is that fix
+   applied to the class rather than to the one instance that had been noticed.
+
+   ⚠ **The row is allowed to get wider.** It is in flow below the editor, so
+   width is free and only height costs the velocity lane anything — see
+   `.stage__bottom`. Shortening `Generate`'s padding below is the width this buys
+   back, which Mike offered: *"i don't care if you need to shorten the width of
+   the 'Generate' button."* */
+.stage__controls > * {
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
 /* ── Buttons ────────────────────────────────────────────────────────────── */
+/* ⚠ **44px is the row's height, and three other controls now match it** — see
+   `.stage__bars` and `.stage__clear`. Change it here and change it there. */
 .btn-generate {
   height: 44px;
-  padding: 0 var(--space-6);
+  /* ⚠ `--space-4`, down from `--space-6`: 32px of width per button handed back
+     to the row so nothing has to shrink. Mike, 2026-08-12: *"i don't care if you
+     need to shorten the width of the 'Generate' button."* */
+  padding: 0 var(--space-4);
   /* ⛔ "Generate All" broke to two lines — "Generate" over "All" — inside a
      44px button. As a flex item in `.stage__controls` its `min-width: auto`
      resolves to the *longest word*, so the row could shrink it until the label
@@ -682,6 +1055,14 @@
 .btn-ghost:hover {
   color: var(--color-text);
   border-color: var(--color-text-3);
+}
+
+/* ⛔ **Clear all stands with the row, not two-thirds of its height** — Mike,
+   2026-08-12, naming all three: the bar switch, this, and Generate. Scoped to
+   the instance rather than to `.btn-ghost`, which is 32px in a dozen other
+   places where 44px would be wrong. See `.stage__bars`. */
+.stage__clear {
+  height: 44px;
 }
 
 .btn-ghost[aria-pressed='true'] {
@@ -775,6 +1156,33 @@
   border-style: dashed;
 }
 
+/* ⛔⛔ **THE ROW LIGHTS AS ITS LANE FIRES** — Mike, 2026-08-11 named the melodic
+   parts in the same sentence as the drum pads: *"the drum pads should blink with
+   a color as the drum parts play or the melodic parts play … for the melody/
+   chords/basslines/counter melody."* Melody, chords, bass and counter have no
+   pad — this list is where they live, so this is where they light.
+
+   `state/padBlink.ts` sets `data-lit` for 70 ms as the playhead crosses a note
+   start, straight on the node: nothing re-renders at 30 Hz. The colour goes on
+   instantly and fades off, so the attack is the thing you see. */
+.kit-lane__pad {
+  transition: background-color 140ms ease-out;
+}
+
+.kit-lane[data-lit='true'] .kit-lane__pad {
+  transition: none;
+  background: color-mix(in srgb, var(--color-primary) 34%, var(--color-surface-2));
+  color: var(--color-text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .kit-lane__pad,
+  .kit-lane[data-lit='true'] .kit-lane__pad {
+    transition: none;
+    background: var(--color-surface-2);
+  }
+}
+
 /* The row a sample is being dragged over (TASK-132). ⛔ Filled rather than
    merely outlined: an assigned row is *already* outlined in the same colour, so
    an outline-only cue would be invisible on exactly the rows a producer is most
@@ -787,7 +1195,12 @@
 }
 
 /* The per-pad dice (TASK-050A). Same 24px square as the clear button beside it,
-   because they are the same kind of thing — a small action on this one row. */
+   because they are the same kind of thing — a small action on this one row.
+   ⚠ Play joined them on 2026-08-11 — *"you should be able to hear just the
+   sample or one shot you are using"* — and takes the same square for the same
+   reason: three controls of one size read as a row of actions, where one odd
+   one out reads as something else. */
+.kit-lane__play,
 .kit-lane__dice,
 .kit-lane__clear {
   flex: none;
@@ -802,9 +1215,18 @@
   cursor: pointer;
 }
 
+.kit-lane__play:hover:not(:disabled),
 .kit-lane__dice:hover:not(:disabled),
 .kit-lane__clear:hover:not(:disabled) {
   color: var(--color-text);
+}
+
+/* ⚠ Play is the one of the three that makes a sound, so it answers in the
+   accent rather than in the plain text colour — the same signal the pads' own
+   Play uses. */
+.kit-lane__play:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 /* The kit-wide dice, above the rows: one gesture for every unlocked pad. */
@@ -1092,6 +1514,36 @@
 
 .tab-mute[data-on='true'] {
   background: var(--color-success, #30a46c);
+}
+
+/* ⛔ **The per-generator clear, under its mute dot** (Mike, 2026-08-11: *"there
+   should be a 'C' or an 'X' in the tab for the generators … just like the drum
+   pad lanes"*). Bottom-right rather than beside the dot, because two 9px targets
+   in a row at the same corner is a mis-click between "silence this" and "delete
+   this" — one recoverable, one not.
+   ⚠ Dim until hover: it is the destructive one of the pair, so it does not
+   compete with the dot for attention on a tab you are only looking at. */
+.tab-clear {
+  position: absolute;
+  bottom: 5px;
+  inset-inline-end: 5px;
+  display: grid;
+  place-items: center;
+  width: 13px;
+  height: 13px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: transparent;
+  color: var(--color-text-3);
+  opacity: 0.55;
+  cursor: pointer;
+}
+
+.tab-clear:hover,
+.tab-clear:focus-visible {
+  color: var(--color-danger, #e5484d);
+  opacity: 1;
 }
 
 /* A little room so a long label never runs under the dot. */

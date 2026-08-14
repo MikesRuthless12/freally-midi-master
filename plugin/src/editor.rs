@@ -53,6 +53,29 @@ const SCHEME: &str = "freally";
 /// the rail away again.
 const LAYOUT: (u32, u32) = (1440, 900);
 
+/// The smallest the standalone frame may be dragged to, in physical pixels.
+///
+/// ⛔⛔ **This is not a layout minimum — it is the guarantee that the window can
+/// be made big again.** Mike, 2026-08-12: *"i want the end user to be able to
+/// resize my window to whatever size they want … if they size it too small, then
+/// it's their own fault, as long as you can ensure that they can resize to make
+/// it bigger."* Both halves are real. Left at zero, Windows will hand back a
+/// client area with no room for the resize grips, and a frame nobody can grab is
+/// a frame nobody can grow — the one outcome he ruled out. This is small enough
+/// to be "whatever size they want" and large enough that every edge and corner
+/// stays draggable.
+///
+/// ⚠ **Deliberately unrelated to [`LAYOUT`] and to the display scale.** It
+/// answers "can you still grab it", which is a question about window chrome and
+/// the same handful of pixels on every monitor — not about how much of the app
+/// fits, which `WindowFit` now answers by zooming the page to whatever the frame
+/// became.
+///
+/// ⚠ **Why the app no longer needs a layout floor at all:** the reason one
+/// existed — *"a little smaller and it ends up clipping the right panel"* — was
+/// a page pinned at `LAYOUT`. It reflows now.
+const MIN_FRAME: (u32, u32) = (360, 240);
+
 /// How large that layout is *drawn*, smallest first.
 ///
 /// The page always lays out at [`LAYOUT`] and always shows every panel, because
@@ -544,6 +567,21 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
                 match crate::audio::import::decode_file(std::path::Path::new(path)) {
                     Ok(audio) => {
                         shared.preview.load(audio.samples, audio.sample_rate);
+                        // ⛔ **Recorded here, because this is the moment a
+                        // producer actually looked at a file.** `select`
+                        // auditions on a click, an arrow key and a starred row
+                        // alike, and all three arrive as `preview_load` — so one
+                        // call covers every way into the browser. Recording on
+                        // *drop* instead would miss everything auditioned and
+                        // rejected, which is most of what browsing is.
+                        //
+                        // ⚠ **A failure here must not fail the audition.** The
+                        // sample has already been decoded and handed to the
+                        // player; a producer whose `%APPDATA%` is read-only
+                        // should still hear it. The history is a convenience and
+                        // refusing the preview to protect the bookkeeping would
+                        // be the wrong trade.
+                        let _ = crate::recent::note(path);
                         Ok(Value::Null)
                     }
                     Err(reason) => Err(reason),
@@ -632,6 +670,14 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
             };
             return Some(
                 crate::explorer::midi_pattern(&shared.explorer, path, part)
+                    .inspect(|_| {
+                        // ⚠ The MIDI half of the same moment `preview_load`
+                        // records. A `.mid` is never decoded by the audio
+                        // player, so without this the history would show only
+                        // the samples a producer auditioned and none of the
+                        // loops they opened.
+                        let _ = crate::recent::note(path);
+                    })
                     .and_then(|p| serde_json::to_value(p).map_err(|e| e.to_string())),
             );
         }
@@ -772,17 +818,40 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
                 .and_then(|text| text.parse::<u64>().ok())
                 .unwrap_or(0);
 
-            // The folder the producer is looking at, as filenames. `state()` is
-            // what the panel already draws, so a re-roll can only ever reach
-            // what they can see — the containment rule, for free.
-            let files: Vec<String> = shared
-                .explorer
-                .state()
-                .entries
-                .into_iter()
-                .filter(|entry| !entry.is_dir)
-                .map(|entry| entry.path)
-                .collect();
+            // ⛔⛔ **THE FOLDER THE PRODUCER IS STANDING IN, WHICH THE PAGE HAS
+            // TO SAY** — Mike, 2026-08-11: *"if i am on an actual sample in the
+            // file explorer, or i am on a folder in file explorer, either way, it
+            // should remember the folder's name that i am in, and it should
+            // randomize a sample from that specific folder for the 'Re-roll'."*
+            //
+            // ▶ **`state()` could not answer that any more.** It reports the
+            // explorer's own "current folder", which the *tree* view stopped
+            // maintaining — expanding a branch and clicking a file inside it
+            // never moves it. So the dice was re-rolling from whatever folder was
+            // last opened the old way, or from nothing at all.
+            //
+            // ⚠ **Which folder a *file* means is the page's question**, because
+            // the page is what holds the selection: it sends the parent for a
+            // file and the folder itself for a folder. Deriving it here would be
+            // a second idea of where the producer is standing.
+            //
+            // ⛔ **`list_one` re-applies containment**, so an arbitrary path from
+            // the webview cannot read outside the sample library — the same
+            // boundary `explorer_drop` leans on, and the reason this is not just
+            // a `read_dir`. Falling back to `state()` keeps the old behaviour for
+            // a page that sends nothing.
+            let files: Vec<String> = match request.args["folder"].as_str() {
+                Some(dir) if !dir.is_empty() => shared
+                    .explorer
+                    .list_one(dir)
+                    .map(|state| state.entries)
+                    .unwrap_or_default(),
+                _ => shared.explorer.state().entries,
+            }
+            .into_iter()
+            .filter(|entry| !entry.is_dir)
+            .map(|entry| entry.path)
+            .collect();
 
             return Some(
                 shared
@@ -822,7 +891,56 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
             let path = request.args["path"].as_str().unwrap_or_default();
             return Some(
                 crate::explorer::midi_split(&shared.explorer, path)
+                    .inspect(|_| {
+                        // ⛔ **This is where a `.mid` is actually opened.**
+                        // `explorer::select` calls this on a click and on an
+                        // arrow key, which is the moment `recent`'s module note
+                        // means by audition — the MIDI twin of `preview_load`.
+                        //
+                        // ⚠ It was missing, and the page already called
+                        // `loadRecent()` here on the strength of a comment
+                        // saying the plugin had written the entry. It had not:
+                        // `note` ran only from `explorer_midi`, which is the
+                        // *drop* into a part — so a producer who clicked twenty
+                        // loops and imported one saw a history of the one, which
+                        // is the recording rule backwards.
+                        let _ = crate::recent::note(path);
+                    })
                     .and_then(|parts| serde_json::to_value(parts).map_err(|e| e.to_string())),
+            );
+        }
+
+        // ⛔⛔ **Hearing a `.mid` from the browser (TASK-160).** Mike: *".mid
+        // files … have its own sound like Ableton does that can play the .mid
+        // file"*.
+        //
+        // ▶ **It loads the audition voice rather than scheduling anything.** The
+        // roadmap put the cost of this at *"its own note scheduler"* on the audio
+        // thread; `midi_audition::render` produces the same `Vec<f32>` a decoded
+        // `.wav` arrives as, so `Preview` plays it with the code that already
+        // exists — and with it the seek, the loop, the reverse, the position poll
+        // and the whole transport strip, tested once.
+        //
+        // ⚠ **It does not start.** Loading because a producer clicked a row must
+        // not make a noise; `preview_play` is the press. Same rule
+        // `Preview::load` states for a sample.
+        //
+        // ⚠ **And it never touches the transport** — TASK-058B's rule for this
+        // panel. `Preview` is a separate voice from `Schedule`, so auditioning a
+        // file cannot move the project's playhead.
+        "explorer_midi_audition" => {
+            let path = request.args["path"].as_str().unwrap_or_default();
+            return Some(
+                crate::explorer::midi_split(&shared.explorer, path).map(|parts| {
+                    let rendered = crate::midi_audition::render(&parts);
+                    let clipped = rendered.clipped;
+                    let seconds = rendered.samples.len() as f64 / f64::from(rendered.rate);
+                    shared.preview.load(rendered.samples, rendered.rate);
+                    // ⚠ The reply says what was rendered rather than answering
+                    // `null`: the panel has to know it is holding an audition of
+                    // *this* file, and whether the file was cut.
+                    json!({ "seconds": seconds, "clipped": clipped })
+                }),
             );
         }
 
@@ -843,6 +961,66 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
         "favourites_list" => {
             return Some(
                 serde_json::to_value(crate::favourites::list()).map_err(|e| e.to_string()),
+            );
+        }
+
+        // ── The browser's history (TASK-058) ─────────────────────────────
+        //
+        // ⛔ Read-only from the page. Nothing adds to the history over the
+        // bridge: entries only ever come from `preview_load` and `explorer_midi`
+        // above, which are already bounded by `Explorer::contains`. A
+        // `recent_add` would be a way for the page to name an arbitrary path and
+        // have it stored and shown as somewhere the producer had been.
+        "recent_list" => {
+            return Some(serde_json::to_value(crate::recent::list()).map_err(|e| e.to_string()));
+        }
+
+        "recent_clear" => {
+            return Some(
+                crate::recent::clear()
+                    .and_then(|list| serde_json::to_value(list).map_err(|e| e.to_string())),
+            );
+        }
+
+        // ── The variation history that survives a restart (TASK-045B) ────
+        //
+        // ⛔⛔ **Unlike the browser's history, the page WRITES this one**, and
+        // that difference is deliberate. `recent` is recorded by the plugin
+        // because the plugin is what opens a file; a *generation* happens on the
+        // page — the seed, the pins and the resolved tempo are all decided there
+        // — so `takes_note` takes what `state/variations.ts` already built rather
+        // than the plugin trying to reconstruct it.
+        //
+        // ⚠ **Nothing here resolves or executes a take.** It is stored, capped
+        // and handed back; `recallVariation` on the page is what turns one into a
+        // pattern, through the same `generate` every other path uses. So an entry
+        // written by a page that has gone wrong is a bad row in a list, not a
+        // command.
+        "takes_list" => {
+            return Some(serde_json::to_value(crate::takes::list()).map_err(|e| e.to_string()));
+        }
+
+        // ⚠ **A batch, because one Generate press is five takes.** `session.ts`
+        // records an entry per generated part, and `takes::note` rewrites the
+        // whole file — so one at a time meant five complete read-modify-writes
+        // of a 3,200-take file per press, on this thread.
+        "takes_note" => {
+            let takes: Vec<crate::takes::Take> =
+                match serde_json::from_value(request.args["takes"].clone()) {
+                    Ok(takes) => takes,
+                    Err(error) => return Some(Err(format!("that is not a take: {error}"))),
+                };
+            // ⚠ Acknowledges rather than answering the history: the panel that
+            // draws it reads `takes_list` when it opens, and shipping up to
+            // 3,200 takes back on every Generate press would serialize a value
+            // nothing on screen is showing.
+            return Some(crate::takes::note(takes).map(|()| Value::Null));
+        }
+
+        "takes_clear" => {
+            return Some(
+                crate::takes::clear()
+                    .and_then(|all| serde_json::to_value(all).map_err(|e| e.to_string())),
             );
         }
 
@@ -928,10 +1106,19 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
             if !shared.explorer.contains(file) {
                 return Some(Err("that sample is not in your sample library".into()));
             }
+            // ⛔ **Backwards when the page says so** — Mike, 2026-08-11: *"'Ctrl +
+            // left arrow' … should add the sample to that selected drum pad lane
+            // in reverse and 'Ctrl + right arrow' should add the sample to that
+            // selected drum pad lane playing regularly."*
+            //
+            // ⚠ **Absent means forwards**, so the drag-onto-a-pad and
+            // click-to-assign routes — which send no such flag and have no
+            // reverse gesture — keep behaving exactly as they did.
+            let reversed = request.args["reversed"].as_bool().unwrap_or(false);
             return Some(
                 shared
                     .one_shots
-                    .restore(lane, path, &shared.kits, &shared.session)
+                    .restore(lane, path, reversed, &shared.kits, &shared.session)
                     .map(|()| Value::Null),
             );
         }
@@ -1251,6 +1438,28 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
                             // stacks them"*). `render_and_spool` builds both
                             // from this one cut; `drag/windows.rs` picks
                             // between them from inside the drag.
+                            // ⛔⛔ **MORE THAN ONE PART LANDS TOGETHER**
+                            // (Mike, 2026-08-11): *"all parts of a song should be
+                            // able to press 'Ctrl+Drag in' to put them on
+                            // separate lanes, but together if you don't press
+                            // ctrl"* … *"for audio and midi."* `Cut::Parts` — one
+                            // file each, and therefore one DAW lane each — is now
+                            // what the modifier reaches; `drag::render_and_spool`
+                            // spools both.
+                            //
+                            // ⚠ **One pattern is `Parts`, not `Together`.** They
+                            // would produce the same single file, but `Together`
+                            // names it *All Parts*, which on a lone drum loop is
+                            // a label that lies about what is in it. A single
+                            // part also has nothing for Ctrl to choose between.
+                            // ⚠ **How many patterns there are does not enter
+                            // into it**, and it used to: a `several` guard
+                            // selected between two arms that had become the same
+                            // answer, which rustc cannot warn about through a
+                            // guard. See `drag::render_and_spool` — a multi-part
+                            // drag is plain `Cut::Parts`, one clip per part at
+                            // bar 1, because anything offset arrives as a
+                            // staircase of over-long clips.
                             cut: match (args.lane, args.lanes) {
                                 (Some(lane), _) => crate::export::Cut::OneLane(lane),
                                 (None, true) => crate::export::Cut::EveryLaneInSequence,
@@ -1479,13 +1688,49 @@ const PAGE: &str = "freally://localhost/index.html";
 
 pub fn create(shared: SharedState) -> Option<Box<dyn Editor>> {
     let editor = WebViewEditor::new(HTMLSource::URL(PAGE), window_size(&shared))
-        // ⛔ **The floor a drag stops at is the app's own default size** — Mike,
-        // 2026-08-09: *"a little smaller and it ends up clipping the right
-        // panel."* `physical(1.0)` is the `large` preset, which is what
-        // `LAYOUT` was drawn for, so nothing below it can be a size the UI was
-        // designed to survive. Passed from here rather than chosen in the
-        // adapter, so it tracks `LAYOUT` and the display scale automatically.
-        .with_minimum_size(physical(1.0).0)
+        // ⛔⛔ **The floor is a grab handle, not a layout rule** (2026-08-12).
+        //
+        // It used to be `physical(1.0)` — the whole `large` preset, ~1440×900 —
+        // from Mike, 2026-08-09: *"a little smaller and it ends up clipping the
+        // right panel."* He reversed it: *"i want the end user to be able to
+        // resize my window to whatever size they want … if they size it too
+        // small, then it's their own fault, as long as you can ensure that they
+        // can resize to make it bigger."*
+        //
+        // ▶ **Clipping is no longer the price of a small window.** `WindowFit`
+        // re-reads `window.innerWidth` on every `resize` and zooms the root, so
+        // the page reflows to whatever the frame becomes rather than being cut
+        // off at a fixed layout — which is why this can be relaxed now and could
+        // not have been then.
+        //
+        // ⚠ **What the remaining floor buys is the second half of his sentence.**
+        // At zero, Windows will happily hand back a client area with no room for
+        // the resize grips, and a window nobody can grab is a window nobody can
+        // make bigger again — the one outcome he ruled out. [`MIN_FRAME`] is
+        // small enough to be "any size you want" and large enough that every
+        // edge and corner stays draggable.
+        //
+        // ⚠ **Standalone only, and that is not a gap.** The floor is enforced
+        // through `WM_GETMINMAXINFO` on our own frame; inside a DAW the window
+        // belongs to the host, so VST3 and CLAP were never constrained by this
+        // and are as resizable as the host allows.
+        .with_minimum_size(MIN_FRAME)
+        // ⛔⛔ **So the caption says it once** — Mike, 2026-08-11: *"can you
+        // replace the window's title bar after the vst3/clap file opens … so it
+        // just says it once?"* Ableton names a fresh track after the instrument
+        // dropped on it and then builds the plugin window's caption from the
+        // device *and* the track, so the name lands on both sides of a slash:
+        // `Freally MIDI Master By: Mike Weaver/1-Freally MIDI Master By: Mike
+        // Weaver`.
+        //
+        // ⚠ **`Plugin::NAME`, not a second string.** The whole point is that the
+        // caption agrees with what the host calls us; a literal here would be a
+        // rename waiting to disagree with the plugin browser.
+        //
+        // ⛔ The adapter only rewrites a caption that **already contains** this
+        // name — `windows_pump::retitle` explains why, and the short version is
+        // that a docked FL Studio editor's top-level window is FL's own frame.
+        .with_window_title(<crate::FreallyMidiMaster as Plugin>::NAME)
         // The app's own background, so a slow first paint is the app's colour
         // rather than a white flash inside a dark DAW.
         .with_background_color((11, 11, 13, 255))
@@ -1845,6 +2090,39 @@ fn mime_for(path: &str) -> &'static str {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_webview_profile_lives_beside_the_rest_of_the_user_data() {
+        // ⛔⛔ **Two spellings of one directory, made to agree.** The vendored
+        // crate cannot reach `presets::data_dir()`, so it restates the
+        // `%APPDATA%`/`Application Support`/`XDG_DATA_HOME` walk itself — and a
+        // restatement nothing compares is how one of them drifts. The cost of
+        // drifting here is silent and total: the profile would go back to
+        // wherever the other spelling pointed, and every producer's rail layout,
+        // pad assignments, theme and language would reset with no error.
+        //
+        // ⚠ The *reason* it may not sit under temp is `web_data_dir`'s own doc:
+        // Windows deletes temp on a schedule, and 17.9 MB of `localStorage` was
+        // living there.
+        let Some(data) = crate::presets::data_dir() else {
+            // No per-user directory on this machine; the fallback is deliberate
+            // and there is nothing to compare against.
+            return;
+        };
+        let profile = nih_plug_webview::web_data_dir();
+        assert!(
+            profile.starts_with(&data),
+            "the webview profile ({}) must sit under the user data directory ({}) — \
+             see `web_data_dir`",
+            profile.display(),
+            data.display()
+        );
+        assert!(
+            !profile.starts_with(std::env::temp_dir()),
+            "the webview profile is back under temp, which the OS deletes: {}",
+            profile.display()
+        );
+    }
 
     #[test]
     fn the_built_ui_is_embedded() {
@@ -2440,6 +2718,7 @@ mod tests {
                 .restore(
                     Lane::Melody,
                     sample.to_str().expect("a utf-8 temp path"),
+                    false,
                     &shared.kits,
                     &shared.session,
                 )

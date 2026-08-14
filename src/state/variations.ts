@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 
+import { invoke } from '../lib/ipc';
 import type { Part, Pattern, Scale } from '../lib/ipc-types';
 import type { SessionPins } from './session';
 
@@ -109,20 +110,102 @@ type VariationsState = {
   step: (part: Part, delta: number) => Variation | null;
   /** The entry currently parked on, or `null`. */
   current: (part: Part) => Variation | null;
+  /**
+   * Park on a specific take of this session's log, by seed (TASK-045B).
+   *
+   * ⛔ **Because the browsable panel does not step, it jumps.** `step` moves by a
+   * delta and is what ◀/▶ use; choosing take twelve out of eighty is not a delta.
+   * Without this the panel recalled the take and left the cursor where it was, so
+   * the counter went on saying "80 / 80" over take twelve and the very next ◀
+   * jumped back to 79 — the readout and the clip disagreeing about which take the
+   * producer is on.
+   *
+   * ⚠ **A no-op for a take from a previous session**, which is not a failure: the
+   * persisted history spans restarts and this session's log does not, so a take
+   * older than the page has no position to park on. It is still recalled — the
+   * panel does that — and the counter honestly goes on describing this session.
+   */
+  parkOn: (part: Part, seed: string) => void;
   /** Mark a take to train on, or unmark it. */
   keep: (part: Part, seed: string, kept: boolean) => void;
   /** Every kept take, oldest first, across every part. */
   keptEntries: () => Variation[];
+  /**
+   * Every generation of every previous session, by style id (TASK-045B).
+   *
+   * ⛔ **Separate from `entries`, and that is the honest shape.** `entries` is
+   * *this* session's log, keyed by part, and it is what ◀/▶ walk. This is what
+   * the plugin has on disk: it spans restarts, and it is grouped the way Mike
+   * described browsing it — *"20 just 'Trap' and 20 just 'Rage' and 40 just
+   * 'Drake'"*. Merging them into one structure would mean either losing the
+   * per-part cursor or losing the per-style grouping.
+   */
+  history: Record<string, Variation[]>;
+  /** Read the persisted history. Called once when the panel opens. */
+  loadHistory: () => Promise<void>;
+  /** Forget the persisted history. */
+  clearHistory: () => Promise<void>;
   /** Forget everything. Used by tests; nothing in the UI calls it. */
   reset: () => void;
 };
+
+/**
+ * Takes waiting to be written, and the flush that is already queued.
+ *
+ * ⛔⛔ **Because one Generate press is FIVE recorded takes, not one.**
+ * `session.ts` records an entry per generated part, and `takes::note` does a
+ * whole read-parse-serialize-write of `takes.json` per call — a file the module
+ * bounds at 3,200 takes. Unbatched, one press was five complete rewrites of it,
+ * synchronously on the host's editor thread.
+ *
+ * ⚠ **A microtask, not a timer.** The five `record` calls happen in one
+ * synchronous run, so the queue is drained on the very next tick — nothing waits
+ * on a clock, and a producer who generates and immediately closes the window has
+ * already had their takes sent.
+ */
+let pending: Variation[] = [];
+
+function keepLater(entry: Variation) {
+  pending.push(entry);
+  if (pending.length > 1) return;
+  queueMicrotask(() => {
+    const takes = pending;
+    pending = [];
+    // ⚠ Failure is swallowed, the trade `recent::note` records on the other
+    // history: a producer whose `%APPDATA%` is read-only should still get their
+    // beat. Refusing the generation to protect the bookkeeping is the wrong way
+    // round.
+    void invoke('takes_note', { takes }).catch(() => {});
+  });
+}
 
 export const useVariations = create<VariationsState>((set, get) => ({
   entries: {},
   position: {},
   kept: {},
+  history: {},
 
   record(entry) {
+    // ⛔⛔ **Written to disk as well as to the log** (TASK-045B). Mike: *"if you
+    // have generated 20 just 'Trap' and 20 just 'Rage' and 40 just 'Drake' then
+    // it should persist … so that way you can go through the actual history of
+    // all your generations and find what you like."*
+    //
+    // ⚠ **Fire-and-forget, and the failure is swallowed** — the same trade
+    // `recent::note` records on the other history: a producer whose `%APPDATA%`
+    // is read-only should still get their beat. Refusing the generation to
+    // protect the bookkeeping would be the wrong way round.
+    //
+    // ⚠ **Here rather than in `generate`**, because this is the one function
+    // every path to a recorded take goes through — and `session.ts`'s
+    // `recalling` guard already keeps a *recall* from reaching it, which is what
+    // stops stepping backwards from writing new history.
+    //
+    // ⚠ **The reply is an acknowledgement, not the history.** `loadHistory` is
+    // what fills `history`, and it runs when the panel that draws it opens —
+    // handing the whole map back here would serialize up to 3,200 takes across
+    // the bridge on every press, for a list nothing is showing.
+    keepLater(entry);
     set((state) => {
       const list = [...(state.entries[entry.part] ?? []), entry];
       return {
@@ -161,6 +244,13 @@ export const useVariations = create<VariationsState>((set, get) => ({
     return list[at] ?? null;
   },
 
+  parkOn(part, seed) {
+    const { entries, position } = get();
+    const at = (entries[part] ?? []).findIndex((entry) => entry.seed === seed);
+    if (at < 0) return;
+    set({ position: { ...position, [part]: at } });
+  },
+
   keep(part, seed, kept) {
     // ⚠ **Removed rather than set to `false`.** The field's own doc calls this a
     // set of keys, and storing `false` forever made every reader spell
@@ -184,8 +274,27 @@ export const useVariations = create<VariationsState>((set, get) => ({
       .filter((entry) => kept[keptKey(entry.part, entry.seed)]);
   },
 
+  async loadHistory() {
+    try {
+      set({ history: await invoke<Record<string, Variation[]>>('takes_list') });
+    } catch {
+      // No history is not a broken app — the same reading `loadRecent` takes.
+      // The panel says "nothing yet", which is true of a first run either way.
+    }
+  },
+
+  async clearHistory() {
+    try {
+      set({ history: await invoke<Record<string, Variation[]>>('takes_clear') });
+    } catch {
+      // ⚠ Silent for the same reason, and the panel still shows what it has:
+      // reporting a failed clear as an empty list would be the readout lying
+      // about a file that is still on disk.
+    }
+  },
+
   reset() {
-    set({ entries: {}, position: {}, kept: {} });
+    set({ entries: {}, position: {}, kept: {}, history: {} });
   },
 }));
 

@@ -1,0 +1,349 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "yung-la",
+  "type": "artist",
+  "name": "Yung L.A.",
+  "aliases": [
+    "yung la",
+    "yung l.a.",
+    "leland austin",
+    "ain't i",
+    "grand hustle"
+  ],
+  "tier": "standard",
+  "extends": [
+    "trap"
+  ],
+  "era": "2008-2010",
+  "genres": [
+    "rap",
+    "trap"
+  ],
+  "relatedGenres": [
+    "trap",
+    "ringtone-club-rap",
+    "bouncy-trap"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 trap — Yung L.A.",
+    "https://en.wikipedia.org/wiki/Yung_L.A.",
+    "https://en.wikipedia.org/wiki/Ain%27t_I"
+  ],
+  "notes": "⛔ **The only major-mode trap entry in this batch, and that is the whole reason it exists.** The research calls it \"major-leaning and Mixolydian — unusually bright for the era\" with \"I–V–vi–IV-adjacent bright loops\", so the keys are spelled bare-major, the scales are `major`/`mixolydian`/`major_pentatonic`, and every progression family is in major numerals. ⚠ **`natural_minor` is deliberately absent from `scales`, and that is a decision rather than an omission.** The research says the bright loops appear \"as often as minor ones\"; a major numeral drawn over a minor scale reads as a *borrowed* chord in this engine — every bright loop would announce that it was leaving the key — so the minor side is carried by the `vi`-first families instead, which is the same sound arrived at honestly. ⚠ **Two things the research asks for that this model cannot say.** (1) \"Hook melody doubled in thirds\": the counter vocabulary has `octave_echo`, `arp` and `answer_lick` and no third-doubling, so the doubling is authored as an octave echo at the top weight. (2) \"The 808 sits under a synth bass\": `bass808.role` stays `bassline` because the 808 is the low end here (FR-007) and adding a second low voice would put two instruments on the same notes. What *is* authored from that sentence is the register — [20, 34] is higher and shorter than the Jeezy lane's, which is the \"less sub-dominant\" the research contrasts it with. ⚠ `confidence` is `medium`: the research says the era's bright-major variant is well attested but per-song production detail is thin. INFERRED: every velocity figure, the family weights, and the `snap`/`tambourine` perc density that stands in for \"snap-era percussion still present\". ⚠ `anticipationProb` raised to 0.15. With `mirror_kick` against a fully locked 808 both parts take every kick, so every bass onset lands exactly on an 808 onset — `coherence.rs` calls that one line played twice rather than two parts locking. The lock is the style and is untouched; the anticipation is what makes them two parts.",
+  "session": {
+    "bpm": {
+      "min": 140,
+      "max": 152,
+      "mode": 146
+    },
+    "keys": {
+      "values": [
+        "C",
+        "G",
+        "D",
+        "F",
+        "A",
+        "Bb"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2,
+        1,
+        1
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "major_pentatonic"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2a",
+      "syncopation": 0.4,
+      "tresilloBias": 0.12
+    },
+    "snare": {
+      "layered": true,
+      "layerClapOffsetMs": [
+        1,
+        4
+      ],
+      "ghost": {
+        "prob": 0.28,
+        "pos": [
+          "4&"
+        ],
+        "vel": [
+          0.4,
+          0.56
+        ]
+      }
+    },
+    "hihat": {
+      "base": {
+        "values": [
+          "16th",
+          "8T"
+        ],
+        "weights": [
+          4,
+          1
+        ]
+      },
+      "continuous": true,
+      "fillDensity": 0.52,
+      "velocities": {
+        "main": [
+          0.8,
+          0.98
+        ],
+        "ghost": [
+          0.38,
+          0.56
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.14,
+        "velocityRamp": true
+      },
+      "openHat": {
+        "prob": 0.26,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "snap",
+        "tambourine"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "placement": "offbeat"
+    },
+    "bass808": {
+      "sustain": "legato",
+      "slideProb": 0.2,
+      "slidesPer4Bars": [
+        1,
+        2
+      ],
+      "slideIntervals": {
+        "values": [
+          "P5",
+          "P4"
+        ],
+        "weights": [
+          3,
+          2
+        ]
+      },
+      "slidePositions": [
+        "bar_4"
+      ],
+      "register": [
+        20,
+        34
+      ],
+      "distortion": "light"
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even",
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        46,
+        96
+      ],
+      "rampJitter": 11,
+      "descendProb": 0.28,
+      "gapProb": 0.36,
+      "ladder": [
+        "4",
+        "8",
+        "16",
+        "32"
+      ],
+      "buildAndStopProb": 0.3,
+      "dualLayerProb": 0.25,
+      "pitchWalk": 4
+    }
+  },
+  "melody": {
+    "register": [
+      71,
+      93
+    ],
+    "densityPerBar": [
+      4,
+      8
+    ],
+    "structure": "question_answer",
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "intervals": {
+      "step": 0.56,
+      "third": 0.32,
+      "leap": 0.12
+    },
+    "contour": {
+      "riff": 0.4,
+      "descend": 0.22,
+      "arch": 0.38
+    },
+    "chordToneBias": 0.8,
+    "colorTones": [
+      2,
+      6
+    ],
+    "halfStepDissonance": 0.03,
+    "octaveJumpProb": 0.1,
+    "timbreHint": "horn_stab"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.54,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "arp"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "vi",
+          "V",
+          "IV"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "I",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.68,
+      "seventh": 0.27,
+      "ninth": 0.05
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        49,
+        77
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "syncopated_cell"
+      ],
+      "weights": [
+        4,
+        2,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      3,
+      9
+    ]
+  },
+  "bassline": {
+    "anticipationProb": 0.15
+  }
+}

@@ -1,0 +1,444 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "salaam-remi",
+  "type": "producer",
+  "name": "Salaam Remi",
+  "aliases": [
+    "salaam remi",
+    "salaam gibbs",
+    "instrument zoo"
+  ],
+  "tier": "standard",
+  "extends": [
+    "boom-bap"
+  ],
+  "era": "1994-2012",
+  "genres": [
+    "rap",
+    "boom-bap"
+  ],
+  "relatedGenres": [
+    "boom-bap",
+    "dancehall",
+    "neo-soul",
+    "rnb-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 boom-bap — Salaam Remi",
+    "LargeUp — At the Instrument Zoo with Salaam Remi (https://www.largeup.com/2012/08/27/largeup-interview-exclusive-qa-with-salaam-remi/)",
+    "Complex — Salaam Remi on producing for Nas (https://www.complex.com/music/a/rob-marriott/interview-salaam-remi-speaks-on-producing-for-nas-life-is-good)"
+  ],
+  "notes": "The live-instrument end of this axis, and the only entry here with genuine changes rather than a loop drone. The research says \"real harmony… genuine changes rather than loop drones\", so the progressions run 4–8 bars with open voicings and no `impliedByRiff`, and the bass is `independent_riff` at `followRootsProb` 0.4 with the widest passing-tone set on this axis — a live electric player \"with real melodic lines and space\". The percussion lanes carry the hand percussion from his instrument collection. ⛔ **This model replaces the genre's dusty/jazzy/hard moods with its own, deliberately.** The research states two backbeat classes for one producer — straight 2&4 for the hip-hop cuts and a one-drop with the backbeat on beat 3 for the reggae-derived ones — and `session.halfTime` is the only honest way to say \"snare on 3\". Keeping the inherited moods would have left that unreachable. ⚠ `medium` because the research rates it medium-high: the live-instrument approach is first-person, the numbers are catalog-level. The specific inferred parameter is the 60/30/10 mode weighting — the research says the one-drop exists but not how much of the catalogue it is. ⚠ The bass ceiling came down from 50 to 47 so it stays under a chord part that starts at 48 — `coherence.rs` requires the highest bass note to sit at or below the lowest chord note, and this model overlapped by 3. ⚠ `countermelody.fillGapsOnly` returned to true. With it off and a density of 0.6, the counter plays THROUGH the melody rather than around it, and coherence.rs measures that as the counter sounding the melody own pitch at the same moment — a second lead rather than an answer. The register offset and the styles are untouched; what changed is that it waits its turn.",
+  "session": {
+    "bpm": {
+      "min": 78,
+      "max": 100,
+      "mode": 90
+    },
+    "keys": {
+      "values": [
+        "Cm",
+        "Fm",
+        "Gm",
+        "Am",
+        "C",
+        "F",
+        "G"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "mixolydian",
+        "major"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.56
+    },
+    "humanize": {
+      "quantizeStrength": 0.7,
+      "velocityVar": 0.2,
+      "timingJitterMs": {
+        "kick": 6,
+        "snare": 7,
+        "closedHat": 7,
+        "openHat": 7,
+        "perc": 9
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.36
+    },
+    "snare": {
+      "rimshotLayer": true,
+      "ghost": {
+        "prob": 0.26,
+        "pos": [
+          "1a",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.2,
+          0.4
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.45,
+      "velocities": {
+        "main": [
+          0.7,
+          0.92
+        ],
+        "ghost": [
+          0.2,
+          0.45
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0.07,
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ]
+      },
+      "openHat": {
+        "prob": 0.25,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "shaker",
+        "conga",
+        "bongo",
+        "perc",
+        "rim"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "gainOffsetDb": -4
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        45,
+        98
+      ],
+      "rampJitter": 15,
+      "gapProb": 0.28,
+      "descendProb": 0.55,
+      "pitchWalk": 2
+    }
+  },
+  "melody": {
+    "register": [
+      62,
+      86
+    ],
+    "densityPerBar": [
+      3,
+      8
+    ],
+    "intervals": {
+      "step": 0.66,
+      "third": 0.26,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.3,
+      "descend": 0.32,
+      "arch": 0.38
+    },
+    "chordToneBias": 0.74,
+    "octaveJumpProb": 0.08,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "clean_guitar"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.6,
+    "fillGapsOnly": true,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "ii",
+          "v",
+          "i"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.3,
+      "seventh": 0.5,
+      "ninth": 0.2
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        76
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        2,
+        1
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.4,
+    "register": [
+      28,
+      47
+    ],
+    "glideProb": 0.06,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2",
+      "M6",
+      "M3"
+    ],
+    "anticipationProb": 0.35
+  },
+  "modes": [
+    {
+      "name": "live band",
+      "weight": 6,
+      "drums": {
+        "percs": {
+          "densityPerBar": [
+            3,
+            6
+          ]
+        }
+      },
+      "session": {
+        "humanize": {
+          "quantizeStrength": 0.66,
+          "velocityVar": 0.24
+        }
+      },
+      "countermelody": {
+        "densityRatio": 0.65
+      }
+    },
+    {
+      "name": "one drop",
+      "weight": 3,
+      "session": {
+        "halfTime": true,
+        "swing": {
+          "grid": "8th",
+          "amount": 0.54
+        },
+        "bpm": {
+          "min": 78,
+          "max": 90,
+          "mode": 84
+        }
+      },
+      "drums": {
+        "kick": {
+          "densityPerBar": [
+            1,
+            2
+          ],
+          "syncopation": 0.2
+        },
+        "percs": {
+          "lanes": [
+            "shaker",
+            "tambourine",
+            "conga",
+            "rim"
+          ],
+          "densityPerBar": [
+            3,
+            6
+          ]
+        },
+        "hihat": {
+          "fillDensity": 0.5
+        }
+      },
+      "bassline": {
+        "followRootsProb": 0.32,
+        "register": [
+          26,
+          46
+        ],
+        "anticipationProb": 0.45
+      },
+      "melody": {
+        "register": [
+          58,
+          79
+        ],
+        "densityPerBar": [
+          2,
+          5
+        ],
+        "phraseBars": {
+          "values": [
+            8
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "contour": {
+          "riff": 0.5,
+          "descend": 0.3,
+          "arch": 0.2
+        },
+        "chordToneBias": 0.86
+      }
+    },
+    {
+      "name": "sung hook",
+      "weight": 4,
+      "melody": {
+        "register": [
+          64,
+          88
+        ],
+        "densityPerBar": [
+          4,
+          9
+        ],
+        "chordToneBias": 0.82
+      },
+      "chords": {
+        "extensions": {
+          "triad": 0.24,
+          "seventh": 0.5,
+          "ninth": 0.26
+        },
+        "harmonicRhythm": {
+          "values": [
+            "1_per_bar",
+            "2_bars_per_chord"
+          ],
+          "weights": [
+            5,
+            2
+          ]
+        }
+      }
+    }
+  ]
+}

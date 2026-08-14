@@ -1,0 +1,256 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "problem",
+  "type": "artist",
+  "name": "Problem",
+  "aliases": [
+    "problem",
+    "jason martin",
+    "diamond lane"
+  ],
+  "tier": "standard",
+  "extends": [
+    "west-coast-club"
+  ],
+  "era": "2012-present",
+  "genres": [
+    "rap",
+    "west-coast-club"
+  ],
+  "relatedGenres": [
+    "west-coast-club",
+    "g-funk",
+    "trap"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended vol.1 west-coast-club — Problem"
+  ],
+  "notes": "Compton rapper-producer at the slow, heavy end of ratchet. The distinguishing parameter is tempo: **93 BPM pushes his records toward major-mode funk colour rather than minor menace**, which is the opposite of every other entry in this section. The 808 is a 2-bar riff moving in fifths and octaves. ⚠ **`low` confidence, and the research says why**: one measured record and a verified credit context, with the drum grammar inherited from the documented ratchet lane rather than sourced to him. The `I–V` families and the major bias are the measured half; the kit is the inferred half.",
+  "session": {
+    "bpm": {
+      "min": 88,
+      "max": 98,
+      "mode": 93
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "natural_minor"
+      ],
+      "weights": [
+        4,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.54
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "4&",
+      "syncopation": 0.24,
+      "lockTo808": 1,
+      "tresilloBias": 0.21,
+      "offbeat8thShare": 0.26,
+      "sloppyOffsetMs": [
+        3,
+        9
+      ]
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "lowPassedClap": true,
+      "offGridMs": 5,
+      "ghost": {
+        "prob": 0.09,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.2,
+          0.35
+        ]
+      },
+      "layerClapOffsetMs": [
+        2,
+        6
+      ],
+      "stack": [
+        "clap",
+        "snap"
+      ]
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.2,
+      "openHat": {
+        "prob": 0.15,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32",
+            "32T"
+          ],
+          "weights": [
+            2,
+            1
+          ]
+        },
+        "positions": [
+          "pre_snare"
+        ],
+        "freqPerBar": 0.6
+      }
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "32nd"
+      ],
+      "grouping": [
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        52,
+        107
+      ],
+      "rampJitter": 19
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "slideProb": 0.03,
+      "register": [
+        19,
+        33
+      ],
+      "distortion": "none"
+    }
+  },
+  "melody": {
+    "register": [
+      63,
+      85
+    ],
+    "densityPerBar": [
+      1,
+      4
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "chopped_vocal"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.4,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.45,
+      "seventh": 0.42,
+      "ninth": 0.13
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        46,
+        78
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "1_per_bar"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      2,
+      16
+    ],
+    "impliedByRiff": true
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.9,
+    "register": [
+      24,
+      41
+    ],
+    "glideProb": 0,
+    "passingTones": [
+      "P5",
+      "P8"
+    ],
+    "anticipationProb": 0.18
+  }
+}

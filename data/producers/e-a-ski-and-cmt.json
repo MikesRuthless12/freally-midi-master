@@ -1,0 +1,310 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "e-a-ski-and-cmt",
+  "type": "producer",
+  "name": "E-A-Ski & CMT",
+  "aliases": [
+    "e-a-ski",
+    "e a ski",
+    "cmt",
+    "e-a-ski and cmt",
+    "bay area live instrumentation"
+  ],
+  "tier": "standard",
+  "extends": [
+    "g-funk"
+  ],
+  "era": "1992-1998",
+  "genres": [
+    "rap",
+    "mobb music",
+    "bay area",
+    "g-funk",
+    "producer"
+  ],
+  "relatedGenres": [
+    "g-funk",
+    "funk",
+    "hyphy"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 g-funk — E-A-Ski & CMT",
+    "HipHopDX — E-A-Ski interview — https://hiphopdx.com/news/e-a-ski-talks-dr-dre-ice-cube-early-no-limit-and-locksmith/",
+    "Critical Minded — Bay Area mobb music — https://www.criticalminded.com/2016/11/27/bay-area-mobb-music/"
+  ],
+  "notes": "The one Bay entry whose harmony is allowed to move. The research is specific: they used live music and instrumentation rather than sampling in the 90s, so the harmony is played and can genuinely change mid-song with minor 7th/9th colour and real modulations. That is why this model has four-chord functional families and a wider key list than the g-funk parent — the extra keys stand in for the modulation the engine has no other way to express, and that substitution is named here rather than hidden. \"Mordant, bass-driven funk\" is the second finding and it makes the bass the design target: `followRootsProb` 0.28 with a register reaching down to D1. His own stated distinction — producer rather than beat maker, arrangement serving the vocal's emotional intensity — becomes a high `switchUpProb` and a high `dropOutBeats.prob`, so layers arrive and leave across the record instead of a static loop repeating. Live percussion on top of MPC programming is four perc lanes at 2–4 a bar. ⚠ `medium` per the research's medium-high; the method is quoted, the tempo band and the chord families are read from the catalog rather than from him. ⚠ The bass ceiling came down from 46 to 45 so it stays under a chord part that starts at 46 — `coherence.rs` requires the highest bass note to sit at or below the lowest chord note, and this model overlapped by 1.",
+  "session": {
+    "bpm": {
+      "min": 88,
+      "max": 98,
+      "mode": 93
+    },
+    "keys": {
+      "values": [
+        "Gm",
+        "Cm",
+        "Am",
+        "Dm",
+        "Fm",
+        "Em",
+        "Bm"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2,
+        2,
+        2,
+        1
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "harmonic_minor",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.6
+    },
+    "humanize": {
+      "quantizeStrength": 0.8,
+      "velocityVar": 0.2
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "syncopation": 0.45,
+      "tresilloBias": 0.22,
+      "offbeat8thShare": 0.32
+    },
+    "snare": {
+      "rimshotLayer": true,
+      "ghost": {
+        "prob": 0.26,
+        "pos": [
+          "2e",
+          "4e"
+        ],
+        "vel": [
+          0.22,
+          0.42
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.5,
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16T",
+            "32"
+          ],
+          "weights": [
+            3,
+            3
+          ]
+        },
+        "positions": [
+          "pre_snare",
+          "bar_4"
+        ],
+        "freqPerBar": 0.31
+      },
+      "openHat": {
+        "prob": 0.35,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "conga",
+        "timbale",
+        "tambourine",
+        "shaker"
+      ],
+      "densityPerBar": [
+        2,
+        4
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th",
+        "32nd"
+      ],
+      "grouping": [
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        47,
+        105
+      ],
+      "rampJitter": 17,
+      "descendProb": 0.56,
+      "gapProb": 0.28,
+      "pitchWalk": 4
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII",
+          "III"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "ii",
+          "v"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI",
+          "v"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "iv",
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.28,
+      "seventh": 0.48,
+      "ninth": 0.24
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        46,
+        78
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      67,
+      91
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    },
+    "intervals": {
+      "step": 0.52,
+      "third": 0.3,
+      "leap": 0.18
+    },
+    "chordToneBias": 0.7,
+    "halfStepDissonance": 0.09,
+    "timbreHint": "warm_keys"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.5,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.28,
+    "register": [
+      26,
+      45
+    ],
+    "glideProb": 0.5,
+    "passingTones": [
+      "M2",
+      "m3",
+      "P4",
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.4
+  },
+  "arrangement": {
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.7,
+        "beats": 4
+      },
+      "switchUpProb": 0.4
+    }
+  }
+}

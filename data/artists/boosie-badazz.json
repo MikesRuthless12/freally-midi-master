@@ -1,0 +1,301 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "boosie-badazz",
+  "type": "artist",
+  "name": "Boosie Badazz",
+  "aliases": [
+    "boosie badazz",
+    "lil boosie",
+    "torrence hatch",
+    "trill entertainment",
+    "wipe me down type",
+    "baton rouge rap"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "crunk"
+  ],
+  "era": "2004-2010",
+  "genres": [
+    "rap",
+    "southern rap",
+    "bounce",
+    "trap"
+  ],
+  "relatedGenres": [
+    "crunk",
+    "nola-bounce",
+    "trap",
+    "memphis-rap"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended vol.1 crunk — Boosie Badazz",
+    "https://en.wikipedia.org/wiki/Boosie_Badazz",
+    "https://en.wikipedia.org/wiki/Wipe_Me_Down"
+  ],
+  "notes": "Baton Rouge, and the one parameter that separates this file from every Atlanta entry beside it is the kick: *bounce-derived syncopation survives in the kick placement*, so `syncopation` is 0.34 and `tresilloBias` 0.22 — both the highest in this batch — against the deliberate 2-and-3 quarters the parent genre is built on. Above it the record is a trap hybrid: 16th hats, snare-roll builds, and a hook melody the research says has **real contour** rather than a stab, which is why the melody block is a sung-rap line (arch/descend weighted, `motifPitchCount` [4, 7], `densityPerBar` [3, 8]) over synth strings, bells and organ. The blues inflection the research hears in the vocal is a `blues` scale weight. Harmony is the i–VI–VII and i–VII vamps over 2–4 bars, which is one step more than a static i and two steps less than a soul loop. ⛔ The 808 is a long-decay root with an occasional **glide to the fifth**, authored exactly that way: `slideProb` 0.14 into a P5-weighted interval list at phrase ends. ⚠ `confidence` is low. The research rates the entry medium-low, documents only the era, label and producer, and marks the 72–84 half-time band [LOW-CONF]; **every drum and harmony number here is inference**. ⚠ Fill fingerprint for this batch: `gapProb` 0.61 / `descendProb` 0.14 / `rampJitter` 15. ⛔ `session.scales` **widens** its parent's set rather than narrowing it: `blues` is not one of crunk's four, and the convention elsewhere is that an artist narrows its genre's scales and never reaches outside them. It is here for the blues-inflected vocal melody the research names, and it should move to a `nola-bounce`-derived Baton Rouge archetype if one is ever authored. ⚠ `anticipationProb` raised to 0.15. With `mirror_kick` against a fully locked 808 both parts take every kick, so every bass onset lands exactly on an 808 onset — `coherence.rs` calls that one line played twice rather than two parts locking. The lock is the style and is untouched; the anticipation is what makes them two parts.",
+  "session": {
+    "bpm": {
+      "min": 144,
+      "max": 168,
+      "mode": 154
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "blues",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        5,
+        2,
+        2
+      ]
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3",
+      "syncopation": 0.34,
+      "tresilloBias": 0.22,
+      "offbeat8thShare": 0.18
+    },
+    "snare": {
+      "layerClapOffsetMs": [
+        4,
+        10
+      ],
+      "ghost": {
+        "prob": 0.14,
+        "pos": [
+          "4&",
+          "1a"
+        ],
+        "vel": [
+          0.28,
+          0.46
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": [
+        0.68,
+        0.9
+      ],
+      "openHat": {
+        "prob": 0.2,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.27
+      }
+    },
+    "percs": {
+      "lanes": [
+        "clave",
+        "perc"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "placement": "offbeat",
+      "gainOffsetDb": -5
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th",
+        "16t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        52,
+        116
+      ],
+      "rampJitter": 18,
+      "descendProb": 0.1,
+      "gapProb": 0.57,
+      "ladder": [
+        "4",
+        "8",
+        "16"
+      ],
+      "pitchWalk": 3
+    },
+    "bass808": {
+      "register": [
+        15,
+        28
+      ],
+      "slideProb": 0.14,
+      "slideIntervals": {
+        "values": [
+          "P5",
+          "P8"
+        ],
+        "weights": [
+          4,
+          1
+        ]
+      },
+      "slidePositions": [
+        "phrase_end"
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.82,
+      "seventh": 0.16,
+      "ninth": 0.02
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        46,
+        72
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      3,
+      9
+    ]
+  },
+  "melody": {
+    "register": [
+      59,
+      85
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    },
+    "densityPerBar": [
+      3,
+      8
+    ],
+    "motifPitchCount": [
+      4,
+      7
+    ],
+    "intervals": {
+      "step": 0.64,
+      "third": 0.26,
+      "leap": 0.1
+    },
+    "contour": {
+      "riff": 0.45,
+      "descend": 0.3,
+      "arch": 0.25
+    },
+    "chordToneBias": 0.72,
+    "halfStepDissonance": 0.06,
+    "emptyBarBias": 0.05,
+    "octaveJumpProb": 0.1,
+    "timbreHint": "dark_bell"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.4,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        2,
+        3,
+        1
+      ]
+    }
+  },
+  "bassline": {
+    "anticipationProb": 0.15
+  }
+}

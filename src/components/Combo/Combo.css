@@ -110,6 +110,34 @@
   white-space: nowrap;
 }
 
+/* The group separators — "Artists", then "Producers" (Mike, 2026-08-12).
+   ⛔ **The rule bleeds past the menu's own padding, on purpose.** He asked that
+   "the underline goes all the way across the combobox list to the other side so
+   that way it's like a separator" — inside `.combo__menu`'s `--space-1` padding
+   it stopped short at both ends and read as an underlined word rather than a
+   divider. The negative margins cancel that padding and the matching positive
+   padding puts the text back where the rows start, so the label still lines up
+   with the names under it. */
+.combo__separator {
+  margin: var(--space-1) calc(var(--space-1) * -1) 0;
+  padding: var(--space-1) var(--space-2) 2px;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-text-3);
+  font-size: var(--text-micro);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  /* ⚠ Not `pointer-events: none`: the row is already unreachable structurally —
+     it is a `<li>` with no button in it — and suppressing pointer events would
+     also stop the wheel scrolling the menu from over a separator. */
+  user-select: none;
+}
+
+/* The first separator sits directly under "Original Workflow" and needs no gap
+   above it; the second is dividing two lists and does. */
+.combo__separator:first-child {
+  margin-top: 0;
+}
+
 .combo__badge {
   flex: none;
   font-size: var(--text-micro);

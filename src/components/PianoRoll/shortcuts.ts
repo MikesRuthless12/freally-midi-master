@@ -15,7 +15,7 @@ import {
   selectionLength,
   stepTicks,
 } from './notes';
-import { reselect, stretch } from './transforms';
+import { reselect, reversePlayback, stretch } from './transforms';
 
 /**
  * The piano roll's keyboard, to the standard Ableton sets (TASK-041A).
@@ -119,6 +119,21 @@ export function useRollShortcuts(
         return;
       }
 
+      // ⛔⛔ **`preventDefault` BEFORE the selection test, not after it.** Ctrl+R
+      // is the host's **Reload**, and returning early handed it straight to the
+      // webview: press it in the standalone with nothing selected and the page
+      // reloads, taking every unsaved pattern with it. The shortcut is ours the
+      // moment the modifier is down — whether it has anything to act on is a
+      // separate question, and the answer to "nothing selected" is *do nothing*,
+      // never *reload the app*.
+      //
+      // ⚠ In this file the binding sits *below* the empty-selection guard, so
+      // claiming the key has to happen here — before the guard — rather than
+      // inside the branch.
+      if (accel && key === 'r') {
+        event.preventDefault();
+      }
+
       if (selection.size === 0) return;
 
       if (event.key === 'Delete' || event.key === 'Backspace') {
@@ -164,6 +179,27 @@ export function useRollShortcuts(
         if (next === pattern) return;
         editPattern(next);
         editing.select(reselect(pattern, next, lane, selection));
+        return;
+      }
+
+      // ⛔⛔ **`Ctrl`/`⌘` + R plays the selected notes backwards** — Mike,
+      // 2026-08-11: *"you should be able to select the note and press like
+      // 'Ctrl+R' or 'Command+R' on macOS to reverse the note just for that
+      // single note being played."*
+      //
+      // ⚠ **`accel`, which is `ctrlKey || metaKey`** — the same predicate every
+      // other binding here uses. macOS turns `Ctrl`+click into a secondary
+      // click, so a `ctrlKey`-only test is a shortcut a Mac producer cannot
+      // reach; `⌘` is what their hands do anyway.
+      //
+      // ⚠ **No `reselect`.** Reversing moves no tick and no pitch, so the note
+      // ids are unchanged and the selection stays valid — running it through
+      // `reselect` would be harmless and would imply the notes had moved.
+      if (accel && key === 'r') {
+        event.preventDefault();
+        const next = reversePlayback(pattern, lane, selection);
+        if (next === pattern) return;
+        editPattern(next);
         return;
       }
 

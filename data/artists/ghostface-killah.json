@@ -1,0 +1,317 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "ghostface-killah",
+  "type": "artist",
+  "name": "Ghostface Killah",
+  "aliases": [
+    "ghostface killah",
+    "ghostface",
+    "ghost deini",
+    "tony starks",
+    "dennis coles"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "boom-bap"
+  ],
+  "era": "1996-2006",
+  "genres": [
+    "rap",
+    "boom-bap",
+    "soul"
+  ],
+  "relatedGenres": [
+    "boom-bap",
+    "neo-soul",
+    "lofi-hiphop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 boom-bap — Ghostface Killah",
+    "Wikipedia — Supreme Clientele",
+    "Red Bull Music Academy — What Was Chipmunk Soul?"
+  ],
+  "notes": "The Wu soul-maximalist, and it inverts two things every other Wu entry here does. First, key: \"major-key 70s soul as often as minor\", and because the samples are sped up the vocals ride high, so `major` leads the scale table and `melody.register` is the highest of the four Wu models. Second, mix balance: \"drums frequently *quieter* than the sample, sometimes near-absent on intros\" is the direct opposite of the 36 Chambers \"make it louder\" instruction, so the `velocityTiers` block is pushed **down** — accent tops out at 108 where the Wu-Tang entry starts at 112. That single inversion is what stops this reading as its own parent. The loops carry full band content with audible vocals, so `melody.densityPerBar` is 5–9 with `chordToneBias` high and real I–IV–V / ii–V–I motion; the horn stabs that answer the vocal are the countermelody. Verses run 20–32 bars without hooks on some cuts, which sets `sectionBars.verse` to 24, and mid-song beat switches put `switchUpProb` at 0.45. ⚠ `medium` because the research rates it high-medium and says the idiom is documented at genre and album level rather than session level; the inferred parameters are the swing amount and the ghost-snare rate.",
+  "session": {
+    "bpm": {
+      "min": 84,
+      "max": 96,
+      "mode": 90
+    },
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor",
+        "mixolydian",
+        "dorian"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.58
+    },
+    "humanize": {
+      "quantizeStrength": 0.77,
+      "velocityVar": 0.17
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        88,
+        108
+      ],
+      "main": [
+        62,
+        78
+      ],
+      "ghost": [
+        30,
+        44
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        1,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "4&",
+      "syncopation": 0.34,
+      "tresilloBias": 0.04,
+      "subLayerVelocity": [
+        0.5,
+        0.6
+      ],
+      "lockTo808": 0
+    },
+    "snare": {
+      "rimshotLayer": false,
+      "ghost": {
+        "prob": 0.2,
+        "pos": [
+          "1a",
+          "3a"
+        ],
+        "vel": [
+          0.2,
+          0.36
+        ]
+      },
+      "placement": "backbeat_24",
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.4,
+      "velocities": {
+        "main": [
+          0.6,
+          0.8
+        ],
+        "ghost": [
+          0.16,
+          0.38
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.14
+      },
+      "openHat": {
+        "prob": 0.2,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        50,
+        89
+      ],
+      "gapProb": 0.32,
+      "descendProb": 0.43,
+      "rampJitter": 13,
+      "pitchWalk": 2
+    }
+  },
+  "melody": {
+    "register": [
+      66,
+      90
+    ],
+    "densityPerBar": [
+      5,
+      9
+    ],
+    "intervals": {
+      "step": 0.64,
+      "third": 0.28,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.32,
+      "descend": 0.3,
+      "arch": 0.38
+    },
+    "chordToneBias": 0.78,
+    "octaveJumpProb": 0.12,
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "timbreHint": "horn_stab"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.5,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.3,
+      "seventh": 0.5,
+      "ninth": 0.2
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        50,
+        80
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.55,
+    "register": [
+      30,
+      48
+    ],
+    "glideProb": 0.03,
+    "passingTones": [
+      "M2",
+      "M3",
+      "P5",
+      "M6"
+    ],
+    "anticipationProb": 0.3
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": 24,
+      "hook": 8,
+      "bridge": [
+        4,
+        8
+      ],
+      "outro": 4
+    },
+    "transitions": {
+      "dropOutBeats": {
+        "prob": 0.5,
+        "beats": 2
+      },
+      "switchUpProb": 0.45
+    }
+  }
+}

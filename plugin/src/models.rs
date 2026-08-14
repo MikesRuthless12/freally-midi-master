@@ -170,7 +170,8 @@ fn build_from(dir: &Path) -> UserModels {
 /// The `.json` files in `dir`, as the loader wants them.
 ///
 /// Paths are tagged `<user>` so a problem naming a file says which half of the
-/// roster it came from — the shipped ones are `data/artists/…`.
+/// roster it came from — the shipped ones are `data/artists/…` and
+/// `data/producers/…`.
 fn read_files(dir: &Path) -> Vec<(PathBuf, String)> {
     let Ok(entries) = fs::read_dir(dir) else {
         // No directory yet simply means nothing has been saved.

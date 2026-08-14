@@ -1,0 +1,419 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "fat-joe",
+  "type": "artist",
+  "name": "Fat Joe",
+  "aliases": [
+    "fat joe",
+    "joey crack",
+    "joseph cartagena",
+    "terror squad"
+  ],
+  "tier": "standard",
+  "extends": [
+    "boom-bap"
+  ],
+  "era": "1993-2005",
+  "genres": [
+    "rap",
+    "boom-bap"
+  ],
+  "relatedGenres": [
+    "boom-bap",
+    "rnb-2000s",
+    "pop-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 boom-bap — Fat Joe",
+    "Wikipedia — Fat Joe",
+    "Micro-Chop — Stunts, Blunts & Hip-Hop at 25 (Diamond D / D.I.T.C. workflow)"
+  ],
+  "notes": "The research describes one artist with two documented kits twelve years apart — a D.I.T.C.-lineage swung kit through the 90s, and from 2001 a four-on-the-floor-adjacent club kick with a clap backbeat. Averaging those produces a beat that is neither, so the split is authored as `modes` (`d.i.t.c.` and `terror squad club`) and the top-level block sits between them. Because arrays replace rather than append, this also drops the boom-bap parent's dusty/jazzy/hard moods, which is correct: the two eras are the two records this name actually makes. ⚠ `medium` because the research rates it medium-high; the specifically inferred parameter is `bassline.glideProb` — the research says \"synth sub with short glides on the crossover records\" but gives no rate, and 0.2 is a guess sized so a glide reads as an occasional gesture rather than a portamento style. ⚠ `snare.layerClapOffsetMs` carries the club-era clap backbeat; the 90s half is the rimshot-free straight snare the D.I.T.C. entry describes, which is why `rimshotLayer` is false at the top level. ⚠ The bass ceiling came down from 46 to 45 so it stays under a chord part that starts at 46 — `coherence.rs` requires the highest bass note to sit at or below the lowest chord note, and this model overlapped by 1.",
+  "session": {
+    "bpm": {
+      "min": 88,
+      "max": 100,
+      "mode": 94
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "major"
+      ],
+      "weights": [
+        4,
+        3,
+        3
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.58
+    },
+    "humanize": {
+      "quantizeStrength": 0.82,
+      "velocityVar": 0.15
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.38,
+      "tresilloBias": 0.12
+    },
+    "snare": {
+      "rimshotLayer": false,
+      "layerClapOffsetMs": [
+        2,
+        6
+      ],
+      "ghost": {
+        "prob": 0.25,
+        "pos": [
+          "2e",
+          "4e"
+        ],
+        "vel": [
+          0.2,
+          0.36
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.46,
+      "velocities": {
+        "main": [
+          0.74,
+          0.94
+        ],
+        "ghost": [
+          0.18,
+          0.44
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.14
+      },
+      "openHat": {
+        "prob": 0.32,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "rim",
+        "conga"
+      ],
+      "densityPerBar": [
+        0,
+        2
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        56,
+        96
+      ],
+      "gapProb": 0.3,
+      "descendProb": 0.2,
+      "rampJitter": 15,
+      "pitchWalk": 2
+    }
+  },
+  "melody": {
+    "register": [
+      63,
+      84
+    ],
+    "densityPerBar": [
+      3,
+      8
+    ],
+    "intervals": {
+      "step": 0.58,
+      "third": 0.31,
+      "leap": 0.07
+    },
+    "contour": {
+      "riff": 0.41,
+      "descend": 0.33,
+      "arch": 0.22
+    },
+    "chordToneBias": 0.78,
+    "octaveJumpProb": 0.09,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        4
+      ]
+    },
+    "timbreHint": "synth_brass_stab"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.45,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.5,
+      "seventh": 0.4,
+      "ninth": 0.1
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        46,
+        72
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar",
+        "vamp"
+      ],
+      "weights": [
+        3,
+        3,
+        1
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.82,
+    "register": [
+      28,
+      45
+    ],
+    "glideProb": 0.2,
+    "passingTones": [
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.25
+  },
+  "modes": [
+    {
+      "name": "d.i.t.c.",
+      "weight": 4,
+      "session": {
+        "bpm": {
+          "min": 88,
+          "max": 96,
+          "mode": 92
+        },
+        "swing": {
+          "grid": "16th",
+          "amount": 0.62
+        },
+        "scales": {
+          "values": [
+            "natural_minor",
+            "dorian"
+          ],
+          "weights": [
+            4,
+            3
+          ]
+        }
+      },
+      "chords": {
+        "progressionFamilies": [
+          {
+            "roman": [
+              "i",
+              "iv",
+              "VII"
+            ],
+            "weight": 4
+          },
+          {
+            "roman": [
+              "i",
+              "iv"
+            ],
+            "weight": 3
+          },
+          {
+            "roman": [
+              "i"
+            ],
+            "weight": 2
+          }
+        ],
+        "extensions": {
+          "triad": 0.32,
+          "seventh": 0.52,
+          "ninth": 0.16
+        }
+      },
+      "bassline": {
+        "glideProb": 0.02,
+        "followRootsProb": 0.7
+      }
+    },
+    {
+      "name": "terror squad club",
+      "weight": 3,
+      "session": {
+        "bpm": {
+          "min": 92,
+          "max": 100,
+          "mode": 97
+        },
+        "swing": {
+          "grid": "16th",
+          "amount": 0.52
+        },
+        "scales": {
+          "values": [
+            "major",
+            "mixolydian"
+          ],
+          "weights": [
+            5,
+            2
+          ]
+        }
+      },
+      "chords": {
+        "progressionFamilies": [
+          {
+            "roman": [
+              "I",
+              "V",
+              "vi",
+              "IV"
+            ],
+            "weight": 5
+          },
+          {
+            "roman": [
+              "vi",
+              "IV",
+              "I",
+              "V"
+            ],
+            "weight": 3
+          },
+          {
+            "roman": [
+              "I",
+              "IV"
+            ],
+            "weight": 2
+          }
+        ],
+        "extensions": {
+          "triad": 0.6,
+          "seventh": 0.34,
+          "ninth": 0.06
+        }
+      },
+      "melody": {
+        "densityPerBar": [
+          4,
+          8
+        ],
+        "contour": {
+          "riff": 0.3,
+          "descend": 0.28,
+          "arch": 0.42
+        }
+      },
+      "bassline": {
+        "glideProb": 0.3,
+        "followRootsProb": 0.9
+      }
+    }
+  ]
+}

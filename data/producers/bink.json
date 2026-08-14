@@ -1,0 +1,314 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "bink",
+  "type": "producer",
+  "name": "Bink!",
+  "aliases": [
+    "bink",
+    "bink!",
+    "roosevelt harrell",
+    "bink dog"
+  ],
+  "tier": "standard",
+  "extends": [
+    "boom-bap"
+  ],
+  "era": "1999-2008",
+  "genres": [
+    "rap",
+    "boom bap",
+    "producer"
+  ],
+  "relatedGenres": [
+    "boom-bap",
+    "neo-soul",
+    "rnb-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 boom-bap — Bink!",
+    "https://www.revolt.tv/article/2019-07-03/93218/the-produce-section-i-11-of-binks-most-iconic-beats",
+    "https://en.wikipedia.org/wiki/Bink_(music_producer)"
+  ],
+  "notes": "Virginia-to-Roc-A-Fella orchestral soul with gospel weight, and the research names one thing that is true of nothing else in this batch: **the harmony is more functional than the rest of the lane**. So this is the only entry here whose families are all four-chord and whose `harmonicRhythm` never reaches `vamp` — `i–iv–VII`, `ii–V–i` and `I–vi` over **4-bar loops with genuine motion**, with both minor and major gospel-soul in the scale set. **Drums sit slightly behind the sample so the orchestration reads**, which is the mirror of Ski Beatz's \"level with the loop\" and Nottz's \"loudest element\": `velocityTiers.main` is pulled down and the hat velocities with it. A hard snare **layered with a clap**, 8th hats and a tambourine are the researched kit. **Horns, choir stacks, string swells and chopped-vocal counter-lines** make the countermelody a real department — the second-highest `densityRatio` here, `octave_echo` weighted alongside `answer_lick` because a chopped choir stack *is* a doubled line. The low end is sample-internal bass plus a replayed organ-pedal or sub line **following the changes**, which is `mirror_kick` at a deliberately low 0.66 so it tracks the harmony rather than the kick. **A drop to voice-and-bass before the last verse and a big final loop** are authored as a long outro and a bridge. ⚠ `medium` matching the research's medium-high: the catalog breakdown is documented, but the hat density, open hat, perc density and roll figures are INFERRED.",
+  "session": {
+    "bpm": {
+      "min": 88,
+      "max": 102,
+      "mode": 95
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "major",
+        "dorian"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.56
+    },
+    "humanize": {
+      "quantizeStrength": 0.84,
+      "velocityVar": 0.13
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        96,
+        116
+      ],
+      "main": [
+        70,
+        84
+      ],
+      "ghost": [
+        32,
+        46
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.31,
+      "tresilloBias": 0.05
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "layerClapOffsetMs": 8,
+      "ghost": {
+        "prob": 0.2,
+        "pos": [
+          "2e",
+          "4a"
+        ],
+        "vel": [
+          0.2,
+          0.34
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.43,
+      "velocities": {
+        "main": [
+          0.64,
+          0.84
+        ],
+        "ghost": [
+          0.16,
+          0.36
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "16T"
+          ],
+          "weights": [
+            4,
+            5
+          ]
+        },
+        "positions": [
+          "pre_snare"
+        ],
+        "freqPerBar": 0.35
+      },
+      "openHat": {
+        "prob": 0.21,
+        "pos": [
+          "3&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "triangle"
+      ],
+      "densityPerBar": [
+        0,
+        2
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        51,
+        111
+      ],
+      "rampJitter": 6,
+      "descendProb": 0.27,
+      "gapProb": 0.35,
+      "pitchWalk": 2
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII",
+          "III"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "ii",
+          "v",
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "vi",
+          "IV",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 3
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.2,
+      "seventh": 0.52,
+      "ninth": 0.28
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        46,
+        73
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      63,
+      87
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "structure": "question_answer",
+    "intervals": {
+      "step": 0.66,
+      "third": 0.28,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.22,
+      "descend": 0.34,
+      "arch": 0.44
+    },
+    "chordToneBias": 0.79,
+    "octaveJumpProb": 0.12,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    },
+    "timbreHint": "church_organ"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.6,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        4
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.66,
+    "register": [
+      27,
+      45
+    ],
+    "glideProb": 0.04,
+    "passingTones": [
+      "P4",
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.3
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 8,
+      "verse": 24,
+      "hook": 8,
+      "bridge": 8,
+      "outro": [
+        8,
+        16
+      ]
+    }
+  }
+}

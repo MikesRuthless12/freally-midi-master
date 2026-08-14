@@ -1,0 +1,333 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "chamillionaire",
+  "type": "artist",
+  "name": "Chamillionaire",
+  "aliases": [
+    "chamillionaire",
+    "chamillitary",
+    "hakeem seriki",
+    "koopa",
+    "ridin dirty"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "houston-screw"
+  ],
+  "era": "2005–2009",
+  "genres": [
+    "rap",
+    "southern rap",
+    "screw",
+    "houston"
+  ],
+  "relatedGenres": [
+    "houston-screw",
+    "crunk",
+    "trap",
+    "rnb-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 crunk — Chamillionaire (the `houston-screw` lane's research section)",
+    "Wikipedia — Ridin': https://en.wikipedia.org/wiki/Ridin%27",
+    "Wikipedia — Chamillionaire: https://en.wikipedia.org/wiki/Chamillionaire"
+  ],
+  "notes": "The melodic wing of the lane, and the least static model in it — the one Houston entry where the harmony actually moves and says so out loud. ▶ **\"Sung hooks make the harmony explicit\" is the whole entry.** Everywhere else in this lane the chord is implied by a riff and held for bars; here `harmonicRhythm` weights `1_per_bar` highest, `chordDurationBeats` narrows to 4–8, seventh colour rises to 0.34, and `impliedByRiff` is deliberately *not* set. A hook someone sings over a stated 4-bar loop is a hook with real changes under it. ▶ **`melody.phraseBars` reaching 8 is a direct quote** — \"his own sung hook lines carry 4–8 bar melodic phrases\" — and it is the longest phrase length authored anywhere in this batch. `structure` is `question_answer` for the same reason: a 4–8 bar sung line is not a riff loop, it is a phrase and its answer. ▶ **The only 16th-dominant hat kit in the lane.** The research says \"16th hats with rolls; snare-roll builds into hooks\" — Atlanta density on a Houston tempo — so the hat base is weighted towards 16ths against every neighbour here, and `rolls.freqPerBar` sits at the top of this band at 0.25. The build is the roll's `gapProb` of 0.06: almost no gaps is what a roll that runs into a hook sounds like. ▶ **The 808 and the bass are two voices, not one.** \"808 root with medium decay; synth bass doubling under the sung hook\" — so the 808 stays at 14–28 and the played bass is authored *above* it at 20–40, doubling rather than replacing. `followRootsProb` drops to 0.9, the loosest in the batch outside Z-Ro, because a doubling line over four moving chords has somewhere to go. ⚠ **`confidence` is medium because the research says so**, and the tempo band carries its own [LOW-CONF]. Sourced: the melodic sung-hook lane, i–VI–VII and i–VII–VI over 4-bar loops, the 16th-hat/snare-roll kit, the 808-plus-synth-bass pairing, the 4–8 bar phrase length, and the 8-bar-hook-first form with hook ×3. INFERRED: every probability and register bound, and the third progression family. ⚠ **The i–VII family is INFERRED** — the research names only the two three-chord families. It carries the lowest weight and exists so the chord part reaches its distinctness floor. ⚠ **Fill fingerprint.** `gapProb` 0.06 / `descendProb` 0.55 / `rampJitter` 19 over 8th-triplets, even grouping — the least gapped roll in the band, which is the build the research names. ⚠ `anticipationProb` raised to 0.15. With `mirror_kick` against a fully locked 808 both parts take every kick, so every bass onset lands exactly on an 808 onset — `coherence.rs` calls that one line played twice rather than two parts locking. The lock is the style and is untouched; the anticipation is what makes them two parts.",
+  "session": {
+    "bpm": {
+      "min": 68,
+      "max": 80,
+      "mode": 74
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "harmonic_minor",
+        "dorian",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        6,
+        3,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.9,
+      "velocityVar": 0.14
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3",
+      "syncopation": 0.18,
+      "beatSkipProb": 0.06
+    },
+    "snare": {
+      "layerClapOffsetMs": [
+        5,
+        12
+      ],
+      "clusterProb": 0.1,
+      "clusterHits": [
+        2,
+        2
+      ]
+    },
+    "hihat": {
+      "base": {
+        "values": [
+          "16th",
+          "8th"
+        ],
+        "weights": [
+          5,
+          3
+        ]
+      },
+      "fillDensity": [
+        0.36,
+        0.62
+      ],
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16T"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.25,
+        "velocityRamp": true
+      },
+      "openHat": {
+        "prob": 0.26,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "8t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        56,
+        122
+      ],
+      "rampJitter": 17,
+      "descendProb": 0.59,
+      "gapProb": 0.05
+    },
+    "bass808": {
+      "register": [
+        14,
+        28
+      ],
+      "sustain": "legato",
+      "slideProb": 0.08
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.6,
+      "seventh": 0.34,
+      "ninth": 0.06
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        43,
+        76
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        5,
+        3,
+        1
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      57,
+      86
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        8,
+        2
+      ],
+      "weights": [
+        5,
+        3,
+        1
+      ]
+    },
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "structure": "question_answer",
+    "motifPitchCount": [
+      4,
+      6
+    ],
+    "intervals": {
+      "step": 0.62,
+      "third": 0.28,
+      "leap": 0.1
+    },
+    "contour": {
+      "riff": 0.26,
+      "descend": 0.34,
+      "arch": 0.4
+    },
+    "chordToneBias": 0.78,
+    "emptyBarBias": 0.08,
+    "octaveJumpProb": 0.12,
+    "timbreHint": "bright_synth_lead"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.36,
+      0.6
+    ],
+    "echoOffset": "1/8",
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo",
+        "arp"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.9,
+    "register": [
+      20,
+      40
+    ],
+    "glideProb": 0.06,
+    "passingTones": [
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.15
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "bridge",
+          "hook",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": 16,
+      "hook": 8,
+      "bridge": [
+        4,
+        8
+      ],
+      "outro": [
+        4,
+        8
+      ]
+    }
+  }
+}

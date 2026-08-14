@@ -40,17 +40,121 @@ test('one box finds artists and genres alike, and says which is which', async ({
   await expect(options.first().locator('.combo__badge')).toHaveText('Genre');
 });
 
-test('picking a genre says what the roster is filtered by, and there is a way back', async ({
+test('picking a genre lists the way in and that genre’s names, and nothing else', async ({
   page,
 }) => {
+  // ⛔⛔ **Mike, 2026-08-12**: *"changing to another genre doesn't change the
+  // actual names in the Roster to names within that Genre, it keeps the same
+  // names and then shows different genres within the Roster list"*, and then the
+  // shape he wanted it in: *"only 1 artist like ny-drill /uk-drill then it should
+  // just say 'Original Workflow' & 'Pop Smoke'."* Asserted as the **whole list**
+  // rather than as three `hasText` probes, because "and nothing else" is the
+  // half that was broken — a probe for what should be there passes just as
+  // happily with fifty genres stacked underneath.
   await pickGenre(page, 'Trap');
 
-  // ⛔ Labelled, not silent: a rail that changed with nothing saying so reads as
-  // a broken dataset rather than as a filter.
-  await expect(page.locator('.roster__filter')).toContainText('Trap');
+  const roster = page.getByRole('combobox', { name: 'Roster' });
+  await roster.click();
 
-  await page.getByRole('button', { name: 'Show all' }).click();
+  // ⚠ A regex for the two names because each row carries its badge in the same
+  // text node; "Original Workflow" has no badge and is matched exactly.
+  await expect(page.locator('.combo__menu').getByRole('option')).toHaveText([
+    'Original Workflow',
+    /Mock Artist/,
+    /mock Producer/,
+  ]);
+  // Both of Trap's names, under their own rules — the genre's other kind is not
+  // dropped just because the group heading above it says "Artists".
+  await expect(page.locator('.combo__separator')).toHaveText(['Artists', 'Producers']);
+});
+
+test('a genre nobody works in leaves only the way in, and hides nobody from a query', async ({
+  page,
+}) => {
+  // ⛔ The other half of the same instruction: *"if there is no artist/producer
+  // then it should just have 'Original Workflow'."*
+  await pickGenre(page, 'UK Drill');
+
+  const roster = page.getByRole('combobox', { name: 'Roster' });
+  await roster.click();
+  const options = page.locator('.combo__menu').getByRole('option');
+  await expect(options).toHaveText(['Original Workflow']);
+
+  // ⛔⛔ **Enter must do nothing here.** "Original Workflow" is an *action*, and
+  // it is now the only row — so the highlight the list opens with is the one
+  // thing that may never land on it. It did, for exactly as long as `Combo`
+  // clamped its starting index to 0: opening this box and pressing Enter threw
+  // the style editor over the whole app.
+  await page.keyboard.press('Enter');
+  await expect(page.getByRole('dialog', { name: 'Style editor' })).toHaveCount(0);
+
+  // ⛔⛔ **The line the narrowing is allowed to reach and no further.** The rule
+  // it replaced — the comboboxes offer the whole roster, never the cross-filtered
+  // one — was written against a real defect: hiding entries in a control that is
+  // searched by *typing* stops them being found at all. Narrowing what is
+  // *browsed* keeps the genre box meaningful; narrowing what a query reaches
+  // would make choosing a genre a way to lose the roster.
+  await roster.click();
+  await roster.fill('mock');
+  await expect(options.filter({ hasText: 'Mock Artist' })).toHaveCount(1);
+});
+
+test('the roster reads Original Workflow, then Artists, then Producers', async ({ page }) => {
+  // ⛔⛔ **Mike, 2026-08-12**: *"put 'Original Workflow' then 'Artists'
+  // underlined and then list all artists in alphabetical order and then
+  // 'Producers' underlined and then put producers in alphabetical order."*
+  const roster = page.getByRole('combobox', { name: 'Roster' });
+  await roster.click();
+
+  // ⛔ **The separators are NOT options, which is the assertion and not an
+  // implementation detail.** A listbox reports its own size — "2 of 12" is read
+  // aloud — so a separator counted among the options misstates how many choices
+  // there are to everyone who cannot see the rule.
+  await expect(page.locator('.combo__menu').getByRole('option')).toHaveText([
+    'Original Workflow',
+    /Mock Artist/,
+    /mock Producer/,
+  ]);
+  await expect(page.locator('.combo__separator')).toHaveText(['Artists', 'Producers']);
+});
+
+test('a separator is never what typing its word lands on', async ({ page }) => {
+  // ⛔⛔ **Mike, 2026-08-12**: *"ensure that when you type 'Artists', that it
+  // doesn't let you add that as a roster item"*, and then, correcting a version
+  // of this that had reserved the words outright: *"no i don't want it to select
+  // the word 'Artists' or the word 'Producers' not the actual artist/producer
+  // themselves."* So the query still searches — landing on a real name the
+  // matcher considers close is the search working — and what is asserted is that
+  // the **separator itself** is never offered and never committed.
+  const roster = page.getByRole('combobox', { name: 'Roster' });
+
+  for (const word of ['Artists', 'Producers']) {
+    await roster.click();
+    await roster.fill(word);
+
+    // Not among the suggestions, and no rule is drawn in a typed list at all.
+    await expect(page.locator('.combo__menu').getByRole('option', { name: word })).toHaveCount(
+      0,
+    );
+    await expect(page.locator('.combo__separator')).toHaveCount(0);
+
+    await page.keyboard.press('Enter');
+    // Whatever it did or did not settle on, it did not settle on the word.
+    await expect(roster).not.toHaveValue(word);
+  }
+});
+
+test('picking a genre leaves the details clean of a filter notice', async ({ page }) => {
+  // ⛔⛔ **INVERTED 2026-08-11.** This read `toContainText('Trap')` against
+  // `.roster__filter`, and then pressed "Show all" for the way back. Mike:
+  // *"I also don't want the 'Filtered by DrakeShow all' to show up at all in the
+  // details part of the roster."* `e2e/cross-filter.spec.ts` carries the full
+  // reasoning; this is the second door onto the same removed control and is kept
+  // as a refusal so reinstating it fails in both places.
+  await pickGenre(page, 'Trap');
+
   await expect(page.locator('.roster__filter')).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'Show all' })).toHaveCount(0);
 });
 
 test('the pane says what the selection tends to do, before you generate', async ({ page }) => {
@@ -61,7 +165,40 @@ test('the pane says what the selection tends to do, before you generate', async 
   await expect(pane.locator('.artistpane__name')).toContainText('Mock Artist');
   // ⚠ The tempo comes from the *model's* defaults, not from the pins — a pane
   // showing the pins would describe an artist who plays neither.
-  await expect(pane.locator('.artistpane__tends')).toContainText('BPM');
+  await expect(pane.locator('.artistpane__tends').first()).toContainText('BPM');
+});
+
+/**
+ * ⛔⛔ **The half of TASK-158D that prevents silence.**
+ *
+ * Mike: *"The detail pane should tell a producer what they are about to get —
+ * genres, moods, tempo range, what the model does and does **not** cover —
+ * rather than making them press Generate to find out."*
+ *
+ * `bass.rs`, `chords.rs`, `melody.rs` and `counter.rs` each return an **empty**
+ * track when the model authored no block of their own. That is right — an artist
+ * who does not write countermelodies should not have one invented for them — but
+ * it means Generate on that tab produces nothing at all, and before this the only
+ * way to learn that was to press it. `engine/tests/coverage.rs` proves the claim
+ * by generating every shipped model; this proves the pane actually says it.
+ */
+test('the pane says what the selection does NOT write, not only what it does', async ({
+  page,
+}) => {
+  await pickArtist(page, 'Mock Artist');
+  const pane = page.locator('.artistpane');
+
+  // ⚠ **A range, not a single tempo** — an artist at 68–96 and one at 138–142 are
+  // different propositions at the same nominal.
+  await expect(pane).toContainText('132–148 BPM');
+  // Named rather than counted: "2 moods" says there is a control, not what the
+  // artist is.
+  await expect(pane).toContainText('dark · bounce');
+
+  await expect(pane.locator('.artistpane__tends').filter({ hasText: 'Writes' })).toContainText(
+    'Drums · Chords · Melody · Bass',
+  );
+  await expect(pane.locator('.artistpane__missing')).toContainText('Counter');
 });
 
 test('the pane follows the selection rather than sticking to the first thing read', async ({

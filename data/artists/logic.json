@@ -1,0 +1,316 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "logic",
+  "type": "artist",
+  "name": "Logic",
+  "aliases": [
+    "logic",
+    "bobby tarantino",
+    "sir robert bryson hall",
+    "rattpack",
+    "under pressure"
+  ],
+  "tier": "standard",
+  "extends": [
+    "boom-bap"
+  ],
+  "era": "2014-2017",
+  "genres": [
+    "rap",
+    "boom-bap"
+  ],
+  "relatedGenres": [
+    "boom-bap",
+    "trap",
+    "neo-soul"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 boom-bap — Logic",
+    "Wikipedia — Under Pressure (https://en.wikipedia.org/wiki/Under_Pressure_(Logic_album))",
+    "Billboard — Common & No I.D. on sampling and construction (https://www.billboard.com/music/rb-hip-hop/common-no-id-talk-resurrection-anniversary-making-of-nobodys-6193445/)"
+  ],
+  "notes": "The research's distinguishing sentence is about level, not notes: \"drums modern-loud over period-style loops\" and \"sub louder than in the 90s source material\". That is the whole reason this entry overrides `velocityTiers` — accents 112–127, mains 90–104, ghosts 46–58, the loudest set on this axis — and pushes the hat velocities to 0.85–1.0 where its neighbours sit near 0.7. `humanize` is tight to match (`quantizeStrength` 0.88, `velocityVar` 0.12): a modern-loud kit over a dusty loop is a placed kit, not a played one. The bass is \"replayed sub plus 808, straightforward root motion\" — `mirror_kick` at 0.92 with only a fifth as a passing tone, deliberately the plainest bass in the batch. Harmony is ii–v–i and i–iv–VII with ninths at 0.28 for the \"9th colour\" the research names, and `switchUpProb` 0.38 is the highest here because the research says modulation happens \"by beat-switch rather than within a section\". ⚠ `confidence` is medium and the research says why: \"production camp documented; specifics partly producer-inherited\". ⚠ The **INFERRED** parameters are the velocity-tier numbers — \"modern-loud\" is a direction and these are this author's arithmetic — plus the hat and roll densities.",
+  "session": {
+    "bpm": {
+      "min": 85,
+      "max": 100,
+      "mode": 92
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "harmonic_minor"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.56
+    },
+    "humanize": {
+      "quantizeStrength": 0.88,
+      "velocityVar": 0.12
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        112,
+        127
+      ],
+      "main": [
+        90,
+        104
+      ],
+      "ghost": [
+        46,
+        58
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.4
+    },
+    "snare": {
+      "rimshotLayer": false,
+      "ghost": {
+        "prob": 0.24,
+        "pos": [
+          "2e",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.28,
+          0.45
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.45,
+      "velocities": {
+        "main": [
+          0.85,
+          1
+        ],
+        "ghost": [
+          0.3,
+          0.55
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16T"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.25
+      },
+      "openHat": {
+        "prob": 0.3,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "perc",
+        "crash"
+      ],
+      "densityPerBar": [
+        0,
+        2
+      ],
+      "gainOffsetDb": -4
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th",
+        "16t"
+      ],
+      "grouping": [
+        "even",
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        62,
+        113
+      ],
+      "rampJitter": 27,
+      "gapProb": 0.15,
+      "descendProb": 0.47,
+      "pitchWalk": 2
+    }
+  },
+  "melody": {
+    "register": [
+      62,
+      86
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "intervals": {
+      "step": 0.62,
+      "third": 0.3,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.35,
+      "descend": 0.3,
+      "arch": 0.35
+    },
+    "chordToneBias": 0.7,
+    "octaveJumpProb": 0.12,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "rhodes"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.52,
+    "styles": {
+      "values": [
+        "arp",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "ii",
+          "v",
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "III",
+          "VI",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.24,
+      "seventh": 0.48,
+      "ninth": 0.28
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        49,
+        75
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.92,
+    "register": [
+      24,
+      42
+    ],
+    "glideProb": 0.1,
+    "passingTones": [
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.15
+  },
+  "arrangement": {
+    "sectionBars": {
+      "verse": [
+        16,
+        24
+      ],
+      "intro": [
+        4,
+        8
+      ]
+    },
+    "transitions": {
+      "switchUpProb": 0.38
+    }
+  }
+}

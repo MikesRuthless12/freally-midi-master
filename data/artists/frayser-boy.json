@@ -1,0 +1,327 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "frayser-boy",
+  "type": "artist",
+  "name": "Frayser Boy",
+  "aliases": [
+    "frayser boy",
+    "fraiser boy",
+    "gerald crawford",
+    "frayser boy type beat"
+  ],
+  "tier": "standard",
+  "extends": [
+    "memphis-rap"
+  ],
+  "era": "2003-2009",
+  "genres": [
+    "rap",
+    "memphis",
+    "crunk"
+  ],
+  "relatedGenres": [
+    "memphis-rap",
+    "crunk",
+    "rnb-2000s",
+    "phonk"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 memphis-rap — Frayser Boy",
+    "https://en.wikipedia.org/wiki/Frayser_Boy",
+    "https://en.wikipedia.org/wiki/It%27s_Hard_out_Here_for_a_Pimp"
+  ],
+  "notes": "The Hypnotize record with a sung layer on it. The research frames the Oscar-winning song as a \"crunk-style pimp rap composition\" — a static minor vamp with a **sung female counter-hook over it** — and calls that split (\"hard beat, sung hook\") the template the *Hustle & Flow* songs made. So the distinctive block here is `countermelody`: a high `densityRatio`, a +12 offset so it sits above the ostinato rather than under it, and `fillGapsOnly` **off**, because a sung counter-hook runs across the loop instead of hiding in its gaps. That is the opposite setting from every other classic-era entry in this batch. Under it, the beat is the crunk-era board: 16th cowbell at 4–7 a bar and roll-driven transitions, which is what the perc block and the mid-ramp snare roll author. The melodic layer is a piano/organ ostinato, so `timbreHint` is `church_organ` against the piano and bell entries around it. Harmony is a static minor vamp with `impliedByRiff` set; the i–VI and i–VII families carry a third of the drone's weight between them. ⚠ `medium`: the research rates it medium — chart data, the Oscar credit and the crunk-composition description are sourced, but **the drums and tempo are inherited from the board** (70–82 half-time = 140–164 straight, marked [LOW-CONF]), so `session.bpm`, `drums.kick` and `drums.snare` are the inferred ones. ⚠ The bass ceiling came down from 40 to 39 so it stays under a chord part that starts at 40 — `coherence.rs` requires the highest bass note to sit at or below the lowest chord note, and this model overlapped by 1. ⚠ `anticipationProb` raised to 0.15. With `mirror_kick` against a fully locked 808 both parts take every kick, so every bass onset lands exactly on an 808 onset — `coherence.rs` calls that one line played twice rather than two parts locking. The lock is the style and is untouched; the anticipation is what makes them two parts. ⚠ `countermelody.fillGapsOnly` returned to true. With it off and a density of 0.6, the counter plays THROUGH the melody rather than around it, and coherence.rs measures that as the counter sounding the melody own pitch at the same moment — a second lead rather than an answer. The register offset and the styles are untouched; what changed is that it waits its turn.",
+  "session": {
+    "bpm": {
+      "min": 140,
+      "max": 164,
+      "mode": 150
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "phrygian"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.35,
+      "tresilloBias": 0.36,
+      "lockTo808": 1
+    },
+    "snare": {
+      "layerClapOffsetMs": [
+        0,
+        0
+      ],
+      "ghost": {
+        "prob": 0.19,
+        "pos": [
+          "3a",
+          "4a"
+        ],
+        "vel": [
+          0.24,
+          0.42
+        ]
+      },
+      "placement": "halftime_3",
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.36,
+      "velocities": {
+        "main": [
+          0.56,
+          0.8
+        ],
+        "ghost": [
+          0.22,
+          0.42
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "16T"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "positions": [
+          "pre_snare"
+        ],
+        "freqPerBar": 0.36,
+        "velocityRamp": true
+      }
+    },
+    "percs": {
+      "lanes": [
+        "cowbell",
+        "clave",
+        "rim"
+      ],
+      "densityPerBar": [
+        4,
+        7
+      ],
+      "placement": "any",
+      "gainOffsetDb": -1
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 16,
+      "fillBeforeSection": true
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        53,
+        96
+      ],
+      "rampJitter": 13,
+      "descendProb": 0.37,
+      "gapProb": 0.39,
+      "pitchWalk": 4
+    },
+    "bass808": {
+      "slideProb": 0.02,
+      "portamentoMs": [
+        0,
+        10
+      ],
+      "register": [
+        17,
+        30
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.88,
+      "seventh": 0.1,
+      "ninth": 0.02
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        40,
+        72
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "impliedByRiff": true,
+    "chordDurationBeats": [
+      4,
+      16
+    ]
+  },
+  "melody": {
+    "register": [
+      50,
+      73
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    },
+    "densityPerBar": [
+      2,
+      5
+    ],
+    "motifPitchCount": [
+      3,
+      6
+    ],
+    "intervals": {
+      "step": 0.62,
+      "third": 0.22,
+      "leap": 0.16
+    },
+    "contour": {
+      "riff": 0.62,
+      "descend": 0.26,
+      "arch": 0.12
+    },
+    "chordToneBias": 0.64,
+    "halfStepDissonance": 0.16,
+    "emptyBarBias": 0.14,
+    "octaveJumpProb": 0.1,
+    "timbreHint": "church_organ"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.6,
+    "fillGapsOnly": true,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.93,
+    "register": [
+      24,
+      39
+    ],
+    "glideProb": 0.03,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.15
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "hook"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "hook": 8,
+      "outro": 4
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.5,
+        "beats": 4
+      },
+      "switchUpProb": 0.06
+    }
+  }
+}

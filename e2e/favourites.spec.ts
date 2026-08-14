@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 
-import { browserRow } from './app';
+import { browserRow, openPanel } from './app';
 
 /**
  * Starred favourites (TASK-058C).
@@ -36,6 +36,8 @@ function list(page: Page) {
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('tablist', { name: 'Generator' })).toBeVisible();
+  // ⛔ The panel is behind a vertical tab now — `openPanel` presses it.
+  await openPanel(page, 'explorer');
   await browserRow(page, 'Samples').click();
 });
 

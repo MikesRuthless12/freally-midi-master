@@ -112,6 +112,41 @@ export function browserRow(page: Page, name: string) {
   return page.getByRole('treeitem', { name, exact: true });
 }
 
+/**
+ * Bring a rail panel on screen, whether or not its group is the one showing.
+ *
+ * ⛔⛔ **THE PANELS ARE BEHIND VERTICAL TABS NOW, AND THIS IS THE WAY IN.**
+ * 2026-08-11 turned each rail into two *groups* that swap — the left rail shows
+ * `genres · roster` **or** `explorer`, the right shows `kit · stems` **or**
+ * `session · presets · pattern library` — and Mike chose which two open at
+ * launch: *"roster and genres should be shown and file explorer should be hidden
+ * for the left hand side and for the right, kits and stems should be shown and
+ * the rest should be hidden."*
+ *
+ * ▶ **44 specs failed the same way afterwards**, every one of them a locator
+ * timeout on a control that is simply not mounted — `Section` unmounts a closed
+ * panel rather than hiding it, deliberately, so the browser tree and the pattern
+ * library cost nothing while they are away. That is not something a spec can
+ * wait out; it has to press the tab.
+ *
+ * ⚠ **Selected on `data-sections`, not on the label.** The tab's text is
+ * translated and joined with `·`, so matching it would only work in English —
+ * `RailTabs` carries the ids for exactly this.
+ *
+ * ⚠ **Idempotent**, so a spec can call it for two panels in the same group and
+ * the second call is a no-op rather than a swap back out.
+ */
+export async function openPanel(page: Page, id: string): Promise<void> {
+  const panel = page.locator(`.rail__section[data-section="${id}"][data-open="true"]`);
+  if (!(await panel.isVisible())) {
+    await page.locator(`.railtabs__tab[data-sections~="${id}"]`).click();
+  }
+  // ⚠ The swap animates — the arriving group is delayed by `SWAP_OUT_MS` while
+  // the old one slides away. Playwright waits for a stable box before it acts on
+  // anything inside, so this only has to wait for the panel to exist.
+  await expect(panel).toBeVisible();
+}
+
 /** Open Settings and select the language pane. */
 export async function openLanguagePane(page: Page): Promise<void> {
   await page.getByTestId('open-settings').click();

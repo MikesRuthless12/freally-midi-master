@@ -1,0 +1,273 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "rico-nasty",
+  "type": "artist",
+  "name": "Rico Nasty",
+  "aliases": [
+    "rico nasty",
+    "maria kelly",
+    "sugar trap"
+  ],
+  "tier": "standard",
+  "extends": [
+    "dark-trap"
+  ],
+  "era": "2018-present",
+  "genres": [
+    "rap",
+    "dark-trap"
+  ],
+  "relatedGenres": [
+    "dark-trap",
+    "trap",
+    "memphis-rap"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 dark-trap — Rico Nasty"
+  ],
+  "notes": "\"Sugar trap\" turned punk-rap and nu-metal — glossy top-end against deliberately abrasive beats. The distinguishing parameter is the **808 treated as a riff instrument**: repeated 8th- and 16th-note root pulses rather than one long sustain, which nothing else in this lane does. Guitar-like distorted synth riffs carry the melody, and the kick-and-clap bus is clipped on purpose. ⚠ `medium`: the genre palette, per-track producers, chart status and her own statement about vocal treatment are documented; the research rates it high-medium.",
+  "session": {
+    "bpm": {
+      "min": 130,
+      "max": 165,
+      "mode": 150
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "phrygian",
+        "harmonic_minor"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.54
+    },
+    "halfTime": true
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.46,
+      "lockTo808": 0.9,
+      "tresilloBias": 0.31,
+      "avoidPreSnareGap": "8th",
+      "andOf4EveryOtherBar": true
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "lowPassedClap": true,
+      "ghost": {
+        "prob": 0.16,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.22,
+          0.4
+        ]
+      },
+      "layerClapOffsetMs": [
+        3,
+        7
+      ],
+      "offGridMs": 0,
+      "detuneSemis": [
+        -2,
+        -1
+      ],
+      "fullTimeVariantProb": 0.1
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.62,
+      "openHat": {
+        "prob": 0.3,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16T"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.22
+      }
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        63,
+        100
+      ],
+      "rampJitter": 15,
+      "descendProb": 0.17,
+      "gapProb": 0.32,
+      "pitchWalk": 5,
+      "ladder": [
+        "4",
+        "8",
+        "16",
+        "32"
+      ],
+      "buildAndStopProb": 0.3,
+      "dualLayerProb": 0.25
+    },
+    "bass808": {
+      "role": "counter_riff",
+      "sustain": "staccato",
+      "monoCutSelf": true,
+      "slideProb": 0.12,
+      "register": [
+        19,
+        35
+      ],
+      "distortion": "saturated"
+    }
+  },
+  "melody": {
+    "register": [
+      60,
+      84
+    ],
+    "densityPerBar": [
+      4,
+      8
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "supersaw_stab",
+    "intervals": {
+      "step": 0.45,
+      "third": 0.25,
+      "leap": 0.3
+    },
+    "halfStepDissonance": 0.2
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.4,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "bII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 3
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.7,
+      "seventh": 0.26,
+      "ninth": 0.04
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        45,
+        77
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    },
+    "chordDurationBeats": [
+      2,
+      12
+    ]
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.8,
+    "register": [
+      24,
+      40
+    ],
+    "glideProb": 0.08,
+    "passingTones": [
+      "P5",
+      "m3"
+    ],
+    "anticipationProb": 0.26
+  }
+}

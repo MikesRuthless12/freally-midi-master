@@ -30,9 +30,8 @@
     "generating": "生成中…",
     "readyBody": "{{name}} の準備ができました。生成を押してください。",
     "generateAll": "すべて生成",
-    "clear": "クリア",
-    "clearAll": "すべてクリア",
-    "clearLabel": "生成したパートをクリア"
+    "clearOne": "{{part}}をクリア",
+    "clearAll": "すべてクリア"
   },
   "rails": {
     "searchPlaceholder": "アーティストを検索…",
@@ -141,7 +140,6 @@
     "loop": "ループ",
     "masterLevel": "マスターレベル: 無音",
     "toggleRightRail": "右パネルの表示切替 (K)",
-    "windowSize": "ウィンドウサイズ",
     "loopAlways": "このフェーズでは再生は常にループします。",
     "unavailable": "再生できません: {{reason}}"
   },
@@ -160,8 +158,7 @@
     "button": "表示",
     "panels": "パネル",
     "rightRail": "右パネル",
-    "showAll": "すべてのパネルを表示",
-    "hideAll": "すべてのパネルを非表示"
+    "stage": "ステージ"
   },
   "settings": {
     "title": "設定",
@@ -212,14 +209,18 @@
     "rollCount": "{{count}} 打",
     "addFill": "{{lane}}にフィルを追加",
     "reassignLane": "{{lane}}を別の音色に変更",
-    "lockLane": "再生成しても{{lane}}を保持"
+    "lockLane": "再生成しても{{lane}}を保持",
+    "pitchRows": "{{lane}} のピッチ行",
+    "pitchCell": "{{lane}} {{pitch}}、ステップ {{step}}",
+    "semitoneRow": "基音から {{offset}} 半音",
+    "hitsAbove": "ウィンドウの上に {{count}} ヒット",
+    "hitsBelow": "ウィンドウの下に {{count}} ヒット"
   },
   "roster": {
     "artists": "アーティスト",
+    "producers": "プロデューサー",
     "flagship": "主要",
     "genre": "ジャンル",
-    "filteredBy": "{{name}} で絞り込み中",
-    "showAll": "すべて表示",
     "noneInGenre": "{{name}} のアーティストはまだいません。",
     "standard": "標準",
     "inherited": "継承"
@@ -382,6 +383,7 @@
       "nudge": "時間をずらす",
       "stretch": "2倍に伸ばす",
       "compress": "半分に縮める",
+      "reverseNote": "選択したノートを逆再生",
       "triplet": "このセルを3連符に",
       "quintuplet": "このセルを5連符に",
       "septuplet": "このセルを7連符に",
@@ -409,15 +411,20 @@
     "up": "上へ",
     "empty": "このフォルダーにサンプルはありません。",
     "truncated": "このフォルダーには表示されているより多くのファイルがあります。",
+    "filter": "名前で絞り込む",
+    "filterScope": "開いているフォルダーのみを検索します。",
+    "noMatches": "一致するものはありません。",
+    "missing": "{{name}} には現在アクセスできません。",
+    "recheck": "再確認",
     "pickAFile": "サンプルを選ぶと試聴できます。",
     "decoding": "読み込み中…",
     "waveformOf": "{{name}} の波形",
     "reverse": "逆再生",
     "resize": "ブラウザーの幅を変更",
-    "fillRail": "ブラウザーにレール全体を割り当てる",
-    "restoreRail": "ロスターを再表示",
     "folderLimit": "同時に開けるフォルダーは8つです。追加するには1つ閉じてください",
     "favourites": "スター付きのお気に入り",
+    "recent": "最近",
+    "clearRecent": "履歴を消去",
     "star": "{{name}} にスターを付ける",
     "unstar": "{{name}} のスターを外す",
     "revealHint": "{{path}} をファイルマネージャーで表示",
@@ -434,7 +441,8 @@
       "kitShape": "ドラムキットのように鳴っています"
     },
     "midiFound": "この MIDI ファイルの内容",
-    "midiNotes": "ノート"
+    "midiNotes": "ノート",
+    "midiAuditionClipped": "最初の 2 分のみ試聴されます。"
   },
   "patterns": {
     "name": "このパターンに名前を付ける",
@@ -456,13 +464,23 @@
     "none": "テイクなし",
     "made": "{{bpm}} BPM · {{scale}}"
   },
+  "takes": {
+    "label": "テイク履歴",
+    "none": "まだ何も生成していません。",
+    "clear": "テイク履歴を消去",
+    "close": "閉じる",
+    "detail": "{{bars}} 小節 · {{bpm}} BPM"
+  },
   "artist": {
     "label": "この選択について",
     "tendsTo": "傾向",
     "tempo": "{{bpm}} BPM",
+    "tempoRange": "{{low}}〜{{high}} BPM",
     "key": "{{key}} {{scale}}",
     "halfTime": "ハーフタイム",
-    "moods": "{{count}} ムード"
+    "moods": "ムード",
+    "writes": "書くパート",
+    "doesNotWrite": "書かないパート"
   },
   "styles": {
     "original": "オリジナルの流儀",

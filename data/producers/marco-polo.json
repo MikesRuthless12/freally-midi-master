@@ -1,0 +1,290 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "marco-polo",
+  "type": "producer",
+  "name": "Marco Polo",
+  "aliases": [
+    "marco polo",
+    "marco bruno",
+    "port authority",
+    "newport authority"
+  ],
+  "tier": "standard",
+  "extends": [
+    "boom-bap"
+  ],
+  "era": "2006-2020",
+  "genres": [
+    "rap",
+    "boom bap",
+    "producer"
+  ],
+  "relatedGenres": [
+    "boom-bap",
+    "lofi-hiphop"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended vol.1 boom-bap — Marco Polo",
+    "https://www.uaudio.com/blogs/ua/marco-polo-producing-hip-hop-with-uad",
+    "https://en.wikipedia.org/wiki/Port_Authority_(album)"
+  ],
+  "notes": "`high`, because the full signal chain and workflow are documented: MPC2000XL into Pro Tools eight tracks at a time, the drum bus through Studer A800 tape emulation, the master through an Ampex ATR-102, then a Neve 1073 to restore low-end bite, with an LA-2A used sparingly **to preserve knock**. \"Drums are the most important element in hip-hop, period\" is the stated philosophy and it is authored as a moderate-high `velocityTiers.main` and the three-lane `percs` set the tape bus is built to glue. **The genuinely distinguishing fact is that the material is increasingly original, written to sound sampled** — after learning that sampling cost him royalties — and then processed to imitate vinyl. A model cannot saturate, so what carries \"written to sound sampled\" is the shape: **2–4 bar loops on `i–iv` and `ii–V–i`** with a `question_answer` melody that states and answers within the loop, rather than a chopped figure that would need a source record to have existed. **Processing is chosen *during* composition, so timbre drives the harmony choices** — that is why `timbreHint` is authored at all here and why the chord voicing sits open and mid rather than close: horns, Rhodes and guitar in a register that leaves the tape bus room. The bass is **sample-style filtered with root/5th motion, saturated rather than heavily compressed**, which is exactly `boom_chick` at 0.74 — the third and least mechanical of the three `boom_chick` models in this batch, with `M2` and `m7` reaching past the root and fifth. **8-bar intro, scratch hooks, instrumental tags and DJ-oriented structures** are on `arrangement.sectionBars`.",
+  "session": {
+    "bpm": {
+      "min": 88,
+      "max": 96,
+      "mode": 92
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.58
+    },
+    "humanize": {
+      "quantizeStrength": 0.82,
+      "velocityVar": 0.15
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.27,
+      "tresilloBias": 0.03
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "ghost": {
+        "prob": 0.34,
+        "pos": [
+          "1a",
+          "2e",
+          "4a"
+        ],
+        "vel": [
+          0.22,
+          0.38
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.39,
+      "velocities": {
+        "main": [
+          0.78,
+          0.95
+        ],
+        "ghost": [
+          0.2,
+          0.4
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "16T"
+          ],
+          "weights": [
+            6,
+            3
+          ]
+        },
+        "positions": [
+          "pre_snare"
+        ],
+        "freqPerBar": 0.36
+      },
+      "openHat": {
+        "prob": 0.18,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "ride",
+        "rim",
+        "perc"
+      ],
+      "densityPerBar": [
+        0,
+        2
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        61,
+        98
+      ],
+      "rampJitter": 14,
+      "descendProb": 0.33,
+      "gapProb": 0.52
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "ii",
+          "v",
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.34,
+      "seventh": 0.52,
+      "ninth": 0.14
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        45,
+        70
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      61,
+      84
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "structure": "question_answer",
+    "intervals": {
+      "step": 0.63,
+      "third": 0.29,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.4,
+      "descend": 0.32,
+      "arch": 0.28
+    },
+    "chordToneBias": 0.73,
+    "octaveJumpProb": 0.09,
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        4,
+        4
+      ]
+    },
+    "timbreHint": "rhodes"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.43,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        3,
+        4
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "boom_chick",
+    "followRootsProb": 0.74,
+    "register": [
+      27,
+      44
+    ],
+    "glideProb": 0.03,
+    "passingTones": [
+      "P5",
+      "M2",
+      "m7"
+    ],
+    "anticipationProb": 0.22
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 8,
+      "verse": 16,
+      "hook": 8,
+      "outro": 8
+    }
+  }
+}

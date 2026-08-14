@@ -11,10 +11,11 @@ import { useTranslation } from 'react-i18next';
 export function ViewMenu() {
   const { t } = useTranslation();
   const sections = useUi((s) => s.sections);
-  const toggleSection = useUi((s) => s.toggleSection);
-  const setAllSections = useUi((s) => s.setAllSections);
+  const showSection = useUi((s) => s.showSection);
   const rightRailOpen = useUi((s) => s.rightRailOpen);
   const toggleRightRail = useUi((s) => s.toggleRightRail);
+  const stageOpen = useUi((s) => s.stageOpen);
+  const toggleStage = useUi((s) => s.toggleStage);
 
   const [open, setOpen] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
@@ -34,8 +35,6 @@ export function ViewMenu() {
       document.removeEventListener('keydown', onKey);
     };
   }, [open]);
-
-  const allOpen = SECTIONS.every((id) => sections[id]) && rightRailOpen;
 
   return (
     <div className="viewmenu" ref={wrap}>
@@ -64,6 +63,22 @@ export function ViewMenu() {
             <kbd className="viewmenu__kbd">K</kbd>
           </button>
 
+          {/* ⛔ **Beside the right rail, because they are the same decision from
+              opposite ends** — Mike, 2026-08-12: *"if you have a generation that
+              you like, that the center can be collapsed so that the 'right rail'
+              will always show."* Hiding the stage is how the rails get the
+              window on a small frame. */}
+          <button
+            type="button"
+            role="menuitemcheckbox"
+            aria-checked={stageOpen}
+            className="viewmenu__item"
+            onClick={toggleStage}
+          >
+            <span className="viewmenu__check">{stageOpen && <Check size={12} />}</span>
+            {t('view.stage')}
+          </button>
+
           <div className="viewmenu__sep" role="separator" />
 
           {SECTIONS.map((id) => (
@@ -73,27 +88,12 @@ export function ViewMenu() {
               role="menuitemcheckbox"
               aria-checked={sections[id]}
               className="viewmenu__item"
-              onClick={() => toggleSection(id)}
+              onClick={() => showSection(id)}
             >
               <span className="viewmenu__check">{sections[id] && <Check size={12} />}</span>
               {t(`sections.${id}`)}
             </button>
           ))}
-
-          <div className="viewmenu__sep" role="separator" />
-
-          <button
-            type="button"
-            role="menuitem"
-            className="viewmenu__item"
-            onClick={() => {
-              setAllSections(!allOpen);
-              if (rightRailOpen !== !allOpen) toggleRightRail();
-            }}
-          >
-            <span className="viewmenu__check" />
-            {allOpen ? t('view.hideAll') : t('view.showAll')}
-          </button>
         </div>
       )}
     </div>

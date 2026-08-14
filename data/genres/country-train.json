@@ -206,18 +206,20 @@
           ]
         },
         "positions": [
-          "phrase_end"
+          "phrase_end",
+          "bar_4"
         ],
-        "freqPerBar": 0.15,
+        "freqPerBar": 0.3,
         "velocityRamp": true
       },
       "openHat": {
-        "prob": 0.2,
+        "prob": 0.35,
         "pos": [
+          "2&",
           "4&"
         ],
         "perBar": [
-          1,
+          0,
           1
         ]
       },

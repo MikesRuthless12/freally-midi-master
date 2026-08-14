@@ -1,0 +1,346 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "pusha-t",
+  "type": "artist",
+  "name": "Pusha T",
+  "aliases": [
+    "pusha t",
+    "pusha-t",
+    "king push",
+    "terrence thornton",
+    "daytona"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "boom-bap"
+  ],
+  "era": "2011-2022",
+  "genres": [
+    "rap",
+    "boom-bap"
+  ],
+  "relatedGenres": [
+    "boom-bap",
+    "trap",
+    "dark-trap"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 boom-bap — Pusha T",
+    "Wikipedia — Pusha T (https://en.wikipedia.org/wiki/Pusha_T)",
+    "Wikipedia — Daytona (https://en.wikipedia.org/wiki/Daytona_(album))",
+    "songdata.io — Pusha T (https://songdata.io/search?query=Pusha%20T)"
+  ],
+  "notes": "The research is explicit that the solo records are \"a measurably different parameter set from the duo\", and the measurable difference is tempo: 76–89 centred on **80**, a full ~10 BPM below the Clipse spine and one of the tightest clusters in the section. That single number is the main reason this is not a mode of `clipse`. The second is key: \"C minor dominates the 2018–2022 records (five separate readings)\", so `session.keys` is weighted 6:2:2 toward Cm rather than the archetype's even spread. Everything else is subtraction of a different kind from the duo's — where Clipse builds a woodblock figure at −3 dB, this is \"sample-loop rap, not programmed trap… several records run the loop with almost no kit\", so `percs` drops to 0–1 hits at −11 dB and the hats sit non-continuous at the 0.28 floor. \"No replayed chords… the loop *is* the melodic content\" is `impliedByRiff` with `chordDurationBeats` 2–24. `arrangement.structures` drops the bridge entirely and both forms end on a hook-tag, because the research says \"seven-track albums, no sung choruses, no bridge — verse / hook-tag / verse, cold starts, hard stops\". ⚠ Where 808s appear they sit under a 2&4 backbeat rather than a half-time one, which the research says is what keeps this model out of `trap`; `session.halfTime` stays false for that reason. ⚠ Producers **Kanye West**, **Just Blaze** and **Swizz Beatz** have their own entries and are cited, not restated. ⚠ `confidence` is medium (research: high-medium) and the tempo/key bands are marked `[LOW-CONF]` — algorithmic readings, with 150–164 folding in half onto 75–82. The `i–VII` and `i–iv` families at weights 2 and 1 are **INFERRED**; the research names static `i` only. ⚠ The bass ceiling came down from 44 to 38 so it stays under a chord part that starts at 39 — `coherence.rs` requires the highest bass note to sit at or below the lowest chord note, and this model overlapped by 6.",
+  "session": {
+    "bpm": {
+      "min": 76,
+      "max": 89,
+      "mode": 80
+    },
+    "keys": {
+      "values": [
+        "Cm",
+        "Fm",
+        "Dm"
+      ],
+      "weights": [
+        6,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "major"
+      ],
+      "weights": [
+        4,
+        2,
+        1
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.54
+    },
+    "humanize": {
+      "quantizeStrength": 0.86,
+      "velocityVar": 0.13
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        98,
+        118
+      ],
+      "main": [
+        72,
+        86
+      ],
+      "ghost": [
+        28,
+        40
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2a",
+      "syncopation": 0.24,
+      "tresilloBias": 0.15,
+      "subLayerVelocity": [
+        0.5,
+        0.6
+      ],
+      "lockTo808": 0
+    },
+    "snare": {
+      "rimshotLayer": false,
+      "ghost": {
+        "prob": 0.06,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.14,
+          0.26
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.28,
+      "velocities": {
+        "main": [
+          0.35,
+          0.55
+        ],
+        "ghost": [
+          0.1,
+          0.24
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16T"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.15
+      },
+      "openHat": {
+        "prob": 0.05,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "perc"
+      ],
+      "densityPerBar": [
+        0,
+        1
+      ],
+      "gainOffsetDb": -11
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th",
+        "32nd"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        68,
+        113
+      ],
+      "rampJitter": 3,
+      "gapProb": 0.54,
+      "descendProb": 0.15,
+      "pitchWalk": 2
+    }
+  },
+  "melody": {
+    "register": [
+      57,
+      81
+    ],
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "intervals": {
+      "step": 0.64,
+      "third": 0.23,
+      "leap": 0.17
+    },
+    "contour": {
+      "riff": 0.62,
+      "descend": 0.27,
+      "arch": 0.15
+    },
+    "chordToneBias": 0.59,
+    "halfStepDissonance": 0.1,
+    "octaveJumpProb": 0.06,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "detuned_piano"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.32,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 6
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 1
+      }
+    ],
+    "maxChords": 2,
+    "impliedByRiff": true,
+    "chordDurationBeats": [
+      2,
+      24
+    ],
+    "extensions": {
+      "triad": 0.4,
+      "seventh": 0.46,
+      "ninth": 0.14
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        39,
+        79
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.86,
+    "register": [
+      26,
+      38
+    ],
+    "glideProb": 0,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.16
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "hook",
+          "verse",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "verse",
+          "hook",
+          "verse",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "sectionBars": {
+      "intro": 2,
+      "verse": 16,
+      "hook": [
+        4,
+        8
+      ],
+      "outro": 2
+    },
+    "transitions": {
+      "dropOutBeats": {
+        "prob": 0.5,
+        "beats": 2
+      },
+      "switchUpProb": 0.05
+    }
+  }
+}

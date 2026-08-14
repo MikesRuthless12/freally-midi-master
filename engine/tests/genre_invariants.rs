@@ -352,8 +352,29 @@ fn jerk_is_the_one_genre_that_asks_to_be_loosened() {
         .expect("jerk states a quantize strength");
     assert!(strength < 0.7, "jerk quantized at {strength}");
 
+    // ⛔⛔ **GENRES, and the loop said "every model" until volume 1 arrived.**
+    // The claim this test is named for — and the one its own comment makes,
+    // *"well below every other genre"* — is about the archetypes. Comparing
+    // against artists and producers too was indistinguishable from that while
+    // the roster was fifteen genres and ten artists, and became false the moment
+    // it was not: **J Dilla quantizes at 0.32**, Taz Arnold at 0.48, Knxwledge at
+    // 0.5, Madlib and Ol' Dirty Bastard at 0.55.
+    //
+    // ▶ **Those numbers are the research, not a defect.** Dilla is the name
+    // attached to the idea of playing drums off the grid; a gate that forced him
+    // *tighter than a genre archetype* to stay green would be encoding something
+    // nobody believes about the music, which is the definition of gate-chasing.
+    // The honest reading is that jerk is the loosest **archetype** and an
+    // individual may be looser still — that is what having an individual model
+    // is for.
+    //
+    // ⚠ What is NOT relaxed: every genre must still sit strictly above jerk, so
+    // a second archetype drifting down to meet it still fails here.
     for (id, other) in shipped() {
-        if id == "jerk" || id == "_defaults" {
+        if id == "jerk"
+            || id.starts_with('_')
+            || other.model_type != engine::dataset::ModelType::Genre
+        {
             continue;
         }
         if let Some(theirs) = other
@@ -362,7 +383,10 @@ fn jerk_is_the_one_genre_that_asks_to_be_loosened() {
             .and_then(|s| s.humanize.as_ref())
             .and_then(|h| h.quantize_strength)
         {
-            assert!(theirs > strength, "{id} is looser than jerk ({theirs})");
+            assert!(
+                theirs > strength,
+                "the genre {id} is looser than jerk ({theirs})"
+            );
         }
     }
 }
@@ -2281,6 +2305,139 @@ fn crunk_strips_traps_hat_carpet_back_to_eighths() {
     }
 }
 
+// ------------------------------------------- the four volume 1 recommended
+
+/// The BPM a genre centres on.
+fn tempo_of(id: &str) -> f64 {
+    model(id)
+        .session
+        .as_ref()
+        .and_then(|s| s.bpm.as_ref())
+        .and_then(|bpm| bpm.mode)
+        .unwrap_or_else(|| panic!("`{id}` states a bpm mode"))
+}
+
+#[test]
+fn houston_screw_is_the_slowest_archetype_on_the_roster() {
+    // ⛔ **The whole archetype, and the model's own note is emphatic that it is
+    // a parameter set rather than an effect**: *"Nothing here slows or pitches
+    // audio down — the model *writes* the screwed record."* So the tempo is not
+    // decoration on top of a Houston beat, it **is** the claim, and it is what a
+    // test has to hold. Centred at 70 with a floor of 58.
+    let screw = tempo_of("houston-screw");
+    assert!(
+        screw <= 75.0,
+        "houston-screw centres at {screw} BPM, which is not screwed"
+    );
+    for (id, other) in shipped() {
+        if id == "houston-screw"
+            || id.starts_with('_')
+            || other.model_type != engine::dataset::ModelType::Genre
+        {
+            continue;
+        }
+        if let Some(theirs) = other
+            .session
+            .as_ref()
+            .and_then(|s| s.bpm.as_ref())
+            .and_then(|b| b.mode)
+        {
+            assert!(
+                theirs > screw,
+                "the genre {id} centres at {theirs}, at or below screw's {screw}"
+            );
+        }
+    }
+}
+
+#[test]
+fn nola_bounce_answers_the_backbeat_on_the_and_of_two() {
+    // ⛔ **The Triggerman answer, and the one parameter the model says separates
+    // it from crunk**: *"The one parameter that separates this from `crunk` is
+    // `halfTime: false`… this is a straight backbeat on 2 and 4 at 92–105"*,
+    // with the off-snare authored at `prob 0.85` on `2&`. Asserted as *where the
+    // extra snare lands* rather than as the flag, because a flag can be true
+    // while nothing downstream reads it — which is how `plugg_keeps_its_low
+    // _passed_clap_flag_for_the_kit` came to exist.
+    let bar = 3840u32;
+    let and_of_two = bar / 2 - grid::SIXTEENTH * 2; // beat 2 + an eighth
+    let hits = sweep(&model("nola-bounce"), Lane::OffSnare, 4);
+    assert!(!hits.is_empty(), "nola-bounce produced no answering snare");
+
+    let on_the_and = hits
+        .iter()
+        .filter(|(_, n)| (n.start_tick % bar).abs_diff(and_of_two) <= grid::SIXTEENTH / 2)
+        .count();
+    let share = on_the_and as f64 / hits.len() as f64;
+    assert!(
+        share > 0.8,
+        "only {:.0}% of nola-bounce's answering snares land on the & of 2",
+        share * 100.0
+    );
+
+    // And it is genuinely not crunk: a half-time kit centres far higher.
+    let (bounce, crunk) = (tempo_of("nola-bounce"), tempo_of("crunk"));
+    assert!(
+        bounce < crunk,
+        "nola-bounce at {bounce} is not below crunk's {crunk}"
+    );
+}
+
+#[test]
+fn ringtone_club_rap_runs_faster_than_the_crunk_it_came_out_of() {
+    // ⛔ *"Snap's commercial descendant, and the inversion of the archetype it
+    // came out of. Crunk is aggression built around a chant and it protects the
+    // low end; this lane is novelty built around a phone speaker and it protects
+    // the top."* The tempo band (136–168, centred 146) is the measurable half of
+    // that inversion, and the hats lead on 16ths where crunk's do not.
+    let (ringtone, crunk) = (tempo_of("ringtone-club-rap"), tempo_of("crunk"));
+    assert!(
+        ringtone > crunk,
+        "ringtone-club-rap centres at {ringtone}, not above crunk's {crunk}"
+    );
+
+    // Protecting the top means the hats are the busy part.
+    let hats = sweep(&model("ringtone-club-rap"), Lane::ClosedHat, 4).len();
+    let kicks = sweep(&model("ringtone-club-rap"), Lane::Kick, 4).len();
+    assert!(
+        hats > kicks * 2,
+        "ringtone-club-rap wrote {hats} hats against {kicks} kicks — \
+         the top is not carrying it"
+    );
+}
+
+#[test]
+fn dungeon_family_breathes_where_crunk_marches() {
+    // ⛔ *"Organized Noize's board: a played southern-soul band that a rap record
+    // sits on, and the one thing in the whole Southern club-rap container that
+    // has real harmony."* The played feel is authored three ways — ghosts at
+    // `prob 0.4` across six slots, `offGridMs` on the snare, and a
+    // `quantizeStrength` of 0.66 — and the ghosts are the part that shows up in
+    // the notes rather than only in the timing.
+    let ghosts = sweep(&model("dungeon-family"), Lane::Snare, 4)
+        .iter()
+        .filter(|(_, n)| n.articulation == Some(Articulation::Ghost))
+        .count();
+    let crunk_ghosts = sweep(&model("crunk"), Lane::Snare, 4)
+        .iter()
+        .filter(|(_, n)| n.articulation == Some(Articulation::Ghost))
+        .count();
+    assert!(
+        ghosts > crunk_ghosts,
+        "dungeon-family wrote {ghosts} ghost snares against crunk's {crunk_ghosts} — \
+         the band is not playing"
+    );
+
+    // ⚠ And it is loose *by southern-club standards* without being jerk: the
+    // whole point of `jerk_is_the_one_genre_that_asks_to_be_loosened` is that no
+    // other archetype goes below it.
+    let (dungeon, crunk) = (quantize_of("dungeon-family"), quantize_of("crunk"));
+    assert!(
+        dungeon < crunk,
+        "dungeon-family quantizes at {dungeon}, no looser than crunk's {crunk}"
+    );
+}
+
 // ------------------------------------------------------------------- the set
 
 #[test]
@@ -2357,6 +2514,11 @@ fn every_genre_in_the_roster_has_an_invariant_test() {
         "sexy-drill",
         "hyphy",
         "crunk",
+        // Volume 1's four recommended archetypes (2026-08-12).
+        "dungeon-family",
+        "houston-screw",
+        "nola-bounce",
+        "ringtone-club-rap",
     ];
 
     // Genres only: the artists are covered by
@@ -2397,7 +2559,10 @@ fn every_flagship_artist_sounds_unlike_the_genre_it_extends() {
 
     let mut checked = 0;
     for (id, model) in models {
-        if model.model_type != engine::dataset::ModelType::Artist {
+        // ⚠ Producers are held to the same claim as artists — "Trap is not
+        // Metro Boomin" is *about* a producer — so this asks whether the model
+        // is a style rather than whether it is specifically an artist.
+        if !model.model_type.is_style() {
             continue;
         }
         let parent = model

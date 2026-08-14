@@ -1,0 +1,294 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "twista",
+  "type": "artist",
+  "name": "Twista",
+  "aliases": [
+    "twista",
+    "tung twista",
+    "carl mitchell",
+    "adrenaline rush"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "boom-bap"
+  ],
+  "era": "1997-2004",
+  "genres": [
+    "rap",
+    "boom-bap"
+  ],
+  "relatedGenres": [
+    "boom-bap",
+    "crunk",
+    "rnb-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 boom-bap — Twista",
+    "Wikipedia — Adrenaline Rush (https://en.wikipedia.org/wiki/Adrenaline_Rush_(album))",
+    "Wikipedia — Twista (https://en.wikipedia.org/wiki/Twista)"
+  ],
+  "notes": "The research gives this entry a rule rather than a description, and the rule is inverse: the documented benchmark is 598 syllables in 55 seconds — about 10.9 a second, the density ceiling of the whole compendium — and \"as vocal/lead density rises toward that ceiling, hat and perc density must fall, because the subdivision space is already occupied\". So this model reads as a contradiction until you know that: `hihat.base` is 16th because the research says 16ths are \"necessary to frame the double-time flow\", but `fillDensity` is only 0.3 and `percs.densityPerBar` is 0–1 at −9 dB, both the lowest on this axis. The lead carries the density instead — `melody.densityPerBar` 6–11, the highest here — and sits at register 67–90 because the research says the keys are mid-high \"so the sample sits above the rapid vocal\". The kick takes 16th pickups (`densityPerBar` 3–5, `syncopation` 0.5, `tresilloBias` 0.18) and the roll frequency sits at the top of its band for the \"snare rolls into hooks\". ⛔ The bass is `mirror_kick` at `followRootsProb` 0.93, not `reese_sustain`. The research says \"sustained synth sub… kept simple so the vocal rhythm stays legible\", and the rhythm that literally holds a note emits one per chord and collapses; a near-always-root sub locked to a busy kick is the same record and does not. ⚠ `confidence` is medium and the research marks the producer specifics `[LOW-CONF]`. ⚠ The INFERRED parameters are all of the drum numbers: the flow/tempo relationship is documented at record level and The Legendary Traxster's board is not, so `fillDensity` 0.3 is this author's arithmetic on the inverse rule rather than a measurement.",
+  "session": {
+    "bpm": {
+      "min": 95,
+      "max": 105,
+      "mode": 100
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "harmonic_minor",
+        "major"
+      ],
+      "weights": [
+        4,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.52
+    },
+    "humanize": {
+      "quantizeStrength": 0.9,
+      "velocityVar": 0.1
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.5,
+      "tresilloBias": 0.18
+    },
+    "snare": {
+      "rimshotLayer": false,
+      "ghost": {
+        "prob": 0.14,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.18,
+          0.3
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.3,
+      "velocities": {
+        "main": [
+          0.7,
+          0.88
+        ],
+        "ghost": [
+          0.18,
+          0.38
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16T"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.25
+      },
+      "openHat": {
+        "prob": 0.15,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "rim"
+      ],
+      "densityPerBar": [
+        0,
+        1
+      ],
+      "gainOffsetDb": -9
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th",
+        "32nd"
+      ],
+      "grouping": [
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        64,
+        101
+      ],
+      "rampJitter": 13,
+      "gapProb": 0.12,
+      "descendProb": 0.34,
+      "pitchWalk": 2
+    }
+  },
+  "melody": {
+    "register": [
+      67,
+      90
+    ],
+    "densityPerBar": [
+      6,
+      11
+    ],
+    "intervals": {
+      "step": 0.55,
+      "third": 0.3,
+      "leap": 0.15
+    },
+    "contour": {
+      "riff": 0.5,
+      "descend": 0.3,
+      "arch": 0.2
+    },
+    "chordToneBias": 0.72,
+    "octaveJumpProb": 0.16,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "pitched_vocal_chop"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.4,
+    "styles": {
+      "values": [
+        "arp",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII",
+          "III"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.5,
+      "seventh": 0.38,
+      "ninth": 0.12
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        50,
+        78
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.93,
+    "register": [
+      26,
+      43
+    ],
+    "glideProb": 0.03,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.08
+  },
+  "arrangement": {
+    "sectionBars": {
+      "verse": 16,
+      "hook": 8
+    },
+    "transitions": {
+      "dropOutBeats": {
+        "prob": 0.7,
+        "beats": 2
+      }
+    }
+  }
+}

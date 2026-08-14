@@ -1,0 +1,308 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "tony-yayo",
+  "type": "artist",
+  "name": "Tony Yayo",
+  "aliases": [
+    "tony yayo",
+    "yayo",
+    "marvin bernard",
+    "g-unit"
+  ],
+  "tier": "standard",
+  "extends": [
+    "boom-bap"
+  ],
+  "era": "2005",
+  "genres": [
+    "rap",
+    "boom bap"
+  ],
+  "relatedGenres": [
+    "boom-bap",
+    "ringtone-club-rap",
+    "rnb-2000s"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended vol.1 boom-bap — Tony Yayo",
+    "https://en.wikipedia.org/wiki/Tony_Yayo",
+    "https://www.discogs.com/release/475503-Tony-Yayo-Thoughts-Of-A-Predicate-Felon"
+  ],
+  "notes": "⚠ **`low`, and the research says why.** It is rated medium-low: the chart, the label and a complete 14-producer board across 16 tracks are sourced, but *no interview establishes his own workflow*, so **every drum and harmonic number here is genre-plus-board inference** — `kick`, `hihat`, `percs`, `snareRoll` and the extensions are all INFERRED, and the only sourced parameters are the tempo band, the key set and the arrangement. Even the tempo carries a `[LOW-CONF]` mark, because readings at 144–187 fold in half onto 72–94. What is modellable is the *board*, and that is the reason the entry exists: a Shady-camp-plus-West-Coast-journeyman bench (Domingo, Sha Money XL, Punch, Focus…, Ron Browz, Havoc, DJ Khalil, Sam Sneed, Megahertz, J.R. Rotem, Eminem with Jeff Bass and Luis Resto) rather than the Dr. Dre / Scott Storch board the existing `50 Cent / G-Unit era` entry models — which is why he is not absorbed into it. The parameters that carry it: **a clap over the snare with the widest offset in this batch**, a 2005 Interscope 8th-hat kit with 16th accents, **a sustained sub separated from the kick by envelope rather than pitch and no slides at all** (`glideProb` 0, `followRootsProb` 0.95), Phrygian synth leads over 2-bar static `i` vamps, and `i–VI–VII` where there is motion at all. The melodic movement is supplied by R&B guest hooks rather than the beat, so `densityPerBar` is low and the countermelody is the loudest melodic department here.",
+  "session": {
+    "bpm": {
+      "min": 80,
+      "max": 97,
+      "mode": 89
+    },
+    "keys": {
+      "values": [
+        "Bbm",
+        "F#m",
+        "Abm",
+        "Dm",
+        "Ab",
+        "A"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2,
+        2,
+        1
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "phrygian",
+        "major"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.52
+    },
+    "humanize": {
+      "quantizeStrength": 0.91,
+      "velocityVar": 0.1
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.3,
+      "tresilloBias": 0.12
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "layerClapOffsetMs": 9,
+      "ghost": {
+        "prob": 0.14,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.2,
+          0.34
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.5,
+      "velocities": {
+        "main": [
+          0.74,
+          0.95
+        ],
+        "ghost": [
+          0.22,
+          0.46
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "16T"
+          ],
+          "weights": [
+            2,
+            3
+          ]
+        },
+        "positions": [
+          "pre_snare"
+        ],
+        "freqPerBar": 0.3
+      },
+      "openHat": {
+        "prob": 0.29,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "snap"
+      ],
+      "densityPerBar": [
+        0,
+        2
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        71,
+        111
+      ],
+      "rampJitter": 9,
+      "descendProb": 0.36,
+      "gapProb": 0.25,
+      "pitchWalk": 2
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "I"
+        ],
+        "weight": 1
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.66,
+      "seventh": 0.28,
+      "ninth": 0.06
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        43,
+        67
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      16
+    ]
+  },
+  "melody": {
+    "register": [
+      64,
+      85
+    ],
+    "densityPerBar": [
+      2,
+      5
+    ],
+    "structure": "riff_loop",
+    "intervals": {
+      "step": 0.54,
+      "third": 0.26,
+      "leap": 0.2
+    },
+    "contour": {
+      "riff": 0.66,
+      "descend": 0.22,
+      "arch": 0.12
+    },
+    "chordToneBias": 0.68,
+    "halfStepDissonance": 0.14,
+    "octaveJumpProb": 0.06,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        1
+      ]
+    },
+    "timbreHint": "square_lead"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.52,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.95,
+    "register": [
+      24,
+      41
+    ],
+    "glideProb": 0,
+    "passingTones": [],
+    "anticipationProb": 0.08
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": 16,
+      "hook": 8,
+      "outro": 4
+    }
+  }
+}

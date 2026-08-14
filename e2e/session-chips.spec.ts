@@ -1,5 +1,7 @@
 import { expect, test } from '@playwright/test';
 
+import { openPanel } from './app';
+
 /**
  * The session chips and the keep-or-adopt prompt (TASK-033, FR-002).
  *
@@ -15,6 +17,8 @@ const chip = (name: string) => `.session__chip:has-text("${name}")`;
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('tablist', { name: 'Generator' })).toBeVisible();
+  // ⛔ The panel is behind a vertical tab now — `openPanel` presses it.
+  await openPanel(page, 'session');
 });
 
 async function pick(page: import('@playwright/test').Page, query: string) {
@@ -84,6 +88,13 @@ test('key and scale offer the artist’s choice until a beat exists', async ({ p
 
   await page.getByRole('button', { name: 'Generate', exact: true }).click();
   await expect(page.getByRole('table', { name: 'Generated pattern' })).toBeVisible();
+
+  // ⛔ **The first Generate pulls the right rail back to `kit · stems`**, on
+  // purpose — `useUi.revealStems` shows a producer where their stems went, once.
+  // The session chips live in the other group, so they have to be asked for
+  // again afterwards. `openPanel` is idempotent, so this is a no-op on any run
+  // where the reveal has already been spent.
+  await openPanel(page, 'session');
 
   // ...and afterwards it says which one the artist landed on. The mock
   // generates in F♯ natural minor.

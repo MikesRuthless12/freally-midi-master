@@ -14,9 +14,16 @@ import {
   pasteCells,
   columnOf,
   reassignLane,
+  reverseCells,
   unusedLanes,
   addFill,
   PITCHED_LANES,
+  laneRoot,
+  toPitchLane,
+  toggleHitAt,
+  setHitPitch,
+  PITCH_WINDOW_ROWS,
+  PITCH_WINDOW_RADIUS,
 } from './cells';
 import type { Lane, Note, Pattern } from '../../lib/ipc-types';
 
@@ -735,5 +742,268 @@ describe('addFill (TASK-043H)', () => {
     const empty = pattern([{ lane: 'openHat', notes: [] }]);
     const notes = addFill(empty, 'openHat').lanes.find((l) => l.lane === 'openHat')!.notes;
     expect(notes.length).toBe(8);
+  });
+});
+
+/**
+ * Playing the hits in a cell backwards (2026-08-11).
+ *
+ * ⛔ Mike named the drum grid first: *"if you have a drum pad or something
+ * playing forward in the pad, but you want it to play backwards in the drum
+ * pattern, you should be able to switch it."* The roll's own
+ * `transforms.reversePlayback` is the same gesture on a `NoteId` selection; this
+ * is the cell-based half, and the toggle rule is deliberately identical.
+ */
+describe('reverseCells', () => {
+  const kit = () =>
+    pattern([
+      { lane: 'kick', notes: [note(0), note(TICKS_PER_16TH * 4)] },
+      { lane: 'snare', notes: [note(TICKS_PER_16TH * 4)] },
+    ]);
+
+  it('flips only the cells that were picked', () => {
+    const next = reverseCells(kit(), [{ lane: 'kick', column: 0 }]);
+    const kick = next.lanes.find((l) => l.lane === 'kick')!.notes;
+    const snare = next.lanes.find((l) => l.lane === 'snare')!.notes;
+
+    expect(kick[0].reversed).toBe(true);
+    expect(kick[1].reversed).toBeFalsy();
+    expect(snare[0].reversed).toBeFalsy();
+  });
+
+  it('turns a wholly reversed selection back', () => {
+    const cells = [{ lane: 'kick' as Lane, column: 0 }];
+    const once = reverseCells(kit(), cells);
+    const twice = reverseCells(once, cells);
+
+    expect(twice.lanes.find((l) => l.lane === 'kick')!.notes[0].reversed).toBe(false);
+  });
+
+  it('reverses everything when the selection is mixed', () => {
+    // ⛔ The same rule the roll follows: per-note flipping makes a mixed
+    // selection un-un-reversible.
+    const both: { lane: Lane; column: number }[] = [
+      { lane: 'kick', column: 0 },
+      { lane: 'kick', column: 4 },
+    ];
+    const half = reverseCells(kit(), [both[0]]);
+    const next = reverseCells(half, both);
+
+    expect(next.lanes.find((l) => l.lane === 'kick')!.notes.every((n) => n.reversed)).toBe(
+      true,
+    );
+  });
+
+  it('leaves the pattern untouched when the cells hold nothing', () => {
+    const source = kit();
+    expect(reverseCells(source, [{ lane: 'kick', column: 9 }])).toBe(source);
+  });
+});
+
+/** A note at an explicit pitch — the stock `note` factory is fixed at 36. */
+const pitched = (startTick: number, pitch: number, vel = 100): Note => ({
+  startTick,
+  lenTicks: 120,
+  pitch,
+  vel,
+});
+
+describe('laneRoot', () => {
+  it('has no answer for a lane with no notes', () => {
+    expect(laneRoot(pattern([{ lane: 'sub', notes: [] }]), 'sub')).toBeNull();
+  });
+
+  it('takes the most common pitch rather than the first', () => {
+    // An 808 that opens on a passing tone and then sits on the tonic. Reading
+    // the first note would put the window three semitones off for the whole bar.
+    const p = pattern([
+      {
+        lane: 'sub',
+        notes: [
+          pitched(0, 33),
+          pitched(TICKS_PER_16TH * 4, 36),
+          pitched(TICKS_PER_16TH * 8, 36),
+        ],
+      },
+    ]);
+    expect(laneRoot(p, 'sub')).toBe(36);
+  });
+
+  it('breaks a tie towards the lower pitch, so note order cannot decide it', () => {
+    const high = pattern([
+      { lane: 'sub', notes: [pitched(0, 40), pitched(TICKS_PER_16TH, 36)] },
+    ]);
+    const low = pattern([
+      { lane: 'sub', notes: [pitched(0, 36), pitched(TICKS_PER_16TH, 40)] },
+    ]);
+    expect(laneRoot(high, 'sub')).toBe(36);
+    expect(laneRoot(low, 'sub')).toBe(36);
+  });
+});
+
+describe('toPitchLane', () => {
+  const eight08 = () =>
+    pattern([
+      {
+        lane: 'sub',
+        notes: [
+          pitched(0, 36),
+          pitched(TICKS_PER_16TH * 4, 36),
+          pitched(TICKS_PER_16TH * 8, 39),
+        ],
+      },
+    ]);
+
+  it('draws seven empty rows for a lane with no notes rather than throwing', () => {
+    const lane = toPitchLane(pattern([{ lane: 'sub', notes: [] }]), 'sub', 36, 0);
+    expect(lane.rows).toHaveLength(PITCH_WINDOW_ROWS);
+    expect(lane.rows.every((row) => row.cells.every((cell) => cell.hits === 0))).toBe(true);
+  });
+
+  it('keeps its rows still when the root it was given does not move', () => {
+    // ⛔ The regression this guards: `laneRoot` is the *mode*, so a lane holding
+    // one hit has that hit as its root. Reading the root here rather than taking
+    // it meant dragging that hit up two semitones moved the window with it and
+    // drew the note back in the centre — the note moved and the grid did not say
+    // so. The caller freezes a root at expand time and passes it back unchanged.
+    const before = pattern([{ lane: 'sub', notes: [pitched(0, 36)] }]);
+    const after = pattern([{ lane: 'sub', notes: [pitched(0, 38)] }]);
+
+    expect(toPitchLane(before, 'sub', 36, 0).rows[PITCH_WINDOW_RADIUS].pitch).toBe(36);
+    expect(toPitchLane(after, 'sub', 36, 0).rows[PITCH_WINDOW_RADIUS].pitch).toBe(36);
+    expect(
+      toPitchLane(after, 'sub', 36, 0).rows.find((r) => r.pitch === 38)!.cells[0].hits,
+    ).toBe(1);
+  });
+
+  it('is seven rows tall, highest pitch first', () => {
+    const lane = toPitchLane(eight08(), 'sub', 36, 0);
+    expect(lane.rows).toHaveLength(PITCH_WINDOW_ROWS);
+    expect(lane.rows[0].pitch).toBe(36 + PITCH_WINDOW_RADIUS);
+    expect(lane.rows[PITCH_WINDOW_ROWS - 1].pitch).toBe(36 - PITCH_WINDOW_RADIUS);
+    expect(lane.root).toBe(36);
+    expect(lane.rows[PITCH_WINDOW_RADIUS].pitch).toBe(36);
+  });
+
+  it('draws a hit in the row its pitch names', () => {
+    const lane = toPitchLane(eight08(), 'sub', 36, 0);
+    const root = lane.rows.find((r) => r.pitch === 36)!;
+    const up3 = lane.rows.find((r) => r.pitch === 39)!;
+
+    expect(root.cells.filter((c) => c.hits > 0)).toHaveLength(2);
+    expect(up3.cells[8].hits).toBe(1);
+    // ⚠ The offset is what an unpitched lane labels, so it must be signed.
+    expect(up3.offset).toBe(3);
+    expect(root.offset).toBe(0);
+  });
+
+  it('reports a hit outside the window instead of dropping it', () => {
+    // An 808 sliding a fifth up leaves the seven-row window entirely. Silently
+    // not drawing it would make it audible and invisible.
+    const p = pattern([
+      { lane: 'sub', notes: [pitched(0, 36), pitched(TICKS_PER_16TH * 2, 43)] },
+    ]);
+    const lane = toPitchLane(p, 'sub', 36, 0);
+
+    expect(lane.rows.every((row) => row.cells[2].hits === 0)).toBe(true);
+    expect(lane.above[2]).toBe(1);
+    expect(lane.below.every((count) => count === 0)).toBe(true);
+  });
+
+  it('pans the window rather than growing it, so travel is unbounded', () => {
+    const p = pattern([
+      { lane: 'sub', notes: [pitched(0, 36), pitched(TICKS_PER_16TH * 2, 43)] },
+    ]);
+    const panned = toPitchLane(p, 'sub', 36, 7);
+
+    expect(panned.rows).toHaveLength(PITCH_WINDOW_ROWS);
+    expect(panned.rows[PITCH_WINDOW_RADIUS].pitch).toBe(43);
+    // The far hit is now on screen and the root has gone off the bottom.
+    expect(panned.rows.find((r) => r.pitch === 43)!.cells[2].hits).toBe(1);
+    expect(panned.below[0]).toBe(1);
+  });
+
+  it('works on an unpitched lane, where the offset is a sample transposition', () => {
+    // Mike, 2026-08-12: every lane expands. A hat pitched two semitones up is a
+    // transposition of the sample, not a note, but the bucketing is identical.
+    const p = pattern([
+      { lane: 'closedHat', notes: [pitched(0, 42), pitched(TICKS_PER_16TH, 44)] },
+    ]);
+    const lane = toPitchLane(p, 'closedHat', 42, 0);
+
+    expect(lane.root).toBe(42);
+    expect(lane.rows.find((r) => r.pitch === 44)!.offset).toBe(2);
+    expect(lane.rows.find((r) => r.pitch === 44)!.cells[1].hits).toBe(1);
+  });
+});
+
+describe('toggleHitAt', () => {
+  it('places a hit at the pitch its row names', () => {
+    const next = toggleHitAt(pattern([{ lane: 'sub', notes: [] }]), 'sub', 4, 39);
+    const notes = next.lanes.find((l) => l.lane === 'sub')!.notes;
+
+    expect(notes).toHaveLength(1);
+    expect(notes[0].pitch).toBe(39);
+    expect(columnOf(notes[0].startTick)).toBe(4);
+  });
+
+  it('clears only the pitch that was clicked, not the whole cell', () => {
+    // ⛔ The flat `toggleHit` cannot express this: it clears whatever is in the
+    // cell, so on an expanded lane it would take the root hit with it.
+    const both = pattern([{ lane: 'sub', notes: [pitched(0, 36), pitched(0, 38)] }]);
+    const next = toggleHitAt(both, 'sub', 0, 38);
+    const notes = next.lanes.find((l) => l.lane === 'sub')!.notes;
+
+    expect(notes).toHaveLength(1);
+    expect(notes[0].pitch).toBe(36);
+  });
+});
+
+describe('setHitPitch', () => {
+  const one = () => pattern([{ lane: 'sub', notes: [pitched(0, 36)] }]);
+
+  it('moves a hit to the row it was dragged to', () => {
+    const notes = setHitPitch(one(), 'sub', 0, 36, 39).lanes.find(
+      (l) => l.lane === 'sub',
+    )!.notes;
+    expect(notes).toHaveLength(1);
+    expect(notes[0].pitch).toBe(39);
+  });
+
+  it('refuses when the destination pitch is already taken, and eats nothing', () => {
+    // The guard `no_lane_holds_two_notes_at_one_tick_and_pitch` forbids the
+    // duplicate; merging would silently destroy the hit already sitting there.
+    const both = pattern([{ lane: 'sub', notes: [pitched(0, 36), pitched(0, 39)] }]);
+    const next = setHitPitch(both, 'sub', 0, 36, 39);
+
+    expect(next).toBe(both);
+    expect(next.lanes.find((l) => l.lane === 'sub')!.notes).toHaveLength(2);
+  });
+
+  it('lets a hit move back onto a pitch a DIFFERENT tick in the cell still holds', () => {
+    // ⛔ The regression: the destination test asked about the *column*, but the
+    // invariant is (tick, pitch). A column is 240 ticks and a tuplet fills one
+    // with several — so after dragging one of a pair up a semitone, dragging it
+    // back was refused because its twin still sat on the pitch it came from, and
+    // the hit was stranded with no way home but deleting it.
+    const pair = pattern([{ lane: 'sub', notes: [pitched(0, 37), pitched(120, 36)] }]);
+    const next = setHitPitch(pair, 'sub', 0, 37, 36);
+    const notes = next.lanes.find((l) => l.lane === 'sub')!.notes;
+
+    expect(next).not.toBe(pair);
+    expect(notes.find((n) => n.startTick === 0)!.pitch).toBe(36);
+    expect(notes.find((n) => n.startTick === 120)!.pitch).toBe(36);
+  });
+
+  it('still refuses when the SAME tick already holds the destination pitch', () => {
+    const both = pattern([{ lane: 'sub', notes: [pitched(0, 36), pitched(0, 39)] }]);
+    expect(setHitPitch(both, 'sub', 0, 36, 39)).toBe(both);
+  });
+
+  it('does nothing when there is no hit to move, or the pitch has not changed', () => {
+    const source = one();
+    expect(setHitPitch(source, 'sub', 0, 36, 36)).toBe(source);
+    expect(setHitPitch(source, 'sub', 0, 44, 46)).toBe(source);
+    expect(setHitPitch(source, 'sub', 9, 36, 39)).toBe(source);
   });
 });

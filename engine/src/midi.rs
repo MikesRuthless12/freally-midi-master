@@ -359,6 +359,38 @@ fn events_for(pattern: &Pattern, layout: Layout) -> Vec<Event> {
     events
 }
 
+/// Write `events` onto `track` as deltas.
+///
+/// ⚠ Shared by [`pattern_to_smf`] and [`song_to_smf`], which differ in which
+/// events they collect and not at all in how those are encoded.
+fn push_events(track: &mut Track<'_>, events: Vec<Event>) {
+    let mut last_tick = 0u32;
+    for event in events {
+        let delta = event.tick.saturating_sub(last_tick);
+        last_tick = event.tick;
+
+        let message = if event.is_on {
+            MidiMessage::NoteOn {
+                key: u7::new(event.key.min(127)),
+                vel: u7::new(event.velocity.min(127)),
+            }
+        } else {
+            MidiMessage::NoteOff {
+                key: u7::new(event.key.min(127)),
+                vel: u7::new(0),
+            }
+        };
+
+        track.push(TrackEvent {
+            delta: u28::new(delta),
+            kind: TrackEventKind::Midi {
+                channel: u4::new(event.channel),
+                message,
+            },
+        });
+    }
+}
+
 /// Encode a pattern as a type-0 SMF.
 pub fn pattern_to_smf(pattern: &Pattern) -> Vec<u8> {
     let mut track = Track::new();
@@ -410,31 +442,7 @@ pub fn pattern_to_smf(pattern: &Pattern) -> Vec<u8> {
         kind: TrackEventKind::Meta(MetaMessage::TrackName(name.as_bytes())),
     });
 
-    let mut last_tick = 0u32;
-    for event in events_for(pattern, Layout::Single) {
-        let delta = event.tick.saturating_sub(last_tick);
-        last_tick = event.tick;
-
-        let message = if event.is_on {
-            MidiMessage::NoteOn {
-                key: u7::new(event.key.min(127)),
-                vel: u7::new(event.velocity.min(127)),
-            }
-        } else {
-            MidiMessage::NoteOff {
-                key: u7::new(event.key.min(127)),
-                vel: u7::new(0),
-            }
-        };
-
-        track.push(TrackEvent {
-            delta: u28::new(delta),
-            kind: TrackEventKind::Midi {
-                channel: u4::new(event.channel),
-                message,
-            },
-        });
-    }
+    push_events(&mut track, events_for(pattern, Layout::Single));
 
     track.push(TrackEvent {
         delta: u28::new(0),
@@ -677,29 +685,7 @@ pub fn song_to_smf(song: &Song) -> Vec<u8> {
             kind: TrackEventKind::Meta(MetaMessage::TrackName(part_track_name(part).as_bytes())),
         });
 
-        let mut last_tick = 0u32;
-        for event in events {
-            let delta = event.tick.saturating_sub(last_tick);
-            last_tick = event.tick;
-            let message = if event.is_on {
-                MidiMessage::NoteOn {
-                    key: u7::new(event.key.min(127)),
-                    vel: u7::new(event.velocity.min(127)),
-                }
-            } else {
-                MidiMessage::NoteOff {
-                    key: u7::new(event.key.min(127)),
-                    vel: u7::new(0),
-                }
-            };
-            track.push(TrackEvent {
-                delta: u28::new(delta),
-                kind: TrackEventKind::Midi {
-                    channel: u4::new(event.channel),
-                    message,
-                },
-            });
-        }
+        push_events(&mut track, events);
 
         track.push(TrackEvent {
             delta: u28::new(0),
@@ -745,6 +731,7 @@ pub fn drag_spike_pattern() -> Pattern {
                 vel: 112,
                 slide_to_pitch: None,
                 articulation: None,
+                reversed: false,
             });
         }
         // Snare on beat 3 only: half-time.
@@ -756,6 +743,7 @@ pub fn drag_spike_pattern() -> Pattern {
             vel: 118,
             slide_to_pitch: None,
             articulation: None,
+            reversed: false,
         });
         // Straight 16th hats.
         for i in 0..16u32 {
@@ -767,6 +755,7 @@ pub fn drag_spike_pattern() -> Pattern {
                 vel: if i % 4 == 0 { 100 } else { 72 },
                 slide_to_pitch: None,
                 articulation: None,
+                reversed: false,
             });
         }
     }
@@ -839,6 +828,7 @@ mod tests {
             vel: 100,
             slide_to_pitch: None,
             articulation: None,
+            reversed: false,
         }
     }
 
@@ -1148,6 +1138,7 @@ mod tests {
             vel: 100,
             slide_to_pitch: Some(40),
             articulation: None,
+            reversed: false,
         };
         let events = events_for(&tiny(Lane::Sub, vec![slide]), Layout::Single);
 
@@ -1193,6 +1184,7 @@ mod tests {
             vel: 100,
             slide_to_pitch: Some(33),
             articulation: None,
+            reversed: false,
         };
         assert_eq!(
             events_for(&tiny(Lane::Sub, vec![flat]), Layout::Single).len(),
@@ -1212,6 +1204,7 @@ mod tests {
             vel: 100,
             slide_to_pitch: Some(60),
             articulation: None,
+            reversed: false,
         };
         let events = events_for(&tiny(Lane::Kick, vec![hit]), Layout::Single);
         assert_eq!(events.len(), 2);

@@ -4,7 +4,7 @@ import type { Lane, Note, Pattern } from '../../lib/ipc-types';
 // and then wrong in two directions at once: the grid drew a third more columns
 // than a 6/8 clip has, while the velocity lane below it (which does use this)
 // placed its caps on the real tick scale. One definition, one answer.
-import { patternTicks } from '../PianoRoll/notes';
+import { nextReversed, patternTicks } from '../PianoRoll/notes';
 
 /**
  * Turning a pattern into grid cells, kept out of the component file.
@@ -145,6 +145,239 @@ export function toCells(pattern: Pattern): Row[] {
       }
       return { lane, cells };
     },
+  );
+}
+
+/**
+ * How far an expanded lane reaches above and below its root (TASK-161).
+ *
+ * ⛔ **A small WINDOW, not a big range, and the distinction is the design.**
+ * Mike, from Drum Monkey: *"it only shows the next 3 semitones up and 3
+ * semitones down, but you can move it up and down as high as you want to."* An
+ * expanded lane is therefore always exactly seven rows tall, and reaching a
+ * pitch outside them pans the window rather than growing it.
+ *
+ * ▶ **Why not ±12.** Thirty-three lanes at 25 rows each is 825 rows, which would
+ * need the piano roll's virtualization argument all over again for a grid that
+ * has never required it. Seven rows per *expanded* lane costs nothing, because
+ * only the lanes being worked on are open at once.
+ */
+export const PITCH_WINDOW_RADIUS = 3;
+
+/** The row count that radius implies: three up, three down, and the root. */
+export const PITCH_WINDOW_ROWS = PITCH_WINDOW_RADIUS * 2 + 1;
+
+/** One semitone's row inside an expanded lane. */
+export type PitchRow = {
+  /** The absolute MIDI pitch this row draws. */
+  pitch: number;
+  /** That pitch relative to the lane's root — what an unpitched lane labels. */
+  offset: number;
+  cells: Cell[];
+};
+
+/**
+ * An expanded lane: seven rows, plus what did not fit in them.
+ *
+ * ⛔ **`above` and `below` exist so that no hit is ever audible and invisible.**
+ * That failure has a name in this codebase — the piano roll draws a marker for
+ * an out-of-scale note in a folded roll for exactly this reason — and a
+ * seven-row window onto a lane whose 808 slides an octave would otherwise hide
+ * hits that still play and still export. The grid draws these as edge markers,
+ * which are also the producer's cue that panning will reveal something.
+ */
+export type PitchLane = {
+  /** The pitch the window is measured from. */
+  root: number;
+  /** Highest pitch first, so row order matches how the grid stacks them. */
+  rows: PitchRow[];
+  /** Hits above the window, per column. */
+  above: number[];
+  /** Hits below the window, per column. */
+  below: number[];
+};
+
+/**
+ * The pitch an expanded lane measures its window from.
+ *
+ * ⛔ **The most common pitch, not the first one.** `placedPitch` takes the first
+ * note because it answers a different question — what a *newly placed* hit
+ * should sound at — and for an unpitched lane every note carries the same pitch
+ * so the two agree. They part on `sub`: an 808 that opens on a passing tone and
+ * spends the rest of the bar on the tonic would put the window three semitones
+ * off, and every drag would fight it. The mode is also stable under editing,
+ * which the first note is not — moving one hit must not slide the window.
+ *
+ * ⚠ **Ties go to the lower pitch**, so the answer never depends on note order.
+ *
+ * ⛔ **`null` for an empty lane, and the caller must handle it** rather than
+ * substituting a number. A lane emptied by hand keeps its (empty) track, so this
+ * is reachable in one click, and there is no honest root to draw a window around
+ * — the grid falls back to the flat row.
+ */
+export function laneRoot(pattern: Pattern, lane: Lane): number | null {
+  const notes = notesIn(pattern, lane);
+  if (notes.length === 0) return null;
+
+  const counts = new Map<number, number>();
+  for (const note of notes) counts.set(note.pitch, (counts.get(note.pitch) ?? 0) + 1);
+
+  let root = notes[0].pitch;
+  let best = 0;
+  for (const [pitch, count] of counts) {
+    if (count > best || (count === best && pitch < root)) {
+      root = pitch;
+      best = count;
+    }
+  }
+  return root;
+}
+
+/**
+ * Bucket one lane's notes into the seven rows of its expanded window.
+ *
+ * The flat [`toCells`] row reduces a lane to `{hits, velocity}` per 16th, which
+ * throws pitch away — that is why the most pitch-critical element in trap was
+ * the one part drawn as on/off. This is the same bucketing done once per
+ * semitone instead of once per lane.
+ *
+ * ⛔ **`root` is passed in rather than read here**, and that is what keeps the
+ * rows still. [`laneRoot`] is the lane's most common pitch, so in a lane holding
+ * one hit it *is* that hit — recomputing it per render meant dragging the only
+ * note up two semitones moved the root with it and drew the note back in the
+ * middle, so the note moved and the screen said it had not. The caller freezes
+ * a root when the lane opens and hands the same one back every render.
+ *
+ * `windowOffset` is the lane's pan, in semitones from that frozen root.
+ */
+export function toPitchLane(
+  pattern: Pattern,
+  lane: Lane,
+  root: number,
+  windowOffset: number,
+): PitchLane {
+  const columns = Math.max(1, Math.round(patternTicks(pattern) / TICKS_PER_16TH));
+  const centre = root + windowOffset;
+  const top = centre + PITCH_WINDOW_RADIUS;
+  const bottom = centre - PITCH_WINDOW_RADIUS;
+
+  const rows: PitchRow[] = [];
+  for (let pitch = top; pitch >= bottom; pitch -= 1) {
+    rows.push({
+      pitch,
+      offset: pitch - root,
+      cells: Array.from({ length: columns }, () => ({ hits: 0, velocity: 0 })),
+    });
+  }
+
+  const above = new Array<number>(columns).fill(0);
+  const below = new Array<number>(columns).fill(0);
+
+  for (const note of notesIn(pattern, lane)) {
+    const column = columnOf(note.startTick);
+    if (column < 0 || column >= columns) continue;
+    if (note.pitch > top) {
+      above[column] += 1;
+      continue;
+    }
+    if (note.pitch < bottom) {
+      below[column] += 1;
+      continue;
+    }
+    // Rows run highest first, so the top pitch is index 0.
+    const cell = rows[top - note.pitch].cells[column];
+    cell.hits += 1;
+    cell.velocity = Math.max(cell.velocity, note.vel);
+  }
+
+  return { root, rows, above, below };
+}
+
+/**
+ * Place or clear a hit at one pitch inside an expanded lane (TASK-161).
+ *
+ * The flat [`toggleHit`] clears *whatever* is in the cell, because a collapsed
+ * lane cannot express which pitch was meant. Inside an expanded lane the row is
+ * the pitch, so clicking the +2 row must not remove the hit sitting on the root.
+ */
+export function toggleHitAt(
+  pattern: Pattern,
+  lane: Lane,
+  column: number,
+  pitch: number,
+): Pattern {
+  const [from] = cellSpan(column);
+  const notes = notesIn(pattern, lane);
+  // ⚠ `columnOf`, not a span test. It is the one definition of which cell a note
+  // is drawn in, and this module's own note on `clearCells` records that a
+  // hand-rolled span check here is the drift it exists to prevent.
+  const kept = notes.filter(
+    (note) => !(columnOf(note.startTick) === column && note.pitch === pitch),
+  );
+  // One scan answers both "is it there" and "what is left without it".
+  if (kept.length !== notes.length) return withLane(pattern, lane, kept);
+
+  return withLane(pattern, lane, [
+    ...notes,
+    {
+      startTick: from + EARLY_TOLERANCE,
+      lenTicks: TICKS_PER_16TH,
+      pitch,
+      vel: PLACED_VELOCITY,
+      modelVel: null,
+      slideToPitch: null,
+      articulation: null,
+    },
+  ]);
+}
+
+/**
+ * Move one hit to another pitch in the same column — the drag inside an
+ * expanded lane.
+ *
+ * ⛔ **It REFUSES rather than merges when the destination is taken**, and the
+ * pattern comes back by identity so the caller can see nothing moved.
+ * `no_lane_holds_two_notes_at_one_tick_and_pitch` is asserted across every
+ * shipped model, so landing on an occupied `(tick, pitch)` cannot simply be
+ * allowed — and of the two legal answers, merging silently destroys the note
+ * that was already there. A drag that visibly does nothing is recoverable; a
+ * drag that eats a hit the producer did not know was underneath is not.
+ */
+export function setHitPitch(
+  pattern: Pattern,
+  lane: Lane,
+  column: number,
+  fromPitch: number,
+  toPitch: number,
+): Pattern {
+  if (fromPitch === toPitch) return pattern;
+
+  const notes = notesIn(pattern, lane);
+  // ⚠ `columnOf` rather than a span test, for the reason `clearCells` gives.
+  const inCell = (note: Note) => columnOf(note.startTick) === column;
+
+  const moving = notes.find((note) => inCell(note) && note.pitch === fromPitch);
+  if (!moving) return pattern;
+  // ⛔⛔ **The invariant is `(tick, pitch)`, not `(column, pitch)`.** A column is
+  // 240 ticks and routinely holds several hits at different ticks — every roll
+  // and every tuplet — so asking whether the *column* already holds `toPitch`
+  // refused moves that violate nothing: `Ctrl+2` a cell, drag one of the pair up
+  // a semitone, and it could never come back down, because its twin was still
+  // sitting on the pitch it came from. The hit was stranded with no way back
+  // except deleting it.
+  if (
+    notes.some(
+      (note) =>
+        note !== moving && note.startTick === moving.startTick && note.pitch === toPitch,
+    )
+  ) {
+    return pattern;
+  }
+
+  return withLane(
+    pattern,
+    lane,
+    notes.map((note) => (note === moving ? { ...note, pitch: toPitch } : note)),
   );
 }
 
@@ -400,6 +633,51 @@ export function clearCells(pattern: Pattern, targets: readonly CellRef[]): Patte
     const kept = notes.filter((note) => !columns.has(columnOf(note.startTick)));
     if (kept.length === notes.length) continue;
     next = withLane(next, lane, kept);
+  }
+  return next;
+}
+
+/**
+ * Play the hits in these cells backwards — or forwards again.
+ *
+ * ⛔⛔ **Mike, 2026-08-11:** *"if you have a drum pad or something playing forward
+ * in the pad, but you want it to play backwards in the drum pattern, you should
+ * be able to switch it … select the note and press like 'Ctrl+R' or 'Command+R'
+ * on macOS to reverse the note just for that single note being played."*
+ *
+ * ⛔ **A TOGGLE decided once for the whole selection**, exactly as the roll's
+ * `reverseNotes` does it and for the same reason: flipping each hit
+ * independently makes a mixed selection un-un-reversible, because every press
+ * would swap which half is backwards with no way back to "all forwards". So if
+ * anything selected is still forwards the press reverses everything.
+ *
+ * ⚠ **`columnOf`, not a span test.** It is the one definition of which cell a
+ * note is drawn in, and half the hits in a generated pattern sit early of the
+ * grid on purpose — the drift this module's header records.
+ *
+ * ⛔ Audio only: a reversed note has no SMF representation, so a `.mid` from this
+ * clip loses it. `engine::pattern::Note::reversed` carries the same warning.
+ */
+export function reverseCells(pattern: Pattern, targets: readonly CellRef[]): Pattern {
+  const hits = columnsByLane(targets);
+  const all = [...hits].flatMap(([lane, columns]) =>
+    notesIn(pattern, lane).filter((note) => columns.has(columnOf(note.startTick))),
+  );
+  if (all.length === 0) return pattern;
+  // ⛔ The same decision the piano roll makes — see `nextReversed`, which is why
+  // it is not spelled out here a second time.
+  const backwards = nextReversed(all);
+
+  let next = pattern;
+  for (const [lane, columns] of hits) {
+    const notes = notesIn(next, lane);
+    next = withLane(
+      next,
+      lane,
+      notes.map((note) =>
+        columns.has(columnOf(note.startTick)) ? { ...note, reversed: backwards } : note,
+      ),
+    );
   }
   return next;
 }

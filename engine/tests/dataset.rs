@@ -14,6 +14,81 @@ fn data_dir() -> PathBuf {
         .join("data")
 }
 
+/// The two folders a style a producer can *pick* is allowed to live in.
+///
+/// ⛔⛔ **`data/producers/` exists because the repo should say who is who** —
+/// Mike, 2026-08-12: *"just put the producers only in there instead of having
+/// artists and producers all in one folder, so that way i know who is who and
+/// so does anyone else looking at my code."* The loader needed no change for it
+/// (`files::scan` has always recursed, and only `schema`/`kits`/`presets`/
+/// `novelty` are excluded), which is exactly why a *test* has to name both:
+/// nothing else would have noticed the day a check written against
+/// `data/artists` quietly stopped covering 190 models.
+const STYLE_DIRS: &[&str] = &["artists", "producers"];
+
+/// Every style file on disk, with the folder it came from.
+fn style_files() -> Vec<(PathBuf, String)> {
+    let mut out = vec![];
+    for dir in STYLE_DIRS {
+        let root = data_dir().join(dir);
+        let mut paths: Vec<PathBuf> = fs::read_dir(&root)
+            .unwrap_or_else(|e| panic!("data/{dir} is required: {e}"))
+            .filter_map(Result::ok)
+            .map(|e| e.path())
+            .filter(|p| p.extension().is_some_and(|x| x == "json"))
+            .collect();
+        // Deterministic order so a failure is reproducible.
+        paths.sort();
+        for path in paths {
+            let text = fs::read_to_string(&path).unwrap();
+            out.push((path, text));
+        }
+    }
+    out
+}
+
+#[test]
+fn every_model_sits_in_the_folder_its_type_names() {
+    // ⛔⛔ **Two records of one fact, so they are made to agree.** The folder is
+    // what a person reading the repo sees; `type` is what the roster groups by.
+    // Neither can be derived from the other at runtime — `files::scan` throws
+    // the folder away and hands the loader `(path, text)` — so without this the
+    // two drift the first time a model is authored into the wrong one, and the
+    // symptom is a producer filed under "Artists" in the rail with nothing
+    // anywhere reporting a problem.
+    let mut seen = (0, 0);
+    for (path, text) in style_files() {
+        let model: serde_json::Value = serde_json::from_str(&text).unwrap();
+        let name = path.file_name().unwrap().to_string_lossy().to_string();
+        let folder = path
+            .parent()
+            .and_then(|p| p.file_name())
+            .unwrap()
+            .to_string_lossy()
+            .to_string();
+        let declared = model["type"].as_str().unwrap_or("");
+        let expected = match folder.as_str() {
+            "artists" => "artist",
+            "producers" => "producer",
+            other => panic!("{name} is in an unexpected folder: {other}"),
+        };
+        assert_eq!(
+            declared, expected,
+            "{name} is in data/{folder} but declares type `{declared}` — \
+             move the file or fix the field, whichever is wrong"
+        );
+        if expected == "artist" {
+            seen.0 += 1;
+        } else {
+            seen.1 += 1;
+        }
+    }
+    assert!(
+        seen.0 >= 10 && seen.1 >= 1,
+        "expected both folders populated, saw {seen:?}"
+    );
+}
+
 /// Every shipped model file: `data/_defaults.json` plus `data/genres/*.json`.
 fn shipped_models() -> Vec<(PathBuf, String)> {
     let root = data_dir();
@@ -326,7 +401,10 @@ fn every_shipped_artist_says_which_genres_it_works_in() {
         .summary
         .entries
         .iter()
-        .filter(|e| e.model_type == engine::dataset::ModelType::Artist)
+        // ⚠ `is_style`, not `== Artist`: producers became their own variant on
+        // 2026-08-12 and cross-filter narrowing them away is exactly the defect
+        // this test guards, so it has to cover them too.
+        .filter(|e| e.model_type.is_style())
         .collect();
 
     assert!(artists.len() >= 10, "expected the shipped roster");
@@ -366,13 +444,7 @@ fn the_first_genre_an_artist_works_in_is_the_one_it_is_built_from() {
     // compared two empty lists on every artist and passed without asserting
     // anything at all.
     let mut checked = 0;
-    for path in std::fs::read_dir(data_dir().join("artists"))
-        .expect("data/artists should exist")
-        .filter_map(Result::ok)
-        .map(|e| e.path())
-        .filter(|p| p.extension().is_some_and(|x| x == "json"))
-    {
-        let text = fs::read_to_string(&path).unwrap();
+    for (path, text) in style_files() {
         let model: serde_json::Value = serde_json::from_str(&text).unwrap();
         let name = path.file_name().unwrap().to_string_lossy().to_string();
 

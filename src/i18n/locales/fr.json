@@ -30,9 +30,8 @@
     "generating": "Génération…",
     "readyBody": "{{name}} est prêt. Appuyez sur Générer.",
     "generateAll": "Tout générer",
-    "clear": "Vider",
-    "clearAll": "Tout vider",
-    "clearLabel": "Vider les parties générées"
+    "clearOne": "Vider {{part}}",
+    "clearAll": "Tout vider"
   },
   "rails": {
     "searchPlaceholder": "Rechercher un artiste…",
@@ -141,7 +140,6 @@
     "loop": "Boucle",
     "masterLevel": "Niveau master : silencieux",
     "toggleRightRail": "Afficher/masquer le panneau droit (K)",
-    "windowSize": "Taille de la fenêtre",
     "loopAlways": "La lecture est toujours en boucle à ce stade.",
     "unavailable": "Lecture indisponible : {{reason}}"
   },
@@ -160,8 +158,7 @@
     "button": "Affichage",
     "panels": "Panneaux",
     "rightRail": "Panneau droit",
-    "showAll": "Afficher tous les panneaux",
-    "hideAll": "Masquer tous les panneaux"
+    "stage": "Scène"
   },
   "settings": {
     "title": "Paramètres",
@@ -212,14 +209,18 @@
     "rollCount": "{{count}} frappes",
     "addFill": "Ajouter un fill à {{lane}}",
     "reassignLane": "Remplacer {{lane}} par un autre instrument",
-    "lockLane": "Conserver {{lane}} lors de la prochaine génération"
+    "lockLane": "Conserver {{lane}} lors de la prochaine génération",
+    "pitchRows": "Rangées de hauteur pour {{lane}}",
+    "pitchCell": "{{lane}} {{pitch}}, pas {{step}}",
+    "semitoneRow": "{{offset}} demi-tons depuis la fondamentale",
+    "hitsAbove": "{{count}} frappes au-dessus de la fenêtre",
+    "hitsBelow": "{{count}} frappes en dessous de la fenêtre"
   },
   "roster": {
     "artists": "Artistes",
+    "producers": "Producteurs",
     "flagship": "Emblématique",
     "genre": "Style",
-    "filteredBy": "Filtré par {{name}}",
-    "showAll": "Tout afficher",
     "noneInGenre": "Aucun artiste ne travaille encore en {{name}}.",
     "standard": "Standard",
     "inherited": "Hérité"
@@ -382,6 +383,7 @@
       "nudge": "Décaler dans le temps",
       "stretch": "Étirer au double",
       "compress": "Comprimer de moitié",
+      "reverseNote": "Inverser la note sélectionnée",
       "triplet": "Triolet dans cette case",
       "quintuplet": "Quintolet dans cette case",
       "septuplet": "Septolet dans cette case",
@@ -409,15 +411,20 @@
     "up": "Remonter",
     "empty": "Aucun sample dans ce dossier.",
     "truncated": "Ce dossier contient plus de fichiers que ceux affichés.",
+    "filter": "Filtrer par nom",
+    "filterScope": "La recherche porte sur les dossiers que vous avez ouverts.",
+    "noMatches": "Rien ne correspond ici.",
+    "missing": "{{name}} est actuellement inaccessible.",
+    "recheck": "Vérifier à nouveau",
     "pickAFile": "Choisissez un sample pour l’écouter.",
     "decoding": "Lecture du fichier…",
     "waveformOf": "Forme d’onde de {{name}}",
     "reverse": "Lire à l’envers",
     "resize": "Redimensionner le navigateur",
-    "fillRail": "Donner toute la colonne au navigateur",
-    "restoreRail": "Réafficher le roster",
     "folderLimit": "Vous pouvez parcourir 8 dossiers à la fois — fermez-en un pour en ajouter un autre",
     "favourites": "Favoris étoilés",
+    "recent": "Récents",
+    "clearRecent": "Effacer l'historique",
     "star": "Ajouter {{name}} aux favoris",
     "unstar": "Retirer {{name}} des favoris",
     "revealHint": "Afficher {{path}} dans le gestionnaire de fichiers",
@@ -434,7 +441,8 @@
       "kitShape": "Joue comme une batterie"
     },
     "midiFound": "Contenu de ce fichier MIDI",
-    "midiNotes": "Notes"
+    "midiNotes": "Notes",
+    "midiAuditionClipped": "Seules les deux premières minutes sont écoutées."
   },
   "patterns": {
     "name": "Nommer ce pattern",
@@ -456,13 +464,23 @@
     "none": "Aucune prise",
     "made": "{{bpm}} BPM · {{scale}}"
   },
+  "takes": {
+    "label": "Historique des prises",
+    "none": "Rien de généré pour le moment.",
+    "clear": "Effacer l'historique des prises",
+    "close": "Fermer",
+    "detail": "{{bars}} mesures · {{bpm}} BPM"
+  },
   "artist": {
     "label": "À propos de cette sélection",
     "tendsTo": "A tendance à",
     "tempo": "{{bpm}} BPM",
+    "tempoRange": "{{low}}–{{high}} BPM",
     "key": "{{key}} {{scale}}",
     "halfTime": "half-time",
-    "moods": "{{count}} ambiances"
+    "moods": "Ambiances",
+    "writes": "Écrit",
+    "doesNotWrite": "N'écrit pas"
   },
   "styles": {
     "original": "Flux original",

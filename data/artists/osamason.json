@@ -26,7 +26,7 @@
   "sources": [
     "style-research ch.4 OsamaSon"
   ],
-  "notes": "Rage crossed with dark plugg. Sparse plugg-derived kicks with rage double-time bursts; hats skittery but thin - triplet rolls used as accents rather than a carpet; clap on 3; heavily distorted gliding 808s with frequent long slides.",
+  "notes": "Rage crossed with dark plugg. Sparse plugg-derived kicks with rage double-time bursts; hats skittery but thin - triplet rolls used as accents rather than a carpet; clap on 3; heavily distorted gliding 808s with frequent long slides. ⚠ `anticipationProb` raised to 0.15. With `mirror_kick` against a fully locked 808 both parts take every kick, so every bass onset lands exactly on an 808 onset — `coherence.rs` calls that one line played twice rather than two parts locking. The lock is the style and is untouched; the anticipation is what makes them two parts.",
   "session": {
     "bpm": {
       "min": 140,
@@ -307,5 +307,8 @@
   },
   "kit": {
     "preview": "plugg-default"
+  },
+  "bassline": {
+    "anticipationProb": 0.15
   }
 }

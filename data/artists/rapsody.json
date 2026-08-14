@@ -1,0 +1,310 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "rapsody",
+  "type": "artist",
+  "name": "Rapsody",
+  "aliases": [
+    "rapsody",
+    "marlanna evans",
+    "jamla",
+    "lailas wisdom"
+  ],
+  "tier": "standard",
+  "extends": [
+    "boom-bap"
+  ],
+  "era": "2017-2019",
+  "genres": [
+    "rap",
+    "boom-bap"
+  ],
+  "relatedGenres": [
+    "boom-bap",
+    "neo-soul",
+    "lofi-hiphop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 boom-bap — Rapsody",
+    "Billboard — Rapsody on Laila's Wisdom (https://www.billboard.com/music/rb-hip-hop/rapsody-interview-new-album-lailas-wisdom-kendrick-lamar-7974072/)",
+    "XLR8R — In the Studio: 9th Wonder (https://xlr8r.com/features/in-the-studio-9th-wonder/)"
+  ],
+  "notes": "The 9th Wonder school, and the research states its rule as a mix instruction: drums are \"placed with light swing and comparatively soft transients so the soul loop dominates\". Both halves are authored. Light swing is 0.54 — below the archetype's 0.58 and the lowest swung setting on this axis — and soft transients are a `velocityTiers` override at 92–108 / 68–80 / 34–44, with the hats pulled to 0.6–0.8. That subordination is the point: the melody keeps a normal density (3–7) but the kit gets out of its way. The chop school also shows in the harmony — i–iv and ii–v–i share top weight, and I–vi is authored because the research names gospel flips specifically. The bass \"follows the chop's root motion\", which is `independent_riff` at 0.72: freer than a kick-mirror, tighter than a walking line. ⚠ `confidence` is medium; the research rates it medium-high on an artist interview plus a documented producer workflow, neither of which gives numbers. ⚠ The **INFERRED** parameters are the velocity-tier values and `swing.amount` — \"light\" and \"soft\" are directions, and 0.54 and 92–108 are this author's reading of them. `percs.gainOffsetDb` −9 is the same inference by another route.",
+  "session": {
+    "bpm": {
+      "min": 85,
+      "max": 95,
+      "mode": 90
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "major"
+      ],
+      "weights": [
+        4,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.54
+    },
+    "humanize": {
+      "quantizeStrength": 0.84,
+      "velocityVar": 0.14
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        92,
+        108
+      ],
+      "main": [
+        68,
+        80
+      ],
+      "ghost": [
+        34,
+        44
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.32,
+      "tresilloBias": 0.19,
+      "subLayerVelocity": [
+        0.5,
+        0.6
+      ],
+      "lockTo808": 0
+    },
+    "snare": {
+      "rimshotLayer": false,
+      "ghost": {
+        "prob": 0.19,
+        "pos": [
+          "1a",
+          "3a"
+        ],
+        "vel": [
+          0.18,
+          0.32
+        ]
+      },
+      "placement": "backbeat_24",
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.36,
+      "velocities": {
+        "main": [
+          0.6,
+          0.8
+        ],
+        "ghost": [
+          0.15,
+          0.35
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16T"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.17
+      },
+      "openHat": {
+        "prob": 0.22,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "rim",
+        "perc"
+      ],
+      "densityPerBar": [
+        0,
+        2
+      ],
+      "gainOffsetDb": -9
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        69,
+        115
+      ],
+      "rampJitter": 11,
+      "gapProb": 0.21,
+      "descendProb": 0.14,
+      "pitchWalk": 2
+    }
+  },
+  "melody": {
+    "register": [
+      60,
+      83
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "intervals": {
+      "step": 0.66,
+      "third": 0.28,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.34,
+      "descend": 0.36,
+      "arch": 0.3
+    },
+    "chordToneBias": 0.76,
+    "octaveJumpProb": 0.09,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        2,
+        3
+      ]
+    },
+    "timbreHint": "chopped_vocal"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.5,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "ii",
+          "v",
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "vi"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.3,
+      "seventh": 0.5,
+      "ninth": 0.2
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        46,
+        72
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.72,
+    "register": [
+      28,
+      45
+    ],
+    "glideProb": 0.05,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2"
+    ],
+    "anticipationProb": 0.25
+  },
+  "arrangement": {
+    "sectionBars": {
+      "verse": [
+        16,
+        24
+      ]
+    }
+  }
+}

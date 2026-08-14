@@ -30,9 +30,8 @@
     "generating": "Generowanie…",
     "readyBody": "{{name}} gotowy. Naciśnij Generuj.",
     "generateAll": "Generuj wszystko",
-    "clear": "Wyczyść",
-    "clearAll": "Wyczyść wszystko",
-    "clearLabel": "Wyczyść wygenerowane partie"
+    "clearOne": "Wyczyść {{part}}",
+    "clearAll": "Wyczyść wszystko"
   },
   "rails": {
     "searchPlaceholder": "Szukaj artysty…",
@@ -141,7 +140,6 @@
     "loop": "Pętla",
     "masterLevel": "Poziom master: cisza",
     "toggleRightRail": "Przełącz prawy panel (K)",
-    "windowSize": "Rozmiar okna",
     "loopAlways": "W tej fazie odtwarzanie zawsze się zapętla.",
     "unavailable": "Odtwarzanie niedostępne: {{reason}}"
   },
@@ -160,8 +158,7 @@
     "button": "Widok",
     "panels": "Panele",
     "rightRail": "Prawy panel",
-    "showAll": "Pokaż wszystkie panele",
-    "hideAll": "Ukryj wszystkie panele"
+    "stage": "Scena"
   },
   "settings": {
     "title": "Ustawienia",
@@ -212,14 +209,18 @@
     "rollCount": "{{count}} uderzeń",
     "addFill": "Dodaj przejście do {{lane}}",
     "reassignLane": "Zmień {{lane}} na inny bęben",
-    "lockLane": "Zachowaj {{lane}} przy ponownym generowaniu"
+    "lockLane": "Zachowaj {{lane}} przy ponownym generowaniu",
+    "pitchRows": "Wiersze wysokości dla {{lane}}",
+    "pitchCell": "{{lane}} {{pitch}}, krok {{step}}",
+    "semitoneRow": "{{offset}} półtonów od dźwięku podstawowego",
+    "hitsAbove": "{{count}} uderzeń powyżej okna",
+    "hitsBelow": "{{count}} uderzeń poniżej okna"
   },
   "roster": {
     "artists": "Artyści",
+    "producers": "Producenci",
     "flagship": "Sztandarowy",
     "genre": "Gatunek",
-    "filteredBy": "Filtrowane wg {{name}}",
-    "showAll": "Pokaż wszystko",
     "noneInGenre": "Nikt jeszcze nie tworzy w {{name}}.",
     "standard": "Standard",
     "inherited": "Dziedziczony"
@@ -382,6 +383,7 @@
       "nudge": "Przesuń w czasie",
       "stretch": "Rozciągnij dwukrotnie",
       "compress": "Skróć o połowę",
+      "reverseNote": "Odwróć zaznaczoną nutę",
       "triplet": "Triola w tej komórce",
       "quintuplet": "Kwintola w tej komórce",
       "septuplet": "Septola w tej komórce",
@@ -409,15 +411,20 @@
     "up": "W górę",
     "empty": "Brak sampli w tym folderze.",
     "truncated": "Ten folder zawiera więcej plików, niż jest pokazanych.",
+    "filter": "Filtruj według nazwy",
+    "filterScope": "Przeszukiwane są otwarte przez Ciebie foldery.",
+    "noMatches": "Nic tu nie pasuje.",
+    "missing": "{{name}} jest teraz niedostępny.",
+    "recheck": "Sprawdź ponownie",
     "pickAFile": "Wybierz sampel, aby go odsłuchać.",
     "decoding": "Odczytywanie…",
     "waveformOf": "Kształt fali {{name}}",
     "reverse": "Odtwórz wstecz",
     "resize": "Zmień szerokość przeglądarki",
-    "fillRail": "Oddaj przeglądarce cały panel",
-    "restoreRail": "Pokaż ponownie roster",
     "folderLimit": "Możesz przeglądać 8 folderów naraz — zamknij jeden, aby dodać kolejny",
     "favourites": "Ulubione z gwiazdką",
+    "recent": "Ostatnie",
+    "clearRecent": "Wyczyść historię",
     "star": "Dodaj {{name}} do ulubionych",
     "unstar": "Usuń {{name}} z ulubionych",
     "revealHint": "Pokaż {{path}} w menedżerze plików",
@@ -434,7 +441,8 @@
       "kitShape": "Gra jak zestaw perkusyjny"
     },
     "midiFound": "Zawartość tego pliku MIDI",
-    "midiNotes": "Nuty"
+    "midiNotes": "Nuty",
+    "midiAuditionClipped": "Odsłuchiwane są tylko pierwsze dwie minuty."
   },
   "patterns": {
     "name": "Nazwij ten pattern",
@@ -456,13 +464,23 @@
     "none": "Brak podejść",
     "made": "{{bpm}} BPM · {{scale}}"
   },
+  "takes": {
+    "label": "Historia ujęć",
+    "none": "Nic jeszcze nie wygenerowano.",
+    "clear": "Wyczyść historię ujęć",
+    "close": "Zamknij",
+    "detail": "{{bars}} taktów · {{bpm}} BPM"
+  },
   "artist": {
     "label": "O tym wyborze",
     "tendsTo": "Zwykle",
     "tempo": "{{bpm}} BPM",
+    "tempoRange": "{{low}}–{{high}} BPM",
     "key": "{{key}} {{scale}}",
     "halfTime": "half-time",
-    "moods": "{{count}} nastroje"
+    "moods": "Nastroje",
+    "writes": "Pisze",
+    "doesNotWrite": "Nie pisze"
   },
   "styles": {
     "original": "Własny warsztat",

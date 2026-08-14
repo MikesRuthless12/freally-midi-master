@@ -1,0 +1,277 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "fredwreck",
+  "type": "producer",
+  "name": "Fredwreck",
+  "aliases": [
+    "fredwreck",
+    "farid nassar",
+    "fred wreck",
+    "west coast theory"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "g-funk"
+  ],
+  "era": "1999-2006",
+  "genres": [
+    "rap",
+    "g-funk",
+    "west coast",
+    "talkbox",
+    "producer"
+  ],
+  "relatedGenres": [
+    "g-funk",
+    "west-coast-club",
+    "funk"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended vol.1 g-funk — Fredwreck",
+    "Spectrasonics — Fredwreck — https://www.spectrasonics.net/company/artists/artist.php?id=138",
+    "Beat Making Videos — Fredwreck talkbox / West Coast theory — https://beatmakingvideos.com/video/software-hardware/fredwreck-producer-talk-box-impro-west-coast-theory-fredwreck-software-hardware/"
+  ],
+  "notes": "⚠ `low`, and the research says why: the palette and the era are well attested but the session-level workflow is not documented in what could be sourced, and the entry is marked [LOW-CONF] on exactly that. The parameters that ARE research are the harmonic ones. His own instructional framing is \"West Coast theory\" built around talkbox voicing, and harmony chosen for talkbox intelligibility means clear triads and sevenths and no dense clusters — so `extensions.ninth` is 0.04, the lowest in this batch, `maxChords` is 3, and the voicing is open rather than close so nothing stacks. The register split is the other researched parameter: the talkbox occupies the mid, so the melody sits at 60–84 (lower than any other entry here, where the lane norm is 72–96) and the bass is pushed down to a 24–42 window to leave that mid clear. ⛔ Everything in `drums` and `session.humanize` below is INFERRED from the research's one-line description — \"hard, dry snare/clap and a punchy kick; 16th hats; quantized tighter than 90s records\" — and is the first thing to revise if a session source ever appears. ⚠ `melody.timbreHint` is `square_lead` because the vocabulary has no talkbox entry; it stands in for the instrument and does not describe it.",
+  "session": {
+    "bpm": {
+      "min": 88,
+      "max": 98,
+      "mode": 93
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "minor_pentatonic",
+        "dorian"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.53
+    },
+    "humanize": {
+      "quantizeStrength": 0.94,
+      "velocityVar": 0.11
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "syncopation": 0.38,
+      "tresilloBias": 0.18,
+      "offbeat8thShare": 0.31,
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "lockTo808": 0
+    },
+    "snare": {
+      "rimshotLayer": false,
+      "ghost": {
+        "prob": 0.16,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.18,
+          0.32
+        ]
+      },
+      "placement": "backbeat_24",
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.45,
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16T",
+            "32"
+          ],
+          "weights": [
+            2,
+            5
+          ]
+        },
+        "positions": [
+          "pre_snare",
+          "bar_4"
+        ],
+        "freqPerBar": 0.33
+      },
+      "openHat": {
+        "prob": 0.3,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "shaker"
+      ],
+      "densityPerBar": [
+        1,
+        2
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th",
+        "16t"
+      ],
+      "grouping": [
+        "even",
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        52,
+        103
+      ],
+      "rampJitter": 8,
+      "descendProb": 0.22,
+      "gapProb": 0.09,
+      "pitchWalk": 4
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "v"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.56,
+      "seventh": 0.4,
+      "ninth": 0.04
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        74
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar",
+        "vamp"
+      ],
+      "weights": [
+        3,
+        3,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      60,
+      84
+    ],
+    "densityPerBar": [
+      3,
+      6
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    },
+    "intervals": {
+      "step": 0.58,
+      "third": 0.3,
+      "leap": 0.12
+    },
+    "chordToneBias": 0.74,
+    "halfStepDissonance": 0.04,
+    "octaveJumpProb": 0.08,
+    "timbreHint": "square_lead"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.35,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "arp"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.65,
+    "register": [
+      24,
+      42
+    ],
+    "glideProb": 0.4,
+    "passingTones": [
+      "m3",
+      "P4",
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.25
+  }
+}

@@ -1,0 +1,395 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "hot-boys",
+  "type": "artist",
+  "name": "Hot Boys",
+  "aliases": [
+    "hot boys",
+    "hot boyz",
+    "guerrilla warfare",
+    "cash money millionaires",
+    "hot boys type beat"
+  ],
+  "tier": "standard",
+  "extends": [
+    "nola-bounce"
+  ],
+  "era": "1997–2001",
+  "genres": [
+    "rap",
+    "bounce",
+    "southern rap",
+    "club"
+  ],
+  "relatedGenres": [
+    "nola-bounce",
+    "crunk",
+    "funk"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 nola-bounce — Hot Boys",
+    "https://en.wikipedia.org/wiki/Hot_Boys",
+    "https://www.redbullmusicacademy.com/lectures/mannie-fresh-new-orleans-2011/"
+  ],
+  "notes": "The crew record — Mannie Fresh as sole producer, four rappers, and the densest keyboard writing in the Cash Money catalogue. ⛔ **Density is the distinctive, and it is the sourced one:** \"two or three simultaneous keyboard lines (lead motif, counter-line, pad) — **denser than crunk**\". So `melody.densityPerBar` is raised, `emptyBarBias` drops to 0.03 (the lowest anywhere on this axis — the parent's 0.06 was already the lowest against crunk's 0.15), and `countermelody.densityRatio` reaches 0.85 with all three styles live, because the counter-line and the pad are two real parts and not an ornament. ⛔ **Mixed major and minor across one record**, which no other entry in this lane does: the research says \"mixed major/minor\", so `session.scales` and `progressionFamilies` both carry upper- and lower-case families side by side, and `chords.impliedByRiff` is set because the harmony under them is \"single-chord vamps with keyboard countermelodies\" — the keyboard figure states the chord, there is no pad announcing changes. The variety that a static harmony would otherwise cost is bought with a wide `voicing.register`, a 2–12 beat `chordDurationBeats` and three `harmonicRhythm` values rather than with progressions the records do not play. ⚠ **SP-1200 grit** is the humanize block: 12-bit drum layers on some tracks, so `quantizeStrength` drops to 0.83 and `velocityVar` rises to 0.19 — looser than the parent, which is already the loosest thing in this family. ⚠ **No bridge, and long instrumental outros for DJ use** — the arrangement drops every bridge-bearing structure and lets `outro` reach 24 bars, which nothing else in this batch does. Verses run 8–16 because four rappers trade. ⚠ **Confidence `medium` because the research rates it medium-high** and marks the 90–102 band **[LOW-CONF]**; \"specific tempi inferred\" is the research's own wording. Also inferred: the key list, every velocity and register bound, the `intervals`/`contour` split and the hi-hat weights. ⚠ `snareRoll.pitchWalk` is inherited.",
+  "session": {
+    "bpm": {
+      "min": 90,
+      "max": 102,
+      "mode": 96
+    },
+    "scales": {
+      "values": [
+        "mixolydian",
+        "natural_minor",
+        "major",
+        "dorian"
+      ],
+      "weights": [
+        4,
+        4,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.83,
+      "velocityVar": 0.19
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "syncopation": 0.44,
+      "tresilloBias": 0.26,
+      "offbeat8thShare": 0.22
+    },
+    "snare": {
+      "offSnare": {
+        "prob": 0.86,
+        "pos": [
+          "2&"
+        ]
+      },
+      "ghost": {
+        "prob": 0.26,
+        "pos": [
+          "1a",
+          "3e",
+          "4a"
+        ],
+        "vel": [
+          0.3,
+          0.52
+        ]
+      }
+    },
+    "hihat": {
+      "base": {
+        "values": [
+          "8T",
+          "8th",
+          "16th"
+        ],
+        "weights": [
+          4,
+          4,
+          3
+        ]
+      },
+      "continuous": false,
+      "fillDensity": [
+        0.76,
+        0.96
+      ],
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.2,
+        "velocityRamp": true
+      },
+      "openHat": {
+        "prob": 0.3,
+        "pos": [
+          "2&",
+          "3&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "tambourine": true,
+      "lanes": [
+        "cowbell",
+        "conga",
+        "tom"
+      ],
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "gainOffsetDb": -3
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        58,
+        91
+      ],
+      "rampJitter": 21,
+      "descendProb": 0.18,
+      "gapProb": 0.34
+    },
+    "bass808": {
+      "slideProb": 0.07,
+      "register": [
+        21,
+        34
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "bVII"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "impliedByRiff": true,
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.66,
+      "seventh": 0.29,
+      "ninth": 0.05
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        45,
+        79
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      2,
+      12
+    ]
+  },
+  "melody": {
+    "register": [
+      61,
+      87
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "densityPerBar": [
+      5,
+      10
+    ],
+    "structure": "riff_loop",
+    "motifPitchCount": [
+      4,
+      7
+    ],
+    "intervals": {
+      "step": 0.56,
+      "third": 0.28,
+      "leap": 0.16
+    },
+    "contour": {
+      "riff": 0.54,
+      "descend": 0.2,
+      "arch": 0.26
+    },
+    "chordToneBias": 0.72,
+    "emptyBarBias": 0.03,
+    "octaveJumpProb": 0.16,
+    "timbreHint": "warm_keys"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.6,
+      0.85
+    ],
+    "styles": {
+      "values": [
+        "arp",
+        "octave_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.7,
+    "register": [
+      28,
+      44
+    ],
+    "glideProb": 0.1,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2"
+    ],
+    "anticipationProb": 0.2
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "sectionBars": {
+      "intro": 4,
+      "verse": {
+        "values": [
+          8,
+          12,
+          16
+        ],
+        "weights": [
+          3,
+          2,
+          3
+        ]
+      },
+      "hook": 8,
+      "outro": {
+        "values": [
+          8,
+          16,
+          24
+        ],
+        "weights": [
+          3,
+          2,
+          1
+        ]
+      }
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.7,
+        "beats": 4
+      },
+      "switchUpProb": 0.24
+    }
+  }
+}

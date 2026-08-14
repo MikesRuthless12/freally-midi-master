@@ -24,7 +24,7 @@ window.SEARCH_INDEX = [
   {
     id: 'roster',
     title: 'The roster',
-    body: 'combobox autocomplete type to filter arrow dropdown artist genre search fuzzy autosuggest mainstream underground style parameters Metro Boomin OsamaSon trap drill disclaimer descriptive reference',
+    body: 'combobox autocomplete type to filter arrow dropdown artist genre search fuzzy autosuggest mainstream underground style parameters Metro Boomin OsamaSon trap drill disclaimer descriptive reference era tempo range moods writes does not write parts covered coverage silence empty tab',
   },
   {
     id: 'moods',
@@ -44,12 +44,12 @@ window.SEARCH_INDEX = [
   {
     id: 'browser',
     title: 'The sample browser',
-    body: 'browser file explorer tree folder folders subfolder subfolders tabs eight library add folder remove star starred favourite favorites yellow reveal windows explorer finder arrow keys up down left right expand collapse retract audition preview reverse backwards waveform wav aiff flac mp3 m4a ogg mid midi rail width persist',
+    body: 'browser file explorer tree folder folders subfolder subfolders tabs eight library add folder remove star starred favourite favorites yellow reveal windows explorer finder arrow keys up down left right expand collapse retract audition preview reverse backwards waveform wav aiff flac mp3 m4a ogg mid midi rail width persist filter type-to-filter search narrow large library two thousand files fast scroll virtualized missing drive unplugged reconnect check again recent history',
   },
   {
     id: 'midi-import',
     title: 'Dropping a MIDI file in',
-    body: 'midi mid import drag drop generator song tab arrangement sections split separate parts bass melody countermelody counter chords drums reason routed why filename file name 808 trigger pitch register tempo bpm adopt session gm drum channel overlap onsets voices layered',
+    body: 'midi mid import drag drop generator song tab arrangement sections split separate parts bass melody countermelody counter chords drums reason routed why filename file name 808 trigger pitch register tempo bpm adopt session gm drum channel overlap onsets voices layered play audition hear preview listen neutral instrument sound',
   },
   {
     id: 'generators',
@@ -86,7 +86,7 @@ window.SEARCH_INDEX = [
     id: 'takes',
     title: 'Your takes, and locking a drum',
     words:
-      'takes history variation generations back forward step recall seed artist mood bars pins tempo key used lock locked padlock lane re-roll reroll hold L',
+      'takes history variation generations back forward step recall seed artist mood bars pins tempo key used lock locked padlock lane re-roll reroll hold L browse browsable persist persists survives restart counter grouped by artist clear empty find what you like',
   },
   {
     id: 'session',

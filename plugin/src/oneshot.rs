@@ -103,7 +103,10 @@ impl OneShots {
         std::thread::spawn(move || {
             let status = match pick_file() {
                 None => Status::Cancelled,
-                Some(path) => match load(&path) {
+                // ⚠ Forwards: the Open dialog and the folder re-roll have no
+                // reverse gesture. Only `Ctrl`+← asks for one, and it comes
+                // through `restore`.
+                Some(path) => match load(&path, false) {
                     Ok(one_shot) => {
                         let name = one_shot.name.clone();
                         apply(&assigned, &missing, &kits, &session, |map| {
@@ -210,7 +213,7 @@ impl OneShots {
                 if refuse_remote(Path::new(path)).is_err() {
                     continue;
                 }
-                match load(Path::new(path)) {
+                match load(Path::new(path), false) {
                     Ok(one_shot) => loaded.push((*lane, one_shot)),
                     Err(reason) => refused = Some(reason),
                 }
@@ -273,6 +276,7 @@ impl OneShots {
         &self,
         lane: Lane,
         path: &str,
+        reversed: bool,
         kits: &Arc<KitHandoff>,
         session: &SessionStore,
     ) -> Result<(), String> {
@@ -284,7 +288,7 @@ impl OneShots {
             held.insert(lane, raw);
         }
         refuse_remote(path)?;
-        let one_shot = load(path)?;
+        let one_shot = load(path, reversed)?;
         if let Ok(mut held) = self.missing.lock() {
             held.remove(&lane);
         }
@@ -522,15 +526,39 @@ fn pick_for(lane: Lane, files: &[String], seed: u64) -> Option<String> {
 /// every note, both through the linear interpolator on the audio thread.
 /// [`crate::audio::resample`] does it once here, band-limited, on this thread,
 /// which is the loader thread the decode already runs on.
-fn load(path: &Path) -> Result<OneShot, String> {
+fn load(path: &Path, reversed: bool) -> Result<OneShot, String> {
     let decoded = import::decode_file(path)?;
     let target = crate::audio::kit_rate();
-    let samples = crate::audio::resample::to_rate(&decoded.samples, decoded.sample_rate, target);
+    let mut samples =
+        crate::audio::resample::to_rate(&decoded.samples, decoded.sample_rate, target);
+    // ⛔⛔ **Backwards is baked into the buffer, not into playback** — Mike,
+    // 2026-08-11: *"'Ctrl + left arrow' … should add the sample to that selected
+    // drum pad lane in reverse."*
+    //
+    // ▶ **Reversing here rather than in the sampler is the cheap answer and the
+    // safe one.** A `reversed` flag read per voice would put a branch and a
+    // backwards read on the audio thread for every note of every lane, forever,
+    // to serve a property that never changes after the file is loaded. Flipping
+    // the `Vec` once, on the loader thread, costs nothing anybody can hear.
+    //
+    // ⚠ **A flat `reverse()` is correct because [`import::decode_file`] answers
+    // in MONO** — its own doc says so, and `DecodedAudio` carries no channel
+    // count. Interleaved stereo would need reversing by frame, and this line
+    // would silently swap the channels instead.
+    //
+    // ⚠ **After the resample, not before.** Both orders sound the same, but
+    // resampling reads a window either side of each output sample, so doing it
+    // to an already-reversed buffer smears the attack backwards — an audible
+    // difference on exactly the short percussive one-shots this is for.
+    if reversed {
+        samples.reverse();
+    }
     let decoded = crate::audio::kit::DecodedAudio {
         samples,
         sample_rate: target,
     };
     Ok(OneShot {
+        reversed,
         path: path.display().to_string(),
         // The file's own name. ⚠ `file_name` rather than `file_stem`: two
         // samples called `01` in different folders are common, and the
@@ -589,6 +617,20 @@ fn apply(
                     .map(|(lane, path)| (*lane, path.clone())),
             )
             .collect();
+        // ⛔ **Written from the same map, in the same pass, or a reversed pad
+        // reloads forwards.** The buffer is already flipped, so the file on disk
+        // cannot say which way it was assigned — this is the only record.
+        //
+        // ⚠ **Only the `true` ones**, so the map stays empty for the overwhelming
+        // majority of projects and the field serializes away entirely. A lane
+        // that was cleared drops out of `map` and therefore out of here, which is
+        // what stops a stale `true` reversing a *different* sample assigned to
+        // the same lane later.
+        stored.one_shots_reversed = map
+            .iter()
+            .filter(|(_, one_shot)| one_shot.reversed)
+            .map(|(lane, _)| (*lane, true))
+            .collect();
     });
 
     // ⛔ The **model's** kit, not the shipped trap one. This is the path that
@@ -622,6 +664,7 @@ mod tests {
             name: name.to_owned(),
             samples: Arc::from(vec![level; 64].into_boxed_slice()),
             sample_rate: 48_000,
+            reversed: false,
         }
     }
 
@@ -783,7 +826,7 @@ mod tests {
         let kits = Arc::new(KitHandoff::default());
         let session = SessionStore::default();
         let err = one_shots
-            .restore(Lane::Melody, "./no-such-sample.wav", &kits, &session)
+            .restore(Lane::Melody, "./no-such-sample.wav", false, &kits, &session)
             .unwrap_err();
         assert!(err.contains("could not open"), "{err}");
         assert!(
@@ -965,6 +1008,7 @@ mod remote_path_tests {
             .restore(
                 Lane::Melody,
                 r"\\evil.example.com\share\kick.wav",
+                false,
                 &kits,
                 &SessionStore::default(),
             )
@@ -993,7 +1037,7 @@ mod missing_path_tests {
 
         // Melody's sample has moved; the reload fails.
         assert!(one_shots
-            .restore(Lane::Melody, "./no-such-sample.wav", &kits, &session)
+            .restore(Lane::Melody, "./no-such-sample.wav", false, &kits, &session)
             .is_err());
 
         // The producer then assigns something on a different lane.
@@ -1024,10 +1068,70 @@ mod missing_path_tests {
         let kits = Arc::new(KitHandoff::default());
         let session = SessionStore::default();
 
-        let _ = one_shots.restore(Lane::Melody, "./gone.wav", &kits, &session);
+        let _ = one_shots.restore(Lane::Melody, "./gone.wav", false, &kits, &session);
         one_shots.clear(Lane::Melody, &kits, &session);
 
         assert!(crate::state::read(&session).one_shots.is_empty());
+    }
+
+    /// ⛔⛔ **A reversed one-shot has to be written down or it reloads forwards.**
+    ///
+    /// Mike, 2026-08-11: *"'Ctrl + left arrow' … should add the sample to that
+    /// selected drum pad lane **in reverse**."* The flip happens at decode time —
+    /// `load` says why it belongs there and not on the audio thread — so the
+    /// buffer is the only evidence it happened, and the buffer is not saved. The
+    /// path alone reloads the file the way it is on disk.
+    ///
+    /// ⚠ **Asserted through `apply`**, which is the one function every
+    /// assignment goes through, rather than through `restore` — a decode needs a
+    /// real file and this is about the *record*, not the audio.
+    #[test]
+    fn a_reversed_one_shot_is_remembered_and_a_forward_one_is_not() {
+        let assigned = Arc::new(Mutex::new(BTreeMap::new()));
+        let missing = Arc::new(Mutex::new(BTreeMap::new()));
+        let kits = KitHandoff::default();
+        let session = SessionStore::default();
+
+        let mut backwards = one_shot("reverse-crash.wav", 0.5);
+        backwards.reversed = true;
+        apply(&assigned, &missing, &kits, &session, |map| {
+            map.insert(Lane::Crash, backwards);
+            map.insert(Lane::Kick, one_shot("kick.wav", 0.5));
+        });
+
+        let stored = crate::state::read(&session);
+        assert_eq!(
+            stored.one_shots_reversed.get(&Lane::Crash),
+            Some(&true),
+            "the reversed crash reloads forwards"
+        );
+        // ⚠ **Absent, not `false`.** Only the reversed ones are written, so the
+        // map stays empty for the overwhelming majority of projects and the field
+        // serializes away entirely.
+        assert_eq!(stored.one_shots_reversed.get(&Lane::Kick), None);
+        assert_eq!(stored.one_shots.len(), 2, "both paths are still saved");
+    }
+
+    #[test]
+    fn clearing_a_lane_stops_it_being_remembered_as_reversed() {
+        // ⛔ Otherwise a stale `true` would reverse a *different* sample assigned
+        // to the same lane later — a pad that plays backwards for no reason the
+        // producer can see, having never asked for it.
+        let assigned = Arc::new(Mutex::new(BTreeMap::new()));
+        let missing = Arc::new(Mutex::new(BTreeMap::new()));
+        let kits = KitHandoff::default();
+        let session = SessionStore::default();
+
+        let mut backwards = one_shot("reverse-crash.wav", 0.5);
+        backwards.reversed = true;
+        apply(&assigned, &missing, &kits, &session, |map| {
+            map.insert(Lane::Crash, backwards);
+        });
+        apply(&assigned, &missing, &kits, &session, |map| {
+            map.remove(&Lane::Crash);
+        });
+
+        assert!(crate::state::read(&session).one_shots_reversed.is_empty());
     }
     #[test]
     fn a_reroll_puts_a_snare_on_the_snare_lane_and_not_a_crash() {

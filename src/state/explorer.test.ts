@@ -5,6 +5,7 @@ import {
   RAIL_MAX_WIDTH,
   RAIL_MIN_WIDTH,
   clampRailWidth,
+  flattenTree,
   formatSeconds,
   innermostExpanded,
   isInside,
@@ -25,10 +26,12 @@ beforeEach(() => {
     children: {},
     expanded: [],
     truncatedIn: [],
+    missingRoots: [],
     activeRoot: null,
     favourites: [],
     starred: new Set(),
     midiSplit: null,
+    midiAudition: null,
     loaded: false,
     selected: null,
     selectedKind: null,
@@ -156,6 +159,144 @@ describe('selecting a sample', () => {
     expect(useExplorer.getState().selected).toBe('/lib/kick.wav');
     expect(useExplorer.getState().waveform).toBeNull();
   });
+
+  /**
+   * ⛔⛔ **LANDING ON A FILE PLAYS IT** — Mike, 2026-08-11: *"the files need to
+   * play as you go up and down in the list with the up/down arrow or by clicking
+   * on them."*
+   *
+   * ⚠ Pinned in the **store**, because that is the point of putting it there: a
+   * click, an arrow key and a starred file are three different callers, and the
+   * bug this prevents is one of them staying silent.
+   */
+  it('plays what it just landed on', async () => {
+    invoke.mockResolvedValue({
+      path: '/lib/kick.wav',
+      name: 'kick.wav',
+      peaks: [],
+      seconds: 1,
+    });
+    await useExplorer.getState().select('/lib/kick.wav');
+
+    expect(invoke).toHaveBeenCalledWith('preview_play');
+    expect(useExplorer.getState().position.playing).toBe(true);
+  });
+
+  it('does not sound a file the walk has already moved off', async () => {
+    // ⛔ Holding ↓ starts a load per row and they resolve out of order. Without
+    // the guard the *previous* row's reply starts the *current* row's sample a
+    // second time — which reads as the browser stuttering on every step.
+    invoke.mockResolvedValue({ path: '/lib/old.wav', name: 'old.wav', peaks: [], seconds: 1 });
+    const stale = useExplorer.getState().select('/lib/old.wav');
+    useExplorer.setState({ selected: '/lib/new.wav' });
+    await stale;
+
+    expect(invoke).not.toHaveBeenCalledWith('preview_play');
+  });
+
+  it('says nothing when there is no audio thread to play it with', async () => {
+    // ⚠ **Silent, unlike the transport buttons.** An audition is feedback on a
+    // gesture that already happened, and every browser session has no preview
+    // voice at all — so a failure here would put an error on screen for a click
+    // that did nothing wrong. Same rule `DrumGrid/audition.ts` follows.
+    invoke.mockImplementation((command: string) =>
+      command === 'preview_play'
+        ? Promise.reject(new Error('no audio thread'))
+        : Promise.resolve({ path: '/lib/kick.wav', name: 'kick.wav', peaks: [], seconds: 1 }),
+    );
+    await useExplorer.getState().select('/lib/kick.wav');
+
+    expect(useExplorer.getState().error).toBeNull();
+    expect(useExplorer.getState().waveform).not.toBeNull();
+  });
+
+  it('leaves a MIDI file alone, because there is nothing to sound', async () => {
+    // ⚠ The two-kinds rule at the one place that would otherwise treat them
+    // alike: a `.mid` has no PCM until something renders one, so selecting it
+    // must not reach for the audition voice. ⛔ **Landing on it does not audition
+    // it either** (TASK-160): rendering a file is the slow half, and walking a
+    // folder with ↓ would render every `.mid` stepped past.
+    invoke.mockResolvedValue([]);
+    await useExplorer.getState().select('/lib/loop.mid');
+
+    expect(invoke).not.toHaveBeenCalledWith('preview_play');
+    expect(invoke).not.toHaveBeenCalledWith('explorer_midi_audition', expect.anything());
+  });
+});
+
+/**
+ * Hearing a `.mid` (TASK-160).
+ *
+ * ⛔⛔ Mike: *".mid files … have its own sound like Ableton does that can play
+ * the .mid file"*. The roadmap put the cost at *"its own note scheduler"* on the
+ * audio thread; `midi_audition::render` produces the same `Vec<f32>` a decoded
+ * `.wav` arrives as, so the audition voice plays it with the code that already
+ * exists. What this pins is the page's half of that: which command, and that the
+ * transport can never end up describing the wrong file.
+ */
+describe('auditioning a MIDI file', () => {
+  it('renders it into the audition voice, and does not start it', async () => {
+    invoke.mockResolvedValue({ seconds: 4, clipped: false });
+    useExplorer.setState({ selected: '/lib/loop.mid', selectedKind: 'midi' });
+
+    await useExplorer.getState().auditionMidi();
+
+    expect(invoke).toHaveBeenCalledWith('explorer_midi_audition', { path: '/lib/loop.mid' });
+    // ⛔ Loading because a producer pressed Play is one thing; making a noise
+    // from the load itself is another. `Preview::load` states the same rule for
+    // a sample, and the press is what plays.
+    expect(invoke).not.toHaveBeenCalledWith('preview_play');
+    expect(useExplorer.getState().midiAudition).toEqual({ clipped: false });
+  });
+
+  it('refuses to render anything that is not the selected MIDI file', async () => {
+    // ⚠ The transport is drawn from `midiAudition`, so a render asked for while
+    // an audio file is selected would put a MIDI transport over a waveform.
+    invoke.mockResolvedValue({ seconds: 4, clipped: false });
+    useExplorer.setState({ selected: '/lib/kick.wav', selectedKind: 'audio' });
+
+    await useExplorer.getState().auditionMidi();
+
+    expect(invoke).not.toHaveBeenCalledWith('explorer_midi_audition', expect.anything());
+  });
+
+  it('drops a render that finished after the producer moved on', async () => {
+    // ⛔ **The audition voice is shared with sample playback.** A late reply that
+    // set `midiAudition` for a file no longer selected would draw a transport
+    // over the *next* file and sound the previous one on the next Play — the same
+    // failure the waveform's own path guards, arriving through a slower command.
+    invoke.mockResolvedValue({ seconds: 4, clipped: false });
+    useExplorer.setState({ selected: '/lib/old.mid', selectedKind: 'midi' });
+    const stale = useExplorer.getState().auditionMidi();
+    useExplorer.setState({ selected: '/lib/new.mid' });
+    await stale;
+
+    expect(useExplorer.getState().midiAudition).toBeNull();
+  });
+
+  it('forgets the render when the selection changes', async () => {
+    // ⚠ Otherwise the transport goes on describing the previous `.mid` under the
+    // new file's name, and Play sounds the old one.
+    invoke.mockResolvedValue({ seconds: 4, clipped: false });
+    useExplorer.setState({ selected: '/lib/loop.mid', selectedKind: 'midi' });
+    await useExplorer.getState().auditionMidi();
+    expect(useExplorer.getState().midiAudition).not.toBeNull();
+
+    invoke.mockResolvedValue([]);
+    await useExplorer.getState().select('/lib/other.mid');
+    expect(useExplorer.getState().midiAudition).toBeNull();
+  });
+
+  it('says when a long file was cut rather than cutting it quietly', async () => {
+    // ⚠ The rule the truncated folder listing follows: a producer who does not
+    // hear the end and is told nothing concludes the audition is broken.
+    invoke.mockResolvedValue({ seconds: 120, clipped: true });
+    useExplorer.setState({ selected: '/lib/song.mid', selectedKind: 'midi' });
+
+    await useExplorer.getState().auditionMidi();
+
+    expect(useExplorer.getState().midiAudition?.clipped).toBe(true);
+  });
 });
 
 describe('the transport', () => {
@@ -242,6 +383,25 @@ describe('dropping a sample on a lane', () => {
     expect(invoke).toHaveBeenCalledWith('explorer_drop', {
       lane: 'kick',
       path: '/lib/kick.wav',
+      // ⚠ **Forwards unless asked**, so every route that predates `Ctrl`+arrow —
+      // the drag onto a pad, the KIT row drop, the `↵` button — keeps behaving
+      // exactly as it did.
+      reversed: false,
+    });
+  });
+
+  it('asks for a backwards one-shot when Ctrl+← was the gesture', async () => {
+    // ⛔⛔ Mike, 2026-08-11: *"'Ctrl + left arrow' … should add the sample to
+    // that selected drum pad lane **in reverse**."* The flag has to reach the
+    // plugin, which flips the buffer at decode time and writes the choice into
+    // the project — `oneshot::load` and `PluginSession::one_shots_reversed`
+    // carry the two halves of why.
+    invoke.mockResolvedValue(undefined);
+    await useExplorer.getState().dropOn('kick', '/lib/kick.wav', true);
+    expect(invoke).toHaveBeenCalledWith('explorer_drop', {
+      lane: 'kick',
+      path: '/lib/kick.wav',
+      reversed: true,
     });
   });
 
@@ -458,5 +618,179 @@ describe('the tree', () => {
     // was added back — a listing nothing had re-read.
     expect(useExplorer.getState().expanded).toEqual([]);
     expect(useExplorer.getState().children).toEqual({});
+  });
+});
+
+/**
+ * The flattening the virtualized tree draws from (TASK-058).
+ *
+ * ⛔⛔ **Tested here rather than through the component**, because two things read
+ * it: `FileTree` draws a window of these rows and `ExplorerPanel`'s ↑/↓ walk
+ * steps through them. The walk used to read `.tree__row` out of the DOM, which is
+ * correct only while every row is mounted — so the order and the membership of
+ * this list are now load-bearing in a way no render test would pin.
+ */
+describe('flattening the tree', () => {
+  const dir = (name: string, path: string) => ({
+    name,
+    path,
+    isDir: true,
+    kind: 'dir' as const,
+  });
+  const file = (name: string, path: string) => ({
+    name,
+    path,
+    isDir: false,
+    kind: 'audio' as const,
+  });
+
+  const root = dir('Samples', '/lib/Samples');
+  const library = {
+    '/lib/Samples': [
+      dir('Kicks', '/lib/Samples/Kicks'),
+      file('clap.wav', '/lib/Samples/clap.wav'),
+    ],
+    '/lib/Samples/Kicks': [file('kick-808.wav', '/lib/Samples/Kicks/kick-808.wav')],
+  };
+
+  it('draws only the branches that are open, in the tree’s own order', () => {
+    const shut = flattenTree(root, {
+      expanded: [],
+      children: library,
+      truncatedIn: [],
+      query: '',
+    });
+    expect(shut.map((row) => row.key)).toEqual(['/lib/Samples']);
+
+    const open = flattenTree(root, {
+      expanded: ['/lib/Samples', '/lib/Samples/Kicks'],
+      children: library,
+      truncatedIn: [],
+      query: '',
+    });
+    // ⛔ Depth-first and folders-before-files, which is `explorer::list`'s
+    // ordering rather than this function's — one answer to "what order are the
+    // rows in", in the place that reads the directory.
+    expect(open.map((row) => row.key)).toEqual([
+      '/lib/Samples',
+      '/lib/Samples/Kicks',
+      '/lib/Samples/Kicks/kick-808.wav',
+      '/lib/Samples/clap.wav',
+    ]);
+    // The indent the row draws with, and the level the treeitem announces.
+    expect(open.map((row) => row.depth)).toEqual([0, 1, 2, 1]);
+  });
+
+  it('keeps the folders that lead to a match, and everything under one that matched', () => {
+    const expanded = ['/lib/Samples', '/lib/Samples/Kicks'];
+
+    // A file matches: its folders survive so there is a path to it on screen.
+    expect(
+      flattenTree(root, { expanded, children: library, truncatedIn: [], query: '808' }).map(
+        (row) => row.key,
+      ),
+    ).toEqual(['/lib/Samples', '/lib/Samples/Kicks', '/lib/Samples/Kicks/kick-808.wav']);
+
+    // ⛔ **A matching FOLDER brings its whole subtree**, the way every file
+    // manager's filter behaves: typing "Kicks" is how you get to the kicks, not
+    // how you make them disappear.
+    expect(
+      flattenTree(root, { expanded, children: library, truncatedIn: [], query: 'kicks' }).map(
+        (row) => row.key,
+      ),
+    ).toEqual(['/lib/Samples', '/lib/Samples/Kicks', '/lib/Samples/Kicks/kick-808.wav']);
+  });
+
+  it('leaves the root on screen when nothing matches, rather than going blank', () => {
+    // ⚠ An empty panel reads as the library having gone. The root is the tab the
+    // producer is standing on, and the no-matches line beside the box is what
+    // says the query was too narrow.
+    const rows = flattenTree(root, {
+      expanded: ['/lib/Samples', '/lib/Samples/Kicks'],
+      children: library,
+      truncatedIn: [],
+      query: 'nothing-is-called-this',
+    });
+    expect(rows.map((row) => row.key)).toEqual(['/lib/Samples']);
+  });
+
+  it('does not put “no samples in this folder” under a folder the filter emptied', () => {
+    // ⛔ The status line means the folder *is* empty. Drawn for a folder whose
+    // rows the query hid, it would be the readout-that-lies failure — and it
+    // would also keep every filtered-out folder on screen, which is the opposite
+    // of filtering.
+    const rows = flattenTree(root, {
+      expanded: ['/lib/Samples', '/lib/Samples/Kicks'],
+      children: library,
+      truncatedIn: [],
+      query: 'clap',
+    });
+    expect(rows.some((row) => row.note !== null)).toBe(false);
+    expect(rows.map((row) => row.key)).toEqual(['/lib/Samples', '/lib/Samples/clap.wav']);
+  });
+
+  it('carries the states a branch can be in that are not rows', () => {
+    const reading = flattenTree(root, {
+      expanded: ['/lib/Samples'],
+      children: {},
+      truncatedIn: [],
+      query: '',
+    });
+    expect(reading[1]?.note).toBe('explorer.decoding');
+
+    const capped = flattenTree(root, {
+      expanded: ['/lib/Samples'],
+      children: { '/lib/Samples': [] },
+      truncatedIn: ['/lib/Samples'],
+      query: '',
+    });
+    expect(capped.map((row) => row.note)).toEqual([
+      null,
+      'explorer.empty',
+      'explorer.truncated',
+    ]);
+  });
+});
+
+describe('a library folder that is not there', () => {
+  it('is reported rather than drawn as a folder that refuses to open', async () => {
+    // ⛔⛔ `explorer::merge_folders` keeps a root whose disk is unplugged on
+    // purpose — a producer who unplugged their sample drive has not left the
+    // library — but until the plugin said which ones those were, such a root
+    // drew as an ordinary folder, failed to expand with the one refusal message
+    // every failure shares, and shut its own twisty. Indistinguishable from an
+    // empty folder.
+    invoke.mockResolvedValue({
+      roots: [{ name: 'Samples', path: '/lib/Samples', isDir: true, kind: 'dir' }],
+      folder: null,
+      parent: null,
+      entries: [],
+      truncated: false,
+      picking: false,
+      missing: ['/lib/Samples'],
+    });
+
+    await useExplorer.getState().refresh();
+
+    expect(useExplorer.getState().roots).toHaveLength(1);
+    expect(useExplorer.getState().missingRoots).toEqual(['/lib/Samples']);
+  });
+
+  it('reads an absent list as nothing missing', async () => {
+    // ⚠ The reply also comes from `ipc-mock` and from a plugin older than the
+    // field. "Nothing is known to be missing" is the safe reading of silence —
+    // the alternative would strike out every tab in the browser build.
+    invoke.mockResolvedValue({
+      roots: [],
+      folder: null,
+      parent: null,
+      entries: [],
+      truncated: false,
+      picking: false,
+    });
+
+    await useExplorer.getState().refresh();
+
+    expect(useExplorer.getState().missingRoots).toEqual([]);
   });
 });

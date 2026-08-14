@@ -68,3 +68,23 @@ export const ALL_LANES: Lane[] = [
   'bass',
   'chords',
 ];
+
+/**
+ * The four lanes that belong to the melodic generators, not to a drum pad.
+ *
+ * ⛔⛔ **The pad picker must not offer these** — Mike, 2026-08-11, looking at the
+ * dropdown: *"you should not have the 'Melody/Chords/Countermelody/Bassline' for
+ * the drums."* A drum pad pointed at `melody` is a pad that plays whatever the
+ * melody generator wrote, on a grid built for one-shots — a slot the producer
+ * can select and cannot use. They already have a home: the KIT list lists every
+ * lane, and each melodic one has its own Play and its own assign.
+ *
+ * ⚠ **`sub` and `subLow` deliberately stay.** They are pitched too, but they are
+ * authored *inside the drums part* — the 808 and its sub layer — so a drum pad is
+ * exactly where they belong. `cells.ts::PITCHED_LANES` keeps them off the drum
+ * *grid* for a different reason, and the two lists are not the same question.
+ */
+export const MELODIC_LANES: Lane[] = ['melody', 'counter', 'bass', 'chords'];
+
+/** Every lane a drum pad may be pointed at. */
+export const PAD_LANES: Lane[] = ALL_LANES.filter((lane) => !MELODIC_LANES.includes(lane));

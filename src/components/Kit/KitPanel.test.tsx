@@ -117,4 +117,53 @@ describe('the KIT panel says what is actually loaded', () => {
       screen.queryByText('The kit could not be loaded, so the plugin is silent.'),
     ).toBeNull();
   });
+
+  /**
+   * ⛔⛔ **HEARING ONE LANE'S SAMPLE ON ITS OWN** — Mike, 2026-08-11: *"the
+   * melody/chords/basslines/counter melody should be able to play back their
+   * samples with a play button as well, not just with the generated playback
+   * pattern"* and *"you should be able to hear just the sample or one shot you
+   * are using."*
+   *
+   * ▶ **The plugin could always do it; this list had no button.** `Audition::Lane`
+   * triggers the pad **as sampled** — zero transposition, no generated part —
+   * and the drum lanes have reached it from `PadGrid` and the grid's row headers
+   * since TASK-043. The melodic lanes appear only here.
+   */
+  describe('auditioning one lane', () => {
+    const MELODIC = [
+      { lane: 'melody' as const, shipped: true, name: null, path: null },
+      { lane: 'chords' as const, shipped: false, name: 'pad.wav', path: 'C:/s/pad.wav' },
+      { lane: 'bass' as const, shipped: true, name: null, path: null },
+      { lane: 'counter' as const, shipped: true, name: null, path: null },
+      // Nothing shipped and nothing assigned: there is no sample to hear.
+      { lane: 'snap' as const, shipped: false, name: null, path: null },
+    ];
+
+    it.each(['melody', 'chords', 'bass', 'counter'])('offers Play on %s', (lane) => {
+      // ⚠ All four named, not one standing for the rest: the gap was that a
+      // whole class of lane had no route to a control, and a single example
+      // would go on passing if three of them lost it again.
+      useKit.setState({ lanes: MELODIC });
+      render(<KitPanel />);
+      const row = screen
+        .getByRole('list', { name: 'Kit lanes' })
+        .querySelector(`[data-lane="${lane}"]`) as HTMLElement;
+
+      expect(within(row).getByRole('button', { name: /^Play / })).toBeTruthy();
+    });
+
+    it('withholds Play from a lane with no sample to play', () => {
+      // ⚠ `canSound` is the shared predicate this row already keys `data-silent`
+      // on. A Play button over a lane with no voice is a control that can only
+      // do nothing — the readout-that-lies failure this panel exists to prevent.
+      useKit.setState({ lanes: MELODIC });
+      render(<KitPanel />);
+      const row = screen
+        .getByRole('list', { name: 'Kit lanes' })
+        .querySelector('[data-lane="snap"]') as HTMLElement;
+
+      expect(within(row).queryByRole('button', { name: /^Play / })).toBeNull();
+    });
+  });
 });

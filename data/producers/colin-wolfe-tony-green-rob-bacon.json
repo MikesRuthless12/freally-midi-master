@@ -1,0 +1,333 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "colin-wolfe-tony-green-rob-bacon",
+  "type": "producer",
+  "name": "Colin Wolfe / Tony Green / Rob \"Fonksta\" Bacon",
+  "aliases": [
+    "colin wolfe",
+    "tony green",
+    "t-money green",
+    "rob fonksta bacon",
+    "g-funk session bass",
+    "death row session bass",
+    "g funk session players"
+  ],
+  "tier": "standard",
+  "extends": [
+    "g-funk"
+  ],
+  "era": "1992-1996",
+  "genres": [
+    "rap",
+    "g-funk",
+    "west coast",
+    "funk",
+    "session"
+  ],
+  "relatedGenres": [
+    "g-funk",
+    "funk",
+    "neo-soul"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 g-funk — Colin Wolfe / Tony Green / Rob \"Fonksta\" Bacon (g-funk session bass & guitar)",
+    "Gearspace — who played bass on Death Row / g-funk records — https://gearspace.com/board/rap-hip-hop-engineering-and-production/1287837-did-dr-dre-90s-death-row-g-funk-producers-play-his-own-bass-hire-bassist.html",
+    "Rob \"Fonksta\" Bacon on making \"Getto Jam\" — https://chadkiser.com/2024/03/03/rob-fonksta-bacon-details-making-ghetto-jam-with-dj-battlecat-domino/"
+  ],
+  "notes": "The played low-end and guitar layer that separates g-funk from sample rap, modelled as a session model: it has no drum programming and no harmony of its own, because the research says they realize other people's harmony over minor and mixolydian vamps. So `chords` is inherited whole, deliberately, and everything this entry owns is bass, guitar and feel. The bass is the point — live-recorded, melodic, syncopated, slides and dead notes, and mixed loud — which is `followRootsProb` at 0.3, `glideProb` at 0.7 and the widest `passingTones` set on this axis, blue third and blue seventh included. Their phrasing is documented as sitting a few milliseconds behind the programmed kick, so `quantizeStrength` is 0.68 and `velocityVar` is high. ⚠ The research gives the register as E1–G2, which is exactly 15 semitones; [28,45] is that window with two extra semitones at the top so the bass generator has room to be distinct, and the floor is unchanged. ⚠ Their parts continue through sections where the synths drop — that is why they are the continuity layer, so `countermelody.densityRatio` is 0.65 and `transitions.dropOutBeats.prob` is cut to 0.25. ⚠ `medium` because the research rates it high-medium: the players and the method are documented, the per-record tempo band is catalog-level.",
+  "session": {
+    "bpm": {
+      "min": 88,
+      "max": 100,
+      "mode": 94
+    },
+    "scales": {
+      "values": [
+        "minor_pentatonic",
+        "blues",
+        "dorian",
+        "mixolydian"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.68,
+      "velocityVar": 0.24
+    }
+  },
+  "drums": {
+    "hihat": {
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16T",
+            "32"
+          ],
+          "weights": [
+            4,
+            1
+          ]
+        },
+        "positions": [
+          "pre_snare",
+          "bar_4"
+        ],
+        "freqPerBar": 0.26
+      }
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th",
+        "16t"
+      ],
+      "grouping": [
+        "even",
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        54,
+        101
+      ],
+      "rampJitter": 8,
+      "descendProb": 0.29,
+      "gapProb": 0.36
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.54,
+      "tresilloBias": 0.27,
+      "offbeat8thShare": 0.37,
+      "lockTo808": 0
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "rimshotLayer": true,
+      "ghost": {
+        "prob": 0.31,
+        "pos": [
+          "2e",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.25,
+          0.45
+        ]
+      },
+      "offGridMs": 0
+    }
+  },
+  "melody": {
+    "register": [
+      65,
+      89
+    ],
+    "densityPerBar": [
+      3,
+      8
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        4
+      ]
+    },
+    "intervals": {
+      "step": 0.6,
+      "third": 0.27,
+      "leap": 0.12
+    },
+    "chordToneBias": 0.69,
+    "halfStepDissonance": 0.1,
+    "octaveJumpProb": [
+      0.08,
+      0.16
+    ],
+    "timbreHint": "clean_guitar",
+    "structure": "riff_loop",
+    "motifPitchCount": [
+      3,
+      5
+    ],
+    "contour": {
+      "riff": 0.6,
+      "descend": 0.22,
+      "arch": 0.17
+    },
+    "endVariation": true
+  },
+  "countermelody": {
+    "registerOffset": -24,
+    "densityRatio": 0.69,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        3,
+        4
+      ]
+    },
+    "fillGapsOnly": true
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.3,
+    "register": [
+      28,
+      45
+    ],
+    "glideProb": 0.7,
+    "passingTones": [
+      "M2",
+      "m3",
+      "M3",
+      "P4",
+      "P5",
+      "M6",
+      "m7"
+    ],
+    "cellShapes": [
+      [
+        "1",
+        "b3",
+        "4",
+        "5"
+      ],
+      [
+        "1",
+        "5",
+        "b7",
+        "5"
+      ],
+      [
+        "5",
+        "1",
+        "2",
+        "b3"
+      ],
+      [
+        "1",
+        "4",
+        "5",
+        "b7"
+      ]
+    ],
+    "anticipationProb": 0.45
+  },
+  "arrangement": {
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.25,
+        "beats": 2
+      },
+      "switchUpProb": 0.1
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "iv",
+          "i"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI",
+          "v"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "III",
+          "iv"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "v"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.42,
+      "seventh": 0.44,
+      "ninth": 0.14
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        76
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        3,
+        3,
+        4
+      ]
+    },
+    "susSubstitutionProb": 0
+  }
+}

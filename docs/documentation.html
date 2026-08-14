@@ -186,10 +186,18 @@
         <p class="summary" style="margin-top: 14px">
           The same box lists <strong>artists and genres together</strong>, each row saying which it
           is, so you never have to know in advance whether "UK Drill" is a person or a style. Pick
-          one and its details appear directly underneath — era, the genres it works in, the tempo and
-          key it tends toward — <strong>before</strong> you press Generate.
+          one and its details appear directly underneath — era, the genres it works in, the
+          <strong>tempo range</strong> and key it tends toward, its moods by name, and
+          <strong>which parts it writes and which it does not</strong> —
+          <strong>before</strong> you press Generate.
           <strong>Genres are a browse filter, not the unit of generation</strong> — though a genre is
           itself a real style model and generates in its own right.
+        </p>
+        <p class="note">
+          That last line matters more than it looks. An artist who does not write countermelodies
+          answers that tab with <em>silence</em>, correctly — they do not write them, so nothing is
+          invented for them. Before the pane said so, the only way to find out was to press Generate
+          and stare at an empty roll.
         </p>
         <p class="note">
           Artist names are <strong>descriptive style references only</strong>. Nothing in the dataset
@@ -307,11 +315,36 @@
           draw and cannot be dropped on a drum pad, and the pad refuses it before you let go rather
           than failing afterwards.
         </p>
+        <p class="summary" style="margin-top: 14px">
+          <strong>It holds a real library.</strong> A folder with two thousand files in it opens as
+          fast as one with four, because only the rows you can actually see are drawn — scroll and
+          the rest arrive as you reach them. <strong>Type in the filter box</strong> and the tree
+          narrows to what matches, keeping the folders that lead to it; type a folder's name and you
+          get everything under it. The line beneath the box says
+          <em>which folders were searched</em>, and it means it: the plugin reads one folder at a
+          time, so the filter reaches the ones you have opened and no further. A box that implied
+          otherwise would be lying about what it looked at.
+        </p>
+        <p class="summary" style="margin-top: 14px">
+          <strong>Unplug the drive a library folder lives on and its tab says so</strong>, with a
+          <em>Check again</em> beside it. The folder is not dropped from your library — plug the
+          drive back in, press it, and the tree is there. Before this, such a folder simply refused
+          to open, which looks exactly like an empty one.
+        </p>
       </article>
 
       <article class="release" id="midi-import">
         <h2>Dropping a MIDI file in</h2>
         <p class="summary">
+          <strong>Hear it first.</strong> Select a <code>.mid</code> and the panel lists what is
+          inside it; press <strong>Play</strong> and it sounds — through a plain built-in
+          instrument rather than whichever artist you happen to have selected, so the same file
+          sounds the same tomorrow. Drum lanes come through as hits rather than as pitches, because
+          a drum lane's note number says which pad fires, not how low it is. It is built on the
+          first press, not when you click the file, so walking a folder of loops with
+          <kbd>↓</kbd> costs nothing. It never touches your project's transport.
+        </p>
+        <p class="summary" style="margin-top: 14px">
           Drag a <code>.mid</code> from the browser onto a <strong>generator</strong> and its notes
           land there. Drop it on the <strong>Song</strong> tab instead and the whole file arrives as
           an arrangement — sections across the top, parts down the side — and clicking any cell
@@ -583,6 +616,24 @@
           The readout shows the tempo and key that were <strong>actually used</strong>, which is not
           always what you pinned: a beat made while your DAW sat at 92 was made at 92, and tempo
           changes the notes.
+        </p>
+        <p class="summary" style="margin-top: 14px">
+          <strong>And it outlives the session.</strong> Click the take counter — the
+          &ldquo;3 / 40&rdquo; between the arrows — and every generation you have ever made is
+          there, grouped by artist, each row saying how long it is, how fast, and when you made it.
+          Pick one and it comes back. The arrows answer &ldquo;back one&rdquo;; this is for the beat
+          from Tuesday night whose seed you never wrote down.
+        </p>
+        <p class="note">
+          It is kept per user rather than in the project — where you have been generating is a fact
+          about you, not something to ship inside a song sent to a label — and it survives an
+          update. Each artist keeps its own run of takes, so an evening spent on one cannot push out
+          the ones you saved from another. <strong>Clear it whenever you like</strong>: it is a
+          record of what you have been making, and being able to empty it is not a convenience.
+        </p>
+        <p class="note">
+          ⚠ Choosing a take <em>restores</em> it, the same as the arrows do — so anything you have
+          drawn by hand on the current clip is replaced. It is not a preview.
         </p>
         <p class="note">
           <strong>Lock a lane and a re-roll cannot touch it.</strong> Click the padlock on any drum

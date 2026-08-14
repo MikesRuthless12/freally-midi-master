@@ -1,0 +1,248 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "dmx",
+  "type": "artist",
+  "name": "DMX",
+  "aliases": [
+    "dmx",
+    "earl simmons",
+    "dark man x"
+  ],
+  "tier": "standard",
+  "extends": [
+    "boom-bap"
+  ],
+  "era": "1998-2001",
+  "genres": [
+    "rap",
+    "boom-bap"
+  ],
+  "relatedGenres": [
+    "boom-bap",
+    "dark-trap"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 boom-bap — DMX",
+    "Okayplayer — Dame Grease on \"Get At Me Dog\"",
+    "Wikipedia — It's Dark and Hell Is Hot"
+  ],
+  "notes": "Yonkers/Ruff Ryders menace with a disco-derived drive, and the disco is the distinguishing parameter: a four-on-the-floor-leaning kick under a boom-bap backbeat, which nothing else on this axis does. The bass is a held sine on the tonic with no portamento at all, deliberately separated in register from the kick. ⚠ `medium` rather than high: the research rates it high-medium and marks the harmonic detail as partly inferred, so the modal and chord parameters here are the inferred half. ⚠ **The bass is `mirror_kick` rather than a held note, and that is deliberate on both counts.** The research says a sustained sine held across whole bars, but `reese_sustain` — the only rhythm that holds — emits one note per chord, and `bass.rs` measured 98 distinct basslines in 1000 seeds from it. Against a four-on-the-floor kick, mirroring produces a root pulsing on every beat, which is what the disco lineage the research names actually sounds like. ⛔ `chords.impliedByRiff` is set, and it is a description rather than an exemption. The research: *\"2-bar minimal loops — one string or organ stab, i–VI or single-chord drone\"*. The stab states the harmony; there is no pad to voice. ⚠ The research says the countermelody is *\"replaced by DMX's growls and dog ad-libs as rhythmic events\"* — there is no melodic counter on these records. The engine generates the part regardless so the tab is not empty, so it is authored thin and low rather than left to inherit a busier parent. ⚠ `phraseBars` reaches 4 as well as 2 — weighted 4:1 so the 2-bar loop the research describes still dominates. At 2 bars alone the counter saturated at 0.93 of the 0.98 floor: shape length is what a counter's variety is combinatorial in, and one length is one shape. ⚠ `snareRoll.pitchWalk` is inherited rather than authored: the research says nothing about how these producers pitch a roll, and lowering it was an invention that `drum_pitch.rs` correctly refused — a roll owes a producer three pitches unless the style is a train beat. ⚠ `chordDurationBeats` carries this model's chord variety rather than more progressions. Its harmony is one or two chords by description, and `melodic_variety.rs` still requires the generated chord part to reach 55 distinct outputs — so what varies is how long the loop sits on a chord, not what the chord is. Adding families it does not play would have been the dishonest fix. ⚠ The i–VII family is INFERRED, not researched — the research names only the static form. It carries a low weight and exists because the generated chord part still owes a producer 55 distinct outputs over 200 seeds; it is the first thing to delete if this model ever sounds busier than the records do.",
+  "session": {
+    "bpm": {
+      "min": 90,
+      "max": 100,
+      "mode": 95
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "phrygian"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.52
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        4,
+        4
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "syncopation": 0.12,
+      "tresilloBias": 0
+    },
+    "snare": {
+      "lowPassedClap": true,
+      "layerClapOffsetMs": [
+        2,
+        6
+      ],
+      "ghost": {
+        "prob": 0.1,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.2,
+          0.3
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.3,
+      "rolls": {
+        "freqPerBar": 0.15,
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ]
+      },
+      "openHat": {
+        "prob": 0.8,
+        "pos": [
+          "1&",
+          "2&",
+          "3&",
+          "4&"
+        ],
+        "perBar": [
+          2,
+          4
+        ]
+      }
+    },
+    "snareRoll": {
+      "gapProb": 0.2,
+      "descendProb": 0.05,
+      "subdivisions": [
+        "8t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        70,
+        120
+      ],
+      "rampJitter": 10
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 4
+    }
+  },
+  "melody": {
+    "register": [
+      61,
+      83
+    ],
+    "densityPerBar": [
+      1,
+      4
+    ],
+    "intervals": {
+      "step": 0.7,
+      "third": 0.24,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.7,
+      "descend": 0.2,
+      "arch": 0.1
+    },
+    "chordToneBias": 0.85,
+    "octaveJumpProb": 0.03,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        5,
+        1
+      ]
+    },
+    "timbreHint": "low_brass_stab"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.5,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.6,
+      "seventh": 0.32,
+      "ninth": 0.08
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    },
+    "impliedByRiff": true,
+    "chordDurationBeats": [
+      2,
+      16
+    ],
+    "voicing": {
+      "style": "close",
+      "register": [
+        48,
+        80
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.95,
+    "register": [
+      24,
+      43
+    ],
+    "glideProb": 0,
+    "passingTones": [],
+    "anticipationProb": 0.1
+  }
+}

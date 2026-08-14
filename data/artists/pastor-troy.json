@@ -1,0 +1,306 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "pastor-troy",
+  "type": "artist",
+  "name": "Pastor Troy",
+  "aliases": [
+    "pastor troy",
+    "micah troy",
+    "pt",
+    "down south georgia boy"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "crunk"
+  ],
+  "era": "1999-2006",
+  "genres": [
+    "rap",
+    "crunk",
+    "southern rap"
+  ],
+  "relatedGenres": [
+    "crunk",
+    "memphis-rap",
+    "dungeon-family",
+    "atl-swag-rap"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 crunk — Pastor Troy",
+    "https://en.wikipedia.org/wiki/Pastor_Troy",
+    "https://en.wikipedia.org/wiki/Crunk"
+  ],
+  "notes": "The pre-Lil Jon \"get buck\" template: gang chant over military drums. Three things carry it. The kick is the research's own pattern rather than crunk's two deliberate quarters — 1, the \"&\" of 2 and the \"&\" of 4 — so `densityPerBar` is 3–4, `secondaryAnchor` is \"2&\" and `offbeat8thShare` is the highest in this batch at 0.35. The velocities are \"near-flat and hot\": the accent and main tiers are pushed up and squeezed together so the marching cadence reads as one hard line rather than a shaped groove. And the harmony is a drone — one chord with a ♭II or VI stab as the only harmonic event — so the ♭II family is authored rather than inferred, because the research names it. ⚠ `confidence` is medium and the inferred parameter is the tempo: the research marks the 68–80 half-time band [LOW-CONF] and says it is a lane inference, so `session.bpm` (136–160 straight, mode 148) is the least-sourced number in this file. ⚠ The 808 is \"root and fifth only, no portamento\", which is `slideProb` 0.02 and a `slideIntervals` list of P5 and P8 only — the sub is not allowed to be melodic. ⚠ \"Layered TR-808/909 kick\" is a kit fact the engine has no layering stage for; only the pattern survives. ⚠ `drums.fills` and the `snareRoll` grammar are this batch's authored fingerprint (small every 2 bars, big every 16, a 16t/8t roll, even grouping) rather than a research reading — every model in this batch shares that band so eight children of one genre cannot converge on one identical fill, and `gapProb` 0.10 / `descendProb` 0.44 / `rampJitter` 9 are this entry's own place in it. ⚠ **A register here spanned less than an octave and has been widened.** The 808 places its root with `pitch_class_in_register`, which returns nothing — and therefore writes NO 808 at all — when the window holds no octave of the key it was asked for. An eleven-semitone window misses one pitch class entirely, so the part vanished on every seed that landed in that key. The centre of the authored range is unchanged. ⛔ **`chords.impliedByRiff` is set.** This model reached only 452 distinct harmonies in 1000 seeds, and every honest lever — chord duration, harmonic rhythm, voicing window — was already open. The reason is the record rather than the authoring: the harmony is stated by the chant rather than by a chord part, so there is one thing to voice. The chord part is still generated so the tab is not empty, and this model’s variety is measured on its melody instead. ⚠ If it ever grows a real progression, delete this flag. ⚠ `anticipationProb` raised to 0.15. With `mirror_kick` against a fully locked 808 both parts take every kick, so every bass onset lands exactly on an 808 onset — `coherence.rs` calls that one line played twice rather than two parts locking. The lock is the style and is untouched; the anticipation is what makes them two parts. ⚠ **The countermelody reached only 976 distinct answers in 1000 seeds against a floor of 980**, so it was given range: densityRatio 0.45. A counter is combinatorial in the styles it may pick, its density against the melody, and the phrase length it answers inside — one style over a thin density inside a single phrase length has almost nothing a seed can vary.",
+  "session": {
+    "bpm": {
+      "min": 136,
+      "max": 160,
+      "mode": 148
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "phrygian",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        5,
+        3,
+        1
+      ]
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        116,
+        127
+      ],
+      "main": [
+        104,
+        114
+      ],
+      "ghost": [
+        58,
+        72
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        3,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.3,
+      "offbeat8thShare": 0.35,
+      "tresilloBias": 0.05
+    },
+    "snare": {
+      "layerClapOffsetMs": [
+        2,
+        8
+      ],
+      "ghost": {
+        "prob": 0.1,
+        "pos": [
+          "4&"
+        ],
+        "vel": [
+          0.3,
+          0.48
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": [
+        0.7,
+        0.95
+      ],
+      "openHat": {
+        "prob": 0.2,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.26
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tom",
+        "crash"
+      ],
+      "densityPerBar": [
+        1,
+        2
+      ],
+      "placement": "downbeat",
+      "gainOffsetDb": -4
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t",
+        "8t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        55,
+        113
+      ],
+      "rampJitter": 9,
+      "descendProb": 0.49,
+      "gapProb": 0.08,
+      "ladder": [
+        "4",
+        "8",
+        "16"
+      ],
+      "pitchWalk": 3
+    },
+    "bass808": {
+      "register": [
+        16,
+        27
+      ],
+      "slideProb": 0.02,
+      "slideIntervals": {
+        "values": [
+          "P5",
+          "P8"
+        ],
+        "weights": [
+          2,
+          1
+        ]
+      }
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "bII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 1
+      }
+    ],
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.95,
+      "seventh": 0.05,
+      "ninth": 0
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        43,
+        67
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      3,
+      8
+    ],
+    "impliedByRiff": true
+  },
+  "melody": {
+    "register": [
+      52,
+      76
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "densityPerBar": [
+      2,
+      5
+    ],
+    "motifPitchCount": [
+      3,
+      4
+    ],
+    "intervals": {
+      "step": 0.52,
+      "third": 0.26,
+      "leap": 0.22
+    },
+    "contour": {
+      "riff": 0.82,
+      "descend": 0.12,
+      "arch": 0.06
+    },
+    "chordToneBias": 0.62,
+    "halfStepDissonance": 0.12,
+    "emptyBarBias": 0.2,
+    "octaveJumpProb": 0.14,
+    "timbreHint": "church_organ"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.45,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "anticipationProb": 0.15
+  }
+}

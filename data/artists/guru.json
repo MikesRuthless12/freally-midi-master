@@ -1,0 +1,348 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "guru",
+  "type": "artist",
+  "name": "Guru",
+  "aliases": [
+    "guru",
+    "keith elam",
+    "jazzmatazz",
+    "gifted unlimited rhymes universal"
+  ],
+  "tier": "standard",
+  "extends": [
+    "boom-bap"
+  ],
+  "era": "1993-2000",
+  "genres": [
+    "rap",
+    "boom-bap",
+    "jazz rap"
+  ],
+  "relatedGenres": [
+    "boom-bap",
+    "neo-soul",
+    "funk"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 boom-bap — Guru",
+    "Wikipedia — Jazzmatazz, Vol. 1",
+    "Wikipedia — Guru (rapper)"
+  ],
+  "notes": "Jazzmatazz is the one place on this axis where the harmony is composed rather than sampled, and the research says so in as many words: \"8- and 16-bar forms rather than 2-bar loops — the one place in this lane where the harmony is composed.\" That is authored as `melody.structure` `long_arc` plus `phraseBars` weighted onto 8 and 16, which is the single biggest departure from the parent, and it is why `arrangement` is overridden at all: the extended instrumental solo section is a real structural feature, so the bridge is lengthened, given every melodic part, and run at near-full density. The second half is the tension the research names — a programmed kit kept *deliberately stiff* against live players — so `quantizeStrength` is 0.95 and `swing` is 0.52 while the bass is the loosest on the axis: live electric or upright playing genuine changes, `followRootsProb` 0.35 over a 22-semitone register with five passing tones. The ride wash from the live kit is the `percs` override. ⚠ `medium` because the research rates it medium-high and says the live-band construction is documented at album level rather than at session level. The inferred parameters are the swing amount and the solo-section bar count; the research says \"extended instrumental solo sections (8–16 bars)\" and everything else in the arrangement block follows from that number. ⚠ The bass ceiling came down from 50 to 47 so it stays under a chord part that starts at 48 — `coherence.rs` requires the highest bass note to sit at or below the lowest chord note, and this model overlapped by 3.",
+  "session": {
+    "bpm": {
+      "min": 88,
+      "max": 100,
+      "mode": 94
+    },
+    "scales": {
+      "values": [
+        "dorian",
+        "natural_minor",
+        "mixolydian"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "8th",
+      "amount": 0.52
+    },
+    "humanize": {
+      "quantizeStrength": 0.95,
+      "velocityVar": 0.06
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.24
+    },
+    "snare": {
+      "rimshotLayer": false,
+      "ghost": {
+        "prob": 0.14,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.26,
+          0.36
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.5,
+      "velocities": {
+        "main": [
+          0.74,
+          0.88
+        ],
+        "ghost": [
+          0.24,
+          0.44
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.15
+      },
+      "openHat": {
+        "prob": 0.22,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "ride",
+        "rim",
+        "shaker"
+      ],
+      "densityPerBar": [
+        2,
+        4
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        54,
+        96
+      ],
+      "gapProb": 0.22,
+      "descendProb": 0.53,
+      "rampJitter": 21,
+      "pitchWalk": 2
+    }
+  },
+  "melody": {
+    "register": [
+      60,
+      86
+    ],
+    "densityPerBar": [
+      5,
+      10
+    ],
+    "structure": "long_arc",
+    "intervals": {
+      "step": 0.58,
+      "third": 0.28,
+      "leap": 0.14
+    },
+    "contour": {
+      "riff": 0.18,
+      "descend": 0.3,
+      "arch": 0.52
+    },
+    "chordToneBias": 0.6,
+    "octaveJumpProb": 0.14,
+    "phraseBars": {
+      "values": [
+        8,
+        16,
+        4
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "timbreHint": "vibraphone"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.65,
+    "styles": {
+      "values": [
+        "arp",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "iv",
+          "ii",
+          "v"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "ii",
+          "v",
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.12,
+      "seventh": 0.5,
+      "ninth": 0.38
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        80
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.35,
+    "register": [
+      28,
+      47
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "M2",
+      "m3",
+      "P5",
+      "M6",
+      "m7"
+    ],
+    "anticipationProb": 0.4
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "hook",
+          "bridge",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "hook",
+          "verse",
+          "bridge",
+          "hook",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": 16,
+      "hook": 8,
+      "bridge": [
+        8,
+        16
+      ],
+      "outro": [
+        4,
+        8
+      ]
+    },
+    "sectionRules": {
+      "bridge": {
+        "parts": [
+          "chords",
+          "bassline",
+          "melody",
+          "drums"
+        ],
+        "density": 0.9,
+        "addLayers": [
+          "countermelody"
+        ]
+      }
+    },
+    "transitions": {
+      "dropOutBeats": {
+        "prob": 0.25,
+        "beats": 2
+      },
+      "switchUpProb": 0.1
+    }
+  }
+}

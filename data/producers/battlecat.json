@@ -1,0 +1,315 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "battlecat",
+  "type": "producer",
+  "name": "Battlecat",
+  "aliases": [
+    "battlecat",
+    "dj battlecat",
+    "kevin gilliam"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "g-funk"
+  ],
+  "era": "1993-2006",
+  "genres": [
+    "rap",
+    "g-funk",
+    "west coast"
+  ],
+  "relatedGenres": [
+    "g-funk",
+    "west-coast-club",
+    "funk"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 g-funk — Battlecat",
+    "https://chadkiser.com/2016/06/27/battlecat-talks-producing-for-michael-jackson-dr-dre-snoop-dogg-the-hiphopdx-interview/",
+    "https://equipboard.com/pros/dj-battlecat"
+  ],
+  "notes": "⛔ **A producer's model is their build order, and his is stated: \"bass line and some chords\" first, then lead.** So the bass is the melodic lead voice here — played on a Moog Source, not programmed, \"syncopated with rests\", register E1–C3 — which is a low `followRootsProb`, a high `anticipationProb` and the widest bass register in this batch at 23 semitones. His second stated rule is keeping melodies *familiar*, and that is the reason this entry does **not** get an exotic chord set: `i–VII–VI` and `i–iv–VII` at plain triad-and-seventh weight, `topVoiceStepwise` true, nothing borrowed. The kit is bouncier and busier than 1993 Death Row — rimshot ghost notes, syncopated kick with 16th pickups, tambourine on the 8ths — so `syncopation` is 0.58 with a tambourine lane at real level. The high saw lead is the genre's own portamento worm and is inherited unchanged, because that is exactly what the research names. ⚠ `medium` on the research's high-medium. INFERRED: the tempo centre inside 88–100, the extension split, and the note-density numbers — the interview documents gear, personnel, order of work and reference set, not densities. ⚠ The bass ceiling came down from 51 to 47 so it stays under a chord part that starts at 48 — `coherence.rs` requires the highest bass note to sit at or below the lowest chord note, and this model overlapped by 4.",
+  "session": {
+    "bpm": {
+      "min": 88,
+      "max": 100,
+      "mode": 94
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.59
+    },
+    "humanize": {
+      "quantizeStrength": 0.85,
+      "velocityVar": 0.16
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.58,
+      "tresilloBias": 0.28,
+      "offbeat8thShare": 0.4
+    },
+    "snare": {
+      "rimshotLayer": true,
+      "ghost": {
+        "prob": 0.3,
+        "pos": [
+          "2e",
+          "3a",
+          "4a"
+        ],
+        "vel": [
+          0.24,
+          0.46
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.5,
+      "velocities": {
+        "main": [
+          0.7,
+          0.94
+        ],
+        "ghost": [
+          0.24,
+          0.48
+        ]
+      },
+      "openHat": {
+        "prob": 0.34,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32",
+            "32T"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.61,
+        "velocityRamp": true
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "rim",
+        "conga"
+      ],
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "gainOffsetDb": -6
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 4
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "32nd"
+      ],
+      "grouping": [
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        49,
+        110
+      ],
+      "rampJitter": 14,
+      "gapProb": 0.33,
+      "descendProb": 0.53,
+      "pitchWalk": 4
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.5,
+      "seventh": 0.42,
+      "ninth": 0.08
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        76
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      74,
+      95
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "densityPerBar": [
+      3,
+      6
+    ],
+    "motifPitchCount": [
+      3,
+      5
+    ],
+    "intervals": {
+      "step": 0.44,
+      "third": 0.32,
+      "leap": 0.24
+    },
+    "contour": {
+      "riff": 0.54,
+      "descend": 0.28,
+      "arch": 0.18
+    },
+    "chordToneBias": 0.64,
+    "halfStepDissonance": 0.06,
+    "octaveJumpProb": [
+      0.14,
+      0.26
+    ]
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.47,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.38,
+    "register": [
+      28,
+      47
+    ],
+    "glideProb": 0.6,
+    "passingTones": [
+      "M2",
+      "m3",
+      "P4",
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.36,
+    "cellShapes": [
+      [
+        "1",
+        "5",
+        "b7",
+        "1"
+      ],
+      [
+        "1",
+        "b3",
+        "4",
+        "b7"
+      ],
+      [
+        "5",
+        "1",
+        "b3",
+        "4"
+      ],
+      [
+        "1",
+        "4",
+        "5",
+        "1"
+      ]
+    ]
+  }
+}

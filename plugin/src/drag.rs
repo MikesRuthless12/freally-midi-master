@@ -315,8 +315,23 @@ enum Stage {
 struct Prepared {
     /// Absolute paths, in the order they should be handed to the drop target.
     paths: Vec<PathBuf>,
-    /// The same clips with every lane starting at bar 1, handed over instead
-    /// **while Ctrl is held** (2026-08-06). Empty when Ctrl means nothing here.
+    /// The other layout of the same material, handed over **while Ctrl is
+    /// held**. Empty when Ctrl has nothing to choose between here.
+    ///
+    /// ⚠ **Renamed from `stacked` on 2026-08-11, because it stopped being
+    /// stacked.** It held one thing when it was written — the drum lanes all
+    /// starting at bar 1 instead of end to end — and it now holds two, so a name
+    /// describing one of them was about to be a lie about the other:
+    ///
+    /// - **A multi-part drag** ([`crate::export::Cut::Parts`]) sends **one file**
+    ///   by default and this is the **one-file-per-part** set. Mike,
+    ///   2026-08-11: *"all parts of a song should be able to press 'Ctrl+Drag
+    ///   in' to put them on separate lanes, but together if you don't press
+    ///   ctrl."* Here Ctrl **separates**.
+    /// - **The sequential lane cut** ([`crate::export::Cut::EveryLaneInSequence`])
+    ///   sends the lanes end to end and this is the all-at-bar-1 set. There Ctrl
+    ///   **stacks**. ⚠ That path is currently unreachable from the page — nothing
+    ///   sends `lanes: true` — so it is the older meaning kept alive by tests.
     ///
     /// ⛔ **Spooled up front, alongside the other set, because the choice is
     /// made mid-drag.** `drag/windows.rs` watches the modifier from inside
@@ -325,9 +340,10 @@ struct Prepared {
     /// would put a multi-lane audio render inside the drag loop, and the whole
     /// `prepare`/`start` split exists to keep it out of there.
     ///
-    /// ⚠ The expensive half is shared: both sets come from the same render, and
-    /// only the note offsets and the file writing differ.
-    stacked: Vec<PathBuf>,
+    /// ⚠ The expensive half is shared: both sets come from the same render —
+    /// [`crate::export::multi_part_files`] is written that way on purpose — and
+    /// only the summing and the file writing differ.
+    alternative: Vec<PathBuf>,
     /// The folder they were spooled into, so an abandoned drag can take it back.
     dir: PathBuf,
 }
@@ -574,7 +590,8 @@ impl Drags {
                 Stage::Idle => return Err("there is nothing prepared to drag".to_owned()),
             }
         };
-        let dropped = match platform::drag(&prepared.paths, &prepared.stacked, preview.as_ref()) {
+        let dropped = match platform::drag(&prepared.paths, &prepared.alternative, preview.as_ref())
+        {
             Ok(dropped) => dropped,
             Err(error) => {
                 // ⛔ **The slot is already `Idle`, so nothing else will ever
@@ -601,16 +618,31 @@ impl Drags {
             // reports a cancel", which was a claim about every drop target on
             // the system rather than anything the API guarantees.
             //
-            // ⚠ So audio is kept and MIDI is not: a dropped `.wav` is
-            // referenced by path and losing it empties a clip, while a `.mid`
-            // is copied into the project by every DAW and its spool is nobody's
-            // either way. Keeping a file nobody wanted costs temp space;
-            // deleting one somebody has costs their record.
-            Dropped::Refused => {
-                if !holds_audio(&prepared.dir) {
-                    remove(&prepared.dir);
-                }
-            }
+            // ⛔⛔ **NOTHING IS DELETED HERE ANY MORE, AND THAT IS THE FL STUDIO
+            // MIDI BUG** (2026-08-11).
+            //
+            // This used to keep audio and delete MIDI, on the reasoning that *"a
+            // `.mid` is copied into the project by every DAW and its spool is
+            // nobody's either way."* ▶ **That is a claim about every drop target
+            // on the system, and FL Studio is the counter-example** — the same
+            // shape of over-confident claim the paragraph above already records
+            // being wrong once.
+            //
+            // ▶ **Mike's report is the proof, and it is exact.** Dragging from
+            // the standalone into FL: every `.wav` lands and every `.mid` fails —
+            // Melody, Chords, Counter, All Parts MIDI and Song MIDI, while All
+            // Parts audio and Song audio all work. Ableton takes both. The only
+            // thing this code does differently between those two sets is delete
+            // one of them: FL reports `DROPEFFECT_NONE` and reads the file
+            // **after** `DoDragDrop` returns, so the `.mid` was being removed out
+            // from under it while the `.wav` beside it survived to be read.
+            //
+            // ⚠ **Nothing leaks.** [`sweep`] still reclaims MIDI-only folders
+            // once they are old enough — it is only forbidden to touch the ones
+            // holding audio, which a live session may still be pointing at. The
+            // cost of keeping them is a few kilobytes of temp for an hour; the
+            // cost of deleting them is the clip the producer just dragged.
+            Dropped::Refused => {}
             Dropped::Copied => {}
         }
         Ok(dropped)
@@ -690,12 +722,32 @@ fn render_and_spool(
             // [`crate::audio::render::refuse_if_too_long`], which is now the one
             // rule every audio path asks.
             crate::audio::render::refuse_if_too_long(&patterns, kit.is_some())?;
-            // ⛔⛔ **Only when the two layouts actually differ, which is MIDI
-            // only.** `stem_files_with` renders the sequential cut as the
-            // stacked one for audio — see the note on `Cut::EveryLaneInSequence`
-            // — so building an "alternative" there would render every lane a
-            // second time to produce byte-identical files. That is a full extra
-            // sampler pass per lane, on a gesture, inside a DAW.
+
+            // ⛔⛔ **NO OFFSET, NO PADDING: every part is its own clip, at bar 1,
+            // exactly as long as the pattern is.** Mike, 2026-08-11, looking at
+            // what the offset actually produced: *"the samples are 8 bars and the
+            // clips are only supposed to be 4 bars and the sounds play at the end
+            // of the 8 bars on the last 4 bars, when they should all only be 4
+            // bars long."*
+            //
+            // ▶ **That was a bug of mine, not a difference of opinion.** The
+            // sequencing pushed part *n* by *n* clip-lengths and grew its `bars`
+            // to cover the offset, so the second file really was eight bars with
+            // four of silence in front. Read as "one clip after the next", baked
+            // into the files, it is also the wrong reading: a host gives every
+            // dropped file its own row, so offsets produce a **staircase across
+            // rows** rather than a run along one — which is what he screenshotted.
+            //
+            // ⚠ So this is plain `Cut::Parts` again, and there is no Ctrl
+            // alternative for a multi-part drag: with nothing offset there are no
+            // two layouts to switch between. `Cut::EveryLaneInSequence` below is
+            // untouched — that is the *drum lane* cut, and unreachable today.
+            // ⛔⛔ **An alternative only when the two layouts actually differ,
+            // which is MIDI only.** `stem_files_with` renders the sequential cut
+            // as the stacked one for audio — see the note on
+            // `Cut::EveryLaneInSequence` — so building one there would render
+            // every lane a second time to produce byte-identical files. That is a
+            // full extra sampler pass per lane, on a gesture, inside a DAW.
             if matches!(cut, crate::export::Cut::EveryLaneInSequence) && kit.is_none() {
                 alternative = crate::export::stem_files_with(
                     &patterns,
@@ -730,6 +782,24 @@ fn render_and_spool(
             // short, which is worse than not dragging at all because the
             // producer would find out in their arrangement rather than here.
             crate::audio::render::refuse_if_too_long(&parts, kit.is_some())?;
+            // ⛔⛔ **A SONG IS SEPARATE CLIPS THAT LAND AS AN ARRANGEMENT — one
+            // file per part, every one starting at bar 1.** Mike, 2026-08-11:
+            // *"song needs to be all separate midi clips and all separate audio
+            // clips that land as an arrangement"*, and before that, when the
+            // All Parts rule was being applied here too: *"no, not the song."*
+            //
+            // ▶ **Which is exactly what this always did, and the reason is worth
+            // keeping.** `song_stem_patterns` flattens each part onto the
+            // **whole timeline**, so the five files are five simultaneous views
+            // of one record: dropped together at bar 1 they reassemble it, on a
+            // row each. ⛔ Neither of the other two layouts is available to a
+            // song — laying them end to end would play the drums for the length
+            // of the record and then the chords after it, and merging them into
+            // one clip would throw away the separation a stem drag exists for.
+            //
+            // ⚠ **So there is no Ctrl alternative here**, deliberately: both
+            // alternatives are wrong for an arrangement, and offering a modifier
+            // that produced one would be worse than offering none.
             crate::export::stem_files_with(
                 &parts,
                 crate::export::Cut::Parts,
@@ -753,19 +823,19 @@ fn render_and_spool(
     SWEEP.call_once(sweep);
     let dir = fresh_spool_dir()?;
     let paths = crate::export::spill(&dir, &files)?;
-    // ⚠ **A sub-folder, because both sets carry the same names.** A lane stem
-    // is named for its lane in either layout — that is the point of the naming
-    // rule — so writing them side by side would have the second set overwrite
-    // the first and both drags hand over the same files. The folder goes with
-    // `dir` when the drag is abandoned, so nothing new has to be swept.
-    let stacked = if alternative.is_empty() {
+    // ⚠ **A sub-folder, because the two sets can carry the same names.** A lane
+    // stem is named for its lane in either layout — that is the point of the
+    // naming rule — so writing them side by side would have the second set
+    // overwrite the first and both drags hand over the same files. The folder
+    // goes with `dir` when the drag is abandoned, so nothing new has to be swept.
+    let alternative = if alternative.is_empty() {
         Vec::new()
     } else {
-        crate::export::spill(&dir.join("stacked"), &alternative)?
+        crate::export::spill(&dir.join("ctrl"), &alternative)?
     };
     Ok(Prepared {
         paths,
-        stacked,
+        alternative,
         dir,
     })
 }
@@ -966,6 +1036,7 @@ mod tests {
                     model_vel: None,
                     slide_to_pitch: None,
                     articulation: None,
+                    reversed: false,
                 }],
             }],
             ppq: PPQ,
@@ -1412,7 +1483,7 @@ mod tests {
                 panic!("the render did not publish");
             };
             assert!(
-                !prepared.stacked.is_empty(),
+                !prepared.alternative.is_empty(),
                 "Ctrl would have nothing to switch to"
             );
             // ⚠ Sibling folders, because both sets carry the SAME file names — a
@@ -1421,7 +1492,7 @@ mod tests {
             // same files.
             assert_ne!(
                 prepared.paths[0].parent(),
-                prepared.stacked[0].parent(),
+                prepared.alternative[0].parent(),
                 "the two layouts were spooled into one folder"
             );
         }
@@ -1433,6 +1504,76 @@ mod tests {
         // red on all three runners. ⚠ The lock above is scoped, because `cancel`
         // takes the same mutex.
         drags.cancel();
+    }
+
+    /// ⛔⛔ **EVERY PART IS ITS OWN CLIP, AT BAR 1, THE LENGTH OF THE PATTERN —
+    /// NOTHING IS OFFSET AND NOTHING IS PADDED.**
+    ///
+    /// ▶ **Three wrong answers preceded this one, and the last is why the test
+    /// asserts what it does.** Shipped behaviour was one file per part at bar 1;
+    /// the first fix merged them into one clip, which Mike rejected as
+    /// *"altogether"*; the second pushed part *n* by *n* clip-lengths and grew
+    /// its bar count to cover the offset. He screenshotted the result — *"the
+    /// samples are 8 bars and the clips are only supposed to be 4 bars and the
+    /// sounds play at the end of the 8 bars on the last 4 bars, when they should
+    /// all only be 4 bars long."*
+    ///
+    /// ⚠ **Baking an offset into the files was the wrong reading of "one clip
+    /// after the next" anyway**: a host gives every dropped file its own row, so
+    /// offsets arrive as a staircase ACROSS rows rather than a run along one.
+    ///
+    /// ⚠ **So this asserts the spooled bytes are EXACTLY what encoding each
+    /// pattern on its own produces**, which is the sharpest statement available.
+    /// File size is a poor proxy: a MIDI offset moves a delta by one or two bytes
+    /// of variable-length quantity, and the first attempt at this test failed on
+    /// a **one-byte** difference that turned out to be only the track name
+    /// (`trap — Drums` against `trap — Melody`). Byte equality against a fresh
+    /// encode says no transformation happened at all.
+    #[test]
+    fn every_part_drags_as_its_own_clip_with_no_padding() {
+        let _spool = spool_guard();
+        let drags = Drags::default();
+        let drums = pattern(Lane::Kick);
+        let mut melody = pattern(Lane::Kick);
+        melody.part = engine::pattern::Part::Melody;
+        let subject = Subject::Patterns {
+            patterns: vec![drums.clone(), melody.clone()],
+            cut: crate::export::Cut::Parts,
+        };
+        if drags.prepare(subject, None, false).is_err() {
+            return; // No drag source on this platform; covered above.
+        }
+        assert_eq!(settle(&drags), Status::Ready);
+
+        // ⛔ Read out, then cancelled, and only then asserted — a failing
+        // assertion inside the lock would skip the cancel and leave a spool
+        // folder for the leak scan in a sibling test to blame itself for.
+        let (paths, alternative) = {
+            let slot = drags.slot.lock().unwrap();
+            let Stage::Ready(prepared) = &*slot else {
+                panic!("the render did not publish");
+            };
+            (prepared.paths.clone(), prepared.alternative.clone())
+        };
+        let spooled: Vec<Vec<u8>> = paths
+            .iter()
+            .map(|path| std::fs::read(path).unwrap_or_default())
+            .collect();
+        drags.cancel();
+
+        assert_eq!(spooled.len(), 2, "one file per part");
+        for (at, source) in [drums, melody].iter().enumerate() {
+            assert_eq!(
+                spooled[at],
+                engine::midi::pattern_to_smf(source),
+                "part {at} was transformed on the way out"
+            );
+        }
+        // ⚠ And no Ctrl payload, because there is no second layout to reach.
+        assert!(
+            alternative.is_empty(),
+            "nothing is offset, so Ctrl has no set"
+        );
     }
 
     #[test]
@@ -1452,7 +1593,7 @@ mod tests {
             let Stage::Ready(prepared) = &*slot else {
                 panic!("the render did not publish");
             };
-            assert!(prepared.stacked.is_empty());
+            assert!(prepared.alternative.is_empty());
         }
         // Takes its own render back — see the sibling test above for what a
         // `Ready` left standing does to the leak scan.
@@ -1608,7 +1749,7 @@ mod tests {
         // — this test is about the slot, not the filesystem.
         *drags.slot.lock().unwrap() = Stage::Ready(Prepared {
             paths: vec![PathBuf::from("a.mid")],
-            stacked: Vec::new(),
+            alternative: Vec::new(),
             dir: spool_root().join("does-not-exist"),
         });
         assert_eq!(drags.status(), Status::Ready);

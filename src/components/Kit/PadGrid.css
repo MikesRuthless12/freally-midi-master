@@ -43,6 +43,92 @@
   outline-offset: -2px;
 }
 
+/* ⛔ **Draggable to reorder** (Mike, 2026-08-11: *"you should be able to click
+   and drag your drum pads and replace the ordering"*). The grab cursor is the
+   only thing that says so before the gesture starts.
+   ⚠ **`grab`, not `move`** — the pad still does four other things on a press,
+   and `move` reads as "this element is going somewhere" rather than "you may
+   pick this up". */
+.pad {
+  cursor: grab;
+}
+
+.pad:active {
+  cursor: grabbing;
+}
+
+/* ⚠ The *small* controls keep their own pointer, or every button on the pad
+   would advertise a drag it does not start.
+   ⛔ **`.pad__face` is NOT in that list**, and its absence is load-bearing. The
+   face is `position: absolute; inset: 0` — it covers the whole tile — and it is
+   itself a drag handle, because Chromium will not start a drag on a `<button>`
+   nor walk past one to a draggable ancestor (see `PadGrid.tsx`). Giving it
+   `cursor: pointer` would hide the grab cursor everywhere the pad is visible and
+   leave the rule above true of three pixels of border. */
+.pad__play,
+.pad__roll,
+.pad__clear,
+.pad__use {
+  cursor: pointer;
+}
+
+/* ⛔⛔ **Which pad `Ctrl`+arrow will put the sample on** — Mike, 2026-08-11:
+   *"there has to be a way to select the drum pad so you know which one you are
+   putting it into"*, and *"one has to always be selected no matter what."* So
+   this ring is never absent: exactly one pad wears it at all times.
+
+   ⚠ **A solid ring against `data-over`'s dashed one**, so the two are told apart
+   at a glance when a sample is being dragged over the pad that is also selected —
+   which is the common case, since pressing a pad is how you select it. */
+.pad[data-selected='true'] {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
+/* The drag target still wins while a sample is over it: that outline is about
+   what is happening *now*, and the selection will still be there afterwards. */
+.pad[data-selected='true'][data-over='true'] {
+  outline-style: dashed;
+}
+
+/*
+ * ⛔⛔ **THE PAD LIGHTS AS ITS LANE FIRES** — Mike, 2026-08-11: *"the drum pads
+ * should blink with a color as the drum parts play."*
+ *
+ * `state/padBlink.ts` sets `data-lit` for 70 ms as the playhead crosses each
+ * note start, straight on the node — nothing here re-renders, which is the whole
+ * reason the signal is an attribute rather than a prop.
+ *
+ * ⚠ **The colour goes ON, and the fade comes OFF.** There is no transition into
+ * `data-lit`, so the hit is instant and reads as a hit; the transition is on the
+ * base rule, so removing the attribute is what animates. A symmetrical fade
+ * would soften the attack, and the attack is the thing being shown.
+ *
+ * ⚠ **Background, not the outline.** `data-over` already owns the outline for a
+ * drag, and two signals sharing one property means the drop target disappears
+ * under a playing beat.
+ */
+.pad {
+  transition: background-color 140ms ease-out;
+}
+
+.pad[data-lit='true'] {
+  transition: none;
+  background: color-mix(in srgb, var(--color-primary) 38%, var(--color-surface-2));
+}
+
+/* ⚠ Respected here as everywhere else: a light pulsing eight times a bar is
+   exactly the motion this setting exists to turn off. The pads keep every other
+   readout — the dot, the dimming, the labels — so nothing is lost but the
+   flashing. */
+@media (prefers-reduced-motion: reduce) {
+  .pad,
+  .pad[data-lit='true'] {
+    transition: none;
+    background: var(--color-surface-2);
+  }
+}
+
 /* The mute target, behind everything. The pad is pressed to mute, so the whole
    face is the button — but it carries no content of its own, or it would be
    competing with the picker for the same clicks. */
@@ -53,7 +139,8 @@
   border: 0;
   border-radius: var(--radius-control);
   background: transparent;
-  cursor: pointer;
+  /* Inherited from .pad, deliberately — see the cursor note above. */
+  cursor: inherit;
 }
 
 .pad__face:hover {
@@ -83,6 +170,34 @@
   line-height: 1.2;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/*
+ * ⛔⛔ **THE TWO BOTTOM-CORNER BUTTONS SIT ON TOP OF THIS LINE, AND THAT IS THE
+ * OVERLAP MIKE SCREENSHOTTED** (2026-08-11): *"the standalone's text is
+ * overlapping with something else before and after you drag a sample to a drum
+ * lane."*
+ *
+ * `.pad__source` is the last thing in the pad's flow, so it lands in the same
+ * few pixels as `.pad__clear` (bottom right) and `.pad__use` (bottom left) —
+ * both `position: absolute; bottom: 4px`. The sample name ran straight under
+ * them: the `✕` printed over the end of "Cymatics - Cla…" and the `↵` glyph's
+ * horizontal stroke drew through "Built in" like a strikethrough. **Before** the
+ * drag is `.pad__use`, which appears the moment a sample is selected in the
+ * browser; **after** it is `.pad__clear`, which appears once the pad is carrying
+ * one. That is exactly the two moments he named.
+ *
+ * ⚠ **Reserved per button rather than on every pad**, because a pad is one
+ * eighth of the stage and 20px of inline padding is real estate: a pad with
+ * neither control keeps the full width for the name. The buttons are 18px wide
+ * against a 4px edge, so 22px is the first column of text that clears them.
+ */
+.padgrid[data-picking='true'] .pad__source {
+  padding-inline-start: 22px;
+}
+
+.pad[data-assigned='true'] .pad__source {
+  padding-inline-end: 22px;
 }
 
 /* ⛔ **Top centre** — Mike named the position after the first attempt put it in

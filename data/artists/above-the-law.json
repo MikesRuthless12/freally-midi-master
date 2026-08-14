@@ -1,0 +1,333 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "above-the-law",
+  "type": "artist",
+  "name": "Above the Law",
+  "aliases": [
+    "above the law",
+    "atl",
+    "cold 187um",
+    "big hutch",
+    "pomona city"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "g-funk"
+  ],
+  "era": "1990-1994",
+  "genres": [
+    "rap",
+    "g-funk",
+    "west coast",
+    "funk"
+  ],
+  "relatedGenres": [
+    "g-funk",
+    "funk",
+    "boom-bap",
+    "west-coast-club"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended vol.1 g-funk — Above the Law",
+    "https://diversementality.com/who-invented-g-funk-dr-dre-vs-cold-187um/",
+    "https://albumism.com/features/above-the-law-uncle-sams-curse-turns-25-anniversary-retrospective"
+  ],
+  "notes": "The disputed origin point of the lane, and the densest model in this batch by design — the research says dense, busy voicings of 3–5 simultaneous parts, which is `extensions` weighted 0.2/0.5/0.3 toward sevenths and ninths over a voicing register spanning 40–80, the widest here, plus a countermelody at `densityRatio` 0.65. The method is literally \"P-Funk slowed down\", so the harmony inherits the source's flat-7 vocabulary: `dorian` and `mixolydian` weighted up, and every progression family built off `VII`. ⚠ **`percs.lanes` includes `reverse`, and that is the research's fill, not decoration**: backward-masked drums are named as the fill device on these records, and `reverse` is a real lane in this engine. ⚠ The live bass is the stated core ingredient — deep, prominent, melodic funk lines with slides between chord roots, not kick-locked — so this entry carries the lowest `followRootsProb` (0.42) with the highest `glideProb` (0.7) and the widest bass register (24–48) in the batch. The whining Moog \"worm\" is the parent's `portamento_worm_lead`, inherited rather than restated, with the melody's register pushed to 98 and `octaveJumpProb` up. ⚠ `phraseBars` reaches 8 as well as 2 and 4 because the research names 4- and 8-bar loop cycles; a single length would bound every derived part. The mid-song breakdown to bass-and-drums is authored as a `bridge` rule naming only those parts, and the long intros as 8–16 bars. ⚠ The chord voicing moved up to [49, 89] so the bass stays under the harmony — it started at 40 against a bass reaching 48, an overlap of 9. The span is preserved; a voicing that low was competing with the bass rather than sitting over it.",
+  "session": {
+    "bpm": {
+      "min": 88,
+      "max": 98,
+      "mode": 93
+    },
+    "scales": {
+      "values": [
+        "dorian",
+        "natural_minor",
+        "minor_pentatonic",
+        "mixolydian"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.58
+    },
+    "humanize": {
+      "quantizeStrength": 0.8,
+      "velocityVar": 0.2
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.48,
+      "tresilloBias": 0.26,
+      "offbeat8thShare": 0.32
+    },
+    "snare": {
+      "rimshotLayer": true,
+      "ghost": {
+        "prob": 0.24,
+        "pos": [
+          "2e",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.24,
+          0.42
+        ]
+      }
+    },
+    "hihat": {
+      "base": {
+        "values": [
+          "8th",
+          "16th"
+        ],
+        "weights": [
+          2,
+          3
+        ]
+      },
+      "continuous": true,
+      "fillDensity": 0.46,
+      "openHat": {
+        "prob": 0.38,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "rolls": {
+        "vocab": [
+          "32"
+        ],
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.29
+      }
+    },
+    "percs": {
+      "lanes": [
+        "reverse",
+        "perc",
+        "conga",
+        "tambourine"
+      ],
+      "densityPerBar": [
+        2,
+        4
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t",
+        "8t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        55,
+        118
+      ],
+      "gapProb": 0.4,
+      "descendProb": 0.67,
+      "rampJitter": 23,
+      "pitchWalk": 4
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "iv"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII",
+          "VI"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "v",
+          "iv"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "chordDurationBeats": [
+      2,
+      8
+    ],
+    "extensions": {
+      "triad": 0.2,
+      "seventh": 0.5,
+      "ninth": 0.3
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        49,
+        89
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp",
+        "syncopated_cell"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      72,
+      98
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4,
+        8
+      ],
+      "weights": [
+        2,
+        3,
+        1
+      ]
+    },
+    "densityPerBar": [
+      4,
+      8
+    ],
+    "octaveJumpProb": [
+      0.2,
+      0.34
+    ],
+    "contour": {
+      "riff": 0.55,
+      "descend": 0.28,
+      "arch": 0.17
+    }
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.65,
+    "styles": {
+      "values": [
+        "arp",
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.42,
+    "register": [
+      24,
+      48
+    ],
+    "glideProb": 0.7,
+    "passingTones": [
+      "M2",
+      "m3",
+      "P4",
+      "P5",
+      "M6",
+      "m7",
+      "P8"
+    ],
+    "anticipationProb": 0.3
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        8,
+        16
+      ],
+      "verse": 16,
+      "hook": 8,
+      "bridge": [
+        8,
+        16
+      ],
+      "outro": [
+        4,
+        8
+      ]
+    },
+    "sectionRules": {
+      "bridge": {
+        "parts": [
+          "bass",
+          "drums"
+        ],
+        "density": 0.45
+      }
+    }
+  }
+}

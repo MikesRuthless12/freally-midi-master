@@ -1,0 +1,366 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "yo-gotti",
+  "type": "artist",
+  "name": "Yo Gotti",
+  "aliases": [
+    "yo gotti",
+    "mario mims",
+    "cmg",
+    "collective music group",
+    "yo gotti type beat"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "memphis-rap"
+  ],
+  "era": "2010-2022",
+  "genres": [
+    "rap",
+    "memphis",
+    "trap"
+  ],
+  "relatedGenres": [
+    "memphis-rap",
+    "trap",
+    "dark-trap",
+    "crunk",
+    "atl-swag-rap"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 memphis-rap — Yo Gotti",
+    "https://en.wikipedia.org/wiki/Yo_Gotti",
+    "https://en.wikipedia.org/wiki/The_Art_of_Hustle",
+    "https://en.wikipedia.org/wiki/Trap_music"
+  ],
+  "notes": "The bridge between classic Memphis and the modern chart, and the research marks it as **the first entry in the section where portamento is standard** — a tuned 808 gliding between the root and the ♭7 or 5th, with the sub carrying the harmony and the kick masked into it. That single sentence is the model's centre: `bass808.slideProb` jumps to 0.34 with a 40–90 ms portamento, `bassline.glideProb` follows at 0.35, `followRootsProb` drops to 0.78 and the m7 and P5 become passing tones rather than decorations. Nothing before him on this axis moves like that. The second inversion is the percussion: the research says the **cowbell is used as a Memphis signifier rather than as the subdivision**, so the cowbell lane falls to 1–3 hits a bar at -6 dB while the hats take over with triplet and 32nd runs. Snare rolls are described as **pre-hook fills**, which is exactly what the band's `pre_snare` roll position and a 0.40 frequency produce. Harmony is two-chord loops (i–VI, i–VII) and single-chord vamps under a bright plucked or bell motif — brighter than the Hypnotize board, hence a raised `chordToneBias` and low `halfStepDissonance`. The arrangement is hard-stopped with a beat switch described as rare, so `switchUpProb` is 0.02 and the outro is 2 bars. ⚠ `medium`: the research rates it medium — era, label history, charts and producer credits are sourced, but **the drum and tempo detail is lane-anchored** (68–80 half-time = 136–160 straight, marked [LOW-CONF] against the trap convention's typical 70/140), so `session.bpm` and the kick placement are the inferred ones.",
+  "session": {
+    "bpm": {
+      "min": 136,
+      "max": 160,
+      "mode": 144
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "phrygian",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        5,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.94,
+      "velocityVar": 0.14
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.36,
+      "tresilloBias": 0.42
+    },
+    "snare": {
+      "layerClapOffsetMs": [
+        0,
+        0
+      ],
+      "ghost": {
+        "prob": 0.2,
+        "pos": [
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.24,
+          0.42
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.5,
+      "velocities": {
+        "main": [
+          0.6,
+          0.86
+        ],
+        "ghost": [
+          0.24,
+          0.44
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "16T"
+          ],
+          "weights": [
+            3,
+            5
+          ]
+        },
+        "positions": [
+          "pre_snare"
+        ],
+        "freqPerBar": 0.4,
+        "velocityRamp": true
+      },
+      "openHat": {
+        "prob": 0.2,
+        "pos": [
+          "2a",
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "cowbell",
+        "rim"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "placement": "offbeat",
+      "gainOffsetDb": -6
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 16,
+      "fillBeforeSection": true
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "8t"
+      ],
+      "grouping": [
+        "even",
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        58,
+        107
+      ],
+      "rampJitter": 15,
+      "descendProb": 0.14,
+      "gapProb": 0.25,
+      "pitchWalk": 4
+    },
+    "bass808": {
+      "sustain": "legato",
+      "monoCutSelf": true,
+      "slideProb": 0.34,
+      "slideIntervals": {
+        "values": [
+          "m7",
+          "P5",
+          "P4"
+        ],
+        "weights": [
+          4,
+          3,
+          2
+        ]
+      },
+      "slidePositions": [
+        "phrase_end"
+      ],
+      "portamentoMs": [
+        40,
+        90
+      ],
+      "register": [
+        17,
+        36
+      ],
+      "distortion": "light"
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 3
+      }
+    ],
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.86,
+      "seventh": 0.12,
+      "ninth": 0.02
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        44,
+        74
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "vamp",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      16
+    ]
+  },
+  "melody": {
+    "register": [
+      55,
+      79
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    },
+    "densityPerBar": [
+      2,
+      5
+    ],
+    "motifPitchCount": [
+      3,
+      6
+    ],
+    "intervals": {
+      "step": 0.6,
+      "third": 0.24,
+      "leap": 0.16
+    },
+    "contour": {
+      "riff": 0.62,
+      "descend": 0.28,
+      "arch": 0.1
+    },
+    "chordToneBias": 0.68,
+    "halfStepDissonance": 0.12,
+    "emptyBarBias": 0.2,
+    "octaveJumpProb": 0.1,
+    "timbreHint": "pluck_synth"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.34,
+    "fillGapsOnly": true,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.78,
+    "register": [
+      24,
+      43
+    ],
+    "glideProb": 0.35,
+    "passingTones": [
+      "m7",
+      "P5"
+    ],
+    "anticipationProb": 0.12
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "hook"
+        ],
+        "weight": 3
+      }
+    ],
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": 16,
+      "hook": 8,
+      "outro": 2
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.4,
+        "beats": 2
+      },
+      "switchUpProb": 0.02
+    }
+  }
+}

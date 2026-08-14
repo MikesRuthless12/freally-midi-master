@@ -1,0 +1,318 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "lil-flip",
+  "type": "artist",
+  "name": "Lil Flip",
+  "aliases": [
+    "lil flip",
+    "lil' flip",
+    "wesley weston",
+    "freestyle king",
+    "clover g",
+    "game over"
+  ],
+  "tier": "standard",
+  "extends": [
+    "houston-screw"
+  ],
+  "era": "2000–2006",
+  "genres": [
+    "rap",
+    "southern rap",
+    "screw",
+    "houston"
+  ],
+  "relatedGenres": [
+    "houston-screw",
+    "crunk",
+    "memphis-rap",
+    "trap"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended vol.1 crunk — Lil Flip (the `houston-screw` lane's research section)",
+    "Wikipedia — Lil Flip: https://en.wikipedia.org/wiki/Lil_Flip",
+    "Wikipedia — DJ Screw: https://en.wikipedia.org/wiki/DJ_Screw"
+  ],
+  "notes": "⛔ **`confidence` is `low` on the research's own reading** — it rates this entry medium-low, \"SUC membership and era documented; parameters inferred\", and marks the 68–82 band [LOW-CONF]. Sourced: the Screwed Up Click affiliation, the freestyle-derived nursery-rhyme cadence, a static-i harmony under hooks that quote a familiar melodic contour, the 16th-hat kit, the arcade/chiptune sample layers on the best-known single, the long-decay low-passed 808, 1–2 bar bell/arcade motifs at very low density, and irregular 12–24 bar verses with repeated chant hooks. INFERRED: every probability and register bound here. ▶ **`timbreHint` is `video_game_lead`, and it is the most literal thing in this batch.** The research names arcade/chiptune sample layers outright; nothing else in the Houston lane has a timbre that specific, and it is what makes this entry unmistakable next to Mike Jones's bells and Slim Thug's brass. The counter is pushed *above* the lead at +12 with `arp` weighted top, which is what a chiptune layer over a slow beat actually is. ▶ **1-bar phrases carry real weight here, and only here.** \"1–2 bar loops, very low density\" — so `phraseBars` runs 1, 2, 4 at 4 : 5 : 1 rather than the genre's 2-dominant spread, `motifPitchCount` falls to 2–4, and `loopVerbatim` with `endVariation` off is the repeated chant hook. Three lengths rather than one, because a single phrase length bounds every part derived from the melody. ⚠ **The irregular verse is inherited on purpose, not omitted.** The genre's `arrangement.sectionBars.verse` of 12–24 came *from* this entry's \"freestyle-length verses (irregular, 12–24 bars)\"; re-authoring the same range here would be an override that changes nothing. What is authored instead is the form the chant hook makes — four hooks against three verses. ⚠ **Static i is carried by duration.** `impliedByRiff` is set and `chordDurationBeats` runs 3–14 across three harmonic rhythms with a voicing spread from 38 to 72, so the chord part's variety is how long it sits rather than what it plays. ⚠ **The i–VII and i–VI families are INFERRED** — the research names only the static i. They carry the two lowest weights and exist so the bass has more than one root to reach and the chord part clears its distinctness floor. ⚠ **Fill fingerprint.** `gapProb` 0.46 / `descendProb` 0.14 / `rampJitter` 5 over 8th-triplets, even grouping — a gapped, flat, tightly-quantised roll, which is the nursery-rhyme half of this entry rather than a build. ⚠ `anticipationProb` raised to 0.15. With `mirror_kick` against a fully locked 808 both parts take every kick, so every bass onset lands exactly on an 808 onset — `coherence.rs` calls that one line played twice rather than two parts locking. The lock is the style and is untouched; the anticipation is what makes them two parts. ⚠ **The 1-bar phrase length was removed** (was [1,2,4], now [2,4]). A one-bar phrase looped four times carries less entropy than a four-bar phrase, and it is the countermelody it strangles hardest: a counter answers *inside* the melody’s phrase, so a one-bar shape leaves it nowhere to go. Every worst offender on `counter.rs` carried it. ⛔ The previous session recorded this exact mistake and it arrived again from the other direction — distinctness is combinatorial in the shape LENGTH, not in the option count.",
+  "session": {
+    "bpm": {
+      "min": 68,
+      "max": 82,
+      "mode": 74
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "minor_pentatonic",
+        "harmonic_minor"
+      ],
+      "weights": [
+        6,
+        4,
+        2
+      ]
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "4&",
+      "syncopation": 0.14,
+      "beatSkipProb": 0.14,
+      "tresilloBias": 0.03,
+      "offbeat8thShare": 0.07,
+      "lockTo808": 1
+    },
+    "snare": {
+      "layerClapOffsetMs": [
+        6,
+        14
+      ],
+      "clusterProb": 0.18,
+      "clusterHits": [
+        2,
+        3
+      ],
+      "placement": "halftime_3",
+      "ghost": {
+        "prob": 0.13,
+        "pos": [
+          "4&"
+        ],
+        "vel": [
+          0.22,
+          0.4
+        ]
+      },
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": {
+        "values": [
+          "16th",
+          "8th"
+        ],
+        "weights": [
+          4,
+          3
+        ]
+      },
+      "fillDensity": [
+        0.34,
+        0.58
+      ],
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16T"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.24,
+        "velocityRamp": true
+      },
+      "openHat": {
+        "prob": 0.22,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      }
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "8t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        80,
+        115
+      ],
+      "rampJitter": 6,
+      "descendProb": 0.14,
+      "gapProb": 0.46
+    },
+    "bass808": {
+      "register": [
+        12,
+        26
+      ],
+      "sustain": "legato",
+      "slideProb": 0.03,
+      "lowPassed": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 6
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 1
+      }
+    ],
+    "maxChords": 2,
+    "impliedByRiff": true,
+    "voicing": {
+      "style": "open",
+      "register": [
+        38,
+        72
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      3,
+      14
+    ]
+  },
+  "melody": {
+    "register": [
+      55,
+      85
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        5,
+        1
+      ]
+    },
+    "densityPerBar": [
+      1,
+      3
+    ],
+    "motifPitchCount": [
+      2,
+      4
+    ],
+    "loopVerbatim": true,
+    "endVariation": false,
+    "intervals": {
+      "step": 0.64,
+      "third": 0.24,
+      "leap": 0.12
+    },
+    "contour": {
+      "riff": 0.58,
+      "descend": 0.3,
+      "arch": 0.12
+    },
+    "emptyBarBias": 0.22,
+    "octaveJumpProb": 0.12,
+    "timbreHint": "video_game_lead"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.35,
+      0.6
+    ],
+    "echoOffset": "1/8",
+    "styles": {
+      "values": [
+        "arp",
+        "octave_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.97,
+    "register": [
+      18,
+      36
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.15
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ]
+  }
+}

@@ -36,7 +36,7 @@ test.describe('Phase gate — UI contract', () => {
     // whenever that panel happened to be expanded, so the gate failed on the
     // state of a collapsed section rather than on anything it is about. The
     // claim is "the right rail is present"; `.rail__toggle` is what says so.
-    await expect(page.locator('.rail__toggle', { hasText: /Kit/i })).toBeVisible();
+    await expect(page.locator('.rail__title', { hasText: /Kit/i })).toBeVisible();
     await expect(page.getByRole('button', { name: 'Play', exact: true })).toBeVisible();
   });
 
@@ -149,16 +149,19 @@ test.describe('Phase gate — accessibility', () => {
     }
   });
 
-  test('collapsible panels expose aria-expanded', async ({ page }) => {
-    for (const name of [/Genres/i, /Roster/i, /Kit/i, /Session/i]) {
-      // ⚠ Scoped to the rail's own toggles rather than to any button whose
-      // label happens to contain the word. See the note in "every region" — the
-      // unscoped version broke the moment a panel gained a control named after
-      // the panel, which is a thing panels do.
-      await expect(page.locator('.rail__toggle', { hasText: name })).toHaveAttribute(
-        'aria-expanded',
-        /true|false/,
-      );
+  test('every panel is reachable from a rail tab', async ({ page }) => {
+    // ⛔⛔ **REPLACES "collapsible panels expose aria-expanded"** (2026-08-11).
+    // The panels are not collapsible any more — a rail shows one group and the
+    // tabs on its edge switch between them, so there is no `aria-expanded` left
+    // to assert. The accessibility property that *matters* under the new model
+    // is the one this checks: no panel is stranded. Every one of the eight is
+    // either on screen or named on a tab that will bring it.
+    for (const name of [/Genres/i, /Roster/i, /Browser/i, /Kit/i, /Stems/i, /Session/i]) {
+      const showing = page.locator('.rail__title', { hasText: name });
+      const offered = page.locator('.railtabs__tab', { hasText: name });
+      await expect
+        .poll(async () => (await showing.count()) + (await offered.count()))
+        .toBeGreaterThan(0);
     }
   });
 

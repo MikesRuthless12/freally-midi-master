@@ -242,6 +242,25 @@ pub struct State {
     /// keeps recording — the producer scrolls, does not find their sample, and
     /// concludes the explorer is broken.
     pub truncated: bool,
+    /// Library roots that are not readable folders right now (TASK-058).
+    ///
+    /// ⛔⛔ **The unplugged-drive case, which the library deliberately keeps.**
+    /// [`merge_folders`] says so in as many words — a root is not dropped just
+    /// because the disk it lives on is not mounted, because a producer who
+    /// unplugs their sample drive for a week has not left the library. But
+    /// nothing *said* so: the root drew as an ordinary folder, expanding it
+    /// failed with the one refusal message every failure shares, and the tree
+    /// shut the twisty again. A folder you cannot open and cannot be told why is
+    /// indistinguishable from an empty one, which is the readout-that-lies
+    /// failure [`State::truncated`] exists to avoid one field up.
+    ///
+    /// ⚠ **This is not the filesystem oracle [`Explorer::open`] refuses to be.**
+    /// That rule is about paths the *page* supplies: distinct wording there
+    /// would let an untrusted page map the disk one probe at a time. These are
+    /// paths the producer picked from an OS dialog and which this reply already
+    /// carries in `roots` — saying whether one of them is currently readable
+    /// tells the page nothing it did not put there itself.
+    pub missing: Vec<String>,
 }
 
 /// The chosen folder, per plugin instance.
@@ -619,28 +638,62 @@ impl Explorer {
             })
             .collect();
 
-        let at = self
-            .folder
-            .lock()
-            .ok()
-            .and_then(|slot| slot.as_ref().cloned());
-
         // ⚠ `try_lock` is not needed — this is the editor thread and the only
         // other holder is the dialog thread, which takes it twice for a couple
         // of instructions each. A poisoned lock reads as "no dialog", which is
         // the answer that lets the page stop polling rather than spin forever.
         let picking = self.picking.lock().map(|open| *open).unwrap_or(false);
 
+        // ⛔ **Which of the library folders are actually there.** See
+        // [`State::missing`]: a root on an unplugged drive is kept on purpose,
+        // and until this existed nothing told the page which ones those were.
+        //
+        // ⛔⛔ **NOT while a folder dialog is open, and that is not an
+        // optimisation.** `Explorer::pick` runs a modal on its own thread and the
+        // page polls this every 400 ms for as long as it is up. `is_dir` against
+        // a **mapped drive whose server is gone** blocks in the Windows
+        // redirector until it times out — seconds, on the host's editor thread —
+        // and a disconnected drive is precisely the input this field exists to
+        // report. So the one state it is built for is the one that would have
+        // stalled Ableton two and a half times a second.
+        //
+        // ▶ The poll's last iteration runs with `picking` false, so the answer
+        // still arrives the moment the dialog closes; every other caller of
+        // `refresh` is a click, not a loop.
+        //
+        // ⚠ **`refuse_remote` first, before the syscall**, the rule `open` and
+        // `list_one` both state: on Windows an `is_dir` against a UNC path *is*
+        // an outbound connection that authenticates. A root that is refused
+        // outright is reported as missing, which is the honest answer — the
+        // producer cannot browse it either way.
+        let missing: Vec<String> = if picking {
+            Vec::new()
+        } else {
+            roots
+                .iter()
+                .filter(|root| crate::oneshot::refuse_remote(root).is_err() || !root.is_dir())
+                .filter_map(|root| root.to_str().map(str::to_owned))
+                .collect()
+        };
+
+        let at = self
+            .folder
+            .lock()
+            .ok()
+            .and_then(|slot| slot.as_ref().cloned());
+
         let Some(dir) = at else {
             return State {
                 roots: named,
                 picking,
+                missing,
                 ..State::default()
             };
         };
 
         let mut state = list(&dir);
         state.picking = picking;
+        state.missing = missing;
         // ⛔ **"Up" stops at a root.** Without this the producer can walk out of
         // the folder they added, up through their home directory, and browse
         // the whole disk from inside a plugin — which is both a surprise and a
@@ -727,6 +780,7 @@ fn list(dir: &Path) -> State {
         // Filled in by `Explorer::state`, which is the only thing that knows —
         // `list` reads one folder and nothing else.
         picking: false,
+        missing: Vec::new(),
     }
 }
 
@@ -1340,6 +1394,33 @@ mod tests {
         explorer.restore(&["/a/drive/that/is/not/plugged/in".into()]);
         assert_eq!(explorer.snapshot().len(), 1);
         assert_eq!(explorer.state().roots.len(), 1);
+    }
+
+    #[test]
+    fn a_library_folder_that_is_gone_says_so() {
+        // ⛔ **The other half of the test above, and it was missing.** Keeping
+        // the root is right; drawing it as an ordinary folder is not. Expanding
+        // it failed with the one refusal message every failure shares and the
+        // tree shut the twisty again, so an unplugged drive was
+        // indistinguishable from an empty folder — the readout-that-lies
+        // failure, in the panel that already reports a truncated listing rather
+        // than cutting it silently.
+        let there = temp("missing-roots");
+        let explorer = Explorer::default();
+        explorer.restore(&[
+            there.to_str().unwrap().to_owned(),
+            "/a/drive/that/is/not/plugged/in".into(),
+        ]);
+
+        let state = explorer.state();
+        assert_eq!(state.roots.len(), 2, "both are kept");
+        assert_eq!(
+            state.missing,
+            vec!["/a/drive/that/is/not/plugged/in".to_owned()],
+            "and only the one that is gone is named"
+        );
+
+        let _ = std::fs::remove_dir_all(&there);
     }
 
     #[test]

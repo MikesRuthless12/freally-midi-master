@@ -10,6 +10,7 @@ import { TransportBar } from './components/layout/TransportBar';
 import { isTypingTarget } from './lib/keyboard';
 import { useDrag } from './state/drag';
 import { subscribeToPreview, useExplorer } from './state/explorer';
+import { subscribeToPadBlink } from './state/padBlink';
 import { useSong } from './state/song';
 import { canDrive, subscribeToPlayhead, TAB_PART, useSession } from './state/session';
 import { GENERATOR_TABS, isWide, useUi } from './state/ui';
@@ -20,6 +21,7 @@ function Studio() {
   const [aboutOpen, setAboutOpen] = useState(false);
   const [shortcutsOpen, setShortcutsOpen] = useState(false);
   const rightRailOpen = useUi((s) => s.rightRailOpen);
+  const stageOpen = useUi((s) => s.stageOpen);
   const railWidth = useExplorer((s) => s.railWidth);
   const setWide = useUi((s) => s.setWide);
   const toggleRightRail = useUi((s) => s.toggleRightRail);
@@ -62,6 +64,13 @@ function Studio() {
   // outside the plugin, where there is no audio thread behind it.
   useEffect(() => subscribeToPlayhead(), []);
 
+  // ⛔ **Light each pad as its lane fires** (Mike, 2026-08-11). Riding the same
+  // playhead rather than a second poll, and writing straight to the DOM rather
+  // than through state — `state/padBlink.ts` gives both reasons. It reads the
+  // store rather than the bridge, so unlike the two subscriptions around it this
+  // one is live in the browser too, wherever a playhead is being written.
+  useEffect(() => subscribeToPadBlink(), []);
+
   // The same, for the sample the browser is auditioning (TASK-132). A separate
   // subscription rather than a branch inside the one above, because the two
   // read different atomics at different rates and neither should be able to
@@ -95,7 +104,7 @@ function Studio() {
   // inside it. `isWide` measures the layout.
   //
   // ⚠ **The crossing check is `setWide`'s own now**, and it had to move: this
-  // was not the only caller — `WindowSize.tsx::applyZoom` calls it too, without
+  // was not the only caller — `WindowFit.tsx::applyZoom` calls it too, without
   // a guard, on every resize. Two callers of one rule is one caller too many,
   // and the one that forgot it reopened the rail under the producer.
   useEffect(() => {
@@ -286,9 +295,13 @@ function Studio() {
   // inside it is both redundant and a lie, since our minimise and close cannot
   // move a window we do not own. Settings and About live in the transport bar.
   return (
-    <div className="studio" data-right-rail={rightRailOpen ? 'open' : 'closed'}>
+    <div
+      className="studio"
+      data-right-rail={rightRailOpen ? 'open' : 'closed'}
+      data-stage={stageOpen ? 'open' : 'closed'}
+    >
       <LeftRail />
-      <CenterStage />
+      {stageOpen && <CenterStage />}
       {rightRailOpen && <RightRail />}
       <TransportBar
         onOpenSettings={() => setSettingsOpen(true)}

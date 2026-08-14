@@ -1,0 +1,285 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "gza",
+  "type": "artist",
+  "name": "GZA",
+  "aliases": [
+    "gza",
+    "genius",
+    "gary grice",
+    "liquid swords"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "boom-bap"
+  ],
+  "era": "1995-1999",
+  "genres": [
+    "rap",
+    "boom-bap"
+  ],
+  "relatedGenres": [
+    "boom-bap",
+    "dark-trap",
+    "lofi-hiphop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.1 boom-bap — GZA",
+    "Wikipedia — Liquid Swords",
+    "Sweetwater — the gear behind Wu-Tang Clan's Enter the Wu-Tang (36 Chambers)"
+  ],
+  "notes": "The most austere model on this axis, and every number in it is a superlative the research states outright. \"Slowest Wu tempi\" gives an 82–92 band centred at 86. \"Lowest note density in the lane\" gives `melody.densityPerBar` 1–3. \"A single sustained organ/string tone as the entire harmonic content\" gives `timbreHint` `church_organ` and `impliedByRiff`. \"Dissonant seconds when two fragments overlap\" gives `halfStepDissonance` 0.26. \"Hats often omitted entirely\" gives a non-continuous hat block, and \"velocity variation minimal\" gives `velocityVar` 0.05. The `snareRoll` numbers are the extreme end of this batch's spread — `gapProb` 0.65, `descendProb` 0.05, `rampJitter` 2 — because a fill on these records is nearly not there. ⚠ **The bass is `mirror_kick`, not a held note, and that is an engine limit rather than a reading of the record.** \"Deep sustained sub, tonic-only... its only movement is the kick\" is the most literal `mirror_kick` description in the whole section, and `followRootsProb` 0.98 keeps it on the tonic; `reese_sustain` is refused because it emits one note per chord and saturates. ⚠ The `i–iv` family is INFERRED and carries the lowest weight the model has — the research names static `i` only. It exists because the bass needs more than one reachable root and the generated chord part still owes a producer 55 distinct outputs over 200 seeds; it is the first thing to delete if this ever sounds busier than the records. ⚠ `hihat.fillDensity` is 0.28 rather than 0 because a model that declares a hat block owes every seed a hat — the research's \"omitted entirely\" is honoured as far as the engine allows and no further. ⚠ `medium` because the research rates it high-medium: the RZA production idiom is documented, the tempo band is catalog-level. ⚠ **The bass pool was widened after `bass.rs` measured it at 0.927 distinct against a floor of 0.95.** It was authored with NO passing tones, followRootsProb 0.98, anticipationProb 0.04 over register [22,40] — a faithful description of a sample-loop bass, and one that leaves a seed nothing to vary but root and octave. Now [\"P5\"], root lock 0.9, anticipation 0.18, register [22,44]. The line is still overwhelmingly root-on-kick; what changed is how many different records it can be, not how busy any one of them is. ⚠ The bass ceiling came down from 44 to 41 so it stays under a chord part that starts at 42 — `coherence.rs` requires the highest bass note to sit at or below the lowest chord note, and this model overlapped by 3. ⚠ **The countermelody reached only 905 distinct answers in 1000 seeds against a floor of 980**, so it was given range: densityRatio 0.45. A counter is combinatorial in the styles it may pick, its density against the melody, and the phrase length it answers inside — one style over a thin density inside a single phrase length has almost nothing a seed can vary. ⚠ **The 1-bar phrase length was removed** (was [2,1,4], now [2,4]). A one-bar phrase looped four times carries less entropy than a four-bar phrase, and it is the countermelody it strangles hardest: a counter answers *inside* the melody’s phrase, so a one-bar shape leaves it nowhere to go. Every worst offender on `counter.rs` carried it. ⛔ The previous session recorded this exact mistake and it arrived again from the other direction — distinctness is combinatorial in the shape LENGTH, not in the option count. ⚠ **The countermelody reached 978/1000 distinct answers against a floor of 980**, so its style pool was opened: bell_echo, arp, densityRatio 0.55. ⛔ `counter.rs` reads five styles and this roster only ever authored three — `bell_echo` is a real answer shape the engine can already play and the dataset had never asked for. ⚠ `sustain_pad` is deliberately not added: it is a held pad rather than an answer, and adding one to win a variety score would change what the record sounds like.",
+  "session": {
+    "bpm": {
+      "min": 82,
+      "max": 92,
+      "mode": 86
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "phrygian",
+        "harmonic_minor"
+      ],
+      "weights": [
+        5,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.54
+    },
+    "humanize": {
+      "quantizeStrength": 0.82,
+      "velocityVar": 0.05
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.23,
+      "tresilloBias": 0.18,
+      "subLayerVelocity": [
+        0.5,
+        0.6
+      ],
+      "lockTo808": 0
+    },
+    "snare": {
+      "rimshotLayer": false,
+      "ghost": {
+        "prob": 0.05,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.2,
+          0.3
+        ]
+      },
+      "placement": "backbeat_24",
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.28,
+      "velocities": {
+        "main": [
+          0.52,
+          0.72
+        ],
+        "ghost": [
+          0.1,
+          0.28
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.1
+      },
+      "openHat": {
+        "prob": 0.06,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 8
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        45,
+        92
+      ],
+      "gapProb": 0.69,
+      "descendProb": 0.02,
+      "rampJitter": 2,
+      "pitchWalk": 2
+    }
+  },
+  "melody": {
+    "register": [
+      57,
+      79
+    ],
+    "densityPerBar": [
+      1,
+      3
+    ],
+    "intervals": {
+      "step": 0.58,
+      "third": 0.22,
+      "leap": 0.2
+    },
+    "contour": {
+      "riff": 0.8,
+      "descend": 0.15,
+      "arch": 0.05
+    },
+    "chordToneBias": 0.5,
+    "halfStepDissonance": 0.26,
+    "octaveJumpProb": 0.03,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        1
+      ]
+    },
+    "timbreHint": "church_organ"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.55,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "answer_lick",
+        "bell_echo",
+        "arp"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        1
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 7
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 1
+      }
+    ],
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.7,
+      "seventh": 0.26,
+      "ninth": 0.04
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        42,
+        79
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        6,
+        3,
+        1
+      ]
+    },
+    "impliedByRiff": true,
+    "chordDurationBeats": [
+      4,
+      16
+    ]
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.9,
+    "register": [
+      22,
+      41
+    ],
+    "glideProb": 0,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.18
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": 32,
+      "hook": 8,
+      "bridge": 4,
+      "outro": 4
+    },
+    "transitions": {
+      "dropOutBeats": {
+        "prob": 0.7,
+        "beats": 2
+      },
+      "switchUpProb": 0.08
+    }
+  }
+}

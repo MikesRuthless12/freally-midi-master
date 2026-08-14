@@ -43,7 +43,7 @@ export type Lane = "kick" | "subKick" | "snare" | "offSnare" | "ghostSnare" | "c
 
 export type LaneTrack = { lane: Lane, notes: Array<Note>, };
 
-export type ModelType = "artist" | "genre";
+export type ModelType = "artist" | "producer" | "genre";
 
 /**
  * A single note event. Ticks are absolute from the start of the pattern.
@@ -77,7 +77,34 @@ modelVel?: number | null,
  * 808 slide target. The note glides to this pitch; the writer emits the
  * overlap convention the sampler reads as portamento.
  */
-slideToPitch?: number | null, articulation?: Articulation | null, };
+slideToPitch?: number | null, articulation?: Articulation | null, 
+/**
+ * Play this one note's sample **backwards** (2026-08-11).
+ *
+ * ⛔⛔ **Mike:** *"if you have a drum pad or something playing forward in
+ * the pad, but you want it to play backwards in the drum pattern, you should
+ * be able to switch it … select the note and press like 'Ctrl+R' or
+ * 'Command+R' on macOS to reverse the note just for that single note being
+ * played. i think this would be a VERY USABLE AND COOL FEATURE to have."*
+ *
+ * ⛔ **Per NOTE, and deliberately not the same thing as a reversed
+ * one-shot.** A pad can be *assigned* a reversed sample (`Ctrl`+← in the
+ * browser, stored in `PluginSession::one_shots_reversed`), and that flips the
+ * buffer once at load time because it never changes. This is the opposite
+ * case: the same pad sounding forwards on one hit and backwards on the next
+ * inside one pattern, so it can only be read per voice, at trigger time.
+ *
+ * ⛔ **A `.mid` cannot carry it.** There is no SMF representation of "play
+ * this sample backwards", so a dragged or exported MIDI clip loses it and
+ * only the audio keeps it. That is a real limit of the format rather than
+ * something to work around, and it is written here so the next reader does
+ * not go looking for the encoding.
+ *
+ * ⚠ `#[serde(default)]` and skipped when false, so every pattern already on
+ * disk — and every golden snapshot — deserializes unchanged and gains
+ * nothing in its serialized form.
+ */
+reversed?: boolean, };
 
 /**
  * The five generated parts. `Drums` covers the whole kit including the 808,
@@ -286,6 +313,29 @@ export type SessionDefaults = {
  * The tempo a generation will use: `BpmSpec::nominal`, not a sample.
  */
 bpm: number, 
+/**
+ * The tempo range the model authored, or `bpm` twice when it authored none
+ * (TASK-158D).
+ *
+ * ⛔ **A range, because a single number is not what a producer is choosing
+ * between.** *"tempo range"* is Mike's own word in TASK-158D: an artist who
+ * works at 68–96 and one who works at 138–142 are different propositions at
+ * the same nominal 82, and the pane exists so that is visible before
+ * Generate rather than after.
+ *
+ * ⚠ **Not overwritten by the host's tempo the way `bpm` is.** That
+ * substitution is TASK-033's, and it is right for "what will this come out
+ * at" — but the range is a fact about the *model*, and replacing it with the
+ * DAW's one tempo would say the artist only ever works there.
+ */
+bpmMin: number, bpmMax: number, 
+/**
+ * Which parts this model will actually write notes for (TASK-158D).
+ *
+ * See [`parts_of`] — this is the "and does **not** cover" half of what the
+ * detail pane owes a producer.
+ */
+parts: Array<Part>, 
 /**
  * Key names the model draws from, in authored order. Empty when it
  * authors none, in which case the engine's own default key applies.

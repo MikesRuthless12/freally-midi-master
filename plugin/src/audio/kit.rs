@@ -81,6 +81,14 @@ pub struct OneShot {
     pub name: String,
     pub samples: Arc<[f32]>,
     pub sample_rate: u32,
+    /// Whether [`Self::samples`] was flipped on the way in (2026-08-11).
+    ///
+    /// ⚠ **A record of what was done, not an instruction.** The buffer is already
+    /// backwards — `oneshot::load` says why it is reversed there rather than at
+    /// playback — so nothing reads this to decide how to sound the pad. It exists
+    /// so the choice can be written into the project and reapplied on reload,
+    /// which is the one thing the reversed samples cannot tell us themselves.
+    pub reversed: bool,
 }
 
 /// Written out for the same reason [`Kit`]'s is: a derived one would print the

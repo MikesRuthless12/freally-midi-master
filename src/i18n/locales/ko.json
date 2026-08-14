@@ -30,9 +30,8 @@
     "generating": "생성 중…",
     "readyBody": "{{name}} 준비 완료. 생성을 누르세요.",
     "generateAll": "전체 생성",
-    "clear": "지우기",
-    "clearAll": "전체 지우기",
-    "clearLabel": "생성된 파트 지우기"
+    "clearOne": "{{part}} 지우기",
+    "clearAll": "전체 지우기"
   },
   "rails": {
     "searchPlaceholder": "아티스트 검색…",
@@ -141,7 +140,6 @@
     "loop": "루프",
     "masterLevel": "마스터 레벨: 무음",
     "toggleRightRail": "오른쪽 레일 전환 (K)",
-    "windowSize": "창 크기",
     "loopAlways": "이 단계에서는 재생이 항상 반복됩니다.",
     "unavailable": "재생할 수 없습니다: {{reason}}"
   },
@@ -160,8 +158,7 @@
     "button": "보기",
     "panels": "패널",
     "rightRail": "오른쪽 레일",
-    "showAll": "모든 패널 표시",
-    "hideAll": "모든 패널 숨기기"
+    "stage": "스테이지"
   },
   "settings": {
     "title": "설정",
@@ -212,14 +209,18 @@
     "rollCount": "{{count}}타",
     "addFill": "{{lane}}에 필 추가",
     "reassignLane": "{{lane}}을(를) 다른 드럼으로 변경",
-    "lockLane": "다시 생성해도 {{lane}} 유지"
+    "lockLane": "다시 생성해도 {{lane}} 유지",
+    "pitchRows": "{{lane}} 피치 행",
+    "pitchCell": "{{lane}} {{pitch}}, {{step}}단계",
+    "semitoneRow": "루트에서 {{offset}} 반음",
+    "hitsAbove": "창 위에 {{count}}개 타격",
+    "hitsBelow": "창 아래에 {{count}}개 타격"
   },
   "roster": {
     "artists": "아티스트",
+    "producers": "프로듀서",
     "flagship": "대표",
     "genre": "장르",
-    "filteredBy": "{{name}}(으)로 필터링됨",
-    "showAll": "전체 보기",
     "noneInGenre": "{{name}}에서 활동하는 아티스트가 아직 없습니다.",
     "standard": "표준",
     "inherited": "상속됨"
@@ -382,6 +383,7 @@
       "nudge": "시간 이동",
       "stretch": "두 배로 늘이기",
       "compress": "절반으로 줄이기",
+      "reverseNote": "선택한 노트를 거꾸로 재생",
       "triplet": "이 셀에 셋잇단음표",
       "quintuplet": "이 셀에 다섯잇단음표",
       "septuplet": "이 셀에 일곱잇단음표",
@@ -409,15 +411,20 @@
     "up": "위로",
     "empty": "이 폴더에는 샘플이 없습니다.",
     "truncated": "이 폴더에는 표시된 것보다 많은 파일이 있습니다.",
+    "filter": "이름으로 필터",
+    "filterScope": "열어 둔 폴더에서만 검색합니다.",
+    "noMatches": "일치하는 항목이 없습니다.",
+    "missing": "{{name}}에 지금 접근할 수 없습니다.",
+    "recheck": "다시 확인",
     "pickAFile": "미리 들으려면 샘플을 선택하세요.",
     "decoding": "읽는 중…",
     "waveformOf": "{{name}}의 파형",
     "reverse": "거꾸로 재생",
     "resize": "브라우저 너비 조절",
-    "fillRail": "브라우저에 레일 전체 사용",
-    "restoreRail": "로스터 다시 표시",
     "folderLimit": "폴더는 한 번에 8개까지 탐색할 수 있습니다 — 추가하려면 하나를 닫으세요",
     "favourites": "즐겨찾기",
+    "recent": "최근",
+    "clearRecent": "기록 지우기",
     "star": "{{name}} 즐겨찾기에 추가",
     "unstar": "{{name}} 즐겨찾기에서 제거",
     "revealHint": "파일 관리자에서 {{path}} 표시",
@@ -434,7 +441,8 @@
       "kitShape": "드럼 킷처럼 연주됩니다"
     },
     "midiFound": "이 MIDI 파일의 내용",
-    "midiNotes": "노트"
+    "midiNotes": "노트",
+    "midiAuditionClipped": "처음 2분만 미리 듣습니다."
   },
   "patterns": {
     "name": "이 패턴의 이름",
@@ -456,13 +464,23 @@
     "none": "아직 테이크 없음",
     "made": "{{bpm}} BPM · {{scale}}"
   },
+  "takes": {
+    "label": "테이크 기록",
+    "none": "아직 생성한 것이 없습니다.",
+    "clear": "테이크 기록 지우기",
+    "close": "닫기",
+    "detail": "{{bars}}마디 · {{bpm}} BPM"
+  },
   "artist": {
     "label": "이 선택에 대하여",
     "tendsTo": "주로",
     "tempo": "{{bpm}} BPM",
+    "tempoRange": "{{low}}–{{high}} BPM",
     "key": "{{key}} {{scale}}",
     "halfTime": "하프타임",
-    "moods": "무드 {{count}}개"
+    "moods": "무드",
+    "writes": "작성하는 파트",
+    "doesNotWrite": "작성하지 않는 파트"
   },
   "styles": {
     "original": "나만의 작업 방식",

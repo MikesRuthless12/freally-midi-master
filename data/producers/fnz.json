@@ -1,0 +1,395 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "fnz",
+  "type": "producer",
+  "name": "FnZ",
+  "aliases": [
+    "fnz",
+    "finatik n zac",
+    "finatik",
+    "zac de boni",
+    "michael mule"
+  ],
+  "tier": "standard",
+  "extends": [
+    "dark-trap"
+  ],
+  "era": "2009-present",
+  "genres": [
+    "rap",
+    "trap",
+    "dark-trap",
+    "producer"
+  ],
+  "relatedGenres": [
+    "dark-trap",
+    "trap",
+    "trap-soul"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended vol.1 dark-trap — FnZ (Finatik N Zac)",
+    "https://en.wikipedia.org/wiki/FnZ",
+    "https://en.wikipedia.org/wiki/Ta13oo"
+  ],
+  "notes": "⚠ `low` is the research's own rating (medium-low) and the reason is precise: their identity, era, mentorship under Jim Jonsin and a per-track credit list on Denzel Curry's *Ta13oo* and *Melt My Eyez* are documented, but **every sonic parameter is inference from those records** and marked `[LOW-CONF]`. So all of the below is INFERRED, and what it is inferred *from* is the paragraph's one structural argument: they have \"genuine harmonic motion — the *Ta13oo* material moves between i–VI–III–VII and i–iv–VII with m7/m9 extensions, which is what lets the same producer serve both the 'Light' and 'Dark' acts of that record\". That is why this is a four-chord model with seventh- and ninth-weighted extensions rather than a static-i one. The second inferred claim is a dynamics one, stated as a contrast: \"cleaner and more dynamic than the Ronny J bench — velocity variation on hats and audible room on the clap\". Set against `ronny-j`'s crushed 118–127/110–120/86–98, this file runs 104–124 over 74–92 over 34–50 with hat velocities spanning 0.62–1.0 and `layerClapOffsetMs` at 6–12ms for the room. Third, \"tuned 808 with long portamento glides tracking the chord roots; moderate saturation rather than clipping\" is `glideProb` 0.75 — the highest in this batch — with `distortion` `medium`. Fourth, \"a real countermelody above the hook — higher note density than the rest of this lane\" is `densityRatio` 0.65 at a +12 offset over 5–9 notes a bar on `pluck_synth`. The arrangement is the documented one: melody alone, drums at bar 5, 16-bar verses, 8-bar hooks, mid-song beat switches serving the album's act structure.",
+  "session": {
+    "bpm": {
+      "min": 130,
+      "max": 160,
+      "mode": 144
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "harmonic_minor",
+        "phrygian"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.88,
+      "velocityVar": 0.2
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        104,
+        124
+      ],
+      "main": [
+        74,
+        92
+      ],
+      "ghost": [
+        34,
+        50
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3",
+      "syncopation": 0.5,
+      "tresilloBias": 0.3,
+      "avoidPreSnareGap": "8th",
+      "lockTo808": 0.9
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "layered": true,
+      "layerClapOffsetMs": [
+        6,
+        12
+      ],
+      "ghost": {
+        "prob": 0.28,
+        "pos": [
+          "4&",
+          "2e"
+        ],
+        "vel": [
+          0.32,
+          0.52
+        ]
+      },
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.58,
+      "velocities": {
+        "main": [
+          0.62,
+          1
+        ],
+        "ghost": [
+          0.28,
+          0.55
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "16T"
+          ],
+          "weights": [
+            2,
+            5
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "pre_snare"
+        ],
+        "freqPerBar": 0.57,
+        "velocityRamp": true
+      },
+      "fill": {
+        "prob": 0.55,
+        "subdivision": {
+          "values": [
+            "32",
+            "32T"
+          ],
+          "weights": [
+            3,
+            3
+          ]
+        },
+        "notes": 6
+      },
+      "openHat": {
+        "prob": 0.26,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "pitchBendProb": 0.08
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "shaker",
+        "conga"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ]
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "monoCutSelf": true,
+      "slideProb": 0.6,
+      "slideIntervals": {
+        "values": [
+          "P5",
+          "P4",
+          "m3",
+          "P8"
+        ],
+        "weights": [
+          3,
+          3,
+          2,
+          2
+        ]
+      },
+      "slidePositions": [
+        "phrase_end",
+        "bar_2"
+      ],
+      "register": [
+        16,
+        34
+      ],
+      "distortion": "medium",
+      "distortionWet": [
+        0.18,
+        0.35
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 4
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even",
+        "strong_weak_weak_weak"
+      ],
+      "velocityRampRange": [
+        58,
+        118
+      ],
+      "gapProb": 0.19,
+      "descendProb": 0.47,
+      "rampJitter": 27,
+      "pitchWalk": 5,
+      "ladder": [
+        "4",
+        "8",
+        "16",
+        "32"
+      ],
+      "buildAndStopProb": 0.3,
+      "dualLayerProb": 0.25
+    }
+  },
+  "melody": {
+    "register": [
+      66,
+      92
+    ],
+    "densityPerBar": [
+      5,
+      9
+    ],
+    "structure": "question_answer",
+    "intervals": {
+      "step": 0.62,
+      "third": 0.28,
+      "leap": 0.1
+    },
+    "contour": {
+      "riff": 0.34,
+      "descend": 0.36,
+      "arch": 0.3
+    },
+    "chordToneBias": 0.68,
+    "halfStepDissonance": 0.2,
+    "colorTones": [
+      2,
+      6,
+      9
+    ],
+    "octaveJumpProb": 0.12,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "timbreHint": "pluck_synth"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.65,
+    "styles": {
+      "values": [
+        "arp",
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        3,
+        3,
+        2
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.38,
+      "seventh": 0.44,
+      "ninth": 0.18
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        46,
+        82
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    },
+    "chordDurationBeats": [
+      2,
+      12
+    ]
+  },
+  "bassline": {
+    "rhythm": "mirror_kick",
+    "followRootsProb": 0.88,
+    "register": [
+      16,
+      34
+    ],
+    "glideProb": 0.75,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2"
+    ],
+    "anticipationProb": 0.28
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "hook": 8,
+      "bridge": [
+        4,
+        8
+      ],
+      "outro": [
+        4,
+        8
+      ]
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.58,
+        "beats": 2
+      },
+      "switchUpProb": 0.4
+    }
+  }
+}

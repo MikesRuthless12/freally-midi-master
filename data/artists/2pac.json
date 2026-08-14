@@ -1,0 +1,311 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "2pac",
+  "type": "artist",
+  "name": "2Pac",
+  "aliases": [
+    "2pac",
+    "tupac",
+    "tupac shakur",
+    "makaveli",
+    "pac",
+    "two pac"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "g-funk"
+  ],
+  "era": "1995-1996",
+  "genres": [
+    "rap",
+    "g-funk",
+    "west coast"
+  ],
+  "relatedGenres": [
+    "g-funk",
+    "west-coast-club",
+    "boom-bap",
+    "funk"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended vol.1 g-funk — 2Pac (Tupac Shakur)",
+    "https://en.wikipedia.org/wiki/California_Love",
+    "http://golianopoulos.com/new-blog/2015/4/11/johnny-j"
+  ],
+  "notes": "Death Row-era gangsta-funk at maximum vocal front, and the two numbers the research hands over directly are the tempo and the key: \"California Love\" is documented in G minor at 92 BPM, so `bpm.mode` is 92 and `Gm` carries the heaviest key weight on this axis. The kick is the other researched thing — \"a hard four-on-the-floor-adjacent kick\" under a straight 2&4 clap, which is why `densityPerBar` runs 4–6 with the secondary anchor moved off the genre's `2&` onto beat 3 and the syncopation dropped well under the parent's. ⚠ `bpm.min` is 80 rather than the lane's 88 because the research says the ballad cuts drop to 78–88 with the same backbeat; the floor is the ballad's, the mode is the single-documented record's. ⚠ The bass is `independent_riff` at a low `followRootsProb` because the research is explicit that it is \"a walking, syncopated funk line rather than kick-locked 808\", and `anticipationProb` is the highest thing in this entry (0.45) because the slides are described as approach-notes into the downbeat — that is what an anticipation is, and it is not a trap glide, so `glideProb` sits at half the genre's. ⚠ The `sustain_pad` in the counter is the string pad Johnny J's brief literally asked for (\"a slow, sad beat with strings, bass and guitar strings\"); `answer_lick` and `arp` sit beside it so the layer keeps a reachable pool rather than one held shape. ⚠ `switchUpProb` is 0.05 and the verse runs 16–24 bars: the research describes 7–8 finished tracks a day over a static loop, which is a statement about beat switching, not just about verse length.",
+  "session": {
+    "bpm": {
+      "min": 80,
+      "max": 100,
+      "mode": 92
+    },
+    "keys": {
+      "values": [
+        "Gm",
+        "Cm",
+        "Dm",
+        "Am",
+        "Fm"
+      ],
+      "weights": [
+        5,
+        3,
+        2,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "minor_pentatonic",
+        "major"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        1
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.54
+    },
+    "humanize": {
+      "quantizeStrength": 0.88,
+      "velocityVar": 0.15
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        4,
+        6
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3",
+      "syncopation": 0.34,
+      "tresilloBias": 0.14,
+      "offbeat8thShare": 0.24
+    },
+    "snare": {
+      "rimshotLayer": false,
+      "ghost": {
+        "prob": 0.14,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.2,
+          0.34
+        ]
+      }
+    },
+    "hihat": {
+      "base": {
+        "values": [
+          "8th",
+          "16th"
+        ],
+        "weights": [
+          3,
+          2
+        ]
+      },
+      "continuous": true,
+      "fillDensity": 0.42,
+      "openHat": {
+        "prob": 0.18,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": [
+          "32"
+        ],
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.22
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "shaker",
+        "conga"
+      ],
+      "densityPerBar": [
+        2,
+        4
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 16
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t",
+        "8t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        61,
+        105
+      ],
+      "gapProb": 0.3,
+      "descendProb": 0.22,
+      "rampJitter": 11
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI",
+          "VII"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "i",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.5,
+      "seventh": 0.4,
+      "ninth": 0.1
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        46,
+        74
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      72,
+      96
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    },
+    "densityPerBar": [
+      3,
+      6
+    ],
+    "contour": {
+      "riff": 0.5,
+      "descend": 0.3,
+      "arch": 0.2
+    },
+    "chordToneBias": 0.66
+  },
+  "countermelody": {
+    "registerOffset": -7,
+    "densityRatio": 0.5,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        3,
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "rhythm": "independent_riff",
+    "followRootsProb": 0.4,
+    "register": [
+      28,
+      43
+    ],
+    "glideProb": 0.3,
+    "passingTones": [
+      "M2",
+      "m3",
+      "P4",
+      "P5",
+      "M6",
+      "m7",
+      "P8"
+    ],
+    "anticipationProb": 0.45
+  },
+  "arrangement": {
+    "sectionBars": {
+      "verse": [
+        16,
+        24
+      ],
+      "hook": 8
+    },
+    "transitions": {
+      "switchUpProb": 0.05
+    }
+  }
+}
