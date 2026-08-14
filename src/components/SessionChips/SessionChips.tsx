@@ -84,12 +84,22 @@ export function SessionChips() {
    * reads. An id that resolves to nothing is dropped — the plugin already drops
    * dangling `relatedGenres` from the roster, so this only ever loses one the
    * rail is not offering either.
+   *
+   * ⛔ **Empty for a genre, and that is a decision rather than an accident of
+   * the data.** 36 of the 56 shipped genres carry `relatedGenres` too, so
+   * without this the chip would appear over Trap offering to generate "Trap, in
+   * Drill". `resolve_over` would answer something for that, but the feature is
+   * *"an artist generating in every genre they work in"* — a genre generating
+   * in another genre is a control whose meaning nobody asked for and nobody
+   * could predict.
    */
   const own = roster.find((entry) => entry.id === selectedId);
-  const relatedGenres = (own?.relatedGenres ?? []).flatMap((id) => {
-    const genre = roster.find((entry) => entry.id === id);
-    return genre ? [{ id, name: genre.name }] : [];
-  });
+  const relatedGenres = (own?.type === 'genre' ? [] : (own?.relatedGenres ?? [])).flatMap(
+    (id) => {
+      const genre = roster.find((entry) => entry.id === id);
+      return genre ? [{ id, name: genre.name }] : [];
+    },
+  );
 
   /** What the artist chose last time, for the "leave it to them" option. */
   const chose = (value: string | null) =>
