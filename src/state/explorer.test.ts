@@ -36,7 +36,15 @@ beforeEach(() => {
     selected: null,
     selectedKind: null,
     waveform: null,
-    position: { playing: false, seconds: 0, total: 0, looping: false, reverse: false, gainDb: 0, raw: false },
+    position: {
+      playing: false,
+      seconds: 0,
+      total: 0,
+      looping: false,
+      reverse: false,
+      gainDb: 0,
+      raw: false,
+    },
     error: null,
   });
 });
@@ -306,7 +314,15 @@ describe('the transport', () => {
     // middle of a one-shot.
     invoke.mockResolvedValue(undefined);
     useExplorer.setState({
-      position: { playing: true, seconds: 0.8, total: 1, looping: false, reverse: false, gainDb: 0, raw: false },
+      position: {
+        playing: true,
+        seconds: 0.8,
+        total: 1,
+        looping: false,
+        reverse: false,
+        gainDb: 0,
+        raw: false,
+      },
     });
 
     await useExplorer.getState().pause();

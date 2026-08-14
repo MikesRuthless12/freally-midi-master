@@ -40,7 +40,9 @@ test.beforeEach(async ({ page }) => {
   await expect(page.getByRole('tablist', { name: 'Generator' })).toBeVisible();
 });
 
-test('a shipped lane can be shaped, not only one carrying your own sample', async ({ page }) => {
+test('a shipped lane can be shaped, not only one carrying your own sample', async ({
+  page,
+}) => {
   // ⛔ The whole point of TASK-164. An editor that only opened over a replaced
   // sample would leave Mike's question unanswered for every pad nobody had
   // swapped, which is most of them.
@@ -67,7 +69,9 @@ test('a control keeps its value when the panel is read again', async ({ page }) 
   // a knob wired to a `useState` — the second passes every check made without
   // leaving the panel.
   await openPanel(page, 'kit');
-  await row(page, 'kick').getByRole('button', { name: /^Edit the sound of / }).click();
+  await row(page, 'kick')
+    .getByRole('button', { name: /^Edit the sound of / })
+    .click();
 
   const volume = page.getByRole('dialog').getByLabel('Volume');
   await volume.fill('-6');
@@ -89,7 +93,9 @@ test('Reset returns every control at once', async ({ page }) => {
   // let the audio thread hear nine states that were never on screen. What a
   // browser can check is that all of them came back.
   await openPanel(page, 'kit');
-  await row(page, 'kick').getByRole('button', { name: /^Edit the sound of / }).click();
+  await row(page, 'kick')
+    .getByRole('button', { name: /^Edit the sound of / })
+    .click();
 
   const dialog = page.getByRole('dialog');
   await dialog.getByLabel('Volume').fill('-6');
@@ -100,13 +106,17 @@ test('Reset returns every control at once', async ({ page }) => {
   await expect(dialog.getByLabel('Transpose')).toHaveValue('0');
 });
 
-test('the trim window closes rather than inverting when the handles cross', async ({ page }) => {
+test('the trim window closes rather than inverting when the handles cross', async ({
+  page,
+}) => {
   // ⛔ The plugin clamps an inverted slice — it is the shape that once aborted
   // the host — but a slider that lets you drag past and silently snaps back is a
   // control fighting its own user, and only a browser shows which of the two
   // this is.
   await openPanel(page, 'kit');
-  await row(page, 'kick').getByRole('button', { name: /^Edit the sound of / }).click();
+  await row(page, 'kick')
+    .getByRole('button', { name: /^Edit the sound of / })
+    .click();
 
   const dialog = page.getByRole('dialog');
   await dialog.getByLabel('End').fill('0.3');

@@ -140,7 +140,13 @@ describe('the KIT panel says what is actually loaded', () => {
    */
   describe('auditioning one lane', () => {
     const MELODIC = [
-      { lane: 'melody' as const, shipped: true, name: null, path: null, tweaks: untouchedPad() },
+      {
+        lane: 'melody' as const,
+        shipped: true,
+        name: null,
+        path: null,
+        tweaks: untouchedPad(),
+      },
       {
         lane: 'chords' as const,
         shipped: false,
@@ -149,7 +155,13 @@ describe('the KIT panel says what is actually loaded', () => {
         tweaks: untouchedPad(),
       },
       { lane: 'bass' as const, shipped: true, name: null, path: null, tweaks: untouchedPad() },
-      { lane: 'counter' as const, shipped: true, name: null, path: null, tweaks: untouchedPad() },
+      {
+        lane: 'counter' as const,
+        shipped: true,
+        name: null,
+        path: null,
+        tweaks: untouchedPad(),
+      },
       // Nothing shipped and nothing assigned: there is no sample to hear.
       { lane: 'snap' as const, shipped: false, name: null, path: null, tweaks: untouchedPad() },
     ];

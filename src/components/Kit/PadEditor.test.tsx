@@ -118,7 +118,9 @@ describe('the controls', () => {
 
     fireEvent.change(screen.getByLabelText('Start'), { target: { value: '0.8' } });
     await vi.waitFor(() => expect(invoke).toHaveBeenCalled());
-    const sent = invoke.mock.calls[0]?.[1] as { tweaks: { trimStart: number; trimEnd: number } };
+    const sent = invoke.mock.calls[0]?.[1] as {
+      tweaks: { trimStart: number; trimEnd: number };
+    };
     expect(sent.tweaks.trimStart).toBe(0.8);
     expect(sent.tweaks.trimEnd).toBe(0.8);
   });

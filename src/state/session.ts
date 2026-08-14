@@ -1934,8 +1934,18 @@ export const useSession = create<SessionState>((set, get) => ({
   },
 
   async generate(part = 'drums') {
-    const { selectedId, seed, seedPinned, songSeed, bars, generating, pins, mood, base, patterns } =
-      get();
+    const {
+      selectedId,
+      seed,
+      seedPinned,
+      songSeed,
+      bars,
+      generating,
+      pins,
+      mood,
+      base,
+      patterns,
+    } = get();
     if (!selectedId || generating) return;
 
     set({ generating: true, error: null });

@@ -1577,8 +1577,6 @@ describe('the base genre', () => {
     // save less than it undoes, which is the drift that list exists to prevent.
     const { useHistory } = await import('./history');
     useSession.getState().setBase('boom-bap');
-    await vi.waitFor(() =>
-      expect(useHistory.getState().present?.state.base).toBe('boom-bap'),
-    );
+    await vi.waitFor(() => expect(useHistory.getState().present?.state.base).toBe('boom-bap'));
   });
 });

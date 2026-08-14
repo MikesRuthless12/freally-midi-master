@@ -237,7 +237,12 @@ export function PadEditor({ entry, onClose }: { entry: KitLane; onClose: () => v
         >
           <RotateCcw size={12} aria-hidden="true" /> {t('padEditor.reset')}
         </button>
-        <button type="button" className="btn-ghost" aria-label={t('padEditor.close')} onClick={onClose}>
+        <button
+          type="button"
+          className="btn-ghost"
+          aria-label={t('padEditor.close')}
+          onClick={onClose}
+        >
           <X size={14} aria-hidden="true" />
         </button>
       </header>
@@ -392,7 +397,9 @@ export function PadEditor({ entry, onClose }: { entry: KitLane; onClose: () => v
           // aborted the host — but a slider that lets you drag the start past
           // the end and then silently snaps it back is a control fighting its
           // own user.
-          onChange={(trimStart) => edit({ trimStart, trimEnd: Math.max(trimStart, tweaks.trimEnd) })}
+          onChange={(trimStart) =>
+            edit({ trimStart, trimEnd: Math.max(trimStart, tweaks.trimEnd) })
+          }
         />
         <Dial
           label={t('padEditor.trimEnd')}
