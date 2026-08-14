@@ -56,7 +56,8 @@
     "unmuteLane": "Bunyikan {{lane}}",
     "playLane": "Putar {{lane}}",
     "padLane": "Jalur pad {{at}}",
-    "useSelected": "Taruh sampel terpilih di {{lane}}"
+    "useSelected": "Taruh sampel terpilih di {{lane}}",
+    "editPad": "Ubah suara {{lane}}"
   },
   "sections": {
     "genres": "Genre",
@@ -520,5 +521,25 @@
     "none": "Belum ada kit tersimpan. Pasang beberapa sampel, beri nama, dan lain kali sudah ada di sini.",
     "delete": "Hapus {{name}}",
     "duplicate": "Salin {{name}} dengan nama yang diketik"
+  },
+  "padEditor": {
+    "title": "{{lane}} — suara",
+    "close": "Tutup penyunting suara",
+    "reset": "Setel ulang",
+    "attack": "Serangan",
+    "decay": "Peluruhan",
+    "sustain": "Tahanan",
+    "release": "Pelepasan",
+    "volume": "Volume",
+    "pan": "Panorama",
+    "transpose": "Transposisi",
+    "cents": "Penalaan halus",
+    "normalize": "Normalkan ke skala penuh",
+    "trimStart": "Awal",
+    "trimEnd": "Akhir",
+    "fadeIn": "Memudar masuk",
+    "fadeOut": "Memudar keluar",
+    "noWaveform": "Pad ini memainkan sampel bawaan, jadi tidak ada berkas untuk digambar.",
+    "envelopeShape": "Serangan {{attack}} ms, peluruhan {{decay}} ms, tahanan {{sustain}} dB, pelepasan {{release}} ms"
   }
 }

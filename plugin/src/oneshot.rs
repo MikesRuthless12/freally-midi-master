@@ -324,10 +324,27 @@ impl OneShots {
     /// It used to resolve `preview_kit()` — the trap kit — for every artist
     /// alive, so a drill or country producer exported trap samples. Same class
     /// of bug as the one the doc above records, one layer further out.
-    pub fn current_kit(&self, model_id: &str) -> Option<Arc<Kit>> {
+    /// ⚠ **`with_tweaks` runs after `with_one_shots`, never before** — the trim
+    /// window and the normalize peak are measurements of whichever buffer will
+    /// actually play, so they have to be taken once the swap has happened.
+    pub fn current_kit(
+        &self,
+        model_id: &str,
+        tweaks: &BTreeMap<Lane, crate::pad_tweaks::PadTweaks>,
+    ) -> Option<Arc<Kit>> {
         let base = crate::audio::kit_for_model(model_id)?;
         let map = self.assigned.lock().ok()?;
-        Some(Arc::new(base.with_one_shots(&map)))
+        Some(Arc::new(base.with_one_shots(&map).with_tweaks(tweaks)))
+    }
+
+    /// Rebuild and re-publish the kit without changing what is assigned.
+    ///
+    /// ⛔ **What a pad edit needs and an assignment does not.** Changing a gain
+    /// or an envelope leaves `assigned` untouched, so none of the paths above
+    /// fire — and without this the audio thread would go on playing the kit it
+    /// was handed before the producer touched the control.
+    pub fn rebuild(&self, kits: &Arc<KitHandoff>, session: &SessionStore) {
+        apply(&self.assigned, &self.missing, kits, session, |_| {});
     }
 
     /// What is assigned, for the panel and for the project file.
@@ -636,17 +653,20 @@ fn apply(
     // ⛔ The **model's** kit, not the shipped trap one. This is the path that
     // hands the audio thread what it plays, so resolving `preview_kit()` here
     // is what made every artist sound like trap however they were authored.
-    let model_id = crate::state::with(session, |s| s.selected_id.clone())
-        .flatten()
-        .unwrap_or_default();
-    let Some(base) = crate::audio::kit_for_model(&model_id) else {
+    // ⚠ Read in the same pass as the model, and *after* the write above, so a
+    // rebuild triggered by a pad edit sees the edit it was triggered by.
+    let (model_id, tweaks) =
+        crate::state::with(session, |s| (s.selected_id.clone(), s.pad_tweaks.clone()))
+            .unwrap_or_default();
+    let Some(base) = crate::audio::kit_for_model(&model_id.unwrap_or_default()) else {
         // No kit at all means nothing to build over, and the plugin is already
         // silent for that reason — `preview_kit` logs it once.
         return;
     };
     // ⛔ Built here, on this thread, and handed over whole. The audio thread
     // never allocates and never sees a half-applied kit.
-    kits.send(Arc::new(base.with_one_shots(&map)));
+    // ⚠ Tweaks last — see `Kit::with_tweaks` for why the order is not free.
+    kits.send(Arc::new(base.with_one_shots(&map).with_tweaks(&tweaks)));
 }
 
 #[cfg(test)]

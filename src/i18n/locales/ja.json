@@ -56,7 +56,8 @@
     "unmuteLane": "{{lane}} のミュート解除",
     "playLane": "{{lane}} を再生",
     "padLane": "パッド {{at}} のレーン",
-    "useSelected": "選択したサンプルを {{lane}} に置く"
+    "useSelected": "選択したサンプルを {{lane}} に置く",
+    "editPad": "{{lane}} の音を編集"
   },
   "sections": {
     "genres": "ジャンル",
@@ -520,5 +521,25 @@
     "none": "保存したキットはまだありません。サンプルを割り当てて名前を付ければ、次回ここに並びます。",
     "delete": "{{name}} を削除",
     "duplicate": "入力した名前で {{name}} を複製"
+  },
+  "padEditor": {
+    "title": "{{lane}} — 音",
+    "close": "サウンドエディターを閉じる",
+    "reset": "リセット",
+    "attack": "アタック",
+    "decay": "ディケイ",
+    "sustain": "サステイン",
+    "release": "リリース",
+    "volume": "音量",
+    "pan": "パン",
+    "transpose": "トランスポーズ",
+    "cents": "微調整",
+    "normalize": "フルスケールに正規化",
+    "trimStart": "開始",
+    "trimEnd": "終了",
+    "fadeIn": "フェードイン",
+    "fadeOut": "フェードアウト",
+    "noWaveform": "このパッドは内蔵サンプルを再生するため、描画するファイルがありません。",
+    "envelopeShape": "アタック {{attack}} ミリ秒、ディケイ {{decay}} ミリ秒、サステイン {{sustain}} dB、リリース {{release}} ミリ秒"
   }
 }

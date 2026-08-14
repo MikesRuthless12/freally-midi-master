@@ -9,9 +9,10 @@
 //! thing is a pure function of its inputs, and the tests drive it by hand.
 
 use super::kit::Kit;
+use crate::pad_tweaks::db_to_linear;
 
 /// Enough for the densest thing the engine generates — a 64th-note hat roll
-/// under a fill — with room to spare. Voices are ~48 bytes, so the array is
+/// under a fill — with room to spare. Voices are ~120 bytes, so the array is
 /// cheap; running out is what sounds broken.
 pub const MAX_VOICES: usize = 48;
 
@@ -131,6 +132,42 @@ struct Voice {
     hold: u32,
     /// Gate level, 1.0 until `hold` runs out and then ramping to 0.
     fade: f32,
+    /// How much of the gate closes per frame once `hold` runs out.
+    ///
+    /// ⛔ **Per voice rather than the constant it replaced**, because
+    /// [`Adsr::release_ms`] is now a pad's own control. A pad with no envelope
+    /// carries `1.0 / RELEASE_FRAMES`, which is exactly the number this was
+    /// before — the 5 ms de-click that stops a sub being cut mid-cycle. A pad
+    /// with a release carries that release instead, so a 5-second tail is a
+    /// 5-second tail rather than a 5 ms one.
+    release_step: f32,
+
+    // ---- The trim window (TASK-055A) ------------------------------------
+    /// First sample of the pad this voice may read.
+    start: usize,
+    /// One past the last. Already `min`'d against the real buffer length at
+    /// trigger, so the render loop can trust it without a second bound.
+    end: usize,
+    /// Samples of ramp in at [`Self::start`], and out at [`Self::end`]. Both 0
+    /// on a pad with no fades, which is what `faded` is read from.
+    fade_in: f32,
+    fade_out: f32,
+    /// Whether either fade is set. ⚠ One branch per frame instead of two
+    /// comparisons, and it is false for every pad in every shipped kit.
+    faded: bool,
+
+    // ---- The amplitude envelope (TASK-164) -------------------------------
+    /// Whether this voice has an envelope at all. False for every pad nobody
+    /// has edited, and the whole block below is then never touched.
+    enveloped: bool,
+    /// The envelope's current level, 0–1.
+    env: f32,
+    attack_left: u32,
+    attack_step: f32,
+    decay_left: u32,
+    decay_step: f32,
+    /// The level held after the decay, linear.
+    sustain: f32,
 }
 
 impl Voice {
@@ -152,6 +189,19 @@ impl Voice {
             started: 0,
             hold: RINGS_OUT,
             fade: 1.0,
+            release_step: 1.0 / RELEASE_FRAMES,
+            start: 0,
+            end: 0,
+            fade_in: 0.0,
+            fade_out: 0.0,
+            faded: false,
+            enveloped: false,
+            env: 1.0,
+            attack_left: 0,
+            attack_step: 0.0,
+            decay_left: 0,
+            decay_step: 0.0,
+            sustain: 1.0,
         }
     }
 
@@ -297,11 +347,36 @@ impl Sampler {
         // is a no-op that would cost a multiply per frame for nothing.
         let glide = glide.filter(|g| g.frames > 0 && g.semis != 0.0);
 
+        // ⛔⛔ **The window is resolved HERE, once, and clamped to the buffer
+        // that is actually in the pad.** A `PadShape` is measured against a
+        // decoded sample off the audio thread; if that sample were ever replaced
+        // without the shape being re-resolved, an unclamped `end` would index
+        // past the slice — an abort inside somebody's DAW. One `min` per trigger
+        // is the cost of that never being possible.
+        let start = (pad.shape.start as usize).min(pad.samples.len());
+        let end = (pad.shape.end as usize).min(pad.samples.len());
+
+        // ⚠ **Milliseconds against the DEVICE rate, not the pad's.** An envelope
+        // is wall-clock — a 195 ms decay is 195 ms whatever the sample was
+        // recorded at — while the trim and the fades below are positions in the
+        // sample and are counted in its own samples. The two units are different
+        // on purpose and the division happens once, here, rather than per frame.
+        let frames_of = |ms: f32| ((f64::from(ms) / 1000.0) * rate) as u32;
+        let adsr = pad.shape.adsr.unwrap_or_default();
+        let sustain = db_to_linear(adsr.sustain_db);
+        let attack_left = frames_of(adsr.attack_ms);
+        let decay_left = frames_of(adsr.decay_ms);
+
         self.voices[slot] = Voice {
             pad: pad_index,
-            pos: 0.0,
+            pos: start as f64,
             step: f64::from(pad.sample_rate) / rate
-                * 2f64.powf(f64::from(pad.pitch_semis as f32 + semis) / 12.0),
+                * 2f64.powf(
+                    (f64::from(pad.pitch_semis)
+                        + f64::from(pad.pitch_cents) / 100.0
+                        + f64::from(semis))
+                        / 12.0,
+                ),
             // The whole travel spread evenly across the window, in semitones —
             // see `Voice::glide_mul` for why that is a constant factor.
             glide_mul: glide.map_or(1.0, |g| {
@@ -321,6 +396,39 @@ impl Sampler {
             // note, but an import can carry one.
             hold: hold.max(1),
             fade: 1.0,
+            // ⚠ **`max(1)` on the frame count, not on the step.** A release of
+            // 0 ms would divide by zero here; one frame is the shortest real
+            // ramp and it is what "no release" already meant.
+            release_step: match pad.shape.adsr {
+                Some(adsr) if adsr.release_ms > 0.0 => {
+                    1.0 / frames_of(adsr.release_ms).max(1) as f32
+                }
+                _ => 1.0 / RELEASE_FRAMES,
+            },
+            start,
+            end,
+            fade_in: pad.shape.fade_in as f32,
+            fade_out: pad.shape.fade_out as f32,
+            faded: pad.shape.fade_in > 0 || pad.shape.fade_out > 0,
+            enveloped: pad.shape.adsr.is_some(),
+            // ⛔ **Starts at 0 only when there is an attack to climb.** An
+            // envelope of `A 0 ms` must be at full level on its first frame, or
+            // every pad that only wanted a decay would begin with a click of
+            // silence — and a zero-length attack ramp cannot climb anywhere.
+            env: if attack_left > 0 { 0.0 } else { 1.0 },
+            attack_left,
+            attack_step: if attack_left > 0 {
+                1.0 / attack_left as f32
+            } else {
+                0.0
+            },
+            decay_left,
+            decay_step: if decay_left > 0 {
+                (1.0 - sustain) / decay_left as f32
+            } else {
+                0.0
+            },
+            sustain,
         };
     }
 
@@ -382,7 +490,11 @@ impl Sampler {
 
             for frame in out.chunks_mut(channels) {
                 let index = voice.pos as usize;
-                if index + 1 >= samples.len() {
+                // ⛔ **The voice's own window, not the buffer's length.** With no
+                // trim these are the same number — `end` is `min`'d to the buffer
+                // at trigger — so a pad nobody has edited ends exactly where it
+                // always did.
+                if index + 1 >= voice.end {
                     *voice = Voice::free();
                     break;
                 }
@@ -405,9 +517,14 @@ impl Sampler {
                 // end test above and the slide below are untouched; only the
                 // *index* is mirrored. A backwards `pos` would need every one of
                 // those to grow a second case.
+                //
+                // ⚠ **Mirrored inside the TRIM WINDOW, not the whole buffer.**
+                // Reversing a pad trimmed to its last quarter must play that
+                // quarter backwards; mirroring against the file would play a
+                // different quarter, forwards from the wrong end.
                 let (a, b) = if voice.reversed {
-                    let last = samples.len() - 1;
-                    (last - index, last - index - 1)
+                    let last = voice.start + voice.end - 1 - index;
+                    (last, last - 1)
                 } else {
                     (index, index + 1)
                 };
@@ -416,7 +533,59 @@ impl Sampler {
                 // is 44.1 kHz and the device usually is not — so reading the
                 // nearest sample instead would alias audibly on the hats.
                 let frac = (voice.pos - index as f64) as f32;
-                let value = (samples[a] + (samples[b] - samples[a]) * frac) * voice.fade;
+                let mut value = (samples[a] + (samples[b] - samples[a]) * frac) * voice.fade;
+
+                // ⛔ **The fades are positions in the SAMPLE, measured from the
+                // ends of the window** (TASK-055A) — so they line up with the
+                // handles drawn on the waveform whatever pitch the pad is played
+                // at. `played`/`left` are counted from the window rather than
+                // from the buffer for the same reason the mirror above is.
+                //
+                // ⚠ Reversal needs no case here: both distances are measured
+                // from the *played* position, so a backwards pad fades in at the
+                // end of the file, which is the start of what is heard.
+                if voice.faded {
+                    let played = (index - voice.start) as f32;
+                    let left = (voice.end - index) as f32;
+                    if voice.fade_in > 0.0 && played < voice.fade_in {
+                        value *= played / voice.fade_in;
+                    }
+                    if voice.fade_out > 0.0 && left < voice.fade_out {
+                        value *= left / voice.fade_out;
+                    }
+                }
+
+                // ⛔ **The amplitude envelope** (TASK-164). Attack, then decay to
+                // the sustain level, then hold it — the release is the gate
+                // below, which already existed and now runs at the pad's own
+                // rate. ⚠ Skipped entirely on a pad with no envelope, which is
+                // every pad in every shipped kit: an identity ADSR is not stored
+                // (`PadShape::adsr` is `None`) precisely so this costs nothing.
+                //
+                // ⚠ **Applied first, advanced after**, so an attack's first
+                // frame is the silence it starts from rather than one step up
+                // it. The difference is inaudible on its own — one 48th of a
+                // millisecond-long ramp — but "an attack opens at silence" is a
+                // contract a test can hold, and "opens one step in" is a number
+                // nobody could justify. It also puts unity exactly on the last
+                // frame of the attack rather than one frame early.
+                if voice.enveloped {
+                    value *= voice.env;
+                    if voice.attack_left > 0 {
+                        voice.attack_left -= 1;
+                        voice.env += voice.attack_step;
+                    } else if voice.decay_left > 0 {
+                        voice.decay_left -= 1;
+                        voice.env -= voice.decay_step;
+                        // ⚠ Snapped on the last frame rather than left where the
+                        // accumulation landed: a few thousand subtractions of a
+                        // float drift, and the sustain is a level the producer
+                        // typed a number for.
+                        if voice.decay_left == 0 {
+                            voice.env = voice.sustain;
+                        }
+                    }
+                }
 
                 if channels > 1 {
                     frame[0] += value * voice.gain_l;
@@ -441,7 +610,7 @@ impl Sampler {
                 if voice.hold > 0 {
                     voice.hold -= 1;
                 } else {
-                    voice.fade -= 1.0 / RELEASE_FRAMES;
+                    voice.fade -= voice.release_step;
                     if voice.fade <= 0.0 {
                         *voice = Voice::free();
                         break;
@@ -492,6 +661,7 @@ pub fn limit(out: &mut [f32]) {
 mod tests {
     use super::*;
     use crate::audio::kit::Pad;
+    use crate::pad_tweaks::{Adsr, PadShape};
     use engine::pattern::Lane;
     use std::sync::Arc;
 
@@ -506,8 +676,10 @@ mod tests {
             gain: 1.0,
             pan,
             pitch_semis: 0,
+            pitch_cents: 0,
             choke_group: choke,
             root_note: None,
+            shape: PadShape::default(),
         };
         Kit {
             id: "test".into(),
@@ -805,8 +977,10 @@ mod tests {
                 gain: 1.0,
                 pan: 0.0,
                 pitch_semis: 0,
+                pitch_cents: 0,
                 choke_group: None,
                 root_note: None,
+                shape: PadShape::default(),
             }],
         }
     }
@@ -953,6 +1127,267 @@ mod tests {
 
         let out = render_block(&mut sampler, &kit, 1);
         assert!(out[0] > 0.0, "the pool must still be producing audio");
+    }
+
+    // ── The trim window, the fades and the envelope (TASK-055A, TASK-164) ──
+    //
+    // ⚠ **A ramp kit rather than `test_kit`'s constant 1.0s.** Every one of
+    // these is a claim about *which sample was read* or *how loud it was*, and a
+    // buffer of identical values sounds the same however it is windowed — a test
+    // over it could not tell a trim from a no-op.
+
+    /// A pad whose sample `i` holds `i / len`, so a rendered value names the
+    /// position it came from. Centred, so each side carries `value·cos(π/4)`.
+    fn ramp_kit(shape: PadShape) -> Kit {
+        let len = 1_000usize;
+        let samples: Vec<f32> = (0..len).map(|i| i as f32 / len as f32).collect();
+        Kit {
+            id: "ramp".into(),
+            pads: vec![Pad {
+                id: "ramp".into(),
+                lane: Lane::Kick,
+                samples: Arc::from(samples.into_boxed_slice()),
+                sample_rate: 48_000,
+                gain: 1.0,
+                pan: 0.0,
+                pitch_semis: 0,
+                pitch_cents: 0,
+                choke_group: None,
+                root_note: None,
+                shape,
+            }],
+        }
+    }
+
+    /// The centred-pad attenuation one channel carries, so the assertions below
+    /// are about the *sample* rather than about the pan law.
+    const CENTRED: f32 = std::f32::consts::FRAC_1_SQRT_2;
+
+    #[test]
+    fn a_trimmed_pad_starts_and_ends_where_the_handles_are() {
+        // ⛔ Mike asked for *"start/end trim handles on the waveform"* that are
+        // **not a destructive re-import** — so this is a window over the buffer
+        // the pad already holds, and the voice has to honour both ends of it.
+        let kit = ramp_kit(PadShape {
+            start: 400,
+            end: 600,
+            ..PadShape::default()
+        });
+        let mut sampler = Sampler::default();
+        sampler.trigger(&kit, 0, 1.0, 0.0, 48_000.0);
+
+        let out = render_block(&mut sampler, &kit, 1);
+        assert!(
+            (out[0] / CENTRED - 0.4).abs() < 1e-3,
+            "the first frame must be sample 400, got {}",
+            out[0] / CENTRED
+        );
+
+        // 200 samples of window, so the voice is gone well before the buffer's
+        // own end at 1,000 — which is the half a start-only trim would pass.
+        let _ = render_block(&mut sampler, &kit, 220);
+        assert_eq!(
+            sampler.active_voices(),
+            0,
+            "the voice must stop at the end handle, not at the end of the file"
+        );
+    }
+
+    #[test]
+    fn a_reversed_pad_is_mirrored_inside_its_trim_window() {
+        // ⛔⛔ **Mirrored against the WINDOW, not against the file.** Reversing a
+        // pad trimmed to its middle must play that middle backwards; mirroring
+        // against the buffer would play a different stretch, forwards from the
+        // wrong end — audible, and silently wrong.
+        let kit = ramp_kit(PadShape {
+            start: 400,
+            end: 600,
+            ..PadShape::default()
+        });
+        let mut sampler = Sampler::default();
+        sampler.trigger_with(
+            &kit,
+            0,
+            48_000.0,
+            Hit {
+                reversed: true,
+                ..Hit::default()
+            },
+        );
+
+        let out = render_block(&mut sampler, &kit, 1);
+        assert!(
+            (out[0] / CENTRED - 0.599).abs() < 2e-3,
+            "a reversed window must open at its far end (~0.599), got {}",
+            out[0] / CENTRED
+        );
+    }
+
+    #[test]
+    fn a_fade_in_opens_from_silence_and_a_fade_out_closes_to_it() {
+        // ⚠ Measured against the *unfaded* pad rather than against a constant,
+        // so this is a claim about the fade and not about the ramp underneath.
+        let plain = ramp_kit(PadShape::default());
+        let faded = ramp_kit(PadShape {
+            fade_in: 100,
+            fade_out: 100,
+            ..PadShape::default()
+        });
+
+        let mut bare = Sampler::default();
+        bare.trigger(&plain, 0, 1.0, 0.0, 48_000.0);
+        let bare_out = render_block(&mut bare, &plain, 60);
+
+        let mut ramped = Sampler::default();
+        ramped.trigger(&faded, 0, 1.0, 0.0, 48_000.0);
+        let ramped_out = render_block(&mut ramped, &faded, 60);
+
+        assert_eq!(ramped_out[0], 0.0, "a fade-in must start at silence");
+        assert!(
+            ramped_out[118] < bare_out[118],
+            "50 frames in, the fade must still be below the plain pad"
+        );
+
+        // And the far end: the last frame before the window closes is scaled
+        // towards nothing rather than cut off at full level.
+        let mut closing = Sampler::default();
+        closing.trigger(&faded, 0, 1.0, 0.0, 48_000.0);
+        let tail = render_block(&mut closing, &faded, 998);
+        let last = tail[tail.len() - 2];
+        assert!(
+            last < 0.05,
+            "the fade-out must have closed by the end of the window, got {last}"
+        );
+    }
+
+    #[test]
+    fn an_untouched_pad_renders_exactly_as_it_did_before_any_of_this() {
+        // ⛔⛔ **The guarantee the whole feature rests on.** Every shipped kit
+        // and every pad nobody has opened carries `PadShape::default()`, and if
+        // that were not bit-identical to the old path then adding an editor
+        // would have changed how the product sounds for everyone who never
+        // opened it.
+        let kit = ramp_kit(PadShape::default());
+        let mut sampler = Sampler::default();
+        sampler.trigger(&kit, 0, 1.0, 0.0, 48_000.0);
+        let out = render_block(&mut sampler, &kit, 64);
+
+        for (frame, chunk) in out.chunks(2).enumerate() {
+            let expected = frame as f32 / 1_000.0 * CENTRED;
+            assert!(
+                (chunk[0] - expected).abs() < 1e-6,
+                "frame {frame}: {} is not the unshaped sample {expected}",
+                chunk[0]
+            );
+        }
+    }
+
+    #[test]
+    fn an_attack_climbs_from_silence_and_a_decay_falls_to_the_sustain() {
+        // ⛔ The reference Mike supplied reads `A 0.00 ms · D 195 ms · S −36.00
+        // dB · R 5.00 s`, so sustain is a **dB level** and the decay lands on it.
+        // A flat sample here, because this is a claim about the envelope.
+        let mut kit = ramp_kit(PadShape {
+            adsr: Some(Adsr {
+                attack_ms: 1.0,   // 48 frames at 48 kHz
+                decay_ms: 1.0,    // 48 more
+                sustain_db: -6.0, // ≈ 0.501 linear
+                release_ms: 0.0,
+            }),
+            ..PadShape::default()
+        });
+        kit.pads[0].samples = Arc::from(vec![1.0f32; 1_000].into_boxed_slice());
+
+        let mut sampler = Sampler::default();
+        sampler.trigger(&kit, 0, 1.0, 0.0, 48_000.0);
+
+        let out = render_block(&mut sampler, &kit, 200);
+        assert_eq!(out[0], 0.0, "an attack must open at silence");
+        // Halfway up the 48-frame attack.
+        assert!(
+            (out[48] / CENTRED - 0.5).abs() < 0.05,
+            "half way through the attack should be ~0.5, got {}",
+            out[48] / CENTRED
+        );
+        // Past attack + decay: sitting on the sustain level.
+        let settled = out[2 * 150] / CENTRED;
+        assert!(
+            (settled - crate::pad_tweaks::db_to_linear(-6.0)).abs() < 0.01,
+            "the decay must land on the sustain level, got {settled}"
+        );
+    }
+
+    #[test]
+    fn a_pad_with_no_envelope_still_gets_the_five_millisecond_de_click() {
+        // ⚠ The release the gate has always had. `RELEASE_FRAMES` is not a
+        // default anybody chose in the editor — it is what stops a sub being cut
+        // mid-cycle — so a pad with no ADSR must keep it exactly.
+        let kit = long_kit();
+        let mut sampler = Sampler::default();
+        sampler.trigger_with(
+            &kit,
+            0,
+            48_000.0,
+            Hit {
+                hold: 1,
+                ..Hit::default()
+            },
+        );
+        let out = render_block(&mut sampler, &kit, RELEASE_FRAMES as usize / 2);
+        assert!((0.05..0.95).contains(&out[out.len() - 2]));
+    }
+
+    #[test]
+    fn a_release_the_producer_set_is_the_one_that_runs() {
+        // ⛔ The gate used to close over a fixed 5 ms for every voice alive. A
+        // producer who dials a long tail and hears a 5 ms one has a control that
+        // does nothing — and `Adsr::release_ms` is exactly that control.
+        let mut kit = long_kit();
+        kit.pads[0].shape = PadShape {
+            adsr: Some(Adsr {
+                release_ms: 100.0, // 4,800 frames — twenty times the default
+                ..Adsr::default()
+            }),
+            ..PadShape::default()
+        };
+
+        let mut sampler = Sampler::default();
+        sampler.trigger_with(
+            &kit,
+            0,
+            48_000.0,
+            Hit {
+                hold: 1,
+                ..Hit::default()
+            },
+        );
+
+        // Where the default release would have finished, this one is barely in.
+        let out = render_block(&mut sampler, &kit, RELEASE_FRAMES as usize + 8);
+        assert!(
+            sampler.active_voices() > 0,
+            "a 100 ms release must outlive the 5 ms default"
+        );
+        assert!(
+            out[out.len() - 2] > 0.5,
+            "and it must still be most of the way open, got {}",
+            out[out.len() - 2]
+        );
+    }
+
+    #[test]
+    fn cents_move_the_rate_by_a_hundredth_of_a_semitone() {
+        // ⚠ The tuning half of TASK-055A. Separate from `pitch_semis` because
+        // the two are different controls — see `Pad::pitch_cents`.
+        let mut kit = test_kit();
+        kit.pads[0].pitch_cents = 100;
+        let mut sampler = Sampler::default();
+        sampler.trigger(&kit, 0, 1.0, 0.0, 48_000.0);
+        assert!(
+            (step(&sampler) - 2f64.powf(1.0 / 12.0)).abs() < 1e-9,
+            "100 cents must be exactly one semitone, got {}",
+            step(&sampler)
+        );
     }
 
     #[test]

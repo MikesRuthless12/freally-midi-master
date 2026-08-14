@@ -56,7 +56,8 @@
     "unmuteLane": "Bật tiếng {{lane}}",
     "playLane": "Phát {{lane}}",
     "padLane": "Làn của pad {{at}}",
-    "useSelected": "Đặt mẫu đã chọn vào {{lane}}"
+    "useSelected": "Đặt mẫu đã chọn vào {{lane}}",
+    "editPad": "Chỉnh âm thanh của {{lane}}"
   },
   "sections": {
     "genres": "Thể loại",
@@ -520,5 +521,25 @@
     "none": "Chưa có kit nào được lưu. Gán vài mẫu, đặt tên, lần sau chúng sẽ ở đây.",
     "delete": "Xoá {{name}}",
     "duplicate": "Sao chép {{name}} theo tên đã nhập"
+  },
+  "padEditor": {
+    "title": "{{lane}} — âm thanh",
+    "close": "Đóng trình chỉnh âm",
+    "reset": "Đặt lại",
+    "attack": "Khởi âm",
+    "decay": "Suy giảm",
+    "sustain": "Duy trì",
+    "release": "Buông",
+    "volume": "Âm lượng",
+    "pan": "Cân bằng",
+    "transpose": "Dịch giọng",
+    "cents": "Tinh chỉnh",
+    "normalize": "Chuẩn hoá về toàn thang",
+    "trimStart": "Bắt đầu",
+    "trimEnd": "Kết thúc",
+    "fadeIn": "Vào dần",
+    "fadeOut": "Nhỏ dần",
+    "noWaveform": "Pad này phát mẫu dựng sẵn nên không có tệp nào để vẽ.",
+    "envelopeShape": "Khởi âm {{attack}} ms, suy giảm {{decay}} ms, duy trì {{sustain}} dB, buông {{release}} ms"
   }
 }

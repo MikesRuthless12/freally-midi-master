@@ -19,6 +19,8 @@ use engine::pattern::Lane;
 use include_dir::Dir;
 use serde::Deserialize;
 
+use crate::pad_tweaks::{PadShape, PadTweaks};
+
 /// One pad: a sample plus how it should be played.
 ///
 /// `Clone` is cheap and has to be: [`Kit::with_one_shots`] rebuilds the whole
@@ -37,6 +39,13 @@ pub struct Pad {
     /// -1 hard left, 0 centre, +1 hard right.
     pub pan: f32,
     pub pitch_semis: i32,
+    /// Hundredths of a semitone on top of [`Self::pitch_semis`] (TASK-055A).
+    ///
+    /// ⚠ **A second field rather than a float `pitch_semis`**, because the two
+    /// are different controls with different ranges — transposition and tuning —
+    /// and folding them would let a cents nudge slide into an octave. The
+    /// sampler adds them once when it works out the read rate.
+    pub pitch_cents: i32,
     /// Pads sharing a group cut each other off, as a real hi-hat does.
     pub choke_group: Option<u8>,
     /// The MIDI note the sample was recorded at, for pads that carry pitch.
@@ -45,6 +54,12 @@ pub struct Pad {
     /// as it was sampled. `Some` means the note's pitch is real and the voice
     /// is transposed to it — without which an 808 line plays monotone.
     pub root_note: Option<u8>,
+    /// The trim window, the fades and the envelope (TASK-055A, TASK-164).
+    ///
+    /// ⚠ [`PadShape::default`] is the whole sample with no shaping, which is
+    /// what every shipped pad and every untouched one-shot carries — see
+    /// [`PadShape::is_plain`], which is how the audio thread skips the work.
+    pub shape: PadShape,
 }
 
 #[derive(Clone)]
@@ -177,8 +192,18 @@ impl Kit {
                 gain: base.map_or(1.0, |pad| pad.gain),
                 pan: base.map_or(0.0, |pad| pad.pan),
                 pitch_semis: base.map_or(0, |pad| pad.pitch_semis),
+                pitch_cents: base.map_or(0, |pad| pad.pitch_cents),
                 choke_group: base.and_then(|pad| pad.choke_group),
                 root_note: base.and_then(|pad| pad.root_note),
+                // ⛔ **Deliberately NOT inherited.** Everything else on this
+                // line is a property of the *voice* the kit ships for this lane
+                // — where it sits in the mix, what it is rooted at. A shape is a
+                // window into a specific buffer, and this is a different buffer:
+                // carrying a trim of "the last quarter" onto a sample a tenth
+                // the length would play a producer's new kick from somewhere in
+                // its tail. [`Kit::with_tweaks`] re-resolves it against the
+                // audio that is actually here.
+                shape: PadShape::default(),
             };
 
             match kit.pad_for(*lane) {
@@ -188,6 +213,60 @@ impl Kit {
                 }
                 None => kit.pads.push(replacement(None)),
             }
+        }
+        kit
+    }
+
+    /// This kit with the producer's per-pad edits over it (TASK-055A, TASK-164).
+    ///
+    /// ⛔⛔ **Applied to EVERY pad, not only the ones carrying a one-shot**, and
+    /// that is the difference between this and [`Self::with_one_shots`]. Mike
+    /// asked for an editor on *"Kick, Sub Bass, Rim Shot, etc."* — the shipped
+    /// voices — and the answer at the time was that the notes had an editor and
+    /// the sound did not. A version of this that only reached assigned samples
+    /// would leave that still true for every pad a producer had not replaced,
+    /// which is most of them.
+    ///
+    /// ⛔ **Runs AFTER `with_one_shots`, never before.** The trim window and the
+    /// normalize peak are both measurements of a specific buffer, so they have to
+    /// be taken against the audio that will actually play — resolving them
+    /// against the shipped kick and then swapping the producer's kick underneath
+    /// would trim a sample nobody measured.
+    ///
+    /// ⚠ **A whole new kit, off the audio thread**, for the reason
+    /// [`Self::with_one_shots`] gives in full: the sampler holds pad *indices*
+    /// inside sounding voices, so a kit may never be edited underneath the
+    /// callback.
+    ///
+    /// ⚠ An identity entry is skipped rather than applied, so a map that has
+    /// accumulated defaults costs nothing and produces a byte-identical pad.
+    pub fn with_tweaks(&self, tweaks: &BTreeMap<Lane, PadTweaks>) -> Kit {
+        let mut kit = self.clone();
+        for pad in &mut kit.pads {
+            let Some(tweak) = tweaks.get(&pad.lane) else {
+                continue;
+            };
+            if tweak.is_identity() {
+                continue;
+            }
+            let tweak = tweak.clamped();
+            let shape = tweak.shape_for(pad.samples.len(), pad.sample_rate);
+
+            // ⚠ **Multiplied into the pad's own gain, not written over it.** The
+            // manifest's level is what balances the kit — a clap authored 4 dB
+            // under the snare stays 4 dB under it — and the producer's control is
+            // an offset from that, which is what a mixer fader is.
+            pad.gain *= tweak.gain_linear() * tweak.normalize_gain(&pad.samples, &shape);
+            // ⛔ **Pan is REPLACED rather than added**, and the asymmetry is
+            // deliberate: pan is a position, not an amount. Adding a producer's
+            // centre (0.0) to a pad the kit placed left would leave it left while
+            // the control read centre — a readout that lies about the one thing
+            // it is for. Gain has a natural zero that means "no change"; pan's
+            // zero means "the middle".
+            pad.pan = tweak.pan;
+            pad.pitch_semis += tweak.semis;
+            pad.pitch_cents += tweak.cents;
+            pad.shape = shape;
         }
         kit
     }
@@ -241,8 +320,13 @@ impl Kit {
                 gain: db_to_gain(pad.gain_db),
                 pan: pad.pan.clamp(-1.0, 1.0),
                 pitch_semis: pad.pitch_semis,
+                // ⚠ Not in the manifest and deliberately so: cents are for
+                // tuning a producer's own sample, and a shipped kit that needed
+                // them would be a kit that was synthesized out of tune.
+                pitch_cents: 0,
                 choke_group: pad.choke_group,
                 root_note: pad.root_note,
+                shape: PadShape::default(),
             });
         }
 
@@ -399,6 +483,7 @@ pub fn decode_wav(bytes: &[u8]) -> Result<DecodedAudio, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::pad_tweaks::Adsr;
 
     /// The shipped kit, out of the binary rather than off disk — the same
     /// bytes the plugin actually plays, so a kit that ships broken fails here.
@@ -620,5 +705,173 @@ mod tests {
         assert_eq!(db_to_gain(0.0), 1.0);
         assert!((db_to_gain(-6.0) - 0.501).abs() < 0.01);
         assert!((db_to_gain(6.0) - 1.995).abs() < 0.01);
+    }
+
+    // ── Per-pad edits (TASK-055A, TASK-164) ────────────────────────────────
+
+    /// The tweaks a producer might actually dial in, as one block.
+    fn shaped() -> PadTweaks {
+        PadTweaks {
+            gain_db: -6.0,
+            pan: -1.0,
+            semis: -2,
+            cents: 25,
+            trim_start: 0.25,
+            trim_end: 0.75,
+            adsr: Adsr {
+                decay_ms: 195.0,
+                sustain_db: -36.0,
+                ..Adsr::default()
+            },
+            ..PadTweaks::default()
+        }
+    }
+
+    #[test]
+    fn a_pad_edit_reaches_a_lane_the_producer_never_replaced() {
+        // ⛔⛔ **The whole point of TASK-164.** Mike asked whether the drum lanes
+        // had an editor — *"Kick, Sub Bass, Rim Shot, etc."* — and the answer was
+        // that the notes had one and the sound did not. A version of this that
+        // only reached assigned one-shots would leave that still true for every
+        // pad nobody had swapped, which is most of them.
+        let kit = shipped().with_tweaks(&BTreeMap::from([(Lane::Kick, shaped())]));
+        let pad = &kit.pads[kit.pad_for(Lane::Kick).expect("the kit ships a kick")];
+
+        assert_eq!(pad.pitch_semis, -2, "the shipped kick transposes");
+        assert_eq!(pad.pitch_cents, 25);
+        assert_eq!(pad.pan, -1.0);
+        assert!(pad.shape.adsr.is_some(), "and it carries the envelope");
+    }
+
+    #[test]
+    fn gain_is_an_offset_from_the_kit_and_pan_is_a_position() {
+        // ⛔ **The asymmetry is deliberate.** The manifest's level is what
+        // balances the kit — a clap authored 4 dB under the snare stays 4 dB
+        // under it — so the producer's gain multiplies. Pan does not: adding a
+        // producer's centre (0.0) to a pad the kit placed left would leave it
+        // left while the control read centre, which is a readout that lies about
+        // the one thing it is for.
+        let base = shipped();
+        let at = base.pad_for(Lane::Kick).expect("the kit ships a kick");
+        let before = base.pads[at].gain;
+
+        let kit = base.with_tweaks(&BTreeMap::from([(
+            Lane::Kick,
+            PadTweaks {
+                gain_db: -6.0,
+                pan: 0.0,
+                ..PadTweaks::default()
+            },
+        )]));
+        let after = &kit.pads[at];
+        assert!(
+            (after.gain - before * crate::pad_tweaks::db_to_linear(-6.0)).abs() < 1e-6,
+            "gain multiplies the kit's own level"
+        );
+        assert_eq!(after.pan, 0.0, "pan is replaced, not added");
+    }
+
+    #[test]
+    fn an_untouched_pad_comes_through_byte_for_byte() {
+        // ⛔ Every shipped kit and every pad nobody has opened goes through this
+        // function. If an identity entry changed anything, adding an editor
+        // would have changed how the product sounds for everyone who never
+        // opened it.
+        let base = shipped();
+        let kit = base.with_tweaks(&BTreeMap::from([(Lane::Kick, PadTweaks::default())]));
+
+        for (before, after) in base.pads.iter().zip(&kit.pads) {
+            assert_eq!(before.gain, after.gain, "{}", before.id);
+            assert_eq!(before.pan, after.pan, "{}", before.id);
+            assert_eq!(before.pitch_semis, after.pitch_semis, "{}", before.id);
+            assert_eq!(before.pitch_cents, after.pitch_cents, "{}", before.id);
+            assert!(after.shape.is_plain(), "{}", before.id);
+        }
+    }
+
+    #[test]
+    fn the_trim_window_is_resolved_against_the_buffer_that_will_actually_play() {
+        // ⛔ A fraction, not an index — the producer dragged a handle to a place
+        // in a waveform. Resolving it against this pad's own length is what
+        // makes the same trim mean the same thing after the sample is replaced.
+        let kit = shipped().with_tweaks(&BTreeMap::from([(Lane::Kick, shaped())]));
+        let pad = &kit.pads[kit.pad_for(Lane::Kick).expect("the kit ships a kick")];
+        let len = pad.samples.len();
+
+        assert_eq!(pad.shape.start, (0.25 * len as f32) as u32);
+        assert_eq!(pad.shape.end, (0.75 * len as f32) as u32);
+        assert!(pad.shape.end > pad.shape.start);
+    }
+
+    #[test]
+    fn normalize_measures_the_trimmed_window_rather_than_the_whole_file() {
+        // ⚠ Normalizing to a peak the producer has just trimmed away leaves the
+        // audible part quiet and the control looking broken.
+        let mut kit = shipped();
+        let at = kit.pad_for(Lane::Kick).expect("the kit ships a kick");
+        // Loud at the front, quiet behind — and the trim keeps only the quiet.
+        let mut samples = vec![0.25f32; 100];
+        samples[0] = 1.0;
+        kit.pads[at].samples = Arc::from(samples.into_boxed_slice());
+        kit.pads[at].gain = 1.0;
+
+        let trimmed = kit.with_tweaks(&BTreeMap::from([(
+            Lane::Kick,
+            PadTweaks {
+                normalize: true,
+                trim_start: 0.5,
+                ..PadTweaks::default()
+            },
+        )]));
+        assert!(
+            (trimmed.pads[at].gain - 4.0).abs() < 1e-4,
+            "a 0.25 peak inside the window must come up to full scale, got {}",
+            trimmed.pads[at].gain
+        );
+    }
+
+    #[test]
+    fn a_silent_pad_is_not_normalised_to_infinity() {
+        // ⛔ `1.0 / 0.0` is an infinite gain on the audio thread. A silent pad
+        // stays silent.
+        let mut kit = shipped();
+        let at = kit.pad_for(Lane::Kick).expect("the kit ships a kick");
+        kit.pads[at].samples = Arc::from(vec![0.0f32; 64].into_boxed_slice());
+        let before = kit.pads[at].gain;
+
+        let kit = kit.with_tweaks(&BTreeMap::from([(
+            Lane::Kick,
+            PadTweaks {
+                normalize: true,
+                ..PadTweaks::default()
+            },
+        )]));
+        assert_eq!(kit.pads[at].gain, before);
+    }
+
+    #[test]
+    fn a_one_shot_does_not_inherit_the_trim_measured_against_a_different_sample() {
+        // ⛔⛔ A shape is a window into a *specific* buffer. Carrying a trim of
+        // "the last quarter" onto a sample a tenth the length would play a
+        // producer's new kick from somewhere in its tail — and `with_one_shots`
+        // is where that inheritance would have happened silently.
+        let shaped_kit = shipped().with_tweaks(&BTreeMap::from([(Lane::Kick, shaped())]));
+        let assigned = BTreeMap::from([(
+            Lane::Kick,
+            OneShot {
+                path: "C:/samples/new-kick.wav".into(),
+                name: "new-kick.wav".into(),
+                samples: Arc::from(vec![0.5f32; 16].into_boxed_slice()),
+                sample_rate: 48_000,
+                reversed: false,
+            },
+        )]);
+
+        let kit = shaped_kit.with_one_shots(&assigned);
+        let pad = &kit.pads[kit.pad_for(Lane::Kick).expect("the kit ships a kick")];
+        assert!(
+            pad.shape.is_plain(),
+            "the new sample must arrive unwindowed and be re-resolved"
+        );
     }
 }

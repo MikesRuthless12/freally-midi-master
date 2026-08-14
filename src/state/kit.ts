@@ -54,6 +54,53 @@ export function soundableLanes(lanes: KitLane[]): Set<Lane> {
   return new Set(lanes.filter(canSound).map((lane) => lane.lane));
 }
 
+/**
+ * The pad's own amplitude envelope (TASK-164).
+ *
+ * ⚠ **Sustain is in dB, not a 0–1 ratio** — read off the reference Mike
+ * supplied: *"A 0.00 ms · D 195 ms · S −36.00 dB · R 5.00 s"*.
+ */
+export type Adsr = {
+  attackMs: number;
+  decayMs: number;
+  sustainDb: number;
+  releaseMs: number;
+};
+
+/**
+ * What the producer did to a pad, as distinct from what the kit shipped
+ * (TASK-055A, TASK-164).
+ *
+ * ⛔⛔ **Hand-written, and nothing here ever constructs one from scratch.**
+ * `ts-rs` exports the engine's IPC types and deliberately skips this one — two
+ * test binaries writing a single `ipc-types.ts` under a parallel
+ * `cargo test --workspace` is a race, and that file is already gated by a
+ * `git diff --exit-code` in `ci:local`.
+ *
+ * ▶ **So the plugin owns the defaults outright and this file never guesses
+ * them.** `kit_state` sends a full `tweaks` block for *every* lane, including
+ * the ones nobody has touched, and every edit below is a copy of what arrived
+ * with one field changed. That is what stops this becoming the
+ * `state/lanes.ts` failure — a comment claiming to mirror something, drifted to
+ * 21 of 37, with two green tests watching. The names are pinned on the Rust
+ * side by `the_wire_names_the_page_binds_to_do_not_move_silently`.
+ */
+export type PadTweaks = {
+  gainDb: number;
+  /** -1 hard left, 0 centre, +1 hard right. */
+  pan: number;
+  semis: number;
+  cents: number;
+  normalize: boolean;
+  /** Where the pad starts playing, as a fraction of the sample. */
+  trimStart: number;
+  /** Where it stops. `1` is the whole sample. */
+  trimEnd: number;
+  fadeInS: number;
+  fadeOutS: number;
+  adsr: Adsr;
+};
+
 /** One row of the KIT panel. Mirrors what `kit_state` answers with. */
 export type KitLane = {
   lane: Lane;
@@ -68,6 +115,14 @@ export type KitLane = {
   /** The file name of the producer's own sample, or `null` for the shipped one. */
   name: string | null;
   path: string | null;
+  /**
+   * This pad's edits, always present.
+   *
+   * ⚠ **Never `null`, even for a lane nobody has opened** — the plugin sends
+   * its own defaults. A nullable field here would make every untouched pad a
+   * special case in the one place a control has to have a position.
+   */
+  tweaks: PadTweaks;
 };
 
 type KitStateReply = {
@@ -117,6 +172,21 @@ type KitState = {
    * refused if that lane is locked rather than silently doing nothing.
    */
   randomize: (lane: Lane | null) => Promise<void>;
+  /**
+   * Change one pad's edits, and hear it (TASK-055A, TASK-164).
+   *
+   * ⛔ **The row is updated here BEFORE the plugin answers, and that is not
+   * optimism for its own sake.** These are dragged controls: a knob whose
+   * position only moves once a round trip has completed does not follow the
+   * pointer, and the producer is dragging to *hear* the change. The plugin
+   * rebuilds the kit and republishes it on the same call, so the sound and the
+   * knob move together; a failure puts the row back and says why.
+   *
+   * ⚠ `patch` is a partial, and it is applied over **what the plugin last
+   * sent** rather than over a default — see [`PadTweaks`] for why this file
+   * never constructs one.
+   */
+  setTweaks: (lane: Lane, patch: Partial<PadTweaks>) => Promise<void>;
   /**
    * Wait for the loader thread to finish, then refresh and surface any failure.
    *
@@ -257,6 +327,28 @@ export const useKit = create<KitState>((set, get) => ({
       return;
     }
     await get().awaitLoader();
+  },
+
+  async setTweaks(lane, patch) {
+    const before = get().lanes;
+    const row = before.find((entry) => entry.lane === lane);
+    if (row === undefined) return;
+
+    const tweaks = { ...row.tweaks, ...patch };
+    set({
+      error: null,
+      lanes: before.map((entry) => (entry.lane === lane ? { ...entry, tweaks } : entry)),
+    });
+
+    try {
+      await invoke('pad_tweaks_set', { lane, tweaks });
+    } catch (error) {
+      // ⛔ **Put the row back.** A control left showing a value the plugin
+      // refused is the readout-that-lies failure this store was written to end,
+      // and it is worse on a knob than on a label: the producer goes on turning
+      // it, hearing nothing change, with no reason on screen.
+      set({ lanes: before, error: reason(error) });
+    }
   },
 
   async awaitLoader() {

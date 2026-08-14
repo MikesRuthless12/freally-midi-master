@@ -170,6 +170,26 @@ pub struct PluginSession {
     /// is meaningless and simply never read.
     #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
     pub one_shots_reversed: BTreeMap<Lane, bool>,
+    /// What the producer did to each pad — gain, pan, tuning, trim, fades and
+    /// the envelope (TASK-055A, TASK-164).
+    ///
+    /// ⛔ **A third map rather than a widening of [`Self::one_shots`]**, for the
+    /// reason [`Self::one_shots_reversed`] spells out at length: that field is
+    /// the saved project format and every file on disk holds `lane -> path`
+    /// strings. A new field defaults to empty on every project ever written, so
+    /// nothing migrates.
+    ///
+    /// ⛔ **Keyed by lane, and NOT gated on a one-shot being assigned.** Unlike
+    /// `one_shots_reversed`, an entry here is meaningful with no sample of the
+    /// producer's on the lane at all: the whole point of TASK-164 is that the
+    /// *shipped* kick can be shaped too. Mike asked whether the drum lanes had an
+    /// editor and the answer was that the notes had one and the sound did not.
+    ///
+    /// ⚠ **Identity entries are never written** — [`crate::pad_tweaks::PadTweaks::is_identity`]
+    /// decides — so this map stays empty for every project nobody has opened the
+    /// editor in, and the field serializes away entirely.
+    #[serde(default, skip_serializing_if = "BTreeMap::is_empty")]
+    pub pad_tweaks: BTreeMap<Lane, crate::pad_tweaks::PadTweaks>,
     /// The producer's saved sample-library folders (TASK-132).
     ///
     /// ⚠ **The same exception `one_shots` above is**: a folder on somebody's
@@ -322,6 +342,7 @@ impl Default for PluginSession {
             locked_lanes: Vec::new(),
             one_shots: BTreeMap::new(),
             one_shots_reversed: BTreeMap::new(),
+            pad_tweaks: BTreeMap::new(),
             sample_folders: Vec::new(),
             patterns: BTreeMap::new(),
             pattern: None,
@@ -453,6 +474,24 @@ mod tests {
             // ⚠ Reversed too, so the round trip proves the new field survives
             // a save and an open rather than only the old one.
             one_shots_reversed: BTreeMap::from([(Lane::Melody, true)]),
+            // ⚠ **A pad the producer shaped, on a lane with no one-shot on it**
+            // (TASK-055A/164). `Kick` deliberately, not `Melody`: this map is
+            // *not* gated on an assignment the way `one_shots_reversed` is, and
+            // a fixture that only ever edited an assigned lane could not tell
+            // the difference.
+            pad_tweaks: BTreeMap::from([(
+                Lane::Kick,
+                crate::pad_tweaks::PadTweaks {
+                    gain_db: -3.0,
+                    trim_start: 0.1,
+                    adsr: crate::pad_tweaks::Adsr {
+                        decay_ms: 195.0,
+                        sustain_db: -36.0,
+                        ..crate::pad_tweaks::Adsr::default()
+                    },
+                    ..crate::pad_tweaks::PadTweaks::default()
+                },
+            )]),
             // The sample library rides with the project too (TASK-132).
             sample_folders: vec!["C:/samples".to_owned()],
             patterns: BTreeMap::new(),

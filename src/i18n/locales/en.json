@@ -56,7 +56,8 @@
     "unmuteLane": "Unmute {{lane}}",
     "playLane": "Play {{lane}}",
     "padLane": "Pad {{at}} lane",
-    "useSelected": "Put the selected sample on {{lane}}"
+    "useSelected": "Put the selected sample on {{lane}}",
+    "editPad": "Edit the sound of {{lane}}"
   },
   "sections": {
     "genres": "Genres",
@@ -520,5 +521,25 @@
     "none": "No saved kits yet. Assign some samples, name them, and they will be here next time.",
     "delete": "Delete {{name}}",
     "duplicate": "Copy {{name}} under the typed name"
+  },
+  "padEditor": {
+    "title": "{{lane}} — sound",
+    "close": "Close the sound editor",
+    "reset": "Reset",
+    "attack": "Attack",
+    "decay": "Decay",
+    "sustain": "Sustain",
+    "release": "Release",
+    "volume": "Volume",
+    "pan": "Pan",
+    "transpose": "Transpose",
+    "cents": "Fine tune",
+    "normalize": "Normalise to full scale",
+    "trimStart": "Start",
+    "trimEnd": "End",
+    "fadeIn": "Fade in",
+    "fadeOut": "Fade out",
+    "noWaveform": "This pad plays a built-in sample, so there is no file to draw.",
+    "envelopeShape": "Attack {{attack}} ms, decay {{decay}} ms, sustain {{sustain}} dB, release {{release}} ms"
   }
 }

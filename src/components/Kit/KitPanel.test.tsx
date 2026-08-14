@@ -2,6 +2,8 @@ import { cleanup, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { KitPanel } from './KitPanel';
+// ⚠ The mock's own idea of an unedited pad — one spelling, not two.
+import { untouchedPad } from '../../lib/ipc-mock';
 import { useKit } from '../../state/kit';
 
 /**
@@ -29,10 +31,16 @@ import { useKit } from '../../state/kit';
 /** The kit as the plugin reports it. `snap` is shipped-silent on purpose — the
  *  drum generator writes that lane and no shipped pad has ever played it. */
 const KIT = [
-  { lane: 'kick' as const, shipped: true, name: null, path: null },
-  { lane: 'snare' as const, shipped: true, name: null, path: null },
-  { lane: 'closedHat' as const, shipped: true, name: 'my-hat.wav', path: 'C:/s/my-hat.wav' },
-  { lane: 'snap' as const, shipped: false, name: null, path: null },
+  { lane: 'kick' as const, shipped: true, name: null, path: null, tweaks: untouchedPad() },
+  { lane: 'snare' as const, shipped: true, name: null, path: null, tweaks: untouchedPad() },
+  {
+    lane: 'closedHat' as const,
+    shipped: true,
+    name: 'my-hat.wav',
+    path: 'C:/s/my-hat.wav',
+    tweaks: untouchedPad(),
+  },
+  { lane: 'snap' as const, shipped: false, name: null, path: null, tweaks: untouchedPad() },
 ];
 
 beforeEach(() => {
@@ -132,12 +140,18 @@ describe('the KIT panel says what is actually loaded', () => {
    */
   describe('auditioning one lane', () => {
     const MELODIC = [
-      { lane: 'melody' as const, shipped: true, name: null, path: null },
-      { lane: 'chords' as const, shipped: false, name: 'pad.wav', path: 'C:/s/pad.wav' },
-      { lane: 'bass' as const, shipped: true, name: null, path: null },
-      { lane: 'counter' as const, shipped: true, name: null, path: null },
+      { lane: 'melody' as const, shipped: true, name: null, path: null, tweaks: untouchedPad() },
+      {
+        lane: 'chords' as const,
+        shipped: false,
+        name: 'pad.wav',
+        path: 'C:/s/pad.wav',
+        tweaks: untouchedPad(),
+      },
+      { lane: 'bass' as const, shipped: true, name: null, path: null, tweaks: untouchedPad() },
+      { lane: 'counter' as const, shipped: true, name: null, path: null, tweaks: untouchedPad() },
       // Nothing shipped and nothing assigned: there is no sample to hear.
-      { lane: 'snap' as const, shipped: false, name: null, path: null },
+      { lane: 'snap' as const, shipped: false, name: null, path: null, tweaks: untouchedPad() },
     ];
 
     it.each(['melody', 'chords', 'bass', 'counter'])('offers Play on %s', (lane) => {

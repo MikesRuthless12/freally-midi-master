@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Dices, Play, X } from 'lucide-react';
+import { Dices, Play, SlidersHorizontal, X } from 'lucide-react';
 
 import { canSound, useKit } from '../../state/kit';
 import { SAMPLE_TYPE, droppedSample } from '../../lib/dnd';
 import { auditionLane } from '../DrumGrid/audition';
+import { PadEditor } from './PadEditor';
 import { SavedKits } from './SavedKits';
 import { useExplorer } from '../../state/explorer';
 import { useSession } from '../../state/session';
@@ -52,6 +53,14 @@ export function KitPanel() {
   // the producer lets go. Local: it is a property of this gesture, not of the
   // kit, and nothing outside this panel can act on it.
   const [over, setOver] = useState<Lane | null>(null);
+  /**
+   * Which pad's sound editor is open, or `null` (TASK-164).
+   *
+   * ⚠ **One at a time, and local.** It is a property of what this panel is
+   * showing, not of the kit — nothing outside here acts on it, and two open
+   * editors would be two sets of controls over one audio thread.
+   */
+  const [editing, setEditing] = useState<Lane | null>(null);
 
   /**
    * The eight lanes on the pads first, in pad order, then everything else.
@@ -260,6 +269,29 @@ export function KitPanel() {
                 <Dices size={12} aria-hidden="true" />
               </button>
 
+              {/* ⛔⛔ **THE SOUND'S OWN EDITOR** (TASK-164). Mike asked whether
+                  the drum lanes had one — *"Kick, Sub Bass, Rim Shot, etc."* —
+                  and the answer was that the notes had an editor and the sound
+                  did not.
+
+                  ⚠ **On the same `canSound` predicate as the Play button**, and
+                  for the same reason: an envelope over a lane with no voice is a
+                  control that can only do nothing. It is deliberately *not*
+                  gated on `entry.name` — the whole point is that a shipped kick
+                  can be shaped too, not only a sample the producer replaced. */}
+              {canSound(entry) && (
+                <button
+                  type="button"
+                  className="kit-lane__edit"
+                  aria-label={t('kit.editPad', { lane: t(`lanes.${entry.lane}`) })}
+                  title={t('kit.editPad', { lane: t(`lanes.${entry.lane}`) })}
+                  aria-expanded={editing === entry.lane}
+                  onClick={() => setEditing((open) => (open === entry.lane ? null : entry.lane))}
+                >
+                  <SlidersHorizontal size={12} aria-hidden="true" />
+                </button>
+              )}
+
               {entry.name && (
                 <button
                   type="button"
@@ -271,6 +303,13 @@ export function KitPanel() {
                 >
                   <X size={12} aria-hidden="true" />
                 </button>
+              )}
+
+              {/* ⚠ **Inside the row it belongs to**, so the controls sit under
+                  the pad they change rather than in a floating window a producer
+                  has to relate back to a lane by name. */}
+              {editing === entry.lane && (
+                <PadEditor entry={entry} onClose={() => setEditing(null)} />
               )}
             </li>
           );

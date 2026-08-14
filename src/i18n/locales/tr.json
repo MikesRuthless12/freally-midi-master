@@ -56,7 +56,8 @@
     "unmuteLane": "{{lane}} sesini aç",
     "playLane": "{{lane}} çal",
     "padLane": "Pad {{at}} kanalı",
-    "useSelected": "Seçili örneği {{lane}} kanalına koy"
+    "useSelected": "Seçili örneği {{lane}} kanalına koy",
+    "editPad": "{{lane}} sesini düzenle"
   },
   "sections": {
     "genres": "Türler",
@@ -520,5 +521,25 @@
     "none": "Henüz kayıtlı kit yok. Birkaç örnek ata, ad ver, bir dahakine burada olsunlar.",
     "delete": "{{name}} sil",
     "duplicate": "{{name}} kitini yazdığın adla kopyala"
+  },
+  "padEditor": {
+    "title": "{{lane}} — ses",
+    "close": "Ses düzenleyicisini kapat",
+    "reset": "Sıfırla",
+    "attack": "Atak",
+    "decay": "Düşüş",
+    "sustain": "Sürdürme",
+    "release": "Bırakma",
+    "volume": "Ses düzeyi",
+    "pan": "Denge",
+    "transpose": "Aktar",
+    "cents": "İnce akort",
+    "normalize": "Tam ölçeğe normalleştir",
+    "trimStart": "Başlangıç",
+    "trimEnd": "Bitiş",
+    "fadeIn": "Yavaşça aç",
+    "fadeOut": "Yavaşça kıs",
+    "noWaveform": "Bu pad yerleşik bir örnek çalıyor, bu yüzden çizilecek bir dosya yok.",
+    "envelopeShape": "Atak {{attack}} ms, düşüş {{decay}} ms, sürdürme {{sustain}} dB, bırakma {{release}} ms"
   }
 }

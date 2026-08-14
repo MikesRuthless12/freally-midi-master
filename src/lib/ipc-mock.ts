@@ -9,6 +9,7 @@
  */
 
 import { ALL_LANES } from '../state/kit';
+import type { PadTweaks } from '../state/kit';
 import type { ExplorerEntry, Favourite } from '../state/explorer';
 import type { InvokeArgs } from './ipc';
 import type {
@@ -73,6 +74,40 @@ const savedKits = new Map<string, { id: string; name: string; lanes: number }>()
  * genuinely cannot happen here.
  */
 const droppedSamples = new Map<string, string>();
+
+/**
+ * Per-pad edits made this page load (TASK-055A, TASK-164).
+ *
+ * ⚠ Mutable for the same reason [`droppedSamples`] is: a constant would let a
+ * spec turn every knob and leave nothing to assert.
+ */
+const padTweaks = new Map<string, PadTweaks>();
+
+/**
+ * What the plugin sends for a pad nobody has edited.
+ *
+ * ⛔ **A fresh object per call, not a shared constant.** The store spreads what
+ * it is given and writes the copy back; handing every lane the same object would
+ * make one pad's edit appear on all thirty-seven the moment anything mutated it
+ * in place. Cheap, and it removes the whole class.
+ *
+ * ⚠ **Exported so the component tests build their rows from it too.** They used
+ * to hand-write partial `KitLane`s, and a second spelling of "untouched" is how
+ * a fixture comes to disagree with the fixture the specs run against — the
+ * failure recorded on `droppedSamples` above, one field along.
+ */
+export const untouchedPad = (): PadTweaks => ({
+  gainDb: 0,
+  pan: 0,
+  semis: 0,
+  cents: 0,
+  normalize: false,
+  trimStart: 0,
+  trimEnd: 1,
+  fadeInS: 0,
+  fadeOutS: 0,
+  adsr: { attackMs: 0, decayMs: 0, sustainDb: 0, releaseMs: 0 },
+});
 
 /** Files starred this page load (TASK-058C). */
 const starred = new Map<string, Favourite>();
@@ -669,6 +704,11 @@ const handlers: Record<string, Handler> = {
   // here.** A dropped path wins over the fixture's own assignment, which is what
   // `restore` does — dropping onto a lane that already carries a sample replaces
   // it rather than being ignored.
+  // ⚠ **`tweaks` is present on every row, never null** — the plugin sends its
+  // own defaults for a lane nobody has edited, so the page never constructs a
+  // `PadTweaks` and there is one owner of what "untouched" means. A fixture
+  // that omitted it for unedited lanes would let the page grow a second answer
+  // that only the real plugin ever contradicts.
   kit_state: () => ({
     id: 'trap-default',
     lanes: ALL_LANES.map((lane) => {
@@ -679,9 +719,22 @@ const handlers: Record<string, Handler> = {
         shipped: lane !== 'snap',
         name: path === null ? null : (path.split(/[\\/]/).pop() ?? path),
         path,
+        tweaks: padTweaks.get(lane) ?? untouchedPad(),
       };
     }),
   }),
+
+  // ⛔⛔ **It genuinely stores, for the reason `droppedSamples` above exists.**
+  // A handler answering `undefined` would let a spec drag the whole envelope
+  // and have nothing to assert — the pad would read the same before and after,
+  // which is exactly how the browser→pad gesture went untested for months. The
+  // clamping, the kit rebuild and the audio are Rust and are tested there; what
+  // crosses the bridge is lane → tweaks, and that much is true in a browser.
+  pad_tweaks_set: (args?: InvokeArgs) => {
+    const { lane, tweaks } = (args ?? {}) as { lane?: string; tweaks?: PadTweaks };
+    if (lane !== undefined && tweaks !== undefined) padTweaks.set(lane, tweaks);
+    return undefined;
+  },
 
   // Assigning one. A browser has no native Open dialog and no filesystem, so
   // the mock reports a *cancelled* assignment for exactly the reason

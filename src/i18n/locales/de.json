@@ -56,7 +56,8 @@
     "unmuteLane": "{{lane}} einschalten",
     "playLane": "{{lane}} abspielen",
     "padLane": "Spur für Pad {{at}}",
-    "useSelected": "Ausgewähltes Sample auf {{lane}} legen"
+    "useSelected": "Ausgewähltes Sample auf {{lane}} legen",
+    "editPad": "Klang von {{lane}} bearbeiten"
   },
   "sections": {
     "genres": "Genres",
@@ -520,5 +521,25 @@
     "none": "Noch keine gespeicherten Kits. Weise Samples zu, gib ihnen einen Namen, und sie sind beim nächsten Mal hier.",
     "delete": "{{name}} löschen",
     "duplicate": "{{name}} unter dem eingegebenen Namen kopieren"
+  },
+  "padEditor": {
+    "title": "{{lane}} — Klang",
+    "close": "Klangeditor schließen",
+    "reset": "Zurücksetzen",
+    "attack": "Anstieg",
+    "decay": "Abfall",
+    "sustain": "Haltepegel",
+    "release": "Ausklang",
+    "volume": "Lautstärke",
+    "pan": "Panorama",
+    "transpose": "Transponieren",
+    "cents": "Feinstimmung",
+    "normalize": "Auf Vollaussteuerung normalisieren",
+    "trimStart": "Anfang",
+    "trimEnd": "Ende",
+    "fadeIn": "Einblenden",
+    "fadeOut": "Ausblenden",
+    "noWaveform": "Dieses Pad spielt ein eingebautes Sample, es gibt also keine Datei zum Zeichnen.",
+    "envelopeShape": "Anstieg {{attack}} ms, Abfall {{decay}} ms, Haltepegel {{sustain}} dB, Ausklang {{release}} ms"
   }
 }
