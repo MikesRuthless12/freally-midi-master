@@ -3,6 +3,47 @@ import { Pause, Play, Repeat, Split, Square } from 'lucide-react';
 
 import { formatSeconds, useExplorer } from '../../state/explorer';
 import { useSession } from '../../state/session';
+import type { SplitPart } from '../../lib/ipc-types';
+
+/**
+ * What a file was found to contain: one row per part, with its reason.
+ *
+ * ⛔⛔ **ONE component for both roads, because the promise is that they read the
+ * same.** Mike: *"can you ensure that you can drag the audio/midi of any sample
+ * into any of the generators and it will split them all the same exact way?"* —
+ * both produce `SplitPart[]`, both are drawn here, and a new `SplitReason`, an
+ * extra column or a reworded heading lands in both panels or in neither. Drawn
+ * twice, it would land in one and silently not the other, which is exactly the
+ * drift `engine::formats` and `lib/dnd.ts` were each written to stop.
+ *
+ * ⛔ **Every row carries its reason, and the reasons are not equal.** Channel 10
+ * is a fact the file states. "Lowest voice" is a measurement. "Split by pitch"
+ * and "the clearest line up top" are heuristics applied when there was nothing
+ * else to go on — and they say so, because a producer who is told *why* can tell
+ * whether to trust it.
+ */
+export function SplitRows({ parts }: { parts: SplitPart[] }) {
+  const { t } = useTranslation();
+  return (
+    <ul className="midi__list">
+      {parts.map((split) => (
+        // ⚠ Keyed on the part: a split never returns the same part twice, and
+        // the index would reorder under React if the analysis were re-run.
+        <li key={split.part} className="midi__row">
+          <span className="midi__part">{t(`tabs.${split.part}`)}</span>
+          {/* The bare number, with the unit in the label. */}
+          <span className="midi__notes" title={t('explorer.midiNotes')}>
+            {split.notes}
+          </span>
+          {/* ⛔ The reason, in the producer's language rather than an enum. */}
+          <span className="midi__reason" title={t(`explorer.splitReason.${split.reason}`)}>
+            {t(`explorer.splitReason.${split.reason}`)}
+          </span>
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 /**
  * What a selected `.mid` was found to contain, and where it would go.
@@ -62,23 +103,7 @@ export function MidiPreview() {
           on this project reads. */}
       <p className="midi__title">{t('explorer.midiFound')}</p>
 
-      <ul className="midi__list">
-        {midiSplit.map((split) => (
-          // ⚠ Keyed on the part: `split` never returns the same part twice, and
-          // the index would reorder under React if the analysis were re-run.
-          <li key={split.part} className="midi__row">
-            <span className="midi__part">{t(`tabs.${split.part}`)}</span>
-            {/* The bare number, with the unit in the label — see above. */}
-            <span className="midi__notes" title={t('explorer.midiNotes')}>
-              {split.notes}
-            </span>
-            {/* ⛔ The reason, in the producer's language rather than an enum. */}
-            <span className="midi__reason" title={t(`explorer.splitReason.${split.reason}`)}>
-              {t(`explorer.splitReason.${split.reason}`)}
-            </span>
-          </li>
-        ))}
-      </ul>
+      <SplitRows parts={midiSplit} />
 
       {/* ⛔⛔ **Hearing the file, not just reading what is in it** (TASK-160).
           Mike: *".mid files … have its own sound like Ableton does that can play

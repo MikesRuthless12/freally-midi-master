@@ -441,14 +441,23 @@
       "innerVoice": "Inner voice",
       "splitByPitch": "One voice, split by pitch — a guess",
       "fromName": "From the file name",
-      "kitShape": "Plays like a drum kit"
+      "kitShape": "Plays like a drum kit",
+      "percussiveBand": "Struck — read from its bands",
+      "lowBand": "Under 250 Hz, and it holds a pitch",
+      "melodicBand": "The clearest line up top — a guess",
+      "chromaTemplate": "Chords matched against templates"
     },
     "midiFound": "What this MIDI file contains",
     "midiNotes": "Notes",
     "midiAuditionClipped": "Only the first two minutes are auditioned.",
     "raw": "Raw",
     "rawHint": "Play the file exactly as it is on disk",
-    "previewGain": "Audition level"
+    "previewGain": "Audition level",
+    "extract": "Read the notes",
+    "extractCancel": "Stop reading",
+    "audioFound": "What this sample contains",
+    "vocalLeftAlone": "A sung line was found, and left alone.",
+    "audioDragHint": "Or drag the file onto a generator to read it straight in."
   },
   "patterns": {
     "name": "Name this pattern",

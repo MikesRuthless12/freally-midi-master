@@ -441,14 +441,23 @@
       "innerVoice": "Voz interna",
       "splitByPitch": "Uma voz, dividida por altura — um palpite",
       "fromName": "Pelo nome do arquivo",
-      "kitShape": "Toca como uma bateria"
+      "kitShape": "Toca como uma bateria",
+      "percussiveBand": "Percutido — lido pelas bandas",
+      "lowBand": "Abaixo de 250 Hz e com altura estável",
+      "melodicBand": "A linha mais nítida no agudo — um palpite",
+      "chromaTemplate": "Acordes comparados com modelos"
     },
     "midiFound": "Conteúdo deste arquivo MIDI",
     "midiNotes": "Notas",
     "midiAuditionClipped": "Apenas os dois primeiros minutos são reproduzidos.",
     "raw": "Cru",
     "rawHint": "Tocar o arquivo exatamente como está no disco",
-    "previewGain": "Nível de audição"
+    "previewGain": "Nível de audição",
+    "extract": "Ler as notas",
+    "extractCancel": "Parar a leitura",
+    "audioFound": "Conteúdo deste sample",
+    "vocalLeftAlone": "Uma linha cantada foi encontrada e deixada intacta.",
+    "audioDragHint": "Ou arraste o arquivo para um gerador para lê-lo direto ali."
   },
   "patterns": {
     "name": "Dê um nome a este padrão",

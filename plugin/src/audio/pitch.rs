@@ -86,8 +86,36 @@ pub fn detect_root(samples: &[f32], sample_rate: u32) -> Option<Root> {
         .get(..take)
         .unwrap_or(samples.get(skip..)?);
 
-    let min_lag = (rate / MAX_HZ).floor().max(2.0) as usize;
-    let max_lag = (rate / MIN_HZ).ceil() as usize;
+    detect_in(window, sample_rate, MIN_HZ, MAX_HZ)
+}
+
+/// The fundamental of an exact window, searched only between two frequencies.
+///
+/// ⛔⛔ **One detector, two callers — and the second caller is why this is split
+/// out at all.** [`detect_root`] answers *"what note is this one-shot"*: it skips
+/// the attack, takes half a second, and looks across the whole audible range,
+/// because a pad may hold anything. `crate::extract::pitched` asks a different
+/// question of the same machinery — *"what note is this 40 ms of the bassline"* —
+/// and it already knows the band, because it filtered the audio into one.
+///
+/// ▶ **Writing a second NSDF for it was the alternative and would have been the
+/// mistake this repo keeps recording.** `engine::smf_read`'s own header states
+/// the rule for the MIDI side — *one measurement path, not two* — and a second
+/// pitch detector would drift from this one exactly the way a second extension
+/// list did before `engine::formats` took it away.
+///
+/// ⚠ **Narrowing the band is also what makes a pitch *track* affordable.** The
+/// cost is `window · lags` and `lags` is `rate / min_hz`; asking for 27.5 Hz when
+/// the signal was low-passed at 250 is paying for six octaves nobody filtered
+/// into the buffer.
+pub fn detect_in(window: &[f32], sample_rate: u32, min_hz: f32, max_hz: f32) -> Option<Root> {
+    if sample_rate == 0 || !min_hz.is_finite() || min_hz <= 0.0 || max_hz <= min_hz {
+        return None;
+    }
+    let rate = sample_rate as f32;
+
+    let min_lag = (rate / max_hz).floor().max(2.0) as usize;
+    let max_lag = (rate / min_hz).ceil() as usize;
     if window.len() < min_lag * 2 + 2 {
         return None;
     }
@@ -154,8 +182,28 @@ pub fn detect_root(samples: &[f32], sample_rate: u32) -> Option<Root> {
     let (lag, clarity) = peaks
         .into_iter()
         .find(|(_, value)| *value >= tallest * 0.9)?;
-    let hz = rate / lag as f32;
-    if !(MIN_HZ..=MAX_HZ).contains(&hz) {
+
+    // ⛔⛔ **The peak between two lags, not the lag it sat on.** McLeod's own
+    // paper specifies this and the first cut of this detector skipped it, which
+    // was invisible while the only caller fed it 48 kHz — there a bass note is a
+    // lag of a thousand samples and one sample of error is a fifth of a cent.
+    // ▶ `crate::extract::pitched` runs the same NSDF over a *decimated* band,
+    // where the same note is a lag of thirty and one sample of error is **half a
+    // semitone**: a bassline came back as 37-40-38 where 36-41-39 was played.
+    // A parabola through the peak and its two neighbours recovers the fraction.
+    let lag = {
+        let (before, here, after) = (nsdf[lag - 1], nsdf[lag], nsdf[lag + 1]);
+        let curve = before - 2.0 * here + after;
+        // ⚠ Guarded: a flat top gives a zero denominator, and the vertex of a
+        // straight line is not a number. The bare lag is the right answer there.
+        if curve.abs() > f32::EPSILON {
+            lag as f32 + 0.5 * (before - after) / curve
+        } else {
+            lag as f32
+        }
+    };
+    let hz = rate / lag;
+    if !(min_hz..=max_hz).contains(&hz) {
         return None;
     }
 

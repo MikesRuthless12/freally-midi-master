@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Gauge, Pause, Play, Repeat, Rewind, Square } from 'lucide-react';
 
 import { formatSeconds, useExplorer } from '../../state/explorer';
+import { AudioNotes } from './AudioNotes';
 import { MidiPreview } from './MidiPreview';
 import { VIEW_H, VIEW_W, outlineOf } from './waveform';
 
@@ -274,6 +275,12 @@ export function PreviewPlayer() {
           {formatSeconds(position.seconds)} / {formatSeconds(total)}
         </span>
       </div>
+
+      {/* ⛔ **Under the transport, not instead of it** (TASK-058D). A sample is
+          still a sample: the waveform, the scrub and the reverse are what a
+          producer came to the panel for, and reading its notes is one more thing
+          they can do with it rather than a different mode. */}
+      <AudioNotes />
     </div>
   );
 }

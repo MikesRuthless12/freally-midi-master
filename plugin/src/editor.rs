@@ -546,47 +546,47 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
         // `preview_position` is a poll rather than six channels.
         "preview_load" => {
             let path = request.args["path"].as_str().unwrap_or_default();
-            let file = std::path::Path::new(path);
-            // ⛔⛔ **The same two guards `waveform` has, and they must come
-            // before `is_file()`.** Without them this took a raw webview path
-            // and touched it: `is_file()` on a UNC string makes the SMB
-            // redirector resolve the host, connect out and authenticate, which
-            // `oneshot::refuse_remote` documents as a real vulnerability rather
-            // than hardening. And with no containment it would decode *any*
-            // audio file on disk, up to the 128 MB import bound.
-            if let Err(reason) = crate::oneshot::refuse_remote(file) {
-                return Some(Err(reason));
-            }
-            if !shared.explorer.contains(file) {
-                return Some(Err("that sample is not in your sample library".into()));
-            }
+            // ⛔⛔ **One gate for every audio path, and this branch is why it had
+            // to become one.** It used to write the guards out inline —
+            // `refuse_remote`, then containment, then `is_file()` — and the
+            // *third* one had already drifted: it never checked the extension, so
+            // this was the one audio command that would hand symphonia a
+            // `.exe` or a `.docx` out of the producer's library. `waveform` had a
+            // second copy with the extension check and `explorer::audio_split` a
+            // third; `checked_audio` is now the only door, exactly as
+            // `read_midi_bytes` already is for the MIDI side.
+            // ⚠ The order inside it is load-bearing: `refuse_remote` first,
+            // because touching a UNC string at all makes the SMB redirector
+            // resolve the host, connect out and authenticate.
+            let file = match crate::explorer::checked_audio(&shared.explorer, path) {
+                Ok(file) => file,
+                Err(reason) => return Some(Err(reason)),
+            };
             if !file.is_file() {
                 return Some(Err("that sample is not there".into()));
             }
-            return Some(
-                match crate::audio::import::decode_file(std::path::Path::new(path)) {
-                    Ok(audio) => {
-                        shared.preview.load(audio.samples, audio.sample_rate);
-                        // ⛔ **Recorded here, because this is the moment a
-                        // producer actually looked at a file.** `select`
-                        // auditions on a click, an arrow key and a starred row
-                        // alike, and all three arrive as `preview_load` — so one
-                        // call covers every way into the browser. Recording on
-                        // *drop* instead would miss everything auditioned and
-                        // rejected, which is most of what browsing is.
-                        //
-                        // ⚠ **A failure here must not fail the audition.** The
-                        // sample has already been decoded and handed to the
-                        // player; a producer whose `%APPDATA%` is read-only
-                        // should still hear it. The history is a convenience and
-                        // refusing the preview to protect the bookkeeping would
-                        // be the wrong trade.
-                        let _ = crate::recent::note(path);
-                        Ok(Value::Null)
-                    }
-                    Err(reason) => Err(reason),
-                },
-            );
+            return Some(match crate::audio::import::decode_file(&file) {
+                Ok(audio) => {
+                    shared.preview.load(audio.samples, audio.sample_rate);
+                    // ⛔ **Recorded here, because this is the moment a
+                    // producer actually looked at a file.** `select`
+                    // auditions on a click, an arrow key and a starred row
+                    // alike, and all three arrive as `preview_load` — so one
+                    // call covers every way into the browser. Recording on
+                    // *drop* instead would miss everything auditioned and
+                    // rejected, which is most of what browsing is.
+                    //
+                    // ⚠ **A failure here must not fail the audition.** The
+                    // sample has already been decoded and handed to the
+                    // player; a producer whose `%APPDATA%` is read-only
+                    // should still hear it. The history is a convenience and
+                    // refusing the preview to protect the bookkeeping would
+                    // be the wrong trade.
+                    let _ = crate::recent::note(path);
+                    Ok(Value::Null)
+                }
+                Err(reason) => Err(reason),
+            });
         }
 
         "preview_play" => {
@@ -926,6 +926,55 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
                     })
                     .and_then(|parts| serde_json::to_value(parts).map_err(|e| e.to_string())),
             );
+        }
+
+        // The same thing for a `.wav` (TASK-058D / TASK-058F).
+        //
+        // ⛔ Mike, 2026-08-10: *"can you ensure that you can drag the audio/midi
+        // of any sample into any of the generators and it will split them all the
+        // same exact way?"* — so this answers the same `SplitPart`s the command
+        // above does, and everything downstream of it is shared.
+        //
+        // ⚠ **The tempo is passed IN rather than read out of the session.** The
+        // reading only needs it to break the octave tie — eight bars at 140 and
+        // four at 70 are the same waveform — and what should break it is the tempo
+        // the producer can see, which is the chip: a pinned value, or the host's
+        // under auto-sync, or the model's. That resolution already happens on the
+        // page and re-deriving it here would be a second answer to a question that
+        // has one.
+        //
+        // ⛔⛔ **It STARTS a read and returns** — see `crate::extract::job`. A
+        // forty-second stem takes about two seconds to decode and analyse, and
+        // this handler runs on the frame the page is waiting on, which in a host
+        // is the DAW's own editor thread.
+        "explorer_audio_split" => {
+            let path = request.args["path"].as_str().unwrap_or_default();
+            let bpm = request.args["bpm"].as_f64().unwrap_or(120.0) as f32;
+            let num = request.args["timeSigNum"].as_u64().unwrap_or(4) as u8;
+            let den = request.args["timeSigDen"].as_u64().unwrap_or(4) as u8;
+            // ⚠ The guards run here, synchronously, before anything is spawned.
+            return Some(
+                crate::explorer::checked_audio(&shared.explorer, path).and_then(|file| {
+                    shared
+                        .extractions
+                        .start(file, path.to_owned(), bpm, num, den)
+                        .map(|()| serde_json::Value::Null)
+                }),
+            );
+        }
+
+        // How that read is going, and its result exactly once.
+        "explorer_audio_status" => {
+            return Some(
+                serde_json::to_value(shared.extractions.take()).map_err(|e| e.to_string()),
+            );
+        }
+
+        // ⚠ **This releases the producer, not the CPU** — `extract::job`'s module
+        // note says exactly what it does and does not stop.
+        "explorer_audio_cancel" => {
+            shared.extractions.cancel();
+            return Some(Ok(serde_json::Value::Null));
         }
 
         // ⛔⛔ **Hearing a `.mid` from the browser (TASK-160).** Mike: *".mid

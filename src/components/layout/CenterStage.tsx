@@ -67,6 +67,7 @@ function GeneratorTabs() {
   const togglePart = useUi((s) => s.togglePart);
   const clearPart = useSession((s) => s.clearPart);
   const importMidi = useSession((s) => s.importMidi);
+  const importAudio = useSession((s) => s.importAudio);
   const importSong = useSong((s) => s.importSong);
   const [over, setOver] = useState<string | null>(null);
 
@@ -95,16 +96,26 @@ function GeneratorTabs() {
             // on the roll could only ever mean "the part already showing", which
             // makes the gesture a two-step (switch tab, then drag).
             //
-            // ⛔ **`MIDI_TYPE`, so a sample cannot land here and a `.mid` cannot
-            // land on a pad.** `FileTree` puts the two kinds on different MIME
-            // types precisely so each drop target refuses the other *before* the
-            // producer releases — the cursor says no rather than the app
-            // erroring afterwards.
+            // ⛔ **`MIDI_TYPE` or `SAMPLE_TYPE`, and a pad still takes only a
+            // sample.** `FileTree` puts the two kinds on different MIME types
+            // precisely so each drop target refuses what it cannot use *before*
+            // the producer releases — the cursor says no rather than the app
+            // erroring afterwards. A generator can now use both, which is Mike's
+            // own requirement (TASK-058F): *"can you ensure that you can drag the
+            // audio/midi of any sample into any of the generators and it will
+            // split them all the same exact way?"*
             //
-            // ⚠ Song takes no drop: it is an arrangement of clips, not a clip,
-            // and `openClip` has no part to open one into.
+            // ⚠ **Song takes a `.mid` and not a `.wav`.** The MIDI road builds a
+            // whole arrangement out of one file because an SMF carries its
+            // sections; the audio road reads a *loop* into clips and has no
+            // arrangement to put them in. Offering the drop and then producing
+            // one section would be a control that does not do what it looks like.
             onDragOver={(event) => {
-              if (!event.dataTransfer.types.includes(MIDI_TYPE)) return;
+              const kinds = event.dataTransfer.types;
+              const takes =
+                kinds.includes(MIDI_TYPE) ||
+                (part !== undefined && kinds.includes(SAMPLE_TYPE));
+              if (!takes) return;
               event.preventDefault();
               event.dataTransfer.dropEffect = 'copy';
               if (over !== tab) setOver(tab);
@@ -112,9 +123,22 @@ function GeneratorTabs() {
             onDragLeave={() => setOver((held) => (held === tab ? null : held))}
             onDrop={(event) => {
               setOver(null);
-              const path = droppedMidi(event.dataTransfer);
-              if (path === null) return;
+              const midi = droppedMidi(event.dataTransfer);
+              const sample = part === undefined ? null : droppedSample(event.dataTransfer);
+              if (midi === null && sample === null) return;
               event.preventDefault();
+
+              // ⛔⛔ **An audio drop is a SPLIT, not "read it as this part".**
+              // There is no such thing as reading a waveform "as the bass": what
+              // the extractor knows is what it measured, so every part it found
+              // is opened and the tab lands on the one the producer aimed at if
+              // it is among them. The MIDI road keeps its "I know what this is"
+              // shortcut because a `.mid` really can be read as one part.
+              if (sample !== null && part !== undefined) {
+                void importAudio(sample, part);
+                return;
+              }
+              if (midi === null) return;
               // ⛔⛔ **Song takes the whole file as an arrangement** (TASK-058D).
               // Mike, 2026-08-10: *"could you put the midi for the entire song
               // into the 'Song' tab and allow them to pick which parts they want
@@ -122,10 +146,10 @@ function GeneratorTabs() {
               // into that one generator, which is the "I know what this is"
               // shortcut; Song is the "show me what is in it" route.
               if (part === undefined) {
-                void importSong(path);
+                void importSong(midi);
                 return;
               }
-              void importMidi(path, part);
+              void importMidi(midi, part);
             }}
           >
             <button

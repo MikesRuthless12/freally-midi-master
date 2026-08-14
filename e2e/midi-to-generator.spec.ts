@@ -1,6 +1,6 @@
-import { expect, test, type Page } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 
-import { browserRow, openPanel, pickArtist } from './app';
+import { browserRow, generatorTab as tab, openPanel, pickArtist } from './app';
 
 /**
  * Dragging a `.mid` from the browser onto a generator (TASK-058 / TASK-040T).
@@ -20,10 +20,6 @@ import { browserRow, openPanel, pickArtist } from './app';
  * kind of file is refused by the target rather than by an error afterwards, and
  * an empty file does not open as an empty clip.
  */
-
-function tab(page: Page, name: string) {
-  return page.getByRole('tablist', { name: 'Generator' }).getByRole('tab', { name });
-}
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
@@ -57,14 +53,23 @@ test('it lands on the generator it was dropped on, not the one showing', async (
   await expect(tab(page, 'Drums')).toHaveAttribute('aria-selected', 'false');
 });
 
-test('a sample is not a drop target for a generator', async ({ page }) => {
-  // ⛔ The other half of the two-MIME-type rule. A `.wav` on a generator and a
-  // `.mid` on a drum pad are both controls that can only fail, so each target
-  // refuses the other *before* the drop rather than erroring after it.
+test('a sample dropped on a generator is READ, not refused (TASK-058F)', async ({ page }) => {
+  // ⛔⛔ **This spec used to assert the opposite, and the behaviour changed
+  // deliberately.** It read *"a sample is not a drop target for a generator"* —
+  // which was true while there was no way to get notes out of a waveform, and is
+  // the case Mike asked for by name: *"can you ensure that you can drag the
+  // audio/midi of any sample into any of the generators and it will split them
+  // all the same exact way?"*
+  //
+  // ⚠ **The two-MIME-type rule is still doing its job** — it just answers
+  // differently now. A `.mid` on a *drum pad* is still refused, and the Song tab
+  // still takes a `.mid` and not a `.wav`; both are asserted elsewhere in this
+  // file and in `kit-panel.spec.ts`.
   await browserRow(page, 'kick-808.wav').dragTo(tab(page, 'Melody'));
 
-  // Nothing opened: Drums is still the tab, and the melody has no clip.
-  await expect(tab(page, 'Drums')).toHaveAttribute('aria-selected', 'true');
+  // The read is a poll, so the tab arrives a moment later than a MIDI drop's.
+  await expect(tab(page, 'Melody')).toHaveAttribute('aria-selected', 'true');
+  await expect(page.getByTestId('roll-notes').locator('li').first()).toBeAttached();
 });
 
 /**

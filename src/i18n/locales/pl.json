@@ -441,14 +441,23 @@
       "innerVoice": "Głos środkowy",
       "splitByPitch": "Jeden głos, podzielony wg wysokości — to zgadywanie",
       "fromName": "Z nazwy pliku",
-      "kitShape": "Gra jak zestaw perkusyjny"
+      "kitShape": "Gra jak zestaw perkusyjny",
+      "percussiveBand": "Uderzenie — odczytane z pasm",
+      "lowBand": "Poniżej 250 Hz i trzyma wysokość",
+      "melodicBand": "Najczystsza linia w górze — przypuszczenie",
+      "chromaTemplate": "Akordy dopasowane do wzorców"
     },
     "midiFound": "Zawartość tego pliku MIDI",
     "midiNotes": "Nuty",
     "midiAuditionClipped": "Odsłuchiwane są tylko pierwsze dwie minuty.",
     "raw": "Surowo",
     "rawHint": "Odtwarzaj plik dokładnie tak, jak jest na dysku",
-    "previewGain": "Poziom odsłuchu"
+    "previewGain": "Poziom odsłuchu",
+    "extract": "Odczytaj nuty",
+    "extractCancel": "Przerwij odczyt",
+    "audioFound": "Zawartość tej próbki",
+    "vocalLeftAlone": "Znaleziono śpiewaną linię i pozostawiono ją bez zmian.",
+    "audioDragHint": "Albo przeciągnij plik na generator, aby odczytać go od razu tam."
   },
   "patterns": {
     "name": "Nazwij ten pattern",

@@ -16,6 +16,9 @@ import type {
 // ⚠ Leaf helpers over `Pattern` — meter-aware bar arithmetic, defined once so the
 // roll, the grid and the bar switch cannot disagree about how long a clip is.
 import { barTicks, patternTicks } from '../components/PianoRoll/notes';
+// ⚠ A leaf module that imports nothing but a type — see its own header for why
+// that matters. `PAD_LANES` is what TASK-058H's muting is a statement about.
+import { PAD_LANES } from './lanes';
 import { useHistory, type Snapshot } from './history';
 import { entryFor, useVariations, type Variation } from './variations';
 import { useUi, type GeneratorTab } from './ui';
@@ -731,12 +734,27 @@ type SessionState = {
    */
   importMidi: (path: string, part: Part) => Promise<void>;
   /**
-   * Open every part a layered `.mid` was separated into (TASK-058D).
+   * Open every part a file was separated into (TASK-058D, TASK-058F).
    *
    * ⛔ Mike, 2026-08-10: *"split it into the proper generators if it is a layered
    * melody file with the bass and countermelody included."*
+   *
+   * ⚠ **The same entry point for a `.mid` and for a `.wav`**, which is the whole
+   * design — Mike: *"can you ensure that you can drag the audio/midi of any
+   * sample into any of the generators and it will split them all the same exact
+   * way?"* Both roads produce `SplitPart`s and end here.
+   *
+   * `prefer` is the tab the producer aimed at, when they aimed at one.
    */
-  importSplit: (parts: SplitPart[]) => void;
+  importSplit: (parts: SplitPart[], prefer?: Part) => void;
+  /**
+   * Read the notes out of an audio file and open them (TASK-058D, TASK-058F).
+   *
+   * ⛔ Mike, 2026-08-10: *"if you drag an audio file to a generator, then it
+   * should split that audio file into the correct generators, even if it's a drum
+   * generation like a drum loop."*
+   */
+  importAudio: (path: string, prefer?: Part) => Promise<void>;
   editPattern: (next: Pattern) => void;
   /** Run our own transport. Standalone only — in a host this is the DAW's. */
   play: () => Promise<void>;
@@ -1039,6 +1057,68 @@ export function mirrorableDrumsSeed(
   return drums.seed;
 }
 
+/**
+ * The mutes an import leaves behind (TASK-058H).
+ *
+ * ⛔ Mike, 2026-08-10: *"ensure that when you bring in a full song that it gets
+ * the proper drum lanes for that track, like snares, off snares, open hats,
+ * closed hats, whatever, and mutes the ones it doesn't use."*
+ *
+ * ⛔ **Only the DRUM lanes, and only when drums were imported.** The lanes of a
+ * pitched part are one each — `Lane::Melody`, `Lane::Bass` — so "the lanes this
+ * part did not use" is a question that only means anything about a kit. And if
+ * the import produced no drums at all this returns the mutes untouched: silencing
+ * thirty-two lanes because a bass stem was dropped in would take the producer's
+ * own kit away.
+ *
+ * ⚠ **It REPLACES the drum half of the mute list rather than adding to it.** An
+ * import is a statement about which lanes the record plays; carrying a mute
+ * forward from the last import would leave a lane silent that this one does use,
+ * with the grid showing a dot on it. Mutes on non-drum lanes are left exactly as
+ * the producer set them.
+ */
+function mutedForImport(held: readonly string[], parts: readonly SplitPart[]): string[] {
+  const drums = parts.find((split) => split.part === 'drums');
+  if (drums === undefined) return [...held];
+  const played = new Set(
+    drums.pattern.lanes.filter((lane) => lane.notes.length > 0).map((lane) => lane.lane),
+  );
+  // ⚠ `PAD_LANES` rather than a fourth list of drum names — it is already "every
+  // lane a drum pad may be pointed at", which is exactly this question.
+  const mine = held.filter((lane) => !(PAD_LANES as readonly string[]).includes(lane));
+  return [...mine, ...PAD_LANES.filter((lane) => !played.has(lane))];
+}
+
+/**
+ * The tempo and meter the session is actually running at (TASK-058F).
+ *
+ * ⛔ **One answer, because the audio extractor asks it.** Reading a loop's tempo
+ * off a waveform has exactly one ambiguity nothing in the audio can settle —
+ * eight bars at 140 and four at 70 are the same file — and what should settle it
+ * is the tempo the producer can *see*. That is the same three-state resolution
+ * the tempo chip draws: a pin, or the host's under auto-sync, or the artist's.
+ *
+ * ⚠ **The chip still resolves it inline and is deliberately not changed.** It
+ * needs a fourth state this cannot express — "empty box, placeholder showing what
+ * is being followed" — and rewriting a shipped readout to share a helper it does
+ * not quite fit is how the readout stops meaning what it says.
+ */
+export function sessionGrid(state: SessionState): {
+  bpm: number;
+  timeSigNum: number;
+  timeSigDen: number;
+} {
+  const bpm =
+    state.pins.bpm ??
+    (state.autoSync && state.hostTempo !== null ? state.hostTempo : state.defaults?.bpm) ??
+    120;
+  return {
+    bpm,
+    timeSigNum: state.pins.timeSigNum ?? 4,
+    timeSigDen: state.pins.timeSigDen ?? 4,
+  };
+}
+
 /** The message an IPC rejection carries, without leaking `[object Object]`. */
 export function reason(error: unknown): string {
   if (typeof error === 'string') return error;
@@ -1069,6 +1149,42 @@ async function loadDefaults(
   } catch {
     if (get().selectedId === id) set({ defaults: null });
   }
+}
+
+/**
+ * Save a pin and read the chips back through it (TASK-040V, TASK-158C).
+ *
+ * ⛔⛔ **The save has to LAND before the read, and this is the whole reason the
+ * helper exists.** `session_defaults` does not take the mood or the base as
+ * arguments — it resolves the model through whatever the *plugin's* saved
+ * session holds. So the obvious shape,
+ *
+ * ```ts
+ * set({ mood });
+ * persist();                 // 300 ms from now
+ * void loadDefaults(id, …);  // reads the PREVIOUS mood
+ * ```
+ *
+ * refetches the chips and fills them in with the pin the producer just moved
+ * away from — the same wrong readout as not refetching at all, arrived at
+ * through more code. `persistNow` writes immediately and now answers when the
+ * plugin has it, so the read is chained onto the write rather than racing it.
+ *
+ * ⚠ **Ordering the two `fetch`es was not enough.** Both go over the custom
+ * protocol as independent requests; issuing one first does not make the plugin
+ * finish it first. Awaiting is what makes this a sequence.
+ *
+ * ⚠ `loadDefaults` re-checks the selection itself, so a producer who clicks
+ * another artist while the write is in flight still gets that artist's chips.
+ */
+function refreshChips(
+  set: (partial: Partial<SessionState>) => void,
+  get: () => SessionState,
+): void {
+  const { selectedId } = get();
+  void persistNow().then(() => {
+    if (selectedId !== null) void loadDefaults(selectedId, set, get);
+  });
 }
 
 /**
@@ -1280,7 +1396,7 @@ function flush(): void {
   if (saveTimer === null) return;
   clearTimeout(saveTimer);
   saveTimer = null;
-  send();
+  void send();
 }
 
 /**
@@ -1291,17 +1407,22 @@ function flush(): void {
  * host decides when to serialize anyway — but the lane mutes reach the audio
  * thread *through* this save, and half a beat of a lane still sounding after
  * the row has visibly dimmed reads as a broken control.
+ *
+ * ⚠ **It answers when the plugin has the write**, which is what makes
+ * [`refreshChips`] possible: `session_defaults` resolves the model through the
+ * pinned mood and base *out of the saved session*, so a read issued before this
+ * settles is a read of the previous pin.
  */
-function persistNow(): void {
-  if (!isPlugin()) return;
+function persistNow(): Promise<void> {
+  if (!isPlugin()) return Promise.resolve();
   if (saveTimer !== null) {
     clearTimeout(saveTimer);
     saveTimer = null;
   }
-  send();
+  return send();
 }
 
-function send(): void {
+function send(): Promise<void> {
   const state = useSession.getState();
   const session: Record<string, unknown> = Object.fromEntries(
     SAVED_FIELDS.map((key) => [key, state[key]]),
@@ -1329,10 +1450,17 @@ function send(): void {
     session.song = arrangement.song;
     session.songEdited = true;
   }
-  void invoke('save_session_state', { session }).catch(() => {
-    // Losing a session write is not worth interrupting someone mid-beat. The
-    // next change writes the whole session again anyway.
-  });
+  return invoke('save_session_state', { session }).then(
+    () => undefined,
+    () => {
+      // Losing a session write is not worth interrupting someone mid-beat. The
+      // next change writes the whole session again anyway.
+      // ⚠ **Resolved rather than re-thrown**, so a caller awaiting this — see
+      // [`refreshChips`] — still reads the chips back. A save that failed leaves
+      // them showing the previous pin, which is wrong; leaving them showing a
+      // *spinner* forever is worse.
+    },
+  );
 }
 
 function persist(): void {
@@ -1343,7 +1471,7 @@ function persist(): void {
   if (saveTimer !== null) clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
     saveTimer = null;
-    send();
+    void send();
   }, 300);
 }
 
@@ -1810,7 +1938,12 @@ export const useSession = create<SessionState>((set, get) => ({
     // Saved like auto-sync and for the same reason: it is part of how a song
     // was made, not a transient view setting.
     set({ mood });
-    persist();
+    // ⛔ **And the chips are re-read, because the mood changes them.** Trap is
+    // 140, its `dark` mode 136 and `bounce` 148 — `session_defaults` has
+    // resolved the pinned mood since TASK-040V, so without this the tempo chip
+    // went on naming the model's own tempo beside a beat about to come out at
+    // the mode's, and only caught up on the next artist change.
+    refreshChips(set, get);
   },
 
   setBase(base) {
@@ -1818,22 +1951,13 @@ export const useSession = create<SessionState>((set, get) => ({
     // song was made from, and reopening the project on plain g-funk would
     // silently produce a different record.
     set({ base });
-    persist();
     // ⛔ **Re-read the defaults, because the base changes them.** `bpm`, the
     // tempo *range* and the mood names all come from the resolved model, and
-    // `session_defaults` now resolves it over this pin — so without this the
-    // tempo chip would go on showing the artist's own tempo next to a beat
-    // about to come out at their chosen genre's. That is the
-    // readout-that-lies failure `loadDefaults` is already written to guard.
-    //
-    // ⚠ **The mood pin has the same gap and it is NOT fixed here.** `setMood`
-    // does not refetch either, and the plugin has resolved the mood inside
-    // `session_defaults` since TASK-040V — so pinning a mood updates the chip
-    // only on the next artist change. It is left alone deliberately: it is
-    // adjacent code, it is a separate fix, and it is written down in the
-    // handoff rather than folded in silently.
-    const { selectedId } = get();
-    if (selectedId !== null) void loadDefaults(selectedId, set, get);
+    // `session_defaults` resolves it over this pin — so without this the tempo
+    // chip would go on showing the artist's own tempo next to a beat about to
+    // come out at their chosen genre's. That is the readout-that-lies failure
+    // `loadDefaults` is already written to guard.
+    refreshChips(set, get);
   },
 
   setAutoSync(on) {
@@ -2342,8 +2466,75 @@ export const useSession = create<SessionState>((set, get) => ({
     }
   },
 
-  importSplit(parts) {
+  async importAudio(path, prefer) {
+    set({ error: null });
+    // ⛔ **Imported here rather than at the top**, the reason `loadOwnSamples`
+    // gives one screen up: `state/explorer.ts` already imports `reason` from this
+    // module, so a static import back would close the cycle at module-init time.
+    const { useExplorer } = await import('./explorer');
+    const split = await useExplorer.getState().extractNotes(path, sessionGrid(get()));
+    if (split === null) {
+      // ⛔⛔ **Mirrored, not swallowed.** `extractNotes` puts the reason in the
+      // *browser panel's* error — which is right when the producer pressed Read
+      // there, and useless when they dragged the file onto a generator tab with
+      // the browser closed. A drop that appears to do nothing is the worst of the
+      // three possible outcomes.
+      // ⚠ Read back rather than returned, because the panel is the one that
+      // knows *why*: the failures are a refused path, a file that is not audio, a
+      // read that timed out, and each says something different.
+      const why = useExplorer.getState().error;
+      if (why !== null) set({ error: why });
+      return;
+    }
+
+    if (split.parts.length === 0) {
+      // ⛔ **Named rather than left as an empty panel.** Mike asked for *"and
+      // leave the vocals alone"*, and a producer who drags in an a-cappella and
+      // sees nothing happen has been told the plugin is broken.
+      set({
+        error: reason(
+          split.vocalLeftAlone
+            ? 'that file is a sung line, and it was left alone'
+            : 'nothing in that file could be read as notes',
+        ),
+      });
+      return;
+    }
+    get().importSplit(split.parts, prefer);
+  },
+
+  importSplit(parts, prefer) {
     if (parts.length === 0) return;
+
+    // ⛔⛔ **A GENERATOR the split produced nothing for is switched off, and this
+    // happens BEFORE the clips are written.** Mike: *"ensure that when you bring
+    // in a full song that … if there is no countermelody or no bassline that it
+    // mutes them."*
+    //
+    // ⛔ **The order is the fix rather than a preference** — the same lesson
+    // `openClip` records one function down. Writing `patterns` fires the store's
+    // subscriber, which defers to `armCurrentPattern`, which reads `partsOff`
+    // *at that moment*: switching off afterwards meant the arm had already gone
+    // out with the old list, so a chords clip the producer made earlier was armed
+    // and sounding under an import that contains none — which is the exact thing
+    // the switch-off exists to prevent, arriving one microtask early.
+    //
+    // ⛔ **Including a part the producer generated earlier, and that is the
+    // reading of his sentence rather than a liberty taken with it.** The first
+    // cut spared those — *"an import must not silence work it did not touch"* —
+    // and it is wrong in the direction that matters: a bassline generated five
+    // minutes ago, still sounding under a song that has none, makes the
+    // arrangement play something the file it came from does not contain.
+    // ⚠ **Switched off, never deleted.** The clip is untouched and the dot on the
+    // tab is one click back, which is the whole reason this is safe to do.
+    // ⚠ **And not persisted**, because `partsOff` is not: see its own doc in
+    // `state/ui.ts`. Saving the project and reopening it brings the switches back
+    // on while the *lane* mutes below survive, which is a real gap and is written
+    // up in the handoff rather than fixed here — it means moving `partsOff` into
+    // the session document, which changes what every project file contains.
+    const found = new Set(parts.map((split) => split.part));
+    useUi.getState().setPartsOff(GENERATED_PARTS.filter((part) => !found.has(part)));
+
     // ⛔ **One `set`, not one per part.** `openClip` writes the store and moves
     // the tab, so calling it five times would fire five renders and five
     // arm/disarm round trips — and leave the tab on whichever part happened to
@@ -2355,13 +2546,29 @@ export const useSession = create<SessionState>((set, get) => ({
         patterns[split.part] = split.pattern;
         editedParts = withEdit(editedParts, split.part);
       }
-      return { patterns, editedParts, edited: true, error: null };
+      return {
+        patterns,
+        editedParts,
+        edited: true,
+        error: null,
+        // ⛔⛔ **TASK-058H: a lane the import did not find is MUTED, not left
+        // sounding.** Mike: *"ensure that when you bring in a full song that it
+        // gets the proper drum lanes for that track … and mutes the ones it
+        // doesn't use."* The pad grid draws a dot per lane, so an imported beat
+        // that plays five lanes next to thirty-two armed and silent ones is the
+        // grid describing a kit that is not there.
+        // ⚠ **Muted, never removed** — a producer may want to generate the
+        // missing part, and a muted lane is one click back.
+        mutedLanes: mutedForImport(state.mutedLanes, parts),
+      };
     });
-    // ⚠ **The tab lands on the biggest part**, which is the one a producer most
-    // likely wants to look at first — and never on a part that is not in the
-    // split at all.
+
+    // ⚠ **The tab lands where the producer aimed**, and otherwise on the biggest
+    // part — the one they most likely want to look at first, and never on a part
+    // that is not in the split at all.
+    const aimed = prefer !== undefined && parts.some((split) => split.part === prefer);
     const biggest = parts.reduce((held, part) => (part.notes > held.notes ? part : held));
-    useUi.getState().setActiveTab(biggest.part);
+    useUi.getState().setActiveTab(aimed ? prefer : biggest.part);
   },
 
   editPattern(next) {

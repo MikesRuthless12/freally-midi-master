@@ -29,6 +29,7 @@ mod editor;
 pub mod eula;
 pub mod explorer;
 pub mod export;
+pub mod extract;
 pub mod favourites;
 pub mod host;
 pub mod kits;

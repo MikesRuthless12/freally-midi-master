@@ -424,7 +424,7 @@ notes: number, };
  * silent mis-file."* Two of these reasons are facts about the file and three are
  * measurements — a producer is owed the difference.
  */
-export type SplitReason = "drumChannel" | "kitShape" | "polyphonic" | "lowestVoice" | "highestVoice" | "innerVoice" | "splitByPitch" | "fromName";
+export type SplitReason = "drumChannel" | "kitShape" | "polyphonic" | "lowestVoice" | "highestVoice" | "innerVoice" | "splitByPitch" | "fromName" | "percussiveBand" | "lowBand" | "melodicBand" | "chromaTemplate";
 
 /**
  * MPC-style swing. `0.50` is straight and `0.667` is fully triplet; the

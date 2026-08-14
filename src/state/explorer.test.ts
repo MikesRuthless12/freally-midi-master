@@ -839,3 +839,137 @@ it('says so when the plugin refuses a level change', async () => {
   await useExplorer.getState().setPreviewGain(3);
   expect(useExplorer.getState().error).toBe('nothing is loaded');
 });
+
+/**
+ * Reading a sample's notes (TASK-058D / TASK-058F).
+ *
+ * ⛔⛔ **The command does not answer the question it is asked.** Reading a
+ * forty-second stem takes about two seconds, and the bridge runs on the DAW's
+ * editor thread — so `explorer_audio_split` *starts* a detached read and the page
+ * polls `explorer_audio_status` for it. Everything below is about that loop,
+ * which is the part no Rust test can see and the part a producer's cursor is
+ * waiting on.
+ */
+describe('reading the notes out of a sample', () => {
+  const GRID = { bpm: 140, timeSigNum: 4, timeSigDen: 4 };
+
+  /**
+   * A finished read of `path`.
+   *
+   * ⚠ **The part is derived from the path**, so a reply about the wrong file is
+   * distinguishable from the right one. The first cut of this helper returned the
+   * same `drums` either way, which made the "somebody else's answer" test below
+   * pass whether the guard existed or not.
+   */
+  const done = (path: string) => ({
+    state: 'done',
+    path,
+    split: {
+      parts: [{ part: path.includes('other') ? 'chords' : 'drums', notes: 3 }],
+      bpm: 140,
+      vocalLeftAlone: false,
+    },
+  });
+
+  beforeEach(() => {
+    useExplorer.setState({ audioSplit: null, extracting: null, error: null });
+  });
+
+  it('polls until the read lands, rather than expecting one answer', async () => {
+    // ⚠ Two `running` replies before the result, because that is what the
+    // plugin really does — a mock that answered at once would leave the loop
+    // itself untested.
+    invoke.mockImplementation((command: string) => {
+      if (command === 'explorer_audio_split') return Promise.resolve(null);
+      if (command !== 'explorer_audio_status') return Promise.resolve(null);
+      const calls = invoke.mock.calls.filter(
+        ([name]: unknown[]) => name === 'explorer_audio_status',
+      ).length;
+      return Promise.resolve(
+        calls < 3 ? { state: 'running', path: '/lib/loop.wav' } : done('/lib/loop.wav'),
+      );
+    });
+
+    const split = await useExplorer.getState().extractNotes('/lib/loop.wav', GRID);
+    expect(split?.parts).toHaveLength(1);
+    expect(useExplorer.getState().extracting).toBeNull();
+    expect(useExplorer.getState().audioSplit?.found.bpm).toBe(140);
+  });
+
+  it('a result for another file is not taken as the answer to this one', async () => {
+    // ⛔ **The mailbox is one slot per plugin instance.** A `done` naming a file
+    // this call did not ask about is somebody else's answer, and taking it would
+    // put one sample's notes on screen under another's name.
+    invoke.mockImplementation((command: string) => {
+      if (command === 'explorer_audio_split') return Promise.resolve(null);
+      if (command !== 'explorer_audio_status') return Promise.resolve(null);
+      const calls = invoke.mock.calls.filter(
+        ([name]: unknown[]) => name === 'explorer_audio_status',
+      ).length;
+      return Promise.resolve(calls < 3 ? done('/lib/other.wav') : done('/lib/loop.wav'));
+    });
+
+    const split = await useExplorer.getState().extractNotes('/lib/loop.wav', GRID);
+    expect(split).not.toBeNull();
+    expect(useExplorer.getState().audioSplit?.found.parts[0]?.part).toBe('drums');
+  });
+
+  it('a failure names its reason rather than leaving a spinner', async () => {
+    invoke.mockImplementation((command: string) =>
+      Promise.resolve(
+        command === 'explorer_audio_status'
+          ? { state: 'failed', path: '/lib/loop.wav', reason: 'that file is silent' }
+          : null,
+      ),
+    );
+    expect(await useExplorer.getState().extractNotes('/lib/loop.wav', GRID)).toBeNull();
+    expect(useExplorer.getState().error).toBe('that file is silent');
+    expect(useExplorer.getState().extracting).toBeNull();
+  });
+
+  it('a refused path stops before it starts polling', async () => {
+    // ⚠ `checked_audio` refuses on the caller's thread, so the *start* rejects
+    // and there is nothing in flight to poll for.
+    invoke.mockRejectedValueOnce(new Error('that sample is not in your sample library'));
+    expect(await useExplorer.getState().extractNotes('//evil/share/a.wav', GRID)).toBeNull();
+    expect(useExplorer.getState().error).toBe('that sample is not in your sample library');
+    expect(
+      invoke.mock.calls.some(([name]: unknown[]) => name === 'explorer_audio_status'),
+    ).toBe(false);
+  });
+
+  it('cancelling stops the wait even if the plugin never answers the cancel', async () => {
+    // ⛔ `extracting` is cleared *before* the round trip, so the poll returns on
+    // its next tick whatever the plugin does with the message.
+    invoke.mockImplementation((command: string) =>
+      command === 'explorer_audio_cancel'
+        ? new Promise(() => {})
+        : Promise.resolve(
+            command === 'explorer_audio_status'
+              ? { state: 'running', path: '/lib/loop.wav' }
+              : null,
+          ),
+    );
+    const reading = useExplorer.getState().extractNotes('/lib/loop.wav', GRID);
+    await vi.waitFor(() => expect(useExplorer.getState().extracting).toBe('/lib/loop.wav'));
+    useExplorer.getState().cancelExtract();
+    expect(await reading).toBeNull();
+    expect(useExplorer.getState().extracting).toBeNull();
+  });
+
+  it('walking to another file clears what the last one was found to contain', async () => {
+    // ⛔ The readout-that-lies failure in miniature: the panel going on showing
+    // the previous sample's parts under this file's name.
+    invoke.mockImplementation(() => Promise.resolve(null));
+    useExplorer.setState({
+      audioSplit: {
+        path: '/lib/first.wav',
+        found: { parts: [], bpm: 90, vocalLeftAlone: true },
+      },
+      selected: '/lib/first.wav',
+      selectedKind: 'audio',
+    });
+    await useExplorer.getState().select('/lib/second.wav');
+    expect(useExplorer.getState().audioSplit).toBeNull();
+  });
+});

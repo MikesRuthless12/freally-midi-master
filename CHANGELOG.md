@@ -12,6 +12,87 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added — a sample becomes notes, 2026-08-14
+
+- **Drag an audio file onto a generator and it is split into the generators its
+  parts belong to** (TASK-058D, TASK-058F). Mike: *"if you drag an audio file to
+  a generator, then it should split that audio file into the correct generators,
+  even if it's a drum generation like a drum loop"*, and *"can you ensure that
+  you can drag the audio/midi of any sample into any of the generators and it
+  will split them all the same exact way?"* Both roads now end in the same value,
+  so the panel that names what was found, the import, the muting and the undo
+  step are one path with two front doors.
+  ▶ There is also a **Read the notes** button in the browser, because the file
+  you want is not always the one you are dragging.
+- **The drums are classified in two passes, and the second one is Mike's own
+  design**: *"triplets being heard for hihats, snares on the 4 beat … that it
+  splits it into the proper channels."* The spectrum proposes — kick under
+  150 Hz, snare and clap broadband, hats up top and closed or open by how long
+  they ring — and the *bar* disambiguates what the spectrum cannot: anything
+  landing on two and four is the backbeat whatever it sounded like, high-band
+  hits at triplet spacing are one roll on one lane, and a run of pitched hits
+  that climbs is a tom fill routed in pitch order.
+  ⛔ **Pass two may only reassign what pass one detected.** It never invents a
+  hit no onset supports, which is the line between a detector and a generator.
+- **The bass does not need transcription.** Low-pass at 250 Hz and what survives
+  *is* the bassline — a monophonic pitch-track, which is solved. The kick removes
+  itself: it shares the band and has no stable period, so the clarity floor takes
+  it out with nothing written to do it.
+- **The chords come back as a progression, not as a voicing**, and the panel says
+  so. Chroma against templates gives the chord and where it changes, which is
+  what the chords generator consumes. ⛔ Polyphonic note-by-note transcription of
+  a full mix is an ML problem, ML is banned here by this project's own
+  constitution, and **a feature that claims perfect extraction and delivers
+  approximate notes is worse than one that says what it does.**
+- **A sung line is left alone** (TASK-058G). Mike: *"and leave the vocals
+  alone"*, then — correctly pushing back — *"you cannot exclude a vocal from an
+  audio file based on where the notes land?"* He was right: separating vocal
+  *audio* needs ML, but deciding whether an extracted *note line* was sung is
+  arithmetic — cents drift, grid looseness, portamento and vibrato.
+  ⚠ **Where it degrades is stated rather than discovered:** hard Auto-Tune
+  defeats three of those four at once, which is what the software is for. Vibrato
+  is the one that survives, so it is enough on its own.
+  ⚠ **And it is reported, never silent.** A producer who reads an a-cappella and
+  sees nothing arrive has been told the plugin is broken.
+- **The loop's own length and tempo are measured, not assumed** (TASK-058I). A
+  sample-pack loop is a whole number of bars, so the bar count and the tempo are
+  one unknown — pick the length and the tempo follows. What nothing in the audio
+  can settle is the octave, because eight bars at 140 and four at 70 are the same
+  file; the session's tempo breaks that tie and nothing else.
+- **An import switches off what it did not find** (TASK-058H). Mike: *"ensure
+  that when you bring in a full song that it mutes whatever lanes for drums that
+  aren't being used or if there is no countermelody or no bassline that it mutes
+  them."* A drum lane with no hits is muted and a generator the split produced
+  nothing for is switched off — **muted, never deleted**, so it is one click back.
+
+### Fixed — a project file could take the DAW down with it, 2026-08-14
+
+- **⛔ A time signature carried in a shared project could abort the host.** The
+  meter arrives from the page and from `#[persist]`ed session pins, and neither
+  was range-checked: a value like 25/1 made one ninety-sixth of a bar longer than
+  a quarter note, and the clamp that bounds a drum note's length **panics** when
+  its floor exceeds its ceiling. `panic = "abort"` is release-only, so in a
+  shipped build that is the whole DAW and every unsaved project in it. The meter
+  is now narrowed where it enters *and* bounded where it is used, because either
+  alone leaves the other door open.
+  ⚠ **Found by reading, not by a failing test** — the suite was green.
+- **The browser preview would decode a file that is not audio.** `preview_load`
+  checked that a path was local, inside the library and a file, and never checked
+  the extension — the one audio command with three of the four guards. All of
+  them now go through one gate.
+
+### Fixed — the tempo chip catches up with the mood, 2026-08-14
+
+- **Pinning a mood updates the chips at once**, rather than on the next artist
+  change. The plugin has resolved the pinned mood inside `session_defaults` since
+  TASK-040V — trap is 140 and its `dark` mode 136 — so the readout named a tempo
+  the engine was never going to use.
+  ⛔ **And the base pin had the same gap in a way that looked fixed.** It did
+  re-read the chips, but it read them *before* the pin had reached the plugin —
+  so it filled them in with the value the producer had just moved away from,
+  which is the same wrong readout reached through more code. Both now wait for
+  the write to land.
+
 ### Added — an artist generates in every genre they work in, 2026-08-14
 
 - **"Drake, but in R&B"** (TASK-158C). The roster has always listed an artist
