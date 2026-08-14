@@ -67,6 +67,21 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ### Fixed
 
+- **A pad edit can no longer cost you the whole project.** Five of the new
+  per-pad fields were floored at zero and never capped, so a non-finite value
+  reached the saved session — where it wrote as `null`, saved cleanly, and then
+  failed to load, taking the seed, the edited clips, the arrangement, the sample
+  folders and the one-shots back to defaults with it. Found by review; the
+  shipped controls could not produce it, but a shared project file can carry one.
+- **A reopened project now plays the pad edits it shows.** Shaping a *built-in*
+  voice and assigning no sample of your own restored the knobs correctly and
+  never told the audio engine — so the exported stem carried the envelope and
+  the preview did not.
+- **A song generated with a genre pinned now uses it.** The pin reached a
+  re-rolled section and not the song itself, so one section came back over a
+  different foundation from the rest of the record.
+- **Trimming a sample no longer clicks**, and the Release control now shapes the
+  tail of a drum lane rather than doing nothing there.
 - **A partial envelope no longer loses the whole block.** `Adsr` carried
   `serde(default)` only on its parent, so a project written by an older build —
   or a page sending just the stage that moved — was refused whole with
