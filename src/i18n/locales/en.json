@@ -74,7 +74,9 @@
     "key": "Key",
     "scale": "Scale",
     "swing": "Swing",
-    "mood": "Mood"
+    "mood": "Mood",
+    "base": "Generate in",
+    "ownGenre": "Their own genre"
   },
   "session": {
     "pickArtist": "Pick an artist to see what it asks for.",

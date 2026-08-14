@@ -74,7 +74,9 @@
     "key": "Toonsoort",
     "scale": "Toonladder",
     "swing": "Swing",
-    "mood": "Sfeer"
+    "mood": "Sfeer",
+    "base": "Genereren in",
+    "ownGenre": "Hun eigen genre"
   },
   "session": {
     "pickArtist": "Kies een artiest om te zien wat die vraagt.",

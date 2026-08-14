@@ -74,7 +74,9 @@
     "key": "Nada Dasar",
     "scale": "Skala",
     "swing": "Swing",
-    "mood": "Suasana"
+    "mood": "Suasana",
+    "base": "Hasilkan dalam",
+    "ownGenre": "Genre mereka sendiri"
   },
   "session": {
     "pickArtist": "Pilih artis untuk melihat apa yang dimintanya.",

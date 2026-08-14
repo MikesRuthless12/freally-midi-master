@@ -29,6 +29,7 @@ const BASE: Snapshot = {
   patterns: {},
   editedParts: [],
   mood: null,
+  base: null,
   audioEnabled: true,
   mutedLanes: [],
   soloedLanes: [],

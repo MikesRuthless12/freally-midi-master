@@ -74,7 +74,9 @@
     "key": "Ton",
     "scale": "Dizi",
     "swing": "Swing",
-    "mood": "Ruh hâli"
+    "mood": "Ruh hâli",
+    "base": "Şurada üret",
+    "ownGenre": "Kendi türü"
   },
   "session": {
     "pickArtist": "Ne istediğini görmek için bir sanatçı seç.",

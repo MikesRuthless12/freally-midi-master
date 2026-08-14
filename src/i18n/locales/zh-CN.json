@@ -74,7 +74,9 @@
     "key": "调",
     "scale": "音阶",
     "swing": "摇摆",
-    "mood": "氛围"
+    "mood": "氛围",
+    "base": "生成于",
+    "ownGenre": "他们自己的流派"
   },
   "session": {
     "pickArtist": "选择一位艺术家，查看其设定。",

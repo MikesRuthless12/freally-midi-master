@@ -74,7 +74,9 @@
     "key": "Tom",
     "scale": "Escala",
     "swing": "Swing",
-    "mood": "Clima"
+    "mood": "Clima",
+    "base": "Gerar em",
+    "ownGenre": "O gênero deles"
   },
   "session": {
     "pickArtist": "Escolha um artista para ver o que ele pede.",

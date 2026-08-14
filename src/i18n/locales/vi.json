@@ -74,7 +74,9 @@
     "key": "Tông",
     "scale": "Âm giai",
     "swing": "Độ swing",
-    "mood": "Tâm trạng"
+    "mood": "Tâm trạng",
+    "base": "Tạo trong",
+    "ownGenre": "Thể loại của họ"
   },
   "session": {
     "pickArtist": "Chọn một nghệ sĩ để xem yêu cầu của họ.",

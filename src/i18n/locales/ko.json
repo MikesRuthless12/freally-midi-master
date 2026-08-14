@@ -74,7 +74,9 @@
     "key": "키",
     "scale": "음계",
     "swing": "스윙",
-    "mood": "무드"
+    "mood": "무드",
+    "base": "생성할 장르",
+    "ownGenre": "본인의 장르"
   },
   "session": {
     "pickArtist": "아티스트를 선택하면 어떤 설정을 요구하는지 표시됩니다.",

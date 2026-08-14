@@ -74,7 +74,9 @@
     "key": "Tonacja",
     "scale": "Skala",
     "swing": "Swing",
-    "mood": "Nastrój"
+    "mood": "Nastrój",
+    "base": "Generuj w",
+    "ownGenre": "Ich własny gatunek"
   },
   "session": {
     "pickArtist": "Wybierz artystę, aby zobaczyć, czego oczekuje.",

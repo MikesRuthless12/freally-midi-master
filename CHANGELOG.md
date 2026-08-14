@@ -12,6 +12,66 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added — an artist generates in every genre they work in, 2026-08-14
+
+- **"Drake, but in R&B"** (TASK-158C). The roster has always listed an artist
+  under every genre they work in — **529 of the 534** artist and producer models
+  name a genre they do not inherit from — and Generate has always answered the
+  one they do. A new **Generate in** chip picks which: the artist's own blocks
+  over a different genre's foundation, so 2Pac under boom-bap is *2Pac over
+  boom-bap* rather than either one alone.
+  ⚠ **Saved with the project**, like the mood. Reopening on the artist's own
+  genre would silently produce a different record from the same seed.
+  ⚠ **Still not the same as picking that genre in the roster** — that generates
+  the genre; this generates the artist *in* it.
+  ⛔ **Not a blend of two genres.** Drake's own notes say the OVO ballad and
+  dancehall modes are separate lanes and not what that model generates; merging
+  two bases gives mud rather than two modes.
+
+### Added — the sound gets its own editor, 2026-08-14
+
+- **Every pad has an editor now, not just every note** (TASK-164, TASK-055A).
+  Mike asked whether the drum lanes had one — *"Kick, Sub Bass, Rim Shot,
+  etc."* — and the answer was that the **notes** had an editor and the **sound**
+  did not. A pad now carries a graphical **ADSR** (sustain in dB, read off the
+  reference rather than chosen), **volume**, **pan**, **transpose** and **fine
+  tune** in cents, a **normalize** toggle, **start/end trim** handles over the
+  waveform, and **fade in/out** — all per pad, all persisted with the project,
+  all re-auditioning as they are turned.
+  ⛔ **It reaches the shipped voices too**, not only the samples a producer has
+  replaced, which is the whole of the question that opened the task.
+  ⚠ **A pad nobody has edited is bit-for-bit what it was.** An identity envelope
+  is not stored at all, so the audio thread skips the arithmetic entirely — a
+  test asserts the rendered samples frame by frame, because adding an editor must
+  not change how the product sounds for everyone who never opens it.
+- **Two controls the reference shows are deliberately absent, and the panel says
+  nothing about them rather than drawing something that cannot work.** Which MIDI
+  note a lane answers to is a constant the exporter, the sampler and the drum
+  grid all agree on; and there is one output bus.
+- **The browser can play a file at its own level, or exactly as it is**
+  (TASK-058B). The audition has always sat below full scale so a one-shot over a
+  running pattern does not clip — a sensible default, and a lie the moment what
+  you are doing is judging how loud a sample is. `Raw` bypasses that *and* the
+  new gain, and the gain is kept while it does, so A/Bing against the file
+  returns you to the level you set.
+- **Putting a sample on a pad opens that pad's editor** (TASK-059), from all
+  three routes — the KIT row's drop, a pad's drop, and the grid's *use selected*
+  — and brings the KIT panel on screen when the gesture happened on the stage.
+
+### Changed
+
+- **The longest test binary in the project runs in 1.70 seconds instead of
+  1,300.91.** `plugin/tests/host_timeline.rs` re-read 609 JSON files and
+  re-resolved all 590 models **on every call**, once per generation across seven
+  tests. The same helper existed in fifteen engine test binaries.
+
+### Fixed
+
+- **A partial envelope no longer loses the whole block.** `Adsr` carried
+  `serde(default)` only on its parent, so a project written by an older build —
+  or a page sending just the stage that moved — was refused whole with
+  `missing field attackMs`.
+
 ### Added — the browser at library scale, and a history that outlives the session, 2026-08-13
 
 - **The sample tree draws a window, not the folder** (TASK-058). `MAX_ENTRIES` is

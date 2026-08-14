@@ -126,6 +126,7 @@ beforeEach(() => {
     patterns: {},
     editedParts: [],
     mood: null,
+    base: null,
     audioEnabled: true,
     mutedLanes: [],
     soloedLanes: [],
@@ -823,6 +824,7 @@ describe('applyPreset', () => {
       patterns: {},
       editedParts: [],
       mood: null,
+      base: null,
       audioEnabled: true,
       mutedLanes: [],
       soloedLanes: [],
@@ -1497,5 +1499,83 @@ describe('the bar switch', () => {
     useSession.getState().setBars(8);
 
     expect(useSession.getState().edited).toBe(false);
+  });
+});
+
+/**
+ * The genre an artist is generated in (TASK-158C).
+ *
+ * ⛔ What these are for is that the pin has to reach **two** places: the request
+ * `generate` sends, and the defaults the chips are drawn from. A pin that
+ * reached only the first would generate boom-bap while the tempo chip went on
+ * showing the artist's own — which is the readout-that-lies failure the whole
+ * task is closing, arriving through the fix.
+ */
+describe('the base genre', () => {
+  beforeEach(() => {
+    useSession.setState({ selectedId: 'trap', base: null, patterns: {} });
+    invoke.mockImplementation((command: string) =>
+      command === 'generate_pattern'
+        ? Promise.resolve({
+            id: 'x',
+            artistId: 'trap',
+            seed: '1',
+            songSeed: '1',
+            bars: 4,
+            bpm: 140,
+            timeSigNum: 4,
+            timeSigDen: 4,
+            keyRoot: 0,
+            scale: 'naturalMinor',
+            part: 'drums',
+            lanes: [],
+            ppq: 960,
+            mood: null,
+          })
+        : Promise.resolve(null),
+    );
+  });
+
+  const sentRequest = () =>
+    (
+      invoke.mock.calls.find(([command]) => command === 'generate_pattern')?.[1] as {
+        request: { base: string | null };
+      }
+    ).request;
+
+  it('travels with the generate request', async () => {
+    useSession.setState({ base: 'boom-bap' });
+    await useSession.getState().generate('drums');
+    expect(sentRequest().base).toBe('boom-bap');
+  });
+
+  it('is null rather than absent when the artist keeps their own', async () => {
+    // ⚠ The plugin reads `null` and absent the same way, and the page sends one
+    // of them rather than omitting the key — an omitted key would make "their
+    // own" indistinguishable from a payload that predates the field.
+    await useSession.getState().generate('drums');
+    expect(sentRequest()).toHaveProperty('base', null);
+  });
+
+  it('re-reads the defaults, because the base changes them', async () => {
+    // ⛔ `bpm`, the tempo range and the mood names all come from the resolved
+    // model, and the plugin now resolves it over this pin. Without the refetch
+    // the tempo chip keeps showing the artist's own next to a beat that is
+    // about to come out at the chosen genre's.
+    invoke.mockClear();
+    useSession.getState().setBase('boom-bap');
+    await vi.waitFor(() =>
+      expect(invoke).toHaveBeenCalledWith('session_defaults', { styleId: 'trap' }),
+    );
+  });
+
+  it('is carried into the undo snapshot, so Ctrl+Z puts it back', async () => {
+    // ⚠ `SAVED_FIELDS` drives both the project payload and the snapshot; a field
+    // in one and not the other is the drift that list exists to prevent.
+    const { useHistory } = await import('./history');
+    useHistory.setState({ past: [], future: [] });
+    useSession.getState().setBase('boom-bap');
+    await vi.waitFor(() => expect(useSession.getState().base).toBe('boom-bap'));
+    expect(useHistory.getState().past.at(-1)?.base ?? null).toBeDefined();
   });
 });

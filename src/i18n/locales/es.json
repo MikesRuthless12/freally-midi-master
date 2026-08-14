@@ -74,7 +74,9 @@
     "key": "Tono",
     "scale": "Escala",
     "swing": "Swing",
-    "mood": "Ánimo"
+    "mood": "Ánimo",
+    "base": "Generar en",
+    "ownGenre": "Su propio género"
   },
   "session": {
     "pickArtist": "Elige un artista para ver qué pide.",

@@ -95,6 +95,19 @@ pub struct PluginSession {
     /// user deliberately left open.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub mood: Option<String>,
+    /// The genre this artist is being generated **in**, or `None` for their own
+    /// (TASK-158C).
+    ///
+    /// ⛔ **Part of how the song was made, so it is saved like the mood.**
+    /// "2Pac over boom-bap" is a different record from plain 2Pac; a project
+    /// that reopened without this would silently produce the g-funk the model
+    /// authors, from the same seed, and look like the engine had changed.
+    ///
+    /// ⚠ **Absent is the artist as authored**, which is every project ever
+    /// written before this existed — the same rule `mood`'s own note gives for
+    /// why only a *pin* is stored.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub base: Option<String>,
     /// Whether the preview sampler sounds at all (FMM-S02).
     ///
     /// Part of how a song was made — a producer who silenced the plugin to
@@ -336,6 +349,7 @@ impl Default for PluginSession {
             // it is the reason the plugin exists.
             auto_sync: true,
             mood: None,
+            base: None,
             audio_enabled: true,
             muted_lanes: Vec::new(),
             soloed_lanes: Vec::new(),
@@ -466,6 +480,10 @@ mod tests {
             window_size: Some("small".into()),
             auto_sync: true,
             mood: Some("dark".into()),
+            // ⚠ A base the model does not extend, which is the whole point of
+            // the field — a round trip that only ever stored the authored one
+            // could not tell it from absent.
+            base: Some("boom-bap".into()),
             audio_enabled: false,
             muted_lanes: vec![Lane::Snare],
             soloed_lanes: vec![Lane::Kick],

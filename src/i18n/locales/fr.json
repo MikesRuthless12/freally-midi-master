@@ -74,7 +74,9 @@
     "key": "Tonalité",
     "scale": "Gamme",
     "swing": "Swing",
-    "mood": "Ambiance"
+    "mood": "Ambiance",
+    "base": "Générer en",
+    "ownGenre": "Leur propre genre"
   },
   "session": {
     "pickArtist": "Choisis un artiste pour voir ce qu’il demande.",

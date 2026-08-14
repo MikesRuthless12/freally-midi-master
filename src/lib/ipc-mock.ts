@@ -47,6 +47,9 @@ const userModels = new Map<
  */
 const copiedSamples: string[] = [];
 
+/** The base each Generate asked for — see `Window.__freallyGeneratedOver`. */
+const generatedOver: (string | null)[] = [];
+
 /** The mock kit's assigned samples, as the plugin would source them. */
 const assignedSamplePaths = (): string[] =>
   (handlers.kit_state() as { lanes: { path: string | null }[] }).lanes
@@ -502,6 +505,7 @@ const handlers: Record<string, Handler> = {
           seed?: string;
           songSeed?: string;
           part?: Part;
+          base?: string | null;
         };
       }
     )?.request;
@@ -523,8 +527,15 @@ const handlers: Record<string, Handler> = {
       modelVel: vel,
     });
 
+    // ⛔ **The base rides in the id, so a spec can tell one generation from
+    // another** (TASK-158C). The real bridge answers with different *notes* —
+    // a browser has no engine to produce them, and a fixture that swallowed
+    // the pin would let the chip be wired to nothing and still pass. What can
+    // truthfully be shown here is that the page sent it.
+    generatedOver.push(request?.base ?? null);
+    const over = request?.base ? `-over-${request.base}` : '';
     const shell = {
-      id: `${request?.styleId ?? 'mock'}-mock`,
+      id: `${request?.styleId ?? 'mock'}${over}-mock`,
       artistId: request?.styleId ?? 'mock',
       // The seed is echoed back so the chip shows what was used, and an
       // unpinned press draws a new one — see `nextSeed`.
@@ -1341,6 +1352,17 @@ function mockDensity(pattern: Pattern): number[] {
 declare global {
   interface Window {
     __freallyCopiedSamples?: string[];
+    /**
+     * The genre each Generate this page load asked for, or `null` for the
+     * artist's own (TASK-158C).
+     *
+     * ⛔ Exposed for the reason [`__freallyCopiedSamples`] is: what a browser
+     * can truthfully check is **what the page asked for**. The mock has no
+     * engine, so it cannot answer with different notes — and a spec that only
+     * looked at what came back could not tell a chip wired to the request from
+     * one wired to nothing.
+     */
+    __freallyGeneratedOver?: (string | null)[];
     /** Paths the page asked to reveal in the OS file manager (TASK-058C). */
     __freallyRevealed?: string[];
   }
@@ -1352,6 +1374,7 @@ export async function mockInvoke<T>(command: string, args?: InvokeArgs): Promise
     // ⛔ Same reasoning: a browser cannot open Explorer, so the only thing a spec
     // can check is that the page asked for the right path.
     window.__freallyRevealed = revealed;
+    window.__freallyGeneratedOver = generatedOver;
   }
   const handler = handlers[command];
   if (!handler) {

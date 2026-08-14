@@ -35,6 +35,13 @@ import { ENV_H, ENV_SPAN_MS, ENV_W, MIN_DB, envelopePath } from './padEnvelope';
 type Peaks = readonly [number, number][];
 
 /**
+ * The shortest gap between two auditions while a control is being dragged.
+ *
+ * TASK-055's own number: *"live re-trigger (≤ 150 ms throttle)"*.
+ */
+const AUDITION_MS = 150;
+
+/**
  * One labelled number the producer can drag or type into.
  *
  * ⚠ A range **and** a number input rather than a bespoke rotary knob: a range
@@ -103,6 +110,9 @@ export function PadEditor({ entry, onClose }: { entry: KitLane; onClose: () => v
   });
   const peaks: Peaks = drawn.path === entry.path ? drawn.peaks : [];
   const dialogRef = useRef<HTMLDivElement>(null);
+  /** When the pad was last heard, and the timer that will play it once more. */
+  const heardAt = useRef(0);
+  const trailing = useRef<number>(0);
 
   /**
    * The waveform behind the trim handles.
@@ -136,13 +146,20 @@ export function PadEditor({ entry, onClose }: { entry: KitLane; onClose: () => v
 
   // ⚠ Escape closes, and focus lands inside on open — this covers the panel
   // with the keyboard alone, which is the same bar the rest of the rail meets.
+  //
+  // ⚠ **The trailing audition is cancelled on the way out.** A pad that plays
+  // itself 150 ms after the editor closed is a noise with nothing on screen to
+  // explain it.
   useEffect(() => {
     dialogRef.current?.focus();
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') onClose();
     };
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      window.clearTimeout(trailing.current);
+    };
   }, [onClose]);
 
   /**
@@ -152,9 +169,37 @@ export function PadEditor({ entry, onClose }: { entry: KitLane; onClose: () => v
    * *"re-audition live as they are changed"*; the plugin rebuilds and republishes
    * the kit on the same call, so triggering the lane straight after plays the
    * pad as it now is. Without this the producer turns a decay knob in silence.
+   *
+   * ⛔⛔ **Throttled, and that is not a nicety.** A range input fires on every
+   * step it passes, so dragging Volume from 0 to −6 dB is a dozen events —
+   * a dozen one-shots on top of each other, which is a machine-gun rather than
+   * an audition. TASK-055's own entry names the number: *"live re-trigger
+   * (≤ 150 ms throttle)"*.
+   *
+   * ⚠ **The edit itself is NOT throttled — only the sound is.** Dropping edits
+   * would make the knob lag the pointer, which is the thing the optimistic write
+   * in `setTweaks` exists to prevent. Every change is sent; at most one in
+   * `AUDITION_MS` is heard.
+   *
+   * ⚠ **And there is a trailing audition**, so letting go of a slider always
+   * plays the value you stopped on. Without it the last thing heard is wherever
+   * the throttle happened to land, which is the one value the producer did not
+   * choose.
    */
   const edit = (patch: Partial<PadTweaks>) => {
-    void setTweaks(entry.lane, patch).then(() => auditionLane(entry.lane));
+    void setTweaks(entry.lane, patch).then(() => {
+      const now = Date.now();
+      window.clearTimeout(trailing.current);
+      if (now - heardAt.current >= AUDITION_MS) {
+        heardAt.current = now;
+        auditionLane(entry.lane);
+        return;
+      }
+      trailing.current = window.setTimeout(() => {
+        heardAt.current = Date.now();
+        auditionLane(entry.lane);
+      }, AUDITION_MS);
+    });
   };
 
   const laneName = t(`lanes.${entry.lane}`);

@@ -47,6 +47,7 @@ function song(): Song {
     lanes: [],
     ppq: 960,
     mood: null,
+    base: null,
     loopRegion: null,
     clipRegion: null,
   });
@@ -164,6 +165,7 @@ function armedWith(current = song()) {
     editedParts: [],
     edited: false,
     mood: null,
+    base: null,
     audioEnabled: true,
     mutedLanes: [],
     soloedLanes: [],
@@ -580,6 +582,7 @@ it('the snapshot taken on an artist change does not carry the old artist’s son
     editedParts: [],
     edited: false,
     mood: null,
+    base: null,
     audioEnabled: true,
     mutedLanes: [],
     soloedLanes: [],

@@ -74,7 +74,9 @@
     "key": "Tonart",
     "scale": "Tonleiter",
     "swing": "Swing",
-    "mood": "Stimmung"
+    "mood": "Stimmung",
+    "base": "Erzeugen in",
+    "ownGenre": "Ihr eigenes Genre"
   },
   "session": {
     "pickArtist": "Wähle einen Künstler, um zu sehen, was er verlangt.",

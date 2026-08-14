@@ -124,7 +124,18 @@ impl Registry {
 
     /// Resolve one model through its inheritance chain and parse it.
     pub fn resolve(&self, id: &str) -> Result<StyleModel, DatasetError> {
-        let merged = inherit::resolve(id, &self.models)?;
+        self.resolve_over(id, None)
+    }
+
+    /// Resolve one model over `base` instead of over what it `extends`
+    /// (TASK-158C) — see [`inherit::resolve_over`] for what that is and is not.
+    ///
+    /// ⚠ **The same lint and the same parse.** A swapped model is a model: if
+    /// the combination produces something the linter refuses, it is refused
+    /// here rather than generated from. That is the whole reason this goes
+    /// through `resolve` rather than merging blocks somewhere downstream.
+    pub fn resolve_over(&self, id: &str, base: Option<&str>) -> Result<StyleModel, DatasetError> {
+        let merged = inherit::resolve_over(id, base, &self.models)?;
         let findings = validate::lint(&merged);
         if let Some(first) = findings.first() {
             return Err(DatasetError::Lint(format!(
@@ -252,6 +263,19 @@ pub struct RosterSummary {
 pub struct LoadedDataset {
     pub summary: RosterSummary,
     pub models: BTreeMap<String, StyleModel>,
+    /// The **unresolved** models, kept so a base swap costs one resolve.
+    ///
+    /// ⛔⛔ **This is what stops TASK-158C being unaffordable.** Resolving an
+    /// artist over a different genre needs the child's *own* body, and a
+    /// resolved model no longer has one — its parent is already merged in. The
+    /// alternative the roadmap costed it at was a deep clone of all 590
+    /// documents per generation, on the editor thread; keeping the raw registry
+    /// once turns that into a single linearize and a handful of merges.
+    ///
+    /// ⚠ **Smaller than [`Self::models`], not larger.** These are the authored
+    /// bodies — an artist file is a few dozen lines — where the resolved ones
+    /// each carry the whole of `_defaults` and their genre merged in.
+    pub registry: Registry,
 }
 
 /// Ids beginning with `_` are internal bases — `_defaults` is the root every
@@ -385,6 +409,9 @@ pub fn load(
             problems,
         },
         models,
+        // ⚠ Moved rather than cloned — it has done its work above and nothing
+        // else here needs it.
+        registry,
     }
 }
 

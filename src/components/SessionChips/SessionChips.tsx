@@ -56,6 +56,9 @@ export function SessionChips() {
   const setAutoSync = useSession((s) => s.setAutoSync);
   const mood = useSession((s) => s.mood);
   const setMood = useSession((s) => s.setMood);
+  const base = useSession((s) => s.base);
+  const setBase = useSession((s) => s.setBase);
+  const roster = useSession((s) => s.roster);
   const audioEnabled = useSession((s) => s.audioEnabled);
   const setAudioEnabled = useSession((s) => s.setAudioEnabled);
 
@@ -66,6 +69,27 @@ export function SessionChips() {
   // Absent rather than empty for a style with no `modes` block, which is most
   // of them — the field is skipped on the wire when there is nothing to send.
   const moods = defaults?.moods ?? [];
+
+  /**
+   * The genres this artist is listed under, for the base chip (TASK-158C).
+   *
+   * ⛔ **`relatedGenres`, because that is exactly what `cross-filter.ts`
+   * filters the rail on.** Offering a different list here would be a chip that
+   * disagreed with the roster about which genres this artist works in, which is
+   * the readout-that-lies failure the whole task is closing — arriving through
+   * the fix.
+   *
+   * ⚠ **Named from the roster rather than shown as an id.** `boom-bap` is a key,
+   * not a label; the genre's own entry is what carries the name a producer
+   * reads. An id that resolves to nothing is dropped — the plugin already drops
+   * dangling `relatedGenres` from the roster, so this only ever loses one the
+   * rail is not offering either.
+   */
+  const own = roster.find((entry) => entry.id === selectedId);
+  const relatedGenres = (own?.relatedGenres ?? []).flatMap((id) => {
+    const genre = roster.find((entry) => entry.id === id);
+    return genre ? [{ id, name: genre.name }] : [];
+  });
 
   /** What the artist chose last time, for the "leave it to them" option. */
   const chose = (value: string | null) =>
@@ -212,6 +236,40 @@ export function SessionChips() {
           onChange={(id) => setPin('scale', id === '' ? null : (id as Scale))}
         />
       </div>
+
+      {/* ⛔⛔ **"Drake, but in R&B"** (TASK-158C). The roster lists an artist
+          under every genre in their `relatedGenres` — 529 of 534 models name
+          one they do not `extend` — and Generate has always answered the one
+          they do. This chip is what makes the rail's claim true.
+
+          ⛔ **A pin of its own rather than the genre combobox changing
+          meaning.** That box and the roster box both write `selectedId`; making
+          one of them mean something else when an artist is selected is a
+          control whose behaviour depends on state you cannot see. "Any" here
+          means the artist's own base, which is what "Any" means in every other
+          chip in this row.
+
+          ⚠ **Only where there is a choice**, on the same rule as the mood chip
+          beside it: an artist who works in one genre has nothing to pick
+          between, and a combobox with one option is a control that cannot do
+          anything. */}
+      {relatedGenres.length > 0 && (
+        <div className="chip chip--mono session__chip">
+          <span className="session__label">{t('readouts.base')}</span>
+          <Combo
+            label={t('readouts.base')}
+            options={[
+              { id: '', name: t('readouts.ownGenre') },
+              ...relatedGenres.map((genre) => ({
+                id: genre.id,
+                name: genre.name,
+              })),
+            ]}
+            value={base ?? ''}
+            onChange={(id) => setBase(id === '' ? null : id)}
+          />
+        </div>
+      )}
 
       {/* Only for a style that offers modes — eleven of the shipped genres
           author none, and a chip whose only option is "Any" is a control that

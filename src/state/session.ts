@@ -110,6 +110,7 @@ export const SAVED_FIELDS = [
   'pins',
   'autoSync',
   'mood',
+  'base',
   'audioEnabled',
   'mutedLanes',
   'soloedLanes',
@@ -490,6 +491,28 @@ type SessionState = {
    */
   mood: string | null;
   /**
+   * The genre to generate this artist **in**, or `null` for their own
+   * (TASK-158C).
+   *
+   * ⛔⛔ **"Drake, but in R&B."** The roster has always listed an artist under
+   * every genre in their `relatedGenres` — 529 of 534 models name one they do
+   * not `extend` — while Generate answered the one they *do*. This is the pin
+   * that makes the rail's claim true: the artist's own blocks resolved over the
+   * chosen genre instead of their authored parent.
+   *
+   * ⛔ **A separate pin rather than the genre combobox changing meaning.** That
+   * box and the roster box both write `selectedId` today — they are one
+   * selection. Making one of them silently mean something else when an artist
+   * is chosen is a control whose behaviour depends on state you cannot see; a
+   * pin beside the mood is the idiom this rail already has, and "Any" already
+   * means "the model's own choice" everywhere else in that row.
+   *
+   * ⚠ **Not the same as picking that genre in the roster.** Picking boom-bap
+   * generates *boom-bap*; pinning it under 2Pac generates **2Pac over
+   * boom-bap** — his own kick, his own phrasing, that genre's foundation.
+   */
+  base: string | null;
+  /**
    * Whether the plugin plays its own preview kit (FMM-S02).
    *
    * ⛔ Off is **MIDI-only, and a first-class mode rather than a degraded one**:
@@ -592,6 +615,10 @@ type SessionState = {
   setAutoSync: (on: boolean) => void;
   /** Pin the mood, or hand it back to the seed with `null`. */
   setMood: (mood: string | null) => void;
+  /**
+   * Pin the genre to generate in, or `null` for the artist's own (TASK-158C).
+   */
+  setBase: (base: string | null) => void;
   /** Let the plugin play its preview kit, or go MIDI-only. */
   setAudioEnabled: (on: boolean) => void;
   /** Silence one lane in the preview, or let it back in (FMM-S02). */
@@ -830,6 +857,7 @@ function snapshotOf(state: SessionState): Snapshot {
     pins,
     autoSync,
     mood,
+    base,
     audioEnabled,
     mutedLanes,
     soloedLanes,
@@ -879,6 +907,7 @@ function snapshotOf(state: SessionState): Snapshot {
     pins,
     autoSync,
     mood,
+    base,
     audioEnabled,
     mutedLanes,
     soloedLanes,
@@ -1139,6 +1168,13 @@ export type SavedSession = {
    * argument that lets the pattern itself go unsaved.
    */
   mood?: string | null;
+  /**
+   * The genre the artist is generated in, absent for their own (TASK-158C).
+   *
+   * ⚠ Absent is what every project written before this pin existed carries, and
+   * it must go on generating exactly what it did.
+   */
+  base?: string | null;
   /**
    * Whether the preview sampler sounds (FMM-S02).
    *
@@ -1405,6 +1441,9 @@ function put(
     // written before the toggle existed must keep following its DAW.
     autoSync: saved.autoSync ?? true,
     mood: saved.mood ?? null,
+    // Absent is the artist's own genre — every project written before this
+    // existed, which must keep generating exactly what it did.
+    base: saved.base ?? null,
     audioEnabled: saved.audioEnabled ?? true,
     mutedLanes: saved.mutedLanes ?? [],
     soloedLanes: saved.soloedLanes ?? [],
@@ -1508,6 +1547,7 @@ export const useSession = create<SessionState>((set, get) => ({
   hostTempo: null,
   autoSync: true,
   mood: null,
+  base: null,
   audioEnabled: true,
   mutedLanes: [],
   soloedLanes: [],
@@ -1762,6 +1802,29 @@ export const useSession = create<SessionState>((set, get) => ({
     persist();
   },
 
+  setBase(base) {
+    // Saved for the same reason the mood is: "2Pac over boom-bap" is what the
+    // song was made from, and reopening the project on plain g-funk would
+    // silently produce a different record.
+    set({ base });
+    persist();
+    // ⛔ **Re-read the defaults, because the base changes them.** `bpm`, the
+    // tempo *range* and the mood names all come from the resolved model, and
+    // `session_defaults` now resolves it over this pin — so without this the
+    // tempo chip would go on showing the artist's own tempo next to a beat
+    // about to come out at their chosen genre's. That is the
+    // readout-that-lies failure `loadDefaults` is already written to guard.
+    //
+    // ⚠ **The mood pin has the same gap and it is NOT fixed here.** `setMood`
+    // does not refetch either, and the plugin has resolved the mood inside
+    // `session_defaults` since TASK-040V — so pinning a mood updates the chip
+    // only on the next artist change. It is left alone deliberately: it is
+    // adjacent code, it is a separate fix, and it is written down in the
+    // handoff rather than folded in silently.
+    const { selectedId } = get();
+    if (selectedId !== null) void loadDefaults(selectedId, set, get);
+  },
+
   setAutoSync(on) {
     // Saved immediately rather than on the next generation: it is part of how a
     // song was made, and a producer who turns it off and closes the project
@@ -1871,7 +1934,7 @@ export const useSession = create<SessionState>((set, get) => ({
   },
 
   async generate(part = 'drums') {
-    const { selectedId, seed, seedPinned, songSeed, bars, generating, pins, mood, patterns } =
+    const { selectedId, seed, seedPinned, songSeed, bars, generating, pins, mood, base, patterns } =
       get();
     if (!selectedId || generating) return;
 
@@ -1880,6 +1943,10 @@ export const useSession = create<SessionState>((set, get) => ({
       const pattern = await invoke<Pattern>('generate_pattern', {
         request: {
           styleId: selectedId,
+          // ⛔ **The genre to generate IN** (TASK-158C). `null` is the artist
+          // as authored, which is what every project written before this pin
+          // existed sends — and what the plugin treats as the ordinary path.
+          base,
           // ⛔ The bridge has taken a `part` since the five generators were
           // wired up, and the UI never sent one — so every tab that could
           // generate got drums. It is sent explicitly rather than left to the
@@ -2020,7 +2087,7 @@ export const useSession = create<SessionState>((set, get) => ({
   },
 
   async generateAll() {
-    const { selectedId, bars, generating, pins, mood, seedPinned } = get();
+    const { selectedId, bars, generating, pins, mood, base, seedPinned } = get();
     if (!selectedId || generating) return;
 
     set({ generating: true, error: null });
@@ -2062,6 +2129,8 @@ export const useSession = create<SessionState>((set, get) => ({
         const pattern = await invoke<Pattern>('generate_pattern', {
           request: {
             styleId: selectedId,
+            // The same pin as the single-Generate path — see there.
+            base,
             part,
             bars,
             seed: seed === '' ? null : seed,
