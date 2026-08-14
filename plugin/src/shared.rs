@@ -749,6 +749,24 @@ impl Shared {
                 );
             }
         }
+
+        // ⛔⛔ **UNCONDITIONALLY, because the pad edits have to reach the audio
+        // thread even when there are no one-shots to restore** (TASK-055A/164).
+        // `restore` is what publishes a rebuilt kit, and it only runs inside the
+        // loop above — so a project where the producer shaped the **shipped**
+        // kick and never assigned a sample of their own restored `stored` empty,
+        // published nothing, and left the callback playing the untouched
+        // `preview_kit()`.
+        //
+        // ▶ **That is the headline TASK-164 case, and it failed in the worst
+        // possible direction.** `kit_state` reads `pad_tweaks` straight from the
+        // store, so every knob came back exactly where the producer left it —
+        // and `Shared::current_kit`, which is what an *export* renders through,
+        // applies the tweaks. So the stem carried the envelope and the preview
+        // did not: the plugin telling the producer one thing and writing
+        // another, which is the failure `OneShots::current_kit`'s own doc
+        // records for one-shots and which this file cites three times over.
+        self.one_shots.rebuild(&self.kits, &self.session);
     }
 
     /// Put the saved sample-library folders back (TASK-132).

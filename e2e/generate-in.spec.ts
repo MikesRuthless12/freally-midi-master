@@ -71,13 +71,23 @@ test('the chosen genre travels with the next Generate', async ({ page }) => {
     .toContain('trap');
 });
 
-test('the pin survives a reload of the page state', async ({ page }) => {
-  // ⚠ It is part of how the song was made, so it is saved like the mood —
-  // reopening on the artist's own genre would silently produce a different
-  // record from the same seed.
+test('the pin is dropped when the artist changes, not carried onto them', async ({ page }) => {
+  // ⛔⛔ **A base belongs to the artist it was picked for.** The chip is hidden
+  // for a genre, for an artist who works in nothing else, and for a producer's
+  // own style — so a base carried across an artist change is a pin **in force
+  // with no control on screen to clear it**. On one of their own styles every
+  // Generate is then refused outright, with no way out but restarting.
+  //
+  // ⚠ Asserted through what the next Generate SENDS, because that is the thing
+  // that was wrong — the chip disappearing is what hides it.
   await pickArtist(page, 'Mock Artist');
   await page.getByRole('combobox', { name: 'Generate in' }).click();
   await page.getByRole('option', { name: 'Trap' }).click();
 
-  await expect(page.getByRole('combobox', { name: 'Generate in' })).toHaveValue('Trap');
+  await pickArtist(page, 'Trap');
+  await page.getByRole('button', { name: 'Generate', exact: true }).click();
+
+  await expect
+    .poll(() => page.evaluate(() => window.__freallyGeneratedOver ?? []))
+    .toEqual(expect.arrayContaining([null]));
 });

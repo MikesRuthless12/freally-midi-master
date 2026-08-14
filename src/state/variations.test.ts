@@ -56,7 +56,9 @@ describe('the variation history', () => {
     for (let i = 0; i < 1_000; i += 1) {
       useVariations
         .getState()
-        .record(entryFor(clip('drums', String(i), 140), { mood: null, pins: NO_PINS }, i));
+        .record(
+          entryFor(clip('drums', String(i), 140), { mood: null, base: null, pins: NO_PINS }, i),
+        );
     }
     expect(counter('drums')).toEqual({ position: 1_000, total: 1_000 });
     expect(useVariations.getState().entries.drums?.[0].seed).toBe('0');
@@ -67,13 +69,13 @@ describe('the variation history', () => {
     // number would claim the chords changed when they did not.
     useVariations
       .getState()
-      .record(entryFor(clip('drums', '1', 140), { mood: null, pins: NO_PINS }, 1));
+      .record(entryFor(clip('drums', '1', 140), { mood: null, base: null, pins: NO_PINS }, 1));
     useVariations
       .getState()
-      .record(entryFor(clip('drums', '2', 140), { mood: null, pins: NO_PINS }, 2));
+      .record(entryFor(clip('drums', '2', 140), { mood: null, base: null, pins: NO_PINS }, 2));
     useVariations
       .getState()
-      .record(entryFor(clip('melody', '3', 140), { mood: null, pins: NO_PINS }, 3));
+      .record(entryFor(clip('melody', '3', 140), { mood: null, base: null, pins: NO_PINS }, 3));
 
     expect(counter('drums')).toEqual({ position: 2, total: 2 });
     expect(counter('melody')).toEqual({ position: 1, total: 1 });
@@ -85,7 +87,11 @@ describe('the variation history', () => {
     // sat at 92 was made at 92, and the pins may say nothing about that —
     // showing the pins would show blank. And tempo changes the notes, so an
     // entry that recorded only the seed would not reproduce its own beat.
-    const entry = entryFor(clip('drums', '7', 92), { mood: 'dark', pins: NO_PINS }, 5);
+    const entry = entryFor(
+      clip('drums', '7', 92),
+      { mood: 'dark', base: null, pins: NO_PINS },
+      5,
+    );
     expect(entry.bpm).toBe(92);
     expect(entry.pins.bpm).toBeNull();
     expect(entry.mood).toBe('dark');
@@ -100,7 +106,11 @@ describe('the variation history', () => {
       useVariations
         .getState()
         .record(
-          entryFor(clip('drums', seed, 140), { mood: null, pins: NO_PINS }, Number(seed)),
+          entryFor(
+            clip('drums', seed, 140),
+            { mood: null, base: null, pins: NO_PINS },
+            Number(seed),
+          ),
         );
     }
     expect(useVariations.getState().step('drums', -1)?.seed).toBe('2');
@@ -119,13 +129,17 @@ describe('the variation history', () => {
       useVariations
         .getState()
         .record(
-          entryFor(clip('drums', seed, 140), { mood: null, pins: NO_PINS }, Number(seed)),
+          entryFor(
+            clip('drums', seed, 140),
+            { mood: null, base: null, pins: NO_PINS },
+            Number(seed),
+          ),
         );
     }
     useVariations.getState().step('drums', -2);
     useVariations
       .getState()
-      .record(entryFor(clip('drums', '4', 140), { mood: null, pins: NO_PINS }, 4));
+      .record(entryFor(clip('drums', '4', 140), { mood: null, base: null, pins: NO_PINS }, 4));
 
     expect(useVariations.getState().entries.drums?.map((e) => e.seed)).toEqual([
       '1',
@@ -142,8 +156,8 @@ describe('the variation history', () => {
     // kept set on the seed alone would mean starring a melody silently starred
     // the drums with it, and a training set nobody chose.
     const { record, keep, keptEntries } = useVariations.getState();
-    record(entryFor(clip('melody', '7', 140), { mood: null, pins: NO_PINS }, 7));
-    record(entryFor(clip('drums', '7', 140), { mood: null, pins: NO_PINS }, 7));
+    record(entryFor(clip('melody', '7', 140), { mood: null, base: null, pins: NO_PINS }, 7));
+    record(entryFor(clip('drums', '7', 140), { mood: null, base: null, pins: NO_PINS }, 7));
 
     keep('melody', '7', true);
 
@@ -155,7 +169,7 @@ describe('the variation history', () => {
 
   it('unkeeping takes a take back out of the training set', () => {
     const { record, keep } = useVariations.getState();
-    record(entryFor(clip('melody', '11', 140), { mood: null, pins: NO_PINS }, 11));
+    record(entryFor(clip('melody', '11', 140), { mood: null, base: null, pins: NO_PINS }, 11));
 
     keep('melody', '11', true);
     expect(useVariations.getState().keptEntries()).toHaveLength(1);
@@ -170,12 +184,18 @@ describe('the variation history', () => {
     // away from browsing the history rewriting the training set.
     const { record, keep, step } = useVariations.getState();
     for (const seed of ['1', '2', '3']) {
-      record(entryFor(clip('melody', seed, 140), { mood: null, pins: NO_PINS }, Number(seed)));
+      record(
+        entryFor(
+          clip('melody', seed, 140),
+          { mood: null, base: null, pins: NO_PINS },
+          Number(seed),
+        ),
+      );
     }
     keep('melody', '2', true);
 
     step('melody', -2);
-    record(entryFor(clip('melody', '4', 140), { mood: null, pins: NO_PINS }, 4));
+    record(entryFor(clip('melody', '4', 140), { mood: null, base: null, pins: NO_PINS }, 4));
 
     const kept = useVariations.getState().keptEntries();
     expect(kept.map((entry) => entry.seed)).toEqual(['2']);
@@ -195,8 +215,8 @@ describe('the variation history', () => {
    */
   it('sends every generation to the plugin to be kept', async () => {
     const { record } = useVariations.getState();
-    record(entryFor(clip('drums', '1', 140), { mood: null, pins: NO_PINS }, 1));
-    record(entryFor(clip('melody', '2', 140), { mood: null, pins: NO_PINS }, 2));
+    record(entryFor(clip('drums', '1', 140), { mood: null, base: null, pins: NO_PINS }, 1));
+    record(entryFor(clip('melody', '2', 140), { mood: null, base: null, pins: NO_PINS }, 2));
     // The write is fire-and-forget — see `record` — so the reply lands a
     // microtask later.
     await Promise.resolve();
@@ -217,7 +237,11 @@ describe('the variation history', () => {
     // which is `keptKey`'s pairing and for the same reason: the drums and the
     // melody of one record share a song seed.
     const { record } = useVariations.getState();
-    const take = entryFor(clip('drums', '9', 140), { mood: null, pins: NO_PINS }, 9);
+    const take = entryFor(
+      clip('drums', '9', 140),
+      { mood: null, base: null, pins: NO_PINS },
+      9,
+    );
     record(take);
     record(take);
     await Promise.resolve();
@@ -230,7 +254,7 @@ describe('the variation history', () => {
   it('can be forgotten, because it is a record of what somebody has been making', async () => {
     useVariations
       .getState()
-      .record(entryFor(clip('drums', '3', 140), { mood: null, pins: NO_PINS }, 3));
+      .record(entryFor(clip('drums', '3', 140), { mood: null, base: null, pins: NO_PINS }, 3));
     await Promise.resolve();
     await Promise.resolve();
 

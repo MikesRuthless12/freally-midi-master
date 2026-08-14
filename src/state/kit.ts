@@ -127,6 +127,16 @@ export type KitLane = {
    * special case in the one place a control has to have a position.
    */
   tweaks: PadTweaks;
+  /**
+   * Whether this pad's buffer was flipped at decode (`Ctrl`+←).
+   *
+   * ⛔ **The editor needs it to draw the trim handles over the right end.**
+   * `oneshot::load` bakes the reversal into the samples, so the trim window is
+   * measured against the REVERSED audio — while `explorer_waveform` reads the
+   * file off disk forwards. Drawing one and cutting the other is a picture that
+   * lies about what the handles do.
+   */
+  reversed: boolean;
 };
 
 type KitStateReply = {

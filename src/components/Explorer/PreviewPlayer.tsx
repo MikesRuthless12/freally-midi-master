@@ -252,7 +252,10 @@ export function PreviewPlayer() {
           <span className="visually-hidden">{t('explorer.previewGain')}</span>
           <input
             type="range"
-            min={-24}
+            // ⚠ The same floor `Preview::set_gain_db` clamps to. At -24 the
+            // control silently disagreed with the doc claiming the two level
+            // controls are bounded the same way.
+            min={-60}
             max={12}
             step={0.5}
             value={position.gainDb}

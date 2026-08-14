@@ -357,7 +357,23 @@ export function PadEditor({ entry, onClose }: { entry: KitLane; onClose: () => v
       {/* ── Trim and fades (TASK-055A) ──────────────────────────────────── */}
       <figure className="pad-editor__wave">
         <svg viewBox={`0 0 ${VIEW_W} ${VIEW_H}`} preserveAspectRatio="none" aria-hidden="true">
-          {peaks.length > 0 && <path d={outlineOf(peaks)} className="pad-editor__wave-fill" />}
+          {peaks.length > 0 && (
+            // ⛔⛔ **Mirrored when the pad plays backwards.**
+            // `oneshot::load` flips the buffer at decode, so the trim window is
+            // measured against the REVERSED audio — while `explorer_waveform`
+            // reads the file off disk forwards. Without this, dragging Start to
+            // 0.5 shaded the left half of the picture and the engine cut the
+            // right half of what was drawn.
+            //
+            // ⚠ **A transform on the path, not a second request.** The peaks are
+            // the same numbers either way round; asking the plugin for a
+            // reversed waveform would be a second answer to a question the page
+            // can already answer.
+            <path
+              d={outlineOf(entry.reversed ? [...peaks].reverse() : peaks)}
+              className="pad-editor__wave-fill"
+            />
+          )}
           {/* The trimmed-away ends, shaded rather than hidden: a producer has to
               see what they are cutting to decide where to cut it. */}
           <rect

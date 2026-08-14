@@ -740,6 +740,10 @@ const handlers: Record<string, Handler> = {
         name: path === null ? null : (path.split(/[\\/]/).pop() ?? path),
         path,
         tweaks: padTweaks.get(lane) ?? untouchedPad(),
+        // ⚠ Always forwards here: the browser has no decoder, so nothing in the
+        // mock can flip a buffer. What a spec can drive is the drawing, and
+        // `PadEditor.test.tsx` sets the flag directly for that.
+        reversed: false,
       };
     }),
   }),

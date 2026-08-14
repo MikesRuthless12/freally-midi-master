@@ -29,6 +29,7 @@ function plainRow() {
     name: null as string | null,
     path: null as string | null,
     tweaks: untouchedPad(),
+    reversed: false,
   };
 }
 
@@ -99,6 +100,11 @@ describe('the controls', () => {
         adsr: { attackMs: 10, decayMs: 195, sustainDb: -36, releaseMs: 500 },
       },
     });
+    // ⛔ **The store's row has to carry the edits too, not just the prop.**
+    // `setTweaks` merges the patch over what the STORE holds — so with the store
+    // left at `plainRow()` the merge base was already untouched and
+    // `edit({})` would have passed this assertion.
+    useKit.setState({ lanes: [edited] });
     render(<PadEditor entry={edited} onClose={() => {}} />);
 
     fireEvent.click(screen.getByRole('button', { name: 'Reset' }));
@@ -164,5 +170,40 @@ describe('the controls', () => {
     render(<PadEditor entry={row()} onClose={onClose} />);
     fireEvent.keyDown(window, { key: 'Escape' });
     expect(onClose).toHaveBeenCalled();
+  });
+});
+
+describe('a pad that plays backwards', () => {
+  it('draws the waveform the way the trim handles cut it', async () => {
+    // ⛔⛔ **`oneshot::load` flips the buffer at decode**, so the trim window is
+    // measured against the *reversed* audio — while `explorer_waveform` reads
+    // the file off disk *forwards*. Without the mirror, dragging Start to 0.5
+    // shaded the left half of the picture and the engine cut the right half of
+    // what was drawn: a control whose own illustration contradicts it.
+    const peaks: [number, number][] = [
+      [0, 0.1],
+      [0, 0.9],
+    ];
+    invoke.mockResolvedValue({ peaks });
+
+    const forwards = render(
+      <PadEditor entry={row({ path: 'C:/s/crash.wav' })} onClose={() => {}} />,
+    );
+    await vi.waitFor(() =>
+      expect(document.querySelector('.pad-editor__wave-fill')).toBeTruthy(),
+    );
+    const drawnForwards = document.querySelector('.pad-editor__wave-fill')?.getAttribute('d');
+    forwards.unmount();
+
+    render(
+      <PadEditor entry={row({ path: 'C:/s/crash.wav', reversed: true })} onClose={() => {}} />,
+    );
+    await vi.waitFor(() =>
+      expect(document.querySelector('.pad-editor__wave-fill')).toBeTruthy(),
+    );
+    const drawnBackwards = document.querySelector('.pad-editor__wave-fill')?.getAttribute('d');
+
+    expect(drawnForwards).toBeTruthy();
+    expect(drawnBackwards).not.toEqual(drawnForwards);
   });
 });

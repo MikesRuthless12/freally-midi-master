@@ -178,6 +178,16 @@ export type SongState = {
     seed: string;
     pins: SessionPins;
     mood: string | null;
+    /**
+     * The genre to generate this artist in, or `null` for their own
+     * (TASK-158C).
+     *
+     * ⛔ **Passed in beside the mood rather than read from the session store
+     * here**, because that is what the caller already does for every other
+     * value on this line — and a second reader of the same pin is how the two
+     * come to disagree.
+     */
+    base: string | null;
   }) => Promise<void>;
 
   /**
@@ -474,7 +484,7 @@ export const useSong = create<SongState>((set, get) => ({
     }
   },
 
-  async generate({ styleId, seed, pins, mood }) {
+  async generate({ styleId, seed, pins, mood, base }) {
     if (get().generating) return;
     set({ generating: true, error: null });
     try {
@@ -486,6 +496,13 @@ export const useSong = create<SongState>((set, get) => ({
           seed: seed === '' ? null : seed,
           session: pins,
           mood,
+          // ⛔⛔ **The base, and its absence here was the sibling-door failure
+          // this codebase has now shipped five times.** `reroll_section` sent
+          // it and this did not — so a record generated with the chip on
+          // boom-bap came out as g-funk, and then re-rolling ONE section
+          // brought that section back over boom-bap. Exactly the defect the
+          // re-roll fix was written for, inverted.
+          base,
           structure: get().structure,
         },
       });

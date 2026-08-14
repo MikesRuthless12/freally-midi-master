@@ -44,6 +44,51 @@ pub const MAX_GAIN_DB: f32 = 12.0;
 /// and the read rate is far enough from 1.0 that the interpolator is audible.
 pub const MAX_SEMIS: i32 = 24;
 
+/// The longest fade, in seconds, and the longest envelope stage, in ms.
+///
+/// ⛔⛔ **These exist because a FLOOR IS NOT A BOUND, and the difference cost a
+/// whole project file.** These five fields were `.max(0.0)` — floored and never
+/// capped — while every other field in [`PadTweaks::clamped`] used
+/// `.clamp(lo, hi)`. A JSON number like `1e39` is ordinary and finite on the
+/// wire, and serde casts it to `f32::INFINITY`; `INFINITY.max(0.0)` is
+/// `INFINITY`, so it sailed through into [`crate::state::PluginSession`].
+///
+/// ▶ **What happened next is the part that matters.** `serde_json` writes a
+/// non-finite float as `null`, so the host's *save* succeeded — and the
+/// *reopen* failed with `invalid type: null, expected f32`. nih-plug's `Params`
+/// derive only logs a field that fails to deserialize, so the entire session
+/// reverted to default: the seed, the edited clips, the arrangement, the sample
+/// folders and the one-shots. `state.rs`'s own header calls those edited clips
+/// *"the one thing in a project file that cannot be regenerated"*.
+///
+/// ⚠ **The shipped UI could not send it** — the editor's controls are
+/// `type="range"` with a `max` — which is exactly why it needed finding by
+/// reading rather than by using. Bridge JSON is untrusted by this project's own
+/// rule, and `pad_tweaks` also arrives inside a *shared project file*.
+///
+/// ⚠ **Sixty of each, chosen rather than round**: a minute is longer than any
+/// one-shot anyone will trim or swell, and short enough that the frame counts
+/// stay far inside `u32`.
+pub const MAX_FADE_S: f32 = 60.0;
+pub const MAX_STAGE_MS: f32 = 60_000.0;
+
+/// `value`, or `fallback` when it is not a real number.
+///
+/// ⛔ **Applied to every float on the way in, not only the ones with a known
+/// bound.** `f32::clamp` passes a NaN straight through rather than rejecting it,
+/// and a NaN would take the same road to a `null` in the project file that an
+/// infinity does. ⚠ It also removes the one live panic risk in this file:
+/// `trim_end.clamp(trim_start, 1.0)` is the only clamp here whose *bound* is a
+/// runtime value, and `f32::clamp` asserts `min <= max` **in release** — with
+/// `panic = "abort"`, a NaN `trim_start` would be the host dying.
+fn finite_or(value: f32, fallback: f32) -> f32 {
+    if value.is_finite() {
+        value
+    } else {
+        fallback
+    }
+}
+
 /// The one-shot's own amplitude envelope (TASK-164).
 ///
 /// ⛔⛔ **Sustain is in DECIBELS, not a 0–1 ratio**, and that is read off the
@@ -99,13 +144,14 @@ impl Adsr {
 
     /// The same envelope with every field inside its range.
     pub fn clamped(&self) -> Adsr {
+        // ⛔ **Bounded at both ends, not merely floored** — see [`MAX_STAGE_MS`]
+        // for the project file that a `.max(0.0)` on these three cost.
+        let stage = |value: f32| finite_or(value, 0.0).clamp(0.0, MAX_STAGE_MS);
         Adsr {
-            // ⚠ No upper bound worth naming: a ten-second attack is a swell, and
-            // the voice ends at the end of its sample regardless.
-            attack_ms: self.attack_ms.max(0.0),
-            decay_ms: self.decay_ms.max(0.0),
-            sustain_db: self.sustain_db.clamp(MIN_GAIN_DB, 0.0),
-            release_ms: self.release_ms.max(0.0),
+            attack_ms: stage(self.attack_ms),
+            decay_ms: stage(self.decay_ms),
+            sustain_db: finite_or(self.sustain_db, 0.0).clamp(MIN_GAIN_DB, 0.0),
+            release_ms: stage(self.release_ms),
         }
     }
 }
@@ -180,20 +226,30 @@ impl PadTweaks {
     /// past `trim_end` is an inverted slice, which is the shape that aborted the
     /// host in `smf_read`. Clamping at the door means every reader downstream can
     /// treat these as sane.
+    /// ⛔⛔ **Every float goes through [`finite_or`] first, and that is not
+    /// belt-and-braces.** A finite JSON number as ordinary as `1e39` casts to
+    /// `f32::INFINITY`, and an infinity that reached the project file was
+    /// written as `null` and then *lost the entire session on reopen* — see
+    /// [`MAX_FADE_S`]. It also removes the one live abort risk here: `trim_end`
+    /// is clamped against a **runtime** bound, and `f32::clamp` asserts
+    /// `min <= max` in release.
     pub fn clamped(&self) -> PadTweaks {
         // ⚠ `trim_start` first, then `trim_end` against it, so the window can
         // never invert however the two arrived.
-        let trim_start = self.trim_start.clamp(0.0, 1.0);
+        let trim_start = finite_or(self.trim_start, 0.0).clamp(0.0, 1.0);
         PadTweaks {
-            gain_db: self.gain_db.clamp(MIN_GAIN_DB, MAX_GAIN_DB),
-            pan: self.pan.clamp(-1.0, 1.0),
+            gain_db: finite_or(self.gain_db, 0.0).clamp(MIN_GAIN_DB, MAX_GAIN_DB),
+            pan: finite_or(self.pan, 0.0).clamp(-1.0, 1.0),
             semis: self.semis.clamp(-MAX_SEMIS, MAX_SEMIS),
             cents: self.cents.clamp(-100, 100),
             normalize: self.normalize,
             trim_start,
-            trim_end: self.trim_end.clamp(trim_start, 1.0),
-            fade_in_s: self.fade_in_s.max(0.0),
-            fade_out_s: self.fade_out_s.max(0.0),
+            // ⚠ `1.0` rather than `trim_start` as the fallback: a `trim_end`
+            // that arrived as nonsense means "the whole sample", which is the
+            // default — falling back to `trim_start` would be a silent pad.
+            trim_end: finite_or(self.trim_end, 1.0).clamp(trim_start, 1.0),
+            fade_in_s: finite_or(self.fade_in_s, 0.0).clamp(0.0, MAX_FADE_S),
+            fade_out_s: finite_or(self.fade_out_s, 0.0).clamp(0.0, MAX_FADE_S),
             adsr: self.adsr.clamped(),
         }
     }
@@ -430,6 +486,123 @@ mod tests {
         assert_eq!(partial.adsr.attack_ms, 0.0);
         assert_eq!(partial.adsr.release_ms, 0.0);
         assert!(!partial.adsr.is_identity());
+    }
+
+    #[test]
+    fn a_huge_but_finite_number_cannot_become_an_infinity_in_the_project_file() {
+        // ⛔⛔ **THE ONE THAT COST A WHOLE PROJECT.** `1e39` is an ordinary
+        // finite JSON number and serde casts it to `f32::INFINITY`. These five
+        // fields were floored with `.max(0.0)` and never capped, and
+        // `INFINITY.max(0.0)` is `INFINITY` — so it reached
+        // `PluginSession::pad_tweaks`, `serde_json` wrote it as `null`, the
+        // host's SAVE succeeded, and the REOPEN failed with
+        // `invalid type: null, expected f32`. nih-plug only logs a field that
+        // fails to deserialize, so the whole session reverted to default: the
+        // seed, the edited clips, the arrangement, the sample folders and the
+        // one-shots.
+        let wild: PadTweaks = serde_json::from_str(
+            r#"{"fadeInS": 1e39, "fadeOutS": 1e39,
+                "adsr": {"attackMs": 1e39, "decayMs": 1e39, "releaseMs": 1e39}}"#,
+        )
+        .unwrap();
+        assert!(
+            wild.fade_in_s.is_infinite(),
+            "the premise: serde does cast it"
+        );
+
+        let safe = wild.clamped();
+        for (name, value) in [
+            ("fadeInS", safe.fade_in_s),
+            ("fadeOutS", safe.fade_out_s),
+            ("attackMs", safe.adsr.attack_ms),
+            ("decayMs", safe.adsr.decay_ms),
+            ("releaseMs", safe.adsr.release_ms),
+        ] {
+            assert!(value.is_finite(), "{name} survived as {value}");
+        }
+
+        // ⚠ **Nonsense becomes the DEFAULT, not the ceiling**, and that is the
+        // more honest of the two: an infinity is not a producer asking for the
+        // longest possible fade, it is a payload that means nothing. Handing
+        // back a silent 60-second swell would be obeying it.
+        assert!(
+            safe.is_identity(),
+            "a block of infinities cleans up to untouched"
+        );
+    }
+
+    #[test]
+    fn a_large_but_real_number_is_capped_rather_than_thrown_away() {
+        // ⚠ The other half of the rule, and the distinction that matters: a
+        // *finite* absurdity is still a request, so it is honoured as far as the
+        // bound. Only what is not a number at all falls back to the default.
+        let asked: PadTweaks =
+            serde_json::from_str(r#"{"fadeInS": 900.0, "adsr": {"releaseMs": 900000.0}}"#).unwrap();
+        let long = asked.clamped();
+
+        assert_eq!(long.fade_in_s, MAX_FADE_S);
+        assert_eq!(long.adsr.release_ms, MAX_STAGE_MS);
+    }
+
+    #[test]
+    fn a_clamped_block_always_survives_the_round_trip_the_host_puts_it_through() {
+        // ⛔ **The actual failure path, asserted end to end rather than by
+        // proxy.** What broke the project was not the infinity itself — it was
+        // that `to_string` writes it as `null` and `from_str` then refuses the
+        // whole struct. This asserts the property that matters: whatever arrives,
+        // what we *store* can always be read back.
+        for hostile in [
+            r#"{"fadeInS": 1e39}"#,
+            r#"{"fadeOutS": -1e39}"#,
+            r#"{"gainDb": 1e39, "pan": -1e39}"#,
+            r#"{"trimStart": 1e39, "trimEnd": -1e39}"#,
+            r#"{"adsr": {"attackMs": 1e39, "sustainDb": -1e39}}"#,
+        ] {
+            let stored = serde_json::from_str::<PadTweaks>(hostile)
+                .unwrap()
+                .clamped();
+            let written = serde_json::to_string(&stored).unwrap();
+            assert!(
+                !written.contains("null"),
+                "{hostile} stored as {written}, which reopens as a lost session"
+            );
+            let back: PadTweaks = serde_json::from_str(&written)
+                .unwrap_or_else(|error| panic!("{hostile} did not survive a reopen: {error}"));
+            assert_eq!(back, stored);
+        }
+    }
+
+    #[test]
+    fn a_nan_trim_start_does_not_abort_the_host() {
+        // ⛔ `trim_end.clamp(trim_start, 1.0)` is the only clamp here whose bound
+        // is a runtime value, and `f32::clamp` asserts `min <= max` **in
+        // release**. With `panic = "abort"` a NaN there is the DAW dying.
+        //
+        // ⚠ Not reachable through serde today — a non-finite becomes
+        // `Value::Null`, which `PadTweaks::deserialize` refuses — so this is
+        // built by hand. It is one arithmetic change away from live, which is
+        // exactly when a guard is worth having.
+        let nan = PadTweaks {
+            trim_start: f32::NAN,
+            trim_end: f32::NAN,
+            gain_db: f32::NAN,
+            pan: f32::NAN,
+            fade_in_s: f32::NAN,
+            adsr: Adsr {
+                attack_ms: f32::NAN,
+                sustain_db: f32::NAN,
+                ..Adsr::default()
+            },
+            ..PadTweaks::default()
+        }
+        .clamped();
+
+        // ⚠ And it lands on the *default*, not on some arbitrary survivor: a
+        // pad whose nonsense was cleaned up should be the pad nobody edited.
+        assert!(
+            nan.is_identity(),
+            "a block of NaN should clean up to untouched"
+        );
     }
 
     #[test]

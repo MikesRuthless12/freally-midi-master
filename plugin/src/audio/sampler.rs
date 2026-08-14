@@ -155,6 +155,16 @@ struct Voice {
     /// Whether either fade is set. ⚠ One branch per frame instead of two
     /// comparisons, and it is false for every pad in every shipped kit.
     faded: bool,
+    /// Whether the producer has shaped this pad at all — trimmed, faded or
+    /// enveloped.
+    ///
+    /// ⛔ **What decides whether the end of the window RAMPS or cuts.** Cutting
+    /// a sample short leaves a step at whatever amplitude it had reached, which
+    /// is a click on every hit; an *untouched* pad has already decayed to
+    /// nothing by its last sample, so ramping it would be 5 ms of silence added
+    /// to every voice in every shipped kit for no audible gain — and it would
+    /// break the bit-identical guarantee this feature rests on.
+    shaped: bool,
 
     // ---- The amplitude envelope (TASK-164) -------------------------------
     /// Whether this voice has an envelope at all. False for every pad nobody
@@ -195,6 +205,7 @@ impl Voice {
             fade_in: 0.0,
             fade_out: 0.0,
             faded: false,
+            shaped: false,
             enveloped: false,
             env: 1.0,
             attack_left: 0,
@@ -410,6 +421,15 @@ impl Sampler {
             fade_in: pad.shape.fade_in as f32,
             fade_out: pad.shape.fade_out as f32,
             faded: pad.shape.fade_in > 0 || pad.shape.fade_out > 0,
+            // ⚠ `start`/`end` compared against the buffer rather than against
+            // `PadShape::default`, because `end` is already `min`'d to the real
+            // length here — a pad trimmed to exactly its own extent is not
+            // trimmed, and should not pay for a ramp.
+            shaped: start > 0
+                || end < pad.samples.len()
+                || pad.shape.fade_in > 0
+                || pad.shape.fade_out > 0
+                || pad.shape.adsr.is_some(),
             enveloped: pad.shape.adsr.is_some(),
             // ⛔ **Starts at 0 only when there is an attack to climb.** An
             // envelope of `A 0 ms` must be at full level on its first frame, or
@@ -494,9 +514,42 @@ impl Sampler {
                 // trim these are the same number — `end` is `min`'d to the buffer
                 // at trigger — so a pad nobody has edited ends exactly where it
                 // always did.
-                if index + 1 >= voice.end {
-                    *voice = Voice::free();
-                    break;
+                //
+                // ⛔⛔ **Reaching the end OPENS THE GATE rather than cutting.**
+                // The first cut of the trim freed the voice here with `fade`
+                // still at 1.0 — a hard step to silence at whatever amplitude
+                // the sample happened to be at. On an untrimmed pad that is
+                // inaudible, because a one-shot has already decayed by its last
+                // sample; on a *trimmed* one it is a click on every hit, and
+                // trimming to a non-zero-crossing is an ordinary thing to do.
+                //
+                // ▶ **It is also what makes the Release dial work on a drum.**
+                // `hold_for` gives every non-melodic lane `RINGS_OUT`, so the
+                // gate below never opened on a kick and the producer's release
+                // ran on nothing. Now the end of the *window* opens it too, so
+                // Release shapes the tail of the lanes Mike raised the task
+                // about — "Kick, Sub Bass, Rim Shot, etc."
+                //
+                // ⚠ **The read position stops** and the last sample in the
+                // window is held while the ramp runs. A DC hold for 5 ms is
+                // inaudible; reading past `end` would play the audio the
+                // producer trimmed away.
+                //
+                // ⚠ **Only for a pad the producer has SHAPED.** An untouched
+                // pad is freed on the frame it always was — that is the
+                // guarantee `an_untouched_pad_renders_exactly_as_it_did_before_any_of_this`
+                // holds, and a 5 ms tail on all 37 lanes of every shipped kit
+                // would break it for a click that cannot happen there: a
+                // one-shot has already decayed to nothing by its last sample.
+                // It is *cutting the sample short* that makes a step.
+                let ending = index + 1 >= voice.end;
+                if ending {
+                    if !voice.shaped || voice.end == 0 || voice.fade <= 0.0 {
+                        *voice = Voice::free();
+                        break;
+                    }
+                    // Opens the gate below on this frame and every one after.
+                    voice.hold = 0;
                 }
 
                 // ⛔⛔ **A reversed note reads the same buffer from the far end**
@@ -522,7 +575,13 @@ impl Sampler {
                 // Reversing a pad trimmed to its last quarter must play that
                 // quarter backwards; mirroring against the file would play a
                 // different quarter, forwards from the wrong end.
-                let (a, b) = if voice.reversed {
+                //
+                // ⚠ **At the end of the window both taps are the last sample**,
+                // which is the DC hold the ramp above runs over. It also keeps
+                // every index below inside `start..end` without a second bound.
+                let (a, b) = if ending {
+                    (voice.end - 1, voice.end - 1)
+                } else if voice.reversed {
                     let last = voice.start + voice.end - 1 - index;
                     (last, last - 1)
                 } else {
@@ -545,8 +604,14 @@ impl Sampler {
                 // from the *played* position, so a backwards pad fades in at the
                 // end of the file, which is the start of what is heard.
                 if voice.faded {
-                    let played = (index - voice.start) as f32;
-                    let left = (voice.end - index) as f32;
+                    // ⚠ **Saturating, because `index` can overshoot `end`.** A
+                    // pad pitched up reads more than one sample per frame, so
+                    // the frame that trips `ending` can land *past* `end` — and
+                    // `end - index` would then underflow to a huge `usize`,
+                    // which is a fade-out that never closes rather than a
+                    // panic. Both ends are saturated so neither can invert.
+                    let played = index.saturating_sub(voice.start) as f32;
+                    let left = voice.end.saturating_sub(index) as f32;
                     if voice.fade_in > 0.0 && played < voice.fade_in {
                         value *= played / voice.fade_in;
                     }
@@ -597,7 +662,14 @@ impl Sampler {
                 // copy: a surround device would otherwise put the kit in the
                 // centre and the rears at once.
 
-                voice.pos += voice.step;
+                // ⚠ **Frozen once the window has ended**, so the ramp above runs
+                // over a held last sample rather than walking `index` further
+                // and further past `end`. The fade arithmetic saturates anyway,
+                // but a position that runs away is a second thing to reason
+                // about for no gain.
+                if !ending {
+                    voice.pos += voice.step;
+                }
 
                 // ⛔ **The gate.** A melodic voice was given the note's length in
                 // frames; a drum was given `RINGS_OUT` and this branch is a
@@ -1183,13 +1255,93 @@ mod tests {
             out[0] / CENTRED
         );
 
-        // 200 samples of window, so the voice is gone well before the buffer's
-        // own end at 1,000 — which is the half a start-only trim would pass.
+        // 200 samples of window, so it stops well before the buffer's own end at
+        // 1,000 — which is the half a start-only trim would pass. ⚠ Plus the
+        // de-click ramp: a trimmed pad *ramps* off rather than being cut, so it
+        // outlives the window by `RELEASE_FRAMES`.
         let _ = render_block(&mut sampler, &kit, 220);
+        assert!(
+            sampler.active_voices() > 0,
+            "a trimmed pad must ramp off rather than being cut at the handle"
+        );
+
+        let _ = render_block(&mut sampler, &kit, RELEASE_FRAMES as usize + 8);
         assert_eq!(
             sampler.active_voices(),
             0,
             "the voice must stop at the end handle, not at the end of the file"
+        );
+    }
+
+    #[test]
+    fn cutting_a_sample_short_ramps_off_rather_than_stepping_to_silence() {
+        // ⛔⛔ **The click a trim makes, and the reason the window opens the gate
+        // rather than freeing the voice.** `ramp_kit` rises to 1.0, so trimming
+        // at 600 cuts at 0.6 amplitude — a hard step from 0.6 to nothing on
+        // every hit. Trimming to a non-zero-crossing is an ordinary thing to do.
+        let kit = ramp_kit(PadShape {
+            end: 600,
+            ..PadShape::default()
+        });
+        let mut sampler = Sampler::default();
+        sampler.trigger(&kit, 0, 1.0, 0.0, 48_000.0);
+
+        // Straight past the handle, then a few frames into the ramp.
+        let _ = render_block(&mut sampler, &kit, 599);
+        let ramping = render_block(&mut sampler, &kit, RELEASE_FRAMES as usize / 2);
+        let last = ramping[ramping.len() - 2] / CENTRED;
+        assert!(
+            (0.05..0.55).contains(&last),
+            "halfway through the ramp should be part way down from 0.6, was {last}"
+        );
+    }
+
+    #[test]
+    fn an_untouched_pad_is_still_freed_the_frame_it_always_was() {
+        // ⛔⛔ **The guarantee the ramp above must not cost.** A one-shot has
+        // already decayed to nothing by its last sample, so there is no click to
+        // prevent — and adding 5 ms to every voice in every shipped kit would
+        // break `an_untouched_pad_renders_exactly_as_it_did_before_any_of_this`
+        // for no audible gain. Only a *shaped* pad ramps.
+        let kit = ramp_kit(PadShape::default());
+        let mut sampler = Sampler::default();
+        sampler.trigger(&kit, 0, 1.0, 0.0, 48_000.0);
+
+        let _ = render_block(&mut sampler, &kit, 1_000);
+        assert_eq!(
+            sampler.active_voices(),
+            0,
+            "an untouched pad must free on the frame its sample runs out"
+        );
+    }
+
+    #[test]
+    fn a_release_the_producer_set_shapes_a_drum_at_the_end_of_its_window() {
+        // ⛔⛔ **The Release dial was inert on exactly the lanes the task was
+        // raised about.** `hold_for` gives every non-melodic lane `RINGS_OUT`,
+        // so the gate never opened on a kick and the producer's release ran on
+        // nothing — a control that could only do nothing, on "Kick, Sub Bass,
+        // Rim Shot, etc.". The end of the *window* opens it now, so Release
+        // shapes the tail of a drum too.
+        let long = Adsr {
+            release_ms: 100.0, // 4,800 frames — twenty times the de-click
+            ..Adsr::default()
+        };
+        let kit = ramp_kit(PadShape {
+            end: 600,
+            adsr: Some(long),
+            ..PadShape::default()
+        });
+
+        let mut sampler = Sampler::default();
+        // ⚠ `trigger`, not `trigger_with` — this is the DRUM path, which passes
+        // `RINGS_OUT` and never gates on the note's length.
+        sampler.trigger(&kit, 0, 1.0, 0.0, 48_000.0);
+
+        let _ = render_block(&mut sampler, &kit, 599 + RELEASE_FRAMES as usize + 8);
+        assert!(
+            sampler.active_voices() > 0,
+            "a 100 ms release on a drum must outlive the 5 ms de-click"
         );
     }
 
@@ -1242,7 +1394,16 @@ mod tests {
         ramped.trigger(&faded, 0, 1.0, 0.0, 48_000.0);
         let ramped_out = render_block(&mut ramped, &faded, 60);
 
-        assert_eq!(ramped_out[0], 0.0, "a fade-in must start at silence");
+        // ⚠ **Against the PLAIN pad, not against zero.** `ramp_kit`'s sample 0
+        // is `0/len` = 0.0, so `assert_eq!(ramped_out[0], 0.0)` passed whether
+        // or not a fade existed. Frame 20 is inside the 100-sample ramp and is
+        // where the two must differ.
+        assert!(
+            ramped_out[40] < bare_out[40],
+            "20 frames in, the fade must be below the plain pad: {} vs {}",
+            ramped_out[40],
+            bare_out[40]
+        );
         assert!(
             ramped_out[118] < bare_out[118],
             "50 frames in, the fade must still be below the plain pad"

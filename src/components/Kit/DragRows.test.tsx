@@ -65,12 +65,54 @@ const BASS: Pattern = {
  * generator writes that lane and no shipped pad has ever played it.
  */
 const KIT = [
-  { lane: 'kick' as const, shipped: true, name: null, path: null, tweaks: untouchedPad() },
-  { lane: 'snare' as const, shipped: true, name: null, path: null, tweaks: untouchedPad() },
-  { lane: 'closedHat' as const, shipped: true, name: null, path: null, tweaks: untouchedPad() },
-  { lane: 'openHat' as const, shipped: true, name: null, path: null, tweaks: untouchedPad() },
-  { lane: 'snap' as const, shipped: false, name: null, path: null, tweaks: untouchedPad() },
-  { lane: 'bass' as const, shipped: true, name: null, path: null, tweaks: untouchedPad() },
+  {
+    lane: 'kick' as const,
+    shipped: true,
+    name: null,
+    path: null,
+    tweaks: untouchedPad(),
+    reversed: false,
+  },
+  {
+    lane: 'snare' as const,
+    shipped: true,
+    name: null,
+    path: null,
+    tweaks: untouchedPad(),
+    reversed: false,
+  },
+  {
+    lane: 'closedHat' as const,
+    shipped: true,
+    name: null,
+    path: null,
+    tweaks: untouchedPad(),
+    reversed: false,
+  },
+  {
+    lane: 'openHat' as const,
+    shipped: true,
+    name: null,
+    path: null,
+    tweaks: untouchedPad(),
+    reversed: false,
+  },
+  {
+    lane: 'snap' as const,
+    shipped: false,
+    name: null,
+    path: null,
+    tweaks: untouchedPad(),
+    reversed: false,
+  },
+  {
+    lane: 'bass' as const,
+    shipped: true,
+    name: null,
+    path: null,
+    tweaks: untouchedPad(),
+    reversed: false,
+  },
 ];
 
 beforeEach(() => {

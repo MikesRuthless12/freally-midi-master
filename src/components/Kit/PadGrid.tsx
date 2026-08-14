@@ -199,9 +199,13 @@ export function PadGrid() {
               // ⛔ **…and its editor opens** (TASK-059), which also brings the
               // KIT panel on screen — this pad is on the stage and the editor
               // is drawn in the rail, so `editPad` shows the panel too.
-              void dropOn(lane, path).then(() => {
+              void dropOn(lane, path).then((landed) => {
                 void refresh();
-                editPad(lane);
+                // ⛔ **Only when it landed.** `dropOn` reports its own refusal through
+                // `error` — a sample outside the library, say — and opening an editor
+                // over a lane that still reads "Shipped" would be a panel describing a
+                // drop that did not happen.
+                if (landed) editPad(lane);
               });
             }}
           >
@@ -313,9 +317,13 @@ export function PadGrid() {
                 aria-label={t('kit.useSelected', { lane: name })}
                 title={t('kit.useSelected', { lane: name })}
                 onClick={() =>
-                  void dropOn(lane, selectedSample).then(() => {
+                  void dropOn(lane, selectedSample).then((landed) => {
                     void refresh();
-                    editPad(lane);
+                    // ⛔ **Only when it landed.** `dropOn` reports its own refusal through
+                    // `error` — a sample outside the library, say — and opening an editor
+                    // over a lane that still reads "Shipped" would be a panel describing a
+                    // drop that did not happen.
+                    if (landed) editPad(lane);
                   })
                 }
               >

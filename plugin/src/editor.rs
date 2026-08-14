@@ -1302,6 +1302,11 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
             // from a table written in this file.
             let tweaks =
                 crate::state::with(&shared.session, |s| s.pad_tweaks.clone()).unwrap_or_default();
+            // ⚠ Read beside the tweaks, because the editor draws the trim
+            // handles over a waveform and needs to know which way round the
+            // buffer they window actually runs — see the field below.
+            let reversed = crate::state::with(&shared.session, |s| s.one_shots_reversed.clone())
+                .unwrap_or_default();
             let lanes: Vec<Value> = crate::shared::ALL_LANES
                 .iter()
                 .map(|lane| {
@@ -1320,6 +1325,14 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
                         // would make every untouched pad a special case in the
                         // one place a control has to have a position.
                         "tweaks": tweaks.get(lane).copied().unwrap_or_default(),
+                        // ⛔ **Whether the buffer was flipped at decode**
+                        // (2026-08-11). `oneshot::load` bakes the reversal into
+                        // the samples, so `PadTweaks::shape_for` windows the
+                        // REVERSED audio — while the editor draws
+                        // `explorer_waveform`, which reads the file off disk
+                        // forwards. Without this the trim handles shade one end
+                        // of the picture and the engine cuts the other.
+                        "reversed": reversed.get(lane).copied().unwrap_or(false),
                     })
                 })
                 .collect();

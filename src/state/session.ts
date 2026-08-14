@@ -1648,6 +1648,17 @@ export const useSession = create<SessionState>((set, get) => ({
       // authors no modes the chip is not even rendered, so there is no control
       // on screen to clear it.
       mood: null,
+      // ⛔⛔ **And the base, for exactly the same reason, which is not a
+      // coincidence — it is the same rule.** `relatedGenres` belong to the
+      // artist they were listed for, and the chip is hidden entirely for a
+      // genre, for an artist who works in nothing else, and for a producer's
+      // own style. Carrying a base across therefore leaves a pin *in force with
+      // no control on screen to clear it*: the next Generate is over a genre
+      // the new artist has nothing to do with, `session_defaults` resolves
+      // their tempo over it, and on one of the producer's own styles every
+      // Generate is refused outright with *"your own style … cannot be
+      // generated over another genre yet"* and no way out but restarting.
+      base: null,
       // ⛔ **All five, not just the one showing.** The old pattern belonged to
       // the old artist; so did the other four, and leaving any of them up would
       // show one artist's clips under another artist's name.
@@ -2077,7 +2088,13 @@ export const useSession = create<SessionState>((set, get) => ({
         if (!recalling) {
           useVariations
             .getState()
-            .record(entryFor(pattern, { mood: state.mood, pins: state.pins }, Date.now()));
+            .record(
+              entryFor(
+                pattern,
+                { mood: state.mood, base: state.base, pins: state.pins },
+                Date.now(),
+              ),
+            );
         }
         return {
           patterns: { ...state.patterns, [part]: held },
@@ -2201,7 +2218,13 @@ export const useSession = create<SessionState>((set, get) => ({
         // is per part.
         useVariations
           .getState()
-          .record(entryFor(pattern, { mood: get().mood, pins: get().pins }, Date.now()));
+          .record(
+            entryFor(
+              pattern,
+              { mood: get().mood, base: get().base, pins: get().pins },
+              Date.now(),
+            ),
+          );
       } catch (error) {
         // ⛔ **A refused part is not a failed run, and treating it as one was
         // the defect.** A style whose 808 *is* the bassline authors no separate
@@ -2465,6 +2488,13 @@ export const useSession = create<SessionState>((set, get) => ({
         timeSigDen: entry.timeSigDen,
       },
       mood: entry.mood,
+      // ⛔ **The base the take was made over** (TASK-158C). Recall REGENERATES
+      // from the inputs rather than replaying stored notes, so an input left
+      // out here is taken from whatever is pinned *now* — and the notes that
+      // come back are then not the take the panel is describing. ⚠ `?? null` for
+      // entries written before the field existed: absent means the artist's own,
+      // which is what they were.
+      base: entry.base ?? null,
     });
 
     // ⛔⛔ **A different artist needs everything a `select` does.** This wrote

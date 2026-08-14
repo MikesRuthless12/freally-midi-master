@@ -31,16 +31,38 @@ import { useKit } from '../../state/kit';
 /** The kit as the plugin reports it. `snap` is shipped-silent on purpose — the
  *  drum generator writes that lane and no shipped pad has ever played it. */
 const KIT = [
-  { lane: 'kick' as const, shipped: true, name: null, path: null, tweaks: untouchedPad() },
-  { lane: 'snare' as const, shipped: true, name: null, path: null, tweaks: untouchedPad() },
+  {
+    lane: 'kick' as const,
+    shipped: true,
+    name: null,
+    path: null,
+    tweaks: untouchedPad(),
+    reversed: false,
+  },
+  {
+    lane: 'snare' as const,
+    shipped: true,
+    name: null,
+    path: null,
+    tweaks: untouchedPad(),
+    reversed: false,
+  },
   {
     lane: 'closedHat' as const,
     shipped: true,
     name: 'my-hat.wav',
     path: 'C:/s/my-hat.wav',
     tweaks: untouchedPad(),
+    reversed: false,
   },
-  { lane: 'snap' as const, shipped: false, name: null, path: null, tweaks: untouchedPad() },
+  {
+    lane: 'snap' as const,
+    shipped: false,
+    name: null,
+    path: null,
+    tweaks: untouchedPad(),
+    reversed: false,
+  },
 ];
 
 beforeEach(() => {
@@ -146,6 +168,7 @@ describe('the KIT panel says what is actually loaded', () => {
         name: null,
         path: null,
         tweaks: untouchedPad(),
+        reversed: false,
       },
       {
         lane: 'chords' as const,
@@ -153,17 +176,33 @@ describe('the KIT panel says what is actually loaded', () => {
         name: 'pad.wav',
         path: 'C:/s/pad.wav',
         tweaks: untouchedPad(),
+        reversed: false,
       },
-      { lane: 'bass' as const, shipped: true, name: null, path: null, tweaks: untouchedPad() },
+      {
+        lane: 'bass' as const,
+        shipped: true,
+        name: null,
+        path: null,
+        tweaks: untouchedPad(),
+        reversed: false,
+      },
       {
         lane: 'counter' as const,
         shipped: true,
         name: null,
         path: null,
         tweaks: untouchedPad(),
+        reversed: false,
       },
       // Nothing shipped and nothing assigned: there is no sample to hear.
-      { lane: 'snap' as const, shipped: false, name: null, path: null, tweaks: untouchedPad() },
+      {
+        lane: 'snap' as const,
+        shipped: false,
+        name: null,
+        path: null,
+        tweaks: untouchedPad(),
+        reversed: false,
+      },
     ];
 
     it.each(['melody', 'chords', 'bass', 'counter'])('offers Play on %s', (lane) => {

@@ -40,6 +40,7 @@ function kitState(assigned: Partial<Record<Lane, string>> = {}) {
       name: assigned[lane] ?? null,
       path: assigned[lane] ? `C:/samples/${assigned[lane]}` : null,
       tweaks: untouchedPad(),
+      reversed: false,
     })),
   };
 }

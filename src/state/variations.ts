@@ -48,6 +48,20 @@ export type Variation = {
   artistId: string;
   /** The pinned mood, or `null` for "Any" (TASK-040V). */
   mood: string | null;
+  /**
+   * The genre this take was generated OVER, or `null` for the artist's own
+   * (TASK-158C).
+   *
+   * ⛔ **Recorded for the same reason `mood` is**: recall regenerates from the
+   * inputs rather than replaying stored notes, so an input the entry does not
+   * carry is one the recall silently takes from whatever is pinned *now*. A take
+   * made over boom-bap, recalled after the chip moved, would come back as notes
+   * that are not the take the panel is describing.
+   *
+   * ⚠ Optional on the way in: entries written before this existed have none, and
+   * absent means the artist's own — which is what they were.
+   */
+  base?: string | null;
   /** The take's seed, as a decimal string — a `u64` does not survive a number. */
   seed: string;
   /** The record every part of this generation was written against (TASK-141). */
@@ -316,13 +330,14 @@ export function counter(part: Part): { position: number; total: number } {
  */
 export function entryFor(
   pattern: Pattern,
-  session: { mood: string | null; pins: SessionPins },
+  session: { mood: string | null; base: string | null; pins: SessionPins },
   at: number,
 ): Variation {
   return {
     part: pattern.part,
     artistId: pattern.artistId,
     mood: session.mood,
+    base: session.base,
     seed: pattern.seed,
     songSeed: pattern.songSeed,
     bars: pattern.bars,

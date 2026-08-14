@@ -205,9 +205,13 @@ export function KitPanel() {
                 // "imports, assigns, and opens the per-one-shot editor". A
                 // sample that lands with no way to shape it is where this
                 // stopped before the editor existed.
-                void dropOn(entry.lane, path).then(() => {
+                void dropOn(entry.lane, path).then((landed) => {
                   void refresh();
-                  setEditing(entry.lane);
+                  // ⛔ **Only when it landed.** `dropOn` reports its own refusal through
+                  // `error` — a sample outside the library, say — and opening an editor
+                  // over a lane that still reads "Shipped" would be a panel describing a
+                  // drop that did not happen.
+                  if (landed) setEditing(entry.lane);
                 });
               }}
             >

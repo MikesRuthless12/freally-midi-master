@@ -296,7 +296,7 @@ it('generating a fresh song drops the locks placed on the old one', async () => 
 
   await useSong
     .getState()
-    .generate({ styleId: 'trap', seed: '9', pins: {} as never, mood: null });
+    .generate({ styleId: 'trap', seed: '9', pins: {} as never, mood: null, base: null });
 
   expect(useSong.getState().locks).toEqual([]);
 });
@@ -461,7 +461,7 @@ it('generating a fresh song drops the loop, because the indices moved', async ()
 
   await useSong
     .getState()
-    .generate({ styleId: 'trap', seed: '9', pins: {} as never, mood: null });
+    .generate({ styleId: 'trap', seed: '9', pins: {} as never, mood: null, base: null });
   expect(useSong.getState().loopSection).toBeNull();
 });
 
@@ -669,7 +669,7 @@ it('generating a fresh song drops an audition placed on the old one', async () =
 
   await useSong
     .getState()
-    .generate({ styleId: 'trap', seed: '9', pins: {} as never, mood: null });
+    .generate({ styleId: 'trap', seed: '9', pins: {} as never, mood: null, base: null });
   expect(useSong.getState().audition).toBeNull();
 });
 
@@ -748,7 +748,7 @@ it('generating drops the clipboard, which holds ids the new song also has', asyn
 
   await useSong
     .getState()
-    .generate({ styleId: 'trap', seed: '9', pins: {} as never, mood: null });
+    .generate({ styleId: 'trap', seed: '9', pins: {} as never, mood: null, base: null });
 
   expect(useSong.getState().clipboard).toBeNull();
 });
@@ -763,7 +763,7 @@ it('generating drops a solo, which the new song may have no row for', async () =
 
   await useSong
     .getState()
-    .generate({ styleId: 'trap', seed: '9', pins: {} as never, mood: null });
+    .generate({ styleId: 'trap', seed: '9', pins: {} as never, mood: null, base: null });
 
   expect(useSong.getState().soloParts).toEqual([]);
   expect(useSong.getState().mutedParts).toEqual([]);
