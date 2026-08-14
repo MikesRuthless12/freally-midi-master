@@ -489,26 +489,37 @@ mod tests {
     }
 
     #[test]
-    fn a_huge_but_finite_number_cannot_become_an_infinity_in_the_project_file() {
-        // ⛔⛔ **THE ONE THAT COST A WHOLE PROJECT.** `1e39` is an ordinary
-        // finite JSON number and serde casts it to `f32::INFINITY`. These five
-        // fields were floored with `.max(0.0)` and never capped, and
-        // `INFINITY.max(0.0)` is `INFINITY` — so it reached
-        // `PluginSession::pad_tweaks`, `serde_json` wrote it as `null`, the
-        // host's SAVE succeeded, and the REOPEN failed with
-        // `invalid type: null, expected f32`. nih-plug only logs a field that
-        // fails to deserialize, so the whole session reverted to default: the
-        // seed, the edited clips, the arrangement, the sample folders and the
-        // one-shots.
-        let wild: PadTweaks = serde_json::from_str(
-            r#"{"fadeInS": 1e39, "fadeOutS": 1e39,
-                "adsr": {"attackMs": 1e39, "decayMs": 1e39, "releaseMs": 1e39}}"#,
-        )
-        .unwrap();
-        assert!(
-            wild.fade_in_s.is_infinite(),
-            "the premise: serde does cast it"
-        );
+    fn a_non_finite_value_cannot_reach_the_project_file() {
+        // ⛔⛔ **THE ONE THAT COST A WHOLE PROJECT.** These five fields were
+        // floored with `.max(0.0)` and never capped, and `INFINITY.max(0.0)` is
+        // `INFINITY` — so an infinity reached `PluginSession::pad_tweaks`,
+        // `serde_json` wrote it as `null`, the host's SAVE succeeded, and the
+        // REOPEN failed with `invalid type: null, expected f32`. nih-plug only
+        // *logs* a field that fails to deserialize, so the whole session
+        // reverted to default: the seed, the edited clips, the arrangement, the
+        // sample folders and the one-shots.
+        //
+        // ⛔ **Built in Rust rather than parsed from JSON, and that matters.**
+        // The first cut of this test fed serde `1e39` — which really does become
+        // `f32::INFINITY` in some builds — and it passed under
+        // `cargo test -p … --lib` and **failed under `cargo test --workspace`**,
+        // where feature unification gives a `serde_json` that refuses the
+        // literal with *"number out of range"*. A test whose premise depends on
+        // which crates happen to be in the build is a test that says nothing
+        // about the code. What has to hold is what `clamped` does with a
+        // non-finite value, however one arrives — and `Shared::set_pad_tweaks`
+        // is not the only door: `pad_tweaks` also rides in a shared project file.
+        let wild = PadTweaks {
+            fade_in_s: f32::INFINITY,
+            fade_out_s: f32::NEG_INFINITY,
+            adsr: Adsr {
+                attack_ms: f32::INFINITY,
+                decay_ms: f32::INFINITY,
+                release_ms: f32::INFINITY,
+                ..Adsr::default()
+            },
+            ..PadTweaks::default()
+        };
 
         let safe = wild.clamped();
         for (name, value) in [
@@ -536,9 +547,15 @@ mod tests {
         // ⚠ The other half of the rule, and the distinction that matters: a
         // *finite* absurdity is still a request, so it is honoured as far as the
         // bound. Only what is not a number at all falls back to the default.
-        let asked: PadTweaks =
-            serde_json::from_str(r#"{"fadeInS": 900.0, "adsr": {"releaseMs": 900000.0}}"#).unwrap();
-        let long = asked.clamped();
+        let long = PadTweaks {
+            fade_in_s: 900.0,
+            adsr: Adsr {
+                release_ms: 900_000.0,
+                ..Adsr::default()
+            },
+            ..PadTweaks::default()
+        }
+        .clamped();
 
         assert_eq!(long.fade_in_s, MAX_FADE_S);
         assert_eq!(long.adsr.release_ms, MAX_STAGE_MS);
@@ -549,25 +566,34 @@ mod tests {
         // ⛔ **The actual failure path, asserted end to end rather than by
         // proxy.** What broke the project was not the infinity itself — it was
         // that `to_string` writes it as `null` and `from_str` then refuses the
-        // whole struct. This asserts the property that matters: whatever arrives,
-        // what we *store* can always be read back.
-        for hostile in [
-            r#"{"fadeInS": 1e39}"#,
-            r#"{"fadeOutS": -1e39}"#,
-            r#"{"gainDb": 1e39, "pan": -1e39}"#,
-            r#"{"trimStart": 1e39, "trimEnd": -1e39}"#,
-            r#"{"adsr": {"attackMs": 1e39, "sustainDb": -1e39}}"#,
-        ] {
-            let stored = serde_json::from_str::<PadTweaks>(hostile)
-                .unwrap()
-                .clamped();
+        // whole struct. This asserts the property that matters: whatever the
+        // block holds, what we *store* can always be read back.
+        let nonsense = [f32::INFINITY, f32::NEG_INFINITY, f32::NAN];
+        for bad in nonsense {
+            let hostile = PadTweaks {
+                gain_db: bad,
+                pan: bad,
+                trim_start: bad,
+                trim_end: bad,
+                fade_in_s: bad,
+                fade_out_s: bad,
+                adsr: Adsr {
+                    attack_ms: bad,
+                    decay_ms: bad,
+                    sustain_db: bad,
+                    release_ms: bad,
+                },
+                ..PadTweaks::default()
+            };
+
+            let stored = hostile.clamped();
             let written = serde_json::to_string(&stored).unwrap();
             assert!(
                 !written.contains("null"),
-                "{hostile} stored as {written}, which reopens as a lost session"
+                "{bad} stored as {written}, which reopens as a lost session"
             );
             let back: PadTweaks = serde_json::from_str(&written)
-                .unwrap_or_else(|error| panic!("{hostile} did not survive a reopen: {error}"));
+                .unwrap_or_else(|error| panic!("{bad} did not survive a reopen: {error}"));
             assert_eq!(back, stored);
         }
     }
