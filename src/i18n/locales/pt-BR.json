@@ -56,7 +56,8 @@
     "unmuteLane": "Reativar {{lane}}",
     "playLane": "Tocar {{lane}}",
     "padLane": "Faixa do pad {{at}}",
-    "useSelected": "Colocar a amostra selecionada em {{lane}}"
+    "useSelected": "Colocar a amostra selecionada em {{lane}}",
+    "editPad": "Editar o som de {{lane}}"
   },
   "sections": {
     "genres": "Gêneros",
@@ -73,7 +74,9 @@
     "key": "Tom",
     "scale": "Escala",
     "swing": "Swing",
-    "mood": "Clima"
+    "mood": "Clima",
+    "base": "Gerar em",
+    "ownGenre": "O gênero deles"
   },
   "session": {
     "pickArtist": "Escolha um artista para ver o que ele pede.",
@@ -442,7 +445,10 @@
     },
     "midiFound": "Conteúdo deste arquivo MIDI",
     "midiNotes": "Notas",
-    "midiAuditionClipped": "Apenas os dois primeiros minutos são reproduzidos."
+    "midiAuditionClipped": "Apenas os dois primeiros minutos são reproduzidos.",
+    "raw": "Cru",
+    "rawHint": "Tocar o arquivo exatamente como está no disco",
+    "previewGain": "Nível de audição"
   },
   "patterns": {
     "name": "Dê um nome a este padrão",
@@ -520,5 +526,25 @@
     "none": "Nenhum kit salvo ainda. Atribua algumas amostras, dê um nome e elas estarão aqui na próxima vez.",
     "delete": "Excluir {{name}}",
     "duplicate": "Copiar {{name}} com o nome digitado"
+  },
+  "padEditor": {
+    "title": "{{lane}} — som",
+    "close": "Fechar o editor de som",
+    "reset": "Redefinir",
+    "attack": "Ataque",
+    "decay": "Decaimento",
+    "sustain": "Sustentação",
+    "release": "Liberação",
+    "volume": "Volume",
+    "pan": "Panorama",
+    "transpose": "Transpor",
+    "cents": "Ajuste fino",
+    "normalize": "Normalizar para escala cheia",
+    "trimStart": "Início",
+    "trimEnd": "Fim",
+    "fadeIn": "Fade de entrada",
+    "fadeOut": "Fade de saída",
+    "noWaveform": "Este pad toca um sample embutido, então não há arquivo para desenhar.",
+    "envelopeShape": "Ataque {{attack}} ms, decaimento {{decay}} ms, sustentação {{sustain}} dB, liberação {{release}} ms"
   }
 }

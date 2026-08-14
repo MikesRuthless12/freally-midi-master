@@ -35,6 +35,7 @@ pub mod kits;
 pub mod midi_audition;
 pub mod models;
 pub mod oneshot;
+pub mod pad_tweaks;
 pub mod patterns;
 pub mod presets;
 pub mod preview;

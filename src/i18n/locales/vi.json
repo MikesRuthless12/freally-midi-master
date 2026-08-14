@@ -56,7 +56,8 @@
     "unmuteLane": "Bật tiếng {{lane}}",
     "playLane": "Phát {{lane}}",
     "padLane": "Làn của pad {{at}}",
-    "useSelected": "Đặt mẫu đã chọn vào {{lane}}"
+    "useSelected": "Đặt mẫu đã chọn vào {{lane}}",
+    "editPad": "Chỉnh âm thanh của {{lane}}"
   },
   "sections": {
     "genres": "Thể loại",
@@ -73,7 +74,9 @@
     "key": "Tông",
     "scale": "Âm giai",
     "swing": "Độ swing",
-    "mood": "Tâm trạng"
+    "mood": "Tâm trạng",
+    "base": "Tạo trong",
+    "ownGenre": "Thể loại của họ"
   },
   "session": {
     "pickArtist": "Chọn một nghệ sĩ để xem yêu cầu của họ.",
@@ -442,7 +445,10 @@
     },
     "midiFound": "Nội dung tệp MIDI này",
     "midiNotes": "Nốt",
-    "midiAuditionClipped": "Chỉ nghe thử hai phút đầu."
+    "midiAuditionClipped": "Chỉ nghe thử hai phút đầu.",
+    "raw": "Thô",
+    "rawHint": "Phát tệp đúng như nó nằm trên đĩa",
+    "previewGain": "Mức nghe thử"
   },
   "patterns": {
     "name": "Đặt tên cho pattern này",
@@ -520,5 +526,25 @@
     "none": "Chưa có kit nào được lưu. Gán vài mẫu, đặt tên, lần sau chúng sẽ ở đây.",
     "delete": "Xoá {{name}}",
     "duplicate": "Sao chép {{name}} theo tên đã nhập"
+  },
+  "padEditor": {
+    "title": "{{lane}} — âm thanh",
+    "close": "Đóng trình chỉnh âm",
+    "reset": "Đặt lại",
+    "attack": "Khởi âm",
+    "decay": "Suy giảm",
+    "sustain": "Duy trì",
+    "release": "Buông",
+    "volume": "Âm lượng",
+    "pan": "Cân bằng",
+    "transpose": "Dịch giọng",
+    "cents": "Tinh chỉnh",
+    "normalize": "Chuẩn hoá về toàn thang",
+    "trimStart": "Bắt đầu",
+    "trimEnd": "Kết thúc",
+    "fadeIn": "Vào dần",
+    "fadeOut": "Nhỏ dần",
+    "noWaveform": "Pad này phát mẫu dựng sẵn nên không có tệp nào để vẽ.",
+    "envelopeShape": "Khởi âm {{attack}} ms, suy giảm {{decay}} ms, duy trì {{sustain}} dB, buông {{release}} ms"
   }
 }

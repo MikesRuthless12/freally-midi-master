@@ -673,10 +673,34 @@
   border-top: 1px solid var(--color-border);
 }
 
+/* The audition level (TASK-058B). ⚠ Narrow and `flex: none`, so it never
+   competes with the transport buttons for the rail's width — the strip is the
+   one panel that has to survive being dragged down to its minimum. */
+.preview__gain {
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.preview__gain input {
+  width: 64px;
+  min-width: 0;
+}
+
+.preview__gain-value,
 .preview__time {
   margin-inline-start: auto;
   color: var(--color-text-3);
   font-family: var(--font-mono);
   font-size: var(--text-micro);
   white-space: nowrap;
+}
+
+/* ⚠ Not pushed to the far end — that is the time readout's job, and two
+   `margin-inline-start: auto` in one row puts a gap between them rather than
+   at the start of both. */
+.preview__gain-value {
+  margin-inline-start: 0;
+  font-variant-numeric: tabular-nums;
 }

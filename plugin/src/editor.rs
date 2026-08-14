@@ -625,6 +625,24 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
             return Some(Ok(Value::Null));
         }
 
+        // How loud the audition is, and whether it is levelled at all
+        // (TASK-058B). ⚠ Two arms rather than one: `Raw` is a bypass and the
+        // gain is a position, so a producer who toggles `Raw` off must get back
+        // the level they had set rather than whatever the toggle carried.
+        "preview_gain" => {
+            shared
+                .preview
+                .set_gain_db(request.args["db"].as_f64().unwrap_or(0.0) as f32);
+            return Some(Ok(Value::Null));
+        }
+
+        "preview_raw" => {
+            shared
+                .preview
+                .set_raw(request.args["on"].as_bool().unwrap_or(false));
+            return Some(Ok(Value::Null));
+        }
+
         // Polled while a sample is auditioning — the one number everything
         // else is drawn from. `collect` rides along because this is the
         // editor thread and it is what frees a buffer the callback parked.
@@ -1278,6 +1296,17 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
                 .flatten()
                 .unwrap_or_default();
             let base = crate::audio::kit_for_model(&model_id);
+            // ⚠ **Answered from the store, so the panel's knobs come back where
+            // the producer left them on reopen.** The same rule the rest of this
+            // reply follows: every word here is read from what is loaded, never
+            // from a table written in this file.
+            let tweaks =
+                crate::state::with(&shared.session, |s| s.pad_tweaks.clone()).unwrap_or_default();
+            // ⚠ Read beside the tweaks, because the editor draws the trim
+            // handles over a waveform and needs to know which way round the
+            // buffer they window actually runs — see the field below.
+            let reversed = crate::state::with(&shared.session, |s| s.one_shots_reversed.clone())
+                .unwrap_or_default();
             let lanes: Vec<Value> = crate::shared::ALL_LANES
                 .iter()
                 .map(|lane| {
@@ -1291,6 +1320,19 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
                         "shipped": base.is_some_and(|kit| kit.pad_for(*lane).is_some()),
                         "name": one_shot.map(|(_, name)| name.clone()),
                         "path": one_shot.map(|(path, _)| path.clone()),
+                        // ⚠ **The default, not `null`, for a lane nobody has
+                        // edited.** The page draws knobs off this, and a null
+                        // would make every untouched pad a special case in the
+                        // one place a control has to have a position.
+                        "tweaks": tweaks.get(lane).copied().unwrap_or_default(),
+                        // ⛔ **Whether the buffer was flipped at decode**
+                        // (2026-08-11). `oneshot::load` bakes the reversal into
+                        // the samples, so `PadTweaks::shape_for` windows the
+                        // REVERSED audio — while the editor draws
+                        // `explorer_waveform`, which reads the file off disk
+                        // forwards. Without this the trim handles shade one end
+                        // of the picture and the engine cuts the other.
+                        "reversed": reversed.get(lane).copied().unwrap_or(false),
                     })
                 })
                 .collect();
@@ -1315,6 +1357,24 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
                 shared.clear_one_shot(lane);
                 Value::Null
             }));
+        }
+
+        // One pad's gain, pan, tuning, trim, fades and envelope (TASK-055A,
+        // TASK-164).
+        //
+        // ⛔ **The whole block at once rather than a field per command.** A
+        // producer dragging an envelope handle moves two numbers together, and
+        // two commands would rebuild the kit twice and let the audio thread hear
+        // a state that was never on screen. `set_pad_tweaks` persists and
+        // republishes in one call for the same reason `assign_one_shot` does.
+        "pad_tweaks_set" => {
+            return Some((|| -> Result<Value, String> {
+                let lane = lane_arg(request)?;
+                let tweaks = crate::pad_tweaks::PadTweaks::deserialize(&request.args["tweaks"])
+                    .map_err(|e| format!("bad tweaks: {e}"))?;
+                shared.set_pad_tweaks(lane, tweaks);
+                Ok(Value::Null)
+            })());
         }
 
         "export_pattern_stems" => {
@@ -2705,6 +2765,121 @@ mod tests {
                 );
                 assert_eq!(entry["name"], Value::Null, "nothing is assigned yet");
             }
+        }
+
+        /// Per-pad edits, across the bridge (TASK-055A, TASK-164).
+        ///
+        /// ⛔ **The command and the readout are tested together on purpose.**
+        /// `pad_tweaks_set` persists *and* rebuilds the kit in one call, and
+        /// `kit_state` is the only thing that tells the page where a knob sits —
+        /// a command that stored without republishing, or a readout that
+        /// answered defaults over a stored edit, are both the same failure: a
+        /// control that moves and changes nothing.
+        #[test]
+        fn a_pad_edit_is_stored_and_comes_back_on_the_lane_it_was_made_on() {
+            let shared: SharedState = Arc::new(Shared::default());
+
+            // ⚠ `Kick` — a lane with no one-shot on it, because the whole point
+            // of TASK-164 is that the *shipped* voice can be shaped too.
+            let reply = window_command(
+                &with_args(
+                    "pad_tweaks_set",
+                    json!({
+                        "lane": "kick",
+                        "tweaks": { "gainDb": -6.0, "pan": -1.0, "adsr": { "decayMs": 195.0, "sustainDb": -36.0 } },
+                    }),
+                ),
+                &shared,
+            )
+            .expect("pad_tweaks_set is a window command");
+            assert!(reply.is_ok(), "it must be accepted: {reply:?}");
+
+            let state = window_command(&command("kit_state"), &shared)
+                .expect("known")
+                .expect("answers");
+            let kick = state["lanes"]
+                .as_array()
+                .expect("a lane list")
+                .iter()
+                .find(|entry| entry["lane"] == json!("kick"))
+                .expect("kick must be listed")
+                .clone();
+
+            assert_eq!(kick["tweaks"]["gainDb"], json!(-6.0));
+            assert_eq!(kick["tweaks"]["pan"], json!(-1.0));
+            assert_eq!(kick["tweaks"]["adsr"]["decayMs"], json!(195.0));
+            // ⚠ A field the request never mentioned comes back as the default,
+            // not as null or zero — `trimEnd` is the one where those differ, and
+            // `0.0` there would be a pad that had silently stopped sounding.
+            assert_eq!(kick["tweaks"]["trimEnd"], json!(1.0));
+
+            // And a lane nobody touched still answers with a full block.
+            let snare = state["lanes"]
+                .as_array()
+                .expect("a lane list")
+                .iter()
+                .find(|entry| entry["lane"] == json!("snare"))
+                .expect("snare must be listed")
+                .clone();
+            assert_eq!(snare["tweaks"]["gainDb"], json!(0.0));
+            assert_eq!(snare["tweaks"]["trimEnd"], json!(1.0));
+        }
+
+        #[test]
+        fn a_pad_edit_is_clamped_at_the_door_rather_than_trusted() {
+            // ⛔ The values arrive as JSON and can carry anything. An inverted
+            // trim window is the shape that aborted the host in `smf_read`, and
+            // the page is not the only thing that can send one.
+            let shared: SharedState = Arc::new(Shared::default());
+            window_command(
+                &with_args(
+                    "pad_tweaks_set",
+                    json!({
+                        "lane": "kick",
+                        "tweaks": { "gainDb": 400.0, "pan": -9.0, "semis": 900, "trimStart": 0.8, "trimEnd": 0.2 },
+                    }),
+                ),
+                &shared,
+            )
+            .expect("known")
+            .expect("accepted");
+
+            let stored = crate::state::with(&shared.session, |s| s.pad_tweaks.clone())
+                .expect("the session must read");
+            let kick = stored.get(&Lane::Kick).expect("kick was edited");
+            assert_eq!(kick.gain_db, crate::pad_tweaks::MAX_GAIN_DB);
+            assert_eq!(kick.pan, -1.0);
+            assert_eq!(kick.semis, crate::pad_tweaks::MAX_SEMIS);
+            assert_eq!(kick.trim_start, 0.8);
+            assert_eq!(kick.trim_end, 0.8, "the window closes, it does not flip");
+        }
+
+        #[test]
+        fn returning_every_control_to_its_default_leaves_nothing_in_the_project() {
+            // ⛔ Otherwise `pad_tweaks` would appear in every project file ever
+            // written from this build, holding thirty-seven rows of nothing in a
+            // blob the host serializes on every save.
+            let shared: SharedState = Arc::new(Shared::default());
+            let set = |body: Value| {
+                window_command(&with_args("pad_tweaks_set", body), &shared)
+                    .expect("known")
+                    .expect("accepted");
+            };
+
+            set(json!({ "lane": "kick", "tweaks": { "gainDb": -6.0 } }));
+            assert!(
+                !crate::state::with(&shared.session, |s| s.pad_tweaks.clone())
+                    .expect("reads")
+                    .is_empty()
+            );
+
+            set(json!({ "lane": "kick", "tweaks": {} }));
+            assert!(
+                crate::state::with(&shared.session, |s| s.pad_tweaks.clone())
+                    .expect("reads")
+                    .is_empty(),
+                "an identity block is removed, not stored"
+            );
         }
 
         #[test]

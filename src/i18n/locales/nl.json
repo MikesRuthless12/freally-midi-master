@@ -56,7 +56,8 @@
     "unmuteLane": "{{lane}} inschakelen",
     "playLane": "{{lane}} afspelen",
     "padLane": "Baan van pad {{at}}",
-    "useSelected": "Geselecteerde sample op {{lane}} zetten"
+    "useSelected": "Geselecteerde sample op {{lane}} zetten",
+    "editPad": "Het geluid van {{lane}} bewerken"
   },
   "sections": {
     "genres": "Genres",
@@ -73,7 +74,9 @@
     "key": "Toonsoort",
     "scale": "Toonladder",
     "swing": "Swing",
-    "mood": "Sfeer"
+    "mood": "Sfeer",
+    "base": "Genereren in",
+    "ownGenre": "Hun eigen genre"
   },
   "session": {
     "pickArtist": "Kies een artiest om te zien wat die vraagt.",
@@ -442,7 +445,10 @@
     },
     "midiFound": "Inhoud van dit MIDI-bestand",
     "midiNotes": "Noten",
-    "midiAuditionClipped": "Alleen de eerste twee minuten worden beluisterd."
+    "midiAuditionClipped": "Alleen de eerste twee minuten worden beluisterd.",
+    "raw": "Ruw",
+    "rawHint": "Het bestand precies afspelen zoals het op schijf staat",
+    "previewGain": "Voorluisterniveau"
   },
   "patterns": {
     "name": "Geef dit patroon een naam",
@@ -520,5 +526,25 @@
     "none": "Nog geen opgeslagen kits. Wijs samples toe, geef ze een naam, en ze staan hier de volgende keer.",
     "delete": "{{name}} verwijderen",
     "duplicate": "{{name}} kopiëren onder de ingetypte naam"
+  },
+  "padEditor": {
+    "title": "{{lane}} — geluid",
+    "close": "Geluidseditor sluiten",
+    "reset": "Herstellen",
+    "attack": "Aanzet",
+    "decay": "Afname",
+    "sustain": "Houdniveau",
+    "release": "Uitsterven",
+    "volume": "Volume",
+    "pan": "Balans",
+    "transpose": "Transponeren",
+    "cents": "Fijnstemming",
+    "normalize": "Normaliseren naar volle schaal",
+    "trimStart": "Begin",
+    "trimEnd": "Einde",
+    "fadeIn": "Invloeien",
+    "fadeOut": "Uitvloeien",
+    "noWaveform": "Dit pad speelt een ingebouwd sample, dus er is geen bestand om te tekenen.",
+    "envelopeShape": "Aanzet {{attack}} ms, afname {{decay}} ms, houdniveau {{sustain}} dB, uitsterven {{release}} ms"
   }
 }

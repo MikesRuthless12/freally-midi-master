@@ -8,6 +8,7 @@
 use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::sync::OnceLock;
 
 use engine::context::{Humanize, SessionContext, Swing, SwingGrid};
 use engine::humanize::{humanize, ramp, swing_tick, Band, VelocityTiers};
@@ -21,13 +22,29 @@ fn data_dir() -> PathBuf {
         .join("data")
 }
 
-/// Every shipped model, resolved.
+/// Every shipped model, read and resolved **once per test binary**.
+///
+/// ⛔ **This used to re-read and re-resolve the entire dataset on every call.**
+/// `files::scan` walks 609 JSON files and `resolve_all()` merges inheritance
+/// across 590 models, and the callers below ask for it once per test — so the
+/// same load ran over and over to answer questions about data that cannot have
+/// changed. `plugin/tests/host_timeline.rs` measured the same mistake at
+/// **1,300.91s → 1.70s** on one binary.
+///
+/// ⚠ **Cloned out rather than borrowed**, which keeps every call site unchanged:
+/// a map copy is memory, and what this was costing was 609 file reads and 590
+/// inheritance merges.
 fn shipped_models() -> BTreeMap<String, engine::StyleModel> {
-    let scan = engine::dataset::files::scan(&data_dir()).expect("data/ must be readable");
-    let registry = engine::dataset::registry_from(scan.files);
-    let (models, errors) = registry.resolve_all();
-    assert!(errors.is_empty(), "the dataset must resolve: {errors:#?}");
-    models
+    static MODELS: OnceLock<BTreeMap<String, engine::StyleModel>> = OnceLock::new();
+    MODELS
+        .get_or_init(|| {
+            let scan = engine::dataset::files::scan(&data_dir()).expect("data/ must be readable");
+            let registry = engine::dataset::registry_from(scan.files);
+            let (models, errors) = registry.resolve_all();
+            assert!(errors.is_empty(), "the dataset must resolve: {errors:#?}");
+            models
+        })
+        .clone()
 }
 
 fn note(start: u32, len: u32, vel: u8) -> Note {

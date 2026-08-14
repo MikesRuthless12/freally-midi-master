@@ -2,6 +2,10 @@ import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-li
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import { DragRows } from './DragRows';
+// ⚠ The mock's own idea of an unedited pad, rather than a second one written
+// here — see its doc for why a fixture with two spellings is the drift this
+// codebase keeps recording.
+import { untouchedPad } from '../../lib/ipc-mock';
 import { useDrag } from '../../state/drag';
 import { useKit } from '../../state/kit';
 import { useSession } from '../../state/session';
@@ -61,12 +65,54 @@ const BASS: Pattern = {
  * generator writes that lane and no shipped pad has ever played it.
  */
 const KIT = [
-  { lane: 'kick' as const, shipped: true, name: null, path: null },
-  { lane: 'snare' as const, shipped: true, name: null, path: null },
-  { lane: 'closedHat' as const, shipped: true, name: null, path: null },
-  { lane: 'openHat' as const, shipped: true, name: null, path: null },
-  { lane: 'snap' as const, shipped: false, name: null, path: null },
-  { lane: 'bass' as const, shipped: true, name: null, path: null },
+  {
+    lane: 'kick' as const,
+    shipped: true,
+    name: null,
+    path: null,
+    tweaks: untouchedPad(),
+    reversed: false,
+  },
+  {
+    lane: 'snare' as const,
+    shipped: true,
+    name: null,
+    path: null,
+    tweaks: untouchedPad(),
+    reversed: false,
+  },
+  {
+    lane: 'closedHat' as const,
+    shipped: true,
+    name: null,
+    path: null,
+    tweaks: untouchedPad(),
+    reversed: false,
+  },
+  {
+    lane: 'openHat' as const,
+    shipped: true,
+    name: null,
+    path: null,
+    tweaks: untouchedPad(),
+    reversed: false,
+  },
+  {
+    lane: 'snap' as const,
+    shipped: false,
+    name: null,
+    path: null,
+    tweaks: untouchedPad(),
+    reversed: false,
+  },
+  {
+    lane: 'bass' as const,
+    shipped: true,
+    name: null,
+    path: null,
+    tweaks: untouchedPad(),
+    reversed: false,
+  },
 ];
 
 beforeEach(() => {

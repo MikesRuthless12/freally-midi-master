@@ -36,7 +36,15 @@ beforeEach(() => {
     selected: null,
     selectedKind: null,
     waveform: null,
-    position: { playing: false, seconds: 0, total: 0, looping: false, reverse: false },
+    position: {
+      playing: false,
+      seconds: 0,
+      total: 0,
+      looping: false,
+      reverse: false,
+      gainDb: 0,
+      raw: false,
+    },
     error: null,
   });
 });
@@ -306,7 +314,15 @@ describe('the transport', () => {
     // middle of a one-shot.
     invoke.mockResolvedValue(undefined);
     useExplorer.setState({
-      position: { playing: true, seconds: 0.8, total: 1, looping: false, reverse: false },
+      position: {
+        playing: true,
+        seconds: 0.8,
+        total: 1,
+        looping: false,
+        reverse: false,
+        gainDb: 0,
+        raw: false,
+      },
     });
 
     await useExplorer.getState().pause();
@@ -793,4 +809,33 @@ describe('a library folder that is not there', () => {
 
     expect(useExplorer.getState().missingRoots).toEqual([]);
   });
+});
+
+/**
+ * The audition level and the `Raw` bypass (TASK-058B).
+ *
+ * ⛔ What these are for is that `Raw` is a **bypass, not a level**. The two
+ * controls are separate on purpose, and the failure they guard against is a
+ * producer A/Bing a sample against the file and coming back to 0 dB instead of
+ * to the level they had dialled in.
+ */
+it('keeps the level a producer set while Raw is bypassing it', async () => {
+  invoke.mockResolvedValue(undefined);
+
+  await useExplorer.getState().setPreviewGain(-6);
+  await useExplorer.getState().setRaw(true);
+  expect(useExplorer.getState().position.gainDb).toBe(-6);
+  expect(useExplorer.getState().position.raw).toBe(true);
+
+  await useExplorer.getState().setRaw(false);
+  expect(useExplorer.getState().position.gainDb).toBe(-6);
+  expect(invoke).toHaveBeenCalledWith('preview_raw', { on: false });
+});
+
+it('says so when the plugin refuses a level change', async () => {
+  // ⚠ The same rule the rest of this store follows: a control that moved and
+  // changed no sound has to leave a reason on screen.
+  invoke.mockRejectedValueOnce(new Error('nothing is loaded'));
+  await useExplorer.getState().setPreviewGain(3);
+  expect(useExplorer.getState().error).toBe('nothing is loaded');
 });

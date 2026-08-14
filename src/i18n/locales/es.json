@@ -56,7 +56,8 @@
     "unmuteLane": "Activar {{lane}}",
     "playLane": "Reproducir {{lane}}",
     "padLane": "Carril del pad {{at}}",
-    "useSelected": "Poner la muestra seleccionada en {{lane}}"
+    "useSelected": "Poner la muestra seleccionada en {{lane}}",
+    "editPad": "Editar el sonido de {{lane}}"
   },
   "sections": {
     "genres": "Géneros",
@@ -73,7 +74,9 @@
     "key": "Tono",
     "scale": "Escala",
     "swing": "Swing",
-    "mood": "Ánimo"
+    "mood": "Ánimo",
+    "base": "Generar en",
+    "ownGenre": "Su propio género"
   },
   "session": {
     "pickArtist": "Elige un artista para ver qué pide.",
@@ -442,7 +445,10 @@
     },
     "midiFound": "Contenido de este archivo MIDI",
     "midiNotes": "Notas",
-    "midiAuditionClipped": "Solo se escuchan los dos primeros minutos."
+    "midiAuditionClipped": "Solo se escuchan los dos primeros minutos.",
+    "raw": "Bruto",
+    "rawHint": "Reproducir el archivo tal cual está en el disco",
+    "previewGain": "Nivel de audición"
   },
   "patterns": {
     "name": "Nombra este patrón",
@@ -520,5 +526,25 @@
     "none": "Aún no hay kits guardados. Asigna algunas muestras, ponles nombre y estarán aquí la próxima vez.",
     "delete": "Eliminar {{name}}",
     "duplicate": "Copiar {{name}} con el nombre escrito"
+  },
+  "padEditor": {
+    "title": "{{lane}} — sonido",
+    "close": "Cerrar el editor de sonido",
+    "reset": "Restablecer",
+    "attack": "Ataque",
+    "decay": "Caída",
+    "sustain": "Sostenido",
+    "release": "Liberación",
+    "volume": "Volumen",
+    "pan": "Panorama",
+    "transpose": "Transponer",
+    "cents": "Afinación fina",
+    "normalize": "Normalizar a escala completa",
+    "trimStart": "Inicio",
+    "trimEnd": "Fin",
+    "fadeIn": "Fundido de entrada",
+    "fadeOut": "Fundido de salida",
+    "noWaveform": "Este pad reproduce un sample incorporado, así que no hay archivo que dibujar.",
+    "envelopeShape": "Ataque {{attack}} ms, caída {{decay}} ms, sostenido {{sustain}} dB, liberación {{release}} ms"
   }
 }

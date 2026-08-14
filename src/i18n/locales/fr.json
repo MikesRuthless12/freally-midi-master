@@ -56,7 +56,8 @@
     "unmuteLane": "Réactiver {{lane}}",
     "playLane": "Jouer {{lane}}",
     "padLane": "Piste du pad {{at}}",
-    "useSelected": "Placer l’échantillon sélectionné sur {{lane}}"
+    "useSelected": "Placer l’échantillon sélectionné sur {{lane}}",
+    "editPad": "Modifier le son de {{lane}}"
   },
   "sections": {
     "genres": "Genres",
@@ -73,7 +74,9 @@
     "key": "Tonalité",
     "scale": "Gamme",
     "swing": "Swing",
-    "mood": "Ambiance"
+    "mood": "Ambiance",
+    "base": "Générer en",
+    "ownGenre": "Leur propre genre"
   },
   "session": {
     "pickArtist": "Choisis un artiste pour voir ce qu’il demande.",
@@ -442,7 +445,10 @@
     },
     "midiFound": "Contenu de ce fichier MIDI",
     "midiNotes": "Notes",
-    "midiAuditionClipped": "Seules les deux premières minutes sont écoutées."
+    "midiAuditionClipped": "Seules les deux premières minutes sont écoutées.",
+    "raw": "Brut",
+    "rawHint": "Lire le fichier exactement tel qu’il est sur le disque",
+    "previewGain": "Niveau d'écoute"
   },
   "patterns": {
     "name": "Nommer ce pattern",
@@ -520,5 +526,25 @@
     "none": "Aucun kit enregistré. Assignez des échantillons, nommez-les, et ils seront là la prochaine fois.",
     "delete": "Supprimer {{name}}",
     "duplicate": "Copier {{name}} sous le nom saisi"
+  },
+  "padEditor": {
+    "title": "{{lane}} — son",
+    "close": "Fermer l'éditeur de son",
+    "reset": "Réinitialiser",
+    "attack": "Attaque",
+    "decay": "Déclin",
+    "sustain": "Maintien",
+    "release": "Relâchement",
+    "volume": "Volume",
+    "pan": "Panoramique",
+    "transpose": "Transposer",
+    "cents": "Accord fin",
+    "normalize": "Normaliser à pleine échelle",
+    "trimStart": "Début",
+    "trimEnd": "Fin",
+    "fadeIn": "Fondu entrant",
+    "fadeOut": "Fondu sortant",
+    "noWaveform": "Ce pad joue un échantillon intégré : il n'y a donc aucun fichier à dessiner.",
+    "envelopeShape": "Attaque {{attack}} ms, déclin {{decay}} ms, maintien {{sustain}} dB, relâchement {{release}} ms"
   }
 }

@@ -92,6 +92,17 @@ struct GenerateArgs {
     /// The mood to generate in. Absent is "Any" — see [`generate`].
     #[serde(default)]
     mood: Option<String>,
+    /// The genre to generate this artist **in** (TASK-158C).
+    ///
+    /// ⛔ **Absent means "the artist's own", and that is not the same as a
+    /// default.** The roster lists an artist under every genre in their
+    /// `relatedGenres` — 529 of 534 name one they do not `extend` — so this is
+    /// what makes "2Pac, but boom-bap" produce boom-bap instead of the g-funk
+    /// it always answered. An absent field is the pre-TASK-158C behaviour
+    /// exactly, which is what an old project, a preset and a hand-written
+    /// payload all send.
+    #[serde(default)]
+    base: Option<String>,
     /// Which of the model's authored song forms to build (TASK-070).
     ///
     /// Absent is "the artist chooses", sampled from the weights — the same
@@ -187,7 +198,26 @@ pub fn dispatch(
             // means the seed does not exist yet — so the chip shows the model's
             // own tempo, which is the honest answer to "what will it be" when
             // the thing that decides has not happened.
-            let model = dataset::model(id)?;
+            // ⛔⛔ **And through the pinned BASE, for exactly the reason above
+            // one field over** (TASK-158C). Generation resolves the artist over
+            // the genre the chip names, and a genre carries its own `session`
+            // block — so reading the *authored* model here would put the
+            // artist's own tempo next to a beat that is about to come out at
+            // their chosen genre's, which is the same readout-that-lies failure
+            // the mood line already documents. The mood is applied *after*,
+            // because a mode overrides whatever it is a mode of.
+            //
+            // ⚠ **Falls back to the authored model rather than failing.** A
+            // stale base — a project carrying a genre id that has since been
+            // renamed — must not stop the chips rendering; `generate` is where
+            // that is refused, loudly, with the id in the message.
+            let base = state::with(session, |s| s.base.clone()).flatten();
+            let model = match base.as_deref() {
+                Some(base) => {
+                    dataset::model_over(id, Some(base)).or_else(|_| dataset::model(id))?
+                }
+                None => dataset::model(id)?,
+            };
             let model = match state::with(session, |s| s.mood.clone()).flatten() {
                 Some(mood) => modes::apply(&model, &mood).unwrap_or(model),
                 None => model,
@@ -354,7 +384,19 @@ pub fn dispatch(
         // song" are not the same thing, and the picker says so.
         "song_structures" => {
             let id = request.args["styleId"].as_str().unwrap_or_default();
-            let model = dataset::model(id)?;
+            // ⛔ **Through the pinned base**, for the reason `session_defaults`
+            // gives: `generate_song` builds from the resolved model, and a genre
+            // can author its own song forms — so listing the *authored* model's
+            // would offer a form the generation is not going to use.
+            // ⚠ Falls back rather than failing, as `session_defaults` does: a
+            // stale pin must not stop the picker rendering.
+            let base = state::with(session, |s| s.base.clone()).flatten();
+            let model = match base.as_deref() {
+                Some(base) => {
+                    dataset::model_over(id, Some(base)).or_else(|_| dataset::model(id))?
+                }
+                None => dataset::model(id)?,
+            };
             let forms =
                 engine::arrange::structures_of(&model).map_err(|error| error.to_string())?;
             Ok(json!({ "structures": forms }))
@@ -639,7 +681,10 @@ fn generate(args: &GenerateArgs, host: &HostSession, auto_sync: bool) -> Result<
         _ => seed,
     };
 
-    let model = dataset::model(&args.style_id)?;
+    // ⛔ **Resolved over the genre the producer asked for** (TASK-158C).
+    // `base` absent is the artist as authored, which is what every project
+    // written before this existed sends.
+    let model = dataset::model_over(&args.style_id, args.base.as_deref())?;
 
     // ⛔ **The mode is applied before anything reads the model, and that
     // ordering is the design** — a mode is a partial override of its own model,
@@ -787,6 +832,18 @@ struct RerollArgs {
     locked: Vec<Part>,
     #[serde(default)]
     mood: Option<String>,
+    /// The genre the record was generated over, or absent for the artist's own
+    /// (TASK-158C).
+    ///
+    /// ⛔ **Sent by the page rather than read from the store**, exactly as the
+    /// mood beside it is: a re-roll has to come from the *same resolved model*
+    /// as the rest of the record, and the store is what is pinned **now**. The
+    /// two are usually equal and the one time they are not is the one that
+    /// matters — a producer who changes the chip and then re-rolls a verse would
+    /// otherwise get one section over a different foundation from every other,
+    /// reproducibly, so it would read as deliberate.
+    #[serde(default)]
+    base: Option<String>,
     /// The pins the producer set. Only  and  are read — every
     /// other session value is carried by the  itself.
     #[serde(default)]
@@ -813,7 +870,7 @@ fn reroll_section(args: RerollArgs, host: &HostSession) -> Result<engine::patter
         _ => fresh_seed(),
     };
 
-    let model = dataset::model(&args.song.artist_id)?;
+    let model = dataset::model_over(&args.song.artist_id, args.base.as_deref())?;
     // Applied before the context is built, as everywhere else — a mode retunes
     // the `session` block.
     //
@@ -1113,7 +1170,10 @@ fn generate_song(
         _ => fresh_seed(),
     };
 
-    let model = dataset::model(&args.style_id)?;
+    // ⛔ **Resolved over the genre the producer asked for** (TASK-158C).
+    // `base` absent is the artist as authored, which is what every project
+    // written before this existed sends.
+    let model = dataset::model_over(&args.style_id, args.base.as_deref())?;
     // The mood is applied and not reported back, unlike a pattern's: a `Song`
     // has no `mood` field to carry it, so naming it here would be a value with
     // nowhere to go. See the note in `generate` for why the mode is applied
@@ -1904,6 +1964,175 @@ mod tests {
         // stem in memory at once, so it is the product that matters.
         let many = vec![sized_pattern(4, 4, 4); engine::pattern::PART_ORDER.len() + 1];
         assert!(check_patterns(&many).is_err());
+    }
+
+    /// A real artist and a genre they work in but do not extend, taken from the
+    /// shipped roster rather than written here — so this test cannot outlive
+    /// the pair it names.
+    fn a_cross_genre_pair() -> (String, String) {
+        let loaded = crate::dataset::loaded();
+        for entry in &loaded.summary.entries {
+            let Some(raw) = loaded.registry.raw(&entry.id) else {
+                continue;
+            };
+            if raw.get("type").and_then(|v| v.as_str()) == Some("genre") {
+                continue;
+            }
+            let extends: Vec<&str> = raw
+                .get("extends")
+                .and_then(|v| v.as_array())
+                .map(|list| list.iter().filter_map(|v| v.as_str()).collect())
+                .unwrap_or_default();
+            for genre in &entry.related_genres {
+                if !extends.contains(&genre.as_str()) && loaded.registry.raw(genre).is_some() {
+                    return (entry.id.clone(), genre.clone());
+                }
+            }
+        }
+        panic!("the shipped roster claims no cross-genre pair — TASK-158C's premise has moved");
+    }
+
+    #[test]
+    fn generating_over_another_genre_produces_a_different_beat() {
+        // ⛔⛔ **The end of a readout that lies.** The rail lists an artist under
+        // every genre in their `relatedGenres` and Generate has always answered
+        // the one they `extend`. Same artist, same seed, different base — the
+        // notes have to move, or the chip is decoration.
+        let (artist, genre) = a_cross_genre_pair();
+        let notes = |base: Option<&str>| {
+            let mut args = json!({ "styleId": artist, "seed": "2024" });
+            if let Some(base) = base {
+                args["base"] = json!(base);
+            }
+            dispatch(
+                &request("generate_pattern", json!({ "request": args })),
+                &host(),
+            )
+            .unwrap()["lanes"]
+                .clone()
+        };
+
+        assert_ne!(
+            notes(None),
+            notes(Some(&genre)),
+            "{artist} over {genre} generated exactly what {artist} always did"
+        );
+    }
+
+    #[test]
+    fn an_absent_base_is_the_artist_as_authored() {
+        // ⛔ Every project written before this pin existed sends no `base`, and
+        // must go on generating precisely what it did. `null` has to mean the
+        // same as absent, because that is what the page sends for "Any".
+        let (artist, _) = a_cross_genre_pair();
+        let notes = |args: Value| {
+            dispatch(
+                &request("generate_pattern", json!({ "request": args })),
+                &host(),
+            )
+            .unwrap()["lanes"]
+                .clone()
+        };
+
+        let authored = notes(json!({ "styleId": artist, "seed": "2024" }));
+        let explicit_null = notes(json!({ "styleId": artist, "seed": "2024", "base": null }));
+        assert_eq!(authored, explicit_null);
+    }
+
+    #[test]
+    fn a_base_that_names_nothing_is_refused_rather_than_ignored() {
+        // ⚠ Falling back to the authored genre would be a chip reading one thing
+        // over a generation of another — the failure this task is closing,
+        // arriving through the fix.
+        let (artist, _) = a_cross_genre_pair();
+        let refused = dispatch(
+            &request(
+                "generate_pattern",
+                json!({ "request": { "styleId": artist, "seed": "1", "base": "no-such-genre" } }),
+            ),
+            &host(),
+        );
+        assert!(
+            refused.is_err_and(|why| why.contains("no genre")),
+            "a base that names nothing must be refused by name"
+        );
+    }
+
+    #[test]
+    fn generating_over_a_genre_is_still_reproducible_from_its_seed() {
+        // ⚠ The property the whole product rests on (US-004) has to survive the
+        // new axis: same artist, same base, same seed, same notes.
+        let (artist, genre) = a_cross_genre_pair();
+        let once = |()| {
+            dispatch(
+                &request(
+                    "generate_pattern",
+                    json!({ "request": { "styleId": artist, "seed": "31", "base": genre } }),
+                ),
+                &host(),
+            )
+            .unwrap()
+        };
+        assert_eq!(once(()), once(()));
+    }
+
+    #[test]
+    fn a_swapped_generation_is_still_the_artist_rather_than_the_genre() {
+        // ⛔ Identity is the child's. If the merge let a genre's `id` through,
+        // the take history and the variation log would file this under the
+        // wrong name — and the pattern would claim to be a genre.
+        let (artist, genre) = a_cross_genre_pair();
+        let value = dispatch(
+            &request(
+                "generate_pattern",
+                json!({ "request": { "styleId": artist, "seed": "5", "base": genre } }),
+            ),
+            &host(),
+        )
+        .unwrap();
+        assert_eq!(value["artistId"], json!(artist));
+    }
+
+    #[test]
+    fn a_re_rolled_section_comes_from_the_same_base_as_the_rest_of_the_record() {
+        // ⛔⛔ **A song generated over another genre must not re-roll one verse
+        // from the artist's authored one.** The rest of the record is that
+        // genre's foundation; a single section from a different one is
+        // reproducible enough to read as deliberate, which is the same failure
+        // this function's own doc records for the key and the mode.
+        //
+        // ⚠ **The base rides in the request rather than being read from the
+        // store on this side**, exactly as `mood` does — the store is what is
+        // pinned *now*, and the one case that matters is a producer who moved
+        // the chip and then re-rolled.
+        let (artist, genre) = a_cross_genre_pair();
+        let song = dispatch(
+            &request(
+                "generate_song",
+                json!({ "request": { "styleId": artist, "seed": "9", "base": genre } }),
+            ),
+            &host(),
+        )
+        .unwrap();
+
+        let reroll = |base: Option<&str>| {
+            let mut args = json!({ "song": song, "index": 1, "seed": "77" });
+            if let Some(base) = base {
+                args["base"] = json!(base);
+            }
+            dispatch(
+                &request("reroll_section", json!({ "request": args })),
+                &host(),
+            )
+            .unwrap()["patterns"]
+                .clone()
+        };
+
+        assert_ne!(
+            reroll(Some(&genre)),
+            reroll(None),
+            "the re-roll ignored the base the record was built over"
+        );
     }
 
     #[test]

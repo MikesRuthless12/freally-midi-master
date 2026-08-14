@@ -749,6 +749,24 @@ impl Shared {
                 );
             }
         }
+
+        // ⛔⛔ **UNCONDITIONALLY, because the pad edits have to reach the audio
+        // thread even when there are no one-shots to restore** (TASK-055A/164).
+        // `restore` is what publishes a rebuilt kit, and it only runs inside the
+        // loop above — so a project where the producer shaped the **shipped**
+        // kick and never assigned a sample of their own restored `stored` empty,
+        // published nothing, and left the callback playing the untouched
+        // `preview_kit()`.
+        //
+        // ▶ **That is the headline TASK-164 case, and it failed in the worst
+        // possible direction.** `kit_state` reads `pad_tweaks` straight from the
+        // store, so every knob came back exactly where the producer left it —
+        // and `Shared::current_kit`, which is what an *export* renders through,
+        // applies the tweaks. So the stem carried the envelope and the preview
+        // did not: the plugin telling the producer one thing and writing
+        // another, which is the failure `OneShots::current_kit`'s own doc
+        // records for one-shots and which this file cites three times over.
+        self.one_shots.rebuild(&self.kits, &self.session);
     }
 
     /// Put the saved sample-library folders back (TASK-132).
@@ -805,11 +823,41 @@ impl Shared {
     /// ⚠ **Resolved from this instance's own session**, so two tracks on two
     /// artists get two kits. A process-global would be the same mistake
     /// `one_shots` documents at its own field.
+    /// ⛔ **The producer's per-pad edits travel with it** (TASK-055A/164). This
+    /// is the kit an *export* renders through — see
+    /// [`crate::oneshot::OneShots::current_kit`] — and a stem that ignored the
+    /// envelope and the trim a producer had just dialled in would be the same
+    /// defect that doc records for one-shots, one control further along: heard
+    /// one way in the preview, written another way to disk.
     pub fn current_kit(&self) -> Option<Arc<Kit>> {
-        let model_id = crate::state::with(&self.session, |s| s.selected_id.clone())
-            .flatten()
-            .unwrap_or_default();
-        self.one_shots.current_kit(&model_id)
+        let (model_id, tweaks) = crate::state::with(&self.session, |s| {
+            (s.selected_id.clone(), s.pad_tweaks.clone())
+        })
+        .unwrap_or_default();
+        self.one_shots
+            .current_kit(&model_id.unwrap_or_default(), &tweaks)
+    }
+
+    /// Replace one pad's edits and rebuild the kit the audio thread is playing.
+    ///
+    /// ⚠ **Persisted and handed over in one call**, the same coupling
+    /// [`Self::assign_one_shot`] exists for: a bridge command that stored the
+    /// tweak without rebuilding would show the producer a control that moved and
+    /// changed no sound.
+    pub fn set_pad_tweaks(&self, lane: Lane, tweaks: crate::pad_tweaks::PadTweaks) {
+        let tweaks = tweaks.clamped();
+        crate::state::update(&self.session, |stored| {
+            // ⛔ **Removed rather than stored when it is the identity**, so
+            // returning a control to its default leaves no trace in the project
+            // file — and `pad_tweaks` stays absent from every project nobody has
+            // edited a pad in.
+            if tweaks.is_identity() {
+                stored.pad_tweaks.remove(&lane);
+            } else {
+                stored.pad_tweaks.insert(lane, tweaks);
+            }
+        });
+        self.one_shots.rebuild(&self.kits, &self.session);
     }
 
     /// Put a lane back on the shipped voice.

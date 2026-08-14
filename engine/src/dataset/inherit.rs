@@ -65,10 +65,66 @@ fn parents_of(model: &Value) -> Vec<String> {
 /// The returned value keeps the child's own `id`, `type` and `name` — those
 /// identify the model and must never be inherited from a parent.
 pub fn resolve(id: &str, registry: &BTreeMap<String, Value>) -> Result<Value, DatasetError> {
+    resolve_over(id, None, registry)
+}
+
+/// Resolve `id` as if its `extends` named `base` instead of what it authors
+/// (TASK-158C).
+///
+/// ⛔⛔ **"Drake, but in R&B."** 529 of the 534 artist and producer models
+/// declare `relatedGenres` naming a genre they do **not** `extend`, and
+/// `extends` is a single lane in all 534 — so `cross-filter.ts` has always
+/// listed 2Pac under boom-bap while Generate answered g-funk. This is the
+/// function that makes the roster's claim true: the artist's own blocks,
+/// resolved over a *different* foundation.
+///
+/// ⛔ **NOT multi-`extends`, and that is a decision rather than an
+/// implementation detail.** Drake's own `notes` say the OVO ballad, dancehall
+/// and club modes *"are separate lanes and are not what this model
+/// generates"* — blending two bases at once gives mud, not two modes. One base
+/// at a time is what a producer actually means.
+///
+/// ⛔ **And it does NOT clone the registry.** The obvious implementation —
+/// rewrite the child's `extends` and re-resolve — needs a mutable copy of 590
+/// JSON documents per generation, on the editor thread. Instead only the
+/// *walk* changes: the child's own body is untouched and its ancestors are
+/// linearized from `base` rather than from `parents_of(child)`. The cost is one
+/// linearize and a handful of merges, which is what resolving **one** model has
+/// always cost.
+///
+/// ⚠ `None` is exactly [`resolve`] — the same walk, the same order, the same
+/// output. `a_base_of_none_is_the_model_as_authored` holds that byte for byte,
+/// because every model in the product goes through this path now.
+pub fn resolve_over(
+    id: &str,
+    base: Option<&str>,
+    registry: &BTreeMap<String, Value>,
+) -> Result<Value, DatasetError> {
     let mut seen = BTreeMap::new();
     let mut visiting = Vec::new();
     let mut next_index = 0;
-    linearize(id, registry, &mut visiting, &mut seen, 0, &mut next_index)?;
+
+    match base {
+        None => linearize(id, registry, &mut visiting, &mut seen, 0, &mut next_index)?,
+        Some(base) => {
+            // The root's own bookkeeping, spelled out here because this is the
+            // one call whose parents are not the ones it authors.
+            //
+            // ⚠ **Fetched first**, so an unknown `id` is the same error it is on
+            // the ordinary path rather than a confusing one about the base.
+            registry
+                .get(id)
+                .ok_or_else(|| DatasetError::UnknownParent(id.to_owned()))?;
+            seen.insert(id.to_owned(), (0, 0));
+            next_index = 1;
+            // ⚠ On the stack before the walk, so `base == id` — or a base that
+            // reaches back to this model — is reported as the cycle it is
+            // rather than recursing.
+            visiting.push(id.to_owned());
+            linearize(base, registry, &mut visiting, &mut seen, 1, &mut next_index)?;
+            visiting.pop();
+        }
+    }
 
     // Deepest first, then by the order they were declared.
     //
@@ -499,6 +555,142 @@ mod tests {
         match resolve("a", &reg) {
             Err(DatasetError::UnknownParent(id)) => assert_eq!(id, "nope"),
             other => panic!("expected UnknownParent, got {other:?}"),
+        }
+    }
+
+    // ── The base swap (TASK-158C) ──────────────────────────────────────────
+
+    /// A tiny world: two genres that disagree about everything, and an artist
+    /// who authors one thing of their own.
+    fn two_genres() -> BTreeMap<String, Value> {
+        BTreeMap::from([
+            (
+                "_defaults".to_owned(),
+                json!({ "id": "_defaults", "session": { "bpm": 100 }, "drums": { "swing": 0 } }),
+            ),
+            (
+                "g-funk".to_owned(),
+                json!({
+                    "id": "g-funk",
+                    "type": "genre",
+                    "extends": ["_defaults"],
+                    "session": { "bpm": 92 },
+                    "drums": { "swing": 8, "kick": "laid-back" },
+                }),
+            ),
+            (
+                "boom-bap".to_owned(),
+                json!({
+                    "id": "boom-bap",
+                    "type": "genre",
+                    "extends": ["_defaults"],
+                    "session": { "bpm": 88 },
+                    "drums": { "swing": 55, "kick": "on-the-one" },
+                }),
+            ),
+            (
+                "2pac".to_owned(),
+                json!({
+                    "id": "2pac",
+                    "type": "artist",
+                    "name": "2Pac",
+                    "extends": ["g-funk"],
+                    "relatedGenres": ["g-funk", "boom-bap"],
+                    "drums": { "kick": "his-own" },
+                }),
+            ),
+        ])
+    }
+
+    #[test]
+    fn a_base_of_none_is_the_model_as_authored() {
+        // ⛔⛔ **Every model in the product goes through `resolve_over` now**, so
+        // if `None` were not byte-identical to the old `resolve`, adding this
+        // feature would have changed what the other 590 generate.
+        let registry = two_genres();
+        for id in registry.keys() {
+            assert_eq!(
+                resolve_over(id, None, &registry).unwrap(),
+                resolve(id, &registry).unwrap(),
+                "{id} resolves differently through the swap path"
+            );
+        }
+    }
+
+    #[test]
+    fn an_artist_keeps_their_own_blocks_over_the_new_base() {
+        // ⛔ The whole claim. 2Pac's own `kick` survives; everything he does not
+        // author comes from **boom-bap** rather than from g-funk.
+        let registry = two_genres();
+        let swapped = resolve_over("2pac", Some("boom-bap"), &registry).unwrap();
+
+        assert_eq!(swapped["drums"]["kick"], json!("his-own"), "his own wins");
+        assert_eq!(
+            swapped["drums"]["swing"],
+            json!(55),
+            "boom-bap's, not g-funk's"
+        );
+        assert_eq!(swapped["session"]["bpm"], json!(88));
+        // ⚠ Identity is still the child's — a swap must not be able to rename a
+        // model or turn an artist into a genre.
+        assert_eq!(swapped["id"], json!("2pac"));
+        assert_eq!(swapped["type"], json!("artist"));
+        assert_eq!(swapped["name"], json!("2Pac"));
+    }
+
+    #[test]
+    fn the_base_the_artist_already_extends_changes_nothing() {
+        // ⚠ Asking for the genre they were authored in is a no-op, not a second
+        // merge of it. The chip's "Any" and "g-funk" have to agree for 2Pac.
+        let registry = two_genres();
+        assert_eq!(
+            resolve_over("2pac", Some("g-funk"), &registry).unwrap(),
+            resolve("2pac", &registry).unwrap()
+        );
+    }
+
+    #[test]
+    fn the_grandparent_still_arrives_through_the_new_base() {
+        // ⛔ `_defaults` is reached only *through* a genre. Swapping the genre
+        // must not drop it — a model with no defaults is one the linter refuses
+        // and the generators read holes out of.
+        let registry = two_genres();
+        let swapped = resolve_over("2pac", Some("boom-bap"), &registry).unwrap();
+        // `_defaults` authors `drums.swing: 0`; boom-bap overrides it to 55, so
+        // its presence shows in a key only `_defaults` has.
+        assert!(swapped.get("session").is_some());
+        assert_eq!(swapped["drums"]["swing"], json!(55));
+    }
+
+    #[test]
+    fn a_base_that_is_the_model_itself_is_a_cycle_rather_than_a_recursion() {
+        // ⛔ Reachable from the page: the roster lists a genre *and* artists, and
+        // nothing stops a payload naming the same id twice.
+        let registry = two_genres();
+        assert!(matches!(
+            resolve_over("2pac", Some("2pac"), &registry),
+            Err(DatasetError::Cycle(_))
+        ));
+    }
+
+    #[test]
+    fn a_base_that_names_nothing_is_refused_rather_than_ignored() {
+        // ⚠ Silently falling back to the authored base would be a chip that
+        // reads "boom-bap" over a g-funk generation — the readout-that-lies
+        // failure this whole task is about, arriving through the fix.
+        let registry = two_genres();
+        assert!(matches!(
+            resolve_over("2pac", Some("no-such-genre"), &registry),
+            Err(DatasetError::UnknownParent(_))
+        ));
+    }
+
+    #[test]
+    fn an_unknown_model_reports_itself_rather_than_the_base() {
+        let registry = two_genres();
+        match resolve_over("nobody", Some("boom-bap"), &registry) {
+            Err(DatasetError::UnknownParent(id)) => assert_eq!(id, "nobody"),
+            other => panic!("expected the model to be reported, got {other:?}"),
         }
     }
 }

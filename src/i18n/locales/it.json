@@ -56,7 +56,8 @@
     "unmuteLane": "Riattiva {{lane}}",
     "playLane": "Riproduci {{lane}}",
     "padLane": "Traccia del pad {{at}}",
-    "useSelected": "Metti il campione selezionato su {{lane}}"
+    "useSelected": "Metti il campione selezionato su {{lane}}",
+    "editPad": "Modifica il suono di {{lane}}"
   },
   "sections": {
     "genres": "Generi",
@@ -73,7 +74,9 @@
     "key": "Tonalità",
     "scale": "Scala",
     "swing": "Swing",
-    "mood": "Atmosfera"
+    "mood": "Atmosfera",
+    "base": "Genera in",
+    "ownGenre": "Il loro genere"
   },
   "session": {
     "pickArtist": "Scegli un artista per vedere cosa chiede.",
@@ -442,7 +445,10 @@
     },
     "midiFound": "Contenuto di questo file MIDI",
     "midiNotes": "Note",
-    "midiAuditionClipped": "Vengono ascoltati solo i primi due minuti."
+    "midiAuditionClipped": "Vengono ascoltati solo i primi due minuti.",
+    "raw": "Grezzo",
+    "rawHint": "Riprodurre il file esattamente com’è su disco",
+    "previewGain": "Livello di ascolto"
   },
   "patterns": {
     "name": "Dai un nome a questo pattern",
@@ -520,5 +526,25 @@
     "none": "Nessun kit salvato. Assegna dei campioni, dai loro un nome e saranno qui la prossima volta.",
     "delete": "Elimina {{name}}",
     "duplicate": "Copia {{name}} con il nome inserito"
+  },
+  "padEditor": {
+    "title": "{{lane}} — suono",
+    "close": "Chiudi l'editor del suono",
+    "reset": "Ripristina",
+    "attack": "Attacco",
+    "decay": "Decadimento",
+    "sustain": "Sostegno",
+    "release": "Rilascio",
+    "volume": "Volume",
+    "pan": "Panoramica",
+    "transpose": "Trasponi",
+    "cents": "Accordatura fine",
+    "normalize": "Normalizza a fondo scala",
+    "trimStart": "Inizio",
+    "trimEnd": "Fine",
+    "fadeIn": "Dissolvenza in entrata",
+    "fadeOut": "Dissolvenza in uscita",
+    "noWaveform": "Questo pad riproduce un campione integrato, quindi non c’è alcun file da disegnare.",
+    "envelopeShape": "Attacco {{attack}} ms, decadimento {{decay}} ms, sostegno {{sustain}} dB, rilascio {{release}} ms"
   }
 }

@@ -113,6 +113,10 @@ export type PreviewPosition = {
   total: number;
   looping: boolean;
   reverse: boolean;
+  /** The producer's own audition level, in dB (TASK-058B). */
+  gainDb: number;
+  /** Whether the audition is bypassing the level entirely. */
+  raw: boolean;
 };
 
 const STOPPED: PreviewPosition = {
@@ -121,6 +125,8 @@ const STOPPED: PreviewPosition = {
   total: 0,
   looping: false,
   reverse: false,
+  gainDb: 0,
+  raw: false,
 };
 
 /**
@@ -558,6 +564,20 @@ type ExplorerStore = {
   seek: (seconds: number) => Promise<void>;
   toggleLoop: () => Promise<void>;
   setReverse: (on: boolean) => Promise<void>;
+  /** How loud the audition is, in dB (TASK-058B). */
+  setPreviewGain: (db: number) => Promise<void>;
+  /**
+   * Play the file exactly as it is on disk (TASK-058B).
+   *
+   * ⛔ **A bypass, not a level.** It skips the house attenuation the audition
+   * has always applied *and* the gain above — attenuating by 0.7 is a sensible
+   * default and a lie if what you are doing is judging how loud a sample is.
+   *
+   * ⚠ **This is not "through the pad's chain".** A file in the browser is not
+   * on a pad; the thing that plays a file as a pad would is the pad's own
+   * audition, which the pad editor fires on every edit.
+   */
+  setRaw: (on: boolean) => Promise<void>;
   /** Put the selected sample on a drum lane. */
   /**
    * Put the selected sample on a drum lane.
@@ -569,7 +589,16 @@ type ExplorerStore = {
    * plugin and is stored with the project, so a reopened session does not
    * silently play it forwards.
    */
-  dropOn: (lane: Lane, path: string, reversed?: boolean) => Promise<void>;
+  /**
+   * @returns whether the sample actually landed.
+   *
+   * ⛔ **Answered rather than swallowed** (TASK-059). This reports its own
+   * failure through `error` and used to return `void`, so every caller's
+   * `.then()` ran on a refusal too — and once the drop began opening the pad's
+   * editor, a sample the plugin rejected ("not in your sample library") opened
+   * an editor over a lane still reading "Shipped".
+   */
+  dropOn: (lane: Lane, path: string, reversed?: boolean) => Promise<boolean>;
   setRailWidth: (px: number) => void;
 };
 
@@ -1114,12 +1143,44 @@ export const useExplorer = create<ExplorerStore>((set, get) => ({
     }
   },
 
+  async setPreviewGain(db) {
+    const before = get().position;
+    set({ position: { ...before, gainDb: db } });
+    try {
+      await invoke('preview_gain', { db });
+      poke();
+    } catch (error) {
+      // ⛔ **Put it back**, the same rule `useKit.setTweaks` follows: a control
+      // left showing a value the plugin refused is a readout that lies, and on
+      // a *level* it is worse than on a label — the producer goes on judging a
+      // sample against a number that is not the one it is playing at.
+      set({ position: before, error: reason(error) });
+    }
+  },
+
+  async setRaw(on) {
+    // ⛔ **`gainDb` is deliberately left where it is.** `Raw` is a bypass, not a
+    // level: a producer who A/Bs a sample against the file has to come back to
+    // the level they had dialled in, not to 0 dB.
+    const before = get().position;
+    set({ position: { ...before, raw: on } });
+    try {
+      await invoke('preview_raw', { on });
+      poke();
+    } catch (error) {
+      // Rolled back for the reason `setPreviewGain` gives above.
+      set({ position: before, error: reason(error) });
+    }
+  },
+
   async dropOn(lane, path, reversed = false) {
     set({ error: null });
     try {
       await invoke('explorer_drop', { lane, path, reversed });
+      return true;
     } catch (error) {
       set({ error: reason(error) });
+      return false;
     }
   },
 
@@ -1155,12 +1216,21 @@ export function subscribeToPreview(): () => void {
       // ⛔ Only when it moved. `set` on every frame re-renders the waveform
       // whether or not the playhead went anywhere, and the marker is a CSS
       // variable precisely so it does not have to.
+      // ⛔ **Every field, not the ones that move on their own.** `gainDb` and
+      // `raw` were left out, and because this is the *only* thing that
+      // reconciles the page against the plugin, a level the plugin refused
+      // could never heal: the slider read −6 dB and `Raw` read on while the
+      // engine held 0 dB and raw off, for the rest of the session. A dirty
+      // check that lists some of a struct's fields is a dirty check that
+      // silently stops covering the next one added to it.
       if (
         current.playing !== position.playing ||
         current.seconds !== position.seconds ||
         current.total !== position.total ||
         current.looping !== position.looping ||
-        current.reverse !== position.reverse
+        current.reverse !== position.reverse ||
+        current.gainDb !== position.gainDb ||
+        current.raw !== position.raw
       ) {
         useExplorer.setState({ position });
       }

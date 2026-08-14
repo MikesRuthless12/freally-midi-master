@@ -315,13 +315,20 @@ export function CenterStage() {
   const seed = useSession((s) => s.seed);
   const pins = useSession((s) => s.pins);
   const mood = useSession((s) => s.mood);
+  const base = useSession((s) => s.base);
 
-  // Song Mode reads the same seed, pins and mood the chips already hold, so the
-  // arrangement is placed in the session the producer set up rather than in one
-  // of its own.
+  // Song Mode reads the same seed, pins, mood and base the chips already hold,
+  // so the arrangement is placed in the session the producer set up rather than
+  // in one of its own.
+  //
+  // ⛔ **`base` was missing here and that was the whole bug** (TASK-158C): a
+  // record generated with the chip on boom-bap came out as g-funk, and
+  // re-rolling one section — which DID send it — brought that one section back
+  // over boom-bap. One verse over a different foundation from the rest of the
+  // record, reproducibly, so it reads as deliberate.
   const generateSong = () => {
     if (!selectedId) return;
-    return buildSong({ styleId: selectedId, seed, pins, mood });
+    return buildSong({ styleId: selectedId, seed, pins, mood, base });
   };
 
   const selected = roster.find((entry) => entry.id === selectedId) ?? null;

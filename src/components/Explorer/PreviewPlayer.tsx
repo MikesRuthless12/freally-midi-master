@@ -1,6 +1,6 @@
 import { useMemo, useRef, type PointerEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pause, Play, Repeat, Rewind, Square } from 'lucide-react';
+import { Gauge, Pause, Play, Repeat, Rewind, Square } from 'lucide-react';
 
 import { formatSeconds, useExplorer } from '../../state/explorer';
 import { MidiPreview } from './MidiPreview';
@@ -35,6 +35,8 @@ export function PreviewPlayer() {
   const seek = useExplorer((s) => s.seek);
   const toggleLoop = useExplorer((s) => s.toggleLoop);
   const setReverse = useExplorer((s) => s.setReverse);
+  const setPreviewGain = useExplorer((s) => s.setPreviewGain);
+  const setRaw = useExplorer((s) => s.setRaw);
 
   const outline = useMemo(
     () => (waveform ? outlineOf(waveform.peaks) : ''),
@@ -223,6 +225,49 @@ export function PreviewPlayer() {
         >
           <Repeat size={13} aria-hidden="true" />
         </button>
+
+        {/* ⛔⛔ **The gain and `Raw`, the last piece of TASK-058B.** The audition
+            has always sat 0.7 below full scale so it does not clip over a
+            running pattern — a sensible default, and a lie the moment what you
+            are doing is judging how loud a sample is. `Raw` bypasses that *and*
+            the gain, so one of the two things a producer is comparing is the
+            file.
+
+            ⚠ **Two controls, not one.** `Raw` does not write the gain, so
+            toggling back gives the producer the level they had dialled in
+            rather than 0 dB. */}
+        <button
+          type="button"
+          className="btn-ghost btn-toggle preview__button"
+          aria-label={t('explorer.raw')}
+          title={t('explorer.rawHint')}
+          aria-pressed={position.raw}
+          data-on={position.raw}
+          onClick={() => void setRaw(!position.raw)}
+        >
+          <Gauge size={13} aria-hidden="true" />
+        </button>
+
+        <label className="preview__gain">
+          <span className="visually-hidden">{t('explorer.previewGain')}</span>
+          <input
+            type="range"
+            // ⚠ The same floor `Preview::set_gain_db` clamps to. At -24 the
+            // control silently disagreed with the doc claiming the two level
+            // controls are bounded the same way.
+            min={-60}
+            max={12}
+            step={0.5}
+            value={position.gainDb}
+            aria-label={t('explorer.previewGain')}
+            // ⚠ Live while `Raw` is on rather than disabled: the level it sets
+            // is what comes back the moment `Raw` goes off, and a control that
+            // greys out mid-comparison is one the producer has to hunt for
+            // again.
+            onChange={(event) => void setPreviewGain(Number(event.target.value))}
+          />
+          <output className="preview__gain-value">{position.gainDb.toFixed(1)} dB</output>
+        </label>
 
         {/* "Playback time out of total time", verbatim. */}
         <span className="preview__time">

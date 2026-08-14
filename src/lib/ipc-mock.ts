@@ -9,6 +9,7 @@
  */
 
 import { ALL_LANES } from '../state/kit';
+import type { PadTweaks } from '../state/kit';
 import type { ExplorerEntry, Favourite } from '../state/explorer';
 import type { InvokeArgs } from './ipc';
 import type {
@@ -46,6 +47,9 @@ const userModels = new Map<
  */
 const copiedSamples: string[] = [];
 
+/** The base each Generate asked for — see `Window.__freallyGeneratedOver`. */
+const generatedOver: (string | null)[] = [];
+
 /** The mock kit's assigned samples, as the plugin would source them. */
 const assignedSamplePaths = (): string[] =>
   (handlers.kit_state() as { lanes: { path: string | null }[] }).lanes
@@ -73,6 +77,49 @@ const savedKits = new Map<string, { id: string; name: string; lanes: number }>()
  * genuinely cannot happen here.
  */
 const droppedSamples = new Map<string, string>();
+
+/**
+ * Per-pad edits made this page load (TASK-055A, TASK-164).
+ *
+ * ⚠ Mutable for the same reason [`droppedSamples`] is: a constant would let a
+ * spec turn every knob and leave nothing to assert.
+ */
+const padTweaks = new Map<string, PadTweaks>();
+
+/**
+ * The audition level and whether it is bypassed (TASK-058B).
+ *
+ * ⚠ Mutable for the same reason [`padTweaks`] is, and read back by
+ * `preview_position` — the strip draws its own controls off that poll, so a
+ * fixture that answered constants would draw a level nobody could move.
+ */
+const previewLevel = { gainDb: 0, raw: false };
+
+/**
+ * What the plugin sends for a pad nobody has edited.
+ *
+ * ⛔ **A fresh object per call, not a shared constant.** The store spreads what
+ * it is given and writes the copy back; handing every lane the same object would
+ * make one pad's edit appear on all thirty-seven the moment anything mutated it
+ * in place. Cheap, and it removes the whole class.
+ *
+ * ⚠ **Exported so the component tests build their rows from it too.** They used
+ * to hand-write partial `KitLane`s, and a second spelling of "untouched" is how
+ * a fixture comes to disagree with the fixture the specs run against — the
+ * failure recorded on `droppedSamples` above, one field along.
+ */
+export const untouchedPad = (): PadTweaks => ({
+  gainDb: 0,
+  pan: 0,
+  semis: 0,
+  cents: 0,
+  normalize: false,
+  trimStart: 0,
+  trimEnd: 1,
+  fadeInS: 0,
+  fadeOutS: 0,
+  adsr: { attackMs: 0, decayMs: 0, sustainDb: 0, releaseMs: 0 },
+});
 
 /** Files starred this page load (TASK-058C). */
 const starred = new Map<string, Favourite>();
@@ -458,6 +505,7 @@ const handlers: Record<string, Handler> = {
           seed?: string;
           songSeed?: string;
           part?: Part;
+          base?: string | null;
         };
       }
     )?.request;
@@ -479,8 +527,15 @@ const handlers: Record<string, Handler> = {
       modelVel: vel,
     });
 
+    // ⛔ **The base rides in the id, so a spec can tell one generation from
+    // another** (TASK-158C). The real bridge answers with different *notes* —
+    // a browser has no engine to produce them, and a fixture that swallowed
+    // the pin would let the chip be wired to nothing and still pass. What can
+    // truthfully be shown here is that the page sent it.
+    generatedOver.push(request?.base ?? null);
+    const over = request?.base ? `-over-${request.base}` : '';
     const shell = {
-      id: `${request?.styleId ?? 'mock'}-mock`,
+      id: `${request?.styleId ?? 'mock'}${over}-mock`,
       artistId: request?.styleId ?? 'mock',
       // The seed is echoed back so the chip shows what was used, and an
       // unpinned press draws a new one — see `nextSeed`.
@@ -669,6 +724,11 @@ const handlers: Record<string, Handler> = {
   // here.** A dropped path wins over the fixture's own assignment, which is what
   // `restore` does — dropping onto a lane that already carries a sample replaces
   // it rather than being ignored.
+  // ⚠ **`tweaks` is present on every row, never null** — the plugin sends its
+  // own defaults for a lane nobody has edited, so the page never constructs a
+  // `PadTweaks` and there is one owner of what "untouched" means. A fixture
+  // that omitted it for unedited lanes would let the page grow a second answer
+  // that only the real plugin ever contradicts.
   kit_state: () => ({
     id: 'trap-default',
     lanes: ALL_LANES.map((lane) => {
@@ -679,9 +739,26 @@ const handlers: Record<string, Handler> = {
         shipped: lane !== 'snap',
         name: path === null ? null : (path.split(/[\\/]/).pop() ?? path),
         path,
+        tweaks: padTweaks.get(lane) ?? untouchedPad(),
+        // ⚠ Always forwards here: the browser has no decoder, so nothing in the
+        // mock can flip a buffer. What a spec can drive is the drawing, and
+        // `PadEditor.test.tsx` sets the flag directly for that.
+        reversed: false,
       };
     }),
   }),
+
+  // ⛔⛔ **It genuinely stores, for the reason `droppedSamples` above exists.**
+  // A handler answering `undefined` would let a spec drag the whole envelope
+  // and have nothing to assert — the pad would read the same before and after,
+  // which is exactly how the browser→pad gesture went untested for months. The
+  // clamping, the kit rebuild and the audio are Rust and are tested there; what
+  // crosses the bridge is lane → tweaks, and that much is true in a browser.
+  pad_tweaks_set: (args?: InvokeArgs) => {
+    const { lane, tweaks } = (args ?? {}) as { lane?: string; tweaks?: PadTweaks };
+    if (lane !== undefined && tweaks !== undefined) padTweaks.set(lane, tweaks);
+    return undefined;
+  },
 
   // Assigning one. A browser has no native Open dialog and no filesystem, so
   // the mock reports a *cancelled* assignment for exactly the reason
@@ -968,12 +1045,30 @@ const handlers: Record<string, Handler> = {
   preview_seek: () => undefined,
   preview_loop: () => undefined,
   preview_reverse: () => undefined,
+
+  // The audition level and the `Raw` bypass (TASK-058B).
+  //
+  // ⛔ **They store, for the reason `padTweaks` above does.** A handler
+  // answering `undefined` would let a spec drag the level and press `Raw` with
+  // nothing to assert — the strip would read the same before and after, which
+  // is exactly how the browser→pad gesture went untested. What crosses the
+  // bridge is two values; the attenuation itself is Rust and is tested there.
+  preview_gain: (args?: InvokeArgs) => {
+    previewLevel.gainDb = Number((args as { db?: unknown } | undefined)?.db ?? 0);
+    return undefined;
+  },
+  preview_raw: (args?: InvokeArgs) => {
+    previewLevel.raw = Boolean((args as { on?: unknown } | undefined)?.on ?? false);
+    return undefined;
+  },
+
   preview_position: () => ({
     playing: false,
     seconds: 0,
     total: 1.5,
     looping: false,
     reverse: false,
+    ...previewLevel,
   }),
 
   // The forms this artist writes, for the structure picker (TASK-070).
@@ -1261,6 +1356,17 @@ function mockDensity(pattern: Pattern): number[] {
 declare global {
   interface Window {
     __freallyCopiedSamples?: string[];
+    /**
+     * The genre each Generate this page load asked for, or `null` for the
+     * artist's own (TASK-158C).
+     *
+     * ⛔ Exposed for the reason [`__freallyCopiedSamples`] is: what a browser
+     * can truthfully check is **what the page asked for**. The mock has no
+     * engine, so it cannot answer with different notes — and a spec that only
+     * looked at what came back could not tell a chip wired to the request from
+     * one wired to nothing.
+     */
+    __freallyGeneratedOver?: (string | null)[];
     /** Paths the page asked to reveal in the OS file manager (TASK-058C). */
     __freallyRevealed?: string[];
   }
@@ -1272,6 +1378,7 @@ export async function mockInvoke<T>(command: string, args?: InvokeArgs): Promise
     // ⛔ Same reasoning: a browser cannot open Explorer, so the only thing a spec
     // can check is that the page asked for the right path.
     window.__freallyRevealed = revealed;
+    window.__freallyGeneratedOver = generatedOver;
   }
   const handler = handlers[command];
   if (!handler) {

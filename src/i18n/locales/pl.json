@@ -56,7 +56,8 @@
     "unmuteLane": "Włącz {{lane}}",
     "playLane": "Odtwórz {{lane}}",
     "padLane": "Ścieżka padu {{at}}",
-    "useSelected": "Umieść wybraną próbkę na {{lane}}"
+    "useSelected": "Umieść wybraną próbkę na {{lane}}",
+    "editPad": "Edytuj brzmienie {{lane}}"
   },
   "sections": {
     "genres": "Gatunki",
@@ -73,7 +74,9 @@
     "key": "Tonacja",
     "scale": "Skala",
     "swing": "Swing",
-    "mood": "Nastrój"
+    "mood": "Nastrój",
+    "base": "Generuj w",
+    "ownGenre": "Ich własny gatunek"
   },
   "session": {
     "pickArtist": "Wybierz artystę, aby zobaczyć, czego oczekuje.",
@@ -442,7 +445,10 @@
     },
     "midiFound": "Zawartość tego pliku MIDI",
     "midiNotes": "Nuty",
-    "midiAuditionClipped": "Odsłuchiwane są tylko pierwsze dwie minuty."
+    "midiAuditionClipped": "Odsłuchiwane są tylko pierwsze dwie minuty.",
+    "raw": "Surowo",
+    "rawHint": "Odtwarzaj plik dokładnie tak, jak jest na dysku",
+    "previewGain": "Poziom odsłuchu"
   },
   "patterns": {
     "name": "Nazwij ten pattern",
@@ -520,5 +526,25 @@
     "none": "Brak zapisanych zestawów. Przypisz sample, nadaj im nazwę, a następnym razem będą tutaj.",
     "delete": "Usuń {{name}}",
     "duplicate": "Skopiuj {{name}} pod wpisaną nazwą"
+  },
+  "padEditor": {
+    "title": "{{lane}} — brzmienie",
+    "close": "Zamknij edytor brzmienia",
+    "reset": "Przywróć",
+    "attack": "Narastanie",
+    "decay": "Opadanie",
+    "sustain": "Podtrzymanie",
+    "release": "Wybrzmienie",
+    "volume": "Głośność",
+    "pan": "Panorama",
+    "transpose": "Transponuj",
+    "cents": "Strojenie precyzyjne",
+    "normalize": "Normalizuj do pełnej skali",
+    "trimStart": "Początek",
+    "trimEnd": "Koniec",
+    "fadeIn": "Wyciszenie na wejściu",
+    "fadeOut": "Wyciszenie na wyjściu",
+    "noWaveform": "Ten pad odtwarza wbudowaną próbkę, więc nie ma pliku do narysowania.",
+    "envelopeShape": "Narastanie {{attack}} ms, opadanie {{decay}} ms, podtrzymanie {{sustain}} dB, wybrzmienie {{release}} ms"
   }
 }

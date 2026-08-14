@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Dices, Play, X } from 'lucide-react';
+import { Dices, Play, SlidersHorizontal, X } from 'lucide-react';
 
 import { canSound, useKit } from '../../state/kit';
 import { SAMPLE_TYPE, droppedSample } from '../../lib/dnd';
 import { auditionLane } from '../DrumGrid/audition';
+import { PadEditor } from './PadEditor';
 import { SavedKits } from './SavedKits';
 import { useExplorer } from '../../state/explorer';
 import { useSession } from '../../state/session';
@@ -52,6 +53,10 @@ export function KitPanel() {
   // the producer lets go. Local: it is a property of this gesture, not of the
   // kit, and nothing outside this panel can act on it.
   const [over, setOver] = useState<Lane | null>(null);
+  // ⛔ **In the store, not local** (TASK-059). Three gestures open this editor
+  // and only one of them is in this file — see `useKit.editingPad`.
+  const editing = useKit((s) => s.editingPad);
+  const setEditing = useKit((s) => s.editPad);
 
   /**
    * The eight lanes on the pads first, in pad order, then everything else.
@@ -196,7 +201,18 @@ export function KitPanel() {
                 // ⚠ Refreshed after, because the row's own label is what says
                 // whether the drop landed — the panel is the only feedback the
                 // producer gets, and it would otherwise still read "Shipped".
-                void dropOn(entry.lane, path).then(() => refresh());
+                // ⛔ **…and open its editor** (TASK-059): the gesture is
+                // "imports, assigns, and opens the per-one-shot editor". A
+                // sample that lands with no way to shape it is where this
+                // stopped before the editor existed.
+                void dropOn(entry.lane, path).then((landed) => {
+                  void refresh();
+                  // ⛔ **Only when it landed.** `dropOn` reports its own refusal through
+                  // `error` — a sample outside the library, say — and opening an editor
+                  // over a lane that still reads "Shipped" would be a panel describing a
+                  // drop that did not happen.
+                  if (landed) setEditing(entry.lane);
+                });
               }}
             >
               <button
@@ -260,6 +276,29 @@ export function KitPanel() {
                 <Dices size={12} aria-hidden="true" />
               </button>
 
+              {/* ⛔⛔ **THE SOUND'S OWN EDITOR** (TASK-164). Mike asked whether
+                  the drum lanes had one — *"Kick, Sub Bass, Rim Shot, etc."* —
+                  and the answer was that the notes had an editor and the sound
+                  did not.
+
+                  ⚠ **On the same `canSound` predicate as the Play button**, and
+                  for the same reason: an envelope over a lane with no voice is a
+                  control that can only do nothing. It is deliberately *not*
+                  gated on `entry.name` — the whole point is that a shipped kick
+                  can be shaped too, not only a sample the producer replaced. */}
+              {canSound(entry) && (
+                <button
+                  type="button"
+                  className="kit-lane__edit"
+                  aria-label={t('kit.editPad', { lane: t(`lanes.${entry.lane}`) })}
+                  title={t('kit.editPad', { lane: t(`lanes.${entry.lane}`) })}
+                  aria-expanded={editing === entry.lane}
+                  onClick={() => setEditing(editing === entry.lane ? null : entry.lane)}
+                >
+                  <SlidersHorizontal size={12} aria-hidden="true" />
+                </button>
+              )}
+
               {entry.name && (
                 <button
                   type="button"
@@ -271,6 +310,13 @@ export function KitPanel() {
                 >
                   <X size={12} aria-hidden="true" />
                 </button>
+              )}
+
+              {/* ⚠ **Inside the row it belongs to**, so the controls sit under
+                  the pad they change rather than in a floating window a producer
+                  has to relate back to a lane by name. */}
+              {editing === entry.lane && (
+                <PadEditor entry={entry} onClose={() => setEditing(null)} />
               )}
             </li>
           );

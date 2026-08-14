@@ -1202,6 +1202,7 @@
    one out reads as something else. */
 .kit-lane__play,
 .kit-lane__dice,
+.kit-lane__edit,
 .kit-lane__clear {
   flex: none;
   display: flex;
@@ -1217,8 +1218,124 @@
 
 .kit-lane__play:hover:not(:disabled),
 .kit-lane__dice:hover:not(:disabled),
+.kit-lane__edit:hover:not(:disabled),
 .kit-lane__clear:hover:not(:disabled) {
   color: var(--color-text);
+}
+
+/* The sound editor is open on this row, so its button reads as pressed. */
+.kit-lane__edit[aria-expanded='true'] {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+/* ── The per-pad sound editor (TASK-055A, TASK-164) ─────────────────────────
+   ⚠ **Full width of the row, below it.** The row is a flex line of controls and
+   this is not one of them; `flex-basis: 100%` drops it onto its own line so the
+   editor sits under the pad it edits rather than squeezing the four buttons. */
+.pad-editor {
+  flex-basis: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+}
+
+.pad-editor__head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.pad-editor__head h3 {
+  flex: 1;
+  margin: 0;
+  font-size: var(--text-micro);
+  color: var(--color-text-2);
+}
+
+.pad-editor__env,
+.pad-editor__wave {
+  position: relative;
+  margin: 0;
+}
+
+.pad-editor__env svg {
+  width: 100%;
+  height: 72px;
+}
+
+.pad-editor__wave svg {
+  width: 100%;
+  height: 48px;
+}
+
+/* ⚠ `vector-effect` keeps the stroke one pixel however hard the viewBox is
+   squashed — `preserveAspectRatio: none` scales the geometry non-uniformly, and
+   without this the line thins out at one end and fattens at the other. */
+.pad-editor__env-line {
+  fill: none;
+  stroke: var(--color-primary);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.pad-editor__wave-fill {
+  fill: var(--color-text-3);
+}
+
+/* What the trim throws away. Shaded, not hidden — a producer has to see what
+   they are cutting to decide where to cut it. */
+.pad-editor__wave-cut {
+  fill: color-mix(in srgb, var(--color-surface) 78%, transparent);
+}
+
+.pad-editor__note {
+  margin: 0;
+  color: var(--color-text-3);
+  font-size: var(--text-micro);
+}
+
+.pad-editor__dials {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-1) var(--space-2);
+}
+
+.pad-dial {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0 var(--space-1);
+  font-size: var(--text-micro);
+  color: var(--color-text-2);
+}
+
+.pad-dial__label {
+  grid-column: 1 / -1;
+}
+
+.pad-dial input {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Tabular so a value does not jitter sideways as it is dragged. */
+.pad-dial__value {
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-3);
+}
+
+.pad-editor__toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-micro);
+  color: var(--color-text-2);
 }
 
 /* ⚠ Play is the one of the three that makes a sound, so it answers in the

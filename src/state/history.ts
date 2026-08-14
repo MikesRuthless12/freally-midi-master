@@ -80,6 +80,8 @@ export type Snapshot = {
   edited: boolean;
   /** The pinned mood, or `null` for "Any" (TASK-040V). */
   mood: string | null;
+  /** The genre to generate the artist in, or `null` for their own (TASK-158C). */
+  base: string | null;
   /**
    * Whether the plugin sounds its own kit (FMM-S02).
    *

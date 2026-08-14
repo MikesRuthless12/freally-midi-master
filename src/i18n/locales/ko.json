@@ -56,7 +56,8 @@
     "unmuteLane": "{{lane}} 음소거 해제",
     "playLane": "{{lane}} 재생",
     "padLane": "패드 {{at}} 레인",
-    "useSelected": "선택한 샘플을 {{lane}}에 넣기"
+    "useSelected": "선택한 샘플을 {{lane}}에 넣기",
+    "editPad": "{{lane}} 소리 편집"
   },
   "sections": {
     "genres": "장르",
@@ -73,7 +74,9 @@
     "key": "키",
     "scale": "음계",
     "swing": "스윙",
-    "mood": "무드"
+    "mood": "무드",
+    "base": "생성할 장르",
+    "ownGenre": "본인의 장르"
   },
   "session": {
     "pickArtist": "아티스트를 선택하면 어떤 설정을 요구하는지 표시됩니다.",
@@ -442,7 +445,10 @@
     },
     "midiFound": "이 MIDI 파일의 내용",
     "midiNotes": "노트",
-    "midiAuditionClipped": "처음 2분만 미리 듣습니다."
+    "midiAuditionClipped": "처음 2분만 미리 듣습니다.",
+    "raw": "원본",
+    "rawHint": "디스크에 있는 그대로 파일 재생",
+    "previewGain": "미리듣기 레벨"
   },
   "patterns": {
     "name": "이 패턴의 이름",
@@ -520,5 +526,25 @@
     "none": "저장한 킷이 아직 없습니다. 샘플을 지정하고 이름을 붙이면 다음에 여기에 나타납니다.",
     "delete": "{{name}} 삭제",
     "duplicate": "입력한 이름으로 {{name}} 복제"
+  },
+  "padEditor": {
+    "title": "{{lane}} — 소리",
+    "close": "사운드 편집기 닫기",
+    "reset": "초기화",
+    "attack": "어택",
+    "decay": "디케이",
+    "sustain": "서스테인",
+    "release": "릴리스",
+    "volume": "음량",
+    "pan": "팬",
+    "transpose": "조옮김",
+    "cents": "미세 조율",
+    "normalize": "풀 스케일로 정규화",
+    "trimStart": "시작",
+    "trimEnd": "끝",
+    "fadeIn": "페이드 인",
+    "fadeOut": "페이드 아웃",
+    "noWaveform": "이 패드는 내장 샘플을 재생하므로 그릴 파일이 없습니다.",
+    "envelopeShape": "어택 {{attack}} ms, 디케이 {{decay}} ms, 서스테인 {{sustain}} dB, 릴리스 {{release}} ms"
   }
 }

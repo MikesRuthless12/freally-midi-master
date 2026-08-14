@@ -112,6 +112,7 @@ pub fn loaded() -> &'static LoadedDataset {
                     }],
                 },
                 models: Default::default(),
+                registry: Default::default(),
             };
         }
 
@@ -166,6 +167,50 @@ pub fn model(id: &str) -> Result<StyleModel, String> {
         .cloned()
         .or_else(|| crate::models::model(id))
         .ok_or_else(|| format!("no style model with id `{id}`"))
+}
+
+/// The same model, resolved over `base` instead of over what it `extends`
+/// (TASK-158C).
+///
+/// ⛔⛔ **This is what makes the roster stop lying.** 529 of 534 artist and
+/// producer models list `relatedGenres` naming a genre they do not extend, so
+/// the rail has always said *"2Pac works in boom-bap"* while Generate answered
+/// g-funk. `base` is the genre the producer asked to generate in.
+///
+/// ⚠ **`None` is the ordinary path and costs nothing extra** — it reads the
+/// pre-resolved map exactly as [`model`] does. Only a real swap pays for a
+/// resolve, and it pays for **one**: the raw registry is kept on
+/// [`engine::dataset::LoadedDataset`] precisely so this is not a re-resolve of
+/// the whole dataset.
+///
+/// ⛔ **A user model cannot be swapped, and it says so rather than silently
+/// generating the authored version.** Their raw bodies live in
+/// `crate::models`' own registry, not this one; a producer whose base chip did
+/// nothing on their own style would have no way to tell it apart from a base
+/// that had no effect.
+pub fn model_over(id: &str, base: Option<&str>) -> Result<StyleModel, String> {
+    let Some(base) = base else {
+        return model(id);
+    };
+
+    let loaded = loaded();
+    if loaded.registry.raw(id).is_none() {
+        return if crate::models::model(id).is_some() {
+            Err(format!(
+                "`{id}` is your own style, so it cannot be generated over another genre yet"
+            ))
+        } else {
+            Err(format!("no style model with id `{id}`"))
+        };
+    }
+    if loaded.registry.raw(base).is_none() {
+        return Err(format!("no genre with id `{base}`"));
+    }
+
+    loaded
+        .registry
+        .resolve_over(id, Some(base))
+        .map_err(|error| format!("`{id}` does not resolve over `{base}`: {error}"))
 }
 
 /// The roster the UI lists: everything shipped, then everything of the user's.
