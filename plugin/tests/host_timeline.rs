@@ -9,7 +9,9 @@
 //! whole path the plugin runs: shipped model → host session → engine →
 //! schedule.
 
+use std::collections::BTreeMap;
 use std::path::Path;
+use std::sync::OnceLock;
 
 use engine::context::SessionOverrides;
 use engine::generators::drums;
@@ -18,14 +20,33 @@ use engine::pattern::{Part, Pattern, PPQ};
 use engine::StyleModel;
 use freally_midi_master_plugin::{HostSession, Schedule};
 
+/// Every shipped model, read and resolved **once per test binary**.
+///
+/// ⛔⛔ **This used to re-read and re-resolve the whole dataset on every call**,
+/// and [`shipped`] below is called once per *generation* across seven tests —
+/// so `read_dir` over 609 JSON files plus `resolve_all()` over 590 models ran
+/// hundreds of times to answer for one id. Measured at **1,116 seconds of CPU on
+/// this one test binary**, which was a large share of why the `quality` job took
+/// ~2.5 hours.
+///
+/// ⚠ **The same shape `engine/tests/genre_invariants.rs` already uses**, and its
+/// doc records the same lesson one crate over: a helper that looks like a cheap
+/// lookup and is a full dataset load is the most expensive kind of convenient.
+fn registry() -> &'static BTreeMap<String, StyleModel> {
+    static MODELS: OnceLock<BTreeMap<String, StyleModel>> = OnceLock::new();
+    MODELS.get_or_init(|| {
+        let dir = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("..")
+            .join("data");
+        let scan = engine::dataset::files::scan(&dir).expect("data/ must be readable");
+        let (models, errors) = engine::dataset::registry_from(scan.files).resolve_all();
+        assert!(errors.is_empty(), "the dataset must resolve: {errors:#?}");
+        models
+    })
+}
+
 fn shipped(id: &str) -> StyleModel {
-    let dir = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("..")
-        .join("data");
-    let scan = engine::dataset::files::scan(&dir).expect("data/ must be readable");
-    let (models, errors) = engine::dataset::registry_from(scan.files).resolve_all();
-    assert!(errors.is_empty(), "the dataset must resolve: {errors:#?}");
-    models.get(id).cloned().expect("no such model")
+    registry().get(id).cloned().expect("no such model")
 }
 
 /// What the plugin does when the user presses Generate, minus the UI.
@@ -194,13 +215,7 @@ fn the_host_tempo_changes_when_notes_land_and_never_how_many() {
     // What must *not* move is how much is played. A grammar that thinned out
     // at 174 BPM or doubled up at 70 would be a different pattern wearing the
     // same seed, and nothing else in the suite would notice.
-    let dir = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("..")
-        .join("data");
-    let scan = engine::dataset::files::scan(&dir).unwrap();
-    let (models, _) = engine::dataset::registry_from(scan.files).resolve_all();
-
-    for id in models.keys().filter(|id| !id.starts_with('_')) {
+    for id in registry().keys().filter(|id| !id.starts_with('_')) {
         let counts = |tempo: f64| -> Vec<(engine::pattern::Lane, usize)> {
             generate_in_host(&host_at(tempo, 4, 4), id, 4)
                 .lanes
@@ -223,15 +238,9 @@ fn every_shipped_style_generates_inside_a_host_session() {
     // The desktop app asserted this against the model's own tempo. The plugin
     // has to hold it at the *host's*, which is a stronger claim: a grammar
     // that only works at its authored tempo would fail here.
-    let dir = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("..")
-        .join("data");
-    let scan = engine::dataset::files::scan(&dir).unwrap();
-    let (models, _) = engine::dataset::registry_from(scan.files).resolve_all();
-
     for tempo in [80.0, 140.0] {
         let host = host_at(tempo, 4, 4);
-        for id in models.keys().filter(|id| !id.starts_with('_')) {
+        for id in registry().keys().filter(|id| !id.starts_with('_')) {
             let pattern = generate_in_host(&host, id, 21);
             assert_eq!(pattern.bpm, tempo as f32, "{id} ignored the host");
             assert!(
