@@ -223,6 +223,9 @@
    collapsed the rail would hand this panel the space and the tree still refused
    to use it. `flex: 1 1 0` inside a `min-height: 0` column takes whatever is
    there and no more. */
+/* ⚠ **A `div`, not a `ul`, since the tree was virtualized.** The nesting is
+   carried by `aria-level` on each row rather than by nested lists, because a
+   windowed list draws a slice of one flat sequence and cannot be recursive. */
 .tree {
   flex: 1 1 0;
   min-height: 5rem;
@@ -232,23 +235,21 @@
   overflow-y: auto;
 }
 
-/* Nested lists carry no indent of their own: the depth is a padding on the row,
-   so the hover and selection backgrounds still span the full width of the panel
-   rather than starting halfway across it. */
-.tree__children,
-.tree__node {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
 /* ⛔ The star and the row, side by side. A button inside a button is not a thing
    HTML allows — see the note in `FileTree` — so "the star is in the row" is done
    with a flex line rather than by nesting. The indent lives here so the star
-   moves in with its row. */
+   moves in with its row.
+
+   ⛔⛔ **The height is fixed, and it comes from `FileTree`'s own `ROW_H`** via
+   the `--tree-row-h` custom property the scroller sets. The virtualizer places
+   every row by multiplying that number; a row whose real height differs by even
+   a pixel drifts further from the scrollbar with every row down the list. The
+   pitch lane shipped exactly that bug by measuring a box instead of stating the
+   pitch, and a windowed list makes it worse rather than subtler. */
 .tree__line {
   display: flex;
   align-items: center;
+  height: var(--tree-row-h, 20px);
   min-width: 0;
 }
 
@@ -359,9 +360,70 @@
 }
 
 /* "Reading…", "no samples", "more files than are shown" — the states a branch
-   can be in that are not rows. */
+   can be in that are not rows.
+   ⚠ **Boxed to the same height as a row**, because the virtualizer counts these
+   as lines like any other: they occupy one each on screen, and a status line
+   that is two pixels taller than a row is a two-pixel error in everything below
+   it. `margin: 0` because it is a `<p>` now rather than an `<li>`. */
 .tree__pending {
-  padding: 2px var(--space-2) 2px 22px;
+  display: flex;
+  align-items: center;
+  height: var(--tree-row-h, 20px);
+  margin: 0;
+  padding: 0 var(--space-2);
+  color: var(--color-text-3);
+  font-size: var(--text-micro);
+}
+
+/* ── Type-to-filter (TASK-058) ──────────────────────────────────────────── */
+/* ⛔ **On its own line above the tree, not in the button bar.** It is the widest
+   control in the panel — a filter box you cannot read what you typed into is
+   the one thing it must not be — and the rail is 280px by default with two
+   buttons already on that line. */
+.browser__filter {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0 var(--space-1);
+}
+
+.browser__filter input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 2px var(--space-1);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  font-family: var(--font-ui);
+  font-size: var(--text-micro);
+}
+
+/* ⛔ **What was actually searched, said beside the box.** The filter can only
+   narrow folders that have been read — the plugin reads one folder per call, on
+   the host's editor thread — so a box that looked like it searched the whole
+   library would be the readout-that-lies failure this panel keeps guarding
+   against. It appears only while something is typed. */
+.browser__scope {
+  margin: 0;
+  padding: 0 var(--space-2) var(--space-1);
+  color: var(--color-text-3);
+  font-size: var(--text-micro);
+}
+
+/* ── A library folder that is not there right now ───────────────────────── */
+/* ⚠ The tab keeps its place — an unplugged drive has not left the library, and
+   `merge_folders` says so — but it must not look like a folder you can open. */
+.browser__tab[data-missing='true'] .browser__tab-open {
+  color: var(--color-text-3);
+  text-decoration: line-through;
+}
+
+.browser__missing {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
   color: var(--color-text-3);
   font-size: var(--text-micro);
 }
@@ -598,6 +660,17 @@
   height: 26px;
   min-width: 26px;
   padding: 0 var(--space-2);
+}
+
+/* ⛔ **The MIDI panel borrows the transport rather than growing its own**
+   (TASK-160). It is the same audition voice — a `.mid` is rendered into the
+   buffer a `.wav` is decoded into — so a second set of buttons would be a second
+   set of behaviours to keep in step for one control. What it does not borrow is
+   the waveform: there is no PCM to draw peaks from until the render happens, and
+   the split rows above already say what the file contains. */
+.midi__transport {
+  padding-top: var(--space-1);
+  border-top: 1px solid var(--color-border);
 }
 
 .preview__time {

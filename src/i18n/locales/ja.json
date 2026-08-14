@@ -411,6 +411,11 @@
     "up": "上へ",
     "empty": "このフォルダーにサンプルはありません。",
     "truncated": "このフォルダーには表示されているより多くのファイルがあります。",
+    "filter": "名前で絞り込む",
+    "filterScope": "開いているフォルダーのみを検索します。",
+    "noMatches": "一致するものはありません。",
+    "missing": "{{name}} には現在アクセスできません。",
+    "recheck": "再確認",
     "pickAFile": "サンプルを選ぶと試聴できます。",
     "decoding": "読み込み中…",
     "waveformOf": "{{name}} の波形",
@@ -436,7 +441,8 @@
       "kitShape": "ドラムキットのように鳴っています"
     },
     "midiFound": "この MIDI ファイルの内容",
-    "midiNotes": "ノート"
+    "midiNotes": "ノート",
+    "midiAuditionClipped": "最初の 2 分のみ試聴されます。"
   },
   "patterns": {
     "name": "このパターンに名前を付ける",
@@ -458,13 +464,23 @@
     "none": "テイクなし",
     "made": "{{bpm}} BPM · {{scale}}"
   },
+  "takes": {
+    "label": "テイク履歴",
+    "none": "まだ何も生成していません。",
+    "clear": "テイク履歴を消去",
+    "close": "閉じる",
+    "detail": "{{bars}} 小節 · {{bpm}} BPM"
+  },
   "artist": {
     "label": "この選択について",
     "tendsTo": "傾向",
     "tempo": "{{bpm}} BPM",
+    "tempoRange": "{{low}}〜{{high}} BPM",
     "key": "{{key}} {{scale}}",
     "halfTime": "ハーフタイム",
-    "moods": "{{count}} ムード"
+    "moods": "ムード",
+    "writes": "書くパート",
+    "doesNotWrite": "書かないパート"
   },
   "styles": {
     "original": "オリジナルの流儀",

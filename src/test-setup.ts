@@ -49,6 +49,27 @@ if (typeof window !== 'undefined') {
 }
 
 /**
+ * jsdom implements no `ResizeObserver`, and the virtualized tree measures its
+ * own viewport with one (TASK-058) — it has to, because the browser rail is
+ * resizable in both directions and a guessed height draws too few rows in a tall
+ * one.
+ *
+ * ⚠ **A stub that observes nothing rather than a working polyfill.** jsdom has no
+ * layout: `clientHeight` is 0 whatever this reported, so a real implementation
+ * would fire a callback that could only ever say zero. The component already
+ * handles a zero-height viewport — it draws the overscan and the focused row,
+ * which is what the store tests assert against — so what is needed here is for
+ * `new ResizeObserver` to exist, not for it to work.
+ */
+if (typeof window !== 'undefined' && typeof window.ResizeObserver === 'undefined') {
+  window.ResizeObserver = class {
+    observe(): void {}
+    unobserve(): void {}
+    disconnect(): void {}
+  };
+}
+
+/**
  * Initialise i18n once for the whole suite.
  *
  * Without it `t('rails.searchLabel')` returns the raw key, so every component

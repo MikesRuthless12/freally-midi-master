@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
-import { Split } from 'lucide-react';
+import { Pause, Play, Repeat, Split, Square } from 'lucide-react';
 
-import { useExplorer } from '../../state/explorer';
+import { formatSeconds, useExplorer } from '../../state/explorer';
 import { useSession } from '../../state/session';
 
 /**
@@ -28,6 +28,19 @@ export function MidiPreview() {
   const midiSplit = useExplorer((s) => s.midiSplit);
   const error = useExplorer((s) => s.error);
   const importSplit = useSession((s) => s.importSplit);
+  const audition = useExplorer((s) => s.midiAudition);
+  const auditionMidi = useExplorer((s) => s.auditionMidi);
+  // ⚠ **The scalars, not the whole `position` object.** It is republished at
+  // 30 Hz for as long as anything is sounding, and subscribing to the object
+  // re-renders this panel — the split rows and four icon buttons — thirty times
+  // a second. `seconds` genuinely does change that fast, so the readout that
+  // needs it is its own child; nothing else here depends on it.
+  const playing = useExplorer((s) => s.position.playing);
+  const looping = useExplorer((s) => s.position.looping);
+  const play = useExplorer((s) => s.play);
+  const pause = useExplorer((s) => s.pause);
+  const stop = useExplorer((s) => s.stop);
+  const toggleLoop = useExplorer((s) => s.toggleLoop);
 
   // ⚠ **Reachable, and in two ways.** `PreviewPlayer` shows this the moment a
   // `.mid` is selected — before the split has answered, and for good if it never
@@ -67,6 +80,93 @@ export function MidiPreview() {
         ))}
       </ul>
 
+      {/* ⛔⛔ **Hearing the file, not just reading what is in it** (TASK-160).
+          Mike: *".mid files … have its own sound like Ableton does that can play
+          the .mid file"*.
+          ▶ **Through a neutral built-in instrument**, which is the half the
+          roadmap left open and then answered: *"it sounds the same whatever
+          artist happens to be selected"*. A producer asking what the notes are
+          must not get a different answer on Tuesday because the roster moved.
+          ⚠ **It never touches the transport.** `preview_*` is the audition voice
+          — the same one a `.wav` plays through — and `Schedule` is the project's.
+          That is TASK-058B's rule for this panel and it is structural rather
+          than a promise: the two have never shared a playhead. */}
+      <div className="preview__bar midi__transport">
+        <button
+          type="button"
+          className="btn-ghost preview__button"
+          // ⚠ **`transport.*`, not a second set of strings**, the reason
+          // `PreviewPlayer` gives: Play, Pause, Stop and Loop already exist in
+          // all eighteen locales and mean the same thing here.
+          aria-label={playing ? t('transport.pause') : t('transport.play')}
+          onClick={() => {
+            if (playing) {
+              void pause();
+              return;
+            }
+            // ⛔ **Rendered on the first press, not on selection.** Building the
+            // audio for a file is the slow half, and doing it as the producer
+            // walks a folder with ↓ would render every `.mid` they step past.
+            // Once it is loaded, Play is Play — a second press must not
+            // re-render it.
+            //
+            // ⛔⛔ **Play only if the render actually landed.** `auditionMidi`
+            // never rejects — it swallows a failure into `error` and returns
+            // early when the selection moved under it — so a bare `.then(play)`
+            // fired either way. The audition voice is shared with sample
+            // playback, so on a file that failed to render the producer pressed
+            // Play on a `.mid` and heard **the last `.wav` they auditioned**,
+            // under the MIDI file's name.
+            if (audition === null) {
+              void auditionMidi().then(() => {
+                if (useExplorer.getState().midiAudition !== null) void play();
+              });
+              return;
+            }
+            void play();
+          }}
+        >
+          {playing ? (
+            <Pause size={13} aria-hidden="true" />
+          ) : (
+            <Play size={13} aria-hidden="true" />
+          )}
+        </button>
+
+        <button
+          type="button"
+          className="btn-ghost preview__button"
+          aria-label={t('transport.stop')}
+          disabled={audition === null}
+          onClick={() => void stop()}
+        >
+          <Square size={12} aria-hidden="true" />
+        </button>
+
+        <button
+          type="button"
+          className="btn-ghost btn-toggle preview__button"
+          aria-label={t('transport.loop')}
+          aria-pressed={looping}
+          data-on={looping}
+          disabled={audition === null}
+          onClick={() => void toggleLoop()}
+        >
+          <Repeat size={13} aria-hidden="true" />
+        </button>
+
+        {/* ⚠ Silent until something is loaded rather than showing `0:00 / 0:00`,
+            which would read as a file with no notes in it. */}
+        {audition !== null && <Elapsed />}
+      </div>
+
+      {/* ⚠ **Reported rather than cut in silence** — the rule the truncated
+          folder listing follows. A producer who does not hear the end of a long
+          arrangement and is told nothing concludes the audition is broken. */}
+      {audition?.clipped === true && (
+        <p className="browser__hint">{t('explorer.midiAuditionClipped')}</p>
+      )}
+
       <button
         type="button"
         className="btn-ghost midi__apply"
@@ -81,5 +181,23 @@ export function MidiPreview() {
           that is an option. */}
       <p className="browser__hint">{t('explorer.midiDragHint')}</p>
     </div>
+  );
+}
+
+/**
+ * The audition's playhead, as a time out of a total.
+ *
+ * ⛔ **Its own component so its 30 Hz subscription is its own.** `seconds` really
+ * does change thirty times a second while a file sounds, and `MidiPreview` above
+ * draws the split rows and four buttons — none of which depend on it. Read there,
+ * the whole panel re-rendered at the poll rate to move one line of text.
+ */
+function Elapsed() {
+  const seconds = useExplorer((s) => s.position.seconds);
+  const total = useExplorer((s) => s.position.total);
+  return (
+    <span className="preview__time">
+      {formatSeconds(seconds)} / {formatSeconds(total)}
+    </span>
   );
 }

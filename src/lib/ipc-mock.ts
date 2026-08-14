@@ -88,6 +88,63 @@ const starred = new Map<string, Favourite>();
 let recent: Favourite[] = [];
 
 /**
+ * Every generation this page load has made, by style id (TASK-045B).
+ *
+ * ⚠ Mutable for the reason `recent` is: the panel that browses these is worth
+ * nothing if a spec cannot generate four takes and then find them in it. Typed
+ * loosely on purpose — `takes::Take` flattens whatever `state/variations.ts`
+ * sends, so restating the shape here would be a third definition of it.
+ */
+let takes: Record<string, { seed?: string; part?: string }[]> = {};
+
+/**
+ * The seed an unpinned Generate comes back with.
+ *
+ * ⛔⛔ **It has to CHANGE, because the real one does.** `bridge.rs` sends `null`
+ * for an unpinned seed and the engine draws a fresh one — that is the whole fix
+ * for *"Generate returns the same beat every press"* — and this answered the
+ * literal `424242` every time. The disagreement was invisible until the take
+ * history was built on `(part, seed)`: three presses produced one take, because
+ * as far as the fixture was concerned they *were* the same generation.
+ *
+ * ⚠ **Counted, not random**, which is what the note it replaces actually wanted:
+ * a fixture that moves is not a fixture. The first press of a page load is still
+ * `424242`, so `magic-moment.spec.ts` still reads the number it was written
+ * against, and every press after it is a different take.
+ */
+let seedCounter = 424_242;
+
+function nextSeed(): string {
+  const seed = String(seedCounter);
+  seedCounter += 1;
+  return seed;
+}
+
+/**
+ * Record that a file was opened, the way `recent::note` does.
+ *
+ * ⛔ **The mock records because the PLUGIN records**, and at the same two
+ * commands: `editor::rpc` calls `recent::note` inside `preview_load` for a
+ * sample and inside `explorer_midi_split` for a `.mid`. A mock that only
+ * answered `recent_list` would show a history that never grew, and the specs
+ * would be asserting a fixture rather than the behaviour.
+ *
+ * ⚠ **The MIDI half was missing on both sides until 2026-08-13** — the page
+ * refreshed the history after a split on the strength of a comment claiming the
+ * plugin had written the entry, and nothing had.
+ */
+function noteRecent(path: string) {
+  if (path === '') return;
+  const name = path.split(/[\\/]/).pop() ?? path;
+  const kind: Favourite['kind'] = /\.midi?$/i.test(path) ? 'midi' : 'audio';
+  recent = [
+    { path, name, kind },
+    // Newest first and one entry per file, the rule `recent::note` keeps.
+    ...recent.filter((held) => held.path !== path),
+  ].slice(0, 30);
+}
+
+/**
  * The library folders, which a spec can actually remove.
  *
  * ⚠ Mutable for the reason `droppedSamples` gives: `explorer_remove` answered
@@ -126,6 +183,18 @@ const libraryRows: Record<string, ExplorerEntry[]> = {
     { name: 'riff.mid', path: '/library/Samples/riff.mid', isDir: false, kind: 'midi' },
   ],
   '/library/Samples/Kicks': [
+    // ⛔⛔ **`MAX_ENTRIES` rows, because that is the size TASK-058 is about.**
+    // *"a 2,000-file folder under 300 ms"* — and 2,000 is not a round number
+    // picked for a test, it is `explorer::MAX_ENTRIES`, the most rows the plugin
+    // will ever answer for one folder. A fixture of four cannot tell a
+    // virtualized tree from the recursive one it replaced, which is exactly how
+    // this tree shipped un-virtualized with a full green suite.
+    //
+    // ⚠ **Nested rather than at the top level**, so the row order the keyboard
+    // walk steps through is the one it always was — and because a big folder
+    // three levels down is the case that actually hurts: its rows carry the
+    // deepest indent and the most ancestors above them.
+    { name: 'Loops', path: '/library/Samples/Kicks/Loops', isDir: true, kind: 'dir' },
     { name: 'Vinyl', path: '/library/Samples/Kicks/Vinyl', isDir: true, kind: 'dir' },
     {
       name: 'kick-hard.wav',
@@ -142,6 +211,15 @@ const libraryRows: Record<string, ExplorerEntry[]> = {
       kind: 'audio',
     },
   ],
+  // ⚠ Generated rather than written out: 2,000 literals would be 12,000 lines of
+  // fixture nobody reads, and the only thing that matters about them is that
+  // there are 2,000 and that a filter can pick one out.
+  '/library/Samples/Kicks/Loops': Array.from({ length: 2_000 }, (_, at) => ({
+    name: `loop-${String(at).padStart(4, '0')}.wav`,
+    path: `/library/Samples/Kicks/Loops/loop-${String(at).padStart(4, '0')}.wav`,
+    isDir: false,
+    kind: 'audio' as const,
+  })),
 };
 
 /**
@@ -256,10 +334,21 @@ const handlers: Record<string, Handler> = {
   // make a real mismatch impossible to see.
   session_defaults: (): SessionDefaults => ({
     bpm: 140,
+    // ⚠ **A real range around the nominal**, so the detail pane's TASK-158D line
+    // is exercised rather than collapsing to the single-tempo case.
+    bpmMin: 132,
+    bpmMax: 148,
+    // ⛔ **Four of five, and the gap is the point.** `parts_of` answers what a
+    // model will actually write, and a fixture that claimed all five could not
+    // tell a working "does not write" line from one that never renders — which
+    // is the half of TASK-158D that stops a producer pressing Generate on an
+    // empty tab.
+    parts: ['drums', 'chords', 'melody', 'bass'],
     keys: ['F#', 'C#', 'G#'],
     scales: ['natural_minor', 'phrygian'],
     swing: { grid: 'sixteenth', amount: 0.54 },
     halfTime: true,
+    moods: ['dark', 'bounce'],
   }),
 
   // The producer's own styles (TASK-040U). ⛔ **In memory and per page load**,
@@ -393,9 +482,9 @@ const handlers: Record<string, Handler> = {
     const shell = {
       id: `${request?.styleId ?? 'mock'}-mock`,
       artistId: request?.styleId ?? 'mock',
-      // The seed is echoed back so the chip shows what was used, and a fixed
-      // one when none was asked for keeps the fixture reproducible.
-      seed: request?.seed && request.seed !== '' ? request.seed : '424242',
+      // The seed is echoed back so the chip shows what was used, and an
+      // unpinned press draws a new one — see `nextSeed`.
+      seed: request?.seed && request.seed !== '' ? request.seed : nextSeed(),
       // ⛔ **Echoes the requested *song* seed, not the take** (TASK-141), which
       // is what the real bridge does. Mirroring `seed` here would have made the
       // carry look like it worked no matter what the page sent — the mock
@@ -654,8 +743,13 @@ const handlers: Record<string, Handler> = {
     entries: libraryRows['/library/Samples'] ?? [],
     truncated: false,
     // No native picker in a browser, so a dialog is never open — which is what
-    // stops  polling for one.
+    // stops `addFolder` polling for one.
     picking: false,
+    // ⚠ **Empty rather than absent**, so the shape matches `explorer::State`.
+    // A browser fixture has no drive to unplug, so nothing here is ever
+    // missing — the reconnect state is exercised in `explorer.test.ts`, where
+    // the reply can be written directly.
+    missing: [],
   }),
   // Starred favourites (TASK-058C). In memory and per page load, like the user
   // models and the saved kits: the store, its bounds and its refusals are Rust
@@ -668,6 +762,45 @@ const handlers: Record<string, Handler> = {
   recent_clear: () => {
     recent = [];
     return recent;
+  },
+
+  // ── The variation history that survives a restart (TASK-045B) ─────────
+  //
+  // ⛔ **It genuinely accumulates**, for the reason `recent` does: a mock that
+  // answered a constant would let a spec generate four takes and have nothing to
+  // assert about the panel that lists them. The cap, the per-style eviction and
+  // the per-user file are Rust and are tested there — what a browser can show is
+  // that generating puts a row in the list and that choosing one restores it.
+  //
+  // ⚠ **In memory and per page load.** A reload starts empty here, which is
+  // honestly what a browser build can offer: there is no `%APPDATA%` to write to.
+  takes_list: () => takes,
+  // ⚠ **A batch, as the plugin takes**: one Generate press records a take per
+  // part, and a mock that took them one at a time would let a per-take round trip
+  // pass here and cost five file rewrites in the real thing.
+  takes_note: (args?: InvokeArgs) => {
+    const batch = (args as { takes?: { artistId?: string; seed?: string; part?: string }[] })
+      ?.takes;
+    if (!Array.isArray(batch)) throw new Error('that is not a take');
+    for (const take of batch) {
+      const style = String(take?.artistId ?? '');
+      if (style === '') throw new Error('a take belongs to a style');
+      const held = takes[style] ?? [];
+      // ⛔ Idempotent on `(part, seed)`, the rule `takes::note` keeps: recalling
+      // a take regenerates it, and without this stepping backwards would write
+      // new history on every step.
+      if (!held.some((one) => one.seed === take.seed && one.part === take.part)) {
+        takes[style] = [...held, take];
+      }
+    }
+    // ⚠ An acknowledgement, as the plugin's is: `takes_list` is what answers the
+    // history, and handing it back on every press would serialize a list nothing
+    // on screen is showing.
+    return undefined;
+  },
+  takes_clear: () => {
+    takes = {};
+    return takes;
   },
   favourites_add: (args?: InvokeArgs) => {
     const path = String((args as { path?: unknown } | undefined)?.path ?? '');
@@ -723,6 +856,8 @@ const handlers: Record<string, Handler> = {
     if (!/\.midi?$/i.test(path)) {
       throw new Error('that is not a MIDI file in your sample library');
     }
+    // Opening a `.mid` is opening a file. See `noteRecent`.
+    noteRecent(path);
     const of = (part: Part) => handlers.generate_pattern({ request: { part } }) as Pattern;
     const notes = (pattern: Pattern) =>
       pattern.lanes.reduce((sum, lane) => sum + lane.notes.length, 0);
@@ -741,6 +876,20 @@ const handlers: Record<string, Handler> = {
         notes: notes(of('melody')),
       },
     ];
+  },
+
+  // ⛔ **Hearing a `.mid` (TASK-160).** In the plugin this renders the file into
+  // the audition voice; a browser has neither, so what the mock can honestly do
+  // is answer the shape — a length and whether the file was cut — and let the
+  // panel's transport be exercised against it. ⚠ It does **not** pretend the
+  // position advances: `preview_position` still answers a still playhead, which
+  // is what a shell with no audio thread truthfully has.
+  explorer_midi_audition: (args?: InvokeArgs) => {
+    const path = String((args as { path?: unknown } | undefined)?.path ?? '');
+    if (!/\.midi?$/i.test(path)) {
+      throw new Error('that is not a MIDI file in your sample library');
+    }
+    return { seconds: 4, clipped: false };
   },
 
   // A whole `.mid` as an arrangement, for the Song tab (TASK-058D).
@@ -809,25 +958,8 @@ const handlers: Record<string, Handler> = {
   // The audition voice. No audio thread here, so the position never advances —
   // a mock that animated one would make a broken transport look like a working
   // one, which is the rule this whole file is written to.
-  // ⚠ **The mock records the history here because the PLUGIN does.**
-  //  calls  inside , so a mock that
-  // only answered  would show a history that never grew and the
-  // e2e specs would be asserting a fixture rather than the behaviour.
-  // ⚠ **The mock records the history here because the PLUGIN does.**
-  // `editor::rpc` calls `recent::note` inside `preview_load`, so a mock that
-  // only answered `recent_list` would show a history that never grew — and the
-  // specs would be asserting a fixture rather than the behaviour.
   preview_load: (args?: InvokeArgs) => {
-    const path = String((args as { path?: unknown } | undefined)?.path ?? '');
-    if (path !== '') {
-      const name = path.split(/[\\/]/).pop() ?? path;
-      const kind: Favourite['kind'] = /\.mid$/i.test(path) ? 'midi' : 'audio';
-      recent = [
-        { path, name, kind },
-        // Newest first and one entry per file, the rule `recent::note` keeps.
-        ...recent.filter((held) => held.path !== path),
-      ].slice(0, 30);
-    }
+    noteRecent(String((args as { path?: unknown } | undefined)?.path ?? ''));
     return undefined;
   },
   preview_play: () => undefined,

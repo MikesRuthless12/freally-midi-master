@@ -411,6 +411,11 @@
     "up": "上一级",
     "empty": "此文件夹中没有采样。",
     "truncated": "此文件夹中的文件多于所显示的数量。",
+    "filter": "按名称筛选",
+    "filterScope": "仅搜索你已展开的文件夹。",
+    "noMatches": "这里没有匹配项。",
+    "missing": "当前无法访问 {{name}}。",
+    "recheck": "重新检查",
     "pickAFile": "选择一个采样即可试听。",
     "decoding": "正在读取…",
     "waveformOf": "{{name}} 的波形",
@@ -436,7 +441,8 @@
       "kitShape": "像鼓组一样演奏"
     },
     "midiFound": "此 MIDI 文件的内容",
-    "midiNotes": "音符"
+    "midiNotes": "音符",
+    "midiAuditionClipped": "仅试听前两分钟。"
   },
   "patterns": {
     "name": "为此样式命名",
@@ -458,13 +464,23 @@
     "none": "还没有版本",
     "made": "{{bpm}} BPM · {{scale}}"
   },
+  "takes": {
+    "label": "生成记录",
+    "none": "还没有生成任何内容。",
+    "clear": "清空生成记录",
+    "close": "关闭",
+    "detail": "{{bars}} 小节 · {{bpm}} BPM"
+  },
   "artist": {
     "label": "关于此选择",
     "tendsTo": "通常",
     "tempo": "{{bpm}} BPM",
+    "tempoRange": "{{low}}–{{high}} BPM",
     "key": "{{key}} {{scale}}",
     "halfTime": "半速",
-    "moods": "{{count}} 种氛围"
+    "moods": "氛围",
+    "writes": "会写",
+    "doesNotWrite": "不会写"
   },
   "styles": {
     "original": "我的工作流",

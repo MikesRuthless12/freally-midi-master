@@ -411,6 +411,11 @@
     "up": "W górę",
     "empty": "Brak sampli w tym folderze.",
     "truncated": "Ten folder zawiera więcej plików, niż jest pokazanych.",
+    "filter": "Filtruj według nazwy",
+    "filterScope": "Przeszukiwane są otwarte przez Ciebie foldery.",
+    "noMatches": "Nic tu nie pasuje.",
+    "missing": "{{name}} jest teraz niedostępny.",
+    "recheck": "Sprawdź ponownie",
     "pickAFile": "Wybierz sampel, aby go odsłuchać.",
     "decoding": "Odczytywanie…",
     "waveformOf": "Kształt fali {{name}}",
@@ -436,7 +441,8 @@
       "kitShape": "Gra jak zestaw perkusyjny"
     },
     "midiFound": "Zawartość tego pliku MIDI",
-    "midiNotes": "Nuty"
+    "midiNotes": "Nuty",
+    "midiAuditionClipped": "Odsłuchiwane są tylko pierwsze dwie minuty."
   },
   "patterns": {
     "name": "Nazwij ten pattern",
@@ -458,13 +464,23 @@
     "none": "Brak podejść",
     "made": "{{bpm}} BPM · {{scale}}"
   },
+  "takes": {
+    "label": "Historia ujęć",
+    "none": "Nic jeszcze nie wygenerowano.",
+    "clear": "Wyczyść historię ujęć",
+    "close": "Zamknij",
+    "detail": "{{bars}} taktów · {{bpm}} BPM"
+  },
   "artist": {
     "label": "O tym wyborze",
     "tendsTo": "Zwykle",
     "tempo": "{{bpm}} BPM",
+    "tempoRange": "{{low}}–{{high}} BPM",
     "key": "{{key}} {{scale}}",
     "halfTime": "half-time",
-    "moods": "{{count}} nastroje"
+    "moods": "Nastroje",
+    "writes": "Pisze",
+    "doesNotWrite": "Nie pisze"
   },
   "styles": {
     "original": "Własny warsztat",

@@ -411,6 +411,11 @@
     "up": "Omhoog",
     "empty": "Geen samples in deze map.",
     "truncated": "Deze map bevat meer bestanden dan er worden getoond.",
+    "filter": "Filteren op naam",
+    "filterScope": "Er wordt gezocht in de mappen die je hebt geopend.",
+    "noMatches": "Hier komt niets overeen.",
+    "missing": "{{name}} is momenteel niet bereikbaar.",
+    "recheck": "Opnieuw controleren",
     "pickAFile": "Kies een sample om het te beluisteren.",
     "decoding": "Bezig met lezen…",
     "waveformOf": "Golfvorm van {{name}}",
@@ -436,7 +441,8 @@
       "kitShape": "Speelt als een drumkit"
     },
     "midiFound": "Inhoud van dit MIDI-bestand",
-    "midiNotes": "Noten"
+    "midiNotes": "Noten",
+    "midiAuditionClipped": "Alleen de eerste twee minuten worden beluisterd."
   },
   "patterns": {
     "name": "Geef dit patroon een naam",
@@ -458,13 +464,23 @@
     "none": "Nog geen takes",
     "made": "{{bpm}} BPM · {{scale}}"
   },
+  "takes": {
+    "label": "Takegeschiedenis",
+    "none": "Nog niets gegenereerd.",
+    "clear": "Takegeschiedenis wissen",
+    "close": "Sluiten",
+    "detail": "{{bars}} maten · {{bpm}} BPM"
+  },
   "artist": {
     "label": "Over deze selectie",
     "tendsTo": "Neigt naar",
     "tempo": "{{bpm}} BPM",
+    "tempoRange": "{{low}}–{{high}} BPM",
     "key": "{{key}} {{scale}}",
     "halfTime": "half-time",
-    "moods": "{{count}} moods"
+    "moods": "Sferen",
+    "writes": "Schrijft",
+    "doesNotWrite": "Schrijft niet"
   },
   "styles": {
     "original": "Eigen workflow",

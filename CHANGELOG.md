@@ -12,6 +12,76 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added — the browser at library scale, and a history that outlives the session, 2026-08-13
+
+- **The sample tree draws a window, not the folder** (TASK-058). `MAX_ENTRIES` is
+  2,000 rows per folder and several folders can be open at once; the tree built
+  every one of them, as six elements each, inside nested lists a component made by
+  calling itself. It is one flat sequence now and only the rows on screen exist —
+  a 2,000-file folder opens in under 300 ms. The ↑/↓ walk moves over that
+  sequence rather than over the DOM, because the DOM no longer holds all of it.
+- **Type to filter the tree** (TASK-058), narrowing to matching files and the
+  folders that lead to them — and a matching folder brings its whole subtree, the
+  way every file manager behaves. ⚠ **It says what it searched**: the plugin reads
+  one folder per call, so the filter reaches the folders you have opened and no
+  further, and a box that implied otherwise would be a readout that lies.
+- **A library folder that is not there says so** (TASK-058). An unplugged drive's
+  root is kept on purpose — a producer who unplugged their sample disk has not
+  left the library — but it drew as an ordinary folder that refused to open, which
+  is indistinguishable from an empty one. Its tab is now marked, with `Check
+  again` beside it.
+- **Every generation you have made, browsable and persisted** (TASK-045B). *"if
+  you have generated 20 just 'Trap' and 20 just 'Rage' and 40 just 'Drake' then it
+  should persist … so that way you can go through the actual history of all your
+  generations and find what you like."* ◀/▶ answer "back one" and are useless for
+  "find the one out of eighty", so the take counter now opens an index grouped by
+  style, each take saying its length, tempo and when it was made. Kept in
+  `%APPDATA%` beside the browser's history, with no version segment, so an update
+  cannot orphan it — capped **per style**, because a global cap would let an
+  evening on one artist evict the takes you came back for.
+- **Hear a `.mid` from the browser** (TASK-160). The roadmap costed this as *"its
+  own note scheduler"* on the audio thread; it did not need one. The file is
+  rendered to the same buffer a decoded `.wav` arrives as, so the audition voice
+  plays it with the transport that already exists. Through a **neutral built-in
+  instrument** rather than the loaded kit — the reason the roadmap itself gave:
+  it sounds the same whatever artist happens to be selected. Drum lanes render as
+  hits rather than as pitches, because a drum lane's "pitch" is a GM drum number.
+- **The artist pane says what a model does *not* write** (TASK-158D). `bass.rs`,
+  `chords.rs`, `melody.rs` and `counter.rs` each return an empty track when the
+  model authored no block of their own — correct, but it meant Generate on that
+  tab produced silence and the only way to find out was to press it. The pane now
+  lists both halves, along with the **tempo range** rather than one number and the
+  **mood names** rather than a count. `engine/tests/coverage.rs` proves the claim
+  by generating every shipped model.
+
+### Changed
+
+- **Roster search costs less than half what it did** (TASK-158E). `data/` ships
+  590 roster entries and the box scores all of them on every keystroke — it was
+  re-normalizing the query once per entry, re-normalizing all nine of each entry's
+  searchable fields, and splitting each into words twice. 5.5 ms a keystroke
+  before, 2.9 ms after, with the ranking unchanged.
+- **The standalone writes its log to a file in release** (TASK-159). The crash
+  reporter caught *hardware faults*; a **panic** — the documented failure on this
+  path — went to a stderr that a `windows_subsystem = "windows"` build does not
+  have. The one failure most likely to be behind the open unreproduced crash was
+  the one leaving no evidence. `--period-size`'s defaulting now has a test, too:
+  it is what stands between a producer and *"every time i try to open the exe it
+  crashes"*, and nothing pinned it.
+
+### Fixed
+
+- **Opening a `.mid` records it in the browser's history.** `recent::note` ran
+  from `preview_load` (a sample) and from `explorer_midi` (the *drop* into a
+  part), and not from the click that opens a MIDI file — so a producer who
+  clicked twenty loops and imported one saw a history of the one, which is
+  `recent.rs`'s own recording rule backwards. The page had been refreshing the
+  history there on the strength of a comment claiming the plugin had written the
+  entry; it had not.
+- **The IPC mock draws a new seed per unpinned Generate**, as the engine does. It
+  answered the literal `424242` every time, which no test noticed until a history
+  keyed on `(part, seed)` turned three presses into one take.
+
 ### Added — every drum lane expands into a pitch lane, 2026-08-13
 
 - **Any lane can open into pitch rows** (TASK-161). A chevron on every one of the

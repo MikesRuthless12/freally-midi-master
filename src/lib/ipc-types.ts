@@ -314,6 +314,29 @@ export type SessionDefaults = {
  */
 bpm: number, 
 /**
+ * The tempo range the model authored, or `bpm` twice when it authored none
+ * (TASK-158D).
+ *
+ * ⛔ **A range, because a single number is not what a producer is choosing
+ * between.** *"tempo range"* is Mike's own word in TASK-158D: an artist who
+ * works at 68–96 and one who works at 138–142 are different propositions at
+ * the same nominal 82, and the pane exists so that is visible before
+ * Generate rather than after.
+ *
+ * ⚠ **Not overwritten by the host's tempo the way `bpm` is.** That
+ * substitution is TASK-033's, and it is right for "what will this come out
+ * at" — but the range is a fact about the *model*, and replacing it with the
+ * DAW's one tempo would say the artist only ever works there.
+ */
+bpmMin: number, bpmMax: number, 
+/**
+ * Which parts this model will actually write notes for (TASK-158D).
+ *
+ * See [`parts_of`] — this is the "and does **not** cover" half of what the
+ * detail pane owes a producer.
+ */
+parts: Array<Part>, 
+/**
  * Key names the model draws from, in authored order. Empty when it
  * authors none, in which case the engine's own default key applies.
  */

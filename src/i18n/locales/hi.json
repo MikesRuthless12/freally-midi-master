@@ -411,6 +411,11 @@
     "up": "ऊपर",
     "empty": "इस फ़ोल्डर में कोई सैंपल नहीं है।",
     "truncated": "इस फ़ोल्डर में दिखाए गए से अधिक फ़ाइलें हैं।",
+    "filter": "नाम से छाँटें",
+    "filterScope": "आपके खोले गए फ़ोल्डरों में खोजा जा रहा है।",
+    "noMatches": "यहाँ कुछ भी मेल नहीं खाता।",
+    "missing": "{{name}} अभी उपलब्ध नहीं है।",
+    "recheck": "फिर से जाँचें",
     "pickAFile": "सुनने के लिए कोई सैंपल चुनें।",
     "decoding": "पढ़ा जा रहा है…",
     "waveformOf": "{{name}} का तरंगरूप",
@@ -436,7 +441,8 @@
       "kitShape": "ड्रम किट की तरह बजता है"
     },
     "midiFound": "इस MIDI फ़ाइल में क्या है",
-    "midiNotes": "स्वर"
+    "midiNotes": "स्वर",
+    "midiAuditionClipped": "केवल पहले दो मिनट ही सुनाए जाते हैं।"
   },
   "patterns": {
     "name": "इस पैटर्न को नाम दें",
@@ -458,13 +464,23 @@
     "none": "अभी कोई टेक नहीं",
     "made": "{{bpm}} BPM · {{scale}}"
   },
+  "takes": {
+    "label": "टेक इतिहास",
+    "none": "अभी तक कुछ नहीं बनाया गया।",
+    "clear": "टेक इतिहास साफ़ करें",
+    "close": "बंद करें",
+    "detail": "{{bars}} बार · {{bpm}} BPM"
+  },
   "artist": {
     "label": "इस चयन के बारे में",
     "tendsTo": "आम तौर पर",
     "tempo": "{{bpm}} BPM",
+    "tempoRange": "{{low}}–{{high}} BPM",
     "key": "{{key}} {{scale}}",
     "halfTime": "हाफ-टाइम",
-    "moods": "{{count}} मूड"
+    "moods": "मूड",
+    "writes": "लिखता है",
+    "doesNotWrite": "नहीं लिखता"
   },
   "styles": {
     "original": "अपना वर्कफ़्लो",

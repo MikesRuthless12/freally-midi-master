@@ -411,6 +411,11 @@
     "up": "Acima",
     "empty": "Nenhum sample nesta pasta.",
     "truncated": "Esta pasta tem mais arquivos do que os exibidos.",
+    "filter": "Filtrar por nome",
+    "filterScope": "A busca abrange as pastas que você abriu.",
+    "noMatches": "Nada corresponde aqui.",
+    "missing": "{{name}} não está acessível no momento.",
+    "recheck": "Verificar novamente",
     "pickAFile": "Escolha um sample para ouvi-lo.",
     "decoding": "Lendo…",
     "waveformOf": "Forma de onda de {{name}}",
@@ -436,7 +441,8 @@
       "kitShape": "Toca como uma bateria"
     },
     "midiFound": "Conteúdo deste arquivo MIDI",
-    "midiNotes": "Notas"
+    "midiNotes": "Notas",
+    "midiAuditionClipped": "Apenas os dois primeiros minutos são reproduzidos."
   },
   "patterns": {
     "name": "Dê um nome a este padrão",
@@ -458,13 +464,23 @@
     "none": "Nenhum take ainda",
     "made": "{{bpm}} BPM · {{scale}}"
   },
+  "takes": {
+    "label": "Histórico de takes",
+    "none": "Nada gerado ainda.",
+    "clear": "Limpar o histórico de takes",
+    "close": "Fechar",
+    "detail": "{{bars}} compassos · {{bpm}} BPM"
+  },
   "artist": {
     "label": "Sobre esta seleção",
     "tendsTo": "Costuma",
     "tempo": "{{bpm}} BPM",
+    "tempoRange": "{{low}}–{{high}} BPM",
     "key": "{{key}} {{scale}}",
     "halfTime": "half-time",
-    "moods": "{{count}} moods"
+    "moods": "Climas",
+    "writes": "Escreve",
+    "doesNotWrite": "Não escreve"
   },
   "styles": {
     "original": "Fluxo original",

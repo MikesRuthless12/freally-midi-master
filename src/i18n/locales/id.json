@@ -411,6 +411,11 @@
     "up": "Naik",
     "empty": "Tidak ada sampel di folder ini.",
     "truncated": "Folder ini berisi lebih banyak berkas daripada yang ditampilkan.",
+    "filter": "Saring menurut nama",
+    "filterScope": "Pencarian mencakup folder yang telah Anda buka.",
+    "noMatches": "Tidak ada yang cocok di sini.",
+    "missing": "{{name}} sedang tidak dapat dijangkau.",
+    "recheck": "Periksa lagi",
     "pickAFile": "Pilih sampel untuk mendengarkannya.",
     "decoding": "Membaca…",
     "waveformOf": "Bentuk gelombang {{name}}",
@@ -436,7 +441,8 @@
       "kitShape": "Dimainkan seperti drum kit"
     },
     "midiFound": "Isi berkas MIDI ini",
-    "midiNotes": "Not"
+    "midiNotes": "Not",
+    "midiAuditionClipped": "Hanya dua menit pertama yang diputar."
   },
   "patterns": {
     "name": "Beri nama pattern ini",
@@ -458,13 +464,23 @@
     "none": "Belum ada take",
     "made": "{{bpm}} BPM · {{scale}}"
   },
+  "takes": {
+    "label": "Riwayat take",
+    "none": "Belum ada yang dihasilkan.",
+    "clear": "Bersihkan riwayat take",
+    "close": "Tutup",
+    "detail": "{{bars}} bar · {{bpm}} BPM"
+  },
   "artist": {
     "label": "Tentang pilihan ini",
     "tendsTo": "Cenderung",
     "tempo": "{{bpm}} BPM",
+    "tempoRange": "{{low}}–{{high}} BPM",
     "key": "{{key}} {{scale}}",
     "halfTime": "half-time",
-    "moods": "{{count}} mood"
+    "moods": "Suasana",
+    "writes": "Menulis",
+    "doesNotWrite": "Tidak menulis"
   },
   "styles": {
     "original": "Alur kerja sendiri",

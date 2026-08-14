@@ -32,6 +32,7 @@ pub mod export;
 pub mod favourites;
 pub mod host;
 pub mod kits;
+pub mod midi_audition;
 pub mod models;
 pub mod oneshot;
 pub mod patterns;
@@ -41,6 +42,7 @@ pub mod recent;
 pub mod roles;
 pub mod shared;
 pub mod state;
+pub mod takes;
 pub mod voice;
 
 pub use bridge::{dispatch, Request};

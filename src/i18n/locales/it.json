@@ -411,6 +411,11 @@
     "up": "Su",
     "empty": "Nessun sample in questa cartella.",
     "truncated": "Questa cartella contiene più file di quelli mostrati.",
+    "filter": "Filtra per nome",
+    "filterScope": "La ricerca riguarda le cartelle che hai aperto.",
+    "noMatches": "Qui non corrisponde nulla.",
+    "missing": "{{name}} non è raggiungibile al momento.",
+    "recheck": "Controlla di nuovo",
     "pickAFile": "Scegli un sample per ascoltarlo.",
     "decoding": "Lettura…",
     "waveformOf": "Forma d’onda di {{name}}",
@@ -436,7 +441,8 @@
       "kitShape": "Suona come una batteria"
     },
     "midiFound": "Contenuto di questo file MIDI",
-    "midiNotes": "Note"
+    "midiNotes": "Note",
+    "midiAuditionClipped": "Vengono ascoltati solo i primi due minuti."
   },
   "patterns": {
     "name": "Dai un nome a questo pattern",
@@ -458,13 +464,23 @@
     "none": "Nessuna take",
     "made": "{{bpm}} BPM · {{scale}}"
   },
+  "takes": {
+    "label": "Cronologia delle take",
+    "none": "Non hai ancora generato nulla.",
+    "clear": "Cancella la cronologia delle take",
+    "close": "Chiudi",
+    "detail": "{{bars}} battute · {{bpm}} BPM"
+  },
   "artist": {
     "label": "Questa selezione",
     "tendsTo": "Tende a",
     "tempo": "{{bpm}} BPM",
+    "tempoRange": "{{low}}–{{high}} BPM",
     "key": "{{key}} {{scale}}",
     "halfTime": "half-time",
-    "moods": "{{count}} mood"
+    "moods": "Atmosfere",
+    "writes": "Scrive",
+    "doesNotWrite": "Non scrive"
   },
   "styles": {
     "original": "Flusso originale",

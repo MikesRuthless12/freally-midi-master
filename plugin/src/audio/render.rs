@@ -219,7 +219,7 @@ const ACID_BODY: usize = 24;
 /// into a chunk a DAW believes — so if the two guards ever drifted, the WAV
 /// would declare a tempo the samples inside it were not rendered at. That is the
 /// exact defect the `acid` chunk was added to fix, arriving from the other side.
-fn tempo(pattern: &Pattern) -> f32 {
+pub(crate) fn tempo(pattern: &Pattern) -> f32 {
     if pattern.bpm.is_finite() && pattern.bpm > 1.0 {
         pattern.bpm
     } else {

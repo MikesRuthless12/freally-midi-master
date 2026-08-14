@@ -411,6 +411,11 @@
     "up": "Lên",
     "empty": "Không có sample nào trong thư mục này.",
     "truncated": "Thư mục này có nhiều tệp hơn số được hiển thị.",
+    "filter": "Lọc theo tên",
+    "filterScope": "Chỉ tìm trong các thư mục bạn đã mở.",
+    "noMatches": "Không có gì khớp ở đây.",
+    "missing": "{{name}} hiện không truy cập được.",
+    "recheck": "Kiểm tra lại",
     "pickAFile": "Chọn một sample để nghe thử.",
     "decoding": "Đang đọc…",
     "waveformOf": "Dạng sóng của {{name}}",
@@ -436,7 +441,8 @@
       "kitShape": "Chơi như một bộ trống"
     },
     "midiFound": "Nội dung tệp MIDI này",
-    "midiNotes": "Nốt"
+    "midiNotes": "Nốt",
+    "midiAuditionClipped": "Chỉ nghe thử hai phút đầu."
   },
   "patterns": {
     "name": "Đặt tên cho pattern này",
@@ -458,13 +464,23 @@
     "none": "Chưa có bản nào",
     "made": "{{bpm}} BPM · {{scale}}"
   },
+  "takes": {
+    "label": "Lịch sử bản thu",
+    "none": "Chưa tạo ra gì cả.",
+    "clear": "Xoá lịch sử bản thu",
+    "close": "Đóng",
+    "detail": "{{bars}} ô nhịp · {{bpm}} BPM"
+  },
   "artist": {
     "label": "Về lựa chọn này",
     "tendsTo": "Thường",
     "tempo": "{{bpm}} BPM",
+    "tempoRange": "{{low}}–{{high}} BPM",
     "key": "{{key}} {{scale}}",
     "halfTime": "half-time",
-    "moods": "{{count}} tâm trạng"
+    "moods": "Sắc thái",
+    "writes": "Viết",
+    "doesNotWrite": "Không viết"
   },
   "styles": {
     "original": "Quy trình riêng",

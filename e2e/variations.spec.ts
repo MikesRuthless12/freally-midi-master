@@ -95,3 +95,72 @@ test('each generator counts its own takes', async ({ page }) => {
   await page.getByRole('tab', { name: 'Drums' }).click();
   await expect(count).toHaveText('2 / 2');
 });
+
+/**
+ * Browsing the history rather than stepping through it (TASK-045B).
+ *
+ * ⛔⛔ **Mike said why the arrows are not enough**: *"if you have generated 20
+ * just 'Trap' and 20 just 'Rage' and 40 just 'Drake' then it should persist …
+ * so that way you can go through the actual history of all your generations and
+ * find what you like."* ◀/▶ answer "back one"; finding take twelve out of eighty
+ * needs an index, and this is it.
+ *
+ * ⚠ `src/state/variations.test.ts` owns the round trip through the plugin and
+ * `plugin/src/takes.rs` owns the cap and the per-style eviction. What only a
+ * browser shows is that the counter opens the panel, that the panel lists what
+ * was generated, and that choosing a take puts it back.
+ */
+test('the counter opens a browsable history of every take', async ({ page }) => {
+  const generate = page.getByRole('button', { name: 'Generate', exact: true }).first();
+  await generate.click();
+  await generate.click();
+  await generate.click();
+
+  // ⛔ The way in is the readout a producer is already looking at when they
+  // decide they want an earlier take back.
+  await page.locator('.variations__count').click();
+  const history = page.getByRole('dialog', { name: 'Take history' });
+  await expect(history).toBeVisible();
+
+  // Grouped by style, which is the grouping in Mike's own sentence.
+  await expect(history.locator('.takes__style')).toHaveText([/Mock Artist/]);
+  await expect(history.locator('.takes__take')).toHaveCount(3);
+  // Enough to choose between them: which generator, how long, how fast, and
+  // when — a list of three identical rows would be no better than the arrows.
+  await expect(history.locator('.takes__take').first()).toContainText('Drums');
+  await expect(history.locator('.takes__take').first()).toContainText('bars');
+});
+
+test('choosing a take from the history puts it back and shuts the panel', async ({ page }) => {
+  const generate = page.getByRole('button', { name: 'Generate', exact: true }).first();
+  await generate.click();
+  await generate.click();
+  await generate.click();
+  const count = page.locator('.variations__count');
+  await expect(count).toHaveText('3 / 3');
+
+  await count.click();
+  const history = page.getByRole('dialog', { name: 'Take history' });
+  // Newest first here, oldest first on disk — the last row is the first take.
+  await history.locator('.takes__take').last().click();
+
+  // ⛔ **Shut on choosing.** It is a place you go, not a place you live: leaving
+  // it open over the grid would cover the thing the take was chosen *for*.
+  await expect(history).toBeHidden();
+  // ⚠ The counter follows, because recalling walks the same log the arrows do.
+  await expect(count).toHaveText('1 / 3');
+});
+
+test('the history can be emptied, and says so when it is', async ({ page }) => {
+  // ⚠ It is a record of what somebody has been making. Being able to clear it is
+  // not a convenience — the browser's history carries the same sentence.
+  const generate = page.getByRole('button', { name: 'Generate', exact: true }).first();
+  await generate.click();
+
+  await page.locator('.variations__count').click();
+  const history = page.getByRole('dialog', { name: 'Take history' });
+  await expect(history.locator('.takes__take')).toHaveCount(1);
+
+  await history.getByRole('button', { name: 'Clear take history' }).click();
+  await expect(history.getByText('Nothing generated yet.')).toBeVisible();
+});

@@ -2,19 +2,39 @@
    transport — the two things a producer alternates between while choosing a
    take are Generate and stepping back to the one before it. */
 .variations {
+  /* ⚠ The anchor for the take history, which hangs under the counter that opens
+     it — see `TakeHistory.css`. */
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--space-1);
   min-width: 0;
 }
 
+/* ⛔ **A button now, and it has to still read as a readout.** It opens the
+   browsable history (TASK-045B), but the thing it says is "3 / 40" — so it keeps
+   the type and the spacing it had and takes only a hover and a focus ring. A
+   control that announced itself with a border would put a second button-looking
+   thing between the two arrows. */
 .variations__count {
   min-width: 4.5rem;
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-control);
+  background: none;
+  font: inherit;
   font-size: var(--text-micro);
   font-variant-numeric: tabular-nums;
   color: var(--color-text-2);
   text-align: center;
   white-space: nowrap;
+  cursor: pointer;
+}
+
+.variations__count:hover,
+.variations__count[aria-expanded='true'] {
+  color: var(--color-text);
+  background: var(--color-surface-2);
 }
 
 /* The keep star (TASK-040T). Lit when this take is in the training set — the

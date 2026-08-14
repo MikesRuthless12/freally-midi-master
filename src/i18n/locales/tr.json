@@ -411,6 +411,11 @@
     "up": "Yukarı",
     "empty": "Bu klasörde örnek yok.",
     "truncated": "Bu klasörde gösterilenden daha fazla dosya var.",
+    "filter": "Ada göre filtrele",
+    "filterScope": "Açtığınız klasörlerde arama yapılır.",
+    "noMatches": "Burada eşleşen bir şey yok.",
+    "missing": "{{name}} şu anda erişilebilir değil.",
+    "recheck": "Yeniden denetle",
     "pickAFile": "Dinlemek için bir örnek seçin.",
     "decoding": "Okunuyor…",
     "waveformOf": "{{name}} dalga biçimi",
@@ -436,7 +441,8 @@
       "kitShape": "Davul seti gibi çalıyor"
     },
     "midiFound": "Bu MIDI dosyasının içeriği",
-    "midiNotes": "Notalar"
+    "midiNotes": "Notalar",
+    "midiAuditionClipped": "Yalnızca ilk iki dakika dinlenir."
   },
   "patterns": {
     "name": "Bu pattern’e ad ver",
@@ -458,13 +464,23 @@
     "none": "Henüz alma yok",
     "made": "{{bpm}} BPM · {{scale}}"
   },
+  "takes": {
+    "label": "Çekim geçmişi",
+    "none": "Henüz bir şey üretilmedi.",
+    "clear": "Çekim geçmişini temizle",
+    "close": "Kapat",
+    "detail": "{{bars}} ölçü · {{bpm}} BPM"
+  },
   "artist": {
     "label": "Bu seçim hakkında",
     "tendsTo": "Genelde",
     "tempo": "{{bpm}} BPM",
+    "tempoRange": "{{low}}–{{high}} BPM",
     "key": "{{key}} {{scale}}",
     "halfTime": "half-time",
-    "moods": "{{count}} mod"
+    "moods": "Ruh halleri",
+    "writes": "Yazar",
+    "doesNotWrite": "Yazmaz"
   },
   "styles": {
     "original": "Kendi akışın",

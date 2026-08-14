@@ -21,6 +21,11 @@ const { useVariations } = await import('./variations');
 
 const TRAP: SessionDefaults = {
   bpm: 140,
+  bpmMin: 132,
+  bpmMax: 148,
+  // ⚠ Four of five, so a fixture cannot make the detail pane's "does not write"
+  // line untestable by claiming everything (TASK-158D).
+  parts: ['drums', 'chords', 'melody', 'bass'],
   keys: ['F#', 'C#'],
   scales: ['natural_minor'],
   swing: { grid: 'sixteenth', amount: 0.54 },
@@ -29,6 +34,9 @@ const TRAP: SessionDefaults = {
 
 const DRILL: SessionDefaults = {
   bpm: 142,
+  bpmMin: 138,
+  bpmMax: 146,
+  parts: ['drums', 'melody', 'bass'],
   keys: ['Bb'],
   scales: ['phrygian'],
   swing: { grid: 'sixteenth', amount: 0.5 },

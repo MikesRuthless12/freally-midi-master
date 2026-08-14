@@ -411,6 +411,11 @@
     "up": "위로",
     "empty": "이 폴더에는 샘플이 없습니다.",
     "truncated": "이 폴더에는 표시된 것보다 많은 파일이 있습니다.",
+    "filter": "이름으로 필터",
+    "filterScope": "열어 둔 폴더에서만 검색합니다.",
+    "noMatches": "일치하는 항목이 없습니다.",
+    "missing": "{{name}}에 지금 접근할 수 없습니다.",
+    "recheck": "다시 확인",
     "pickAFile": "미리 들으려면 샘플을 선택하세요.",
     "decoding": "읽는 중…",
     "waveformOf": "{{name}}의 파형",
@@ -436,7 +441,8 @@
       "kitShape": "드럼 킷처럼 연주됩니다"
     },
     "midiFound": "이 MIDI 파일의 내용",
-    "midiNotes": "노트"
+    "midiNotes": "노트",
+    "midiAuditionClipped": "처음 2분만 미리 듣습니다."
   },
   "patterns": {
     "name": "이 패턴의 이름",
@@ -458,13 +464,23 @@
     "none": "아직 테이크 없음",
     "made": "{{bpm}} BPM · {{scale}}"
   },
+  "takes": {
+    "label": "테이크 기록",
+    "none": "아직 생성한 것이 없습니다.",
+    "clear": "테이크 기록 지우기",
+    "close": "닫기",
+    "detail": "{{bars}}마디 · {{bpm}} BPM"
+  },
   "artist": {
     "label": "이 선택에 대하여",
     "tendsTo": "주로",
     "tempo": "{{bpm}} BPM",
+    "tempoRange": "{{low}}–{{high}} BPM",
     "key": "{{key}} {{scale}}",
     "halfTime": "하프타임",
-    "moods": "무드 {{count}}개"
+    "moods": "무드",
+    "writes": "작성하는 파트",
+    "doesNotWrite": "작성하지 않는 파트"
   },
   "styles": {
     "original": "나만의 작업 방식",

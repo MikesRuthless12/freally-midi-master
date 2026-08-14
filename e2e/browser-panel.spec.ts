@@ -207,8 +207,47 @@ test('a .mid is listed, and is not offered as a drum sample', async ({ page }) =
   await browserRow(page, 'riff.mid').click();
   // ⚠ No waveform is even asked for: a `.mid` has no PCM, and requesting one
   // would put a refusal on screen every time a producer clicked a perfectly good
-  // file. Auditioning it is TASK-058's MIDI playback and is not built yet.
+  // file. ⛔ It can now be *heard* (TASK-160) — but through a render made on the
+  // press, not through peaks drawn from a file that has none.
   await expect(page.locator('.preview__outline')).toHaveCount(0);
+});
+
+/**
+ * Hearing a `.mid` from the browser (TASK-160).
+ *
+ * ⛔⛔ Mike, 2026-08-10: *".mid files … have its own sound like Ableton does that
+ * can play the .mid file"*.
+ *
+ * ▶ **The roadmap costed this as "its own note scheduler" and it did not need
+ * one.** `midi_audition::render` builds the same `Vec<f32>` a decoded `.wav`
+ * arrives as, so the audition voice plays a MIDI file with the transport that
+ * already exists — and `plugin/src/midi_audition.rs` owns the render's rules.
+ * What only a browser shows is that the panel offers the controls and asks for
+ * the render on the press rather than on the click.
+ *
+ * ⚠ The mock has no audio thread, so the position never advances. What is
+ * checkable here is the wiring.
+ */
+test('a .mid can be played, and is not rendered until it is asked for', async ({ page }) => {
+  await browserRow(page, 'Samples').click();
+
+  await browserRow(page, 'riff.mid').click();
+  // ⛔ **Selecting does not render**, and the disabled controls are how that is
+  // visible: Stop and Loop act on a buffer, and there is not one yet. Building
+  // the audio is the slow half, and walking a folder with ↓ would render every
+  // `.mid` stepped past.
+  const transport = page.locator('.midi__transport');
+  await expect(transport).toBeVisible();
+  await expect(transport.getByRole('button', { name: 'Stop' })).toBeDisabled();
+
+  // ...and pressing Play is what asks for it, after which the rest of the
+  // transport is live.
+  await transport.getByRole('button', { name: 'Play' }).click();
+  await expect(transport.getByRole('button', { name: 'Stop' })).toBeEnabled();
+  await expect(transport.getByRole('button', { name: 'Loop' })).toBeEnabled();
+  // The readout appears once something is loaded, rather than sitting at
+  // `0:00 / 0:00` over a file nothing has rendered.
+  await expect(transport.locator('.preview__time')).toBeVisible();
 });
 
 /**
@@ -414,6 +453,108 @@ test('auditioning a sample puts it at the top of the history', async ({ page }) 
 
   await browserRow(page, 'kick-808.wav').click();
   await expect(history.getByRole('listitem')).toHaveText([/kick-808\.wav/, /clap-01\.wav/]);
+});
+
+/**
+ * ⛔⛔ **Opening a `.mid` counts as opening a file, and it did not.**
+ *
+ * The last security review found the page calling `loadRecent()` after
+ * `explorer_midi_split` under a comment saying the plugin had written the
+ * entry — and `recent::note` ran only from `preview_load` (a sample) and
+ * `explorer_midi` (the *drop* into a part). So clicking twenty loops and
+ * importing one gave a history of the one, which is `recent.rs`'s own recording
+ * rule — *"recorded on audition, not on drop"* — backwards.
+ *
+ * ⚠ A separate test rather than another click in the one above, because the two
+ * kinds go down two different commands: a sample records from `preview_load`
+ * and a `.mid` has no PCM to load at all.
+ */
+test('opening a MIDI file records it too', async ({ page }) => {
+  await openPanel(page, 'explorer');
+  await browserRow(page, 'Samples').click();
+
+  await browserRow(page, 'riff.mid').click();
+  const history = page.getByRole('list', { name: 'Recent' });
+  await expect(history.getByRole('listitem')).toHaveText([/riff\.mid/]);
+
+  // And it takes its place in one list with the samples, newest first — the
+  // history is of files opened, not of two histories that happen to be adjacent.
+  await browserRow(page, 'kick-808.wav').click();
+  await expect(history.getByRole('listitem')).toHaveText([/kick-808\.wav/, /riff\.mid/]);
+});
+
+/**
+ * A real sample library, at the size the plugin actually sends (TASK-058).
+ *
+ * ⛔⛔ **Mike's bound, verbatim: *"a 2,000-file folder under 300 ms"*.** 2,000 is
+ * `explorer::MAX_ENTRIES` — the most rows the plugin will ever answer for one
+ * folder — and the tree that shipped before this drew every one of them, as six
+ * elements each, inside nested `<ul>`s built by a component that called itself.
+ * Several folders can be open at once.
+ *
+ * ⚠ **The row count is the assertion that cannot be faked.** A timing bound alone
+ * would pass on a fast machine with the old tree; the DOM holding thirty rows out
+ * of two thousand is what proves the window exists.
+ */
+test('a two-thousand-file folder draws a window, not two thousand rows', async ({ page }) => {
+  await openPanel(page, 'explorer');
+  await browserRow(page, 'Samples').click();
+  await browserRow(page, 'Kicks').click();
+
+  // ⚠ **A smoke alarm, not the proof.** Mike's bound is 300 ms, but wall-clock
+  // measured across a click and an auto-retrying assertion is as much a
+  // measurement of the CI runner's afternoon as of the code — so this is set an
+  // order of magnitude above it, to catch a change that puts the whole folder
+  // back rather than to police a hundred milliseconds. **The row count below is
+  // what actually proves virtualization**, and it cannot flake.
+  const started = Date.now();
+  await browserRow(page, 'Loops').click();
+  await expect(browserRow(page, 'loop-0000.wav')).toBeVisible();
+  expect(Date.now() - started).toBeLessThan(3_000);
+
+  // ⛔ The whole point: the rows on screen plus the overscan, not the folder.
+  const drawn = await page.locator('.tree__row').count();
+  expect(drawn).toBeGreaterThan(0);
+  expect(drawn).toBeLessThan(200);
+
+  // ⚠ **The scrollbar still measures the whole list**, because the spacers hold
+  // the height the un-drawn rows would have taken. Without that the list would
+  // look 30 rows long and there would be nothing to scroll to row 1,999 with.
+  const height = await page.locator('.tree').evaluate((box) => box.scrollHeight);
+  expect(height).toBeGreaterThan(2_000 * 20);
+});
+
+/**
+ * Type-to-filter (TASK-058), and the honest statement of what it searched.
+ *
+ * ⛔ The filter narrows the folders that have been **read** — the plugin reads one
+ * folder per call, because walking a whole library on the host's editor thread is
+ * what `Explorer::list_one` refuses to do. A box that looked like it searched the
+ * whole library while searching part of it is the readout-that-lies failure, so
+ * the scope line is part of the feature rather than decoration.
+ */
+test('type-to-filter narrows the tree, and says what it searched', async ({ page }) => {
+  await openPanel(page, 'explorer');
+  await browserRow(page, 'Samples').click();
+  await browserRow(page, 'Kicks').click();
+  await browserRow(page, 'Loops').click();
+
+  await page.getByRole('searchbox', { name: 'Filter by name' }).fill('loop-1234');
+  await expect(browserRow(page, 'loop-1234.wav')).toBeVisible();
+  await expect(browserRow(page, 'loop-0000.wav')).toHaveCount(0);
+  // The folders that lead to a match survive, or there is no path to it on screen.
+  await expect(browserRow(page, 'Loops')).toBeVisible();
+  await expect(page.getByText('Searching the folders you have opened.')).toBeVisible();
+
+  // ⚠ **The root stays when nothing matches.** An empty panel reads as the
+  // library having gone rather than as the query being too narrow.
+  await page.getByRole('searchbox', { name: 'Filter by name' }).fill('nothing-is-called-this');
+  await expect(page.getByText('Nothing here matches.')).toBeVisible();
+  await expect(browserRow(page, 'Samples')).toBeVisible();
+
+  // Escape is the way back, and without it the only one is select-all-delete.
+  await page.getByRole('searchbox', { name: 'Filter by name' }).press('Escape');
+  await expect(browserRow(page, 'loop-0000.wav')).toBeVisible();
 });
 
 test('the history can be emptied', async ({ page }) => {

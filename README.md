@@ -79,8 +79,11 @@ the result into FL Studio, Ableton, Logic, Reaper, or anything else.
   you never have to know in advance whether "UK Drill" is a person or a style.
   Stop typing halfway and click away and it takes the best match, so you cannot
   end up with nothing chosen. What the selection *does* — its era, its genres, the
-  tempo and key it tends toward — appears directly underneath, before you press
-  Generate. Genres exist as a browse filter, not the unit of generation.
+  tempo range and key it tends toward, its moods by name, and **which parts it
+  writes and which it does not** — appears directly underneath, before you press
+  Generate. An artist who does not write countermelodies says so, rather than
+  answering that tab with silence. Genres exist as a browse filter, not the unit
+  of generation.
 - **Every artist has moods, not one sound.** Pick a mood beside the artist and
   stay there, or leave it on *Any* and let each press walk their range —
   boom bap's *dusty / jazzy / hard*, phonk's *cowbell / memphis / brazilian*,
@@ -126,6 +129,16 @@ the result into FL Studio, Ableton, Logic, Reaper, or anything else.
   one-shot or MIDI — and it joins a list; click a starred name and the tree opens
   its way down to it, or opens Explorer or Finder if that folder is no longer one
   of your eight.
+- **It holds a real sample library.** A folder with two thousand files in it
+  opens as fast as one with four, because only the rows you can see are drawn.
+  **Type to filter** and the tree narrows to what matches, keeping the folders
+  that lead to it — and it says which folders it searched, because it can only
+  look inside the ones you have opened. Unplug the drive a library folder lives
+  on and its tab says so instead of sitting there refusing to open.
+- **Hear a `.mid` before you decide what to do with it.** Press Play on a MIDI
+  file and it sounds, through a plain built-in instrument rather than whichever
+  artist you happen to have selected — so the same file sounds the same tomorrow.
+  It never touches your project's transport.
 - **Drop a MIDI file in and it works out what is in it.** Drag a `.mid` onto a
   generator and its notes land there; drop it on the Song tab and the whole file
   arrives as an arrangement you can take parts out of, cell by cell, without
@@ -150,6 +163,14 @@ the result into FL Studio, Ableton, Logic, Reaper, or anything else.
   solo, mute and per-lane audition on every drum row — click a lane's name to
   hear that pad on its own. **Lock what you like and reroll the rest**: a locked
   lane comes back note for note however many times you press Generate.
+- **Any drum row opens into a pitch lane.** Trap lives on 808s that move, and a
+  drum grid that draws them as on/off cannot say what they are playing. Open a
+  row and it becomes seven — the lane's root, three semitones either side — and
+  a hit is something you drag to a pitch rather than a value the grid threw
+  away. Drag past the edge and the window follows, so the reach is the whole of
+  MIDI while the row stays seven tall. **Every lane, not just the 808**: on the
+  808 the rows are notes, and everywhere else they are the sample transposed, so
+  a pitched hat roll or a tuned tom fill is the same gesture.
 - **It will not hand you somebody else's hook.** Every melody and countermelody
   is screened against a table of well-known contours before you hear it — on the
   Melody tab and inside every section of a Song Mode arrangement — and a take
@@ -160,7 +181,11 @@ the result into FL Studio, Ableton, Logic, Reaper, or anything else.
   song and any DAW — saved as *notes*, with no kit, so you can load it and put
   whatever sounds you like underneath. And every take of the session is kept:
   step back through them and the whole setup comes with it — artist, mood, seed,
-  bars and pins, with the tempo and key that were actually used.
+  bars and pins, with the tempo and key that were actually used. **And it
+  outlives the session**: click the take counter and every generation you have
+  ever made is there, grouped by artist, each one saying how long and how fast it
+  was and when you made it. Pick one and it comes back — the beat from Tuesday
+  night whose seed you never wrote down.
 - **Export.** The whole arranged song as one multi-track Standard MIDI file, or
   one file per part into a folder, through your platform's own Save As.
 - **Drag it out.** Pick a part up and drop it straight onto a DAW track, as MIDI

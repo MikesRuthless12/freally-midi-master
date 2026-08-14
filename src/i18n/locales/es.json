@@ -411,6 +411,11 @@
     "up": "Subir",
     "empty": "No hay samples en esta carpeta.",
     "truncated": "Esta carpeta tiene más archivos de los que se muestran.",
+    "filter": "Filtrar por nombre",
+    "filterScope": "Se buscan las carpetas que has abierto.",
+    "noMatches": "Aquí no coincide nada.",
+    "missing": "{{name}} no está disponible ahora mismo.",
+    "recheck": "Comprobar de nuevo",
     "pickAFile": "Elige un sample para escucharlo.",
     "decoding": "Leyendo…",
     "waveformOf": "Forma de onda de {{name}}",
@@ -436,7 +441,8 @@
       "kitShape": "Suena como una batería"
     },
     "midiFound": "Contenido de este archivo MIDI",
-    "midiNotes": "Notas"
+    "midiNotes": "Notas",
+    "midiAuditionClipped": "Solo se escuchan los dos primeros minutos."
   },
   "patterns": {
     "name": "Nombra este patrón",
@@ -458,13 +464,23 @@
     "none": "Aún no hay tomas",
     "made": "{{bpm}} BPM · {{scale}}"
   },
+  "takes": {
+    "label": "Historial de tomas",
+    "none": "Aún no has generado nada.",
+    "clear": "Borrar el historial de tomas",
+    "close": "Cerrar",
+    "detail": "{{bars}} compases · {{bpm}} BPM"
+  },
   "artist": {
     "label": "Sobre esta selección",
     "tendsTo": "Suele",
     "tempo": "{{bpm}} BPM",
+    "tempoRange": "{{low}}–{{high}} BPM",
     "key": "{{key}} {{scale}}",
     "halfTime": "medio tiempo",
-    "moods": "{{count}} moods"
+    "moods": "Estados de ánimo",
+    "writes": "Escribe",
+    "doesNotWrite": "No escribe"
   },
   "styles": {
     "original": "Flujo original",

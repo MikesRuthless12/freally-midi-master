@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { ChevronLeft, ChevronRight, Star } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
@@ -5,6 +6,7 @@ import { isTypingTarget } from '../lib/keyboard';
 import { TAB_PART, useSession } from '../state/session';
 import { useUi } from '../state/ui';
 import { counter, keptKey, madeAt, useVariations } from '../state/variations';
+import { TakeHistory } from './TakeHistory';
 import './VariationNav.css';
 
 /**
@@ -39,6 +41,13 @@ export function VariationNav() {
   const keep = useVariations((s) => s.keep);
   const recall = useSession((s) => s.recallVariation);
   const generating = useSession((s) => s.generating);
+  /**
+   * Whether the browsable history is open (TASK-045B).
+   *
+   * ⚠ **Declared above the early return below**, because a hook after a
+   * conditional return is a hook that does not run in every render.
+   */
+  const [browsing, setBrowsing] = useState(false);
 
   // Song is an arrangement of the five rather than a part, so it has no log of
   // its own — `SongTimeline` rerolls sections and owns that story.
@@ -91,9 +100,26 @@ export function VariationNav() {
         <ChevronLeft size={14} aria-hidden="true" />
       </button>
 
-      <span className="variations__count">
+      {/* ⛔⛔ **The counter is the way into the browsable history** (TASK-045B).
+          Mike: *"so that way you can go through the actual history of all your
+          generations and find what you like."* It is a button rather than a new
+          control because this is already where a producer is standing when they
+          want it — "3 / 40" is the readout you are looking at when you decide you
+          want take 12 back, and putting the list anywhere else would mean
+          learning a second place for one idea. */}
+      <button
+        type="button"
+        className="variations__count"
+        aria-haspopup="dialog"
+        aria-expanded={browsing}
+        aria-label={t('takes.label')}
+        title={t('takes.label')}
+        onClick={() => setBrowsing((was) => !was)}
+      >
         {total === 0 ? t('variations.none') : `${at + 1} / ${total}`}
-      </span>
+      </button>
+
+      {browsing && <TakeHistory onClose={() => setBrowsing(false)} />}
 
       <button
         type="button"

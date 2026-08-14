@@ -1,0 +1,140 @@
+/* Every generation you have made, browsable (TASK-045B).
+
+   ⛔ **A panel over the stage rather than a rail section.** It is opened from the
+   take counter and dismissed the moment a take is chosen — a place you go, not a
+   place you live — and the two rails are already full of panels that stay put.
+   ⚠ Absolutely positioned against the stage header, so it hangs under the
+   counter that opened it the way the combobox menus hang under their fields. */
+.takes {
+  position: absolute;
+  z-index: 40;
+  top: 100%;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  width: min(26rem, 90vw);
+  /* Tall enough to read a session's worth of takes without covering the whole
+     stage — the grid underneath is what the producer is choosing *for*. */
+  max-height: min(28rem, 60vh);
+  margin-top: var(--space-1);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-control);
+  background: var(--color-surface);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 28%);
+}
+
+.takes:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: -2px;
+}
+
+.takes__bar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.takes__title {
+  flex: 1 1 auto;
+  margin: 0;
+  color: var(--color-text-2);
+  font-size: var(--text-micro);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.takes__empty {
+  margin: 0;
+  padding: var(--space-3) var(--space-2);
+  color: var(--color-text-3);
+  font-size: var(--text-micro);
+  text-align: center;
+}
+
+/* ⛔ **This is the part that scrolls**, not the panel: the bar with Clear and
+   Close has to stay reachable however long the history is. */
+.takes__styles {
+  flex: 1 1 auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overflow-y: auto;
+}
+
+.takes__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* The style heading — "Drake", "Trap". Sticky, because a producer scrolling
+   through eighty takes needs to know whose they are looking at. */
+.takes__style {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin: 0;
+  padding: var(--space-1) var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-surface-2);
+  color: var(--color-text);
+  font-size: var(--text-micro);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.takes__count {
+  margin-inline-start: auto;
+  color: var(--color-text-3);
+  font-variant-numeric: tabular-nums;
+}
+
+.takes__take {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  width: 100%;
+  padding: 2px var(--space-2);
+  border: 0;
+  background: none;
+  color: var(--color-text-2);
+  font: inherit;
+  font-size: var(--text-micro);
+  text-align: start;
+  cursor: pointer;
+}
+
+.takes__take:hover,
+.takes__take:focus-visible {
+  background: var(--color-surface-2);
+  color: var(--color-text);
+}
+
+/* Which generator. Fixed width so the details line up down a column rather than
+   stepping in and out with the length of the word. */
+.takes__part {
+  flex: none;
+  width: 4.5rem;
+  color: var(--color-text);
+}
+
+.takes__detail {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+}
+
+/* When it was made — the thing a producer actually remembers. It takes the slack
+   and truncates, because it is the longest field and the least precise. */
+.takes__when {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--color-text-3);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: end;
+}

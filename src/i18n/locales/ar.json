@@ -411,6 +411,11 @@
     "up": "لأعلى",
     "empty": "لا توجد عيّنات في هذا المجلد.",
     "truncated": "يحتوي هذا المجلد على ملفات أكثر مما هو معروض.",
+    "filter": "التصفية بالاسم",
+    "filterScope": "يجري البحث في المجلدات التي فتحتها.",
+    "noMatches": "لا يوجد ما يطابق هنا.",
+    "missing": "{{name}} غير متاح حالياً.",
+    "recheck": "تحقق مرة أخرى",
     "pickAFile": "اختر عيّنة لمعاينتها.",
     "decoding": "جارٍ القراءة…",
     "waveformOf": "الشكل الموجي لـ {{name}}",
@@ -436,7 +441,8 @@
       "kitShape": "يُعزف مثل طقم الإيقاع"
     },
     "midiFound": "محتوى ملف MIDI هذا",
-    "midiNotes": "النوتات"
+    "midiNotes": "النوتات",
+    "midiAuditionClipped": "يتم تشغيل أول دقيقتين فقط."
   },
   "patterns": {
     "name": "سمِّ هذا النمط",
@@ -458,13 +464,23 @@
     "none": "لا توجد نسخ بعد",
     "made": "{{bpm}} ن/د · {{scale}}"
   },
+  "takes": {
+    "label": "سجل الأخذات",
+    "none": "لم يتم توليد أي شيء بعد.",
+    "clear": "مسح سجل الأخذات",
+    "close": "إغلاق",
+    "detail": "{{bars}} مازورة · {{bpm}} BPM"
+  },
   "artist": {
     "label": "عن هذا الاختيار",
     "tendsTo": "يميل إلى",
     "tempo": "{{bpm}} ن/د",
+    "tempoRange": "{{low}}–{{high}} BPM",
     "key": "{{key}} {{scale}}",
     "halfTime": "نصف الإيقاع",
-    "moods": "{{count}} حالات"
+    "moods": "الأجواء",
+    "writes": "يكتب",
+    "doesNotWrite": "لا يكتب"
   },
   "styles": {
     "original": "أسلوبك الخاص",

@@ -38,7 +38,15 @@ const NO_PINS = {
 };
 
 describe('the variation history', () => {
-  beforeEach(() => useVariations.getState().reset());
+  // ⚠ **The persisted half is cleared too, and `reset()` cannot do it.** That
+  // empties the store; the takes live outside it — behind the plugin in the real
+  // app, in the IPC mock here — and outliving a page load is the entire point of
+  // them (TASK-045B). Without this the thousand-take cap test above leaks into
+  // every case after it, which is exactly the property working correctly.
+  beforeEach(async () => {
+    useVariations.getState().reset();
+    await useVariations.getState().clearHistory();
+  });
 
   it('keeps every generation of the session, with no cap', () => {
     // ⛔ Mike's rescope: *"keep going sequentially through the seeds that you
@@ -171,6 +179,63 @@ describe('the variation history', () => {
 
     const kept = useVariations.getState().keptEntries();
     expect(kept.map((entry) => entry.seed)).toEqual(['2']);
+  });
+
+  /**
+   * The history that outlives the session (TASK-045B).
+   *
+   * ⛔⛔ Mike: *"if you have generated 20 just 'Trap' and 20 just 'Rage' and 40
+   * just 'Drake' then it should persist … so that way you can go through the
+   * actual history of all your generations and find what you like."*
+   *
+   * ⚠ **Grouped by style here, by part in `entries`.** They are two structures
+   * on purpose: `entries` is what ◀/▶ walk and its key has to be the part,
+   * because the counter is per part; this is what the panel browses and its key
+   * has to be the style, because that is the grouping in Mike's own sentence.
+   */
+  it('sends every generation to the plugin to be kept', async () => {
+    const { record } = useVariations.getState();
+    record(entryFor(clip('drums', '1', 140), { mood: null, pins: NO_PINS }, 1));
+    record(entryFor(clip('melody', '2', 140), { mood: null, pins: NO_PINS }, 2));
+    // The write is fire-and-forget — see `record` — so the reply lands a
+    // microtask later.
+    await Promise.resolve();
+    await Promise.resolve();
+
+    // ⚠ Asserted through `loadHistory` rather than by spying on `invoke`: what
+    // matters is that a take written by one session is readable by the next,
+    // which is the round trip rather than the call.
+    await useVariations.getState().loadHistory();
+    const held = useVariations.getState().history.trap ?? [];
+    expect(held.map((take) => `${take.part}:${take.seed}`)).toEqual(['drums:1', 'melody:2']);
+  });
+
+  it('does not grow the kept history when a take is recorded twice', async () => {
+    // ⛔ **Recalling a take regenerates it**, and `generate` records every
+    // pattern it lands — `session.ts` guards that with its `recalling` flag, but
+    // a guard on the page is not a rule on disk. Idempotent on `(part, seed)`,
+    // which is `keptKey`'s pairing and for the same reason: the drums and the
+    // melody of one record share a song seed.
+    const { record } = useVariations.getState();
+    const take = entryFor(clip('drums', '9', 140), { mood: null, pins: NO_PINS }, 9);
+    record(take);
+    record(take);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    await useVariations.getState().loadHistory();
+    expect(useVariations.getState().history.trap ?? []).toHaveLength(1);
+  });
+
+  it('can be forgotten, because it is a record of what somebody has been making', async () => {
+    useVariations
+      .getState()
+      .record(entryFor(clip('drums', '3', 140), { mood: null, pins: NO_PINS }, 3));
+    await Promise.resolve();
+    await Promise.resolve();
+
+    await useVariations.getState().clearHistory();
+    expect(useVariations.getState().history).toEqual({});
   });
 
   it('writes the date the way it was asked for, through Intl', () => {

@@ -411,6 +411,11 @@
     "up": "Nach oben",
     "empty": "Keine Samples in diesem Ordner.",
     "truncated": "Dieser Ordner enthält mehr Dateien als angezeigt werden.",
+    "filter": "Nach Name filtern",
+    "filterScope": "Es werden die von Ihnen geöffneten Ordner durchsucht.",
+    "noMatches": "Hier passt nichts.",
+    "missing": "{{name}} ist derzeit nicht erreichbar.",
+    "recheck": "Erneut prüfen",
     "pickAFile": "Wählen Sie ein Sample, um es anzuhören.",
     "decoding": "Wird gelesen…",
     "waveformOf": "Wellenform von {{name}}",
@@ -436,7 +441,8 @@
       "kitShape": "Spielt wie ein Drumkit"
     },
     "midiFound": "Inhalt dieser MIDI-Datei",
-    "midiNotes": "Noten"
+    "midiNotes": "Noten",
+    "midiAuditionClipped": "Es werden nur die ersten zwei Minuten vorgehört."
   },
   "patterns": {
     "name": "Diesem Pattern einen Namen geben",
@@ -458,13 +464,23 @@
     "none": "Noch keine Takes",
     "made": "{{bpm}} BPM · {{scale}}"
   },
+  "takes": {
+    "label": "Take-Verlauf",
+    "none": "Noch nichts generiert.",
+    "clear": "Take-Verlauf löschen",
+    "close": "Schließen",
+    "detail": "{{bars}} Takte · {{bpm}} BPM"
+  },
   "artist": {
     "label": "Über diese Auswahl",
     "tendsTo": "Neigt zu",
     "tempo": "{{bpm}} BPM",
+    "tempoRange": "{{low}}–{{high}} BPM",
     "key": "{{key}} {{scale}}",
     "halfTime": "Half-Time",
-    "moods": "{{count}} Moods"
+    "moods": "Stimmungen",
+    "writes": "Schreibt",
+    "doesNotWrite": "Schreibt nicht"
   },
   "styles": {
     "original": "Eigener Workflow",

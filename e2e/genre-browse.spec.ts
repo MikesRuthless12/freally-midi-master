@@ -165,7 +165,40 @@ test('the pane says what the selection tends to do, before you generate', async 
   await expect(pane.locator('.artistpane__name')).toContainText('Mock Artist');
   // ⚠ The tempo comes from the *model's* defaults, not from the pins — a pane
   // showing the pins would describe an artist who plays neither.
-  await expect(pane.locator('.artistpane__tends')).toContainText('BPM');
+  await expect(pane.locator('.artistpane__tends').first()).toContainText('BPM');
+});
+
+/**
+ * ⛔⛔ **The half of TASK-158D that prevents silence.**
+ *
+ * Mike: *"The detail pane should tell a producer what they are about to get —
+ * genres, moods, tempo range, what the model does and does **not** cover —
+ * rather than making them press Generate to find out."*
+ *
+ * `bass.rs`, `chords.rs`, `melody.rs` and `counter.rs` each return an **empty**
+ * track when the model authored no block of their own. That is right — an artist
+ * who does not write countermelodies should not have one invented for them — but
+ * it means Generate on that tab produces nothing at all, and before this the only
+ * way to learn that was to press it. `engine/tests/coverage.rs` proves the claim
+ * by generating every shipped model; this proves the pane actually says it.
+ */
+test('the pane says what the selection does NOT write, not only what it does', async ({
+  page,
+}) => {
+  await pickArtist(page, 'Mock Artist');
+  const pane = page.locator('.artistpane');
+
+  // ⚠ **A range, not a single tempo** — an artist at 68–96 and one at 138–142 are
+  // different propositions at the same nominal.
+  await expect(pane).toContainText('132–148 BPM');
+  // Named rather than counted: "2 moods" says there is a control, not what the
+  // artist is.
+  await expect(pane).toContainText('dark · bounce');
+
+  await expect(pane.locator('.artistpane__tends').filter({ hasText: 'Writes' })).toContainText(
+    'Drums · Chords · Melody · Bass',
+  );
+  await expect(pane.locator('.artistpane__missing')).toContainText('Counter');
 });
 
 test('the pane follows the selection rather than sticking to the first thing read', async ({

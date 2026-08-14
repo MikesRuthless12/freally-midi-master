@@ -891,7 +891,56 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
             let path = request.args["path"].as_str().unwrap_or_default();
             return Some(
                 crate::explorer::midi_split(&shared.explorer, path)
+                    .inspect(|_| {
+                        // ⛔ **This is where a `.mid` is actually opened.**
+                        // `explorer::select` calls this on a click and on an
+                        // arrow key, which is the moment `recent`'s module note
+                        // means by audition — the MIDI twin of `preview_load`.
+                        //
+                        // ⚠ It was missing, and the page already called
+                        // `loadRecent()` here on the strength of a comment
+                        // saying the plugin had written the entry. It had not:
+                        // `note` ran only from `explorer_midi`, which is the
+                        // *drop* into a part — so a producer who clicked twenty
+                        // loops and imported one saw a history of the one, which
+                        // is the recording rule backwards.
+                        let _ = crate::recent::note(path);
+                    })
                     .and_then(|parts| serde_json::to_value(parts).map_err(|e| e.to_string())),
+            );
+        }
+
+        // ⛔⛔ **Hearing a `.mid` from the browser (TASK-160).** Mike: *".mid
+        // files … have its own sound like Ableton does that can play the .mid
+        // file"*.
+        //
+        // ▶ **It loads the audition voice rather than scheduling anything.** The
+        // roadmap put the cost of this at *"its own note scheduler"* on the audio
+        // thread; `midi_audition::render` produces the same `Vec<f32>` a decoded
+        // `.wav` arrives as, so `Preview` plays it with the code that already
+        // exists — and with it the seek, the loop, the reverse, the position poll
+        // and the whole transport strip, tested once.
+        //
+        // ⚠ **It does not start.** Loading because a producer clicked a row must
+        // not make a noise; `preview_play` is the press. Same rule
+        // `Preview::load` states for a sample.
+        //
+        // ⚠ **And it never touches the transport** — TASK-058B's rule for this
+        // panel. `Preview` is a separate voice from `Schedule`, so auditioning a
+        // file cannot move the project's playhead.
+        "explorer_midi_audition" => {
+            let path = request.args["path"].as_str().unwrap_or_default();
+            return Some(
+                crate::explorer::midi_split(&shared.explorer, path).map(|parts| {
+                    let rendered = crate::midi_audition::render(&parts);
+                    let clipped = rendered.clipped;
+                    let seconds = rendered.samples.len() as f64 / f64::from(rendered.rate);
+                    shared.preview.load(rendered.samples, rendered.rate);
+                    // ⚠ The reply says what was rendered rather than answering
+                    // `null`: the panel has to know it is holding an audition of
+                    // *this* file, and whether the file was cut.
+                    json!({ "seconds": seconds, "clipped": clipped })
+                }),
             );
         }
 
@@ -930,6 +979,48 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
             return Some(
                 crate::recent::clear()
                     .and_then(|list| serde_json::to_value(list).map_err(|e| e.to_string())),
+            );
+        }
+
+        // ── The variation history that survives a restart (TASK-045B) ────
+        //
+        // ⛔⛔ **Unlike the browser's history, the page WRITES this one**, and
+        // that difference is deliberate. `recent` is recorded by the plugin
+        // because the plugin is what opens a file; a *generation* happens on the
+        // page — the seed, the pins and the resolved tempo are all decided there
+        // — so `takes_note` takes what `state/variations.ts` already built rather
+        // than the plugin trying to reconstruct it.
+        //
+        // ⚠ **Nothing here resolves or executes a take.** It is stored, capped
+        // and handed back; `recallVariation` on the page is what turns one into a
+        // pattern, through the same `generate` every other path uses. So an entry
+        // written by a page that has gone wrong is a bad row in a list, not a
+        // command.
+        "takes_list" => {
+            return Some(serde_json::to_value(crate::takes::list()).map_err(|e| e.to_string()));
+        }
+
+        // ⚠ **A batch, because one Generate press is five takes.** `session.ts`
+        // records an entry per generated part, and `takes::note` rewrites the
+        // whole file — so one at a time meant five complete read-modify-writes
+        // of a 3,200-take file per press, on this thread.
+        "takes_note" => {
+            let takes: Vec<crate::takes::Take> =
+                match serde_json::from_value(request.args["takes"].clone()) {
+                    Ok(takes) => takes,
+                    Err(error) => return Some(Err(format!("that is not a take: {error}"))),
+                };
+            // ⚠ Acknowledges rather than answering the history: the panel that
+            // draws it reads `takes_list` when it opens, and shipping up to
+            // 3,200 takes back on every Generate press would serialize a value
+            // nothing on screen is showing.
+            return Some(crate::takes::note(takes).map(|()| Value::Null));
+        }
+
+        "takes_clear" => {
+            return Some(
+                crate::takes::clear()
+                    .and_then(|all| serde_json::to_value(all).map_err(|e| e.to_string())),
             );
         }
 
