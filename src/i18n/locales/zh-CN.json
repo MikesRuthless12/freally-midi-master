@@ -443,7 +443,10 @@
     },
     "midiFound": "此 MIDI 文件的内容",
     "midiNotes": "音符",
-    "midiAuditionClipped": "仅试听前两分钟。"
+    "midiAuditionClipped": "仅试听前两分钟。",
+    "raw": "原始",
+    "rawHint": "按磁盘上的原样播放文件",
+    "previewGain": "试听电平"
   },
   "patterns": {
     "name": "为此样式命名",

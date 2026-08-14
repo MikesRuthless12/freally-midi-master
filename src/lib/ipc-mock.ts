@@ -84,6 +84,15 @@ const droppedSamples = new Map<string, string>();
 const padTweaks = new Map<string, PadTweaks>();
 
 /**
+ * The audition level and whether it is bypassed (TASK-058B).
+ *
+ * ⚠ Mutable for the same reason [`padTweaks`] is, and read back by
+ * `preview_position` — the strip draws its own controls off that poll, so a
+ * fixture that answered constants would draw a level nobody could move.
+ */
+const previewLevel = { gainDb: 0, raw: false };
+
+/**
  * What the plugin sends for a pad nobody has edited.
  *
  * ⛔ **A fresh object per call, not a shared constant.** The store spreads what
@@ -1021,12 +1030,30 @@ const handlers: Record<string, Handler> = {
   preview_seek: () => undefined,
   preview_loop: () => undefined,
   preview_reverse: () => undefined,
+
+  // The audition level and the `Raw` bypass (TASK-058B).
+  //
+  // ⛔ **They store, for the reason `padTweaks` above does.** A handler
+  // answering `undefined` would let a spec drag the level and press `Raw` with
+  // nothing to assert — the strip would read the same before and after, which
+  // is exactly how the browser→pad gesture went untested. What crosses the
+  // bridge is two values; the attenuation itself is Rust and is tested there.
+  preview_gain: (args?: InvokeArgs) => {
+    previewLevel.gainDb = Number((args as { db?: unknown } | undefined)?.db ?? 0);
+    return undefined;
+  },
+  preview_raw: (args?: InvokeArgs) => {
+    previewLevel.raw = Boolean((args as { on?: unknown } | undefined)?.on ?? false);
+    return undefined;
+  },
+
   preview_position: () => ({
     playing: false,
     seconds: 0,
     total: 1.5,
     looping: false,
     reverse: false,
+    ...previewLevel,
   }),
 
   // The forms this artist writes, for the structure picker (TASK-070).

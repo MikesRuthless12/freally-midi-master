@@ -35,6 +35,14 @@ use serde::Serialize;
 /// Nothing pending. A real seek is a frame index, which is never negative.
 const NO_SEEK: i64 = -1;
 
+/// How far down an audition sits by default.
+///
+/// ⚠ **A level, not a limit.** An audition plays over whatever the pattern is
+/// doing, and a full-scale one-shot on top of a full-scale mix clips;
+/// `sampler::limit` catches that either way, but limiting is not a level. `Raw`
+/// bypasses this — see [`Preview::set_raw`].
+const AUDITION_LEVEL: f32 = 0.7;
+
 /// What the page draws, polled while a sample is auditioning.
 #[derive(Debug, Clone, Default, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -47,6 +55,11 @@ pub struct Position {
     pub total: f32,
     pub looping: bool,
     pub reverse: bool,
+    /// The producer's own level for the audition, in dB (TASK-058B).
+    pub gain_db: f32,
+    /// Whether the audition is bypassing everything the preview does to the
+    /// file — see [`Preview::set_raw`].
+    pub raw: bool,
 }
 
 /// The audition voice: one sample, one position.
@@ -82,6 +95,13 @@ pub struct Preview {
     pending: AtomicBool,
     looping: AtomicBool,
     reverse: AtomicBool,
+    /// The producer's audition level in dB, as f32 bits (TASK-058B).
+    ///
+    /// ⚠ Bits for the same reason [`Self::position`] is: there is no
+    /// `AtomicF32`, the audio thread only reads it, and a level one block stale
+    /// is inaudible.
+    gain_db: AtomicU32,
+    raw: AtomicBool,
 }
 
 impl Preview {
@@ -221,6 +241,39 @@ impl Preview {
         self.reverse.store(on, Ordering::Relaxed);
     }
 
+    /// How loud the audition is, in dB (TASK-058B).
+    ///
+    /// ⚠ Bounded by the same floor and ceiling a pad's own gain has, so the two
+    /// level controls in the product read the same way round.
+    pub fn set_gain_db(&self, db: f32) {
+        let db = db.clamp(
+            crate::pad_tweaks::MIN_GAIN_DB,
+            crate::pad_tweaks::MAX_GAIN_DB,
+        );
+        self.gain_db.store(db.to_bits(), Ordering::Relaxed);
+    }
+
+    /// Play the file exactly as it is on disk (TASK-058B).
+    ///
+    /// ⛔⛔ **What `Raw` bypasses is [`AUDITION_LEVEL`] as well as the
+    /// producer's own gain, and that is the whole point of it.** The preview
+    /// has always attenuated by 0.7 so an audition over a running pattern does
+    /// not clip — a sensible default, and a *lie* if what you are doing is
+    /// judging how loud a sample is. A producer comparing two kicks needs one
+    /// of them to be the file.
+    ///
+    /// ⚠ **This is not "through the pad's chain".** A file in the browser is
+    /// not on a pad; the thing that plays a file *as a pad would* is the pad's
+    /// own audition, which `PadEditor` already fires on every edit. Wiring a
+    /// browser file through a lane's `PadTweaks` would need the preview and
+    /// `sampler::render` to share one shaping path rather than each spelling it
+    /// out — and two spellings of one rule is how an exported stem stops
+    /// matching what was auditioned, which this codebase has already recorded
+    /// twice.
+    pub fn set_raw(&self, on: bool) {
+        self.raw.store(on, Ordering::Relaxed);
+    }
+
     /// What the page polls.
     pub fn position(&self) -> Position {
         let rate = self.rate.load(Ordering::Relaxed).max(1) as f32;
@@ -231,7 +284,22 @@ impl Preview {
             total: frames / rate,
             looping: self.looping.load(Ordering::Relaxed),
             reverse: self.reverse.load(Ordering::Relaxed),
+            gain_db: f32::from_bits(self.gain_db.load(Ordering::Relaxed)),
+            raw: self.raw.load(Ordering::Relaxed),
         }
+    }
+
+    /// The multiplier [`Self::render`] applies, given the two controls.
+    ///
+    /// ⚠ **Here rather than inline in the callback**, so the one rule that
+    /// decides how loud an audition is can be asserted directly instead of
+    /// through rendered samples.
+    fn level(&self) -> f32 {
+        if self.raw.load(Ordering::Relaxed) {
+            return 1.0;
+        }
+        AUDITION_LEVEL
+            * crate::pad_tweaks::db_to_linear(f32::from_bits(self.gain_db.load(Ordering::Relaxed)))
     }
 
     /// Is there anything for [`Self::render`] to do?
@@ -332,6 +400,10 @@ impl Preview {
             ratio
         };
         let looping = self.looping.load(Ordering::Relaxed);
+        // ⚠ **Read once for the block, not per frame.** A level that changed
+        // mid-block would be a step in the middle of a buffer, and the page
+        // cannot move a slider faster than a block anyway.
+        let level = self.level();
 
         for frame in out.chunks_mut(channels) {
             if at < 0.0 || at > last {
@@ -347,10 +419,8 @@ impl Preview {
                     break;
                 }
             }
-            // ⚠ Attenuated: an audition plays over whatever the pattern is
-            // doing, and a full-scale one-shot on top of a full-scale mix
-            // clips. `limit` catches it either way, but limiting is not a
-            // level.
+            // ⚠ Attenuated by [`AUDITION_LEVEL`] and the producer's own gain,
+            // or by nothing at all under `Raw` — see [`Self::level`].
             //
             // ⚠ Linear interpolation, because `at` is fractional now. Reading
             // the floor alone is a zero-order hold, which is the aliasing
@@ -359,7 +429,7 @@ impl Preview {
             let frac = at - at.floor();
             let a = samples[index.min(samples.len() - 1)];
             let b = samples[(index + 1).min(samples.len() - 1)];
-            let value = (a + (b - a) * frac as f32) * 0.7;
+            let value = (a + (b - a) * frac as f32) * level;
             for sample in frame.iter_mut() {
                 *sample += value;
             }
@@ -997,5 +1067,78 @@ pub(crate) mod tests {
         p.render(&mut out, 1, RATE);
         assert!(out.iter().all(|s| *s == 0.0));
         assert_eq!(p.position().total, 0.0);
+    }
+
+    // ── The gain and the `Raw` toggle (TASK-058B) ──────────────────────────
+
+    #[test]
+    fn an_audition_sits_below_full_scale_until_the_producer_says_otherwise() {
+        // ⚠ The default has to stay exactly what it was: an audition plays over
+        // a running pattern, and this is the level that keeps the sum sane.
+        let p = Preview::default();
+        assert!((p.level() - AUDITION_LEVEL).abs() < 1e-6);
+        assert_eq!(p.position().gain_db, 0.0);
+        assert!(!p.position().raw);
+    }
+
+    #[test]
+    fn raw_bypasses_the_house_level_as_well_as_the_producers_own_gain() {
+        // ⛔⛔ **This is the whole point of the toggle.** Attenuating by 0.7 is a
+        // sensible default and a *lie* if what you are doing is judging how loud
+        // a sample is — a producer comparing two kicks needs one of them to be
+        // the file. Bypassing only the gain would leave the house level in and
+        // the control would be a quieter kind of wrong.
+        let p = Preview::default();
+        p.set_gain_db(6.0);
+        p.set_raw(true);
+        assert_eq!(
+            p.level(),
+            1.0,
+            "raw is the file, not the file at some level"
+        );
+    }
+
+    #[test]
+    fn turning_raw_off_gives_back_the_level_that_was_set() {
+        // ⛔ Two controls rather than one. If `Raw` had *written* the gain, a
+        // producer who A/B'd against the file would come back to 0 dB rather
+        // than to the level they had dialled in.
+        let p = Preview::default();
+        p.set_gain_db(-6.0);
+        p.set_raw(true);
+        p.set_raw(false);
+        assert!((p.level() - AUDITION_LEVEL * crate::pad_tweaks::db_to_linear(-6.0)).abs() < 1e-6);
+        assert_eq!(p.position().gain_db, -6.0);
+    }
+
+    #[test]
+    fn the_audition_level_is_bounded_the_same_way_a_pads_is() {
+        // ⚠ So the two level controls in the product read the same way round,
+        // and so a page sending nonsense cannot hand the callback an infinity.
+        let p = Preview::default();
+        p.set_gain_db(400.0);
+        assert_eq!(p.position().gain_db, crate::pad_tweaks::MAX_GAIN_DB);
+        p.set_gain_db(-400.0);
+        assert_eq!(p.position().gain_db, crate::pad_tweaks::MIN_GAIN_DB);
+        assert!(p.level().is_finite());
+    }
+
+    #[test]
+    fn the_gain_reaches_the_rendered_samples() {
+        // ⚠ Through `render` rather than only through `level`, because a level
+        // that is computed and not applied is the same as no level at all.
+        let quiet = Preview::default();
+        quiet.load(vec![0.5; 64], 48_000);
+        quiet.set_gain_db(-6.0);
+        quiet.play();
+        let mut out = vec![0.0f32; 8];
+        quiet.render(&mut out, 1, 48_000.0);
+
+        let expected = 0.5 * AUDITION_LEVEL * crate::pad_tweaks::db_to_linear(-6.0);
+        assert!(
+            (out[0] - expected).abs() < 1e-6,
+            "{} is not the attenuated sample {expected}",
+            out[0]
+        );
     }
 }

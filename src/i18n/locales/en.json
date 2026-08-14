@@ -443,7 +443,10 @@
     },
     "midiFound": "What this MIDI file contains",
     "midiNotes": "Notes",
-    "midiAuditionClipped": "Only the first two minutes are auditioned."
+    "midiAuditionClipped": "Only the first two minutes are auditioned.",
+    "raw": "Raw",
+    "rawHint": "Play the file exactly as it is on disk",
+    "previewGain": "Audition level"
   },
   "patterns": {
     "name": "Name this pattern",

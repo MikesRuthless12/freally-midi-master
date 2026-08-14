@@ -443,7 +443,10 @@
     },
     "midiFound": "この MIDI ファイルの内容",
     "midiNotes": "ノート",
-    "midiAuditionClipped": "最初の 2 分のみ試聴されます。"
+    "midiAuditionClipped": "最初の 2 分のみ試聴されます。",
+    "raw": "素の音",
+    "rawHint": "ディスク上のファイルをそのまま再生",
+    "previewGain": "試聴レベル"
   },
   "patterns": {
     "name": "このパターンに名前を付ける",

@@ -443,7 +443,10 @@
     },
     "midiFound": "Bu MIDI dosyasının içeriği",
     "midiNotes": "Notalar",
-    "midiAuditionClipped": "Yalnızca ilk iki dakika dinlenir."
+    "midiAuditionClipped": "Yalnızca ilk iki dakika dinlenir.",
+    "raw": "Ham",
+    "rawHint": "Dosyayı diskteki hâliyle çal",
+    "previewGain": "Dinleme düzeyi"
   },
   "patterns": {
     "name": "Bu pattern’e ad ver",

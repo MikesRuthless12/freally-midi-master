@@ -443,7 +443,10 @@
     },
     "midiFound": "Inhalt dieser MIDI-Datei",
     "midiNotes": "Noten",
-    "midiAuditionClipped": "Es werden nur die ersten zwei Minuten vorgehört."
+    "midiAuditionClipped": "Es werden nur die ersten zwei Minuten vorgehört.",
+    "raw": "Roh",
+    "rawHint": "Die Datei genau so abspielen, wie sie auf der Platte liegt",
+    "previewGain": "Vorhörpegel"
   },
   "patterns": {
     "name": "Diesem Pattern einen Namen geben",

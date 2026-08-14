@@ -443,7 +443,10 @@
     },
     "midiFound": "Inhoud van dit MIDI-bestand",
     "midiNotes": "Noten",
-    "midiAuditionClipped": "Alleen de eerste twee minuten worden beluisterd."
+    "midiAuditionClipped": "Alleen de eerste twee minuten worden beluisterd.",
+    "raw": "Ruw",
+    "rawHint": "Het bestand precies afspelen zoals het op schijf staat",
+    "previewGain": "Voorluisterniveau"
   },
   "patterns": {
     "name": "Geef dit patroon een naam",

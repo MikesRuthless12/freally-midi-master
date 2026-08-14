@@ -443,7 +443,10 @@
     },
     "midiFound": "Contenuto di questo file MIDI",
     "midiNotes": "Note",
-    "midiAuditionClipped": "Vengono ascoltati solo i primi due minuti."
+    "midiAuditionClipped": "Vengono ascoltati solo i primi due minuti.",
+    "raw": "Grezzo",
+    "rawHint": "Riprodurre il file esattamente com’è su disco",
+    "previewGain": "Livello di ascolto"
   },
   "patterns": {
     "name": "Dai un nome a questo pattern",

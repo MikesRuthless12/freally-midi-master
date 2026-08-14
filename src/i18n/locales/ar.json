@@ -443,7 +443,10 @@
     },
     "midiFound": "محتوى ملف MIDI هذا",
     "midiNotes": "النوتات",
-    "midiAuditionClipped": "يتم تشغيل أول دقيقتين فقط."
+    "midiAuditionClipped": "يتم تشغيل أول دقيقتين فقط.",
+    "raw": "خام",
+    "rawHint": "تشغيل الملف كما هو تمامًا على القرص",
+    "previewGain": "مستوى الاستماع"
   },
   "patterns": {
     "name": "سمِّ هذا النمط",

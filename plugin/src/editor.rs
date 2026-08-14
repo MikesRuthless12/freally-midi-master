@@ -625,6 +625,24 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
             return Some(Ok(Value::Null));
         }
 
+        // How loud the audition is, and whether it is levelled at all
+        // (TASK-058B). ⚠ Two arms rather than one: `Raw` is a bypass and the
+        // gain is a position, so a producer who toggles `Raw` off must get back
+        // the level they had set rather than whatever the toggle carried.
+        "preview_gain" => {
+            shared
+                .preview
+                .set_gain_db(request.args["db"].as_f64().unwrap_or(0.0) as f32);
+            return Some(Ok(Value::Null));
+        }
+
+        "preview_raw" => {
+            shared
+                .preview
+                .set_raw(request.args["on"].as_bool().unwrap_or(false));
+            return Some(Ok(Value::Null));
+        }
+
         // Polled while a sample is auditioning — the one number everything
         // else is drawn from. `collect` rides along because this is the
         // editor thread and it is what frees a buffer the callback parked.

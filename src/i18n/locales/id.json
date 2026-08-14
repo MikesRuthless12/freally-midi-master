@@ -443,7 +443,10 @@
     },
     "midiFound": "Isi berkas MIDI ini",
     "midiNotes": "Not",
-    "midiAuditionClipped": "Hanya dua menit pertama yang diputar."
+    "midiAuditionClipped": "Hanya dua menit pertama yang diputar.",
+    "raw": "Mentah",
+    "rawHint": "Putar berkas persis seperti adanya di diska",
+    "previewGain": "Taraf dengar"
   },
   "patterns": {
     "name": "Beri nama pattern ini",

@@ -113,6 +113,10 @@ export type PreviewPosition = {
   total: number;
   looping: boolean;
   reverse: boolean;
+  /** The producer's own audition level, in dB (TASK-058B). */
+  gainDb: number;
+  /** Whether the audition is bypassing the level entirely. */
+  raw: boolean;
 };
 
 const STOPPED: PreviewPosition = {
@@ -121,6 +125,8 @@ const STOPPED: PreviewPosition = {
   total: 0,
   looping: false,
   reverse: false,
+  gainDb: 0,
+  raw: false,
 };
 
 /**
@@ -558,6 +564,20 @@ type ExplorerStore = {
   seek: (seconds: number) => Promise<void>;
   toggleLoop: () => Promise<void>;
   setReverse: (on: boolean) => Promise<void>;
+  /** How loud the audition is, in dB (TASK-058B). */
+  setPreviewGain: (db: number) => Promise<void>;
+  /**
+   * Play the file exactly as it is on disk (TASK-058B).
+   *
+   * ⛔ **A bypass, not a level.** It skips the house attenuation the audition
+   * has always applied *and* the gain above — attenuating by 0.7 is a sensible
+   * default and a lie if what you are doing is judging how loud a sample is.
+   *
+   * ⚠ **This is not "through the pad's chain".** A file in the browser is not
+   * on a pad; the thing that plays a file as a pad would is the pad's own
+   * audition, which the pad editor fires on every edit.
+   */
+  setRaw: (on: boolean) => Promise<void>;
   /** Put the selected sample on a drum lane. */
   /**
    * Put the selected sample on a drum lane.
@@ -1108,6 +1128,29 @@ export const useExplorer = create<ExplorerStore>((set, get) => ({
     set({ position: { ...get().position, reverse: on } });
     try {
       await invoke('preview_reverse', { on });
+      poke();
+    } catch (error) {
+      set({ error: reason(error) });
+    }
+  },
+
+  async setPreviewGain(db) {
+    set({ position: { ...get().position, gainDb: db } });
+    try {
+      await invoke('preview_gain', { db });
+      poke();
+    } catch (error) {
+      set({ error: reason(error) });
+    }
+  },
+
+  async setRaw(on) {
+    // ⛔ **`gainDb` is deliberately left where it is.** `Raw` is a bypass, not a
+    // level: a producer who A/Bs a sample against the file has to come back to
+    // the level they had dialled in, not to 0 dB.
+    set({ position: { ...get().position, raw: on } });
+    try {
+      await invoke('preview_raw', { on });
       poke();
     } catch (error) {
       set({ error: reason(error) });

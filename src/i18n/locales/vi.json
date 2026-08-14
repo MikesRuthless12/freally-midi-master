@@ -443,7 +443,10 @@
     },
     "midiFound": "Nội dung tệp MIDI này",
     "midiNotes": "Nốt",
-    "midiAuditionClipped": "Chỉ nghe thử hai phút đầu."
+    "midiAuditionClipped": "Chỉ nghe thử hai phút đầu.",
+    "raw": "Thô",
+    "rawHint": "Phát tệp đúng như nó nằm trên đĩa",
+    "previewGain": "Mức nghe thử"
   },
   "patterns": {
     "name": "Đặt tên cho pattern này",

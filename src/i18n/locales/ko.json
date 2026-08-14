@@ -443,7 +443,10 @@
     },
     "midiFound": "이 MIDI 파일의 내용",
     "midiNotes": "노트",
-    "midiAuditionClipped": "처음 2분만 미리 듣습니다."
+    "midiAuditionClipped": "처음 2분만 미리 듣습니다.",
+    "raw": "원본",
+    "rawHint": "디스크에 있는 그대로 파일 재생",
+    "previewGain": "미리듣기 레벨"
   },
   "patterns": {
     "name": "이 패턴의 이름",
