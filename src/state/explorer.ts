@@ -23,6 +23,52 @@ import { readStored, writeStored } from './storage';
 import { reason } from './session';
 import type { Lane, SplitPart } from '../lib/ipc-types';
 
+/**
+ * What an audio file was found to contain (TASK-058D / TASK-058F).
+ *
+ * ⚠ **Declared here rather than generated.** `ts-rs` runs in the engine crate and
+ * this is a plugin reply, the same way `HostSessionInfo` is — and the half that
+ * really has to stay in step, `SplitPart`, *is* generated.
+ */
+export type AudioSplit = {
+  /** The same value a `.mid` produces. See `plugin/src/extract/mod.rs`. */
+  parts: SplitPart[];
+  /** The tempo the loop was read as. */
+  bpm: number;
+  /** A line in the lead register measured as sung, and left alone (TASK-058G). */
+  vocalLeftAlone: boolean;
+};
+
+/** How a read is going, as the plugin reports it. */
+type ExtractStatus =
+  | { state: 'idle' }
+  | { state: 'running'; path: string }
+  | { state: 'done'; path: string; split: AudioSplit }
+  | { state: 'failed'; path: string; reason: string };
+
+/**
+ * What the reading needs to know about the session.
+ *
+ * ⛔ **Passed in rather than read out of the session store**, because
+ * `state/session.ts` already imports [`reason`] from this module and a static
+ * import back would close the cycle at module-init time. `session.ts::sessionGrid`
+ * is the one place that answers it.
+ */
+export type ExtractGrid = { bpm: number; timeSigNum: number; timeSigDen: number };
+
+/** How often the page asks whether the read has finished. */
+const EXTRACT_POLL_MS = 120;
+
+/**
+ * How long a read may run before the page stops waiting.
+ *
+ * ⚠ Generous — the bound on the *work* is `MAX_EXTRACT_SECONDS` of audio, and a
+ * minute of it takes a couple of seconds on a laptop and more on a machine
+ * already rendering. This is only here so a plugin that never answers leaves a
+ * message rather than a spinner nobody can clear.
+ */
+const EXTRACT_TIMEOUT_MS = 60_000;
+
 /** One row in the browser. Mirrors `explorer::Entry`. */
 export type ExplorerEntry = {
   name: string;
@@ -492,6 +538,43 @@ type ExplorerStore = {
    */
   midiSplit: SplitPart[] | null;
   /**
+   * What the last audio file read was found to contain, or `null` (TASK-058D).
+   *
+   * ⛔ **Read on demand, unlike [`Self.midiSplit`], and that is not an
+   * inconsistency.** Splitting a `.mid` is microseconds, so it runs on selection
+   * and the panel can show what is in the file before the producer commits.
+   * Reading a `.wav` is a decode plus four band filters plus two pitch tracks —
+   * about **two seconds** on a forty-second stem — and running that on every
+   * arrow-key step through a folder would make the browser unusable. So the
+   * producer asks, and the panel says what it found before anything is imported,
+   * which is the half of the rule that matters.
+   *
+   * ⛔ **It carries the path it is about**, because the read does not have to be
+   * of the file the browser is showing: dropping a sample on a generator tab
+   * runs one for a file the producer never selected. Without the path the panel
+   * under `clap-01.wav` would list `kick-808.wav`'s parts under `clap-01.wav`'s
+   * name and offer to send them — the readout-that-lies failure, in the panel
+   * written to prevent it.
+   */
+  audioSplit: { path: string; found: AudioSplit } | null;
+  /**
+   * The file currently being read, or `null`.
+   *
+   * ⚠ The path rather than a boolean: a panel that has moved to another file
+   * must not show a spinner for a read it is no longer waiting on.
+   */
+  extracting: string | null;
+  /**
+   * Read the notes out of an audio file, answering what was found.
+   *
+   * ⚠ Answers `null` on a failure rather than rejecting — the same shape
+   * `auditionMidi` uses, and for the same reason: every caller would otherwise
+   * need a `catch` that does what `error` already does.
+   */
+  extractNotes: (path: string, grid: ExtractGrid) => Promise<AudioSplit | null>;
+  /** Stop waiting for the read in flight. */
+  cancelExtract: () => void;
+  /**
    * Whether the audition voice is holding a render of the selected `.mid`
    * (TASK-160).
    *
@@ -614,6 +697,8 @@ export const useExplorer = create<ExplorerStore>((set, get) => ({
   recent: [],
   starred: new Set(),
   midiSplit: null,
+  audioSplit: null,
+  extracting: null,
   midiAudition: null,
   picking: false,
   loaded: false,
@@ -910,6 +995,81 @@ export const useExplorer = create<ExplorerStore>((set, get) => ({
   },
 
   /**
+   * Read the notes out of an audio file (TASK-058D / TASK-058F).
+   *
+   * ⛔⛔ **It starts a read and then polls, because the plugin cannot answer
+   * inline.** `plugin/src/extract/job.rs` has the full argument: about two
+   * seconds of decoding and analysis on the bridge's own frame is a two-second
+   * freeze of the DAW's editor thread. `explorer_audio_split` hands the work to a
+   * thread and returns; this walks the mailbox until it lands.
+   *
+   * ⛔ **A read that is no longer the one in flight is dropped, in both
+   * directions.** The plugin drops a stale worker's result, and this returns
+   * early when `extracting` has moved on — a producer who clicks another file
+   * mid-read must not get the previous file's notes under the new name.
+   */
+  async extractNotes(path, grid) {
+    set({ extracting: path, audioSplit: null, error: null });
+    try {
+      await invoke('explorer_audio_split', {
+        path,
+        bpm: grid.bpm,
+        timeSigNum: grid.timeSigNum,
+        timeSigDen: grid.timeSigDen,
+      });
+    } catch (error) {
+      if (get().extracting === path) set({ extracting: null, error: reason(error) });
+      return null;
+    }
+
+    const until = Date.now() + EXTRACT_TIMEOUT_MS;
+    for (;;) {
+      await new Promise((resolve) => setTimeout(resolve, EXTRACT_POLL_MS));
+      // Cancelled, or another file was asked for.
+      if (get().extracting !== path) return null;
+      if (Date.now() > until) {
+        set({ extracting: null, error: reason('reading that file took too long') });
+        return null;
+      }
+
+      let status: ExtractStatus;
+      try {
+        status = await invoke<ExtractStatus>('explorer_audio_status');
+      } catch (error) {
+        if (get().extracting === path) set({ extracting: null, error: reason(error) });
+        return null;
+      }
+      // ⚠ **The path is checked as well as the state.** The mailbox is one slot
+      // per plugin instance, and a `done` for a file this call did not ask about
+      // is somebody else's answer.
+      if (status.state === 'running' || status.state === 'idle') continue;
+      if (status.path !== path) continue;
+      if (get().extracting !== path) return null;
+
+      if (status.state === 'failed') {
+        set({ extracting: null, error: reason(status.reason) });
+        return null;
+      }
+      set({ extracting: null, audioSplit: { path, found: status.split } });
+      // The plugin wrote the history entry when the read landed; this is the
+      // page catching up, exactly as the MIDI split does.
+      void get().loadRecent();
+      return status.split;
+    }
+  },
+
+  cancelExtract() {
+    if (get().extracting === null) return;
+    // ⛔ Cleared here *first*, so the poll above returns on its next tick even if
+    // the plugin never answers the cancel.
+    set({ extracting: null });
+    void invoke('explorer_audio_cancel').catch(() => {
+      // Nothing to report: the page has already stopped waiting, and the worker
+      // drops its own result. See `extract::job`.
+    });
+  },
+
+  /**
    * Hear the selected `.mid` (TASK-160).
    *
    * ⛔ **It loads and does not play**, the rule `Preview::load` states for a
@@ -968,11 +1128,17 @@ export const useExplorer = create<ExplorerStore>((set, get) => ({
     // ⚠ `midiAudition` goes with it: the audition voice still holds whatever was
     // rendered or decoded last, and a transport that went on describing the
     // previous `.mid` under this file's name would sound it on the next Play.
+    // ⚠ `audioSplit` goes with them: the panel would otherwise go on showing
+    // what the *previous* sample was found to contain, under this file's name —
+    // which is the readout-that-lies failure the two-kinds rule already guards
+    // one field over.
+    get().cancelExtract();
     set({
       selected: path,
       selectedKind: kind,
       waveform: null,
       midiAudition: null,
+      audioSplit: null,
       error: null,
     });
 

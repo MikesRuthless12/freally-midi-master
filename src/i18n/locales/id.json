@@ -441,14 +441,23 @@
       "innerVoice": "Suara tengah",
       "splitByPitch": "Satu suara, dipisah berdasarkan nada — sebuah tebakan",
       "fromName": "Dari nama berkas",
-      "kitShape": "Dimainkan seperti drum kit"
+      "kitShape": "Dimainkan seperti drum kit",
+      "percussiveBand": "Dipukul — dibaca dari pita frekuensinya",
+      "lowBand": "Di bawah 250 Hz dan nadanya stabil",
+      "melodicBand": "Garis paling jelas di atas — sebuah perkiraan",
+      "chromaTemplate": "Akor dicocokkan dengan templat"
     },
     "midiFound": "Isi berkas MIDI ini",
     "midiNotes": "Not",
     "midiAuditionClipped": "Hanya dua menit pertama yang diputar.",
     "raw": "Mentah",
     "rawHint": "Putar berkas persis seperti adanya di diska",
-    "previewGain": "Taraf dengar"
+    "previewGain": "Taraf dengar",
+    "extract": "Baca notnya",
+    "extractCancel": "Hentikan pembacaan",
+    "audioFound": "Isi sampel ini",
+    "vocalLeftAlone": "Sebuah garis nyanyian ditemukan dan dibiarkan apa adanya.",
+    "audioDragHint": "Atau seret berkas ke sebuah generator untuk membacanya langsung di sana."
   },
   "patterns": {
     "name": "Beri nama pattern ini",

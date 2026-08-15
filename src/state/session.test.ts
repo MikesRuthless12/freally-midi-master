@@ -1,6 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { Part, Pattern, RosterEntry, SessionDefaults } from '../lib/ipc-types';
+import type {
+  Lane,
+  Part,
+  Pattern,
+  RosterEntry,
+  SessionDefaults,
+  SplitPart,
+} from '../lib/ipc-types';
 
 /**
  * The session store's pin rules (FR-002).
@@ -18,6 +25,7 @@ vi.mock('../lib/ipc', () => ({
 
 const { BAR_CHOICES, NO_PINS, mirrorableDrumsSeed, useSession } = await import('./session');
 const { useVariations } = await import('./variations');
+const { useUi } = await import('./ui');
 
 const TRAP: SessionDefaults = {
   bpm: 140,
@@ -1569,6 +1577,19 @@ describe('the base genre', () => {
     );
   });
 
+  it('and so does the mood, which changes exactly the same three readouts', async () => {
+    // ⛔ The gap the 2026-08-14 handoff wrote down: the plugin has resolved the
+    // pinned mood inside `session_defaults` since TASK-040V — trap is 140, its
+    // `dark` mode 136 — so a mood pinned without this refetch left the tempo
+    // chip naming 140 beside a beat about to come out at 136, and it caught up
+    // only on the next artist change.
+    invoke.mockClear();
+    useSession.getState().setMood('dark');
+    await vi.waitFor(() =>
+      expect(invoke).toHaveBeenCalledWith('session_defaults', { styleId: 'trap' }),
+    );
+  });
+
   it('is carried into the undo snapshot, so Ctrl+Z puts it back', async () => {
     // ⛔ `SAVED_FIELDS` drives both the project payload and the undo snapshot,
     // and `SAVED_FIELDS_MATCH_SNAPSHOT` is a *compile-time* check that the two
@@ -1578,5 +1599,131 @@ describe('the base genre', () => {
     const { useHistory } = await import('./history');
     useSession.getState().setBase('boom-bap');
     await vi.waitFor(() => expect(useHistory.getState().present?.state.base).toBe('boom-bap'));
+  });
+});
+
+/**
+ * What an import says about the parts and lanes it did NOT find (TASK-058H).
+ *
+ * ⛔⛔ **The failure this prevents is the readout-that-lies one.** Mike,
+ * 2026-08-10: *"ensure that when you bring in a full song that it mutes whatever
+ * lanes for drums that aren't being used or if there is no countermelody or no
+ * bassline that it mutes them."* After an import that found drums and a melody
+ * but no bass, the Bass tab sits armed and empty — which is indistinguishable
+ * from a bass that generated silence — and the pad grid draws thirty-seven lanes
+ * of which five sound.
+ */
+describe('an import switches off what it did not find', () => {
+  /** A drum clip that plays exactly `lanes`. */
+  const drumsOn = (lanes: Lane[]): SplitPart => ({
+    part: 'drums',
+    reason: 'percussiveBand',
+    notes: lanes.length,
+    pattern: {
+      ...PATTERN,
+      part: 'drums',
+      lanes: lanes.map((lane) => ({
+        lane,
+        notes: [
+          {
+            startTick: 0,
+            lenTicks: 240,
+            pitch: 36,
+            vel: 100,
+            modelVel: null,
+            slideToPitch: null,
+            articulation: null,
+            reversed: false,
+          },
+        ],
+      })),
+    },
+  });
+
+  const melody: SplitPart = {
+    part: 'melody',
+    reason: 'melodicBand',
+    notes: 1,
+    pattern: { ...PATTERN, part: 'melody', lanes: [] },
+  };
+
+  beforeEach(() => {
+    useSession.setState({ patterns: {}, mutedLanes: [], editedParts: [], edited: false });
+    useUi.setState({ partsOff: [] });
+  });
+
+  it('a generator the split produced nothing for is switched off', () => {
+    useSession.getState().importSplit([drumsOn(['kick', 'snare']), melody]);
+    // ⚠ Bass, chords and counter were not in the split. Left armed they would be
+    // three tabs a producer presses Play on and hears nothing from.
+    expect(useUi.getState().partsOff.sort()).toEqual(['bass', 'chords', 'counter']);
+    expect(useUi.getState().partsOff).not.toContain('drums');
+  });
+
+  it('a part the producer generated earlier is switched off too, and not deleted', () => {
+    // ⛔⛔ **This is the half that was wrong first.** Sparing an earlier
+    // generation sounds protective and is the failure pointing the other way: a
+    // bassline made five minutes ago, still sounding under a song that has none,
+    // makes the arrangement play something the imported file does not contain.
+    useSession.setState({ patterns: { chords: { ...PATTERN, part: 'chords' } } });
+    useSession.getState().importSplit([drumsOn(['kick'])]);
+    expect(useUi.getState().partsOff).toContain('chords');
+    // ⚠ Switched off, never deleted — the clip is untouched and one click back.
+    expect(useSession.getState().patterns.chords).toBeDefined();
+  });
+
+  it('a drum lane with no hits in it is muted', () => {
+    useSession.getState().importSplit([drumsOn(['kick', 'snare', 'closedHat'])]);
+    const { mutedLanes } = useSession.getState();
+    for (const played of ['kick', 'snare', 'closedHat']) {
+      expect(mutedLanes, `${played} was played and must sound`).not.toContain(played);
+    }
+    expect(mutedLanes).toContain('openHat');
+    expect(mutedLanes).toContain('clap');
+  });
+
+  it('a lane the previous import muted comes back when this one plays it', () => {
+    // ⛔ **The mutes are REPLACED, not added to.** Carrying one forward would
+    // leave a lane silent that this record does use, with a dot on the grid
+    // saying otherwise.
+    useSession.getState().importSplit([drumsOn(['kick'])]);
+    expect(useSession.getState().mutedLanes).toContain('snare');
+    useSession.getState().importSplit([drumsOn(['kick', 'snare'])]);
+    expect(useSession.getState().mutedLanes).not.toContain('snare');
+  });
+
+  it('a producer’s own mute on a melodic lane survives an import', () => {
+    // ⚠ Only the drum half is a statement the import gets to make — `melody` is
+    // one lane of one part, so "the lanes this part did not use" means nothing
+    // there.
+    useSession.setState({ mutedLanes: ['melody'] });
+    useSession.getState().importSplit([drumsOn(['kick'])]);
+    expect(useSession.getState().mutedLanes).toContain('melody');
+  });
+
+  it('an import with no drums in it does not silence the producer’s kit', () => {
+    // ⛔ Dropping a bass stem in must not mute thirty-seven lanes.
+    useSession.setState({ mutedLanes: ['clap'] });
+    useSession.getState().importSplit([melody]);
+    expect(useSession.getState().mutedLanes).toEqual(['clap']);
+  });
+
+  it('the tab lands where the producer aimed, when they aimed at a part', () => {
+    // ⚠ Dropping a sample on the Bass tab is an instruction about where to look,
+    // even though what arrives is the whole split.
+    useSession
+      .getState()
+      .importSplit([drumsOn(['kick', 'snare', 'closedHat']), melody], 'melody');
+    expect(useUi.getState().activeTab).toBe('melody');
+  });
+
+  it('...and on the biggest part when they did not', () => {
+    useSession.getState().importSplit([drumsOn(['kick', 'snare', 'closedHat']), melody]);
+    expect(useUi.getState().activeTab).toBe('drums');
+  });
+
+  it('aiming at a part the split did not produce falls back rather than opening nothing', () => {
+    useSession.getState().importSplit([drumsOn(['kick', 'snare']), melody], 'chords');
+    expect(useUi.getState().activeTab).toBe('drums');
   });
 });

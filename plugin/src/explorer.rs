@@ -818,26 +818,13 @@ pub struct Waveform {
 /// sample long enough to be worth worrying about is refused by `import`'s own
 /// size bound before it reaches here.
 pub fn waveform(explorer: &Explorer, path: &str) -> Result<Waveform, String> {
-    let file = Path::new(path);
-    // ⛔⛔ **The same guard `open` needs, and for the same reason.** This took a
-    // raw path from the page with nothing but an extension check — which
-    // `\\evil.example.com\share\a.wav` passes — and then ran `fs::metadata` and
-    // `fs::read` on it. Three impacts in one: an outbound SMB authentication,
-    // a filesystem oracle (the raw `io::Error` distinguishes missing from
-    // unreadable for any path on disk), and symphonia handed arbitrary bytes
-    // without the producer ever picking a file.
-    crate::oneshot::refuse_remote(file)?;
-
-    // ⛔ **And containment: the explorer may only describe what it would
-    // list.** The module header claims browsing cannot leave the folders the
-    // producer added; that claim did not hold for this function.
-    if !explorer.contains(file) {
-        return Err("that sample is not in your sample library".into());
-    }
-    if !is_audio(file) {
-        return Err("that is not a sample this plugin can read".into());
-    }
-    let audio = crate::audio::import::decode_file(file)?;
+    // ⛔⛔ **Through [`checked_audio`], which is the one door.** This used to
+    // write the three checks out here, and the copy in `editor.rs`'s
+    // `preview_load` had already lost the extension test — which is precisely
+    // the drift this module's own header warns about and which
+    // `read_midi_bytes` exists to prevent on the MIDI side.
+    let file = checked_audio(explorer, path)?;
+    let audio = crate::audio::import::decode_file(&file)?;
     if audio.samples.is_empty() || audio.sample_rate == 0 {
         return Err("that file decoded to no audio".into());
     }
@@ -1014,6 +1001,38 @@ pub fn midi_split(
 ) -> Result<Vec<engine::smf_read::SplitPart>, String> {
     let (bytes, name) = read_midi_bytes(explorer, path)?;
     engine::smf_read::split(&bytes, &name)
+}
+
+/// A path an audio reader may open, or the reason it may not.
+///
+/// ⛔⛔ **THE ONE DOOR FOR EVERY AUDIO PATH, and it is one because the copies had
+/// already drifted.** There were three: this, `waveform`, and `editor.rs`'s
+/// `preview_load` — and the third checked `refuse_remote`, containment and
+/// `is_file()` but **never the extension**, so it was the single command that
+/// would hand symphonia a `.exe` or a `.docx` out of the producer's library.
+/// That is verbatim the failure `read_midi_bytes` was written to prevent on the
+/// MIDI side and that `engine::formats` was written to prevent for the extension
+/// lists, arriving a third time.
+///
+/// ⚠ **The order is load-bearing.** `refuse_remote` *first*, because a UNC path
+/// makes the SMB redirector resolve the host and authenticate outward before any
+/// containment check could refuse it — `contains` itself canonicalises, which on
+/// Windows is a `CreateFileW`. Then containment, then the extension.
+///
+/// ⛔ **A `PathBuf` rather than the bytes, because one caller reads on another
+/// thread.** `crate::extract::job` explains why — two seconds of analysis on the
+/// bridge's frame is a two-second freeze of the DAW — and handing back the *path*
+/// is what keeps the guards on the caller's thread with nothing to re-derive.
+pub fn checked_audio(explorer: &Explorer, path: &str) -> Result<PathBuf, String> {
+    let file = Path::new(path);
+    crate::oneshot::refuse_remote(file)?;
+    if !explorer.contains(file) {
+        return Err("that sample is not in your sample library".into());
+    }
+    if !is_audio(file) {
+        return Err("that is not a sample this plugin can read".into());
+    }
+    Ok(file.to_path_buf())
 }
 
 /// Read a whole `.mid` as an arrangement, for the Song tab.

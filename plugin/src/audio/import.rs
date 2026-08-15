@@ -54,6 +54,21 @@ pub const MAX_FILE_BYTES: u64 = 128 * 1024 * 1024;
 /// long 808 tail, so it does not bind on the thing the feature is for.
 pub const MAX_SECONDS: u32 = 30;
 
+/// The longest file the note extractor will read (TASK-058F).
+///
+/// ⛔ **Its own number, because it bounds a different thing.** [`MAX_SECONDS`] is
+/// how long a *pad* holds; extraction is handed loops, stems and sections, and a
+/// four-bar loop at 70 BPM is already 13 seconds while a two-bar intro of a whole
+/// stem is a minute. Refusing a stem for being longer than a one-shot would refuse
+/// the case the feature is for.
+///
+/// ⚠ **And it is not larger than it has to be.** The extractor filters the buffer
+/// into four bands and decimates two more, so peak memory is several times the
+/// decoded length — inside somebody else's DAW. A minute of mono `f32` at 48 kHz
+/// is 11.5 MB and the whole analysis stays inside a couple of hundred; ten minutes
+/// would not.
+pub const MAX_EXTRACT_SECONDS: u32 = 60;
+
 /// Rates a sampler should believe. Below the first, resampling a pad up to the
 /// device rate is inaudible mush; above the second, a header is lying.
 const MIN_RATE: u32 = 4_000;
@@ -71,6 +86,19 @@ const SILENCE_PEAK: f32 = 1.0e-4;
 /// decided by the bytes, so a `.wav` that is really an MP3 still plays and a
 /// renamed text file still fails.
 pub fn decode_file(path: &std::path::Path) -> Result<DecodedAudio, String> {
+    decode_file_within(path, MAX_SECONDS)
+}
+
+/// The same, for a caller whose bound is not a pad's.
+///
+/// ⚠ **A parameter rather than a second reader.** Everything else about reading
+/// an arbitrary file off a producer's disk — the size stat before the read, the
+/// format probe, the mono fold, the NaN guard, the silence check — is identical,
+/// and a second copy of it is the one that would drift.
+pub fn decode_file_within(
+    path: &std::path::Path,
+    max_seconds: u32,
+) -> Result<DecodedAudio, String> {
     // ⛔ Length first, then read. Reading and then checking is the check the
     // allocation already happened for.
     let size = std::fs::metadata(path)
@@ -89,11 +117,20 @@ pub fn decode_file(path: &std::path::Path) -> Result<DecodedAudio, String> {
         .extension()
         .and_then(|e| e.to_str())
         .map(str::to_ascii_lowercase);
-    decode(bytes, extension.as_deref())
+    decode_within(bytes, extension.as_deref(), max_seconds)
 }
 
 /// Decode bytes already in memory. The seam the tests drive.
 pub fn decode(bytes: Vec<u8>, extension: Option<&str>) -> Result<DecodedAudio, String> {
+    decode_within(bytes, extension, MAX_SECONDS)
+}
+
+/// The same, bounded by the caller. See [`decode_file_within`].
+pub fn decode_within(
+    bytes: Vec<u8>,
+    extension: Option<&str>,
+    max_seconds: u32,
+) -> Result<DecodedAudio, String> {
     let mut hint = Hint::new();
     if let Some(extension) = extension {
         hint.with_extension(extension);
@@ -166,9 +203,9 @@ pub fn decode(bytes: Vec<u8>, extension: Option<&str>) -> Result<DecodedAudio, S
             sample_rate = rate;
             channels = planes;
             // Computed from the rate the file actually decoded at, so the bound
-            // is thirty *seconds* rather than a frame count that means something
-            // different at every rate.
-            budget = MAX_SECONDS as usize * rate as usize;
+            // is a number of *seconds* rather than a frame count that means
+            // something different at every rate.
+            budget = max_seconds as usize * rate as usize;
         } else if rate != sample_rate || planes != channels {
             return Err("that file changes format part way through".to_owned());
         }
@@ -184,7 +221,7 @@ pub fn decode(bytes: Vec<u8>, extension: Option<&str>) -> Result<DecodedAudio, S
 
         if samples.len() > budget {
             return Err(format!(
-                "that sample is longer than {MAX_SECONDS} seconds, which is as long as a pad holds"
+                "that sample is longer than {max_seconds} seconds, which is as long as this reads"
             ));
         }
     }

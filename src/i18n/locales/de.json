@@ -441,14 +441,23 @@
       "innerVoice": "Mittelstimme",
       "splitByPitch": "Eine Stimme, nach Tonhöhe geteilt – geschätzt",
       "fromName": "Aus dem Dateinamen",
-      "kitShape": "Spielt wie ein Drumkit"
+      "kitShape": "Spielt wie ein Drumkit",
+      "percussiveBand": "Geschlagen – aus den Frequenzbändern gelesen",
+      "lowBand": "Unter 250 Hz und mit stabiler Tonhöhe",
+      "melodicBand": "Die klarste Linie oben – geschätzt",
+      "chromaTemplate": "Akkorde mit Vorlagen abgeglichen"
     },
     "midiFound": "Inhalt dieser MIDI-Datei",
     "midiNotes": "Noten",
     "midiAuditionClipped": "Es werden nur die ersten zwei Minuten vorgehört.",
     "raw": "Roh",
     "rawHint": "Die Datei genau so abspielen, wie sie auf der Platte liegt",
-    "previewGain": "Vorhörpegel"
+    "previewGain": "Vorhörpegel",
+    "extract": "Noten auslesen",
+    "extractCancel": "Lesen abbrechen",
+    "audioFound": "Inhalt dieses Samples",
+    "vocalLeftAlone": "Eine gesungene Linie wurde gefunden und unangetastet gelassen.",
+    "audioDragHint": "Oder ziehe die Datei auf einen Generator, um sie direkt dort auszulesen."
   },
   "patterns": {
     "name": "Diesem Pattern einen Namen geben",

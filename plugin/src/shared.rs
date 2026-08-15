@@ -270,6 +270,13 @@ pub struct Shared {
     /// `take_status` is destructive — a shared slot means one instance's poll
     /// steals another's result. `crate::export::Exports` has the full write-up.
     pub exports: crate::export::Exports,
+    /// The one in-flight note extraction and its result (TASK-058D).
+    ///
+    /// ⛔ **Per instance for the reason `exports` is** — `take` is destructive,
+    /// so a shared slot would let one track's poll steal another's split. And
+    /// the file a producer is pulling notes out of on one track is not the one
+    /// they want on the next.
+    pub extractions: crate::extract::job::Jobs,
     /// The one prepared drag-out and its spooled files (TASK-063C).
     ///
     /// ⛔ **Per instance for the same reason `exports` is, and the consequence
@@ -391,6 +398,7 @@ impl Shared {
             explorer: crate::explorer::Explorer::default(),
             preview: crate::preview::Preview::default(),
             exports: crate::export::Exports::default(),
+            extractions: crate::extract::job::Jobs::default(),
             drags: crate::drag::Drags::default(),
             armed_clip: Mutex::new(None),
             session,

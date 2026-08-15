@@ -22,6 +22,7 @@ import type {
   SectionKind,
   SessionDefaults,
   Song,
+  SplitReason,
 } from './ipc-types';
 
 type Handler = (args?: InvokeArgs) => unknown;
@@ -192,6 +193,36 @@ function noteRecent(path: string) {
 }
 
 /**
+ * The one note-extraction in flight, which is what makes the poll real.
+ *
+ * ⚠ Module-level and mutable for the reason `libraryRoots` gives below: the
+ * plugin holds this per instance and takes it destructively, so a mock that
+ * answered a literal could not express "still reading", "here it is, once" or
+ * "cancelled" — the three states the panel is built around.
+ */
+let audioJob: { path: string; polls: number } | null = null;
+
+/**
+ * One row of a split, for whichever road produced it.
+ *
+ * ⛔ **One helper, because both handlers answer the same type.** They each had
+ * their own `of`/`notes` pair, and each generated every pattern **twice** — once
+ * for `pattern` and once to count its notes — so a three-part split was six
+ * generations. `reason` is the only thing that differs between the two roads, and
+ * that difference is the point: an audio reason must never wear a MIDI file's
+ * kind of certainty.
+ */
+function splitPart(part: Part, reason: SplitReason) {
+  const pattern = handlers.generate_pattern({ request: { part } }) as Pattern;
+  return {
+    part,
+    pattern,
+    reason,
+    notes: pattern.lanes.reduce((sum, lane) => sum + lane.notes.length, 0),
+  };
+}
+
+/**
  * The library folders, which a spec can actually remove.
  *
  * ⚠ Mutable for the reason `droppedSamples` gives: `explorer_remove` answered
@@ -228,6 +259,17 @@ const libraryRows: Record<string, ExplorerEntry[]> = {
     // ⚠ A `.mid` among the samples: a fixture with none cannot catch a panel
     // that treats the two kinds alike.
     { name: 'riff.mid', path: '/library/Samples/riff.mid', isDir: false, kind: 'midi' },
+    // ⛔ **A sample that reads back as a sung line** (TASK-058G). Mike asked for
+    // *"and leave the vocals alone"*, and the branch that produces **no parts at
+    // all** is the one a producer is most likely to think is a broken plugin —
+    // so it has to be reachable from a spec. `explorer_audio_status` keys on the
+    // name; see its own note.
+    {
+      name: 'hook-vocal.wav',
+      path: '/library/Samples/hook-vocal.wav',
+      isDir: false,
+      kind: 'audio',
+    },
   ],
   '/library/Samples/Kicks': [
     // ⛔⛔ **`MAX_ENTRIES` rows, because that is the size TASK-058 is about.**
@@ -935,24 +977,81 @@ const handlers: Record<string, Handler> = {
     }
     // Opening a `.mid` is opening a file. See `noteRecent`.
     noteRecent(path);
-    const of = (part: Part) => handlers.generate_pattern({ request: { part } }) as Pattern;
-    const notes = (pattern: Pattern) =>
-      pattern.lanes.reduce((sum, lane) => sum + lane.notes.length, 0);
     return [
-      { part: 'bass', pattern: of('bass'), reason: 'lowestVoice', notes: notes(of('bass')) },
-      {
-        part: 'counter',
-        pattern: of('counter'),
-        reason: 'innerVoice',
-        notes: notes(of('counter')),
-      },
-      {
-        part: 'melody',
-        pattern: of('melody'),
-        reason: 'highestVoice',
-        notes: notes(of('melody')),
-      },
+      splitPart('bass', 'lowestVoice'),
+      splitPart('counter', 'innerVoice'),
+      splitPart('melody', 'highestVoice'),
     ];
+  },
+
+  // Reading the notes out of a **sample** (TASK-058D / TASK-058F).
+  //
+  // ⛔⛔ **Modelled as the three-command job it really is, not as one call that
+  // answers.** `explorer_audio_split` starts a detached read in the plugin
+  // because the analysis takes about two seconds and the bridge runs on the
+  // DAW's editor thread — so the page starts it, polls `explorer_audio_status`
+  // and can `explorer_audio_cancel`. A mock that answered the split inline would
+  // leave the spinner, the cancel and the whole poll loop untested, which is the
+  // shape this repo has already recorded as *"a fixture that hid two real bugs
+  // behind a green suite"*.
+  explorer_audio_split: (args?: InvokeArgs) => {
+    const path = String((args as { path?: unknown } | undefined)?.path ?? '');
+    // ⚠ Refused exactly where the plugin refuses: `is_audio` is an extension
+    // test, and a `.mid` is the other road.
+    if (/\.midi?$/i.test(path) || path === '') {
+      throw new Error('that is not a sample this plugin can read');
+    }
+    audioJob = { path, polls: 0 };
+    return null;
+  },
+
+  explorer_audio_status: () => {
+    if (audioJob === null) return { state: 'idle' };
+    // ⚠ **One `running` before the answer.** The real read is seconds long, and
+    // a mock that skipped straight to `done` would make the panel's spinner and
+    // its cancel unreachable in every spec.
+    if (audioJob.polls === 0) {
+      audioJob.polls += 1;
+      return { state: 'running', path: audioJob.path };
+    }
+    const { path } = audioJob;
+    audioJob = null;
+    // Reading a sample is opening a file. See `noteRecent`.
+    noteRecent(path);
+
+    // ⛔ **A file that names itself a vocal comes back with nothing** — the
+    // TASK-058G branch, which is otherwise unreachable from a mock and is the
+    // one Mike asked for by name: *"and leave the vocals alone."*
+    if (/vocal|vox|acapella/i.test(path)) {
+      return {
+        state: 'done',
+        path,
+        split: { parts: [], bpm: 120, vocalLeftAlone: true },
+      };
+    }
+
+    return {
+      state: 'done',
+      path,
+      split: {
+        // ⚠ **Drums, bass and melody but no counter**, which is what the audio
+        // road actually produces: separating a second pitched line out of a
+        // mixed-down file is source separation. TASK-058H's switch-off is only
+        // testable because something is genuinely missing.
+        parts: [
+          splitPart('drums', 'percussiveBand'),
+          splitPart('bass', 'lowBand'),
+          splitPart('melody', 'melodicBand'),
+        ],
+        bpm: 140,
+        vocalLeftAlone: false,
+      },
+    };
+  },
+
+  explorer_audio_cancel: () => {
+    audioJob = null;
+    return null;
   },
 
   // ⛔ **Hearing a `.mid` (TASK-160).** In the plugin this renders the file into

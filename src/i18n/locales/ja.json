@@ -441,14 +441,23 @@
       "innerVoice": "内声",
       "splitByPitch": "1 声部を音高で分割 — 推定です",
       "fromName": "ファイル名から",
-      "kitShape": "ドラムキットのように鳴っています"
+      "kitShape": "ドラムキットのように鳴っています",
+      "percussiveBand": "打楽器 — 周波数帯から判定",
+      "lowBand": "250 Hz 以下で、音程が安定しています",
+      "melodicBand": "上域で最も明瞭なライン — 推定です",
+      "chromaTemplate": "コードをテンプレートと照合"
     },
     "midiFound": "この MIDI ファイルの内容",
     "midiNotes": "ノート",
     "midiAuditionClipped": "最初の 2 分のみ試聴されます。",
     "raw": "素の音",
     "rawHint": "ディスク上のファイルをそのまま再生",
-    "previewGain": "試聴レベル"
+    "previewGain": "試聴レベル",
+    "extract": "ノートを読み取る",
+    "extractCancel": "読み取りを中止",
+    "audioFound": "このサンプルの内容",
+    "vocalLeftAlone": "歌のラインが見つかったため、そのままにしました。",
+    "audioDragHint": "または、ファイルをジェネレーターにドラッグすると、そこへ直接読み込まれます。"
   },
   "patterns": {
     "name": "このパターンに名前を付ける",

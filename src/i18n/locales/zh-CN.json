@@ -441,14 +441,23 @@
       "innerVoice": "中间声部",
       "splitByPitch": "单声部，按音高拆分 — 这是推测",
       "fromName": "来自文件名",
-      "kitShape": "像鼓组一样演奏"
+      "kitShape": "像鼓组一样演奏",
+      "percussiveBand": "敲击 — 依据频段判定",
+      "lowBand": "低于 250 Hz，且音高稳定",
+      "melodicBand": "高音区最清晰的旋律线 — 推测",
+      "chromaTemplate": "和弦与模板匹配"
     },
     "midiFound": "此 MIDI 文件的内容",
     "midiNotes": "音符",
     "midiAuditionClipped": "仅试听前两分钟。",
     "raw": "原始",
     "rawHint": "按磁盘上的原样播放文件",
-    "previewGain": "试听电平"
+    "previewGain": "试听电平",
+    "extract": "读取音符",
+    "extractCancel": "停止读取",
+    "audioFound": "此采样包含的内容",
+    "vocalLeftAlone": "找到了一条演唱的旋律线，已保持原样。",
+    "audioDragHint": "或将文件拖到某个生成器上，直接读取到那里。"
   },
   "patterns": {
     "name": "为此样式命名",

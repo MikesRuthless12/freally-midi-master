@@ -308,7 +308,12 @@ fn mix(into: &mut [f32], at: f32, held: f32, pitch: u8, vel: u8, melodic: bool) 
 }
 
 /// The frequency of a MIDI note, equal-tempered from A4 = 440.
-fn midi_hz(pitch: u8) -> f32 {
+///
+/// ⚠ `pub(crate)` because `crate::extract::chroma` tunes its Goertzel bank to the
+/// same notes. It was about to be a third spelling of this line in the plugin —
+/// `crate::audio::pitch` already holds the inverse — which is how one of them
+/// starts being wrong.
+pub(crate) fn midi_hz(pitch: u8) -> f32 {
     440.0 * 2f32.powf((f32::from(pitch) - 69.0) / 12.0)
 }
 

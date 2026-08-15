@@ -113,6 +113,17 @@ export function browserRow(page: Page, name: string) {
 }
 
 /**
+ * One generator tab, scoped to the tablist so it cannot match the Song timeline.
+ *
+ * ⚠ Here rather than in a spec, for the reason above: two specs had written out
+ * the identical body, and a locator copied is a locator that only gets fixed in
+ * one place when the markup moves.
+ */
+export function generatorTab(page: Page, name: string) {
+  return page.getByRole('tablist', { name: 'Generator' }).getByRole('tab', { name });
+}
+
+/**
  * Bring a rail panel on screen, whether or not its group is the one showing.
  *
  * ⛔⛔ **THE PANELS ARE BEHIND VERTICAL TABS NOW, AND THIS IS THE WAY IN.**

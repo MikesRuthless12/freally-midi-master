@@ -441,14 +441,23 @@
       "innerVoice": "İç ses",
       "splitByPitch": "Tek ses, perdeye göre bölündü — bir tahmin",
       "fromName": "Dosya adından",
-      "kitShape": "Davul seti gibi çalıyor"
+      "kitShape": "Davul seti gibi çalıyor",
+      "percussiveBand": "Vurmalı — frekans bantlarından okundu",
+      "lowBand": "250 Hz altında ve perdesi sabit",
+      "melodicBand": "Tizdeki en net çizgi — bir tahmin",
+      "chromaTemplate": "Akorlar şablonlarla eşleştirildi"
     },
     "midiFound": "Bu MIDI dosyasının içeriği",
     "midiNotes": "Notalar",
     "midiAuditionClipped": "Yalnızca ilk iki dakika dinlenir.",
     "raw": "Ham",
     "rawHint": "Dosyayı diskteki hâliyle çal",
-    "previewGain": "Dinleme düzeyi"
+    "previewGain": "Dinleme düzeyi",
+    "extract": "Notaları oku",
+    "extractCancel": "Okumayı durdur",
+    "audioFound": "Bu örneğin içeriği",
+    "vocalLeftAlone": "Söylenmiş bir çizgi bulundu ve dokunulmadı.",
+    "audioDragHint": "Ya da dosyayı bir üreticinin üzerine sürükleyerek doğrudan orada okuyun."
   },
   "patterns": {
     "name": "Bu pattern’e ad ver",

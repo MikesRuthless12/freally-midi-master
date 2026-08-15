@@ -441,14 +441,23 @@
       "innerVoice": "Middenstem",
       "splitByPitch": "Eén stem, gesplitst op toonhoogte — een gok",
       "fromName": "Uit de bestandsnaam",
-      "kitShape": "Speelt als een drumkit"
+      "kitShape": "Speelt als een drumkit",
+      "percussiveBand": "Aangeslagen — uit de frequentiebanden gelezen",
+      "lowBand": "Onder 250 Hz, met een vaste toonhoogte",
+      "melodicBand": "De duidelijkste lijn bovenin — een gok",
+      "chromaTemplate": "Akkoorden vergeleken met sjablonen"
     },
     "midiFound": "Inhoud van dit MIDI-bestand",
     "midiNotes": "Noten",
     "midiAuditionClipped": "Alleen de eerste twee minuten worden beluisterd.",
     "raw": "Ruw",
     "rawHint": "Het bestand precies afspelen zoals het op schijf staat",
-    "previewGain": "Voorluisterniveau"
+    "previewGain": "Voorluisterniveau",
+    "extract": "Noten uitlezen",
+    "extractCancel": "Lezen stoppen",
+    "audioFound": "Inhoud van deze sample",
+    "vocalLeftAlone": "Er is een gezongen lijn gevonden en met rust gelaten.",
+    "audioDragHint": "Of sleep het bestand naar een generator om het daar direct uit te lezen."
   },
   "patterns": {
     "name": "Geef dit patroon een naam",

@@ -270,6 +270,34 @@ pub enum SplitReason {
     /// for a single-voice file. See [`part_from_name`] for why it outranks every
     /// measurement except the drum-kit test.
     FromName,
+
+    // ── The audio path (TASK-058F) ───────────────────────────────────────
+    //
+    // ⛔⛔ **New variants rather than reusing the MIDI ones**, and the whole
+    // point of this enum is why. Every reason above describes something the
+    // *file* said: a channel, a filename, one voice sitting below another.
+    // None of that exists in a waveform, and dressing a spectral measurement up
+    // as `LowestVoice` would put a MIDI file's kind of certainty on an audio
+    // file's kind of guess. `plugin/src/extract` produces these.
+    /// Struck, and classified by which bands it is made of and where in the bar
+    /// it landed. ⚠ Two passes — see `extract::drums`.
+    PercussiveBand,
+    /// It survived a low-pass at 250 Hz and held a pitch there.
+    ///
+    /// ⚠ The strongest of the audio reasons: the band *is* the bassline, and the
+    /// kick opts out of it by having no stable period.
+    LowBand,
+    /// The most clearly periodic line in the lead register.
+    ///
+    /// ⚠ **The weakest of the audio reasons**, and the page must say so: leads,
+    /// keys, guitars, brass and voices all live in that band, so this is "the
+    /// strongest line up there" rather than "the melody".
+    MelodicBand,
+    /// Chroma against chord templates: the progression and where it changes.
+    ///
+    /// ⛔ **Recognition, not transcription** — it names the chord and does not
+    /// claim to be the voicing that was played.
+    ChromaTemplate,
 }
 
 /// The part a producer's own filename names, if it names one.

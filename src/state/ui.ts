@@ -504,6 +504,16 @@ type UiState = {
   setActiveTab: (tab: GeneratorTab) => void;
   /** Switch one generator's playback on or off (TASK-127). */
   togglePart: (part: Part) => void;
+  /**
+   * Say outright which generators are off (TASK-058H).
+   *
+   * ⛔ **An import is a statement about the whole set, which a toggle cannot
+   * make.** Mike: *"if there is no countermelody or no bassline that it mutes
+   * them."* Toggling each missing part would also *un*-switch any the producer
+   * had already silenced, and toggling only the missing ones would leave an
+   * earlier import's switches on parts this one did fill.
+   */
+  setPartsOff: (parts: Part[]) => void;
   /** Turn the loop on or off (TASK-138). */
   toggleLooping: () => void;
   /**
@@ -777,6 +787,7 @@ export const useUi = create<UiState>((set) => ({
         ? s.partsOff.filter((off) => off !== part)
         : [...s.partsOff, part],
     })),
+  setPartsOff: (partsOff) => set({ partsOff }),
   toggleRightRail: () => set((s) => ({ rightRailOpen: !s.rightRailOpen })),
   // ⛔⛔ **Collapsing the stage OPENS the right rail, and without that the
   // feature does nothing at the size it was asked for.** Mike, 2026-08-12:

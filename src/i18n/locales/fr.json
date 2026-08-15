@@ -441,14 +441,23 @@
       "innerVoice": "Voix intérieure",
       "splitByPitch": "Une voix, divisée par hauteur — une estimation",
       "fromName": "D’après le nom du fichier",
-      "kitShape": "Joue comme une batterie"
+      "kitShape": "Joue comme une batterie",
+      "percussiveBand": "Frappé — lu depuis ses bandes",
+      "lowBand": "Sous 250 Hz, et la hauteur tient",
+      "melodicBand": "La ligne la plus nette dans l’aigu — une estimation",
+      "chromaTemplate": "Accords comparés à des modèles"
     },
     "midiFound": "Contenu de ce fichier MIDI",
     "midiNotes": "Notes",
     "midiAuditionClipped": "Seules les deux premières minutes sont écoutées.",
     "raw": "Brut",
     "rawHint": "Lire le fichier exactement tel qu’il est sur le disque",
-    "previewGain": "Niveau d'écoute"
+    "previewGain": "Niveau d'écoute",
+    "extract": "Lire les notes",
+    "extractCancel": "Arrêter la lecture",
+    "audioFound": "Contenu de cet échantillon",
+    "vocalLeftAlone": "Une ligne chantée a été trouvée et laissée intacte.",
+    "audioDragHint": "Ou faites glisser le fichier sur un générateur pour l’y lire directement."
   },
   "patterns": {
     "name": "Nommer ce pattern",

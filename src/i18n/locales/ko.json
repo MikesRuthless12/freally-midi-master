@@ -441,14 +441,23 @@
       "innerVoice": "중간 성부",
       "splitByPitch": "한 성부를 음높이로 분할 — 추정입니다",
       "fromName": "파일 이름에서",
-      "kitShape": "드럼 킷처럼 연주됩니다"
+      "kitShape": "드럼 킷처럼 연주됩니다",
+      "percussiveBand": "타격음 — 주파수 대역으로 판별",
+      "lowBand": "250 Hz 아래이고 음정이 유지됩니다",
+      "melodicBand": "고역에서 가장 뚜렷한 선율 — 추정입니다",
+      "chromaTemplate": "코드를 템플릿과 대조"
     },
     "midiFound": "이 MIDI 파일의 내용",
     "midiNotes": "노트",
     "midiAuditionClipped": "처음 2분만 미리 듣습니다.",
     "raw": "원본",
     "rawHint": "디스크에 있는 그대로 파일 재생",
-    "previewGain": "미리듣기 레벨"
+    "previewGain": "미리듣기 레벨",
+    "extract": "노트 읽기",
+    "extractCancel": "읽기 중지",
+    "audioFound": "이 샘플의 내용",
+    "vocalLeftAlone": "노래한 선율을 찾아 그대로 두었습니다.",
+    "audioDragHint": "또는 파일을 제너레이터로 끌어다 놓으면 바로 그곳에 읽어 들입니다."
   },
   "patterns": {
     "name": "이 패턴의 이름",
