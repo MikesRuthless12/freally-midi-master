@@ -218,9 +218,12 @@ fn authored() -> BTreeMap<String, String> {
 fn collect(value: &Value, model: &str, path: String, out: &mut BTreeMap<String, String>) {
     // ⛔ **Arrays are walked too.** This returned on anything that was not an
     // object, so every key inside an array element was invisible to the gate:
-    // , , and
-    //  were never collected at all. A new
-    // unread key authored inside one of those blocks could never fail this.
+    // `arrangement.structures[]`, `chords.progressionFamilies[]` and — the
+    // largest by far — `modes[]`, which carries a whole nested model per entry,
+    // were never collected at all. A new unread key authored inside one of those
+    // blocks could never fail this.
+    // ⚠ The four names above went missing from this comment when it was written
+    // and it read "`, `, and ` were never collected", which said nothing at all.
     if let Some(items) = value.as_array() {
         for item in items {
             collect(item, model, path.clone(), out);

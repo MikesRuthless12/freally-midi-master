@@ -375,7 +375,15 @@ const handlers: Record<string, Handler> = {
         // Playwright — an all-empty fixture would exercise only the
         // uncurated-dataset path, which is the one that does nothing.
         relatedGenres: ['trap'],
-        era: null,
+        // ⛔⛔ **A real era, and the two names deliberately do not share one**
+        // (TASK-158G). Both entries carried `null` — under which every era pill
+        // shows every name, so the whole filter was unprovable from any spec
+        // while looking perfectly healthy. That is the fixture failure this repo
+        // has already recorded once: *"a 4-row explorer fixture and a fixed seed
+        // hid two real bugs behind a green suite."*
+        // ⚠ This one is the 90s alone; the producer below spans 2010s and 2020s,
+        // so a pressed pill has to include one and exclude the other.
+        era: '1994-1999',
         mine: false,
       },
       {
@@ -396,7 +404,11 @@ const handlers: Record<string, Handler> = {
         tier: 'standard',
         genres: ['trap'],
         relatedGenres: ['trap'],
-        era: null,
+        // ⚠ **The en dash and "present" together**, which is the shape most of
+        // `data/` is in — a fixture spelled with a plain hyphen would go on
+        // passing if the parser only knew one of the two dash characters that
+        // ship. Spans the 2010s and the 2020s.
+        era: '2018–present',
         mine: false,
       },
       // Appended rather than sorted in, exactly as `dataset::roster()` does it:

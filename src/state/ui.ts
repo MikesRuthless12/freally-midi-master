@@ -4,6 +4,7 @@ import { readStored, writeStored } from './storage';
 import { applyLanguage, loadLanguagePreference } from '../i18n';
 import { type LocaleCode } from '../i18n/locales';
 import { applyThemePreference, loadThemePreference, type ThemePreference } from './theme';
+import { DECADES, type Decade } from '../lib/era';
 import type { Lane } from '../lib/ipc-types';
 // ⚠ `state/lanes.ts` is a leaf that imports nothing but a type, which is why it
 // can be reached from here without dragging the kit store — and its own doc
@@ -471,6 +472,24 @@ type UiState = {
    */
   stemsRevealed: boolean;
   /**
+   * The era pills a producer has pressed, if any (TASK-158G).
+   *
+   * ⛔⛔ **Mike, 2026-08-10:** *"allow the end user to [filter] the list by what
+   * genre/artist was out within those specific years instead of trying to search
+   * through them all and not finding what you want and just randomly searching
+   * for names through genres/artists/producers blindly."*
+   *
+   * ⚠ **Empty means no filter, never "nothing matches"** — see `lib/era.ts`.
+   *
+   * ⛔ **UI state, and unlike `partsOff` it stays here.** That one moved into the
+   * session document because an *import* writes it, so it became a statement
+   * about the record. This is a way of looking at a list: it changes nothing
+   * about what is generated, nothing about what a project contains, and reopening
+   * a project with somebody's browsing filter still applied would be a control
+   * left on with no memory of pressing it.
+   */
+  eras: Decade[];
+  /**
    * Whether the clip repeats at its end (TASK-138).
    *
    * ⛔ Mike, 2026-08-06: *"can you have the 'Loop' button toggle off and on and
@@ -485,6 +504,8 @@ type UiState = {
   looping: boolean;
 
   setActiveTab: (tab: GeneratorTab) => void;
+  /** Press an era pill, or press it again to release it (TASK-158G). */
+  toggleEra: (decade: Decade) => void;
   /** Turn the loop on or off (TASK-138). */
   toggleLooping: () => void;
   /**
@@ -746,9 +767,18 @@ export const useUi = create<UiState>((set) => ({
   language: loadLanguagePreference(),
   stemsRevealed:
     readStored(STEMS_REVEALED_KEY, (v): v is string => v === 'true', 'false') === 'true',
+  eras: [],
   looping: true,
 
   setActiveTab: (activeTab) => set({ activeTab }),
+  // ⚠ Kept in `DECADES` order rather than press order, so the pills read the
+  // same whichever way round they were pressed.
+  toggleEra: (decade) =>
+    set((s) => ({
+      eras: s.eras.includes(decade)
+        ? s.eras.filter((held) => held !== decade)
+        : DECADES.filter((held) => held === decade || s.eras.includes(held)),
+    })),
   toggleLooping: () => set((s) => ({ looping: !s.looping })),
   setLooping: (on) => set({ looping: on }),
   toggleRightRail: () => set((s) => ({ rightRailOpen: !s.rightRailOpen })),

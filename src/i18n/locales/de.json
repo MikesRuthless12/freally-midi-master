@@ -226,7 +226,9 @@
     "genre": "Stil",
     "noneInGenre": "Noch arbeitet niemand in {{name}}.",
     "standard": "Standard",
-    "inherited": "Vererbt"
+    "inherited": "Vererbt",
+    "era": "Ära",
+    "noneInEra": "Keine Künstler im Verzeichnis waren in diesen Jahren aktiv."
   },
   "lanes": {
     "kick": "Bassdrum",

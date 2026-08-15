@@ -226,7 +226,9 @@
     "genre": "Genre",
     "noneInGenre": "No artists work in {{name}} yet.",
     "standard": "Standard",
-    "inherited": "Inherited"
+    "inherited": "Inherited",
+    "era": "Era",
+    "noneInEra": "No artists in the roster worked in those years."
   },
   "lanes": {
     "kick": "Kick",

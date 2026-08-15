@@ -226,7 +226,9 @@
     "genre": "Tür",
     "noneInGenre": "{{name}} türünde henüz sanatçı yok.",
     "standard": "Standart",
-    "inherited": "Devralınan"
+    "inherited": "Devralınan",
+    "era": "Dönem",
+    "noneInEra": "Listede o yıllarda çalışmış sanatçı yok."
   },
   "lanes": {
     "kick": "Bas davul",

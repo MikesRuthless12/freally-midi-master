@@ -5,11 +5,12 @@ import { StyleEditor } from '../StyleEditor/StyleEditor';
 import '../StyleEditor/StyleEditor.css';
 import { RailResizer } from './RailResizer';
 import { RailTabs } from './RailTabs';
-import { SWAP_STYLE } from '../../state/ui';
+import { SWAP_STYLE, useUi } from '../../state/ui';
 import { Combo } from '../Combo/Combo';
 import { ExplorerPanel } from '../Explorer/ExplorerPanel';
 import { ArtistPane } from '../RosterList/ArtistPane';
 import { crossFilter } from '../../lib/cross-filter';
+import { DECADES, matchesEras } from '../../lib/era';
 import { search } from '../../lib/fuzzy';
 import type { RosterEntry } from '../../lib/ipc-types';
 import { useSession } from '../../state/session';
@@ -59,6 +60,8 @@ export function LeftRail() {
   // selection moved on — machinery for a "Show all" button that no longer
   // exists. With nothing able to set it, the filter is simply the selection.
   const [editing, setEditing] = useState<string | null>(null);
+  const eras = useUi((s) => s.eras);
+  const toggleEra = useUi((s) => s.toggleEra);
   const { artists, filteredBy } = crossFilter(roster, selectedId);
 
   const selected = roster.find((entry) => entry.id === selectedId) ?? null;
@@ -127,8 +130,15 @@ export function LeftRail() {
   const grouped = (entries: RosterEntry[]) => {
     const az = (list: RosterEntry[]) =>
       [...list].sort((a, b) => a.name.localeCompare(b.name)).map(option);
+    // ⛔⛔ **The era pills narrow the BROWSE list and nothing else** (TASK-158G).
+    // Exactly the rule the genre cross-filter follows fifty lines up, for
+    // exactly the reason given there: narrowing what you *browse* is a
+    // convenience, narrowing what you can *find* is a defect. `filter` below is
+    // built from the whole pools, so a producer with the 90s pressed can still
+    // type "Yeat" and get him — the pills cannot make a name untypable.
+    const shown = entries.filter((entry) => matchesEras(entry.era, eras));
     return GROUPS.flatMap(({ id, label, holds }) => {
-      const list = entries.filter((entry) => entry.type === holds);
+      const list = shown.filter((entry) => entry.type === holds);
       return list.length === 0 ? [] : [{ id, name: label, heading: true }, ...az(list)];
     });
   };
@@ -219,6 +229,45 @@ export function LeftRail() {
         <Section id="roster">
           {rosterLoaded && roster.length > 0 ? (
             <>
+              {/* ⛔⛔ **Four era pills, above the names they narrow** (TASK-158G).
+                Mike, 2026-08-10: *"allow the end user to [filter] the list by
+                what genre/artist was out within those specific years instead of
+                … randomly searching for names through genres/artists/producers
+                blindly."* A combobox narrowed by typing is fine at thirty names
+                and useless at four hundred if you cannot already name the one
+                you want — and "what was out when I was listening" is the one
+                axis a producer always knows.
+
+                ⛔ **Multi-select, and a model matches on OVERLAP.** `boom-bap`
+                is `1990s–present`, so it belongs under all four at once; a sort
+                would force it into one bucket and lie about three. `lib/era.ts`
+                owns that comparison.
+
+                ⚠ **The decades are digits, so they carry no catalog key.**
+                "2010s" is the same four characters in every locale this ships
+                in; only the group needs a name, which is what `roster.era` is.
+
+                ⚠ Buttons in a `group` rather than checkboxes: each is a toggle
+                whose pressed state is `aria-pressed`, which is what a pill is. */}
+              <div
+                className="rail__eras"
+                role="group"
+                aria-label={t('roster.era')}
+                data-testid="era-pills"
+              >
+                {DECADES.map((decade) => (
+                  <button
+                    key={decade}
+                    type="button"
+                    className="rail__era"
+                    aria-pressed={eras.includes(decade)}
+                    onClick={() => toggleEra(decade)}
+                  >
+                    {decade}s
+                  </button>
+                ))}
+              </div>
+
               <Combo
                 label={t('sections.roster')}
                 // ⛔⛔ **"Original Workflow" is always the first entry** — Mike,
@@ -333,6 +382,18 @@ export function LeftRail() {
                 <p className="rail__hint">
                   {t('roster.noneInGenre', { name: filteredBy.name })}
                 </p>
+              )}
+
+              {/* ⛔ **Said, rather than an empty list nobody can explain.** With
+                a narrow genre selected and one pill pressed the browse list can
+                come back with nobody in it — and a combobox that opens onto
+                "Original Workflow" alone looks like a roster that failed to load
+                rather than a filter doing its job. ⚠ Measured on the *pills*
+                specifically: `noneInGenre` above already answers the other way
+                of getting here, and showing both at once would say the same
+                thing twice. */}
+              {eras.length > 0 && artists.length > 0 && grouped(artists).length === 0 && (
+                <p className="rail__hint">{t('roster.noneInEra')}</p>
               )}
             </>
           ) : (

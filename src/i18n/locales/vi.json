@@ -226,7 +226,9 @@
     "genre": "Thể loại",
     "noneInGenre": "Chưa có nghệ sĩ nào thuộc {{name}}.",
     "standard": "Tiêu chuẩn",
-    "inherited": "Kế thừa"
+    "inherited": "Kế thừa",
+    "era": "Thời kỳ",
+    "noneInEra": "Không có nghệ sĩ nào trong danh sách hoạt động vào những năm đó."
   },
   "lanes": {
     "kick": "Trống bass",

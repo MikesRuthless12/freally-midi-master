@@ -226,7 +226,9 @@
     "genre": "Gatunek",
     "noneInGenre": "Nikt jeszcze nie tworzy w {{name}}.",
     "standard": "Standard",
-    "inherited": "Dziedziczony"
+    "inherited": "Dziedziczony",
+    "era": "Epoka",
+    "noneInEra": "Żaden artysta z listy nie tworzył w tych latach."
   },
   "lanes": {
     "kick": "Stopa",

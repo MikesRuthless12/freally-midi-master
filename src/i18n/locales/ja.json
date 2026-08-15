@@ -226,7 +226,9 @@
     "genre": "ジャンル",
     "noneInGenre": "{{name}} のアーティストはまだいません。",
     "standard": "標準",
-    "inherited": "継承"
+    "inherited": "継承",
+    "era": "年代",
+    "noneInEra": "その年代に活動していたアーティストはいません。"
   },
   "lanes": {
     "kick": "キック",
