@@ -771,8 +771,10 @@ type SessionState = {
    * into any of the generators and it will split them all the same exact way."*
    * Aiming at a tab is now `prefer` — where the split lands, not what it reads.
    *
-   * ⚠ `explorer_midi`, the one-part command this used to call, is left in the
-   * bridge for TASK-040T's training road and currently has no caller.
+   * ⚠ `explorer_midi`, the one-part command this used to call, went with the
+   * road: a bridge command nothing calls is a defect this repo has written up
+   * twice. TASK-040T's training road wants `explorer_midi_split`'s `SplitPart`s
+   * anyway, which already carry the per-part routing reason a fit would need.
    */
   importMidi: (path: string, prefer?: Part) => Promise<void>;
   /**
@@ -2941,17 +2943,28 @@ useSession.subscribe((state, prev) => {
   // opting in is a line to remember in every future writer and it was already
   // forgotten in both directions once.
   //
-  // ⛔⛔ **A switch-off must NEVER re-arm while the Song tab is showing**, and
-  // that guard came here with the call it replaced. `TAB_PART.song` is `null`,
-  // so `armCurrentPattern` falls through to *disarm* — generate a song, click a
-  // generator's dot, and the whole arrangement goes silent with the timeline
-  // still on screen and Play still lit. A `patterns` change is different: those
-  // only arrive from a generator, and `SongTimeline` owns the arrangement's own
-  // arming either side of it.
+  // ⛔⛔ **NOTHING here may arm while the Song tab is showing.**
+  // `TAB_PART.song` is `null`, so `armCurrentPattern` falls through to *disarm*
+  // — and `SongTimeline` owns the arrangement while its tab is up.
+  //
+  // ⚠ **The guard covers a `patterns` change too, and a first cut of this
+  // covered only the switch.** The comment then claimed a clip change "can only
+  // arrive from a generator", which a review found untrue: `CenterStage` draws
+  // the per-tab ✕ on every tab that has a clip, whatever tab is *active*, so
+  // clearing Melody from the Song tab wrote `patterns` and disarmed the whole
+  // arrangement with the timeline on screen and Play still lit — the exact
+  // failure the other half of this guard exists to prevent, arriving through the
+  // half that was missing. ▶ It predates the switch-off moving here; what the
+  // move did was put both roads through one subscriber, where one guard covers
+  // them.
+  //
+  // ⚠ Nothing is lost by skipping: the `useUi` subscriber re-arms on the way
+  // back to a generator tab, and `importSplit` moves the tab after its write for
+  // that reason.
   const clipMoved = state.patterns !== prev.patterns;
   const switchMoved = state.partsOff !== prev.partsOff;
-  if (!isPlugin()) return;
-  if (!clipMoved && !(switchMoved && useUi.getState().activeTab !== 'song')) return;
+  if (!isPlugin() || (!clipMoved && !switchMoved)) return;
+  if (useUi.getState().activeTab === 'song') return;
   // ⛔ **Arm the tab that is showing, not "the pattern that changed".** There
   // are five slots and one schedule, so the transport can only hold one of
   // them, and the one it must hold is the one the producer is looking at —

@@ -904,10 +904,10 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
                         // ⚠ It was missing, and the page already called
                         // `loadRecent()` here on the strength of a comment
                         // saying the plugin had written the entry. It had not:
-                        // `note` ran only from `explorer_midi`, which is the
-                        // *drop* into a part — so a producer who clicked twenty
-                        // loops and imported one saw a history of the one, which
-                        // is the recording rule backwards.
+                        // `note` ran only from `explorer_midi` — the one-part
+                        // *drop*, since removed — so a producer who clicked
+                        // twenty loops and imported one saw a history of the
+                        // one, which is the recording rule backwards.
                         let _ = crate::recent::note(path);
                     })
                     .and_then(|parts| serde_json::to_value(parts).map_err(|e| e.to_string())),
@@ -1020,8 +1020,10 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
         // ── The browser's history (TASK-058) ─────────────────────────────
         //
         // ⛔ Read-only from the page. Nothing adds to the history over the
-        // bridge: entries only ever come from `preview_load` and `explorer_midi`
-        // above, which are already bounded by `Explorer::contains`. A
+        // bridge: entries only ever come from `preview_load` and
+        // `explorer_midi_split` above, which are already bounded by
+        // `Explorer::contains` — and both write it only after every guard in
+        // `read_midi_bytes` / `checked_audio` has passed. A
         // `recent_add` would be a way for the page to name an arbitrary path and
         // have it stored and shown as somewhere the producer had been.
         "recent_list" => {

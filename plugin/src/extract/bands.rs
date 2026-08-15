@@ -483,12 +483,25 @@ mod tests {
         // templates it feeds move and `audioTest/` is the only thing that would
         // notice. Two causal cascades in sequence do not care whether the
         // intermediate was written down.
-        // ⚠ Factor 1 is in the list on purpose: that is the branch where no
-        // anti-alias filter may be added, because nothing is being thrown away.
         let mut mixed = sine(220.0, 48_000, 0.3);
         for (at, sample) in sine(3_300.0, 48_000, 0.3).iter().enumerate() {
             mixed[at] += sample * 0.6;
         }
+
+        // ⛔⛔ **Factor 1 asserted against the INPUT, not against the two-step
+        // form.** A review found the loop below could not fail for the claim the
+        // comment made about it: `decimate` is `band_decimate(.., None, None, f)`
+        // now, so widening the `factor > 1` guard to `>= 1` would add the
+        // anti-alias low-pass to *both* sides and the comparison would stay
+        // green. The property that actually matters is that asking for no band
+        // and no decimation gives back what you handed in — the old `decimate`'s
+        // `samples.to_vec()`, exactly.
+        let (untouched, rate) = band_decimate(&mixed, 48_000, None, None, 1);
+        assert_eq!(rate, 48_000);
+        assert_eq!(
+            untouched, mixed,
+            "factor 1 with no band must change nothing"
+        );
 
         for (low, high) in [
             (Some(150.0_f32), Some(1_000.0_f32)),

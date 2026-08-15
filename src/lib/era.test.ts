@@ -56,6 +56,22 @@ describe('reading an era', () => {
     expect(parseEra('the nineties')).toBeNull();
     expect(parseEra('')).toBeNull();
   });
+
+  it('clamps a transposed span rather than producing one that matches nothing', () => {
+    // ⛔ **The failure direction matters more than the value.** `2000s-1990s`
+    // parses cleanly to an *empty* span, which overlaps no decade at all — so a
+    // typo would hide a model from all four pills, where an unreadable era shows
+    // under every one. The gate over `data/` proves parseability, not sanity.
+    //
+    // ⚠ **Collapsed to the start, not widened to cover both ends.** Reading it
+    // as 1990–2009 would be inventing the intention behind a typo, which is the
+    // same thing this module refuses to do with "late". A one-year span at the
+    // year that was actually written is the smallest repair that leaves the
+    // model reachable.
+    expect(parseEra('2000s-1990s')).toEqual({ from: 2000, to: 2000 });
+    expect(matchesEras('2000s-1990s', [2000])).toBe(true);
+    expect(matchesEras('2000s-1990s', [1990])).toBe(false);
+  });
 });
 
 describe('which decades a span belongs to', () => {

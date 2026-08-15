@@ -3,13 +3,7 @@ import { AudioWaveform, Drum, ListMusic, Music2, Piano, Waves, X } from 'lucide-
 import type { LucideIcon } from 'lucide-react';
 import { GENERATOR_TABS, useUi, type GeneratorTab } from '../../state/ui';
 import type { Lane, Part } from '../../lib/ipc-types';
-import {
-  armCurrentPattern,
-  BAR_CHOICES,
-  GENERATED_PARTS,
-  TAB_PART,
-  useSession,
-} from '../../state/session';
+import { BAR_CHOICES, GENERATED_PARTS, TAB_PART, useSession } from '../../state/session';
 import { DrumGrid } from '../DrumGrid/DrumGrid';
 import { PianoRoll } from '../PianoRoll/PianoRoll';
 import { SongTimeline } from '../SongTimeline/SongTimeline';
@@ -230,13 +224,12 @@ function GeneratorTabs() {
                 className="tab-clear"
                 aria-label={t('stage.clearOne', { part: t(`tabs.${tab}`) })}
                 title={t('stage.clearOne', { part: t(`tabs.${tab}`) })}
-                onClick={() => {
-                  clearPart(part);
-                  // Re-armed for the same reason the mute switch is: the
-                  // schedule holds one merged clip, so clearing a part without
-                  // re-arming leaves Play sounding the one that is gone.
-                  if (activeTab !== 'song') armCurrentPattern();
-                }}
+                // ⚠ **The re-arm is the store's**, like the mute dot above:
+                // `clearPart` writes `patterns`, which the arm subscriber
+                // watches, Song-tab guard and all. A second call here was the
+                // same rule written twice, and the copy could not undo the
+                // subscriber's own decision anyway.
+                onClick={() => clearPart(part)}
               >
                 <X size={11} aria-hidden="true" />
               </button>

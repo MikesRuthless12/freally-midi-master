@@ -68,7 +68,13 @@ const SPAN = /^(\d{4})(s?)(?:-(present|\d{4}s?))?$/;
  * stop matching the 2000s pill.
  */
 export function parseEra(era: string | null): Span | null {
-  if (era === null) return null;
+  // ⚠ **`typeof`, not `=== null`, and it is defence in depth rather than a live
+  // case.** `RosterEntry.era` is `string | null` and `dataset/mod.rs` coerces a
+  // non-string `era` in a producer's own model to `None` — but that invariant is
+  // enforced two crates away, and this runs inside a React render: an
+  // `undefined` reaching `.replace` would not throw a bad value, it would blank
+  // the whole left rail. One check makes the module answer for itself.
+  if (typeof era !== 'string') return null;
   const text = era.replace(DASH, '-').trim().toLowerCase().replace(QUALIFIER, '');
   const found = SPAN.exec(text);
   if (found === null) return null;
@@ -83,8 +89,13 @@ export function parseEra(era: string | null): Span | null {
   if (end === undefined) return { from, to: decade ? from + 9 : from };
   if (end === 'present') return { from, to: STILL_CURRENT };
 
-  const to = Number(end.slice(0, 4));
-  return { from, to: end.endsWith('s') ? to + 9 : to };
+  const to = Number(end.slice(0, 4)) + (end.endsWith('s') ? 9 : 0);
+  // ⛔ **A transposed span is clamped, not honoured.** `2000s-1990s` parses
+  // cleanly to `{from: 2000, to: 1999}`, and an empty span overlaps *nothing* —
+  // so a typo would hide a model from all four pills, which is the opposite of
+  // this module's stated failure direction: what it cannot read, it shows.
+  // `the whole shipped dataset parses` proves parseability, not sanity.
+  return { from, to: Math.max(from, to) };
 }
 
 /** Does a span touch the ten years starting at `decade`? */

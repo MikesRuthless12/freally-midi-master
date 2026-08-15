@@ -103,6 +103,54 @@ test('pressing a pill again releases it', async ({ page }) => {
   ]);
 });
 
+test('a pressed pill narrows the genres box as well as the roster', async ({ page }) => {
+  // ⛔ Mike's sentence is *"what genre/artist was out"*, and the pills' own note
+  // argues its overlap rule with `boom-bap` — a genre.
+  //
+  // ⚠ **The 2020s, because it is the decade that discriminates.** Trap is
+  // `2010s` and UK Drill is `2018–present`, so *both* overlap the 2010s — an
+  // assertion there would pass over a filter that did nothing at all. Only the
+  // open-ended one reaches the 2020s.
+  await page.getByRole('button', { name: '2020s' }).click();
+
+  const genres = page.getByRole('combobox', { name: 'Genres' });
+  await genres.click();
+  await expect(page.locator('.combo__menu').getByRole('option')).toHaveText(['UK Drill']);
+});
+
+test('a pill never makes a GENRE untypable either', async ({ page }) => {
+  // ⛔⛔ **This is the one a review caught, and it is the same rule one box
+  // over.** The genres box resolved its ranked results by looking each one up in
+  // the `options` it was handed — which the pills narrow — so every genre a
+  // pressed pill excluded came back `undefined` and was dropped. Pressing the
+  // 90s and typing "UK Drill" gave an **empty menu** for a genre that plainly
+  // exists, with no "no match" line either.
+  await page.getByRole('button', { name: '1990s' }).click();
+
+  const genres = page.getByRole('combobox', { name: 'Genres' });
+  await genres.click();
+  await genres.fill('UK Drill');
+  await expect(
+    page.locator('.combo__menu').getByRole('option').filter({ hasText: 'UK Drill' }),
+  ).toHaveCount(1);
+});
+
+test('a selection a pill excludes still reads in the box', async ({ page }) => {
+  // ⛔ **Or the field empties itself under the producer.** `Combo` takes its text
+  // from `options`, which the pills narrow — so choosing a genre and then
+  // pressing a pill that excludes it blanked the box while that genre was still
+  // selected and still cross-filtering the roster below it. `valueLabel` is the
+  // fallback that says what is actually held.
+  const genres = page.getByRole('combobox', { name: 'Genres' });
+  await genres.click();
+  await genres.fill('UK Drill');
+  await page.locator('.combo__menu').getByRole('option').first().click();
+  await expect(genres).toHaveValue('UK Drill');
+
+  await page.getByRole('button', { name: '1990s' }).click();
+  await expect(genres).toHaveValue('UK Drill');
+});
+
 test('a pill never makes a name untypable', async ({ page }) => {
   // ⛔⛔ **The rule that matters most here.** `LeftRail` states it about the
   // genre cross-filter and it applies unchanged: hiding entries from a control
