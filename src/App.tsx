@@ -162,7 +162,9 @@ function Studio() {
       // and only a second Space got out. That is the second bullet in
       // `armedClips`' own doc, arriving through the keyboard instead.
       if (!session.canDriveTransport()) return;
-      if (!canDrive(session.patterns, ui.partsOff, ui.activeTab, useSong.getState().song)) {
+      if (
+        !canDrive(session.patterns, session.partsOff, ui.activeTab, useSong.getState().song)
+      ) {
         return;
       }
       e.preventDefault();

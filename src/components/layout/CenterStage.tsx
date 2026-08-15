@@ -63,8 +63,8 @@ function GeneratorTabs() {
   const activeTab = useUi((s) => s.activeTab);
   const setActiveTab = useUi((s) => s.setActiveTab);
   const patterns = useSession((s) => s.patterns);
-  const partsOff = useUi((s) => s.partsOff);
-  const togglePart = useUi((s) => s.togglePart);
+  const partsOff = useSession((s) => s.partsOff);
+  const togglePart = useSession((s) => s.togglePart);
   const clearPart = useSession((s) => s.clearPart);
   const importMidi = useSession((s) => s.importMidi);
   const importAudio = useSession((s) => s.importAudio);
@@ -128,12 +128,14 @@ function GeneratorTabs() {
               if (midi === null && sample === null) return;
               event.preventDefault();
 
-              // ⛔⛔ **An audio drop is a SPLIT, not "read it as this part".**
-              // There is no such thing as reading a waveform "as the bass": what
-              // the extractor knows is what it measured, so every part it found
-              // is opened and the tab lands on the one the producer aimed at if
-              // it is among them. The MIDI road keeps its "I know what this is"
-              // shortcut because a `.mid` really can be read as one part.
+              // ⛔⛔ **A drop on a generator is a SPLIT, not "read it as this
+              // part" — for a `.wav` and for a `.mid` alike.** Mike: *"can you
+              // ensure that you can drag the audio/midi of any sample into any of
+              // the generators and it will split them all the same exact way?"*
+              // There is no such thing as reading a waveform "as the bass", and a
+              // layered `.mid` read wholly into Melody squashes its own bass and
+              // counter into that clip. The tab the producer aimed at decides
+              // where the split *lands*, not what gets read.
               if (sample !== null && part !== undefined) {
                 void importAudio(sample, part);
                 return;
@@ -142,9 +144,8 @@ function GeneratorTabs() {
               // ⛔⛔ **Song takes the whole file as an arrangement** (TASK-058D).
               // Mike, 2026-08-10: *"could you put the midi for the entire song
               // into the 'Song' tab and allow them to pick which parts they want
-              // for the generators."* The other five tabs still take the file
-              // into that one generator, which is the "I know what this is"
-              // shortcut; Song is the "show me what is in it" route.
+              // for the generators."* A generator tab gets the same file split
+              // across the five slots; Song gets it as sections on a timeline.
               if (part === undefined) {
                 void importSong(midi);
                 return;

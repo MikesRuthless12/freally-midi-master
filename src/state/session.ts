@@ -118,6 +118,7 @@ export const SAVED_FIELDS = [
   'mutedLanes',
   'soloedLanes',
   'lockedLanes',
+  'partsOff',
   'edited',
   'editedParts',
 ] as const;
@@ -563,6 +564,30 @@ type SessionState = {
    */
   lockedLanes: string[];
   /**
+   * Generators switched OFF for playback (TASK-127).
+   *
+   * ⛔⛔ **Mike, 2026-08-06:** *"i want to be able to play the generators all at
+   * once or separately, they should be able to be toggled on and off for each
+   * generator."* Play sounds every generated part that is not in here, merged
+   * into the one clip a schedule can hold.
+   *
+   * ⚠ **OFF is what is stored, so ON is the default and stays the default.**
+   * Holding the on-set instead would mean a part generated after the toggles
+   * were last touched arrives silent, with nothing on screen saying why — a
+   * producer would press Generate on the bassline and hear nothing.
+   *
+   * ⛔ **In the session document rather than in `ui.ts`, and the import is what
+   * settled it.** It was UI state on the argument that a switch-off is an
+   * audition choice about this sitting, like solo on a mixer — but solo is saved
+   * here too, and TASK-058H made this a statement about the *record*: an import
+   * switches off every generator the file produced nothing for. Left unsaved,
+   * reopening the project handed the bassline switch back on with
+   * `patterns.bass` still saved beside it, so the session played a bass the
+   * imported record does not contain. `mutedLanes` — the drum half of the same
+   * feature — had always survived.
+   */
+  partsOff: Part[];
+  /**
    * Whether the clip on screen is an edit rather than the seed's own output.
    *
    * ⛔ **This is what makes an edited clip survive closing the project.**
@@ -642,6 +667,18 @@ type SessionState = {
    * exported and what reaches the host is identical either way.
    */
   setLaneSolo: (lane: string, solo: boolean) => void;
+  /** Switch one generator's playback on or off (TASK-127). */
+  togglePart: (part: Part) => void;
+  /**
+   * Say outright which generators are off (TASK-058H).
+   *
+   * ⛔ **An import is a statement about the whole set, which a toggle cannot
+   * make.** Mike: *"if there is no countermelody or no bassline that it mutes
+   * them."* Toggling each missing part would also *un*-switch any the producer
+   * had already silenced, and toggling only the missing ones would leave an
+   * earlier import's switches on parts this one did fill.
+   */
+  setPartsOff: (parts: Part[]) => void;
   /**
    * Move the playhead, as a fraction of the pattern (TASK-041T).
    *
@@ -725,14 +762,23 @@ type SessionState = {
    */
   openClip: (pattern: Pattern, part: Part) => void;
   /**
-   * Read a `.mid` from the sample library into one generator (TASK-058/040T).
+   * Read a `.mid` from the sample library into the generators its parts belong
+   * to (TASK-058/058D).
    *
-   * ⛔ Mike, 2026-08-10: *"be able to drag the file to a generator."* The Rust
-   * for this — `explorer::midi_pattern` and `engine::smf_read` — shipped with
-   * **no caller**, the same way the whole explorer did before TASK-132. This is
-   * that caller.
+   * ⛔ Mike, 2026-08-10: *"be able to drag the file to a generator."*
+   *
+   * ⛔⛔ **It SPLITS, and it did not until 2026-08-15.** This road read the whole
+   * file into the one part the producer aimed at — the "I know what this is"
+   * shortcut — while a `.wav` dropped on the same tab split. So a layered `.mid`
+   * on Melody squashed its bass and counter into the melody clip, which is the
+   * one thing Mike's sentence rules out: *"drag the audio/midi of any sample
+   * into any of the generators and it will split them all the same exact way."*
+   * Aiming at a tab is now `prefer` — where the split lands, not what it reads.
+   *
+   * ⚠ `explorer_midi`, the one-part command this used to call, is left in the
+   * bridge for TASK-040T's training road and currently has no caller.
    */
-  importMidi: (path: string, part: Part) => Promise<void>;
+  importMidi: (path: string, prefer?: Part) => Promise<void>;
   /**
    * Open every part a file was separated into (TASK-058D, TASK-058F).
    *
@@ -880,6 +926,7 @@ function snapshotOf(state: SessionState): Snapshot {
     mutedLanes,
     soloedLanes,
     lockedLanes,
+    partsOff,
     edited,
   } = state;
   // The arrangement lives in its own store and is read through the seam, for
@@ -930,6 +977,7 @@ function snapshotOf(state: SessionState): Snapshot {
     mutedLanes,
     soloedLanes,
     lockedLanes,
+    partsOff,
     edited,
     editedParts: state.editedParts,
     patterns: state.patterns,
@@ -1308,6 +1356,14 @@ export type SavedSession = {
   mutedLanes?: string[];
   /** Lanes held across a reroll (TASK-044). */
   lockedLanes?: string[];
+  /**
+   * Generators switched off for playback (TASK-127).
+   *
+   * ⚠ Absent is "everything on", which is every project written before this was
+   * saved — and it is the right answer for them: those sessions were left with
+   * whatever they had generated audible.
+   */
+  partsOff?: Part[];
   /** Lanes soloed in the preview (TASK-043). Sent on every save, like the mutes. */
   soloedLanes?: string[];
   /**
@@ -1576,6 +1632,7 @@ function put(
     mutedLanes: saved.mutedLanes ?? [],
     soloedLanes: saved.soloedLanes ?? [],
     lockedLanes: saved.lockedLanes ?? [],
+    partsOff: saved.partsOff ?? [],
     pins: {
       bpm: saved.pins?.bpm ?? null,
       keyRoot: saved.pins?.keyRoot ?? null,
@@ -1680,6 +1737,7 @@ export const useSession = create<SessionState>((set, get) => ({
   mutedLanes: [],
   soloedLanes: [],
   lockedLanes: [],
+  partsOff: [],
   edited: false,
   defaults: null,
   pendingArtist: null,
@@ -2001,6 +2059,26 @@ export const useSession = create<SessionState>((set, get) => ({
     // for good while the UI insisted it was muted. `flush()` also cancels the
     // pending timer, so this replaces the debounced write rather than racing it.
     persistNow();
+  },
+
+  // ⚠ **The debounced save, unlike the two lane actions above, and the
+  // difference is which road reaches the audio thread.** A lane mute only
+  // arrives there when the plugin adopts a saved session, so its write cannot
+  // wait half a beat; a switched-off generator changes what is *armed*, which
+  // `armCurrentPattern` sends straight down as `arm_pattern`. Nothing here is
+  // racing sound, so this is `setLaneLocked`'s case rather than `setLaneMuted`'s.
+  togglePart(part) {
+    set((state) => ({
+      partsOff: state.partsOff.includes(part)
+        ? state.partsOff.filter((off) => off !== part)
+        : [...state.partsOff, part],
+    }));
+    persist();
+  },
+
+  setPartsOff(partsOff) {
+    set({ partsOff });
+    persist();
   },
 
   async refreshHost() {
@@ -2443,24 +2521,24 @@ export const useSession = create<SessionState>((set, get) => ({
     }));
   },
 
-  async importMidi(path, part) {
+  async importMidi(path, prefer) {
     set({ error: null });
     try {
-      const pattern = await invoke<Pattern>('explorer_midi', { path, part });
+      const parts = await invoke<SplitPart[]>('explorer_midi_split', { path });
       // ⛔ **Refused rather than opened when it has no notes.** An empty clip
       // dropped into a generator looks exactly like a working import of a file
       // that happens to be silent — and the producer would press Play and hear
       // nothing with nothing on screen saying why. `smf_to_pattern` reads what is
       // there; whether what is there is worth opening is this layer's question.
-      if (pattern.lanes.every((lane) => lane.notes.length === 0)) {
+      if (parts.length === 0) {
         set({ error: reason('that MIDI file has no notes in it') });
         return;
       }
-      // ⚠ **`openClip`, not a bare `set`.** It moves the tab as well as the
-      // clip, and it latches `edited` — which is what stops the next Generate
+      // ⚠ **`importSplit`, not `openClip`.** It moves the tab as well as the
+      // clips, and it latches `edited` — which is what stops the next Generate
       // silently replacing an imported file, and what makes the project store
       // the notes rather than a seed that never produced them.
-      get().openClip(pattern, part);
+      get().importSplit(parts, prefer);
     } catch (error) {
       set({ error: reason(error) });
     }
@@ -2506,39 +2584,19 @@ export const useSession = create<SessionState>((set, get) => ({
   importSplit(parts, prefer) {
     if (parts.length === 0) return;
 
-    // ⛔⛔ **A GENERATOR the split produced nothing for is switched off, and this
-    // happens BEFORE the clips are written.** Mike: *"ensure that when you bring
-    // in a full song that … if there is no countermelody or no bassline that it
-    // mutes them."*
-    //
-    // ⛔ **The order is the fix rather than a preference** — the same lesson
-    // `openClip` records one function down. Writing `patterns` fires the store's
-    // subscriber, which defers to `armCurrentPattern`, which reads `partsOff`
-    // *at that moment*: switching off afterwards meant the arm had already gone
-    // out with the old list, so a chords clip the producer made earlier was armed
-    // and sounding under an import that contains none — which is the exact thing
-    // the switch-off exists to prevent, arriving one microtask early.
-    //
-    // ⛔ **Including a part the producer generated earlier, and that is the
-    // reading of his sentence rather than a liberty taken with it.** The first
-    // cut spared those — *"an import must not silence work it did not touch"* —
-    // and it is wrong in the direction that matters: a bassline generated five
-    // minutes ago, still sounding under a song that has none, makes the
-    // arrangement play something the file it came from does not contain.
-    // ⚠ **Switched off, never deleted.** The clip is untouched and the dot on the
-    // tab is one click back, which is the whole reason this is safe to do.
-    // ⚠ **And not persisted**, because `partsOff` is not: see its own doc in
-    // `state/ui.ts`. Saving the project and reopening it brings the switches back
-    // on while the *lane* mutes below survive, which is a real gap and is written
-    // up in the handoff rather than fixed here — it means moving `partsOff` into
-    // the session document, which changes what every project file contains.
-    const found = new Set(parts.map((split) => split.part));
-    useUi.getState().setPartsOff(GENERATED_PARTS.filter((part) => !found.has(part)));
-
     // ⛔ **One `set`, not one per part.** `openClip` writes the store and moves
     // the tab, so calling it five times would fire five renders and five
     // arm/disarm round trips — and leave the tab on whichever part happened to
     // be last in the list rather than on anything meaningful.
+    //
+    // ⛔ **`partsOff` in the SAME `set` as `patterns`, and that is the fix
+    // rather than a tidy-up.** Writing `patterns` fires the store's subscriber,
+    // which defers to `armCurrentPattern`, which reads `partsOff` *at that
+    // moment*: while this lived in `ui.ts` it had to be written first, in its own
+    // store, or the arm went out with the old list and a chords clip the producer
+    // made earlier was armed and sounding under an import that contains none.
+    // One `set` makes the two arrive together by construction, so there is no
+    // order left to get wrong.
     set((state) => {
       const patterns = { ...state.patterns };
       let editedParts = state.editedParts;
@@ -2546,9 +2604,23 @@ export const useSession = create<SessionState>((set, get) => ({
         patterns[split.part] = split.pattern;
         editedParts = withEdit(editedParts, split.part);
       }
+      // ⛔⛔ **A GENERATOR the split produced nothing for is switched off.**
+      // Mike: *"ensure that when you bring in a full song that … if there is no
+      // countermelody or no bassline that it mutes them."*
+      //
+      // ⛔ **Including a part the producer generated earlier, and that is the
+      // reading of his sentence rather than a liberty taken with it.** The first
+      // cut spared those — *"an import must not silence work it did not touch"* —
+      // and it is wrong in the direction that matters: a bassline generated five
+      // minutes ago, still sounding under a song that has none, makes the
+      // arrangement play something the file it came from does not contain.
+      // ⚠ **Switched off, never deleted.** The clip is untouched and the dot on
+      // the tab is one click back, which is the whole reason this is safe to do.
+      const found = new Set(parts.map((split) => split.part));
       return {
         patterns,
         editedParts,
+        partsOff: GENERATED_PARTS.filter((part) => !found.has(part)),
         edited: true,
         error: null,
         // ⛔⛔ **TASK-058H: a lane the import did not find is MUTED, not left
@@ -2899,7 +2971,7 @@ export function armCurrentPattern(): void {
   if (TAB_PART[useUi.getState().activeTab] !== null) {
     const on = armedClips(
       useSession.getState().patterns,
-      useUi.getState().partsOff,
+      useSession.getState().partsOff,
       useUi.getState().activeTab,
     );
     if (on.length > 0) {

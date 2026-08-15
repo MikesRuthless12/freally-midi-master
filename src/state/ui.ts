@@ -4,7 +4,7 @@ import { readStored, writeStored } from './storage';
 import { applyLanguage, loadLanguagePreference } from '../i18n';
 import { type LocaleCode } from '../i18n/locales';
 import { applyThemePreference, loadThemePreference, type ThemePreference } from './theme';
-import type { Lane, Part } from '../lib/ipc-types';
+import type { Lane } from '../lib/ipc-types';
 // ⚠ `state/lanes.ts` is a leaf that imports nothing but a type, which is why it
 // can be reached from here without dragging the kit store — and its own doc
 // records what happened the last time that list lived somewhere less reachable.
@@ -471,23 +471,6 @@ type UiState = {
    */
   stemsRevealed: boolean;
   /**
-   * Generators switched OFF for playback (TASK-127).
-   *
-   * ⛔⛔ **Mike, 2026-08-06:** *"i want to be able to play the generators all at
-   * once or separately, they should be able to be toggled on and off for each
-   * generator."* Play sounds every generated part that is not in here, merged
-   * into the one clip a schedule can hold.
-   *
-   * ⚠ **OFF is what is stored, so ON is the default and stays the default.**
-   * Holding the on-set instead would mean a part generated after the toggles
-   * were last touched arrives silent, with nothing on screen saying why — a
-   * producer would press Generate on the bassline and hear nothing.
-   *
-   * ⚠ Not persisted. It is an audition choice about this sitting, like solo on a
-   * mixer, rather than a property of the record.
-   */
-  partsOff: Part[];
-  /**
    * Whether the clip repeats at its end (TASK-138).
    *
    * ⛔ Mike, 2026-08-06: *"can you have the 'Loop' button toggle off and on and
@@ -502,18 +485,6 @@ type UiState = {
   looping: boolean;
 
   setActiveTab: (tab: GeneratorTab) => void;
-  /** Switch one generator's playback on or off (TASK-127). */
-  togglePart: (part: Part) => void;
-  /**
-   * Say outright which generators are off (TASK-058H).
-   *
-   * ⛔ **An import is a statement about the whole set, which a toggle cannot
-   * make.** Mike: *"if there is no countermelody or no bassline that it mutes
-   * them."* Toggling each missing part would also *un*-switch any the producer
-   * had already silenced, and toggling only the missing ones would leave an
-   * earlier import's switches on parts this one did fill.
-   */
-  setPartsOff: (parts: Part[]) => void;
   /** Turn the loop on or off (TASK-138). */
   toggleLooping: () => void;
   /**
@@ -775,19 +746,11 @@ export const useUi = create<UiState>((set) => ({
   language: loadLanguagePreference(),
   stemsRevealed:
     readStored(STEMS_REVEALED_KEY, (v): v is string => v === 'true', 'false') === 'true',
-  partsOff: [],
   looping: true,
 
   setActiveTab: (activeTab) => set({ activeTab }),
   toggleLooping: () => set((s) => ({ looping: !s.looping })),
   setLooping: (on) => set({ looping: on }),
-  togglePart: (part) =>
-    set((s) => ({
-      partsOff: s.partsOff.includes(part)
-        ? s.partsOff.filter((off) => off !== part)
-        : [...s.partsOff, part],
-    })),
-  setPartsOff: (partsOff) => set({ partsOff }),
   toggleRightRail: () => set((s) => ({ rightRailOpen: !s.rightRailOpen })),
   // ⛔⛔ **Collapsing the stage OPENS the right rail, and without that the
   // feature does nothing at the size it was asked for.** Mike, 2026-08-12:
