@@ -771,13 +771,14 @@ export const useUi = create<UiState>((set) => ({
   looping: true,
 
   setActiveTab: (activeTab) => set({ activeTab }),
-  // ⚠ Kept in `DECADES` order rather than press order, so the pills read the
-  // same whichever way round they were pressed.
+  // ⚠ **Rebuilt from `DECADES` in both directions, not only when adding.** Order
+  // is then true by construction rather than inherited by one branch from the
+  // other — the same rule `session.ts::togglePart` follows over
+  // `GENERATED_PARTS`, where getting it wrong meant two projects in the same
+  // state saving different bytes.
   toggleEra: (decade) =>
     set((s) => ({
-      eras: s.eras.includes(decade)
-        ? s.eras.filter((held) => held !== decade)
-        : DECADES.filter((held) => held === decade || s.eras.includes(held)),
+      eras: DECADES.filter((held) => s.eras.includes(held) !== (held === decade)),
     })),
   toggleLooping: () => set((s) => ({ looping: !s.looping })),
   setLooping: (on) => set({ looping: on }),

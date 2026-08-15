@@ -48,12 +48,19 @@ const STILL_CURRENT = Infinity;
 const QUALIFIER = /^(?:late|early|mid)[\s-]+/;
 
 /**
- * The years an `era` string names, or `null` if it names none.
+ * Two dash characters ship and both are accepted.
  *
- * ⚠ **Two dash characters ship and both are accepted.** `2013–present` (en
- * dash) and `2013-present` (hyphen) are both in `data/`, and a parser that knew
- * only one would file the same era under two answers with nothing on screen
- * saying why.
+ * ⚠ `2013–present` (en dash) and `2013-present` (hyphen) are both in `data/`,
+ * and a parser that knew only one would file the same era under two answers
+ * with nothing on screen saying why.
+ */
+const DASH = /[–—]/g;
+
+/** `YYYY` or `YYYYs`, optionally to another of the same or to `present`. */
+const SPAN = /^(\d{4})(s?)(?:-(present|\d{4}s?))?$/;
+
+/**
+ * The years an `era` string names, or `null` if it names none.
  *
  * ⚠ **A trailing `s` is a decade, not a year.** `1990s` runs to 1999; `1990`
  * is one year. Both spellings are authored, and collapsing them would make
@@ -62,10 +69,13 @@ const QUALIFIER = /^(?:late|early|mid)[\s-]+/;
  */
 export function parseEra(era: string | null): Span | null {
   if (era === null) return null;
-  const text = era.replace(/[–—]/g, '-').trim().toLowerCase().replace(QUALIFIER, '');
-  const found = /^(\d{4})(s?)(?:-(present|\d{4}s?))?$/.exec(text);
+  const text = era.replace(DASH, '-').trim().toLowerCase().replace(QUALIFIER, '');
+  const found = SPAN.exec(text);
   if (found === null) return null;
 
+  // ⚠ **`SPAN` carries no `g` flag**, so it has no `lastIndex` to carry between
+  // calls. A module-level `g` regex reused with `exec` skips every other call,
+  // which is why `DASH` above is only ever handed to `replace`.
   const from = Number(found[1]);
   const decade = found[2] === 's';
   const end = found[3];

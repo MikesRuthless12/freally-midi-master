@@ -1613,7 +1613,7 @@
   border-color: var(--color-text-3);
 }
 
-/* ⛔ **The era pills, above the names they narrow** (TASK-158G).
+/* ⛔ **The era pills, above the two lists they narrow** (TASK-158G).
    ⚠ `flex-wrap`, because the rail is resizable down to a width where four
    pills do not fit on one line — and a row that overflows instead would put the
    2020s off the edge with nothing saying it was there. */
@@ -1621,30 +1621,29 @@
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-1);
-  margin-bottom: var(--space-2);
+  margin-top: var(--space-2);
 }
 
+/* ⛔ **`.btn-ghost` carries the button**, and this holds only what a pill adds
+   to it. The first cut restated the border, the transparent background, the
+   `font: inherit`, the cursor and a `:hover` that was byte-identical to
+   `.btn-ghost:hover` — so a change to the shared ghost treatment would have
+   silently skipped these four, and they had opted out of its transition without
+   meaning to. What is genuinely different is the shape and the size. */
 .rail__era {
   padding: 2px var(--space-2);
-  border: 1px solid var(--color-border);
   border-radius: 999px;
-  background: transparent;
-  color: var(--color-text-3);
-  font: inherit;
   font-size: var(--text-micro);
-  cursor: pointer;
-}
-
-.rail__era:hover {
-  color: var(--color-text);
-  border-color: var(--color-text-3);
 }
 
 /* ⛔ **Driven off `aria-pressed`, not a second class**, so the state a screen
-   reader is told and the state the eye is shown cannot disagree — the idiom
-   `.chip__option` already uses, with the same fill for the same reason: a pill
-   that said "on" by text colour alone is a state a producer with any
-   colour-vision difference cannot read. */
+   reader is told and the state the eye is shown cannot disagree.
+   ⚠ **A fill rather than `.btn-ghost`'s recolour**, and it is the one place
+   this deliberately departs from its base: a ghost button says "on" by turning
+   its text and border the accent colour, which for a *filter* — where several
+   are on at once and the list below has visibly shrunk — is a state a producer
+   with any colour-vision difference cannot read. `.chip__option` fills for the
+   same reason. */
 .rail__era[aria-pressed='true'] {
   background: var(--color-primary);
   border-color: var(--color-primary);

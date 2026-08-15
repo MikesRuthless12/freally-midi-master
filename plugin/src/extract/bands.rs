@@ -245,13 +245,47 @@ pub fn envelope(samples: &[f32], rate: u32, cutoff_hz: f32, hop: usize) -> Vec<f
 /// different filters, and merging them would change the response this module's
 /// thresholds were measured against.
 pub fn decimate(samples: &[f32], rate: u32, factor: usize) -> (Vec<f32>, u32) {
+    band_decimate(samples, rate, None, None, factor)
+}
+
+/// Band-limit and decimate in one walk, for a caller that wants only the small
+/// buffer.
+///
+/// ⛔⛔ **The band's cascade and the anti-alias cascade stay two filters applied
+/// in order — this fuses the WALK, never the design.** Merging their corners
+/// would change the response every threshold in this module was measured
+/// against, which is the one thing `audioTest/` exists to catch. Running one
+/// causal cascade into the next per sample is bit-identical to running each over
+/// the whole buffer in turn, which is what
+/// `fusing_the_filter_into_the_decimation_changes_nothing_at_all` holds.
+///
+/// ▶ **`chroma::progression` is why this exists.** It band-passed the whole file
+/// into a `Vec` whose *only* reader was the `decimate` on the next line, so the
+/// 11.5 MB a sixty-second 48 kHz file costs was still being allocated by the
+/// caller after `decimate` itself stopped allocating one.
+/// ⚠ `pitched::track` cannot use it: `carries` needs the full-length band to
+/// decide whether the band is present at all before anything is tracked.
+pub fn band_decimate(
+    samples: &[f32],
+    rate: u32,
+    low_hz: Option<f32>,
+    high_hz: Option<f32>,
+    factor: usize,
+) -> (Vec<f32>, u32) {
     let factor = factor.max(1);
-    if factor == 1 {
-        return (samples.to_vec(), rate);
-    }
     let out_rate = (rate / factor as u32).max(1);
+    let mut shaping = cascade(rate, low_hz, high_hz);
+    // ⚠ **No anti-alias filter when nothing is being thrown away.** At factor 1
+    // every sample is kept, so there is nothing to fold down — and adding a
+    // low-pass there would quietly band-limit a caller that asked for the band
+    // and nothing else.
+    //
     // Below the new Nyquist with room to spare, because the filter is a slope.
-    let mut stages = cascade(rate, None, Some(out_rate as f32 * 0.4));
+    let mut guard = if factor > 1 {
+        cascade(rate, None, Some(out_rate as f32 * 0.4))
+    } else {
+        Vec::new()
+    };
 
     let mut out: Vec<f32> = Vec::with_capacity(samples.len().div_ceil(factor));
     // ⚠ **A countdown, not `at % factor`** — the reason [`envelope`] gives one
@@ -260,7 +294,19 @@ pub fn decimate(samples: &[f32], rate: u32, factor: usize) -> (Vec<f32>, u32) {
     // `step_by` did.
     let mut until_keep = 1_usize;
     for sample in samples {
-        let filtered = step(&mut stages, *sample);
+        // ⛔⛔ **TWO `step` calls, not one cascade of six sections, and the
+        // difference is a rounding this must not change.** `step` narrows to
+        // `f32` on its way out, so the two-step form this replaces quantised the
+        // band-limited signal to single precision *before* the anti-alias filter
+        // saw it. Concatenating the sections keeps everything in `f64` end to
+        // end — arguably better, and measurably **different**, which a 4-pole
+        // IIR then propagates. `band_limiting_inside_the_decimation_changes_
+        // nothing_either` caught exactly that and it is the reason this reads
+        // the way it does: the point of the change is the allocation, and a
+        // module whose every threshold is a measurement against `audioTest/`
+        // does not get to improve its arithmetic as a side effect.
+        let shaped = step(&mut shaping, *sample);
+        let filtered = step(&mut guard, shaped);
         until_keep -= 1;
         if until_keep == 0 {
             out.push(filtered);
@@ -425,6 +471,40 @@ mod tests {
                 fused, separate,
                 "factor {factor} disagreed with the old form"
             );
+        }
+    }
+
+    #[test]
+    fn band_limiting_inside_the_decimation_changes_nothing_either() {
+        // ⛔⛔ **The same claim one layer out**, for the caller `band_decimate`
+        // exists for. `chroma::progression` band-passed the whole file into a
+        // `Vec` whose only reader was the next line's `decimate`; running both
+        // cascades in one walk has to be the *same answer*, or the chord
+        // templates it feeds move and `audioTest/` is the only thing that would
+        // notice. Two causal cascades in sequence do not care whether the
+        // intermediate was written down.
+        // ⚠ Factor 1 is in the list on purpose: that is the branch where no
+        // anti-alias filter may be added, because nothing is being thrown away.
+        let mut mixed = sine(220.0, 48_000, 0.3);
+        for (at, sample) in sine(3_300.0, 48_000, 0.3).iter().enumerate() {
+            mixed[at] += sample * 0.6;
+        }
+
+        for (low, high) in [
+            (Some(150.0_f32), Some(1_000.0_f32)),
+            (None, Some(800.0)),
+            (Some(200.0), None),
+        ] {
+            for factor in [1_usize, 4, 8] {
+                let (fused, rate) = band_decimate(&mixed, 48_000, low, high, factor);
+                let banded = band(&mixed, 48_000, low, high);
+                let (separate, separate_rate) = decimate(&banded, 48_000, factor);
+                assert_eq!(rate, separate_rate, "factor {factor}");
+                assert_eq!(
+                    fused, separate,
+                    "band {low:?}..{high:?} at factor {factor} disagreed with the two-step form"
+                );
+            }
         }
     }
 }

@@ -484,7 +484,7 @@ impl Drags {
         // it takes its own folder back and publishes nothing.
         let mine = self.next_id.fetch_add(1, Ordering::Relaxed);
         let slot = {
-            let mut slot = self.lock();
+            let mut slot = crate::held(&self.slot);
             // Anything already prepared is dropped here rather than reused. A
             // producer who starts a second gesture has changed their mind about
             // what they are dragging, and handing them the previous selection is
@@ -535,7 +535,7 @@ impl Drags {
     /// failure is taken, because a message left in place re-announces itself on
     /// every tick.
     pub fn status(&self) -> Status {
-        let mut slot = self.lock();
+        let mut slot = crate::held(&self.slot);
         match &*slot {
             Stage::Idle => Status::Idle,
             Stage::Preparing(_) => Status::Preparing {
@@ -573,7 +573,7 @@ impl Drags {
     /// needs them.
     pub fn start(&self, preview: Option<Preview>) -> Result<Dropped, String> {
         let prepared = {
-            let mut slot = self.lock();
+            let mut slot = crate::held(&self.slot);
             match std::mem::replace(&mut *slot, Stage::Idle) {
                 Stage::Ready(prepared) => prepared,
                 Stage::Preparing(waiting) => {
@@ -665,17 +665,10 @@ impl Drags {
     /// longer its own and takes its own folder back. Releasing before the bytes
     /// exist is the single most likely abandonment there is.
     pub fn cancel(&self) {
-        discard(std::mem::replace(&mut *self.lock(), Stage::Idle));
-    }
-
-    /// ⚠ **One lock idiom, so the poisoning policy is one thing to read.** The
-    /// first cut had three — this helper, a `let Ok(..) else`, and an `if let`
-    /// that silently did nothing — which meant working out what a poisoned
-    /// mutex does here took reading all three. ⛔ It is now `crate::held`,
-    /// shared with the other three job mailboxes: see its doc for why recovering
-    /// is the answer and why a release build can never reach the question.
-    fn lock(&self) -> std::sync::MutexGuard<'_, Stage> {
-        crate::held(&self.slot)
+        discard(std::mem::replace(
+            &mut *crate::held(&self.slot),
+            Stage::Idle,
+        ));
     }
 }
 
@@ -1074,12 +1067,12 @@ mod tests {
     ///
     /// ⚠ The poison is deliberately ignored: a sibling test failing while
     /// holding this must not turn every other test in the module red as well,
-    /// which would bury the one real failure.
+    /// which would bury the one real failure. ⛔ That is the same answer
+    /// [`crate::held`] gives for the four job mailboxes and the same argument,
+    /// so it is that function rather than a sixth hand-rolled copy of its body.
     fn spool_guard() -> std::sync::MutexGuard<'static, ()> {
         static SPOOL: Mutex<()> = Mutex::new(());
-        SPOOL
-            .lock()
-            .unwrap_or_else(|poisoned| poisoned.into_inner())
+        crate::held(&SPOOL)
     }
 
     /// Every spool folder this process owns right now.

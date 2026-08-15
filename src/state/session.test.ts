@@ -259,11 +259,27 @@ describe('auto-sync', () => {
       expect(lastSaved().partsOff).toEqual([]);
     });
 
-    it('carries what an import switched off, not only what was clicked', () => {
-      // ⚠ The road that matters: nobody clicked these, the file did.
-      useSession.getState().setPartsOff(['bass', 'counter']);
+    it('saves the same bytes whichever order the switches were pressed in', () => {
+      // ⛔⛔ **The defect this field arrived with.** Appended in click order,
+      // switching off bass-then-counter and counter-then-bass wrote *different
+      // project payloads for the same state* — which is verbatim what
+      // `toggledLanes`' own doc says its sort exists to prevent, and it
+      // disagreed with `importSplit`, the other writer, which has always
+      // filtered `GENERATED_PARTS`. One field, one order.
+      useSession.getState().togglePart('bass');
+      useSession.getState().togglePart('counter');
       vi.advanceTimersByTime(400);
-      expect(lastSaved().partsOff).toEqual(['bass', 'counter']);
+      const pressedOneWay = lastSaved().partsOff;
+
+      useSession.setState({ partsOff: [] });
+      useSession.getState().togglePart('counter');
+      useSession.getState().togglePart('bass');
+      vi.advanceTimersByTime(400);
+
+      expect(lastSaved().partsOff).toEqual(pressedOneWay);
+      // ⚠ And it is the *engine's* order — drums, chords, melody, counter, bass
+      // — not the alphabet, because that is what `importSplit` writes.
+      expect(pressedOneWay).toEqual(['counter', 'bass']);
     });
   });
 

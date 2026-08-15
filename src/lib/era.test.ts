@@ -4,18 +4,20 @@ import { fileURLToPath } from 'node:url';
 
 import { describe, expect, it } from 'vitest';
 
-import { DECADES, matchesEras, overlaps, parseEra, type Decade } from './era';
+import { DECADES, matchesEras, overlaps, parseEra } from './era';
+import type { RosterSummary } from './ipc-types';
 
 /**
  * The era filter's parser (TASK-158G).
  *
  * ⛔⛔ **The roadmap costed this task at normalizing the `era` field**, on the
  * reading that it holds "37 distinct free-text strings with no shared shape …
- * prose". Measured against the shipped dataset that is not what is there: 400
- * models, **every one** with an era, and **every one** parseable — 234 of the
- * 235 distinct strings are already regular, and the single irregular one is
- * `late 1990s–present`. So the cost is a parser that accepts two dash
- * characters and one qualifier, not a rewrite of 400 files.
+ * prose". Measured against the shipped dataset that is not what is there: **590
+ * models** — 56 genres, 344 artists, 190 producers — **every one** with an era
+ * and **every one** parseable. 234 of the 235 distinct strings are already
+ * regular and the single irregular one is `late 1990s–present`. So the cost is
+ * a parser that accepts two dash characters and one qualifier, not a rewrite of
+ * 590 files.
  *
  * ▶ `the_whole_shipped_dataset_parses` is what keeps that true: it reads
  * `data/` rather than a fixture, so the day somebody authors a shape this
@@ -108,18 +110,37 @@ describe('what the pills show', () => {
 });
 
 describe('the shipped dataset', () => {
-  const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
+  const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..', 'data');
 
+  /**
+   * ⛔⛔ **All THREE directories, and reading two is a mistake this repo has a
+   * postmortem for.** The producers moved into a folder of their own on
+   * 2026-08-12 and `lib/fuzzy.test.ts` records what a two-directory reader cost:
+   * *"Metro Boomin, Southside and Pi'erre Bourne vanished from the fixture — and
+   * the failure reads as a product defect, not a missing file … Third reader of
+   * `data/artists` the split caught out. Keep all three."* This was the fourth,
+   * and it repeated the mistake the comment was written to stop: 190 of the 590
+   * shipped models are producers, so the gate below claimed to cover the roster
+   * while measuring two thirds of it — and a producer with an unparseable era is
+   * a name that vanishes from every pill with nothing failing.
+   *
+   * ⚠ Read once. Two `it` blocks below both want it, and the walk is ~200 ms.
+   */
+  let cached: { model: string; era: string }[] | null = null;
   const eras = (): { model: string; era: string }[] => {
+    if (cached !== null) return cached;
     const out: { model: string; era: string }[] = [];
-    for (const dir of ['data/genres', 'data/artists']) {
-      for (const file of readdirSync(join(root, dir)).filter((f) => f.endsWith('.json'))) {
+    for (const dir of ['genres', 'artists', 'producers']) {
+      for (const file of readdirSync(join(root, dir))) {
+        // `_defaults.json` and friends are internal bases, not roster entries.
+        if (!file.endsWith('.json') || file.startsWith('_')) continue;
         const model = JSON.parse(readFileSync(join(root, dir, file), 'utf8')) as {
           era?: unknown;
         };
         if (typeof model.era === 'string') out.push({ model: file, era: model.era });
       }
     }
+    cached = out;
     return out;
   };
 
@@ -134,12 +155,37 @@ describe('the shipped dataset', () => {
     expect(unreadable).toEqual([]);
   });
 
+  it('reads all three model directories, not the two the split caught out', () => {
+    // ⛔ The gate above is only as wide as this walk. 190 of the 590 shipped
+    // models are producers, and reading `genres` + `artists` alone measured two
+    // thirds of the roster while claiming the whole of it.
+    expect(eras().length).toBeGreaterThan(500);
+  });
+
   it('has every decade populated, so no pill is a dead control', () => {
     const all = eras();
-    expect(all.length).toBeGreaterThan(100);
     for (const decade of DECADES) {
-      const under = all.filter(({ era }) => matchesEras(era, [decade as Decade]));
+      const under = all.filter(({ era }) => matchesEras(era, [decade]));
       expect(under.length, `nobody is under the ${decade}s`).toBeGreaterThan(20);
     }
+  });
+});
+
+describe('the mock roster', () => {
+  it('has eras that all parse, because an unparseable one is a row no pill can touch', async () => {
+    // ⛔⛔ **The fixture is what every era spec is measured against, and it
+    // shipped a value the parser refuses.** `uk-drill` carried `2018-`, which
+    // matches no shape in `data/` and which `parseEra` answers `null` for — so
+    // by `matchesEras`' "show what you cannot read" rule that genre appeared
+    // under all four pills at once, in the one fixture the filter is proven
+    // with. Exactly the failure this repo has already recorded: *"a 4-row
+    // explorer fixture and a fixed seed hid two real bugs behind a green
+    // suite."*
+    const { mockInvoke } = await import('./ipc-mock');
+    const summary = await mockInvoke<RosterSummary>('roster_summary');
+    const unreadable = summary.entries
+      .filter((entry) => entry.era !== null && parseEra(entry.era) === null)
+      .map((entry) => `${entry.id}: ${entry.era}`);
+    expect(unreadable).toEqual([]);
   });
 });

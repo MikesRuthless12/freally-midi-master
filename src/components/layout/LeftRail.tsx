@@ -127,21 +127,24 @@ export function LeftRail() {
     { id: '__producers__', label: t('roster.producers'), holds: 'producer' },
   ] as const;
 
-  const grouped = (entries: RosterEntry[]) => {
-    const az = (list: RosterEntry[]) =>
-      [...list].sort((a, b) => a.name.localeCompare(b.name)).map(option);
-    // ⛔⛔ **The era pills narrow the BROWSE list and nothing else** (TASK-158G).
-    // Exactly the rule the genre cross-filter follows fifty lines up, for
-    // exactly the reason given there: narrowing what you *browse* is a
-    // convenience, narrowing what you can *find* is a defect. `filter` below is
-    // built from the whole pools, so a producer with the 90s pressed can still
-    // type "Yeat" and get him — the pills cannot make a name untypable.
-    const shown = entries.filter((entry) => matchesEras(entry.era, eras));
-    return GROUPS.flatMap(({ id, label, holds }) => {
-      const list = shown.filter((entry) => entry.type === holds);
-      return list.length === 0 ? [] : [{ id, name: label, heading: true }, ...az(list)];
-    });
-  };
+  // ⛔⛔ **The era pills narrow the BROWSE list and nothing else** (TASK-158G).
+  // Exactly the rule the genre cross-filter follows fifty lines up, for exactly
+  // the reason given there: narrowing what you *browse* is a convenience,
+  // narrowing what you can *find* is a defect. `filter` below is built from the
+  // whole pools, so a producer with the 90s pressed can still type "Yeat" and
+  // get him — the pills cannot make a name untypable.
+  //
+  // ⚠ **Built once per render, not once per reader.** The options list and the
+  // "nobody in those years" hint both need it, and computing it twice meant a
+  // second `matchesEras` pass plus two more `localeCompare` sorts over the whole
+  // roster — measured at ~0.55 ms per render on the 590 that ship.
+  const browse = GROUPS.flatMap(({ id, label, holds }) => {
+    const list = artists
+      .filter((entry) => entry.type === holds && matchesEras(entry.era, eras))
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .map(option);
+    return list.length === 0 ? [] : [{ id, name: label, heading: true }, ...list];
+  });
 
   // ⛔⛔ **The separator WORDS are not reserved, and a version of this that
   // reserved them was wrong** (Mike, 2026-08-12: *"no i don't want it to select
@@ -193,6 +196,52 @@ export function LeftRail() {
             {t('styles.original')}
             <small>{t('styles.originalHint')}</small>
           </button>
+
+          {/* ⛔⛔ **Four era pills, above BOTH lists they narrow** (TASK-158G).
+              Mike, 2026-08-10: *"allow the end user to [filter] the list by what
+              genre/artist was out within those specific years instead of …
+              randomly searching for names through genres/artists/producers
+              blindly."* A combobox narrowed by typing is fine at thirty names and
+              useless at six hundred if you cannot already name the one you want —
+              and "what was out when I was listening" is the one axis a producer
+              always knows.
+
+              ⛔ **Pinned rather than inside the roster panel, because it governs
+              the genre box too.** A control that sits in one collapsible section
+              and silently narrows another is a control whose reach you cannot
+              see; and the sections collapse, so a pill left pressed inside a
+              closed panel would filter both lists with nothing on screen to say
+              why. Up here it is always visible, exactly like the way in above it.
+
+              ⛔ **Multi-select, and a model matches on OVERLAP.** `boom-bap` is
+              `1990s–present`, so it belongs under all four at once; a sort would
+              force it into one bucket and lie about three. `lib/era.ts` owns that
+              comparison.
+
+              ⚠ **The decades are digits, so they carry no catalog key.** "2010s"
+              is the same four characters in every locale this ships in; only the
+              group needs a name, which is what `roster.era` is.
+
+              ⚠ Buttons in a `group` rather than checkboxes: each is a toggle
+              whose pressed state is `aria-pressed`, which is what a pill is. */}
+          <div
+            className="rail__eras"
+            role="group"
+            aria-label={t('roster.era')}
+            data-testid="era-pills"
+          >
+            {DECADES.map((decade) => (
+              <button
+                key={decade}
+                type="button"
+                className="btn-ghost rail__era"
+                aria-pressed={eras.includes(decade)}
+                onClick={() => toggleEra(decade)}
+              >
+                {decade}s
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* ⛔⛔ **One combobox instead of a search box and a five-hundred-row
@@ -207,7 +256,18 @@ export function LeftRail() {
         <Section id="genres">
           <Combo
             label={t('sections.genres')}
-            options={allGenres.map((genre) => ({ id: genre.id, name: genre.name }))}
+            // ⛔ **The era pills reach this list too** (TASK-158G). Mike's
+            // sentence is *"what genre/artist was out within those specific
+            // years"*, and the pills' own note argues its overlap rule with
+            // `boom-bap` — a **genre**, `1990s–present`. A filter that narrowed
+            // the artists and left the genres whole would be arguing with a case
+            // it did not cover.
+            // ⚠ `filter` below is untouched, and that is the same line the
+            // roster box draws: narrowing what you browse is a convenience,
+            // narrowing what you can find is a defect.
+            options={allGenres
+              .filter((genre) => matchesEras(genre.era, eras))
+              .map((genre) => ({ id: genre.id, name: genre.name }))}
             value={allGenres.some((genre) => genre.id === selectedId) ? selectedId : null}
             onChange={select}
             placeholder={t('sections.genres')}
@@ -229,45 +289,6 @@ export function LeftRail() {
         <Section id="roster">
           {rosterLoaded && roster.length > 0 ? (
             <>
-              {/* ⛔⛔ **Four era pills, above the names they narrow** (TASK-158G).
-                Mike, 2026-08-10: *"allow the end user to [filter] the list by
-                what genre/artist was out within those specific years instead of
-                … randomly searching for names through genres/artists/producers
-                blindly."* A combobox narrowed by typing is fine at thirty names
-                and useless at four hundred if you cannot already name the one
-                you want — and "what was out when I was listening" is the one
-                axis a producer always knows.
-
-                ⛔ **Multi-select, and a model matches on OVERLAP.** `boom-bap`
-                is `1990s–present`, so it belongs under all four at once; a sort
-                would force it into one bucket and lie about three. `lib/era.ts`
-                owns that comparison.
-
-                ⚠ **The decades are digits, so they carry no catalog key.**
-                "2010s" is the same four characters in every locale this ships
-                in; only the group needs a name, which is what `roster.era` is.
-
-                ⚠ Buttons in a `group` rather than checkboxes: each is a toggle
-                whose pressed state is `aria-pressed`, which is what a pill is. */}
-              <div
-                className="rail__eras"
-                role="group"
-                aria-label={t('roster.era')}
-                data-testid="era-pills"
-              >
-                {DECADES.map((decade) => (
-                  <button
-                    key={decade}
-                    type="button"
-                    className="rail__era"
-                    aria-pressed={eras.includes(decade)}
-                    onClick={() => toggleEra(decade)}
-                  >
-                    {decade}s
-                  </button>
-                ))}
-              </div>
-
               <Combo
                 label={t('sections.roster')}
                 // ⛔⛔ **"Original Workflow" is always the first entry** — Mike,
@@ -302,8 +323,9 @@ export function LeftRail() {
                   { id: ORIGINAL, name: t('styles.original'), action: true },
                   // ⚠ `crossFilter`'s artists: the whole list when an artist or
                   // nothing is selected, and the genre's own when a genre is —
-                  // then split into the two named groups and sorted inside each.
-                  ...grouped(artists),
+                  // then split into the two named groups and sorted inside each,
+                  // and narrowed by whichever era pills are pressed.
+                  ...browse,
                 ]}
                 value={selectedId}
                 // ⛔⛔ **Or the box empties the moment a genre is chosen in it.**
@@ -388,11 +410,14 @@ export function LeftRail() {
                 a narrow genre selected and one pill pressed the browse list can
                 come back with nobody in it — and a combobox that opens onto
                 "Original Workflow" alone looks like a roster that failed to load
-                rather than a filter doing its job. ⚠ Measured on the *pills*
-                specifically: `noneInGenre` above already answers the other way
-                of getting here, and showing both at once would say the same
-                thing twice. */}
-              {eras.length > 0 && artists.length > 0 && grouped(artists).length === 0 && (
+                rather than a filter doing its job.
+                ⚠ **`artists.length > 0` is what keeps this off the other empty
+                case.** `noneInGenre` above answers "this genre has nobody in it";
+                this answers "the pills left nobody", and showing both at once
+                would say the same thing twice in different words. With no pill
+                pressed `browse` is empty only when `artists` is, so this cannot
+                fire on its own. */}
+              {artists.length > 0 && browse.length === 0 && (
                 <p className="rail__hint">{t('roster.noneInEra')}</p>
               )}
             </>

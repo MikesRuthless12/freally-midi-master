@@ -193,19 +193,15 @@ function GeneratorTabs() {
                   lane: t(`tabs.${tab}`),
                 })}
                 title={t(on ? 'kit.muteLane' : 'kit.unmuteLane', { lane: t(`tabs.${tab}`) })}
-                onClick={() => {
-                  togglePart(part);
-                  // ⛔ Re-arm here rather than from the store: the schedule holds
-                  // one merged clip, so a switch that changed only the UI would
-                  // leave Play sounding the previous combination — a control that
-                  // looks like it did something and did not.
-                  //
-                  // ⛔⛔ **Never on the Song tab.** `TAB_PART.song` is `null`, so
-                  // `armCurrentPattern` falls through to *disarm* — generate a
-                  // song, hit a part switch, and the whole arrangement goes
-                  // silent with the timeline still on screen and Play still lit.
-                  if (activeTab !== 'song') armCurrentPattern();
-                }}
+                // ⛔ **The re-arm is the store's, not this button's** (2026-08-15).
+                // It was written here because `partsOff` lived in `ui.ts` and
+                // this dot was its only writer. Since the field moved into the
+                // session document it has three more — undo, redo and a project
+                // restore — none of which come through here, so a hand-written
+                // call could only ever cover one of the four. `session.ts`'s arm
+                // subscriber now watches the field itself, Song-tab guard and
+                // all.
+                onClick={() => togglePart(part)}
               />
             )}
 

@@ -667,18 +667,14 @@ type SessionState = {
    * exported and what reaches the host is identical either way.
    */
   setLaneSolo: (lane: string, solo: boolean) => void;
-  /** Switch one generator's playback on or off (TASK-127). */
-  togglePart: (part: Part) => void;
   /**
-   * Say outright which generators are off (TASK-058H).
+   * Switch one generator's playback on or off (TASK-127).
    *
-   * ⛔ **An import is a statement about the whole set, which a toggle cannot
-   * make.** Mike: *"if there is no countermelody or no bassline that it mutes
-   * them."* Toggling each missing part would also *un*-switch any the producer
-   * had already silenced, and toggling only the missing ones would leave an
-   * earlier import's switches on parts this one did fill.
+   * ⚠ **The only writer besides `importSplit`, which states the whole set at
+   * once** — an import is a claim about every generator, which a toggle cannot
+   * make. Both write `GENERATED_PARTS` order; see this one's implementation.
    */
-  setPartsOff: (parts: Part[]) => void;
+  togglePart: (part: Part) => void;
   /**
    * Move the playhead, as a fraction of the pattern (TASK-041T).
    *
@@ -2067,17 +2063,21 @@ export const useSession = create<SessionState>((set, get) => ({
   // wait half a beat; a switched-off generator changes what is *armed*, which
   // `armCurrentPattern` sends straight down as `arm_pattern`. Nothing here is
   // racing sound, so this is `setLaneLocked`'s case rather than `setLaneMuted`'s.
+  //
+  // ⛔⛔ **Rebuilt in `GENERATED_PARTS` order rather than appended in click
+  // order, and that is a saved-bytes rule rather than a tidiness one.** The
+  // moment this field joined `SAVED_FIELDS`, switching off bass-then-counter and
+  // counter-then-bass began writing *different project payloads for the same
+  // state* — which is verbatim what `toggledLanes`' own doc says its sort exists
+  // to prevent, and it would have disagreed with `importSplit`, the other writer
+  // of this field, which has always filtered `GENERATED_PARTS`. One field, one
+  // order. ⚠ `toggleEra` in `state/ui.ts` does the same thing over `DECADES`.
   togglePart(part) {
     set((state) => ({
-      partsOff: state.partsOff.includes(part)
-        ? state.partsOff.filter((off) => off !== part)
-        : [...state.partsOff, part],
+      partsOff: GENERATED_PARTS.filter((held) =>
+        held === part ? !state.partsOff.includes(part) : state.partsOff.includes(held),
+      ),
     }));
-    persist();
-  },
-
-  setPartsOff(partsOff) {
-    set({ partsOff });
     persist();
   },
 
@@ -2925,7 +2925,33 @@ useSession.subscribe((state) => {
 });
 
 useSession.subscribe((state, prev) => {
-  if (state.patterns === prev.patterns || !isPlugin()) return;
+  // ⛔⛔ **`partsOff` as well as `patterns`, and leaving it out was a real hole
+  // the moment this field moved into the session store (2026-08-15).** While it
+  // lived in `ui.ts` it had exactly one writer — the tab's dot — which re-armed
+  // by hand. It now has three more that never touch `patterns`: `applySnapshot`
+  // (undo and redo of a switch, which `DISCRETE` deliberately gives its own
+  // entry), `put` (a project restore, which brings the saved switches back) and
+  // `importSplit`. Each of those changes what *should* be sounding, and without
+  // this the audio thread went on playing the old combination with the tabs on
+  // screen saying otherwise — the readout-that-lies failure `armCurrentPattern`
+  // exists to prevent, arriving through undo instead.
+  //
+  // ⚠ This is the rule the save subscriber below states for itself: a
+  // subscription rather than a call at the end of each mutating action, because
+  // opting in is a line to remember in every future writer and it was already
+  // forgotten in both directions once.
+  //
+  // ⛔⛔ **A switch-off must NEVER re-arm while the Song tab is showing**, and
+  // that guard came here with the call it replaced. `TAB_PART.song` is `null`,
+  // so `armCurrentPattern` falls through to *disarm* — generate a song, click a
+  // generator's dot, and the whole arrangement goes silent with the timeline
+  // still on screen and Play still lit. A `patterns` change is different: those
+  // only arrive from a generator, and `SongTimeline` owns the arrangement's own
+  // arming either side of it.
+  const clipMoved = state.patterns !== prev.patterns;
+  const switchMoved = state.partsOff !== prev.partsOff;
+  if (!isPlugin()) return;
+  if (!clipMoved && !(switchMoved && useUi.getState().activeTab !== 'song')) return;
   // ⛔ **Arm the tab that is showing, not "the pattern that changed".** There
   // are five slots and one schedule, so the transport can only hold one of
   // them, and the one it must hold is the one the producer is looking at —
@@ -2936,7 +2962,11 @@ useSession.subscribe((state, prev) => {
   // ⚠ Hearing all five at once is TASK-120's, and it needs a merge the audio
   // thread does not have yet. Until then Play is honest about being one part.
   armCurrentPattern();
-  if (state.edited) persist();
+  // ⚠ **Still gated on the clip having moved.** A switch-off saves through
+  // `togglePart`'s own debounce; this write is the *edited clip* one, and firing
+  // it on a switch would put the whole pattern map on the wire for a change that
+  // does not touch it.
+  if (state.edited && clipMoved) persist();
 });
 
 /**

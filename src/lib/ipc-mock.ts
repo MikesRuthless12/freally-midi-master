@@ -259,6 +259,12 @@ const libraryRows: Record<string, ExplorerEntry[]> = {
     // ⚠ A `.mid` among the samples: a fixture with none cannot catch a panel
     // that treats the two kinds alike.
     { name: 'riff.mid', path: '/library/Samples/riff.mid', isDir: false, kind: 'midi' },
+    // ⛔ **A `.mid` the reader finds nothing in** — the MIDI twin of
+    // `hook-vocal.wav` below, and reachable for the same reason: a drop that
+    // appears to do nothing is what a producer reads as a broken plugin, so the
+    // message that says otherwise has to be provable. `explorer_midi_split`
+    // keys on the name.
+    { name: 'empty.mid', path: '/library/Samples/empty.mid', isDir: false, kind: 'midi' },
     // ⛔ **A sample that reads back as a sung line** (TASK-058G). Mike asked for
     // *"and leave the vocals alone"*, and the branch that produces **no parts at
     // all** is the one a producer is most likely to think is a broken plugin —
@@ -360,7 +366,12 @@ const handlers: Record<string, Handler> = {
         tier: 'standard',
         genres: ['drill'],
         relatedGenres: [],
-        era: '2018-',
+        // ⛔ **`2018-` was here and `parseEra` refuses it**, so this genre showed
+        // under every era pill in every state — a row the filter could not touch,
+        // in the fixture the filter is tested against. No shipped model spells an
+        // open span that way; `the mock's own eras all parse` is the gate that
+        // now says so.
+        era: '2018–present',
         mine: false,
       },
       {
@@ -967,26 +978,23 @@ const handlers: Record<string, Handler> = {
   // ⚠ The real command parses an SMF; `engine::smf_read` is tested in Rust and
   // this cannot re-test it. What a browser can show is that the page asked, with
   // the right part, and drew what came back.
-  explorer_midi: (args?: InvokeArgs) => {
-    const { path, part } = (args ?? {}) as { path?: unknown; part?: unknown };
-    if (typeof path !== 'string' || !/\.midi?$/i.test(path)) {
-      throw new Error('that is not a MIDI file in your sample library');
-    }
-    // A fixture for the empty case, so the refusal has something to refuse.
-    if (/empty/i.test(path)) {
-      return { ...(handlers.generate_pattern({ request: { part } }) as Pattern), lanes: [] };
-    }
-    return handlers.generate_pattern({ request: { part } });
-  },
-
   // Separating a layered `.mid` (TASK-058D). ⚠ A fixture with three voices,
   // because a one-part answer could not tell a working split from a split that
   // silently returned only what it found first.
+  //
+  // ⚠ **`explorer_midi` went with the one-part read** (2026-08-15), and its
+  // empty-file fixture moved here rather than being dropped: this is now the
+  // command the drop road calls, so this is where "the file has no notes in it"
+  // has to be expressible. It had no spec on the old command; it has one now.
   explorer_midi_split: (args?: InvokeArgs) => {
     const path = String((args as { path?: unknown } | undefined)?.path ?? '');
     if (!/\.midi?$/i.test(path)) {
       throw new Error('that is not a MIDI file in your sample library');
     }
+    // ⚠ Answered as an empty split, which is what the real command does with a
+    // file it can read and find nothing in — not as a throw, which is what it
+    // does with a file it may not read at all. The page tells those apart.
+    if (/empty/i.test(path)) return [];
     // Opening a `.mid` is opening a file. See `noteRecent`.
     noteRecent(path);
     return [

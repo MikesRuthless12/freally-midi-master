@@ -161,6 +161,20 @@ type OneShotStatus =
  */
 export const ONE_SHOT_POLL_MS = 400;
 
+/**
+ * The one poll of `one_shot_status` currently in flight, or `null`.
+ *
+ * ⛔ **Module state rather than a store field, and the distinction is real.**
+ * Nothing renders from it — it exists so a second caller of [`awaitLoader`] does
+ * not open a second reader of a mailbox that clears on read. A store field would
+ * put a `Promise` in the undo snapshot's neighbourhood and re-render every
+ * subscriber twice per assignment for something no component draws.
+ *
+ * ⚠ Reset by the promise's own `finally`, so a thrown poll cannot wedge every
+ * later caller onto a promise that has already settled.
+ */
+let loading: Promise<void> | null = null;
+
 type KitState = {
   /** The loaded kit's id, or `null` before the first read / if none loaded. */
   id: string | null;
@@ -291,13 +305,11 @@ export const useKit = create<KitState>((set, get) => ({
     // waiting on one answer and whichever read it first consumed it, leaving the
     // other to report success over the failure it never saw.
     //
-    // ⚠ `finally`, so the spinner stops on the error road too — which is what
-    // the copy did by setting `assigning: null` in both of its exits.
-    try {
-      await get().awaitLoader();
-    } finally {
-      set({ assigning: null });
-    }
+    // ⚠ Plain sequence rather than a `try`/`finally`: `awaitLoader` catches its
+    // own `invoke` failure and returns, and `refresh` catches its own, so there
+    // is no rejection for a `finally` to be guarding against.
+    await get().awaitLoader();
+    set({ assigning: null });
   },
 
   async clear(lane) {
@@ -394,28 +406,51 @@ export const useKit = create<KitState>((set, get) => ({
     // `Failed` into a slot nothing ever read: the producer saw no error and
     // unchanged pads. That is the readout-that-lies failure this codebase keeps
     // recording, so the poll is shared rather than written twice.
-    for (;;) {
-      let status: OneShotStatus;
-      try {
-        status = await invoke<OneShotStatus>('one_shot_status');
-      } catch (error) {
-        set({ error: reason(error) });
-        return;
+    //
+    // ⛔⛔ **SINGLE-FLIGHT, and deleting the second *copy* of this loop was not
+    // enough on its own.** There are four callers — `assign`, `randomize`,
+    // `SavedKits` and the project restore — and `assign`'s own `if
+    // (get().assigning) return` guards only re-entry into `assign`. So pressing
+    // Assign and then the dice put two loops on `one_shot_status`, which
+    // `take_status` **clears on read**: whichever polled first consumed the
+    // answer and the other reported success over a failure it never saw. One
+    // reader per mailbox, by construction — a second caller waits on the first
+    // one's promise instead of opening its own poll.
+    const inFlight = loading;
+    if (inFlight !== null) return inFlight;
+
+    const run = (async () => {
+      for (;;) {
+        let status: OneShotStatus;
+        try {
+          status = await invoke<OneShotStatus>('one_shot_status');
+        } catch (error) {
+          set({ error: reason(error) });
+          return;
+        }
+        if (status.state !== 'running') {
+          // ⚠ Cancelled is **not** an error. Closing the dialog is the ordinary
+          // way out of it, and reporting it would train people to ignore the one
+          // message that matters.
+          set({ error: status.state === 'failed' ? status.reason : null });
+          // The kit only changed if something actually loaded, but re-reading is
+          // cheap and it is the one call that cannot get the panel out of step.
+          await get().refresh();
+          return;
+        }
+        // ⚠ No ceiling: the loader thread always publishes a terminal status, so
+        // `running` genuinely means a dialog is open — however long somebody
+        // spends finding a kick. The export poll has none for the same reason.
+        await new Promise((resume) => setTimeout(resume, ONE_SHOT_POLL_MS));
       }
-      if (status.state !== 'running') {
-        // ⚠ Cancelled is **not** an error. Closing the dialog is the ordinary
-        // way out of it, and reporting it would train people to ignore the one
-        // message that matters.
-        set({ error: status.state === 'failed' ? status.reason : null });
-        // The kit only changed if something actually loaded, but re-reading is
-        // cheap and it is the one call that cannot get the panel out of step.
-        await get().refresh();
-        return;
-      }
-      // ⚠ No ceiling: the loader thread always publishes a terminal status, so
-      // `running` genuinely means a dialog is open — however long somebody
-      // spends finding a kick. The export poll has none for the same reason.
-      await new Promise((resume) => setTimeout(resume, ONE_SHOT_POLL_MS));
-    }
+    })();
+
+    // ⚠ **Cleared however it ends**, or one thrown poll would wedge every later
+    // caller onto a promise that has already settled — the mirror of the
+    // `Release` guard `extract::job` uses on the other side of the bridge.
+    loading = run.finally(() => {
+      loading = null;
+    });
+    return loading;
   },
 }));

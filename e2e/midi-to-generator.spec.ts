@@ -88,6 +88,21 @@ test('it lands on the generator it was dropped on, not the one showing', async (
   await expect(tab(page, 'Drums')).toHaveAttribute('aria-selected', 'false');
 });
 
+test('a file the reader finds nothing in says so rather than doing nothing', async ({
+  page,
+}) => {
+  // ⛔ **A drop that appears to do nothing is what a producer reads as a broken
+  // plugin.** An empty split is not an error the plugin can raise — the file was
+  // readable — so the page is the layer that has to say what happened.
+  // ⚠ This fixture existed on the old one-part command and no spec ever reached
+  // it; it moved to `explorer_midi_split` with the road, and now has one.
+  await browserRow(page, 'empty.mid').dragTo(tab(page, 'Melody'));
+
+  await expect(page.getByText('that MIDI file has no notes in it')).toBeVisible();
+  // ...and nothing was opened: the tab never moved off Drums.
+  await expect(tab(page, 'Drums')).toHaveAttribute('aria-selected', 'true');
+});
+
 test('a sample dropped on a generator is READ, not refused (TASK-058F)', async ({ page }) => {
   // ⛔⛔ **This spec used to assert the opposite, and the behaviour changed
   // deliberately.** It read *"a sample is not a drop target for a generator"* —
