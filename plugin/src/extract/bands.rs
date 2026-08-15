@@ -107,11 +107,11 @@ fn shape(rate: f64, hz: f64, q: f64) -> (f64, f64) {
     (w0.cos(), w0.sin() / (2.0 * q))
 }
 
-/// Everything between `low_hz` and `high_hz`, at 24 dB per octave each side.
+/// The cascade a band is: the high-pass sections, then the low-pass ones.
 ///
-/// `None` on either side means "no corner there": `band(x, rate, None, Some(120.0))`
-/// is a low-pass and `band(x, rate, Some(8_000.0), None)` is a high-pass.
-pub fn band(samples: &[f32], rate: u32, low_hz: Option<f32>, high_hz: Option<f32>) -> Vec<f32> {
+/// Split out so [`decimate`] can run the same filter without materialising its
+/// output — see its own note.
+fn cascade(rate: u32, low_hz: Option<f32>, high_hz: Option<f32>) -> Vec<Biquad> {
     let rate = f64::from(rate.max(1));
     let mut stages: Vec<Biquad> = Vec::with_capacity(4);
     if let Some(hz) = low_hz {
@@ -124,16 +124,27 @@ pub fn band(samples: &[f32], rate: u32, low_hz: Option<f32>, high_hz: Option<f32
             stages.push(Biquad::low_pass(rate, f64::from(hz), q));
         }
     }
+    stages
+}
 
+/// One sample through the whole cascade.
+fn step(stages: &mut [Biquad], sample: f32) -> f32 {
+    let mut value = f64::from(sample);
+    for stage in stages {
+        value = stage.run(value);
+    }
+    value as f32
+}
+
+/// Everything between `low_hz` and `high_hz`, at 24 dB per octave each side.
+///
+/// `None` on either side means "no corner there": `band(x, rate, None, Some(120.0))`
+/// is a low-pass and `band(x, rate, Some(8_000.0), None)` is a high-pass.
+pub fn band(samples: &[f32], rate: u32, low_hz: Option<f32>, high_hz: Option<f32>) -> Vec<f32> {
+    let mut stages = cascade(rate, low_hz, high_hz);
     samples
         .iter()
-        .map(|sample| {
-            let mut value = f64::from(*sample);
-            for stage in &mut stages {
-                value = stage.run(value);
-            }
-            value as f32
-        })
+        .map(|sample| step(&mut stages, *sample))
         .collect()
 }
 
@@ -219,6 +230,20 @@ pub fn envelope(samples: &[f32], rate: u32, cutoff_hz: f32, hop: usize) -> Vec<f
 /// filtered.** A 4-pole low-pass is 24 dB/octave, not a wall: a hat two octaves
 /// above the corner is still 48 dB down rather than gone, and decimation folds it
 /// back into the band as a tone that was never played.
+///
+/// ⛔ **The guarded signal is never materialised, and the saving is real.** This
+/// called [`band`] and then `step_by`, so every call allocated a second
+/// full-length buffer to throw all but one sample in `factor` of it away — and
+/// there are three such calls per read (`pitched::track` for the bass and the
+/// melody, `chroma::of`). On a sixty-second 48 kHz file that is 11.5 MB of peak
+/// and a full copying pass each, inside a plugin loaded into somebody's DAW.
+/// Filtering and keeping in one walk is **arithmetically identical** — the same
+/// cascade over the same samples in the same order, and the same indices kept —
+/// so no fixture in this module moves by a digit.
+/// ⛔ Fusing the two *cascades* into one is the other, tempting reading of that
+/// note and it is wrong: the band's corners and the anti-alias corner are
+/// different filters, and merging them would change the response this module's
+/// thresholds were measured against.
 pub fn decimate(samples: &[f32], rate: u32, factor: usize) -> (Vec<f32>, u32) {
     let factor = factor.max(1);
     if factor == 1 {
@@ -226,8 +251,23 @@ pub fn decimate(samples: &[f32], rate: u32, factor: usize) -> (Vec<f32>, u32) {
     }
     let out_rate = (rate / factor as u32).max(1);
     // Below the new Nyquist with room to spare, because the filter is a slope.
-    let guarded = band(samples, rate, None, Some(out_rate as f32 * 0.4));
-    (guarded.iter().step_by(factor).copied().collect(), out_rate)
+    let mut stages = cascade(rate, None, Some(out_rate as f32 * 0.4));
+
+    let mut out: Vec<f32> = Vec::with_capacity(samples.len().div_ceil(factor));
+    // ⚠ **A countdown, not `at % factor`** — the reason [`envelope`] gives one
+    // screen up: `factor` is a runtime value, so the modulo is a hardware divide
+    // on every input sample. Starting at 1 keeps index 0, which is what
+    // `step_by` did.
+    let mut until_keep = 1_usize;
+    for sample in samples {
+        let filtered = step(&mut stages, *sample);
+        until_keep -= 1;
+        if until_keep == 0 {
+            out.push(filtered);
+            until_keep = factor;
+        }
+    }
+    (out, out_rate)
 }
 
 #[cfg(test)]
@@ -356,5 +396,35 @@ mod tests {
             (0.5..0.9).contains(&level),
             "the 100 Hz should survive alone, got {level}"
         );
+    }
+
+    #[test]
+    fn fusing_the_filter_into_the_decimation_changes_nothing_at_all() {
+        // ⛔⛔ **Bit for bit, not "close enough".** `decimate` used to build the
+        // whole guarded buffer and then `step_by` it, which cost a second
+        // full-length allocation per call — three of them per read. Doing both in
+        // one walk is only worth doing if it is the *same* answer, and "the DSP
+        // fixtures move in their last digit" was exactly the cost this was feared
+        // for. It does not: the same cascade sees the same samples in the same
+        // order, and the same indices are kept.
+        let mut mixed = sine(90.0, 48_000, 0.3);
+        for (at, sample) in sine(4_400.0, 48_000, 0.3).iter().enumerate() {
+            mixed[at] += sample * 0.7;
+        }
+
+        for factor in [2_usize, 3, 8, 11] {
+            let (fused, rate) = decimate(&mixed, 48_000, factor);
+            let out_rate = (48_000 / factor as u32).max(1);
+            let separate: Vec<f32> = band(&mixed, 48_000, None, Some(out_rate as f32 * 0.4))
+                .iter()
+                .step_by(factor)
+                .copied()
+                .collect();
+            assert_eq!(rate, out_rate, "factor {factor}");
+            assert_eq!(
+                fused, separate,
+                "factor {factor} disagreed with the old form"
+            );
+        }
     }
 }

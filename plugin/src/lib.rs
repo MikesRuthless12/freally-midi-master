@@ -80,18 +80,18 @@ pub fn midi_note_for(lane: engine::pattern::Lane) -> u8 {
 
 /// Take a job mailbox's lock, recovering the value if the mutex is poisoned.
 ///
-/// ⛔⛔ **One answer, because there were three and a review found them.**
-/// `export`, `drag` and `extract` each hold a small status enum behind a
-/// `Mutex`, and each answered a poisoned lock differently: `export` reported a
-/// synthetic `Failed{"the export state is unusable"}`, `drag` returned a
-/// `LOCK_LOST` string to the page, and `extract` recovered and carried on. Three
-/// answers to one question is three chances to be wrong about it, and no reader
-/// could tell which was the considered one.
+/// ⛔⛔ **One answer, because there were four and a review found them.**
+/// `export`, `drag`, `extract` and `oneshot` each hold a small status enum
+/// behind a `Mutex`, and each answered a poisoned lock differently: `export` and
+/// `oneshot` reported a synthetic `Failed{"the … state is unusable"}`, `drag`
+/// returned a `LOCK_LOST` string to the page, and `extract` recovered and
+/// carried on. Four answers to one question is four chances to be wrong about
+/// it, and no reader could tell which was the considered one.
 ///
 /// ▶ **Recovering is the considered one, and the argument is specific to what
 /// these mutexes guard.** Poisoning means a thread panicked *holding the lock*,
 /// and the danger it warns about is a half-written invariant. Every critical
-/// section behind these three is an assignment, a clone or a `mem::replace` over
+/// section behind these four is an assignment, a clone or a `mem::replace` over
 /// a small enum — there is no multi-step invariant to leave broken, so the value
 /// on the other side is whole whatever happened elsewhere.
 ///
