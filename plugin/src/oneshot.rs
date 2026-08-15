@@ -363,11 +363,7 @@ impl OneShots {
     /// [`crate::export::Exports::take_status`] gives: the page polls this, so a
     /// terminal status left in place re-announces itself on every tick.
     pub fn take_status(&self) -> Status {
-        let Ok(mut slot) = self.status.lock() else {
-            return Status::Failed {
-                reason: "the one-shot state is unusable".to_owned(),
-            };
-        };
+        let mut slot = crate::held(&self.status);
         match &*slot {
             Status::Running => Status::Running,
             other => {
@@ -380,10 +376,7 @@ impl OneShots {
 
     /// Take the one dialog slot, or say why it cannot be taken.
     fn claim(&self) -> Result<Claim, String> {
-        let mut slot = self
-            .status
-            .lock()
-            .map_err(|_| "the one-shot state is unusable".to_owned())?;
+        let mut slot = crate::held(&self.status);
         if *slot == Status::Running {
             return Err("a sample is already being chosen — finish that one first".to_owned());
         }
@@ -403,9 +396,7 @@ struct Claim(Arc<Mutex<Status>>);
 
 impl Claim {
     fn publish(self, status: Status) {
-        if let Ok(mut slot) = self.0.lock() {
-            *slot = status;
-        }
+        *crate::held(&self.0) = status;
     }
 }
 

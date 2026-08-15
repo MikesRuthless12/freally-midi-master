@@ -127,7 +127,7 @@ impl Jobs {
         // here a second read means the producer clicked another file, and the
         // one they are looking at is the one they want.
         let generation = self.generation.fetch_add(1, Ordering::SeqCst) + 1;
-        *self.slot.lock().unwrap_or_else(|e| e.into_inner()) = Status::Running {
+        *crate::held(&self.slot) = Status::Running {
             path: shown.clone(),
         };
 
@@ -148,7 +148,7 @@ impl Jobs {
             // the lock afterwards and overwrite the cancellation with its own
             // result. Under the lock, `cancel` either happened (and the counter
             // has already moved) or it has not.
-            let mut held = slot.lock().unwrap_or_else(|e| e.into_inner());
+            let mut held = crate::held(&slot);
             // ⛔ **Stale results are dropped.** The producer moved on, or started
             // another read; writing this one would put an answer about a file
             // they are no longer looking at into the panel.
@@ -165,7 +165,7 @@ impl Jobs {
     /// ⚠ `Running` is *not* taken — the page polls, and clearing it would make
     /// the second poll of one read report that nothing is happening.
     pub fn take(&self) -> Status {
-        let mut held = self.slot.lock().unwrap_or_else(|e| e.into_inner());
+        let mut held = crate::held(&self.slot);
         match &*held {
             Status::Running { .. } => held.clone(),
             _ => std::mem::take(&mut held),
@@ -175,7 +175,7 @@ impl Jobs {
     /// Stop waiting for the read in flight. See the module note on what this is.
     pub fn cancel(&self) {
         self.generation.fetch_add(1, Ordering::SeqCst);
-        *self.slot.lock().unwrap_or_else(|e| e.into_inner()) = Status::Idle;
+        *crate::held(&self.slot) = Status::Idle;
     }
 }
 

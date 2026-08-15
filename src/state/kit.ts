@@ -282,33 +282,22 @@ export const useKit = create<KitState>((set, get) => ({
       }
     }
 
-    const tick = async (): Promise<void> => {
-      let status: OneShotStatus;
-      try {
-        status = await invoke<OneShotStatus>('one_shot_status');
-      } catch (error) {
-        set({ assigning: null, error: reason(error) });
-        return;
-      }
-      if (status.state === 'running') {
-        // No ceiling, for the reason the export poll has none: the loader
-        // thread always publishes a terminal status, so `running` genuinely
-        // means a dialog is open — however long somebody spends finding a kick.
-        setTimeout(() => void tick(), ONE_SHOT_POLL_MS);
-        return;
-      }
-      set({
-        assigning: null,
-        // ⚠ Cancelled is **not** an error. Closing the dialog is the ordinary
-        // way out of it, and reporting it would train people to ignore the one
-        // message that matters.
-        error: status.state === 'failed' ? status.reason : null,
-      });
-      // The kit only changed if something actually loaded, but re-reading is
-      // cheap and it is the one call that cannot get the panel out of step.
-      await get().refresh();
-    };
-    await tick();
+    // ⛔ **`awaitLoader`, not a second copy of it.** That function's own doc says
+    // *"the poll is shared rather than written twice"* and this was the second
+    // copy — same command, same single slot, same terminal handling, differing
+    // only in clearing `assigning`. Two pollers over one mailbox is also a real
+    // race rather than only duplication: `take_status` clears on read, so a
+    // producer with the assign dialog open who pressed the dice had two loops
+    // waiting on one answer and whichever read it first consumed it, leaving the
+    // other to report success over the failure it never saw.
+    //
+    // ⚠ `finally`, so the spinner stops on the error road too — which is what
+    // the copy did by setting `assigning: null` in both of its exits.
+    try {
+      await get().awaitLoader();
+    } finally {
+      set({ assigning: null });
+    }
   },
 
   async clear(lane) {
@@ -414,10 +403,18 @@ export const useKit = create<KitState>((set, get) => ({
         return;
       }
       if (status.state !== 'running') {
+        // ⚠ Cancelled is **not** an error. Closing the dialog is the ordinary
+        // way out of it, and reporting it would train people to ignore the one
+        // message that matters.
         set({ error: status.state === 'failed' ? status.reason : null });
+        // The kit only changed if something actually loaded, but re-reading is
+        // cheap and it is the one call that cannot get the panel out of step.
         await get().refresh();
         return;
       }
+      // ⚠ No ceiling: the loader thread always publishes a terminal status, so
+      // `running` genuinely means a dialog is open — however long somebody
+      // spends finding a kick. The export poll has none for the same reason.
       await new Promise((resume) => setTimeout(resume, ONE_SHOT_POLL_MS));
     }
   },

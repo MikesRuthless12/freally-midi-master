@@ -78,6 +78,38 @@ pub fn midi_note_for(lane: engine::pattern::Lane) -> u8 {
     engine::midi::gm_drum_note(lane)
 }
 
+/// Take a job mailbox's lock, recovering the value if the mutex is poisoned.
+///
+/// ⛔⛔ **One answer, because there were three and a review found them.**
+/// `export`, `drag` and `extract` each hold a small status enum behind a
+/// `Mutex`, and each answered a poisoned lock differently: `export` reported a
+/// synthetic `Failed{"the export state is unusable"}`, `drag` returned a
+/// `LOCK_LOST` string to the page, and `extract` recovered and carried on. Three
+/// answers to one question is three chances to be wrong about it, and no reader
+/// could tell which was the considered one.
+///
+/// ▶ **Recovering is the considered one, and the argument is specific to what
+/// these mutexes guard.** Poisoning means a thread panicked *holding the lock*,
+/// and the danger it warns about is a half-written invariant. Every critical
+/// section behind these three is an assignment, a clone or a `mem::replace` over
+/// a small enum — there is no multi-step invariant to leave broken, so the value
+/// on the other side is whole whatever happened elsewhere.
+///
+/// ⚠ **And in the shipped plugin it cannot happen at all.** `panic = "abort"` is
+/// set for release, so a panic takes the process down rather than poisoning
+/// anything; a poisoned mutex is only ever reachable in a debug or test build.
+/// So the failing answers were paying a permanently dead feature — an export
+/// chip stuck on "unusable" for the rest of the session — for a condition the
+/// producer can never reach.
+///
+/// ⚠ This is about reading the mailbox. Whether the *work* should continue is a
+/// separate question with its own answer — see `drag::Progress::wanted`.
+pub(crate) fn held<T>(mutex: &std::sync::Mutex<T>) -> std::sync::MutexGuard<'_, T> {
+    mutex
+        .lock()
+        .unwrap_or_else(|poisoned| poisoned.into_inner())
+}
+
 /// The plugin's own state, held across the process callbacks.
 pub struct FreallyMidiMaster {
     params: Arc<FreallyParams>,
