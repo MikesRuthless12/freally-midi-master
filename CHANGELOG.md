@@ -12,6 +12,61 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added — browse by era, and a switch-off that survives the project, 2026-08-15
+
+- **Four era pills over the roster: 90s · 2000s · 2010s · 2020s** (TASK-158G).
+  Mike: *"allow the end user to [filter] the list by what genre/artist was out
+  within those specific years instead of … randomly searching for names through
+  genres/artists/producers blindly."* Typing works when you can already name the
+  thing; browsing is what you do when you cannot, and "what was out when I was
+  listening" is the one axis a producer always knows.
+  ⛔ **A filter, not a sort, and that is the whole data model.** `boom-bap` is
+  `1990s–present`, so it belongs under all four decades at once — a sort would
+  force it into one bucket and lie about three. The pills multi-select and a
+  model matches on *overlap*, which is why boom bap is a correct answer for
+  somebody browsing the 2020s today. "…–present" parses to an open span rather
+  than to this year, so nothing here reads a clock.
+  ⛔ **They narrow what you BROWSE and never what you can FIND.** With the 90s
+  pressed a 2018-onward producer is out of the list and still one query away.
+  ⚠ A style whose era cannot be read always shows — in practice that is the
+  producer's own, authored in an editor that never asks for one.
+- **A generator switched off stays switched off when the project reopens**
+  (TASK-127 / TASK-058H). Importing a drums-and-melody loop switches off the
+  generators the file produced nothing for; that lived in UI state, so saving
+  and reopening handed the bassline switch back on with the clip still saved
+  beside it — and the session played a bass the imported record does not
+  contain, which is the failure the switch-off exists to prevent. It is now part
+  of the project, and it survives an undo as well as a reopen.
+- **A `.mid` dropped on a generator is split across the generators its voices
+  belong to**, the same way a `.wav` already was. Mike: *"drag the audio/midi of
+  any sample into any of the generators and it will split them all the same
+  exact way."* The split itself shipped with TASK-058D on the browser panel's
+  *Read the notes* road; the drop gesture kept an "I know what this is" shortcut
+  that read the whole file into the one tab you aimed at, so a layered `.mid` on
+  Melody squashed its own bass and counter into the melody clip. The tab is now
+  where the split *lands*, not what gets read.
+
+### Fixed — 2026-08-15
+
+- **The one-shot dialog and the kit dice raced for one answer.** Both poll a
+  mailbox that clears on read, so with the Assign dialog open, pressing the dice
+  meant whichever loop polled first consumed the result and the other reported
+  success over a failure it never saw.
+- **Clearing a generator from the Song tab silenced the whole arrangement.** The
+  ✕ on a generator tab is drawn whatever tab is showing; clearing one from Song
+  disarmed the arrangement with the timeline still on screen and Play still lit.
+- **`chroma` allocated 11.5 MB per read to throw it away.** A sixty-second
+  48 kHz file was band-limited into a buffer whose only reader was the next
+  line, on the editor thread of somebody's DAW. Same answer, bit for bit — the
+  gated `audioTest/` corpus reads identical numbers.
+- **Four job mailboxes answered a poisoned lock four different ways**, two of
+  them by refusing for the rest of the session. `panic = "abort"` means a
+  shipped plugin cannot reach the condition at all, so those were paying a
+  permanently dead export chip for something a producer can never hit.
+- **`explorer_midi` was a bridge command nothing called**, which this project
+  classes as a defect and has written up twice. Removed with the one-part read
+  it served.
+
 ### Added — a sample becomes notes, 2026-08-14
 
 - **Drag an audio file onto a generator and it is split into the generators its
