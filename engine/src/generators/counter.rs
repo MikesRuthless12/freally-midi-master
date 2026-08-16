@@ -30,7 +30,7 @@ use crate::context::SessionContext;
 use crate::dataset::StyleModel;
 use crate::generators::chords::Chords;
 use crate::generators::grid;
-use crate::generators::read::{block, flag, number, pair, string_spec, text};
+use crate::generators::read::{block, flag, number, number_leaning, pair, string_spec, text};
 use crate::pattern::{Lane, LaneTrack, Note};
 use crate::rng;
 use crate::theory;
@@ -138,7 +138,10 @@ pub fn generate(
         .unwrap_or(Style::OctaveEcho);
 
     let offset = number(counter, "registerOffset", 12.0, &mut param_rng) as i32;
-    let ratio = number(counter, "densityRatio", 0.5, &mut param_rng).clamp(0.0, 4.0);
+    // ⛔ TASK-125: leans only where the model authored a range — see
+    // `read::number_leaning`. A counter authored at a flat 0.5 stays 0.5.
+    let ratio =
+        number_leaning(counter, "densityRatio", 0.5, ctx.complexity, &mut param_rng).clamp(0.0, 4.0);
     let gaps_only = flag(counter, "fillGapsOnly", true);
 
     let echo = text(counter, "echoOffset")

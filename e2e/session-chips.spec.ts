@@ -1,6 +1,6 @@
 import { expect, test } from '@playwright/test';
 
-import { openPanel } from './app';
+import { openPanel, pickArtist } from './app';
 
 /**
  * The session chips and the keep-or-adopt prompt (TASK-033, FR-002).
@@ -215,4 +215,60 @@ test.describe('keep or adopt', () => {
     await page.getByRole('button', { name: 'Use UK Drill’s' }).click();
     await expect(page.locator('.switch-prompt')).toHaveCount(0);
   });
+});
+
+/**
+ * The Simple / Complex switch (TASK-125).
+ *
+ * ⛔ **Mike asked for one control over all four melodic generators**, moving
+ * them together between a plain reading of the style and a busy one. What the
+ * engine does with the answer is `engine/tests/complexity.rs`, measured over the
+ * shipped roster; what only a browser can show is that the control is on screen,
+ * says which state it is in, and that the answer **leaves the page**.
+ *
+ * ⚠ **Asserted on what was SENT, not on what came back** — the same reasoning
+ * `generate-in.spec.ts` gives for the base pin. This mock has no engine, so it
+ * cannot answer a busy request with busier notes, and a spec that read only the
+ * reply could not tell a chip wired to the request from one wired to nothing.
+ */
+test('the busy switch starts on the model as written and travels with a generation', async ({
+  page,
+}) => {
+  await pickArtist(page, 'Mock Artist');
+
+  const busy = () => page.getByRole('group', { name: 'Density' });
+  await expect(busy()).toBeVisible();
+
+  // ⛔ **Three states with the middle one selected.** `As written` generates
+  // byte-for-byte what the app did before this switch existed, which is what
+  // makes it safe for every saved seed — two states with no neutral would have
+  // made opening the app enough to change what an artist sounds like.
+  await expect(busy().getByRole('button', { name: 'As written' })).toHaveAttribute(
+    'aria-pressed',
+    'true',
+  );
+  await expect(busy().getByRole('button', { name: 'Plain' })).toHaveAttribute(
+    'aria-pressed',
+    'false',
+  );
+
+  // ⚠ **The switch is set BEFORE generating, and the panel is re-opened after.**
+  // The Stems panel reveals itself the moment anything is generated (TASK-131),
+  // and the rail shows one section at a time — so the chip is *unmounted* by a
+  // Generate, not merely scrolled off. The first cut of this test pressed
+  // Generate and then reached for the chip, and spent thirty seconds waiting for
+  // an element that no longer existed.
+  await busy().getByRole('button', { name: 'Busy', exact: true }).click();
+  await page.getByRole('button', { name: 'Generate', exact: true }).click();
+  await expect
+    .poll(() => page.evaluate(() => window.__freallyGeneratedComplexity ?? []))
+    .toContain('complex');
+
+  // ...and back again, so the switch is not one-way.
+  await openPanel(page, 'session');
+  await busy().getByRole('button', { name: 'As written' }).click();
+  await page.getByRole('button', { name: 'Generate', exact: true }).click();
+  await expect
+    .poll(() => page.evaluate(() => window.__freallyGeneratedComplexity ?? []))
+    .toContain('authored');
 });

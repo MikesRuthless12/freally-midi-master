@@ -22,7 +22,7 @@ use serde_json::Value;
 use crate::context::SessionContext;
 use crate::dataset::StyleModel;
 use crate::generators::grid;
-use crate::generators::read::{block, flag, number, pair, string_spec, text};
+use crate::generators::read::{block, flag, number, pair, string_spec_leaning, text};
 use crate::pattern::{Lane, LaneTrack, Note};
 use crate::rng;
 use crate::theory;
@@ -459,7 +459,12 @@ fn layout(
         return Vec::new();
     }
 
-    let rhythm = string_spec(chords, "harmonicRhythm", rng)
+    // ⛔ **Plain → busy, and this list is the ordering TASK-125 leans along.** A
+    // vamp is one chord for the whole clip; a syncopated cell changes two to four
+    // times a bar and stops lining up with it. Only values the model authored are
+    // reachable — see `read::string_spec_leaning`.
+    const BUSYNESS: &[&str] = &["vamp", "2_bars_per_chord", "1_per_bar", "syncopated_cell"];
+    let rhythm = string_spec_leaning(chords, "harmonicRhythm", ctx.complexity, BUSYNESS, rng)
         .as_deref()
         .and_then(HarmonicRhythm::parse)
         .unwrap_or(HarmonicRhythm::OnePerBar);
@@ -478,13 +483,12 @@ fn layout(
             // and stop being syncopated.
             let (min, max) = pair(chords, "chordDurationBeats").unwrap_or((3.0, 5.0));
             let (min, max) = (min.max(1.0) as u32, max.max(1.0) as u32);
-            fill(&mut slots, total, |_| {
-                beat * if min >= max {
-                    min
-                } else {
-                    rng.random_range(min..=max)
-                }
-            });
+            // ⚠ **Inverted, because a SHORTER cell is the busier one**: two beats
+            // a chord is busier than eight. `draw_u32` keeps the whole-number draw
+            // the line this replaced used — see its doc for why that matters more
+            // than it looks.
+            let busy = ctx.complexity.inverted();
+            fill(&mut slots, total, |_| beat * busy.draw_u32(min, max, rng));
         }
     }
     slots

@@ -19,7 +19,7 @@ use crate::context::SessionContext;
 use crate::dataset::StyleModel;
 use crate::generators::chords::Chords;
 use crate::generators::grid;
-use crate::generators::read::{block, number, pair, text};
+use crate::generators::read::{block, number, pair, string_spec_leaning, text};
 use crate::pattern::{Lane, LaneTrack, Note};
 use crate::rng;
 use crate::theory;
@@ -165,7 +165,22 @@ pub fn generate(
     let mut place_rng = rng::stream(seed, "bass/place");
     let mut pitch_rng = rng::stream(seed, "bass/pitch");
 
-    let rhythm = text(bass, "rhythm")
+    // ⛔ **Plain → busy for TASK-125, and `text` is kept as the fallback.** Almost
+    // every model authors one rhythm as a bare string, which `string_spec_leaning`
+    // returns untouched; the lean only reaches a model that authored a weighted
+    // choice, and then only among the values it listed. A sustained reese is the
+    // plainest thing this generator writes and an independent riff the busiest —
+    // *"a walking rather than root-following bass"* is the roadmap's phrase for
+    // that end.
+    const BUSYNESS: &[&str] = &[
+        "reese_sustain",
+        "mirror_kick",
+        "boom_chick",
+        "offbeat_8ths",
+        "independent_riff",
+    ];
+    let rhythm = string_spec_leaning(bass, "rhythm", ctx.complexity, BUSYNESS, &mut param_rng)
+        .as_deref()
         .and_then(Rhythm::parse)
         .unwrap_or(Rhythm::MirrorKick);
     let follow_roots = number(bass, "followRootsProb", 0.85, &mut param_rng).clamp(0.0, 1.0);

@@ -104,3 +104,48 @@ describe('the Generate in chip', () => {
     expect(screen.queryByText('gone')).toBeNull();
   });
 });
+
+/**
+ * The Simple / Complex switch (TASK-125).
+ *
+ * ⛔ **Three states, and the middle one is the model as written.** That is what
+ * makes the feature safe to ship: `authored` generates exactly what the app did
+ * before the switch existed, so a saved seed still rebuilds its own beat. Two
+ * states with no neutral would have made opening the app enough to change what
+ * an artist sounds like.
+ *
+ * ⚠ What the *engine* does with the setting is `engine/tests/complexity.rs`,
+ * which measures it over the shipped roster. What only this can show is that the
+ * control exists, says which state it is in, and writes to the session.
+ */
+describe('the busy switch', () => {
+  beforeEach(() => {
+    useSession.setState({
+      selectedId: 'mock-artist',
+      roster: [entry(), ...GENRES],
+      complexity: 'authored',
+    });
+  });
+
+  it('starts on the model as written', () => {
+    render(<SessionChips />);
+    const authored = screen.getByRole('button', { name: 'As written' });
+    expect(authored.getAttribute('aria-pressed')).toBe('true');
+    expect(screen.getByRole('button', { name: 'Plain' }).getAttribute('aria-pressed')).toBe(
+      'false',
+    );
+  });
+
+  it('writes the producer’s choice to the session', () => {
+    render(<SessionChips />);
+    screen.getByRole('button', { name: 'Plain' }).click();
+    expect(useSession.getState().complexity).toBe('simple');
+
+    cleanup();
+    render(<SessionChips />);
+    // ...and the control says so on the way back, rather than only on the way in.
+    expect(screen.getByRole('button', { name: 'Plain' }).getAttribute('aria-pressed')).toBe(
+      'true',
+    );
+  });
+});

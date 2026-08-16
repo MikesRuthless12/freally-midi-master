@@ -53,6 +53,24 @@ type Draft = {
   melodyMin: number;
   melodyMax: number;
   scales: Scale[];
+  /**
+   * The four blocks TASK-040U's entry named as unreachable (2026-08-15).
+   *
+   * ⛔ **Every one of them is optional, and "unset" means INHERIT rather than
+   * "the default".** That is the rule `scales` already states: an authored value
+   * replaces the base's, so writing one the producer never chose would silently
+   * overwrite the thing they said their style was based on. Each is therefore
+   * empty by default and only reaches `modelFrom` once it is set.
+   *
+   * ⚠ **`slide` is the exception and is meaningless on its own** — it is written
+   * only alongside `bassRole`, because `drums.bass808.slideProb` without a role
+   * is half an 808.
+   */
+  snare: string;
+  rolls: string[];
+  bassRole: string;
+  slide: number;
+  progressions: string[];
 };
 
 const BLANK: Draft = {
@@ -65,7 +83,55 @@ const BLANK: Draft = {
   melodyMin: 3,
   melodyMax: 7,
   scales: [],
+  snare: '',
+  rolls: [],
+  bassRole: '',
+  slide: 0.15,
+  progressions: [],
 };
+
+/**
+ * Where the snare lands, as `drums.rs` reads it (TASK-040U).
+ *
+ * ⚠ **Labelled with numbers rather than words**, which is both how a producer
+ * reads a backbeat and why this needs no strings in eighteen catalogs: "2 & 4"
+ * and "1 & 3" mean the same thing in every one of them. The names on the left
+ * are `SnarePlacement::parse`'s, and adding a sixth there without adding it here
+ * is a placement no user model can reach.
+ */
+const PLACEMENTS: { value: string; label: string }[] = [
+  { value: 'halftime_3', label: '3' },
+  { value: 'backbeat_24', label: '2 & 4' },
+  { value: 'drill_3_4', label: '3 → 4' },
+  { value: 'train_16ths', label: '16ths' },
+  { value: 'downbeat_1_3', label: '1 & 3' },
+];
+
+/** The roll subdivisions `grid::note_value_ticks` resolves, as producers write them. */
+const ROLLS = ['16', '32', '16T', '8T'];
+
+/**
+ * The progression families offered, as roman numerals.
+ *
+ * ⛔ **Written at equal weight, and that is the honest simplification.** A
+ * shipped model weights its families because its research says which one the
+ * artist reaches for most; a producer ticking boxes has said only "these ones".
+ * Inventing weights they did not choose would put numbers in their model that
+ * nobody measured.
+ *
+ * ⚠ Roman numerals need no translation — they are the same in every catalog,
+ * which is why these carry no `t()` call.
+ */
+const FAMILIES = [
+  'i',
+  'i-VI',
+  'i-VII',
+  'i-iv',
+  'i-VI-VII',
+  'i-VII-VI',
+  'I-V-vi-IV',
+  'vi-IV-I-V',
+];
 
 export function StyleEditor({
   editing,
@@ -507,6 +573,132 @@ export function StyleEditor({
             ))}
             <small>{t('styles.scalesHint', { name: baseName })}</small>
           </fieldset>
+
+          {/* ⛔⛔ **The four blocks TASK-040U's entry named**: *"they cannot yet
+              reach roll vocabulary, snare placement, 808 behaviour or progression
+              families"*. Those four are most of what separates one authored style
+              from another, and a producer building a vibe by hand could reach
+              none of them.
+
+              ⚠ **Every group leads with "from the base" and starts there.** An
+              authored value *replaces* the parent's (`inherit::deep_merge`), so a
+              control with no unset state would make opening the dialog enough to
+              overwrite the thing the style is based on. */}
+          <fieldset className="styleeditor__field styleeditor__choice">
+            <legend>{t('styles.snare')}</legend>
+            <label>
+              <input
+                type="radio"
+                name="styles-snare"
+                checked={draft.snare === ''}
+                onChange={() => setDraft({ ...draft, snare: '' })}
+              />
+              {t('styles.inherit')}
+            </label>
+            {PLACEMENTS.map((placement) => (
+              <label key={placement.value}>
+                <input
+                  type="radio"
+                  name="styles-snare"
+                  checked={draft.snare === placement.value}
+                  onChange={() => setDraft({ ...draft, snare: placement.value })}
+                />
+                {placement.label}
+              </label>
+            ))}
+            <small>{t('styles.snareHint')}</small>
+          </fieldset>
+
+          <fieldset className="styleeditor__field styleeditor__choice">
+            <legend>{t('styles.rolls')}</legend>
+            {ROLLS.map((roll) => (
+              <label key={roll}>
+                <input
+                  type="checkbox"
+                  checked={draft.rolls.includes(roll)}
+                  onChange={(e) =>
+                    setDraft({
+                      ...draft,
+                      rolls: e.target.checked
+                        ? [...draft.rolls, roll]
+                        : draft.rolls.filter((r) => r !== roll),
+                    })
+                  }
+                />
+                {roll}
+              </label>
+            ))}
+            <small>{t('styles.rollsHint', { name: baseName })}</small>
+          </fieldset>
+
+          <fieldset className="styleeditor__field styleeditor__choice">
+            <legend>{t('styles.bass808')}</legend>
+            <label>
+              <input
+                type="radio"
+                name="styles-bass"
+                checked={draft.bassRole === ''}
+                onChange={() => setDraft({ ...draft, bassRole: '' })}
+              />
+              {t('styles.inherit')}
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="styles-bass"
+                checked={draft.bassRole === 'bassline'}
+                onChange={() => setDraft({ ...draft, bassRole: 'bassline' })}
+              />
+              {t('styles.bassIsTheBass')}
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="styles-bass"
+                checked={draft.bassRole === 'counter_riff'}
+                onChange={() => setDraft({ ...draft, bassRole: 'counter_riff' })}
+              />
+              {t('styles.bassCounterRiff')}
+            </label>
+            {/* ⚠ Disabled until a role is chosen, because a slide probability
+                with no role is half an 808 — and the disabled state is what says
+                so without a sentence. */}
+            <label className="styleeditor__slide">
+              <span>{t('styles.slide')}</span>
+              <input
+                type="range"
+                min={0}
+                max={1}
+                step={0.01}
+                disabled={draft.bassRole === ''}
+                value={draft.slide}
+                onChange={(e) => setDraft({ ...draft, slide: Number(e.target.value) })}
+              />
+            </label>
+            <small>{t('styles.bass808Hint')}</small>
+          </fieldset>
+
+          <fieldset className="styleeditor__field styleeditor__choice">
+            <legend>{t('styles.progressions')}</legend>
+            {FAMILIES.map((family) => (
+              <label key={family}>
+                <input
+                  type="checkbox"
+                  checked={draft.progressions.includes(family)}
+                  onChange={(e) =>
+                    setDraft({
+                      ...draft,
+                      progressions: e.target.checked
+                        ? [...draft.progressions, family]
+                        : draft.progressions.filter((f) => f !== family),
+                    })
+                  }
+                />
+                {family.split('-').join('–')}
+              </label>
+            ))}
+            <small>{t('styles.progressionsHint', { name: baseName })}</small>
+          </fieldset>
         </div>
 
         {error !== null && <p className="styleeditor__error">{error}</p>}
@@ -615,6 +807,32 @@ function modelFrom(draft: Draft, id: string, bases: RosterEntry[]): Record<strin
     },
   };
 
+  // ⛔ **Written only when the producer set them, for the reason `scales` gives
+  // below: `inherit::deep_merge` has an authored value *replace* the base's, so
+  // a field written unasked is the base quietly overruled.** A partial block is
+  // safe — objects merge key by key, so `snare: { placement }` keeps the parent's
+  // ghosts and its layering — but an array replaces outright, which is exactly
+  // what "these families and no others" should mean.
+  const drums = model.drums as Record<string, unknown>;
+  if (draft.snare !== '') {
+    drums.snare = { placement: draft.snare };
+  }
+  if (draft.rolls.length > 0) {
+    (drums.hihat as Record<string, unknown>).rolls = { vocab: { values: draft.rolls } };
+  }
+  if (draft.bassRole !== '') {
+    // ⚠ The slide rides with the role and never alone — see `Draft`.
+    drums.bass808 = { role: draft.bassRole, slideProb: draft.slide };
+  }
+  if (draft.progressions.length > 0) {
+    model.chords = {
+      progressionFamilies: draft.progressions.map((roman) => ({
+        roman: roman.split('-'),
+        weight: 1,
+      })),
+    };
+  }
+
   // ⚠ Omitted entirely when nothing is ticked, rather than written as an empty
   // list: an empty `scales` would *replace* the base's rather than inherit it,
   // and a style with no scale to generate in is a style that generates nothing.
@@ -631,8 +849,13 @@ function draftFrom(model: Record<string, unknown>): Draft {
   const bpm = (session.bpm ?? {}) as Record<string, number>;
   const swing = (session.swing ?? {}) as Record<string, number>;
   const scales = (session.scales ?? {}) as { values?: Scale[] };
-  const drums = (model.drums ?? {}) as { hihat?: { fillDensity?: number } };
+  const drums = (model.drums ?? {}) as {
+    hihat?: { fillDensity?: number; rolls?: { vocab?: { values?: string[] } } };
+    snare?: { placement?: string };
+    bass808?: { role?: string; slideProb?: number };
+  };
   const melody = (model.melody ?? {}) as { densityPerBar?: number[] };
+  const chords = (model.chords ?? {}) as { progressionFamilies?: { roman?: string[] }[] };
 
   return {
     name: typeof model.name === 'string' ? model.name : '',
@@ -644,5 +867,15 @@ function draftFrom(model: Record<string, unknown>): Draft {
     melodyMin: melody.densityPerBar?.[0] ?? BLANK.melodyMin,
     melodyMax: melody.densityPerBar?.[1] ?? BLANK.melodyMax,
     scales: scales.values ?? [],
+    // ⚠ **Absent reads back as unset, not as a default** — the same distinction
+    // the write side keeps. A saved style that never chose a snare placement must
+    // reopen still inheriting one, or opening and saving would author it.
+    snare: drums.snare?.placement ?? '',
+    rolls: drums.hihat?.rolls?.vocab?.values ?? [],
+    bassRole: drums.bass808?.role ?? '',
+    slide: drums.bass808?.slideProb ?? BLANK.slide,
+    progressions: (chords.progressionFamilies ?? [])
+      .map((family) => (family.roman ?? []).join('-'))
+      .filter((roman) => roman !== ''),
   };
 }

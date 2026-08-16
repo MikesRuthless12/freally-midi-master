@@ -91,6 +91,36 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
     `future-bass`, which is exactly the "palette swap over an unchanged rhythm
     grammar" the research recommends. Recorded rather than duplicated.
 
+- **A Simple / Complex switch over all four melodic generators** (TASK-125). One
+  control moves the chords, the melody, the countermelody and the bassline
+  together between a plain reading of the style and a busy one, saved with the
+  project like the mood.
+  ⛔ **It scales within what each model authored and never overrides it.** The
+  rule, from the roadmap: *"a rage vamp made busy is no longer rage."* So it only
+  leans a choice the model already offered — a draw inside an authored range, a
+  pick from an authored weighted list — and a model that authors one value is
+  unmoved at every setting. A lane whose only harmonic rhythm is a vamp holds one
+  chord at Complex, and a rhythm the model never listed stays unreachable.
+  ⛔ **Three states, and the middle one is the model as written.** `Authored` is
+  the default and generates byte-for-byte what the app did before the switch
+  existed, so every saved seed still rebuilds its own beat — the same
+  compatibility rule auto-sync follows. Two states with no neutral would have made
+  opening the app enough to change what an artist sounds like.
+  ⚠ It reaches Generate-all and Song Mode, including a re-rolled section — the
+  rule-at-one-door failure this project has recorded four times.
+- **The style editor reaches the four blocks it could not** (TASK-040U, closed).
+  Its entry stayed ◐ for a stated reason: *"they cannot yet reach roll
+  vocabulary, snare placement, 808 behaviour or progression families"* — which is
+  most of what separates one authored style from another.
+  ⚠ **Every group starts on "From the base" and means it.** An authored value
+  *replaces* the parent's, so a control with no unset state would make opening the
+  dialog enough to overwrite what the style is based on. The 808's slide is dead
+  until a role is chosen, because a slide probability with no role is half an 808.
+  ⚠ The placements are labelled `2 & 4` and `1 & 3`, the rolls `16T`, and the
+  progressions `i–VI–VII` — numbers and roman numerals, which is how a producer
+  reads them and why this needed nine new strings across eighteen catalogs rather
+  than twenty-two.
+
 ### Changed — the roster sounds like its research again, 2026-08-15
 
 - **396 artist and producer models restored to the values their research entries

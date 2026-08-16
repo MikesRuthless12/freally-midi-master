@@ -452,13 +452,16 @@ fn rhythm(
             continue;
         }
 
-        let wanted = if density.1 > density.0 {
-            rng.random_range(density.0..=density.1)
-        } else {
-            density.0
-        }
-        .round()
-        .clamp(0.0, slots.len() as f64) as usize;
+        // ⛔ **TASK-125 leans this draw and does not replace it.** The authored
+        // range is the model's own statement about its spread — `[2, 6]` means a
+        // sparse bar is as much this artist as a busy one — so Complex moves the
+        // *average* toward six while leaving two reachable. A model that authors
+        // one number is unmoved at every setting, which is the rule.
+        let wanted = ctx
+            .complexity
+            .draw(density.0, density.1, rng)
+            .round()
+            .clamp(0.0, slots.len() as f64) as usize;
         if wanted == 0 {
             continue;
         }

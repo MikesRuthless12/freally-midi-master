@@ -56,6 +56,8 @@ export function SessionChips() {
   const setAutoSync = useSession((s) => s.setAutoSync);
   const mood = useSession((s) => s.mood);
   const setMood = useSession((s) => s.setMood);
+  const complexity = useSession((s) => s.complexity);
+  const setComplexity = useSession((s) => s.setComplexity);
   const base = useSession((s) => s.base);
   const setBase = useSession((s) => s.setBase);
   const roster = useSession((s) => s.roster);
@@ -206,6 +208,42 @@ export function SessionChips() {
         )}
         <span className="session__label">{t('session.audio')}</span>
       </button>
+
+      {/* ⛔⛔ **Simple / Complex, over all four melodic generators at once**
+          (TASK-125). Mike asked for one control that moves the chords, the
+          melody, the countermelody and the bassline together between a plain
+          reading of the style and a busy one.
+
+          ⛔ **Three states and the middle one is the model as written**, which is
+          what makes this safe: `Authored` generates byte-for-byte what the app
+          did before the switch existed, so every saved seed still rebuilds its
+          own beat. Two states with no neutral would have made opening the app
+          enough to change what an artist sounds like.
+
+          ⚠ **It leans; it does not override.** *"A rage vamp made busy is no
+          longer rage"* — the engine only biases choices the model already
+          offered, so a lane that authors one value is unmoved. That is why this
+          is three buttons rather than a slider: a slider implies a continuum the
+          models do not all have. */}
+      <span
+        className="chip chip--mono session__chip"
+        role="group"
+        aria-label={t('session.complexity')}
+      >
+        <span className="session__label">{t('session.complexity')}</span>
+        {(['simple', 'authored', 'complex'] as const).map((value) => (
+          <button
+            key={value}
+            type="button"
+            className="chip__option"
+            aria-pressed={complexity === value}
+            title={t(`session.complexity_${value}`)}
+            onClick={() => setComplexity(value)}
+          >
+            {t(`session.complexity_${value}`)}
+          </button>
+        ))}
+      </span>
 
       {/* ⛔⛔ **Not native `<select>`s** (TASK-057). A `<select>` popup inside
           WebView2 is drawn by the OS, against the *window* rather than the

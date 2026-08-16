@@ -51,6 +51,16 @@ const copiedSamples: string[] = [];
 /** The base each Generate asked for — see `Window.__freallyGeneratedOver`. */
 const generatedOver: (string | null)[] = [];
 
+/**
+ * How busy a reading each generation asked for (TASK-125).
+ *
+ * ⛔ Recorded for the same reason `generatedOver` is: this mock has no engine, so
+ * it cannot answer a busy request with busier notes — and a spec that only read
+ * the reply could not tell a chip wired to the request from one wired to
+ * nothing. What is checkable in a browser is what the page *sent*.
+ */
+const generatedComplexity: (string | null)[] = [];
+
 /** The mock kit's assigned samples, as the plugin would source them. */
 const assignedSamplePaths = (): string[] =>
   (handlers.kit_state() as { lanes: { path: string | null }[] }).lanes
@@ -571,6 +581,7 @@ const handlers: Record<string, Handler> = {
           songSeed?: string;
           part?: Part;
           base?: string | null;
+          complexity?: string | null;
         };
       }
     )?.request;
@@ -598,6 +609,7 @@ const handlers: Record<string, Handler> = {
     // the pin would let the chip be wired to nothing and still pass. What can
     // truthfully be shown here is that the page sent it.
     generatedOver.push(request?.base ?? null);
+    generatedComplexity.push(request?.complexity ?? null);
     const over = request?.base ? `-over-${request.base}` : '';
     const shell = {
       id: `${request?.styleId ?? 'mock'}${over}-mock`,
@@ -1488,6 +1500,7 @@ declare global {
     __freallyGeneratedOver?: (string | null)[];
     /** Paths the page asked to reveal in the OS file manager (TASK-058C). */
     __freallyRevealed?: string[];
+    __freallyGeneratedComplexity?: (string | null)[];
   }
 }
 
@@ -1498,6 +1511,7 @@ export async function mockInvoke<T>(command: string, args?: InvokeArgs): Promise
     // can check is that the page asked for the right path.
     window.__freallyRevealed = revealed;
     window.__freallyGeneratedOver = generatedOver;
+    window.__freallyGeneratedComplexity = generatedComplexity;
   }
   const handler = handlers[command];
   if (!handler) {

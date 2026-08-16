@@ -4,6 +4,7 @@ import { invoke } from '../lib/ipc';
 import { isPlugin } from '../lib/ipc-plugin';
 import { loadRoster } from '../lib/roster';
 import type {
+  Complexity,
   DatasetProblem,
   Part,
   Pattern,
@@ -112,6 +113,7 @@ export const SAVED_FIELDS = [
   'bars',
   'pins',
   'autoSync',
+  'complexity',
   'mood',
   'base',
   'audioEnabled',
@@ -522,6 +524,20 @@ type SessionState = {
    * point of modes. Pinning holds it to one. `pattern.mood` is what it landed
    * on, the same way the seed box echoes the seed it used.
    */
+  /**
+   * How busy a reading of the style to generate (TASK-125).
+   *
+   * ⛔ **It scales WITHIN what the model authored and never overrides it.** The
+   * roadmap's rule: *"a rage vamp made busy is no longer rage, so the switch
+   * scales within each model's authored ranges rather than overriding them"* —
+   * so it only leans a choice the model already offered, and a model that
+   * authors one value is unmoved at every setting.
+   *
+   * ⚠ **'authored' is the default and is what every project written before this
+   * existed means**, so a saved seed keeps rebuilding the beat the producer
+   * heard. Same compatibility rule as `autoSync`.
+   */
+  complexity: Complexity;
   mood: string | null;
   /**
    * The genre to generate this artist **in**, or `null` for their own
@@ -671,6 +687,8 @@ type SessionState = {
   setPin: <K extends keyof SessionPins>(field: K, value: SessionPins[K]) => void;
   setAutoSync: (on: boolean) => void;
   /** Pin the mood, or hand it back to the seed with `null`. */
+  /** Ask for a plainer or busier reading of the style (TASK-125). */
+  setComplexity: (complexity: Complexity) => void;
   setMood: (mood: string | null) => void;
   /**
    * Pin the genre to generate in, or `null` for the artist's own (TASK-158C).
@@ -947,6 +965,7 @@ function snapshotOf(state: SessionState): Snapshot {
     bars,
     pins,
     autoSync,
+    complexity,
     mood,
     base,
     audioEnabled,
@@ -998,6 +1017,7 @@ function snapshotOf(state: SessionState): Snapshot {
     bars,
     pins,
     autoSync,
+    complexity,
     mood,
     base,
     audioEnabled,
@@ -1352,6 +1372,13 @@ export type SavedSession = {
    */
   autoSync?: boolean;
   /**
+   * How busy a reading the producer asked for (TASK-125).
+   *
+   * ⚠ Absent is the model as authored — every project written before the switch
+   * existed, which must keep generating exactly what it did.
+   */
+  complexity?: Complexity;
+  /**
    * The pinned mood, absent for "Any" (TASK-040V).
    *
    * ⛔ Only a pin is stored. "Any" means the mood is picked from the seed, so
@@ -1651,6 +1678,9 @@ function put(
     // Absent means on, matching the plugin's `auto_sync_default`: a project
     // written before the toggle existed must keep following its DAW.
     autoSync: saved.autoSync ?? true,
+    // Absent means the model as authored, which is what every project written
+    // before the switch existed asked for.
+    complexity: saved.complexity ?? 'authored',
     mood: saved.mood ?? null,
     // Absent is the artist's own genre — every project written before this
     // existed, which must keep generating exactly what it did.
@@ -1758,6 +1788,7 @@ export const useSession = create<SessionState>((set, get) => ({
   pins: NO_PINS,
   hostTempo: null,
   autoSync: true,
+  complexity: 'authored',
   mood: null,
   base: null,
   audioEnabled: true,
@@ -2019,6 +2050,16 @@ export const useSession = create<SessionState>((set, get) => ({
     persist();
   },
 
+  setComplexity(complexity) {
+    // Saved like the mood and for the same reason: it is part of how a record
+    // was made. ⚠ The chips are NOT re-read — unlike a mood, this changes no
+    // session value the chips draw. It leans choices inside the generators, and
+    // the tempo, key and swing a producer is looking at stay exactly as they
+    // were.
+    set({ complexity });
+    persist();
+  },
+
   setMood(mood) {
     // Saved like auto-sync and for the same reason: it is part of how a song
     // was made, not a transient view setting.
@@ -2188,6 +2229,7 @@ export const useSession = create<SessionState>((set, get) => ({
       pins,
       mood,
       base,
+      complexity,
       patterns,
     } = get();
     if (!selectedId || generating) return;
@@ -2252,6 +2294,9 @@ export const useSession = create<SessionState>((set, get) => ({
           // Null is "Any", which the engine answers by picking from the seed
           // rather than by generating without a mode (TASK-040V).
           mood,
+          // TASK-125: the producer's Simple/Complex answer, carried like the
+          // mood. Absent is the model as authored.
+          complexity,
         },
       });
       // ⛔ **The parts this one was written against, generated behind it**
@@ -2476,7 +2521,7 @@ export const useSession = create<SessionState>((set, get) => ({
   },
 
   async generateAll() {
-    const { selectedId, bars, generating, pins, mood, base, seedPinned } = get();
+    const { selectedId, bars, generating, pins, mood, base, seedPinned, complexity } = get();
     if (!selectedId || generating) return;
 
     set({ generating: true, error: null });
@@ -2542,6 +2587,9 @@ export const useSession = create<SessionState>((set, get) => ({
             }),
             session: pins,
             mood,
+            // TASK-125: carried like the mood, so Generate-all answers the switch
+            // exactly as a single Generate does.
+            complexity,
           },
         });
 

@@ -92,6 +92,17 @@ struct GenerateArgs {
     /// The mood to generate in. Absent is "Any" — see [`generate`].
     #[serde(default)]
     mood: Option<String>,
+    /// How busy a reading of the style to generate (TASK-125).
+    ///
+    /// ⛔ **A session value carried like `mood`, not a pin.** It is the
+    /// producer's answer to "how busy do you want this", so it rides beside the
+    /// mood rather than inside `session` — which is the model's own parameters
+    /// being overridden, and this overrides none of them.
+    ///
+    /// ⚠ Absent is `Authored`: exactly what the model says, which is what every
+    /// project written before the switch existed means.
+    #[serde(default)]
+    complexity: Option<engine::context::Complexity>,
     /// The genre to generate this artist **in** (TASK-158C).
     ///
     /// ⛔ **Absent means "the artist's own", and that is not the same as a
@@ -725,6 +736,14 @@ fn generate(args: &GenerateArgs, host: &HostSession, auto_sync: bool) -> Result<
     if let Some(bars) = overrides.bars {
         overrides.bars = Some(bars.clamp(1, MAX_BARS));
     }
+    // ⛔ **The producer's Simple/Complex answer** (TASK-125). Set here rather
+    // than left inside `session`, because it is not one of the model's own
+    // parameters being overridden — it leans the choices the model already
+    // offers. Absent stays `None`, which `SessionContext::from_model` reads as
+    // `Authored`.
+    if args.complexity.is_some() {
+        overrides.complexity = args.complexity;
+    }
 
     // ⛔⛔ **The session is built from the RECORD, not the take, and getting
     // this wrong meant TASK-141 delivered nothing.** `session_for` samples
@@ -926,6 +945,11 @@ fn reroll_section(args: RerollArgs, host: &HostSession) -> Result<engine::patter
         // uses absence for everywhere else.
         swing: args.session.as_ref().and_then(|s| s.swing),
         half_time: args.session.as_ref().and_then(|s| s.half_time),
+        // ⛔ **Carried for exactly the reason `swing` above it is** (TASK-125): a
+        // re-rolled section must come back at the reading the producer asked
+        // for, or one section of the arrangement is plainer than the rest and
+        // nothing on screen says why.
+        complexity: args.session.as_ref().and_then(|s| s.complexity),
     };
 
     // ⛔ `auto_sync` is **false**, and it is not a shortcut. Every field the
@@ -1198,6 +1222,14 @@ fn generate_song(
     // that cost once per section.
     if let Some(bars) = overrides.bars {
         overrides.bars = Some(bars.clamp(1, MAX_BARS));
+    }
+    // ⛔ **Here too, and a rule installed at one door is a rule the next door
+    // arrives without** — the failure this file has recorded four times. A
+    // producer who set the switch and then pressed Generate on Song would
+    // otherwise get the arrangement at the model's own reading while every
+    // four-bar loop beside it answered the switch.
+    if args.complexity.is_some() {
+        overrides.complexity = args.complexity;
     }
 
     let ctx = host.session_for(&model, &overrides, seed, auto_sync);

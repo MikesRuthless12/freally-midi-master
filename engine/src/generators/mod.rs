@@ -167,6 +167,108 @@ pub mod read {
             .and_then(|spec| spec.sample(rng).ok())
     }
 
+    /// A numeric parameter, leaning to the busy end of what the model authored.
+    ///
+    /// ⛔ **Only a `[min, max]` range leans** (TASK-125). An exact number is the
+    /// model being specific and is returned untouched, and a weighted list is a
+    /// set of named choices rather than a spread — leaning either would be
+    /// overriding the model instead of scaling within it, which is the one thing
+    /// this feature must not do.
+    pub fn number_leaning(
+        block: Option<&Value>,
+        key: &str,
+        default: f64,
+        complexity: crate::context::Complexity,
+        rng: &mut impl Rng,
+    ) -> f64 {
+        use crate::dataset::schema::NumSpec;
+
+        let spec: Option<NumSpec> = block
+            .and_then(|b| b.get(key))
+            .and_then(|v| serde_json::from_value(v.clone()).ok());
+
+        match spec {
+            Some(NumSpec::Range([min, max])) if max > min => complexity.draw(min, max, rng),
+            Some(other) => other.sample(rng).unwrap_or(default),
+            None => default,
+        }
+    }
+
+    /// Sample a categorical parameter, leaning to one end of an authored order.
+    ///
+    /// ⛔⛔ **This is the whole of TASK-125's "within the model's own ranges"
+    /// rule, in one function.** `order` runs plain → busy and is supplied by the
+    /// caller, because busy-ness is a fact about the *parameter*: only
+    /// `chords.rs` knows that `vamp` is the plainest harmonic rhythm and only
+    /// `bass.rs` knows that `mirror_kick` is the plainest bass. What this does is
+    /// scale the **authored** weights by position — so a value the model never
+    /// listed stays unreachable at every setting, and a model that authors one
+    /// value gets that value whatever the producer asked for. A rage vamp made
+    /// busy is still a vamp.
+    ///
+    /// ⚠ **`Authored` returns `string_spec` exactly**, including its draw from
+    /// the same rng position, so the switch's default cannot move a saved seed's
+    /// beat by a single note.
+    ///
+    /// ⚠ A value missing from `order` keeps its authored weight rather than being
+    /// dropped or pushed to an end — an unknown name is a model saying something
+    /// this function was not told about, and guessing where it sits would be
+    /// worse than leaving it alone.
+    pub fn string_spec_leaning(
+        block: Option<&Value>,
+        key: &str,
+        complexity: crate::context::Complexity,
+        order: &[&str],
+        rng: &mut impl Rng,
+    ) -> Option<String> {
+        use crate::dataset::schema::StrSpec;
+
+        let spec: StrSpec = block
+            .and_then(|b| b.get(key))
+            .and_then(|v| serde_json::from_value(v.clone()).ok())?;
+
+        let StrSpec::Weighted { values, weights } = &spec else {
+            return spec.sample(rng).ok();
+        };
+        if complexity == crate::context::Complexity::Authored || values.len() < 2 {
+            return spec.sample(rng).ok();
+        }
+
+        // Position each authored value on the plain → busy axis the caller gave,
+        // then scale its weight by where it sits.
+        let mut scaled: Vec<f64> = match weights {
+            Some(w) if w.len() == values.len() => w.clone(),
+            _ => vec![1.0; values.len()],
+        };
+        let mut ranked: Vec<(usize, usize)> = values
+            .iter()
+            .enumerate()
+            .filter_map(|(index, value)| {
+                order
+                    .iter()
+                    .position(|name| name == value)
+                    .map(|rank| (index, rank))
+            })
+            .collect();
+        if ranked.len() < 2 {
+            return spec.sample(rng).ok();
+        }
+        ranked.sort_by_key(|(_, rank)| *rank);
+
+        let mut lane: Vec<f64> = ranked.iter().map(|(index, _)| scaled[*index]).collect();
+        complexity.reweight(&mut lane);
+        for ((index, _), weight) in ranked.iter().zip(lane) {
+            scaled[*index] = weight;
+        }
+
+        StrSpec::Weighted {
+            values: values.clone(),
+            weights: Some(scaled),
+        }
+        .sample(rng)
+        .ok()
+    }
+
     /// A two-element numeric array — a register, a velocity range, a ramp.
     pub fn pair(block: Option<&Value>, key: &str) -> Option<(f64, f64)> {
         block

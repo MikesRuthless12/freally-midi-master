@@ -96,6 +96,14 @@ const PATTERN: Pattern = {
 const flush = () => new Promise((resolve) => setTimeout(resolve, 0));
 
 /** The request `generate_pattern` was last called with. */
+/** The request a generation sent, including the fields only TASK-125 uses. */
+function lastFullRequest(): Record<string, unknown> {
+  const calls = invoke.mock.calls.filter((call: unknown[]) => call[0] === 'generate_pattern');
+  expect(calls.length, 'generate_pattern should have been invoked').toBeGreaterThan(0);
+  const [, args] = calls[calls.length - 1] as [string, { request: Record<string, unknown> }];
+  return args.request;
+}
+
 function lastRequest(): {
   session?: Record<string, unknown>;
   seed?: string | null;
@@ -1520,7 +1528,10 @@ describe('a generator fills the parts it was written against', () => {
 
     await useSession.getState().generate('counter');
 
-    expect(useSession.getState().patterns.counter, 'the generation was discarded').toBeDefined();
+    expect(
+      useSession.getState().patterns.counter,
+      'the generation was discarded',
+    ).toBeDefined();
     expect(useSession.getState().patterns.chords).toBeUndefined();
     expect(useSession.getState().generating, 'the button stayed stuck').toBe(false);
   });
@@ -2030,5 +2041,49 @@ describe('an import switches off what it did not find', () => {
   it('aiming at a part the split did not produce falls back rather than opening nothing', () => {
     useSession.getState().importSplit([drumsOn(['kick', 'snare']), melody], 'chords');
     expect(useUi.getState().activeTab).toBe('drums');
+  });
+});
+
+/**
+ * The Simple / Complex switch, from the page's side (TASK-125).
+ *
+ * ⛔ **What the engine does with it is `engine/tests/complexity.rs`**, measured
+ * over the shipped roster. What only this can show is that the producer's answer
+ * *leaves the page* — on a single Generate and on Generate-all alike — and that
+ * it is part of the project rather than a view setting.
+ */
+describe('how busy a reading the producer asked for', () => {
+  beforeEach(() => {
+    useSession.setState({ selectedId: 'trap', patterns: {}, complexity: 'authored' });
+  });
+
+  it('is sent with every generation, and defaults to the model as written', async () => {
+    await useSession.getState().generate('drums');
+    expect(lastFullRequest().complexity).toBe('authored');
+
+    useSession.getState().setComplexity('complex');
+    await useSession.getState().generate('drums');
+    expect(lastFullRequest().complexity).toBe('complex');
+  });
+
+  it('reaches Generate-all too, which is where a rule usually goes missing', async () => {
+    // ⛔ The failure this repo has recorded four times: a rule installed at one
+    // door and not at the other. `generateAll` has its own request builder.
+    useSession.getState().setComplexity('simple');
+    await useSession.getState().generateAll();
+    expect(lastFullRequest().complexity).toBe('simple');
+  });
+
+  it('is part of the project, not a view setting', async () => {
+    // ⛔ **Asserted through the undo snapshot rather than against the list.**
+    // `SAVED_FIELDS` drives the project payload and the snapshot together, and a
+    // field named there but missing from `snapshotOf`'s destructure would save
+    // less than it undoes — which is the drift the list exists to prevent and
+    // which a membership test cannot see.
+    const { useHistory } = await import('./history');
+    useSession.getState().setComplexity('complex');
+    await vi.waitFor(() =>
+      expect(useHistory.getState().present?.state.complexity).toBe('complex'),
+    );
   });
 });

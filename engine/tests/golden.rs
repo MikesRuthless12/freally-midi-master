@@ -22,7 +22,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
-use engine::context::{Humanize, SessionContext, Swing, SwingGrid};
+use engine::context::{Complexity, Humanize, SessionContext, Swing, SwingGrid};
 use engine::generators::drums::generate;
 use engine::humanize::humanize;
 use engine::midi::pattern_to_smf;
@@ -107,6 +107,11 @@ fn golden_context(bars: u16) -> SessionContext {
             .into_iter()
             .collect(),
         },
+        // ⛔ **The default, and this file is the reason the default exists**
+        // (TASK-125). A golden snapshot is the promise that a saved seed rebuilds
+        // the beat the producer heard; `Complexity::Authored` is what makes the
+        // switch keep that promise, and pinning it here says so.
+        complexity: Complexity::Authored,
     }
 }
 

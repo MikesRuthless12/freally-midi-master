@@ -222,3 +222,78 @@ test('an unnamed style is refused with a reason rather than saved as nothing', a
   // Nothing reached the roster.
   await expect(page.locator('.roster__item .badge--mine')).toHaveCount(0);
 });
+
+/**
+ * The four blocks the editor could not reach (TASK-040U, closed 2026-08-15).
+ *
+ * ⛔ **The entry stayed ◐ for a stated reason**: *"they cannot yet reach roll
+ * vocabulary, snare placement, 808 behaviour or progression families."* Those
+ * four are most of what separates one authored style from another, so a producer
+ * building a vibe by hand could set a tempo and a scale and nothing that decides
+ * how the beat is actually written.
+ *
+ * ⚠ **What only a browser proves here is the round trip**, which is the half that
+ * silently rots: `modelFrom` writing a key the reopened `draftFrom` does not read
+ * back leaves a control that forgets what the producer chose. The write itself is
+ * `plugin/src/models.rs` and is tested there.
+ */
+test('the snare, the rolls, the 808 and the progressions save and reopen', async ({ page }) => {
+  await page.getByRole('button', { name: /Original Workflow/ }).click();
+  const dialog = page.getByRole('dialog', { name: 'Style editor' });
+  await expect(dialog).toBeVisible();
+
+  const snare = dialog.locator('fieldset').filter({ hasText: 'Snare' });
+  const rolls = dialog.locator('fieldset').filter({ hasText: 'Rolls' });
+  const bass = dialog.locator('fieldset').filter({ hasText: '808' });
+  const progressions = dialog.locator('fieldset').filter({ hasText: 'Progressions' });
+
+  // ⛔ **Every group starts on "From the base"**, because an authored value
+  // replaces the parent's — a control with no unset state would make opening the
+  // dialog enough to overwrite what the style is based on.
+  await expect(snare.getByRole('radio', { name: 'From the base' })).toBeChecked();
+  await expect(bass.getByRole('radio', { name: 'From the base' })).toBeChecked();
+  await expect(rolls.getByRole('checkbox', { checked: true })).toHaveCount(0);
+  await expect(progressions.getByRole('checkbox', { checked: true })).toHaveCount(0);
+
+  // ⚠ The slide is dead until the 808 has a role: a slide probability with no
+  // role is half an 808, and the disabled state is what says so.
+  await expect(bass.getByRole('slider')).toBeDisabled();
+
+  await dialog.getByLabel('Name').fill('My Bounce');
+  await snare.getByRole('radio', { name: '2 & 4' }).check();
+  await rolls.getByRole('checkbox', { name: '16T' }).check();
+  await bass.getByRole('radio', { name: 'Answers the bassline' }).check();
+  await progressions.getByRole('checkbox', { name: 'i–VI–VII' }).check();
+  await expect(bass.getByRole('slider')).toBeEnabled();
+
+  await dialog.getByRole('button', { name: 'Save style' }).click();
+  await expect(dialog.locator('.styleeditor__saved')).toContainText('My Bounce');
+  await dialog.getByRole('button', { name: 'Close' }).click();
+
+  // Reopen the saved style and every one of the four comes back as it was.
+  const roster = page.getByRole('combobox', { name: 'Roster' });
+  await roster.click();
+  await roster.fill('My Bounce');
+  const row = page
+    .locator('.combo__menu')
+    .getByRole('option')
+    .filter({ hasText: 'My Bounce' })
+    .first();
+  await expect(row).toBeVisible();
+  await row.click();
+
+  // ⚠ **The pencil, not "Original Workflow".** That button opens a *blank* form
+  // — it is the way in to a new style — and the first cut of this test used it
+  // and correctly found nothing checked. Editing a saved style is the row's own
+  // control, which appears only once the selection is the producer's own.
+  await page.getByRole('button', { name: 'Edit My Bounce' }).click();
+  await expect(dialog).toBeVisible();
+  await expect(snare.getByRole('radio', { name: '2 & 4' })).toBeChecked();
+  await expect(rolls.getByRole('checkbox', { name: '16T' })).toBeChecked();
+  await expect(bass.getByRole('radio', { name: 'Answers the bassline' })).toBeChecked();
+  await expect(progressions.getByRole('checkbox', { name: 'i–VI–VII' })).toBeChecked();
+
+  // ...and the ones never touched are still inheriting rather than authored.
+  await expect(rolls.getByRole('checkbox', { name: '32' })).not.toBeChecked();
+  await expect(progressions.getByRole('checkbox', { name: 'i–iv', exact: true })).not.toBeChecked();
+});
