@@ -223,7 +223,7 @@
       "rampJitter": 4,
       "descendProb": 0.1,
       "gapProb": 0.18,
-      "pitchWalk": 1
+      "pitchWalk": 3
     },
     "bass808": {
       "role": "bassline",

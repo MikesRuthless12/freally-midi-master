@@ -2360,7 +2360,6 @@ fn kicks_per_bar(id: &str) -> f64 {
 }
 
 #[test]
-#[test]
 fn lowend_is_the_one_lane_whose_snare_lands_on_one_and_three() {
     // ⛔⛔ **The inversion, quoted**: *"Note the inverted convention: snares on 1
     // and 3, claps on the 8ths — not the usual backbeat-on-2&4 arrangement."*
