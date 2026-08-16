@@ -925,6 +925,7 @@ describe('applyPreset', () => {
       bars: 4,
       pins: NO_PINS,
       autoSync: true,
+      complexity: 'authored' as const,
       patterns: {},
       editedParts: [],
       mood: null,

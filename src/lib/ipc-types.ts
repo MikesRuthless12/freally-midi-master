@@ -7,6 +7,26 @@
 export type Articulation = "ghost" | "accent" | "legato" | "staccato" | "roll";
 
 /**
+ * How busy a reading of the style the producer asked for (TASK-125).
+ *
+ * ⛔⛔ **It scales WITHIN what the model authored and never overrides it**, and
+ * that is the whole design rather than a caveat. The roadmap states the rule:
+ * *"Complex must not mean 'wrong for the style': a rage vamp made busy is no
+ * longer rage, so the switch scales within each model's authored ranges rather
+ * than overriding them."* So this only ever biases a **choice the model already
+ * offered** — a draw inside an authored range, or a pick from an authored
+ * weighted list. A model that authors one value gets that value at every
+ * setting, which is the correct answer for a lane whose whole identity is a
+ * one-chord vamp.
+ *
+ * ⚠ **`Authored` is the default and means "exactly what the model says".** Every
+ * project written before this existed deserialises to it, so a saved seed keeps
+ * rebuilding the beat the producer heard — the same compatibility rule
+ * `auto_sync` follows.
+ */
+export type Complexity = "simple" | "authored" | "complex";
+
+/**
  * A model the app could not use, in the form the UI reports it (FR-001).
  *
  * A list rather than a count, because a badge saying "3" tells a user nothing
@@ -296,7 +316,15 @@ keyRoot: number, scale: Scale, swing: Swing, bars: number,
  * Halves the perceived tempo — the drums sit at half speed against the
  * stated BPM, which is how most trap and drill models are notated.
  */
-halfTime: boolean, humanize: Humanize, };
+halfTime: boolean, humanize: Humanize, 
+/**
+ * How busy a reading of the style to generate (TASK-125).
+ *
+ * ⚠ **`serde(default)` and it matters**: this arrives in a payload from the
+ * page and in a project file written before it existed, and absent has to
+ * mean [`Complexity::Authored`] rather than a parse error or a busier beat.
+ */
+complexity: Complexity, };
 
 /**
  * What a model asks for, before a seed picks among the options it offers.
@@ -377,7 +405,14 @@ keyRoot: number | null, scale: Scale | null, swing: number | null, bars: number 
  * producer writing a 3/4 clip in a 4/4 project has been more specific than
  * the project.
  */
-timeSigNum: number | null, timeSigDen: number | null, };
+timeSigNum: number | null, timeSigDen: number | null, 
+/**
+ * How busy a reading of the style to generate (TASK-125).
+ *
+ * ⚠ Absent is [`Complexity::Authored`], which is what every payload and
+ * every project written before the switch existed sends.
+ */
+complexity: Complexity | null, };
 
 /**
  * A full arrangement — what Song Mode produces and what the multi-track SMF

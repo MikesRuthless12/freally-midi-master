@@ -140,8 +140,8 @@ pub fn generate(
     let offset = number(counter, "registerOffset", 12.0, &mut param_rng) as i32;
     // ⛔ TASK-125: leans only where the model authored a range — see
     // `read::number_leaning`. A counter authored at a flat 0.5 stays 0.5.
-    let ratio =
-        number_leaning(counter, "densityRatio", 0.5, ctx.complexity, &mut param_rng).clamp(0.0, 4.0);
+    let ratio = number_leaning(counter, "densityRatio", 0.5, ctx.complexity, &mut param_rng)
+        .clamp(0.0, 4.0);
     let gaps_only = flag(counter, "fillGapsOnly", true);
 
     let echo = text(counter, "echoOffset")

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 
-import type { Pattern, Scale, Song } from '../lib/ipc-types';
+import type { Complexity, Pattern, Scale, Song } from '../lib/ipc-types';
 
 /**
  * The operation log undo and redo walk (FMM-U01).
@@ -58,6 +58,18 @@ export type Snapshot = {
     timeSigDen: number | null;
   };
   autoSync: boolean;
+  /**
+   * How busy a reading the producer asked for (TASK-125).
+   *
+   * ⛔ **In here for the same reason `seedPinned` is, and the compiler is what
+   * caught it missing.** `SAVED_FIELDS_MATCH_SNAPSHOT` is a compile-time check
+   * that the saved list and this type name the same fields — a field that saves
+   * and does not undo is the exact drift it exists to prevent, and it reported
+   * this one before any test ran. ⚠ The vitest case for it passed regardless,
+   * because vitest strips types without checking them: a type error is not a
+   * test failure, which is why `typecheck` is its own gate.
+   */
+  complexity: Complexity;
   /**
    * One clip per part (TASK-119).
    *

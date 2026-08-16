@@ -98,8 +98,18 @@ fn a_model_that_authored_one_value_is_unmoved_at_every_setting() {
     .expect("the model must parse");
 
     for part in [Part::Chords, Part::Melody, Part::Counter] {
-        let plain = parts::render(&exact, &ctx(Complexity::Simple), parts::Seeds::shared(7), part);
-        let busy = parts::render(&exact, &ctx(Complexity::Complex), parts::Seeds::shared(7), part);
+        let plain = parts::render(
+            &exact,
+            &ctx(Complexity::Simple),
+            parts::Seeds::shared(7),
+            part,
+        );
+        let busy = parts::render(
+            &exact,
+            &ctx(Complexity::Complex),
+            parts::Seeds::shared(7),
+            part,
+        );
         assert_eq!(
             plain, busy,
             "{part:?} moved on a model that authored one value for everything"

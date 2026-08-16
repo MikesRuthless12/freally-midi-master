@@ -26,6 +26,7 @@ const BASE: Snapshot = {
     timeSigDen: null,
   },
   autoSync: true,
+  complexity: 'authored' as const,
   patterns: {},
   editedParts: [],
   mood: null,
