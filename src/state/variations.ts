@@ -101,14 +101,24 @@ export type Variation = {
 export const keptKey = (part: Part, seed: string) => `${part}:${seed}`;
 
 /**
- * A `.mid` from the browser, kept to train on (TASK-040T).
- *
- * ⚠ **The patterns are the file's own split**, one per part, exactly as
- * `explorer_midi_split` answered — the same `Pattern` shape a kept generation is
- * regenerated into, so `engine::fit` measures a file and a take through one path
- * rather than two.
+ * ⚠ **There was a `KeptFile = { path, patterns }` here and the `path` was the
+ * map key.** Nothing ever read the field — `keptFiles` is keyed by path, so the
+ * value carried it a second time and the only reader was the line that chose the
+ * key. The map is `Record<path, Pattern[]>` now.
  */
-export type KeptFile = { path: string; patterns: Pattern[] };
+
+/**
+ * Every pattern in a kept-files map, in the order the files were kept.
+ *
+ * ⛔ **One definition, because the readout and the training set must agree.**
+ * `keptFilePatterns()` below reads it off the store; `StyleEditor` needs the
+ * same answer from a map it is already subscribed to, for the `18 / 30 kept`
+ * count. Written twice, a future change here — deduping identical patterns
+ * across files, say — would make the number in front of the producer disagree
+ * with what `user_model_train` is actually sent.
+ */
+export const patternsIn = (keptFiles: Record<string, Pattern[]>): Pattern[] =>
+  Object.values(keptFiles).flat();
 
 type VariationsState = {
   /** Every generation, per part, oldest first. */
@@ -172,9 +182,20 @@ type VariationsState = {
    * session's own working set; the paths are on disk and the gesture is one
    * press to redo.
    */
-  keptFiles: Record<string, KeptFile>;
-  /** Mark a file to train on, or unmark it. */
-  keepFile: (file: KeptFile, kept: boolean) => void;
+  keptFiles: Record<string, Pattern[]>;
+  /**
+   * Mark a file to train on, or unmark it.
+   *
+   * ⚠ **The patterns are the file's own split**, one per part, exactly as
+   * `explorer_midi_split` answered — the same `Pattern` shape a kept generation
+   * is regenerated into, so `engine::fit` measures a file and a take through one
+   * path rather than two.
+   *
+   * ⚠ **Read only when `kept` is true.** Unkeeping needs the path and nothing
+   * else, and the caller was building the whole split on every press including
+   * the one that only deletes a key.
+   */
+  keepFile: (path: string, kept: boolean, patterns?: Pattern[]) => void;
   /** Every pattern kept from a file, in the order the files were kept. */
   keptFilePatterns: () => Pattern[];
   /**
@@ -322,22 +343,22 @@ export const useVariations = create<VariationsState>((set, get) => ({
       .filter((entry) => kept[keptKey(entry.part, entry.seed)]);
   },
 
-  keepFile(file, kept) {
+  keepFile(path, kept, patterns) {
     // Removed rather than set to a falsy value, for the reason `keep` above
     // gives at length.
     set((state) => {
       const next = { ...state.keptFiles };
       if (kept) {
-        next[file.path] = file;
+        next[path] = patterns ?? [];
       } else {
-        delete next[file.path];
+        delete next[path];
       }
       return { keptFiles: next };
     });
   },
 
   keptFilePatterns() {
-    return Object.values(get().keptFiles).flatMap((file) => file.patterns);
+    return patternsIn(get().keptFiles);
   },
 
   async loadHistory() {

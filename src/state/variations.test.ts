@@ -270,38 +270,41 @@ describe('the variation history', () => {
    * somebody else's `.mid`, so a kept file has to be the material itself.
    */
   describe('a file kept to train on', () => {
-    const split = (path: string, parts: Pattern['part'][]) => ({
-      path,
-      patterns: parts.map((part, index) => clip(part, `${path}-${index}`, 140)),
-    });
+    /** Keep `path`, with one clip per named part — the file's own split. */
+    const keptFile = (path: string, parts: Pattern['part'][]) =>
+      useVariations.getState().keepFile(
+        path,
+        true,
+        parts.map((part, index) => clip(part, `${path}-${index}`, 140)),
+      );
 
     it('is kept and dropped through the same call', () => {
-      const file = split('/lib/riff.mid', ['melody', 'bass']);
-      useVariations.getState().keepFile(file, true);
+      keptFile('/lib/riff.mid', ['melody', 'bass']);
       expect(useVariations.getState().keptFilePatterns()).toHaveLength(2);
 
-      useVariations.getState().keepFile(file, false);
+      // ⚠ **No patterns on the way out**, which is the shape of the call: the
+      // path is the key, so unkeeping needs nothing else.
+      useVariations.getState().keepFile('/lib/riff.mid', false);
       expect(useVariations.getState().keptFilePatterns()).toEqual([]);
     });
 
     it('counts once however many times it is kept', () => {
       // ⛔ A fit measures a distribution: the same eight bars counted three times
       // reports the producer's taste as three times more certain than it is.
-      const file = split('/lib/riff.mid', ['melody', 'bass']);
-      useVariations.getState().keepFile(file, true);
-      useVariations.getState().keepFile(file, true);
-      useVariations.getState().keepFile(file, true);
+      keptFile('/lib/riff.mid', ['melody', 'bass']);
+      keptFile('/lib/riff.mid', ['melody', 'bass']);
+      keptFile('/lib/riff.mid', ['melody', 'bass']);
       expect(useVariations.getState().keptFilePatterns()).toHaveLength(2);
     });
 
     it('keeps two different files side by side', () => {
-      useVariations.getState().keepFile(split('/lib/a.mid', ['melody']), true);
-      useVariations.getState().keepFile(split('/lib/b.mid', ['drums', 'bass']), true);
+      keptFile('/lib/a.mid', ['melody']);
+      keptFile('/lib/b.mid', ['drums', 'bass']);
       expect(useVariations.getState().keptFilePatterns()).toHaveLength(3);
     });
 
     it('is forgotten by reset, like the rest of the session', () => {
-      useVariations.getState().keepFile(split('/lib/a.mid', ['melody']), true);
+      keptFile('/lib/a.mid', ['melody']);
       useVariations.getState().reset();
       expect(useVariations.getState().keptFilePatterns()).toEqual([]);
     });
@@ -315,7 +318,7 @@ describe('the variation history', () => {
           entryFor(clip('drums', '9', 140), { mood: null, base: null, pins: NO_PINS }, 9),
         );
       useVariations.getState().keep('drums', '9', true);
-      useVariations.getState().keepFile(split('/lib/a.mid', ['melody']), true);
+      keptFile('/lib/a.mid', ['melody']);
 
       expect(useVariations.getState().keptEntries()).toHaveLength(1);
       expect(useVariations.getState().keptFilePatterns()).toHaveLength(1);

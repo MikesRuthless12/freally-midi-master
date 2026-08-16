@@ -238,12 +238,18 @@ export function MidiPreview() {
           className="btn-ghost btn-toggle midi__train"
           aria-pressed={keptHere}
           data-on={keptHere}
-          onClick={() =>
-            keepFile(
-              { path: selected, patterns: midiSplit.map((split) => split.pattern) },
-              !keptHere,
-            )
-          }
+          onClick={() => {
+            // ⚠ The split is built only when keeping. Unkeeping deletes a key,
+            // so mapping the whole file's patterns for that press was work for
+            // a value the store throws away.
+            if (keptHere) keepFile(selected, false);
+            else
+              keepFile(
+                selected,
+                true,
+                midiSplit.map((split) => split.pattern),
+              );
+          }}
         >
           <GraduationCap size={12} aria-hidden="true" />
           {t('explorer.midiTrain')}

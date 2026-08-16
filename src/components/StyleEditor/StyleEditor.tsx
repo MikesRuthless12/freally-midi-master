@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { invoke } from '../../lib/ipc';
 import { idFor } from './id';
 import { useSession } from '../../state/session';
-import { keptKey, useVariations } from '../../state/variations';
+import { keptKey, patternsIn, useVariations } from '../../state/variations';
 import type { Pattern, RosterEntry, Scale, SessionDefaults } from '../../lib/ipc-types';
 import './StyleEditor.css';
 
@@ -186,15 +186,16 @@ export function StyleEditor({
   // range's edge" stops being true — so counting a four-part `.mid` as one would
   // put a number in front of the producer that the engine does not use.
   //
-  // ⚠ **Counted through `keptFilePatterns`, the same selector that builds the
-  // set actually sent to `user_model_train`** (line ~364). Re-deriving the sum
-  // here meant the number in front of the producer and the training set were two
-  // expressions: any future change to that selector — deduping identical
-  // patterns across files, say — would have made the readout lie. Subscribed to
-  // `keptFiles` for the re-render, read through the selector for the answer.
+  // ⚠ **Counted through `patternsIn`, which is what `keptFilePatterns()` — the
+  // set actually sent to `user_model_train` — is built from.** Re-deriving the
+  // sum here meant the number in front of the producer and the training set were
+  // two expressions: any future change to one, deduping identical patterns
+  // across files say, would have made the readout lie. Passing the subscribed
+  // map rather than reading `getState()` inside keeps the memo's dependency real
+  // as well as its answer.
   const keptFiles = useVariations((s) => s.keptFiles);
   const keptCount = useMemo(
-    () => keptTakes.length + useVariations.getState().keptFilePatterns().length,
+    () => keptTakes.length + patternsIn(keptFiles).length,
     [keptTakes, keptFiles],
   );
 
