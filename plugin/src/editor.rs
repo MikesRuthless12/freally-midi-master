@@ -674,31 +674,17 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
             );
         }
 
-        // ⛔ **A `.mid` the producer already has, as a trainable pattern**
-        // (TASK-040T). Mike: *"you should be able to drag in MIDI from the file
-        // explorer to train your original artist/workflow."* It answers a
-        // `Pattern` and nothing else, which is the requirement rather than a
-        // convenience: the fit reads `Pattern`, so a model trained from files
-        // cannot drift from one trained from generations.
-        "explorer_midi" => {
-            let path = request.args["path"].as_str().unwrap_or_default();
-            let part = match serde_json::from_value(request.args["part"].clone()) {
-                Ok(part) => part,
-                Err(_) => return Some(Err("that is not a part".to_owned())),
-            };
-            return Some(
-                crate::explorer::midi_pattern(&shared.explorer, path, part)
-                    .inspect(|_| {
-                        // ⚠ The MIDI half of the same moment `preview_load`
-                        // records. A `.mid` is never decoded by the audio
-                        // player, so without this the history would show only
-                        // the samples a producer auditioned and none of the
-                        // loops they opened.
-                        let _ = crate::recent::note(path);
-                    })
-                    .and_then(|p| serde_json::to_value(p).map_err(|e| e.to_string())),
-            );
-        }
+        // ⛔ **`explorer_midi` is gone, with the one-part read it served**
+        // (2026-08-15). It answered a single `Pattern` for the tab a `.mid` was
+        // dropped on; that road now splits like the audio one, so its last caller
+        // went with it. ▶ **Removed rather than kept for TASK-040T**, because
+        // this repo has written up "a bridge command nothing calls" as a defect
+        // twice — `e2e/midi-to-generator.spec.ts` and `e2e/browser-panel.spec.ts`
+        // both record *"`explorer_midi` answers and nothing calls it … no gate in
+        // the repo asks 'is it wired up'"* — and leaving it would be shipping the
+        // exact thing those notes are about. When the training road lands it
+        // wants `explorer_midi_split`'s `SplitPart`s, which already carry the
+        // per-part routing reason a fit would need.
 
         // ⛔⛔ **The sample-copy pair, and the paths come from the PLUGIN.**
         // These two shipped in `bridge.rs` for an afternoon taking a page-supplied
@@ -918,10 +904,10 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
                         // ⚠ It was missing, and the page already called
                         // `loadRecent()` here on the strength of a comment
                         // saying the plugin had written the entry. It had not:
-                        // `note` ran only from `explorer_midi`, which is the
-                        // *drop* into a part — so a producer who clicked twenty
-                        // loops and imported one saw a history of the one, which
-                        // is the recording rule backwards.
+                        // `note` ran only from `explorer_midi` — the one-part
+                        // *drop*, since removed — so a producer who clicked
+                        // twenty loops and imported one saw a history of the
+                        // one, which is the recording rule backwards.
                         let _ = crate::recent::note(path);
                     })
                     .and_then(|parts| serde_json::to_value(parts).map_err(|e| e.to_string())),
@@ -1034,8 +1020,10 @@ fn window_command(request: &Request, shared: &SharedState) -> Option<Result<Valu
         // ── The browser's history (TASK-058) ─────────────────────────────
         //
         // ⛔ Read-only from the page. Nothing adds to the history over the
-        // bridge: entries only ever come from `preview_load` and `explorer_midi`
-        // above, which are already bounded by `Explorer::contains`. A
+        // bridge: entries only ever come from `preview_load` and
+        // `explorer_midi_split` above, which are already bounded by
+        // `Explorer::contains` — and both write it only after every guard in
+        // `read_midi_bytes` / `checked_audio` has passed. A
         // `recent_add` would be a way for the page to name an arbitrary path and
         // have it stored and shown as somewhere the producer had been.
         "recent_list" => {

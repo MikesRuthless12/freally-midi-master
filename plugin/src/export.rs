@@ -273,11 +273,7 @@ impl Exports {
     /// every tick — a toast that will not go away. `Running` stays, because it
     /// is not an outcome.
     pub fn take_status(&self) -> Status {
-        let Ok(mut slot) = self.status.lock() else {
-            return Status::Failed {
-                reason: "the export state is unusable".to_owned(),
-            };
-        };
+        let mut slot = crate::held(&self.status);
         match &*slot {
             Status::Running => Status::Running,
             other => {
@@ -297,10 +293,7 @@ impl Exports {
     /// papers over. A third exporter — the audio stems this module's own note
     /// promises — gets both for free.
     fn claim(&self) -> Result<Claim, String> {
-        let mut slot = self
-            .status
-            .lock()
-            .map_err(|_| "the export state is unusable".to_owned())?;
+        let mut slot = crate::held(&self.status);
         if *slot == Status::Running {
             return Err("an export is already open — finish that one first".to_owned());
         }
@@ -316,9 +309,7 @@ impl Exports {
 fn run_dialog(claim: Claim, job: impl FnOnce() -> Status + Send + 'static) {
     std::thread::spawn(move || {
         let status = job();
-        if let Ok(mut slot) = claim.0.lock() {
-            *slot = status;
-        }
+        *crate::held(&claim.0) = status;
     });
 }
 

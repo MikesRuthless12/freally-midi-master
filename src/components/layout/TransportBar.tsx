@@ -88,7 +88,7 @@ function ThemeToggle() {
  */
 function Position() {
   const patterns = useSession((s) => s.patterns);
-  const partsOff = useUi((s) => s.partsOff);
+  const partsOff = useSession((s) => s.partsOff);
   const activeTab = useUi((s) => s.activeTab);
   const playhead = useSession((s) => s.playhead);
 
@@ -136,7 +136,7 @@ export function TransportControls() {
   const toggleLooping = useUi((s) => s.toggleLooping);
 
   const patterns = useSession((s) => s.patterns);
-  const partsOff = useUi((s) => s.partsOff);
+  const partsOff = useSession((s) => s.partsOff);
   const activeTab = useUi((s) => s.activeTab);
   // Song is not a part, so it has no slot — the arrangement is what is armed.
   const song = useSong((s) => s.song);

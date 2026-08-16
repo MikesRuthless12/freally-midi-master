@@ -99,13 +99,19 @@ pub struct Chord {
 /// The progression a file plays, or nothing if it has no harmony to read.
 pub fn progression(samples: &[f32], rate: u32) -> Vec<Chord> {
     let (low_hz, high_hz) = HARMONY_BAND;
-    let filtered = bands::band(samples, rate, low_hz, high_hz);
 
     // ⚠ Decimated to about 6 kHz, where the highest note in the bank (988 Hz) and
     // its first harmonic still fit. The Goertzel bank is `notes · window`, and
     // both halves shrink with the rate.
+    //
+    // ⛔ **One walk, because the band-limited buffer had no other reader.** This
+    // was `band(...)` into a full-length `Vec` and then `decimate(&that, …)`,
+    // which allocated 11.5 MB on a sixty-second 48 kHz file purely to hand it to
+    // the next line — on the editor thread of somebody's DAW. `band_decimate`
+    // runs the same two cascades in the same order over the same samples, so it
+    // is the same answer bit for bit; only the intermediate is gone.
     let factor = ((rate as f32 / 6_000.0).floor() as usize).max(1);
-    let (small, small_rate) = bands::decimate(&filtered, rate, factor);
+    let (small, small_rate) = bands::band_decimate(samples, rate, low_hz, high_hz, factor);
 
     let window = ((small_rate as f32 * FRAME_SECONDS).round() as usize).max(16);
     let hop = ((small_rate as f32 * HOP_SECONDS).round() as usize).max(1);

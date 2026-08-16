@@ -3,13 +3,7 @@ import { AudioWaveform, Drum, ListMusic, Music2, Piano, Waves, X } from 'lucide-
 import type { LucideIcon } from 'lucide-react';
 import { GENERATOR_TABS, useUi, type GeneratorTab } from '../../state/ui';
 import type { Lane, Part } from '../../lib/ipc-types';
-import {
-  armCurrentPattern,
-  BAR_CHOICES,
-  GENERATED_PARTS,
-  TAB_PART,
-  useSession,
-} from '../../state/session';
+import { BAR_CHOICES, GENERATED_PARTS, TAB_PART, useSession } from '../../state/session';
 import { DrumGrid } from '../DrumGrid/DrumGrid';
 import { PianoRoll } from '../PianoRoll/PianoRoll';
 import { SongTimeline } from '../SongTimeline/SongTimeline';
@@ -63,8 +57,8 @@ function GeneratorTabs() {
   const activeTab = useUi((s) => s.activeTab);
   const setActiveTab = useUi((s) => s.setActiveTab);
   const patterns = useSession((s) => s.patterns);
-  const partsOff = useUi((s) => s.partsOff);
-  const togglePart = useUi((s) => s.togglePart);
+  const partsOff = useSession((s) => s.partsOff);
+  const togglePart = useSession((s) => s.togglePart);
   const clearPart = useSession((s) => s.clearPart);
   const importMidi = useSession((s) => s.importMidi);
   const importAudio = useSession((s) => s.importAudio);
@@ -128,12 +122,14 @@ function GeneratorTabs() {
               if (midi === null && sample === null) return;
               event.preventDefault();
 
-              // ⛔⛔ **An audio drop is a SPLIT, not "read it as this part".**
-              // There is no such thing as reading a waveform "as the bass": what
-              // the extractor knows is what it measured, so every part it found
-              // is opened and the tab lands on the one the producer aimed at if
-              // it is among them. The MIDI road keeps its "I know what this is"
-              // shortcut because a `.mid` really can be read as one part.
+              // ⛔⛔ **A drop on a generator is a SPLIT, not "read it as this
+              // part" — for a `.wav` and for a `.mid` alike.** Mike: *"can you
+              // ensure that you can drag the audio/midi of any sample into any of
+              // the generators and it will split them all the same exact way?"*
+              // There is no such thing as reading a waveform "as the bass", and a
+              // layered `.mid` read wholly into Melody squashes its own bass and
+              // counter into that clip. The tab the producer aimed at decides
+              // where the split *lands*, not what gets read.
               if (sample !== null && part !== undefined) {
                 void importAudio(sample, part);
                 return;
@@ -142,9 +138,8 @@ function GeneratorTabs() {
               // ⛔⛔ **Song takes the whole file as an arrangement** (TASK-058D).
               // Mike, 2026-08-10: *"could you put the midi for the entire song
               // into the 'Song' tab and allow them to pick which parts they want
-              // for the generators."* The other five tabs still take the file
-              // into that one generator, which is the "I know what this is"
-              // shortcut; Song is the "show me what is in it" route.
+              // for the generators."* A generator tab gets the same file split
+              // across the five slots; Song gets it as sections on a timeline.
               if (part === undefined) {
                 void importSong(midi);
                 return;
@@ -192,19 +187,15 @@ function GeneratorTabs() {
                   lane: t(`tabs.${tab}`),
                 })}
                 title={t(on ? 'kit.muteLane' : 'kit.unmuteLane', { lane: t(`tabs.${tab}`) })}
-                onClick={() => {
-                  togglePart(part);
-                  // ⛔ Re-arm here rather than from the store: the schedule holds
-                  // one merged clip, so a switch that changed only the UI would
-                  // leave Play sounding the previous combination — a control that
-                  // looks like it did something and did not.
-                  //
-                  // ⛔⛔ **Never on the Song tab.** `TAB_PART.song` is `null`, so
-                  // `armCurrentPattern` falls through to *disarm* — generate a
-                  // song, hit a part switch, and the whole arrangement goes
-                  // silent with the timeline still on screen and Play still lit.
-                  if (activeTab !== 'song') armCurrentPattern();
-                }}
+                // ⛔ **The re-arm is the store's, not this button's** (2026-08-15).
+                // It was written here because `partsOff` lived in `ui.ts` and
+                // this dot was its only writer. Since the field moved into the
+                // session document it has three more — undo, redo and a project
+                // restore — none of which come through here, so a hand-written
+                // call could only ever cover one of the four. `session.ts`'s arm
+                // subscriber now watches the field itself, Song-tab guard and
+                // all.
+                onClick={() => togglePart(part)}
               />
             )}
 
@@ -233,13 +224,12 @@ function GeneratorTabs() {
                 className="tab-clear"
                 aria-label={t('stage.clearOne', { part: t(`tabs.${tab}`) })}
                 title={t('stage.clearOne', { part: t(`tabs.${tab}`) })}
-                onClick={() => {
-                  clearPart(part);
-                  // Re-armed for the same reason the mute switch is: the
-                  // schedule holds one merged clip, so clearing a part without
-                  // re-arming leaves Play sounding the one that is gone.
-                  if (activeTab !== 'song') armCurrentPattern();
-                }}
+                // ⚠ **The re-arm is the store's**, like the mute dot above:
+                // `clearPart` writes `patterns`, which the arm subscriber
+                // watches, Song-tab guard and all. A second call here was the
+                // same rule written twice, and the copy could not undo the
+                // subscriber's own decision anyway.
+                onClick={() => clearPart(part)}
               >
                 <X size={11} aria-hidden="true" />
               </button>

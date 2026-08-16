@@ -34,6 +34,7 @@ const BASE: Snapshot = {
   mutedLanes: [],
   soloedLanes: [],
   lockedLanes: [],
+  partsOff: [],
   edited: false,
   song: null,
   songEdited: false,

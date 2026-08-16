@@ -226,7 +226,9 @@
     "genre": "Género",
     "noneInGenre": "Todavía no hay artistas en {{name}}.",
     "standard": "Estándar",
-    "inherited": "Heredado"
+    "inherited": "Heredado",
+    "era": "Época",
+    "noneInEra": "Ningún artista del listado trabajó en esos años."
   },
   "lanes": {
     "kick": "Bombo",

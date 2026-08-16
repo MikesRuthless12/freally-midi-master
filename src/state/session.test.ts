@@ -232,6 +232,57 @@ describe('auto-sync', () => {
     });
   });
 
+  /**
+   * TASK-127's switch-off, saved (2026-08-15).
+   *
+   * ⛔⛔ **The gap this closes was silent and it sent the wrong notes.** This
+   * lived in `ui.ts` and was never sent, while `mutedLanes` — the drum half of
+   * the same feature — always was. So an import that switched the bassline off,
+   * *because the file it came from has none*, saved `patterns.bass` and lost the
+   * switch: reopening the project played a bass the imported record does not
+   * contain, which is the exact failure TASK-058H's switch-off exists to
+   * prevent. The same `lastSaved` harness as the mutes above, for the same
+   * reason — what has to hold is that it reaches the payload, not that the store
+   * holds it.
+   */
+  describe('generators switched off', () => {
+    it('is saved with the project, and switching the last one back on is expressible', () => {
+      useSession.getState().togglePart('bass');
+      vi.advanceTimersByTime(400);
+      expect(lastSaved().partsOff).toEqual(['bass']);
+
+      // ⛔ The same empty-list case the mutes were written around: all five back
+      // on has to reach the plugin as `[]` rather than as an absent field, or the
+      // last switch can never be lifted.
+      useSession.getState().togglePart('bass');
+      vi.advanceTimersByTime(400);
+      expect(lastSaved().partsOff).toEqual([]);
+    });
+
+    it('saves the same bytes whichever order the switches were pressed in', () => {
+      // ⛔⛔ **The defect this field arrived with.** Appended in click order,
+      // switching off bass-then-counter and counter-then-bass wrote *different
+      // project payloads for the same state* — which is verbatim what
+      // `toggledLanes`' own doc says its sort exists to prevent, and it
+      // disagreed with `importSplit`, the other writer, which has always
+      // filtered `GENERATED_PARTS`. One field, one order.
+      useSession.getState().togglePart('bass');
+      useSession.getState().togglePart('counter');
+      vi.advanceTimersByTime(400);
+      const pressedOneWay = lastSaved().partsOff;
+
+      useSession.setState({ partsOff: [] });
+      useSession.getState().togglePart('counter');
+      useSession.getState().togglePart('bass');
+      vi.advanceTimersByTime(400);
+
+      expect(lastSaved().partsOff).toEqual(pressedOneWay);
+      // ⚠ And it is the *engine's* order — drums, chords, melody, counter, bass
+      // — not the alphabet, because that is what `importSplit` writes.
+      expect(pressedOneWay).toEqual(['counter', 'bass']);
+    });
+  });
+
   describe('per-lane locks and reroll (TASK-044)', () => {
     /** A drum pattern whose kick and hat both differ per seed. */
     const take = (seed: string): Pattern => ({
@@ -837,6 +888,7 @@ describe('applyPreset', () => {
       mutedLanes: [],
       soloedLanes: [],
       lockedLanes: [],
+      partsOff: [],
       edited: false,
       song: null,
       songEdited: false,
@@ -1648,16 +1700,21 @@ describe('an import switches off what it did not find', () => {
   };
 
   beforeEach(() => {
-    useSession.setState({ patterns: {}, mutedLanes: [], editedParts: [], edited: false });
-    useUi.setState({ partsOff: [] });
+    useSession.setState({
+      patterns: {},
+      mutedLanes: [],
+      partsOff: [],
+      editedParts: [],
+      edited: false,
+    });
   });
 
   it('a generator the split produced nothing for is switched off', () => {
     useSession.getState().importSplit([drumsOn(['kick', 'snare']), melody]);
     // ⚠ Bass, chords and counter were not in the split. Left armed they would be
     // three tabs a producer presses Play on and hears nothing from.
-    expect(useUi.getState().partsOff.sort()).toEqual(['bass', 'chords', 'counter']);
-    expect(useUi.getState().partsOff).not.toContain('drums');
+    expect(useSession.getState().partsOff.sort()).toEqual(['bass', 'chords', 'counter']);
+    expect(useSession.getState().partsOff).not.toContain('drums');
   });
 
   it('a part the producer generated earlier is switched off too, and not deleted', () => {
@@ -1667,7 +1724,7 @@ describe('an import switches off what it did not find', () => {
     // makes the arrangement play something the imported file does not contain.
     useSession.setState({ patterns: { chords: { ...PATTERN, part: 'chords' } } });
     useSession.getState().importSplit([drumsOn(['kick'])]);
-    expect(useUi.getState().partsOff).toContain('chords');
+    expect(useSession.getState().partsOff).toContain('chords');
     // ⚠ Switched off, never deleted — the clip is untouched and one click back.
     expect(useSession.getState().patterns.chords).toBeDefined();
   });

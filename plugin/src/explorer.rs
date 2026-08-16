@@ -930,31 +930,19 @@ fn is_audio(path: &Path) -> bool {
 /// call rather than the memory.
 const MAX_MIDI_BYTES: u64 = 1 << 20;
 
-/// Read a `.mid` from the producer's own library as a trainable pattern
-/// (TASK-040T).
-///
-/// ⛔ **The same two guards `waveform` needs, and for the same reasons.** The
-/// path arrives from the page: `refuse_remote` first, because a UNC path makes
-/// the SMB redirector authenticate outward before any containment check could
-/// refuse it; then containment, because the module's claim is that browsing
-/// cannot leave the folders the producer added, and a reader that ignored it
-/// would be a second door out of the library.
-pub fn midi_pattern(
-    explorer: &Explorer,
-    path: &str,
-    part: engine::pattern::Part,
-) -> Result<engine::pattern::Pattern, String> {
-    let (bytes, name) = read_midi_bytes(explorer, path)?;
-    engine::smf_read::smf_to_pattern(&bytes, part, &name)
-}
-
 /// The bytes of a `.mid` in the library, and the name to give what comes out.
 ///
-/// ⛔ **Every guard the two MIDI commands share, in one place.** They were about
-/// to be two copies of the same four checks — remote, containment, extension,
-/// size — and this codebase's own record is that the second copy is the one that
+/// ⛔ **Every guard a MIDI reader needs, in one place.** There were about to be
+/// two copies of the same four checks — remote, containment, extension, size —
+/// and this codebase's own record is that the second copy is the one that
 /// drifts. `explorer::AUDIO` and the Open dialog's filter had exactly that shape
 /// until `engine::formats` took it away.
+///
+/// ⚠ **`midi_pattern` is gone with the one-part read** (2026-08-15). It shared
+/// these guards and answered a single `Pattern` for the tab a `.mid` was dropped
+/// on; that road now splits like the audio one, so it had no caller left. When
+/// TASK-040T's training road lands it wants [`midi_split`]'s `SplitPart`s, which
+/// already carry the per-part routing reason, rather than a second door in.
 fn read_midi_bytes(explorer: &Explorer, path: &str) -> Result<(Vec<u8>, String), String> {
     let file = Path::new(path);
     // ⛔ First, before any syscall touches it — the reason `open` gives.
@@ -991,10 +979,9 @@ fn read_midi_bytes(explorer: &Explorer, path: &str) -> Result<(Vec<u8>, String),
 /// ⛔ Mike, 2026-08-10: *"split it into the proper generators if it is a layered
 /// melody file with the bass and countermelody included."*
 ///
-/// ⚠ **The same two guards, in the same order, as every other path command.**
-/// The only difference from [`midi_pattern`] is which engine function reads the
-/// bytes — so the checks are lifted into [`read_midi_bytes`] rather than written
-/// twice, because a second copy is the one that would drift.
+/// ⚠ **The same two guards, in the same order, as every other path command** —
+/// lifted into [`read_midi_bytes`] rather than written here, because a second
+/// copy is the one that would drift.
 pub fn midi_split(
     explorer: &Explorer,
     path: &str,
@@ -1547,19 +1534,17 @@ mod tests {
         // `refuse_remote` and not containment, and a security review had to
         // find it. A third door — this one — is exactly where that repeats, so
         // both halves are pinned here rather than trusted.
-        use engine::pattern::Part;
-
+        //
+        // ⚠ **Through `midi_split` since 2026-08-15**, when the one-part
+        // `midi_pattern` was removed with the road that called it. Both went
+        // through `read_midi_bytes`, which is where the guards actually live, so
+        // this covers the same code by the surviving door.
         let explorer = Explorer::default();
 
         // The remote guard, and it must fire *before* containment — a UNC
         // string makes the SMB redirector authenticate outward on the first
         // syscall, so refusing afterwards is cold comfort.
-        let remote = midi_pattern(
-            &explorer,
-            "\\\\evil.example.com\\share\\a.mid",
-            Part::Melody,
-        )
-        .unwrap_err();
+        let remote = midi_split(&explorer, "\\\\evil.example.com\\share\\a.mid").unwrap_err();
         assert!(
             !remote.contains("sample library"),
             "a UNC path must be refused by the remote guard first: {remote}"
@@ -1572,14 +1557,8 @@ mod tests {
         let outside = dir.join("loop.mid");
         std::fs::write(&outside, b"MThd").unwrap();
 
-        let uncontained =
-            midi_pattern(&explorer, outside.to_str().unwrap(), Part::Melody).unwrap_err();
-        let missing = midi_pattern(
-            &explorer,
-            dir.join("nope.mid").to_str().unwrap(),
-            Part::Melody,
-        )
-        .unwrap_err();
+        let uncontained = midi_split(&explorer, outside.to_str().unwrap()).unwrap_err();
+        let missing = midi_split(&explorer, dir.join("nope.mid").to_str().unwrap()).unwrap_err();
         assert_eq!(
             uncontained, missing,
             "existing and missing must be indistinguishable outside the library"

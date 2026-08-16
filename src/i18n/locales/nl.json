@@ -226,7 +226,9 @@
     "genre": "Stijl",
     "noneInGenre": "Nog geen artiesten in {{name}}.",
     "standard": "Standaard",
-    "inherited": "Overgeërfd"
+    "inherited": "Overgeërfd",
+    "era": "Tijdperk",
+    "noneInEra": "Geen artiesten in de lijst waren actief in die jaren."
   },
   "lanes": {
     "kick": "Basdrum",

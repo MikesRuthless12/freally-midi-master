@@ -271,13 +271,14 @@ impl Progress {
 
     /// Is this render still the one the slot is holding?
     ///
-    /// ⚠ A poisoned lock answers **no**. Something has already panicked with
-    /// this mutex held, and the honest response to "should I keep spending the
-    /// DAW's CPU" is to stop.
+    /// ⚠ **The generation is what disowns a render, not the lock.** An earlier
+    /// cut answered "no" whenever the mutex was poisoned, on the reasoning that
+    /// something had already panicked and the DAW's CPU should stop being spent.
+    /// A panic elsewhere says nothing about whether *this* render is still
+    /// wanted, and the id below already answers that exactly — see `crate::held`
+    /// for why the slot is trustworthy either way.
     fn wanted(&self) -> bool {
-        self.slot
-            .lock()
-            .is_ok_and(|slot| matches!(&*slot, Stage::Preparing(id) if *id == self.id))
+        matches!(&*crate::held(&self.slot), Stage::Preparing(id) if *id == self.id)
     }
 
     /// A handle with nobody watching, for tests that only care about the files.
@@ -483,7 +484,7 @@ impl Drags {
         // it takes its own folder back and publishes nothing.
         let mine = self.next_id.fetch_add(1, Ordering::Relaxed);
         let slot = {
-            let mut slot = self.lock()?;
+            let mut slot = crate::held(&self.slot);
             // Anything already prepared is dropped here rather than reused. A
             // producer who starts a second gesture has changed their mind about
             // what they are dragging, and handing them the previous selection is
@@ -516,12 +517,11 @@ impl Drags {
             // the same pairing for. But publishing into a slot that has moved
             // on is the other half — those files are nobody's, and nothing
             // would ever delete them.
-            if let Ok(mut slot) = slot.lock() {
-                if matches!(*slot, Stage::Preparing(waiting) if waiting == mine) {
-                    *slot = outcome;
-                } else {
-                    discard(outcome);
-                }
+            let mut slot = crate::held(&slot);
+            if matches!(*slot, Stage::Preparing(waiting) if waiting == mine) {
+                *slot = outcome;
+            } else {
+                discard(outcome);
             }
         });
         Ok(())
@@ -535,11 +535,7 @@ impl Drags {
     /// failure is taken, because a message left in place re-announces itself on
     /// every tick.
     pub fn status(&self) -> Status {
-        let Ok(mut slot) = self.lock() else {
-            return Status::Failed {
-                reason: LOCK_LOST.to_owned(),
-            };
-        };
+        let mut slot = crate::held(&self.slot);
         match &*slot {
             Stage::Idle => Status::Idle,
             Stage::Preparing(_) => Status::Preparing {
@@ -577,7 +573,7 @@ impl Drags {
     /// needs them.
     pub fn start(&self, preview: Option<Preview>) -> Result<Dropped, String> {
         let prepared = {
-            let mut slot = self.lock()?;
+            let mut slot = crate::held(&self.slot);
             match std::mem::replace(&mut *slot, Stage::Idle) {
                 Stage::Ready(prepared) => prepared,
                 Stage::Preparing(waiting) => {
@@ -669,22 +665,12 @@ impl Drags {
     /// longer its own and takes its own folder back. Releasing before the bytes
     /// exist is the single most likely abandonment there is.
     pub fn cancel(&self) {
-        if let Ok(mut slot) = self.lock() {
-            discard(std::mem::replace(&mut *slot, Stage::Idle));
-        }
-    }
-
-    /// ⚠ **One lock idiom, so the poisoning policy is one thing to read.** The
-    /// first cut had three — this helper, a `let Ok(..) else`, and an `if let`
-    /// that silently did nothing — which meant working out what a poisoned
-    /// mutex does here took reading all three.
-    fn lock(&self) -> Result<std::sync::MutexGuard<'_, Stage>, String> {
-        self.slot.lock().map_err(|_| LOCK_LOST.to_owned())
+        discard(std::mem::replace(
+            &mut *crate::held(&self.slot),
+            Stage::Idle,
+        ));
     }
 }
-
-/// What a poisoned slot reads as. One string, because it reaches the page.
-const LOCK_LOST: &str = "the drag state is unusable";
 
 /// Give back the folder a stage was holding, if it was holding one.
 fn discard(stage: Stage) {
@@ -1081,12 +1067,12 @@ mod tests {
     ///
     /// ⚠ The poison is deliberately ignored: a sibling test failing while
     /// holding this must not turn every other test in the module red as well,
-    /// which would bury the one real failure.
+    /// which would bury the one real failure. ⛔ That is the same answer
+    /// [`crate::held`] gives for the four job mailboxes and the same argument,
+    /// so it is that function rather than a sixth hand-rolled copy of its body.
     fn spool_guard() -> std::sync::MutexGuard<'static, ()> {
         static SPOOL: Mutex<()> = Mutex::new(());
-        SPOOL
-            .lock()
-            .unwrap_or_else(|poisoned| poisoned.into_inner())
+        crate::held(&SPOOL)
     }
 
     /// Every spool folder this process owns right now.

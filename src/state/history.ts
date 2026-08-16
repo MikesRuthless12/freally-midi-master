@@ -119,6 +119,17 @@ export type Snapshot = {
    */
   lockedLanes: string[];
   /**
+   * Generators switched off for playback (TASK-127).
+   *
+   * ⛔ Here for the same rule, and it arrived late: this lived in `ui.ts` and
+   * was neither saved nor undoable, so an import that switched the bassline off
+   * — because the file it came from has none — handed the switch back on when
+   * the project was reopened, with `patterns.bass` still saved beside it. The
+   * project then played a bass the imported record does not contain, which is
+   * the failure the switch-off exists to prevent.
+   */
+  partsOff: Pattern['part'][];
+  /**
    * The arrangement (TASK-063B).
    *
    * ⛔ **In the session's own snapshot rather than in a second stack, and that
@@ -162,6 +173,7 @@ const DISCRETE: readonly Field[] = [
   'mutedLanes',
   'soloedLanes',
   'lockedLanes',
+  'partsOff',
   'song',
 ];
 

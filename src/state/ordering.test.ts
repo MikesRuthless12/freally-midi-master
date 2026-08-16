@@ -103,6 +103,11 @@ it('still reads the chips back when the save fails', async () => {
  * the old list, and a chords clip the producer generated earlier is armed and
  * sounding under an import that contains none — which is exactly what the
  * switch-off exists to prevent.
+ *
+ * ⚠ **Still the test after `partsOff` moved into the session store**, where one
+ * `set` now writes both and there is no order left to get wrong. It holds the
+ * property rather than the sequencing, so it survives the mechanism changing and
+ * would fail again if the two were ever pulled apart.
  */
 describe('an import switches parts off before it arms anything', () => {
   const clip = (part: string) => ({
@@ -131,11 +136,11 @@ describe('an import switches parts off before it arms anything', () => {
   beforeEach(async () => {
     invoke.mockImplementation(() => Promise.resolve(null));
     const { useUi } = await import('./ui');
-    useUi.setState({ partsOff: [], activeTab: 'drums' });
+    useSession.setState({ partsOff: [] });
+    useUi.setState({ activeTab: 'drums' });
   });
 
   it('never arms a clip the split did not produce', async () => {
-    const { useUi } = await import('./ui');
     // The producer made a chords part earlier; the import contains none.
     useSession.setState({ patterns: { chords: clip('chords') as never }, mutedLanes: [] });
     // ⚠ **Cleared after the setup, because the setup arms too** — writing
@@ -153,6 +158,6 @@ describe('an import switches parts off before it arms anything', () => {
       .filter(([name]: unknown[]) => name === 'arm_pattern')
       .flatMap(([, args]: unknown[]) => (args as { patterns: { part: string }[] }).patterns);
     expect(armed.map((pattern) => pattern.part)).not.toContain('chords');
-    expect(useUi.getState().partsOff).toContain('chords');
+    expect(useSession.getState().partsOff).toContain('chords');
   });
 });

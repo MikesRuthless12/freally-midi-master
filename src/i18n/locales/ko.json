@@ -226,7 +226,9 @@
     "genre": "장르",
     "noneInGenre": "{{name}}에서 활동하는 아티스트가 아직 없습니다.",
     "standard": "표준",
-    "inherited": "상속됨"
+    "inherited": "상속됨",
+    "era": "시대",
+    "noneInEra": "그 연대에 활동한 아티스트가 없습니다."
   },
   "lanes": {
     "kick": "킥",

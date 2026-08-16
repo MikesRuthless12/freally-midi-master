@@ -226,7 +226,9 @@
     "genre": "流派",
     "noneInGenre": "{{name}} 中还没有艺人。",
     "standard": "标准",
-    "inherited": "继承"
+    "inherited": "继承",
+    "era": "年代",
+    "noneInEra": "名单中没有在那些年份活跃的艺人。"
   },
   "lanes": {
     "kick": "底鼓",

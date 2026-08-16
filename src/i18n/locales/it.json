@@ -226,7 +226,9 @@
     "genre": "Genere",
     "noneInGenre": "Nessun artista lavora ancora in {{name}}.",
     "standard": "Standard",
-    "inherited": "Ereditato"
+    "inherited": "Ereditato",
+    "era": "Epoca",
+    "noneInEra": "Nessun artista in elenco ha lavorato in quegli anni."
   },
   "lanes": {
     "kick": "Cassa",

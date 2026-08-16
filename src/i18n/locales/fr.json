@@ -226,7 +226,9 @@
     "genre": "Style",
     "noneInGenre": "Aucun artiste ne travaille encore en {{name}}.",
     "standard": "Standard",
-    "inherited": "Hérité"
+    "inherited": "Hérité",
+    "era": "Époque",
+    "noneInEra": "Aucun artiste du répertoire n'a travaillé durant ces années."
   },
   "lanes": {
     "kick": "Grosse caisse",

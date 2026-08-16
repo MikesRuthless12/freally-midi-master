@@ -226,7 +226,9 @@
     "genre": "Aliran",
     "noneInGenre": "Belum ada artis di {{name}}.",
     "standard": "Standar",
-    "inherited": "Diwarisi"
+    "inherited": "Diwarisi",
+    "era": "Era",
+    "noneInEra": "Tidak ada artis dalam daftar yang aktif pada tahun-tahun itu."
   },
   "lanes": {
     "kick": "Bas drum",

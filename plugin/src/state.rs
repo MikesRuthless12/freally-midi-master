@@ -143,6 +143,19 @@ pub struct PluginSession {
     /// silently make the next Generate overwrite a part they had held.
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub locked_lanes: Vec<Lane>,
+    /// Generators switched off for playback (TASK-127). Empty means all five
+    /// sound.
+    ///
+    /// ⛔ **Stored but never read by the plugin**, for the reason
+    /// [`Self::locked_lanes`] gives one field up: the page decides what to arm
+    /// and sends it as `arm_pattern`, so no audio-thread state follows from
+    /// this. It is here because an *import* writes it — TASK-058H switches off
+    /// every generator the file produced nothing for — and without it a project
+    /// reopened with the bassline switch back on and `patterns.bass` still saved
+    /// beside it, playing a bass the imported record does not contain. The drum
+    /// half of the same feature, [`Self::muted_lanes`], had always survived.
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    pub parts_off: Vec<Part>,
     /// The producer's own one-shots, as **paths** to the files (TASK-131B).
     ///
     /// ⛔ **A path, not the audio, and that is a deliberate trade rather than a
@@ -354,6 +367,7 @@ impl Default for PluginSession {
             muted_lanes: Vec::new(),
             soloed_lanes: Vec::new(),
             locked_lanes: Vec::new(),
+            parts_off: Vec::new(),
             one_shots: BTreeMap::new(),
             one_shots_reversed: BTreeMap::new(),
             pad_tweaks: BTreeMap::new(),
@@ -488,6 +502,10 @@ mod tests {
             muted_lanes: vec![Lane::Snare],
             soloed_lanes: vec![Lane::Kick],
             locked_lanes: vec![Lane::ClosedHat],
+            // ⚠ **The switch-off an import writes** (TASK-058H). Without this in
+            // the round trip a project reopened with the bassline audible under a
+            // record that has none — the gap the field was added to close.
+            parts_off: vec![Part::Bass],
             one_shots: BTreeMap::from([(Lane::Melody, "C:/samples/lead.wav".to_owned())]),
             // ⚠ Reversed too, so the round trip proves the new field survives
             // a save and an open rather than only the old one.
