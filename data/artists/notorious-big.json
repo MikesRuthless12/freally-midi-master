@@ -149,13 +149,12 @@
         "even"
       ],
       "velocityRampRange": [
-        42,
-        85
+        52,
+        96
       ],
-      "gapProb": 0.18,
-      "descendProb": 0.27,
-      "rampJitter": 13,
-      "pitchWalk": 2
+      "gapProb": 0.22,
+      "descendProb": 0.3,
+      "rampJitter": 10
     }
   },
   "melody": {
@@ -168,17 +167,17 @@
       7
     ],
     "intervals": {
-      "step": 0.57,
-      "third": 0.34,
-      "leap": 0.15
+      "step": 0.6,
+      "third": 0.3,
+      "leap": 0.1
     },
     "contour": {
-      "riff": 0.42,
-      "descend": 0.37,
-      "arch": 0.27
+      "riff": 0.45,
+      "descend": 0.33,
+      "arch": 0.22
     },
-    "chordToneBias": 0.79,
-    "octaveJumpProb": 0.13,
+    "chordToneBias": 0.74,
+    "octaveJumpProb": 0.1,
     "phraseBars": {
       "values": [
         2,
@@ -259,7 +258,7 @@
   },
   "bassline": {
     "rhythm": "mirror_kick",
-    "followRootsProb": 0.82,
+    "followRootsProb": 0.9,
     "register": [
       26,
       44
@@ -268,6 +267,6 @@
     "passingTones": [
       "P5"
     ],
-    "anticipationProb": 0.21
+    "anticipationProb": 0.2
   }
 }

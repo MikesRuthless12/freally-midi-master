@@ -55,15 +55,14 @@
     "kick": {
       "densityPerBar": [
         2,
-        4
+        3
       ],
       "anchors": [
         "1"
       ],
       "secondaryAnchor": "2&",
-      "syncopation": 0.32,
-      "tresilloBias": 0.38,
-      "lockTo808": 1
+      "syncopation": 0.3,
+      "tresilloBias": 0.4
     },
     "snare": {
       "layerClapOffsetMs": [
@@ -71,7 +70,7 @@
         0
       ],
       "ghost": {
-        "prob": 0.21,
+        "prob": 0.2,
         "pos": [
           "3a",
           "4a"
@@ -80,9 +79,7 @@
           0.24,
           0.42
         ]
-      },
-      "placement": "halftime_3",
-      "offGridMs": 0
+      }
     },
     "hihat": {
       "base": "16th",
@@ -126,20 +123,18 @@
     },
     "snareRoll": {
       "subdivisions": [
-        "16th",
-        "32nd"
+        "16t"
       ],
       "grouping": [
         "even"
       ],
       "velocityRampRange": [
-        65,
-        105
+        58,
+        104
       ],
       "rampJitter": 13,
-      "descendProb": 0.03,
-      "gapProb": 0.28,
-      "pitchWalk": 4
+      "descendProb": 0.05,
+      "gapProb": 0.28
     },
     "bass808": {
       "sustain": "legato",
@@ -204,8 +199,8 @@
   },
   "melody": {
     "register": [
-      53,
-      73
+      52,
+      71
     ],
     "phraseBars": {
       "values": [
@@ -213,8 +208,8 @@
         4
       ],
       "weights": [
-        6,
-        2
+        5,
+        1
       ]
     },
     "densityPerBar": [
@@ -223,7 +218,7 @@
     ],
     "motifPitchCount": [
       3,
-      7
+      5
     ],
     "intervals": {
       "step": 0.6,
@@ -232,20 +227,18 @@
     },
     "contour": {
       "riff": 0.72,
-      "descend": 0.37,
+      "descend": 0.22,
       "arch": 0.06
     },
-    "chordToneBias": 0.74,
+    "chordToneBias": 0.6,
     "halfStepDissonance": 0.26,
     "emptyBarBias": 0.1,
     "octaveJumpProb": 0.08,
-    "timbreHint": "dark_bell",
-    "structure": "riff_loop",
-    "endVariation": true
+    "timbreHint": "dark_bell"
   },
   "countermelody": {
-    "registerOffset": -17,
-    "densityRatio": 0.37,
+    "registerOffset": -12,
+    "densityRatio": 0.55,
     "fillGapsOnly": true,
     "styles": {
       "values": [
@@ -260,8 +253,7 @@
         2,
         1
       ]
-    },
-    "echoOffset": "8th"
+    }
   },
   "bassline": {
     "rhythm": "mirror_kick",

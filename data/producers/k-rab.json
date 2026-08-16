@@ -153,10 +153,10 @@
         "strong_weak_weak_weak"
       ],
       "velocityRampRange": [
-        55,
-        99
+        49,
+        105
       ],
-      "rampJitter": 28,
+      "rampJitter": 25,
       "descendProb": 0.16,
       "gapProb": 0.52
     }
@@ -234,29 +234,27 @@
     "monophonicBias": 1,
     "articulation": "staccato",
     "intervals": {
-      "step": 0.56,
-      "third": 0.34,
-      "leap": 0.13
+      "step": 0.55,
+      "third": 0.35,
+      "leap": 0.1
     },
     "contour": {
-      "riff": 0.98,
-      "descend": 0.01,
-      "arch": 0.04
+      "riff": 0.97,
+      "descend": 0.02,
+      "arch": 0.01
     },
-    "chordToneBias": 0.65,
+    "chordToneBias": 0.7,
     "halfStepDissonance": 0.01,
     "emptyBarBias": 0.1,
     "octaveJumpProb": [
       0.01,
       0.04
     ],
-    "timbreHint": "video_game_lead",
-    "structure": "riff_loop",
-    "endVariation": true
+    "timbreHint": "video_game_lead"
   },
   "countermelody": {
     "registerOffset": -12,
-    "densityRatio": 0.56,
+    "densityRatio": 0.55,
     "styles": {
       "values": [
         "answer_lick",
@@ -270,8 +268,7 @@
         2,
         2
       ]
-    },
-    "fillGapsOnly": true
+    }
   },
   "arrangement": {
     "structures": [

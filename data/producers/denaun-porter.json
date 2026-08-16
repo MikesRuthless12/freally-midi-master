@@ -259,16 +259,16 @@
   },
   "bassline": {
     "rhythm": "mirror_kick",
-    "followRootsProb": 0.96,
+    "followRootsProb": 0.9,
     "register": [
       26,
       43
     ],
-    "glideProb": 0.04,
+    "glideProb": 0.05,
     "passingTones": [
       "P5"
     ],
-    "anticipationProb": 0.17
+    "anticipationProb": 0.15
   },
   "arrangement": {
     "transitions": {

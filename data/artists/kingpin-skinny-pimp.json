@@ -164,13 +164,12 @@
         "even"
       ],
       "velocityRampRange": [
-        45,
-        96
+        56,
+        102
       ],
-      "rampJitter": 3,
-      "descendProb": 0.54,
-      "gapProb": 0.6,
-      "pitchWalk": 4
+      "rampJitter": 6,
+      "descendProb": 0.56,
+      "gapProb": 0.6
     },
     "bass808": {
       "sustain": "legato",
@@ -251,7 +250,7 @@
     },
     "densityPerBar": [
       2,
-      7
+      6
     ],
     "motifPitchCount": [
       2,
@@ -259,26 +258,23 @@
     ],
     "monophonicBias": 1,
     "intervals": {
-      "step": 0.6,
-      "third": 0.19,
-      "leap": 0.29
+      "step": 0.58,
+      "third": 0.14,
+      "leap": 0.28
     },
     "contour": {
-      "riff": 0.56,
-      "descend": 0.43,
-      "arch": 0.09
+      "riff": 0.54,
+      "descend": 0.38,
+      "arch": 0.08
     },
-    "chordToneBias": 0.53,
+    "chordToneBias": 0.5,
     "halfStepDissonance": 0.36,
     "emptyBarBias": 0.1,
-    "octaveJumpProb": 0.17,
-    "structure": "riff_loop",
-    "endVariation": true,
-    "timbreHint": "detuned_bell"
+    "octaveJumpProb": 0.16
   },
   "countermelody": {
     "registerOffset": -12,
-    "densityRatio": 0.6,
+    "densityRatio": 0.55,
     "fillGapsOnly": true,
     "styles": {
       "values": [
@@ -293,8 +289,7 @@
         2,
         2
       ]
-    },
-    "echoOffset": "8th"
+    }
   },
   "bassline": {
     "rhythm": "mirror_kick",

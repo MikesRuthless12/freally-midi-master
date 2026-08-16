@@ -55,23 +55,20 @@
     "kick": {
       "densityPerBar": [
         3,
-        6
+        5
       ],
       "anchors": [
         "1"
       ],
-      "secondaryAnchor": "3",
-      "syncopation": 0.51,
-      "lockTo808": 1,
-      "tresilloBias": 0.33,
-      "avoidPreSnareGap": "8th",
-      "andOf4EveryOtherBar": true
+      "secondaryAnchor": "2&",
+      "syncopation": 0.5,
+      "lockTo808": 1
     },
     "snare": {
       "placement": "halftime_3",
       "lowPassedClap": true,
       "ghost": {
-        "prob": 0.14,
+        "prob": 0.18,
         "pos": [
           "2e",
           "4e"
@@ -80,17 +77,7 @@
           0.2,
           0.4
         ]
-      },
-      "layerClapOffsetMs": [
-        3,
-        7
-      ],
-      "offGridMs": 0,
-      "detuneSemis": [
-        -2,
-        -1
-      ],
-      "fullTimeVariantProb": 0.1
+      }
     },
     "hihat": {
       "base": "16th",
@@ -136,21 +123,10 @@
         "strong_weak_weak_weak"
       ],
       "velocityRampRange": [
-        59,
-        104
+        48,
+        100
       ],
-      "rampJitter": 9,
-      "descendProb": 0.25,
-      "gapProb": 0.33,
-      "pitchWalk": 5,
-      "ladder": [
-        "4",
-        "8",
-        "16",
-        "32"
-      ],
-      "buildAndStopProb": 0.3,
-      "dualLayerProb": 0.25
+      "rampJitter": 8
     },
     "bass808": {
       "role": "bassline",
@@ -185,27 +161,11 @@
     },
     "timbreHint": "supersaw_guitar_hybrid",
     "intervals": {
-      "step": 0.4,
-      "third": 0.14,
-      "leap": 0.38
+      "step": 0.42,
+      "third": 0.18,
+      "leap": 0.4
     },
-    "halfStepDissonance": 0.28,
-    "structure": "riff_loop",
-    "twoBarCellRepeat": true,
-    "contour": {
-      "riff": 0.43,
-      "descend": 0.36,
-      "arch": 0.13
-    },
-    "chordToneBias": 0.51,
-    "monophonicBias": 0.85,
-    "endVariation": true,
-    "octaveJumpProb": 0.09,
-    "colorTones": [
-      2,
-      4,
-      6
-    ]
+    "halfStepDissonance": 0.28
   },
   "countermelody": {
     "registerOffset": 12,

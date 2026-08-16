@@ -212,20 +212,11 @@
       ],
       "velocityRampRange": [
         66,
-        117
+        110
       ],
-      "gapProb": 0.15,
-      "descendProb": 0.25,
-      "rampJitter": 7,
-      "pitchWalk": 5,
-      "ladder": [
-        "4",
-        "8",
-        "16",
-        "32"
-      ],
-      "buildAndStopProb": 0.3,
-      "dualLayerProb": 0.25
+      "gapProb": 0.12,
+      "descendProb": 0.29,
+      "rampJitter": 7
     }
   },
   "melody": {

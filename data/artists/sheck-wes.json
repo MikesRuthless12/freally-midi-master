@@ -115,10 +115,10 @@
         "strong_weak_weak_weak"
       ],
       "velocityRampRange": [
-        59,
-        123
+        62,
+        118
       ],
-      "rampJitter": 23,
+      "rampJitter": 21,
       "descendProb": 0.08,
       "gapProb": 0.58
     },
@@ -139,26 +139,26 @@
   },
   "melody": {
     "register": [
-      80,
-      101
+      76,
+      96
     ],
     "densityPerBar": [
       2,
-      5
+      4
     ],
     "intervals": {
-      "step": 0.48,
+      "step": 0.5,
       "third": 0.25,
-      "leap": 0.22
+      "leap": 0.25
     },
     "contour": {
-      "riff": 0.95,
+      "riff": 0.8,
       "descend": 0.12,
-      "arch": 0.05
+      "arch": 0.08
     },
-    "chordToneBias": 0.95,
+    "chordToneBias": 0.7,
     "halfStepDissonance": 0.08,
-    "octaveJumpProb": 0.13,
+    "octaveJumpProb": 0.1,
     "endVariation": true,
     "phraseBars": {
       "values": [
@@ -169,18 +169,11 @@
         4,
         1
       ]
-    },
-    "structure": "question_answer",
-    "colorTones": [
-      2,
-      4,
-      6
-    ],
-    "timbreHint": "dark_bell"
+    }
   },
   "countermelody": {
-    "registerOffset": -24,
-    "densityRatio": 0.24,
+    "registerOffset": -12,
+    "densityRatio": 0.32,
     "styles": {
       "values": [
         "octave_echo",
@@ -190,8 +183,7 @@
         2,
         2
       ]
-    },
-    "fillGapsOnly": true
+    }
   },
   "chords": {
     "progressionFamilies": [

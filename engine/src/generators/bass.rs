@@ -75,6 +75,35 @@ pub fn can_read_rhythm(name: &str) -> bool {
     Rhythm::parse(name).is_some()
 }
 
+/// Does this model's bassline take its onsets from the kick?
+///
+/// ⛔ **The novelty guard's one question about the bass** — see
+/// [`crate::novelty::screens`]. `mirror_kick` copies the kick's ticks outright,
+/// so rerolling that line to dodge a contour would trade the lock that makes it
+/// sit with the drums for a match nobody could hear as a quotation. Every other
+/// rhythm places its own onsets and is a figure in its own right, which is what
+/// a screen exists for.
+///
+/// ⚠ **The default is `mirror_kick`**, exactly as [`generate`] reads it, and an
+/// unparseable name resolves the same way there. Two answers to "what rhythm is
+/// this" is how the guard would come to screen a part the generator built
+/// differently.
+///
+/// ⚠ **A model whose 808 *is* the bass writes no bass part at all**
+/// ([`eight_o_eight_is_the_bass`]), so there is nothing to screen: it answers
+/// `true` and the guard leaves the empty lane alone rather than drawing four
+/// takes of nothing.
+pub fn follows_the_kick(model: &StyleModel) -> bool {
+    if eight_o_eight_is_the_bass(model) {
+        return true;
+    }
+    let root = Value::Object(model.blocks.clone().into_iter().collect());
+    let rhythm = text(block(Some(&root), "bassline"), "rhythm")
+        .and_then(Rhythm::parse)
+        .unwrap_or(Rhythm::MirrorKick);
+    rhythm == Rhythm::MirrorKick
+}
+
 /// Is this cell-shape degree one the generator can act on?
 ///
 /// `cellShapes` are authored as scale degrees with optional accidentals —

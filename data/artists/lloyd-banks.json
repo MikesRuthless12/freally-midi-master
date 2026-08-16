@@ -199,7 +199,7 @@
   },
   "countermelody": {
     "registerOffset": -12,
-    "densityRatio": 0.37,
+    "densityRatio": 0.4,
     "styles": {
       "values": [
         "answer_lick",
@@ -207,7 +207,7 @@
       ],
       "weights": [
         3,
-        3
+        2
       ]
     }
   },

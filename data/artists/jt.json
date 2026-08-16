@@ -53,17 +53,14 @@
     "kick": {
       "densityPerBar": [
         3,
-        6
+        5
       ],
       "anchors": [
         "1"
       ],
-      "secondaryAnchor": "4&",
-      "syncopation": 0.59,
-      "tresilloBias": 0.17,
-      "andOf4EveryOtherBar": 0.5,
-      "avoidPreSnareGap": "8th",
-      "lockTo808": 1
+      "secondaryAnchor": "3",
+      "syncopation": 0.58,
+      "tresilloBias": 0.2
     },
     "snare": {
       "placement": "halftime_3",
@@ -73,7 +70,7 @@
         4
       ],
       "ghost": {
-        "prob": 0.22,
+        "prob": 0.24,
         "pos": [
           "4&"
         ],
@@ -81,13 +78,7 @@
           0.38,
           0.55
         ]
-      },
-      "detuneSemis": [
-        -2,
-        -1
-      ],
-      "offGridMs": 0,
-      "fullTimeVariantProb": 0.1
+      }
     },
     "hihat": {
       "base": {
@@ -161,28 +152,18 @@
     },
     "snareRoll": {
       "subdivisions": [
-        "16th",
-        "16t"
+        "8t"
       ],
       "grouping": [
         "even"
       ],
       "velocityRampRange": [
-        58,
-        113
+        66,
+        116
       ],
-      "rampJitter": 11,
-      "descendProb": 0.05,
-      "gapProb": 0.48,
-      "ladder": [
-        "4",
-        "8",
-        "16",
-        "32"
-      ],
-      "buildAndStopProb": 0.3,
-      "dualLayerProb": 0.25,
-      "pitchWalk": 4
+      "rampJitter": 8,
+      "descendProb": 0.08,
+      "gapProb": 0.48
     }
   },
   "melody": {

@@ -405,17 +405,57 @@ fn two_different_artists_do_not_write_the_same_beat_or_fill() {
             .collect()
     };
 
+    // ⛔⛔ **THE OWNER WITHDREW THE DISTINCTNESS REQUIREMENT ON 2026-08-15, AND
+    // THIS IS WHAT REPLACED IT.** Mike, verbatim: *"instead of pushing the
+    // variations apart like you've done for all the other artists/producers i
+    // have on my list, revert them to their actual research's dataset that I got
+    // to ensure that they do sound like the other artists more, and i don't care
+    // that they overlap, just ensure that it doesn't use copyrighted material
+    // when it does generate them."*
+    //
+    // ▶ **So the product's goal changed, not the measurement.** Two artists who
+    // work in the same lane, on the same kit, at the same tempo, *should* land on
+    // the same bar sometimes — that is what makes each of them sound like
+    // themselves rather than like a deliberately-detuned version of a neighbour.
+    // The chance-derived ceiling above is still computed and still printed,
+    // because a pair drifting together is worth seeing; it no longer fails a
+    // build.
+    //
+    // ⛔ **What still fails: a pair that is identical at EVERY seed.** Two models
+    // may sound alike; they may not *be* the same model. A pair that never once
+    // diverges across {SEEDS} seeds is a file copied under a second name — a name
+    // in a list rather than a style — and that is a dataset defect no product
+    // decision makes acceptable.
+    //
+    // ⛔ **What protects the output from somebody else's record is the novelty
+    // guard, not this test** — and it was widened in the same change, because
+    // that argument only holds if it is true: `novelty::screens` had excluded
+    // every bassline on the strength of `mirror_kick`, leaving 207 shipped
+    // models' independent figures unscreened. It now screens any bass that places
+    // its own onsets, on the pattern path *and* in Song Mode.
     let beat_over = over(&beat_hits, beat_ceiling);
     let fill_over = over(&fill_hits, fill_ceiling);
+    println!(
+        "\n  above the chance floor (reported, not failed): {} beat pair(s), {} fill pair(s)",
+        beat_over.len(),
+        fill_over.len()
+    );
+
+    let identical = |hits: &BTreeMap<String, usize>| -> Vec<(String, usize)> {
+        hits.iter()
+            .filter(|(_, count)| **count as u64 == SEEDS)
+            .map(|(pair, count)| (pair.clone(), *count))
+            .collect()
+    };
+    let beat_same = identical(&beat_hits);
+    let fill_same = identical(&fill_hits);
     assert!(
-        beat_over.is_empty() && fill_over.is_empty(),
-        "these models are too close to tell apart — they land on an identical result \
-         more often than coincidence explains at this roster size (beat ≥{beat_ceiling} \
-         of {SEEDS}, fill ≥{fill_ceiling} of {SEEDS}).\n  beat: {beat_over:?}\n  \
-         fill: {fill_over:?}\n\
-         Each pair is a model and its parent, or two siblings under one parent; the cure \
-         is authored difference in the child, not a looser gate — and the ceiling is \
-         derived from the run's own data, so raising it by hand is not available."
+        beat_same.is_empty() && fill_same.is_empty(),
+        "these models are not two models — they produce an identical result at every \
+         one of {SEEDS} seeds, which means one is a copy of the other under a second \
+         name.\n  beat: {beat_same:?}\n  fill: {fill_same:?}\n\
+         Overlap is allowed by the owner's decision of 2026-08-15; being the same file \
+         is not. Give the copy the research its own entry is based on, or delete it."
     );
 }
 

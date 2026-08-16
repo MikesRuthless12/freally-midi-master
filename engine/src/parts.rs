@@ -67,17 +67,26 @@ pub fn render(
     seeds: Seeds,
     part: Part,
 ) -> Vec<LaneTrack> {
-    let (mut lanes, take, report) = novelty::screen(novelty::bundled(), part, seeds.part, |take| {
-        generate(
-            model,
-            ctx,
-            Seeds {
-                part: take,
-                ..seeds
-            },
-            part,
-        )
-    });
+    // ⛔ **The bass is screened unless it is locked to the kick** — see
+    // `novelty::screens`. Asked here because this is where the model is.
+    let kick_locked = bass::follows_the_kick(model);
+    let (mut lanes, take, report) = novelty::screen(
+        novelty::bundled(),
+        part,
+        kick_locked,
+        seeds.part,
+        |take| {
+            generate(
+                model,
+                ctx,
+                Seeds {
+                    part: take,
+                    ..seeds
+                },
+                part,
+            )
+        },
+    );
     novelty::log(part, &report);
     // The *take's* feel, so two takes of one part breathe differently.
     humanize(&mut lanes, ctx, take);

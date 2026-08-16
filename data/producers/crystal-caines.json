@@ -200,21 +200,12 @@
         "strong_weak_weak_weak"
       ],
       "velocityRampRange": [
-        55,
-        122
+        64,
+        116
       ],
-      "gapProb": 0.22,
-      "descendProb": 0.36,
-      "rampJitter": 16,
-      "pitchWalk": 5,
-      "ladder": [
-        "4",
-        "8",
-        "16",
-        "32"
-      ],
-      "buildAndStopProb": 0.3,
-      "dualLayerProb": 0.25
+      "gapProb": 0.19,
+      "descendProb": 0.41,
+      "rampJitter": 15
     }
   },
   "melody": {

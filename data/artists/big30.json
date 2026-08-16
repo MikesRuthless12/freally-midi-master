@@ -159,13 +159,12 @@
         "even"
       ],
       "velocityRampRange": [
-        29,
-        87
+        38,
+        88
       ],
-      "rampJitter": 18,
-      "gapProb": 0.35,
-      "descendProb": 0.07,
-      "pitchWalk": 4
+      "rampJitter": 15,
+      "gapProb": 0.34,
+      "descendProb": 0.12
     },
     "bass808": {
       "slideProb": 0.14,
@@ -189,8 +188,8 @@
   },
   "melody": {
     "register": [
-      49,
-      69
+      50,
+      70
     ],
     "densityPerBar": [
       2,
@@ -202,7 +201,7 @@
         4
       ],
       "weights": [
-        4,
+        3,
         3
       ]
     },
@@ -220,13 +219,7 @@
     "halfStepDissonance": 0.24,
     "emptyBarBias": 0.1,
     "octaveJumpProb": 0.06,
-    "timbreHint": "clean_guitar",
-    "structure": "riff_loop",
-    "motifPitchCount": [
-      3,
-      6
-    ],
-    "endVariation": true
+    "timbreHint": "clean_guitar"
   },
   "countermelody": {
     "registerOffset": 12,

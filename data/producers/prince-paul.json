@@ -173,19 +173,18 @@
     },
     "snareRoll": {
       "subdivisions": [
-        "32nd"
+        "16th"
       ],
       "grouping": [
-        "strong_weak_weak_weak"
+        "even"
       ],
       "velocityRampRange": [
-        37,
-        89
+        42,
+        92
       ],
       "rampJitter": 13,
-      "gapProb": 0.13,
-      "descendProb": 0.5,
-      "pitchWalk": 2
+      "gapProb": 0.12,
+      "descendProb": 0.55
     }
   },
   "melody": {

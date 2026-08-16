@@ -10,6 +10,7 @@ mod common;
 
 use std::time::Instant;
 
+use engine::generators::bass;
 use engine::novelty::{self, Outcome, Table, N_LOOSE, N_TIGHT};
 use engine::parts::{self, Seeds};
 use engine::pattern::{LaneTrack, Part};
@@ -62,7 +63,7 @@ fn a_planted_fragment_is_regenerated() {
         table_of(&lanes)
     };
 
-    let (screened, kept, report) = novelty::screen(&planted, Part::Melody, seed, |take| {
+    let (screened, kept, report) = novelty::screen(&planted, Part::Melody, true, seed, |take| {
         engine::parts::render(&model, &ctx, Seeds::shared(take), Part::Melody)
     });
 
@@ -101,7 +102,7 @@ fn the_guard_is_deterministic_through_a_regeneration() {
     ));
 
     let run = || {
-        novelty::screen(&planted, Part::Melody, seed, |take| {
+        novelty::screen(&planted, Part::Melody, true, seed, |take| {
             parts::render(&model, &ctx, Seeds::shared(take), Part::Melody)
         })
     };
@@ -121,7 +122,7 @@ fn a_clean_take_is_left_exactly_as_it_was() {
     let model = model("metro-boomin");
     let unrelated = Table::parse("0x0000000000000001\n0x0000000000000002\n").unwrap();
 
-    let (lanes, kept, report) = novelty::screen(&unrelated, Part::Melody, 4242, |take| {
+    let (lanes, kept, report) = novelty::screen(&unrelated, Part::Melody, true, 4242, |take| {
         parts::render(&model, &ctx, Seeds::shared(take), Part::Melody)
     });
 
@@ -192,15 +193,30 @@ fn screening_costs_less_than_the_five_millisecond_budget() {
 
 #[test]
 fn the_parts_the_guard_skips_are_untouched_by_it() {
-    // Drums, Chords and Bass are deliberately not screened. Proved by pointing
-    // the guard at a table built from the part's *own* contour — which would
-    // force a retry if it were screening — and asserting the first take comes
-    // straight back.
+    // Drums and Chords are deliberately not screened — no contour, and a
+    // polyphonic stack respectively. A **kick-locked** bass joins them, because
+    // rerolling a line that copies the kick's ticks would trade the lock that
+    // makes it sit with the drums for a match nobody can hear as a quotation.
+    //
+    // Proved by pointing the guard at a table built from the part's *own*
+    // contour — which would force a retry if it were screening — and asserting
+    // the first take comes straight back.
     let ctx = SessionContext::default();
-    let model = model("pop-smoke");
+    // ⚠ **`killer-mike`, not `pop-smoke`, and the swap is the finding.** The
+    // first version of this case used a drill model on the assumption that a
+    // bassline is kick-locked by default — `pop-smoke` authors
+    // `independent_riff`, and so do 194 other shipped models. Seven models in the
+    // whole roster pair a real bass part with `mirror_kick`; this is one, and the
+    // assertion below fails loudly rather than quietly proving nothing if that
+    // stops being true.
+    let model = model("killer-mike");
+    assert!(
+        bass::follows_the_kick(&model),
+        "this case needs a kick-locked bass; killer-mike's has stopped being one"
+    );
     for part in [Part::Drums, Part::Chords, Part::Bass] {
         let planted = table_of(&parts::render(&model, &ctx, Seeds::shared(11), part));
-        let (lanes, kept, report) = novelty::screen(&planted, part, 11, |take| {
+        let (lanes, kept, report) = novelty::screen(&planted, part, true, 11, |take| {
             parts::render(&model, &ctx, Seeds::shared(take), part)
         });
         assert_eq!(report.outcome, Outcome::NotScreened, "{part:?}");
@@ -214,13 +230,52 @@ fn the_parts_the_guard_skips_are_untouched_by_it() {
 }
 
 #[test]
+fn a_bass_that_plays_its_own_figure_is_screened() {
+    // ⛔⛔ **The gap the old rule left, and it was 207 models wide.** `screens`
+    // excluded the bass outright on the argument that a bassline is locked to
+    // the kick — true of `mirror_kick` and false of the other four rhythms
+    // `bass.rs` reads. 194 shipped models author `independent_riff` alone, and
+    // an independent riff is as recognisable as any topline: a great many
+    // records are known by their bass figure.
+    //
+    // ⚠ **This matters more since the roster was returned to its researched
+    // values** (owner's instruction, 2026-08-15): models may now reach the same
+    // figure by design, so the guard — not model-to-model difference — is what
+    // keeps the figure off something somebody already owns.
+    let ctx = SessionContext::default();
+    let model = model("afrobeats");
+    assert!(
+        !bass::follows_the_kick(&model),
+        "this case needs a bass that places its own onsets; afrobeats' has stopped being one"
+    );
+
+    let first = parts::render(&model, &ctx, Seeds::shared(11), Part::Bass);
+    let planted = table_of(&first);
+    let (lanes, kept, report) = novelty::screen(
+        &planted,
+        Part::Bass,
+        bass::follows_the_kick(&model),
+        11,
+        |take| parts::render(&model, &ctx, Seeds::shared(take), Part::Bass),
+    );
+
+    assert_ne!(
+        report.outcome,
+        Outcome::NotScreened,
+        "an independent bass figure went past the guard untouched"
+    );
+    assert_ne!(kept, 11, "the guard kept the very take the table describes");
+    assert_ne!(lanes, first, "the same notes came back after a rejection");
+}
+
+#[test]
 fn a_take_that_cannot_escape_still_returns_notes() {
     // ⛔ **The producer pressed Generate, so notes come back whatever the guard
     // thinks.** A generator that ignores its seed cannot escape any table, and
     // the guard has to give up rather than loop or return nothing.
     let fixed = take("trap", Part::Melody, 5);
     let planted = table_of(&fixed);
-    let (lanes, _, report) = novelty::screen(&planted, Part::Melody, 5, |_| fixed.clone());
+    let (lanes, _, report) = novelty::screen(&planted, Part::Melody, true, 5, |_| fixed.clone());
 
     assert_eq!(report.outcome, Outcome::Exhausted);
     assert_eq!(report.takes, novelty::MAX_RETRIES + 1);
@@ -264,6 +319,12 @@ fn song_mode_reaches_the_guard_at_all() {
     for (name, call) in [
         ("melody", "melody::generate("),
         ("counter", "counter::generate("),
+        // ⛔ **The bass joined them on 2026-08-15**, when the guard stopped
+        // excluding every bassline and started excluding only the kick-locked
+        // ones. Song Mode is where a producer generates the most bars, so a
+        // screen that ran on the pattern path and not here would be the same
+        // one-door failure this whole test exists to catch.
+        ("bass", "bass::generate("),
     ] {
         let mut from = 0;
         let mut seen = 0;
@@ -288,7 +349,7 @@ fn song_mode_reaches_the_guard_at_all() {
         );
     }
     assert_eq!(
-        screened, 2,
-        "expected exactly one screened call per melodic part"
+        screened, 3,
+        "expected exactly one screened call per screened part — melody, counter and bass"
     );
 }

@@ -64,15 +64,9 @@
       "anchors": [
         "1"
       ],
-      "secondaryAnchor": "3",
+      "secondaryAnchor": "3&",
       "syncopation": 0.5,
-      "lockTo808": 0.6,
-      "tresilloBias": 0.2,
-      "offbeat8thShare": 0.3,
-      "sloppyOffsetMs": [
-        3,
-        9
-      ]
+      "lockTo808": 0.6
     },
     "snare": {
       "placement": "backbeat_24",

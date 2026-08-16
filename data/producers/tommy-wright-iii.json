@@ -172,10 +172,10 @@
         "even"
       ],
       "velocityRampRange": [
-        33,
-        83
+        34,
+        88
       ],
-      "rampJitter": 23,
+      "rampJitter": 21,
       "gapProb": 0.5,
       "descendProb": 0.22
     },
@@ -196,11 +196,11 @@
   "melody": {
     "register": [
       50,
-      71
+      72
     ],
     "densityPerBar": [
       2,
-      7
+      6
     ],
     "phraseBars": {
       "values": [
@@ -208,7 +208,7 @@
         4
       ],
       "weights": [
-        3,
+        4,
         2
       ]
     },
@@ -217,22 +217,20 @@
       5
     ],
     "intervals": {
-      "step": 0.53,
-      "third": 0.15,
-      "leap": 0.32
+      "step": 0.58,
+      "third": 0.14,
+      "leap": 0.28
     },
     "contour": {
-      "riff": 0.67,
-      "descend": 0.23,
-      "arch": 0.1
+      "riff": 0.72,
+      "descend": 0.22,
+      "arch": 0.06
     },
-    "chordToneBias": 0.48,
+    "chordToneBias": 0.52,
     "halfStepDissonance": 0.32,
     "emptyBarBias": 0.1,
-    "octaveJumpProb": 0.17,
-    "timbreHint": "horn_stab",
-    "structure": "riff_loop",
-    "endVariation": true
+    "octaveJumpProb": 0.14,
+    "timbreHint": "horn_stab"
   },
   "countermelody": {
     "registerOffset": -12,

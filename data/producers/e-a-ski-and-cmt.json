@@ -159,19 +159,19 @@
     "snareRoll": {
       "subdivisions": [
         "16th",
-        "32nd"
+        "16t"
       ],
       "grouping": [
+        "even",
         "strong_weak_weak_weak"
       ],
       "velocityRampRange": [
-        47,
-        105
+        50,
+        106
       ],
-      "rampJitter": 17,
+      "rampJitter": 14,
       "descendProb": 0.56,
-      "gapProb": 0.28,
-      "pitchWalk": 4
+      "gapProb": 0.28
     }
   },
   "chords": {

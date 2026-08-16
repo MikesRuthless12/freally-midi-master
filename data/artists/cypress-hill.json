@@ -153,8 +153,8 @@
         "strong_weak_weak_weak"
       ],
       "velocityRampRange": [
-        56,
-        97
+        52,
+        98
       ],
       "rampJitter": 6,
       "gapProb": 0.55,
@@ -266,41 +266,15 @@
   },
   "bassline": {
     "rhythm": "mirror_kick",
-    "followRootsProb": 0.85,
+    "followRootsProb": 0.94,
     "register": [
-      21,
-      38
+      22,
+      39
     ],
-    "glideProb": 0.07,
+    "glideProb": 0.08,
     "passingTones": [
       "P5"
     ],
-    "anticipationProb": 0.07,
-    "cellShapes": [
-      [
-        "1",
-        "3",
-        "4",
-        "5"
-      ],
-      [
-        "1",
-        "5",
-        "7",
-        "5"
-      ],
-      [
-        "1",
-        "2",
-        "3",
-        "5"
-      ],
-      [
-        "5",
-        "1",
-        "7",
-        "4"
-      ]
-    ]
+    "anticipationProb": 0.04
   }
 }

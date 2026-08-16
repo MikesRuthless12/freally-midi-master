@@ -136,13 +136,12 @@
         "even"
       ],
       "velocityRampRange": [
-        69,
-        109
+        68,
+        116
       ],
       "gapProb": 0.2,
-      "descendProb": 0.39,
-      "rampJitter": 14,
-      "pitchWalk": 4
+      "descendProb": 0.4,
+      "rampJitter": 14
     }
   },
   "chords": {
@@ -224,25 +223,8 @@
       4
     ],
     "articulation": "staccato",
-    "chordToneBias": 0.58,
-    "timbreHint": "horn_stab",
-    "structure": "riff_loop",
-    "intervals": {
-      "step": 0.5,
-      "third": 0.35,
-      "leap": 0.3
-    },
-    "contour": {
-      "riff": 0.6,
-      "descend": 0.3,
-      "arch": 0.25
-    },
-    "halfStepDissonance": 0.06,
-    "endVariation": true,
-    "octaveJumpProb": [
-      0.14,
-      0.28
-    ]
+    "chordToneBias": 0.6,
+    "timbreHint": "horn_stab"
   },
   "countermelody": {
     "registerOffset": -12,

@@ -194,10 +194,10 @@
         "strong_weak_weak_weak"
       ],
       "velocityRampRange": [
-        51,
-        107
+        57,
+        103
       ],
-      "rampJitter": 10,
+      "rampJitter": 13,
       "descendProb": 0.07,
       "gapProb": 0.14
     },
@@ -326,19 +326,18 @@
     "timbreHint": "synth_brass_stab"
   },
   "countermelody": {
-    "registerOffset": -24,
-    "densityRatio": 0.48,
+    "registerOffset": -12,
+    "densityRatio": 0.45,
     "styles": {
       "values": [
         "answer_lick",
         "octave_echo"
       ],
       "weights": [
-        5,
-        4
+        4,
+        3
       ]
-    },
-    "fillGapsOnly": true
+    }
   },
   "arrangement": {
     "structures": [

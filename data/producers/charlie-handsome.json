@@ -214,21 +214,12 @@
         "even"
       ],
       "velocityRampRange": [
-        36,
-        99
+        44,
+        94
       ],
-      "gapProb": 0.31,
-      "descendProb": 0.58,
-      "rampJitter": 9,
-      "ladder": [
-        "4",
-        "8",
-        "16",
-        "32"
-      ],
-      "buildAndStopProb": 0.3,
-      "dualLayerProb": 0.25,
-      "pitchWalk": 4
+      "gapProb": 0.34,
+      "descendProb": 0.6,
+      "rampJitter": 9
     }
   },
   "melody": {
@@ -238,21 +229,21 @@
     ],
     "densityPerBar": [
       3,
-      7
+      6
     ],
     "intervals": {
-      "step": 0.73,
-      "third": 0.17,
+      "step": 0.7,
+      "third": 0.22,
       "leap": 0.08
     },
     "contour": {
-      "riff": 0.28,
-      "descend": 0.3,
+      "riff": 0.25,
+      "descend": 0.35,
       "arch": 0.4
     },
-    "chordToneBias": 0.78,
+    "chordToneBias": 0.82,
     "halfStepDissonance": 0.03,
-    "octaveJumpProb": 0.05,
+    "octaveJumpProb": 0.06,
     "phraseBars": {
       "values": [
         4,
@@ -265,13 +256,7 @@
     },
     "structure": "long_arc",
     "articulation": "legato",
-    "timbreHint": "clean_guitar",
-    "colorTones": [
-      2,
-      4,
-      6
-    ],
-    "endVariation": true
+    "timbreHint": "clean_guitar"
   },
   "countermelody": {
     "registerOffset": 12,

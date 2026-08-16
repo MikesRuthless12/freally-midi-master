@@ -163,13 +163,12 @@
         "even"
       ],
       "velocityRampRange": [
-        61,
-        109
+        56,
+        100
       ],
-      "rampJitter": 3,
-      "descendProb": 0.09,
-      "gapProb": 0.67,
-      "pitchWalk": 4
+      "rampJitter": 5,
+      "descendProb": 0.08,
+      "gapProb": 0.65
     },
     "bass808": {
       "sustain": "legato",

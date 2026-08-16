@@ -128,21 +128,12 @@
         "strong_weak_weak_weak"
       ],
       "velocityRampRange": [
-        66,
-        110
+        68,
+        112
       ],
-      "rampJitter": 5,
-      "descendProb": 0.26,
-      "gapProb": 0.4,
-      "ladder": [
-        "4",
-        "8",
-        "16",
-        "32"
-      ],
-      "buildAndStopProb": 0.3,
-      "dualLayerProb": 0.25,
-      "pitchWalk": 4
+      "rampJitter": 7,
+      "descendProb": 0.3,
+      "gapProb": 0.44
     },
     "bass808": {
       "sustain": "legato",

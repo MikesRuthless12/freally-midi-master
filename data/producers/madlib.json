@@ -108,14 +108,8 @@
       "anchors": [
         "1"
       ],
-      "secondaryAnchor": "4&",
-      "syncopation": 0.5,
-      "tresilloBias": 0.15,
-      "subLayerVelocity": [
-        0.5,
-        0.6
-      ],
-      "lockTo808": 0
+      "secondaryAnchor": "3&",
+      "syncopation": 0.5
     },
     "snare": {
       "rimshotLayer": false,
@@ -184,10 +178,10 @@
         "even"
       ],
       "velocityRampRange": [
-        35,
-        82
+        38,
+        88
       ],
-      "rampJitter": 24,
+      "rampJitter": 22,
       "gapProb": 0.58,
       "descendProb": 0.31
     }

@@ -94,14 +94,8 @@
       "anchors": [
         "1"
       ],
-      "secondaryAnchor": "2a",
-      "syncopation": 0.24,
-      "tresilloBias": 0.15,
-      "subLayerVelocity": [
-        0.5,
-        0.6
-      ],
-      "lockTo808": 0
+      "secondaryAnchor": "3&",
+      "syncopation": 0.24
     },
     "snare": {
       "rimshotLayer": false,
@@ -172,8 +166,7 @@
     },
     "snareRoll": {
       "subdivisions": [
-        "16th",
-        "32nd"
+        "8t"
       ],
       "grouping": [
         "even"
@@ -184,8 +177,7 @@
       ],
       "rampJitter": 3,
       "gapProb": 0.54,
-      "descendProb": 0.15,
-      "pitchWalk": 2
+      "descendProb": 0.15
     }
   },
   "melody": {
@@ -195,21 +187,21 @@
     ],
     "densityPerBar": [
       2,
-      6
+      5
     ],
     "intervals": {
-      "step": 0.64,
-      "third": 0.23,
-      "leap": 0.17
+      "step": 0.6,
+      "third": 0.26,
+      "leap": 0.14
     },
     "contour": {
-      "riff": 0.62,
-      "descend": 0.27,
-      "arch": 0.15
+      "riff": 0.58,
+      "descend": 0.3,
+      "arch": 0.12
     },
-    "chordToneBias": 0.59,
+    "chordToneBias": 0.62,
     "halfStepDissonance": 0.1,
-    "octaveJumpProb": 0.06,
+    "octaveJumpProb": 0.05,
     "phraseBars": {
       "values": [
         2,
@@ -293,16 +285,16 @@
   },
   "bassline": {
     "rhythm": "mirror_kick",
-    "followRootsProb": 0.86,
+    "followRootsProb": 0.93,
     "register": [
-      26,
+      25,
       38
     ],
     "glideProb": 0,
     "passingTones": [
       "P5"
     ],
-    "anticipationProb": 0.16
+    "anticipationProb": 0.1
   },
   "arrangement": {
     "structures": [

@@ -81,24 +81,22 @@
     "kick": {
       "densityPerBar": [
         2,
-        4
+        3
       ],
       "anchors": [
         "1"
       ],
       "secondaryAnchor": "3&",
-      "syncopation": 0.29,
+      "syncopation": 0.28,
       "subLayerVelocity": [
         0.8,
         0.95
-      ],
-      "tresilloBias": 0.17,
-      "lockTo808": 0
+      ]
     },
     "snare": {
       "rimshotLayer": false,
       "ghost": {
-        "prob": 0.11,
+        "prob": 0.1,
         "pos": [
           "3a"
         ],
@@ -106,9 +104,7 @@
           0.15,
           0.28
         ]
-      },
-      "placement": "backbeat_24",
-      "offGridMs": 0
+      }
     },
     "hihat": {
       "base": "8th",
@@ -161,10 +157,10 @@
         "even"
       ],
       "velocityRampRange": [
-        37,
-        90
+        36,
+        84
       ],
-      "rampJitter": 4,
+      "rampJitter": 7,
       "gapProb": 0.63,
       "descendProb": 0.08
     }
@@ -277,14 +273,14 @@
   },
   "bassline": {
     "rhythm": "mirror_kick",
-    "followRootsProb": 0.84,
+    "followRootsProb": 0.94,
     "register": [
       22,
       39
     ],
-    "glideProb": 0.04,
+    "glideProb": 0.02,
     "passingTones": [],
-    "anticipationProb": 0.24
+    "anticipationProb": 0.08
   },
   "arrangement": {
     "sectionBars": {

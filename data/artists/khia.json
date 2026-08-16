@@ -261,7 +261,7 @@
   },
   "countermelody": {
     "registerOffset": 12,
-    "densityRatio": 0.36,
+    "densityRatio": 0.34,
     "styles": {
       "values": [
         "octave_echo",
@@ -271,8 +271,7 @@
         2,
         2
       ]
-    },
-    "fillGapsOnly": true
+    }
   },
   "bassline": {
     "register": [

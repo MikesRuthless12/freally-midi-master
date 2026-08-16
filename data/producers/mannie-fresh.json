@@ -156,19 +156,18 @@
     },
     "snareRoll": {
       "subdivisions": [
-        "16t",
-        "8t"
+        "16th"
       ],
       "grouping": [
         "even"
       ],
       "velocityRampRange": [
-        45,
-        84
+        52,
+        96
       ],
-      "rampJitter": 22,
-      "descendProb": 0.09,
-      "gapProb": 0.49
+      "rampJitter": 19,
+      "descendProb": 0.11,
+      "gapProb": 0.48
     },
     "bass808": {
       "role": "counter_riff",

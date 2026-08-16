@@ -54,18 +54,15 @@
   "drums": {
     "kick": {
       "densityPerBar": [
-        3,
-        6
+        2,
+        4
       ],
       "anchors": [
         "1"
       ],
-      "secondaryAnchor": "2a",
-      "syncopation": 0.42,
-      "tresilloBias": 0.17,
-      "andOf4EveryOtherBar": 0.5,
-      "avoidPreSnareGap": "8th",
-      "lockTo808": 1
+      "secondaryAnchor": "3",
+      "syncopation": 0.4,
+      "tresilloBias": 0.15
     },
     "snare": {
       "placement": "halftime_3",
@@ -75,7 +72,7 @@
         9
       ],
       "ghost": {
-        "prob": 0.2,
+        "prob": 0.18,
         "pos": [
           "4&"
         ],
@@ -83,13 +80,7 @@
           0.32,
           0.48
         ]
-      },
-      "detuneSemis": [
-        -2,
-        -1
-      ],
-      "offGridMs": 0,
-      "fullTimeVariantProb": 0.1
+      }
     },
     "hihat": {
       "base": {
@@ -171,21 +162,12 @@
         "even"
       ],
       "velocityRampRange": [
-        59,
-        106
+        72,
+        118
       ],
-      "rampJitter": 16,
+      "rampJitter": 15,
       "descendProb": 0.65,
-      "gapProb": 0.31,
-      "ladder": [
-        "4",
-        "8",
-        "16",
-        "32"
-      ],
-      "buildAndStopProb": 0.3,
-      "dualLayerProb": 0.25,
-      "pitchWalk": 4
+      "gapProb": 0.31
     }
   },
   "melody": {

@@ -145,27 +145,18 @@
     },
     "snareRoll": {
       "subdivisions": [
-        "8t"
+        "16t"
       ],
       "grouping": [
         "even"
       ],
       "velocityRampRange": [
-        53,
-        96
+        58,
+        102
       ],
       "gapProb": 0.41,
       "descendProb": 0.47,
-      "rampJitter": 14,
-      "ladder": [
-        "4",
-        "8",
-        "16",
-        "32"
-      ],
-      "buildAndStopProb": 0.3,
-      "dualLayerProb": 0.25,
-      "pitchWalk": 4
+      "rampJitter": 12
     },
     "bass808": {
       "role": "bassline",

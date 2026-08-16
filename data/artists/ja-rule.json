@@ -138,8 +138,8 @@
         "even"
       ],
       "velocityRampRange": [
-        63,
-        103
+        58,
+        104
       ],
       "rampJitter": 16
     }

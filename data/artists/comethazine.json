@@ -119,21 +119,10 @@
         "strong_weak_weak_weak"
       ],
       "velocityRampRange": [
-        58,
-        115
+        66,
+        118
       ],
-      "rampJitter": 16,
-      "descendProb": 0.19,
-      "gapProb": 0.33,
-      "pitchWalk": 5,
-      "ladder": [
-        "4",
-        "8",
-        "16",
-        "32"
-      ],
-      "buildAndStopProb": 0.3,
-      "dualLayerProb": 0.25
+      "rampJitter": 16
     },
     "bass808": {
       "role": "counter_riff",
@@ -189,29 +178,7 @@
         2
       ]
     },
-    "timbreHint": "dark_bell",
-    "structure": "riff_loop",
-    "twoBarCellRepeat": true,
-    "intervals": {
-      "step": 0.5,
-      "third": 0.3,
-      "leap": 0.11
-    },
-    "contour": {
-      "riff": 0.4,
-      "descend": 0.4,
-      "arch": 0.11
-    },
-    "chordToneBias": 0.45,
-    "halfStepDissonance": 0.3,
-    "monophonicBias": 0.85,
-    "endVariation": true,
-    "octaveJumpProb": 0.05,
-    "colorTones": [
-      2,
-      4,
-      6
-    ]
+    "timbreHint": "dark_bell"
   },
   "countermelody": {
     "registerOffset": 12,

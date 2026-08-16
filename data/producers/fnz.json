@@ -216,28 +216,19 @@
     },
     "snareRoll": {
       "subdivisions": [
-        "16th"
+        "16th",
+        "32nd"
       ],
       "grouping": [
-        "even",
         "strong_weak_weak_weak"
       ],
       "velocityRampRange": [
-        58,
+        66,
         118
       ],
-      "gapProb": 0.19,
-      "descendProb": 0.47,
-      "rampJitter": 27,
-      "pitchWalk": 5,
-      "ladder": [
-        "4",
-        "8",
-        "16",
-        "32"
-      ],
-      "buildAndStopProb": 0.3,
-      "dualLayerProb": 0.25
+      "gapProb": 0.17,
+      "descendProb": 0.44,
+      "rampJitter": 26
     }
   },
   "melody": {

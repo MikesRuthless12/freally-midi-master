@@ -149,10 +149,9 @@
         54,
         96
       ],
-      "gapProb": 0.22,
-      "descendProb": 0.53,
-      "rampJitter": 21,
-      "pitchWalk": 2
+      "gapProb": 0.18,
+      "descendProb": 0.5,
+      "rampJitter": 20
     }
   },
   "melody": {

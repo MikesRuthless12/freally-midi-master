@@ -167,12 +167,12 @@
         "strong_weak_weak_weak"
       ],
       "velocityRampRange": [
-        54,
-        104
+        47,
+        107
       ],
       "rampJitter": 14,
-      "descendProb": 0.35,
-      "gapProb": 0.58
+      "descendProb": 0.31,
+      "gapProb": 0.55
     }
   },
   "chords": {
@@ -248,14 +248,14 @@
     "monophonicBias": 1,
     "articulation": "staccato",
     "intervals": {
-      "step": 0.58,
-      "third": 0.21,
-      "leap": 0.1
+      "step": 0.6,
+      "third": 0.26,
+      "leap": 0.14
     },
     "contour": {
-      "riff": 0.88,
-      "descend": 0.02,
-      "arch": 0.01
+      "riff": 0.9,
+      "descend": 0.07,
+      "arch": 0.03
     },
     "chordToneBias": 0.8,
     "emptyBarBias": 0.16,
@@ -263,10 +263,7 @@
       0.03,
       0.1
     ],
-    "timbreHint": "chant_stab",
-    "structure": "riff_loop",
-    "halfStepDissonance": 0.02,
-    "endVariation": true
+    "timbreHint": "chant_stab"
   },
   "countermelody": {
     "registerOffset": 12,

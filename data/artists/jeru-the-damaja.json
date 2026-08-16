@@ -133,11 +133,11 @@
       ],
       "velocityRampRange": [
         50,
-        97
+        92
       ],
       "gapProb": 0.58,
       "descendProb": 0.08,
-      "rampJitter": 7
+      "rampJitter": 6
     }
   },
   "melody": {
@@ -238,13 +238,13 @@
   },
   "bassline": {
     "rhythm": "mirror_kick",
-    "followRootsProb": 0.88,
+    "followRootsProb": 0.94,
     "register": [
       26,
       43
     ],
     "glideProb": 0,
     "passingTones": [],
-    "anticipationProb": 0.14
+    "anticipationProb": 0.08
   }
 }

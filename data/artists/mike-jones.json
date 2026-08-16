@@ -78,18 +78,15 @@
   "drums": {
     "kick": {
       "densityPerBar": [
-        1,
+        2,
         3
       ],
       "anchors": [
         "1"
       ],
       "secondaryAnchor": "3",
-      "syncopation": 0.13,
-      "beatSkipProb": 0.1,
-      "tresilloBias": 0.04,
-      "offbeat8thShare": 0.03,
-      "lockTo808": 1
+      "syncopation": 0.12,
+      "beatSkipProb": 0.1
     },
     "snare": {
       "layerClapOffsetMs": [
@@ -100,19 +97,7 @@
       "clusterHits": [
         2,
         2
-      ],
-      "placement": "halftime_3",
-      "ghost": {
-        "prob": 0.08,
-        "pos": [
-          "4&"
-        ],
-        "vel": [
-          0.22,
-          0.4
-        ]
-      },
-      "offGridMs": 0
+      ]
     },
     "hihat": {
       "base": "8th",
@@ -155,15 +140,15 @@
         "8t"
       ],
       "grouping": [
-        "strong_weak_weak_weak"
+        "even"
       ],
       "velocityRampRange": [
-        63,
+        72,
         120
       ],
-      "rampJitter": 10,
-      "descendProb": 0.57,
-      "gapProb": 0.14
+      "rampJitter": 7,
+      "descendProb": 0.62,
+      "gapProb": 0.1
     },
     "bass808": {
       "register": [
@@ -227,8 +212,8 @@
   },
   "melody": {
     "register": [
-      51,
-      78
+      55,
+      82
     ],
     "phraseBars": {
       "values": [
@@ -236,13 +221,13 @@
         4
       ],
       "weights": [
-        5,
-        2
+        4,
+        3
       ]
     },
     "densityPerBar": [
       1,
-      5
+      4
     ],
     "motifPitchCount": [
       3,
@@ -251,21 +236,13 @@
     "loopVerbatim": true,
     "endVariation": false,
     "contour": {
-      "riff": 0.51,
-      "descend": 0.4,
-      "arch": 0.02
+      "riff": 0.5,
+      "descend": 0.38,
+      "arch": 0.12
     },
     "emptyBarBias": 0.18,
-    "octaveJumpProb": 0.04,
-    "timbreHint": "dark_bell",
-    "structure": "riff_loop",
-    "intervals": {
-      "step": 0.67,
-      "third": 0.26,
-      "leap": 0.1
-    },
-    "chordToneBias": 0.46,
-    "halfStepDissonance": 0.06
+    "octaveJumpProb": 0.05,
+    "timbreHint": "dark_bell"
   },
   "countermelody": {
     "registerOffset": -12,

@@ -144,8 +144,8 @@
         "strong_weak_weak_weak"
       ],
       "velocityRampRange": [
-        43,
-        112
+        48,
+        108
       ],
       "rampJitter": 8,
       "descendProb": 0.21,
@@ -214,7 +214,7 @@
     ],
     "densityPerBar": [
       2,
-      6
+      5
     ],
     "phraseBars": {
       "values": [
@@ -230,29 +230,17 @@
       3,
       5
     ],
-    "chordToneBias": 0.66,
+    "chordToneBias": 0.62,
     "halfStepDissonance": 0.08,
     "octaveJumpProb": [
       0.1,
       0.2
     ],
-    "timbreHint": "clean_guitar",
-    "structure": "riff_loop",
-    "intervals": {
-      "step": 0.46,
-      "third": 0.3,
-      "leap": 0.23
-    },
-    "contour": {
-      "riff": 0.56,
-      "descend": 0.25,
-      "arch": 0.18
-    },
-    "endVariation": true
+    "timbreHint": "clean_guitar"
   },
   "countermelody": {
     "registerOffset": -12,
-    "densityRatio": 0.39,
+    "densityRatio": 0.4,
     "styles": {
       "values": [
         "answer_lick",
@@ -262,8 +250,7 @@
         3,
         2
       ]
-    },
-    "fillGapsOnly": true
+    }
   },
   "bassline": {
     "rhythm": "independent_riff",
