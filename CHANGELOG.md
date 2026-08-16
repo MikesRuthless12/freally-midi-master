@@ -43,23 +43,83 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   `Pattern`s. Kept files are the one thing in the variation store that carries
   notes rather than a seed, because nothing rebuilds somebody else's `.mid` from
   a number.
-- **Four genre archetypes the research had to work around** (TASK-158F), taking
-  the dataset to **60 genres and 594 models**. Each carries an invariant test
-  that states the thing that makes it that genre:
+- **Eleven genre archetypes the research had to work around** (TASK-158F) —
+  every one the compendium names as missing — taking the dataset to **61 genres
+  and 602 models**. Each carries an invariant test stating the thing that makes
+  it that genre:
   - **Chicago Bounce** — mid-90s West Side "ride music". The same numeric band as
     `chicago-drill` with the **opposite backbeat**: full-time on 2 and 4, and a
     carrier that gallops in triplet eighths rather than running straight.
+  - **Bop** — Chicago's fast, bright counter-scene, which `chicago-drill`
+    explicitly declined. The straightest and fastest of the three Chicago lanes.
   - **Afro House** — house's four-on-the-floor under an African percussion
     ensemble, centred at 118 between `amapiano`'s 113 and `house`'s 124. Authored
     because volume 4 refused to fake it: Black Coffee **stays** in `house`, and
     the cohort *"is owed a future `afro-house` model rather than this one"*.
-  - **Bop** — Chicago's fast, bright counter-scene, which `chicago-drill`
-    explicitly declined. The straightest and fastest of the three Chicago lanes.
+  - **Techno** — ⚠ the most consequential omission: volume 4 dropped **Jeff
+    Mills, Robert Hood, Underground Resistance, Carl Craig, Derrick May, Juan
+    Atkins and Kevin Saunderson** because *"this app has no `techno` archetype,
+    so there is nowhere legitimate to put them"*. Ships at `confidence: low`
+    saying so — what is sourced is a boundary (four-on-the-floor without house's
+    jazz harmony) and its gate asserts that and nothing else.
+  - **Bassline** — the northern 4x4 wing, whose whole identity is *where the
+    syncopation lives*: a straight four-on-the-floor with the movement in the
+    bass.
+  - **Lowend** (Milwaukee) — snares on 1 and 3 under an eighth-note clap stream.
+    ⛔ **The engine could not spell this genre**: `SnarePlacement` read two names
+    and a snare on 1 and 3 is neither, so a third placement was added for it.
+    `jerk` has carried Certified Trapper and J.P. as a *declared exception*
+    precisely because no model could hold them.
+  - **Michigan Off-Grid** — the parent volume 5 wrote for `detroit-bounce`, with
+    its four rules (the 808 does not slide, the hats are sparse, the figure is
+    off the grid, nothing is quantised tight). ⚠ It ships **both** disputed tempo
+    bands as named modes rather than reconciling them, which is what the research
+    asks for in as many words.
+  - **Baltimore Club** and **Philly Club** — the two cousins modelled inside
+    `jersey-club` with their divergences given. Both sit under Jersey's five-kick
+    bar, which is the sourced difference in the one direction it runs.
+  - **EDM Trap** — the drop-first, harmonically static side of the 140 half-time
+    family, told from future bass by exactly that: *"he is the harmonic minimum of
+    this section, which is precisely how you tell an EDM-trap record from a
+    future-bass one."*
   - **Dominican Dembow** — El Alfa, Tokischa, Chimbala, Rochy RD, at 115–130.
     ⚠ **Ships at `confidence: low` and says why**: the research gives a boundary
     and no interior — *"faster, a different snare cell, a different roster"* — so
     the cell is inference from a sourced difference, and its gate asserts only
     the two sourced claims and labels which is which.
+  - ⚠ `kawaii-future-bass` was **already built** — as a `kawaii` mode on
+    `future-bass`, which is exactly the "palette swap over an unchanged rhythm
+    grammar" the research recommends. Recorded rather than duplicated.
+
+### Changed — the roster sounds like its research again, 2026-08-15
+
+- **396 artist and producer models restored to the values their research entries
+  state**, on the owner's instruction: *"revert them to their actual research's
+  dataset that I got to ensure that they do sound like the other artists more,
+  and i don't care that they overlap, just ensure that it doesn't use copyrighted
+  material when it does generate them."* Two batch passes had moved them, both to
+  beat pairwise distinctness gates — one nudging the separation levers by model
+  id and pasting an identical `ladder`/`pitchWalk` block into hundreds of files,
+  the other changing `densityPerBar` and `secondaryAnchor` across 232 models.
+  ⚠ Six models keep their later state because that change fixed something
+  musical and said what: `rapsody`, `krs-one`, `wu-tang-clan`, `bnyx`,
+  `clams-casino` and `mobb-deep`.
+- **The two pairwise distinctness gates no longer fail on overlap.** Two artists
+  in one lane, on one kit, at one tempo *should* land on the same bar sometimes —
+  that is what makes each sound like themselves rather than like a
+  deliberately-detuned neighbour. Both still compute and print their ceilings, so
+  a pair drifting together stays visible, and both still fail on a pair that is
+  identical at **every** seed: two models may sound alike, they may not *be* the
+  same model.
+- **The novelty guard now screens the bassline**, which is what makes the
+  sentence above safe. ⛔ It had excluded every bassline on an argument true of
+  one rhythm in five — *"a bassline is locked to the kick"* — while **194 shipped
+  models author `independent_riff`** and 207 place their own onsets. A bass figure
+  is what a great many records are known by. It follows the rhythm now, not the
+  part, and it runs in Song Mode as well as on the pattern path.
+  ⚠ The table still ships **hashes only**: a fingerprint is a contour, there is
+  no way back from one to a note, and nothing in it names a pitch, a key or a
+  title.
 
 ### Fixed — 2026-08-15
 
@@ -69,6 +129,19 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   colour and an inset outline only: that row sits under the editor, so anything
   that makes it taller takes the height out of the velocity lane — a previous
   attempt cost enough of it that a drag to 96 landed on 85.
+- **A failed upstream fill discarded the generation that succeeded.** The fills
+  sit between the generation and the write that lands it, so one refusal threw
+  away a countermelody that had already come back correctly: the producer pressed
+  Generate, the part generated, and they got an error and nothing else.
+- **Salaam Remi's `live band` and `one drop` moods generated the same melody**
+  for every seed, so that pair of moods was decoration. Both changed only drums,
+  feel and tempo. The difference authored is the one a one drop actually makes:
+  the weight moves to beat 3, the line sits back, fewer notes and more empty bars.
+- **Typing "uk" found Bassline instead of UK Drill.** A bare `"uk"` tag in the new
+  model's `genres` scores an *exact* hit (10,000 + 50 + 38) against UK Drill's
+  name *prefix* (8,000 + 300 + 32), so a two-letter tag outranks a name. Three
+  more were removed before they could do the same: `detroit` on techno, `bass` on
+  edm-trap and `chicago` on the two Chicago lanes.
 
 ### Added — browse by era, and a switch-off that survives the project, 2026-08-15
 
