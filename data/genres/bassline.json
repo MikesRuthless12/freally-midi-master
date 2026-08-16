@@ -19,7 +19,6 @@
   ],
   "era": "2005–present",
   "genres": [
-    "uk",
     "garage",
     "house",
     "club"
@@ -40,7 +39,7 @@
     "style-research-extended-4 vol.4 header — `bassline` named among the archetypes that do not exist in this app",
     "https://en.wikipedia.org/wiki/Bassline_(music_genre)"
   ],
-  "notes": "The northern 4x4 wing that beat London 2-step to the chart, and the one archetype on this roster whose whole identity is **where the syncopation lives**. ⛔ **The sourced rule is a two-part swap: the kit goes straight and the bass takes the groove.** *\"Revert to a straight four-on-the-floor kick and move all syncopation into the bassline\"*, and *\"the syncopation lives entirely in the bass, not the kit\"*. So `kick.anchors` is all four quarters with `syncopation` at 0.08 — flatter than any other model here — while the low end runs a bouncing 16th figure between the kicks. ⛔⛔ **`kick.lockTo808` is 0.1, and that is the single most important number in this file.** Every trap-descended model in this dataset locks the 808 to the kick — trap at 1.0, *\"one instrument played twice\"*. This lane is the inverse: the bass must play **between** the kicks, so locking it would produce four bass notes on four kicks and delete the genre. ⚠ **The bass is the 808 lane and there is no separate `bassline` block**, which is this engine's house-family answer: `bass::generate` returns an empty lane whenever `drums.bass808.role` is `bassline`, so a second block would be one nothing reads. What the research calls a *\"warp/reese organ-bass … short, staccato, heavily filtered\"* is authored as `sustain: \"staccato\"` with `distortion: \"light\"` in a register that sits above a sub — this is an organ, not an 808. ⚠ **Swing is a per-record variable and is authored at the middle of its range.** The research is explicit — *\"some records import 'more highly swung beats instead of the classic 4x4 drums', so treat swing as a per-record 50–65% variable rather than fixed\"* — and this engine authors one number per model, so 0.56 is the centre of that range rather than a claim that every bassline record swings the same. The `swung` mode reaches the top of it. ⚠ **Harmony is a two-bar organ loop and nothing more**: *\"sampled Korg M1-style organ leads … usually a i–VI–VII or i–VII–VI loop of 2 bars\"*, with flat minors dominating the modern wing (D♭m, A♭m, B♭m, F♯m) and major-key exceptions on the poppier singles. Both are in `keys`, weighted to the minors. ⚠ **INFERRED, hence `medium`.** Sourced: both tempo bands, the four-on-the-floor, the backbeat, the offbeat hats and shaker, the tambourine, the swing range, the organ harmony and its two-bar loop, the bass's shape and its placement between the kicks. Inferred: every velocity tier, every register, the `intervals`/`contour` split, the fill vocabulary and the mode names.",
+  "notes": "The northern 4x4 wing that beat London 2-step to the chart, and the one archetype on this roster whose whole identity is **where the syncopation lives**. ⛔ **The sourced rule is a two-part swap: the kit goes straight and the bass takes the groove.** *\"Revert to a straight four-on-the-floor kick and move all syncopation into the bassline\"*, and *\"the syncopation lives entirely in the bass, not the kit\"*. So `kick.anchors` is all four quarters with `syncopation` at 0.08 — flatter than any other model here — while the low end runs a bouncing 16th figure between the kicks. ⛔⛔ **THE 808 LANE CANNOT PLAY BETWEEN THE KICKS, AND FINDING THAT OUT IS WHY THIS MODEL IS SHAPED THE WAY IT IS.** The first cut authored `bass808.role: \"bassline\"` with `kick.lockTo808` at 0.1, on the reasonable-sounding theory that an unlocked 808 would go its own way. It does not: `drums.rs` builds the 808 by *filtering the kick's own onsets* — `kicks.iter().filter(|_| rng.random_bool(lock))` — so a low lock makes the sub **sparser**, never syncopated. The invariant test measured 0% of the low end off the quarter and said so. ▶ **So the figure lives in the `bassline` block**, which is the only lane in this engine that places its own onsets: `rhythm: \"independent_riff\"` with a high `anticipationProb`, and `bass808.role` is `counter_riff` purely so `bass::generate` runs at all — it returns an empty lane whenever the 808 *is* the bassline. `kick.lockTo808` is 0.5 so the sub reinforces half the kicks rather than doubling all four, which is what a bassline record’s low end does under the organ. ⚠ **0.1 was the first value and a gate refused it**: `every_shipped_model_with_an_808_produces_a_playable_line` found seeds where the sub came out empty, and a model that authors an 808 has to play one. The syncopation was never in that lane anyway. ⚠ What the research calls a *\"warp/reese organ-bass … short, staccato, heavily filtered\"* is the `bassline` lane's register and `glideProb`; the sub underneath it is deliberately plain. ⚠ **Swing is a per-record variable and is authored at the middle of its range.** The research is explicit — *\"some records import 'more highly swung beats instead of the classic 4x4 drums', so treat swing as a per-record 50–65% variable rather than fixed\"* — and this engine authors one number per model, so 0.56 is the centre of that range rather than a claim that every bassline record swings the same. The `swung` mode reaches the top of it. ⚠ **Harmony is a two-bar organ loop and nothing more**: *\"sampled Korg M1-style organ leads … usually a i–VI–VII or i–VII–VI loop of 2 bars\"*, with flat minors dominating the modern wing (D♭m, A♭m, B♭m, F♯m) and major-key exceptions on the poppier singles. Both are in `keys`, weighted to the minors. ⚠ **INFERRED, hence `medium`.** Sourced: both tempo bands, the four-on-the-floor, the backbeat, the offbeat hats and shaker, the tambourine, the swing range, the organ harmony and its two-bar loop, the bass's shape and its placement between the kicks. Inferred: every velocity tier, every register, the `intervals`/`contour` split, the fill vocabulary and the mode names.",
   "arrangement": {
     "sectionBars": {
       "intro": 8,
@@ -123,7 +122,7 @@
       "syncopation": 0.08,
       "tresilloBias": 0,
       "offbeat8thShare": 0.04,
-      "lockTo808": 0.1
+      "lockTo808": 0.5
     },
     "snare": {
       "placement": "backbeat_24",
@@ -228,18 +227,16 @@
       "pitchWalk": 2
     },
     "bass808": {
-      "role": "bassline",
+      "role": "counter_riff",
       "sustain": "staccato",
       "monoCutSelf": true,
-      "slideProb": 0.14,
+      "slideProb": 0.06,
       "slideIntervals": {
         "values": [
           "P8",
-          "P5",
-          "m7"
+          "P5"
         ],
         "weights": [
-          2,
           2,
           1
         ]
@@ -248,11 +245,26 @@
         "phrase_end"
       ],
       "register": [
-        31,
-        50
+        26,
+        41
       ],
-      "distortion": "light"
+      "distortion": "none"
     }
+  },
+  "bassline": {
+    "followRootsProb": 0.7,
+    "rhythm": "independent_riff",
+    "register": [
+      31,
+      50
+    ],
+    "glideProb": 0.12,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2"
+    ],
+    "anticipationProb": 0.34
   },
   "chords": {
     "progressionFamilies": [

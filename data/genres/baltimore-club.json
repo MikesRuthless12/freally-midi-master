@@ -62,12 +62,18 @@
         "Cm",
         "Gm",
         "Dm",
-        "F"
+        "F",
+        "Fm",
+        "Em",
+        "Bbm"
       ],
       "weights": [
         4,
         3,
         3,
+        2,
+        2,
+        2,
         2,
         2
       ]
@@ -283,15 +289,15 @@
     ],
     "maxChords": 2,
     "extensions": {
-      "triad": 0.72,
-      "seventh": 0.24,
-      "ninth": 0.04
+      "triad": 0.6,
+      "seventh": 0.32,
+      "ninth": 0.08
     },
     "voicing": {
       "style": "close",
       "register": [
-        52,
-        78
+        48,
+        82
       ],
       "topVoiceStepwise": false
     },
@@ -302,16 +308,16 @@
         "1_per_bar"
       ],
       "weights": [
-        6,
-        3,
-        1
+        5,
+        4,
+        3
       ]
     },
     "chordDurationBeats": [
-      4,
+      2,
       16
     ],
-    "susSubstitutionProb": 0.06
+    "susSubstitutionProb": 0.14
   },
   "melody": {
     "register": [
@@ -329,13 +335,13 @@
       ]
     },
     "densityPerBar": [
-      3,
-      7
+      4,
+      9
     ],
     "structure": "call_response",
     "motifPitchCount": [
-      2,
-      4
+      3,
+      5
     ],
     "intervals": {
       "step": 0.46,
@@ -349,26 +355,35 @@
     },
     "chordToneBias": 0.7,
     "halfStepDissonance": 0.04,
-    "endVariation": true,
+    "endVariation": false,
     "octaveJumpProb": 0.16,
     "straightEighthsProb": 0.34,
-    "emptyBarBias": 0.14,
-    "timbreHint": "horn_stab"
+    "emptyBarBias": 0.1,
+    "timbreHint": "horn_stab",
+    "loopVerbatim": true
   },
   "countermelody": {
     "registerOffset": -12,
-    "densityRatio": 0.4,
+    "densityRatio": [
+      0.45,
+      0.8
+    ],
     "fillGapsOnly": true,
     "styles": {
       "values": [
         "answer_lick",
-        "octave_echo"
+        "octave_echo",
+        "arp",
+        "bell_echo"
       ],
       "weights": [
         4,
+        3,
+        2,
         2
       ]
-    }
+    },
+    "echoOffset": "8th"
   },
   "kit": {
     "preview": "club-default"

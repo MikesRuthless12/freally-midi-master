@@ -2286,33 +2286,47 @@ export const useSession = create<SessionState>((set, get) => ({
       // session that never existed under the label of one that did.
       const record = pattern.songSeed;
       const fills: PatternsByPart = {};
-      if (!recalling) {
-        for (const dep of UPSTREAM[part] ?? []) {
-          const held = get();
-          if (held.patterns[dep] !== undefined || held.partsOff.includes(dep)) continue;
-          fills[dep] = await invoke<Pattern>('generate_pattern', {
-            request: {
-              styleId: selectedId,
-              base,
-              part: dep,
-              bars,
-              seed: record,
-              songSeed: record,
-              // Only `Part::Bass` reads it and no upstream part is the bass —
-              // sent anyway, for the reason the single-Generate path above sends
-              // it on every part: a conditional here is one more thing to keep in
-              // agreement with the engine.
-              drumsSeed: mirrorableDrumsSeed(get().patterns.drums, {
+      // ⛔⛔ **A fill that fails must not take the generation with it.** These
+      // requests are the page's own idea, not the producer's: they pressed
+      // Generate on *this* part, it came back, and losing it because a tab they
+      // never asked about could not be filled would be the worst possible trade.
+      // Without this the whole call fell into the outer `catch`, which sets
+      // `error` and lands nothing — the counter was generated and thrown away.
+      // ⚠ Silent by design. The part that was asked for is on screen and correct;
+      // an error toast about a tab the producer did not press would describe a
+      // failure they cannot act on.
+      try {
+        if (!recalling) {
+          for (const dep of UPSTREAM[part] ?? []) {
+            const held = get();
+            if (held.patterns[dep] !== undefined || held.partsOff.includes(dep)) continue;
+            fills[dep] = await invoke<Pattern>('generate_pattern', {
+              request: {
+                styleId: selectedId,
+                base,
+                part: dep,
                 bars,
+                seed: record,
                 songSeed: record,
-                pins,
+                // Only `Part::Bass` reads it and no upstream part is the bass —
+                // sent anyway, for the reason the single-Generate path above sends
+                // it on every part: a conditional here is one more thing to keep in
+                // agreement with the engine.
+                drumsSeed: mirrorableDrumsSeed(get().patterns.drums, {
+                  bars,
+                  songSeed: record,
+                  pins,
+                  mood,
+                }),
+                session: pins,
                 mood,
-              }),
-              session: pins,
-              mood,
-            },
-          });
+              },
+            });
+          }
         }
+      } catch {
+        // Kept as they are: whatever landed before the failure is still a part
+        // this generation was written against.
       }
 
       // ⛔ **The artist may have changed while those were in flight**, the same

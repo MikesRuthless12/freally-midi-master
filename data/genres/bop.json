@@ -19,7 +19,6 @@
   "genres": [
     "rap",
     "midwest",
-    "chicago",
     "club"
   ],
   "relatedGenres": [
@@ -51,12 +50,18 @@
         "Am",
         "Dm",
         "Cm",
-        "Em"
+        "Em",
+        "Bm",
+        "Fm",
+        "F#m"
       ],
       "weights": [
         4,
         3,
         3,
+        2,
+        2,
+        2,
         2,
         2
       ]
@@ -390,18 +395,20 @@
   },
   "countermelody": {
     "registerOffset": -12,
-    "densityRatio": 0.55,
-    "fillGapsOnly": true,
+    "densityRatio": 0.58,
+    "fillGapsOnly": false,
     "styles": {
       "values": [
         "octave_echo",
         "answer_lick",
-        "arp"
+        "arp",
+        "sustain_pad"
       ],
       "weights": [
         3,
         3,
-        2
+        2,
+        1
       ]
     }
   },

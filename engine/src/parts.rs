@@ -70,12 +70,8 @@ pub fn render(
     // ⛔ **The bass is screened unless it is locked to the kick** — see
     // `novelty::screens`. Asked here because this is where the model is.
     let kick_locked = bass::follows_the_kick(model);
-    let (mut lanes, take, report) = novelty::screen(
-        novelty::bundled(),
-        part,
-        kick_locked,
-        seeds.part,
-        |take| {
+    let (mut lanes, take, report) =
+        novelty::screen(novelty::bundled(), part, kick_locked, seeds.part, |take| {
             generate(
                 model,
                 ctx,
@@ -85,8 +81,7 @@ pub fn render(
                 },
                 part,
             )
-        },
-    );
+        });
     novelty::log(part, &report);
     // The *take's* feel, so two takes of one part breathe differently.
     humanize(&mut lanes, ctx, take);

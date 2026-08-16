@@ -29,7 +29,7 @@
     "LargeUp — At the Instrument Zoo with Salaam Remi (https://www.largeup.com/2012/08/27/largeup-interview-exclusive-qa-with-salaam-remi/)",
     "Complex — Salaam Remi on producing for Nas (https://www.complex.com/music/a/rob-marriott/interview-salaam-remi-speaks-on-producing-for-nas-life-is-good)"
   ],
-  "notes": "The live-instrument end of this axis, and the only entry here with genuine changes rather than a loop drone. The research says \"real harmony… genuine changes rather than loop drones\", so the progressions run 4–8 bars with open voicings and no `impliedByRiff`, and the bass is `independent_riff` at `followRootsProb` 0.4 with the widest passing-tone set on this axis — a live electric player \"with real melodic lines and space\". The percussion lanes carry the hand percussion from his instrument collection. ⛔ **This model replaces the genre's dusty/jazzy/hard moods with its own, deliberately.** The research states two backbeat classes for one producer — straight 2&4 for the hip-hop cuts and a one-drop with the backbeat on beat 3 for the reggae-derived ones — and `session.halfTime` is the only honest way to say \"snare on 3\". Keeping the inherited moods would have left that unreachable. ⚠ `medium` because the research rates it medium-high: the live-instrument approach is first-person, the numbers are catalog-level. The specific inferred parameter is the 60/30/10 mode weighting — the research says the one-drop exists but not how much of the catalogue it is. ⚠ The bass ceiling came down from 50 to 47 so it stays under a chord part that starts at 48 — `coherence.rs` requires the highest bass note to sit at or below the lowest chord note, and this model overlapped by 3. ⚠ `countermelody.fillGapsOnly` returned to true. With it off and a density of 0.6, the counter plays THROUGH the melody rather than around it, and coherence.rs measures that as the counter sounding the melody own pitch at the same moment — a second lead rather than an answer. The register offset and the styles are untouched; what changed is that it waits its turn.",
+  "notes": "The live-instrument end of this axis, and the only entry here with genuine changes rather than a loop drone. The research says \"real harmony… genuine changes rather than loop drones\", so the progressions run 4–8 bars with open voicings and no `impliedByRiff`, and the bass is `independent_riff` at `followRootsProb` 0.4 with the widest passing-tone set on this axis — a live electric player \"with real melodic lines and space\". The percussion lanes carry the hand percussion from his instrument collection. ⛔ **This model replaces the genre's dusty/jazzy/hard moods with its own, deliberately.** The research states two backbeat classes for one producer — straight 2&4 for the hip-hop cuts and a one-drop with the backbeat on beat 3 for the reggae-derived ones — and `session.halfTime` is the only honest way to say \"snare on 3\". Keeping the inherited moods would have left that unreachable. ⚠ `medium` because the research rates it medium-high: the live-instrument approach is first-person, the numbers are catalog-level. The specific inferred parameter is the 60/30/10 mode weighting — the research says the one-drop exists but not how much of the catalogue it is. ⚠ The bass ceiling came down from 50 to 47 so it stays under a chord part that starts at 48 — `coherence.rs` requires the highest bass note to sit at or below the lowest chord note, and this model overlapped by 3. ⚠ `countermelody.fillGapsOnly` returned to true. With it off and a density of 0.6, the counter plays THROUGH the melody rather than around it, and coherence.rs measures that as the counter sounding the melody own pitch at the same moment — a second lead rather than an answer. The register offset and the styles are untouched; what changed is that it waits its turn. ⚠ **`one drop` authors a melody block and `live band` does not, which is what keeps the two moods from being one mood.** Both changed only drums, feel and tempo, and `two_moods_of_one_artist_do_not_generate_the_same_thing` compares the *melody* — so for every seed in 1..40 they wrote the same line and the mood control was decoration. The difference authored is the one a one drop actually makes: the weight moves to beat 3, the first half of the bar opens up, and the line sits back — fewer notes, more empty bars, a flatter contour.",
   "session": {
     "bpm": {
       "min": 78,
@@ -381,6 +381,19 @@
           46
         ],
         "anticipationProb": 0.45
+      },
+      "melody": {
+        "densityPerBar": [
+          2,
+          5
+        ],
+        "emptyBarBias": 0.22,
+        "straightEighthsProb": 0.5,
+        "contour": {
+          "riff": 0.4,
+          "descend": 0.42,
+          "arch": 0.18
+        }
       }
     },
     {

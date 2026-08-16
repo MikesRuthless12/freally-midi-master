@@ -143,6 +143,17 @@ pub enum SnarePlacement {
     Drill34,
     /// A 16th-note stream with the backbeat accented — the country train beat.
     Train16ths,
+    /// Beats 1 and 3 — the Milwaukee `lowend` cell, and the only placement here
+    /// that puts a snare on the downbeat.
+    ///
+    /// ⛔ **Added 2026-08-15 because the archetype could not be spelled without
+    /// it.** Volume 3 sources `lowend` as *"8th-note handclaps + snares on 1 and
+    /// 3"*, and `jerk` carries Certified Trapper and J.P. as a **declared
+    /// exception** precisely because no model could hold them. Two placements
+    /// shipped — `halftime_3` and `backbeat_24` — and a snare on 1 and 3 is
+    /// neither: it is the backbeat displaced a beat early, which is what makes
+    /// the lane sound like it is falling forwards.
+    Downbeat13,
 }
 
 impl SnarePlacement {
@@ -152,6 +163,7 @@ impl SnarePlacement {
             "backbeat_24" => Some(Self::Backbeat24),
             "drill_3_4" => Some(Self::Drill34),
             "train_16ths" => Some(Self::Train16ths),
+            "downbeat_1_3" => Some(Self::Downbeat13),
             _ => None,
         }
     }
@@ -177,6 +189,11 @@ impl SnarePlacement {
         match self {
             Self::Halftime3 => vec![(beat * 2, None)],
             Self::Backbeat24 => vec![(beat, None), (beat * 3, None)],
+            // ⚠ **Beat 1 is tick 0**, so this is the one placement that puts a
+            // snare on the downbeat with the kick. That collision is the sound,
+            // not a fault: the research names the pair together — handclaps on
+            // the eighths *over* snares on 1 and 3.
+            Self::Downbeat13 => vec![(0, None), (beat * 2, None)],
             // Bar 1 of the pair takes beat 3, bar 2 takes beat 4.
             Self::Drill34 => {
                 if bar.is_multiple_of(2) {

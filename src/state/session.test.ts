@@ -1499,6 +1499,32 @@ describe('a generator fills the parts it was written against', () => {
     expect(useSession.getState().edited).toBe(false);
   });
 
+  it('keeps the part that was asked for when a fill fails', async () => {
+    // ⛔ **Found by reading the diff, not by a failing suite.** The fills sit
+    // between the generation and the `set` that lands it, so a refusal from one
+    // of them fell into the outer catch and threw away a counter that had
+    // already come back correctly. The producer pressed Generate on a part, that
+    // part succeeded, and the app showed them an error and nothing else.
+    await useSession.getState().generate('drums');
+
+    invoke.mockImplementation((command: string, args?: unknown) => {
+      if (command === 'session_defaults') return Promise.resolve(TRAP);
+      if (command === 'generate_pattern') {
+        const { part } = (args as { request: { part: Part } }).request;
+        // The chords fill is refused; the counter the producer asked for is not.
+        if (part === 'chords') return Promise.reject(new Error('no chords for you'));
+        return Promise.resolve({ ...PATTERN, id: `trap-${part}`, part } satisfies Pattern);
+      }
+      return Promise.resolve(null);
+    });
+
+    await useSession.getState().generate('counter');
+
+    expect(useSession.getState().patterns.counter, 'the generation was discarded').toBeDefined();
+    expect(useSession.getState().patterns.chords).toBeUndefined();
+    expect(useSession.getState().generating, 'the button stayed stuck').toBe(false);
+  });
+
   it('records each fill as its own take, in dependency order', async () => {
     await useSession.getState().generate('drums');
     await useSession.getState().generate('counter');

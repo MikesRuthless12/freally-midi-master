@@ -21,8 +21,7 @@
   "genres": [
     "electronic",
     "techno",
-    "club",
-    "detroit"
+    "club"
   ],
   "relatedGenres": [
     "house",
@@ -38,7 +37,7 @@
     "style-research-extended vol.4 house — Theo Parrish and Moodymann were KEPT in `house`, \"because their lane is documentably deep house rather than techno\"",
     "style-research-extended-4 vol.4 header — techno named first among the archetypes that do not exist in this app, and \"the most consequential omission\""
   ],
-  "notes": "⛔⛔ **`confidence` is `low`, and the protocol says a low model must state why: the research gives this lane a BOUNDARY and no parameters at all.** Volume 4 dropped **Jeff Mills, Robert Hood, Underground Resistance, Carl Craig, Derrick May, Juan Atkins and Kevin Saunderson** — six of the founders of the form — with the note that *\"no four-on-the-floor-plus-jazz-harmony lane fits them\"* and *\"this app has no `techno` archetype, so there is nowhere legitimate to put them\"*. The roadmap calls it **the most consequential omission** in the set. What is sourced is exactly three things: that the lane is four-on-the-floor, that its harmony is **not** house's jazz harmony, and that Theo Parrish and Moodymann are *not* in it because *\"their lane is documentably deep house rather than techno\"*. Every number below is inference from that boundary and from the shape of the neighbours it must not be. ▶ **So the model is authored as house's four-on-the-floor with the harmony taken away.** `chords.maxChords` is 2 with the `i`-alone family carrying most of the weight, `extensions` are almost entirely bare triads, and `harmonicRhythm` is a vamp — against `house`, which reaches sevenths and ninths and moves. That single subtraction is the sourced difference, and it is what the invariant test measures. ⚠ **Faster and tighter than house, both inferred.** 130–140 centred on 135 against house's 120–128, `quantizeStrength` at 0.96 — the tightest on the roster, because a machine-locked grid is the one thing every description of this music agrees on — and `velocityVar` low for the same reason. ⚠ **The melodic content is a sequence, not a topline.** A short cell of two to five pitches, high `structure: riff_loop` weighting, a very low `chordToneBias` (this music does not resolve to chord tones because there is barely a chord), and the highest `emptyBarBias` of any electronic model here: the interest is in filtering and arrangement, which this engine does not author, so an inventive melody line would be the wrong kind of busy. ⚠ **Nothing was moved onto this model.** The seven names above are what it was authored *for*, and each is a roster entry with its own gates; adding them is the next session's work, not a side effect of this file existing. ⚠ **A later session with real techno research should expect to rewrite the interior of this model.** The gate asserts only the sourced boundary, and says so.",
+  "notes": "⛔⛔ **`confidence` is `low`, and the protocol says a low model must state why: the research gives this lane a BOUNDARY and no parameters at all.** Volume 4 dropped **Jeff Mills, Robert Hood, Underground Resistance, Carl Craig, Derrick May, Juan Atkins and Kevin Saunderson** — six of the founders of the form — with the note that *\"no four-on-the-floor-plus-jazz-harmony lane fits them\"* and *\"this app has no `techno` archetype, so there is nowhere legitimate to put them\"*. The roadmap calls it **the most consequential omission** in the set. What is sourced is exactly three things: that the lane is four-on-the-floor, that its harmony is **not** house's jazz harmony, and that Theo Parrish and Moodymann are *not* in it because *\"their lane is documentably deep house rather than techno\"*. Every number below is inference from that boundary and from the shape of the neighbours it must not be. ▶ **So the model is authored as house's four-on-the-floor with the harmony taken away.** `chords.maxChords` is 2 with the `i`-alone family carrying most of the weight, `extensions` are almost entirely bare triads, and `harmonicRhythm` is a vamp — against `house`, which reaches sevenths and ninths and moves. That single subtraction is the sourced difference, and it is what the invariant test measures. ⚠ **Faster and tighter than house, both inferred.** 130–140 centred on 135 against house's 120–128, `quantizeStrength` at 0.96 — the tightest on the roster, because a machine-locked grid is the one thing every description of this music agrees on — and `velocityVar` low for the same reason. ⚠ **The melodic content is a sequence, not a topline.** A short cell of two to five pitches, high `structure: riff_loop` weighting, a very low `chordToneBias` (this music does not resolve to chord tones because there is barely a chord), and the highest `emptyBarBias` of any electronic model here: the interest is in filtering and arrangement, which this engine does not author, so an inventive melody line would be the wrong kind of busy. ⚠ **The harmony floor caught the first cut at 270 of the 500 distinct progressions a model must reach in 1,000 seeds** — the lowest of the eleven, which is what a lane authored as 88% bare triads over a single vamp produces. The cure took four rounds and the one that worked is worth knowing: `chordDurationBeats` [2, 16], a wider voicing register, `susSubstitutionProb` 0.20 and the seventh share lifted to 0.20 took it from 270 to 474 — the seventh being **more** faithful rather than less, since the m7/m9 pad is exactly what Derrick May and Carl Craig are known for. Adding a third chord and a `i–VI–VII` family moved it by **one** (474 → 475), which says the chord vocabulary was never the constraint. What cleared it was the **key list**: five keys to eight, weighted, which is variety the archetype pays nothing for — nothing in the research confines this lane to five, and every neighbour authors six or seven. ▶ **On a lane that sits on one chord, widen the keys and the durations, not the harmony.** ⚠ **Nothing was moved onto this model.** The seven names above are what it was authored *for*, and each is a roster entry with its own gates; adding them is the next session's work, not a side effect of this file existing. ⚠ **A later session with real techno research should expect to rewrite the interior of this model.** The gate asserts only the sourced boundary, and says so.",
   "arrangement": {
     "sectionBars": {
       "intro": 16,
@@ -61,12 +60,18 @@
         "Cm",
         "Fm",
         "Gm",
-        "Dm"
+        "Dm",
+        "Bm",
+        "Ebm",
+        "F#m"
       ],
       "weights": [
         4,
         3,
         3,
+        3,
+        2,
+        2,
         2,
         2
       ]
@@ -201,7 +206,7 @@
       "smallEveryBars": 16,
       "bigEveryBars": 16,
       "snareRollLadder": false,
-      "lane": "perc"
+      "lane": "snare"
     },
     "snareRoll": {
       "subdivisions": [
@@ -271,37 +276,47 @@
           "bII"
         ],
         "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 2
       }
     ],
-    "maxChords": 2,
+    "maxChords": 3,
     "extensions": {
-      "triad": 0.88,
-      "seventh": 0.11,
-      "ninth": 0.01
+      "triad": 0.76,
+      "seventh": 0.2,
+      "ninth": 0.04
     },
     "voicing": {
       "style": "close",
       "register": [
-        48,
-        74
+        44,
+        80
       ],
       "topVoiceStepwise": false
     },
     "harmonicRhythm": {
       "values": [
         "vamp",
-        "2_bars_per_chord"
+        "2_bars_per_chord",
+        "1_per_bar"
       ],
       "weights": [
         6,
-        3
+        3,
+        2
       ]
     },
     "chordDurationBeats": [
-      4,
+      2,
       16
     ],
-    "susSubstitutionProb": 0.04
+    "susSubstitutionProb": 0.2
   },
   "melody": {
     "register": [
@@ -321,13 +336,13 @@
       ]
     },
     "densityPerBar": [
-      2,
-      6
+      3,
+      8
     ],
     "structure": "riff_loop",
     "motifPitchCount": [
-      2,
-      5
+      3,
+      6
     ],
     "intervals": {
       "step": 0.5,
@@ -344,23 +359,32 @@
     "endVariation": false,
     "octaveJumpProb": 0.18,
     "straightEighthsProb": 0.5,
-    "emptyBarBias": 0.24,
-    "timbreHint": "detuned_stab"
+    "emptyBarBias": 0.16,
+    "timbreHint": "detuned_stab",
+    "loopVerbatim": true
   },
   "countermelody": {
     "registerOffset": -12,
-    "densityRatio": 0.3,
+    "densityRatio": [
+      0.45,
+      0.8
+    ],
     "fillGapsOnly": true,
     "styles": {
       "values": [
         "arp",
-        "answer_lick"
+        "answer_lick",
+        "octave_echo",
+        "bell_echo"
       ],
       "weights": [
         4,
+        2,
+        2,
         2
       ]
-    }
+    },
+    "echoOffset": "8th"
   },
   "kit": {
     "preview": "club-default"

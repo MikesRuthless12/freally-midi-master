@@ -17,7 +17,8 @@ use std::sync::OnceLock;
 use engine::context::SessionContext;
 use engine::generators::drums::{generate, PERC_LANES};
 use engine::generators::grid;
-use engine::pattern::{Articulation, Lane, LaneTrack, Note};
+use engine::parts;
+use engine::pattern::{Articulation, Lane, LaneTrack, Note, Part};
 use engine::StyleModel;
 use serde_json::Value;
 
@@ -2350,6 +2351,331 @@ fn houston_screw_is_the_slowest_archetype_on_the_roster() {
     }
 }
 
+/// How many kicks a bar this model writes, averaged over the sweep.
+fn kicks_per_bar(id: &str) -> f64 {
+    let bars = 4;
+    let hits = sweep(&model(id), Lane::Kick, bars);
+    assert!(!hits.is_empty(), "{id} wrote no kick at all");
+    hits.len() as f64 / (SEEDS as f64 * f64::from(bars))
+}
+
+#[test]
+#[test]
+fn lowend_is_the_one_lane_whose_snare_lands_on_one_and_three() {
+    // ⛔⛔ **The inversion, quoted**: *"Note the inverted convention: snares on 1
+    // and 3, claps on the 8ths — not the usual backbeat-on-2&4 arrangement."*
+    // This is the only model on the roster that does it, and the engine could not
+    // express it at all until `SnarePlacement::Downbeat13` was added for it —
+    // `parse` read two names and a snare on 1 and 3 is neither of them.
+    let context = ctx(4);
+    let bar_ticks = context.ticks_per_bar();
+    let one_and_three = [0, beat(&context) * 2];
+
+    let hits = sweep(&model("lowend"), Lane::Snare, 4);
+    assert!(!hits.is_empty(), "lowend wrote no snare at all");
+    for (seed, note) in &hits {
+        if !is_backbeat(note) {
+            continue;
+        }
+        assert!(
+            one_and_three.contains(&(note.start_tick % bar_ticks)),
+            "seed {seed}: lowend's snare at {} is not the 1 or the 3",
+            note.start_tick % bar_ticks
+        );
+    }
+
+    // ...and no other genre answers there, or the inversion is not an inversion.
+    for (id, other) in shipped() {
+        if id == "lowend"
+            || id.starts_with('_')
+            || other.model_type != engine::dataset::ModelType::Genre
+        {
+            continue;
+        }
+        let on_one = sweep(other, Lane::Snare, 4)
+            .iter()
+            .filter(|(_, note)| is_backbeat(note) && (note.start_tick % bar_ticks) == 0)
+            .count();
+        assert_eq!(
+            on_one, 0,
+            "the genre {id} also answers on the downbeat, so lowend's cell is no longer \
+             the roster's inversion"
+        );
+    }
+}
+
+#[test]
+fn lowend_is_a_metronome_where_jerk_is_the_improviser() {
+    // ⛔ **The two-tier kit the research describes is shared, and the two models
+    // sit at opposite ends of it**: *"a rigid, perfectly-quantised 8th-note clap
+    // stream running underneath a violently off-grid snare cluster tier"* — jerk
+    // takes the same Milwaukee DNA and randomises the snare, which
+    // `jerk_is_the_one_genre_that_asks_to_be_loosened` pins as the loosest thing
+    // on the roster. This one is the rigid end, and asserting it as a comparison
+    // is what keeps the pair meaningful.
+    let (lowend, jerk) = (quantize_of("lowend"), quantize_of("jerk"));
+    assert!(
+        lowend > jerk + 0.3,
+        "lowend quantizes at {lowend} against jerk's {jerk} — the two are supposed to be \
+         the metronome and the improviser"
+    );
+
+    // ...and it is the faster of the two, which is the tempo spine the research
+    // gives: 170–186 against jerk's 145–170.
+    let (fast, slower) = (tempo_of("lowend"), tempo_of("jerk"));
+    assert!(
+        fast > slower,
+        "lowend centres at {fast}, not above jerk's {slower}"
+    );
+}
+
+#[test]
+fn michigan_offgrid_carries_both_tempo_bands_rather_than_reconciling_them() {
+    // ⛔⛔ **The instruction was explicit and it was about NOT choosing.** Volume 5
+    // specifies 92–115 straight with the backbeat on 2 and 4; volume 4 measured
+    // ten Tee Grizzley readings and found a clean 92–104 straight cluster *and* a
+    // 67–83 halved one — 134–150 half-time with the snare on 3 — and the
+    // recommendation is verbatim: *"Author both as named modes; do not reconcile
+    // by picking one number."* Flint-independent material skews slow and
+    // straight, Detroit major-label fast and half-time.
+    //
+    // ⚠ Asserted through `modes::apply`, because a mode that names a band and is
+    // never applied is a claim in a JSON file rather than a behaviour.
+    let base = model("michigan-offgrid");
+    let straight = engine::dataset::modes::apply(&base, "flint").expect("the flint mode applies");
+    let halved = engine::dataset::modes::apply(&base, "detroit-halftime")
+        .expect("the halftime mode applies");
+
+    let tempo = |m: &StyleModel| {
+        m.session
+            .as_ref()
+            .and_then(|s| s.bpm.as_ref())
+            .and_then(|b| b.mode)
+            .expect("both modes state a tempo")
+    };
+    let (slow, fast) = (tempo(&straight), tempo(&halved));
+    assert!(
+        fast > slow + 30.0,
+        "the two bands must stay two bands: flint centres at {slow}, detroit-halftime at \
+         {fast}"
+    );
+
+    let half_time = |m: &StyleModel| m.session.as_ref().and_then(|s| s.half_time);
+    assert_eq!(
+        half_time(&straight),
+        Some(false),
+        "flint is the straight one"
+    );
+    assert_eq!(
+        half_time(&halved),
+        Some(true),
+        "detroit-halftime is the halved one"
+    );
+
+    // ...and the halved one moves the backbeat onto the 3, which is the other
+    // half of what "halved" means.
+    let context = ctx(4);
+    let bar_ticks = context.ticks_per_bar();
+    let three = beat(&context) * 2;
+    let on_three = sweep(&halved, Lane::Snare, 4)
+        .iter()
+        .filter(|(_, note)| is_backbeat(note) && note.start_tick % bar_ticks == three)
+        .count();
+    assert!(
+        on_three > 0,
+        "detroit-halftime kept a full-time backbeat, so it is not the halved reading at all"
+    );
+}
+
+#[test]
+fn michigan_offgrids_808_never_slides_and_its_hats_stay_sparse() {
+    // ⛔ **Two of the lane's four sourced rules, and both are stated as absolutes:**
+    // *"808 does not slide — it plays discrete note figures, which inverts drill's
+    // and trap's defining bass behaviour"*, and *"hats are sparse (no 16th carpet,
+    // no triplet rolls)"*. Measured against `uk-drill`, whose 808 is the sliding
+    // counter-riff this one inverts, and against `trap`, whose hat carpet it
+    // refuses.
+    let michigan = slide_share("michigan-offgrid");
+    assert!(
+        michigan == 0.0,
+        "michigan-offgrid slid {michigan:.3} of its 808 notes — the rule is that it does not"
+    );
+    assert!(
+        slide_share("uk-drill") > 0.0,
+        "uk-drill stopped sliding, so this comparison no longer says anything"
+    );
+
+    let hats = |id: &str| sweep(&model(id), Lane::ClosedHat, 4).len() as f64 / (SEEDS as f64 * 4.0);
+    let (ours, trap) = (hats("michigan-offgrid"), hats("trap"));
+    assert!(
+        ours < trap * 0.7,
+        "michigan-offgrid played {ours:.2} hats a bar against trap's {trap:.2} — that is a \
+         carpet, and this lane's rule is that it has none"
+    );
+}
+
+#[test]
+fn the_two_club_cousins_keep_jerseys_kick_as_the_hardest() {
+    // ⛔ **The sourced divergence runs one way only.** Jersey's own documented
+    // difference from Baltimore is *"harder kicks and chop the samples up a lot
+    // more"*, where Baltimore's counterpart signature is *"a lot of horns"* — so
+    // the five-kick bar belongs to Jersey, and both cousins must sit under it.
+    // `jersey_club_runs_the_densest_kick_in_the_dataset` pins the 5.0–5.6 band
+    // from the other side; this pins the ordering.
+    let jersey = kicks_per_bar("jersey-club");
+    for cousin in ["baltimore-club", "philly-club"] {
+        let theirs = kicks_per_bar(cousin);
+        assert!(
+            theirs < jersey,
+            "{cousin} kicks {theirs:.2} times a bar against jersey-club's {jersey:.2} — \
+             the softer kick is the sourced difference"
+        );
+    }
+
+    // ...and the tempo runs the other way: Baltimore is documented "around 130",
+    // Jersey/Philly-facing material at 135–140, club-rap vocal records at 132–138.
+    let (baltimore, philly, jersey_bpm) = (
+        tempo_of("baltimore-club"),
+        tempo_of("philly-club"),
+        tempo_of("jersey-club"),
+    );
+    assert!(
+        baltimore < philly && philly < jersey_bpm,
+        "the three club lanes must order baltimore ({baltimore}) < philly ({philly}) < \
+         jersey ({jersey_bpm})"
+    );
+}
+
+#[test]
+fn bassline_puts_the_syncopation_in_the_bass_and_nothing_in_the_kit() {
+    // ⛔⛔ **The whole archetype in one sourced sentence**: *"revert to a straight
+    // four-on-the-floor kick and move all syncopation into the bassline"*, and
+    // *"the syncopation lives entirely in the bass, not the kit"*. So both halves
+    // are asserted, and either alone would be a different genre — a straight kick
+    // with a straight bass is house.
+    let context = ctx(4);
+    let quarter = beat(&context);
+    let bar_ticks = context.ticks_per_bar();
+
+    for (seed, note) in sweep(&model("bassline"), Lane::Kick, 4) {
+        assert!(
+            (note.start_tick % bar_ticks).is_multiple_of(quarter),
+            "seed {seed}: bassline's kick at {} left the quarter — this lane is four on \
+             the floor",
+            note.start_tick % bar_ticks
+        );
+    }
+
+    // ⛔ **The played bass, not the 808, and the first cut of this test got that
+    // wrong in a way worth keeping.** The 808 lane is built by *filtering the
+    // kick's own onsets*, so it can be made sparse but never syncopated — it
+    // measured 0% off the quarter. The only lane that places its own onsets is
+    // the `bassline` block, which is where this genre's figure had to go, and it
+    // comes from `parts::render` rather than from the drum generator `sweep`
+    // walks. See the model's notes.
+    //
+    // ⚠ **Measured with a tolerance, because `parts::render` humanises.** A few
+    // milliseconds of jitter puts every note a handful of ticks off its exact
+    // grid position, so an exact `is_multiple_of` would find ~100% "off the
+    // quarter" and pass whatever the model did — the readout-that-lies failure in
+    // test form. A sixteenth-quarter tolerance is far wider than the jitter and
+    // far narrower than the offbeat it has to tell apart.
+    let bass_model = model("bassline");
+    let tolerance = grid::SIXTEENTH / 4;
+    let low: Vec<Note> = (0..SEEDS)
+        .flat_map(|seed| {
+            notes(
+                &parts::render(
+                    &bass_model,
+                    &context,
+                    parts::Seeds::shared(seed),
+                    Part::Bass,
+                ),
+                Lane::Bass,
+            )
+        })
+        .collect();
+    assert!(!low.is_empty(), "bassline wrote no low end to measure");
+    let off_quarter = low
+        .iter()
+        .filter(|note| {
+            let within = note.start_tick % quarter;
+            within > tolerance && within < quarter - tolerance
+        })
+        .count() as f64
+        / low.len() as f64;
+    assert!(
+        off_quarter > 0.3,
+        "only {:.0}% of bassline's low end sits off the quarter — the syncopation is \
+         supposed to live there, and a bass that lands with the kick is house",
+        off_quarter * 100.0
+    );
+}
+
+#[test]
+fn edm_trap_is_the_harmonic_minimum_of_the_140_family() {
+    // ⛔ **The research's own discriminator, quoted**: Baauer *"is the harmonic
+    // minimum of this section, which is precisely how you tell an EDM-trap record
+    // from a future-bass one"*. `future-bass` is the model that stacks the
+    // extensions — its whole signature is the "future chord" — so the comparison
+    // is the claim, and an absolute number would say nothing.
+    let (edm, future) = (extended_share("edm-trap"), extended_share("future-bass"));
+    assert!(
+        edm < future * 0.6,
+        "edm-trap voiced {edm:.2} of its chords as a seventh or richer against \
+         future-bass's {future:.2} — this lane is the harmonic minimum, not another \
+         chord-led one"
+    );
+
+    // ...and it reads the 140 family's half-time grammar: the snare is on the 3.
+    let context = ctx(4);
+    let bar_ticks = context.ticks_per_bar();
+    let three = beat(&context) * 2;
+    let hits = sweep(&model("edm-trap"), Lane::Snare, 4);
+    assert!(!hits.is_empty(), "edm-trap wrote no snare");
+    for (seed, note) in &hits {
+        if !is_backbeat(note) {
+            continue;
+        }
+        assert_eq!(
+            note.start_tick % bar_ticks,
+            three,
+            "seed {seed}: edm-trap's snare left the 3, which is the half-time reading \
+             the whole family shares"
+        );
+    }
+}
+
+#[test]
+fn techno_is_houses_floor_with_houses_harmony_taken_away() {
+    // ⛔⛔ **This model ships at `confidence: low` and this test asserts only what
+    // the research states.** Volume 4 dropped Jeff Mills, Robert Hood,
+    // Underground Resistance, Carl Craig, Derrick May, Juan Atkins and Kevin
+    // Saunderson with the note that *"no four-on-the-floor-plus-jazz-harmony lane
+    // fits them"* — a boundary, not a parameter set. So: the same floor as
+    // `house`, and none of its harmony. Everything else in the model is inference
+    // and is marked as such in its notes; a later session with real techno
+    // research should expect to rewrite the interior, and must not read this gate
+    // as evidence that it is right.
+    let context = ctx(4);
+    let quarter = beat(&context);
+    let bar_ticks = context.ticks_per_bar();
+    for (seed, note) in sweep(&model("techno"), Lane::Kick, 4) {
+        assert!(
+            (note.start_tick % bar_ticks).is_multiple_of(quarter),
+            "seed {seed}: techno's kick at {} left the quarter",
+            note.start_tick % bar_ticks
+        );
+    }
+
+    let (techno, house) = (extended_share("techno"), extended_share("house"));
+    assert!(
+        techno < house * 0.5,
+        "techno voiced {techno:.2} of its chords as a seventh or richer against house's \
+         {house:.2} — the sourced difference between them is exactly the jazz harmony"
+    );
+}
+
 #[test]
 fn bop_is_the_fastest_of_the_three_chicago_lanes_and_the_straightest() {
     // ⛔ **Authored entirely against its neighbours, because that is how the
@@ -2772,6 +3098,13 @@ fn every_genre_in_the_roster_has_an_invariant_test() {
         "afro-house",
         "bop",
         "dominican-dembow",
+        "michigan-offgrid",
+        "baltimore-club",
+        "philly-club",
+        "bassline",
+        "edm-trap",
+        "techno",
+        "lowend",
     ];
 
     // Genres only: the artists are covered by

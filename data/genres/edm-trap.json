@@ -19,7 +19,6 @@
   "genres": [
     "electronic",
     "trap",
-    "bass",
     "festival"
   ],
   "relatedGenres": [
@@ -61,12 +60,18 @@
         "Gm",
         "Cm",
         "Am",
-        "Ebm"
+        "Ebm",
+        "Fm",
+        "Dm",
+        "Bm"
       ],
       "weights": [
         4,
         3,
         3,
+        2,
+        2,
+        2,
         2,
         2
       ]
@@ -303,15 +308,15 @@
     ],
     "maxChords": 2,
     "extensions": {
-      "triad": 0.8,
-      "seventh": 0.18,
-      "ninth": 0.02
+      "triad": 0.68,
+      "seventh": 0.26,
+      "ninth": 0.06
     },
     "voicing": {
       "style": "open",
       "register": [
-        48,
-        76
+        45,
+        80
       ],
       "topVoiceStepwise": false
     },
@@ -324,14 +329,14 @@
       "weights": [
         5,
         4,
-        2
+        3
       ]
     },
     "chordDurationBeats": [
-      4,
+      2,
       16
     ],
-    "susSubstitutionProb": 0.05
+    "susSubstitutionProb": 0.12
   },
   "melody": {
     "register": [
@@ -377,7 +382,7 @@
   },
   "countermelody": {
     "registerOffset": -12,
-    "densityRatio": 0.35,
+    "densityRatio": 0.5,
     "fillGapsOnly": true,
     "styles": {
       "values": [

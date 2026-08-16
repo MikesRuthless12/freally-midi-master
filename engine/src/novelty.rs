@@ -665,7 +665,7 @@ mod tests {
     #[test]
     fn an_empty_table_screens_nothing() {
         let table = Table::default();
-        let (lanes, seed, report) = screen(&table, Part::Melody, 7, |s| {
+        let (lanes, seed, report) = screen(&table, Part::Melody, true, 7, |s| {
             vec![LaneTrack {
                 lane: crate::pattern::Lane::Melody,
                 notes: vec![note(0, 60 + (s % 12) as u8)],
@@ -678,12 +678,26 @@ mod tests {
 
     #[test]
     fn the_parts_without_a_hook_are_not_screened() {
-        for part in [Part::Drums, Part::Chords, Part::Bass] {
-            assert!(!screens(part), "{part:?}");
+        // ⚠ **The bass answers to its rhythm rather than to its part** since
+        // 2026-08-15 — a line that copies the kick's ticks is not a figure, and
+        // one that places its own onsets is. Both directions are asserted here
+        // because the flag is the whole rule.
+        for part in [Part::Drums, Part::Chords] {
+            assert!(!screens(part, true), "{part:?}");
+            assert!(!screens(part, false), "{part:?}");
         }
         for part in [Part::Melody, Part::Counter] {
-            assert!(screens(part), "{part:?}");
+            assert!(screens(part, true), "{part:?}");
+            assert!(screens(part, false), "{part:?}");
         }
+        assert!(
+            !screens(Part::Bass, true),
+            "a kick-locked bass has no figure of its own to screen"
+        );
+        assert!(
+            screens(Part::Bass, false),
+            "a bass that places its own onsets is a figure, and 207 shipped models write one"
+        );
     }
 
     #[test]

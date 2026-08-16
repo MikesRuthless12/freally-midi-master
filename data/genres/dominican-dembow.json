@@ -51,12 +51,18 @@
         "Dm",
         "Gm",
         "Em",
-        "Cm"
+        "Cm",
+        "Fm",
+        "Bm",
+        "F#m"
       ],
       "weights": [
         4,
         3,
         3,
+        2,
+        2,
+        2,
         2,
         2
       ]
@@ -308,15 +314,15 @@
     ],
     "maxChords": 3,
     "extensions": {
-      "triad": 0.78,
-      "seventh": 0.19,
-      "ninth": 0.03
+      "triad": 0.68,
+      "seventh": 0.27,
+      "ninth": 0.05
     },
     "voicing": {
       "style": "close",
       "register": [
-        52,
-        76
+        48,
+        80
       ],
       "topVoiceStepwise": false
     },
@@ -329,14 +335,14 @@
       "weights": [
         5,
         3,
-        2
+        3
       ]
     },
     "chordDurationBeats": [
       2,
-      12
+      16
     ],
-    "susSubstitutionProb": 0.06
+    "susSubstitutionProb": 0.14
   },
   "melody": {
     "register": [
@@ -354,13 +360,13 @@
       ]
     },
     "densityPerBar": [
-      2,
-      5
+      3,
+      7
     ],
     "structure": "riff_loop",
     "motifPitchCount": [
-      2,
-      4
+      3,
+      5
     ],
     "intervals": {
       "step": 0.5,
@@ -374,26 +380,35 @@
     },
     "chordToneBias": 0.7,
     "halfStepDissonance": 0.06,
-    "endVariation": true,
+    "endVariation": false,
     "octaveJumpProb": 0.14,
     "straightEighthsProb": 0.4,
-    "emptyBarBias": 0.22,
-    "timbreHint": "horn_stab"
+    "emptyBarBias": 0.16,
+    "timbreHint": "horn_stab",
+    "loopVerbatim": true
   },
   "countermelody": {
     "registerOffset": -12,
-    "densityRatio": 0.4,
+    "densityRatio": [
+      0.45,
+      0.8
+    ],
     "fillGapsOnly": true,
     "styles": {
       "values": [
         "answer_lick",
-        "octave_echo"
+        "octave_echo",
+        "arp",
+        "bell_echo"
       ],
       "weights": [
         3,
+        3,
+        2,
         2
       ]
-    }
+    },
+    "echoOffset": "8th"
   },
   "kit": {
     "preview": "club-default"
