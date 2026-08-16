@@ -434,6 +434,7 @@
     "unstar": "{{name}} 즐겨찾기에서 제거",
     "revealHint": "파일 관리자에서 {{path}} 표시",
     "midiApply": "제너레이터로 보내기",
+    "midiTrain": "이것으로 학습",
     "midiDragHint": "또는 파일을 제너레이터 하나에 끌어다 놓으면 전부 그곳으로 가져옵니다.",
     "splitReason": {
       "drumChannel": "GM 드럼 채널",

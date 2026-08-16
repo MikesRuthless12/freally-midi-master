@@ -434,6 +434,7 @@
     "unstar": "{{name}} favorilerden çıkar",
     "revealHint": "{{path}} dosya yöneticisinde göster",
     "midiApply": "Üreticilere gönder",
+    "midiTrain": "Bununla eğit",
     "midiDragHint": "Ya da dosyayı tek bir üreticiye sürükleyerek hepsini oraya aktar.",
     "splitReason": {
       "drumChannel": "GM davul kanalında",

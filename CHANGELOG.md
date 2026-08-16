@@ -12,6 +12,64 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added — the parts a generator answers, and four archetypes the research was owed, 2026-08-15
+
+- **Generating a countermelody fills the melody it answers, and the harmony both
+  are written against** (TASK-129). The engine has always rendered those parts —
+  `engine/src/parts.rs` writes a counter against a melody and every melodic part
+  against the harmony, whether or not the producer has pressed Generate on
+  either — so a counter on a fresh session was a line answering something
+  nobody could hear, and the next press on the Melody tab wrote a *different*
+  melody and left the counter answering one that no longer existed.
+  ⛔ **The fills are generated at the RECORD, not at a fresh take**, which is the
+  whole correctness of it: the counter is written against the record's own lead,
+  so filling the tab with a new take would put a different melody on screen from
+  the one it answers — the same defect wearing the fix's clothes. Both seed
+  fields carry the record, and the tests assert what was *sent*.
+  ⛔ **The drums are deliberately not filled.** A melody is phrased around a
+  reference kit at the song seed, not around the drum take on screen; filling
+  that tab would put a kit there that neither the melody was written against nor
+  Generate would produce.
+  ⚠ A part the producer already has is never replaced, a generator that has been
+  switched off is not filled, and one press is still one undo step.
+- **A `.mid` from the browser can be trained on** (TASK-040T, the last piece).
+  The fit, its anti-collapse rules, the SMF reader and the keep/train loop have
+  shipped since 2026-08-09 — with the reader reachable *only over the bridge*, so
+  a producer could train a style on their own generations and not on their own
+  files. The MIDI panel now carries **Train on this**, and the style editor counts
+  the file's parts toward the thirty a fit needs.
+  ⚠ **It keeps the file's own split**, which is what makes a file and a
+  generation one measurement rather than two — both arrive at `engine::fit` as
+  `Pattern`s. Kept files are the one thing in the variation store that carries
+  notes rather than a seed, because nothing rebuilds somebody else's `.mid` from
+  a number.
+- **Four genre archetypes the research had to work around** (TASK-158F), taking
+  the dataset to **60 genres and 594 models**. Each carries an invariant test
+  that states the thing that makes it that genre:
+  - **Chicago Bounce** — mid-90s West Side "ride music". The same numeric band as
+    `chicago-drill` with the **opposite backbeat**: full-time on 2 and 4, and a
+    carrier that gallops in triplet eighths rather than running straight.
+  - **Afro House** — house's four-on-the-floor under an African percussion
+    ensemble, centred at 118 between `amapiano`'s 113 and `house`'s 124. Authored
+    because volume 4 refused to fake it: Black Coffee **stays** in `house`, and
+    the cohort *"is owed a future `afro-house` model rather than this one"*.
+  - **Bop** — Chicago's fast, bright counter-scene, which `chicago-drill`
+    explicitly declined. The straightest and fastest of the three Chicago lanes.
+  - **Dominican Dembow** — El Alfa, Tokischa, Chimbala, Rochy RD, at 115–130.
+    ⚠ **Ships at `confidence: low` and says why**: the research gives a boundary
+    and no interior — *"faster, a different snare cell, a different roster"* — so
+    the cell is inference from a sourced difference, and its gate asserts only
+    the two sourced claims and labels which is which.
+
+### Fixed — 2026-08-15
+
+- **"Generate all" rendered as a second full-weight primary next to Generate**
+  (TASK-139's last quarter). `btn-generate--secondary` had been applied to the
+  button since TASK-120 and **defined nowhere in `src/`**. It is styled with
+  colour and an inset outline only: that row sits under the editor, so anything
+  that makes it taller takes the height out of the velocity lane — a previous
+  attempt cost enough of it that a drag to 96 landed on 85.
+
 ### Added — browse by era, and a switch-off that survives the project, 2026-08-15
 
 - **Four era pills over the roster: 90s · 2000s · 2010s · 2020s** (TASK-158G).

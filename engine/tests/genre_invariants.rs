@@ -2351,6 +2351,254 @@ fn houston_screw_is_the_slowest_archetype_on_the_roster() {
 }
 
 #[test]
+fn bop_is_the_fastest_of_the_three_chicago_lanes_and_the_straightest() {
+    // ⛔ **Authored entirely against its neighbours, because that is how the
+    // research states it**: *"faster than drill, backbeat back on 2 & 4, so
+    // `chicago-drill` explicitly declined it"*, and *"a faster, brighter Chicago
+    // groove … it needs its own genre model rather than a variant of this one"*.
+    // ⚠ The band is marked [LOW-CONF] in the research (~150–165 notated), so what
+    // is asserted is the **ordering**, which is the sourced claim, rather than a
+    // number nobody measured.
+    let (bop, drill, bounce) = (
+        tempo_of("bop"),
+        tempo_of("chicago-drill"),
+        tempo_of("chicago-bounce"),
+    );
+    assert!(
+        bop > bounce && bounce > drill,
+        "the three Chicago lanes must order bop ({bop}) > chicago-bounce ({bounce}) > \
+         chicago-drill ({drill})"
+    );
+
+    // Full-time, like bounce and unlike drill.
+    let context = ctx(4);
+    let bar_ticks = context.ticks_per_bar();
+    let two_and_four = [beat(&context), beat(&context) * 3];
+    let mut hits = 0;
+    for (seed, note) in sweep(&model("bop"), Lane::Snare, 4) {
+        if !is_backbeat(&note) {
+            continue;
+        }
+        assert!(
+            two_and_four.contains(&(note.start_tick % bar_ticks)),
+            "seed {seed}: bop's snare at {} is not the 2 or the 4",
+            note.start_tick % bar_ticks
+        );
+        hits += 1;
+    }
+    assert!(hits > 0, "bop produced no backbeat at all");
+
+    // ...and where bounce gallops, this one runs straight: the third lane exists
+    // because the carrier differs, not only because the tempo does.
+    let off_sixteenth = |id: &str| {
+        let hits = sweep(&model(id), Lane::ClosedHat, 4);
+        assert!(!hits.is_empty(), "{id} produced no hats to measure");
+        hits.iter()
+            .filter(|(_, note)| !note.start_tick.is_multiple_of(grid::SIXTEENTH))
+            .count() as f64
+            / hits.len() as f64
+    };
+    let straight = off_sixteenth("bop");
+    assert!(
+        straight < 0.05,
+        "bop left the 16th grid on {:.0}% of its hats — this lane is the straight one",
+        straight * 100.0
+    );
+}
+
+#[test]
+fn dominican_dembow_runs_faster_than_reggaeton_and_answers_it_differently() {
+    // ⛔⛔ **Read the model's `notes` before this test.** `dominican-dembow` ships
+    // at `confidence: low` on purpose: volume 4's reggaeton section refuses it by
+    // name — *"a separate genre … faster (115–130), a different snare cell, and a
+    // different roster"* — and that sentence is the whole of the research. So
+    // this asserts **only the two sourced claims**, and says which is which.
+    //
+    // 1. SOURCED: it is faster. 115–130 against reggaeton's 88–105.
+    let (dembow, reggaeton) = (tempo_of("dominican-dembow"), tempo_of("reggaeton"));
+    assert!(
+        dembow > reggaeton + 15.0,
+        "dominican-dembow centres at {dembow} against reggaeton's {reggaeton} — \
+         the sourced difference is a whole tempo band, not a nudge"
+    );
+
+    // 2. SOURCED AS A DIFFERENCE, NOT AS A CELL: the answering hits are not
+    //    reggaeton's. ⚠ **This pins an authored inference.** Reggaeton renders the
+    //    shared Fish Market ancestor with its ghosts on the `a`s (`1a 2& 3a 4&`);
+    //    this model answers on the straight eighths. That choice is inference from
+    //    "a different snare cell" and nothing more — a later session with real
+    //    research should expect to rewrite it, and must not read this gate as
+    //    evidence that the interior is right. What may not change silently is that
+    //    the two lanes stop being different, which is the sourced part.
+    // ⚠ **The answering hits are ghost-articulated notes on `Lane::Snare`**, not
+    // `Lane::GhostSnare` — the first cut of this test measured the latter, found
+    // it empty for both models and said so. `dungeon_family_breathes_where_crunk
+    // _marches` reads them the same way.
+    let on_the_eighths = |id: &str| {
+        let hits = sweep(&model(id), Lane::Snare, 4);
+        let ghosts: Vec<&(u64, Note)> = hits
+            .iter()
+            .filter(|(_, note)| note.articulation == Some(Articulation::Ghost))
+            .collect();
+        assert!(!ghosts.is_empty(), "{id} wrote no answering snare at all");
+        let eighth = grid::SIXTEENTH * 2;
+        ghosts
+            .iter()
+            .filter(|(_, note)| note.start_tick.is_multiple_of(eighth))
+            .count() as f64
+            / ghosts.len() as f64
+    };
+    let (ours, theirs) = (
+        on_the_eighths("dominican-dembow"),
+        on_the_eighths("reggaeton"),
+    );
+    assert!(
+        ours > theirs + 0.3,
+        "dominican-dembow answers on the eighths {ours:.2} of the time against \
+         reggaeton's {theirs:.2} — the two cells have stopped being different"
+    );
+}
+
+#[test]
+fn afro_house_is_houses_four_on_the_floor_under_an_ensemble() {
+    // ⛔ **Both halves, because either alone is another genre.** The research
+    // gives the four-on-floor and the clap on 2&4 as what makes this read as
+    // *house* rather than as amapiano — and the percussion ensemble, *"layered
+    // congas, djembe, shakers and hand-clap patterns … rather than 1-bar loops"*,
+    // as what makes it Afro house rather than house. `house` itself carries the
+    // first and not the second, so the comparison is the claim.
+    let context = ctx(4);
+    let quarter = beat(&context);
+    let bar_ticks = context.ticks_per_bar();
+
+    let kicks = sweep(&model("afro-house"), Lane::Kick, 4);
+    assert!(!kicks.is_empty(), "afro-house produced no kick");
+    for (seed, note) in &kicks {
+        assert!(
+            (note.start_tick % bar_ticks).is_multiple_of(quarter),
+            "seed {seed}: afro-house's kick at {} is off the quarter — \
+             this lane is four on the floor",
+            note.start_tick % bar_ticks
+        );
+    }
+
+    let percs_per_bar = |id: &str| {
+        let m = model(id);
+        let context = ctx(4);
+        let hits: usize = (0..SEEDS)
+            .flat_map(|seed| generate(&m, &context, seed))
+            .filter(|track| PERC_LANES.contains(&track.lane))
+            .map(|track| track.notes.len())
+            .sum();
+        hits as f64 / (SEEDS as f64 * 4.0)
+    };
+
+    let (afro, house) = (percs_per_bar("afro-house"), percs_per_bar("house"));
+    assert!(
+        afro > house * 2.0,
+        "afro-house played {afro:.2} perc hits a bar against house's {house:.2} — \
+         the ensemble is the archetype"
+    );
+
+    // ...and it sits between its two neighbours, which is the number the
+    // amapiano researcher settled the boundary with: 113 there, 118 here.
+    let (amapiano, afro_bpm, house_bpm) = (
+        tempo_of("amapiano"),
+        tempo_of("afro-house"),
+        tempo_of("house"),
+    );
+    assert!(
+        amapiano < afro_bpm && afro_bpm < house_bpm,
+        "afro-house centres at {afro_bpm}, not between amapiano's {amapiano} and house's {house_bpm}"
+    );
+}
+
+#[test]
+fn chicago_bounce_puts_the_backbeat_where_chicago_drill_does_not() {
+    // ⛔ **The two share a tempo band and disagree about the backbeat, and that
+    // disagreement is the whole archetype.** Research (vol.1 boom-bap,
+    // Assignment notes): *"drill shares 138–145 but puts the backbeat on **beat
+    // 3** … Against `boom-bap`: boom-bap is 86–96 with a straight 8th hat over a
+    // sampled soul loop"*. So the claim is only meaningful as a **pair**: an
+    // absolute "the snare is on 2 and 4" would pass on half the roster, and a
+    // tempo assertion alone would say nothing, because the numbers overlap on
+    // purpose.
+    let context = ctx(4);
+    let bar_ticks = context.ticks_per_bar();
+    let two_and_four = [beat(&context), beat(&context) * 3];
+    let three = beat(&context) * 2;
+
+    let mut hits = 0;
+    for (seed, note) in sweep(&model("chicago-bounce"), Lane::Snare, 4) {
+        if !is_backbeat(&note) {
+            continue;
+        }
+        let within = note.start_tick % bar_ticks;
+        assert!(
+            two_and_four.contains(&within),
+            "seed {seed}: chicago-bounce's snare at {within} is not the 2 or the 4"
+        );
+        hits += 1;
+    }
+    assert!(hits > 0, "chicago-bounce produced no backbeat at all");
+
+    // ...and its neighbour in the same numeric band answers on the 3.
+    let drill_on_three = sweep(&model("chicago-drill"), Lane::Snare, 4)
+        .iter()
+        .filter(|(_, note)| is_backbeat(note) && note.start_tick % bar_ticks == three)
+        .count();
+    assert!(
+        drill_on_three > 0,
+        "chicago-drill stopped answering on the 3, so this pair no longer says anything"
+    );
+
+    // The bands genuinely overlap, or the distinction above is tempo wearing a
+    // backbeat's clothes.
+    let (bounce, drill) = (tempo_of("chicago-bounce"), tempo_of("chicago-drill"));
+    let spread = (bounce - drill).abs();
+    assert!(
+        spread < 20.0,
+        "chicago-bounce centres at {bounce} against drill's {drill} — \
+         {spread:.0} BPM apart is a different lane, not the same one inverted"
+    );
+}
+
+#[test]
+fn chicago_bounce_gallops_where_the_drill_lane_runs_straight() {
+    // ⛔ **The second half of the archetype**: *"Carrier: a shuffled /
+    // triplet-inflected ride cymbal or open hat, not a straight 16th hat and not
+    // a 1/32 stream; the groove gallops."* The model says it with
+    // `hihat.base: "8T"` weighted over `"8th"` and `continuous: false`, and what
+    // that produces is hat onsets **off the 16th grid** — 8 of the 12 triplet
+    // eighths in a bar are not multiples of a 16th.
+    //
+    // ⚠ Asserted as a share against `chicago-drill`, whose hats are 8ths and
+    // 16ths and can therefore never leave the grid. An absolute threshold would
+    // be a number nobody measured; the comparison is the research's own sentence.
+    let off_grid = |id: &str| {
+        let hits = sweep(&model(id), Lane::ClosedHat, 4);
+        assert!(!hits.is_empty(), "{id} produced no hats to measure");
+        let off = hits
+            .iter()
+            .filter(|(_, note)| !note.start_tick.is_multiple_of(grid::SIXTEENTH))
+            .count();
+        off as f64 / hits.len() as f64
+    };
+
+    let bounce = off_grid("chicago-bounce");
+    let drill = off_grid("chicago-drill");
+    assert!(
+        bounce > 0.25,
+        "only {:.0}% of chicago-bounce's hats leave the 16th grid — that is not a shuffle",
+        bounce * 100.0
+    );
+    assert!(
+        bounce > drill + 0.2,
+        "chicago-bounce ({bounce:.2}) must gallop against chicago-drill's straight stream ({drill:.2})"
+    );
+}
+
+#[test]
 fn nola_bounce_answers_the_backbeat_on_the_and_of_two() {
     // ⛔ **The Triggerman answer, and the one parameter the model says separates
     // it from crunk**: *"The one parameter that separates this from `crunk` is
@@ -2519,6 +2767,11 @@ fn every_genre_in_the_roster_has_an_invariant_test() {
         "houston-screw",
         "nola-bounce",
         "ringtone-club-rap",
+        // The archetypes volumes 2–5 had to work around (TASK-158F, 2026-08-15).
+        "chicago-bounce",
+        "afro-house",
+        "bop",
+        "dominican-dembow",
     ];
 
     // Genres only: the artists are covered by

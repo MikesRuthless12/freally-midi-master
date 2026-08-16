@@ -1,0 +1,553 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "dominican-dembow",
+  "type": "genre",
+  "name": "Dominican Dembow",
+  "aliases": [
+    "dembow",
+    "dembow dominicano",
+    "el alfa type beat",
+    "santo domingo dembow",
+    "dembow criollo",
+    "pra pra"
+  ],
+  "tier": "standard",
+  "extends": [
+    "_defaults"
+  ],
+  "era": "2010–present",
+  "genres": [
+    "latin",
+    "dembow",
+    "caribbean",
+    "club"
+  ],
+  "relatedGenres": [
+    "reggaeton",
+    "dancehall",
+    "baile-funk",
+    "afroswing",
+    "jersey-club"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended vol.4 reggaeton — Assignment notes: \"Dominican dembow is a separate genre and is not claimed here — faster (115–130), a different snare cell, and a different roster (El Alfa, Tokischa, Chimbala, Rochy RD). If the app wants it, it needs its own genre model.\"",
+    "style-research-extended vol.4 reggaeton — boundary rule: an act belongs to reggaeton if its rhythmic default is the dembow at 88–105 BPM; Dominican dembow is \"a different genre — faster, 115–130, with a different snare cell\"",
+    "style-research-extended vol.4 dancehall — the dembow ancestor at 16th-grid precision: the Fish Market / \"Dem Bow\" cell at 16th indices 4, 7, 12, 15",
+    "style-research-extended vol.4 — the archetypes this volume had to work around: `dominican-dembow` (El Alfa, Tokischa, Chimbala)",
+    "https://en.wikipedia.org/wiki/Dembow"
+  ],
+  "notes": "⛔⛔ **`confidence` is `low`, and the protocol says a low model must state why: this one has a sourced BOUNDARY and an unsourced INTERIOR.** Volume 4's reggaeton section refuses it by name three times — *\"Dominican dembow is a separate genre and is not claimed here — faster (115–130), a different snare cell, and a different roster (El Alfa, Tokischa, Chimbala, Rochy RD). If the app wants it, it needs its own genre model\"* — and that sentence is the entire research this model has. The tempo band is sourced. The roster is sourced. *\"A different snare cell\"* is sourced as a **difference** and never as a cell. Everything below that line is inference and is marked here rather than left to be discovered. ▶ **What is authored, and on what basis.** The ancestor is shared and *is* documented: volume 4's dancehall grammar gives the Fish Market / \"Dem Bow\" figure at 16th-grid precision as indices **4, 7, 12, 15** — the 2, the a of 2, the 4 and the a of 4 — and `reggaeton` renders its own reading of it as `backbeat_24` with ghosts on `1a 2& 3a 4&`. This model takes the same backbeat and answers it on the **straight eighths** instead, at a high probability, with the machine-tight `quantizeStrength` of 0.94 and no swing. That is the shape the Dominican lane is known by — relentless, straighter and faster than the Puerto Rican one — and it is **inference from the sourced difference**, not a measurement. ⚠ **The invariant test therefore pins the two sourced claims and says which is which**: it runs faster than `reggaeton`, and its answer is not `reggaeton`'s. A future session with real Dominican-dembow research should expect to rewrite the interior of this model, and should not read the gate as evidence that the interior is right. ⚠ **Kick.** The ancestor's kick is *\"1 and 11, with the '&'-of-3 kick\"* — 1 and the a of 3 — and that is carried as `anchors: [\"1\"]` with a `secondaryAnchor` of `3` and a high `tresilloBias`, the same three knobs `reggaeton` uses, because the ancestor is shared even where the answer is not. ⚠ **Harmony is a bed and nothing more.** Two-chord minor vamps, few extensions, `vamp` weighted over everything — the lane's information is in the drums and the vocal, and authoring rich harmony here would be inventing a lane the records do not have. ⚠ **The harmony floor caught the first cut at 487 of the 500 distinct progressions a model must reach in 1,000 seeds, and the cure was authored difference rather than a looser gate.** Two changes, both inside the lane's own vocabulary: a third family (`i–VII–VI`, the one three-chord shape a dembow record plausibly plays) and `chordDurationBeats` widened to [2, 12]. That is nola-bounce's lesson applied — on a lane that sits on a vamp, **what varies is how long the loop sits, not what it sits on** — and it leaves the \"harmony is a bed\" rule intact. ⚠ **No vocal, so the chant this genre is built on is absent by construction.** The melodic parts are sparse and stab-shaped: a synth or brass hit answering the cell, `emptyBarBias` high, because a busy instrumental melody over this beat is a different genre.",
+  "session": {
+    "bpm": {
+      "min": 115,
+      "max": 130,
+      "mode": 122
+    },
+    "halfTime": false,
+    "keys": {
+      "values": [
+        "Am",
+        "Dm",
+        "Gm",
+        "Em",
+        "Cm"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "phrygian",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.5
+    },
+    "humanize": {
+      "quantizeStrength": 0.94,
+      "velocityVar": 0.14,
+      "timingJitterMs": {
+        "kick": 1,
+        "snare": 1,
+        "clap": 2,
+        "closedHat": 2,
+        "openHat": 2,
+        "perc": 3,
+        "cowbell": 3,
+        "bass808": 1
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3",
+      "syncopation": 0.35,
+      "tresilloBias": 0.4,
+      "offbeat8thShare": 0.2,
+      "lockTo808": 0.9
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "layered": true,
+      "transient": "hard",
+      "layerClapOffsetMs": [
+        1,
+        4
+      ],
+      "ghost": {
+        "prob": 0.92,
+        "pos": [
+          "1&",
+          "2&",
+          "3&",
+          "4&"
+        ],
+        "vel": [
+          0.5,
+          0.72
+        ]
+      },
+      "offSnare": {
+        "prob": 0.4,
+        "pos": [
+          "3&",
+          "4&"
+        ]
+      },
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": {
+        "values": [
+          "16th",
+          "8th"
+        ],
+        "weights": [
+          3,
+          2
+        ]
+      },
+      "continuous": true,
+      "fillDensity": 0.55,
+      "velocities": {
+        "main": [
+          0.75,
+          0.95
+        ],
+        "ghost": [
+          0.3,
+          0.5
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "32"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "two_beat_phrase_end"
+        ],
+        "freqPerBar": 0.4,
+        "velocityRamp": true
+      },
+      "openHat": {
+        "prob": 0.3,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      },
+      "pitchBendProb": 0
+    },
+    "percs": {
+      "lanes": [
+        "cowbell",
+        "timbale",
+        "conga",
+        "woodblock",
+        "rim",
+        "perc"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "placement": "any",
+      "gainOffsetDb": -4
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 8,
+      "snareRollLadder": true,
+      "lane": "snare"
+    },
+    "snareRoll": {
+      "ladder": [
+        "16",
+        "32"
+      ],
+      "subdivisions": [
+        "16th",
+        "32nd"
+      ],
+      "velocityRampRange": [
+        60,
+        124
+      ],
+      "grouping": [
+        "even",
+        "strong_weak_weak_weak"
+      ],
+      "buildAndStopProb": 0.28,
+      "rampJitter": 8,
+      "descendProb": 0.14,
+      "gapProb": 0.2,
+      "pitchWalk": 4
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "staccato",
+      "monoCutSelf": true,
+      "slideProb": 0.08,
+      "slideIntervals": {
+        "values": [
+          "P5",
+          "P8"
+        ],
+        "weights": [
+          2,
+          1
+        ]
+      },
+      "slidePositions": [
+        "phrase_end"
+      ],
+      "register": [
+        28,
+        44
+      ],
+      "distortion": "light"
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "bII"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 4
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.78,
+      "seventh": 0.19,
+      "ninth": 0.03
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        52,
+        76
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      2,
+      12
+    ],
+    "susSubstitutionProb": 0.06
+  },
+  "melody": {
+    "register": [
+      64,
+      88
+    ],
+    "phraseBars": {
+      "values": [
+        1,
+        2
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    },
+    "densityPerBar": [
+      2,
+      5
+    ],
+    "structure": "riff_loop",
+    "motifPitchCount": [
+      2,
+      4
+    ],
+    "intervals": {
+      "step": 0.5,
+      "third": 0.3,
+      "leap": 0.2
+    },
+    "contour": {
+      "riff": 0.68,
+      "descend": 0.2,
+      "arch": 0.12
+    },
+    "chordToneBias": 0.7,
+    "halfStepDissonance": 0.06,
+    "endVariation": true,
+    "octaveJumpProb": 0.14,
+    "straightEighthsProb": 0.4,
+    "emptyBarBias": 0.22,
+    "timbreHint": "horn_stab"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.4,
+    "fillGapsOnly": true,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "kit": {
+    "preview": "club-default"
+  },
+  "modes": [
+    {
+      "name": "calle",
+      "weight": 4,
+      "drums": {
+        "snare": {
+          "ghost": {
+            "prob": 0.95
+          },
+          "offSnare": {
+            "prob": 0.5
+          }
+        },
+        "hihat": {
+          "fillDensity": 0.62
+        }
+      },
+      "melody": {
+        "densityPerBar": [
+          2,
+          4
+        ],
+        "emptyBarBias": 0.3
+      },
+      "chords": {
+        "harmonicRhythm": {
+          "values": [
+            "vamp"
+          ],
+          "weights": [
+            1
+          ]
+        }
+      }
+    },
+    {
+      "name": "pop",
+      "weight": 3,
+      "session": {
+        "bpm": {
+          "min": 115,
+          "max": 124,
+          "mode": 119
+        }
+      },
+      "chords": {
+        "extensions": {
+          "triad": 0.6,
+          "seventh": 0.32,
+          "ninth": 0.08
+        },
+        "progressionFamilies": [
+          {
+            "roman": [
+              "i",
+              "VI",
+              "VII"
+            ],
+            "weight": 4
+          },
+          {
+            "roman": [
+              "i",
+              "VI"
+            ],
+            "weight": 3
+          },
+          {
+            "roman": [
+              "i",
+              "iv",
+              "VII"
+            ],
+            "weight": 2
+          }
+        ],
+        "harmonicRhythm": {
+          "values": [
+            "1_per_bar",
+            "2_bars_per_chord"
+          ],
+          "weights": [
+            3,
+            3
+          ]
+        }
+      },
+      "melody": {
+        "densityPerBar": [
+          4,
+          8
+        ],
+        "emptyBarBias": 0.1,
+        "timbreHint": "bright_synth_lead"
+      },
+      "countermelody": {
+        "densityRatio": 0.5
+      }
+    },
+    {
+      "name": "hard",
+      "weight": 2,
+      "session": {
+        "bpm": {
+          "min": 122,
+          "max": 130,
+          "mode": 127
+        },
+        "scales": {
+          "values": [
+            "phrygian",
+            "natural_minor"
+          ],
+          "weights": [
+            4,
+            3
+          ]
+        }
+      },
+      "drums": {
+        "kick": {
+          "densityPerBar": [
+            3,
+            5
+          ],
+          "syncopation": 0.45
+        },
+        "percs": {
+          "densityPerBar": [
+            3,
+            6
+          ],
+          "gainOffsetDb": -3
+        },
+        "fills": {
+          "bigEveryBars": 4
+        }
+      },
+      "melody": {
+        "register": [
+          60,
+          82
+        ],
+        "halfStepDissonance": 0.12,
+        "contour": {
+          "riff": 0.6,
+          "descend": 0.28,
+          "arch": 0.12
+        }
+      }
+    }
+  ]
+}

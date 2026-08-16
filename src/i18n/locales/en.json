@@ -434,6 +434,7 @@
     "unstar": "Unstar {{name}}",
     "revealHint": "Show {{path}} in your file manager",
     "midiApply": "Send to generators",
+    "midiTrain": "Train on this",
     "midiDragHint": "Or drag the file onto one generator to import it all there.",
     "splitReason": {
       "drumChannel": "On the GM drum channel",

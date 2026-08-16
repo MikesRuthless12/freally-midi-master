@@ -434,6 +434,7 @@
     "unstar": "Ster van {{name}} verwijderen",
     "revealHint": "{{path}} tonen in de verkenner",
     "midiApply": "Naar generatoren sturen",
+    "midiTrain": "Hiermee trainen",
     "midiDragHint": "Of sleep het bestand op één generator om alles daar te importeren.",
     "splitReason": {
       "drumChannel": "Op het GM-drumkanaal",

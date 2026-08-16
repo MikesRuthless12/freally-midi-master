@@ -434,6 +434,7 @@
     "unstar": "{{name}} のスターを外す",
     "revealHint": "{{path}} をファイルマネージャーで表示",
     "midiApply": "ジェネレーターに送る",
+    "midiTrain": "これで学習",
     "midiDragHint": "または、ファイルを 1 つのジェネレーターにドラッグすると、すべてそこに読み込まれます。",
     "splitReason": {
       "drumChannel": "GM ドラムチャンネル上",

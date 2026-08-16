@@ -434,6 +434,7 @@
     "unstar": "取消收藏 {{name}}",
     "revealHint": "在文件管理器中显示 {{path}}",
     "midiApply": "发送到生成器",
+    "midiTrain": "用它训练",
     "midiDragHint": "或将文件拖到某个生成器，把全部内容导入到那里。",
     "splitReason": {
       "drumChannel": "位于 GM 鼓通道",

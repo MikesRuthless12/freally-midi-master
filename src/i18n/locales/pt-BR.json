@@ -434,6 +434,7 @@
     "unstar": "Remover {{name}} dos favoritos",
     "revealHint": "Mostrar {{path}} no gerenciador de arquivos",
     "midiApply": "Enviar aos geradores",
+    "midiTrain": "Treinar com este",
     "midiDragHint": "Ou arraste o arquivo para um gerador para importar tudo lá.",
     "splitReason": {
       "drumChannel": "No canal de bateria GM",

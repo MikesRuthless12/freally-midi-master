@@ -434,6 +434,7 @@
     "unstar": "Markierung von {{name}} entfernen",
     "revealHint": "{{path}} im Dateimanager anzeigen",
     "midiApply": "An Generatoren senden",
+    "midiTrain": "Damit trainieren",
     "midiDragHint": "Oder ziehe die Datei auf einen Generator, um alles dort zu importieren.",
     "splitReason": {
       "drumChannel": "Auf dem GM-Drum-Kanal",

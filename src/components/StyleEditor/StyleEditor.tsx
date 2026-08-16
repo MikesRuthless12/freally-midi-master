@@ -103,6 +103,18 @@ export function StyleEditor({
         .filter((entry) => kept[keptKey(entry.part, entry.seed)]),
     [entries, kept],
   );
+  // ⛔ **A kept file counts as the patterns it holds, not as one file**
+  // (TASK-040T). `engine::fit::MIN_KEPT` is a floor on the number of *patterns*
+  // measured — its own doc says thirty is where "a single kept outlier sets a
+  // range's edge" stops being true — so counting a four-part `.mid` as one would
+  // put a number in front of the producer that the engine does not use.
+  const keptFiles = useVariations((s) => s.keptFiles);
+  const keptCount = useMemo(
+    () =>
+      keptTakes.length +
+      Object.values(keptFiles).reduce((sum, file) => sum + file.patterns.length, 0),
+    [keptTakes, keptFiles],
+  );
 
   const [draft, setDraft] = useState<Draft>(() => {
     // ⚠ Read once, through `getState`, rather than subscribed: these three are
@@ -279,6 +291,16 @@ export function StyleEditor({
         );
       }
 
+      // ⛔ **The kept files go in beside them** (TASK-040T). They are already
+      // `Pattern`s — the explorer keeps a `.mid`'s own split — so they need no
+      // regeneration and, unlike a take, could not be regenerated at all: there
+      // is no seed that rebuilds somebody else's file.
+      kept.push(...useVariations.getState().keptFilePatterns());
+
+      // ⚠ **Only the takes carry a mood.** A file was not generated in one, and
+      // recording a mood it does not have would be provenance nobody could act
+      // on. An all-file training set therefore trains in no named mood, which is
+      // the honest answer rather than a missing one.
       const moods = [...new Set(keptTakes.map((take) => take.mood).filter((m) => m !== null))];
       const entry = await invoke<RosterEntry>('user_model_train', {
         id,
@@ -520,7 +542,7 @@ export function StyleEditor({
             the button being greyed out: `18 / 30 kept` is something you can act
             on and a dead control is not. */}
         <p className="styleeditor__kept">
-          {t('styles.kept', { count: keptTakes.length, needed: MIN_KEPT })}
+          {t('styles.kept', { count: keptCount, needed: MIN_KEPT })}
         </p>
 
         <footer className="styleeditor__foot">
@@ -538,7 +560,7 @@ export function StyleEditor({
           <button
             type="button"
             className="btn-ghost"
-            disabled={keptTakes.length < MIN_KEPT}
+            disabled={keptCount < MIN_KEPT}
             onClick={() => void trainFromKept()}
           >
             {t('styles.train')}

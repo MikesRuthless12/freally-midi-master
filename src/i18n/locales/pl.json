@@ -434,6 +434,7 @@
     "unstar": "Usuń {{name}} z ulubionych",
     "revealHint": "Pokaż {{path}} w menedżerze plików",
     "midiApply": "Wyślij do generatorów",
+    "midiTrain": "Trenuj na tym",
     "midiDragHint": "Albo przeciągnij plik na jeden generator, aby zaimportować całość tam.",
     "splitReason": {
       "drumChannel": "Na kanale perkusji GM",

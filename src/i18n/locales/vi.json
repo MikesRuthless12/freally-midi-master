@@ -434,6 +434,7 @@
     "unstar": "Bỏ gắn sao {{name}}",
     "revealHint": "Hiện {{path}} trong trình quản lý tệp",
     "midiApply": "Gửi tới các bộ tạo",
+    "midiTrain": "Huấn luyện với tệp này",
     "midiDragHint": "Hoặc kéo tệp vào một bộ tạo để nhập toàn bộ vào đó.",
     "splitReason": {
       "drumChannel": "Trên kênh trống GM",

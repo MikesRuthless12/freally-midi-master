@@ -202,6 +202,35 @@ export const GENERATED_PARTS: readonly Part[] = [
 ];
 
 /**
+ * The parts a generation is written *against*, filled in behind it (TASK-129).
+ *
+ * ⛔ **The engine already generated these — this only puts them where the
+ * producer can see them.** `engine/src/parts.rs` renders the harmony for every
+ * melodic part and, for the counter, the lead it answers; generating a
+ * countermelody on a fresh session therefore produced a line that answers a
+ * melody nobody could hear, and the next Generate on the Melody tab wrote a
+ * *different* melody — leaving the counter answering one that no longer exists.
+ *
+ * ⛔⛔ **DRUMS ARE DELIBERATELY NOT AN UPSTREAM PART, and this is the line a
+ * future reader will want to "fix".** `parts.rs` phrases a melody around
+ * `drums::generate` at the **song** seed — a canonical reference kit, not the
+ * drum take on screen, which has its own part seed. Filling the Drums tab from a
+ * melody request would put a kit there that is not the one the melody was
+ * written against and not the one the producer would get by pressing Generate on
+ * Drums. The bass is the one part that reads the kick literally, and it already
+ * has an answer: `drumsSeed` sends it the take that is on screen.
+ *
+ * ⚠ **The order within each list is `parts.rs`' order**, because it is the order
+ * a producer watches the tabs fill in — a countermelody landing before the
+ * melody it answers reads as a bug even when the notes are right.
+ */
+const UPSTREAM: Partial<Record<Part, readonly Part[]>> = {
+  melody: ['chords'],
+  counter: ['chords', 'melody'],
+  bass: ['chords'],
+};
+
+/**
  * Which part a generator tab edits, or `null` for a tab that is not a part.
  *
  * ⛔ Song is not a part and never becomes one — it is an *arrangement* of the
@@ -2225,6 +2254,77 @@ export const useSession = create<SessionState>((set, get) => ({
           mood,
         },
       });
+      // ⛔ **The parts this one was written against, generated behind it**
+      // (TASK-129). See `UPSTREAM`: this fills a tab the producer has never
+      // pressed Generate on, so that the counter they just made has a melody
+      // they can hear it against.
+      //
+      // ⛔⛔ **`record` in BOTH seed fields, and that is the whole correctness of
+      // it.** `parts.rs` writes the counter against `melody::generate(model,
+      // ctx, song, …)` — the *record's* lead, not this take's — and resolves the
+      // harmony at the song seed for every part. A fill at a fresh take seed
+      // would put a different melody on screen from the one the counter answers,
+      // which is the readout-that-lies failure this task exists to close, dressed
+      // as the fix for it. Sent as `seed` **and** `songSeed` so `Seeds { song,
+      // part }` are the same number and the engine reproduces its own dependency
+      // exactly.
+      //
+      // ⚠ **The one case the melody on screen is not byte-identical to the lead
+      // the counter answered** is a novelty redraw: `novelty::screen` runs on a
+      // Melody *request* and does not run on the counter's internal lead, so a
+      // lead that matches a known hook comes back replaced. That is the better of
+      // the two answers — a known hook is exactly what the guard exists to keep
+      // off the screen — and both takes belong to the same record either way.
+      //
+      // ⚠ **Absent, not empty.** A present pattern with no notes is a real
+      // answer from a style that authors no separate part, and refilling it would
+      // argue with the model every time. A switched-off part is not filled
+      // either: `partsOff` is a statement about the record (TASK-058H).
+      //
+      // ⚠ **Not during a recall**, for `withLocks`' reason below — a recall
+      // reproduces a take, and adding parts that take never had returns a
+      // session that never existed under the label of one that did.
+      const record = pattern.songSeed;
+      const fills: PatternsByPart = {};
+      if (!recalling) {
+        for (const dep of UPSTREAM[part] ?? []) {
+          const held = get();
+          if (held.patterns[dep] !== undefined || held.partsOff.includes(dep)) continue;
+          fills[dep] = await invoke<Pattern>('generate_pattern', {
+            request: {
+              styleId: selectedId,
+              base,
+              part: dep,
+              bars,
+              seed: record,
+              songSeed: record,
+              // Only `Part::Bass` reads it and no upstream part is the bass —
+              // sent anyway, for the reason the single-Generate path above sends
+              // it on every part: a conditional here is one more thing to keep in
+              // agreement with the engine.
+              drumsSeed: mirrorableDrumsSeed(get().patterns.drums, {
+                bars,
+                songSeed: record,
+                pins,
+                mood,
+              }),
+              session: pins,
+              mood,
+            },
+          });
+        }
+      }
+
+      // ⛔ **The artist may have changed while those were in flight**, the same
+      // way `generateAll` guards its loop: `select` clears the slots and swaps
+      // `selectedId`, and writing this artist's clips under the next one's name
+      // is what that function calls the most convincing wrong thing the app could
+      // show. One `await` needed no guard; several do.
+      if (get().selectedId !== selectedId) {
+        set({ generating: false });
+        return;
+      }
+
       // Show the seed that was actually used, so the chip can be copied even
       // when the user never typed one (US-004).
       //
@@ -2280,16 +2380,60 @@ export const useSession = create<SessionState>((set, get) => ({
         // with no message. Identity is the test — `withLocks` returns `next`
         // unchanged when no lock landed — so the flag follows what actually
         // happened rather than what was asked for.
-        const editedParts =
+        let editedParts =
           held === pattern
             ? withoutEdit(state.editedParts, part)
             : withEdit(state.editedParts, part);
+
+        // ⛔ **The fills land in the SAME `set` as the part that caused them**,
+        // and that is correctness rather than tidiness: the `patterns` subscriber
+        // re-arms the audio thread on every write and the history subscriber
+        // records every write as its own undo entry, so a producer who pressed
+        // Generate once would otherwise press `Ctrl`+`Z` three times to get back.
+        // `generateAll` accumulates for the same reason and says so.
+        //
+        // ⚠ **Re-checked against the state the updater was handed**, not against
+        // the read that decided to ask: an import or a drilled-in clip can land
+        // in a slot while a request is in flight, and overwriting it here would
+        // throw away the producer's own material for a part they never asked to
+        // generate.
+        //
+        // ⚠ **No `withLocks`**, and that is not an omission — it returns `next`
+        // untouched when there is no previous clip, and an absent slot is the
+        // condition these were requested under. A fill is a first take; there is
+        // nothing to hold.
+        const filled: PatternsByPart = {};
+        for (const dep of UPSTREAM[part] ?? []) {
+          const clip = fills[dep];
+          if (clip === undefined || state.patterns[dep] !== undefined) continue;
+          filled[dep] = clip;
+          editedParts = withoutEdit(editedParts, dep);
+        }
         // ⛔ **The variation history is appended here, inside the updater, for
         // the reason the locks are: this is where the generation *lands*.**
         // Recording it outside would let a second Generate that resolved first
         // write its entry second, so the log would disagree with the order the
         // producer pressed things in — which is the one thing a history is for.
         if (!recalling) {
+          // ⚠ **The fills first, in dependency order, then the part that was
+          // asked for.** Each is a real take of its own part and the nav is per
+          // part, so each gets its own entry — `generateAll` records five for one
+          // press for the same reason. Recording them after the counter would put
+          // the melody's entry at a later timestamp than the line written against
+          // it.
+          for (const dep of UPSTREAM[part] ?? []) {
+            const clip = filled[dep];
+            if (clip === undefined) continue;
+            useVariations
+              .getState()
+              .record(
+                entryFor(
+                  clip,
+                  { mood: state.mood, base: state.base, pins: state.pins },
+                  Date.now(),
+                ),
+              );
+          }
           useVariations
             .getState()
             .record(
@@ -2301,7 +2445,7 @@ export const useSession = create<SessionState>((set, get) => ({
             );
         }
         return {
-          patterns: { ...state.patterns, [part]: held },
+          patterns: { ...state.patterns, ...filled, [part]: held },
           seed: pattern.seed,
           // ⚠ Held so the *next* part joins this record rather than starting
           // its own. Nothing shows it and nothing asks the producer about it —

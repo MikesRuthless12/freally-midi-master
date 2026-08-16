@@ -434,6 +434,7 @@
     "unstar": "Hapus bintang {{name}}",
     "revealHint": "Tampilkan {{path}} di pengelola berkas",
     "midiApply": "Kirim ke generator",
+    "midiTrain": "Latih dengan ini",
     "midiDragHint": "Atau seret berkas ke satu generator untuk mengimpor semuanya di sana.",
     "splitReason": {
       "drumChannel": "Di kanal drum GM",

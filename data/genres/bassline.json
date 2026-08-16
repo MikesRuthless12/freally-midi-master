@@ -1,0 +1,548 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "bassline",
+  "type": "genre",
+  "name": "Bassline",
+  "aliases": [
+    "4x4 bassline",
+    "niche",
+    "bassline house",
+    "organ bass",
+    "bradford bassline",
+    "t2 type beat",
+    "bad boy chiller crew type",
+    "uk bassline"
+  ],
+  "tier": "standard",
+  "extends": [
+    "_defaults"
+  ],
+  "era": "2005–present",
+  "genres": [
+    "uk",
+    "garage",
+    "house",
+    "club"
+  ],
+  "relatedGenres": [
+    "uk-garage",
+    "house",
+    "jump-up-dnb",
+    "uk-underground",
+    "afroswing"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended vol.4 uk-garage — \"4x4 / bassline: 135–142 BPM — 'most songs are around 135 to 142 bpm'. T2 'Heartbroken' 138–140\"",
+    "style-research-extended vol.4 uk-garage — the 4x4/bassline variant: \"revert to a straight four-on-the-floor kick and move all syncopation into the bassline\"",
+    "style-research-extended vol.4 uk-garage — T2: straight 4x4 kick at 138–140, clap/snare on 2&4, 16th offbeat hats with moderate swing, tambourine; \"the syncopation lives entirely in the bass, not the kit\"; a low-frequency-oscillated warp/reese organ-bass playing a bouncing syncopated 16th figure that sits between the kicks, short, staccato, heavily filtered",
+    "style-research-extended vol.4 uk-garage — Bad Boy Chiller Crew: 130–140, 4x4 kick, clap on 2&4, offbeat open hat, 16th shaker; \"treat swing as a per-record 50–65% variable rather than fixed\"",
+    "style-research-extended-4 vol.4 header — `bassline` named among the archetypes that do not exist in this app",
+    "https://en.wikipedia.org/wiki/Bassline_(music_genre)"
+  ],
+  "notes": "The northern 4x4 wing that beat London 2-step to the chart, and the one archetype on this roster whose whole identity is **where the syncopation lives**. ⛔ **The sourced rule is a two-part swap: the kit goes straight and the bass takes the groove.** *\"Revert to a straight four-on-the-floor kick and move all syncopation into the bassline\"*, and *\"the syncopation lives entirely in the bass, not the kit\"*. So `kick.anchors` is all four quarters with `syncopation` at 0.08 — flatter than any other model here — while the low end runs a bouncing 16th figure between the kicks. ⛔⛔ **`kick.lockTo808` is 0.1, and that is the single most important number in this file.** Every trap-descended model in this dataset locks the 808 to the kick — trap at 1.0, *\"one instrument played twice\"*. This lane is the inverse: the bass must play **between** the kicks, so locking it would produce four bass notes on four kicks and delete the genre. ⚠ **The bass is the 808 lane and there is no separate `bassline` block**, which is this engine's house-family answer: `bass::generate` returns an empty lane whenever `drums.bass808.role` is `bassline`, so a second block would be one nothing reads. What the research calls a *\"warp/reese organ-bass … short, staccato, heavily filtered\"* is authored as `sustain: \"staccato\"` with `distortion: \"light\"` in a register that sits above a sub — this is an organ, not an 808. ⚠ **Swing is a per-record variable and is authored at the middle of its range.** The research is explicit — *\"some records import 'more highly swung beats instead of the classic 4x4 drums', so treat swing as a per-record 50–65% variable rather than fixed\"* — and this engine authors one number per model, so 0.56 is the centre of that range rather than a claim that every bassline record swings the same. The `swung` mode reaches the top of it. ⚠ **Harmony is a two-bar organ loop and nothing more**: *\"sampled Korg M1-style organ leads … usually a i–VI–VII or i–VII–VI loop of 2 bars\"*, with flat minors dominating the modern wing (D♭m, A♭m, B♭m, F♯m) and major-key exceptions on the poppier singles. Both are in `keys`, weighted to the minors. ⚠ **INFERRED, hence `medium`.** Sourced: both tempo bands, the four-on-the-floor, the backbeat, the offbeat hats and shaker, the tambourine, the swing range, the organ harmony and its two-bar loop, the bass's shape and its placement between the kicks. Inferred: every velocity tier, every register, the `intervals`/`contour` split, the fill vocabulary and the mode names.",
+  "arrangement": {
+    "sectionBars": {
+      "intro": 8,
+      "verse": 16,
+      "hook": 8,
+      "bridge": 8,
+      "outro": 8
+    }
+  },
+  "session": {
+    "bpm": {
+      "min": 130,
+      "max": 142,
+      "mode": 138
+    },
+    "halfTime": false,
+    "keys": {
+      "values": [
+        "F#m",
+        "Bbm",
+        "Abm",
+        "Dm",
+        "Am",
+        "C"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "minor_pentatonic",
+        "major_pentatonic"
+      ],
+      "weights": [
+        5,
+        3,
+        2,
+        1
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.56
+    },
+    "humanize": {
+      "quantizeStrength": 0.9,
+      "velocityVar": 0.16,
+      "timingJitterMs": {
+        "kick": 1,
+        "snare": 2,
+        "clap": 3,
+        "closedHat": 3,
+        "openHat": 3,
+        "shaker": 4,
+        "tambourine": 4,
+        "bass808": 3
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        4,
+        4
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "syncopation": 0.08,
+      "tresilloBias": 0,
+      "offbeat8thShare": 0.04,
+      "lockTo808": 0.1
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "layered": true,
+      "transient": "hard",
+      "layerClapOffsetMs": [
+        2,
+        6
+      ],
+      "ghost": {
+        "prob": 0.2,
+        "pos": [
+          "2e",
+          "4e"
+        ],
+        "vel": [
+          0.28,
+          0.46
+        ]
+      },
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.6,
+      "velocities": {
+        "main": [
+          0.7,
+          0.92
+        ],
+        "ghost": [
+          0.3,
+          0.52
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.12,
+        "velocityRamp": true
+      },
+      "openHat": {
+        "prob": 0.75,
+        "pos": [
+          "1&",
+          "2&",
+          "3&",
+          "4&"
+        ],
+        "perBar": [
+          2,
+          3
+        ]
+      },
+      "pitchBendProb": 0
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "tambourine",
+        "rim",
+        "perc"
+      ],
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "placement": "offbeat",
+      "gainOffsetDb": -5
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16,
+      "snareRollLadder": false,
+      "lane": "snare"
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "velocityRampRange": [
+        56,
+        112
+      ],
+      "grouping": [
+        "even"
+      ],
+      "buildAndStopProb": 0.4,
+      "rampJitter": 10,
+      "descendProb": 0.12,
+      "gapProb": 0.24,
+      "pitchWalk": 2
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "staccato",
+      "monoCutSelf": true,
+      "slideProb": 0.14,
+      "slideIntervals": {
+        "values": [
+          "P8",
+          "P5",
+          "m7"
+        ],
+        "weights": [
+          2,
+          2,
+          1
+        ]
+      },
+      "slidePositions": [
+        "phrase_end"
+      ],
+      "register": [
+        31,
+        50
+      ],
+      "distortion": "light"
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.64,
+      "seventh": 0.3,
+      "ninth": 0.06
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        55,
+        82
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        4,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      2,
+      8
+    ],
+    "susSubstitutionProb": 0.08
+  },
+  "melody": {
+    "register": [
+      64,
+      90
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "structure": "riff_loop",
+    "motifPitchCount": [
+      3,
+      6
+    ],
+    "intervals": {
+      "step": 0.56,
+      "third": 0.3,
+      "leap": 0.14
+    },
+    "contour": {
+      "riff": 0.55,
+      "descend": 0.25,
+      "arch": 0.2
+    },
+    "chordToneBias": 0.68,
+    "halfStepDissonance": 0.03,
+    "endVariation": true,
+    "octaveJumpProb": 0.16,
+    "straightEighthsProb": 0.34,
+    "emptyBarBias": 0.08,
+    "timbreHint": "church_organ"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.45,
+    "fillGapsOnly": true,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2,
+        2
+      ]
+    }
+  },
+  "kit": {
+    "preview": "club-default"
+  },
+  "modes": [
+    {
+      "name": "niche",
+      "weight": 4,
+      "session": {
+        "bpm": {
+          "min": 136,
+          "max": 142,
+          "mode": 139
+        }
+      },
+      "drums": {
+        "hihat": {
+          "openHat": {
+            "prob": 0.85,
+            "perBar": [
+              3,
+              4
+            ]
+          }
+        },
+        "percs": {
+          "densityPerBar": [
+            4,
+            7
+          ]
+        }
+      },
+      "melody": {
+        "densityPerBar": [
+          4,
+          8
+        ],
+        "timbreHint": "church_organ"
+      },
+      "chords": {
+        "harmonicRhythm": {
+          "values": [
+            "2_bars_per_chord",
+            "1_per_bar"
+          ],
+          "weights": [
+            4,
+            3
+          ]
+        }
+      }
+    },
+    {
+      "name": "swung",
+      "weight": 3,
+      "session": {
+        "bpm": {
+          "min": 130,
+          "max": 138,
+          "mode": 134
+        },
+        "swing": {
+          "grid": "16th",
+          "amount": 0.64
+        }
+      },
+      "drums": {
+        "hihat": {
+          "fillDensity": 0.52
+        },
+        "snare": {
+          "ghost": {
+            "prob": 0.32
+          }
+        }
+      },
+      "melody": {
+        "densityPerBar": [
+          3,
+          7
+        ]
+      }
+    },
+    {
+      "name": "chart",
+      "weight": 2,
+      "session": {
+        "bpm": {
+          "min": 130,
+          "max": 136,
+          "mode": 133
+        },
+        "keys": {
+          "values": [
+            "C",
+            "F",
+            "Am",
+            "Dm"
+          ],
+          "weights": [
+            3,
+            3,
+            2,
+            2
+          ]
+        }
+      },
+      "chords": {
+        "progressionFamilies": [
+          {
+            "roman": [
+              "I",
+              "V",
+              "vi",
+              "IV"
+            ],
+            "weight": 4
+          },
+          {
+            "roman": [
+              "vi",
+              "IV",
+              "I",
+              "V"
+            ],
+            "weight": 3
+          },
+          {
+            "roman": [
+              "i",
+              "VI",
+              "VII"
+            ],
+            "weight": 2
+          }
+        ],
+        "extensions": {
+          "triad": 0.56,
+          "seventh": 0.34,
+          "ninth": 0.1
+        }
+      },
+      "melody": {
+        "densityPerBar": [
+          5,
+          10
+        ],
+        "contour": {
+          "riff": 0.44,
+          "descend": 0.22,
+          "arch": 0.34
+        },
+        "timbreHint": "bright_pluck"
+      },
+      "countermelody": {
+        "densityRatio": 0.55
+      }
+    }
+  ]
+}
