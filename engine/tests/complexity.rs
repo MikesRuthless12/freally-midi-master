@@ -17,6 +17,7 @@
 //! cannot fail.
 
 use engine::context::{Complexity, SessionContext};
+use engine::dataset::StrSpec;
 use engine::generators::{chords, counter, melody};
 use engine::pattern::Part;
 use engine::{parts, StyleModel};
@@ -161,24 +162,17 @@ fn the_switch_only_reaches_choices_the_model_listed() {
     // setting**, which is what makes `string_spec_leaning` a lean rather than an
     // override. `boom-bap` does not author `syncopated_cell`, so no amount of
     // "busier" may produce the cell lengths that only it can make.
+    //
+    // ⚠ Read through `StrSpec::options` — the same type `string_spec_leaning`
+    // reads this parameter through — rather than by matching the JSON by hand.
+    // A second parser here could disagree with the one under test and the test
+    // would be asserting against its own reading rather than the engine's.
     let authored: Vec<String> = model("boom-bap")
         .blocks
         .get("chords")
         .and_then(|c| c.get("harmonicRhythm"))
-        .map(|value| match value {
-            serde_json::Value::String(one) => vec![one.clone()],
-            serde_json::Value::Object(map) => map
-                .get("values")
-                .and_then(serde_json::Value::as_array)
-                .map(|values| {
-                    values
-                        .iter()
-                        .filter_map(|v| v.as_str().map(str::to_owned))
-                        .collect()
-                })
-                .unwrap_or_default(),
-            _ => Vec::new(),
-        })
+        .and_then(|v| serde_json::from_value::<StrSpec>(v.clone()).ok())
+        .map(|spec| spec.options())
         .unwrap_or_default();
     assert!(
         !authored.is_empty() && !authored.iter().any(|name| name == "syncopated_cell"),

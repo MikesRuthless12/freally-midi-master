@@ -15,7 +15,7 @@
 import { create } from 'zustand';
 
 import { invoke } from '../lib/ipc';
-import type { Part, Song } from '../lib/ipc-types';
+import type { Complexity, Part, Song } from '../lib/ipc-types';
 import {
   cloneSection,
   copyClips,
@@ -188,6 +188,16 @@ export type SongState = {
      * come to disagree.
      */
     base: string | null;
+    /**
+     * How busy a reading of the style to arrange (TASK-125).
+     *
+     * ⛔ **Carried for the same reason `base` above it is, and it was missing
+     * for the same reason.** Song Mode generated at the model's authored
+     * reading while every four-bar loop on the part tabs beside it answered the
+     * switch — one arrangement plainer than the loops it was built from, with
+     * nothing on screen saying why.
+     */
+    complexity: Complexity;
   }) => Promise<void>;
 
   /**
@@ -484,7 +494,7 @@ export const useSong = create<SongState>((set, get) => ({
     }
   },
 
-  async generate({ styleId, seed, pins, mood, base }) {
+  async generate({ styleId, seed, pins, mood, base, complexity }) {
     if (get().generating) return;
     set({ generating: true, error: null });
     try {
@@ -503,6 +513,12 @@ export const useSong = create<SongState>((set, get) => ({
           // brought that section back over boom-bap. Exactly the defect the
           // re-roll fix was written for, inverted.
           base,
+          // ⛔ **The switch, and its absence here was the `base` failure one
+          // field over** (TASK-125). `bridge.rs` reads this at the same door it
+          // reads the mood at — the door was built and the page never knocked,
+          // so Song Mode arranged at the model's own reading while the loops on
+          // the part tabs answered Busy.
+          complexity,
           structure: get().structure,
         },
       });
@@ -582,6 +598,12 @@ export const useSong = create<SongState>((set, get) => ({
           // Only swing and half-time are read on the far side — everything
           // else a session pins is already carried by the song itself.
           session: useSession.getState().pins,
+          // ⛔ **The switch, read from the store exactly as `base` above it is**
+          // (TASK-125). Without it a re-rolled section came back at the model's
+          // authored reading while the rest of the record answered Busy — one
+          // section plainer than its neighbours, reproducibly, so it reads as
+          // deliberate. That is the sentence `base` earned three commits ago.
+          complexity: useSession.getState().complexity,
         },
       });
       // ⛔ **The clipboard and the drill-in are dropped, because the engine

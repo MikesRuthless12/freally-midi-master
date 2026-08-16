@@ -69,7 +69,12 @@ pub fn render(
 ) -> Vec<LaneTrack> {
     // ⛔ **The bass is screened unless it is locked to the kick** — see
     // `novelty::screens`. Asked here because this is where the model is.
-    let kick_locked = bass::follows_the_kick(model);
+    //
+    // ⚠ **Asked only for the bass.** `novelty::screens` reads the flag in its
+    // `Part::Bass` arm and nowhere else, and `true` is already its documented
+    // "leave it alone" answer for a caller that cannot know — so four presses in
+    // five were paying for a value that was thrown away.
+    let kick_locked = part != Part::Bass || bass::follows_the_kick(model);
     let (mut lanes, take, report) =
         novelty::screen(novelty::bundled(), part, kick_locked, seeds.part, |take| {
             generate(

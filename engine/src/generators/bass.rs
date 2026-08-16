@@ -16,7 +16,7 @@ use rand::Rng;
 use serde_json::Value;
 
 use crate::context::SessionContext;
-use crate::dataset::StyleModel;
+use crate::dataset::{StrSpec, StyleModel};
 use crate::generators::chords::Chords;
 use crate::generators::grid;
 use crate::generators::read::{block, number, pair, string_spec_leaning, text};
@@ -84,10 +84,26 @@ pub fn can_read_rhythm(name: &str) -> bool {
 /// rhythm places its own onsets and is a figure in its own right, which is what
 /// a screen exists for.
 ///
+/// ⛔⛔ **Every rhythm the model *could* draw, not the one it happens to draw.**
+/// [`generate`] picks the rhythm with `string_spec_leaning`, which reads the
+/// weighted `{ values, weights }` form and leans it by the producer's setting —
+/// so the drawn rhythm depends on a seed and a switch this function has neither
+/// of. Asking the same question the generator asks is therefore impossible;
+/// asking a *safe* one is not. A model that lists `mirror_kick` alongside
+/// `independent_riff` can place its own onsets, so it is screened.
+///
+/// ⚠ **This was `text`, and that was a second reader with a different answer.**
+/// `text` only accepts a bare string: a model authoring the weighted form read
+/// as `None` → `mirror_kick` → unscreened, while the generator drew an
+/// independent riff and shipped it past the guard. No model in `data/` authors
+/// that form today — all 489 are bare strings, so nothing shipped wrong — but
+/// the weighted form is exactly what the new reader was added to support, and a
+/// user model saved through the style editor can reach it. Two answers to "what
+/// rhythm is this" is how the guard would come to screen a part the generator
+/// built differently; there is one answer now.
+///
 /// ⚠ **The default is `mirror_kick`**, exactly as [`generate`] reads it, and an
-/// unparseable name resolves the same way there. Two answers to "what rhythm is
-/// this" is how the guard would come to screen a part the generator built
-/// differently.
+/// unparseable name resolves the same way there.
 ///
 /// ⚠ **A model whose 808 *is* the bass writes no bass part at all**
 /// ([`eight_o_eight_is_the_bass`]), so there is nothing to screen: it answers
@@ -97,11 +113,19 @@ pub fn follows_the_kick(model: &StyleModel) -> bool {
     if eight_o_eight_is_the_bass(model) {
         return true;
     }
-    let root = Value::Object(model.blocks.clone().into_iter().collect());
-    let rhythm = text(block(Some(&root), "bassline"), "rhythm")
-        .and_then(Rhythm::parse)
-        .unwrap_or(Rhythm::MirrorKick);
-    rhythm == Rhythm::MirrorKick
+    let Some(rhythm) = block(model.blocks.get("bassline"), "rhythm") else {
+        // Nothing authored: `generate` falls back to `mirror_kick`.
+        return true;
+    };
+    match serde_json::from_value::<StrSpec>(rhythm.clone()) {
+        // An unreadable spec is one `generate` also cannot read, and it falls
+        // back to `mirror_kick` there too.
+        Err(_) => true,
+        Ok(spec) => spec
+            .options()
+            .iter()
+            .all(|name| Rhythm::parse(name).unwrap_or(Rhythm::MirrorKick) == Rhythm::MirrorKick),
+    }
 }
 
 /// Is this cell-shape degree one the generator can act on?
@@ -131,9 +155,13 @@ fn cell_degree(text: &str) -> Option<(i32, i32)> {
 ///
 /// Read from the *drums* block, because that is where the 808 lives. The bass
 /// part deferring to it is the whole of FR-007's "unify with the 808 lane".
+/// ⚠ **Reads the block map directly rather than rebuilding a root `Value`.**
+/// It used to clone `model.blocks` whole — a mean of 819 JSON nodes, 1,454 at
+/// the worst model — to look at one string. `arrange.rs` asks this question once
+/// per section inside `render_section`, so a 64-section song paid ~130k heap
+/// allocations for a boolean that cannot change between sections.
 pub fn eight_o_eight_is_the_bass(model: &StyleModel) -> bool {
-    let root = Value::Object(model.blocks.clone().into_iter().collect());
-    text(block(block(Some(&root), "drums"), "bass808"), "role") == Some("bassline")
+    text(block(model.blocks.get("drums"), "bass808"), "role") == Some("bassline")
 }
 
 pub fn generate(
@@ -155,11 +183,12 @@ pub fn generate(
         return empty;
     }
 
-    let root = Value::Object(model.blocks.clone().into_iter().collect());
-    let Some(bass) = block(Some(&root), "bassline").cloned() else {
+    // ⚠ Borrowed from the block map rather than rebuilt into a root `Value` and
+    // cloned back out — see [`eight_o_eight_is_the_bass`] for what that cost.
+    let Some(bass) = model.blocks.get("bassline").filter(|v| !v.is_null()) else {
         return empty;
     };
-    let bass = Some(&bass);
+    let bass = Some(bass);
 
     let mut param_rng = rng::stream(seed, "bass/params");
     let mut place_rng = rng::stream(seed, "bass/place");

@@ -2330,6 +2330,11 @@ export const useSession = create<SessionState>((set, get) => ({
       // reproduces a take, and adding parts that take never had returns a
       // session that never existed under the label of one that did.
       const record = pattern.songSeed;
+      // The parts to fill, resolved once. A recall has none, which is what the
+      // note above means — and stating it here rather than as an `if` around the
+      // loop is why the two loops in the updater below need no recall check of
+      // their own.
+      const deps = recalling ? [] : (UPSTREAM[part] ?? []);
       const fills: PatternsByPart = {};
       // ⛔⛔ **A fill that fails must not take the generation with it.** These
       // requests are the page's own idea, not the producer's: they pressed
@@ -2341,33 +2346,41 @@ export const useSession = create<SessionState>((set, get) => ({
       // an error toast about a tab the producer did not press would describe a
       // failure they cannot act on.
       try {
-        if (!recalling) {
-          for (const dep of UPSTREAM[part] ?? []) {
-            const held = get();
-            if (held.patterns[dep] !== undefined || held.partsOff.includes(dep)) continue;
-            fills[dep] = await invoke<Pattern>('generate_pattern', {
-              request: {
-                styleId: selectedId,
-                base,
-                part: dep,
+        for (const dep of deps) {
+          const held = get();
+          if (held.patterns[dep] !== undefined || held.partsOff.includes(dep)) continue;
+          fills[dep] = await invoke<Pattern>('generate_pattern', {
+            request: {
+              styleId: selectedId,
+              base,
+              part: dep,
+              bars,
+              seed: record,
+              songSeed: record,
+              // Only `Part::Bass` reads it and no upstream part is the bass —
+              // sent anyway, for the reason the single-Generate path above sends
+              // it on every part: a conditional here is one more thing to keep in
+              // agreement with the engine.
+              drumsSeed: mirrorableDrumsSeed(held.patterns.drums, {
                 bars,
-                seed: record,
                 songSeed: record,
-                // Only `Part::Bass` reads it and no upstream part is the bass —
-                // sent anyway, for the reason the single-Generate path above sends
-                // it on every part: a conditional here is one more thing to keep in
-                // agreement with the engine.
-                drumsSeed: mirrorableDrumsSeed(get().patterns.drums, {
-                  bars,
-                  songSeed: record,
-                  pins,
-                  mood,
-                }),
-                session: pins,
+                pins,
                 mood,
-              },
-            });
-          }
+              }),
+              session: pins,
+              mood,
+              // ⛔⛔ **The switch, or the fill argues with the part it fills.**
+              // Omitting this was a real defect: at Busy, `parts.rs` builds the
+              // counter against a melody generated at the producer's setting,
+              // and a fill sent without it comes back at `authored` — a
+              // different note count, off a different draw. The two clips on
+              // screen then disagree about the switch, which is the
+              // readout-that-lies failure this whole block exists to close,
+              // dressed as the fix for it. Every field here has to stay in
+              // agreement with the request above; this is the one that got away.
+              complexity,
+            },
+          });
         }
       } catch {
         // Kept as they are: whatever landed before the failure is still a part
@@ -2462,7 +2475,7 @@ export const useSession = create<SessionState>((set, get) => ({
         // condition these were requested under. A fill is a first take; there is
         // nothing to hold.
         const filled: PatternsByPart = {};
-        for (const dep of UPSTREAM[part] ?? []) {
+        for (const dep of deps) {
           const clip = fills[dep];
           if (clip === undefined || state.patterns[dep] !== undefined) continue;
           filled[dep] = clip;
@@ -2480,9 +2493,11 @@ export const useSession = create<SessionState>((set, get) => ({
           // press for the same reason. Recording them after the counter would put
           // the melody's entry at a later timestamp than the line written against
           // it.
-          for (const dep of UPSTREAM[part] ?? []) {
-            const clip = filled[dep];
-            if (clip === undefined) continue;
+          //
+          // ⚠ `filled` was built from `deps` just above, so its insertion order
+          // *is* the dependency order — walking `UPSTREAM` again to rediscover
+          // what this object already holds was asking the same question twice.
+          for (const clip of Object.values(filled)) {
             useVariations
               .getState()
               .record(

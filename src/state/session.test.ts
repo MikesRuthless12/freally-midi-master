@@ -1353,13 +1353,26 @@ describe('each part keeps its own pattern', () => {
  */
 describe('a generator fills the parts it was written against', () => {
   /** Every `generate_pattern` request, in the order they were sent. */
-  function requests(): { part: Part; seed: string | null; songSeed: string | null }[] {
+  function requests(): {
+    part: Part;
+    seed: string | null;
+    songSeed: string | null;
+    complexity?: string;
+  }[] {
     return invoke.mock.calls
       .filter((call: unknown[]) => call[0] === 'generate_pattern')
       .map(
         (call: unknown[]) =>
-          (call[1] as { request: { part: Part; seed: string | null; songSeed: string | null } })
-            .request,
+          (
+            call[1] as {
+              request: {
+                part: Part;
+                seed: string | null;
+                songSeed: string | null;
+                complexity?: string;
+              };
+            }
+          ).request,
       );
   }
 
@@ -1435,6 +1448,30 @@ describe('a generator fills the parts it was written against', () => {
       // counter's own take is a different melody from the one it answers.
       expect(fill?.seed, `${part} was filled at a take rather than at the record`).toBe(record);
       expect(fill?.songSeed).toBe(record);
+    }
+  });
+
+  it('generates the fills at the SWITCH the producer set, not at the authored reading', async () => {
+    // ⛔⛔ **This shipped broken and three reviewers found it independently.**
+    // The fill request was hand-copied from the main one and every field was
+    // kept in step except this. At Busy the engine builds the counter against a
+    // melody generated at `complex` — `melody.densityPerBar` is a range on
+    // essentially every model, and `Complexity::draw` takes *two* numbers off
+    // the stream instead of one — so a fill sent without the field came back at
+    // `authored`: a different note count, from a different draw. The producer
+    // then had a counter on screen answering a melody that is not the melody
+    // beside it, which is the readout-that-lies failure TASK-129 exists to
+    // close, dressed as the fix for it.
+    useSession.getState().setComplexity('complex');
+    await useSession.getState().generate('drums');
+    await useSession.getState().generate('counter');
+
+    for (const part of ['counter', 'chords', 'melody'] as const) {
+      const request = requests().find((r) => r.part === part);
+      expect(
+        request?.complexity,
+        `${part} was generated at a different reading from the part it belongs to`,
+      ).toBe('complex');
     }
   });
 

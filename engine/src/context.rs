@@ -112,35 +112,32 @@ impl Complexity {
     /// ⚠ **`Authored` draws exactly once**, so it consumes the stream identically
     /// to the code that existed before this type — which is what keeps every
     /// saved seed reproducing its own beat.
-    pub fn draw(self, min: f64, max: f64, rng: &mut impl rand::Rng) -> f64 {
-        if min >= max {
-            return min;
-        }
-        let first = rng.random_range(min..=max);
-        match self.lean() {
-            0 => first,
-            lean => {
-                let second = rng.random_range(min..=max);
-                if (lean > 0) == (second > first) {
-                    second
-                } else {
-                    first
-                }
-            }
-        }
-    }
-
-    /// The same draw over whole numbers.
     ///
-    /// ⛔⛔ **Separate from [`Self::draw`] because `Authored` has to consume the
-    /// rng EXACTLY as the integer code it replaced did.** `chords.rs` drew
-    /// `rng.random_range(min..=max)` over `u32`; routing that through the float
-    /// version and rounding gives a different value from the same stream *and* a
-    /// different distribution — half weight to each endpoint — so every golden
-    /// snapshot would have moved at the default setting. The switch is only safe
-    /// because its default changes nothing.
-    pub fn draw_u32(self, min: u32, max: u32, rng: &mut impl rand::Rng) -> u32 {
-        if min >= max {
+    /// ⛔⛔ **Generic over the number type, and that is load-bearing rather than
+    /// tidy.** `chords.rs` drew `rng.random_range(min..=max)` over `u32`; routing
+    /// whole numbers through an `f64` draw and rounding gives a different value
+    /// from the same stream *and* a different distribution — half weight to each
+    /// endpoint — so every golden snapshot would have moved at the default
+    /// setting. One function with `T` keeps each type on its own
+    /// `random_range` and so consumes the stream exactly as its own old code
+    /// did. It was two byte-identical copies; a change to what "lean" means
+    /// could have landed in one and not the other.
+    ///
+    /// ⚠ **Guarded on `partial_cmp` rather than on `min >= max`, so a NaN bound
+    /// returns instead of panicking.** `random_range` asserts its range is
+    /// non-empty, and for `RangeInclusive<f64>` that assert is `start <= end` —
+    /// `false` for NaN, which fires. `min >= max` is also `false` for NaN, so the
+    /// old guard let it straight through. Both call sites re-check their bounds
+    /// today and `serde_json::Value` cannot hold a non-finite number, so nothing
+    /// reaches it; this is a `pub fn` whose safety should not rest on every
+    /// future caller remembering that. Anything not strictly ordered — equal,
+    /// inverted, or incomparable — is the model being specific, and `min` is the
+    /// answer for all three.
+    pub fn draw<T>(self, min: T, max: T, rng: &mut impl rand::Rng) -> T
+    where
+        T: Copy + PartialOrd + rand::distr::uniform::SampleUniform,
+    {
+        if min.partial_cmp(&max) != Some(std::cmp::Ordering::Less) {
             return min;
         }
         let first = rng.random_range(min..=max);

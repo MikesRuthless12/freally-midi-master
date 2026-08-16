@@ -274,6 +274,40 @@ it('a re-roll resolves the producer’s locks into the parts the engine wants', 
   expect((call?.[1] as { request: { locked: Part[] } }).request.locked).toEqual(['drums']);
 });
 
+it('both song doors carry the Simple/Complex switch the producer set', async () => {
+  // ⛔⛔ **The `base` failure of TASK-158C, one field over, and it shipped.**
+  // `bridge.rs` reads `complexity` on `generate_song` and on `reroll_section`,
+  // and both reads were written correctly — the page simply never sent the
+  // field, so Song Mode arranged at the model's own reading while every
+  // four-bar loop on the part tabs beside it answered Busy, and re-rolling one
+  // section brought it back plainer than its neighbours with nothing on screen
+  // saying why. A door nobody knocks on is the same defect as a door that was
+  // never built, so this asserts on the *payload* rather than on the store.
+  const current = song();
+  invoke.mockResolvedValue(current);
+  useSession.setState({ complexity: 'complex' });
+  useSong.setState({ song: current });
+
+  await useSong.getState().generate({
+    styleId: 'trap',
+    seed: '9',
+    pins: {} as never,
+    mood: null,
+    base: null,
+    complexity: 'complex',
+  });
+  await useSong.getState().reroll(0, null);
+
+  for (const command of ['generate_song', 'reroll_section'] as const) {
+    const call = invoke.mock.calls.find(([name]) => name === command);
+    expect(call, `${command} should have been invoked`).toBeDefined();
+    expect(
+      (call?.[1] as { request: { complexity?: string } }).request.complexity,
+      `${command} arranged at a different reading from the loops beside it`,
+    ).toBe('complex');
+  }
+});
+
 it('a re-roll marks the arrangement edited, because its seed no longer describes it', async () => {
   // ⛔ The edit that is easiest to lose: nothing about a re-roll *looks* like an
   // edit. The timeline redraws and the geometry is identical, so without this
@@ -296,9 +330,14 @@ it('generating a fresh song drops the locks placed on the old one', async () => 
   invoke.mockResolvedValue(song());
   useSong.setState({ song: song(), locks: ['0:drums'] });
 
-  await useSong
-    .getState()
-    .generate({ styleId: 'trap', seed: '9', pins: {} as never, mood: null, base: null });
+  await useSong.getState().generate({
+    styleId: 'trap',
+    seed: '9',
+    pins: {} as never,
+    mood: null,
+    base: null,
+    complexity: 'authored',
+  });
 
   expect(useSong.getState().locks).toEqual([]);
 });
@@ -461,9 +500,14 @@ it('generating a fresh song drops the loop, because the indices moved', async ()
   invoke.mockResolvedValue(song());
   useSong.setState({ song: song(), loopSection: 1 });
 
-  await useSong
-    .getState()
-    .generate({ styleId: 'trap', seed: '9', pins: {} as never, mood: null, base: null });
+  await useSong.getState().generate({
+    styleId: 'trap',
+    seed: '9',
+    pins: {} as never,
+    mood: null,
+    base: null,
+    complexity: 'authored',
+  });
   expect(useSong.getState().loopSection).toBeNull();
 });
 
@@ -671,9 +715,14 @@ it('generating a fresh song drops an audition placed on the old one', async () =
   invoke.mockResolvedValue(song());
   useSong.setState({ song: song(), audition: { sectionIndex: 1, part: 'drums' } });
 
-  await useSong
-    .getState()
-    .generate({ styleId: 'trap', seed: '9', pins: {} as never, mood: null, base: null });
+  await useSong.getState().generate({
+    styleId: 'trap',
+    seed: '9',
+    pins: {} as never,
+    mood: null,
+    base: null,
+    complexity: 'authored',
+  });
   expect(useSong.getState().audition).toBeNull();
 });
 
@@ -750,9 +799,14 @@ it('generating drops the clipboard, which holds ids the new song also has', asyn
   invoke.mockResolvedValue(song());
   useSong.setState({ song: song(), clipboard: { sectionIndex: 5, clips: [] } as never });
 
-  await useSong
-    .getState()
-    .generate({ styleId: 'trap', seed: '9', pins: {} as never, mood: null, base: null });
+  await useSong.getState().generate({
+    styleId: 'trap',
+    seed: '9',
+    pins: {} as never,
+    mood: null,
+    base: null,
+    complexity: 'authored',
+  });
 
   expect(useSong.getState().clipboard).toBeNull();
 });
@@ -765,9 +819,14 @@ it('generating drops a solo, which the new song may have no row for', async () =
   invoke.mockResolvedValue(song());
   useSong.setState({ song: song(), soloParts: ['counter'], mutedParts: ['melody'] });
 
-  await useSong
-    .getState()
-    .generate({ styleId: 'trap', seed: '9', pins: {} as never, mood: null, base: null });
+  await useSong.getState().generate({
+    styleId: 'trap',
+    seed: '9',
+    pins: {} as never,
+    mood: null,
+    base: null,
+    complexity: 'authored',
+  });
 
   expect(useSong.getState().soloParts).toEqual([]);
   expect(useSong.getState().mutedParts).toEqual([]);

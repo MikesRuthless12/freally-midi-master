@@ -111,6 +111,17 @@ const PLACEMENTS: { value: string; label: string }[] = [
 const ROLLS = ['16', '32', '16T', '8T'];
 
 /**
+ * One value added to or removed from a checkbox group's list.
+ *
+ * ⚠ The three groups — scales, rolls, progression families — each spelled this
+ * ternary out inline, so the array-toggle was written three times and differed
+ * only in the field it read. Generic over the member type so `scales: Scale[]`
+ * keeps its narrower type rather than widening to `string[]`.
+ */
+const withToggled = <T extends string>(list: T[], value: T, on: boolean): T[] =>
+  on ? [...list, value] : list.filter((v) => v !== value);
+
+/**
  * The progression families offered, as roman numerals.
  *
  * ⛔ **Written at equal weight, and that is the honest simplification.** A
@@ -174,11 +185,16 @@ export function StyleEditor({
   // measured — its own doc says thirty is where "a single kept outlier sets a
   // range's edge" stops being true — so counting a four-part `.mid` as one would
   // put a number in front of the producer that the engine does not use.
+  //
+  // ⚠ **Counted through `keptFilePatterns`, the same selector that builds the
+  // set actually sent to `user_model_train`** (line ~364). Re-deriving the sum
+  // here meant the number in front of the producer and the training set were two
+  // expressions: any future change to that selector — deduping identical
+  // patterns across files, say — would have made the readout lie. Subscribed to
+  // `keptFiles` for the re-render, read through the selector for the answer.
   const keptFiles = useVariations((s) => s.keptFiles);
   const keptCount = useMemo(
-    () =>
-      keptTakes.length +
-      Object.values(keptFiles).reduce((sum, file) => sum + file.patterns.length, 0),
+    () => keptTakes.length + useVariations.getState().keptFilePatterns().length,
     [keptTakes, keptFiles],
   );
 
@@ -562,9 +578,7 @@ export function StyleEditor({
                   onChange={(e) =>
                     setDraft({
                       ...draft,
-                      scales: e.target.checked
-                        ? [...draft.scales, scale]
-                        : draft.scales.filter((s) => s !== scale),
+                      scales: withToggled(draft.scales, scale, e.target.checked),
                     })
                   }
                 />
@@ -619,9 +633,7 @@ export function StyleEditor({
                   onChange={(e) =>
                     setDraft({
                       ...draft,
-                      rolls: e.target.checked
-                        ? [...draft.rolls, roll]
-                        : draft.rolls.filter((r) => r !== roll),
+                      rolls: withToggled(draft.rolls, roll, e.target.checked),
                     })
                   }
                 />
@@ -688,9 +700,7 @@ export function StyleEditor({
                   onChange={(e) =>
                     setDraft({
                       ...draft,
-                      progressions: e.target.checked
-                        ? [...draft.progressions, family]
-                        : draft.progressions.filter((f) => f !== family),
+                      progressions: withToggled(draft.progressions, family, e.target.checked),
                     })
                   }
                 />
@@ -818,7 +828,18 @@ function modelFrom(draft: Draft, id: string, bases: RosterEntry[]): Record<strin
     drums.snare = { placement: draft.snare };
   }
   if (draft.rolls.length > 0) {
-    (drums.hihat as Record<string, unknown>).rolls = { vocab: { values: draft.rolls } };
+    // ⛔⛔ **`weights` must be written beside `values`, and omitting it made the
+    // control unusable.** `inherit::deep_merge` replaces the `values` array
+    // whole but merges `vocab` key by key — so the producer's list arrived
+    // against the *parent's* weights, and 566 of the 600 shipped models author
+    // that pair. Tick one subdivision over a base with five and
+    // `validate::check_weighted` refuses the save with `5 weights for 1 values`,
+    // a JSON pointer to a field they never touched. Flat weights are the honest
+    // reading of a checkbox list: the producer said which subdivisions, not how
+    // often each.
+    (drums.hihat as Record<string, unknown>).rolls = {
+      vocab: { values: draft.rolls, weights: draft.rolls.map(() => 1) },
+    };
   }
   if (draft.bassRole !== '') {
     // ⚠ The slide rides with the role and never alone — see `Draft`.
@@ -836,8 +857,24 @@ function modelFrom(draft: Draft, id: string, bases: RosterEntry[]): Record<strin
   // ⚠ Omitted entirely when nothing is ticked, rather than written as an empty
   // list: an empty `scales` would *replace* the base's rather than inherit it,
   // and a style with no scale to generate in is a style that generates nothing.
+  //
+  // ⛔⛔ **`weights` must be written beside `values`, and this control shipped
+  // without it long before TASK-040U copied the shape.** `deep_merge` replaces
+  // the `values` array whole but merges the object around it key by key, so the
+  // producer's list arrived against the base's `weights` — and **599 of the 620
+  // model files author that pair**. Unless the number of scales ticked happened
+  // to equal the base's weight count, `validate::check_weighted` refused the
+  // save with `3 weights for 1 values`, naming a field nobody touched. The Rolls
+  // control was written by copying this block and inherited the same defect;
+  // `engine/tests/user_partials.rs` is what found both, by merging every
+  // fragment this function writes over every shipped base and running the real
+  // lint. Flat weights are the honest reading of a checkbox list — the producer
+  // said which scales, not how often each.
   if (draft.scales.length > 0) {
-    (model.session as Record<string, unknown>).scales = { values: draft.scales };
+    (model.session as Record<string, unknown>).scales = {
+      values: draft.scales,
+      weights: draft.scales.map(() => 1),
+    };
   }
 
   return model;

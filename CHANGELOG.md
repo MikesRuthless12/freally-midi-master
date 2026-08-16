@@ -151,6 +151,71 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
   no way back from one to a note, and nothing in it names a pitch, a key or a
   title.
 
+### Fixed — what the review pass found in the four days above, 2026-08-16
+
+Six reviewers over the same branch — reuse, simplification, efficiency, altitude,
+correctness, security. Three of them found the same defect independently, which
+is the one worth reading first.
+
+- **The Simple / Complex switch was carried by exactly one of the four doors that
+  read it** (TASK-125). `plugin/src/bridge.rs` reads `complexity` on
+  `generate_pattern`, on `generate_song` and on `reroll_section`, and all three
+  reads were written correctly. The page sent it on one.
+  ⛔ **Song Mode arranged at the model's authored reading** while every four-bar
+  loop on the part tabs beside it answered Busy, and **re-rolling one section
+  brought it back plainer than its neighbours** — reproducibly, so it reads as
+  deliberate. That is the `base` failure of TASK-158C, one field over, and the
+  entry above this one claimed the door problem had been avoided.
+  ⛔ **The upstream fill sent it either** — so at Busy, a counter generated at
+  `complex` had its melody filled in behind it at `authored`: a different note
+  count, off a different draw, because `Complexity::draw` takes two numbers from
+  the stream where the authored path takes one. The producer got a counter
+  answering a melody that was not the melody beside it — the
+  readout-that-lies failure TASK-129 exists to close, wearing the fix's clothes.
+  ⚠ **A door nobody knocks on is the same defect as a door that was never
+  built.** `reroll_section` read the value from a second place (`session`) that no
+  caller populates; there is one spelling now, and both payloads are asserted on
+  in tests rather than the store.
+- **Ticking a scale in the style editor made the style unsavable, and had since
+  the control shipped.** ⛔ **Not a regression on this branch** — found by the
+  test written for the roll defect below, on its first run, because the Rolls
+  block had been written by copying the Scales block and inherited its bug.
+  `session.scales` was written as `{ values }` with no `weights`, and **599 of
+  the 620 model files author that pair**: unless the number of scales ticked
+  happened to equal the base's weight count, the save was refused with
+  `3 weights for 1 values`. Neither of the six reviewers found this one.
+- **Ticking any roll subdivision in the style editor made the style unsavable**
+  (TASK-040U). The editor wrote `rolls.vocab = { values }` and nothing else;
+  `inherit::deep_merge` replaces the `values` array whole but merges `vocab` key
+  by key, so the producer's list arrived against the **base's** `weights` — and
+  566 of the 600 shipped models author that pair. Every save was refused with
+  `5 weights for 1 values`, a JSON pointer to a field they never touched. Had it
+  got past the lint the style would have written **no hat rolls at all**.
+  ⚠ **The e2e passed throughout and would still pass**: `ipc-mock.ts` has no
+  linter. `engine/tests/user_partials.rs` now merges every control the editor
+  writes over every shipped base and runs the real lint — 4,200 merges.
+- **The novelty guard and the bass generator had stopped reading the same
+  field.** `follows_the_kick` read `bassline.rhythm` with `text` (bare strings
+  only) while `generate` was changed to read it with `string_spec_leaning`, which
+  also takes the weighted form — so a model authoring the weighted form answered
+  "locked to the kick", went unscreened, and could ship an `independent_riff`
+  straight past the guard. No model in `data/` authors that form, so nothing
+  shipped wrong; a style saved through the editor can reach it. The guard now
+  asks whether **every** rhythm the model could draw follows the kick, which is
+  answerable without a seed and errs toward screening.
+- **An imported style could hang the DAW.** `freqPerBar` and `riserBars` drive
+  loops and were read unclamped; neither key is probability-suffixed, so the
+  runtime lint skips it, and the JSON Schema that does carry maxima never runs on
+  `models::save`. A model saved over the bridge with `freqPerBar: 1e9` wrote
+  clean and froze the host on the next Generate — generation is synchronous on
+  the thread the host draws its window from. Both are bounded at read.
+- `Complexity::draw` returns rather than panics on a NaN bound, and is one
+  generic function instead of two byte-identical copies. `parts::render` asks
+  `follows_the_kick` only for the bass — four presses in five were paying for an
+  answer that was discarded — and neither it nor `eight_o_eight_is_the_bass`
+  clones the model's whole block map to read one string any more. That clone was
+  ~1,000 heap allocations, and `arrange.rs` was paying it twice per section.
+
 ### Fixed — 2026-08-15
 
 - **"Generate all" rendered as a second full-weight primary next to Generate**

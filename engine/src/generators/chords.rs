@@ -484,11 +484,12 @@ fn layout(
             let (min, max) = pair(chords, "chordDurationBeats").unwrap_or((3.0, 5.0));
             let (min, max) = (min.max(1.0) as u32, max.max(1.0) as u32);
             // ⚠ **Inverted, because a SHORTER cell is the busier one**: two beats
-            // a chord is busier than eight. `draw_u32` keeps the whole-number draw
-            // the line this replaced used — see its doc for why that matters more
-            // than it looks.
+            // a chord is busier than eight. Drawn over `u32` — `draw` is generic
+            // precisely so this stays a whole-number draw off the same stream the
+            // line it replaced used; see its doc for why that matters more than
+            // it looks.
             let busy = ctx.complexity.inverted();
-            fill(&mut slots, total, |_| beat * busy.draw_u32(min, max, rng));
+            fill(&mut slots, total, |_| beat * busy.draw(min, max, rng));
         }
     }
     slots

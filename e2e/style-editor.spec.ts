@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { pickArtist } from './app';
+import { pickArtist, rosterBox } from './app';
 
 /**
  * Original Workflow — build a style of your own, save it, generate from it
@@ -80,7 +80,7 @@ test('a saved style joins the roster marked as yours, and reopens as itself', as
   // roster refreshes over the bridge after the save: committing immediately
   // matched nothing and correctly fell back to the previous selection. An
   // `expect` retries, which is what gives the refresh time to land.
-  const roster = page.getByRole('combobox', { name: 'Roster' });
+  const roster = rosterBox(page);
   await roster.click();
   await roster.fill('My Dark');
   const row = page
@@ -271,7 +271,7 @@ test('the snare, the rolls, the 808 and the progressions save and reopen', async
   await dialog.getByRole('button', { name: 'Close' }).click();
 
   // Reopen the saved style and every one of the four comes back as it was.
-  const roster = page.getByRole('combobox', { name: 'Roster' });
+  const roster = rosterBox(page);
   await roster.click();
   await roster.fill('My Bounce');
   const row = page
@@ -295,5 +295,7 @@ test('the snare, the rolls, the 808 and the progressions save and reopen', async
 
   // ...and the ones never touched are still inheriting rather than authored.
   await expect(rolls.getByRole('checkbox', { name: '32' })).not.toBeChecked();
-  await expect(progressions.getByRole('checkbox', { name: 'i–iv', exact: true })).not.toBeChecked();
+  await expect(
+    progressions.getByRole('checkbox', { name: 'i–iv', exact: true }),
+  ).not.toBeChecked();
 });

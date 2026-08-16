@@ -736,14 +736,18 @@ fn generate(args: &GenerateArgs, host: &HostSession, auto_sync: bool) -> Result<
     if let Some(bars) = overrides.bars {
         overrides.bars = Some(bars.clamp(1, MAX_BARS));
     }
-    // ⛔ **The producer's Simple/Complex answer** (TASK-125). Set here rather
-    // than left inside `session`, because it is not one of the model's own
-    // parameters being overridden — it leans the choices the model already
+    // ⛔ **The producer's Simple/Complex answer** (TASK-125). Carried at the top
+    // level rather than inside `session`, because it is not one of the model's
+    // own parameters being overridden — it leans the choices the model already
     // offers. Absent stays `None`, which `SessionContext::from_model` reads as
     // `Authored`.
-    if args.complexity.is_some() {
-        overrides.complexity = args.complexity;
-    }
+    //
+    // ⚠ Assigned rather than guarded with `is_some()`: `overrides` comes from
+    // the page's `session`, which is a `SessionPins` with no complexity field,
+    // so the guard could only ever take one branch. Every door now reads this
+    // one field — see [`RerollArgs::complexity`] for what the second spelling
+    // cost.
+    overrides.complexity = args.complexity;
 
     // ⛔⛔ **The session is built from the RECORD, not the take, and getting
     // this wrong meant TASK-141 delivered nothing.** `session_for` samples
@@ -867,6 +871,16 @@ struct RerollArgs {
     /// other session value is carried by the  itself.
     #[serde(default)]
     session: Option<SessionOverrides>,
+    /// How busy a reading of the style to re-roll at (TASK-125).
+    ///
+    /// ⛔ **Top level, beside the mood, because that is where the other two
+    /// doors read it** — [`GenerateArgs::complexity`]. This was read out of
+    /// `session` instead, which no caller populates: `SessionPins` on the page
+    /// has no such field, so a re-roll answered `Authored` whatever the switch
+    /// said. One value with two spellings is a value each door gets a different
+    /// answer for; there is one spelling now.
+    #[serde(default)]
+    complexity: Option<engine::context::Complexity>,
 }
 
 /// Re-roll one section, in the song's own key, tempo and meter.
@@ -949,7 +963,7 @@ fn reroll_section(args: RerollArgs, host: &HostSession) -> Result<engine::patter
         // re-rolled section must come back at the reading the producer asked
         // for, or one section of the arrangement is plainer than the rest and
         // nothing on screen says why.
-        complexity: args.session.as_ref().and_then(|s| s.complexity),
+        complexity: args.complexity,
     };
 
     // ⛔ `auto_sync` is **false**, and it is not a shortcut. Every field the
@@ -1224,13 +1238,12 @@ fn generate_song(
         overrides.bars = Some(bars.clamp(1, MAX_BARS));
     }
     // ⛔ **Here too, and a rule installed at one door is a rule the next door
-    // arrives without** — the failure this file has recorded four times. A
-    // producer who set the switch and then pressed Generate on Song would
-    // otherwise get the arrangement at the model's own reading while every
-    // four-bar loop beside it answered the switch.
-    if args.complexity.is_some() {
-        overrides.complexity = args.complexity;
-    }
+    // arrives without** — the failure this file has recorded four times, and
+    // then shipped a fifth: this door was built correctly and `song.ts` never
+    // sent the field, so Song Mode arranged at the model's own reading while
+    // every four-bar loop beside it answered the switch. A door nobody knocks on
+    // is the same defect as a door that was never built.
+    overrides.complexity = args.complexity;
 
     let ctx = host.session_for(&model, &overrides, seed, auto_sync);
     // ⛔ **A forced form does not move a single note (TASK-070).** The structure

@@ -25,6 +25,16 @@ use crate::generators::grid;
 use crate::generators::read::{flag, number, pair, string_spec, strings};
 use crate::pattern::{Articulation, Lane, Note};
 
+/// The most rolls a bar may be asked for.
+///
+/// ⛔ **A bound on a loop, not a musical opinion.** See [`hat_rolls`]: nothing in
+/// the shipped dataset exceeds 1.2, and the value reaches the engine from a
+/// user model the runtime lint does not check this key on.
+const MAX_ROLLS_PER_BAR: f64 = 16.0;
+
+/// The longest riser, matching `bridge::MAX_BARS`.
+const MAX_RISER_BARS: f64 = 128.0;
+
 /// Accent grouping inside a roll.
 ///
 /// `strong_weak_weak_weak` is the four-note grouping the snare-roll literature
@@ -349,7 +359,17 @@ pub fn hat_rolls(
         return;
     }
 
-    let frequency = number(rolls, "freqPerBar", 0.4, rng).max(0.0);
+    // ⛔ **Clamped, not just floored at zero, because this number drives a
+    // loop.** `count` below is `frequency.floor()`, and each iteration allocates
+    // a window and its notes and does an O(n) `retain` over what is closed — so
+    // an unbounded value is not a busy hi-hat but a hung DAW. The key is not
+    // probability-suffixed, so `validate::lint` skips it, and the JSON Schema
+    // that *does* carry maxima is run by `datasetc` and the tests but never by
+    // `models::save` — a model saved or imported through the bridge with
+    // `freqPerBar: 1e9` writes clean and freezes the host on the next Generate.
+    // The dataset's own ceiling is 1.2, so 16 is headroom rather than a limit
+    // any real style can feel.
+    let frequency = number(rolls, "freqPerBar", 0.4, rng).clamp(0.0, MAX_ROLLS_PER_BAR);
     let (from_fraction, to_fraction) = pair(rolls, "rampRange").unwrap_or((0.5, 1.0));
     let ramping = flag(rolls, "velocityRamp", true);
     let gaps = flag(rolls, "insertGaps", false);
@@ -945,7 +965,14 @@ pub fn riser(
     start_tick: u32,
     rng: &mut impl Rng,
 ) -> Vec<Note> {
-    let bars = number(block, "riserBars", 8.0, rng).round().max(1.0) as u32;
+    // ⛔ Bounded for [`hat_rolls`]' reason: `bars * ticks_per_bar()` sets the
+    // roll window, so an unbounded value renders millions of notes in one go on
+    // the thread the host draws its window from. The dataset's longest riser is
+    // 8 bars; the cap matches `bridge::MAX_BARS`, past which a riser is longer
+    // than any pattern it could sit in.
+    let bars = number(block, "riserBars", 8.0, rng)
+        .round()
+        .clamp(1.0, MAX_RISER_BARS) as u32;
     let subdivision = block
         .and_then(|b| b.get("snareStreamSubdivision"))
         .and_then(Value::as_str)
