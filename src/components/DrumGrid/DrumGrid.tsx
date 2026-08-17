@@ -13,7 +13,6 @@ import { useTranslation } from 'react-i18next';
 
 import { isTypingTarget } from '../../lib/keyboard';
 import { laneAudible, useSession } from '../../state/session';
-import { padsOf, useUi } from '../../state/ui';
 import { useEditing } from '../../state/editing';
 import type { Lane, Pattern } from '../../lib/ipc-types';
 import { Combo } from '../Combo/Combo';
@@ -29,7 +28,6 @@ import {
   cloneBar,
   copyCells,
   pasteCells,
-  reassignLane,
   toCells,
   toggleHit,
   tuplet,
@@ -142,13 +140,13 @@ export function DrumGrid({ pattern, playhead }: { pattern: Pattern; playhead: nu
   const lockedLanes = useSession((s) => s.lockedLanes);
   const setLaneLocked = useSession((s) => s.setLaneLocked);
   const editPattern = useSession((s) => s.editPattern);
-  // ⛔ The pads, so reassigning a row can carry its pad with it. Read through
-  // `padsOf` for the reason `PadGrid` records: `s.pads[id] ?? []` returns a new
-  // array on every call and zustand then re-renders forever.
-  const styleId = useSession((s) => s.selectedId);
-  const padsByStyle = useUi((s) => s.pads);
-  const setPad = useUi((s) => s.setPad);
-  const pads = padsOf(padsByStyle, styleId);
+  // ⛔ **The action, not the pad list.** This subscribed to the whole `pads` map
+  // and carried `pads`/`setPad`/`styleId` into the rows memo — so any pad write
+  // for any style, including a reorder that changes nothing the grid draws,
+  // rebuilt up to 17 rows × 64 cells of JSX for three values read only inside
+  // one `onChange`. The action reads them from the store when it fires, which is
+  // also strictly fresher than a memo closure.
+  const reassignLaneEverywhere = useSession((s) => s.reassignLaneEverywhere);
   // ⛔ **Which lanes are open, and where each one's window sits (TASK-161).**
   // View state, so it lives beside the roll's zoom and scroll and stays out of
   // the undo snapshot — panning a lane must not cost a Ctrl+Z.
@@ -558,7 +556,7 @@ export function DrumGrid({ pattern, playhead }: { pattern: Pattern; playhead: nu
       if (lane === undefined || !Number.isInteger(column)) continue;
       const at = node.getBoundingClientRect();
       // ⚠ Overlap, not containment: a band dragged across the middle of a row of
-      // 14px cells would otherwise select none of them.
+      // 18px cells would otherwise select none of them.
       const hit =
         at.left < box.right &&
         at.right > box.left &&
@@ -1065,23 +1063,14 @@ export function DrumGrid({ pattern, playhead }: { pattern: Pattern; playhead: nu
                       // kick" rather than as an empty chooser.
                       options={[{ id: lane, name }, ...freeOptions]}
                       value={lane}
-                      // ⛔⛔ **And the pad follows the row** — the other half of
+                      // ⛔ **And the pad follows the row** — the other half of
                       // Mike's 2026-08-16 request: *"vice-versa, if you change the
                       // one's in the generator it should change the pad's names"*.
-                      // The pad that plays this lane has to come with it, or the
-                      // producer is left with a pad pointed at a lane the clip no
-                      // longer has.
-                      //
-                      // ⚠ **Every pad holding it, because two may.** `PAD_LIMIT`
-                      // allows the same lane on more than one pad — the layering
-                      // case — and leaving the second one behind would be the
-                      // disagreement this change exists to close.
-                      onChange={(id) => {
-                        editPattern(reassignLane(pattern, lane, id as Lane));
-                        pads.forEach((held, at) => {
-                          if (held === lane) setPad(styleId, at, id);
-                        });
-                      }}
+                      // `reassignLaneEverywhere` owns the clip, every pad holding
+                      // the lane and the lane-keyed mute/solo/lock together; this
+                      // file used to hand-write its half and disagreed with
+                      // `PadGrid`'s in three ways a review then found.
+                      onChange={(id) => reassignLaneEverywhere(lane, id as Lane)}
                     />
                   </span>
                   {/* The per-lane "add fill" (TASK-043H) — one press writes the
@@ -1271,15 +1260,9 @@ export function DrumGrid({ pattern, playhead }: { pattern: Pattern; playhead: nu
       onPitchMove,
       endPitchDrag,
       t,
-      // ⛔ **The pads, because the row pickers now write to them.** Left out,
-      // the memo would hold the pad list as it was when the rows were last
-      // built — so reassigning one row and then another would file the second
-      // against a stale layout and point a pad at a lane that had already
-      // moved. `padsOf` returns a frozen module constant for the empty case, so
-      // this does not rebuild every render.
-      pads,
-      setPad,
-      styleId,
+      // ⚠ The action is a stable store reference, so the rows no longer rebuild
+      // when a pad moves — see the note where it is read.
+      reassignLaneEverywhere,
     ],
   );
 

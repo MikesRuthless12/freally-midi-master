@@ -2151,3 +2151,93 @@ describe('how busy a reading the producer asked for', () => {
     );
   });
 });
+
+/**
+ * Pointing a lane at another drum, everywhere it is named (2026-08-17).
+ *
+ * ⛔⛔ **Here rather than only in Playwright, because a review found three
+ * defects in the seam this action replaced.** The pad picker and the grid's row
+ * picker each hand-wrote "and the other side follows" and disagreed: one moved a
+ * single pad, the other looped every pad, and neither checked whether the other
+ * write had been refused. `e2e/pad-lane-sync.spec.ts` proves the two controls
+ * agree on screen; these prove the rules the action is made of, including the
+ * refusals a browser test cannot reach without contriving a kit.
+ */
+describe('reassigning a lane everywhere it is named', () => {
+  const withLanes = (...lanes: string[]): Pattern => ({
+    ...PATTERN,
+    lanes: lanes.map((lane) => ({ lane, notes: [] })) as Pattern['lanes'],
+  });
+
+  beforeEach(() => {
+    useSession.setState({
+      selectedId: 'trap',
+      patterns: { drums: withLanes('kick', 'snare') },
+      mutedLanes: [],
+      soloedLanes: [],
+      lockedLanes: [],
+    });
+    useUi.setState({ pads: { trap: ['kick', 'snare', 'clap', 'closedHat'] } });
+  });
+
+  const padsNow = () => useUi.getState().pads.trap;
+  const lanesNow = () => useSession.getState().patterns.drums?.lanes.map((l) => l.lane);
+
+  it('renames the clip and moves the pad that plays it', () => {
+    useSession.getState().reassignLaneEverywhere('kick', 'tom');
+    expect(lanesNow()).toEqual(['tom', 'snare']);
+    expect(padsNow()?.[0]).toBe('tom');
+  });
+
+  it('carries every pad holding the lane, because two may', () => {
+    // ⛔ `PAD_LIMIT` allows the same lane twice — the layering case. Leaving the
+    // sibling behind pointed it at a lane the clip no longer had.
+    useUi.setState({ pads: { trap: ['kick', 'kick', 'clap', 'closedHat'] } });
+    useSession.getState().reassignLaneEverywhere('kick', 'tom');
+    expect(padsNow()?.slice(0, 2)).toEqual(['tom', 'tom']);
+    expect(lanesNow()).toEqual(['tom', 'snare']);
+  });
+
+  it('refuses as a whole when the pads cannot take it', () => {
+    // ⛔⛔ **The defect this action exists to make unreachable.** `setPad` refuses
+    // past `PAD_LIMIT` and returns state unchanged; the old code renamed the clip
+    // anyway, so the grid lost its Kick row while the pad still read Kick.
+    useUi.setState({ pads: { trap: ['kick', 'tom', 'tom', 'closedHat'] } });
+    useSession.getState().reassignLaneEverywhere('kick', 'tom');
+    expect(padsNow()?.[0]).toBe('kick');
+    expect(lanesNow()).toEqual(['kick', 'snare']);
+  });
+
+  it('leaves the beat alone when the target lane is already in it', () => {
+    // Renaming onto an occupied lane would merge two lanes' hits and lose part
+    // of the beat. The pad still moves — that is the layering case.
+    useSession.getState().reassignLaneEverywhere('kick', 'snare');
+    expect(lanesNow()).toEqual(['kick', 'snare']);
+    expect(padsNow()?.[0]).toBe('snare');
+  });
+
+  it('moves a pad pointed at a lane the clip has never generated', () => {
+    // A kit layout may name a lane no take has produced yet; that is not an error.
+    useSession.getState().reassignLaneEverywhere('clap', 'rim');
+    expect(padsNow()?.[2]).toBe('rim');
+    expect(lanesNow()).toEqual(['kick', 'snare']);
+  });
+
+  it('carries the mute, the solo and the lock with the rename', () => {
+    // ⛔ All three are keyed by lane, so a rename that left them behind would
+    // start a silenced lane sounding under its new name.
+    useSession.setState({ mutedLanes: ['kick'], soloedLanes: ['kick'], lockedLanes: ['kick'] });
+    useSession.getState().reassignLaneEverywhere('kick', 'tom');
+    expect(useSession.getState().mutedLanes).toEqual(['tom']);
+    expect(useSession.getState().soloedLanes).toEqual(['tom']);
+    expect(useSession.getState().lockedLanes).toEqual(['tom']);
+  });
+
+  it('does not move the view state when nothing was renamed', () => {
+    // The pad-only move above must not steal the mute from the lane that still
+    // holds it in the clip.
+    useSession.setState({ mutedLanes: ['clap'] });
+    useSession.getState().reassignLaneEverywhere('clap', 'rim');
+    expect(useSession.getState().mutedLanes).toEqual(['clap']);
+  });
+});

@@ -47,6 +47,15 @@ import './SessionChips.css';
  * the box, which is how it stays typeable. `onClick` below is what tells the two
  * apart, and it must only fire for a drag that actually moved.
  *
+ * ⚠ **The cost, stated because it is a real one and was raised in review:**
+ * suppressing the compatibility mouse events also removes *click-to-place-caret*.
+ * Clicking between the 4 and the 0 of a pinned `140` no longer drops the caret
+ * there; the label focuses the field and the caret lands where the browser puts
+ * it, so editing one digit means arrow keys or retyping. Accepted deliberately —
+ * these two boxes are drag boxes first, they hold three or four characters, and
+ * the alternative is collapsing the selection on every pointer move, which
+ * flickers. Revisit if a longer field ever gets this behaviour.
+ *
  * ⚠ **Measured from where the drag STARTED** rather than by accumulating
  * per-move deltas, for the reason `RailResizer` gives — a dropped frame would
  * otherwise leave the value permanently offset from the cursor.
@@ -97,7 +106,13 @@ function useDragBox(
       // 3px per step: the tempo's whole musical range is then a comfortable
       // forearm rather than a mouse mat, and the swing's quarter is 75px.
       const steps = Math.round((start.y - event.clientY) / 3);
-      if (steps === 0) return;
+      // ⛔ **`steps === 0` is "back where I started", not "nothing happened".**
+      // The value is absolute — `start.from + steps * step` — so returning early
+      // on zero made the gesture one-way at the origin: pull the tempo from 140
+      // to 141, drag back to exactly where you grabbed it, and 141 stayed
+      // pinned. A press that has not yet moved still commits nothing, which is
+      // what `scrubbed` distinguishes.
+      if (steps === 0 && !scrubbed.current) return;
       scrubbed.current = true;
       const value = Number((start.from + steps * step).toFixed(step < 1 ? 2 : 0));
       setPin(field, Math.min(max, Math.max(min, value)));
@@ -107,8 +122,19 @@ function useDragBox(
 
   // ⚠ `pointercancel` as well as `pointerup`: a drag the host interrupts must
   // not leave the box scrubbing against a pointer that has gone.
-  const onPointerEnd = useCallback(() => {
+  const onPointerUp = useCallback(() => {
     scrub.current = null;
+  }, []);
+
+  // ⛔ **Cancel also disarms the click-swallower.** A cancelled pointer produces
+  // no trailing `click`, so `scrubbed` stayed true and the *next* real click on
+  // the chip was swallowed — the label's focus-forwarding cancelled, and the
+  // field silently refusing to take a caret until you clicked twice. `pointerup`
+  // deliberately leaves it set, because there the click is still coming and is
+  // the one that must be suppressed.
+  const onPointerCancel = useCallback(() => {
+    scrub.current = null;
+    scrubbed.current = false;
   }, []);
 
   const onClick = useCallback((event: MouseEvent<HTMLLabelElement>) => {
@@ -121,12 +147,7 @@ function useDragBox(
     /** For the chip, so a finished drag does not also read as a click. */
     chip: { onClick },
     /** For the input itself. */
-    field: {
-      onPointerDown,
-      onPointerMove,
-      onPointerUp: onPointerEnd,
-      onPointerCancel: onPointerEnd,
-    },
+    field: { onPointerDown, onPointerMove, onPointerUp, onPointerCancel },
   };
 }
 
@@ -362,7 +383,15 @@ export function SessionChips() {
         {/* ⚠ **The switch that takes the Simple/Complex one below away.** On is
             the model as authored; off hands the producer back the side they were
             last on, which is what `lean` is for. */}
-        <span className="chip chip--mono session__switchbox">
+        {/* ⚠ `data-lean` so the word lights when the switch is on, the same way
+            the pair below lights its active side. Without it this box was the
+            only one whose label stayed dim in both states — leaving a 26×14px
+            knob as the sole indicator for the control that decides the default
+            generation mode. */}
+        <span
+          className="chip chip--mono session__switchbox"
+          data-lean={asWritten ? 'on' : 'off'}
+        >
           <span className="session__side">{t('session.complexity_authored')}</span>
           <button
             type="button"

@@ -81,14 +81,54 @@ export function editDistance(a: string, b: string, max = MAX_EDITS): number {
   return previous[b.length];
 }
 
-/** Whether every character of `query` appears in `text`, in order. */
-function isSubsequence(query: string, text: string): boolean {
+/**
+ * How far a subsequence may spread before it stops being evidence of anything.
+ *
+ * ⛔⛔ **A subsequence with no bound outranks a real typo, and the roster proved
+ * it.** `drakee` is genuinely a subsequence of **d**imit**r**i veg**a**s
+ * li**k**e mik**e** — six characters picked out of twenty-three — so Dimitri
+ * Vegas & Like Mike scored 2337 against Drake's 1375 and *"drakee"* stopped
+ * finding Drake. The subsequence band is 2,000 and the typo band 1,000, so any
+ * long enough name beats a one-character correction on a short one.
+ *
+ * ⚠ **This gets worse as the roster grows, which is why it is a threshold and
+ * not a special case.** Volume 2 took `data/` from 601 models to 1,300, and the
+ * longer a name is the more short queries it swallows. Nothing was wrong with
+ * the Dimitri Vegas entry.
+ *
+ * ⚠ **2× rather than tighter**, because the band's own purpose is a query that
+ * is *most of* a name typed without its spaces: `pierrebourne` spans 13 of
+ * `pierre bourne` for a 12-character query (1.08×) and `travisscott` 12 of
+ * `travis scott` (1.09×). Both still match; `drakee` at 3.8× does not.
+ */
+const MAX_SUBSEQUENCE_SPREAD = 2;
+
+/**
+ * The span `query` occupies inside `text` as a subsequence, or -1 for no match.
+ *
+ * ⚠ **Forward to a match, then backward to tighten it.** A plain left-to-right
+ * greedy scan takes the *first* candidate for each character, which overstates
+ * the span — `ab` in `a x a b` reads as 4 when the real window is 2 — and would
+ * then reject dense matches. Walking back from the completion point to the
+ * latest possible start gives the minimal window ending there, in one extra
+ * pass rather than the O(n·m) of trying every start.
+ */
+function subsequenceSpan(query: string, text: string): number {
+  if (query.length === 0) return 0;
   let index = 0;
-  for (const char of text) {
-    if (char === query[index]) index += 1;
-    if (index === query.length) return true;
+  for (let at = 0; at < text.length; at += 1) {
+    if (text[at] !== query[index]) continue;
+    index += 1;
+    if (index < query.length) continue;
+
+    let back = query.length - 1;
+    for (let from = at; from >= 0; from -= 1) {
+      if (text[from] !== query[back]) continue;
+      back -= 1;
+      if (back < 0) return at - from + 1;
+    }
   }
-  return query.length === 0;
+  return -1;
 }
 
 /**
@@ -106,7 +146,10 @@ function bandFor(query: string, field: string, words: string[]): number {
   if (field.startsWith(query)) return BAND.prefix;
   if (words.some((word) => word.startsWith(query))) return BAND.wordStart;
   if (field.includes(query)) return BAND.substring;
-  if (isSubsequence(query, field)) return BAND.subsequence;
+  // ⚠ Bounded by how far it spreads — see `MAX_SUBSEQUENCE_SPREAD`. An
+  // unbounded subsequence outranks a genuine typo on a shorter name.
+  const span = subsequenceSpan(query, field);
+  if (span >= 0 && span <= query.length * MAX_SUBSEQUENCE_SPREAD) return BAND.subsequence;
 
   // Typos are compared word by word as well as whole: "drakee" should find
   // "drake", and "trvis scott" should find "travis scott" on the first word.

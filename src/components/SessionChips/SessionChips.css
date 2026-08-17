@@ -65,11 +65,12 @@
   justify-content: flex-end;
 }
 
-/* ⛔ **The field must NOT grow, or the pair comes apart.** `width: auto` on an
-   `<input>` resolves to its intrinsic size — wide enough to fill the chip — so
-   the label was pinned to the left edge and the number to the right, which is
-   the opposite of "all on the right side". Held at `4ch`, the label and the
-   number travel together and `justify-content` puts both on the margin. */
+/* ⚠ **Right-aligned inside its own box**, so the digits sit against the margin
+   rather than against the label. The field must NOT grow to reach the edge —
+   `width: auto` on an `<input>` resolves to its intrinsic size, which pinned the
+   label left and the number right and pulled the pair apart. It keeps the
+   `width: 4ch` set on `.session__number` above, and `justify-content: flex-end`
+   on the chip is what carries the label and the number to the margin together. */
 .session__chip--end .session__number {
   text-align: right;
 }
@@ -255,7 +256,9 @@
 /* Which side the knob is on, said in words as well as in position — the pair
    reads at a glance and still reads while the switch is disabled. */
 .session__switchbox[data-lean='simple'] .session__side:first-child,
-.session__switchbox[data-lean='complex'] .session__side:last-child {
+.session__switchbox[data-lean='complex'] .session__side:last-child,
+/* The As Written box has one word, so "on" lights it and "off" leaves it dim. */
+.session__switchbox[data-lean='on'] .session__side:first-child {
   color: var(--color-text);
 }
 

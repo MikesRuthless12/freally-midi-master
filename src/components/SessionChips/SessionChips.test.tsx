@@ -180,6 +180,27 @@ describe('the busy switch', () => {
     expect(useSession.getState().complexity).toBe('complex');
   });
 
+  it('remembers the side a project was saved on when As Written goes on', () => {
+    // ⛔⛔ **The defect a review found, and the reason it was invisible.**
+    // `apply()` and `applySnapshot` write `complexity` straight into the store,
+    // so a project saved on Complex reopens with `lean` still at its initial
+    // `simple`. The knob rendered correctly — it prefers `complexity` whenever
+    // that names a side — so every render-only assertion passed. The bug only
+    // appears one click later: As Written on, then off, and the session that was
+    // Complex silently generates Simple.
+    useSession.setState({ complexity: 'complex', lean: 'simple' });
+    render(<SessionChips />);
+
+    flip(held());
+    expect(useSession.getState().complexity).toBe('authored');
+    // The side it was left on, captured on the way out rather than lost.
+    expect(useSession.getState().lean).toBe('complex');
+    expect(side().getAttribute('aria-checked')).toBe('true');
+
+    flip(held());
+    expect(useSession.getState().complexity).toBe('complex');
+  });
+
   it('follows an undo that restores a side without going through the setter', () => {
     // ⚠ `applySnapshot` writes `complexity` straight into the store. Reading the
     // remembered lean unconditionally would leave the knob on Simple over a

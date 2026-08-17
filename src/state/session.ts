@@ -6,6 +6,7 @@ import { loadRoster } from '../lib/roster';
 import type {
   Complexity,
   DatasetProblem,
+  Lane,
   Part,
   Pattern,
   RosterEntry,
@@ -17,12 +18,13 @@ import type {
 // ⚠ Leaf helpers over `Pattern` — meter-aware bar arithmetic, defined once so the
 // roll, the grid and the bar switch cannot disagree about how long a clip is.
 import { barTicks, patternTicks } from '../components/PianoRoll/notes';
+import { reassignLane } from '../components/DrumGrid/cells';
 // ⚠ A leaf module that imports nothing but a type — see its own header for why
 // that matters. `PAD_LANES` is what TASK-058H's muting is a statement about.
 import { PAD_LANES } from './lanes';
 import { useHistory, type Snapshot } from './history';
 import { entryFor, useVariations, type Variation } from './variations';
-import { useUi, type GeneratorTab } from './ui';
+import { PAD_LIMIT, padsOf, useUi, type GeneratorTab } from './ui';
 
 /**
  * The one loop the product is about: pick someone, generate, hear it, and have
@@ -705,6 +707,18 @@ type SessionState = {
   /** Pin the mood, or hand it back to the seed with `null`. */
   /** Ask for a plainer or busier reading of the style (TASK-125). */
   setComplexity: (complexity: Complexity) => void;
+  /**
+   * Point a lane at another drum **everywhere it is named** (2026-08-17).
+   *
+   * ⛔⛔ **One action because it was two call sites and they disagreed.** The
+   * pad picker and the grid's row picker each hand-wrote "and the other side
+   * follows": one did pad-then-clip and touched a single pad, the other
+   * clip-then-pads and looped every pad, and neither checked whether the other
+   * write had been refused. A review found three defects in the gap between the
+   * copies. This owns the clip, every pad holding the lane, and the lane-keyed
+   * view state, so a future rule is written once.
+   */
+  reassignLaneEverywhere: (from: Lane, to: Lane) => void;
   setMood: (mood: string | null) => void;
   /**
    * Pin the genre to generate in, or `null` for the artist's own (TASK-158C).
@@ -957,6 +971,19 @@ function withLocks(next: Pattern, previous: Pattern | undefined, locked: string[
  * in one place, and each setter keeps only what is actually different about it,
  * which is *when it persists*.
  */
+/**
+ * A lane-keyed set with one lane renamed, or the same array when it is absent.
+ *
+ * ⚠ Sorted and reference-stable for the reason `toggledLanes` is: these three
+ * sets are compared by reference to decide whether anything was recorded.
+ */
+function withLaneRenamed(current: string[], from: string, to: string): string[] {
+  if (!current.includes(from)) return current;
+  const next = current.filter((held) => held !== from);
+  if (!next.includes(to)) next.push(to);
+  return next.sort();
+}
+
 function toggledLanes(current: string[], lane: string, on: boolean): string[] | null {
   if (current.includes(lane) === on) return null;
   return on ? [...current, lane].sort() : current.filter((held) => held !== lane);
@@ -2073,11 +2100,26 @@ export const useSession = create<SessionState>((set, get) => ({
     // session value the chips draw. It leans choices inside the generators, and
     // the tempo, key and swing a producer is looking at stay exactly as they
     // were.
-    // ⛔ **`lean` follows every side the producer actually picks, and only
-    // those.** `authored` arrives here from the As Written switch, which is the
-    // one caller that must leave the knob where it was — that memory is the
-    // whole reason the disabled switch can still say something true.
-    set(complexity === 'authored' ? { complexity } : { complexity, lean: complexity });
+    // ⛔⛔ **Going to `authored` CAPTURES the side it is leaving.** Writing only
+    // `{ complexity }` here was a real defect, found by review: `apply()` and
+    // `applySnapshot` restore `complexity` straight into the store without
+    // passing through this setter, so a project saved on Complex reopens with
+    // `lean` still at its initial `simple`. The knob reads correctly — it prefers
+    // `complexity` whenever that names a side — but the moment As Written went
+    // on, the disabled knob jumped to Simple and turning it off again generated
+    // *Simple* for a session the producer had left on Complex.
+    //
+    // ⚠ Reading `state.complexity` rather than the argument: it is the side being
+    // left, and it is only a side worth remembering when it is not itself
+    // `authored`.
+    set((state) =>
+      complexity === 'authored'
+        ? {
+            complexity,
+            lean: state.complexity === 'authored' ? state.lean : state.complexity,
+          }
+        : { complexity, lean: complexity },
+    );
     persist();
   },
 
@@ -2134,6 +2176,46 @@ export const useSession = create<SessionState>((set, get) => ({
     // `setLaneMuted` makes, and it bites harder here: a solo that arrives half a beat late
     // leaves every *other* lane audible after the row has visibly dimmed, so
     // the control looks like it did nothing at all.
+    persistNow();
+  },
+
+  reassignLaneEverywhere(from, to) {
+    if (from === to) return;
+    const styleId = get().selectedId;
+    const ui = useUi.getState();
+    const pads = padsOf(ui.pads, styleId);
+
+    // ⛔⛔ **Refused as a whole, or not at all.** The two pickers used to write
+    // their halves independently, and a review found three defects living in the
+    // gap: `setPad` silently refuses past `PAD_LIMIT` while the clip was renamed
+    // anyway, the pad picker moved one pad and left its sibling on a lane the
+    // beat no longer had, and neither carried the mute. Deciding first and
+    // writing after is what makes those unreachable.
+    const moving = pads.flatMap((held, at) => (held === from ? [at] : []));
+    const settled = pads.filter((held, at) => held === to && !moving.includes(at)).length;
+    if (settled + moving.length > PAD_LIMIT) return;
+
+    // ⚠ **A pad may point at a lane the beat does not have**, and that is not an
+    // error — it is a kit layout waiting for a generation. The pad still moves;
+    // there is simply nothing in the clip to rename. `reassignLane` answers both
+    // that and the case where the target lane is already in the beat, where
+    // renaming would merge two lanes' hits and lose part of it.
+    const drums = get().patterns.drums;
+    const next = drums ? reassignLane(drums, from, to) : undefined;
+    const renamed = next !== undefined && next !== drums;
+
+    for (const at of moving) ui.setPad(styleId, at, to);
+    if (!renamed) return;
+
+    get().editPattern(next);
+    // ⛔ **The mute, the solo and the lock are keyed by lane**, so a rename that
+    // left them behind would start a silenced lane sounding under its new name
+    // and re-mute whatever later took the old one.
+    set((state) => ({
+      mutedLanes: withLaneRenamed(state.mutedLanes, from, to),
+      soloedLanes: withLaneRenamed(state.soloedLanes, from, to),
+      lockedLanes: withLaneRenamed(state.lockedLanes, from, to),
+    }));
     persistNow();
   },
 
