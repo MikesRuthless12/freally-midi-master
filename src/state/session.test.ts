@@ -2112,6 +2112,32 @@ describe('how busy a reading the producer asked for', () => {
     expect(lastFullRequest().complexity).toBe('simple');
   });
 
+  it('sends only the model as written once As Written is on, whatever side it was', async () => {
+    // ⛔⛔ **Mike asked for this in as many words**, 2026-08-16: *"if you have it
+    // on Complex and you switch to As Written … it doesn't write anything simple
+    // or complex and only As Written"*.
+    //
+    // ⚠ **The risk is `lean`, and it is a real one to check rather than a
+    // formality.** The knob has to keep showing Complex while it is disabled, so
+    // the side the producer chose is deliberately *remembered* — and a memory
+    // one line away from the request is exactly how a UI value ends up on the
+    // wire. This asserts the two stay separate at both doors.
+    useSession.getState().setComplexity('complex');
+    await useSession.getState().generate('drums');
+    expect(lastFullRequest().complexity).toBe('complex');
+
+    useSession.getState().setComplexity('authored');
+    // The knob still remembers the side, which is the whole point of it...
+    expect(useSession.getState().lean).toBe('complex');
+
+    // ...and neither door is told about it.
+    await useSession.getState().generate('drums');
+    expect(lastFullRequest().complexity).toBe('authored');
+
+    await useSession.getState().generateAll();
+    expect(lastFullRequest().complexity).toBe('authored');
+  });
+
   it('is part of the project, not a view setting', async () => {
     // ⛔ **Asserted through the undo snapshot rather than against the list.**
     // `SAVED_FIELDS` drives the project payload and the snapshot together, and a

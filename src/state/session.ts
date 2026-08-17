@@ -538,6 +538,22 @@ type SessionState = {
    * heard. Same compatibility rule as `autoSync`.
    */
   complexity: Complexity;
+  /**
+   * Which way the Simple/Complex switch is set while **As Written** holds it.
+   *
+   * ⛔ **Not saved, and not part of the record.** `complexity` is what the
+   * engine is asked for; this is only where the switch's knob sits while it is
+   * disabled, so turning As Written back off returns the producer to the side
+   * they were on rather than snapping to Simple. A session that reopens on
+   * `authored` has no way of knowing which side that was — nobody chose one —
+   * and Simple is the honest answer there.
+   *
+   * ⚠ **Only read while `complexity` is `authored`.** When it is not, the
+   * switch reads `complexity` itself, so an undo that restores `complex`
+   * without going through `setComplexity` cannot leave the knob disagreeing
+   * with the value that will be generated.
+   */
+  lean: Exclude<Complexity, 'authored'>;
   mood: string | null;
   /**
    * The genre to generate this artist **in**, or `null` for their own
@@ -1789,6 +1805,7 @@ export const useSession = create<SessionState>((set, get) => ({
   hostTempo: null,
   autoSync: true,
   complexity: 'authored',
+  lean: 'simple',
   mood: null,
   base: null,
   audioEnabled: true,
@@ -2056,7 +2073,11 @@ export const useSession = create<SessionState>((set, get) => ({
     // session value the chips draw. It leans choices inside the generators, and
     // the tempo, key and swing a producer is looking at stay exactly as they
     // were.
-    set({ complexity });
+    // ⛔ **`lean` follows every side the producer actually picks, and only
+    // those.** `authored` arrives here from the As Written switch, which is the
+    // one caller that must leave the knob where it was — that memory is the
+    // whole reason the disabled switch can still say something true.
+    set(complexity === 'authored' ? { complexity } : { complexity, lean: complexity });
     persist();
   },
 

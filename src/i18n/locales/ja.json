@@ -90,7 +90,7 @@
     "autoSync": "DAWに追従",
     "autoSyncOff": "DAWではなくアーティストのテンポを使用しています。",
     "audio": "オーディオ",
-    "complexity": "密度",
+    "complexity": "シンプル/密",
     "complexity_simple": "シンプル",
     "complexity_authored": "書かれたまま",
     "complexity_complex": "密",

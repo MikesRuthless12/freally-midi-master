@@ -90,7 +90,7 @@
     "autoSync": "Следовать DAW",
     "autoSyncOff": "Используется темп артиста, а не вашей DAW.",
     "audio": "Звук",
-    "complexity": "Плотность",
+    "complexity": "Просто/Плотно",
     "complexity_simple": "Просто",
     "complexity_authored": "Как написано",
     "complexity_complex": "Плотно",

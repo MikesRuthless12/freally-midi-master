@@ -90,7 +90,7 @@
     "autoSync": "Слідувати DAW",
     "autoSyncOff": "Використовується темп артиста, а не вашої DAW.",
     "audio": "Звук",
-    "complexity": "Щільність",
+    "complexity": "Просто/Щільно",
     "complexity_simple": "Просто",
     "complexity_authored": "Як написано",
     "complexity_complex": "Щільно",

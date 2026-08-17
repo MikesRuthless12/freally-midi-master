@@ -90,7 +90,7 @@
     "autoSync": "DAW 따르기",
     "autoSyncOff": "DAW가 아닌 아티스트의 템포를 사용합니다.",
     "audio": "오디오",
-    "complexity": "밀도",
+    "complexity": "단순하게/빽빽하게",
     "complexity_simple": "단순하게",
     "complexity_authored": "쓰인 그대로",
     "complexity_complex": "빽빽하게",
