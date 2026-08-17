@@ -13,6 +13,7 @@ import { useTranslation } from 'react-i18next';
 
 import { isTypingTarget } from '../../lib/keyboard';
 import { laneAudible, useSession } from '../../state/session';
+import { padsOf, useUi } from '../../state/ui';
 import { useEditing } from '../../state/editing';
 import type { Lane, Pattern } from '../../lib/ipc-types';
 import { Combo } from '../Combo/Combo';
@@ -141,6 +142,13 @@ export function DrumGrid({ pattern, playhead }: { pattern: Pattern; playhead: nu
   const lockedLanes = useSession((s) => s.lockedLanes);
   const setLaneLocked = useSession((s) => s.setLaneLocked);
   const editPattern = useSession((s) => s.editPattern);
+  // ⛔ The pads, so reassigning a row can carry its pad with it. Read through
+  // `padsOf` for the reason `PadGrid` records: `s.pads[id] ?? []` returns a new
+  // array on every call and zustand then re-renders forever.
+  const styleId = useSession((s) => s.selectedId);
+  const padsByStyle = useUi((s) => s.pads);
+  const setPad = useUi((s) => s.setPad);
+  const pads = padsOf(padsByStyle, styleId);
   // ⛔ **Which lanes are open, and where each one's window sits (TASK-161).**
   // View state, so it lives beside the roll's zoom and scroll and stays out of
   // the undo snapshot — panning a lane must not cost a Ctrl+Z.
@@ -931,99 +939,98 @@ export function DrumGrid({ pattern, playhead }: { pattern: Pattern; playhead: nu
               }}
             >
               <span className="grid__lane" role="rowheader">
-                {/* ⛔ **Every lane can open, not just the 808** (TASK-161). Mike,
+                {/* ⛔⛔ **The controls on one line and the NAME under them** —
+                    Mike, 2026-08-16: *"put the names of the instruments
+                    underneath these icons instead of to the right, so that way
+                    they can be read"*.
+
+                    ▶ **This is the third answer to the same 5.5rem.** The header
+                    holds a lock, a mute, a solo, the slot picker and (on hat
+                    rows) a fill; with the name beside them it got 6–18px and
+                    every row read `S…`. Collapsing the lock and fill until hover
+                    bought some of that back — Mike's own choice at the time, and
+                    still worth keeping for the icon line — but the name was
+                    still sharing a row with four controls. On its own line it
+                    has the whole column. */}
+                <span className="grid__lanetools">
+                  {/* ⛔ **Every lane can open, not just the 808** (TASK-161). Mike,
                   2026-08-12: *"i want all the lanes to have the ability to
                   expand into a pitch lane."* The chevron is first in the header
                   because a disclosure control that moves depending on which
                   other buttons the hover has collapsed is one nobody can aim
                   at — and `.grid__lane` is already 5.5rem with the name cut to
                   a letter, so this is the one thing here that must not shift. */}
-                <button
-                  type="button"
-                  className="grid__expand"
-                  aria-expanded={open !== undefined}
-                  aria-label={t('grid.pitchRows', { lane: name })}
-                  title={t('grid.pitchRows', { lane: name })}
-                  disabled={!hasHits}
-                  onClick={() => {
-                    // The root is measured once, here, rather than for every
-                    // lane on every render — see `hasHits` above.
-                    const root = laneRoot(pattern, lane);
-                    if (root !== null) toggleLaneExpanded(lane, root);
-                  }}
-                >
-                  {open ? (
-                    <ChevronDown size={11} aria-hidden="true" />
-                  ) : (
-                    <ChevronRight size={11} aria-hidden="true" />
-                  )}
-                </button>
-                {/* ⛔ **Silences the preview, not the pattern** (FMM-S02). The
+                  <button
+                    type="button"
+                    className="grid__expand"
+                    aria-expanded={open !== undefined}
+                    aria-label={t('grid.pitchRows', { lane: name })}
+                    title={t('grid.pitchRows', { lane: name })}
+                    disabled={!hasHits}
+                    onClick={() => {
+                      // The root is measured once, here, rather than for every
+                      // lane on every render — see `hasHits` above.
+                      const root = laneRoot(pattern, lane);
+                      if (root !== null) toggleLaneExpanded(lane, root);
+                    }}
+                  >
+                    {open ? (
+                      <ChevronDown size={11} aria-hidden="true" />
+                    ) : (
+                      <ChevronRight size={11} aria-hidden="true" />
+                    )}
+                  </button>
+                  {/* ⛔ **Silences the preview, not the pattern** (FMM-S02). The
                   notes have already gone out to the host's track by the time
                   the sampler renders, so this mutes our kick without removing
                   the kick anyone routed away. The label says "preview" for
                   exactly that reason — "Mute kick" would be a lie in the one
                   place it matters. */}
-                <button
-                  type="button"
-                  className="grid__lock"
-                  aria-pressed={locked}
-                  aria-label={lockLabel}
-                  title={lockLabel}
-                  onClick={() => setLaneLocked(lane, !locked)}
-                >
-                  {locked ? (
-                    <Lock size={12} aria-hidden="true" />
-                  ) : (
-                    <LockOpen size={12} aria-hidden="true" />
-                  )}
-                </button>
-                <button
-                  type="button"
-                  className="grid__mute"
-                  aria-pressed={muted}
-                  aria-label={label}
-                  title={label}
-                  onClick={() => setLaneMuted(lane, !muted)}
-                >
-                  {muted ? (
-                    <VolumeX size={12} aria-hidden="true" />
-                  ) : (
-                    <Volume2 size={12} aria-hidden="true" />
-                  )}
-                </button>
-                {/* ⛔ **Solo, beside the mute rather than folded into it**
+                  <button
+                    type="button"
+                    className="grid__lock"
+                    aria-pressed={locked}
+                    aria-label={lockLabel}
+                    title={lockLabel}
+                    onClick={() => setLaneLocked(lane, !locked)}
+                  >
+                    {locked ? (
+                      <Lock size={12} aria-hidden="true" />
+                    ) : (
+                      <LockOpen size={12} aria-hidden="true" />
+                    )}
+                  </button>
+                  <button
+                    type="button"
+                    className="grid__mute"
+                    aria-pressed={muted}
+                    aria-label={label}
+                    title={label}
+                    onClick={() => setLaneMuted(lane, !muted)}
+                  >
+                    {muted ? (
+                      <VolumeX size={12} aria-hidden="true" />
+                    ) : (
+                      <Volume2 size={12} aria-hidden="true" />
+                    )}
+                  </button>
+                  {/* ⛔ **Solo, beside the mute rather than folded into it**
                   (TASK-043). They answer different questions — "never play
                   this" and "only play this, for now" — and one control could
                   not express both. Like the mute it is *view and playback*
                   state: what is exported and what reaches the host's track is
                   identical either way. */}
-                <button
-                  type="button"
-                  className="grid__solo"
-                  aria-pressed={soloed}
-                  aria-label={soloLabel}
-                  title={soloLabel}
-                  onClick={() => setLaneSolo(lane, !soloed)}
-                >
-                  <Headphones size={12} aria-hidden="true" />
-                </button>
-                {/* ⛔ **The lane's name is the audition button** (TASK-043).
-                  Mike's ask was "clicking a lane's header plays that lane's
-                  sound on its own, so a producer can hear which pad they are
-                  about to edit without soloing and pressing play" — so the
-                  target is the *name*, the largest thing in the header, and not
-                  a fourth icon nobody would find. */}
-                <button
-                  type="button"
-                  className="grid__lanename"
-                  aria-label={hearLabel}
-                  title={hearLabel}
-                  onClick={() => void auditionLane(lane)}
-                >
-                  {name}
-                </button>
-                {/* ⛔ **The slot picker (TASK-043A).** *"A slot can be
+                  <button
+                    type="button"
+                    className="grid__solo"
+                    aria-pressed={soloed}
+                    aria-label={soloLabel}
+                    title={soloLabel}
+                    onClick={() => setLaneSolo(lane, !soloed)}
+                  >
+                    <Headphones size={12} aria-hidden="true" />
+                  </button>
+                  {/* ⛔ **The slot picker (TASK-043A).** *"A slot can be
                   reassigned to any lane the kit is not already using. The
                   picker offers the unused lanes only, because two slots
                   claiming the same lane is a pattern where one of them
@@ -1051,31 +1058,68 @@ export function DrumGrid({ pattern, playhead }: { pattern: Pattern; playhead: nu
                   the footprint the `<select>` had.
                   ⚠ It shows no visible label because the row's name is beside
                   it — the accessible name carries the whole sentence. */}
-                <span className="grid__slot">
-                  <Combo
-                    label={slotLabel}
-                    // The current lane first, so the list reads as "this row is a
-                    // kick" rather than as an empty chooser.
-                    options={[{ id: lane, name }, ...freeOptions]}
-                    value={lane}
-                    onChange={(id) => editPattern(reassignLane(pattern, lane, id as Lane))}
-                  />
-                </span>
-                {/* The per-lane "add fill" (TASK-043H) — one press writes the
+                  <span className="grid__slot">
+                    <Combo
+                      label={slotLabel}
+                      // The current lane first, so the list reads as "this row is a
+                      // kick" rather than as an empty chooser.
+                      options={[{ id: lane, name }, ...freeOptions]}
+                      value={lane}
+                      // ⛔⛔ **And the pad follows the row** — the other half of
+                      // Mike's 2026-08-16 request: *"vice-versa, if you change the
+                      // one's in the generator it should change the pad's names"*.
+                      // The pad that plays this lane has to come with it, or the
+                      // producer is left with a pad pointed at a lane the clip no
+                      // longer has.
+                      //
+                      // ⚠ **Every pad holding it, because two may.** `PAD_LIMIT`
+                      // allows the same lane on more than one pad — the layering
+                      // case — and leaving the second one behind would be the
+                      // disagreement this change exists to close.
+                      onChange={(id) => {
+                        editPattern(reassignLane(pattern, lane, id as Lane));
+                        pads.forEach((held, at) => {
+                          if (held === lane) setPad(styleId, at, id);
+                        });
+                      }}
+                    />
+                  </span>
+                  {/* The per-lane "add fill" (TASK-043H) — one press writes the
                   phrase-end figure the generator would have written, in the
                   same window `rolls::hat_fills` uses, so an added fill and a
                   generated one are the same gesture. */}
-                {FILL_LANES.includes(lane) && (
-                  <button
-                    type="button"
-                    className="grid__fill"
-                    aria-label={fillLabel}
-                    title={fillLabel}
-                    onClick={() => editPattern(addFill(pattern, lane))}
-                  >
-                    <Waves size={12} aria-hidden="true" />
-                  </button>
-                )}
+                  {FILL_LANES.includes(lane) && (
+                    <button
+                      type="button"
+                      className="grid__fill"
+                      aria-label={fillLabel}
+                      title={fillLabel}
+                      onClick={() => editPattern(addFill(pattern, lane))}
+                    >
+                      <Waves size={12} aria-hidden="true" />
+                    </button>
+                  )}
+                </span>
+                {/* ⛔ **The lane's name is the audition button** (TASK-043).
+                  Mike's ask was "clicking a lane's header plays that lane's
+                  sound on its own, so a producer can hear which pad they are
+                  about to edit without soloing and pressing play" — so the
+                  target is the *name*, the largest thing in the header, and not
+                  a fourth icon nobody would find.
+
+                  ⚠ **Below the controls since 2026-08-16**, which is what
+                  finally gives it room to be read. It keeps the ellipsis: the
+                  column is 5.5rem and `Tambourine` still does not fit, but a
+                  name cut at the end is a name, and `S…` was not. */}
+                <button
+                  type="button"
+                  className="grid__lanename"
+                  aria-label={hearLabel}
+                  title={hearLabel}
+                  onClick={() => void auditionLane(lane)}
+                >
+                  {name}
+                </button>
               </span>
               <div className="grid__track" onMouseDown={seekTo}>
                 {/* ⛔ **The cell role goes on the wrapper, the button keeps its
@@ -1227,6 +1271,15 @@ export function DrumGrid({ pattern, playhead }: { pattern: Pattern; playhead: nu
       onPitchMove,
       endPitchDrag,
       t,
+      // ⛔ **The pads, because the row pickers now write to them.** Left out,
+      // the memo would hold the pad list as it was when the rows were last
+      // built — so reassigning one row and then another would file the second
+      // against a stale layout and point a pad at a lane that had already
+      // moved. `padsOf` returns a frozen module constant for the empty case, so
+      // this does not rebuild every render.
+      pads,
+      setPad,
+      styleId,
     ],
   );
 

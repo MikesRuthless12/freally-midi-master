@@ -9,6 +9,7 @@ import { padsOf, useUi } from '../../state/ui';
 import { PAD_LANES } from '../../state/lanes';
 import { useExplorer } from '../../state/explorer';
 import { auditionLane } from '../DrumGrid/audition';
+import { reassignLane } from '../DrumGrid/cells';
 import { Combo } from '../Combo/Combo';
 import type { Lane } from '../../lib/ipc-types';
 import './PadGrid.css';
@@ -55,6 +56,12 @@ export function PadGrid() {
   // to exactly how they were when you left them."* Which lanes are on the pads
   // belongs to the thing being made, not to the window it is made in.
   const selectedId = useSession((s) => s.selectedId);
+  // ⛔ **The drums clip by name, not the active tab's.** The pads sit above every
+  // generator — a producer can repoint one while the Melody tab is open — and
+  // `editPattern` routes on `pattern.part`, so reading "whatever is showing"
+  // would drop a drum reassignment into the melody slot.
+  const drums = useSession((s) => s.patterns.drums);
+  const editPattern = useSession((s) => s.editPattern);
   // ⛔⛔ **The selector returns the stored map, and the pick happens outside it.**
   // It used to be `s.pads[selectedId] ?? []`, and the `[]` was a **new array on
   // every call** — so zustand's equality check never held, the component
@@ -243,7 +250,26 @@ export function PadGrid() {
                 label={t('kit.padLane', { at: at + 1 })}
                 options={PAD_LANES.map((id) => ({ id, name: t(`lanes.${id}`) }))}
                 value={lane}
-                onChange={(id) => setPad(selectedId, at, id)}
+                // ⛔⛔ **The beat's row follows the pad** — Mike, 2026-08-16:
+                // *"ensure that these in the drum lanes in the pattern generator
+                // are the same as the one's in the drum pad's"*, reporting that
+                // pointing a pad at Mid tom *"didn't change any to mid tom"*.
+                // The two controls named the same lanes from the same
+                // `lanes.*` keys and wrote to different places: this one moved
+                // the pad, the grid's own picker renamed the lane in the clip,
+                // and neither told the other.
+                //
+                // ⚠ **`reassignLane` is the guard, not an afterthought.** It
+                // refuses when the clip has no such lane — a pad may point at
+                // one this beat never generated — and when the target lane is
+                // already in the clip, which would otherwise merge two lanes'
+                // hits into one and lose a part of the beat. Both cases leave
+                // the pattern untouched and move only the pad, which is what
+                // this control did before.
+                onChange={(id) => {
+                  setPad(selectedId, at, id);
+                  if (drums) editPattern(reassignLane(drums, lane, id as Lane));
+                }}
               />
             </div>
 

@@ -21,15 +21,30 @@
   gap: var(--space-2);
 }
 
+/* ⛔⛔ **A column: the controls, then the name under them** — Mike, 2026-08-16.
+   See the header's own note in `DrumGrid.tsx` for why this is the third attempt
+   at fitting 5.5rem. `align-items: stretch` rather than centring, so the name
+   gets the whole column to ellipsise into instead of being centred inside its
+   own text width. */
 .grid__lane {
   display: flex;
-  align-items: center;
-  gap: var(--space-1);
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: center;
+  gap: 1px;
   min-width: 0;
   font-size: var(--text-micro);
   color: var(--color-text-2);
   text-transform: uppercase;
   letter-spacing: 0.04em;
+}
+
+/* The controls' own line. They keep the row layout they always had. */
+.grid__lanetools {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  min-width: 0;
 }
 
 /* ⛔ The ellipsis lives on the text, not on the row. `text-overflow` has no
@@ -152,8 +167,13 @@
   min-width: 0;
 }
 
+/* ⛔ **18px, not 14** — Mike, 2026-08-16: *"ensure that my Drum Generator has
+   more height"*. The header beside it is two lines now, and a 14px cell against
+   a ~26px label read as a thin ribbon floating in its own row. The grid sits
+   above the velocity lane in a column the stage toolbar starves, so this is a
+   real trade rather than free space — see `.grid__cellwrap`. */
 .grid__cell {
-  height: 14px;
+  height: 18px;
   border-radius: 2px;
   background: var(--color-surface-2);
 }
