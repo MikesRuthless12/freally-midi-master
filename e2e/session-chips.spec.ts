@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Locator, type Page } from '@playwright/test';
 
 import { openPanel, pickArtist } from './app';
 
@@ -13,6 +13,29 @@ import { openPanel, pickArtist } from './app';
  */
 
 const chip = (name: string) => `.session__chip:has-text("${name}")`;
+
+/**
+ * Grab a number box and pull it `by` pixels — negative is up, as on screen.
+ *
+ * ⛔ **`hover()` before `boundingBox()`, and that is a flake fix rather than
+ * politeness.** The first cut measured the box and then dragged from the
+ * coordinates it got; it passed alone and failed once in the full 297-spec run,
+ * because the rail is still sliding its panels in and under load the drag
+ * started from a position the input had already left. `hover()` runs
+ * Playwright's actionability checks, which include waiting for the bounding box
+ * to stop moving. Written once so the swing test cannot lose the reason.
+ */
+async function dragBy(page: Page, field: Locator, by: number): Promise<void> {
+  await field.hover();
+  const box = await field.boundingBox();
+  if (!box) throw new Error('the number box is not on screen');
+  const x = box.x + box.width / 2;
+  const y = box.y + box.height / 2;
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.move(x, y + by, { steps: 6 });
+  await page.mouse.up();
+}
 
 test.beforeEach(async ({ page }) => {
   await page.goto('/');
@@ -164,35 +187,13 @@ test('the tempo box drags up and down, and a plain click still types', async ({ 
   await expect(bpm).toHaveValue('');
   await expect(bpm).toHaveAttribute('placeholder', '140');
 
-  // ⛔ **`hover()` before every measurement, and this is the fix for a flake I
-  // shipped.** The test passed alone and failed once in the full 297-spec run:
-  // `boundingBox()` reports where the box is *now*, and the rail is still
-  // sliding its panels in — under load the drag then starts from coordinates
-  // the input has already left. `hover()` runs Playwright's actionability
-  // checks, which include waiting for the bounding box to stop moving.
-  const centre = async () => {
-    await bpm.hover();
-    const box = await bpm.boundingBox();
-    if (!box) throw new Error('the tempo box is not on screen');
-    return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
-  };
-
   // 3px per BPM, up for faster: 30px above the start is 140 + 10.
-  const up = await centre();
-  await page.mouse.move(up.x, up.y);
-  await page.mouse.down();
-  await page.mouse.move(up.x, up.y - 30, { steps: 6 });
-  await page.mouse.up();
+  await dragBy(page, bpm, -30);
   await expect(bpm).toHaveValue('150');
 
   // ...and back down past where it started, so the gesture is not one-way and
   // the second drag reads the *pinned* number rather than the artist's.
-  // Re-measured: pinning the tempo adds the unpin `×` to the chip.
-  const down = await centre();
-  await page.mouse.move(down.x, down.y);
-  await page.mouse.down();
-  await page.mouse.move(down.x, down.y + 60, { steps: 6 });
-  await page.mouse.up();
+  await dragBy(page, bpm, 60);
   await expect(bpm).toHaveValue('130');
 
   // ⛔ The box is still a text field. A press that never moved is a click, and a
@@ -218,38 +219,19 @@ test('the swing drags in hundredths and stops at the ends of its range', async (
   const swing = page.locator(`${chip('Swing')} input`);
   await expect(swing).toHaveAttribute('placeholder', '0.54');
 
-  const centre = async () => {
-    await swing.hover();
-    const box = await swing.boundingBox();
-    if (!box) throw new Error('the swing box is not on screen');
-    return { x: box.x + box.width / 2, y: box.y + box.height / 2 };
-  };
-
   // 3px per hundredth, up for more swing: 15px above the start is 0.54 + 0.05.
-  const up = await centre();
-  await page.mouse.move(up.x, up.y);
-  await page.mouse.down();
-  await page.mouse.move(up.x, up.y - 15, { steps: 5 });
-  await page.mouse.up();
+  await dragBy(page, swing, -15);
   await expect(swing).toHaveValue('0.59');
 
   // ⛔ **Pulled far past the ceiling, and it stops at it.** This is the half of
   // the request that is not the gesture: a drag that ran on past `SWING_MAX`
   // would write a swing the engine refuses and the chip would then be showing a
   // number nothing generates from.
-  const far = await centre();
-  await page.mouse.move(far.x, far.y);
-  await page.mouse.down();
-  await page.mouse.move(far.x, far.y - 400, { steps: 8 });
-  await page.mouse.up();
+  await dragBy(page, swing, -400);
   await expect(swing).toHaveValue('0.75');
 
   // ...and the floor holds the same way.
-  const down = await centre();
-  await page.mouse.move(down.x, down.y);
-  await page.mouse.down();
-  await page.mouse.move(down.x, down.y + 400, { steps: 8 });
-  await page.mouse.up();
+  await dragBy(page, swing, 400);
   await expect(swing).toHaveValue('0.5');
 });
 

@@ -222,6 +222,15 @@ type EditingState = {
    */
   toggleLaneExpanded: (lane: Lane, root: number) => void;
   /**
+   * Carry an open lane's window when its lane is renamed (2026-08-17).
+   *
+   * ⚠ Called by `session.ts::reassignLaneEverywhere`, beside the pads and the
+   * mute/solo/lock. Each store that keys by lane migrates its own, so the next
+   * lane-keyed collection is missed only if its author forgets *here*, rather
+   * than in a hand-listed inventory in another file.
+   */
+  renameLane: (from: Lane, to: Lane) => void;
+  /**
    * Slide a lane's window up or down by `semitones`.
    *
    * ⛔ **This is what makes travel unbounded while the row stays seven tall.**
@@ -362,6 +371,24 @@ export const useEditing = create<EditingState>((set, get) => ({
   setFoldToNotes: (foldToNotes) => set({ foldToNotes }),
   setQuantizeStrength: (strength) =>
     set({ quantizeStrength: Math.min(1, Math.max(0, strength)) }),
+
+  renameLane: (from, to) =>
+    set((state) => {
+      // ⛔ **`openLanes` is keyed by lane, so a rename has to carry it.** Without
+      // this, reassigning an expanded row dropped its frozen root and pan and
+      // left an orphan under the old name — and the cleanup that would collect
+      // it does not run, because `refreezeOpenLanes` is gated on `pattern.id`
+      // and `reassignLane` keeps the id. Reassign another row onto the freed
+      // name and it opened on a root frozen against the previous clip: the
+      // "seven empty rows over a lane full of hits" failure that freeze exists
+      // to prevent.
+      const held = state.openLanes[from];
+      if (!held) return state;
+      const openLanes = { ...state.openLanes };
+      delete openLanes[from];
+      openLanes[to] = held;
+      return { openLanes };
+    }),
 
   toggleLaneExpanded: (lane, root) =>
     set((state) => {

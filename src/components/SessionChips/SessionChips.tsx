@@ -82,7 +82,7 @@ function useDragBox(
    * pointer move is the thing being avoided, and `null` between drags means a
    * press that never moved commits nothing.
    */
-  const scrub = useRef<{ y: number; from: number } | null>(null);
+  const scrub = useRef<{ y: number; from: number; wrote: number | null } | null>(null);
   const scrubbed = useRef(false);
 
   const onPointerDown = useCallback(
@@ -90,7 +90,11 @@ function useDragBox(
       if (event.button !== 0 || shown === null) return;
       event.preventDefault();
       event.currentTarget.setPointerCapture(event.pointerId);
-      scrub.current = { y: event.clientY, from: shown };
+      // ⚠ `wrote: null`, not `shown` — "nothing written yet". Seeding it with the
+      // starting number would make a drag that returns to its origin compare
+      // equal and skip the write, which is exactly the one-way-at-the-origin
+      // bug the `steps === 0` rule below exists to fix.
+      scrub.current = { y: event.clientY, from: shown, wrote: null };
       // ⚠ **Armed here, not only cleared by the click.** A drag that ends off the
       // label may never produce a `click`, and a flag left set would swallow the
       // *next* press — the one that was a real click.
@@ -115,7 +119,18 @@ function useDragBox(
       if (steps === 0 && !scrubbed.current) return;
       scrubbed.current = true;
       const value = Number((start.from + steps * step).toFixed(step < 1 ? 2 : 0));
-      setPin(field, Math.min(max, Math.max(min, value)));
+      const pinned = Math.min(max, Math.max(min, value));
+      // ⛔ **Only when the number actually moves.** `setPin` publishes a fresh
+      // `pins` object, which four components select by reference — including
+      // `CenterStage`, the stage that hosts the roll and the grid. Pointer moves
+      // arrive per animation frame while a step is 3px, so a drag slow enough to
+      // land on an exact BPM produces more frames than values; and past either
+      // end of the range *every* frame re-pins the same clamped number for as
+      // long as the button is held. Swing's whole range is 75px of travel, so
+      // that is not a corner case.
+      if (pinned === start.wrote) return;
+      start.wrote = pinned;
+      setPin(field, pinned);
     },
     [field, max, min, setPin, step],
   );
@@ -383,14 +398,14 @@ export function SessionChips() {
         {/* ⚠ **The switch that takes the Simple/Complex one below away.** On is
             the model as authored; off hands the producer back the side they were
             last on, which is what `lean` is for. */}
-        {/* ⚠ `data-lean` so the word lights when the switch is on, the same way
+        {/* ⚠ `data-lit` so the word lights when the switch is on, the same way
             the pair below lights its active side. Without it this box was the
             only one whose label stayed dim in both states — leaving a 26×14px
             knob as the sole indicator for the control that decides the default
             generation mode. */}
         <span
           className="chip chip--mono session__switchbox"
-          data-lean={asWritten ? 'on' : 'off'}
+          data-lit={asWritten ? 'start' : undefined}
         >
           <span className="session__side">{t('session.complexity_authored')}</span>
           <button
@@ -439,7 +454,7 @@ export function SessionChips() {
           carries the name the group used to have. */}
       <span
         className="chip chip--mono session__switchbox"
-        data-lean={lean}
+        data-lit={lean === 'complex' ? 'end' : 'start'}
         data-held={asWritten || undefined}
       >
         <span className="session__side">{t('session.complexity_simple')}</span>

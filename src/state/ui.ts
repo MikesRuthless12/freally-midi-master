@@ -424,6 +424,18 @@ type UiState = {
   /** Put a different lane on one of this style's pads. Persisted immediately. */
   setPad: (styleId: string | null, at: number, lane: string) => void;
   /**
+   * Point **every** pad holding one lane at another, or refuse and change
+   * nothing (2026-08-17).
+   *
+   * ⛔ Returns whether it took, because the caller renaming the lane in the clip
+   * must not go ahead when the pads could not follow. Doing this as a loop of
+   * `setPad` could pass the first pad and be refused by the second — the
+   * half-applied write `session.ts::reassignLaneEverywhere` exists to prevent —
+   * and re-deriving `PAD_LIMIT` outside this file put the pad rule in two
+   * places. `true` when there was nothing to move.
+   */
+  reassignPadLane: (styleId: string | null, from: string, to: string) => boolean;
+  /**
    * Which pad the keyboard is aimed at, as a slot index.
    *
    * ⛔⛔ **Never null, and Mike said why** (2026-08-11): *"there has to be a way
@@ -671,7 +683,7 @@ let lastBreakpoint = startsWide;
 /** Read once at start-up and used for both `openGroups` and `sections`. */
 const initialGroups = loadGroups();
 
-export const useUi = create<UiState>((set) => ({
+export const useUi = create<UiState>((set, get) => ({
   activeTab: 'drums',
   rightRailOpen: startsWide,
   stageOpen: true,
@@ -713,6 +725,28 @@ export const useUi = create<UiState>((set) => ({
       writeStored(PADS_KEY, JSON.stringify(pads));
       return { pads };
     }),
+
+  reassignPadLane: (styleId, from, to) => {
+    if (from === to) return true;
+    const key = styleId ?? NO_STYLE;
+    const current = get().pads[key] ?? [...FALLBACK_PADS];
+    const moving = current.filter((held) => held === from).length;
+    if (moving === 0) return true;
+
+    // ⛔ **The same `PAD_LIMIT` rule as `setPad`, asked of the store that owns
+    // it.** A caller renaming a lane has to move every pad holding it at once,
+    // and doing that as N `setPad` calls could pass the first and be refused by
+    // the second — a half-applied write. The session store used to re-derive
+    // this arithmetic itself, which put the pad rule in two places and only one
+    // of them under this store's tests.
+    const settled = current.filter((held) => held === to).length;
+    if (settled + moving > PAD_LIMIT) return false;
+
+    const pads = { ...get().pads, [key]: current.map((held) => (held === from ? to : held)) };
+    writeStored(PADS_KEY, JSON.stringify(pads));
+    set({ pads });
+    return true;
+  },
 
   selectedPad: 0,
 

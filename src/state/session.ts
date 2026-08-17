@@ -24,7 +24,8 @@ import { reassignLane } from '../components/DrumGrid/cells';
 import { PAD_LANES } from './lanes';
 import { useHistory, type Snapshot } from './history';
 import { entryFor, useVariations, type Variation } from './variations';
-import { PAD_LIMIT, padsOf, useUi, type GeneratorTab } from './ui';
+import { useUi, type GeneratorTab } from './ui';
+import { useEditing } from './editing';
 
 /**
  * The one loop the product is about: pick someone, generate, hear it, and have
@@ -2181,19 +2182,15 @@ export const useSession = create<SessionState>((set, get) => ({
 
   reassignLaneEverywhere(from, to) {
     if (from === to) return;
-    const styleId = get().selectedId;
-    const ui = useUi.getState();
-    const pads = padsOf(ui.pads, styleId);
 
     // ⛔⛔ **Refused as a whole, or not at all.** The two pickers used to write
     // their halves independently, and a review found three defects living in the
-    // gap: `setPad` silently refuses past `PAD_LIMIT` while the clip was renamed
-    // anyway, the pad picker moved one pad and left its sibling on a lane the
-    // beat no longer had, and neither carried the mute. Deciding first and
-    // writing after is what makes those unreachable.
-    const moving = pads.flatMap((held, at) => (held === from ? [at] : []));
-    const settled = pads.filter((held, at) => held === to && !moving.includes(at)).length;
-    if (settled + moving.length > PAD_LIMIT) return;
+    // gap: the pads were moved past a refusal the store had already made while
+    // the clip was renamed anyway, a sibling pad on the same lane was left
+    // behind, and neither carried the mute. Asking the pad store whether the
+    // move takes — rather than re-deriving its `PAD_LIMIT` rule here — is what
+    // makes a half-applied write unreachable.
+    if (!useUi.getState().reassignPadLane(get().selectedId, from, to)) return;
 
     // ⚠ **A pad may point at a lane the beat does not have**, and that is not an
     // error — it is a kit layout waiting for a generation. The pad still moves;
@@ -2202,12 +2199,12 @@ export const useSession = create<SessionState>((set, get) => ({
     // renaming would merge two lanes' hits and lose part of it.
     const drums = get().patterns.drums;
     const next = drums ? reassignLane(drums, from, to) : undefined;
-    const renamed = next !== undefined && next !== drums;
-
-    for (const at of moving) ui.setPad(styleId, at, to);
-    if (!renamed) return;
+    if (next === undefined || next === drums) return;
 
     get().editPattern(next);
+    // ⚠ Each store that keys by lane migrates its own — the roll's open-lane
+    // windows live in `editing.ts` and were being dropped on a rename.
+    useEditing.getState().renameLane(from, to);
     // ⛔ **The mute, the solo and the lock are keyed by lane**, so a rename that
     // left them behind would start a silenced lane sounding under its new name
     // and re-mute whatever later took the old one.

@@ -30,6 +30,14 @@ test.beforeEach(async ({ page }) => {
 });
 
 /** The names down the grid's row headers, which is what a producer reads. */
+/**
+ * ⛔ **`textContent`, NOT `allInnerTexts()`.** `.grid__lanename` is
+ * `text-transform: uppercase`, and `innerText` returns the *rendered* text — so
+ * the tidier-looking call answers `["CLOSED HAT", "SNARE", "KICK"]` and every
+ * assertion here compares against the model's own `Kick`. Tried during a
+ * cleanup pass and reverted; `lane-mute.spec.ts` can use `allInnerTexts` on the
+ * same locator only because it asserts the uppercase form.
+ */
 const laneNames = (page: import('@playwright/test').Page) =>
   page
     .locator('.grid__lanename')

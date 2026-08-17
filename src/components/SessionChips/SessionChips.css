@@ -255,10 +255,14 @@
 
 /* Which side the knob is on, said in words as well as in position — the pair
    reads at a glance and still reads while the switch is disabled. */
-.session__switchbox[data-lean='simple'] .session__side:first-child,
-.session__switchbox[data-lean='complex'] .session__side:last-child,
-/* The As Written box has one word, so "on" lights it and "off" leaves it dim. */
-.session__switchbox[data-lean='on'] .session__side:first-child {
+/* ⚠ **`start`/`end`, not the control's own value names.** This enumerated
+   `simple`, `complex` and `on` — two unrelated vocabularies in one selector list
+   — so renaming a `Complexity` value would silently drop the lit label with
+   nothing to catch it: no test reads a stylesheet, and the switch still renders
+   correctly in every other respect. Which side is lit is a property of a
+   two-sided control, so that is what the attribute says. */
+.session__switchbox[data-lit='start'] .session__side:first-child,
+.session__switchbox[data-lit='end'] .session__side:last-child {
   color: var(--color-text);
 }
 
