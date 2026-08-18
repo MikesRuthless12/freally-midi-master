@@ -524,6 +524,7 @@
     "export": "Xuất",
     "import": "Nhập",
     "nameNeeded": "Hãy đặt tên cho phong cách của bạn.",
+    "nothingToSave": "Chưa có gì để lưu — hãy tạo một beat, hoặc thay đổi gì đó ở trên.",
     "saved": "Đã lưu thành {{name}}",
     "keep": "Giữ bản này để huấn luyện",
     "kept": "Đã giữ {{count}} / {{needed}}",

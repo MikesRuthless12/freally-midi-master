@@ -524,6 +524,7 @@
     "export": "导出",
     "import": "导入",
     "nameNeeded": "给你的风格起个名字。",
+    "nothingToSave": "暂时没有可保存的内容 — 先生成一个节奏，或修改上面的设置。",
     "saved": "已保存为 {{name}}",
     "keep": "保留此次生成用于训练",
     "kept": "已保留 {{count}} / {{needed}}",

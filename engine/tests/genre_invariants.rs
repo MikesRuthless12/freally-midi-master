@@ -180,11 +180,21 @@ fn sweep(model: &StyleModel, lane: Lane, bars: u16) -> Vec<(u64, Note)> {
         .collect()
 }
 
-/// Main hits only — not ghosts, and not the fill that ends the bar.
+/// Main hits only — not ghosts, not the fill that ends the bar, and not the
+/// ornaments bunched around a beat by `snare.clusterProb`.
+///
+/// ⛔ **`Cluster` belongs in this list and its absence was invisible.** `jerk`
+/// clusters 55% of its backbeats and `uk-underground` 30%, and a centred
+/// cluster's nearest ornament sits a 32nd out — inside the half-16th window
+/// `uk_underground_keeps_jerks_displaced_backbeat_but_nudges_where_jerk_staggers`
+/// calls a displacement. Counted as backbeats, the ornaments put more of that
+/// test's margin into the difference in *cluster rates* than into the difference
+/// in `offGridMs` it is named for: it would have gone on passing, for the wrong
+/// reason. That is why the ornaments carry a marking of their own.
 fn is_backbeat(note: &Note) -> bool {
     !matches!(
         note.articulation,
-        Some(Articulation::Ghost) | Some(Articulation::Roll)
+        Some(Articulation::Ghost) | Some(Articulation::Roll) | Some(Articulation::Cluster)
     )
 }
 

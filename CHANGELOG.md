@@ -12,6 +12,114 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added — sixteen parameters the dataset authored and no code read, 2026-08-18
+
+`engine/tests/authored_keys.rs` keeps a debt register of keys real models carry
+that nothing consumes, and its own doc says entries come off it "by being
+implemented, never by being deleted because the test was noisy". Sixteen came
+off.
+
+- **A cluster note is now its own `Articulation`.** Three separate gates needed
+  to tell an ornament apart from the beat it surrounds and none could: marked
+  `Roll` it counted as a *fill* and reported `chamillionaire` filling four times
+  on a bar its own cycle says is plain; marked `Ghost` it counted as the snare
+  *answering* the backbeat and turned up at tick 1813 instead of the and-of-4;
+  left unmarked it was the backbeat, and
+  `uk_underground_keeps_jerks_displaced_backbeat_but_nudges_where_jerk_staggers`
+  quietly began measuring a 32nd-wide ornament as a nudge — it would have gone
+  on passing, for the wrong reason.
+- **Snare clusters** (`clusterProb`, `clusterHits` — 19 models). Jerk's headline
+  marker, described in the research as "2–4 hits bunched around the expected
+  backbeat". ⛔ **The cluster is centred on the beat, not started on it**: one
+  note lands exactly where the un-clustered snare would have, so the backbeat is
+  surrounded rather than dragged late.
+- **A lane's own velocity band** (`velocityRange`). `rnb-2000s` states
+  `kick.velocityRange: [0.7, 0.85]` and the kick fell back to the cross-genre
+  76–89 tier instead.
+- **The kick's sub layer** (`subLayerVelocity`, `separateLayerProb` — 10 boom-bap
+  models). `Lane::SubKick` has had a GM voice and a slot in `LANE_ORDER` the
+  whole time with nothing writing to it.
+- **A skipped beat and a walking run** (`beatSkipProb` — 43 models,
+  `walkingRunProb`). ⚠ A skip can never take an anchor: those are the positions
+  the genre "always plays", and a bar that can lose beat 1 is a different genre.
+- **The west-coast drag** (`sloppyOffsetMs`). Not `offGridMs` under another
+  name — that is one displacement the whole lane shares; this is a range drawn
+  per hit.
+- **A full-time snare at high tempo** (`fullTimeAtHighTempoProb`), the sibling of
+  `fullTimeVariantProb` two lines away.
+- **Hats that mirror the kick, gate, chain their open hats and alternate into
+  triplet bars** (`mirrorsKick`, `gatingProb`, `openHatChains`,
+  `tripletBarAlternationProb`).
+- **An 808 that ignores the kick** (`melodicallyIndependent` — 15 models). ⛔ The
+  808 filters the kick's own onsets, so `lockTo808` could only ever make the sub
+  *sparser* — it could never move it. Independence changes where the notes are
+  and not how many there are: the lock still decides the density.
+- **The rising whoop and the chromatic approach** (`upwardWhoopProb`,
+  `chromaticApproachProb`). ⛔ The whoop turns a slide the model already placed
+  and never adds one, because both models that author it also author
+  `slidesPer4Bars` and a fourth slide in a four-bar phrase is a different genre.
+
+⛔ **Every one of these draws from its own seeded stream**, so a model that does
+not author a key generates exactly what it generated before — and a model that
+does gets the feature and nothing else. That rule is this module's own ("each
+draws from its own seeded stream, so rerolling the snare cannot move the kick")
+and breaking it was caught two lanes away: the sub layer's velocity advanced the
+kick's stream, the kick moved, `bass.rs`'s `mirror_kick` follows the kick, and
+`jeru-the-damaja` fell to 946/1000 distinct basslines against a floor of 950 —
+a bassline gate failing because of a drum velocity.
+
+▶ **Two golden snapshots moved, and only where the features are**: `uk-drill`'s
+hats alternate into triplets on the odd bars and its 808 plays its own five
+notes, and one `rage` 808 note drops a semitone and glides into the next.
+
+### Fixed — two panics reachable from a hand-edited model, 2026-08-18
+
+- **A non-ASCII key in a user model aborted the host DAW.** `validate::lint`
+  walks every key of every model, including one a producer imported or edited by
+  hand, and the allocation-free `is_probability_key` sliced `&key[len - 3..]` —
+  which panics when that byte index lands inside a multi-byte character.
+  `"naïve"` against the `var` suffix splits mid-`ï`. Release is built
+  `panic = "abort"`, so that is the DAW gone, on **every launch**, until the file
+  is found and deleted. Compared as bytes now. ⚠ No shipped model has a
+  non-ASCII key, so CI would never have seen it.
+- **A displacement wider than `f64` can subtract panicked inside `rand`.**
+  `read::pair` validates nothing and `sloppyOffsetMs` matches no probability
+  suffix, so `[-1e308, 1e308]` reached `random_range`, whose `UniformFloat`
+  computes `high - low`, gets `inf`, and unwraps a `NonFinite` error. `[0, 1e30]`
+  instead saturated the tick cast and overflowed `displace`. One
+  `MAX_OFFSET_MS` bound, applied to `offGridMs` and `layerClapOffsetMs` too —
+  the same shape, the same latent abort.
+
+### Fixed — a style with nothing in it no longer saves, 2026-08-18
+
+- **Mike, 2026-08-16:** *"if you tick just a scale without generating anything,
+  then it shouldn't save anything"*. A draft that says nothing its base does not
+  already say, opened with no beat on screen, is refused with a reason rather
+  than written. ⛔ **Ticking a scale is deliberately not content**: the scale list
+  the editor offers is narrowed to the base's own, so every scale a producer can
+  tick is one their base already uses.
+  ⚠ Refused with a message rather than by greying the button out — an unedited
+  song is not saved either, and a control that quietly greys out is a rule the
+  producer has to guess.
+  ⛔ **Measured against the draft the dialog opened with, not against the blank
+  form**, and the first cut got that wrong in a way that made the rule almost
+  never fire: the draft seeds its swing and BPM range from the selected model's
+  defaults, which are populated on *artist selection* rather than on Generate,
+  and `trap` — the default base — authors `swing.amount: 0.50` against the
+  form's 0.54. Six models out of 1303 happened to match. The rule fired for
+  those and for nothing else.
+
+### Changed — two dataset-load costs measured and removed, 2026-08-18
+
+- **`validate::walk` no longer allocates a JSON pointer per key per model.** It
+  built a full pointer whether or not a finding fired — findings fire on almost
+  nothing — plus a lowercased copy of every key. One reusable buffer and
+  `eq_ignore_ascii_case` instead.
+- **`resolve_all` merges each ancestor chain once.** 534 of the 590 models are
+  artists and producers over a few dozen genre archetypes, and every one of them
+  redid the same merge. The cache is keyed on the ordered ancestor list, lives
+  for one call, and never outlives the registry it read.
+
 ### Fixed — a sustained countermelody stopped entering in the same place every time, 2026-08-17
 
 - **A `sustain_pad` countermelody now chooses where in the phrase it comes in.**

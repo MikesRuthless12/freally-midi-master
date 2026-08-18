@@ -215,7 +215,7 @@ fn the_host_tempo_changes_when_notes_land_and_never_how_many() {
     // What must *not* move is how much is played. A grammar that thinned out
     // at 174 BPM or doubled up at 70 would be a different pattern wearing the
     // same seed, and nothing else in the suite would notice.
-    for id in registry().keys().filter(|id| !id.starts_with('_')) {
+    for (id, model) in registry().iter().filter(|(id, _)| !id.starts_with('_')) {
         let counts = |tempo: f64| -> Vec<(engine::pattern::Lane, usize)> {
             generate_in_host(&host_at(tempo, 4, 4), id, 4)
                 .lanes
@@ -224,7 +224,39 @@ fn the_host_tempo_changes_when_notes_land_and_never_how_many() {
                 .collect()
         };
 
-        assert_eq!(counts(70.0), counts(140.0), "{id} plays differently at 70");
+        // ⛔⛔ **One authored key is allowed to break this, and it is NAMED here
+        // rather than tolerated by loosening the assertion.**
+        // `snare.fullTimeAtHighTempoProb` means exactly "play full time when the
+        // session is fast" — a rule about *how many*, asked for by the producer,
+        // and `rage` authors it at 0.15. The claim for a model that carries it is
+        // the same claim minus the one lane it bought: **the snare may change and
+        // nothing else may.** That is stronger than exempting the model, and it
+        // caught nothing else changing when the switch fired.
+        let tempo_decides = model
+            .blocks
+            .get("drums")
+            .and_then(|drums| drums.get("snare"))
+            .and_then(|snare| snare.get("fullTimeAtHighTempoProb"))
+            .is_some();
+
+        if tempo_decides {
+            let without_snare = |tempo: f64| -> Vec<(engine::pattern::Lane, usize)> {
+                counts(tempo)
+                    .into_iter()
+                    .filter(|(lane, _)| *lane != engine::pattern::Lane::Snare)
+                    .collect()
+            };
+            assert_eq!(
+                without_snare(70.0),
+                without_snare(140.0),
+                "{id} changed a lane other than its snare at 70"
+            );
+        } else {
+            assert_eq!(counts(70.0), counts(140.0), "{id} plays differently at 70");
+        }
+
+        // ⚠ 140 and 174 are both above `FULL_TIME_BPM`, so this half of the
+        // claim is untouched by the switch and stays exact for every model.
         assert_eq!(
             counts(140.0),
             counts(174.0),

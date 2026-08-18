@@ -388,10 +388,19 @@ fn drills_snare_sits_off_the_grid_on_purpose() {
     for seed in 0..40u64 {
         let lanes = generate(&drill, &context, seed);
         let snare = lane(&lanes, Lane::Snare).unwrap();
+        // ⚠ `Cluster` as well as `Ghost`: `uk-drill` authors `clusterProb`, so on
+        // some seeds the backbeat arrives with ornaments bunched around it and
+        // the first of those is a 32nd early by design. What this measures is
+        // the backbeat.
         let first = snare
             .notes
             .iter()
-            .find(|n| n.articulation != Some(Articulation::Ghost))
+            .find(|n| {
+                !matches!(
+                    n.articulation,
+                    Some(Articulation::Ghost) | Some(Articulation::Cluster)
+                )
+            })
             .unwrap();
         let offset = first.start_tick.abs_diff(beat_three);
         // 2–6 ms at drill tempo is 4–14 ticks: felt, not seen.

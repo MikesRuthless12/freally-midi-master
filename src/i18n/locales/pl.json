@@ -524,6 +524,7 @@
     "export": "Eksportuj",
     "import": "Importuj",
     "nameNeeded": "Nadaj swojemu stylowi nazwę.",
+    "nothingToSave": "Nie ma jeszcze czego zapisać — wygeneruj bit albo zmień coś powyżej.",
     "saved": "Zapisano jako {{name}}",
     "keep": "Zachowaj to ujęcie do treningu",
     "kept": "{{count}} / {{needed}} zachowanych",

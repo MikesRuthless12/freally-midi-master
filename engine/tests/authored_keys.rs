@@ -76,24 +76,27 @@ const DEFERRED: &[(&str, &str)] = &[
         "monoCutSelf",
         "808 voicing: 24 models. The sampler has no per-lane choke beyond the hats",
     ),
+    // ⛔ **The largest single entry in this register: 107 models.** The slide is
+    // implemented and its duration is not, because a slide is exported as two
+    // overlapping notes and `midi.rs` puts the crossover at half the note's
+    // length — a constant, with no way for a `Note` to say otherwise. Reading
+    // this key means a new per-note field, which crosses ts-rs into
+    // `ipc-types.ts` and the sampler. Worth doing; not a patch.
     (
         "portamentoMs",
-        "808 glide time. The slide is implemented; its *duration* is not authored through",
-    ),
-    (
-        "melodicallyIndependent",
-        "whether the 808 line ignores the kick. Real, unimplemented",
+        "808 glide time, 107 models. Needs a per-note slide time on `Note`",
     ),
     (
         "melodic808SlideAtLoopEnd",
         "a slide on the turnaround specifically",
     ),
+    // `midi.rs::SLIDE_OVERLAP_TICKS`, which is a constant for the same reason
+    // `portamentoMs` is. Do the two together.
     ("slideOverlap", "how far a slide overlaps the next note"),
     (
         "detuneSemis",
         "808 detune, in semitones. No tuning stage on the preview sampler",
     ),
-    ("subLayerVelocity", "boom-bap's sub layer under the kick"),
     // ── The snare's tone and layering ────────────────────────────────────
     ("lowPassedClap", "a dulled clap layer"),
     (
@@ -107,48 +110,59 @@ const DEFERRED: &[(&str, &str)] = &[
     ("rimshotLayer", "boom-bap's rimshot under the snare"),
     ("rimshotBelowBpm", "when to use it"),
     ("crossStickVerses", "country's cross-stick in the verse"),
-    ("separateLayerProb", "how often the layer is its own hit"),
-    ("clusterProb", "snare clusters"),
-    ("clusterHits", "how many snares are in a cluster"),
-    ("lockedBackbeat", "a backbeat that never moves"),
+    // ⚠ **Not implementable in `drums.rs` alone, and it looks as though it is.**
+    // All five models that author it also author `offGridMs: 0`, so exempting
+    // the backbeat from the grammar's own displacement is exempting it from
+    // nothing. What actually moves it is the session's timing jitter, and
+    // `humanize` reads that per *lane* with no per-note escape — so this needs
+    // the same new `Note` field `portamentoMs` does.
     (
-        "sloppyOffsetMs",
-        "deliberate looseness, distinct from `offGridMs`",
+        "lockedBackbeat",
+        "a backbeat that never moves. Needs a per-note humanize escape",
     ),
-    ("mirrorsKick", "a snare that follows the kick"),
     // ── The kick ─────────────────────────────────────────────────────────
-    ("walkingRunProb", "jerk's walking kick runs"),
-    ("beatSkipProb", "skipping a beat"),
     ("fourOnFloorInChorus", "four-on-the-floor in the hook only"),
-    ("dropByBar", "a per-bar drop-out"),
-    (
-        "gatingProb",
-        "gated kicks — the kick cut short rather than ringing",
-    ),
+    // `.arrangement`, not `.drums.kick` — it names the bar a section drops out
+    // on, which needs sections to drop out of.
+    ("dropByBar", "a per-bar drop-out. Arrangement-level"),
     (
         "sidechainToKick",
         "ducking. Needs a mixer the plugin does not have",
     ),
     // ── The hats ─────────────────────────────────────────────────────────
-    ("openHatChains", "runs of open hats"),
-    ("tripletBarAlternationProb", "alternating triplet bars"),
-    ("mutatedBeatsPerBar", "how much of a bar is re-rolled"),
+    //
+    // ⚠ **A design call, not a patch.** `trap` authors `freqPerBar: 0.8` *and*
+    // `mutatedBeatsPerBar: [1, 3]`, and those are two answers to one question —
+    // how much of the bar the roll engine takes. Reading the second as a cap is
+    // inert under the first; reading it as the count triples trap's hat rolls
+    // and every model that inherits them. Which one Mike wants is the question.
+    (
+        "mutatedBeatsPerBar",
+        "how much of a bar is re-rolled. Conflicts with `freqPerBar`",
+    ),
     // ── Melody and harmony ───────────────────────────────────────────────
     (
         "timbreHint",
         "21 models describe the sound they want. Nothing chooses a voice from it",
     ),
-    ("followsLeadRoot", "a counter that tracks the lead's root"),
-    ("chromaticApproachProb", "chromatic approach notes"),
-    ("dissonanceBudget", "how much dissonance a model tolerates"),
-    ("upwardWhoopProb", "the rising whoop"),
-    ("chordFrequency", "how often chords change"),
-    ("velocityRange", "an explicit range where tiers are used"),
-    // ── Arrangement and structure ────────────────────────────────────────
-    ("minimalism", "how sparse a section gets"),
+    // ⚠ **A `drums.bass808` key, not a countermelody one.** It asks for an 808
+    // that tracks the lead's root — and `drums::generate` takes `(model, ctx,
+    // seed)` and has never seen a melody. Reading it means the drums join the
+    // upstream graph `parts.rs` owns, which is a change to how a part is built
+    // rather than to what one generator reads.
     (
-        "fullTimeAtHighTempoProb",
-        "switching to full time when fast",
+        "followsLeadRoot",
+        "an 808 that tracks the lead's root. The drums have no upstream",
+    ),
+    ("dissonanceBudget", "how much dissonance a model tolerates"),
+    ("chordFrequency", "how often chords change"),
+    // ── Arrangement and structure ────────────────────────────────────────
+    // ⚠ One model, and its own wording — "a section" — puts it in the
+    // arrangement rather than in the kit. Do it with Song Mode's sections, not
+    // as a density multiplier guessed at from one number.
+    (
+        "minimalism",
+        "how sparse a section gets. Arrangement-level, one model",
     ),
     ("synthLoopBars", "the loop length of a synth part"),
     // ── Newly visible once the scanner stopped reading its own comments ──

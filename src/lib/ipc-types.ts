@@ -4,7 +4,7 @@
  * Performance marking. Carries intent the raw velocity cannot: a ghost note
  * and a quiet main hit are the same number but not the same musical event.
  */
-export type Articulation = "ghost" | "accent" | "legato" | "staccato" | "roll";
+export type Articulation = "ghost" | "accent" | "legato" | "staccato" | "roll" | "cluster";
 
 /**
  * What the 808 is doing musically.

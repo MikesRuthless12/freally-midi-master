@@ -524,6 +524,7 @@
     "export": "Exporter",
     "import": "Importer",
     "nameNeeded": "Donnez un nom à votre style.",
+    "nothingToSave": "Rien à enregistrer pour l’instant — génère un beat ou modifie quelque chose ci-dessus.",
     "saved": "Enregistré sous {{name}}",
     "keep": "Garder cette prise pour l’entraînement",
     "kept": "{{count}} / {{needed}} gardées",

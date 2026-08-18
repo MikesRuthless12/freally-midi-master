@@ -135,7 +135,15 @@ impl Registry {
     /// here rather than generated from. That is the whole reason this goes
     /// through `resolve` rather than merging blocks somewhere downstream.
     pub fn resolve_over(&self, id: &str, base: Option<&str>) -> Result<StyleModel, DatasetError> {
-        let merged = inherit::resolve_over(id, base, &self.models)?;
+        Self::lint_and_parse(inherit::resolve_over(id, base, &self.models)?)
+    }
+
+    /// The half of resolution that is the same however the merge was reached.
+    ///
+    /// ⚠ Shared so [`Self::resolve_all`]'s memoized path cannot drift from
+    /// [`Self::resolve_over`]'s — a bulk resolve that skipped the lint would be
+    /// a second, quieter definition of what a valid model is.
+    fn lint_and_parse(merged: Value) -> Result<StyleModel, DatasetError> {
         let findings = validate::lint(&merged);
         if let Some(first) = findings.first() {
             return Err(DatasetError::Lint(format!(
@@ -155,8 +163,15 @@ impl Registry {
     pub fn resolve_all(&self) -> (BTreeMap<String, StyleModel>, Vec<(String, DatasetError)>) {
         let mut ok = BTreeMap::new();
         let mut errors = Vec::new();
+        // ⚠ One cache for this call and no longer — see [`inherit::resolve_memoized`].
+        // 534 of the 590 models are artists and producers over a few dozen genre
+        // archetypes, so the same ancestor chain was merged from scratch once per
+        // child.
+        let mut cache = BTreeMap::new();
         for id in self.models.keys() {
-            match self.resolve(id) {
+            match inherit::resolve_memoized(id, &self.models, &mut cache)
+                .and_then(Self::lint_and_parse)
+            {
                 Ok(model) => {
                     ok.insert(id.clone(), model);
                 }

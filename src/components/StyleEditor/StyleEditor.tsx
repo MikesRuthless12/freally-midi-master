@@ -4,6 +4,7 @@ import { ChevronDown, Download, Upload, X } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 
 import { invoke } from '../../lib/ipc';
+import { BLANK, saysNothingOfItsOwn, type Draft } from './draft';
 import { idFor } from './id';
 import { useSession } from '../../state/session';
 import { keptKey, patternsIn, useVariations } from '../../state/variations';
@@ -50,53 +51,6 @@ const MIN_KEPT = 30;
  * the lineage never uses would make "artist-accurate" untrue at the one moment
  * a producer is deciding what their style *is*.
  */
-
-type Draft = {
-  name: string;
-  basedOn: string;
-  bpmMin: number;
-  bpmMax: number;
-  swing: number;
-  hats: number;
-  melodyMin: number;
-  melodyMax: number;
-  scales: Scale[];
-  /**
-   * The four blocks TASK-040U's entry named as unreachable (2026-08-15).
-   *
-   * ⛔ **Every one of them is optional, and "unset" means INHERIT rather than
-   * "the default".** That is the rule `scales` already states: an authored value
-   * replaces the base's, so writing one the producer never chose would silently
-   * overwrite the thing they said their style was based on. Each is therefore
-   * empty by default and only reaches `modelFrom` once it is set.
-   *
-   * ⚠ **`slide` is the exception and is meaningless on its own** — it is written
-   * only alongside `bassRole`, because `drums.bass808.slideProb` without a role
-   * is half an 808.
-   */
-  snare: SnarePlacement | '';
-  rolls: string[];
-  bassRole: Bass808Role | '';
-  slide: number;
-  progressions: string[];
-};
-
-const BLANK: Draft = {
-  name: '',
-  basedOn: 'trap',
-  bpmMin: 130,
-  bpmMax: 150,
-  swing: 0.54,
-  hats: 0.5,
-  melodyMin: 3,
-  melodyMax: 7,
-  scales: [],
-  snare: '',
-  rolls: [],
-  bassRole: '',
-  slide: 0.15,
-  progressions: [],
-};
 
 /**
  * Where the snare lands, as `drums.rs` reads it (TASK-040U).
@@ -259,7 +213,15 @@ export function StyleEditor({
     [keptTakes, keptFiles],
   );
 
-  const [draft, setDraft] = useState<Draft>(() => {
+  /**
+   * The draft as the dialog opened it — seeded from the session, then frozen.
+   *
+   * ⛔ **Kept as its own state, because it is the baseline `saysNothingOfItsOwn`
+   * measures against.** `BLANK` is not that baseline: `swing` and the BPM range
+   * below are read from the selected model's defaults, so an untouched draft
+   * over `trap` already differs from `BLANK` and the rule would never fire.
+   */
+  const [opened] = useState<Draft>(() => {
     // ⚠ Read once, through `getState`, rather than subscribed: these three are
     // only ever wanted as they were when the dialog opened, and subscribing
     // would re-render it on every generation behind it for nothing.
@@ -274,6 +236,18 @@ export function StyleEditor({
       swing: defaults?.swing.amount ?? BLANK.swing,
     };
   });
+  const [draft, setDraft] = useState<Draft>(opened);
+  /**
+   * Whether there was a beat on screen when this dialog opened.
+   *
+   * ⚠ **Read once and frozen**, for the same reason the draft's own seeding is:
+   * it is a fact about the moment the producer pressed the button. It is the
+   * other half of Mike's rule — a draft with nothing of its own is still worth
+   * saving when it was seeded from a take, and worth nothing when it was not.
+   */
+  const [openedOverATake] = useState(
+    () => Object.keys(useSession.getState().patterns).length > 0,
+  );
   const [offered, setOffered] = useState<Scale[]>([]);
   // ⛔ **What copying this style's samples would cost, and whether the producer
   // said yes.** Mike, 2026-08-09: *"ensure that the end user knows that creating
@@ -357,6 +331,15 @@ export function StyleEditor({
     setError(null);
     if (id === '') {
       setError(t('styles.nameNeeded'));
+      return;
+    }
+    // ⛔ **Refused here rather than by greying the button out.** An unedited
+    // song is deliberately not saved either (`song.ts`), and this is the same
+    // rule: the app does not write a file for a change nobody made. It *says*
+    // so, because a control that quietly greys out is a rule the producer has
+    // to guess — which is the failure TASK-040T's own note names.
+    if (!openedOverATake && saysNothingOfItsOwn(draft, opened)) {
+      setError(t('styles.nothingToSave'));
       return;
     }
 

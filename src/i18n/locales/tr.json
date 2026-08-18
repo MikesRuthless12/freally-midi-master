@@ -524,6 +524,7 @@
     "export": "Dışa aktar",
     "import": "İçe aktar",
     "nameNeeded": "Tarzına bir ad ver.",
+    "nothingToSave": "Henüz kaydedilecek bir şey yok — bir beat üret ya da yukarıda bir şey değiştir.",
     "saved": "{{name}} olarak kaydedildi",
     "keep": "Bu kaydı eğitim için sakla",
     "kept": "{{count}} / {{needed}} saklandı",

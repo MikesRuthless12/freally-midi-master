@@ -172,6 +172,25 @@ pub enum Articulation {
     Legato,
     Staccato,
     Roll,
+    /// One of the extra hits bunched around a beat by `snare.clusterProb`.
+    ///
+    /// ⛔⛔ **Its own marking because three separate gates needed to tell it
+    /// apart and none could.** A cluster note is not a `Roll` — `fills.rs`
+    /// counts a snare or clap carrying that as a *fill* note, and marking the
+    /// ornaments so reported `chamillionaire` filling four times on a bar its
+    /// own cycle says is plain. It is not a `Ghost` either — a ghost is the
+    /// snare *answering* the backbeat from an authored position, and
+    /// `drill_answers_its_snare_with_a_ghost_on_the_and_of_four` found one at
+    /// tick 1813 rather than the and-of-4. And left unmarked it is
+    /// indistinguishable from the backbeat itself, which is how
+    /// `uk_underground_keeps_jerks_displaced_backbeat_but_nudges_where_jerk_staggers`
+    /// came to measure a 32nd-wide ornament as a nudge and pass on the
+    /// difference in cluster rates rather than the difference it is named for.
+    ///
+    /// ⚠ **Velocity-wise it is a main hit** — [`crate::humanize::VelocityTiers`]
+    /// maps everything that is not a ghost or an accent to the main band, which
+    /// is right: a cluster is a backbeat played thickly, not played quietly.
+    Cluster,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]

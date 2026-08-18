@@ -552,11 +552,16 @@ impl FillFigure {
 ///
 /// A value is already a triplet when two thirds of it is not a whole number,
 /// which is the same test as "the arithmetic would round".
-fn triplet_of(subdivision: u32) -> u32 {
+/// ⚠ `pub(crate)` and `Option`-returning since `drums.rs` grew its own copy for
+/// `hihat.tripletBarAlternationProb`. The two callers want opposite things from
+/// "cannot be tripled cleanly" — a fill keeps its own subdivision, an
+/// alternating bar keeps its own onsets — so the answer is handed back rather
+/// than decided here, and the guard above is stated once.
+pub(crate) fn triplet_of(subdivision: u32) -> Option<u32> {
     if (subdivision * 2).is_multiple_of(3) {
-        (subdivision * 2 / 3).max(1)
+        Some((subdivision * 2 / 3).max(1))
     } else {
-        subdivision
+        None
     }
 }
 
@@ -671,7 +676,8 @@ pub fn hat_fills(
             }
             FillFigure::Stutter => stutter_cluster(Lane::ClosedHat, start, subdivision, burst, rng),
             FillFigure::TripletBurst => {
-                stutter_cluster(Lane::ClosedHat, start, triplet_of(subdivision), burst, rng)
+                let subdivision = triplet_of(subdivision).unwrap_or(subdivision);
+                stutter_cluster(Lane::ClosedHat, start, subdivision, burst, rng)
             }
         };
 

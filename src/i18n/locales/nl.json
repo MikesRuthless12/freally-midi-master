@@ -524,6 +524,7 @@
     "export": "Exporteren",
     "import": "Importeren",
     "nameNeeded": "Geef je stijl een naam.",
+    "nothingToSave": "Nog niets om op te slaan — genereer een beat of verander iets hierboven.",
     "saved": "Opgeslagen als {{name}}",
     "keep": "Deze take bewaren om te trainen",
     "kept": "{{count}} / {{needed}} bewaard",

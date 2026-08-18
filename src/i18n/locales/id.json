@@ -524,6 +524,7 @@
     "export": "Ekspor",
     "import": "Impor",
     "nameNeeded": "Beri nama gayamu.",
+    "nothingToSave": "Belum ada yang bisa disimpan — buat beat, atau ubah sesuatu di atas.",
     "saved": "Disimpan sebagai {{name}}",
     "keep": "Simpan take ini untuk pelatihan",
     "kept": "{{count}} / {{needed}} disimpan",
