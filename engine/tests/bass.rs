@@ -100,7 +100,6 @@ fn every_authored_bassline_parameter_is_read_or_documented_as_unread() {
     );
 }
 
-
 /// Does this model declare a **deliberately static low end**?
 ///
 /// ⛔⛔ **The bassline's answer to `melody.loopVerbatim`, and built the same way
@@ -282,7 +281,11 @@ fn an_artist_can_reach_a_different_bassline_for_practically_every_seed() {
         report.push(format!(
             "{id}: {}/{seeds} distinct ({share:.3}){}",
             seen.len(),
-            if static_low { " — static low end by design" } else { "" }
+            if static_low {
+                " — static low end by design"
+            } else {
+                ""
+            }
         ));
 
         if seen.len() < MIN_DISTINCT {

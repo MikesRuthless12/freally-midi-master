@@ -935,10 +935,13 @@ fn render_section(
     // first.
     let lead = match (needs_lead, &harmony) {
         (true, Some(harmony)) => {
-            let (lanes, _, report) =
-                novelty::screen(novelty::bundled(), Part::Melody, true, seed, |take| {
-                    vec![melody::generate(model, ctx, take, harmony, &kit)]
-                });
+            let (lanes, _, report) = novelty::screen(
+                novelty::bundled(),
+                Part::Melody,
+                parts::screenable(model, Part::Melody),
+                seed,
+                |take| vec![melody::generate(model, ctx, take, harmony, &kit)],
+            );
             novelty::log(Part::Melody, &report);
             lanes.into_iter().next()
         }
@@ -957,10 +960,13 @@ fn render_section(
             Part::Counter => match (&harmony, &lead) {
                 (Some(harmony), Some(lead)) => {
                     // Screened for the same reason the lead above is.
-                    let (lanes, _, report) =
-                        novelty::screen(novelty::bundled(), Part::Counter, true, seed, |take| {
-                            vec![counter::generate(model, ctx, take, harmony, lead)]
-                        });
+                    let (lanes, _, report) = novelty::screen(
+                        novelty::bundled(),
+                        Part::Counter,
+                        parts::screenable(model, Part::Counter),
+                        seed,
+                        |take| vec![counter::generate(model, ctx, take, harmony, lead)],
+                    );
                     novelty::log(Part::Counter, &report);
                     lanes
                 }
@@ -977,7 +983,7 @@ fn render_section(
                     let (lanes, _, report) = novelty::screen(
                         novelty::bundled(),
                         Part::Bass,
-                        bass::follows_the_kick(model),
+                        parts::screenable(model, Part::Bass),
                         seed,
                         |take| vec![bass::generate(model, ctx, take, harmony, &kit)],
                     );

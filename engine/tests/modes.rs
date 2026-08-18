@@ -398,8 +398,8 @@ fn two_moods_of_one_artist_do_not_generate_the_same_thing() {
 
             // ⚠ Every lane a mode can move, not the melody alone — see
             // [`everything_for`] for the model that found the gap.
-            let differs =
-                (1..40u64).any(|seed| everything_for(&first, seed) != everything_for(&second, seed));
+            let differs = (1..40u64)
+                .any(|seed| everything_for(&first, seed) != everything_for(&second, seed));
             assert!(
                 differs,
                 "{id}: `{}` and `{}` generate identically for every seed in 1..40",
