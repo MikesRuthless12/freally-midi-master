@@ -14,7 +14,9 @@
 use std::collections::BTreeMap;
 
 use rand::Rng;
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use ts_rs::TS;
 
 use crate::context::SessionContext;
 use crate::dataset::StyleModel;
@@ -133,15 +135,20 @@ pub const PERC_LANES: &[Lane] = &[
 ];
 
 /// Where the snare lands, bar by bar (PRD § 3, research ch. 1).
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[ts(export, export_to = "../../src/lib/ipc-types.ts")]
 pub enum SnarePlacement {
     /// Beat 3 only — the half-time feel of trap and drill.
+    #[serde(rename = "halftime_3")]
     Halftime3,
     /// Beats 2 and 4 — the full-time backbeat.
+    #[serde(rename = "backbeat_24")]
     Backbeat24,
     /// Beat 3 in the first bar, beat 4 in the second: the NY drill two-bar form.
+    #[serde(rename = "drill_3_4")]
     Drill34,
     /// A 16th-note stream with the backbeat accented — the country train beat.
+    #[serde(rename = "train_16ths")]
     Train16ths,
     /// Beats 1 and 3 — the Milwaukee `lowend` cell, and the only placement here
     /// that puts a snare on the downbeat.
@@ -153,19 +160,25 @@ pub enum SnarePlacement {
     /// shipped — `halftime_3` and `backbeat_24` — and a snare on 1 and 3 is
     /// neither: it is the backbeat displaced a beat early, which is what makes
     /// the lane sound like it is falling forwards.
+    #[serde(rename = "downbeat_1_3")]
     Downbeat13,
 }
 
 impl SnarePlacement {
+    /// ⛔⛔ **Parsed THROUGH serde, so the names exist once** (TASK-167). This was
+    /// a hand-written match beside a hand-written list in
+    /// `StyleEditor.tsx::PLACEMENTS`, and the doc there stated the hazard
+    /// outright — *"adding a sixth there without adding it here is a placement no
+    /// user model can reach"*. TASK-158F then did exactly that for `lowend`, and
+    /// it only worked because both edits were remembered, which is not a
+    /// mechanism. The variant renames above are now the single spelling: serde
+    /// reads them, ts-rs exports them to `ipc-types.ts`, and the editor's radio
+    /// list is driven off that union — so a sixth placement is a typecheck
+    /// failure rather than an unreachable feature.
+    ///
+    /// ⚠ Same idiom as `lane_by_name` below, for the same reason.
     pub fn parse(text: &str) -> Option<Self> {
-        match text {
-            "halftime_3" => Some(Self::Halftime3),
-            "backbeat_24" => Some(Self::Backbeat24),
-            "drill_3_4" => Some(Self::Drill34),
-            "train_16ths" => Some(Self::Train16ths),
-            "downbeat_1_3" => Some(Self::Downbeat13),
-            _ => None,
-        }
+        serde_json::from_value(Value::String(text.to_owned())).ok()
     }
 
     /// The snare hits in one bar, as `(tick within the bar, articulation)`.
@@ -1311,21 +1324,22 @@ impl Sustain {
 }
 
 /// What the 808 is doing musically.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[ts(export, export_to = "../../src/lib/ipc-types.ts")]
 pub enum Bass808Role {
     /// Doubles the roots under the kick.
+    #[serde(rename = "bassline")]
     Bassline,
     /// Carries its own line — the UK drill marker.
+    #[serde(rename = "counter_riff")]
     CounterRiff,
 }
 
 impl Bass808Role {
+    /// Parsed through serde so the names exist once — see
+    /// [] for what that closes.
     pub fn parse(text: &str) -> Option<Self> {
-        match text {
-            "bassline" => Some(Self::Bassline),
-            "counter_riff" => Some(Self::CounterRiff),
-            _ => None,
-        }
+        serde_json::from_value(Value::String(text.to_owned())).ok()
     }
 }
 

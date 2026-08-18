@@ -7,6 +7,11 @@
 export type Articulation = "ghost" | "accent" | "legato" | "staccato" | "roll";
 
 /**
+ * What the 808 is doing musically.
+ */
+export type Bass808Role = "bassline" | "counter_riff";
+
+/**
  * How busy a reading of the style the producer asked for (TASK-125).
  *
  * ⛔⛔ **It scales WITHIN what the model authored and never overrides it**, and
@@ -413,6 +418,11 @@ timeSigNum: number | null, timeSigDen: number | null,
  * every project written before the switch existed sends.
  */
 complexity: Complexity | null, };
+
+/**
+ * Where the snare lands, bar by bar (PRD § 3, research ch. 1).
+ */
+export type SnarePlacement = "halftime_3" | "backbeat_24" | "drill_3_4" | "train_16ths" | "downbeat_1_3";
 
 /**
  * A full arrangement — what Song Mode produces and what the multi-track SMF

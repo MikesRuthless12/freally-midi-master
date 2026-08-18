@@ -7,7 +7,14 @@ import { invoke } from '../../lib/ipc';
 import { idFor } from './id';
 import { useSession } from '../../state/session';
 import { keptKey, patternsIn, useVariations } from '../../state/variations';
-import type { Pattern, RosterEntry, Scale, SessionDefaults } from '../../lib/ipc-types';
+import type {
+  Bass808Role,
+  Pattern,
+  RosterEntry,
+  Scale,
+  SessionDefaults,
+  SnarePlacement,
+} from '../../lib/ipc-types';
 import './StyleEditor.css';
 
 /**
@@ -66,9 +73,9 @@ type Draft = {
    * only alongside `bassRole`, because `drums.bass808.slideProb` without a role
    * is half an 808.
    */
-  snare: string;
+  snare: SnarePlacement | '';
   rolls: string[];
-  bassRole: string;
+  bassRole: Bass808Role | '';
   slide: number;
   progressions: string[];
 };
@@ -95,17 +102,55 @@ const BLANK: Draft = {
  *
  * ⚠ **Labelled with numbers rather than words**, which is both how a producer
  * reads a backbeat and why this needs no strings in eighteen catalogs: "2 & 4"
- * and "1 & 3" mean the same thing in every one of them. The names on the left
- * are `SnarePlacement::parse`'s, and adding a sixth there without adding it here
- * is a placement no user model can reach.
+ * and "1 & 3" mean the same thing in every one of them.
+ *
+ * ⛔⛔ **Typed as `Record<SnarePlacement, string>` since TASK-167, and that is
+ * the whole point of the type.** This used to be a `{ value: string }[]` and its
+ * own doc said the hazard out loud — *"adding a sixth there without adding it
+ * here is a placement no user model can reach"* — which is exactly what happened
+ * when TASK-158F added `downbeat_1_3` for `lowend` in two separate hand edits.
+ * `SnarePlacement` is now exported from the engine by ts-rs, so a sixth variant
+ * that nobody labels here is a **typecheck failure**, not a feature a producer
+ * silently cannot reach.
  */
-const PLACEMENTS: { value: string; label: string }[] = [
-  { value: 'halftime_3', label: '3' },
-  { value: 'backbeat_24', label: '2 & 4' },
-  { value: 'drill_3_4', label: '3 → 4' },
-  { value: 'train_16ths', label: '16ths' },
-  { value: 'downbeat_1_3', label: '1 & 3' },
-];
+const PLACEMENTS: Record<SnarePlacement, string> = {
+  halftime_3: '3',
+  backbeat_24: '2 & 4',
+  drill_3_4: '3 → 4',
+  train_16ths: '16ths',
+  downbeat_1_3: '1 & 3',
+};
+
+/**
+ * The 808's role, by the label a producer reads for it.
+ *
+ * ⛔ **`Record<Bass808Role, ...>` for the same reason as [`PLACEMENTS`]**
+ * (TASK-167): the two radios were hand-written JSX, so a third role added to the
+ * engine's enum would have been a role no user model could reach and nothing
+ * would have said so. Keyed by the exported union, a new variant fails the
+ * typecheck here.
+ */
+const BASS_ROLES: Record<Bass808Role, string> = {
+  bassline: 'styles.bassIsTheBass',
+  counter_riff: 'styles.bassCounterRiff',
+};
+
+/**
+ * A stored value read back as one of a closed set, or unset.
+ *
+ * ⛔⛔ **Narrowing `snare` and `bassRole` to the exported unions found this**
+ * (TASK-167): both were read straight out of a saved style's JSON as plain
+ * strings and assigned without a check, so a file written by an older build — or
+ * hand-edited — could put a value in the draft that `SnarePlacement::parse` and
+ * `Bass808Role::parse` both refuse. Opening and saving such a style would then
+ * author a placement the engine cannot read, silently.
+ *
+ * ⚠ Membership is asked of the label maps rather than a second list, so the
+ * check cannot drift from the unions the radios are built from.
+ */
+function storedChoice<K extends string>(labels: Record<K, string>, value: unknown): K | '' {
+  return typeof value === 'string' && Object.hasOwn(labels, value) ? (value as K) : '';
+}
 
 /** The roll subdivisions `grid::note_value_ticks` resolves, as producers write them. */
 const ROLLS = ['16', '32', '16T', '8T'];
@@ -610,17 +655,19 @@ export function StyleEditor({
               />
               {t('styles.inherit')}
             </label>
-            {PLACEMENTS.map((placement) => (
-              <label key={placement.value}>
-                <input
-                  type="radio"
-                  name="styles-snare"
-                  checked={draft.snare === placement.value}
-                  onChange={() => setDraft({ ...draft, snare: placement.value })}
-                />
-                {placement.label}
-              </label>
-            ))}
+            {(Object.entries(PLACEMENTS) as [SnarePlacement, string][]).map(
+              ([placement, label]) => (
+                <label key={placement}>
+                  <input
+                    type="radio"
+                    name="styles-snare"
+                    checked={draft.snare === placement}
+                    onChange={() => setDraft({ ...draft, snare: placement })}
+                  />
+                  {label}
+                </label>
+              ),
+            )}
             <small>{t('styles.snareHint')}</small>
           </fieldset>
 
@@ -655,24 +702,17 @@ export function StyleEditor({
               />
               {t('styles.inherit')}
             </label>
-            <label>
-              <input
-                type="radio"
-                name="styles-bass"
-                checked={draft.bassRole === 'bassline'}
-                onChange={() => setDraft({ ...draft, bassRole: 'bassline' })}
-              />
-              {t('styles.bassIsTheBass')}
-            </label>
-            <label>
-              <input
-                type="radio"
-                name="styles-bass"
-                checked={draft.bassRole === 'counter_riff'}
-                onChange={() => setDraft({ ...draft, bassRole: 'counter_riff' })}
-              />
-              {t('styles.bassCounterRiff')}
-            </label>
+            {(Object.entries(BASS_ROLES) as [Bass808Role, string][]).map(([role, label]) => (
+              <label key={role}>
+                <input
+                  type="radio"
+                  name="styles-bass"
+                  checked={draft.bassRole === role}
+                  onChange={() => setDraft({ ...draft, bassRole: role })}
+                />
+                {t(label)}
+              </label>
+            ))}
             {/* ⚠ Disabled until a role is chosen, because a slide probability
                 with no role is half an 808 — and the disabled state is what says
                 so without a sentence. */}
@@ -908,9 +948,9 @@ function draftFrom(model: Record<string, unknown>): Draft {
     // ⚠ **Absent reads back as unset, not as a default** — the same distinction
     // the write side keeps. A saved style that never chose a snare placement must
     // reopen still inheriting one, or opening and saving would author it.
-    snare: drums.snare?.placement ?? '',
+    snare: storedChoice(PLACEMENTS, drums.snare?.placement),
     rolls: drums.hihat?.rolls?.vocab?.values ?? [],
-    bassRole: drums.bass808?.role ?? '',
+    bassRole: storedChoice(BASS_ROLES, drums.bass808?.role),
     slide: drums.bass808?.slideProb ?? BLANK.slide,
     progressions: (chords.progressionFamilies ?? [])
       .map((family) => (family.roman ?? []).join('-'))
