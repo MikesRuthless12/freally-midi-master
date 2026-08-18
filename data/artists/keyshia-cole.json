@@ -1,0 +1,356 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "keyshia-cole",
+  "type": "artist",
+  "name": "Keyshia Cole",
+  "aliases": [
+    "keyshia cole",
+    "keisha cole",
+    "the way it is"
+  ],
+  "tier": "standard",
+  "extends": [
+    "rnb-2000s"
+  ],
+  "era": "2005-2010",
+  "genres": [
+    "rnb-2000s",
+    "rnb",
+    "gospel soul"
+  ],
+  "relatedGenres": [
+    "rnb-2000s",
+    "neo-soul",
+    "crunk",
+    "hyphy"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 rnb-2000s — Keyshia Cole",
+    "bpmdatabase — Keyshia Cole (https://www.bpmdatabase.com/music/search/?artist=Keyshia+Cole)",
+    "Wikipedia — Ron Fair (https://en.wikipedia.org/wiki/Ron_Fair)",
+    "Wikipedia — Be Without You (https://en.wikipedia.org/wiki/Be_Without_You)"
+  ],
+  "notes": "A&M/Interscope Oakland soloist: Ron Fair's orchestral pop-R&B laid over Bay and Atlanta beds, 2005–2010. The research gives \"70–98 straight; ballads 70–83 half-time\", so the straight band is the base with the mode at 93, a doubly-sourced tempo. Three drum deltas: \"kick on 1 and the 8th before 3\" at two or three hits a bar, \"clap+snare on 2&4\" pushed 2–6 ms with `quantizeStrength` at 0.66, and \"a live tambourine/snap layer from Fair's sessions\" — a three-lane tambourine/snap/shaker bed at two to five hits a bar with `velocityVar` at 0.24, which is what a played overdub does to a programmed grid; the hat lane stays low in the mix at 0.26 fill density. Harmony is the entry's explicit contrast with the lane: \"4-chord minor cycles with real functional motion (i–VI–VII–iv families) rather than 2-chord vamps\", so that family carries top weight and `maxChords` is 4. \"Belted alto with heavy melisma and cracked-voice ornament, very high note-density in the last chorus\" is a 4–12 density, a 0.64 step share with a real leap share, and the second-highest arch weight in this section; \"**Fair-arranged strings** entering at the bridge\" is a `sustain_pad`-led counter at +12. The low end is \"808 sub or a played bass on roots; low end restrained to leave room for the string arrangement\", so it is a bass part with no `drums.bass808` block. ⚠ The research marks the key claim `[LOW-CONF]`. ⚠ Every velocity and density number is INFERRED. ⚠ `session.keys` is INFERRED: the entry's Keys line gives \"minor-mode with gospel modulation [LOW-CONF]\" and enumerates no tonic, so the values here and their weights are this author's reading of that line.",
+  "session": {
+    "bpm": {
+      "min": 84,
+      "max": 98,
+      "mode": 93
+    },
+    "halfTime": false,
+    "keys": {
+      "values": [
+        "Fm",
+        "Cm",
+        "Bbm",
+        "Gm"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "harmonic_minor",
+        "dorian"
+      ],
+      "weights": [
+        4,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.56
+    },
+    "humanize": {
+      "quantizeStrength": 0.66,
+      "velocityVar": 0.24,
+      "timingJitterMs": {
+        "kick": 5,
+        "snare": 7,
+        "clap": 7,
+        "tambourine": 10,
+        "shaker": 10
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.22,
+      "tresilloBias": 0.06,
+      "andOf4EveryOtherBar": 0.15
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "stack": [
+        "clap"
+      ],
+      "layerClapOffsetMs": [
+        1,
+        4
+      ],
+      "ghost": {
+        "prob": 0.14,
+        "pos": [
+          "2a",
+          "4e"
+        ],
+        "vel": [
+          0.14,
+          0.28
+        ]
+      },
+      "offGridMs": [
+        2,
+        6
+      ]
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.26,
+      "velocities": {
+        "main": [
+          0.3,
+          0.46
+        ],
+        "ghost": [
+          0.12,
+          0.26
+        ]
+      },
+      "openHat": {
+        "prob": 0.12,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.08
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "snap",
+        "shaker"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "placement": "any",
+      "gainOffsetDb": -6
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII",
+          "iv"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII",
+          "III"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "ii",
+          "v",
+          "i"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.22,
+      "seventh": 0.5,
+      "ninth": 0.28
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        46,
+        78
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      57,
+      86
+    ],
+    "densityPerBar": [
+      4,
+      12
+    ],
+    "intervals": {
+      "step": 0.64,
+      "third": 0.26,
+      "leap": 0.1
+    },
+    "contour": {
+      "riff": 0.1,
+      "descend": 0.36,
+      "arch": 0.54
+    },
+    "chordToneBias": 0.72,
+    "halfStepDissonance": 0.2,
+    "octaveJumpProb": 0.12,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "warm_grand_piano"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.46,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "answer_lick"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.9,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      44
+    ],
+    "glideProb": 0.1,
+    "passingTones": [
+      "P5",
+      "M2"
+    ],
+    "anticipationProb": 0.16
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 8,
+      "prechorus": 4,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": 8
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "verse",
+          "prechorus",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.7,
+        "beats": 4
+      },
+      "switchUpProb": 0.1
+    }
+  }
+}

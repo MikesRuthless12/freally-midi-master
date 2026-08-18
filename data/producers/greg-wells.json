@@ -1,0 +1,261 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "greg-wells",
+  "type": "producer",
+  "name": "Greg Wells",
+  "aliases": [
+    "greg wells",
+    "gregwells"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "2004-2009",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "producer"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "pop-2020s",
+    "country-pop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — Greg Wells",
+    "Wikipedia — \"Beautiful Soul\" (https://en.wikipedia.org/wiki/Beautiful_Soul_(song))",
+    "Wikipedia — \"Apologize\" (https://en.wikipedia.org/wiki/Apologize_(OneRepublic_song))",
+    "songdata.io — \"Beautiful Soul\" (https://songdata.io/search?query=Beautiful%20Soul%20Jesse%20McCartney)"
+  ],
+  "notes": "A multi-instrumentalist producer of mid-2000s teen and piano-pop: 76–120 straight with the backbeat on 2&4, bright majors (A major at about 90 on the 2004 single) and minor four-chord loops, \"with the same loop under every section and **the lift coming from density**\" — which is why one family dominates and the arrangement carries the dynamic rather than the harmony. Three drum deltas are quoted: \"kick 1 and 3\", \"8th hat with a 16th push into the backbeat\" (an 8th base with the fill density lifted so the push lands), and \"handclaps only in the chorus\"; two more constraints close the block — \"fills no longer than one beat\" (a 16-bar schedule with near-zero hat rolls) and \"**the drums often enter at the first chorus rather than bar 1**\", which is `dropOutBeats` at 0.9. The bass rule is stated with a floor and is encoded literally: roots with an octave jump at the chorus and **nothing below E1**, \"keeping the low end tidy under piano\" — the register floor sits at MIDI 28. The palette splits by record — acoustic strum with a double-time electric counter-strum on the teen-pop side, piano ostinato with glockenspiel and viola/cello lines on the piano-pop side — which is the triangle lane and the arp-plus-answer counter. ⚠ `confidence` is medium because the research says so and marks the drum specifics **[LOW-CONF]**; per-instrument attribution is partly inferred. ⚠ Every drum probability here is **INFERRED**, as is `bpm.mode` 90.",
+  "session": {
+    "bpm": {
+      "min": 76,
+      "max": 120,
+      "mode": 90
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor"
+      ],
+      "weights": [
+        6,
+        3
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.86,
+      "velocityVar": 0.16
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        96,
+        112
+      ],
+      "main": [
+        70,
+        86
+      ],
+      "ghost": [
+        26,
+        38
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "secondaryAnchor": "4&",
+      "syncopation": 0.18
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.13,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.18,
+          0.32
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.48,
+      "openHat": {
+        "prob": 0.16,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.03
+      }
+    },
+    "percs": {
+      "lanes": [
+        "triangle",
+        "snap",
+        "shaker"
+      ],
+      "densityPerBar": [
+        2,
+        4
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 16,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 7
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "IV",
+          "V",
+          "I"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.62,
+      "seventh": 0.28,
+      "ninth": 0.1
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        6,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      58,
+      79
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "intervals": {
+      "step": 0.76,
+      "third": 0.18,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.34,
+      "descend": 0.28,
+      "arch": 0.38
+    },
+    "chordToneBias": 0.8,
+    "octaveJumpProb": 0.08,
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "bright_bell"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.56,
+    "styles": {
+      "values": [
+        "arp",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.92,
+    "rhythm": "mirror_kick",
+    "register": [
+      28,
+      45
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P8"
+    ],
+    "anticipationProb": 0.2
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 12,
+      "prechorus": 4,
+      "chorus": 16,
+      "bridge": 8,
+      "outro": 8
+    },
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.9,
+        "beats": 8
+      },
+      "switchUpProb": 0.05
+    }
+  }
+}

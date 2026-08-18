@@ -1,0 +1,260 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "david-bendeth",
+  "type": "producer",
+  "name": "David Bendeth",
+  "aliases": [
+    "david bendeth",
+    "davidbendeth"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "2006-2010",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "producer"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "pop-2020s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — David Bendeth",
+    "Wikipedia — David Bendeth (https://en.wikipedia.org/wiki/David_Bendeth)",
+    "Wikipedia — \"Misery Business\" (https://en.wikipedia.org/wiki/Misery_Business)"
+  ],
+  "notes": "The producer-mixer of the late-2000s alt-rock/pop-punk crossover — loud, gridded, radio-first: 82–171 straight with the backbeat on 2&4 and the singles at 86–138, which is where `bpm.mode` sits. The governing fact is that **he produces and mixes the same record, so the drum tone is designed for the mix**, and the kit is \"edited hard to the grid and mixed very loud\" — hence a `quantizeStrength` of 0.97, the hardest here, against the loudest accent tier, and a very tight velocity variance. Three deltas are quoted: \"kick 1 and the '&' of 2\", \"short bright snare on 2&4\", and \"one-bar 16th tom fills into choruses\" plus \"breakdowns dropping to kick-and-clap\", which is the tom perc block, a 4-bar fill schedule and a high `dropOutBeats`. He later commercialised his drum samples and signature processing as products, \"which is a fair description of how consistent his kit sound is\" — the reason the velocity tiers here are narrow rather than spread. Harmony is flat-side minors over i–VI–III–VII and i–VII–VI with \"power-chord voicings over an open-string drone, so the vocal decides the modality\", which is the high triad share and the open voicing. The identity is \"a syncopated palm-muted riff\" with guitars \"stacked in tight doubles rather than wide layers\", and the vocal is compressed forward with the belt at the top of the singer's range. ⚠ `confidence` is medium because the research rates it high-medium and says the drum detail is inferred. ⚠ Every drum probability here is **INFERRED**.",
+  "session": {
+    "bpm": {
+      "min": 82,
+      "max": 171,
+      "mode": 112
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "major"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.97,
+      "velocityVar": 0.11
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        118,
+        127
+      ],
+      "main": [
+        92,
+        106
+      ],
+      "ghost": [
+        32,
+        44
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.3
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.06,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.24,
+          0.38
+        ]
+      },
+      "layerClapOffsetMs": [
+        0,
+        2
+      ]
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.34,
+      "openHat": {
+        "prob": 0.24,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.11
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tom",
+        "tomHigh",
+        "snap"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.8,
+      "seventh": 0.16,
+      "ninth": 0.04
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        46,
+        78
+      ],
+      "topVoiceStepwise": false
+    }
+  },
+  "melody": {
+    "register": [
+      53,
+      76
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "structure": "riff_loop",
+    "intervals": {
+      "step": 0.7,
+      "third": 0.22,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.52,
+      "descend": 0.28,
+      "arch": 0.2
+    },
+    "chordToneBias": 0.74,
+    "octaveJumpProb": 0.16,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.54,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.96,
+    "rhythm": "mirror_kick",
+    "register": [
+      27,
+      44
+    ],
+    "glideProb": 0.01,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.16
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 16,
+      "bridge": 8,
+      "outro": 8
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.92,
+        "beats": 4
+      },
+      "switchUpProb": 0.14
+    }
+  }
+}

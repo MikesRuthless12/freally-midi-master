@@ -1,0 +1,295 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "blink-182",
+  "type": "artist",
+  "name": "Blink-182",
+  "aliases": [
+    "blink 182",
+    "blink182",
+    "blink one eighty two"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "1999-2004",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "pop-punk"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "pop-2020s"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — Blink-182",
+    "Wikipedia — \"All the Small Things\" (https://en.wikipedia.org/wiki/All_the_Small_Things)",
+    "Wikipedia — Jerry Finn (https://en.wikipedia.org/wiki/Jerry_Finn)"
+  ],
+  "notes": "The pop-punk crossover reference: 140–175 straight with the backbeat on 2&4 at speed, and the signature single is exactly 150 in common time, which is where `bpm.mode` sits. The harmonic policy is documented rather than inferred — C major with **I–IV–V and nothing else**, \"diatonic major-key movement and simple chord relationships\", with an occasional vi for a bridge — so three short families, a triad share of 0.82 and no extensions worth the name. The drum block is defined by an absence the research states outright: \"**ghost-note-free, all accents**\", which is why `ghost.prob` is 0.02, the lowest in this section, against a very loud tier. The other deltas are \"8th-note kick under the chorus\" (a 4–8 density with the four anchors), \"hat 8ths in verse and crash-8ths in the chorus\", and \"skate-punk fills = a 16th snare-to-tom run of one bar\", which is the crash/tom perc block with a 16th snare-roll ladder. The bass \"follows the guitar exactly\" with \"no fills\" and \"carries the verse alone when the guitars drop\": `mirror_kick` at 0.98. The melody is documented as G4–F5 — \"a narrow, nasal, single-octave band\" — with \"'na-na' gang hooks\", so the register is exactly that and the counter is a plain octave echo. The arrangement is the entry's too: \"no pre-chorus\", 8-bar choruses, a bridge that drops to bass-and-hat, and songs under three minutes. ⚠ The **INFERRED** parameters are every drum probability and the melody density.",
+  "session": {
+    "bpm": {
+      "min": 140,
+      "max": 175,
+      "mode": 150
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian"
+      ],
+      "weights": [
+        8,
+        1
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.93,
+      "velocityVar": 0.12
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        114,
+        127
+      ],
+      "main": [
+        96,
+        112
+      ],
+      "ghost": [
+        40,
+        54
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        4,
+        8
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "secondaryAnchor": "4&",
+      "syncopation": 0.08
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.02,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.28,
+          0.44
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.4,
+      "openHat": {
+        "prob": 0.5,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.12
+      }
+    },
+    "percs": {
+      "lanes": [
+        "crash",
+        "tom"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8,
+      "snareRollLadder": true
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        86,
+        124
+      ],
+      "rampJitter": 6,
+      "gapProb": 0.1,
+      "descendProb": 0.1
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 7
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.82,
+      "seventh": 0.14,
+      "ninth": 0.04
+    }
+  },
+  "melody": {
+    "register": [
+      67,
+      77
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "intervals": {
+      "step": 0.78,
+      "third": 0.18,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.46,
+      "descend": 0.26,
+      "arch": 0.28
+    },
+    "chordToneBias": 0.8,
+    "octaveJumpProb": 0.04,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.44,
+    "styles": {
+      "values": [
+        "octave_echo"
+      ],
+      "weights": [
+        1
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.98,
+    "rhythm": "mirror_kick",
+    "register": [
+      30,
+      46
+    ],
+    "glideProb": 0.01,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.12
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": [
+        8,
+        16
+      ],
+      "chorus": 8,
+      "bridge": 8,
+      "outro": 4
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "chorus"
+        ],
+        "weight": 6
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.7,
+        "beats": 2
+      },
+      "switchUpProb": 0.06
+    }
+  }
+}

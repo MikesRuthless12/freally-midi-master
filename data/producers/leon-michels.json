@@ -1,0 +1,306 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "leon-michels",
+  "type": "producer",
+  "name": "Leon Michels",
+  "aliases": [
+    "leon michels",
+    "el michels affair",
+    "truth and soul"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "2004-present",
+  "genres": [
+    "producer",
+    "soul",
+    "neo-soul",
+    "funk"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "funk",
+    "boom-bap"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Leon Michels",
+    "Wikipedia — Leon Michels (https://en.wikipedia.org/wiki/Leon_Michels)",
+    "Wikipedia — Daptone Records (https://en.wikipedia.org/wiki/Daptone_Records)",
+    "Wikipedia — Aloe Blacc (https://en.wikipedia.org/wiki/Aloe_Blacc)"
+  ],
+  "notes": "The other New York analog retro-soul producer-arranger. `confidence` is **low** — the role, the instruments and the label context are sourced, the parameters are inference from the records. The entry separates him from the Daptone template explicitly: his harmony is \"minor-mode cinematic soul — `i–iv–V` and `i–VII–VI–V` descents, half-diminished colour, and long chromatic bass lines; **harmonically darker and more arranged than the Daptone template**\", which is why the two families it names carry a raised `susOrDimProb` and a lower triad weight than the Daptone preset, and why the bass carries a chromatic passing-tone set. Drums are \"a dry, damped, break-style kit tracked to tape — kick on 1 and the offbeat of 2, snare cracked on 2&4, tambourine and bongos, single-stroke fills, and a deliberately narrow-bandwidth drum tone. **The kit is designed to be sampled.**\" So `secondaryAnchor` is 2&, the ghost map is a single position (a break has no ghost bed), the hat is an 8th at 0.14, and the percussion is tambourine, bongo and conga. He is a saxophonist-arranger and the melody is his horn line rather than a vocal: \"instrumental tracks with no vocal are a large part of the output, and the horn or string theme *is* the melody\", with \"tenor/baritone sax section, flute, vibraphone, harpsichord, string quartet, and heavily-tremoloed guitar\" as the palette. ⚠ Every drum number and every melody figure here is INFERRED. ⚠ His two progression families are the same ones the research gives Aloe Blacc, whose records he is credited on; the two models are separated by tempo, kit and extension colour rather than by an invented difference in the harmony. ⚠ The \"instrumental cover of a rap record\" format he is known for is a repertoire choice, not a parameter, and is not encoded.",
+  "session": {
+    "bpm": {
+      "min": 68,
+      "max": 120,
+      "mode": 94
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "harmonic_minor",
+        "phrygian"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        1
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.66,
+      "velocityVar": 0.22,
+      "timingJitterMs": {
+        "kick": 5,
+        "snare": 6,
+        "tambourine": 8,
+        "conga": 9
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        102,
+        120
+      ],
+      "main": [
+        72,
+        92
+      ],
+      "ghost": [
+        26,
+        40
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.36,
+      "tresilloBias": 0.06
+    },
+    "snare": {
+      "offGridMs": [
+        0,
+        4
+      ],
+      "ghost": {
+        "prob": 0.18,
+        "pos": [
+          "2a"
+        ],
+        "vel": [
+          0.18,
+          0.4
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.14,
+      "velocities": {
+        "main": [
+          0.48,
+          0.74
+        ],
+        "ghost": [
+          0.14,
+          0.3
+        ]
+      },
+      "openHat": {
+        "prob": 0.07,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "bongo",
+        "conga"
+      ],
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "gainOffsetDb": -4
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        56,
+        108
+      ],
+      "rampJitter": 11,
+      "gapProb": 0.16,
+      "descendProb": 0.18
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "iv",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI",
+          "V"
+        ],
+        "weight": 5
+      }
+    ],
+    "extensions": {
+      "triad": 0.16,
+      "seventh": 0.5,
+      "ninth": 0.34
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        47,
+        79
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "susOrDimProb": 0.3
+  },
+  "melody": {
+    "register": [
+      55,
+      82
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "structure": "long_arc",
+    "intervals": {
+      "step": 0.74,
+      "third": 0.22,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.28,
+      "descend": 0.44,
+      "arch": 0.28
+    },
+    "chordToneBias": 0.62,
+    "octaveJumpProb": 0.06,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "tenor_sax_section"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.55,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.6,
+    "rhythm": "mirror_kick",
+    "register": [
+      26,
+      45
+    ],
+    "glideProb": 0.03,
+    "passingTones": [
+      "P5",
+      "m7",
+      "m3",
+      "M2",
+      "M6"
+    ],
+    "anticipationProb": 0.36
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 8,
+      "verse": 8,
+      "chorus": 8,
+      "outro": [
+        2,
+        8
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "switchUpProb": 0.2
+    }
+  }
+}

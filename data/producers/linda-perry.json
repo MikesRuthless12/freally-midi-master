@@ -1,0 +1,273 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "linda-perry",
+  "type": "producer",
+  "name": "Linda Perry",
+  "aliases": [
+    "linda perry",
+    "lindaperry"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "2001-2008",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "producer"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "dance-pop",
+    "rnb-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — Linda Perry",
+    "Wikipedia — Linda Perry (https://en.wikipedia.org/wiki/Linda_Perry)",
+    "Wikipedia — \"Get the Party Started\" (https://en.wikipedia.org/wiki/Get_the_Party_Started)"
+  ],
+  "notes": "The songwriter-producer who rebuilt female pop stars around vintage tone and analogue programming: 92–130 straight with the backbeat on 2&4 and the ballads at 66–80. The drum block is documented as an outsider's: she \"**programmed her first dance track while teaching herself drum programming**, and the result is intentionally non-drummerly\". Three deltas follow: \"kick on 1 and 3 plus an 8th pickup\" (second anchor \"4&\"), \"a big **front-loaded** snare on 2&4\" — which is the highest accent tier here against an ordinary main, the numeric reading of front-loading — and \"horn samples used as percussive accents\", which is why the perc block is `perc`-led rather than shaker-led. Harmony is B minor / G major with i–VI–III–VII for the anthems and I–V–vi–IV for the ballads, \"piano-voiced with added 9ths, and a deliberately 'wrong' chord or instrument left in the arrangement as a signature\" — the ninths are authored at 0.2 and the deliberate wrongness is the raised `halfStepDissonance`. She plays the bass herself: \"fat, mono, root-based 8ths; on the new-wave-leaning material a synth-bass riff *is* the hook\", which is why `followRootsProb` sits at 0.85 rather than locked. Her ballads \"build from solo piano to a full band by chorus 2 **with no key change**\", so the lift is in the arrangement. ⚠ `confidence` is medium because the research rates it high-medium. ⚠ The **INFERRED** parameters are every drum probability and `bpm.mode` 110.",
+  "session": {
+    "bpm": {
+      "min": 66,
+      "max": 130,
+      "mode": 110
+    },
+    "halfTime": false,
+    "keys": {
+      "values": [
+        "Bm",
+        "G",
+        "Em",
+        "D"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "major"
+      ],
+      "weights": [
+        4,
+        4
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.86,
+      "velocityVar": 0.19
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        118,
+        127
+      ],
+      "main": [
+        76,
+        92
+      ],
+      "ghost": [
+        26,
+        40
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "secondaryAnchor": "4&",
+      "syncopation": 0.22
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.1,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.22,
+          0.36
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.5,
+      "openHat": {
+        "prob": 0.24,
+        "pos": [
+          "2&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.09
+      }
+    },
+    "percs": {
+      "lanes": [
+        "perc",
+        "snap",
+        "tambourine"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.46,
+      "seventh": 0.34,
+      "ninth": 0.2
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        50,
+        80
+      ],
+      "topVoiceStepwise": true
+    }
+  },
+  "melody": {
+    "register": [
+      55,
+      80
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "intervals": {
+      "step": 0.68,
+      "third": 0.24,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.4,
+      "descend": 0.3,
+      "arch": 0.3
+    },
+    "chordToneBias": 0.66,
+    "octaveJumpProb": 0.2,
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "halfStepDissonance": 0.16
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.54,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.85,
+    "rhythm": "mirror_kick",
+    "register": [
+      28,
+      45
+    ],
+    "glideProb": 0.04,
+    "passingTones": [
+      "P5",
+      "P8"
+    ],
+    "anticipationProb": 0.28
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 16,
+      "bridge": 8,
+      "outro": 8
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.88,
+        "beats": 4
+      },
+      "switchUpProb": 0.1
+    }
+  }
+}

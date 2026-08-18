@@ -1,0 +1,245 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "keith-urban",
+  "type": "artist",
+  "name": "Keith Urban",
+  "aliases": [
+    "keith urban",
+    "keithurban",
+    "kieth urban"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-pop"
+  ],
+  "era": "2000-2018",
+  "genres": [
+    "country-pop",
+    "country",
+    "country rock"
+  ],
+  "relatedGenres": [
+    "country-pop",
+    "pop-2000s",
+    "pop-2020s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-pop — Keith Urban",
+    "songdata.io (https://songdata.io/search?query=Keith+Urban)",
+    "Wikipedia — Keith Urban (https://en.wikipedia.org/wiki/Keith_Urban)",
+    "Mix — Justin Niebank (https://www.mixonline.com/news/justin-niebank-425184)"
+  ],
+  "notes": "Guitar-driven country-pop with rock and, later, outright pop production — the entry's defining move is that \"banjo and ganjo\" are used \"as *rhythm* textures rather than bluegrass signifiers.\" That is authored as a drum fact, because it is one: \"the signature is a 16th-note-driven groove — closed hats or shaker in 16ths, kick on 1 and 'and-of-3,' snare hard on 2&4, with the ganjo/banjo playing continuous 16ths as a percussion layer.\" So the hat base is 16th, the perc density is the highest in this batch, and the kick takes a 3& secondary anchor. The melody is the entry's other distinctive claim: \"high tenor, syncopated, sixteenth-note phrasing that lands off the downbeat — the most rhythmically displaced vocal writing in this section,\" so `straightEighthsProb` is pushed down and the density up. Harmony is \"I–V–vi–IV and I–♭VII–IV,\" with the documented Knopfler/Buckingham influence showing \"as fingerstyle-derived arpeggiated harmony rather than block chords\" — the counter's arp weighting. The mixer's stated philosophy (\"I like to record performances; I don't like to record microphones,\" with a rough mix good enough to become the master) is why the humanize is a captured-take reading rather than a grid one. ⚠ A synth sub is described only as reinforcement \"layered under the electric bass\" on the pop-leaning records, so no `bass808` block is authored and the model keeps the genre's inherited live bass. ⚠ Confidence is medium (research: high-medium); the per-track readings are [LOW-CONF]. ⚠ The INFERRED parameters are the perc density, the humanize values and the counter ratio.",
+  "session": {
+    "bpm": {
+      "min": 80,
+      "max": 160,
+      "mode": 118
+    },
+    "keys": {
+      "values": [
+        "D",
+        "E",
+        "G",
+        "C",
+        "Bm",
+        "Am"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "major_pentatonic",
+        "natural_minor"
+      ],
+      "weights": [
+        5,
+        3,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.82,
+      "velocityVar": 0.19,
+      "timingJitterMs": {
+        "kick": 4,
+        "snare": 4,
+        "closedHat": 3,
+        "shaker": 4
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.33,
+      "offbeat8thShare": 0.54
+    },
+    "snare": {
+      "crossStickVerses": true,
+      "ghost": {
+        "prob": 0.16,
+        "pos": [
+          "1a",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.2,
+          0.36
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.4,
+      "openHat": {
+        "prob": 0.28,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "tambourine",
+        "perc"
+      ],
+      "densityPerBar": [
+        4,
+        8
+      ],
+      "gainOffsetDb": -3,
+      "tambourine": true
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8,
+      "fillBeforeSection": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "bVII",
+          "IV"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.68,
+      "seventh": 0.26,
+      "ninth": 0.06
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      60,
+      86
+    ],
+    "densityPerBar": [
+      5,
+      10
+    ],
+    "straightEighthsProb": 0.18,
+    "contour": {
+      "riff": 0.24,
+      "descend": 0.28,
+      "arch": 0.48
+    },
+    "chordToneBias": 0.74,
+    "octaveJumpProb": 0.08,
+    "timbreHint": "ganjo_and_layered_electrics"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.64,
+    "styles": {
+      "values": [
+        "arp",
+        "answer_lick"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.76,
+    "register": [
+      28,
+      46
+    ],
+    "passingTones": [
+      "P5",
+      "M2",
+      "M3",
+      "M6"
+    ],
+    "anticipationProb": 0.38
+  }
+}

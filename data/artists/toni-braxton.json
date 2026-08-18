@@ -1,0 +1,365 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "toni-braxton",
+  "type": "artist",
+  "name": "Toni Braxton",
+  "aliases": [
+    "toni braxton",
+    "toni michelle braxton",
+    "laface"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "rnb-2000s"
+  ],
+  "era": "1993-2000",
+  "genres": [
+    "rnb-2000s",
+    "rnb",
+    "adult contemporary"
+  ],
+  "relatedGenres": [
+    "rnb-2000s",
+    "pop-2000s",
+    "neo-soul"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 rnb-2000s — Toni Braxton",
+    "songdata — Toni Braxton (https://songdata.io/search?query=Toni+Braxton)",
+    "Wikipedia — Un-Break My Heart (https://en.wikipedia.org/wiki/Un-Break_My_Heart)",
+    "Wikipedia — Babyface (https://en.wikipedia.org/wiki/Babyface_(musician))"
+  ],
+  "notes": "LaFace contralto balladeer across Babyface's writing, David Foster's orchestral pop and later Darkchild, 1993–2000. The research calls her ballads \"the slowest documented in the lane (55 BPM, backbeat on 3)\", and that is the encoded spine: the entry's two named ballad readings, \"Un-Break My Heart\" 55 and \"Spanish Guitar\" 60, fix the band at 55–60, with `halfTime` true and `snare.placement` `halftime_3`. Her 88–96 mid-tempos, which the entry puts on \"a tight 2&4 with 16th hats and a shaker\", are real and are not folded into this grid. The three drum deltas come from the Foster description — \"a Synclavier-programmed kit: soft kick on 1, snare on 3, no hats, huge reverb tail\": the kick runs one to two hits a bar with syncopation at 0.06, the hat lane is an 8th base at 0.02 fill density with the open hat switched off, and the percussion collapses to a single shaker at −12 dB, the quietest bed in the section. The reverb tail has no schema field, so it is recorded here rather than encoded. Harmony is \"diatonic minor with a **chorus key-change up a minor 3rd** as the signature device\" — the modulation is likewise unencodable, but the functional families (i–VI–III–VII, i–iv–V, ii–v–i) are the entry's own and the triad share is high because the research says diatonic rather than modal. \"Written for a contralto sitting D3–D5, so melodies live in the lower half of the staff with the climax only a 9th above the floor\" is encoded exactly: register 50–74, legato, a low leap share and a near-zero octave jump. \"Strings, acoustic and electric guitar counterlines… no pad clutter\" is the counter at +12 with `answer_lick` leading, and \"no sub — fingered/synth bass on roots\" is why there is no `bass808` block. ⚠ The INFERRED parameters are every velocity and density number and `swing.amount` 0.50.",
+  "session": {
+    "bpm": {
+      "min": 55,
+      "max": 60,
+      "mode": 60
+    },
+    "halfTime": true,
+    "keys": {
+      "values": [
+        "Bm",
+        "Dm",
+        "Bbm",
+        "Am",
+        "D"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2,
+        1
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "harmonic_minor",
+        "major"
+      ],
+      "weights": [
+        4,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.5
+    },
+    "humanize": {
+      "quantizeStrength": 0.66,
+      "velocityVar": 0.22,
+      "timingJitterMs": {
+        "kick": 8,
+        "snare": 10,
+        "shaker": 10
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        1,
+        2
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.06,
+      "tresilloBias": 0,
+      "andOf4EveryOtherBar": 0
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "ghost": {
+        "prob": 0.04,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.08,
+          0.16
+        ]
+      },
+      "offGridMs": [
+        4,
+        10
+      ]
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.02,
+      "velocities": {
+        "main": [
+          0.12,
+          0.2
+        ],
+        "ghost": [
+          0.05,
+          0.12
+        ]
+      },
+      "openHat": {
+        "prob": 0,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker"
+      ],
+      "densityPerBar": [
+        0,
+        1
+      ],
+      "placement": "any",
+      "gainOffsetDb": -12
+    },
+    "fills": {
+      "smallEveryBars": 16,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "ii",
+          "v",
+          "i"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI",
+          "V"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "I",
+          "vi",
+          "ii",
+          "V"
+        ],
+        "weight": 1
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.36,
+      "seventh": 0.48,
+      "ninth": 0.16
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        45,
+        77
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      50,
+      74
+    ],
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "intervals": {
+      "step": 0.82,
+      "third": 0.14,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.1,
+      "descend": 0.46,
+      "arch": 0.44
+    },
+    "chordToneBias": 0.86,
+    "octaveJumpProb": 0.02,
+    "articulation": "legato",
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "warm_grand_piano"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.42,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.94,
+    "rhythm": "independent_riff",
+    "register": [
+      26,
+      44
+    ],
+    "glideProb": 0.03,
+    "passingTones": [
+      "P5",
+      "P8",
+      "M3"
+    ],
+    "anticipationProb": 0.08,
+    "cellShapes": [
+      [
+        "1",
+        "5"
+      ],
+      [
+        "1",
+        "5",
+        "8"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 8,
+      "prechorus": 4,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": 8
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "verse",
+          "prechorus",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.8,
+        "beats": 4
+      },
+      "switchUpProb": 0.1
+    }
+  }
+}

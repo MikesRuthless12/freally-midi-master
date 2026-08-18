@@ -1,0 +1,362 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "amy-winehouse",
+  "type": "artist",
+  "name": "Amy Winehouse",
+  "aliases": [
+    "amy winehouse",
+    "back to black",
+    "dap kings soul"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "2003-2011",
+  "genres": [
+    "soul",
+    "neo-soul",
+    "jazz",
+    "pop"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "rnb-2000s",
+    "funk",
+    "pop-2000s"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Amy Winehouse",
+    "Wikipedia — Amy Winehouse (https://en.wikipedia.org/wiki/Amy_Winehouse)",
+    "songdata.io — Amy Winehouse (https://songdata.io/search?query=Amy+Winehouse)",
+    "Wikipedia — Back to Black (https://en.wikipedia.org/wiki/Back_to_Black)"
+  ],
+  "notes": "The retro-soul pole of the lane, and the entry names the drum sound rather than the drummer: \"the Dap-Kings kit is the parameter — a dry, dead, close-mic'd 60s kit with heavy damping, snare cracked hard on 2 and 4, no hat carpet, tambourine and handclaps doubling the backbeat, and Motown-style triplet or 16th-note march fills into sections\". So the velocity tiers are the hardest of any model in this section, the kick is on 1 and 3 at a syncopation of 0.18, the hat is neither continuous nor busy (fill density 0.12), the tambourine mirrors the clap and the percussion sits only 2 dB down, and the snare rolls are triplet-and-16th march figures. The band is the sourced 70–103 for the mid-tempos. Harmony is the entry's two-album split held in one model: album one is \"jazz-harmonic… with ii–V–I turnarounds, tritone subs and passing diminisheds\" and album two is \"girl-group diatonic… built on `i–VI–III–VII` and `I–vi–IV–V`\" — all three families are written out by the research, and `susOrDimProb` carries the passing diminisheds. Melody is \"low contralto with heavy behind-the-beat placement, blues thirds, big pitch bends\", hence the lowest flagship register here and a raised `halfStepDissonance`; the backgrounds are \"male-and-female group-vocal answers to the lead line rather than stacks of her own voice\", which is why the counter is an `answer_lick` at −12 rather than an octave stack. Bass is \"upright bass on album one, played electric bass on album two — Jamerson/Motown 8th-note melodic lines with chromatic approach notes… Never an 808 and never a sub\", so no `bass808` block exists and the passing-tone set is chromatic. ⚠ The INFERRED parameters are every drum probability and velocity band and all melody/countermelody numbers. ⚠ **\"Back To Black\" reads both 123 and 62 in the source data because the kit plays a half-time backbeat over a 123 pulse.** That device is documented as \"the single most-copied arrangement device in this lane\" but it is not encoded: the Lane line's spine for the catalogue is straight 2&4, and one model states one placement.",
+  "session": {
+    "bpm": {
+      "min": 70,
+      "max": 103,
+      "mode": 88
+    },
+    "keys": {
+      "values": [
+        "Am",
+        "Bm",
+        "Em",
+        "Cm",
+        "Bb",
+        "Dbm",
+        "C",
+        "A"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2,
+        3,
+        2,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "major",
+        "blues",
+        "harmonic_minor"
+      ],
+      "weights": [
+        4,
+        4,
+        2,
+        1
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.7,
+      "velocityVar": 0.2,
+      "timingJitterMs": {
+        "kick": 4,
+        "snare": 5,
+        "tambourine": 7,
+        "snap": 7
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        110,
+        124
+      ],
+      "main": [
+        80,
+        98
+      ],
+      "ghost": [
+        30,
+        44
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "syncopation": 0.18,
+      "tresilloBias": 0.02
+    },
+    "snare": {
+      "rimshotLayer": true,
+      "offGridMs": [
+        0,
+        3
+      ],
+      "ghost": {
+        "prob": 0.18,
+        "pos": [
+          "2a",
+          "4a"
+        ],
+        "vel": [
+          0.16,
+          0.36
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.12,
+      "velocities": {
+        "main": [
+          0.48,
+          0.72
+        ],
+        "ghost": [
+          0.14,
+          0.3
+        ]
+      },
+      "openHat": {
+        "prob": 0.06,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "snap",
+        "ride",
+        "rim"
+      ],
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "placement": "downbeat",
+      "gainOffsetDb": -2,
+      "tambourineMirrorsClap": true
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8,
+      "fillBeforeSection": true
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16t",
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        56,
+        112
+      ],
+      "rampJitter": 10,
+      "gapProb": 0.18,
+      "descendProb": 0.2
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "vi",
+          "IV",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "ii",
+          "V",
+          "i"
+        ],
+        "weight": 3
+      }
+    ],
+    "extensions": {
+      "triad": 0.3,
+      "seventh": 0.5,
+      "ninth": 0.2
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        48,
+        78
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    },
+    "susOrDimProb": 0.24
+  },
+  "melody": {
+    "register": [
+      48,
+      72
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "structure": "question_answer",
+    "intervals": {
+      "step": 0.74,
+      "third": 0.2,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.28,
+      "descend": 0.44,
+      "arch": 0.28
+    },
+    "chordToneBias": 0.56,
+    "halfStepDissonance": 0.2,
+    "octaveJumpProb": 0.07,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "baritone_sax"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.55,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.38,
+    "rhythm": "independent_riff",
+    "register": [
+      26,
+      47
+    ],
+    "glideProb": 0.04,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2",
+      "m3",
+      "M3",
+      "M6"
+    ],
+    "anticipationProb": 0.45
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        8
+      ],
+      "verse": 8,
+      "chorus": 8,
+      "bridge": 4,
+      "outro": 2
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.7,
+        "beats": 4
+      },
+      "switchUpProb": 0.2
+    }
+  }
+}

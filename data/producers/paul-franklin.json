@@ -1,0 +1,165 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "paul-franklin",
+  "type": "producer",
+  "name": "Paul Franklin",
+  "aliases": [
+    "paul franklin",
+    "paulfranklin",
+    "paul franklyn"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-pop"
+  ],
+  "era": "1990-2025",
+  "genres": [
+    "country-pop",
+    "country",
+    "producer"
+  ],
+  "relatedGenres": [
+    "country-pop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-pop — Paul Franklin",
+    "Wikipedia — Paul Franklin (https://en.wikipedia.org/wiki/Paul_Franklin_(musician))",
+    "Splice — Keeping the pedal steel guitar alive (https://splice.com/blog/keeping-pedal-steel-guitar-alive/)",
+    "Sound on Sound — Inside Track: Morgan Wallen & Post Malone (https://www.soundonsound.com/techniques/inside-track-morgan-wallen-post-malone)"
+  ],
+  "notes": "The definitive modern pedal-steel voice, placed in PRODUCERS by the research as an *instrumental-grammar* entry: \"Rich Redmond, Eddie Bayers, Shannon Forrest, Aaron Sterling, Brent Mason and Paul Franklin are placed in PRODUCERS as instrumental-grammar entries … no artist entry duplicates them\" (Assignment notes). ⛔ **A second instruction depends on this file existing.** The Post Malone note says: \"If a pop researcher has claimed Post Malone as an artist, drop my entry and keep the detail inside my **Aaron Sterling and Paul Franklin** entries, which carry the same session documentation.\" Post Malone was claimed by `pop-2020s`, so that fallback fired — and only one of its two named carriers was written. This is the other one. The defining capability is quoted and it is what the melodic blocks encode: \"contrapuntal things like **simultaneously shifting voices within a chord up and down in pitch** without moving the bar\" — oblique motion inside a sustained chord — so the line is step-dominated with almost no leaps, `chordToneBias` is the highest in this section, and the harmonic rhythm is slow because the chord is *held* while the voices move. The same sentence is why the chord block raises seventh and ninth shares: a voice moving inside a held triad is how those colours appear here, rather than as a different numeral. `articulation` and the humanize come from the volume-pedal fact — \"maximum volume reached only **partway up the pedal's travel, with the remaining travel used for sustain**, which produces the instrument's signature swell-and-hold envelope\" — plus the phrasing note that \"a swell … peaks *after* the downbeat\": a late, soft attack, which is a loose quantize and a wide velocity spread rather than a grid part. The counter sits an octave *below* the lead because the entry documents that register outright: \"he expanded the instrument's register downward with a **baritone steel guitar tuned an octave below standard pedal steel**, plus … the 'Pedabro' … and 'The Box' … So the steel palette in this genre has three distinct registers/timbres, not one.\" Phrase placement is quoted twice — \"entries in the gaps at phrase ends\" and \"answers vocal phrases in 2-bar gaps\" — which is `phraseBars` and `fillGapsOnly`. The arrangement is the entry's own list: \"steel takes the cold-open intro, answers vocal phrases in 2-bar gaps, holds pads under verses, and takes an **8-bar instrumental**\" — ⚠ the engine's section vocabulary has no instrumental kind, so that 8-bar feature is carried by the bridge's length, and the cold open is the 2-bar intro. ⚠ **No `session.keys` is authored and the entry is the reason**: \"he plays any key without repositioning logic changing, because the instrument's pedals and levers transpose voicings mechanically.\" ⚠ **No `session.bpm`**: the entry states no tempo band, so the genre's stands rather than an invented one. ⚠ **No `progressionFamilies`**: the entry names no numerals; only the voicing, the extension spread and the harmonic rhythm are authored from the contrapuntal description. ⚠ **No `bassline` block**: the entry's 808/bass line is about his *baritone steel*, not about a bass part, and that fact is spent on the counter's register instead — so the genre's bass is inherited rather than invented. ⚠ INFERRED: the melody register (a standard E9-neck span, not a measurement), the density range, the contour split, the counter ratio and every number in the chords block. ⚠ Confidence is medium (research: high) — instruments, technique and envelope behaviour are documented, but no tempo, key or numeral is, so the generator-facing numbers are this author's reading.",
+  "session": {
+    "humanize": {
+      "quantizeStrength": 0.74,
+      "velocityVar": 0.24
+    }
+  },
+  "chords": {
+    "extensions": {
+      "triad": 0.44,
+      "seventh": 0.4,
+      "ninth": 0.16
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        55,
+        79
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "vamp",
+        "1_per_bar"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      55,
+      79
+    ],
+    "densityPerBar": [
+      2,
+      5
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "intervals": {
+      "step": 0.82,
+      "third": 0.14,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.08,
+      "descend": 0.3,
+      "arch": 0.62
+    },
+    "chordToneBias": 0.9,
+    "halfStepDissonance": 0.06,
+    "endVariation": true,
+    "octaveJumpProb": 0.02,
+    "articulation": "legato",
+    "timbreHint": "pedal_steel"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.35,
+    "fillGapsOnly": true,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "answer_lick"
+      ],
+      "weights": [
+        5,
+        4
+      ]
+    }
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 2,
+      "verse": [
+        8,
+        16
+      ],
+      "chorus": 8,
+      "bridge": 8,
+      "outro": [
+        2,
+        4
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.12,
+        "beats": 2
+      },
+      "switchUpProb": 0.08
+    }
+  }
+}

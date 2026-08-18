@@ -1,0 +1,257 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "maroon-5",
+  "type": "artist",
+  "name": "Maroon 5",
+  "aliases": [
+    "maroon 5",
+    "maroon five",
+    "maroon5"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "2002-2007",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "funk pop"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "funk",
+    "neo-soul",
+    "rnb-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — Maroon 5",
+    "Wikipedia — \"This Love\" (https://en.wikipedia.org/wiki/This_Love_(Maroon_5_song))"
+  ],
+  "notes": "Funk-and-soul-inflected pop-rock with a falsetto lead over a played rhythm section: 95–120 straight with the backbeat on 2&4 and a 16th funk subdivision. The claim that decides the drum block is \"funk-drummer ghost-note vocabulary is central to the feel\", so `ghost.prob` sits at 0.42 across four sixteenth positions — by far the busiest ghost pattern in this section. The other two deltas are quoted: \"kick on 1 and the '&' of 2\" and \"hat in 16ths with a foot-splash on 4&\", which is the `pedalHat` lane. Percussion is \"both programmed and live\", which is the one warrant for loosening `humanize`. Harmony is C-minor functional writing — i–iv–V and i–VI–III–VII \"with 7ths and 9ths; verses often on a two-chord vamp, chorus opening into a full cycle\" — so the triad share drops to 0.34 and the harmonic rhythm carries both a vamp and a per-bar option. The bass is the entry's sharpest instrumental claim and is encoded literally: \"syncopated 16ths, muted staccato notes with a slide into the downbeat; locked with the clavinet/electric-piano **rather than the kick**\", which is `independent_riff` at 0.55 with a real glide and a high anticipation. The lead has \"a wide leap into the hook\" and the \"chirping high backing vocals\" are the answer-lick counter. ⚠ `confidence` is medium because the research rates it high-medium. ⚠ The **INFERRED** parameters are all drum probabilities and the humanize values.",
+  "session": {
+    "bpm": {
+      "min": 95,
+      "max": 120,
+      "mode": 106
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "major"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.8,
+      "velocityVar": 0.2,
+      "timingJitterMs": {
+        "kick": 5,
+        "snare": 6,
+        "closedHat": 7,
+        "perc": 8
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.42
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.42,
+        "pos": [
+          "1a",
+          "2e",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.16,
+          0.32
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.62,
+      "velocities": {
+        "main": [
+          0.6,
+          0.85
+        ],
+        "ghost": [
+          0.2,
+          0.45
+        ]
+      },
+      "openHat": {
+        "prob": 0.3,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.12
+      }
+    },
+    "percs": {
+      "lanes": [
+        "pedalHat",
+        "shaker"
+      ],
+      "densityPerBar": [
+        2,
+        4
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "iv",
+          "V"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 3
+      }
+    ],
+    "extensions": {
+      "triad": 0.34,
+      "seventh": 0.44,
+      "ninth": 0.22
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "vamp",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      67,
+      91
+    ],
+    "densityPerBar": [
+      4,
+      10
+    ],
+    "intervals": {
+      "step": 0.62,
+      "third": 0.26,
+      "leap": 0.12
+    },
+    "contour": {
+      "riff": 0.4,
+      "descend": 0.3,
+      "arch": 0.3
+    },
+    "chordToneBias": 0.68,
+    "octaveJumpProb": 0.25,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    },
+    "timbreHint": "rhodes"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.6,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "bell_echo"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.55,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      46
+    ],
+    "glideProb": 0.22,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2",
+      "m3"
+    ],
+    "anticipationProb": 0.5
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 16,
+      "bridge": 8,
+      "outro": 8
+    }
+  }
+}

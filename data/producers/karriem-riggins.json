@@ -1,0 +1,273 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "karriem-riggins",
+  "type": "producer",
+  "name": "Karriem Riggins",
+  "aliases": [
+    "karriem riggins",
+    "riggins",
+    "detroit drummer producer"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "1998-present",
+  "genres": [
+    "producer",
+    "soul",
+    "neo-soul",
+    "jazz"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "boom-bap",
+    "lofi-hiphop",
+    "funk"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Karriem Riggins",
+    "Wikipedia — Karriem Riggins (https://en.wikipedia.org/wiki/Karriem_Riggins)",
+    "Wikipedia — Erykah Badu (https://en.wikipedia.org/wiki/Erykah_Badu)",
+    "Wikipedia — Neo soul (https://en.wikipedia.org/wiki/Neo_soul)"
+  ],
+  "notes": "Detroit's jazz-drummer-who-programs, and the entry names the signature precisely: \"**the dual capability is the parameter.** As a producer he programs an MPC with heavy, deliberately-unquantised swing — snare early or late of 2&4, kick doubled on a 16th, hats crushed. He frequently plays live drums *over* his own programmed pattern, giving two slightly-misaligned kits at once. **That doubling is the signature.**\" So the snare is `layered` with an 8–20 ms window — two kits, one late — the kick density runs 4–6 a bar for the doubling, the hat velocities are crushed to a 0.22–0.46 main range, and `swing.amount` is pushed to 0.7, the widest in this section, for the \"heavy swing\" the entry names. `quantizeStrength` 0.36 is \"deliberately unquantised\". Harmony is sample-inherited: \"his loops come from jazz and soul records, so the harmony is m9/maj7 fragments that do not resolve; loops are short (1–2 bars) and often harmonically incomplete\" — `maxChords` 2, a triad weight of 0.04 and a vamp harmonic rhythm. The melody is the beat-tape form: \"chopped horn/keys/vocal fragments, vibraphone and Rhodes; instrumental beat-tape forms with very short tracks\", which is the riff loop at density 2–6 with a raised `emptyBarBias`, and the arrangement is \"sketch-form (60–120 second tracks, abrupt cuts, no hooks)\". Bass is \"sampled bass filtered and sub-reinforced; upright bass overdubs on the jazz-facing material. No 808 slides\" — no `bass808` block, because the sub reinforces a sampled part rather than replacing it. ⚠ The INFERRED parameters are every drum probability and velocity and all melody numbers, and `swing.amount` 0.7 — \"heavy swing\" is a direction, not a ratio. ⚠ **`chords.harmonicRhythm` re-weighted (2026-08-17, harmony variety floor).** The entry's harmony line is \"sample-inherited ... loops are short (1-2 bars) and often harmonically incomplete\", and the engine's `vamp` value is *one* chord held for the whole clip (`generators::chords`: \"One chord for the whole pattern\") — so weighting `vamp` at the top rendered a **one**-chord bed the research nowhere describes. The chord motion the entry states is now carried by `1_per_bar` (the pair over a 2-bar cell) and `2_bars_per_chord` (the pair over a 4-bar cell), with `vamp` kept as the minority for the held reading. A 1-2 bar loop is one chord a bar or two, not a single 4-bar hold. ⚠ The split between those two rates is **INFERRED** — the entry names the device, not its rate. ⚠ **The countermelody reached 974/1000 distinct answers against a floor of 980 (2026-08-17, counter variety floor).** `melody.emptyBarBias` came down from 0.22 to 0.1. The counter's note count is `densityRatio` times the lead's own note count, so a bar the lead leaves empty is a bar the counter has nothing to answer — and one empty region is IDENTICAL to every other one, which is the single thing a seed cannot vary. Measured across this roster the models failing this gate average 0.150 here against 0.030 for the models that pass. ⚠ The value that moved here is INFERRED rather than a researched claim — the entry's Melody/chords line reads \"chopped horn/keys/vocal fragments, vibraphone and Rhodes; instrumental beat-tape forms with very short tracks. On vocal records (Erykah Badu, Common, Kanye West placements) he supplies the loop and a live drum overdub.\", and every claim in it still holds after the change.",
+  "session": {
+    "bpm": {
+      "min": 68,
+      "max": 100,
+      "mode": 86
+    },
+    "scales": {
+      "values": [
+        "dorian",
+        "natural_minor",
+        "minor_pentatonic",
+        "major"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.7
+    },
+    "humanize": {
+      "quantizeStrength": 0.36,
+      "velocityVar": 0.3,
+      "timingJitterMs": {
+        "kick": 8,
+        "snare": 18,
+        "closedHat": 12,
+        "rim": 13
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        4,
+        6
+      ],
+      "syncopation": 0.58,
+      "tresilloBias": 0.18
+    },
+    "snare": {
+      "layered": true,
+      "offGridMs": [
+        8,
+        20
+      ],
+      "ghost": {
+        "prob": 0.5,
+        "pos": [
+          "1e",
+          "2a",
+          "3e",
+          "4a"
+        ],
+        "vel": [
+          0.14,
+          0.36
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.5,
+      "velocities": {
+        "main": [
+          0.22,
+          0.46
+        ],
+        "ghost": [
+          0.08,
+          0.22
+        ]
+      },
+      "openHat": {
+        "prob": 0.1,
+        "pos": [
+          "3a"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "ride",
+        "rim",
+        "perc",
+        "shaker"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "gainOffsetDb": -6
+    }
+  },
+  "chords": {
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.04,
+      "seventh": 0.46,
+      "ninth": 0.5
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        46,
+        80
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      55,
+      80
+    ],
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "structure": "riff_loop",
+    "intervals": {
+      "step": 0.72,
+      "third": 0.22,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.44,
+      "descend": 0.34,
+      "arch": 0.22
+    },
+    "chordToneBias": 0.5,
+    "emptyBarBias": 0.1,
+    "octaveJumpProb": 0.08,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "chopped_vocal"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.4,
+    "styles": {
+      "values": [
+        "bell_echo",
+        "arp"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.6,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      44
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2"
+    ],
+    "anticipationProb": 0.4
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 2,
+      "verse": [
+        4,
+        8
+      ],
+      "chorus": [
+        4,
+        8
+      ],
+      "outro": 2
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "verse",
+          "chorus",
+          "verse",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "switchUpProb": 0.42
+    }
+  }
+}

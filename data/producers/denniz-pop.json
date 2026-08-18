@@ -1,0 +1,303 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "denniz-pop",
+  "type": "producer",
+  "name": "Denniz PoP",
+  "aliases": [
+    "denniz pop",
+    "dennis pop",
+    "dag volle"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "1993-1998",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "producer"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "dance-pop",
+    "house"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — Denniz PoP",
+    "Wikipedia — Denniz Pop (https://en.wikipedia.org/wiki/Denniz_Pop)",
+    "Wikipedia — Cheiron Studios (https://en.wikipedia.org/wiki/Cheiron_Studios)"
+  ],
+  "notes": "The architect of the Cheiron sound, and Gate-2 clear: the defining run is 1993–1998. 90–130 straight with the backbeat on 2&4. The board fact that governs the whole model is a mix instruction rather than a pattern: \"the drums are mixed as a **bed**, not a feature, so the chorus lift comes from adding a clap and a tambourine rather than changing the pattern\". That is why the velocity tiers sit low, the fill schedule is wide and the hat rolls are near zero, while the perc block carries tambourine and snap at a real density — the lift lives there. The two placement facts are quoted: \"snare/clap firmly on 2&4\" and \"kick on 1 and the '&' **before** the backbeat\", which is the second anchor on \"1&\" rather than the parent's \"2&\". Harmony is a short loop by policy — \"2 or 4 bars and identical in every section so the melody carries the change\" — hence a two-bars-per-chord weighting over i–VI–III–VII and i–VII–VI. The bass is \"synth bass doubling a played bass, root-locked to the kick, no portamento — the 'solid floor' under a stacked vocal\": `mirror_kick` at 0.97 with `glideProb` 0. The documented melody-first policy (\"melodic math\"), including the instrumental statement of the vocal hook in the intro, is the arrangement block. ⚠ `confidence` is medium because the research rates it high-medium and says the section-level grammar is inferred from the records rather than from a first-person interview. ⚠ The **INFERRED** parameters are every drum probability, the velocity tiers and `bpm.mode` 108.",
+  "session": {
+    "bpm": {
+      "min": 90,
+      "max": 130,
+      "mode": 108
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "major",
+        "harmonic_minor"
+      ],
+      "weights": [
+        5,
+        3,
+        1
+      ]
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        94,
+        110
+      ],
+      "main": [
+        70,
+        86
+      ],
+      "ghost": [
+        28,
+        40
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "1&",
+      "syncopation": 0.26
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.1,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.2,
+          0.34
+        ]
+      },
+      "layerClapOffsetMs": [
+        1,
+        4
+      ]
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.46,
+      "velocities": {
+        "main": [
+          0.62,
+          0.82
+        ],
+        "ghost": [
+          0.3,
+          0.5
+        ]
+      },
+      "openHat": {
+        "prob": 0.2,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.05
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "snap"
+      ],
+      "densityPerBar": [
+        3,
+        6
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.66,
+      "seventh": 0.26,
+      "ninth": 0.08
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      64,
+      86
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "structure": "riff_loop",
+    "intervals": {
+      "step": 0.7,
+      "third": 0.24,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.44,
+      "descend": 0.26,
+      "arch": 0.3
+    },
+    "chordToneBias": 0.8,
+    "octaveJumpProb": 0.1,
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.5,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.97,
+    "rhythm": "mirror_kick",
+    "register": [
+      30,
+      46
+    ],
+    "glideProb": 0,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.24
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 16,
+      "bridge": 8,
+      "outro": 8
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "verse",
+          "prechorus",
+          "chorus",
+          "bridge",
+          "chorus",
+          "chorus"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.8,
+        "beats": 4
+      },
+      "switchUpProb": 0.06
+    }
+  }
+}

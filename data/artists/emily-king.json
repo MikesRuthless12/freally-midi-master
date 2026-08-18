@@ -1,0 +1,281 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "emily-king",
+  "type": "artist",
+  "name": "Emily King",
+  "aliases": [
+    "emily king",
+    "nyc guitar soul",
+    "drum machine soul"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "2007-2019",
+  "genres": [
+    "soul",
+    "neo-soul",
+    "pop"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "rnb-2000s",
+    "pop-2020s"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Emily King",
+    "Wikipedia — Emily King (https://en.wikipedia.org/wiki/Emily_King)",
+    "Wikipedia — Neo soul (https://en.wikipedia.org/wiki/Neo_soul)"
+  ],
+  "notes": "New York's guitar-and-drum-machine soul miniaturist. `confidence` is **low** — the research rates the entry medium-low, sourcing the palette and the production scale but marking tempo and drum detail as inference. The drum block is the stated hybrid: \"a small, dry programmed kick and clap on 2&4 with quantised 16th hats, plus shaker, finger-snaps and tambourine played live over it\". The word *quantised* is why `quantizeStrength` sits at 0.88 with the snare exactly on the grid, and *played live over it* is why the percussion lanes run 4–7 hits a bar — the machine is rigid and the hands are not. Harmony is \"maj7/6-9 tonics, ii–V turnarounds, and chromatic bass motion under static top notes\", written on guitar so \"open strings and add9 shapes recur\", which is the ii–V family, `topVoiceStepwise` for the static top, and `susSubstitutionProb` for the add9s. Melody is \"light, breathy soprano at low volume, high syllabic density with small intervals, and heavily multi-tracked in close thirds on the hook\" — the high register, near-total stepwise motion, density 5–9 and an octave-echo counter for the multi-tracking. Bass is \"short and muted, root-and-fifth with 8th-note motion and occasional slides\", a kick mirror with a real glide. ⚠ Every drum, melody and bass number here is INFERRED. ⚠ Her ii–V family is shared with several other jazz-voiced models in this section because the research gives them the same turnaround; the separation is authored in the kit, the register and the density.",
+  "session": {
+    "bpm": {
+      "min": 80,
+      "max": 112,
+      "mode": 96
+    },
+    "scales": {
+      "values": [
+        "major",
+        "major_pentatonic",
+        "lydian",
+        "dorian"
+      ],
+      "weights": [
+        5,
+        2,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.88,
+      "velocityVar": 0.14,
+      "timingJitterMs": {
+        "kick": 2,
+        "snare": 2,
+        "snap": 9,
+        "shaker": 9,
+        "tambourine": 8
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "syncopation": 0.36,
+      "tresilloBias": 0.1
+    },
+    "snare": {
+      "layered": true,
+      "offGridMs": 0,
+      "ghost": {
+        "prob": 0.14,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.1,
+          0.26
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.42,
+      "velocities": {
+        "main": [
+          0.3,
+          0.5
+        ],
+        "ghost": [
+          0.1,
+          0.22
+        ]
+      },
+      "openHat": {
+        "prob": 0.06,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "snap",
+        "shaker",
+        "tambourine"
+      ],
+      "densityPerBar": [
+        4,
+        7
+      ],
+      "gainOffsetDb": -4
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "vi",
+          "IV"
+        ],
+        "weight": 3
+      }
+    ],
+    "extensions": {
+      "triad": 0.16,
+      "seventh": 0.54,
+      "ninth": 0.3
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        81
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    },
+    "susSubstitutionProb": 0.2
+  },
+  "melody": {
+    "register": [
+      63,
+      85
+    ],
+    "densityPerBar": [
+      5,
+      9
+    ],
+    "structure": "question_answer",
+    "intervals": {
+      "step": 0.89,
+      "third": 0.1,
+      "leap": 0.01
+    },
+    "contour": {
+      "riff": 0.26,
+      "descend": 0.34,
+      "arch": 0.4
+    },
+    "chordToneBias": 0.6,
+    "octaveJumpProb": 0.04,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        2,
+        3
+      ]
+    },
+    "timbreHint": "clean_guitar"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.45,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "arp"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.84,
+    "rhythm": "mirror_kick",
+    "register": [
+      28,
+      44
+    ],
+    "glideProb": 0.12,
+    "passingTones": [
+      "P5",
+      "M2"
+    ],
+    "cellShapes": [
+      [
+        "1",
+        "5"
+      ],
+      [
+        "1",
+        "5",
+        "1"
+      ]
+    ],
+    "anticipationProb": 0.24
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 2,
+      "verse": 8,
+      "chorus": 8,
+      "bridge": 4,
+      "outro": 2
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "chorus"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "bridge",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "switchUpProb": 0.14
+    }
+  }
+}

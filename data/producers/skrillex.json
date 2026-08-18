@@ -1,0 +1,368 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "skrillex",
+  "type": "producer",
+  "name": "Skrillex",
+  "aliases": [
+    "skrillex",
+    "sonny moore",
+    "jack u"
+  ],
+  "tier": "standard",
+  "extends": [
+    "dance-pop"
+  ],
+  "era": "2010-present",
+  "genres": [
+    "dance-pop",
+    "brostep",
+    "dubstep",
+    "producer"
+  ],
+  "relatedGenres": [
+    "dance-pop",
+    "future-bass",
+    "trap",
+    "pop-2020s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 dance-pop — Skrillex",
+    "Wikipedia — Skrillex (https://en.wikipedia.org/wiki/Skrillex)",
+    "Electro house (https://en.wikipedia.org/wiki/Electro_house)",
+    "Wikipedia — Diplo (https://en.wikipedia.org/wiki/Diplo)"
+  ],
+  "notes": "The brostep architect whose pop-crossover work belongs to this lane. Three tempo bands are documented — 140 for dubstep/brostep, 100-110 for the moombahton/trap crossovers, 126-130 for the house-facing material — and the modelled one is 140, because it is the only band the entry gives a drum grammar for: \"at 140 the kick lands on 1 and the snare on 3 with the hats filling 16ths — the half-time grammar that makes brostep feel like a 70-BPM record\". So `halfTime` is true and the snare is on `halftime_3`; the other two bands are named here rather than averaged in, since the compendium's rule is that rhythmic families are picked, never blended. ⚠ INFERRED: the entry states 140 as a single number, not a band, so the ±2 of playing room around it is a generator requirement rather than a reading — nothing above 140 is documented for him at all — and it is the same width this section's other point-tempo entries use (Deadmau5 at 128, Darude at 136). The model still extends `dance-pop` despite overriding the lane's four-on-the-floor spine, because the entry documents a four-on-the-floor mode of his own — \"126-130 for the house-facing material, four-on-the-floor with a clap on 2&4\" — and the volume's assignment notes place him here outright: \"Skrillex and Diplo were verified against `pop-2020s` and are absent from it, so both are written up here and both are taken.\" `future-bass` is a related genre, not the parent. \"His post-hardcore background shows in the fill density and the abrupt full-stop transitions\", which is the high hat fill density, the 32nd-weighted rolls and a drop-out probability at the top of this section. Harmony is subordinate to sound design — a static tonic, with the pop-facing records using a bright modal-major loop to carry the guest vocal — so the families are few and the harmonic rhythm is `vamp`-weighted. His single most influential pop-lane device is authored in the melody: on the crossover records \"a chopped, pitched guest vocal in the drop where the growl bass would be\", hence the chopped-vocal timbre and the riff-loop structure. No `bass808` block: the identity is an LFO-modulated mid-range growl plus a sub sine, which is a played bass part, and authoring the 808 would have deleted it. ⚠ The research marks the harmony `[LOW-CONF]` and calls the tempo/drum grammar dubstep and electro-house convention; both marks are repeated here, and all velocities and densities are INFERRED. ⚠ **`chords.harmonicRhythm` re-weighted (2026-08-17, harmony variety floor).** The entry's harmony line is \"minor-mode and modal with a static tonic; ... the pop-facing records use a bright modal-major four-chord loop to carry the guest vocal\", and the engine's `vamp` value is *one* chord held for the whole clip (`generators::chords`: \"One chord for the whole pattern\") — so weighting `vamp` at the top rendered a **one**-chord bed the research nowhere describes. The chord motion the entry states is now carried by `1_per_bar` (the pair over a 2-bar cell) and `2_bars_per_chord` (the pair over a 4-bar cell), with `vamp` kept as the minority for the held reading. The static tonic and the four-chord loop are both the entry's, so the three rates are weighted evenly rather than one of them being chosen for him. ⚠ The split between those two rates is **INFERRED** — the entry names the device, not its rate.",
+  "session": {
+    "bpm": {
+      "min": 138,
+      "max": 142,
+      "mode": 140
+    },
+    "halfTime": true,
+    "keys": {
+      "values": [
+        "Em",
+        "Am",
+        "Fm",
+        "Bm",
+        "Cm"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "phrygian",
+        "harmonic_minor"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.98,
+      "velocityVar": 0.13,
+      "timingJitterMs": {
+        "kick": 1,
+        "snare": 2,
+        "clap": 2,
+        "closedHat": 2
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        118,
+        127
+      ],
+      "main": [
+        88,
+        104
+      ],
+      "ghost": [
+        30,
+        50
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.46,
+      "tresilloBias": 0.12,
+      "offbeat8thShare": 0.5
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "layered": true,
+      "layerClapOffsetMs": [
+        1,
+        5
+      ],
+      "ghost": {
+        "prob": 0.28,
+        "pos": [
+          "4e",
+          "4a"
+        ],
+        "vel": [
+          0.3,
+          0.52
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": 0.68,
+      "openHat": {
+        "prob": 0.35,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          0,
+          2
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "32",
+            "64"
+          ],
+          "weights": [
+            2,
+            4,
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "pre_snare",
+          "bar_2"
+        ],
+        "freqPerBar": 0.5
+      }
+    },
+    "percs": {
+      "lanes": [
+        "impact",
+        "reverse",
+        "riser",
+        "perc"
+      ],
+      "densityPerBar": [
+        0,
+        3
+      ],
+      "placement": "downbeat",
+      "gainOffsetDb": -2
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 8,
+      "snareRollLadder": true,
+      "fillBeforeSection": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "bII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.72,
+      "seventh": 0.22,
+      "ninth": 0.06
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        3,
+        3,
+        3
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      66,
+      90
+    ],
+    "densityPerBar": [
+      4,
+      10
+    ],
+    "structure": "riff_loop",
+    "intervals": {
+      "step": 0.6,
+      "third": 0.26,
+      "leap": 0.14
+    },
+    "contour": {
+      "riff": 0.62,
+      "descend": 0.24,
+      "arch": 0.14
+    },
+    "chordToneBias": 0.7,
+    "halfStepDissonance": 0.08,
+    "octaveJumpProb": [
+      0.08,
+      0.2
+    ],
+    "articulation": "staccato",
+    "phraseBars": {
+      "values": [
+        1,
+        2,
+        4
+      ],
+      "weights": [
+        2,
+        4,
+        3
+      ]
+    },
+    "timbreHint": "chopped_vocal"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.65,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.68,
+    "rhythm": "independent_riff",
+    "register": [
+      26,
+      48
+    ],
+    "glideProb": 0.3,
+    "passingTones": [
+      "P5",
+      "m7",
+      "TT",
+      "P8"
+    ],
+    "anticipationProb": 0.34,
+    "cellShapes": [
+      [
+        "1",
+        "1",
+        "b5",
+        "1"
+      ],
+      [
+        "1",
+        "b7",
+        "1",
+        "b3"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 8,
+      "verse": 16,
+      "prechorus": 8,
+      "hook": 16,
+      "bridge": 8,
+      "outro": 4
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "hook",
+          "verse",
+          "hook",
+          "bridge",
+          "hook"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "prechorus",
+          "hook",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.9,
+        "beats": 2
+      },
+      "switchUpProb": 0.2
+    }
+  }
+}

@@ -1,0 +1,597 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "kacey-musgraves",
+  "type": "artist",
+  "name": "Kacey Musgraves",
+  "aliases": [
+    "kacey musgraves",
+    "casey musgraves",
+    "kaceymusgraves"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "country-pop"
+  ],
+  "era": "2013-2024",
+  "genres": [
+    "country-pop",
+    "country",
+    "disco crossover"
+  ],
+  "relatedGenres": [
+    "country-pop",
+    "dance-pop",
+    "pop-2020s",
+    "neo-soul"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 country-pop — Kacey Musgraves",
+    "Wikipedia — Golden Hour (https://en.wikipedia.org/wiki/Golden_Hour_(Kacey_Musgraves_album))",
+    "songdata.io (https://songdata.io/search?query=Kacey+Musgraves)",
+    "Splice — pedal steel (https://splice.com/blog/keeping-pedal-steel-guitar-alive/)"
+  ],
+  "notes": "The writerly, harmonically-curious pole of modern country and its most explicit pop/disco crossover — \"acoustic instruments such as pedal steel and banjo with synthesizers and vocoders.\" The harmony is the widest vocabulary in the section and every family here is named in the entry: \"I–V–vi–IV and I–IV–V on the country cuts, ii–V–I and Imaj7–IV on the yacht-rock cuts, i–VII–VI on the minor ones, plus documented 'hazy psychedelia' and disco influence that brings sustained major-7 and add9 voicings into a genre that normally avoids them\" — so the seventh and ninth shares are the highest of any country-pop model here, and the Imaj7–IV pair is authored as I–IV with that extension weighting rather than as a quality-bearing numeral the parser cannot read. The research documents three drum grammars; two are genuinely different lanes and are authored as moods — \"(a) sparse acoustic country with brushes/cross-stick and shaker\" and \"(b) a disco/four-on-the-floor kick with 8th open hats and claps on the crossover cut\" — while (c), the programmed Elektron bed under live cymbals, is a texture rather than a groove and is folded into the base model. The one explicit engine instruction is followed literally: \"model low velocity variance and high shaker/tambourine presence.\" Melody is \"mid-alto, deliberately plain and speech-adjacent with small intervals, long rests, and a conversational rhythm; harmony vocals are self-stacked in unison-plus-octave rather than thirds\" — which is why the counter is an octave echo rather than a lick trade. The mood bands come from the entry's own three sub-bands rather than from the outer 74–130: the `disco crossover` mood is the documented \"2018 crossover 89–120,\" which is why it stops at 120 and not at the base model's 130 — the only 130 reading in the entry is \"'Rainbow' E♭ ~130,\" a piano ballad rather than a disco cut, so it belongs to the base band alone. ⚠ INFERRED: that mood's 118 centre is a choice, not a quote — it sits between the two named crossover readings, \"'Space Cowboy' D♭ ~117\" and \"'High Horse' B minor ~120.\" ⚠ The bass is stated as \"live electric bass mostly … no trap sub,\" so no `drums.bass808` block is authored. ⚠ The per-track readings are [LOW-CONF]. ⚠ The INFERRED parameters are the mood weights, the perc density and the counter ratio.",
+  "session": {
+    "bpm": {
+      "min": 74,
+      "max": 130,
+      "mode": 98
+    },
+    "keys": {
+      "values": [
+        "F#",
+        "F#m",
+        "Bm",
+        "Db",
+        "Eb",
+        "D",
+        "Gm"
+      ],
+      "weights": [
+        3,
+        3,
+        3,
+        3,
+        2,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor",
+        "mixolydian",
+        "lydian"
+      ],
+      "weights": [
+        5,
+        3,
+        2,
+        1
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.94,
+      "velocityVar": 0.07,
+      "timingJitterMs": {
+        "kick": 2,
+        "snare": 2,
+        "shaker": 3,
+        "tambourine": 3
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "syncopation": 0.19,
+      "offbeat8thShare": 0.24
+    },
+    "snare": {
+      "crossStickVerses": true,
+      "ghost": {
+        "prob": 0.15,
+        "pos": [
+          "1a",
+          "3a"
+        ],
+        "vel": [
+          0.16,
+          0.3
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.22,
+      "openHat": {
+        "prob": 0.3,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "tambourine",
+        "rim",
+        "perc"
+      ],
+      "densityPerBar": [
+        5,
+        9
+      ],
+      "gainOffsetDb": -3,
+      "tambourine": true
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16,
+      "fillBeforeSection": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.32,
+      "seventh": 0.44,
+      "ninth": 0.24
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        50,
+        79
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        4,
+        3
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      57,
+      79
+    ],
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "intervals": {
+      "step": 0.84,
+      "third": 0.14,
+      "leap": 0.02
+    },
+    "contour": {
+      "riff": 0.14,
+      "descend": 0.36,
+      "arch": 0.5
+    },
+    "chordToneBias": 0.7,
+    "colorTones": true,
+    "halfStepDissonance": 0.08,
+    "emptyBarBias": 0.2,
+    "octaveJumpProb": 0.03,
+    "timbreHint": "pedal_steel_and_juno"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.42,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "sustain_pad",
+        "answer_lick"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.6,
+    "register": [
+      28,
+      47
+    ],
+    "passingTones": [
+      "P5",
+      "M2",
+      "M3",
+      "M6",
+      "m7"
+    ],
+    "anticipationProb": 0.3
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": [
+        8,
+        16
+      ],
+      "chorus": 8,
+      "bridge": [
+        4,
+        8
+      ],
+      "outro": [
+        2,
+        8
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "chorus",
+          "outro"
+        ],
+        "weight": 4
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.2,
+        "beats": 2
+      },
+      "switchUpProb": 0.16
+    }
+  },
+  "modes": [
+    {
+      "name": "acoustic country",
+      "weight": 4,
+      "session": {
+        "bpm": {
+          "min": 74,
+          "max": 101,
+          "mode": 88
+        },
+        "humanize": {
+          "quantizeStrength": 0.86,
+          "velocityVar": 0.13
+        }
+      },
+      "drums": {
+        "velocityTiers": {
+          "accent": [
+            90,
+            106
+          ],
+          "main": [
+            58,
+            76
+          ],
+          "ghost": [
+            20,
+            34
+          ]
+        },
+        "kick": {
+          "densityPerBar": [
+            1,
+            3
+          ],
+          "syncopation": 0.06,
+          "offbeat8thShare": 0.05
+        },
+        "snare": {
+          "ghost": {
+            "prob": 0.24,
+            "pos": [
+              "1a",
+              "3a",
+              "4a"
+            ],
+            "vel": [
+              0.12,
+              0.26
+            ]
+          }
+        },
+        "hihat": {
+          "base": "8th",
+          "fillDensity": 0.08,
+          "openHat": {
+            "prob": 0.08,
+            "pos": [
+              "4&"
+            ],
+            "perBar": [
+              0,
+              1
+            ]
+          }
+        },
+        "percs": {
+          "lanes": [
+            "shaker",
+            "rim"
+          ],
+          "densityPerBar": [
+            3,
+            6
+          ],
+          "gainOffsetDb": -5
+        }
+      },
+      "chords": {
+        "progressionFamilies": [
+          {
+            "roman": [
+              "I",
+              "IV",
+              "V"
+            ],
+            "weight": 5
+          },
+          {
+            "roman": [
+              "I",
+              "V",
+              "vi",
+              "IV"
+            ],
+            "weight": 4
+          },
+          {
+            "roman": [
+              "i",
+              "VII",
+              "VI"
+            ],
+            "weight": 2
+          }
+        ],
+        "extensions": {
+          "triad": 0.54,
+          "seventh": 0.36,
+          "ninth": 0.1
+        }
+      },
+      "melody": {
+        "densityPerBar": [
+          2,
+          5
+        ],
+        "emptyBarBias": 0.26,
+        "contour": {
+          "riff": 0.08,
+          "descend": 0.42,
+          "arch": 0.5
+        },
+        "chordToneBias": 0.82
+      }
+    },
+    {
+      "name": "disco crossover",
+      "weight": 3,
+      "session": {
+        "bpm": {
+          "min": 89,
+          "max": 120,
+          "mode": 118
+        },
+        "humanize": {
+          "quantizeStrength": 0.97,
+          "velocityVar": 0.06
+        }
+      },
+      "drums": {
+        "velocityTiers": {
+          "accent": [
+            110,
+            124
+          ],
+          "main": [
+            82,
+            98
+          ],
+          "ghost": [
+            28,
+            42
+          ]
+        },
+        "kick": {
+          "densityPerBar": [
+            4,
+            5
+          ],
+          "anchors": [
+            "1",
+            "2",
+            "3",
+            "4"
+          ],
+          "syncopation": 0.08,
+          "offbeat8thShare": 0.04
+        },
+        "snare": {
+          "layered": true,
+          "layerClapOffsetMs": [
+            1,
+            2
+          ],
+          "ghost": {
+            "prob": 0.08,
+            "pos": [
+              "3a"
+            ],
+            "vel": [
+              0.18,
+              0.3
+            ]
+          }
+        },
+        "hihat": {
+          "base": "8th",
+          "fillDensity": 0.3,
+          "openHat": {
+            "prob": 0.72,
+            "pos": [
+              "1&",
+              "2&",
+              "3&",
+              "4&"
+            ],
+            "perBar": [
+              2,
+              4
+            ]
+          }
+        },
+        "percs": {
+          "lanes": [
+            "snap",
+            "shaker",
+            "tambourine",
+            "conga"
+          ],
+          "densityPerBar": [
+            6,
+            10
+          ],
+          "gainOffsetDb": -2
+        }
+      },
+      "chords": {
+        "progressionFamilies": [
+          {
+            "roman": [
+              "ii",
+              "V",
+              "I"
+            ],
+            "weight": 5
+          },
+          {
+            "roman": [
+              "I",
+              "IV"
+            ],
+            "weight": 4
+          },
+          {
+            "roman": [
+              "i",
+              "VII",
+              "VI"
+            ],
+            "weight": 3
+          }
+        ],
+        "extensions": {
+          "triad": 0.2,
+          "seventh": 0.5,
+          "ninth": 0.3
+        }
+      },
+      "melody": {
+        "densityPerBar": [
+          4,
+          9
+        ],
+        "emptyBarBias": 0.06,
+        "contour": {
+          "riff": 0.24,
+          "descend": 0.28,
+          "arch": 0.48
+        },
+        "chordToneBias": 0.62,
+        "octaveJumpProb": [
+          0.1,
+          0.2
+        ]
+      }
+    }
+  ]
+}

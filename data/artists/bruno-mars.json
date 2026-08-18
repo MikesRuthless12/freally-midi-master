@@ -1,0 +1,384 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "bruno-mars",
+  "type": "artist",
+  "name": "Bruno Mars",
+  "aliases": [
+    "bruno mars",
+    "peter gene hernandez",
+    "brunomars",
+    "bruno"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2020s"
+  ],
+  "era": "2010-present",
+  "genres": [
+    "pop",
+    "pop-2020s",
+    "retro-soul",
+    "funk"
+  ],
+  "relatedGenres": [
+    "pop-2020s",
+    "funk",
+    "rnb-2000s",
+    "neo-soul"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2020s — Bruno Mars",
+    "Wikipedia — Bruno Mars (https://en.wikipedia.org/wiki/Bruno_Mars)",
+    "Wikipedia — Mark Ronson (https://en.wikipedia.org/wiki/Mark_Ronson)"
+  ],
+  "notes": "Live-band retro-soul/funk pop. Every number here comes off a live-ensemble claim: \"played kit tracked live with a full rhythm section, tight and dry, backbeat hard on 2&4, hi-hat 16ths with an accented offbeat; handclaps and tambourine doubling the backbeat as a period signature.\" So the snare is hard-transient with a short tail, `hihat.base` is 16th with a wide velocity spread and no roll vocabulary, the perc lanes are `tambourine` and `clave` at `downbeat` placement, and the humanize block is the loosest kind this section authors — a band, not a grid. The bass is a co-lead and not an 808: \"fingered or slapped electric bass playing a full syncopated funk line — the bass is a co-lead instrument, not a support\", which is `independent_riff` at `followRootsProb` 0.26 with slap-shaped cells. Harmony is the entry's most unusual claim for this lane: \"one- or two-chord vamps with extended dominants rather than progressions\", so `maxChords` is 2, `harmonicRhythm` is vamp-dominant and `seventh` carries half the weight; \"major-mode funk keys (D, E♭, B♭) with dominant-7th and 9th chords and blues-scale melodic borrowing\" is the key list and the `major_blues` scale weight. \"Toplines are call-and-response with the horns, short-celled, and rhythmically on top of the beat\" is `call_response` with a small motif; the counter is the live horn section, so `answer_lick` carries top weight. ⚠ `confidence` is medium against a high-medium rating because \"tempo/key bands inferred\": every drum probability, the humanize numbers, the melody register and the F and G in `session.keys` are INFERRED — the entry names \"major-mode funk keys (D, E♭, B♭)\" and no others. `bpm.mode` 112 is the midpoint of the stated 110—115 funk core.",
+  "session": {
+    "bpm": {
+      "min": 70,
+      "max": 115,
+      "mode": 112
+    },
+    "halfTime": false,
+    "keys": {
+      "values": [
+        "D",
+        "Eb",
+        "Bb",
+        "F",
+        "G"
+      ],
+      "weights": [
+        4,
+        4,
+        4,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "major_blues"
+      ],
+      "weights": [
+        5,
+        4,
+        3
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.7,
+      "velocityVar": 0.24,
+      "timingJitterMs": {
+        "kick": 9,
+        "snare": 8,
+        "closedHat": 11,
+        "openHat": 11,
+        "tambourine": 12,
+        "clave": 12
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.34,
+      "tresilloBias": 0.08,
+      "offbeat8thShare": 0.26
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "transient": "hard",
+      "reverb": "short",
+      "stack": [
+        "clap",
+        "snare"
+      ],
+      "layerClapOffsetMs": [
+        3,
+        8
+      ],
+      "ghost": {
+        "prob": 0.44,
+        "pos": [
+          "1a",
+          "2e",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.14,
+          0.32
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.46,
+      "velocities": {
+        "main": [
+          0.46,
+          0.94
+        ],
+        "ghost": [
+          0.16,
+          0.4
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0
+      },
+      "openHat": {
+        "prob": 0.34,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "clave",
+        "conga"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "placement": "downbeat",
+      "gainOffsetDb": -4
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16,
+      "snareRollLadder": false
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "ii",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.26,
+      "seventh": 0.5,
+      "ninth": 0.24
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        52,
+        80
+      ]
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      8,
+      32
+    ]
+  },
+  "melody": {
+    "register": [
+      60,
+      84
+    ],
+    "densityPerBar": [
+      5,
+      11
+    ],
+    "structure": "call_response",
+    "motifPitchCount": [
+      3,
+      5
+    ],
+    "intervals": {
+      "step": 0.66,
+      "third": 0.24,
+      "leap": 0.1
+    },
+    "contour": {
+      "riff": 0.46,
+      "descend": 0.34,
+      "arch": 0.2
+    },
+    "chordToneBias": 0.7,
+    "colorTones": [
+      3,
+      5,
+      7
+    ],
+    "octaveJumpProb": [
+      0.08,
+      0.18
+    ],
+    "phraseBars": {
+      "values": [
+        1,
+        2
+      ],
+      "weights": [
+        3,
+        4
+      ]
+    },
+    "endVariation": true,
+    "timbreHint": "horn_section"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.55,
+      0.8
+    ],
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.26,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      50
+    ],
+    "glideProb": 0.05,
+    "passingTones": [
+      "M2",
+      "m3",
+      "M3",
+      "P4",
+      "P5",
+      "M6",
+      "m7"
+    ],
+    "anticipationProb": 0.58,
+    "cellShapes": [
+      [
+        "1",
+        "5",
+        "b7",
+        "1"
+      ],
+      [
+        "1",
+        "b3",
+        "4",
+        "5"
+      ],
+      [
+        "1",
+        "1",
+        "5",
+        "4"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": [
+        8,
+        16
+      ],
+      "chorus": 8,
+      "bridge": 8,
+      "outro": [
+        4,
+        8
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.5,
+        "beats": 2
+      },
+      "switchUpProb": 0.14
+    }
+  }
+}

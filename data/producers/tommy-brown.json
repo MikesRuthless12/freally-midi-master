@@ -1,0 +1,376 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "tommy-brown",
+  "type": "producer",
+  "name": "Tommy Brown",
+  "aliases": [
+    "tommy brown",
+    "tbhits",
+    "tommybrown",
+    "thomas lee brown"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2020s"
+  ],
+  "era": "2008-present",
+  "genres": [
+    "pop",
+    "pop-2020s",
+    "producer",
+    "trap pop"
+  ],
+  "relatedGenres": [
+    "pop-2020s",
+    "trap-soul",
+    "rnb-2000s",
+    "trap"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2020s — Tommy Brown",
+    "Wikipedia — Tommy Brown (https://en.wikipedia.org/wiki/Tommy_Brown_(record_producer))",
+    "Wikipedia — 7 Rings (https://en.wikipedia.org/wiki/7_Rings)"
+  ],
+  "notes": "Darkchild-lineage R&B/trap-pop producer, and the one model in this section where the 808 takes the low end outright. ⛔ `drums.bass808.role` is `bassline` and no `bassline` block is authored, which means the bass generator returns nothing and the sub *is* the bass. That is the entry's own claim, not a shortcut: \"heavy 808 sub with short slides, tuned to the vamp's root and 5th; the sub is the only low-mid content so the vocal stack has room.\" Giving this model a separate bass part would put content exactly where the research says there is none. The trap-pop core is the encoded mode — \"half-time (backbeat on 3) in the trap mode and 2&4 straight in the R&B mode\", core 130—145 — so `halfTime` is true at `halftime_3`. Because the placement matches the parent, the separation comes from the kit: \"half-time trap skeleton with 16th and 32nd hat rolls, finger snaps, and a deliberately narrow velocity range\", so `velocityTiers` is the narrowest table in this section (a 14-point accent band) and the roll vocabulary is 32nd-led at a high frequency over a `snap`-only perc list. His artist's stated praise — \"none of the beats he plays me ever sound the same … variety is achieved by changing the percussion palette, not the tempo\" — is why the tempo band is tight while the perc density range is wide. Keys are documented: \"D♭ major/minor and A♭ major recur across his flagship catalogue; C♯ minor on his best-known single.\" Harmony is \"2- or 4-bar minor-7th/9th vamps with no modulation, chosen so a stacked vocal can sit on top\", which is the low `triad` share, the vamp weighting and `maxChords` 3; \"a sparse instrumental palette — a single plucked or keyed motif plus the 808 — because the arrangement is designed around a dense multi-layer vocal stack\" is the low melody density and the high-density `octave_echo` counter. ⚠ `confidence` is medium against a medium-high rating because the research says the drum detail is \"partly lane-derived\": every drum probability, the velocity tiers, the humanize pair and `bpm.mode` 137 (the midpoint of the stated 130—145 trap-pop core) are INFERRED.",
+  "session": {
+    "bpm": {
+      "min": 100,
+      "max": 145,
+      "mode": 137
+    },
+    "halfTime": true,
+    "keys": {
+      "values": [
+        "Db",
+        "Dbm",
+        "Ab",
+        "C#m"
+      ],
+      "weights": [
+        4,
+        4,
+        3,
+        3
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "major",
+        "dorian"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.96,
+      "velocityVar": 0.07,
+      "timingJitterMs": {
+        "snap": 3,
+        "closedHat": 2,
+        "kick": 1
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        96,
+        110
+      ],
+      "main": [
+        74,
+        86
+      ],
+      "ghost": [
+        34,
+        44
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3a",
+      "syncopation": 0.44,
+      "tresilloBias": 0.26,
+      "offbeat8thShare": 0.18,
+      "lockTo808": 0.9
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "stack": [
+        "clap",
+        "snap"
+      ],
+      "transient": "medium",
+      "reverb": "short",
+      "layerClapOffsetMs": [
+        2,
+        6
+      ],
+      "ghost": {
+        "prob": 0.24,
+        "pos": [
+          "2a",
+          "4a"
+        ],
+        "vel": [
+          0.2,
+          0.36
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.48,
+      "velocities": {
+        "main": [
+          0.66,
+          0.88
+        ],
+        "ghost": [
+          0.3,
+          0.5
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32",
+            "16"
+          ],
+          "weights": [
+            4,
+            2
+          ]
+        },
+        "positions": [
+          "pre_snare",
+          "phrase_end"
+        ],
+        "freqPerBar": 0.44,
+        "velocityRamp": true
+      },
+      "openHat": {
+        "prob": 0.18,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "snap",
+        "rim",
+        "perc",
+        "shaker"
+      ],
+      "densityPerBar": [
+        1,
+        6
+      ],
+      "placement": "any",
+      "gainOffsetDb": -6
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "slideProb": 0.28,
+      "slideIntervals": [
+        "P5",
+        "P4"
+      ],
+      "slidesPer4Bars": [
+        1,
+        2
+      ],
+      "register": [
+        26,
+        42
+      ],
+      "distortion": "light",
+      "monoCutSelf": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "iv"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.26,
+      "seventh": 0.46,
+      "ninth": 0.28
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        52,
+        78
+      ]
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      16
+    ]
+  },
+  "melody": {
+    "register": [
+      58,
+      84
+    ],
+    "densityPerBar": [
+      3,
+      8
+    ],
+    "structure": "riff_loop",
+    "motifPitchCount": [
+      3,
+      4
+    ],
+    "intervals": {
+      "step": 0.76,
+      "third": 0.18,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.56,
+      "descend": 0.32,
+      "arch": 0.12
+    },
+    "chordToneBias": 0.74,
+    "octaveJumpProb": [
+      0.06,
+      0.16
+    ],
+    "phraseBars": {
+      "values": [
+        1,
+        2
+      ],
+      "weights": [
+        3,
+        4
+      ]
+    },
+    "endVariation": true,
+    "timbreHint": "pitched_pluck"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.75,
+      0.95
+    ],
+    "styles": {
+      "values": [
+        "octave_echo",
+        "sustain_pad"
+      ],
+      "weights": [
+        6,
+        2
+      ]
+    }
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 2,
+      "verse": 16,
+      "chorus": 8,
+      "bridge": 4,
+      "outro": 2
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "chorus",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.5,
+        "beats": 2
+      },
+      "switchUpProb": 0.1
+    }
+  }
+}

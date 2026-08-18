@@ -1,0 +1,348 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "asleep-at-the-wheel",
+  "type": "artist",
+  "name": "Asleep at the Wheel",
+  "aliases": [
+    "asleep at the wheel",
+    "ride with bob"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-shuffle"
+  ],
+  "era": "1990-present",
+  "genres": [
+    "country",
+    "country-shuffle",
+    "western swing"
+  ],
+  "relatedGenres": [
+    "country-shuffle",
+    "country-train",
+    "country-pop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-shuffle — Asleep at the Wheel",
+    "Wikipedia — Asleep at the Wheel (https://en.wikipedia.org/wiki/Asleep_at_the_Wheel)",
+    "Wikipedia — Western swing (https://en.wikipedia.org/wiki/Western_swing)",
+    "bpmdatabase — Asleep at the Wheel (https://www.bpmdatabase.com/music/search/?artist=Asleep+at+the+Wheel)"
+  ],
+  "notes": "The western-swing revival institution, and the section calls this entry \"the engine's reference implementation of the fast, jazz-harmonised, quarter-kick shuffle\". Three documented facts drive the drums: the 4/4 quarter-note kick that the sourced post-1936 western-swing shift imposed (anchors on all four beats, densityPerBar 3–5 with the boogie cuts' doubled kick showing up as offbeat8thShare 0.12); the lope living \"on the ride rather than the hat\", which raises the inherited ride lane to 7–10 hits at −2 dB and drops the hat to fillDensity 0.2 with the open hat almost gone; and the sourced feel description, \"It wasn't all out boogie woogie; it was 'swingier' — more smooth and subdued\", which is read as narrowing the swing to 0.60 and reducing accent contrast to 98–118 over 72–88 against the genre's 104–127 over 74–92. The ghost stroke goes the other way and up to 0.42, because the documented advanced shuffle \"incorporates ghost notes filling remaining triplet subdivisions while maintaining accent clarity on counts 2 and 4\". Harmony is the entry's own western-swing vocabulary: full ii–V–I cycles, the secondary-dominant VI–II–V–I turnaround, diminished passing chords and — stated outright — \"four-note voicings here, not the triads used elsewhere in country\", so extensions run 0.2/0.55/0.25 and the voicing is close. Keys carry B♭, E♭, F and C at the same weight as the guitar keys because the repertoire inherited horn and piano keys along with its jazz harmony. ⚠ Those four are the entry's; which guitar keys sit under them is INFERRED, because the entry says only \"as common as guitar keys\" and names none — G and D are authored, the two that appear in every guitar-key list in this section. The bass is the archetype's purest walking entry — \"upright bass in walking quarter notes through the changes with chromatic approach notes … root–five two-beat is the exception rather than the rule\" — hence independent_riff at followRootsProb 0.62 with m2 in the passing tones. Melody is Ray Benson's \"low, relaxed baritone, laid-back and behind the beat\". ⚠ The INFERRED parameters are swing.amount, every velocity tier, the ghost probability, hat and ride densities, and the counter's density ratio; the section's swing-ratio percentages are marked [LOW-CONF] by their own author, and the per-track BPM readings are bpmdatabase values, [LOW-CONF] as a class. Mode 124 is the entry's \"Smoke! Smoke! Smoke!\" reading and sits inside its documented 100–198 band.",
+  "session": {
+    "bpm": {
+      "min": 100,
+      "max": 198,
+      "mode": 124
+    },
+    "keys": {
+      "values": [
+        "Bb",
+        "Eb",
+        "F",
+        "C",
+        "G",
+        "D"
+      ],
+      "weights": [
+        3,
+        3,
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "major_blues"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "8th",
+      "amount": 0.6
+    },
+    "humanize": {
+      "quantizeStrength": 0.76,
+      "velocityVar": 0.16
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        98,
+        118
+      ],
+      "main": [
+        72,
+        88
+      ],
+      "ghost": [
+        30,
+        46
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "syncopation": 0.1,
+      "offbeat8thShare": 0.12
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.42,
+        "pos": [
+          "1&",
+          "2&",
+          "3&",
+          "4&"
+        ],
+        "vel": [
+          0.26,
+          0.44
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.2,
+      "velocities": {
+        "main": [
+          0.42,
+          0.62
+        ],
+        "ghost": [
+          0.18,
+          0.34
+        ]
+      },
+      "openHat": {
+        "prob": 0.06,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "ride"
+      ],
+      "densityPerBar": [
+        7,
+        10
+      ],
+      "gainOffsetDb": -2
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "VI",
+          "II",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "vii°",
+          "ii",
+          "V"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "V",
+          "IV",
+          "I"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 6,
+    "extensions": {
+      "triad": 0.2,
+      "seventh": 0.55,
+      "ninth": 0.25
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        52,
+        80
+      ]
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        6,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      48,
+      72
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "intervals": {
+      "step": 0.64,
+      "third": 0.28,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.25,
+      "descend": 0.4,
+      "arch": 0.35
+    },
+    "chordToneBias": 0.72,
+    "octaveJumpProb": 0.04,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "articulation": "legato"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.5,
+      0.75
+    ],
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.62,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      50
+    ],
+    "glideProb": 0.01,
+    "passingTones": [
+      "P5",
+      "M3",
+      "M2",
+      "m2",
+      "M6",
+      "m7"
+    ],
+    "anticipationProb": 0.08
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "sectionBars": {
+      "intro": [
+        8,
+        16
+      ],
+      "verse": 8,
+      "chorus": 8,
+      "bridge": {
+        "values": [
+          8,
+          12,
+          16
+        ],
+        "weights": [
+          3,
+          2,
+          2
+        ]
+      },
+      "outro": [
+        4,
+        8
+      ]
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "switchUpProb": 0.26
+    }
+  }
+}

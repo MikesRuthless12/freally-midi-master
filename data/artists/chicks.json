@@ -1,0 +1,322 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "chicks",
+  "type": "artist",
+  "name": "The Chicks",
+  "aliases": [
+    "the chicks",
+    "chicks",
+    "dixie chicks"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "country-pop"
+  ],
+  "era": "1998-2006",
+  "genres": [
+    "country-pop",
+    "country",
+    "bluegrass crossover"
+  ],
+  "relatedGenres": [
+    "country-pop",
+    "country-train",
+    "country-shuffle",
+    "pop-2000s"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 country-pop — The Chicks (Dixie Chicks)",
+    "Wikipedia — Goodbye Earl (https://en.wikipedia.org/wiki/Goodbye_Earl)",
+    "Wikipedia — Wide Open Spaces (https://en.wikipedia.org/wiki/Wide_Open_Spaces_(song))",
+    "bpmdatabase (https://www.bpmdatabase.com/music/search/?artist=Dixie+Chicks)"
+  ],
+  "notes": "Bluegrass instrumentation played by the artists themselves inside a pop-country mix, with three-part family harmony as the hook device. Two harmonic facts are documented outright and are authored as the top families: \"'Goodbye Earl' C major, progression C–F/C–C–Gsus4 = I – IV/1 – I – Vsus4\" — encoded as I–IV–I–V with a raised `susSubstitutionProb`, because a sus is a quality the numeral parser cannot carry — and the entry's statement that \"the sus4-over-V and the IV-over-tonic-pedal are the signature harmonic moves.\" The documented vocal range G3–C5 is MIDI 55–72 and is the melody register; nothing about it is inferred. Drums are \"mixed drier and smaller than their peers\" with the build being \"drums, fiddle, and soft guitar and piano\" in verses opening to a banjo line at the chorus, so the kit is quiet, cross-stick and shaker carry the verses, and the arrangement rather than the kit does the dynamic work. The structural rule is quoted from the research: \"lines are not repeated in either the verses or chorus,\" so `endVariation` stays on and the melody is authored with a low two-bar cell repeat. ⚠ Boundary flag: the uptempo bluegrass-adjacent cuts push toward the train beat and that groove belongs to `country-train`. ⚠ The catalogue tempo readings beyond the two documented songs are [LOW-CONF]. ⚠ The INFERRED parameters are the drum velocities, the perc density and the countermelody ratio — \"drier and smaller,\" \"cross-stick and shaker verses\" and \"brushes on the acoustic cuts\" are directions, and 96–116 / 1–4 / 0.55 are this author's reading of them.",
+  "session": {
+    "bpm": {
+      "min": 65,
+      "max": 145,
+      "mode": 104
+    },
+    "keys": {
+      "values": [
+        "C",
+        "G",
+        "D",
+        "A",
+        "E"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "major_pentatonic"
+      ],
+      "weights": [
+        5,
+        3,
+        3
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.82,
+      "velocityVar": 0.17,
+      "timingJitterMs": {
+        "kick": 3,
+        "snare": 4,
+        "closedHat": 4,
+        "shaker": 6
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        96,
+        116
+      ],
+      "main": [
+        68,
+        84
+      ],
+      "ghost": [
+        28,
+        42
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "syncopation": 0.08,
+      "offbeat8thShare": 0.06
+    },
+    "snare": {
+      "crossStickVerses": true,
+      "ghost": {
+        "prob": 0.16,
+        "pos": [
+          "1a",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.16,
+          0.3
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.12,
+      "openHat": {
+        "prob": 0.14,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "tambourine",
+        "rim"
+      ],
+      "densityPerBar": [
+        1,
+        4
+      ],
+      "gainOffsetDb": -3,
+      "tambourine": true
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "bVII",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.74,
+      "seventh": 0.22,
+      "ninth": 0.04
+    },
+    "susSubstitutionProb": 0.52,
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      55,
+      72
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "contour": {
+      "riff": 0.18,
+      "descend": 0.34,
+      "arch": 0.48
+    },
+    "chordToneBias": 0.8,
+    "endVariation": true,
+    "twoBarCellRepeat": 0.15,
+    "timbreHint": "fiddle_and_banjo"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.55,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.92,
+    "register": [
+      28,
+      43
+    ],
+    "glideProb": 0,
+    "passingTones": [
+      "P5",
+      "M3"
+    ],
+    "anticipationProb": 0.06
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": [
+        8,
+        16
+      ],
+      "chorus": 8,
+      "bridge": [
+        8,
+        8
+      ],
+      "outro": [
+        2,
+        4
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "chorus"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.24,
+        "beats": 4
+      },
+      "switchUpProb": 0.18
+    }
+  }
+}

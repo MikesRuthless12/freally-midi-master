@@ -832,9 +832,21 @@ fn answer(
     // The root of whatever is sounding at *this phrase's* end, in the register.
     // ⛔ The offset matters: without it every phrase resolves onto the chord
     // that happened to be under the first one.
+    //
+    // ⛔ **The root only while the session's scale has it.** The chord was
+    // stacked in `theory::harmonic_degrees`, and a five- or six-note scale
+    // sounds over that key with notes missing from it: major pentatonic has no
+    // fourth, so `IV`'s root is a pitch this melody may not play. Resolving onto
+    // it is the one place this generator left its own key — `kygo`, which
+    // authors `major_pentatonic` and `halfStepDissonance: 0`, failed both
+    // `melody::every_shipped_melody_stays_in_its_key_and_register` and
+    // `coherence` on exactly that note. The next tone of the *same chord* the
+    // scale does have is still a resolution onto the harmony; the tonic is the
+    // fallback when there is no chord at all. See
+    // [`ChordEvent::tones_in_scale`].
     let root = chords
         .at(offset + last.tick)
-        .map(|event| event.root)
+        .and_then(|event| event.tones_in_scale(ctx).first().copied())
         .unwrap_or(ctx.key_root);
     let resolved = theory::pitch_class_in_register(root, low, high)
         .or_else(|| theory::fold_into_register(pitch_of(ctx, degrees, 1) as i16, low, high));

@@ -1,0 +1,368 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "pete-anderson",
+  "type": "producer",
+  "name": "Pete Anderson",
+  "aliases": [
+    "pete anderson",
+    "little dog"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "country-shuffle"
+  ],
+  "era": "1990-2002",
+  "genres": [
+    "country",
+    "country-shuffle",
+    "bakersfield",
+    "producer"
+  ],
+  "relatedGenres": [
+    "country-shuffle",
+    "country-pop",
+    "country-train"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 country-shuffle — Pete Anderson",
+    "Wikipedia — Pete Anderson (https://en.wikipedia.org/wiki/Pete_Anderson)",
+    "Mix — Classic Tracks: \"Streets of Bakersfield\" (https://www.mixonline.com/recording/classic-tracks-dwight-yoakam-and-buck-owens-streets-bakersfield-366215)",
+    "Wikipedia — Dwight Yoakam (https://en.wikipedia.org/wiki/Dwight_Yoakam)",
+    "Mix — Snow in Burbank (https://www.mixonline.com/recording/snow-burbank-375378)"
+  ],
+  "notes": "The producer-guitarist who rebuilt the Bakersfield sound as a commercial format, and the section's only Confidence: high producer entry. This model is the board, not the artist: where the Dwight Yoakam model encodes a tight-hat lope and a hard forward backbeat, this one encodes how those basics were captured. Basics were cut live \"in the way that Owens and his Buckaroos would have cut their songs 10 or 20 years before\", with no isolation — the research says \"bass and drums share room bleed — model correlated timing between them\" — so humanize is the loosest in this batch at quantizeStrength 0.62 / velocityVar 0.26 with 8–9 ms of jitter on the kit lanes, and the ride and rim lanes sit at −6 dB in a room rather than a booth. The most quotable fact in the section is his groove-selection rule, and it is authored rather than admired: he rewrote the signature record as a Tex-Mex polka on purpose — \"I thought it would be a cool way to do the Owens song because if you do a polka, everybody gets up and dances\" — which the research translates as \"groove choice is a dance-response decision, not a stylistic default\". The polka's straight, on-the-beat pulse is why this board's kick keeps offbeat8thShare down at 0.02 while the density stays 2–4: it is the two-beat and the oom-pah, not the boogie. His guitar role is the other load-bearing parameter, compared directly to Don Rich of the Buckaroos — \"a stinging second lead voice in single notes and double-stops rather than a chordal accompanist\" — so the melody block is a guitar block: staccato, third-heavy at 0.36, riff-weighted contour, 57–84. Hammond organ, fiddle, Dobro, lap steel and an \"in your face\" pedal steel sit in the counter as a three-style stack an octave up. Harmony stays deliberately plain — his documented range spans \"country, western, rock, rockabilly, soul, blues, Flamenco, Tex-Mex\", and the research's reading is that \"the *idiom* is a selectable parameter while the harmonic frame stays plain\", so the families are I–IV–V with V7, the I–I7–IV turn and twelve-bar frames, with triads still carrying 0.64. ⚠ INFERRED: swing.amount 0.66, every velocity tier, the ghost probability and positions, the roll frequency, the jitter values, and the percs density — the sources give a tracking philosophy, a console (Neve 8068), a tape machine (Studer A800) and a groove-selection quote, not numbers. ⚠ BPM 73–170 with mode 107 is the entry's own band, read from the same bpmdatabase catalogue as the Yoakam entry and [LOW-CONF] as a class. ⚠ era is 1990-2002 rather than the partnership's full 1984–2002 because the volume's Gate 2 starts at 1990, exactly as the entry states.",
+  "session": {
+    "bpm": {
+      "min": 73,
+      "max": 170,
+      "mode": 107
+    },
+    "keys": {
+      "values": [
+        "A",
+        "E",
+        "G",
+        "D"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "major_blues",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        5,
+        3,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "8th",
+      "amount": 0.66
+    },
+    "humanize": {
+      "quantizeStrength": 0.62,
+      "velocityVar": 0.26,
+      "timingJitterMs": {
+        "kick": 8,
+        "snare": 8,
+        "closedHat": 8,
+        "openHat": 8,
+        "ride": 9,
+        "rim": 7
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        106,
+        127
+      ],
+      "main": [
+        76,
+        94
+      ],
+      "ghost": [
+        30,
+        48
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "syncopation": 0.1,
+      "offbeat8thShare": 0.02
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.26,
+        "pos": [
+          "1&",
+          "3&",
+          "4&"
+        ],
+        "vel": [
+          0.2,
+          0.36
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.4,
+      "velocities": {
+        "main": [
+          0.52,
+          0.74
+        ],
+        "ghost": [
+          0.22,
+          0.4
+        ]
+      },
+      "openHat": {
+        "prob": 0.16,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "16T"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.16,
+        "velocityRamp": true
+      }
+    },
+    "percs": {
+      "lanes": [
+        "ride",
+        "rim"
+      ],
+      "densityPerBar": [
+        2,
+        6
+      ],
+      "gainOffsetDb": -6
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "I",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "I",
+          "V",
+          "IV",
+          "I"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "V",
+          "IV",
+          "I"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "IV"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 6,
+    "extensions": {
+      "triad": 0.64,
+      "seventh": 0.32,
+      "ninth": 0.04
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "vamp",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      57,
+      84
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "intervals": {
+      "step": 0.52,
+      "third": 0.36,
+      "leap": 0.12
+    },
+    "contour": {
+      "riff": 0.45,
+      "descend": 0.3,
+      "arch": 0.25
+    },
+    "chordToneBias": 0.72,
+    "octaveJumpProb": [
+      0.04,
+      0.12
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "articulation": "staccato"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.45,
+      0.7
+    ],
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad",
+        "arp"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.9,
+    "register": [
+      26,
+      46
+    ],
+    "glideProb": 0.01,
+    "passingTones": [
+      "P5",
+      "M3",
+      "M6",
+      "M2"
+    ],
+    "anticipationProb": 0.08
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "sectionBars": {
+      "intro": 4,
+      "verse": 8,
+      "chorus": 8,
+      "bridge": {
+        "values": [
+          8,
+          16
+        ],
+        "weights": [
+          2,
+          3
+        ]
+      },
+      "outro": [
+        2,
+        4
+      ]
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "switchUpProb": 0.2
+    }
+  }
+}

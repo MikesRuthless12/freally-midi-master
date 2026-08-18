@@ -1,0 +1,329 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "scott-hendricks",
+  "type": "producer",
+  "name": "Scott Hendricks",
+  "aliases": [
+    "scott hendricks",
+    "scotthendricks",
+    "scot hendricks"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "country-pop"
+  ],
+  "era": "1990-2025",
+  "genres": [
+    "country-pop",
+    "country",
+    "producer"
+  ],
+  "relatedGenres": [
+    "country-pop",
+    "pop-2000s",
+    "country-train"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 country-pop — Scott Hendricks",
+    "Mix — The Mix Interview: Scott Hendricks (https://www.mixonline.com/recording/profiles/the-mix-interview-producer-scott-hendricks)",
+    "Wikipedia — Scott Hendricks (https://en.wikipedia.org/wiki/Scott_Hendricks)"
+  ],
+  "notes": "Engineer-turned-producer-turned-executive with 78 No. 1s. The single most implementable fact in the entry is a micro-timing practice inherited from the Muscle Shoals rhythm section: he cites \"pocket\" and \"feel\" as the lesson, \"including tape-era micro-editing — 'cut out a sliver of 1/32 of an inch of two-inch tape to improve the feel.' That is a directly implementable parameter: sub-30ms timing shifts on individual hits to change groove.\" So this model authors a real `snare.offGridMs` and a per-lane jitter set that stays inside 30 ms, rather than a global looseness. The kit has two settings and both are stated: \"dry traditional kits on the country cuts, layered claps and 16th hats on the party cuts.\" The session block is authored rather than inherited because he names exactly that as the producer's job: \"have we nailed the right tempo, key and feel?\" — \"so in engine terms, tempo and key are outputs of a judgement, not defaults inherited from a template.\" The arrangement carries the era shift he documents, and it is a structural fact, not a business one: from \"record an album all at one time\" to \"maybe one or two days and we might track three songs at a time, then we wait until we find three more songs. Model modern albums as sets of independently-produced singles rather than one sonic sweep\" — which is the high `switchUpProb`. ⚠ The programmed sub on his 2013+ party productions is \"added under the electric bass,\" i.e. reinforcement, so no `drums.bass808` block. ⚠ No `keys` set is authored: he names key as a decision but the entry gives no letters, and inventing one would be inventing. ⚠ The INFERRED parameters are the specific offset and jitter values, the velocity tiers and the counter ratio.",
+  "session": {
+    "bpm": {
+      "min": 63,
+      "max": 156,
+      "mode": 104
+    },
+    "scales": {
+      "values": [
+        "major",
+        "major_pentatonic",
+        "natural_minor",
+        "mixolydian"
+      ],
+      "weights": [
+        5,
+        2,
+        2,
+        1
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.79,
+      "velocityVar": 0.18,
+      "timingJitterMs": {
+        "kick": 7,
+        "snare": 9,
+        "clap": 6,
+        "closedHat": 8,
+        "perc": 9
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        110,
+        127
+      ],
+      "main": [
+        74,
+        94
+      ],
+      "ghost": [
+        26,
+        42
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.21,
+      "offbeat8thShare": 0.29
+    },
+    "snare": {
+      "crossStickVerses": true,
+      "layered": true,
+      "layerClapOffsetMs": [
+        2,
+        6
+      ],
+      "offGridMs": 8,
+      "ghost": {
+        "prob": 0.19,
+        "pos": [
+          "1a",
+          "3a"
+        ],
+        "vel": [
+          0.16,
+          0.32
+        ]
+      }
+    },
+    "hihat": {
+      "base": {
+        "values": [
+          "8th",
+          "16th"
+        ],
+        "weights": [
+          3,
+          3
+        ]
+      },
+      "fillDensity": 0.25,
+      "openHat": {
+        "prob": 0.28,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "snap",
+        "shaker",
+        "tambourine",
+        "ride"
+      ],
+      "densityPerBar": [
+        2,
+        6
+      ],
+      "gainOffsetDb": -4,
+      "tambourine": true
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8,
+      "fillBeforeSection": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 3
+      }
+    ],
+    "extensions": {
+      "triad": 0.73,
+      "seventh": 0.23,
+      "ninth": 0.04
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        78
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        4
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      53,
+      82
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "intervals": {
+      "step": 0.72,
+      "third": 0.22,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.24,
+      "descend": 0.3,
+      "arch": 0.46
+    },
+    "chordToneBias": 0.8,
+    "octaveJumpProb": 0.05
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.52,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad",
+        "arp"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.86,
+    "rhythm": "mirror_kick",
+    "register": [
+      28,
+      45
+    ],
+    "passingTones": [
+      "P5",
+      "M2",
+      "M3"
+    ],
+    "anticipationProb": 0.17
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": [
+        8,
+        16
+      ],
+      "prechorus": 4,
+      "chorus": 8,
+      "bridge": [
+        4,
+        8
+      ],
+      "outro": [
+        2,
+        4
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "verse",
+          "prechorus",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 4
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.32,
+        "beats": 4
+      },
+      "switchUpProb": 0.44
+    }
+  }
+}

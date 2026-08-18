@@ -1,0 +1,239 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "ashlee-simpson",
+  "type": "artist",
+  "name": "Ashlee Simpson",
+  "aliases": [
+    "ashlee simpson",
+    "ashleesimpson"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "2004-2006",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "pop-rock"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "pop-2020s",
+    "dance-pop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — Ashlee Simpson",
+    "Wikipedia — \"Pieces of Me\" (https://en.wikipedia.org/wiki/Pieces_of_Me_(Ashlee_Simpson_song))",
+    "Wikipedia — John Shanks (https://en.wikipedia.org/wiki/John_Shanks)"
+  ],
+  "notes": "Guitar-driven American teen pop-rock — the same machine as the rest of the bench with the surface swapped for a live kit. 96–130 straight, backbeat on 2&4, major-key with a vi start running I–V–vi–IV and vi–IV–I–V, one key per song and no modulation. The drums are a live kit \"programmed-tight\", which is the only place `humanize` is touched: the grid stays hard while the velocity moves. Three deltas come from the entry — \"kick 1 and the '&' of 2\", \"hat 8ths in verse and open hat/ride 8ths in the chorus\" (8th-weighted base, ride in the percs, open hat probability up), and \"crash on every chorus downbeat\" plus \"single 16th snare fill into the last chorus\", which is the crash lane and the sparse fill schedule with a 16th snare-roll ladder. The identity instrument is \"a short 'stringy' clean-guitar riff… restated between vocal phrases\", so the melody is a `riff_loop` and the counter is an `answer_lick`. ⚠ `confidence` is medium because the research marks the tempo band **[LOW-CONF]** — there is no published BPM for the signature single and the band is inferred from the album's guitar-pop range; `bpm.mode` 104 is likewise this author's centre. ⚠ The **INFERRED** parameters are the drum probabilities and the melody density split (\"note density high in verse, long notes in chorus\" is a direction, and 4–10 is the reading).",
+  "session": {
+    "bpm": {
+      "min": 96,
+      "max": 130,
+      "mode": 104
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor"
+      ],
+      "weights": [
+        6,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.9,
+      "velocityVar": 0.17
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.32
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.16,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.2,
+          0.34
+        ]
+      }
+    },
+    "hihat": {
+      "base": {
+        "values": [
+          "8th",
+          "16th"
+        ],
+        "weights": [
+          4,
+          2
+        ]
+      },
+      "fillDensity": 0.42,
+      "openHat": {
+        "prob": 0.5,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.16
+      }
+    },
+    "percs": {
+      "lanes": [
+        "ride",
+        "crash",
+        "tambourine"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8,
+      "snareRollLadder": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.78,
+      "seventh": 0.16,
+      "ninth": 0.06
+    }
+  },
+  "melody": {
+    "register": [
+      57,
+      81
+    ],
+    "densityPerBar": [
+      4,
+      10
+    ],
+    "structure": "riff_loop",
+    "intervals": {
+      "step": 0.66,
+      "third": 0.24,
+      "leap": 0.1
+    },
+    "contour": {
+      "riff": 0.48,
+      "descend": 0.26,
+      "arch": 0.26
+    },
+    "chordToneBias": 0.72,
+    "octaveJumpProb": 0.14,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "clean_guitar"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.55,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.95,
+    "rhythm": "mirror_kick",
+    "register": [
+      30,
+      46
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.22
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 16,
+      "bridge": 8,
+      "outro": 8
+    }
+  }
+}

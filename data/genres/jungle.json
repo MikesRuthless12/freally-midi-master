@@ -37,7 +37,7 @@
     "style-research ch.2 §7 Drum & Bass",
     "style-research ch.3 DNB / UK — Chase & Status (ragga-jungle, amen-break chops), Nia Archives / PinkPantheress (jungle-pop tag)"
   ],
-  "notes": "Where liquid locks a clean two-step, jungle is a break that has been cut apart and put back in a different order. The 2 and the 4 still land, but the snare lane between them is full of quiet chopped hits across the whole 16th grid — the e's, the a's, the and-of-2, even the bare 3 — and the percussion runs about twice as busy as anything else in the family. The bass is a deep sine sub playing its own long figure rather than shadowing a chopped kick, the ragga lineage gives minor pentatonic and blues real weight, and the melody is the one sparse thing in the record: a dubby stab, a flipped sample, and a lot of air. Marked medium because the compendium names jungle in three single-line bullets — the ghost vocabulary and the 168 centre are extrapolated from the §10 DnB numbers rather than measured for jungle itself.",
+  "notes": "Where liquid locks a clean two-step, jungle is a break that has been cut apart and put back in a different order. The 2 and the 4 still land, but the snare lane between them is full of quiet chopped hits across the whole 16th grid — the e's, the a's, the and-of-2, even the bare 3 — and the percussion runs about twice as busy as anything else in the family. The bass is a deep sine sub playing its own long figure rather than shadowing a chopped kick, the ragga lineage gives minor pentatonic and blues real weight, and the melody is the one sparse thing in the record: a dubby stab, a flipped sample, and a lot of air. Marked medium because the compendium names jungle in three single-line bullets — the ghost vocabulary and the 168 centre are extrapolated from the §10 DnB numbers rather than measured for jungle itself. ⚠ **`drums.kick.lockTo808` removed (2026-08-17, 808 gate).** This kit has no 808 — `bass808` is `null` here or in the parent it inherits — and `lockTo808` is the one parameter that says *how much of the kick the 808 follows*, so in this file it described a pairing that does not exist: `generators::drums::bass808` returns on `block.is_none()` before the value is ever read, which makes it provably dead here. Where it was NOT dead was in the artists and producers who extend this kit and author an 808 of their own: they inherited the zero, `kicks.iter().filter(|_| rng.random_bool(0.0))` kept nothing, and their sub lane was silent at every seed — `bass808::every_shipped_model_with_an_808_produces_a_playable_line` reported \"no 808 at all\" for 35 of them. Removing it restores the engine's documented default of 1.0 for exactly those children and changes nothing here. ⚠ No researched claim moved: this kit's own statement about the 808 is the `bass808: null` beside it, and that is untouched.",
   "session": {
     "bpm": {
       "min": 160,
@@ -106,8 +106,7 @@
       "secondaryAnchor": "3a",
       "syncopation": 0.75,
       "offbeat8thShare": 0.28,
-      "tresilloBias": 0.2,
-      "lockTo808": 0
+      "tresilloBias": 0.2
     },
     "snare": {
       "placement": "backbeat_24",

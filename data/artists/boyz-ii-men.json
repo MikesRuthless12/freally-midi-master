@@ -1,0 +1,372 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "boyz-ii-men",
+  "type": "artist",
+  "name": "Boyz II Men",
+  "aliases": [
+    "boyz ii men",
+    "boyz 2 men",
+    "boyz to men"
+  ],
+  "tier": "standard",
+  "extends": [
+    "rnb-2000s"
+  ],
+  "era": "1991-1997",
+  "genres": [
+    "rnb-2000s",
+    "rnb",
+    "vocal group"
+  ],
+  "relatedGenres": [
+    "rnb-2000s",
+    "pop-2000s",
+    "neo-soul"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 rnb-2000s — Boyz II Men",
+    "songdata — Boyz II Men (https://songdata.io/search?query=Boyz+II+Men)",
+    "Wikipedia — Babyface (https://en.wikipedia.org/wiki/Babyface_(musician))",
+    "Wikipedia — Dallas Austin (https://en.wikipedia.org/wiki/Dallas_Austin)"
+  ],
+  "notes": "Philly vocal-quartet balladry on the Babyface / Jam & Lewis / Dallas Austin board, 1991–1997. The research's tempo line is \"63–76 half-time ballads (backbeat on 3 of a 126–152 grid) + 98–114 straight uptempo\", and the felt spine is what is encoded: 63–76 with `halfTime` true and `snare.placement` `halftime_3`, exactly the fold-back the section's sourcing note asks for. The 98–114 straight band is real but is the outlier (\"'Motownphilly' is the NJS outlier\") and is deliberately not modelled here rather than blurred into the ballad grid. Drum deltas are the entry's own: \"hats mostly absent and replaced by finger-snap or shaker\" gives an 8th base that is not continuous with a 0.08 fill density and a snap/shaker perc pair; \"soft-attack\" gives one or two kicks a bar with the genre's syncopation almost switched off. \"Four-part close harmony as the primary instrument — bass voice on the root, melody frequently the 3rd not the top\" is why the melody register sits low, `chordToneBias` is 0.88 and the bass is a near-literal root walk with root–5th–octave cell shapes. Harmony is \"diatonic major/minor with ii–V turnarounds\", so the families are functional rather than modal and `extensions.triad` climbs above the parent. ⚠ The INFERRED parameters are all velocity, density and register numbers, `swing.amount` 0.50 and the countermelody block; the research's drum grammar is marked `[LOW-CONF, genre-level]` for the NJS outlier and its semitone key-lift claim carries a `[LOW-CONF]` that the engine has no field for, so it is recorded here rather than encoded.",
+  "session": {
+    "bpm": {
+      "min": 63,
+      "max": 76,
+      "mode": 71
+    },
+    "halfTime": true,
+    "keys": {
+      "values": [
+        "Fm",
+        "D",
+        "G",
+        "F#",
+        "Db"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.5
+    },
+    "humanize": {
+      "quantizeStrength": 0.68,
+      "velocityVar": 0.22,
+      "timingJitterMs": {
+        "kick": 7,
+        "snare": 9,
+        "snap": 8,
+        "shaker": 9
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        1,
+        2
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.08,
+      "tresilloBias": 0.02,
+      "andOf4EveryOtherBar": 0
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "rimshotLayer": false,
+      "ghost": {
+        "prob": 0.06,
+        "pos": [
+          "3e"
+        ],
+        "vel": [
+          0.12,
+          0.24
+        ]
+      },
+      "offGridMs": [
+        2,
+        6
+      ]
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.08,
+      "velocities": {
+        "main": [
+          0.25,
+          0.4
+        ],
+        "ghost": [
+          0.1,
+          0.2
+        ]
+      },
+      "openHat": {
+        "prob": 0.03,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.02
+      }
+    },
+    "percs": {
+      "lanes": [
+        "snap",
+        "shaker"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "placement": "any",
+      "gainOffsetDb": -9
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "vi",
+          "ii",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "vi",
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.4,
+      "seventh": 0.45,
+      "ninth": 0.15
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        46,
+        76
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      55,
+      79
+    ],
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "intervals": {
+      "step": 0.8,
+      "third": 0.16,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.1,
+      "descend": 0.42,
+      "arch": 0.48
+    },
+    "chordToneBias": 0.88,
+    "octaveJumpProb": 0.02,
+    "articulation": "legato",
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "warm_grand_piano"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.3,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.92,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      44
+    ],
+    "glideProb": 0.04,
+    "passingTones": [
+      "P5",
+      "P8",
+      "M3"
+    ],
+    "anticipationProb": 0.1,
+    "cellShapes": [
+      [
+        "1",
+        "5",
+        "8"
+      ],
+      [
+        "1",
+        "5"
+      ],
+      [
+        "1",
+        "3",
+        "5"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": 8,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": [
+        8,
+        16
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.85,
+        "beats": 4
+      },
+      "switchUpProb": 0.1
+    }
+  }
+}

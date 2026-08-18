@@ -1,0 +1,378 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "olivia-rodrigo",
+  "type": "artist",
+  "name": "Olivia Rodrigo",
+  "aliases": [
+    "olivia rodrigo",
+    "olivia isabel rodrigo",
+    "rodrigo",
+    "livies"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "pop-2020s"
+  ],
+  "era": "2020-present",
+  "genres": [
+    "pop",
+    "pop-2020s",
+    "pop-rock",
+    "pop-punk"
+  ],
+  "relatedGenres": [
+    "pop-2020s",
+    "pop-2000s",
+    "emo-rap",
+    "country-pop"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2020s — Olivia Rodrigo",
+    "Wikipedia — Olivia Rodrigo (https://en.wikipedia.org/wiki/Olivia_Rodrigo)",
+    "Wikipedia — Drivers License (https://en.wikipedia.org/wiki/Drivers_License_(song))",
+    "songdata.io catalogue (https://songdata.io/search?query=Olivia+Rodrigo)"
+  ],
+  "notes": "Piano-and-guitar confessional pop on a 1990s alt-rock chassis, straight 2&4 against a half-time parent. The drum grammar is the entry's most specific claim and it is authored literally: \"ballads open drumless, then a kick + syncopated handclap pattern with the clap displaced off the backbeat\", so the snare stack is `clap` alone with a real `layerClapOffsetMs` spread and `offGridMs` pushing the backbeat late, and \"the documented device is switching the kick to double-time for the second verse\" is the wide `densityPerBar` range plus `fourOnFloorInChorus`. \"Rock mode is a live kit with crash-heavy chorus accents and no hat filigree\" is the low `fillDensity` and the `crash` perc lane. Harmony is \"close-position triads with pedal-tone left hand\" and \"loops are 4 bars\", so `triad` sits high and `chordDurationBeats` is a 4-bar frame; \"ballads favour major keys with borrowed minor iv for the pre-chorus lift\" is the `borrowed` map, which swaps a IV for a iv rather than writing a second family. Melody register is the documented \"drivers license\" span G3—F5 written in the low-middle; \"conversational and low in verses, then leaps to a sustained belt/near-shout at the chorus peak\" is the `octaveJumpProb` ceiling and the arch contour. Backing vocals are \"stacked in unison-plus-octave\", so the counter is `octave_echo`. There is no `bass808` block — the entry says \"no 808 lane; synth or electric bass entering late as the lift event\" — and the low `anticipationProb` is that lateness. ⚠ The INFERRED parameters are every drum probability, the humanize pair and `bpm.mode` 92 (the research gives ballads 78—105 and pop-rock 124—140, so the mode is the midpoint of the first-named core band). ⚠ The research's own fast-mode half-time reading is marked [LOW-CONF] there and is not encoded here.",
+  "session": {
+    "bpm": {
+      "min": 78,
+      "max": 140,
+      "mode": 92
+    },
+    "halfTime": false,
+    "keys": {
+      "values": [
+        "A",
+        "C",
+        "Eb",
+        "Ab",
+        "Bb"
+      ],
+      "weights": [
+        4,
+        4,
+        3,
+        3,
+        3
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor"
+      ],
+      "weights": [
+        6,
+        3
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.88,
+      "velocityVar": 0.16,
+      "timingJitterMs": {
+        "kick": 3,
+        "clap": 6,
+        "snare": 4,
+        "crash": 5
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        1,
+        6
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3",
+      "syncopation": 0.3,
+      "tresilloBias": 0.08,
+      "offbeat8thShare": 0.18,
+      "fourOnFloorInChorus": true
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "stack": [
+        "clap"
+      ],
+      "layerClapOffsetMs": [
+        6,
+        14
+      ],
+      "offGridMs": 5,
+      "ghost": {
+        "prob": 0.16,
+        "pos": [
+          "2e",
+          "4e"
+        ],
+        "vel": [
+          0.2,
+          0.36
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.16,
+      "velocities": {
+        "main": [
+          0.6,
+          0.86
+        ],
+        "ghost": [
+          0.2,
+          0.4
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.05
+      },
+      "openHat": {
+        "prob": 0.16,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "crash",
+        "tom",
+        "tambourine"
+      ],
+      "densityPerBar": [
+        0,
+        2
+      ],
+      "placement": "downbeat",
+      "gainOffsetDb": -4
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8,
+      "snareRollLadder": false
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "iii",
+          "IV",
+          "IV"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.78,
+      "seventh": 0.18,
+      "ninth": 0.04
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        50,
+        76
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ],
+    "borrowed": {
+      "iv": 0.3
+    }
+  },
+  "melody": {
+    "register": [
+      55,
+      77
+    ],
+    "densityPerBar": [
+      4,
+      10
+    ],
+    "structure": "long_arc",
+    "intervals": {
+      "step": 0.7,
+      "third": 0.22,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.24,
+      "descend": 0.28,
+      "arch": 0.48
+    },
+    "chordToneBias": 0.74,
+    "octaveJumpProb": [
+      0.12,
+      0.26
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        4
+      ]
+    },
+    "endVariation": true,
+    "timbreHint": "warm_grand_piano"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.35,
+      0.55
+    ],
+    "styles": {
+      "values": [
+        "octave_echo",
+        "sustain_pad"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.9,
+    "rhythm": "mirror_kick",
+    "register": [
+      28,
+      48
+    ],
+    "glideProb": 0.03,
+    "passingTones": [
+      "P5",
+      "M3",
+      "M2"
+    ],
+    "anticipationProb": 0.18,
+    "cellShapes": [
+      [
+        "1"
+      ],
+      [
+        "1",
+        "5"
+      ],
+      [
+        "1",
+        "5",
+        "3"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": 4
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "verse",
+          "prechorus",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.75,
+        "beats": 4
+      },
+      "switchUpProb": 0.1
+    }
+  }
+}

@@ -1,0 +1,356 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "ne-yo",
+  "type": "artist",
+  "name": "Ne-Yo",
+  "aliases": [
+    "ne yo",
+    "neyo",
+    "shaffer smith",
+    "so sick"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "rnb-2000s"
+  ],
+  "era": "2006-2010",
+  "genres": [
+    "rnb-2000s",
+    "rnb",
+    "pop"
+  ],
+  "relatedGenres": [
+    "rnb-2000s",
+    "pop-2000s",
+    "dance-pop",
+    "house"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 rnb-2000s — Ne-Yo",
+    "songdata — Ne-Yo (https://songdata.io/search?query=Ne-Yo)",
+    "Wikipedia — So Sick (https://en.wikipedia.org/wiki/So_Sick)",
+    "Wikipedia — Stargate (https://en.wikipedia.org/wiki/Stargate_(record_producers))",
+    "Wikipedia — Irreplaceable (https://en.wikipedia.org/wiki/Irreplaceable)"
+  ],
+  "notes": "Def Jam singer-songwriter carrying Stargate's track-first European pop-R&B, 2006–2010. The research gives \"86–100 straight (backbeat 2&4) plus a 122–128 four-on-the-floor tail from 2008\"; the R&B band is the base with the mode at 93, the sourced tempo of the signature record, and the club tail is a different lane. Three drum deltas, all from the entry: \"16th hats continuous and even (no swing)\" is why `swing.amount` is 0.50 with `quantizeStrength` 0.94 and `velocityVar` 0.1 — the most even kit in this section, in a genre whose stated rule is *not* to tighten it; \"snare/clap flat on 2&4\" is a clap stack with `offGridMs` 0; and \"a rim or snap ornament on the offbeat 16ths\" is an offbeat-placed rim/snap perc lane at three to five hits a bar. Harmony is the identifying claim and the research states it as a contrast: \"4-chord diatonic cycles, not 2-chord vamps — `I–V–ii–IV` is the template\", so that family leads, major keys dominate against a minor-leaning lane, and `maxChords` is 4. \"Melody-first writing with 'killer hooks'; light tenor, narrow interval range, heavy multi-tracked stacks\" is a 0.86 step share with a 4–9 density; \"guitar or cello as countermelody\" is the counter at −12 sharing weight between `answer_lick` and `sustain_pad`. The 808 in this entry is a **kit** — \"an 808 kit used as colour under acoustic instruments\" — not a bass, so no `drums.bass808` block and a normal bass part. ⚠ The INFERRED parameters are all velocity and density numbers and the melody register. ⚠ `session.keys` is part-sourced: the entry names `F#`, `Ab`, `Db`, `Bm`, and the remaining value `Bb`, together with all 5 weights, are INFERRED rather than read from the entry.",
+  "session": {
+    "bpm": {
+      "min": 86,
+      "max": 100,
+      "mode": 93
+    },
+    "halfTime": false,
+    "keys": {
+      "values": [
+        "F#",
+        "Ab",
+        "Db",
+        "Bb",
+        "Bm"
+      ],
+      "weights": [
+        3,
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor",
+        "mixolydian"
+      ],
+      "weights": [
+        5,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.5
+    },
+    "humanize": {
+      "quantizeStrength": 0.94,
+      "velocityVar": 0.1,
+      "timingJitterMs": {
+        "kick": 1,
+        "snare": 1,
+        "clap": 1,
+        "closedHat": 2,
+        "rim": 3
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.2,
+      "tresilloBias": 0.04,
+      "andOf4EveryOtherBar": 0.15
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "stack": [
+        "clap"
+      ],
+      "layerClapOffsetMs": [
+        0,
+        2
+      ],
+      "ghost": {
+        "prob": 0.1,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.14,
+          0.26
+        ]
+      },
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.66,
+      "velocities": {
+        "main": [
+          0.62,
+          0.8
+        ],
+        "ghost": [
+          0.34,
+          0.5
+        ]
+      },
+      "openHat": {
+        "prob": 0.2,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.08
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "snap"
+      ],
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "placement": "offbeat",
+      "gainOffsetDb": -7
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "ii",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "vi",
+          "IV",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.34,
+      "seventh": 0.46,
+      "ninth": 0.2
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        78
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      62,
+      80
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "intervals": {
+      "step": 0.86,
+      "third": 0.12,
+      "leap": 0.02
+    },
+    "contour": {
+      "riff": 0.26,
+      "descend": 0.36,
+      "arch": 0.38
+    },
+    "chordToneBias": 0.86,
+    "octaveJumpProb": 0.02,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "acoustic_guitar"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.46,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.8,
+    "rhythm": "independent_riff",
+    "register": [
+      30,
+      46
+    ],
+    "glideProb": 0.04,
+    "passingTones": [
+      "P5",
+      "M3",
+      "M2",
+      "P8"
+    ],
+    "anticipationProb": 0.26
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 8,
+      "prechorus": 4,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": 8
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "verse",
+          "prechorus",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.55,
+        "beats": 2
+      },
+      "switchUpProb": 0.12
+    }
+  }
+}

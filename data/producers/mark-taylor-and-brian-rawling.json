@@ -1,0 +1,257 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "mark-taylor-and-brian-rawling",
+  "type": "producer",
+  "name": "Mark Taylor & Brian Rawling (Metro)",
+  "aliases": [
+    "mark taylor and brian rawling",
+    "mark taylor",
+    "brian rawling",
+    "metro productions"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "1998-2003",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "producer"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "dance-pop",
+    "house"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — Mark Taylor & Brian Rawling (Metro)",
+    "Wikipedia — \"Believe\" (https://en.wikipedia.org/wiki/Believe_(Cher_song))",
+    "Wikipedia — \"Hero\" (https://en.wikipedia.org/wiki/Hero_(Enrique_Iglesias_song))"
+  ],
+  "notes": "The London europop room that industrialised pitch-processed dance-pop and Latin-pop crossover: 122–133 straight, four-on-the-floor with claps on 2&4, and ballads at 82–100 which are named here rather than encoded because they carry the other backbeat class. The whole drum block is quoted: \"kick on all four\" (density 4 on the four anchors with `syncopation` at 0.05), \"snare and clap layered on 2&4\", \"**open hat on every off-8th**\" (a 0.9 probability across all four \"&\"s at two to four per bar — the busiest open hat in this section), and \"16th shaker\" plus \"a filtered-noise riser **plus one bar of kick-only** into each chorus\", which is the shaker/riser perc block and a very high `dropOutBeats`. Harmony spans both wings they are documented for: the 1998 flagship's eight-chord cycle I–V–iii–IV–I–vi–iii–vii, and the ballads' i–VI–III–VII with a IV–V–I chorus lift — `maxChords` 8 to hold the long one. The bass is \"8th-note synth bass on roots, ducked under the kick, dropping out for the vocal-hook bars\". Their signature is the voice treated as a synth — Auto-Tune at an extreme retune speed so portamento disappears — which a note generator can only say as a staccato articulation with a high chord-tone bias. ⚠ The **INFERRED** parameters are every drum probability and the melody numbers; the DAW, synths, recorders, mics, tempo, key, progression and vocal method are all sourced, the values are not.",
+  "session": {
+    "bpm": {
+      "min": 122,
+      "max": 133,
+      "mode": 128
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor",
+        "mixolydian"
+      ],
+      "weights": [
+        5,
+        3,
+        1
+      ]
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": 4,
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.05
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.07,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.24,
+          0.4
+        ]
+      },
+      "layerClapOffsetMs": [
+        0,
+        2
+      ]
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.6,
+      "openHat": {
+        "prob": 0.9,
+        "pos": [
+          "1&",
+          "2&",
+          "3&",
+          "4&"
+        ],
+        "perBar": [
+          2,
+          4
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.12
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "riser",
+        "snap"
+      ],
+      "densityPerBar": [
+        3,
+        6
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "iii",
+          "IV",
+          "I",
+          "vi",
+          "iii",
+          "vii"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "IV",
+          "V",
+          "I"
+        ],
+        "weight": 3
+      }
+    ],
+    "maxChords": 8,
+    "extensions": {
+      "triad": 0.6,
+      "seventh": 0.3,
+      "ninth": 0.1
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        6,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      58,
+      80
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "intervals": {
+      "step": 0.72,
+      "third": 0.22,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.44,
+      "descend": 0.28,
+      "arch": 0.28
+    },
+    "chordToneBias": 0.84,
+    "octaveJumpProb": 0.06,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    },
+    "articulation": "staccato"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.6,
+    "styles": {
+      "values": [
+        "arp",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.96,
+    "rhythm": "mirror_kick",
+    "register": [
+      30,
+      46
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.12
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 8,
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 16,
+      "bridge": 8,
+      "outro": 8
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.96,
+        "beats": 4
+      },
+      "switchUpProb": 0.07
+    }
+  }
+}

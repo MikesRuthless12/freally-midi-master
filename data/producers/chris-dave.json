@@ -1,0 +1,311 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "chris-dave",
+  "type": "producer",
+  "name": "Chris Dave",
+  "aliases": [
+    "chris dave",
+    "drumhedz",
+    "displaced backbeat"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "2009-present",
+  "genres": [
+    "producer",
+    "soul",
+    "neo-soul",
+    "jazz"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "rnb-2000s",
+    "boom-bap",
+    "trap-soul"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Chris Dave",
+    "Wikipedia — Chris Dave (https://en.wikipedia.org/wiki/Chris_Dave)",
+    "Wikipedia — Robert Glasper (https://en.wikipedia.org/wiki/Robert_Glasper)",
+    "Wikipedia — D'Angelo (https://en.wikipedia.org/wiki/D%27Angelo)"
+  ],
+  "notes": "The lane's second defining drummer, and the entry hands over a five-point parameter set: \"(1) The snare lands a 16th or 32nd early or late of 2&4, and the amount changes bar to bar. (2) Ghost strokes and buzz rolls fill every gap, so the 32nd grid is continuously occupied at low velocity. (3) Hats are often absent or replaced by a stack of trashy/broken cymbals and found objects; timbre changes are used as accents instead of dynamics. (4) He quotes hip-hop programming on an acoustic kit. (5) Frequent implied metric modulation.\" Points 1–3 are authored directly: the largest snare displacement in the roster at 16–32 ms, a ghost probability of 0.8 across all eight 16th positions at the lowest ghost velocities here, a non-continuous hat at a fill density of 0.2, and a percussion set of crash, ride, ride-bell and perc rather than shakers and congas. The buzz rolls are `snareRoll` at 32nd and 32nd-triplet subdivisions with a low velocity ramp and a high gap probability. \"No fills in the conventional sense — the whole part is a fill\" is why `fills` sit at 2 and 4 bars, the tightest in the section. As a bandleader \"the drum part is the hook and the harmony is a static m9 bed\", so the chords are two-chord, ninth-heavy and vamped, and the melody is low-density with a raised `emptyBarBias`. \"He pairs with a played bass (Derrick Hodge, Pino Palladino) and interlocks with it rather than with a click; his kick answers the bass line's rests\" — an independent bass at a high anticipation, and no `bass808` block. ⚠ The INFERRED parameters are the concrete displacement values (the research marks these [LOW-CONF] itself), all hat and perc numbers, and every melody and chord figure. ⚠ The implied metric modulation is not encodable and is not encoded. ⚠ **`chords.harmonicRhythm` gained `syncopated_cell` (2026-08-17, harmony variety floor).** The entry says \"n/a as a harmonist; he plays against Glasper's or D'Angelo's harmony\", and \"the drum part is the hook and the harmony is a static m9 bed\". `chordDurationBeats` is the only parameter carrying a loop length, and it was **dead here**: `generators::chords::layout` reads it under `syncopated_cell` alone, which this model did not author — so every generation was one 4-bar hold instead of the documented loop. The sonority itself does not move: over a single-chord family every cell is the same chord re-voiced. ⚠ The cell range [8, 16] was already authored here; the change is that `syncopated_cell` lets the m9 bed re-voice across the clip instead of sitting on one 4-bar block. ⚠ **The countermelody reached 964/1000 distinct answers against a floor of 980 (2026-08-17, counter variety floor).** `melody.emptyBarBias` came down from 0.24 to 0.1. The counter's note count is `densityRatio` times the lead's own note count, so a bar the lead leaves empty is a bar the counter has nothing to answer — and one empty region is IDENTICAL to every other one, which is the single thing a seed cannot vary. Measured across this roster the models failing this gate average 0.150 here against 0.030 for the models that pass. ⚠ The value that moved here is INFERRED rather than a researched claim — the entry's Melody/chords line reads \"as a bandleader (Chris Dave and the Drumhedz, Blue Note) he arranges around the kit — the drum part is the hook and the harmony is a static m9 bed.\", and every claim in it still holds after the change.",
+  "session": {
+    "bpm": {
+      "min": 60,
+      "max": 115,
+      "mode": 88
+    },
+    "scales": {
+      "values": [
+        "dorian",
+        "natural_minor",
+        "major",
+        "melodic_minor"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        1
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.3,
+      "velocityVar": 0.34,
+      "timingJitterMs": {
+        "kick": 10,
+        "snare": 26,
+        "closedHat": 14,
+        "rim": 16,
+        "perc": 14
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "syncopation": 0.62,
+      "tresilloBias": 0.14
+    },
+    "snare": {
+      "offGridMs": [
+        16,
+        32
+      ],
+      "ghost": {
+        "prob": 0.8,
+        "pos": [
+          "1e",
+          "1a",
+          "2e",
+          "2a",
+          "3e",
+          "3a",
+          "4e",
+          "4a"
+        ],
+        "vel": [
+          0.08,
+          0.3
+        ]
+      }
+    },
+    "hihat": {
+      "base": {
+        "values": [
+          "16th",
+          "8th"
+        ],
+        "weights": [
+          2,
+          3
+        ]
+      },
+      "continuous": false,
+      "fillDensity": 0.2,
+      "velocities": {
+        "main": [
+          0.18,
+          0.42
+        ],
+        "ghost": [
+          0.05,
+          0.18
+        ]
+      },
+      "openHat": {
+        "prob": 0.08,
+        "pos": [
+          "3a"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "crash",
+        "ride",
+        "rideBell",
+        "perc"
+      ],
+      "densityPerBar": [
+        2,
+        6
+      ],
+      "gainOffsetDb": -5
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 4
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "32",
+        "32T",
+        "16t"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        24,
+        72
+      ],
+      "rampJitter": 18,
+      "gapProb": 0.44,
+      "descendProb": 0.4
+    }
+  },
+  "chords": {
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.02,
+      "seventh": 0.42,
+      "ninth": 0.56
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        50,
+        82
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "syncopated_cell",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        3,
+        3,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      8,
+      16
+    ]
+  },
+  "melody": {
+    "register": [
+      56,
+      80
+    ],
+    "densityPerBar": [
+      2,
+      5
+    ],
+    "structure": "long_arc",
+    "intervals": {
+      "step": 0.84,
+      "third": 0.14,
+      "leap": 0.02
+    },
+    "contour": {
+      "riff": 0.2,
+      "descend": 0.42,
+      "arch": 0.38
+    },
+    "chordToneBias": 0.6,
+    "emptyBarBias": 0.1,
+    "octaveJumpProb": 0.04,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        2,
+        3
+      ]
+    },
+    "timbreHint": "rhodes_pad"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.35,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.3,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      48
+    ],
+    "glideProb": 0.06,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2",
+      "M6"
+    ],
+    "anticipationProb": 0.6
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        8
+      ],
+      "verse": [
+        8,
+        16
+      ],
+      "chorus": [
+        4,
+        12
+      ],
+      "outro": [
+        2,
+        12
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "verse",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "switchUpProb": 0.5
+    }
+  }
+}

@@ -1,0 +1,373 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "john-legend",
+  "type": "artist",
+  "name": "John Legend",
+  "aliases": [
+    "john legend",
+    "john stephens",
+    "ordinary people",
+    "get lifted"
+  ],
+  "tier": "standard",
+  "extends": [
+    "rnb-2000s"
+  ],
+  "era": "2004-2010",
+  "genres": [
+    "rnb-2000s",
+    "rnb",
+    "soul"
+  ],
+  "relatedGenres": [
+    "rnb-2000s",
+    "neo-soul",
+    "boom-bap",
+    "funk"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 rnb-2000s — John Legend",
+    "Wikipedia — Ordinary People (https://en.wikipedia.org/wiki/Ordinary_People_(John_Legend_song))",
+    "bpmdatabase — John Legend (https://www.bpmdatabase.com/music/search/?artist=John+Legend)",
+    "Splice — John Legend on songwriting (https://splice.com/blog/john-legend-on-songwriting/)"
+  ],
+  "notes": "Piano-and-voice soul in the Kanye / GOOD Music orbit, 2004–2010. The research gives \"79–100 straight\" and marks the band edges `[LOW-CONF]`, so the band is used as written with the mode at 88 and `halfTime` false. The drum grammar has an unusual starting point: \"the signature record has **no drums at all** — grand piano, strings and harmonica only\", with a chopped-soul-sample kit elsewhere, itself marked `[LOW-CONF]`. Both halves are encoded honestly: a 0.3 `beatSkipProb` and a one-to-three-hit kick are how a model says \"the drums may not be there\", the hat lane sits at an 8th base and 0.12 fill density, and the snare is pushed 3–8 ms with `quantizeStrength` at 0.64 for the sampled, unquantised feel. Harmony is the identifying parameter: \"60s/70s soul harmony — I–vi–ii–V families with 7ths and 9ths, 4- and 8-bar cycles, gospel voice-leading\", and the sourced key is F major, with the main progression derived from a transposed Stevie Wonder cycle — so every family is diatonic-major functional, unusual in this minor-leaning lane. \"Tenor lead with restrained melisma and conversational phrasing\" is the 0.78 step share and the 3–8 density; \"countermelody from strings or harmonica\" is the counter at +12 with `answer_lick` leading. The bass is \"piano left hand as the bass on the ballads; on the produced cuts a sampled bass under a filtered soul loop\" — a real bass part with walking cells and no `bass808` block. ⚠ The INFERRED parameters are every velocity and density number and `swing.amount` 0.58. ⚠ `session.keys` is part-sourced: the entry names `F`, and the remaining values `Bb`, `C`, `Eb`, `Dm`, together with all 5 weights, are INFERRED rather than read from the entry.",
+  "session": {
+    "bpm": {
+      "min": 79,
+      "max": 100,
+      "mode": 88
+    },
+    "halfTime": false,
+    "keys": {
+      "values": [
+        "F",
+        "Bb",
+        "C",
+        "Eb",
+        "Dm"
+      ],
+      "weights": [
+        4,
+        2,
+        2,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "natural_minor",
+        "dorian"
+      ],
+      "weights": [
+        4,
+        2,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.58
+    },
+    "humanize": {
+      "quantizeStrength": 0.64,
+      "velocityVar": 0.24,
+      "timingJitterMs": {
+        "kick": 6,
+        "snare": 8,
+        "tambourine": 10,
+        "shaker": 10
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.2,
+      "tresilloBias": 0.06,
+      "beatSkipProb": 0.3,
+      "andOf4EveryOtherBar": 0.1
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "ghost": {
+        "prob": 0.16,
+        "pos": [
+          "2a",
+          "4e"
+        ],
+        "vel": [
+          0.16,
+          0.3
+        ]
+      },
+      "offGridMs": [
+        3,
+        8
+      ]
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.12,
+      "velocities": {
+        "main": [
+          0.24,
+          0.42
+        ],
+        "ghost": [
+          0.1,
+          0.22
+        ]
+      },
+      "openHat": {
+        "prob": 0.06,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.04
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "shaker",
+        "rim"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "placement": "any",
+      "gainOffsetDb": -8
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "vi",
+          "ii",
+          "V"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "vi",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "iii",
+          "IV",
+          "ii"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.18,
+      "seventh": 0.5,
+      "ninth": 0.32
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        45,
+        78
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      57,
+      81
+    ],
+    "densityPerBar": [
+      3,
+      8
+    ],
+    "intervals": {
+      "step": 0.78,
+      "third": 0.18,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.12,
+      "descend": 0.42,
+      "arch": 0.46
+    },
+    "chordToneBias": 0.82,
+    "octaveJumpProb": 0.05,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "warm_grand_piano"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.44,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.66,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      44
+    ],
+    "glideProb": 0.05,
+    "passingTones": [
+      "P5",
+      "M3",
+      "M2",
+      "M6",
+      "P4"
+    ],
+    "anticipationProb": 0.26,
+    "cellShapes": [
+      [
+        "1",
+        "5",
+        "8"
+      ],
+      [
+        "1",
+        "3",
+        "5"
+      ],
+      [
+        "1",
+        "5",
+        "6",
+        "5"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": 8,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": 8
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.65,
+        "beats": 4
+      },
+      "switchUpProb": 0.1
+    }
+  }
+}

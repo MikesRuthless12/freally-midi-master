@@ -1,0 +1,372 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "daheala",
+  "type": "producer",
+  "name": "DaHeala",
+  "aliases": [
+    "daheala",
+    "jason quenneville",
+    "da heala",
+    "daheala producer"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2020s"
+  ],
+  "era": "2013-present",
+  "genres": [
+    "pop",
+    "pop-2020s",
+    "producer",
+    "synth-pop"
+  ],
+  "relatedGenres": [
+    "pop-2020s",
+    "trap-soul",
+    "dance-pop",
+    "house"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2020s — DaHeala",
+    "Wikipedia — DaHeala (https://en.wikipedia.org/wiki/DaHeala)",
+    "Music Week — \"we're the guys behind him who make the machine work\" (https://www.musicweek.com/publishing/read/living-for-the-weeknd-we-re-the-guys-behind-him-who-make-the-machine-work/064982)"
+  ],
+  "notes": "The compositional half of the same Toronto alt-R&B axis, encoded on the alt-R&B mode the Lane line names first, so `halfTime` is true at `halftime_3` with the retro-synth mode's 118—132 inside the band. Where his co-producer's entry is about reverb, this one is about the switch between two whole percussion sets: \"sparse half-time kick/snare with reverb-heavy claps for the R&B mode; a gated 1980s snare on 2&4 with a four-square kick for the retro-synth mode. Percussion changes wholesale between sections.\" That wholesale change is a `percs.densityPerBar` that runs 0—5 and a `switchUpProb` of 0.2, and the gated retro snare is the `large` reverb with a `hard` transient — the opposite pairing to the soft-in-a-hall snare of the other half of the axis. \"He DJ'd from 13 and produces in FL Studio, so patterns are pattern-block based rather than linear\" is the high `quantizeStrength` under a moderate velocity spread. The 808 is authored because the entry names it and makes it the mode marker: \"sustained 808/sub in the R&B mode; a pumping analogue-style synth bass on 8ths in the retro mode — the low end is what signals which mode a track is in\", so `bass808` is `counter_riff` with a legato sustain while the bassline runs `offbeat_8ths` for the retro half. Harmony is \"minor keys with a strong ii—V or VI—VII cadence and a taste for 1980s synth-pop harmony\", carried as those two families, and \"loops are 4 or 8 bars with real harmonic motion\" is why `vamp` is absent from `harmonicRhythm`. \"Countermelody is a synth arpeggio\" is `arp` at top weight. ⚠ `confidence` is medium and the research says why: \"harmonic/drum detail inferred from the records and marked\". Every drum probability, the humanize numbers and `bpm.mode` 70 (a felt-spine reading of the same 60—150 band his co-producer's entry folds) are INFERRED.",
+  "session": {
+    "bpm": {
+      "min": 60,
+      "max": 132,
+      "mode": 70
+    },
+    "halfTime": true,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "major"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.94,
+      "velocityVar": 0.14,
+      "timingJitterMs": {
+        "clap": 6,
+        "kick": 3,
+        "snare": 4
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        1,
+        4
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.3,
+      "tresilloBias": 0.14,
+      "offbeat8thShare": 0.14,
+      "fourOnFloorInChorus": true
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "stack": [
+        "clap",
+        "snare"
+      ],
+      "transient": "hard",
+      "reverb": "large",
+      "layerClapOffsetMs": [
+        6,
+        14
+      ],
+      "ghost": {
+        "prob": 0.16,
+        "pos": [
+          "2a",
+          "4a"
+        ],
+        "vel": [
+          0.16,
+          0.32
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.2,
+      "velocities": {
+        "main": [
+          0.44,
+          0.72
+        ],
+        "ghost": [
+          0.16,
+          0.34
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_2"
+        ],
+        "freqPerBar": 0.08
+      },
+      "openHat": {
+        "prob": 0.24,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          0,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "perc",
+        "riser",
+        "shaker"
+      ],
+      "densityPerBar": [
+        0,
+        5
+      ],
+      "placement": "offbeat",
+      "gainOffsetDb": -6
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8,
+      "snareRollLadder": false
+    },
+    "bass808": {
+      "role": "counter_riff",
+      "sustain": "legato",
+      "slideProb": 0.08,
+      "register": [
+        24,
+        40
+      ],
+      "distortion": "none"
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "ii",
+          "V",
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.42,
+      "seventh": 0.4,
+      "ninth": 0.18
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        50,
+        79
+      ]
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        4
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      12
+    ]
+  },
+  "melody": {
+    "register": [
+      57,
+      82
+    ],
+    "densityPerBar": [
+      3,
+      9
+    ],
+    "structure": "question_answer",
+    "intervals": {
+      "step": 0.72,
+      "third": 0.22,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.34,
+      "descend": 0.36,
+      "arch": 0.3
+    },
+    "chordToneBias": 0.72,
+    "octaveJumpProb": [
+      0.04,
+      0.14
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "endVariation": true,
+    "timbreHint": "retro_synth"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.5,
+      0.75
+    ],
+    "styles": {
+      "values": [
+        "arp",
+        "bell_echo"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.9,
+    "rhythm": "offbeat_8ths",
+    "register": [
+      26,
+      46
+    ],
+    "glideProb": 0.04,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2"
+    ],
+    "anticipationProb": 0.28,
+    "cellShapes": [
+      [
+        "1",
+        "1"
+      ],
+      [
+        "1",
+        "5",
+        "1"
+      ],
+      [
+        "1",
+        "b7"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 8,
+      "bridge": 4,
+      "outro": [
+        4,
+        8
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "chorus",
+          "verse",
+          "prechorus",
+          "chorus"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.7,
+        "beats": 4
+      },
+      "switchUpProb": 0.2
+    }
+  }
+}

@@ -1,0 +1,336 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "aqua",
+  "type": "artist",
+  "name": "Aqua",
+  "aliases": [
+    "aqua",
+    "lene nystrom",
+    "rene dif",
+    "bubblegum dance aqua"
+  ],
+  "tier": "standard",
+  "extends": [
+    "dance-pop"
+  ],
+  "era": "1996-2000",
+  "genres": [
+    "dance-pop",
+    "bubblegum-dance",
+    "eurodance",
+    "pop"
+  ],
+  "relatedGenres": [
+    "dance-pop",
+    "pop-2000s",
+    "house"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 dance-pop — Aqua",
+    "Wikipedia — Aqua (https://en.wikipedia.org/wiki/Aqua_(band))",
+    "Eurodance (https://en.wikipedia.org/wiki/Eurodance)"
+  ],
+  "notes": "Danish-Norwegian bubblegum-dance, and the defining parameter the research names is the vocal casting rather than the beat: \"René Dif's low, spoken/growled male character voice trading against Lene Nystrøm's very high, thin, girlish lead — a character-duet structure rather than the rap/diva split\". That is encoded as a very high lead melody at 76-98 with the countermelody set an octave below at a 0.55 density, answering rather than doubling. The harmony is \"deliberately nursery-simple — two to four chords, no extensions\" `[LOW-CONF]`, repeated here, so `extensions` is the most triad-heavy in this section at 0.92, with the entry's minor verse resolving to a major chorus kept as a minor family. Two kit facts: \"cartoonish percussion FX (whistles, pops) as fills instead of drum rolls\" turns the snare-roll ladder off and puts triangle/woodblock/cowbell in the perc lane, and the kick is \"tuned high and short\" so the very high lead sits above it. Loops are \"2 or 4 bars\", which is the phrase weighting. ⚠ The INFERRED parameters are the velocity tiers, the registers and every density; the entry gives casting and adjectives, not numbers, and calls the drum and harmonic parameters genre-derived.",
+  "session": {
+    "bpm": {
+      "min": 125,
+      "max": 140,
+      "mode": 132
+    },
+    "keys": {
+      "values": [
+        "C",
+        "G",
+        "F",
+        "D",
+        "A"
+      ],
+      "weights": [
+        4,
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor"
+      ],
+      "weights": [
+        6,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.97,
+      "velocityVar": 0.12,
+      "timingJitterMs": {
+        "kick": 1,
+        "clap": 2,
+        "closedHat": 2,
+        "openHat": 2,
+        "tambourine": 3
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        110,
+        124
+      ],
+      "main": [
+        84,
+        98
+      ],
+      "ghost": [
+        30,
+        44
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        4,
+        4
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "syncopation": 0.04,
+      "offbeat8thShare": 0.06
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "layered": true,
+      "layerClapOffsetMs": [
+        0,
+        3
+      ],
+      "ghost": {
+        "prob": 0.09,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.2,
+          0.34
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.38,
+      "openHat": {
+        "prob": 0.93,
+        "pos": [
+          "1&",
+          "2&",
+          "3&",
+          "4&"
+        ],
+        "perBar": [
+          3,
+          4
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.08
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "triangle",
+        "woodblock",
+        "cowbell"
+      ],
+      "densityPerBar": [
+        4,
+        8
+      ],
+      "placement": "any",
+      "gainOffsetDb": -4
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8,
+      "snareRollLadder": false,
+      "fillBeforeSection": false
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.92,
+      "seventh": 0.07,
+      "ninth": 0.01
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "vamp"
+      ],
+      "weights": [
+        6,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      76,
+      98
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "structure": "call_response",
+    "intervals": {
+      "step": 0.68,
+      "third": 0.26,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.42,
+      "descend": 0.22,
+      "arch": 0.36
+    },
+    "chordToneBias": 0.88,
+    "octaveJumpProb": 0.05,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "timbreHint": "toy_keyboard"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.55,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.9,
+    "rhythm": "offbeat_8ths",
+    "register": [
+      33,
+      50
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P8",
+      "P5"
+    ],
+    "anticipationProb": 0.22
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 8,
+      "hook": 8,
+      "bridge": 4,
+      "outro": 4
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "bridge",
+          "hook",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "hook",
+          "bridge",
+          "hook",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.5,
+        "beats": 2
+      },
+      "switchUpProb": 0.12
+    }
+  }
+}

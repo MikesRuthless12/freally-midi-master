@@ -1,0 +1,362 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "steve-mac",
+  "type": "producer",
+  "name": "Steve Mac",
+  "aliases": [
+    "steve mac",
+    "stevemac",
+    "steve mcculloch",
+    "rokstone"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2020s"
+  ],
+  "era": "1996-present",
+  "genres": [
+    "pop",
+    "pop-2020s",
+    "producer",
+    "radio pop"
+  ],
+  "relatedGenres": [
+    "pop-2020s",
+    "pop-2000s",
+    "dancehall",
+    "dance-pop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2020s — Steve Mac",
+    "Wikipedia — Steve Mac (https://en.wikipedia.org/wiki/Steve_Mac)",
+    "Wikipedia — Shape of You (https://en.wikipedia.org/wiki/Shape_of_You)",
+    "Music Business Worldwide interview (https://www.musicbusinessworldwide.com/)"
+  ],
+  "notes": "Keyboard-led British hit factory operating from a single fixed studio. The era is 1996—present per the research, which claims him here on the 2010s—2020s work. Two researched facts carry the drums. First, the accent grammar on the crossover singles is not a plain backbeat: \"the crossover singles use a tresillo (3+3+2) accent instead\", so `kick.tresilloBias` is 0.5 with `hihat.base` weighted across the literal `tresillo` value and 16ths. Second, the hat is not a hat: \"programmed kick and clap with a marimba or keyed percussion hit doubling as the hat; on the ballads a full reverbed kit entering at the second verse\", which is `woodblock` and `triangle` in the perc lanes at `offbeat` placement while `hihat.fillDensity` stays low and the roll vocabulary is off. \"He works from Rokstone Studios, so the drum sound is consistent across his catalogue\" is the tight velocity spread and the high quantize. Harmony is his stated canon: \"minor-mode four-chord loops, canonically i—iv—VI—VII, plus major-key ballad harmony with a IV—V—I cadence\", carried as those two families at the top two weights. No `bass808` block: \"no 808. Simple sub and synth bass on roots, mixed to leave the midrange for the topline\", which is a kick mirror at 0.95 with a narrow register. His documented session method — \"start a session by playing the song's opening figure on the keyboard and building from there\" — is the arrangement: a 2- or 4-bar keyboard-figure intro, the figure constant through verse and chorus, a drop-out bar before the last chorus, and an ending on the figure, which is why `switchUpProb` is the lowest on the producer side and the counter is a marimba/mallet `answer_lick`. ⚠ `confidence` is medium against a high-medium rating because every drum probability, the humanize pair and `bpm.mode` 108 (the midpoint of the stated 96—120 pop core) are INFERRED.",
+  "session": {
+    "bpm": {
+      "min": 90,
+      "max": 128,
+      "mode": 108
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "major",
+        "dorian"
+      ],
+      "weights": [
+        5,
+        4,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.95,
+      "velocityVar": 0.11,
+      "timingJitterMs": {
+        "clap": 3,
+        "perc": 4,
+        "kick": 2
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2a",
+      "syncopation": 0.34,
+      "tresilloBias": 0.5,
+      "offbeat8thShare": 0.12
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "stack": [
+        "clap"
+      ],
+      "transient": "medium",
+      "reverb": "large",
+      "layerClapOffsetMs": [
+        2,
+        6
+      ],
+      "ghost": {
+        "prob": 0.16,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.18,
+          0.32
+        ]
+      }
+    },
+    "hihat": {
+      "base": {
+        "values": [
+          "tresillo",
+          "16th"
+        ],
+        "weights": [
+          3,
+          3
+        ]
+      },
+      "continuous": false,
+      "fillDensity": 0.18,
+      "velocities": {
+        "main": [
+          0.5,
+          0.76
+        ],
+        "ghost": [
+          0.18,
+          0.36
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0
+      },
+      "openHat": {
+        "prob": 0.14,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "woodblock",
+        "triangle",
+        "shaker",
+        "snap"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "placement": "offbeat",
+      "gainOffsetDb": -5
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16,
+      "snareRollLadder": false
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VI",
+          "VII"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "IV",
+          "V",
+          "I"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "iv",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.66,
+      "seventh": 0.28,
+      "ninth": 0.06
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        53,
+        79
+      ]
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      60,
+      84
+    ],
+    "densityPerBar": [
+      4,
+      10
+    ],
+    "structure": "riff_loop",
+    "motifPitchCount": [
+      3,
+      5
+    ],
+    "intervals": {
+      "step": 0.74,
+      "third": 0.2,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.52,
+      "descend": 0.3,
+      "arch": 0.18
+    },
+    "chordToneBias": 0.8,
+    "octaveJumpProb": [
+      0.04,
+      0.12
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "endVariation": true,
+    "timbreHint": "marimba"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.55,
+      0.8
+    ],
+    "styles": {
+      "values": [
+        "answer_lick",
+        "bell_echo"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.95,
+    "rhythm": "mirror_kick",
+    "register": [
+      28,
+      46
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5",
+      "M2"
+    ],
+    "anticipationProb": 0.3,
+    "cellShapes": [
+      [
+        "1"
+      ],
+      [
+        "1",
+        "5"
+      ],
+      [
+        "1",
+        "1",
+        "5"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 8,
+      "bridge": 4,
+      "outro": [
+        2,
+        4
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "verse",
+          "prechorus",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.85,
+        "beats": 4
+      },
+      "switchUpProb": 0.03
+    }
+  }
+}

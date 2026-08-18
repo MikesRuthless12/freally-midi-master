@@ -1,0 +1,356 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "flume",
+  "type": "producer",
+  "name": "Flume",
+  "aliases": [
+    "flume",
+    "harley streten",
+    "future bass flume"
+  ],
+  "tier": "standard",
+  "extends": [
+    "future-bass"
+  ],
+  "era": "2010-present",
+  "genres": [
+    "future-bass",
+    "dance-pop",
+    "electronic",
+    "producer"
+  ],
+  "relatedGenres": [
+    "future-bass",
+    "dance-pop",
+    "trap",
+    "pop-2020s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 dance-pop — Flume",
+    "Wikipedia — Flume (https://en.wikipedia.org/wiki/Flume_(musician))",
+    "Wikipedia — Never Be Like You (https://en.wikipedia.org/wiki/Never_Be_Like_You)",
+    "Future bass (https://en.wikipedia.org/wiki/Future_bass)",
+    "BPM Database — Flume (https://www.bpmdatabase.com/music/search/?artist=Flume)"
+  ],
+  "notes": "⛔ **This model extends `future-bass`, not `dance-pop`.** The volume writes Flume up in the `dance-pop` section on the principle that an entry that exists beats an entry that is owed, but his entry says outright that his grammar is the other lane's: \"Australian **future bass**\", and \"half-time trap grammar, not four-on-the-floor — this is the one entry in the section whose kick is not on all four\". Extending the lane he is built from is what the encoding contract asks for when the research marks the case explicitly, and it is the honest parent: the research folds his algorithmic tempo readings back onto \"a 140-160 spine felt in half-time, i.e. the backbeat lands on beat 3, not 2&4\", which is precisely `future-bass`'s own window. The deltas against that parent are the ones his entry documents. The kick is sparser than the parent's — \"kick on 1 (and a syncopated pickup)\" — so the density drops to 1-2. The percussion is \"found-sound and foley in place of standard one-shots\", so the parent's snap/riser/reverse/impact lane is replaced by a perc/perc2/woodblock/rim bed at 2-5 hits a bar. And the hats fill harder, \"16ths with occasional 32nd rolls\". The harmonic identity is chord *stacks* rather than progressions — \"7ths, 9ths and add-2s voiced wide, two to four chords looping, with the interest coming from pitch and filter automation across the held chord rather than from motion between chords\" — the lowest triad weight and the highest ninth weight in this whole section. The low end is \"sub-heavy 808-style, tuned to the chord root, short and gated, sitting under the chord stab rather than driving it; the sub often shares its envelope with the chord\", authored as a near-total root-follower rather than as a `drums.bass808` block, because an 808 in the `bassline` role would have deleted the bass part the entry describes. The answer to the chord stab is \"pitched, stuttered vocal chops of the featured singer\". ⚠ The research marks the exact BPM band `[LOW-CONF]` (the half-time feel itself is documented); that mark is repeated here, and every velocity, density and register is INFERRED. ⚠ **The bassline reached 732 of 1,000 distinct against `bass.rs`'s 0.95 share, and `anticipationProb` is the sourced cure.** The drums line is *\"Kick on 1 (**and a syncopated pickup**), snare/clap on beat 3\"* — a pickup is a note placed early, which is exactly what `anticipationProb` writes, and 0.10 was too low to produce one on most seeds. `followRootsProb` stays high for *\"sub-heavy 808-style low end **tuned to the chord root**, short and gated\"*. ⚠ **INFERRED:** the exact 0.24 and 0.94 are lane-conventional, and so is `P5`. ▶ `P8` was authored dead — an octave is the same pitch class, so `bass.rs` resolves it to the note it started from and `followRootsProb` had nothing to escape to. ⛔ **`P8` is gone now, and putting `P5` beside it was only half the repair (2026-08-17, bassline variety floor).** `bass.rs` walks the list by note index — `passing[index % passing.len()]` — so a two-entry list with one dead entry left every other escape landing back on the root it escaped from, and the model measured **923 distinct basslines in 1,000 seeds**, a 0.923 share against 0.95. With the dead entry out, every note that leaves the root reaches the fifth. ⚠ Nothing sourced changed: the octave was never a claim of the entry, whose line is *\"sub-heavy 808-style low end **tuned to the chord root**, short and gated\"* — an octave of the root is that root, which is why it read as dead in the first place. ⚠ **That repair measured 948/1,000 and the floor is 950, so `anticipationProb` went 0.24 → 0.30 with it.** It is the same sourced device and the same argument as the raise above: the drums line is *\"Kick on 1 (**and a syncopated pickup**), snare/clap on beat 3\"*, a pickup is a note placed early, and this bass mirrors that kick — so the rate at which the low end plays one is the parameter the entry is describing. ⚠ **INFERRED, and set at a gate:** the entry names the pickup and no rate; 0.10 produced one on too few seeds, 0.24 on a quarter of the notes, 0.30 on a little under a third, and nothing in the research prefers one of those to another. Recorded here rather than smoothed over.",
+  "session": {
+    "bpm": {
+      "min": 140,
+      "max": 160,
+      "mode": 150
+    },
+    "halfTime": true,
+    "keys": {
+      "values": [
+        "C",
+        "G",
+        "Am",
+        "F",
+        "Em"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "lydian",
+        "natural_minor",
+        "dorian"
+      ],
+      "weights": [
+        4,
+        2,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.9,
+      "velocityVar": 0.18,
+      "timingJitterMs": {
+        "kick": 3,
+        "snare": 4,
+        "clap": 4,
+        "closedHat": 4,
+        "perc": 7,
+        "rim": 6
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        108,
+        122
+      ],
+      "main": [
+        78,
+        94
+      ],
+      "ghost": [
+        30,
+        50
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        1,
+        2
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "1a",
+      "syncopation": 0.3,
+      "tresilloBias": 0.16,
+      "offbeat8thShare": 0.3
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "layered": true,
+      "layerClapOffsetMs": [
+        4,
+        10
+      ],
+      "ghost": {
+        "prob": 0.34,
+        "pos": [
+          "2e",
+          "4a"
+        ],
+        "vel": [
+          0.28,
+          0.5
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": 0.7,
+      "openHat": {
+        "prob": 0.25,
+        "pos": [
+          "2&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32",
+            "16"
+          ],
+          "weights": [
+            4,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "pre_snare"
+        ],
+        "freqPerBar": 0.4
+      }
+    },
+    "percs": {
+      "lanes": [
+        "perc",
+        "perc2",
+        "woodblock",
+        "rim"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "placement": "any",
+      "gainOffsetDb": -5
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8,
+      "snareRollLadder": false,
+      "fillBeforeSection": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "vi",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "iii",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.18,
+      "seventh": 0.42,
+      "ninth": 0.4
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        50,
+        92
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    },
+    "susSubstitutionProb": 0.28
+  },
+  "melody": {
+    "register": [
+      70,
+      94
+    ],
+    "densityPerBar": [
+      3,
+      8
+    ],
+    "structure": "riff_loop",
+    "intervals": {
+      "step": 0.62,
+      "third": 0.28,
+      "leap": 0.1
+    },
+    "contour": {
+      "riff": 0.52,
+      "descend": 0.26,
+      "arch": 0.22
+    },
+    "chordToneBias": 0.76,
+    "halfStepDissonance": 0.06,
+    "octaveJumpProb": [
+      0.06,
+      0.16
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        4
+      ]
+    },
+    "timbreHint": "chopped_vocal"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.5,
+    "styles": {
+      "values": [
+        "bell_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.94,
+    "rhythm": "mirror_kick",
+    "register": [
+      22,
+      42
+    ],
+    "glideProb": 0.06,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.3
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "prechorus": 8,
+      "hook": 16,
+      "bridge": 8,
+      "outro": 4
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "prechorus",
+          "hook",
+          "bridge",
+          "hook"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.7,
+        "beats": 2
+      },
+      "switchUpProb": 0.22
+    }
+  }
+}

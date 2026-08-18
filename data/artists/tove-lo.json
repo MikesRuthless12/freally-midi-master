@@ -1,0 +1,347 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "tove-lo",
+  "type": "artist",
+  "name": "Tove Lo",
+  "aliases": [
+    "tove lo",
+    "ebba tove elsa nilsson",
+    "tovelo",
+    "tove"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2020s"
+  ],
+  "era": "2014-present",
+  "genres": [
+    "pop",
+    "pop-2020s",
+    "electropop",
+    "dark pop"
+  ],
+  "relatedGenres": [
+    "pop-2020s",
+    "dance-pop",
+    "techno",
+    "house"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2020s — Tove Lo",
+    "Wikipedia — Tove Lo (https://en.wikipedia.org/wiki/Tove_Lo)"
+  ],
+  "notes": "Dark Scandinavian electropop with a blunt lyric register. The drum block is authored from a texture claim rather than a pattern one: \"heavy programmed kick, distorted clap on 2&4, and long reverb tails; sparse hats. Percussion is used as a texture block that enters and leaves whole.\" So the velocity tiers are the loudest in this batch, the snare is a hard-transient clap under a large tail, `hihat.continuous` is false at `fillDensity` 0.1 with the roll vocabulary off, and the perc density bottoms out at 0 — the block genuinely leaves. The low end is a synth, not an 808: \"distorted synth sub locked to the kick, mixed loud; the low end plus the vocal is often the whole arrangement\", so no `bass808` block is authored and the bassline is a kick mirror at 0.97 with almost no passing motion. Harmony is \"4-bar minor loops with 7ths\" plus \"a sustained tonic drone\", which is the tonic family and the `vamp`-weighted rhythm. The melody block encodes \"chant-like with a repeated single-note hook and a leap into a strained top note\" as `motifPitchCount` 2 — the smallest authored in this section — with a high `riff` contour and a raised `octaveJumpProb` for the strained leap; \"countermelody is a pitched vocal sample\" is `bell_echo` first. ⚠ `confidence` is medium and the research says the parameters are \"largely inferred\": every drum probability, the humanize pair, the harmonic weights, the melody register and `bpm.mode` 110 (the midpoint of the stated 95—125 band) are INFERRED. ⚠ The entry's [LOW-CONF] mark on the vocal-tone claim is repeated here.",
+  "session": {
+    "bpm": {
+      "min": 95,
+      "max": 125,
+      "mode": 110
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "phrygian",
+        "dorian"
+      ],
+      "weights": [
+        6,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.97,
+      "velocityVar": 0.09
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        114,
+        127
+      ],
+      "main": [
+        88,
+        106
+      ],
+      "ghost": [
+        38,
+        52
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "secondaryAnchor": "4&",
+      "syncopation": 0.16,
+      "tresilloBias": 0.04,
+      "offbeat8thShare": 0.12
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "stack": [
+        "clap"
+      ],
+      "transient": "hard",
+      "reverb": "large",
+      "layerClapOffsetMs": [
+        0,
+        3
+      ],
+      "ghost": {
+        "prob": 0.08,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.22,
+          0.38
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": 0.1,
+      "velocities": {
+        "main": [
+          0.5,
+          0.76
+        ],
+        "ghost": [
+          0.18,
+          0.36
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0
+      },
+      "openHat": {
+        "prob": 0.12,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "perc",
+        "impact"
+      ],
+      "densityPerBar": [
+        0,
+        3
+      ],
+      "placement": "downbeat",
+      "gainOffsetDb": -3
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16,
+      "snareRollLadder": false
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.46,
+      "seventh": 0.4,
+      "ninth": 0.14
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        50,
+        78
+      ]
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      8,
+      32
+    ]
+  },
+  "melody": {
+    "register": [
+      55,
+      79
+    ],
+    "densityPerBar": [
+      3,
+      8
+    ],
+    "structure": "riff_loop",
+    "motifPitchCount": 2,
+    "intervals": {
+      "step": 0.8,
+      "third": 0.12,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.68,
+      "descend": 0.24,
+      "arch": 0.08
+    },
+    "chordToneBias": 0.72,
+    "halfStepDissonance": 0.1,
+    "octaveJumpProb": [
+      0.1,
+      0.22
+    ],
+    "phraseBars": {
+      "values": [
+        1,
+        2
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "articulation": "staccato",
+    "timbreHint": "pitched_vocal_chop"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.35,
+      0.55
+    ],
+    "styles": {
+      "values": [
+        "bell_echo",
+        "sustain_pad"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.97,
+    "rhythm": "mirror_kick",
+    "register": [
+      26,
+      44
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.18,
+    "cellShapes": [
+      [
+        "1"
+      ],
+      [
+        "1",
+        "1"
+      ],
+      [
+        "1",
+        "5"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": [
+        8,
+        16
+      ],
+      "chorus": 8,
+      "bridge": 4,
+      "outro": 2
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.7,
+        "beats": 4
+      },
+      "switchUpProb": 0.12
+    }
+  }
+}

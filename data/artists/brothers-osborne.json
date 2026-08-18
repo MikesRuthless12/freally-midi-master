@@ -1,0 +1,300 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "brothers-osborne",
+  "type": "artist",
+  "name": "Brothers Osborne",
+  "aliases": [
+    "brothers osborne",
+    "brothersosborne",
+    "brothers osbourne"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-pop"
+  ],
+  "era": "2015-2020",
+  "genres": [
+    "country-pop",
+    "country",
+    "blues rock"
+  ],
+  "relatedGenres": [
+    "country-pop",
+    "country-shuffle",
+    "funk"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-pop — Brothers Osborne",
+    "bpmdatabase (https://www.bpmdatabase.com/music/search/?artist=Brothers+Osborne)",
+    "Wikipedia — Jay Joyce (https://en.wikipedia.org/wiki/Jay_Joyce)",
+    "Mix — Jay Joyce's studio (https://www.mixonline.com/recording/jay-joyces-tragedytragedy-375422)"
+  ],
+  "notes": "Guitar-hero duo country — \"the loosest groove on modern radio.\" Drums are \"tracked live in one room with the band in earshot, minimal click and minimal overdubs; expect tempo drift, roomy overheads and a small, dry kit. Cross-stick verses; a hard, slightly late backbeat on the rockers,\" so this model pairs a low quantize strength with a positive `snare.offGridMs` — the late backbeat is a stated fact, not a feel adjective. Harmony is \"I–♭VII–IV, I–IV–V with dominant-7 colour, and static one-chord vamps under solos,\" hence the mixolydian weighting, the raised seventh share and a real `vamp` weight. The bass \"follows the guitar riff, overdriven, mid-forward; no programmed low end,\" which is `independent_riff` with root-following low. The arrangement carries the entry's clearest structural claim: \"extended guitar outros of 16–32 bars are a structural feature, not a solo — this is the section's clearest case of the instrumental tail carrying the record,\" so the outro slot is the longest in this section. Melody is \"low baritone, drawled, narrow, with brother harmony in thirds on the hook.\" ⚠ Confidence is medium (research: medium-high); the per-track readings are [LOW-CONF]. ⚠ The INFERRED parameters are the offset value itself, the velocity tiers and the counter ratio.",
+  "session": {
+    "bpm": {
+      "min": 73,
+      "max": 123,
+      "mode": 100
+    },
+    "scales": {
+      "values": [
+        "mixolydian",
+        "major_blues",
+        "major",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.66,
+      "velocityVar": 0.25,
+      "timingJitterMs": {
+        "kick": 8,
+        "snare": 10,
+        "closedHat": 9,
+        "ride": 10
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        112,
+        127
+      ],
+      "main": [
+        70,
+        96
+      ],
+      "ghost": [
+        22,
+        40
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "syncopation": 0.19,
+      "offbeat8thShare": 0.23
+    },
+    "snare": {
+      "crossStickVerses": true,
+      "offGridMs": 12,
+      "ghost": {
+        "prob": 0.18,
+        "pos": [
+          "1a",
+          "3a"
+        ],
+        "vel": [
+          0.14,
+          0.3
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.2,
+      "openHat": {
+        "prob": 0.27,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "ride",
+        "tomLow",
+        "crash"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "gainOffsetDb": -5,
+      "tambourine": false
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16,
+      "fillBeforeSection": false
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "bVII",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "V"
+        ],
+        "weight": 3
+      }
+    ],
+    "extensions": {
+      "triad": 0.52,
+      "seventh": 0.42,
+      "ninth": 0.06
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        4,
+        3
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      45,
+      69
+    ],
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "intervals": {
+      "step": 0.78,
+      "third": 0.18,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.34,
+      "descend": 0.36,
+      "arch": 0.3
+    },
+    "chordToneBias": 0.72,
+    "halfStepDissonance": 0.12,
+    "octaveJumpProb": 0.02,
+    "timbreHint": "slide_and_baritone_electric"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.76,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.46,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      48
+    ],
+    "passingTones": [
+      "P5",
+      "m7",
+      "M3",
+      "M2"
+    ],
+    "anticipationProb": 0.24
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": [
+        8,
+        16
+      ],
+      "chorus": 8,
+      "bridge": [
+        8,
+        16
+      ],
+      "outro": [
+        16,
+        32
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 6
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.16,
+        "beats": 2
+      },
+      "switchUpProb": 0.26
+    }
+  }
+}

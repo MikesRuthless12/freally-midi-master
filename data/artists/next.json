@@ -1,0 +1,366 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "next",
+  "type": "artist",
+  "name": "Next",
+  "aliases": [
+    "next",
+    "next group",
+    "divine mill",
+    "r l huggar"
+  ],
+  "tier": "standard",
+  "extends": [
+    "rnb-2000s"
+  ],
+  "era": "1997-2002",
+  "genres": [
+    "rnb-2000s",
+    "rnb",
+    "chicago step"
+  ],
+  "relatedGenres": [
+    "rnb-2000s",
+    "house",
+    "funk"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 rnb-2000s — Next",
+    "songdata — Next (https://songdata.io/search?query=Next)",
+    "Wikipedia — Too Close (https://en.wikipedia.org/wiki/Too_Close_(Next_song))",
+    "Wikipedia — KayGee (https://en.wikipedia.org/wiki/KayGee)"
+  ],
+  "notes": "Divine Mill trio under Kay Gee: Chicago-step-flavoured R&B over a sampled bassline, 1997–2002. The research is unusually specific about the groove — \"~100 straight-four (backbeat 2&4) — explicitly 'non-hip-hop-derived straight fours'\" — so the band is narrow at 96–104, `halfTime` is false and, uniquely in this section, `swing.amount` is 0.50 with `offGridMs` 0 and a high quantize strength: the entry says \"no swing\" and \"deliberately *not* boom-bap\" in as many words. The three drum deltas follow: the kick takes real downbeat anchors on 1 and 3 with `fourOnFloorInChorus` true (the entry's house/step-derived chorus kick, marked `[LOW-CONF]`), the snare sits dead flat with almost no ghost activity, and the hats run continuous 16ths at a 0.62 fill density with the open hat on both offbeats — the busiest hat lane in this batch. Harmony is \"diatonic major with a 4-bar cycle\", so the families are functional major and the sourced key is G major, the outlier habit the entry names in a minor-dominated lane. The identifying parameter is the bass: \"the sampled bassline from Kurtis Blow's 'Christmas Rappin'' carries the part — a walking funk line, not a sub\", so `followRootsProb` drops to 0.5, the passing-tone set is the widest here and the cell shapes walk. ⚠ The band is INFERRED around a single point: the entry gives \"BPM ~100 straight-four\" and no band, so the 96–104 cushion is this author's and only the mode, 100, is the entry's own reading. ⚠ The other INFERRED parameters are every velocity and density number and the countermelody; the research gives groove character, key, tempo and the sample, not a kit. ⚠ `session.keys` is part-sourced: the entry names `G`, and the remaining values `C`, `D`, `F`, together with all 4 weights, are INFERRED rather than read from the entry.",
+  "session": {
+    "bpm": {
+      "min": 96,
+      "max": 104,
+      "mode": 100
+    },
+    "halfTime": false,
+    "keys": {
+      "values": [
+        "G",
+        "C",
+        "D",
+        "F"
+      ],
+      "weights": [
+        4,
+        2,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "dorian"
+      ],
+      "weights": [
+        5,
+        2,
+        1
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.5
+    },
+    "humanize": {
+      "quantizeStrength": 0.9,
+      "velocityVar": 0.14,
+      "timingJitterMs": {
+        "kick": 2,
+        "snare": 2,
+        "closedHat": 3,
+        "shaker": 4
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        4
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.08,
+      "tresilloBias": 0,
+      "fourOnFloorInChorus": true,
+      "andOf4EveryOtherBar": 0
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "ghost": {
+        "prob": 0.08,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.12,
+          0.24
+        ]
+      },
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.62,
+      "velocities": {
+        "main": [
+          0.66,
+          0.86
+        ],
+        "ghost": [
+          0.34,
+          0.5
+        ]
+      },
+      "openHat": {
+        "prob": 0.42,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.12
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "tambourine"
+      ],
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "placement": "offbeat",
+      "gainOffsetDb": -8
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "vi",
+          "IV",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "I",
+          "iii",
+          "IV",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.34,
+      "seventh": 0.5,
+      "ninth": 0.16
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        78
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      57,
+      78
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "intervals": {
+      "step": 0.8,
+      "third": 0.16,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.2,
+      "descend": 0.4,
+      "arch": 0.4
+    },
+    "chordToneBias": 0.84,
+    "octaveJumpProb": 0.03,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "soft_keys"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.4,
+    "styles": {
+      "values": [
+        "arp",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.5,
+    "rhythm": "independent_riff",
+    "register": [
+      31,
+      47
+    ],
+    "glideProb": 0.06,
+    "passingTones": [
+      "P5",
+      "M2",
+      "M3",
+      "M6",
+      "m7"
+    ],
+    "anticipationProb": 0.42,
+    "cellShapes": [
+      [
+        "1",
+        "5",
+        "6",
+        "b7"
+      ],
+      [
+        "1",
+        "2",
+        "3",
+        "5"
+      ],
+      [
+        "1",
+        "b7",
+        "5",
+        "4"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 8,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": [
+        8,
+        16
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.45,
+        "beats": 4
+      },
+      "switchUpProb": 0.1
+    }
+  }
+}

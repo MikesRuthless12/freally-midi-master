@@ -1,0 +1,318 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "dangelo",
+  "type": "artist",
+  "name": "D'Angelo",
+  "aliases": [
+    "dangelo",
+    "michael eugene archer",
+    "voodoo",
+    "brown sugar"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "1995-2016",
+  "genres": [
+    "rnb",
+    "soul",
+    "neo-soul",
+    "funk"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "rnb-2000s",
+    "funk"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — D'Angelo",
+    "Wikipedia — D'Angelo (https://en.wikipedia.org/wiki/D%27Angelo)",
+    "Wikipedia — Voodoo (https://en.wikipedia.org/wiki/Voodoo_(D%27Angelo_album))",
+    "songdata.io — D'Angelo (https://songdata.io/search?query=D%27Angelo)"
+  ],
+  "notes": "The lane's architect, and the reference implementation of its grammar. The band is the catalogue's own 64–113 straight with the backbeat on 2&4 and \"extreme behind-the-beat placement\", which is why `quantizeStrength` is the lowest in this batch and the snare carries 10–22 ms of deliberate lateness — the research states the method in first person: \"grooves constructed to hang on the back of the beat for a loose feel\" and \"we wanted to play as perfectly as we could, but then deliberately insert the little glitch that makes it sound messed up\". The kick is the stated one — on 1 and the 16th before 3 — so the parent's anchor and secondary anchor are left tracking and the delta is density and syncopation instead; the \"double rimshots placed behind the beat\" are `rimshotLayer` plus the offGrid window. No click, first take, no overdubs on the rhythm section, so the fills are pushed out to 8 and 16 bars. Harmony is authored without progression families on purpose: the entry says minor 9ths are \"a default sonority\", the voicings are suspended and quartal, and there is \"no functional cadence for bars at a time\" — so the ninth weight goes up, triads nearly vanish, `susSubstitutionProb` is high and the harmonic rhythm sits on vamps. Melody is the multi-tracked choir: short-phrase, blues-inflected, low in the tenor with falsetto tags, which is the call-and-response structure, the wide register and the raised octave jump. Pino Palladino's 1961 Precision gives the bass its numbers — Jamerson-style 16th passing tones, lead-in licks, 10ths, and \"deliberately ambiguous harmony and bass\" where the bass note contradicts the keyboard root, which is what `followRootsProb` 0.3 says. ⚠ The INFERRED parameters are all drum probabilities, the melody and countermelody numbers, and the specific 10–22 ms window — the research says \"behind the beat\" and \"the little glitch\" without giving milliseconds. ⚠ The 6/8 habit the entry names on \"Untitled\" is real but unencodable here; this model stays in 4.",
+  "session": {
+    "bpm": {
+      "min": 64,
+      "max": 113,
+      "mode": 87
+    },
+    "keys": {
+      "values": [
+        "C",
+        "Cm",
+        "Db",
+        "Em",
+        "A"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor",
+        "dorian",
+        "blues"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        1
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.4,
+      "velocityVar": 0.3,
+      "timingJitterMs": {
+        "kick": 8,
+        "snare": 18,
+        "rim": 17,
+        "closedHat": 10,
+        "conga": 12
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "syncopation": 0.34,
+      "tresilloBias": 0.06
+    },
+    "snare": {
+      "rimshotLayer": true,
+      "offGridMs": [
+        10,
+        22
+      ],
+      "ghost": {
+        "prob": 0.46,
+        "pos": [
+          "1a",
+          "2e",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.14,
+          0.38
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.42,
+      "velocities": {
+        "main": [
+          0.4,
+          0.66
+        ],
+        "ghost": [
+          0.12,
+          0.3
+        ]
+      },
+      "openHat": {
+        "prob": 0.16,
+        "pos": [
+          "3a"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "conga",
+        "shaker"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "gainOffsetDb": -8
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "extensions": {
+      "triad": 0.03,
+      "seventh": 0.42,
+      "ninth": 0.55
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        80
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "susSubstitutionProb": 0.34,
+    "chordDurationBeats": [
+      4,
+      12
+    ]
+  },
+  "melody": {
+    "register": [
+      50,
+      79
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "structure": "call_response",
+    "intervals": {
+      "step": 0.72,
+      "third": 0.22,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.3,
+      "descend": 0.4,
+      "arch": 0.3
+    },
+    "chordToneBias": 0.4,
+    "halfStepDissonance": 0.14,
+    "octaveJumpProb": 0.18,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        2,
+        3
+      ]
+    },
+    "timbreHint": "clavinet"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.35,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.3,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      47
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2",
+      "m3",
+      "M3",
+      "M6"
+    ],
+    "cellShapes": [
+      [
+        "1",
+        "b3",
+        "5",
+        "b7"
+      ],
+      [
+        "1",
+        "5",
+        "4",
+        "b3"
+      ],
+      [
+        "1",
+        "2",
+        "4",
+        "5"
+      ]
+    ],
+    "anticipationProb": 0.55
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        8,
+        16
+      ],
+      "verse": [
+        8,
+        16
+      ],
+      "chorus": [
+        8,
+        16
+      ],
+      "outro": [
+        8,
+        32
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "outro"
+        ],
+        "weight": 3
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "verse",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "switchUpProb": 0.4
+    }
+  }
+}

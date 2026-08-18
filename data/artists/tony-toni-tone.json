@@ -1,0 +1,283 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "tony-toni-tone",
+  "type": "artist",
+  "name": "Tony! Toni! Toné!",
+  "aliases": [
+    "tony toni tone",
+    "tonytonitone",
+    "oakland soul band"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "1990-1996",
+  "genres": [
+    "rnb",
+    "soul",
+    "neo-soul",
+    "funk"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "rnb-2000s",
+    "funk"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Tony! Toni! Toné!",
+    "Wikipedia — Tony! Toni! Toné! (https://en.wikipedia.org/wiki/Tony!_Toni!_Ton%C3%A9!)",
+    "Wikipedia — Neo soul (https://en.wikipedia.org/wiki/Neo_soul)",
+    "Wikipedia — Raphael Saadiq (https://en.wikipedia.org/wiki/Raphael_Saadiq)"
+  ],
+  "notes": "The lane's direct precursor, windowed 1990–1996 only because Gate 2 excludes the 1988 debut era — the entry says so itself. The parameter the research names is the hybrid: \"a programmed drum machine kick/snare layered under or replaced by a live kit mid-song, with tambourine on the backbeat and hand percussion; the swing is a shuffled 16th grid rather than straight\". So the snare is layered, the quantize strength sits between this section's programmed and played poles, and `swing.amount` is pushed above the parent to 0.66 for the stated shuffle. Harmony is the two families the entry writes out over \"major-mode Motown/gospel diatonicism with 7ths and 6/9 tonics\", which is why the triad weight is high and the ninth weight low for this lane. The melodic identity is structural rather than pitched — \"three-part group harmony as a structural element (lead plus two answering voices) rather than as a pad\" — so the melody is call-and-response and the counter is dense and answering. Bass is Saadiq's at the stated E1–C3, walking with chromatic approach notes and carrying the melody, so it tops out at 48 and the chord voicing starts at 50. ⚠ The INFERRED parameters are every drum probability and velocity, `swing.amount` 0.66 (\"shuffled\" is a direction, not a ratio), and all melody numbers. ⚠ The research marks the tempo band [LOW-CONF] as genre inference and rates the entry medium, which is what `confidence` says. ⚠ No keys are authored — the entry names none, so the lane's are inherited.",
+  "session": {
+    "bpm": {
+      "min": 72,
+      "max": 105,
+      "mode": 92
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "major_pentatonic"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.66
+    },
+    "humanize": {
+      "quantizeStrength": 0.76,
+      "velocityVar": 0.2,
+      "timingJitterMs": {
+        "kick": 4,
+        "snare": 6,
+        "tambourine": 8,
+        "conga": 9
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "syncopation": 0.38,
+      "tresilloBias": 0.1
+    },
+    "snare": {
+      "layered": true,
+      "offGridMs": [
+        1,
+        5
+      ],
+      "ghost": {
+        "prob": 0.3,
+        "pos": [
+          "1a",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.16,
+          0.38
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.38,
+      "velocities": {
+        "main": [
+          0.52,
+          0.8
+        ],
+        "ghost": [
+          0.16,
+          0.36
+        ]
+      },
+      "openHat": {
+        "prob": 0.14,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "conga",
+        "shaker",
+        "rim"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "gainOffsetDb": -4,
+      "tambourineMirrorsClap": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "vi",
+          "ii",
+          "V"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 4
+      }
+    ],
+    "extensions": {
+      "triad": 0.4,
+      "seventh": 0.46,
+      "ninth": 0.14
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        50,
+        79
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      52,
+      74
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "structure": "call_response",
+    "intervals": {
+      "step": 0.74,
+      "third": 0.22,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.38,
+      "descend": 0.32,
+      "arch": 0.3
+    },
+    "chordToneBias": 0.7,
+    "octaveJumpProb": 0.06,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "hammond_organ"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.55,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.36,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      48
+    ],
+    "glideProb": 0.05,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2",
+      "m3",
+      "M3",
+      "M6"
+    ],
+    "anticipationProb": 0.5
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 8,
+      "chorus": 8,
+      "outro": [
+        8,
+        24
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "switchUpProb": 0.2
+    }
+  }
+}

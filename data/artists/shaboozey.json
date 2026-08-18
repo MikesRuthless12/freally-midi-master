@@ -1,0 +1,293 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "shaboozey",
+  "type": "artist",
+  "name": "Shaboozey",
+  "aliases": [
+    "shaboozey",
+    "shaboozy",
+    "shabuzey"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-pop"
+  ],
+  "era": "2024-2025",
+  "genres": [
+    "country-pop",
+    "country",
+    "country rap"
+  ],
+  "relatedGenres": [
+    "country-pop",
+    "trap",
+    "pop-2020s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-pop — Shaboozey",
+    "songdata.io (https://songdata.io/search?query=Shaboozey)",
+    "Wikipedia — Country rap (https://en.wikipedia.org/wiki/Country_rap)",
+    "Wikipedia — Country pop (https://en.wikipedia.org/wiki/Country_pop)"
+  ],
+  "notes": "The 2024 country-rap crossover at its most successful — hip-hop-native construction with country signifiers. Keys are documented: \"A major and G major dominate, with A♭/F/C and minor cuts in A minor/D minor,\" and the signature single reads ~81 in A at the folded spine. The drum grammar inverts the section's default and the entry says so outright: \"clap/snap or a stomp-clap layer on the backbeat as the primary rhythm … plus handclap-and-shout crowd layers. Live kit is an overdub, not the foundation,\" so the snap lane carries more density than the hat and the acoustic kit's velocity tiers sit under it. This is one of only two models in this section where the 808 takes the `bassline` role rather than `counter_riff`, and the entry is explicit: \"a tuned 808-style sub is the low end, long, root-locked, occasionally sliding; no conventional country bass on the singles.\" The `bassline` block therefore describes that same sub line rather than a second instrument, which is the shape the trap and trap-soul genre models already use. Harmony is \"I–V–vi–IV and I–IV–V as two-bar loops with a static bass; the barroom cuts sit on a I–IV vamp.\" Melody is \"mid-baritone with rap-derived verse cadences (dense, on-the-16ths, spoken-adjacent) and a wide, chanted singalong chorus built for crowd response,\" hence the highest cell repeat here and a suppressed straight-eighths share. ⚠ Confidence is medium (research: medium-high); the per-track readings are [LOW-CONF]. ⚠ The INFERRED parameters are the 808 slide probability, the snap density and the counter ratio.",
+  "session": {
+    "bpm": {
+      "min": 79,
+      "max": 128,
+      "mode": 81
+    },
+    "keys": {
+      "values": [
+        "A",
+        "G",
+        "Ab",
+        "F",
+        "C",
+        "Am",
+        "Dm"
+      ],
+      "weights": [
+        5,
+        4,
+        2,
+        2,
+        2,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "major_pentatonic",
+        "natural_minor",
+        "major_blues"
+      ],
+      "weights": [
+        5,
+        3,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.92,
+      "velocityVar": 0.15,
+      "timingJitterMs": {
+        "kick": 2,
+        "snap": 3,
+        "clap": 3,
+        "closedHat": 3
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        118,
+        127
+      ],
+      "main": [
+        78,
+        98
+      ],
+      "ghost": [
+        28,
+        44
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.36,
+      "offbeat8thShare": 0.54,
+      "lockTo808": 0.85
+    },
+    "snare": {
+      "layered": true,
+      "layerClapOffsetMs": [
+        4,
+        9
+      ],
+      "ghost": {
+        "prob": 0.1,
+        "pos": [
+          "1a",
+          "3a"
+        ],
+        "vel": [
+          0.2,
+          0.36
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.3,
+      "openHat": {
+        "prob": 0.17,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "snap",
+        "clave",
+        "tambourine",
+        "shaker"
+      ],
+      "densityPerBar": [
+        6,
+        10
+      ],
+      "gainOffsetDb": -1,
+      "tambourine": true
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8,
+      "fillBeforeSection": true
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "register": [
+        24,
+        38
+      ],
+      "slideProb": 0.22,
+      "slideIntervals": {
+        "values": [
+          "P5",
+          "M2"
+        ],
+        "weights": [
+          3,
+          2
+        ]
+      },
+      "slidePositions": [
+        "phrase_end"
+      ],
+      "distortion": "none"
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.76,
+      "seventh": 0.21,
+      "ninth": 0.03
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "vamp",
+        "1_per_bar"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      50,
+      76
+    ],
+    "densityPerBar": [
+      5,
+      13
+    ],
+    "straightEighthsProb": 0.1,
+    "intervals": {
+      "step": 0.82,
+      "third": 0.15,
+      "leap": 0.03
+    },
+    "contour": {
+      "riff": 0.48,
+      "descend": 0.3,
+      "arch": 0.22
+    },
+    "chordToneBias": 0.76,
+    "octaveJumpProb": 0.04,
+    "twoBarCellRepeat": 0.66,
+    "timbreHint": "acoustic_strum_loop"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.46,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.94,
+    "rhythm": "mirror_kick",
+    "register": [
+      24,
+      38
+    ],
+    "glideProb": 0.18,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.1
+  }
+}

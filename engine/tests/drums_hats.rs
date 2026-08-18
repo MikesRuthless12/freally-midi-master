@@ -419,15 +419,39 @@ fn every_shipped_genre_produces_hats_that_stay_inside_the_pattern() {
         }
         let context = ctx(4);
         let total = context.total_ticks();
+        // ⛔⛔ **`continuous: false` is a model saying its hats come in bursts,
+        // and the burst can miss.** `generators::drums::hats` spends
+        // `fillDensity` on *whether a beat plays at all* for such a model — its
+        // own comment says so, for rage's "fast but SPARSE — bursts, not
+        // continuous streams" — so a four-bar pattern is sixteen coin flips and
+        // `aaron-dessner` at `fillDensity: 0.04` writes nothing on about half of
+        // them. That is the entry's "percussion is low in the mix and often
+        // enters only in the last third", not a broken generator: **290 shipped
+        // models author `continuous: false`** and demanding a hat at every seed
+        // would mean pushing every one of their densities over 0.25, which is
+        // authoring over the research on a hundred and fifty of them.
+        //
+        // ⚠ **The regression this assertion was added for is still caught.**
+        // Deleting the hi-hat lane outright, which is what left the test named
+        // "produces hats" green before it existed, produces no hats at *any*
+        // seed for *any* model — so the sweep below fails on the first one. A
+        // continuous stream still owes hats at every single seed, because that
+        // is what `continuous` means.
+        let continuous = model
+            .blocks
+            .get("drums")
+            .and_then(|d| d.pointer("/hihat/continuous"))
+            .and_then(Value::as_bool)
+            .unwrap_or(true);
+        let mut ever = false;
 
         for seed in 0..SEEDS {
             let lanes = generate(&model, &context, seed);
-            // A model that declares a hat block must produce hats. Without
-            // this, deleting the hi-hat lane outright left the test named
-            // "produces hats" green — it only ever asserted *inside* the loop.
+            let hats = !notes(&lanes, Lane::ClosedHat).is_empty();
+            ever |= hats;
             assert!(
-                !notes(&lanes, Lane::ClosedHat).is_empty(),
-                "{id} seed {seed}: declares a hihat block and produced no hats"
+                hats || !continuous,
+                "{id} seed {seed}: declares a continuous hihat and produced no hats"
             );
             for want in [Lane::ClosedHat, Lane::OpenHat] {
                 for note in notes(&lanes, want) {
@@ -440,6 +464,11 @@ fn every_shipped_genre_produces_hats_that_stay_inside_the_pattern() {
                 }
             }
         }
+
+        assert!(
+            ever,
+            "{id}: declares a hihat block and produced no hats at any of {SEEDS} seeds"
+        );
     }
 }
 

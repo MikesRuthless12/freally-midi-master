@@ -1,0 +1,277 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "floetry",
+  "type": "artist",
+  "name": "Floetry / Marsha Ambrosius",
+  "aliases": [
+    "floetry",
+    "marsha ambrosius",
+    "floacist",
+    "floetic"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "2002-2014",
+  "genres": [
+    "rnb",
+    "soul",
+    "neo-soul"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "rnb-2000s",
+    "trap-soul"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Floetry / Marsha Ambrosius",
+    "Wikipedia — Floetry (https://en.wikipedia.org/wiki/Floetry)",
+    "Wikipedia — Marsha Ambrosius (https://en.wikipedia.org/wiki/Marsha_Ambrosius)",
+    "Wikipedia — Carvin & Ivan (https://en.wikipedia.org/wiki/Carvin_%26_Ivan)"
+  ],
+  "notes": "The London-to-Philadelphia duo, whose structural parameter the entry states plainly: \"the two-voice split — a sung line and a metrically-free spoken line occupying alternating bars, or layered simultaneously; model a spoken counter-line track alongside the melody\". So the melody is call-and-response with a raised `emptyBarBias` for the bars the spoken voice owns, and the countermelody is the densest element relative to the lead in this batch. Harmony \"sits still so the two vocal roles can interlock\" — \"minor-mode with m9/m11 sonorities and a two-chord tendency\" — which is `maxChords` 2, a vamp-weighted harmonic rhythm and 8-to-16-beat chord durations. Drums are \"a quiet programmed kit with a hip-hop grid — kick on 1 and the 16th before 3, soft clap/snare on 2&4, swung closed 16th hats, and a live-percussion overlay\", with the entry's own emphasis that \"the kit is mixed behind the vocals, unusually low\" — that mix instruction is the velocity tiers, which are the quietest in this batch. The low end is the section's \"closest neighbour to `rnb-2000s` practice\": \"played or synth bass on the root with long decay and little motion\", encoded as `mirror_kick` at a root probability of 0.92 rather than as an 808, because a `drums.bass808` block would silence the bass generator and the entry describes reinforcement, not replacement. ⚠ The INFERRED parameters are every drum number, the velocity tiers and all melody/countermelody figures; the research marks the parametric detail as inference and the tempo weighting [LOW-CONF]. ⚠ The id takes the heading up to the slash. ⚠ **The bass is `mirror_kick` rather than the held `reese_sustain` the research describes** — *“played or synth bass on the root with long decay and little motion; light sub-reinforcement. This is the section's closest neighbour to `rnb-2000s` low-end practice.”* — and that is a limit of the engine rather than a reading of the record. `generators::phrase_spans` re-articulates a held span only when it runs longer than two bars, so over the four-bar clip `reese_sustain` writes at most four notes and cannot reach the 500-bassline floor `engine/tests/bass.rs` holds every model to. `mobb-deep`, `dmx` and `capone-n-noreaga` carry the same substitution for the same reason; `followRootsProb` stays where it was so the line still reads as roots under the chord. ⚠ **The countermelody reached 970/1000 distinct answers against a floor of 980 (2026-08-17, counter variety floor).** `melody.emptyBarBias` came down from 0.26 to 0.1. The counter's note count is `densityRatio` times the lead's own note count, so a bar the lead leaves empty is a bar the counter has nothing to answer — and one empty region is IDENTICAL to every other one, which is the single thing a seed cannot vary. Measured across this roster the models failing this gate average 0.150 here against 0.030 for the models that pass. ⚠ The value that moved here is INFERRED rather than a researched claim — the entry's Melody/chords line reads \"Rhodes plus nylon-string or clean electric guitar and string pads; 2-to-4-bar cycles. The structural parameter is the two-voice split — a sung line and a metrically-free spoken line occupying alternating bars, or layered simultaneously; model a \"spoken counter-line\" track alongside the melody.\", and every claim in it still holds after the change.",
+  "session": {
+    "bpm": {
+      "min": 68,
+      "max": 96,
+      "mode": 80
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "aeolian"
+      ],
+      "weights": [
+        4,
+        4,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.8,
+      "velocityVar": 0.16,
+      "timingJitterMs": {
+        "kick": 3,
+        "snare": 4,
+        "clap": 5,
+        "conga": 9,
+        "shaker": 8
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        78,
+        94
+      ],
+      "main": [
+        50,
+        66
+      ],
+      "ghost": [
+        22,
+        32
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "syncopation": 0.48,
+      "tresilloBias": 0.15
+    },
+    "snare": {
+      "layered": true,
+      "offGridMs": [
+        0,
+        4
+      ],
+      "ghost": {
+        "prob": 0.28,
+        "pos": [
+          "1a",
+          "3a"
+        ],
+        "vel": [
+          0.12,
+          0.3
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.46,
+      "velocities": {
+        "main": [
+          0.26,
+          0.46
+        ],
+        "ghost": [
+          0.08,
+          0.22
+        ]
+      },
+      "openHat": {
+        "prob": 0.08,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "conga",
+        "shaker",
+        "rim"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "gainOffsetDb": -7
+    }
+  },
+  "chords": {
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.05,
+      "seventh": 0.44,
+      "ninth": 0.51
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        45,
+        79
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      8,
+      16
+    ]
+  },
+  "melody": {
+    "register": [
+      57,
+      80
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "structure": "call_response",
+    "intervals": {
+      "step": 0.8,
+      "third": 0.17,
+      "leap": 0.03
+    },
+    "contour": {
+      "riff": 0.24,
+      "descend": 0.42,
+      "arch": 0.34
+    },
+    "chordToneBias": 0.6,
+    "emptyBarBias": 0.1,
+    "octaveJumpProb": 0.06,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        2,
+        3
+      ]
+    },
+    "timbreHint": "nylon_guitar"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.6,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.92,
+    "rhythm": "mirror_kick",
+    "register": [
+      26,
+      42
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.12
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 2,
+      "verse": 8,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": [
+        4,
+        12
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "chorus"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "bridge",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "switchUpProb": 0.16
+    }
+  }
+}

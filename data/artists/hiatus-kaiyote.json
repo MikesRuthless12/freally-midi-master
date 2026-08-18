@@ -1,0 +1,315 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "hiatus-kaiyote",
+  "type": "artist",
+  "name": "Hiatus Kaiyote",
+  "aliases": [
+    "hiatus kaiyote",
+    "nai palm",
+    "wondercore",
+    "paul bender"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "2013-present",
+  "genres": [
+    "soul",
+    "neo-soul",
+    "jazz",
+    "funk"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "funk",
+    "lofi-hiphop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Hiatus Kaiyote",
+    "Wikipedia — Hiatus Kaiyote (https://en.wikipedia.org/wiki/Hiatus_Kaiyote)",
+    "songdata.io — Hiatus Kaiyote (https://songdata.io/search?query=Hiatus+Kaiyote)",
+    "musicbusinessworldwide.com (https://www.musicbusinessworldwide.com/)"
+  ],
+  "notes": "The lane's rhythmic and harmonic extremist, and every number here sits at the section's edge. The band is the catalogue's own 72–135 and the keys are the named G major/G minor and F minor. Drums: \"live kit with **odd and shifting metres and polyrhythm** — model 5/4, 7/8, 6/8-over-4/4 and bar-length changes inside a section, with the backbeat still nominally on 2&4 when the metre is 4. Perrin Moss plays dense ghost-note 16ths, displaced snares, and cross-rhythms against the bass\". The metre changes are not encodable, so what is authored is everything else: the highest kick syncopation and tresillo bias in the section, the highest ghost probability (0.74 across all eight 16ths), a displaced snare, and a found-sound percussion layer of 4–8 hits a bar across five lanes. Harmony is \"the section's most advanced: chromatic mediant motion, quartal and cluster voicings, modal shifts mid-phrase, and reharmonisation of a repeated melody — chord changes can occur every bar or every two beats\", so no families are authored and `chordDurationBeats` runs 1–4, the shortest anywhere here. Melody is \"high soprano with very wide leaps, extremely high note-density, non-repeating phrase lengths\" — density 7–14, a leap share of 0.22 (five times the lane's), a three-octave register and `endVariation`. Bass is \"Paul Bender's played electric bass, mixed loud and treated as a lead voice — heavily syncopated, chord-tone-driven, moving with the reharmonisation, with distortion and octave effects\", hence a root probability of 0.22 and the chord voicing lifted to 50 to clear it. ⚠ The INFERRED parameters are all drum probabilities and velocities and every melody figure; the research marks the specific metre list as idiom inference.",
+  "session": {
+    "bpm": {
+      "min": 72,
+      "max": 135,
+      "mode": 96
+    },
+    "keys": {
+      "values": [
+        "G",
+        "Gm",
+        "Fm"
+      ],
+      "weights": [
+        4,
+        3,
+        3
+      ]
+    },
+    "scales": {
+      "values": [
+        "dorian",
+        "lydian",
+        "major",
+        "natural_minor",
+        "melodic_minor"
+      ],
+      "weights": [
+        4,
+        2,
+        3,
+        3,
+        1
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.46,
+      "velocityVar": 0.3,
+      "timingJitterMs": {
+        "kick": 7,
+        "snare": 14,
+        "closedHat": 10,
+        "perc": 12
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        7
+      ],
+      "syncopation": 0.68,
+      "tresilloBias": 0.22
+    },
+    "snare": {
+      "offGridMs": [
+        8,
+        20
+      ],
+      "ghost": {
+        "prob": 0.74,
+        "pos": [
+          "1e",
+          "1a",
+          "2e",
+          "2a",
+          "3e",
+          "3a",
+          "4e",
+          "4a"
+        ],
+        "vel": [
+          0.12,
+          0.36
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.68,
+      "velocities": {
+        "main": [
+          0.36,
+          0.66
+        ],
+        "ghost": [
+          0.12,
+          0.3
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32",
+            "16T"
+          ],
+          "weights": [
+            2,
+            3
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "pre_downbeat"
+        ],
+        "freqPerBar": 0.3,
+        "velocityRamp": true
+      }
+    },
+    "percs": {
+      "lanes": [
+        "perc",
+        "perc2",
+        "woodblock",
+        "shaker",
+        "conga"
+      ],
+      "densityPerBar": [
+        4,
+        8
+      ],
+      "placement": "any",
+      "gainOffsetDb": -4
+    }
+  },
+  "chords": {
+    "extensions": {
+      "triad": 0.04,
+      "seventh": 0.4,
+      "ninth": 0.56
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        50,
+        86
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "syncopated_cell"
+      ],
+      "weights": [
+        4,
+        4
+      ]
+    },
+    "susSubstitutionProb": 0.34,
+    "chordDurationBeats": [
+      1,
+      4
+    ]
+  },
+  "melody": {
+    "register": [
+      60,
+      92
+    ],
+    "densityPerBar": [
+      7,
+      14
+    ],
+    "structure": "long_arc",
+    "intervals": {
+      "step": 0.5,
+      "third": 0.28,
+      "leap": 0.22
+    },
+    "contour": {
+      "riff": 0.2,
+      "descend": 0.34,
+      "arch": 0.46
+    },
+    "chordToneBias": 0.4,
+    "halfStepDissonance": 0.16,
+    "endVariation": true,
+    "octaveJumpProb": 0.3,
+    "phraseBars": {
+      "values": [
+        2,
+        4,
+        8
+      ],
+      "weights": [
+        2,
+        3,
+        2
+      ]
+    },
+    "timbreHint": "rhodes_and_synth"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.6,
+    "styles": {
+      "values": [
+        "arp",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.22,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      48
+    ],
+    "glideProb": 0.12,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2",
+      "M3",
+      "M6",
+      "TT",
+      "P4"
+    ],
+    "anticipationProb": 0.6
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        12
+      ],
+      "verse": [
+        4,
+        16
+      ],
+      "chorus": [
+        4,
+        12
+      ],
+      "bridge": [
+        2,
+        8
+      ],
+      "outro": [
+        4,
+        16
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "bridge",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "switchUpProb": 0.55
+    }
+  }
+}

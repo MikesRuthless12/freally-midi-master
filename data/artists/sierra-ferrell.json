@@ -1,0 +1,332 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "sierra-ferrell",
+  "type": "artist",
+  "name": "Sierra Ferrell",
+  "aliases": [
+    "sierra ferrell",
+    "ferrell",
+    "trail of flowers"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-shuffle"
+  ],
+  "era": "2021-2024",
+  "genres": [
+    "country",
+    "country-shuffle",
+    "americana",
+    "gypsy jazz"
+  ],
+  "relatedGenres": [
+    "country-shuffle",
+    "country-train",
+    "country-pop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-shuffle — Sierra Ferrell",
+    "Wikipedia — Sierra Ferrell (https://en.wikipedia.org/wiki/Sierra_Ferrell)",
+    "Wikipedia — Shuffle (music) (https://en.wikipedia.org/wiki/Shuffle_(music))"
+  ],
+  "notes": "\"Jazz-inflected bluegrass\" — the archetype's most harmonically exotic entry, folding gypsy jazz, tango, calypso and waltz into an acoustic string band. The drums are the entry's own: \"often none; where present, a light brushed shuffle or a jazz-derived ride lope with the kick feathered rather than struck\". A feathered kick is authored as densityPerBar 1–2 with syncopation 0.06, and the whole kit runs at the lowest velocity tiers in the section (84–104 accent over 58–76) with the hat nearly out of the picture (fillDensity 0.14, open hat 0.03) while the inherited ride lane keeps the lope at 4–8 hits. Ghost strokes stay busy at 0.36 because the brush detail is the texture. The entry states the swing rule directly: \"the swing ratio here should be set wide (near 3:1) on the slow material per the sourced tempo/ratio relationship, and narrowed on the fast gypsy-jazz numbers\" — one model gets one number, so 0.70 encodes the wide setting the entry names first. Harmony is the documented fusion: gypsy-jazz minor cycles (i–VI–ii–V, with the ♭5 of the ii read as a colour rather than a numeral, since a numeral names a degree), diminished passing chords, tango i–iv–V–i \"with a dotted, halting rhythm\", and calypso I–IV–V; extensions run 0.24/0.5/0.26 with close voicings, which is \"the widest chord palette in the section after The Mavericks\". The vocal is the documented \"high, keening voice with heavy, wide vibrato and pronounced pitch slides into notes — closer to a pre-war 78 than to modern Nashville\", authored as a high 62–88 register, legato phrasing, an arch-heavy contour and a raised half-step colour for the gypsy-jazz line. The upright walks on the jazz material and plays root–five two-beat on the country material, hence independent_riff at 0.66 with chromatic m2 in the passing tones. ⚠ INFERRED: bpm.mode 100 (the entry gives the 70–170 band but no centre and no per-track readings), swing.amount, all velocity tiers, kit densities and the counter's density ratio. ⚠ The research marks its harmony as [LOW-CONF] — \"inferred from the documented genre fusion; no per-track harmonic data was reachable\" — and rates the entry medium-low on tempo and harmony against medium-high on Gate 1, era, producers and style, which is why confidence is medium.",
+  "session": {
+    "bpm": {
+      "min": 70,
+      "max": 170,
+      "mode": 100
+    },
+    "scales": {
+      "values": [
+        "harmonic_minor",
+        "natural_minor",
+        "major",
+        "dorian"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "8th",
+      "amount": 0.7
+    },
+    "humanize": {
+      "quantizeStrength": 0.62,
+      "velocityVar": 0.26
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        84,
+        104
+      ],
+      "main": [
+        58,
+        76
+      ],
+      "ghost": [
+        20,
+        34
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        1,
+        2
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "syncopation": 0.06,
+      "offbeat8thShare": 0.02
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.36,
+        "pos": [
+          "1&",
+          "2&",
+          "3&",
+          "4&"
+        ],
+        "vel": [
+          0.14,
+          0.28
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.14,
+      "velocities": {
+        "main": [
+          0.32,
+          0.52
+        ],
+        "ghost": [
+          0.12,
+          0.26
+        ]
+      },
+      "openHat": {
+        "prob": 0.03,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "ride"
+      ],
+      "densityPerBar": [
+        4,
+        8
+      ],
+      "gainOffsetDb": -6
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "ii",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "V",
+          "i"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "vii°",
+          "i",
+          "V"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "ii",
+          "V",
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 5,
+    "extensions": {
+      "triad": 0.24,
+      "seventh": 0.5,
+      "ninth": 0.26
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        52,
+        80
+      ]
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      62,
+      88
+    ],
+    "densityPerBar": [
+      3,
+      8
+    ],
+    "intervals": {
+      "step": 0.62,
+      "third": 0.28,
+      "leap": 0.1
+    },
+    "contour": {
+      "riff": 0.2,
+      "descend": 0.35,
+      "arch": 0.45
+    },
+    "chordToneBias": 0.66,
+    "halfStepDissonance": 0.18,
+    "octaveJumpProb": 0.06,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "articulation": "legato"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.45,
+      0.7
+    ],
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.66,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      48
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5",
+      "M3",
+      "M2",
+      "m2",
+      "m7",
+      "M6"
+    ],
+    "anticipationProb": 0.1
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "bridge",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": 8,
+      "chorus": 8,
+      "bridge": [
+        8,
+        16
+      ],
+      "outro": [
+        2,
+        4
+      ]
+    },
+    "transitions": {
+      "fillBeforeSection": false,
+      "switchUpProb": 0.12
+    }
+  }
+}

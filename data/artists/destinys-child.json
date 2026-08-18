@@ -1,0 +1,368 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "destinys-child",
+  "type": "artist",
+  "name": "Destiny's Child",
+  "aliases": [
+    "destinys child",
+    "destiny child",
+    "beyonce kelly michelle"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "rnb-2000s"
+  ],
+  "era": "1998-2005",
+  "genres": [
+    "rnb-2000s",
+    "rnb",
+    "pop"
+  ],
+  "relatedGenres": [
+    "rnb-2000s",
+    "uk-garage",
+    "pop-2000s",
+    "trap-soul"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 rnb-2000s — Destiny's Child",
+    "songdata — Destiny's Child (https://songdata.io/search?query=Destiny%27s+Child)",
+    "Wikipedia — Say My Name (https://en.wikipedia.org/wiki/Say_My_Name)",
+    "Wikipedia — Bills, Bills, Bills (https://en.wikipedia.org/wiki/Bills,_Bills,_Bills)"
+  ],
+  "notes": "The research calls this \"the lane's flagship group\" and gives the spine as a \"**69 half-time spine** on the Darkchild records (reads 138)\", so `halfTime` is true, the mode is 69 and the band runs 64–80 to hold the sourced 64 and 80 readings; the separate straight 96–119 band is a different backbeat class and is not folded in. Three drum deltas are the entry's template description: \"syncopated 808 programming with the kick on 16th offsets\" (syncopation 0.74, secondary anchor `2a`, three to five hits a bar), \"snare on 3\", and \"hats in gapped 16th bursts\" — a non-continuous 16th lane with a high roll frequency and a velocity ramp, which the research attributes to UK 2-step garage heard in a London club, hence a tight 0.54 swing rather than the genre's 0.62 and `uk-garage` in the related list. Harmony is \"two-chord minor-9th vamps with synthesized strings and 1970s wah-wah guitar licks as the colour; harpsichord/plucked-synth leads\", so ninth is the largest extension share and the families are two- and three-chord. \"Four-voice stacks used rhythmically — chopped, stabbed harmony rather than sustained pads\" is the staccato articulation and the riff-leaning contour. The low end is \"808 sub articulated in 16ths… entering and vanishing rather than sustaining\", with the harpsichord-synth carrying the low-mid on one record — articulated and non-sustaining, so it is the `bassline` block and there is no `drums.bass808` block, which would have silenced the part. ⚠ The INFERRED parameters are every velocity and density number, the swing figure and the melody register.",
+  "session": {
+    "bpm": {
+      "min": 64,
+      "max": 80,
+      "mode": 69
+    },
+    "halfTime": true,
+    "keys": {
+      "values": [
+        "Fm",
+        "Bm",
+        "Dbm",
+        "F#m",
+        "Dm"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.54
+    },
+    "humanize": {
+      "quantizeStrength": 0.88,
+      "velocityVar": 0.16,
+      "timingJitterMs": {
+        "kick": 2,
+        "snare": 3,
+        "clap": 3,
+        "closedHat": 4
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2a",
+      "syncopation": 0.74,
+      "tresilloBias": 0.22,
+      "beatSkipProb": 0.2
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "ghost": {
+        "prob": 0.2,
+        "pos": [
+          "2a",
+          "3e"
+        ],
+        "vel": [
+          0.14,
+          0.28
+        ]
+      },
+      "offGridMs": [
+        0,
+        3
+      ]
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": 0.46,
+      "velocities": {
+        "main": [
+          0.5,
+          0.78
+        ],
+        "ghost": [
+          0.2,
+          0.4
+        ]
+      },
+      "openHat": {
+        "prob": 0.22,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "32"
+          ],
+          "weights": [
+            2,
+            2
+          ]
+        },
+        "positions": [
+          "bar_2",
+          "phrase_end"
+        ],
+        "freqPerBar": 0.3,
+        "velocityRamp": true
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "perc",
+        "snap"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "placement": "any",
+      "gainOffsetDb": -6
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "iv",
+          "i"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.14,
+      "seventh": 0.42,
+      "ninth": 0.44
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        49,
+        77
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "syncopated_cell"
+      ],
+      "weights": [
+        4,
+        3,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      8,
+      16
+    ]
+  },
+  "melody": {
+    "register": [
+      62,
+      84
+    ],
+    "densityPerBar": [
+      4,
+      10
+    ],
+    "intervals": {
+      "step": 0.7,
+      "third": 0.24,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.42,
+      "descend": 0.32,
+      "arch": 0.26
+    },
+    "chordToneBias": 0.78,
+    "octaveJumpProb": 0.05,
+    "articulation": "staccato",
+    "motifPitchCount": [
+      4,
+      6
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "bright_bell"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.5,
+    "styles": {
+      "values": [
+        "arp",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.88,
+    "rhythm": "independent_riff",
+    "register": [
+      26,
+      44
+    ],
+    "glideProb": 0.06,
+    "passingTones": [
+      "P5",
+      "P8"
+    ],
+    "anticipationProb": 0.34,
+    "cellShapes": [
+      [
+        "1"
+      ],
+      [
+        "1",
+        "5"
+      ],
+      [
+        "1",
+        "1",
+        "5"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 2,
+      "verse": 8,
+      "prechorus": 4,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": 4
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "verse",
+          "prechorus",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.8,
+        "beats": 2
+      },
+      "switchUpProb": 0.4
+    }
+  }
+}

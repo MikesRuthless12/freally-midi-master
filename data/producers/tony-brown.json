@@ -1,0 +1,311 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "tony-brown",
+  "type": "producer",
+  "name": "Tony Brown",
+  "aliases": [
+    "tony brown",
+    "tonybrown",
+    "anthony brown"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "country-pop"
+  ],
+  "era": "1990-2016",
+  "genres": [
+    "country-pop",
+    "country",
+    "producer"
+  ],
+  "relatedGenres": [
+    "country-pop",
+    "country-shuffle",
+    "country-train"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 country-pop — Tony Brown",
+    "Mix — Cyndi Lauper & Tony Brown (https://www.mixonline.com/recording/cyndi-lauper-tony-brown-427833)",
+    "Wikipedia — Tony Brown (https://en.wikipedia.org/wiki/Tony_Brown_(record_producer))"
+  ],
+  "notes": "The MCA Nashville president-producer with 100+ No. 1 singles, modelled 1990–2016 because the research puts his 80s work out of window. The tracking rule is quoted and is the whole session block: takes are cut \"live, with the vocal cut live too — a documented departure from standard Nashville procedure where tracks come first and vocals later,\" under a stated rule for the room — \"here's the deal, guys, we all have to be as one before I'm gonna like it. Everybody be on your toes because the take is the take. No redo's.\" One-take ensemble capture with no comping is a humanize reading, not a mix one: the timing is human and consistent, the velocity spread is wide, and the fills sit where a band would put them rather than on an edit grid. Harmony is the second real delta and it is documented through his training: \"a classically trained pianist who played for Elvis, and the ii–V and secondary-dominant vocabulary in his productions reflects that,\" so ii–V–I leads the families and the seventh share runs well above the genre's triad-heavy default. The band template is listed instrument by instrument — \"bass, drums, fiddle/mandolin doubling, keys, pedal steel, two electric/acoustic guitarists, a dedicated flatpicking acoustic player and accordion\" — which is why the counter runs a genuine answer-lick density rather than a pad. The arrangement note is deliberately plain: \"sections are conventional but the performance is loose and dynamic.\" ⚠ The bass is stated as \"live bass only … no programmed low end,\" so no `drums.bass808` block. ⚠ The INFERRED parameters are the humanize values, the velocity tiers, the perc density and the counter ratio.",
+  "session": {
+    "bpm": {
+      "min": 60,
+      "max": 150,
+      "mode": 100
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "major_pentatonic",
+        "major_blues"
+      ],
+      "weights": [
+        6,
+        2,
+        2,
+        1
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.74,
+      "velocityVar": 0.22,
+      "timingJitterMs": {
+        "kick": 6,
+        "snare": 7,
+        "closedHat": 6,
+        "ride": 7,
+        "rim": 7
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        110,
+        127
+      ],
+      "main": [
+        66,
+        92
+      ],
+      "ghost": [
+        22,
+        40
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "syncopation": 0.15,
+      "offbeat8thShare": 0.17
+    },
+    "snare": {
+      "crossStickVerses": true,
+      "ghost": {
+        "prob": 0.21,
+        "pos": [
+          "1a",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.14,
+          0.32
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.19,
+      "openHat": {
+        "prob": 0.26,
+        "pos": [
+          "4"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "ride",
+        "rim",
+        "shaker",
+        "tomLow"
+      ],
+      "densityPerBar": [
+        1,
+        4
+      ],
+      "gainOffsetDb": -5,
+      "tambourine": false
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8,
+      "fillBeforeSection": false
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "vi",
+          "ii",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.48,
+      "seventh": 0.42,
+      "ninth": 0.1
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        49,
+        77
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      53,
+      81
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "intervals": {
+      "step": 0.7,
+      "third": 0.22,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.16,
+      "descend": 0.34,
+      "arch": 0.5
+    },
+    "chordToneBias": 0.76,
+    "octaveJumpProb": 0.05,
+    "timbreHint": "flatpicked_acoustic"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.66,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp",
+        "sustain_pad"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.66,
+    "register": [
+      28,
+      47
+    ],
+    "passingTones": [
+      "P5",
+      "M2",
+      "M3",
+      "M6",
+      "m7"
+    ],
+    "anticipationProb": 0.18
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": [
+        8,
+        16
+      ],
+      "chorus": 8,
+      "bridge": [
+        8,
+        8
+      ],
+      "outro": [
+        4,
+        8
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "chorus"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.16,
+        "beats": 2
+      },
+      "switchUpProb": 0.28
+    }
+  }
+}

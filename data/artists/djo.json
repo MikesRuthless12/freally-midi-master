@@ -1,0 +1,345 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "djo",
+  "type": "artist",
+  "name": "Djo",
+  "aliases": [
+    "djo",
+    "joe keery",
+    "djo music",
+    "djoseph"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2020s"
+  ],
+  "era": "2019-present",
+  "genres": [
+    "pop",
+    "pop-2020s",
+    "psych-pop",
+    "synth-pop"
+  ],
+  "relatedGenres": [
+    "pop-2020s",
+    "lofi-hiphop",
+    "pop-2000s",
+    "techno"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2020s — Djo",
+    "Wikipedia — Djo (musician) (https://en.wikipedia.org/wiki/Djo_(musician))"
+  ],
+  "notes": "Psychedelic synth-pop with heavily processed vocals. ⚠ `confidence` is low, and the research says why: it rates the entry medium-low and states that \"genre labels, multi-instrumentalism and the synth-pop turn [are] documented; rhythmic and harmonic detail inferred\". Three claims are actually researched and they carry the model. First, the pulse: \"backbeat on 2&4 straight with a motorik 8th-note drive\" and \"a dry, tight programmed-or-played kit with a plain backbeat and a repetitive 8th-note pulse; percussion is deliberately unobtrusive so the synth and vocal treatments carry the identity\" — so the kick is an unvarying 8th-note engine at near-zero syncopation, the snare is dry and short, `hihat.base` is 8th with the roll vocabulary off, and the perc lanes sit at the quietest gain in this batch. Second, the bass is the riff: \"a prominent, melodic analogue-style synth bass playing a repeating 8th-note figure that functions as the main riff\", which is `independent_riff` at `followRootsProb` 0.32 with the bass register reaching high enough to read as a line rather than a floor; there is no `bass808` block because the entry says \"no 808\". Third, harmony: \"modal minor and major with drone-based harmony and chromatic pad movement\" over \"2- or 4-bar loops\", so `maxChords` is 3, `harmonicRhythm` is vamp-led and `susOrDimProb` carries the chromatic pad motion. Melody encodes \"narrow-range, mid-register and doubled with pitch/formant processing\" as a small `motifPitchCount` over a tight register with a `octave_echo` counter for the doubling. ⚠ The INFERRED parameters are every drum probability, the humanize numbers, the harmonic weights, the melody register and `bpm.mode` 115 (the midpoint of the stated 100—130 band); the entry's [LOW-CONF] mark on the buried-tenor claim is repeated here.",
+  "session": {
+    "bpm": {
+      "min": 100,
+      "max": 130,
+      "mode": 115
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "dorian",
+        "natural_minor",
+        "mixolydian",
+        "major"
+      ],
+      "weights": [
+        4,
+        4,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.96,
+      "velocityVar": 0.1,
+      "timingJitterMs": {
+        "kick": 2,
+        "snare": 2
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        4,
+        6
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.04,
+      "tresilloBias": 0.01,
+      "offbeat8thShare": 0.34
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "transient": "medium",
+      "reverb": "short",
+      "stack": [
+        "snare"
+      ],
+      "ghost": {
+        "prob": 0.1,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.16,
+          0.3
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.16,
+      "velocities": {
+        "main": [
+          0.46,
+          0.66
+        ],
+        "ghost": [
+          0.18,
+          0.32
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0
+      },
+      "openHat": {
+        "prob": 0.1,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "rim"
+      ],
+      "densityPerBar": [
+        0,
+        2
+      ],
+      "placement": "any",
+      "gainOffsetDb": -11
+    },
+    "fills": {
+      "smallEveryBars": 16,
+      "bigEveryBars": 16,
+      "snareRollLadder": false
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "IV"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "VII",
+          "IV"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.52,
+      "seventh": 0.34,
+      "ninth": 0.14
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        54,
+        81
+      ]
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      8,
+      32
+    ],
+    "susOrDimProb": 0.2
+  },
+  "melody": {
+    "register": [
+      57,
+      76
+    ],
+    "densityPerBar": [
+      3,
+      8
+    ],
+    "structure": "riff_loop",
+    "motifPitchCount": [
+      3,
+      4
+    ],
+    "intervals": {
+      "step": 0.84,
+      "third": 0.13,
+      "leap": 0.03
+    },
+    "contour": {
+      "riff": 0.64,
+      "descend": 0.24,
+      "arch": 0.12
+    },
+    "chordToneBias": 0.74,
+    "halfStepDissonance": 0.1,
+    "octaveJumpProb": [
+      0.01,
+      0.06
+    ],
+    "phraseBars": {
+      "values": [
+        1,
+        2
+      ],
+      "weights": [
+        3,
+        4
+      ]
+    },
+    "timbreHint": "warped_synth"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.4,
+      0.62
+    ],
+    "styles": {
+      "values": [
+        "octave_echo",
+        "arp"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.32,
+    "rhythm": "independent_riff",
+    "register": [
+      30,
+      52
+    ],
+    "glideProb": 0.04,
+    "passingTones": [
+      "M2",
+      "m3",
+      "P4",
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.36,
+    "cellShapes": [
+      [
+        "1",
+        "1",
+        "5",
+        "b7"
+      ],
+      [
+        "1",
+        "b3",
+        "1",
+        "5"
+      ],
+      [
+        "1",
+        "1",
+        "1",
+        "4"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": [
+        8,
+        16
+      ],
+      "chorus": 8,
+      "bridge": 4,
+      "outro": 2
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.35,
+        "beats": 2
+      },
+      "switchUpProb": 0.18
+    }
+  }
+}

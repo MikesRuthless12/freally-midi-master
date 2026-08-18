@@ -1,0 +1,346 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "christina-milian",
+  "type": "artist",
+  "name": "Christina Milian",
+  "aliases": [
+    "christina milian",
+    "christine flores",
+    "dip it low"
+  ],
+  "tier": "standard",
+  "extends": [
+    "rnb-2000s"
+  ],
+  "era": "2001-2006",
+  "genres": [
+    "rnb-2000s",
+    "rnb",
+    "pop"
+  ],
+  "relatedGenres": [
+    "rnb-2000s",
+    "pop-2000s",
+    "dance-pop",
+    "crunk"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended-2 vol.2 rnb-2000s — Christina Milian",
+    "bpmdatabase — Christina Milian (https://www.bpmdatabase.com/music/search/?artist=Christina+Milian)",
+    "Wikipedia — Kwamé (https://en.wikipedia.org/wiki/Kwam%C3%A9)"
+  ],
+  "notes": "Def Jam pop-R&B across a Bloodshy-era pop crossover and the Dupri / Kwamé-orbit R&B board, 2001–2006. The research gives \"68–105 straight\" with six sourced tempos, so the mode sits at 100 and `halfTime` is false. Three drum deltas come from the two records the entry describes in detail: the 105 club cut is \"four-on-the-floor-adjacent\", hence `fourOnFloorInChorus` true and a continuous 16th hat with the open hat on both offbeats; the 85 R&B cut is \"sparse trap-adjacent 16th kick with a hard clap on 2&4\", hence a kick syncopation of 0.5 with a 0.22 tresillo lean and the secondary anchor on `2a`; and \"an Eastern-flavoured percussion layer\" is a perc/timbale/tambourine/rim bed at two to five hits a bar, which nothing else in this batch carries. Harmony is \"two-chord minor vamps with a plucked/bell riff\", so `maxChords` is 2. \"Light thin soprano in a narrow range, hook built from a short repeated cell, harmony doubled rather than stacked\" is a sixteen-semitone melody register, `twoBarCellRepeat`, a 3–5 pitch motif and a counter density of only 0.3. The low end is \"808 sub with slides on the 85–100 R&B cuts; a driving 8th-note synth bass on the club cuts\" — two behaviours, both bass parts rather than a drum-kit 808, so no `drums.bass808` block and a `glideProb` of 0.3. ⚠ Confidence is **low**: the research rates the entry medium-low and marks the key claim `[LOW-CONF]`. ⚠ Every velocity and density number is INFERRED. ⚠ `session.keys` is INFERRED: the entry's Keys line gives \"minor-mode two-chord vamps on the R&B cuts, major on the pop crossovers [LOW-CONF]\" and enumerates no tonic, so the values here and their weights are this author's reading of that line. ⚠ **`chords.harmonicRhythm` re-weighted (2026-08-17, harmony variety floor).** The entry's harmony line is \"two-chord minor vamps on the R&B cuts, major on the pop crossovers\", and the engine's `vamp` value is *one* chord held for the whole clip (`generators::chords`: \"One chord for the whole pattern\") — so weighting `vamp` at the top rendered a **one**-chord bed the research nowhere describes. The chord motion the entry states is now carried by `1_per_bar` (the pair over a 2-bar cell) and `2_bars_per_chord` (the pair over a 4-bar cell), with `vamp` kept as the minority for the held reading. ⚠ The split between those two rates is **INFERRED** — the entry names the device, not its rate.",
+  "session": {
+    "bpm": {
+      "min": 68,
+      "max": 105,
+      "mode": 100
+    },
+    "halfTime": false,
+    "keys": {
+      "values": [
+        "Cm",
+        "Am",
+        "Fm",
+        "C"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "major"
+      ],
+      "weights": [
+        4,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.52
+    },
+    "humanize": {
+      "quantizeStrength": 0.88,
+      "velocityVar": 0.16,
+      "timingJitterMs": {
+        "kick": 2,
+        "snare": 3,
+        "clap": 3,
+        "closedHat": 4,
+        "timbale": 6
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2a",
+      "syncopation": 0.5,
+      "tresilloBias": 0.22,
+      "fourOnFloorInChorus": true,
+      "andOf4EveryOtherBar": 0.15
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "stack": [
+        "clap"
+      ],
+      "layerClapOffsetMs": [
+        0,
+        2
+      ],
+      "ghost": {
+        "prob": 0.1,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.14,
+          0.26
+        ]
+      },
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.44,
+      "velocities": {
+        "main": [
+          0.5,
+          0.74
+        ],
+        "ghost": [
+          0.22,
+          0.4
+        ]
+      },
+      "openHat": {
+        "prob": 0.26,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "32"
+          ],
+          "weights": [
+            3,
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.16
+      }
+    },
+    "percs": {
+      "lanes": [
+        "perc",
+        "timbale",
+        "tambourine",
+        "rim"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "placement": "any",
+      "gainOffsetDb": -6
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.4,
+      "seventh": 0.44,
+      "ninth": 0.16
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        51,
+        81
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      8,
+      16
+    ]
+  },
+  "melody": {
+    "register": [
+      64,
+      80
+    ],
+    "densityPerBar": [
+      3,
+      8
+    ],
+    "intervals": {
+      "step": 0.84,
+      "third": 0.14,
+      "leap": 0.02
+    },
+    "contour": {
+      "riff": 0.46,
+      "descend": 0.32,
+      "arch": 0.22
+    },
+    "chordToneBias": 0.8,
+    "octaveJumpProb": 0.02,
+    "motifPitchCount": [
+      3,
+      5
+    ],
+    "twoBarCellRepeat": true,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "bright_bell"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.3,
+    "styles": {
+      "values": [
+        "bell_echo",
+        "arp"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.88,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      45
+    ],
+    "glideProb": 0.3,
+    "passingTones": [
+      "P5",
+      "P8"
+    ],
+    "anticipationProb": 0.28
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 2,
+      "verse": 8,
+      "prechorus": 4,
+      "chorus": 8,
+      "bridge": 16,
+      "outro": 4
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "verse",
+          "prechorus",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.7,
+        "beats": 4
+      },
+      "switchUpProb": 0.16
+    }
+  }
+}

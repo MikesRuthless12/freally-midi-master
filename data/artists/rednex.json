@@ -1,0 +1,343 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "rednex",
+  "type": "artist",
+  "name": "Rednex",
+  "aliases": [
+    "rednex",
+    "red nex",
+    "cotton eye joe rednex"
+  ],
+  "tier": "standard",
+  "extends": [
+    "dance-pop"
+  ],
+  "era": "1994-1995",
+  "genres": [
+    "dance-pop",
+    "eurodance",
+    "folk-pop",
+    "pop"
+  ],
+  "relatedGenres": [
+    "dance-pop",
+    "country-pop",
+    "house",
+    "pop-2000s"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended-2 vol.2 dance-pop — Rednex",
+    "Wikipedia — Rednex (https://en.wikipedia.org/wiki/Rednex)",
+    "Eurodance (https://en.wikipedia.org/wiki/Eurodance)"
+  ],
+  "notes": "Eurodance built on bluegrass/folk instrumental samples. `confidence` is low because the research rates the entry medium-low — \"the folk-sample premise and era are documented; everything else is genre convention and marked\". The single defining parameter the entry does give is the lead instrument: \"a sampled or replayed fiddle/banjo riff rather than a synth\", so the melody is a busy riff loop at 7-13 notes a bar with a 0.70 riff contour and a fiddle timbre hint, not a sung topline. The harmony follows from the same source — \"major-mode modal (Mixolydian-leaning) vamps inherited from the folk source material — a genuine outlier in a minor-dominant lane\" `[LOW-CONF]`, repeated here — which is why the families run I-bVII-IV and the scales are Mixolydian-weighted. The kit adds \"hand-claps and stomps layered on to imply a barn dance\", encoded as a snap/perc/woodblock lane at 4-8 hits a bar, with \"fills are tambourine 16ths\" rather than snare rolls. Vocals are gang-chanted call-and-response, hence the answering counter. ⚠ Every velocity, density and probability above is INFERRED.",
+  "session": {
+    "bpm": {
+      "min": 130,
+      "max": 145,
+      "mode": 138
+    },
+    "keys": {
+      "values": [
+        "G",
+        "D",
+        "A",
+        "C",
+        "E"
+      ],
+      "weights": [
+        4,
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "mixolydian",
+        "major",
+        "major_pentatonic"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.93,
+      "velocityVar": 0.16,
+      "timingJitterMs": {
+        "kick": 2,
+        "clap": 3,
+        "closedHat": 3,
+        "openHat": 3,
+        "tambourine": 4,
+        "snap": 4
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        108,
+        122
+      ],
+      "main": [
+        82,
+        96
+      ],
+      "ghost": [
+        30,
+        46
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        4,
+        4
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "syncopation": 0.05,
+      "offbeat8thShare": 0.08
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "layered": true,
+      "layerClapOffsetMs": [
+        3,
+        9
+      ],
+      "ghost": {
+        "prob": 0.16,
+        "pos": [
+          "2a",
+          "4a"
+        ],
+        "vel": [
+          0.24,
+          0.4
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.32,
+      "openHat": {
+        "prob": 0.9,
+        "pos": [
+          "1&",
+          "2&",
+          "3&",
+          "4&"
+        ],
+        "perBar": [
+          2,
+          4
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.11
+      }
+    },
+    "percs": {
+      "lanes": [
+        "snap",
+        "perc",
+        "tambourine",
+        "woodblock"
+      ],
+      "densityPerBar": [
+        4,
+        8
+      ],
+      "placement": "any",
+      "gainOffsetDb": -3
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8,
+      "snareRollLadder": false,
+      "fillBeforeSection": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "bVII",
+          "IV",
+          "I"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "bVII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "IV"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.88,
+      "seventh": 0.1,
+      "ninth": 0.02
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        4
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      67,
+      91
+    ],
+    "densityPerBar": [
+      7,
+      13
+    ],
+    "structure": "riff_loop",
+    "intervals": {
+      "step": 0.58,
+      "third": 0.3,
+      "leap": 0.12
+    },
+    "contour": {
+      "riff": 0.7,
+      "descend": 0.18,
+      "arch": 0.12
+    },
+    "chordToneBias": 0.82,
+    "octaveJumpProb": 0.05,
+    "articulation": "staccato",
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "timbreHint": "fiddle_riff"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.55,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.92,
+    "rhythm": "mirror_kick",
+    "register": [
+      31,
+      50
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5",
+      "M2",
+      "P8"
+    ],
+    "anticipationProb": 0.2
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 8,
+      "verse": 8,
+      "hook": 8,
+      "bridge": 8,
+      "outro": 8
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "hook",
+          "intro",
+          "verse",
+          "hook",
+          "bridge",
+          "hook",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.3,
+        "beats": 2
+      },
+      "switchUpProb": 0.06
+    }
+  }
+}

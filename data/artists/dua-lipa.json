@@ -1,0 +1,389 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "dua-lipa",
+  "type": "artist",
+  "name": "Dua Lipa",
+  "aliases": [
+    "dua lipa",
+    "dualipa",
+    "lipa",
+    "dua"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "pop-2020s"
+  ],
+  "era": "2015-present",
+  "genres": [
+    "pop",
+    "pop-2020s",
+    "nu-disco",
+    "dance-pop"
+  ],
+  "relatedGenres": [
+    "pop-2020s",
+    "dance-pop",
+    "funk",
+    "house"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2020s — Dua Lipa",
+    "Wikipedia — Dua Lipa (https://en.wikipedia.org/wiki/Dua_Lipa)",
+    "Wikipedia — Don't Start Now (https://en.wikipedia.org/wiki/Don%27t_Start_Now)",
+    "Wikipedia — Levitating (https://en.wikipedia.org/wiki/Levitating_(song))",
+    "songdata.io catalogue (https://songdata.io/search?query=Dua+Lipa)"
+  ],
+  "notes": "Low-register nu-disco pop, and the lane's own boundary case — the orientation keeps her here rather than in `dance-pop` because the records are topline-first even over a four-on-the-floor kick. The drums are authored from the entry word for word: \"four-on-the-floor kick with the low end used sparingly and a fill placed after every fourth measure\" is `anchors` on all four beats with `fills.smallEveryBars` 4; \"handclaps, cowbell and crowd noise as the percussion signature\" is the perc lane list; \"disco hat on offbeat 8ths opening to 16ths in the chorus\" is the weighted `hihat.base` plus a high `openHat.prob` on the offbeats. The low end is the identity claim and it is emphatically not an 808 — \"a MIDI-programmed funk bassline made to sound played … bass is the primary countermelody and moves in syncopated 16ths against a static kick\" — so `bassline.rhythm` is `independent_riff` at a low `followRootsProb` with a wide passing-tone set, and no `drums.bass808` block exists so the parent's explicit null stands. Harmony is \"4-bar minor vamps with 7ths and added 9ths\", which is the low `triad` share. Melody register is the documented working span: A3—D5 and F♯3—B4, \"a working span of roughly an 11th and almost never above D5\", so the ceiling is a hard 74. \"Melisma is used at phrase ends but she does not modulate\" is `endVariation`. The counter is the string-stab/vocoder answer the entry names. ⚠ The INFERRED parameters are every drum probability, the humanize pair and the perc gain; the research gives a groove description, not numbers. ⚠ The BPM band is catalogue-derived and carries the research's [LOW-CONF] mark; `bpm.mode` 122 is the stated cluster centre (120—124) rather than an inference.",
+  "session": {
+    "bpm": {
+      "min": 110,
+      "max": 125,
+      "mode": 122
+    },
+    "halfTime": false,
+    "keys": {
+      "values": [
+        "Bm",
+        "Fm",
+        "Bbm",
+        "Cm"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        3
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "major"
+      ],
+      "weights": [
+        6,
+        3,
+        1
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.95,
+      "velocityVar": 0.1
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        4,
+        4
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "secondaryAnchor": "4&",
+      "syncopation": 0.06,
+      "tresilloBias": 0.02,
+      "offbeat8thShare": 0.04
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "stack": [
+        "clap",
+        "snare"
+      ],
+      "layerClapOffsetMs": [
+        2,
+        5
+      ],
+      "ghost": {
+        "prob": 0.2,
+        "pos": [
+          "2a",
+          "4a"
+        ],
+        "vel": [
+          0.22,
+          0.38
+        ]
+      }
+    },
+    "hihat": {
+      "base": {
+        "values": [
+          "8th",
+          "16th"
+        ],
+        "weights": [
+          3,
+          2
+        ]
+      },
+      "continuous": true,
+      "fillDensity": 0.55,
+      "velocities": {
+        "main": [
+          0.66,
+          0.9
+        ],
+        "ghost": [
+          0.3,
+          0.52
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.1
+      },
+      "openHat": {
+        "prob": 0.62,
+        "pos": [
+          "1&",
+          "2&",
+          "3&",
+          "4&"
+        ],
+        "perBar": [
+          2,
+          4
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "clave",
+        "cowbell",
+        "tambourine",
+        "snap"
+      ],
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "placement": "offbeat",
+      "gainOffsetDb": -6
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "iv",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.34,
+      "seventh": 0.44,
+      "ninth": 0.22
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        52,
+        80
+      ]
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "vamp"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      54,
+      74
+    ],
+    "densityPerBar": [
+      5,
+      10
+    ],
+    "structure": "call_response",
+    "intervals": {
+      "step": 0.68,
+      "third": 0.24,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.42,
+      "descend": 0.36,
+      "arch": 0.22
+    },
+    "chordToneBias": 0.76,
+    "octaveJumpProb": [
+      0.04,
+      0.1
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "endVariation": true,
+    "timbreHint": "vocoder_choir"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.5,
+      0.75
+    ],
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad",
+        "arp"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.42,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      50
+    ],
+    "glideProb": 0.04,
+    "passingTones": [
+      "m3",
+      "P4",
+      "P5",
+      "m7",
+      "M6",
+      "M2"
+    ],
+    "anticipationProb": 0.55,
+    "cellShapes": [
+      [
+        "1",
+        "b3",
+        "4",
+        "5"
+      ],
+      [
+        "1",
+        "5",
+        "b7",
+        "5"
+      ],
+      [
+        "1",
+        "1",
+        "b7",
+        "5"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": 8
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "verse",
+          "prechorus",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.5,
+        "beats": 2
+      },
+      "switchUpProb": 0.06
+    }
+  }
+}

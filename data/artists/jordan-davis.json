@@ -1,0 +1,229 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "jordan-davis",
+  "type": "artist",
+  "name": "Jordan Davis",
+  "aliases": [
+    "jordan davis",
+    "jordandavis",
+    "jordon davis"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-pop"
+  ],
+  "era": "2018-2022",
+  "genres": [
+    "country-pop",
+    "country",
+    "rnb country"
+  ],
+  "relatedGenres": [
+    "country-pop",
+    "rnb-2000s",
+    "pop-2020s"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended-2 vol.2 country-pop — Jordan Davis",
+    "bpmdatabase (https://www.bpmdatabase.com/music/search/?artist=Jordan+Davis)",
+    "songdata.io (https://songdata.io/search?query=Luke+Bryan)",
+    "Wikipedia — Country pop (https://en.wikipedia.org/wiki/Country_pop)"
+  ],
+  "notes": "Warm, mid-tempo, family-narrative country with a soft R&B pocket. ⚠ Confidence is **low** and the research is explicit about why: it rates the entry medium-low because \"lane and tempo band are consistent but rest on only four catalogue readings [LOW-CONF]\" — four data points is under this section's own floor for a tempo claim, so the 82–100 band is encoded as stated and nothing is extrapolated beyond it. That band is genuinely narrow and is the model's most distinctive session fact. Drums are the stated hybrid: \"a programmed clap/snap doubling the snare, 16th shaker, sampled kick under a live kick, and very low fill density; verses frequently loop-only,\" so the fill grid is long, the kick density is low enough for a loop-only verse and the shaker runs 16ths. Keys are documented as E/G/A♭/C with the \"Buy Dirt\" reading in E. Harmony is \"I–V–vi–IV as a two-bar loop with ii–V into the chorus\" — those two and no third, since `progressionFamilies` replaces rather than appends and the entry names nothing else. Melody is \"mid-baritone, conversational, behind-the-beat, with a short repeated chorus cell and a soft falsetto tag,\" hence the high cell repeat with a small octave-jump share carrying the falsetto. ⚠ The light synth sub sits under a syncopated electric bass, i.e. reinforcement, so no `drums.bass808` block is authored. ⚠ The INFERRED parameters are the clap offsets, the perc density and the counter ratio.",
+  "session": {
+    "bpm": {
+      "min": 82,
+      "max": 100,
+      "mode": 92
+    },
+    "keys": {
+      "values": [
+        "E",
+        "G",
+        "Ab",
+        "C"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "major_pentatonic",
+        "mixolydian"
+      ],
+      "weights": [
+        7,
+        2,
+        1
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.94,
+      "velocityVar": 0.11,
+      "timingJitterMs": {
+        "kick": 2,
+        "snare": 3,
+        "snap": 2,
+        "shaker": 3
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.25,
+      "offbeat8thShare": 0.36
+    },
+    "snare": {
+      "layered": true,
+      "layerClapOffsetMs": [
+        2,
+        4
+      ],
+      "offGridMs": 5,
+      "ghost": {
+        "prob": 0.11,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.16,
+          0.3
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.16,
+      "openHat": {
+        "prob": 0.13,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "snap",
+        "tambourine"
+      ],
+      "densityPerBar": [
+        4,
+        7
+      ],
+      "gainOffsetDb": -5,
+      "tambourine": true
+    },
+    "fills": {
+      "smallEveryBars": 16,
+      "bigEveryBars": 16,
+      "fillBeforeSection": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 6
+      },
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 4
+      }
+    ],
+    "extensions": {
+      "triad": 0.6,
+      "seventh": 0.32,
+      "ninth": 0.08
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        6,
+        3
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      50,
+      74
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "straightEighthsProb": 0.26,
+    "intervals": {
+      "step": 0.8,
+      "third": 0.17,
+      "leap": 0.03
+    },
+    "contour": {
+      "riff": 0.26,
+      "descend": 0.34,
+      "arch": 0.4
+    },
+    "chordToneBias": 0.8,
+    "octaveJumpProb": 0.08,
+    "twoBarCellRepeat": 0.6
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.46,
+    "styles": {
+      "values": [
+        "arp",
+        "sustain_pad"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.62,
+    "register": [
+      28,
+      45
+    ],
+    "passingTones": [
+      "P5",
+      "M2",
+      "M3"
+    ],
+    "anticipationProb": 0.38
+  }
+}

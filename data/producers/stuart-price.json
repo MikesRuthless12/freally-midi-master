@@ -1,0 +1,392 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "stuart-price",
+  "type": "producer",
+  "name": "Stuart Price",
+  "aliases": [
+    "stuart price",
+    "jacques lu cont",
+    "thin white duke",
+    "les rythmes digitales"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "pop-2020s"
+  ],
+  "era": "1996-present",
+  "genres": [
+    "pop",
+    "pop-2020s",
+    "producer",
+    "nu-disco"
+  ],
+  "relatedGenres": [
+    "pop-2020s",
+    "dance-pop",
+    "house",
+    "funk"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2020s — Stuart Price",
+    "Wikipedia — Stuart Price (https://en.wikipedia.org/wiki/Stuart_Price)",
+    "Wikipedia — Levitating (https://en.wikipedia.org/wiki/Levitating_(song))",
+    "Wikipedia — Future Nostalgia (https://en.wikipedia.org/wiki/Future_Nostalgia)"
+  ],
+  "notes": "Disco/electro-pop producer and remixer, and one of the fully documented entries in this section — aliases, remix philosophy, arrangement method, specific gear on named records and dated credits are all sourced. The era is 1996—present per the research; the entry is written on the 2010s—2020s work, which is where the parameters come from. The drums are his: \"four-on-the-floor kick with claps on 2&4, offbeat disco hats opening to 16ths, and cowbell/tambourine as period markers\", so the kick anchors all four beats, `hihat.base` is weighted across 8th and 16th, `openHat.prob` is 0.66 on all four offbeats, and `cowbell` and `tambourine` lead the perc lanes. The one thing that separates him from every other four-on-the-floor model in this roster is documented as his contribution to other people's records: \"he adds bounce — i.e. groove displacement and swing on the hats — to other producers' skeletons.\" That is `swing.amount` 0.56 on a 16th grid over an otherwise machine-tight quantize, which is a combination no other model here authors. The bass is the second documented contribution: \"no 808. His documented contribution is bass-groove development — a syncopated, played-feeling synth or electric bass line that carries the record\", so the bassline is `independent_riff` at `followRootsProb` 0.3 with a full passing-tone set and the highest `anticipationProb` on the producer side, and no `bass808` block is authored. Harmony is \"minor-mode disco vamps with 7ths and a high sustained drone synth used as a disco trope, plus analogue string voicings in the pre-chorus\", so `triad` is low, `harmonicRhythm` is vamp-led and the counter carries both the drone (`sustain_pad`) and the arpeggio. The arrangement is his stated method: \"the climax is achieved by unmuting layers rather than by a drop\", which is why `dropOutBeats` is low and the structures are long and additive rather than terraced. ⚠ The INFERRED parameters are every drum probability, `swing.amount` 0.56 (\"bounce\" is a direction), the humanize pair and `bpm.mode` 119 (the midpoint of the stated 110—128 production band).",
+  "session": {
+    "bpm": {
+      "min": 110,
+      "max": 130,
+      "mode": 119
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "major"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.56
+    },
+    "humanize": {
+      "quantizeStrength": 0.93,
+      "velocityVar": 0.13,
+      "timingJitterMs": {
+        "closedHat": 5,
+        "openHat": 5,
+        "cowbell": 6,
+        "tambourine": 6
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        4,
+        4
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "secondaryAnchor": "4&",
+      "syncopation": 0.04,
+      "tresilloBias": 0.01,
+      "offbeat8thShare": 0.04
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "stack": [
+        "clap"
+      ],
+      "transient": "medium",
+      "reverb": "short",
+      "layerClapOffsetMs": [
+        2,
+        7
+      ],
+      "ghost": {
+        "prob": 0.24,
+        "pos": [
+          "2a",
+          "4a"
+        ],
+        "vel": [
+          0.18,
+          0.36
+        ]
+      }
+    },
+    "hihat": {
+      "base": {
+        "values": [
+          "8th",
+          "16th"
+        ],
+        "weights": [
+          3,
+          3
+        ]
+      },
+      "continuous": true,
+      "fillDensity": 0.5,
+      "velocities": {
+        "main": [
+          0.58,
+          0.9
+        ],
+        "ghost": [
+          0.24,
+          0.48
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.1
+      },
+      "openHat": {
+        "prob": 0.66,
+        "pos": [
+          "1&",
+          "2&",
+          "3&",
+          "4&"
+        ],
+        "perBar": [
+          2,
+          4
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "cowbell",
+        "tambourine",
+        "clave",
+        "shaker"
+      ],
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "placement": "offbeat",
+      "gainOffsetDb": -5
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16,
+      "snareRollLadder": false
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "iv",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "ii",
+          "V",
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.3,
+      "seventh": 0.46,
+      "ninth": 0.24
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        52,
+        82
+      ]
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      16
+    ]
+  },
+  "melody": {
+    "register": [
+      60,
+      86
+    ],
+    "densityPerBar": [
+      4,
+      10
+    ],
+    "structure": "call_response",
+    "intervals": {
+      "step": 0.7,
+      "third": 0.22,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.44,
+      "descend": 0.34,
+      "arch": 0.22
+    },
+    "chordToneBias": 0.74,
+    "octaveJumpProb": [
+      0.04,
+      0.12
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "endVariation": true,
+    "timbreHint": "vocoder_choir"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.55,
+      0.8
+    ],
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "arp",
+        "answer_lick"
+      ],
+      "weights": [
+        4,
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.3,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      50
+    ],
+    "glideProb": 0.03,
+    "passingTones": [
+      "M2",
+      "m3",
+      "M3",
+      "P4",
+      "P5",
+      "M6",
+      "m7"
+    ],
+    "anticipationProb": 0.64,
+    "cellShapes": [
+      [
+        "1",
+        "5",
+        "b7",
+        "5"
+      ],
+      [
+        "1",
+        "b3",
+        "4",
+        "5"
+      ],
+      [
+        "1",
+        "1",
+        "b7",
+        "5"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 8,
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": [
+        8,
+        16
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "verse",
+          "prechorus",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.25,
+        "beats": 2
+      },
+      "switchUpProb": 0.05
+    }
+  }
+}

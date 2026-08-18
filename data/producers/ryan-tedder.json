@@ -1,0 +1,350 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "ryan-tedder",
+  "type": "producer",
+  "name": "Ryan Tedder",
+  "aliases": [
+    "ryan tedder",
+    "ryan benjamin tedder",
+    "ryantedder",
+    "tedder"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2020s"
+  ],
+  "era": "2007-present",
+  "genres": [
+    "pop",
+    "pop-2020s",
+    "producer",
+    "anthem pop"
+  ],
+  "relatedGenres": [
+    "pop-2020s",
+    "pop-2000s",
+    "dance-pop",
+    "country-pop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2020s — Ryan Tedder",
+    "Wikipedia — Ryan Tedder (https://en.wikipedia.org/wiki/Ryan_Tedder)",
+    "Wikipedia — Greedy (https://en.wikipedia.org/wiki/Greedy_(Tate_McRae_song))",
+    "Wikipedia — 1989 (https://en.wikipedia.org/wiki/1989_(Taylor_Swift_album))"
+  ],
+  "notes": "Piano-first topline-and-build pop architect, and a board entry rather than an artist one, so the drums and bass are authored hardest. The kit is the entry's: \"four-square kick with a big reverbed backbeat and layered claps; the signature is a percussion-only or clap-only pre-chorus that then detonates into the chorus. Fills are tom cascades and reversed cymbals rather than snare rolls.\" So the kick anchors all four beats, the snare sits under a large tail with a doubled clap stack, `rolls.freqPerBar` is 0 and the snare-roll ladder is off, the perc lanes are `tom`, `crash` and `reverse`, and the pre-chorus detonation is the deepest `dropOutBeats` this section authors. No `bass808` block: \"no 808 idiom. Sustained synth bass doubling the kick, with a sub swell as the chorus trigger\", which is `mirror_kick` at 0.96 with almost no passing motion. Harmony is his documented method — \"major-mode with a IV—V—vi—I lift cadence, and minor-mode i—VI—III—VII for the dance-facing work; he writes at the piano\" — so those two families lead over 4-bar diatonic loops. The melody block encodes the stated build: \"a narrow verse, a rhythmically accelerating pre-chorus and a wide-interval chorus that lands on a held note\", which is `long_arc` with a `densityPerBar` spread wide enough to accelerate, an arch contour and a raised `octaveJumpProb`; \"a stacked wordless vowel hook\" is the `sustain_pad` counter. ⚠ `confidence` is medium against a high-medium rating because the research says \"the tempo band is aggregated across credits\": every drum probability, the humanize numbers and `bpm.mode` 112 (the midpoint of the stated 100—125 anthem core) are INFERRED.",
+  "session": {
+    "bpm": {
+      "min": 90,
+      "max": 130,
+      "mode": 112
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor"
+      ],
+      "weights": [
+        5,
+        4
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.9,
+      "velocityVar": 0.15,
+      "timingJitterMs": {
+        "kick": 4,
+        "clap": 6,
+        "snare": 5,
+        "tom": 7
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        4
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "secondaryAnchor": "4&",
+      "syncopation": 0.1,
+      "tresilloBias": 0.02,
+      "offbeat8thShare": 0.08
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "reverb": "large",
+      "transient": "hard",
+      "stack": [
+        "clap",
+        "snare"
+      ],
+      "layerClapOffsetMs": [
+        3,
+        9
+      ],
+      "ghost": {
+        "prob": 0.14,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.2,
+          0.34
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.24,
+      "velocities": {
+        "main": [
+          0.5,
+          0.8
+        ],
+        "ghost": [
+          0.2,
+          0.4
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0
+      },
+      "openHat": {
+        "prob": 0.24,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tom",
+        "crash",
+        "reverse",
+        "snap"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "placement": "downbeat",
+      "gainOffsetDb": -4
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8,
+      "snareRollLadder": false
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "IV",
+          "V",
+          "vi",
+          "I"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.64,
+      "seventh": 0.28,
+      "ninth": 0.08
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        52,
+        79
+      ]
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      58,
+      85
+    ],
+    "densityPerBar": [
+      3,
+      12
+    ],
+    "structure": "long_arc",
+    "intervals": {
+      "step": 0.62,
+      "third": 0.28,
+      "leap": 0.1
+    },
+    "contour": {
+      "riff": 0.18,
+      "descend": 0.26,
+      "arch": 0.56
+    },
+    "chordToneBias": 0.8,
+    "octaveJumpProb": [
+      0.14,
+      0.28
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4,
+        8
+      ],
+      "weights": [
+        2,
+        4,
+        2
+      ]
+    },
+    "endVariation": true,
+    "timbreHint": "warm_grand_piano"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.45,
+      0.7
+    ],
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "octave_echo"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.96,
+    "rhythm": "mirror_kick",
+    "register": [
+      28,
+      48
+    ],
+    "glideProb": 0.01,
+    "passingTones": [
+      "P5",
+      "M2"
+    ],
+    "anticipationProb": 0.2,
+    "cellShapes": [
+      [
+        "1"
+      ],
+      [
+        "1",
+        "5"
+      ],
+      [
+        "1",
+        "1",
+        "5"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": 4
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "verse",
+          "prechorus",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.95,
+        "beats": 4
+      },
+      "switchUpProb": 0.05
+    }
+  }
+}

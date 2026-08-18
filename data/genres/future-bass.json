@@ -36,7 +36,7 @@
     "style-research ch.1 §12 Mainstream pop (2000s Max Martin era → 2020s)",
     "style-research ch.2 Cross-genre generator constants"
   ],
-  "notes": "Fast on paper and slow in the body: 150 BPM with the clap landing on beat 3, so the bar feels like 75 while the hats, rolls and risers still move at full speed. The harmony is the genre — spread supersaw voicings with a ninth on nearly every chord, sus2 and sus4 swapped in for the third, and four-chord loops that lean on IV, V and vi rather than settling on the tonic. The lead is a pitched vocal chop, so it leaps where a sung line would step, and the synth bass walks the offbeat eighths under the sidechain pump.",
+  "notes": "Fast on paper and slow in the body: 150 BPM with the clap landing on beat 3, so the bar feels like 75 while the hats, rolls and risers still move at full speed. The harmony is the genre — spread supersaw voicings with a ninth on nearly every chord, sus2 and sus4 swapped in for the third, and four-chord loops that lean on IV, V and vi rather than settling on the tonic. The lead is a pitched vocal chop, so it leaps where a sung line would step, and the synth bass walks the offbeat eighths under the sidechain pump. ⚠ **`drums.kick.lockTo808` removed (2026-08-17, 808 gate).** This kit has no 808 — `bass808` is `null` here or in the parent it inherits — and `lockTo808` is the one parameter that says *how much of the kick the 808 follows*, so in this file it described a pairing that does not exist: `generators::drums::bass808` returns on `block.is_none()` before the value is ever read, which makes it provably dead here. Where it was NOT dead was in the artists and producers who extend this kit and author an 808 of their own: they inherited the zero, `kicks.iter().filter(|_| rng.random_bool(0.0))` kept nothing, and their sub lane was silent at every seed — `bass808::every_shipped_model_with_an_808_produces_a_playable_line` reported \"no 808 at all\" for 35 of them. Removing it restores the engine's documented default of 1.0 for exactly those children and changes nothing here. ⚠ No researched claim moved: this kit's own statement about the 808 is the `bass808: null` beside it, and that is untouched.",
   "session": {
     "bpm": {
       "min": 140,
@@ -103,8 +103,7 @@
       "secondaryAnchor": "3&",
       "syncopation": 0.42,
       "offbeat8thShare": 0.55,
-      "tresilloBias": 0.08,
-      "lockTo808": 0
+      "tresilloBias": 0.08
     },
     "snare": {
       "placement": "halftime_3",

@@ -1,0 +1,305 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "lizz-wright",
+  "type": "artist",
+  "name": "Lizz Wright",
+  "aliases": [
+    "lizz wright",
+    "jazz contralto soul",
+    "verve soul"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "2003-present",
+  "genres": [
+    "soul",
+    "neo-soul",
+    "jazz",
+    "gospel"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "funk",
+    "rnb-2000s"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Lizz Wright",
+    "Wikipedia — Lizz Wright (https://en.wikipedia.org/wiki/Lizz_Wright)",
+    "Wikipedia — Neo soul (https://en.wikipedia.org/wiki/Neo_soul)"
+  ],
+  "notes": "The jazz-vocal end of the lane, and \"the slowest habitual band in this section\" — 58–92, which is why the tempo mode sits at 72, lower than anything else here. `confidence` is **low** because the research rates the entry medium-low and marks the tempo band and harmonic detail as inference; the entry also carries a boundary note saying a jazz-vocal researcher has a stronger claim on her, which is recorded here rather than acted on. The drums encode an absence: \"brushes on a small jazz kit, or no drums at all; where a backbeat exists it is a soft rim on 2&4 with a ride carrying swung 8ths. Frequent rubato intros with no pulse.\" So the kick density is 1–2, the hat fill density is 0.06 — the lowest in the section — the ride is the busiest lane, the snare takes the cross-stick option, and the velocity tiers are the softest here. Harmony is \"long pedal-tone passages, m7/m9 sonorities, plagal `iv–i` cadences, and hymn-derived major sections\", with \"voicings open (root-7th-3rd-9th) rather than block\" — hence the open voicing, the long chord durations and the plagal family. The register itself is stated as the melodic parameter: \"deep-contralto, extremely low note-density, long sustained notes with almost no melisma, sitting in the bottom fifth of the female range\", so the melody tops out at 65 and runs 1–3 notes a bar with a legato articulation and a high `emptyBarBias`. Bass is upright, \"walking quarters or long held roots\". ⚠ The INFERRED parameters are every drum number, every melody number, and the second progression family — the entry writes only the plagal `iv–i`, and the major-mode I–IV is this author's reading of its \"hymn-derived major sections\". ⚠ **The countermelody reached 786/1000 distinct answers against a floor of 980 (2026-08-17, counter variety floor).** `melody.emptyBarBias` came down from 0.3 to 0.1. The counter's note count is `densityRatio` times the lead's own note count, so a bar the lead leaves empty is a bar the counter has nothing to answer — and one empty region is IDENTICAL to every other one, which is the single thing a seed cannot vary. Measured across this roster the models failing this gate average 0.150 here against 0.030 for the models that pass. Second, `melody.densityPerBar` went from [1, 3] to [2, 4]. A lead allowed to thin to a single note a bar leaves the counter almost nothing to answer, and no amount of counter density recovers what the lead never played. This is the lead becoming reliably present rather than busier — the floor is what moved and the ceiling carries the density claim. Third, `countermelody.densityRatio` became a range, [0.25, 0.45], rather than a flat 0.25. That parameter decides how many notes the part has at all, and at 0.25 it was two or three; a part that short has almost no shapes to be distinct in. The low end is kept because it is the thin reading the entry's texture implies, and it is now the bottom of a band rather than the only answer — so how much of the lead the pad answers varies take to take. ⚠ Every value that moved here is INFERRED rather than a researched claim — the entry's Melody/chords line reads \"acoustic and slide guitar, acoustic piano, Hammond organ, and occasional string quartet. Melody is deep-contralto, extremely low note-density, long sustained notes with almost no melisma, sitting in the bottom fifth of the female range — the register itself is the parameter.\", and every claim in it still holds after the change.",
+  "session": {
+    "bpm": {
+      "min": 58,
+      "max": 92,
+      "mode": 72
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "major",
+        "aeolian"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.44,
+      "velocityVar": 0.26,
+      "timingJitterMs": {
+        "kick": 8,
+        "snare": 12,
+        "rim": 13,
+        "perc": 10
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        70,
+        86
+      ],
+      "main": [
+        42,
+        58
+      ],
+      "ghost": [
+        18,
+        28
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        1,
+        2
+      ],
+      "anchors": [
+        "1"
+      ],
+      "syncopation": 0.1,
+      "tresilloBias": 0.02
+    },
+    "snare": {
+      "offGridMs": [
+        3,
+        10
+      ],
+      "crossStickVerses": true,
+      "ghost": {
+        "prob": 0.12,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.08,
+          0.2
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.06,
+      "velocities": {
+        "main": [
+          0.22,
+          0.4
+        ],
+        "ghost": [
+          0.06,
+          0.16
+        ]
+      },
+      "openHat": {
+        "prob": 0.02,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "ride",
+        "rim",
+        "shaker"
+      ],
+      "densityPerBar": [
+        1,
+        4
+      ],
+      "gainOffsetDb": -7
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "iv",
+          "i"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 3
+      }
+    ],
+    "extensions": {
+      "triad": 0.1,
+      "seventh": 0.52,
+      "ninth": 0.38
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        46,
+        80
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      8,
+      16
+    ]
+  },
+  "melody": {
+    "register": [
+      46,
+      65
+    ],
+    "densityPerBar": [
+      2,
+      4
+    ],
+    "structure": "long_arc",
+    "articulation": "legato",
+    "intervals": {
+      "step": 0.9,
+      "third": 0.09,
+      "leap": 0.01
+    },
+    "contour": {
+      "riff": 0.1,
+      "descend": 0.5,
+      "arch": 0.4
+    },
+    "chordToneBias": 0.74,
+    "emptyBarBias": 0.1,
+    "octaveJumpProb": 0.02,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        2,
+        3
+      ]
+    },
+    "timbreHint": "slide_guitar"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.25,
+      0.45
+    ],
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.7,
+    "rhythm": "independent_riff",
+    "register": [
+      26,
+      42
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5",
+      "M2",
+      "m3",
+      "M6"
+    ],
+    "anticipationProb": 0.2
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        8
+      ],
+      "verse": [
+        8,
+        16
+      ],
+      "chorus": [
+        4,
+        8
+      ],
+      "outro": [
+        4,
+        12
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "switchUpProb": 0.12
+    }
+  }
+}

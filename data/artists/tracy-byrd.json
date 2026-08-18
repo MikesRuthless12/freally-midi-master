@@ -1,0 +1,281 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "tracy-byrd",
+  "type": "artist",
+  "name": "Tracy Byrd",
+  "aliases": [
+    "tracy byrd",
+    "byrd"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-train"
+  ],
+  "era": "1993-2003",
+  "genres": [
+    "country-train",
+    "country",
+    "honky-tonk",
+    "texas country"
+  ],
+  "relatedGenres": [
+    "country-train",
+    "country-pop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-train — Tracy Byrd",
+    "https://www.bpmdatabase.com/music/search/?artist=Tracy+Byrd"
+  ],
+  "notes": "Texas honky-tonk aimed at the dance floor, with the tempo chosen for the dance step. `bpm` takes the entry's 62–153 span with `mode` at 137, the doubled reading of the uptempo cluster (\"Watermelon Crawl\" and \"Lifestyles of the Not So Rich & Famous\" both 137). The entry states the identity as a generator instruction and it is the model's spine: \"the records are built so a two-step or a line dance lands, which in generator terms means hold the tempo dead flat, no ritards, no fill that interrupts the stream\". That is `humanize.quantizeStrength` 0.94 with 2 ms of jitter and 0.08 velocity variance — the tightest hand-played setting among this section's stick-wing models — plus `fills` pushed out to 16/16 and `hihat.fillDensity` at 0.06. Drums otherwise follow the sentence: \"two-beat with a straight 8th snare stream and a hard backbeat, hat opening on 4 as the section marker, quarter kick under choruses\", i.e. `kick.anchors` [1,3] at [2,4] density, `hihat.base` \"4th\" and `openHat.pos` [\"4\"] at a raised 0.45 probability, which is the only place in this batch the open hat is the section marker rather than an accent. Harmony is the stated I–IV–V with V7, the I–I7–IV turn (carried in `extensions.seventh`) and the I–♭VII–IV mixolydian borrow the entry names for the string-band-flavoured cuts. ⚠ INFERRED: velocity tiers, `percs` contents, and every melody, countermelody and bassline number — \"warm mid-baritone, narrow range, conversational and syllabic\" is a description, and the register, density and interval spread are this author's reading of it. ⚠ The tempo readings carry [LOW-CONF] and the entry states \"palette and harmony generalised from the lane [LOW-CONF]\".",
+  "session": {
+    "bpm": {
+      "min": 62,
+      "max": 153,
+      "mode": 137
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "major_pentatonic"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "8th",
+      "amount": 0.5
+    },
+    "humanize": {
+      "quantizeStrength": 0.94,
+      "velocityVar": 0.08,
+      "timingJitterMs": {
+        "kick": 2,
+        "snare": 2,
+        "closedHat": 2,
+        "perc": 3
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        100,
+        120
+      ],
+      "main": [
+        74,
+        88
+      ],
+      "ghost": [
+        32,
+        48
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ]
+    },
+    "hihat": {
+      "base": "4th",
+      "fillDensity": 0.06,
+      "openHat": {
+        "prob": 0.45,
+        "pos": [
+          "4"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0.04
+      }
+    },
+    "percs": {
+      "lanes": [
+        "ride",
+        "tambourine",
+        "shaker"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "gainOffsetDb": -6
+    },
+    "fills": {
+      "smallEveryBars": 16,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "bVII",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "IV"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.78,
+      "seventh": 0.2,
+      "ninth": 0.02
+    }
+  },
+  "melody": {
+    "register": [
+      48,
+      69
+    ],
+    "densityPerBar": [
+      5,
+      9
+    ],
+    "intervals": {
+      "step": 0.78,
+      "third": 0.18,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.4,
+      "descend": 0.3,
+      "arch": 0.3
+    },
+    "chordToneBias": 0.8,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "fiddle_and_steel"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.55,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.94,
+    "rhythm": "mirror_kick",
+    "register": [
+      28,
+      42
+    ],
+    "passingTones": [
+      "P5",
+      "M2"
+    ],
+    "anticipationProb": 0.1
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "chorus"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": [
+        8,
+        16
+      ]
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.08,
+        "beats": 1
+      },
+      "switchUpProb": 0.02
+    }
+  }
+}

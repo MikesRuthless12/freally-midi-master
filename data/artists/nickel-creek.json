@@ -1,0 +1,320 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "nickel-creek",
+  "type": "artist",
+  "name": "Nickel Creek",
+  "aliases": [
+    "nickel creek",
+    "nickelcreek"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-train"
+  ],
+  "era": "2000-2023",
+  "genres": [
+    "country-train",
+    "bluegrass",
+    "progressive bluegrass"
+  ],
+  "relatedGenres": [
+    "country-train",
+    "country-pop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-train — Nickel Creek",
+    "Wikipedia — Nickel Creek (https://en.wikipedia.org/wiki/Nickel_Creek)",
+    "Wikipedia — Alison Krauss (https://en.wikipedia.org/wiki/Alison_Krauss)",
+    "Wikipedia — Bluegrass music (https://en.wikipedia.org/wiki/Bluegrass_music)"
+  ],
+  "notes": "Progressive bluegrass by a drummerless acoustic trio, and the entry calls it \"the section's reference implementation of the drummerless train beat\". The era spans both stated windows, 2000–2005 and 2014–2023. The section states the rule this whole wing turns on: \"the train beat is an ensemble function, not a drum part\" — the banjo roll carries the continuous subdivision, the mandolin chop supplies the backbeat, and the upright bass supplies the two-beat kick. Here the entry redistributes those jobs explicitly — \"mandolin chop = backbeat (with the sourced driven vs swung offbeat placement as the feel control), flatpicked guitar = the continuous straight subdivision, bass = the two-beat kick\" — and adds that \"where percussion appears on the later records it is light kit or hand percussion at low velocity\". So the drum block is the quietest-but-one here (`velocityTiers` accent 76–92), `kick` is [1,2] on anchors 1 and 3, the hat is on quarters and not continuous, `percs` runs rim/shaker/woodblock at −12 dB, and `snare.offGridMs` −5 is the driven chop placement. Harmony is the entry's widest claim and drives the chords block: \"the widest harmonic vocabulary in the bluegrass wing: I–IV–V as the base, plus genuine modal writing (Dorian and Mixolydian), suspended and add9 voicings, and non-functional progressions borrowed from indie rock\" — so `susSubstitutionProb` is 0.4, `extensions.ninth` is 0.12 (the add9s), a minor i–♭VII–IV family sits beside the major ones, and `harmonicRhythm` carries a `syncopated_cell` share for the non-functional motion. The melody is \"compositional rather than lick-based: through-composed heads, unison lines in thirds and sixths, and long instrumental sections\", which is `structure` long_arc with the highest third-interval share of this wing. Section lengths are \"irregular by design\", so the verse is a 12–16 range and `switchUpProb` is raised. ⚠ INFERRED: velocity tiers, `percs` contents, `bpm.mode` 140 (the entry states a 70–200 band and no centre), and every melody, countermelody and bassline number. ⚠ The odd and shifting meters the entry mentions are marked [LOW-CONF] at source — \"sourced as a stylistic departure toward indie/folk rock rather than as explicit meter documentation\" — and are NOT encoded, because this schema has no meter field and guessing one would be inventing a fact. ⚠ `bassline.register` is raised to 33–48 and `chords.voicing.register` to 50–78 for a stated reason: \"no bass in the original trio configuration — the guitar's bass strings supply the root motion\", which sits an octave above an upright, and `coherence.rs` requires the bass ceiling to stay at or below the chord floor.",
+  "session": {
+    "bpm": {
+      "min": 70,
+      "max": 200,
+      "mode": 140
+    },
+    "scales": {
+      "values": [
+        "major",
+        "dorian",
+        "mixolydian"
+      ],
+      "weights": [
+        4,
+        3,
+        3
+      ]
+    },
+    "swing": {
+      "grid": "8th",
+      "amount": 0.5
+    },
+    "humanize": {
+      "quantizeStrength": 0.88,
+      "velocityVar": 0.13,
+      "timingJitterMs": {
+        "kick": 4,
+        "snare": 4,
+        "closedHat": 4,
+        "perc": 5
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        76,
+        92
+      ],
+      "main": [
+        56,
+        70
+      ],
+      "ghost": [
+        36,
+        52
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        1,
+        2
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ]
+    },
+    "snare": {
+      "offGridMs": -5
+    },
+    "hihat": {
+      "base": "4th",
+      "continuous": false,
+      "fillDensity": 0.03,
+      "openHat": {
+        "prob": 0.03,
+        "pos": [
+          "4"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0.02
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "shaker",
+        "woodblock"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "gainOffsetDb": -12
+    },
+    "fills": {
+      "smallEveryBars": 16,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "bVII",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "bVII",
+          "IV"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.6,
+      "seventh": 0.28,
+      "ninth": 0.12
+    },
+    "voicing": {
+      "register": [
+        50,
+        78
+      ]
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "syncopated_cell"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "susSubstitutionProb": 0.4
+  },
+  "melody": {
+    "register": [
+      59,
+      84
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "structure": "long_arc",
+    "intervals": {
+      "step": 0.66,
+      "third": 0.26,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.18,
+      "descend": 0.32,
+      "arch": 0.5
+    },
+    "chordToneBias": 0.68,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        2,
+        3
+      ]
+    },
+    "timbreHint": "mandolin_and_fiddle"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.65,
+    "styles": {
+      "values": [
+        "arp",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.9,
+    "register": [
+      33,
+      48
+    ],
+    "passingTones": [
+      "P5",
+      "M2",
+      "M6"
+    ],
+    "anticipationProb": 0.2
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "bridge",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": [
+        12,
+        16
+      ],
+      "chorus": 8,
+      "bridge": [
+        8,
+        16
+      ],
+      "outro": [
+        4,
+        8
+      ]
+    },
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.15,
+        "beats": 1
+      },
+      "switchUpProb": 0.2
+    }
+  }
+}

@@ -247,6 +247,15 @@ pub enum RollPosition {
     PhraseEnd,
     /// The beat before a snare hit.
     PreSnare,
+    /// The last beat of every second bar.
+    ///
+    /// ⛔ **The dataset has always authored this name and only the 808 could
+    /// read it.** `drums::RollLikePosition` — the *slide* vocabulary — has
+    /// carried `bar_2` since it was written, and 36 shipped models list it
+    /// beside `bar_4` in `hihat.rolls.positions`; this reader did not know it,
+    /// so `rolls::every_roll_vocabulary_entry_in_the_dataset_is_a_note_value`
+    /// failed on `amerie` and the other 35 lost that roll type in silence.
+    Bar2,
     /// The last beat of every fourth bar.
     Bar4,
     /// The last beat of each two-beat group — the busiest option.
@@ -260,6 +269,7 @@ impl RollPosition {
         match text {
             "phrase_end" => Some(Self::PhraseEnd),
             "pre_snare" => Some(Self::PreSnare),
+            "bar_2" => Some(Self::Bar2),
             "bar_4" => Some(Self::Bar4),
             "two_beat_phrase_end" => Some(Self::TwoBeatPhraseEnd),
             "pre_downbeat" => Some(Self::PreDownbeat),
@@ -280,6 +290,15 @@ impl RollPosition {
             // A phrase is four bars; its end is the last beat of the fourth.
             Self::PhraseEnd => {
                 if (bar + 1).is_multiple_of(4) || u32::from(ctx.bars) == bar + 1 {
+                    vec![(last_beat, last_beat + beat)]
+                } else {
+                    vec![]
+                }
+            }
+            // The same rule as `Bar4` on a two-bar cycle — the unit the 808's
+            // own `bar_2` already uses (`drums::RollLikePosition::covers`).
+            Self::Bar2 => {
+                if (bar + 1).is_multiple_of(2) {
                     vec![(last_beat, last_beat + beat)]
                 } else {
                     vec![]
@@ -1132,6 +1151,7 @@ mod tests {
         for name in [
             "phrase_end",
             "pre_snare",
+            "bar_2",
             "bar_4",
             "two_beat_phrase_end",
             "pre_downbeat",

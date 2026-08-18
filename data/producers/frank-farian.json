@@ -1,0 +1,409 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "frank-farian",
+  "type": "producer",
+  "name": "Frank Farian",
+  "aliases": [
+    "frank farian",
+    "franz reuther",
+    "la bouche producer",
+    "no mercy"
+  ],
+  "tier": "standard",
+  "extends": [
+    "dance-pop"
+  ],
+  "era": "1994-1997",
+  "genres": [
+    "dance-pop",
+    "eurodance",
+    "latin-pop",
+    "producer"
+  ],
+  "relatedGenres": [
+    "dance-pop",
+    "rnb-2000s",
+    "house",
+    "pop-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 dance-pop — Frank Farian (La Bouche · Le Click · No Mercy)",
+    "Wikipedia — Frank Farian (https://en.wikipedia.org/wiki/Frank_Farian)",
+    "Wikipedia — La Bouche (https://en.wikipedia.org/wiki/La_Bouche)",
+    "Eurodance (https://en.wikipedia.org/wiki/Eurodance)"
+  ],
+  "notes": "The archetype of the producer-as-author studio project, modelled in the 1994-1997 Eurodance window only — his 1970s disco and 1988-90 pop eras fail Gate 2 and are excluded, and the volume issues a correction worth repeating: he has **no documented connection to Real McCoy**, whose board is Wind and Hassas. La Bouche is in ARTISTS; this model is the room, and the room covers three acts rather than one, which is where the differences sit. The casting is the identifying parameter: he builds vocal groups \"in which the publicised members merely lip-synced to songs sung by himself and/or session performers\", and he sings on his own productions — so the countermelody is set an octave below the lead, a male voice under a cast female one, rather than an octave above. Because he \"casts genuine gospel/R&B singers rather than hook shouters\", the vamps carry \"R&B extensions — 7ths and 9ths rather than bare triads\" with a relative-major or plagal lift, and the bass is explicitly \"**more melodic than the German Eurodance norm**\", walking between chord tones at a 0.44 root probability. The kit shows the same trace: \"a lightly swung 16th hat and ghosted percussion rather than a rigid grid\" `[LOW-CONF]`, repeated here, encoded as a 0.54 swing with the ghost probability at 0.36. The perc bed carries congas and bongos because the same model was extended in these years to a Latin-pop act and a 1997 Brazilian-crossover production. The arrangement keeps his one structural oddity: \"a genuine vocal-showcase breakdown to piano and lead voice, unusual in this lane, where breakdowns are instrumental\". ⚠ The tempo, drum and harmonic placements are Eurodance-convention-derived by the entry's own statement; the velocities and densities are INFERRED.",
+  "session": {
+    "bpm": {
+      "min": 125,
+      "max": 135,
+      "mode": 130
+    },
+    "keys": {
+      "values": [
+        "Am",
+        "Cm",
+        "Fm",
+        "Dm",
+        "Gm"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "harmonic_minor"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.54
+    },
+    "humanize": {
+      "quantizeStrength": 0.85,
+      "velocityVar": 0.19,
+      "timingJitterMs": {
+        "kick": 3,
+        "snare": 3,
+        "clap": 4,
+        "closedHat": 5,
+        "openHat": 4,
+        "conga": 7,
+        "shaker": 6
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        104,
+        118
+      ],
+      "main": [
+        78,
+        94
+      ],
+      "ghost": [
+        32,
+        50
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        4,
+        5
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "syncopation": 0.08,
+      "offbeat8thShare": 0.12
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "layered": true,
+      "layerClapOffsetMs": [
+        3,
+        9
+      ],
+      "ghost": {
+        "prob": 0.36,
+        "pos": [
+          "1a",
+          "2a",
+          "3e",
+          "4a"
+        ],
+        "vel": [
+          0.26,
+          0.48
+        ]
+      }
+    },
+    "hihat": {
+      "base": {
+        "values": [
+          "16th",
+          "8th"
+        ],
+        "weights": [
+          4,
+          2
+        ]
+      },
+      "fillDensity": 0.54,
+      "velocities": {
+        "main": [
+          0.62,
+          0.86
+        ],
+        "ghost": [
+          0.28,
+          0.5
+        ]
+      },
+      "openHat": {
+        "prob": 0.84,
+        "pos": [
+          "1&",
+          "2&",
+          "3&",
+          "4&"
+        ],
+        "perBar": [
+          2,
+          4
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "16T"
+          ],
+          "weights": [
+            2,
+            3
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.22
+      }
+    },
+    "percs": {
+      "lanes": [
+        "conga",
+        "bongo",
+        "shaker",
+        "tambourine"
+      ],
+      "densityPerBar": [
+        4,
+        7
+      ],
+      "placement": "offbeat",
+      "gainOffsetDb": -4
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8,
+      "snareRollLadder": false,
+      "fillBeforeSection": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII",
+          "III"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "ii",
+          "v",
+          "i"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "iv",
+          "i"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.28,
+      "seventh": 0.46,
+      "ninth": 0.26
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        52,
+        84
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        4
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      65,
+      91
+    ],
+    "densityPerBar": [
+      5,
+      11
+    ],
+    "structure": "call_response",
+    "intervals": {
+      "step": 0.54,
+      "third": 0.28,
+      "leap": 0.18
+    },
+    "contour": {
+      "riff": 0.24,
+      "descend": 0.3,
+      "arch": 0.46
+    },
+    "chordToneBias": 0.68,
+    "halfStepDissonance": 0.05,
+    "octaveJumpProb": [
+      0.09,
+      0.19
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        4
+      ]
+    },
+    "timbreHint": "warm_grand_piano"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.6,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.44,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      48
+    ],
+    "glideProb": 0.05,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2",
+      "M6",
+      "M3"
+    ],
+    "anticipationProb": 0.36,
+    "cellShapes": [
+      [
+        "1",
+        "b3",
+        "4",
+        "5"
+      ],
+      [
+        "1",
+        "5",
+        "b7",
+        "5"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 8,
+      "verse": 16,
+      "prechorus": 4,
+      "hook": 8,
+      "bridge": 16,
+      "outro": 8
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "bridge",
+          "hook",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "hook",
+          "bridge",
+          "hook",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.7,
+        "beats": 4
+      },
+      "switchUpProb": 0.11
+    }
+  }
+}

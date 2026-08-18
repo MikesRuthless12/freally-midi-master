@@ -1,0 +1,362 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "jeff-ellis",
+  "type": "producer",
+  "name": "Jeff Ellis",
+  "aliases": [
+    "jeff ellis",
+    "jeff ellis engineer",
+    "channel orange strings"
+  ],
+  "tier": "standard",
+  "extends": [
+    "trap-soul"
+  ],
+  "era": "2011-present",
+  "genres": [
+    "trap-soul",
+    "rnb",
+    "producer"
+  ],
+  "relatedGenres": [
+    "trap-soul",
+    "neo-soul",
+    "pop-2000s",
+    "funk"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 trap-soul — Jeff Ellis",
+    "Wikipedia — Channel Orange (https://en.wikipedia.org/wiki/Channel_Orange)",
+    "Wikipedia — Frank Ocean (https://en.wikipedia.org/wiki/Frank_Ocean)",
+    "Wikipedia — Blonde (Frank Ocean album) (https://en.wikipedia.org/wiki/Blonde_(Frank_Ocean_album))"
+  ],
+  "notes": "The lane's engineer-arranger, and the entry gives him two concrete jobs. The first is the string layer: \"his arranging contribution is the **string layer** — added tensions and counter-lines over the producer's chords, **so the strings imply more harmony than the bed states**\". That sentence is the model: the `countermelody` is the loudest block here, at the highest `densityRatio` of the twenty producers and weighted onto `answer_lick`, while the chords stay a plain bed with a modest extension spread — the tension arrives from the counter-line, not from the comp. The second is a drum instruction: \"he tracked live drums onto specific tracks of an otherwise programmed record, so model 'live kit as an overdub on a programmed bed' as a discrete option\" — which is a loose grid over a straight programmed backbeat, plus ride and tom lanes. \"Strings arranged and recorded with vintage ribbon microphones… the resulting timbre is dark, soft-topped and close, not a bright modern string sample\" is why the melody register ceiling is low for a string part and the velocities are soft. ⛔ **`bass808` is null.** ⚠ The entry says the low end is \"n/a\" — it is not his job — so nothing is authored for it and killing the inherited 808 is this author's reading of \"n/a\"; the model then grows the lane's plain played bass. That inference is marked. ⚠ He is \"not tempo-setting\" and \"inherits 60–140 straight\", so `bpm.mode` is **INFERRED**, as are every drum number and the swing amount. ⚠ `confidence` is medium, mirroring the entry. ⚠ **`session.keys` is INFERRED.** The entry's Keys line describes the harmonic grammar but names no key centre, so these values and their weights are an authored choice — no key in this set is stated in the research. ⚠ **`drums.kick.lockTo808` removed (2026-08-17, 808 gate).** This kit has no 808 — `bass808` is `null` here or in the parent it inherits — and `lockTo808` is the one parameter that says *how much of the kick the 808 follows*, so in this file it described a pairing that does not exist: `generators::drums::bass808` returns on `block.is_none()` before the value is ever read, which makes it provably dead here. Where it was NOT dead was in the artists and producers who extend this kit and author an 808 of their own: they inherited the zero, `kicks.iter().filter(|_| rng.random_bool(0.0))` kept nothing, and their sub lane was silent at every seed — `bass808::every_shipped_model_with_an_808_produces_a_playable_line` reported \"no 808 at all\" for 35 of them. Removing it restores the engine's documented default of 1.0 for exactly those children and changes nothing here. ⚠ No researched claim moved: this kit's own statement about the 808 is the `bass808: null` beside it, and that is untouched.",
+  "session": {
+    "bpm": {
+      "min": 60,
+      "max": 140,
+      "mode": 94
+    },
+    "halfTime": false,
+    "keys": {
+      "values": [
+        "Ab",
+        "C",
+        "Am",
+        "Eb",
+        "F"
+      ],
+      "weights": [
+        3,
+        2,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor",
+        "dorian"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.53
+    },
+    "humanize": {
+      "quantizeStrength": 0.56,
+      "velocityVar": 0.28,
+      "timingJitterMs": {
+        "kick": 9,
+        "snare": 12,
+        "closedHat": 10,
+        "ride": 13,
+        "tom": 13
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        86,
+        100
+      ],
+      "main": [
+        56,
+        70
+      ],
+      "ghost": [
+        20,
+        32
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.26,
+      "tresilloBias": 0.07
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "ghost": {
+        "prob": 0.36,
+        "pos": [
+          "1a",
+          "3e",
+          "4a"
+        ],
+        "vel": [
+          0.14,
+          0.3
+        ]
+      },
+      "offGridMs": [
+        7,
+        14
+      ],
+      "rimshotLayer": true
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.22,
+      "velocities": {
+        "main": [
+          0.3,
+          0.5
+        ],
+        "ghost": [
+          0.12,
+          0.24
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.05
+      },
+      "openHat": {
+        "prob": 0.18,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "ride",
+        "tom",
+        "tomLow",
+        "crash",
+        "shaker"
+      ],
+      "densityPerBar": [
+        1,
+        4
+      ],
+      "placement": "any",
+      "gainOffsetDb": -7
+    },
+    "bass808": null,
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "IV",
+          "vi",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "vi",
+          "ii",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.26,
+      "seventh": 0.48,
+      "ninth": 0.26
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        47,
+        83
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      55,
+      78
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    },
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "structure": "long_arc",
+    "intervals": {
+      "step": 0.82,
+      "third": 0.15,
+      "leap": 0.03
+    },
+    "contour": {
+      "riff": 0.1,
+      "descend": 0.36,
+      "arch": 0.54
+    },
+    "chordToneBias": 0.78,
+    "halfStepDissonance": 0.06,
+    "endVariation": true,
+    "octaveJumpProb": 0.03,
+    "articulation": "legato",
+    "timbreHint": "ribbon_strings"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.94,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    }
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        4,
+        16
+      ],
+      "verse": 16,
+      "hook": [
+        8,
+        16
+      ],
+      "bridge": 8,
+      "outro": [
+        8,
+        16
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "bridge",
+          "hook",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "hook",
+          "bridge",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.4,
+        "beats": 4
+      },
+      "switchUpProb": 0.3
+    }
+  }
+}

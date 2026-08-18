@@ -1,0 +1,352 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "ray-benson",
+  "type": "producer",
+  "name": "Ray Benson",
+  "aliases": [
+    "ray benson",
+    "benson",
+    "bismeaux"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-shuffle"
+  ],
+  "era": "1990-present",
+  "genres": [
+    "country",
+    "country-shuffle",
+    "western swing",
+    "producer"
+  ],
+  "relatedGenres": [
+    "country-shuffle",
+    "country-train",
+    "country-pop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-shuffle — Ray Benson",
+    "Wikipedia — Ray Benson (https://en.wikipedia.org/wiki/Ray_Benson)",
+    "Wikipedia — Asleep at the Wheel (https://en.wikipedia.org/wiki/Asleep_at_the_Wheel)",
+    "Wikipedia — Western swing (https://en.wikipedia.org/wiki/Western_swing)"
+  ],
+  "notes": "The western-swing revival's bandleader-producer — \"the single most important living transmitter of this archetype's fast, jazz-harmonised shuffle\". The session block is the same 100–198 band as the Asleep at the Wheel model because it is the same catalogue, and that overlap is deliberate; what differs is the board. His entry states the feel in his own terms — the 4/4 quarter-note-kick swing with the lope on a ride and a \"swingier — more smooth and subdued\" feel \"rather than a boogie hammer\" — which is a *further* step down in accent contrast from the band model, so the velocity tiers here are the softest of the two (94–112 accent over 70–86) and the hat is quieter still. The other half of the same sentence pushes the opposite way: \"the shuffled (doubled) kick on boogie numbers\" is authored as offbeat8thShare 0.16 with densityPerBar 3–5, the highest doubled-kick share in the section. His documented curatorial method is an arrangement rule rather than a groove one — he \"didn't just enlist the obvious Wills fans\" but brought in younger country and pop artists, i.e. \"keep the western-swing band constant and rotate the guest lead voice, one per track\" — which is why the structures are head/chorus/rotating-solo forms with long 8/12/16-bar solo sections and fills pushed out to 8/16 bars, at section boundaries rather than inside the groove. Harmony is the full documented western-swing vocabulary: ii–V–I cycles, secondary dominants, diminished passing chords and 6th/9th/13th voicings, so extensions run 0.2/0.55/0.25 in close position with the horn and piano keys (B♭, E♭, F, C) carried alongside the guitar keys. ⚠ Those four are the entry's; which guitar keys sit under them is INFERRED, because the entry says only \"as common as guitar keys\" and names none — G and D are authored, the two that appear in every guitar-key list in this section. Bass is \"upright bass in walking quarters with chromatic approach notes; root–five two-beat reserved for the older-style numbers\" — independent_riff at 0.62 with m2 in the passing tones. ⛔ Those two figures, the melody register, the interval mix and the chord-tone bias are held identical to data/artists/asleep-at-the-wheel.json on purpose. The two entries state the same harmony in the same words and the same singer — the band's melody line is \"Ray Benson's low, relaxed baritone, laid-back and behind the beat\" and his own is \"his own guitar and low baritone lead vocal\" — so any difference in them would have been authored to look distinct rather than read off the research. What differs between the two models is the board, which is what this entry documents: the softer velocity tiers and hat, the doubled kick at 0.16, the 8/16-bar fills, the rotating-solo structures, the progression weights and the ride density. ⚠ INFERRED: swing.amount 0.60, all velocity tiers, ghost probability, hat and ride densities, and the counter's density ratio; the section's swing-ratio percentages are marked [LOW-CONF] by their own author. ⚠ bpm.mode 124 is INFERRED: his own entry states the 100–198 band without a centre, and 124 is taken from the Asleep at the Wheel readings his entry cites as a source. The research rates the entry high-medium and marks the harmony as generalised from the sourced western-swing conventions [LOW-CONF].",
+  "session": {
+    "bpm": {
+      "min": 100,
+      "max": 198,
+      "mode": 124
+    },
+    "keys": {
+      "values": [
+        "Bb",
+        "Eb",
+        "F",
+        "C",
+        "G",
+        "D"
+      ],
+      "weights": [
+        3,
+        3,
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "major_blues"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "8th",
+      "amount": 0.6
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        94,
+        112
+      ],
+      "main": [
+        70,
+        86
+      ],
+      "ghost": [
+        30,
+        44
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "syncopation": 0.08,
+      "offbeat8thShare": 0.16
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.38,
+        "pos": [
+          "1&",
+          "2&",
+          "3&",
+          "4&"
+        ],
+        "vel": [
+          0.22,
+          0.38
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.18,
+      "velocities": {
+        "main": [
+          0.4,
+          0.6
+        ],
+        "ghost": [
+          0.16,
+          0.32
+        ]
+      },
+      "openHat": {
+        "prob": 0.05,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "ride"
+      ],
+      "densityPerBar": [
+        6,
+        9
+      ],
+      "gainOffsetDb": -3
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "VI",
+          "II",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "vii°",
+          "ii",
+          "V"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 6,
+    "extensions": {
+      "triad": 0.2,
+      "seventh": 0.55,
+      "ninth": 0.25
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        52,
+        80
+      ]
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      48,
+      72
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "intervals": {
+      "step": 0.64,
+      "third": 0.28,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.25,
+      "descend": 0.4,
+      "arch": 0.35
+    },
+    "chordToneBias": 0.72,
+    "octaveJumpProb": 0.04,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "articulation": "legato"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.5,
+      0.75
+    ],
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp",
+        "sustain_pad"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.62,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      50
+    ],
+    "glideProb": 0.01,
+    "passingTones": [
+      "P5",
+      "M3",
+      "M2",
+      "m2",
+      "M6",
+      "m7"
+    ],
+    "anticipationProb": 0.08
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "sectionBars": {
+      "intro": [
+        8,
+        16
+      ],
+      "verse": 8,
+      "chorus": 8,
+      "bridge": {
+        "values": [
+          8,
+          12,
+          16
+        ],
+        "weights": [
+          2,
+          3,
+          2
+        ]
+      },
+      "outro": [
+        4,
+        8
+      ]
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "switchUpProb": 0.26
+    }
+  }
+}

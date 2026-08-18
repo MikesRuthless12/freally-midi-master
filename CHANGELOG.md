@@ -12,6 +12,33 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Fixed — a sustained countermelody stopped entering in the same place every time, 2026-08-17
+
+- **A `sustain_pad` countermelody now chooses where in the phrase it comes in.**
+  `phrase_spans` already gave a held part somewhere to re-articulate, but the
+  entry *inside* a span was still the first tick the lead left free — the same
+  answer for every seed that drew the same phrase length. Over a vamp, where the
+  whole four bars are one chord, a third of seeds drew a four-bar phrase and got
+  one held note in one place. Twenty-seven models sat between 0.910 and 0.979
+  against the 0.98 counter-variety floor on that alone; twenty-three of them
+  clear it now with no change to their data.
+  ⚠ **The entry is chosen out of the phrase's *first half*** — a pad that comes in
+  during the last bar of its phrase is not a pad, and length is the whole claim
+  `sustain_pad` makes. The old first-free-tick answer stays as the fallback for a
+  lead so legato that the first half offers nothing, so no model's pad goes
+  silent.
+- **Four models whose answering layer was authored thinner than their research
+  describes.** `roy-woods` plays the pluck riff its entry names alongside the
+  bell, and answers with enough notes to be the "wide double/ad-lib layer" the
+  same sentence calls louder than the lead; `flo-rida` leads with the
+  arpeggiator its entry documents in so many words rather than treating it as
+  the minority answer; `pitbull` answers with the producer's saw-lead restating
+  the guest's hook, because "he is the rhythmic element, not the melodic one";
+  and `scatman-john` drops the phrase-answer lick — the one shape its entry never
+  names, and one that wrote *nothing at all* on 137 of 1,000 seeds because a
+  10-to-16-note-a-bar scat leaves no free tick in the bar's last beat — for the
+  piano stab it does name.
+
 ### Added — the parts a generator answers, and four archetypes the research was owed, 2026-08-15
 
 - **Generating a countermelody fills the melody it answers, and the harmony both

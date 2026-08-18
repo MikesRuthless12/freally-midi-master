@@ -1,0 +1,350 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "xscape",
+  "type": "artist",
+  "name": "Xscape",
+  "aliases": [
+    "xscape",
+    "kandi burruss",
+    "latocha scott",
+    "so so def"
+  ],
+  "tier": "standard",
+  "extends": [
+    "rnb-2000s"
+  ],
+  "era": "1993-1998",
+  "genres": [
+    "rnb-2000s",
+    "rnb",
+    "hip hop soul"
+  ],
+  "relatedGenres": [
+    "rnb-2000s",
+    "crunk",
+    "neo-soul"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 rnb-2000s — Xscape",
+    "bpmdatabase — Xscape (https://www.bpmdatabase.com/music/search/?artist=Xscape)",
+    "Wikipedia — Jermaine Dupri (https://en.wikipedia.org/wiki/Jermaine_Dupri)"
+  ],
+  "notes": "So So Def girl group carrying Jermaine Dupri's Atlanta hip-hop soul with heavy quartet harmony, 1993–1998. The research reads \"57–70 half-time ballads (reads 114–140) + 79–102 straight\" and names the 57 reading as \"the slowest sustained band on this roster\", so the felt half-time spine is the base with the mode at 63. The three drum deltas are the entry's own words: kick \"on 1 and the 8th before 3\" at one or two hits a bar with the genre's syncopation nearly switched off, \"snare/clap on beat 3 of the doubled grid\", and \"hats either absent or 16ths at low velocity\" — a non-continuous 16th lane at a fifth of the parent's fill density. \"No swing on the ballads\" is stated outright, so `swing.amount` is 0.50 rather than the genre's 0.62. Harmony is \"two- and four-chord minor-7th vamps, Rhodes or clean electric piano as the chord instrument, no countermelody\", encoded as seventh-weighted two-chord families with the counter pushed to a thin pad. \"Melisma reserved for the tag\" and the block harmony explain the low melodic density and the high chord-tone bias. ⚠ Confidence is medium because the research rates it medium and marks the specific keys `[LOW-CONF]`; the keys here are therefore weighted toward the lane's minor centre rather than to named tonics. ⚠ The INFERRED parameters are all velocity, density and register numbers and the bass block — \"sustained synth bass holding the root, mixed forward\" is a direction, read here as a near-1.0 root-follow with a single-degree cell. ⚠ `session.keys` is INFERRED: the entry's Keys line gives \"minor-mode ballads\" and enumerates no tonic, so the values here and their weights are this author's reading of that line.",
+  "session": {
+    "bpm": {
+      "min": 57,
+      "max": 70,
+      "mode": 63
+    },
+    "halfTime": true,
+    "keys": {
+      "values": [
+        "Fm",
+        "Bbm",
+        "Cm",
+        "Ebm"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.5
+    },
+    "humanize": {
+      "quantizeStrength": 0.88,
+      "velocityVar": 0.14,
+      "timingJitterMs": {
+        "kick": 3,
+        "snare": 4,
+        "clap": 4,
+        "closedHat": 4
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        1,
+        2
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.12,
+      "tresilloBias": 0.02,
+      "andOf4EveryOtherBar": 0
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "stack": [
+        "clap"
+      ],
+      "layerClapOffsetMs": [
+        0,
+        2
+      ],
+      "ghost": {
+        "prob": 0.04,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.1,
+          0.2
+        ]
+      },
+      "offGridMs": 0
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": 0.12,
+      "velocities": {
+        "main": [
+          0.24,
+          0.36
+        ],
+        "ghost": [
+          0.1,
+          0.2
+        ]
+      },
+      "openHat": {
+        "prob": 0.04,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.03
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "snap"
+      ],
+      "densityPerBar": [
+        0,
+        2
+      ],
+      "placement": "any",
+      "gainOffsetDb": -10
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII",
+          "i"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "ii",
+          "v",
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.2,
+      "seventh": 0.58,
+      "ninth": 0.22
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        49,
+        75
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "vamp",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      8,
+      16
+    ]
+  },
+  "melody": {
+    "register": [
+      59,
+      82
+    ],
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "intervals": {
+      "step": 0.78,
+      "third": 0.18,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.16,
+      "descend": 0.44,
+      "arch": 0.4
+    },
+    "chordToneBias": 0.86,
+    "octaveJumpProb": 0.04,
+    "articulation": "legato",
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "rhodes"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.18,
+    "styles": {
+      "values": [
+        "sustain_pad"
+      ],
+      "weights": [
+        1
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.96,
+    "rhythm": "independent_riff",
+    "register": [
+      27,
+      43
+    ],
+    "glideProb": 0.03,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.08,
+    "cellShapes": [
+      [
+        "1"
+      ],
+      [
+        "1",
+        "5"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 8,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": [
+        8,
+        16
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.6,
+        "beats": 2
+      },
+      "switchUpProb": 0.1
+    }
+  }
+}

@@ -1,0 +1,230 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "ashley-mcbryde",
+  "type": "artist",
+  "name": "Ashley McBryde",
+  "aliases": [
+    "ashley mcbryde",
+    "ashleymcbryde",
+    "ashley mcbride"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-pop"
+  ],
+  "era": "2018-2022",
+  "genres": [
+    "country-pop",
+    "country",
+    "bar band country"
+  ],
+  "relatedGenres": [
+    "country-pop",
+    "country-shuffle",
+    "pop-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-pop — Ashley McBryde",
+    "bpmdatabase (https://www.bpmdatabase.com/music/search/?artist=Ashley+McBryde)",
+    "Wikipedia — Jay Joyce (https://en.wikipedia.org/wiki/Jay_Joyce)"
+  ],
+  "notes": "Literary, bar-band country — small-room production, story lyrics, rock-guitar edge. The catalogue is documented as slow — \"most singles 65–84, with one uptempo cut at ~140\" — so the band centres at 78 with a long tail rather than at the genre's 100. The drums are the producer's live-room method: \"live-in-a-room with minimal click and minimal overdubs — loose timing, small dry kit, cross-stick verses, and fills that break the pattern rather than decorate it,\" so the quantize strength is low, the jitter is high and the fill grid is short and unpinned. The entry states a real absence that shapes the counter: \"a real absence of pads/synths,\" so the counter is an answer lick and an arp, never a sustain pad. Harmony is \"I–IV–V and I–♭VII–IV, with a vi–IV–I–V ballad rotation.\" Melody is \"mid-alto, conversational verse density with a long-note chorus, blues bends, and a rasp used as the ornament.\" The arrangement claim is a negative too and is worth the note: \"the arrangements stay small and the last chorus is louder rather than denser.\" ⚠ Confidence is medium, matching the research; the per-track readings are [LOW-CONF]. ⚠ The INFERRED parameters are the humanize values, the velocity tiers and the counter ratio.",
+  "session": {
+    "bpm": {
+      "min": 65,
+      "max": 140,
+      "mode": 78
+    },
+    "scales": {
+      "values": [
+        "major",
+        "minor_pentatonic",
+        "mixolydian",
+        "major_blues"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.63,
+      "velocityVar": 0.23,
+      "timingJitterMs": {
+        "kick": 9,
+        "snare": 10,
+        "closedHat": 10,
+        "tom": 11
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        108,
+        124
+      ],
+      "main": [
+        62,
+        90
+      ],
+      "ghost": [
+        20,
+        38
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "syncopation": 0.16,
+      "offbeat8thShare": 0.19
+    },
+    "snare": {
+      "crossStickVerses": true,
+      "ghost": {
+        "prob": 0.2,
+        "pos": [
+          "1a",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.12,
+          0.3
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.26,
+      "openHat": {
+        "prob": 0.23,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "ride",
+        "tomLow",
+        "rim"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "gainOffsetDb": -6,
+      "tambourine": false
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 16,
+      "fillBeforeSection": false
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "bVII",
+          "IV"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 4
+      }
+    ],
+    "extensions": {
+      "triad": 0.77,
+      "seventh": 0.21,
+      "ninth": 0.02
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        4
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      53,
+      76
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "contour": {
+      "riff": 0.22,
+      "descend": 0.36,
+      "arch": 0.42
+    },
+    "chordToneBias": 0.74,
+    "halfStepDissonance": 0.11,
+    "octaveJumpProb": 0.03,
+    "emptyBarBias": 0.12
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.54,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.56,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      47
+    ],
+    "passingTones": [
+      "P5",
+      "m7",
+      "M3"
+    ],
+    "anticipationProb": 0.2
+  }
+}

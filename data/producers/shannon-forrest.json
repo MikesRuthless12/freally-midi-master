@@ -1,0 +1,252 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "shannon-forrest",
+  "type": "producer",
+  "name": "Shannon Forrest",
+  "aliases": [
+    "shannon forrest",
+    "shannonforrest",
+    "shannon forest"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-pop"
+  ],
+  "era": "1990-2025",
+  "genres": [
+    "country-pop",
+    "country",
+    "producer"
+  ],
+  "relatedGenres": [
+    "country-pop",
+    "pop-2000s",
+    "funk"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-pop — Shannon Forrest",
+    "Wikipedia — Shannon Forrest (https://en.wikipedia.org/wiki/Shannon_Forrest)",
+    "Wikipedia — Some Hearts (https://en.wikipedia.org/wiki/Some_Hearts)"
+  ],
+  "notes": "The technically precise pole of Nashville session drumming, placed in PRODUCERS by the research as an instrumental-grammar entry. The single most useful documented parameter is a pair of influences: \"Jeff Porcaro and Lenny Castro … that means an LA-session/fusion sensibility inside country: immaculate time, tightly controlled dynamics, ghost-note-rich hi-hat and snare work, half-open hat textures, and a **shuffle-inflected 16th feel where the song allows it**.\" Every one of those is authored literally — the highest `quantizeStrength` and lowest `velocityVar` of any drummer entry here, a dense ghost set on both the snare and the hat, a real open-hat probability for the half-open texture, and `session.swing` at 0.54 on a 16th grid, which is the only swung setting in this section and comes straight from that sentence. He also plays \"congas, bongos and djembe, so a percussion overdub layer (not just shaker/tambourine) is in-palette on his sessions\" — hence the hand-percussion lanes. On the arena records \"the drums carry the dynamic map — hats/cross-stick verse, full backbeat chorus, tom-driven bridge, final chorus with doubled snare and continuous crash.\" ⚠ **No `session.bpm` is authored** — the entry gives no tempo range, so the band is inherited rather than invented. ⚠ The entry states \"Melody/chords: n/a,\" so **every number in the melody, countermelody, chords and bassline blocks is INFERRED** — this author's reading of the LA-session ensemble the entry documents, not a researched fact. ⚠ Confidence is medium (research: medium-high).",
+  "session": {
+    "swing": {
+      "grid": "16th",
+      "amount": 0.54
+    },
+    "scales": {
+      "values": [
+        "major",
+        "major_pentatonic",
+        "dorian",
+        "mixolydian"
+      ],
+      "weights": [
+        5,
+        2,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.97,
+      "velocityVar": 0.06,
+      "timingJitterMs": {
+        "kick": 1,
+        "snare": 1,
+        "closedHat": 2,
+        "conga": 3
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        110,
+        122
+      ],
+      "main": [
+        78,
+        92
+      ],
+      "ghost": [
+        26,
+        40
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.24,
+      "offbeat8thShare": 0.34
+    },
+    "snare": {
+      "crossStickVerses": true,
+      "ghost": {
+        "prob": 0.33,
+        "pos": [
+          "1a",
+          "2e",
+          "3a",
+          "4a"
+        ],
+        "vel": [
+          0.14,
+          0.3
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.29,
+      "velocities": {
+        "main": [
+          0.56,
+          0.82
+        ],
+        "ghost": [
+          0.2,
+          0.38
+        ]
+      },
+      "openHat": {
+        "prob": 0.44,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "conga",
+        "bongo",
+        "shaker",
+        "tomHigh",
+        "tomLow",
+        "crash"
+      ],
+      "densityPerBar": [
+        2,
+        6
+      ],
+      "gainOffsetDb": -5,
+      "tambourine": true
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8,
+      "fillBeforeSection": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.58,
+      "seventh": 0.34,
+      "ninth": 0.08
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      56,
+      82
+    ],
+    "densityPerBar": [
+      4,
+      8
+    ],
+    "contour": {
+      "riff": 0.24,
+      "descend": 0.3,
+      "arch": 0.46
+    },
+    "chordToneBias": 0.79,
+    "octaveJumpProb": 0.06
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.56,
+    "styles": {
+      "values": [
+        "arp",
+        "answer_lick"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.76,
+    "register": [
+      28,
+      45
+    ],
+    "passingTones": [
+      "P5",
+      "M2",
+      "M3",
+      "M6"
+    ],
+    "anticipationProb": 0.28
+  }
+}

@@ -1,0 +1,277 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "rick-nowels",
+  "type": "producer",
+  "name": "Rick Nowels",
+  "aliases": [
+    "rick nowels",
+    "ricknowels",
+    "rick nowells"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "1997-2007",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "producer"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "lofi-hiphop",
+    "pop-2020s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — Rick Nowels",
+    "Wikipedia — Rick Nowels (https://en.wikipedia.org/wiki/Rick_Nowels)",
+    "Songwriter Universe interview, 2015 (https://www.songwriteruniverse.com/rick-nowels-2015.htm)",
+    "Wikipedia — \"White Flag\" (https://en.wikipedia.org/wiki/White_Flag_(Dido_song))"
+  ],
+  "notes": "An LA writer-producer specialising in melancholy adult pop: 88–120 straight with the backbeat on 2&4 and ballads at 66–96, so the session runs 66–120. His most-used device is documented — \"minor-verse-to-relative-major-chorus… i–VI–III–VII becoming I–V–vi–IV\" — with \"sustained pedal tones under changing chords\", which is why both cycles are authored at equal weight and the harmonic rhythm sits on two bars. Three drum deltas are quoted: \"kick on 1 and the '&' of 3\", \"soft snare on the backbeat\", and \"16th filtered hats, tambourine from the chorus\" — plus the mix instruction that governs the whole block: \"**he leaves the drums quiet so the vocal sits forward**\", which is the soft velocity tier and a −7 dB perc offset. The bass is \"bass programming with a rounded sub on roots and long durations; a played bass enters for the chorus\" — `mirror_kick` at 0.93. He plays guitar and keyboards on his own productions and writes fast in intimate settings, and his melodies are \"conversational, narrow, and sit on chord tones, with a string arrangement supplying the counter-melody\" — a narrow register at a high `chordToneBias` with the counter carrying the strings. ⚠ `confidence` is medium because the research rates it high-medium. ⚠ The **INFERRED** parameters are every drum probability and `bpm.mode` 100. ⚠ **The bass is `mirror_kick` rather than the held `reese_sustain` the research describes** — *“bass programming with a rounded sub on roots and long durations; a played bass enters for the chorus.”* — and that is a limit of the engine rather than a reading of the record. `generators::phrase_spans` re-articulates a held span only when it runs longer than two bars, so over the four-bar clip `reese_sustain` writes at most four notes and cannot reach the 500-bassline floor `engine/tests/bass.rs` holds every model to. `mobb-deep`, `dmx` and `capone-n-noreaga` carry the same substitution for the same reason; `followRootsProb` stays where it was so the line still reads as roots under the chord.",
+  "session": {
+    "bpm": {
+      "min": 66,
+      "max": 120,
+      "mode": 100
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "major",
+        "dorian"
+      ],
+      "weights": [
+        4,
+        4,
+        1
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.87,
+      "velocityVar": 0.15
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        82,
+        98
+      ],
+      "main": [
+        56,
+        72
+      ],
+      "ghost": [
+        22,
+        34
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.26
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.16,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.12,
+          0.24
+        ]
+      },
+      "layerClapOffsetMs": [
+        2,
+        5
+      ]
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.38,
+      "velocities": {
+        "main": [
+          0.48,
+          0.7
+        ],
+        "ghost": [
+          0.18,
+          0.38
+        ]
+      },
+      "openHat": {
+        "prob": 0.1,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.05
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "shaker"
+      ],
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "gainOffsetDb": -7
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.46,
+      "seventh": 0.38,
+      "ninth": 0.16
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      56,
+      75
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "intervals": {
+      "step": 0.8,
+      "third": 0.16,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.28,
+      "descend": 0.38,
+      "arch": 0.34
+    },
+    "chordToneBias": 0.88,
+    "octaveJumpProb": 0.04,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "articulation": "legato"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.5,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.93,
+    "rhythm": "mirror_kick",
+    "register": [
+      27,
+      45
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.12
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 8,
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 16,
+      "bridge": 8,
+      "outro": 16
+    },
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.5,
+        "beats": 4
+      },
+      "switchUpProb": 0.06
+    }
+  }
+}

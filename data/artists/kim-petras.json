@@ -1,0 +1,359 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "kim-petras",
+  "type": "artist",
+  "name": "Kim Petras",
+  "aliases": [
+    "kim petras",
+    "kimpetras",
+    "petras",
+    "kim"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2020s"
+  ],
+  "era": "2017-present",
+  "genres": [
+    "pop",
+    "pop-2020s",
+    "dance-pop",
+    "bubblegum"
+  ],
+  "relatedGenres": [
+    "pop-2020s",
+    "dance-pop",
+    "house",
+    "techno"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2020s — Kim Petras",
+    "Wikipedia — Kim Petras (https://en.wikipedia.org/wiki/Kim_Petras)",
+    "Wikipedia — Blake Slatkin (https://en.wikipedia.org/wiki/Blake_Slatkin)",
+    "Wikipedia — Omer Fedi (https://en.wikipedia.org/wiki/Omer_Fedi)"
+  ],
+  "notes": "Glossy hyper-bright dance-pop with a bubblegum topline. The drums are the entry's: \"hard-clipped four-on-the-floor kick, layered claps on 2&4, 16th hats, and white-noise sweeps as fills\", so the kick anchors all four beats at near-zero syncopation, the clap stack is doubled with a tight offset, `hihat.base` is 16th at a high fill density, and the fill lane is `riser` with the snare-roll ladder off. \"The Unholy mode substitutes a stomping half-time-feeling chant beat\" is documented but not encoded — a single `placement` field cannot hold both, and the four-on-the-floor is the lane the entry names first. The bass is a synth, not an 808: \"distorted saw sub pumping on 8ths; sub swell before drops\", so no `bass808` block is authored and the bassline is `offbeat_8ths` at a very high `followRootsProb`. Harmony is \"minor keys with a Eurodance i—VI—III—VII colour and a bright major pre-chorus lift\", carried as the top family plus a major one. The melody block encodes \"short, high, repetitive cells with a chant hook and heavy stacked doubles\" as the highest melody register in this batch, a small `motifPitchCount`, a 1-bar phrase and a high-density `octave_echo` counter for the doubles; \"countermelody is a pitched synth answer\" is the `answer_lick` weight. No `outro` length is declared, because the entry's ending is an \"abrupt full-stop ending\" and neither structure closes on one. ⚠ `confidence` is medium and the research says the parameters are \"lane-derived\": every drum probability, the humanize pair, the harmonic weights and `bpm.mode` 120 (the midpoint of the stated 110—130 band) are INFERRED. ⚠ The entry's [LOW-CONF] mark on the soprano/tuning claim is repeated here.",
+  "session": {
+    "bpm": {
+      "min": 110,
+      "max": 130,
+      "mode": 120
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "harmonic_minor",
+        "major"
+      ],
+      "weights": [
+        6,
+        2,
+        3
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.99,
+      "velocityVar": 0.08
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        4,
+        4
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.02,
+      "tresilloBias": 0.01,
+      "offbeat8thShare": 0.02
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "stack": [
+        "clap",
+        "snap"
+      ],
+      "transient": "hard",
+      "reverb": "short",
+      "layerClapOffsetMs": [
+        1,
+        3
+      ],
+      "ghost": {
+        "prob": 0.14,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.24,
+          0.42
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.62,
+      "velocities": {
+        "main": [
+          0.7,
+          0.94
+        ],
+        "ghost": [
+          0.32,
+          0.54
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "pre_downbeat"
+        ],
+        "freqPerBar": 0.14
+      },
+      "openHat": {
+        "prob": 0.5,
+        "pos": [
+          "1&",
+          "2&",
+          "3&",
+          "4&"
+        ],
+        "perBar": [
+          2,
+          4
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "riser",
+        "impact",
+        "snap"
+      ],
+      "densityPerBar": [
+        1,
+        4
+      ],
+      "placement": "offbeat",
+      "gainOffsetDb": -4
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8,
+      "snareRollLadder": false
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.76,
+      "seventh": 0.2,
+      "ninth": 0.04
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        54,
+        83
+      ]
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "vamp"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      64,
+      91
+    ],
+    "densityPerBar": [
+      5,
+      11
+    ],
+    "structure": "riff_loop",
+    "motifPitchCount": [
+      3,
+      4
+    ],
+    "intervals": {
+      "step": 0.72,
+      "third": 0.2,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.56,
+      "descend": 0.24,
+      "arch": 0.2
+    },
+    "chordToneBias": 0.8,
+    "octaveJumpProb": [
+      0.06,
+      0.16
+    ],
+    "phraseBars": {
+      "values": [
+        1,
+        2
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "endVariation": true,
+    "timbreHint": "supersaw_lead"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.6,
+      0.85
+    ],
+    "styles": {
+      "values": [
+        "octave_echo",
+        "answer_lick",
+        "bell_echo"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.96,
+    "rhythm": "offbeat_8ths",
+    "register": [
+      28,
+      50
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.22,
+    "cellShapes": [
+      [
+        "1",
+        "1"
+      ],
+      [
+        "1",
+        "1",
+        "1",
+        "1"
+      ],
+      [
+        "1",
+        "5"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 8,
+      "prechorus": 8,
+      "chorus": 8,
+      "bridge": 4
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "chorus",
+          "verse",
+          "prechorus",
+          "chorus",
+          "verse",
+          "prechorus",
+          "chorus"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.85,
+        "beats": 4
+      },
+      "switchUpProb": 0.05
+    }
+  }
+}

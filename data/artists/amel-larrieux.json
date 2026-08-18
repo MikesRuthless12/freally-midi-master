@@ -1,0 +1,281 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "amel-larrieux",
+  "type": "artist",
+  "name": "Amel Larrieux / Groove Theory",
+  "aliases": [
+    "amel larrieux",
+    "groove theory",
+    "bryce wilson"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "1995-2013",
+  "genres": [
+    "rnb",
+    "soul",
+    "neo-soul"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "rnb-2000s",
+    "boom-bap"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Amel Larrieux / Groove Theory",
+    "Wikipedia — Groove Theory (https://en.wikipedia.org/wiki/Groove_Theory)",
+    "Wikipedia — Amel Larrieux (https://en.wikipedia.org/wiki/Amel_Larrieux)",
+    "Wikipedia — Neo soul (https://en.wikipedia.org/wiki/Neo_soul)"
+  ],
+  "notes": "The lane's lightest, most jazz-soprano end. The entry gives the mix instruction rather than a pattern: the drums are \"programmed, crisp and quiet — a boom-bap-lineage kick/snare with the snare on 2&4, closed 16th hats, and a shaker layer; the drum layer is deliberately thin so the keyboard bed carries the weight\". So the quantize strength is the highest in this batch, the snare sits exactly on the grid with a small ghost probability, the hat velocities are quiet, and the percussion gain is cut to −9 dB — the thinnest kit here. The band is the entry's 80–100, covering both the 1995–96 Groove Theory window with Bryce Wilson programming and the solo run. Harmony is \"maj7/maj9 tonics, ii–V turnarounds, and chromatic inner-voice motion under a static top note\", plus \"modal borrowing (Lydian colour on the IV) as a habit\" — hence the ii–V family, `topVoiceStepwise`, and Lydian in the scale set. The melodic parameter is stated outright: \"soprano-light, high-register, small-interval melody with very high syllabic density — fast conversational phrasing rather than melisma\", which is the high register, near-total stepwise motion and density 6–11. Bass is \"round and short, root-and-fifth with 8th-note motion\". ⚠ The INFERRED parameters are every drum number, the melody figures and the countermelody density; the research marks its tempo and harmonic detail as lane inference and [LOW-CONF]. ⚠ The id takes the heading up to the slash, per the dataset's convention; \"groove theory\" is carried as an alias.",
+  "session": {
+    "bpm": {
+      "min": 80,
+      "max": 100,
+      "mode": 90
+    },
+    "scales": {
+      "values": [
+        "major",
+        "lydian",
+        "dorian",
+        "major_pentatonic"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.86,
+      "velocityVar": 0.12,
+      "timingJitterMs": {
+        "kick": 2,
+        "snare": 3,
+        "shaker": 6
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "syncopation": 0.4,
+      "tresilloBias": 0.14
+    },
+    "snare": {
+      "offGridMs": 0,
+      "ghost": {
+        "prob": 0.2,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.12,
+          0.28
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.34,
+      "velocities": {
+        "main": [
+          0.3,
+          0.5
+        ],
+        "ghost": [
+          0.1,
+          0.24
+        ]
+      },
+      "openHat": {
+        "prob": 0.08,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "rim"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "gainOffsetDb": -9
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 3
+      }
+    ],
+    "extensions": {
+      "triad": 0.1,
+      "seventh": 0.5,
+      "ninth": 0.4
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        80
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "susSubstitutionProb": 0.18
+  },
+  "melody": {
+    "register": [
+      64,
+      86
+    ],
+    "densityPerBar": [
+      6,
+      11
+    ],
+    "structure": "question_answer",
+    "intervals": {
+      "step": 0.9,
+      "third": 0.09,
+      "leap": 0.01
+    },
+    "contour": {
+      "riff": 0.24,
+      "descend": 0.36,
+      "arch": 0.4
+    },
+    "chordToneBias": 0.56,
+    "octaveJumpProb": 0.03,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        2,
+        3
+      ]
+    },
+    "timbreHint": "bright_pluck"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.35,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "bell_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.88,
+    "rhythm": "mirror_kick",
+    "register": [
+      28,
+      44
+    ],
+    "glideProb": 0.04,
+    "passingTones": [
+      "P5",
+      "M2"
+    ],
+    "cellShapes": [
+      [
+        "1",
+        "5"
+      ],
+      [
+        "1",
+        "5",
+        "1"
+      ]
+    ],
+    "anticipationProb": 0.2
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 2,
+      "verse": 8,
+      "chorus": 8,
+      "bridge": 4,
+      "outro": [
+        4,
+        8
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "chorus"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "switchUpProb": 0.14
+    }
+  }
+}

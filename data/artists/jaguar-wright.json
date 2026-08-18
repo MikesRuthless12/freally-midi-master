@@ -1,0 +1,306 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "jaguar-wright",
+  "type": "artist",
+  "name": "Jaguar Wright",
+  "aliases": [
+    "jaguar wright",
+    "philly soul rasp"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "2002-2007",
+  "genres": [
+    "rnb",
+    "soul",
+    "neo-soul",
+    "blues"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "rnb-2000s",
+    "boom-bap"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Jaguar Wright",
+    "Wikipedia — Jaguar Wright (https://en.wikipedia.org/wiki/Jaguar_Wright)",
+    "Wikipedia — The Roots (https://en.wikipedia.org/wiki/The_Roots)",
+    "Wikipedia — Carvin & Ivan (https://en.wikipedia.org/wiki/Carvin_%26_Ivan)"
+  ],
+  "notes": "Philadelphia's rawest neo-soul voice, tracked with the Roots' band and the A Touch of Jazz board. `confidence` is **low** because the research rates the entry medium-low: the era, the label and the production milieu are sourced, but it says plainly that \"the parametric detail is Philadelphia-lane inference and marked\". What is stated drives the drums — \"Questlove-school live kit — snare late and heavy, kick early, swung 16th hats, tambourine on the backbeat, and stop-time hits before the chorus\" — so the snare displacement is 10–20 ms at a high ghost velocity, the tambourine mirrors the clap, and `fillBeforeSection` is on for the stop-time. The band is the stated 70–98. Harmony is \"i–iv–V with a raised 7th on the dominant, gospel passing chords, and blues-third melodic clashes against minor harmony\", which is why harmonic minor sits in the scale set, `susOrDimProb` is raised for the passing chords, and `halfStepDissonance` is the highest in this batch for the blues third. Melody is \"low, gritty, shouted at the top of the range, with heavy blues ornament and speech breaking into the line — very high dynamic range within a phrase\", encoded as a wide register with a call-and-response structure rather than as pitch content. ⚠ The INFERRED parameters are every drum and melody number, and the second progression family: the entry writes i–iv–V, and the shortened i–iv is this author's reading of the same cadence rather than a numeral the research gave.",
+  "session": {
+    "bpm": {
+      "min": 70,
+      "max": 98,
+      "mode": 84
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "blues",
+        "harmonic_minor",
+        "dorian"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.48,
+      "velocityVar": 0.28,
+      "timingJitterMs": {
+        "kick": 7,
+        "snare": 17,
+        "tambourine": 10,
+        "closedHat": 9
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "syncopation": 0.4,
+      "tresilloBias": 0.07
+    },
+    "snare": {
+      "offGridMs": [
+        10,
+        20
+      ],
+      "ghost": {
+        "prob": 0.5,
+        "pos": [
+          "1a",
+          "2e",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.2,
+          0.46
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.48,
+      "velocities": {
+        "main": [
+          0.46,
+          0.76
+        ],
+        "ghost": [
+          0.16,
+          0.36
+        ]
+      },
+      "openHat": {
+        "prob": 0.16,
+        "pos": [
+          "3a",
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "rim",
+        "conga"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "gainOffsetDb": -4,
+      "tambourineMirrorsClap": true
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8,
+      "fillBeforeSection": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "iv",
+          "V"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 3
+      }
+    ],
+    "extensions": {
+      "triad": 0.28,
+      "seventh": 0.5,
+      "ninth": 0.22
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        46,
+        78
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "susOrDimProb": 0.2
+  },
+  "melody": {
+    "register": [
+      52,
+      79
+    ],
+    "densityPerBar": [
+      3,
+      8
+    ],
+    "structure": "call_response",
+    "intervals": {
+      "step": 0.7,
+      "third": 0.22,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.34,
+      "descend": 0.4,
+      "arch": 0.26
+    },
+    "chordToneBias": 0.46,
+    "halfStepDissonance": 0.22,
+    "octaveJumpProb": 0.16,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        2,
+        3
+      ]
+    },
+    "timbreHint": "dirty_guitar"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.5,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.82,
+    "rhythm": "mirror_kick",
+    "register": [
+      28,
+      43
+    ],
+    "glideProb": 0.04,
+    "passingTones": [
+      "P5",
+      "m7",
+      "P4",
+      "m3"
+    ],
+    "cellShapes": [
+      [
+        "1",
+        "5"
+      ],
+      [
+        "1",
+        "b3",
+        "4"
+      ],
+      [
+        "1",
+        "b7",
+        "5"
+      ]
+    ],
+    "anticipationProb": 0.3
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 8,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": [
+        8,
+        24
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.65,
+        "beats": 4
+      },
+      "switchUpProb": 0.28
+    }
+  }
+}

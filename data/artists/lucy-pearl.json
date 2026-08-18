@@ -1,0 +1,274 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "lucy-pearl",
+  "type": "artist",
+  "name": "Lucy Pearl",
+  "aliases": [
+    "lucy pearl",
+    "lucypearl",
+    "dawn robinson",
+    "supergroup soul"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "1999-2001",
+  "genres": [
+    "rnb",
+    "soul",
+    "neo-soul",
+    "funk"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "funk",
+    "boom-bap",
+    "rnb-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Lucy Pearl",
+    "Wikipedia — Lucy Pearl (https://en.wikipedia.org/wiki/Lucy_Pearl)",
+    "Wikipedia — Raphael Saadiq (https://en.wikipedia.org/wiki/Raphael_Saadiq)",
+    "Wikipedia — Ali Shaheed Muhammad (https://en.wikipedia.org/wiki/Ali_Shaheed_Muhammad)"
+  ],
+  "notes": "The 1999–2001 supergroup, and the entry states the split cleanly: \"the rhythm grid is hip-hop; the harmony and vocals are soul\". So the drums are the sampler-and-live blend it describes — \"an SP-1200/MPC-lineage looped break under a played kick and tambourine, snare hard on 2&4, hats crisp in 16ths\" — which is a layered snare, a high kick density and the loudest hat velocities in this batch, over a modest offGrid window because the break itself is quantised. The band is the entry's 88–110. Harmony carries no numerals — \"major-mode funk with dominant-7th and 9th colour; short 2-to-4-bar cycles, blues-scale melodic overlay, and no modulation\" — so no families are authored and the delta is a dominant-weighted extension spread, `maxChords` 3 and a vamp-leaning harmonic rhythm; the blues-scale overlay is in `scales` and `halfStepDissonance`. Melody is \"short-phrase, riff-like, high note-density on the hook\" with \"call-and-response male/female lead trading\" as the arrangement's identity, so the structure is call-and-response and the counter is dense at −12. Bass is Saadiq's, \"mixed forward, syncopated and melodic, occasionally doubled by a filtered synth-sub\". ⚠ The INFERRED parameters are all drum probabilities and velocities and every melody number; the research marks its parametric detail as lane inference and its tempo band [LOW-CONF]. ⚠ The synth-sub double is not authored as a `bass808` block — it doubles a played bass rather than replacing it.",
+  "session": {
+    "bpm": {
+      "min": 88,
+      "max": 110,
+      "mode": 98
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "blues",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.78,
+      "velocityVar": 0.18,
+      "timingJitterMs": {
+        "kick": 4,
+        "snare": 5,
+        "tambourine": 7,
+        "closedHat": 5
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "syncopation": 0.5,
+      "tresilloBias": 0.12
+    },
+    "snare": {
+      "layered": true,
+      "offGridMs": [
+        2,
+        7
+      ],
+      "ghost": {
+        "prob": 0.38,
+        "pos": [
+          "1a",
+          "2a",
+          "3a",
+          "4a"
+        ],
+        "vel": [
+          0.2,
+          0.44
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.58,
+      "velocities": {
+        "main": [
+          0.62,
+          0.92
+        ],
+        "ghost": [
+          0.2,
+          0.44
+        ]
+      },
+      "openHat": {
+        "prob": 0.2,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "shaker",
+        "rim",
+        "conga"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "gainOffsetDb": -5
+    }
+  },
+  "chords": {
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.24,
+      "seventh": 0.56,
+      "ninth": 0.2
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        48,
+        78
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      55,
+      79
+    ],
+    "densityPerBar": [
+      5,
+      9
+    ],
+    "structure": "call_response",
+    "intervals": {
+      "step": 0.68,
+      "third": 0.26,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.44,
+      "descend": 0.3,
+      "arch": 0.26
+    },
+    "chordToneBias": 0.62,
+    "halfStepDissonance": 0.14,
+    "octaveJumpProb": 0.08,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "talkbox"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.6,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.42,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      47
+    ],
+    "glideProb": 0.1,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2",
+      "M3"
+    ],
+    "anticipationProb": 0.48
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 8,
+      "chorus": 8,
+      "outro": [
+        4,
+        12
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "chorus"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.6,
+        "beats": 2
+      },
+      "switchUpProb": 0.3
+    }
+  }
+}

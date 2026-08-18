@@ -1,0 +1,335 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "bela-fleck",
+  "type": "producer",
+  "name": "Béla Fleck",
+  "aliases": [
+    "bela fleck",
+    "fleck",
+    "flecktones"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "country-train"
+  ],
+  "era": "1990-present",
+  "genres": [
+    "country-train",
+    "bluegrass",
+    "producer"
+  ],
+  "relatedGenres": [
+    "country-train",
+    "country-pop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-train — Béla Fleck",
+    "Wikipedia — Béla Fleck (https://en.wikipedia.org/wiki/B%C3%A9la_Fleck)",
+    "Wikipedia — Bluegrass music (https://en.wikipedia.org/wiki/Bluegrass_music)"
+  ],
+  "notes": "The banjo's most decorated exponent and, in the entry's own words, \"the engine's reference for the Scruggs roll as a subdivision generator\". Flagship because the research rates it high-medium on Gate 1, era and awards, and because this is the entry that specifies the archetype's stream mechanism rather than a person's taste. The section's own scope note says why this entry looks the way it does: \"in this archetype the producer role is largely occupied by instrumental specialists — the players whose parts are the train beat when there is no drum kit, and who also produce records. Each entry below is written as a parameter set for the part they contribute, because that is what the engine needs.\" The roll is stated as a drum machine: \"the three-finger Scruggs roll is the archetype's melodic drum machine: a continuous 8th- or 16th-note arpeggio across three strings whose accent pattern, not its note content, carries the groove. Model it as a fixed-rate stream with rotating string assignment and accents on the backbeat.\" So this is the one model in this section whose hat is a continuous 16th stream rather than quarters — `hihat.base` \"16th\" with `continuous` true at reduced velocities — because here the hat lane is the roll, not a hat; the inherited `train_16ths` snare supplies the backbeat accents inside it, and `kick` stays [1,2] on anchors 1 and 3 for the two-beat underneath. The tuning constraint is stated and is genuinely harmonic: open G with a high re-entrant fifth string \"means the drone fifth string is a constant pitch — an important generator constraint: the roll pattern repeats a fixed pitch regardless of the chord, producing incidental suspensions over IV and V\". `susSubstitutionProb` 0.42 is that drone, and it is the highest in this section. His jazz and classical crossover \"adds functional harmony — real ii–V–I and chromatic modulation — on top of the bluegrass frame\", so ii–V–I and I–vi–ii–V sit beside I–IV–V and `extensions` runs 0.52/0.36/0.12. The \"double banjos or twin banjos\" tradition of two instruments in conversation is the countermelody at +12 with an arp-led style pool at `densityRatio` 0.75. The Flecktones configuration \"replaces upright with electric/fretless bass\", which is the only `glideProb` above zero in this section — the grammar block forbids glides for the acoustic archetype and this is the stated exception. ⚠ The entry says \"the roll parameterisation is formalised from a sourced technique [LOW-CONF]\", and that flag applies to the hat block above. ⚠ Also INFERRED: `bpm.mode` 150 inside the stated 90–210, the velocity tiers, `percs` contents and every melody and countermelody number. ⚠ **`drums.hihat.base` widened to the two note values the entry names (2026-08-17, drum variety floor).** `drum_variety::report_how_many_distinct_beats_each_artist_writes` measured 14 distinct beats in 200 seeds against a floor of 20, and the hat column showed why: **7**. The hat lane here *is* the Scruggs roll, and at a flat `base: \"16th\"` with `continuous: true` every sixteenth of every bar is already an onset — so `fillDensity` has no gap left to fill, it can move nothing, and the lane writes one identical stream at every seed. What the entry actually says is both note values: \"the three-finger Scruggs roll is the archetype's melodic drum machine: **a continuous 8th- or 16th-note arpeggio** across three strings whose accent pattern, not its note content, carries the groove. Model it as a fixed-rate stream with rotating string assignment and accents on the backbeat.\" The 16th keeps the top weight because the previous authoring read it as the primary rate and the entry lists it second only in the phrase order; on an 8th draw the stream has gaps again and `fillDensity` is live, which is the rate the entry names first. ⚠ The 3:2 split between them is INFERRED — the entry names both values and no proportion. Nothing else moved: the roll is still a fixed-rate stream, still at the reduced velocities, and `kick` is still [1, 2] on anchors 1 and 3.",
+  "session": {
+    "bpm": {
+      "min": 90,
+      "max": 210,
+      "mode": 150
+    },
+    "keys": {
+      "values": [
+        "G",
+        "D"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "major_pentatonic",
+        "dorian"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "8th",
+      "amount": 0.5
+    },
+    "humanize": {
+      "quantizeStrength": 0.92,
+      "velocityVar": 0.1,
+      "timingJitterMs": {
+        "kick": 3,
+        "snare": 3,
+        "closedHat": 3,
+        "perc": 3
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        96,
+        112
+      ],
+      "main": [
+        66,
+        80
+      ],
+      "ghost": [
+        34,
+        50
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        1,
+        2
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ]
+    },
+    "snare": {
+      "offGridMs": -4
+    },
+    "hihat": {
+      "base": {
+        "values": [
+          "16th",
+          "8th"
+        ],
+        "weights": [
+          3,
+          2
+        ]
+      },
+      "continuous": true,
+      "fillDensity": 0.05,
+      "velocities": {
+        "main": [
+          0.5,
+          0.7
+        ],
+        "ghost": [
+          0.25,
+          0.4
+        ]
+      },
+      "openHat": {
+        "prob": 0.02,
+        "pos": [
+          "4"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0.02
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "shaker",
+        "perc2"
+      ],
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "gainOffsetDb": -9
+    },
+    "fills": {
+      "smallEveryBars": 16,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "vi",
+          "ii",
+          "V"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "I",
+          "bVII",
+          "IV"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.52,
+      "seventh": 0.36,
+      "ninth": 0.12
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        5,
+        2,
+        1
+      ]
+    },
+    "susSubstitutionProb": 0.42
+  },
+  "melody": {
+    "register": [
+      55,
+      86
+    ],
+    "densityPerBar": [
+      8,
+      14
+    ],
+    "intervals": {
+      "step": 0.78,
+      "third": 0.18,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.42,
+      "descend": 0.3,
+      "arch": 0.28
+    },
+    "chordToneBias": 0.72,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        2,
+        3
+      ]
+    },
+    "timbreHint": "banjo_roll"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.75,
+    "styles": {
+      "values": [
+        "arp",
+        "octave_echo"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.7,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      44
+    ],
+    "glideProb": 0.12,
+    "passingTones": [
+      "P5",
+      "M2",
+      "M3",
+      "M6",
+      "m7"
+    ],
+    "anticipationProb": 0.3
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "bridge",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "bridge",
+          "chorus",
+          "bridge",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "sectionBars": {
+      "intro": [
+        8,
+        16
+      ],
+      "verse": 16,
+      "chorus": 8,
+      "bridge": [
+        16,
+        32
+      ],
+      "outro": 8
+    },
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.1,
+        "beats": 1
+      },
+      "switchUpProb": 0.08
+    }
+  }
+}

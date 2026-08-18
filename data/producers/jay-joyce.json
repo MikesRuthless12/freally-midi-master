@@ -1,0 +1,313 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "jay-joyce",
+  "type": "producer",
+  "name": "Jay Joyce",
+  "aliases": [
+    "jay joyce",
+    "jayjoyce",
+    "j joyce"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "country-pop"
+  ],
+  "era": "2006-2022",
+  "genres": [
+    "country-pop",
+    "country",
+    "producer"
+  ],
+  "relatedGenres": [
+    "country-pop",
+    "country-shuffle",
+    "pop-2000s"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 country-pop — Jay Joyce",
+    "Mix — Jay Joyce's Tragedy/Tragedy (https://www.mixonline.com/recording/jay-joyces-tragedytragedy-375422)",
+    "Wikipedia — Jay Joyce (https://en.wikipedia.org/wiki/Jay_Joyce)"
+  ],
+  "notes": "The rock producer inside country, windowed to the documented country peak 2006–2022 rather than his full career, because that is the window the research specifies parameters for. The research calls one fact \"the single most engine-relevant fact in this section\" and this model is built on it: \"everybody's sitting next to each other, talking to each other,\" musicians playing together live in the main room **without headphones**, baffles for separation, drums the only isolated source, and \"minimal click tracks and minimal overdubs\" so bands \"go with their gut.\" The instruction that follows is explicit — \"Model: tempo drift across the song is correct, room bleed is correct, fills break the pattern, velocity variance is high\" — so this model carries the loosest quantize strength and the widest velocity spread of any producer here, with a fill grid that fires early rather than on the turnaround. Harmony is named: \"static one-chord vamps and I–♭VII–IV are his most identifiable harmonic cells,\" hence the `vamp` weight and the two-chord family. The bass is stated against the genre norm: \"live bass following the guitar riff rather than the kick, mid-forward, often overdriven; no programmed low end,\" so `independent_riff` at a low root-following probability and no `bass808` block. Form is his other signature: \"long instrumental intros, extended outro vamps, tag sections, false endings and tempo-free codas — he is the main source in this section for *non*-standard country song form.\" ⚠ The INFERRED parameters are the jitter values themselves, the velocity tiers, the perc density and the counter ratio — the research gives \"high velocity variance\" and \"tempo drift\" as directions, and 0.32 / 11–14 ms are this author's reading of them.",
+  "session": {
+    "bpm": {
+      "min": 57,
+      "max": 130,
+      "mode": 96
+    },
+    "scales": {
+      "values": [
+        "mixolydian",
+        "major",
+        "natural_minor",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        4,
+        4,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.55,
+      "velocityVar": 0.32,
+      "timingJitterMs": {
+        "kick": 12,
+        "snare": 14,
+        "closedHat": 12,
+        "tom": 15,
+        "crash": 13,
+        "ride": 12
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        112,
+        127
+      ],
+      "main": [
+        58,
+        100
+      ],
+      "ghost": [
+        16,
+        44
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "syncopation": 0.24,
+      "offbeat8thShare": 0.31
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.25,
+        "pos": [
+          "1a",
+          "2e",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.12,
+          0.36
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.33,
+      "openHat": {
+        "prob": 0.29,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "ride",
+        "tomHigh",
+        "tomLow",
+        "crash",
+        "rim"
+      ],
+      "densityPerBar": [
+        1,
+        6
+      ],
+      "gainOffsetDb": -1,
+      "tambourine": false
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 16,
+      "fillBeforeSection": false
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "bVII",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 3
+      }
+    ],
+    "extensions": {
+      "triad": 0.7,
+      "seventh": 0.26,
+      "ninth": 0.04
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        50,
+        76
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        5,
+        3,
+        3
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      48,
+      79
+    ],
+    "densityPerBar": [
+      2,
+      8
+    ],
+    "contour": {
+      "riff": 0.36,
+      "descend": 0.34,
+      "arch": 0.3
+    },
+    "chordToneBias": 0.68,
+    "halfStepDissonance": 0.14,
+    "emptyBarBias": 0.18,
+    "octaveJumpProb": 0.05,
+    "timbreHint": "dirty_layered_electrics"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.46,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad",
+        "arp"
+      ],
+      "weights": [
+        3,
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.44,
+    "rhythm": "independent_riff",
+    "register": [
+      30,
+      48
+    ],
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2",
+      "M3",
+      "P4"
+    ],
+    "anticipationProb": 0.26
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        8,
+        16
+      ],
+      "verse": [
+        8,
+        16
+      ],
+      "chorus": 8,
+      "bridge": [
+        8,
+        16
+      ],
+      "outro": [
+        16,
+        32
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "bridge",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 4
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.2,
+        "beats": 2
+      },
+      "switchUpProb": 0.36
+    }
+  }
+}

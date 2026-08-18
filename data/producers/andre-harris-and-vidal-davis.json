@@ -1,0 +1,280 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "andre-harris-and-vidal-davis",
+  "type": "producer",
+  "name": "Andre Harris & Vidal Davis (Dre & Vidal)",
+  "aliases": [
+    "andre harris",
+    "vidal davis",
+    "dre and vidal",
+    "dre vidal"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "2000-2010",
+  "genres": [
+    "producer",
+    "soul",
+    "neo-soul"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "rnb-2000s",
+    "pop-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Andre Harris & Vidal Davis (Dre & Vidal)",
+    "Wikipedia — Andre Harris (https://en.wikipedia.org/wiki/Andre_Harris)",
+    "Wikipedia — Vidal Davis (https://en.wikipedia.org/wiki/Vidal_Davis)",
+    "Wikipedia — Jill Scott (https://en.wikipedia.org/wiki/Jill_Scott_(singer))"
+  ],
+  "notes": "The other Philadelphia board, and the entry gives a division of labour that maps straight onto the fields: \"Harris is a keyboardist and guitarist; Davis is a drummer, which sets the division of labour.\" The drum block is Davis's: \"**Davis's drum programming is the signature** — a hip-hop kick/snare grid with the backbeat hard on 2&4, a *live* hat or ride played over the top, ghost snares and rimshot fills, plus a full congas-and-shaker layer. The kit is dry and forward, unlike the Soulquarians' room sound.\" The programmed-under-live split is authored in the jitter map — kick 2 ms and snare 3 ms against a closed hat at 12 ms — which is the one place in this section where the hats are looser than the backbeat rather than tighter. The rimshot layer, the six-position ghost map and the 4-to-8-hit percussion bed complete it. Harris's half is the harmony: \"extension-rich Philadelphia harmony — m9/m11 and maj9 voicings, 4-to-8-bar cycles with genuine cadences, gospel passing chords, and modulation into the bridge\", which is a triad weight of 0.06, `susOrDimProb` for the passing chords and a harmonic rhythm that keeps moving. \"They write whole songs with the artist rather than supplying beats, so expect real pre-choruses and bridges\" — hence the full arrangement with a prechorus, a bridge and a key-lifted final chorus rather than a loop. Bass is \"played electric bass with walking, chromatic-approach motion; synth-sub doubling on the crossover singles only\", so no `bass808` block. ⚠ The INFERRED parameters are every drum probability and velocity and all melody figures; the research marks the parametric detail as lane inference.",
+  "session": {
+    "bpm": {
+      "min": 72,
+      "max": 104,
+      "mode": 88
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "major",
+        "mixolydian"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.78,
+      "velocityVar": 0.2,
+      "timingJitterMs": {
+        "kick": 2,
+        "snare": 3,
+        "closedHat": 12,
+        "conga": 10,
+        "shaker": 9
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "syncopation": 0.52,
+      "tresilloBias": 0.14
+    },
+    "snare": {
+      "rimshotLayer": true,
+      "offGridMs": [
+        0,
+        4
+      ],
+      "ghost": {
+        "prob": 0.46,
+        "pos": [
+          "1e",
+          "1a",
+          "2a",
+          "3a",
+          "4e",
+          "4a"
+        ],
+        "vel": [
+          0.16,
+          0.4
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.6,
+      "velocities": {
+        "main": [
+          0.44,
+          0.76
+        ],
+        "ghost": [
+          0.14,
+          0.36
+        ]
+      },
+      "openHat": {
+        "prob": 0.16,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          0,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "conga",
+        "shaker",
+        "ride",
+        "rim"
+      ],
+      "densityPerBar": [
+        4,
+        8
+      ],
+      "gainOffsetDb": -4
+    }
+  },
+  "chords": {
+    "extensions": {
+      "triad": 0.06,
+      "seventh": 0.48,
+      "ninth": 0.46
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        82
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    },
+    "susOrDimProb": 0.22,
+    "chordDurationBeats": [
+      2,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      57,
+      81
+    ],
+    "densityPerBar": [
+      4,
+      8
+    ],
+    "structure": "question_answer",
+    "intervals": {
+      "step": 0.74,
+      "third": 0.2,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.24,
+      "descend": 0.38,
+      "arch": 0.38
+    },
+    "chordToneBias": 0.56,
+    "octaveJumpProb": 0.12,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "wurlitzer_and_guitar"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.55,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.4,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      47
+    ],
+    "glideProb": 0.05,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2",
+      "m3",
+      "M3"
+    ],
+    "anticipationProb": 0.46
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": 8,
+      "prechorus": 4,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": [
+        4,
+        12
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "verse",
+          "prechorus",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "switchUpProb": 0.24
+    }
+  }
+}

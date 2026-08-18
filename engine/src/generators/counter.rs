@@ -282,23 +282,27 @@ fn arp_notes(
     let mut index = 0usize;
 
     for tick in on.iter().copied() {
-        let pitch = match chords.at(tick) {
-            Some(event) if !event.tones.is_empty() => {
-                let class = event.tones[index % event.tones.len()];
-                index += 1;
-                theory::pitch_class_in_register(class, low, high)
-            }
+        // ⛔ **The tones the session's scale can play, not every tone the chord
+        // has.** See [`ChordEvent::tones_in_scale`]: an arp is the harmony
+        // stated one note at a time, and over a five-note scale the raw chord
+        // carries notes the rest of the arrangement is not allowed to play.
+        let tones = chords
+            .at(tick)
+            .map(|event| event.tones_in_scale(ctx))
+            .unwrap_or_default();
+        let pitch = if tones.is_empty() {
             // No harmony authored: walk the scale instead of going silent, since
             // rage states its chords through the lead and still wants a bell.
-            _ => {
-                let degree = rng.random_range(1..=degrees.len() as i32);
-                theory::fold_into_register(
-                    (60 + i32::from(ctx.key_root) + theory::degree_semitone(degrees, degree))
-                        as i16,
-                    low,
-                    high,
-                )
-            }
+            let degree = rng.random_range(1..=degrees.len() as i32);
+            theory::fold_into_register(
+                (60 + i32::from(ctx.key_root) + theory::degree_semitone(degrees, degree)) as i16,
+                low,
+                high,
+            )
+        } else {
+            let class = tones[index % tones.len()];
+            index += 1;
+            theory::pitch_class_in_register(class, low, high)
         };
 
         if let Some(pitch) = pitch {
@@ -350,13 +354,18 @@ fn lick_notes(
             // Descending, which is what an answer does — it settles.
             degree -= 1;
             let base = 60 + i32::from(ctx.key_root) + theory::degree_semitone(degrees, degree);
+            // ⛔ **A chord tone the scale also has** — see
+            // [`ChordEvent::tones_in_scale`]. `base` is a scale degree already,
+            // so the fallback stays in the key when the chord offers nothing
+            // within a step-and-a-bit below it.
             let pitch = chords
                 .at(tick)
                 .and_then(|event| {
+                    let tones = event.tones_in_scale(ctx);
                     (0..12).find_map(|shift| {
                         let candidate = base - shift;
-                        event
-                            .has_tone((candidate.rem_euclid(128)) as u8)
+                        tones
+                            .contains(&(candidate.rem_euclid(12) as u8))
                             .then_some(candidate)
                     })
                 })
@@ -384,9 +393,9 @@ fn lick_notes(
 
 /// One held chord tone per chord.
 ///
-/// The onset is nudged forward to the first allowed tick, so a pad under a
-/// legato line still starts in a gap rather than being thrown away for landing
-/// on the same attack as the melody.
+/// The onset is kept on a tick the melody leaves free — see [`entry_tick`] — so
+/// a pad under a legato line still starts in a gap rather than being thrown away
+/// for landing on the same attack as the melody.
 ///
 /// **Which tone it holds is chosen, not always the root.** Drill's strings sit
 /// on the third or the fifth as readily as the root, so a pad that always took
@@ -406,11 +415,7 @@ fn pad_notes(
     for event in &chords.events {
         for (segment_start, end) in super::phrase_spans(ctx, event.start_tick, event.len_ticks, rng)
         {
-            let Some(start) = on
-                .iter()
-                .copied()
-                .find(|tick| *tick >= segment_start && *tick < end)
-            else {
+            let Some(start) = entry_tick(on, segment_start, end, rng) else {
                 continue;
             };
 
@@ -436,12 +441,17 @@ fn pad_notes(
                 end - start
             };
 
+            // ⛔ **The tones the session's scale can play** — see
+            // [`ChordEvent::tones_in_scale`]. A pad holds its note for a whole
+            // chord, so a tone the scale does not have is the most audible way
+            // this part could leave the key.
+            let playable = event.tones_in_scale(ctx);
             let mut used: Vec<u8> = Vec::with_capacity(voices);
             for voice in 0..voices {
-                let tone = if event.tones.is_empty() {
+                let tone = if playable.is_empty() {
                     event.root
                 } else {
-                    event.tones[rng.random_range(0..event.tones.len())]
+                    playable[rng.random_range(0..playable.len())]
                 };
                 // Which octave the voicing sits in, rather than always the lowest
                 // one the register allows. `pitch_class_in_register` answers with
@@ -475,6 +485,48 @@ fn pad_notes(
     }
 
     notes
+}
+
+/// Where inside a phrase the pad comes in.
+///
+/// ⛔⛔ **Chosen out of the phrase's first half, not the first tick going.**
+/// [`super::phrase_spans`] gave a held part somewhere to re-articulate and its
+/// comment says the variety comes from *where* it takes the note again — but the
+/// entry *inside* a span was still pinned: `find` returns the same tick for every
+/// seed that draws the same phrase length, so the one-span draw (a four-bar
+/// phrase over a vamp, a third of them) went straight back to one held note in
+/// one place. That residue is what left 22 pad-weighted models between 0.910 and
+/// 0.979 against the 0.98 counter-variety floor, after authoring rounds that had
+/// already spent every lever the data has: `roy-woods`, `sonder`, `xscape` and
+/// `thankgod4cody` all weight `sustain_pad` at 0.6–1.0 over a `vamp` harmony, and
+/// their research says the single held sonority is the style — so the fix could
+/// not honestly be a different model.
+///
+/// **The first half, because a pad that enters in the last bar of its phrase is
+/// not a pad.** Strings and Rhodes state the chord at the top of a phrase or lift
+/// in over it; a later entry would also cut the note short, and length is the
+/// whole claim `sustain_pad` makes — `a_sustained_pad_holds_each_chord` is what
+/// holds it.
+///
+/// ⚠ **The old first-allowed-tick answer stays as the fallback**, for a lead so
+/// legato that its phrase's first half offers nothing at all. Without it a pad
+/// under a busy melody would go silent rather than enter late, and a layer the
+/// model asked for vanishing is the defect this whole file was written around.
+fn entry_tick(on: &[u32], segment_start: u32, end: u32, rng: &mut impl Rng) -> Option<u32> {
+    let half = segment_start + (end - segment_start) / 2;
+    let early: Vec<u32> = on
+        .iter()
+        .copied()
+        .filter(|tick| *tick >= segment_start && *tick < half)
+        .collect();
+
+    if early.is_empty() {
+        return on
+            .iter()
+            .copied()
+            .find(|tick| *tick >= segment_start && *tick < end);
+    }
+    Some(early[rng.random_range(0..early.len())])
 }
 
 /// Every pitch of this class that fits inside the register.
@@ -713,6 +765,56 @@ mod tests {
                 "{} ticks",
                 note.len_ticks
             );
+        }
+    }
+
+    #[test]
+    fn a_pad_does_not_always_enter_at_the_first_tick_the_lead_leaves_free() {
+        // ⛔ The residue of `phrase_spans`: it gave a held pad somewhere to
+        // re-articulate, but *inside* a span the entry was the first allowed
+        // tick — so every seed that drew the same phrase length wrote the same
+        // held note in the same place. See `entry_tick`.
+        let mut later = 0;
+        for seed in 1..40u64 {
+            let (pad, lead) = run(
+                json!({ "styles": "sustain_pad", "densityRatio": 1.0 }),
+                seed,
+            );
+            let Some(first) = pad.notes.first() else {
+                continue;
+            };
+            // What the pinned version would have answered: the earliest tick on
+            // the grid the lead is not attacking on.
+            let earliest = (0u32..)
+                .map(|step| step * grid::SIXTEENTH)
+                .find(|tick| !melody_attacks_near(&lead, *tick))
+                .expect("some tick is always free");
+            if first.start_tick > earliest {
+                later += 1;
+            }
+        }
+        assert!(
+            later > 4,
+            "the pad entered at the lead's first free tick on all but {later} of 39 seeds"
+        );
+    }
+
+    #[test]
+    fn a_pad_still_enters_where_the_melody_is_not_attacking() {
+        // The other side of `entry_tick`: choosing the entry may not cost the
+        // gap rule, which is the reason the onset was nudged in the first place.
+        for seed in 1..30u64 {
+            let (pad, lead) = run(
+                json!({ "styles": "sustain_pad", "densityRatio": 1.0, "fillGapsOnly": true }),
+                seed,
+            );
+            for note in &pad.notes {
+                assert!(
+                    !melody_attacks_near(&lead, note.start_tick),
+                    "seed {seed}: a pad entered at {} under a melody attack",
+                    note.start_tick
+                );
+            }
         }
     }
 

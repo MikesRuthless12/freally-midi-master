@@ -1,0 +1,269 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "sum-41",
+  "type": "artist",
+  "name": "Sum 41",
+  "aliases": [
+    "sum 41",
+    "sum41"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "2001-2004",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "pop-punk"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "pop-2020s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — Sum 41",
+    "songdata.io — Sum 41 catalogue (https://songdata.io/search?query=Sum%2041)"
+  ],
+  "notes": "Canadian pop-punk with metal-guitar detailing: 160–197 straight, backbeat on 2&4 at speed, and the research notes that the 197 reading \"corresponds to a ~98 half-time feel in the verses\" — the same grid heard two ways, so the model keeps the fast spine and names the fold here. Four sharp-side majors are given (A, G, E, D) so `keys` is authored, over I–IV–V and vi–IV–I–V. Three drum deltas are quoted: \"8th kick\" with \"double-kick 16ths in the metal breakdowns\" (a 4–8 density), \"hat 8ths with crash accents\" (the crash lane leading the percs), and \"fills are 16th snare rolls and a half-bar tom pattern\", which is the 16th snare-roll ladder plus a tom lane. The bass is \"root 8ths locked to the guitars\" with \"a bass-and-drums-only bar as the standard pre-chorus device\", so `mirror_kick` at 0.96 with a high `dropOutBeats`. The instrumental hook is a metal-derived harmonised lead line in 3rds and 5ths, which is the counter running arp and answer-lick at a real ratio, and \"a rap-cadence verse over a punk beat is a signature\", which is the wide melody density. ⚠ `confidence` is medium because the research says so and marks the tempo/key values **[LOW-CONF]** as algorithmic readings; `bpm.mode` 176 is this author's centre of the stated band. ⚠ The **INFERRED** parameters are every drum probability.",
+  "session": {
+    "bpm": {
+      "min": 160,
+      "max": 197,
+      "mode": 176
+    },
+    "halfTime": false,
+    "keys": {
+      "values": [
+        "A",
+        "G",
+        "E",
+        "D"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor",
+        "mixolydian"
+      ],
+      "weights": [
+        6,
+        2,
+        1
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.91,
+      "velocityVar": 0.14
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        112,
+        127
+      ],
+      "main": [
+        90,
+        106
+      ],
+      "ghost": [
+        34,
+        48
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        4,
+        8
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.12
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.05,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.26,
+          0.42
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.34,
+      "openHat": {
+        "prob": 0.42,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.16
+      }
+    },
+    "percs": {
+      "lanes": [
+        "crash",
+        "tom",
+        "tomHigh"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8,
+      "snareRollLadder": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "IV"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.8,
+      "seventh": 0.16,
+      "ninth": 0.04
+    }
+  },
+  "melody": {
+    "register": [
+      62,
+      81
+    ],
+    "densityPerBar": [
+      4,
+      11
+    ],
+    "intervals": {
+      "step": 0.74,
+      "third": 0.2,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.48,
+      "descend": 0.28,
+      "arch": 0.24
+    },
+    "chordToneBias": 0.76,
+    "octaveJumpProb": 0.06,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.62,
+    "styles": {
+      "values": [
+        "arp",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.96,
+    "rhythm": "mirror_kick",
+    "register": [
+      28,
+      45
+    ],
+    "glideProb": 0.01,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.14
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": [
+        8,
+        16
+      ],
+      "prechorus": 4,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": 4
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.9,
+        "beats": 4
+      },
+      "switchUpProb": 0.14
+    }
+  }
+}

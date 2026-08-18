@@ -1,0 +1,278 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "steve-mckie",
+  "type": "producer",
+  "name": "Steve McKie",
+  "aliases": [
+    "steve mckie",
+    "mckie",
+    "bilal producer",
+    "philly drummer producer"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "2010-present",
+  "genres": [
+    "producer",
+    "soul",
+    "neo-soul"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "boom-bap",
+    "lofi-hiphop"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Steve McKie",
+    "Wikipedia — Bilal (https://en.wikipedia.org/wiki/Bilal_(American_singer))",
+    "Wikipedia — Robert Glasper (https://en.wikipedia.org/wiki/Robert_Glasper)",
+    "Wikipedia — Neo soul (https://en.wikipedia.org/wiki/Neo_soul)"
+  ],
+  "notes": "Bilal's long-term collaborator, \"included because Bilal's post-2010 sound is not modellable without him\". `confidence` is **low** — the collaboration and the role are sourced, the parametric detail is inference from the records. The entry's phrase for him is exact and is what the drum block encodes: \"**a drummer who programs like a drummer** — the pattern is played into the machine and left unquantised, so the snare drifts around 2&4, ghost strokes survive, and the hat swing is human. Crushed/lo-fi drum timbres are used deliberately, and the kit is often layered with a second, misaligned programmed kit.\" So `quantizeStrength` is 0.32, the snare is `layered` with a 10–22 ms drift, the ghost strokes survive at a 0.6 probability across six positions, and the hat velocities are crushed to a 0.22–0.46 main band. Harmony comes from his collaborators — \"he works with jazz-trained collaborators, so the harmony is extension-heavy and reharmonised on repeats; his own contribution is groove and arrangement rather than chords\" — hence a triad weight of 0.03, a large `susSubstitutionProb` and no families. \"Arrangements leave large gaps for improvised vocal\" is a melodic `emptyBarBias` of 0.26 with `endVariation` on and a low chord-tone bias, and the structure is \"through-composed rather than looped, with free intros, no fixed chorus placement, and abrupt endings — the structure follows the vocalist's improvisation\", which is the widest section-length ranges and the highest `switchUpProb` in this batch. Bass is \"played electric or upright; sub-808 only as reinforcement under the kick\", so no `bass808` block. ⚠ Every drum number and every melody figure here is INFERRED.",
+  "session": {
+    "bpm": {
+      "min": 70,
+      "max": 110,
+      "mode": 88
+    },
+    "scales": {
+      "values": [
+        "dorian",
+        "natural_minor",
+        "lydian",
+        "major"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.32,
+      "velocityVar": 0.32,
+      "timingJitterMs": {
+        "kick": 9,
+        "snare": 19,
+        "closedHat": 13,
+        "perc": 13
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "syncopation": 0.54,
+      "tresilloBias": 0.12
+    },
+    "snare": {
+      "layered": true,
+      "offGridMs": [
+        10,
+        22
+      ],
+      "ghost": {
+        "prob": 0.6,
+        "pos": [
+          "1e",
+          "2e",
+          "2a",
+          "3a",
+          "4e",
+          "4a"
+        ],
+        "vel": [
+          0.1,
+          0.3
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": 0.36,
+      "velocities": {
+        "main": [
+          0.22,
+          0.46
+        ],
+        "ghost": [
+          0.07,
+          0.2
+        ]
+      },
+      "openHat": {
+        "prob": 0.08,
+        "pos": [
+          "3a"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "perc",
+        "shaker"
+      ],
+      "densityPerBar": [
+        1,
+        4
+      ],
+      "gainOffsetDb": -7
+    }
+  },
+  "chords": {
+    "extensions": {
+      "triad": 0.03,
+      "seventh": 0.4,
+      "ninth": 0.57
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        50,
+        84
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "syncopated_cell",
+        "vamp",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "susSubstitutionProb": 0.34,
+    "chordDurationBeats": [
+      2,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      55,
+      84
+    ],
+    "densityPerBar": [
+      3,
+      8
+    ],
+    "structure": "long_arc",
+    "intervals": {
+      "step": 0.68,
+      "third": 0.24,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.16,
+      "descend": 0.42,
+      "arch": 0.42
+    },
+    "chordToneBias": 0.42,
+    "emptyBarBias": 0.26,
+    "endVariation": true,
+    "octaveJumpProb": 0.18,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        2,
+        3
+      ]
+    },
+    "timbreHint": "tape_saturated_rhodes"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.45,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.34,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      49
+    ],
+    "glideProb": 0.06,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2",
+      "M6"
+    ],
+    "anticipationProb": 0.5
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        12
+      ],
+      "verse": [
+        8,
+        24
+      ],
+      "chorus": [
+        4,
+        16
+      ],
+      "outro": [
+        2,
+        12
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "verse",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "switchUpProb": 0.52
+    }
+  }
+}

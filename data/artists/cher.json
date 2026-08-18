@@ -1,0 +1,249 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "cher",
+  "type": "artist",
+  "name": "Cher",
+  "aliases": [
+    "cher",
+    "cherilyn sarkisian"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "1998-1999",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "europop"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "dance-pop",
+    "house"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — Cher",
+    "Wikipedia — \"Believe\" (https://en.wikipedia.org/wiki/Believe_(Cher_song))"
+  ],
+  "notes": "One narrow window only, exactly as the research frames it: the 1998 pitch-processed europop record that reset pop vocal production. About 133 straight with the backbeat on 2&4 over four-on-the-floor, so the kick anchors all four beats with `syncopation` down at 0.06 — the flattest kick in the section. The other two drum deltas are quoted: \"open hat on every off-8th\" (a 0.85 probability across all four \"&\"s, two to four per bar) and \"16th shaker\" plus \"filtered-noise riser and a bar of kick-only as the pre-chorus device\", which is the shaker/riser perc block and a very high `dropOutBeats`. The harmony is the entry's standout fact and is encoded whole: a documented eight-chord cycle, I–V–iii–IV–I–vi–iii–vii, which is why `maxChords` is 8 — an unusually long loop for a dance-pop record and the reason this model does not sound like the rest of the europop bench. The hook is \"the *processed voice itself* — Auto-Tune set to extreme retune speed, removing portamento so pitch moves in steps\", which is encoded the only way a note generator can say it: a staccato articulation, a very high `chordToneBias` and a two-bar repeated chorus cell inside the stated F-sharp3–C-sharp5 range. ⚠ The **INFERRED** parameters are the drum probabilities and the melody density; the entry names the range and the cell length, not a note count.",
+  "session": {
+    "bpm": {
+      "min": 130,
+      "max": 136,
+      "mode": 133
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian"
+      ],
+      "weights": [
+        7,
+        1
+      ]
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": 4,
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "secondaryAnchor": "4&",
+      "syncopation": 0.06
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.08,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.24,
+          0.4
+        ]
+      },
+      "layerClapOffsetMs": [
+        0,
+        2
+      ]
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.62,
+      "openHat": {
+        "prob": 0.85,
+        "pos": [
+          "1&",
+          "2&",
+          "3&",
+          "4&"
+        ],
+        "perBar": [
+          2,
+          4
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.16
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "riser"
+      ],
+      "densityPerBar": [
+        3,
+        6
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "iii",
+          "IV",
+          "I",
+          "vi",
+          "iii",
+          "vii"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "iii",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "vi",
+          "iii",
+          "vii"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 8,
+    "extensions": {
+      "triad": 0.56,
+      "seventh": 0.34,
+      "ninth": 0.1
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        6,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      54,
+      73
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "structure": "riff_loop",
+    "intervals": {
+      "step": 0.7,
+      "third": 0.24,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.5,
+      "descend": 0.26,
+      "arch": 0.24
+    },
+    "chordToneBias": 0.86,
+    "octaveJumpProb": 0.05,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "articulation": "staccato"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.62,
+    "styles": {
+      "values": [
+        "arp",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.97,
+    "rhythm": "mirror_kick",
+    "register": [
+      31,
+      46
+    ],
+    "glideProb": 0.01,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.1
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 8,
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 16,
+      "bridge": 8,
+      "outro": 8
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.95,
+        "beats": 4
+      },
+      "switchUpProb": 0.08
+    }
+  }
+}

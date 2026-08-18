@@ -1,0 +1,259 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "matchbox-twenty",
+  "type": "artist",
+  "name": "Matchbox Twenty",
+  "aliases": [
+    "matchbox twenty",
+    "matchbox 20",
+    "matchbox twenty band"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "1996-2003",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "pop-rock"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "country-pop",
+    "pop-2020s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — Matchbox Twenty",
+    "bpmdatabase — Matchbox Twenty (https://www.bpmdatabase.com/music/search/?artist=Matchbox+Twenty&title=)",
+    "Wikipedia — Matt Serletic (https://en.wikipedia.org/wiki/Matt_Serletic)"
+  ],
+  "notes": "The late-90s/early-00s radio-rock centre: 75–128 straight with the backbeat on 2&4 and the signature singles at 84–120. Three drum deltas come from the entry — \"kick 1 and the '&' of 3\", \"snare 2&4 struck hard\" (a high accent tier with a tight ghost), and \"8th hat in verse and open hat in chorus\" — and the fourth stated fact is an arrangement device that the model encodes as one: \"the 'drop everything but the vocal for one bar' device before the last chorus\" is `dropOutBeats` at 0.95 over 4 beats. The kit is \"mixed dry and forward\", which is why the velocity tier is loud rather than soft even though the humanize is loose. Harmony is a major/minor mixture — vi–IV–I–V and i–III–VII–VI — with \"a suspended 2nd ringing through changes\" from the open-tuned and capo'd shapes, so the sus substitution is authored. The melody is \"rasped in a narrow mid-range with the hook on a repeated pitch\", i.e. a narrow register with a low motif pitch count and a `riff_loop` structure, and the \"harmony vocals only on the chorus\" is the modest counter ratio. ⚠ `confidence` is medium because the research says so and marks the harmonic claims **[LOW-CONF]** as convention-based, which is why `keys` is left inherited. ⚠ The **INFERRED** parameters are all drum probabilities and `bpm.mode` 102.",
+  "session": {
+    "bpm": {
+      "min": 75,
+      "max": 128,
+      "mode": 102
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor",
+        "mixolydian"
+      ],
+      "weights": [
+        4,
+        4,
+        1
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.8,
+      "velocityVar": 0.19,
+      "timingJitterMs": {
+        "kick": 6,
+        "snare": 7,
+        "closedHat": 7
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        110,
+        126
+      ],
+      "main": [
+        80,
+        96
+      ],
+      "ghost": [
+        28,
+        40
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.28
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.1,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.18,
+          0.3
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.38,
+      "openHat": {
+        "prob": 0.44,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.08
+      }
+    },
+    "percs": {
+      "lanes": [
+        "crash",
+        "tambourine"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "III",
+          "VII",
+          "VI"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.68,
+      "seventh": 0.24,
+      "ninth": 0.08
+    },
+    "susSubstitutionProb": 0.32
+  },
+  "melody": {
+    "register": [
+      55,
+      74
+    ],
+    "densityPerBar": [
+      4,
+      10
+    ],
+    "structure": "riff_loop",
+    "motifPitchCount": [
+      4,
+      6
+    ],
+    "intervals": {
+      "step": 0.74,
+      "third": 0.2,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.46,
+      "descend": 0.3,
+      "arch": 0.24
+    },
+    "chordToneBias": 0.72,
+    "octaveJumpProb": 0.08,
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.42,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.94,
+    "rhythm": "mirror_kick",
+    "register": [
+      28,
+      45
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.22
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 16,
+      "bridge": 8,
+      "outro": 8
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.95,
+        "beats": 4
+      },
+      "switchUpProb": 0.08
+    }
+  }
+}

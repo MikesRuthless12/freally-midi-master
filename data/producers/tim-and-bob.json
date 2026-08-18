@@ -1,0 +1,352 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "tim-and-bob",
+  "type": "producer",
+  "name": "Tim & Bob (Tim Kelley & Bob Robinson)",
+  "aliases": [
+    "tim and bob",
+    "tim kelley",
+    "bob robinson",
+    "tim n bob"
+  ],
+  "tier": "standard",
+  "extends": [
+    "rnb-2000s"
+  ],
+  "era": "1994-2009",
+  "genres": [
+    "rnb-2000s",
+    "rnb",
+    "producer"
+  ],
+  "relatedGenres": [
+    "rnb-2000s",
+    "pop-2000s",
+    "neo-soul"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 rnb-2000s — Tim & Bob (Tim Kelley & Bob Robinson)",
+    "Wikipedia — Thong Song (https://en.wikipedia.org/wiki/Thong_Song)",
+    "YouKnowIGotSoul — Bob Robinson on his discography (https://youknowigotsoul.com/bob-robinson-of-tim-bob-talks-discography-including-boyz-ii-men-112-and-monica)",
+    "YouKnowIGotSoul — Tim Kelley on the early Tim & Bob days (https://youknowigotsoul.com/tim-kelley-talks-early-tim-bob-days-plus-producing-rb-classics-for-everyone-exclusive-2)"
+  ],
+  "notes": "String-obbligato R&B — the research's own name for the board: \"a written instrumental counterline as the hook, from 90s ballads to 2000s crossover pop-R&B\", 1994–2009. The band is \"62–95 half-time-and-straight mix, plus one 130 crossover outlier\"; the entry states no boundary between its two halves, so the declared 62–95 is kept whole; the half-time reading is the encoded one (`halfTime` true, `halftime_3`, from the entry's \"beat 3 at the doubled count on ballads\"), and the 130 outlier is modelled under the artist it belongs to rather than here. ⚠ The bpm mode is INFERRED: the entry names no tempo inside 62–95 at all, so 74 is this author's centre of gravity, not a reading. Three drum deltas: \"kick on 1 and the 8th before 3\" at one or two hits with syncopation 0.1, \"layered clap-plus-snare on the backbeat\" offset 1–4 ms, and \"16th hats only in the hook\" at 0.16 fill density — plus the board's habit of \"tambourine on the backbeat\", a downbeat tambourine lane with `tambourineMirrorsClap` true. The identifying parameter is the countermelody, and the research names it as *the* parameter: \"the **obbligato string line** — a written violin counterline running through the whole record (Bruce Dukov on 'Thong Song', modelled on Wes Montgomery's reading of 'Eleanor Rigby')\". So `countermelody.densityRatio` is 0.72, the highest in this section, with three styles alive at +12 — a line that plays for the length of the record, not an answer at the end of a phrase. \"Under it sit 4-chord m7/maj7 cycles\", so the chord families run four deep with a 0.16 triad share. Their signature climax — a semitone lift into the final chorus — has no schema field and is recorded here. The bass is \"rounded synth bass on roots with a glide into the downbeat\", so a 0.38 `glideProb` and no `bass808` block. ⚠ Every velocity and density number is INFERRED. ⚠ `session.keys` is part-sourced: the entry names `C#m`, `Dm`, and the remaining values `Fm`, `Bbm`, together with all 4 weights, are INFERRED rather than read from the entry.",
+  "session": {
+    "bpm": {
+      "min": 62,
+      "max": 95,
+      "mode": 74
+    },
+    "halfTime": true,
+    "keys": {
+      "values": [
+        "C#m",
+        "Dm",
+        "Fm",
+        "Bbm"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "harmonic_minor"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.53
+    },
+    "humanize": {
+      "quantizeStrength": 0.78,
+      "velocityVar": 0.18,
+      "timingJitterMs": {
+        "kick": 4,
+        "snare": 6,
+        "clap": 6,
+        "tambourine": 9
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        1,
+        2
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.1,
+      "tresilloBias": 0.02,
+      "andOf4EveryOtherBar": 0
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "stack": [
+        "clap"
+      ],
+      "layerClapOffsetMs": [
+        1,
+        4
+      ],
+      "ghost": {
+        "prob": 0.06,
+        "pos": [
+          "3e"
+        ],
+        "vel": [
+          0.1,
+          0.2
+        ]
+      },
+      "offGridMs": [
+        1,
+        5
+      ]
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": 0.16,
+      "velocities": {
+        "main": [
+          0.26,
+          0.42
+        ],
+        "ghost": [
+          0.1,
+          0.22
+        ]
+      },
+      "openHat": {
+        "prob": 0.05,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.05
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "rim",
+        "shaker"
+      ],
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "placement": "downbeat",
+      "gainOffsetDb": -7,
+      "tambourineMirrorsClap": true
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII",
+          "iv"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII",
+          "III"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "ii",
+          "v",
+          "i"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "vi",
+          "ii",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.16,
+      "seventh": 0.5,
+      "ninth": 0.34
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        78
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      60,
+      84
+    ],
+    "densityPerBar": [
+      3,
+      8
+    ],
+    "intervals": {
+      "step": 0.76,
+      "third": 0.2,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.14,
+      "descend": 0.42,
+      "arch": 0.44
+    },
+    "chordToneBias": 0.82,
+    "octaveJumpProb": 0.06,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "soft_keys"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.72,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp",
+        "sustain_pad"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.9,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      44
+    ],
+    "glideProb": 0.38,
+    "passingTones": [
+      "P5",
+      "M2"
+    ],
+    "anticipationProb": 0.16
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 8,
+      "chorus": 8,
+      "bridge": 16,
+      "outro": 8
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.5,
+        "beats": 2
+      },
+      "switchUpProb": 0.1
+    }
+  }
+}

@@ -1,0 +1,287 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "chrisette-michele",
+  "type": "artist",
+  "name": "Chrisette Michele",
+  "aliases": [
+    "chrisette michele",
+    "chrisette payne",
+    "def jam neo soul"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "2007-2016",
+  "genres": [
+    "rnb",
+    "soul",
+    "neo-soul",
+    "jazz"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "rnb-2000s",
+    "boom-bap"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Chrisette Michele",
+    "Wikipedia — Chrisette Michele (https://en.wikipedia.org/wiki/Chrisette_Michele)",
+    "Wikipedia — Salaam Remi (https://en.wikipedia.org/wiki/Salaam_Remi)",
+    "Wikipedia — Neo soul (https://en.wikipedia.org/wiki/Neo_soul)"
+  ],
+  "notes": "Def Jam's jazz-trained neo-soul soprano. `confidence` is **low** because the research rates the entry medium-low — the label, the era and the jazz-training position are sourced, but \"parametric detail is inference and marked\". The one distinguishing claim is rhythmic and it is what the swing setting encodes: \"a swung, brushed or lightly-programmed kit with an audible shuffle — she is the section's most jazz-rhythm-facing radio artist; snare on 2&4 with ghost strokes, ride or brushes rather than 16th hats, upright-bass-friendly space\". So `swing.amount` is pushed to 0.68, the highest in this section and well above the parent's 0.63, the hat is a non-continuous 8th at a fill density of 0.16 with the ride carrying the time instead, and the percussion lanes are ride-led. Harmony is \"ii–V–I turnarounds, maj7/m7 voicings, and swing-era borrowings; minor keys for the mid-tempos, flat majors for the ballads\", which is the two turnaround families in both modes. Melody is \"bright soprano with a pronounced vibrato and jazz-phrased rhythmic displacement (she sings behind the beat and catches up), moderate note-density, and scat-syllable tags\" — the high register, `endVariation` for the tags, and a question-answer structure. Bass is \"upright or round electric walking in quarters/8ths with chromatic approach\". ⚠ Every drum, melody and bass number here is INFERRED, including `swing.amount` — \"audible shuffle\" is a direction, and 0.68 is this author's reading of it. ⚠ The sub-808 \"only on the crossover cuts\" is not authored, since a `bass808` block would silence the walking bass this entry is built on.",
+  "session": {
+    "bpm": {
+      "min": 72,
+      "max": 100,
+      "mode": 86
+    },
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor",
+        "dorian",
+        "major_pentatonic"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.68
+    },
+    "humanize": {
+      "quantizeStrength": 0.6,
+      "velocityVar": 0.22,
+      "timingJitterMs": {
+        "kick": 5,
+        "snare": 9,
+        "rim": 10,
+        "shaker": 8
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "syncopation": 0.3,
+      "tresilloBias": 0.06
+    },
+    "snare": {
+      "offGridMs": [
+        2,
+        8
+      ],
+      "ghost": {
+        "prob": 0.42,
+        "pos": [
+          "1a",
+          "2a",
+          "3a",
+          "4a"
+        ],
+        "vel": [
+          0.14,
+          0.34
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.16,
+      "velocities": {
+        "main": [
+          0.3,
+          0.5
+        ],
+        "ghost": [
+          0.1,
+          0.24
+        ]
+      },
+      "openHat": {
+        "prob": 0.06,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "ride",
+        "rim",
+        "shaker"
+      ],
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "gainOffsetDb": -5
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "ii",
+          "V",
+          "i"
+        ],
+        "weight": 4
+      }
+    ],
+    "extensions": {
+      "triad": 0.1,
+      "seventh": 0.56,
+      "ninth": 0.34
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        46,
+        78
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      60,
+      84
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "structure": "question_answer",
+    "intervals": {
+      "step": 0.76,
+      "third": 0.2,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.2,
+      "descend": 0.38,
+      "arch": 0.42
+    },
+    "chordToneBias": 0.62,
+    "endVariation": true,
+    "octaveJumpProb": 0.08,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "upright_piano"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.45,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.4,
+    "rhythm": "independent_riff",
+    "register": [
+      26,
+      45
+    ],
+    "glideProb": 0.03,
+    "passingTones": [
+      "P5",
+      "M2",
+      "m3",
+      "M3",
+      "M6",
+      "m7"
+    ],
+    "anticipationProb": 0.35
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 8,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": [
+        4,
+        12
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "switchUpProb": 0.2
+    }
+  }
+}

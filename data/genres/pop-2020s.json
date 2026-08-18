@@ -34,7 +34,7 @@
     "style-research ch.1 §10 Drum & Bass (liquid / jump-up / neuro / 2-step pop)",
     "style-research ch.2 Cross-genre generator constants (post-2000 chart topline statistics)"
   ],
-  "notes": "The half-time record its parent is not: the clap stack lands on beat 3 and the bar is felt at half speed, with 16th hats carrying the motion and sparse rolls answering into the next one. The backbeat is always a stack — snare plus clap plus snap — under a long clean reverb tail, which is the marker a 2020s mix leaves. Straight, quantized hard, and genuinely bimodal in mode as well as tempo: major and natural minor are weighted evenly, so the same beat reads bright or bruised depending on the seed. The topline is conversational rather than belted — short phrases, mostly steps, many syllables to the bar. The fast 160–175 half of the era lives in the drum-and-bass-pop mode, because a tempo block cannot state two humps.",
+  "notes": "The half-time record its parent is not: the clap stack lands on beat 3 and the bar is felt at half speed, with 16th hats carrying the motion and sparse rolls answering into the next one. The backbeat is always a stack — snare plus clap plus snap — under a long clean reverb tail, which is the marker a 2020s mix leaves. Straight, quantized hard, and genuinely bimodal in mode as well as tempo: major and natural minor are weighted evenly, so the same beat reads bright or bruised depending on the seed. The topline is conversational rather than belted — short phrases, mostly steps, many syllables to the bar. The fast 160–175 half of the era lives in the drum-and-bass-pop mode, because a tempo block cannot state two humps. ⚠ **`drums.kick.lockTo808` removed (2026-08-17, 808 gate).** This kit authors `bass808: null` — it has no 808 — and `lockTo808` is the one parameter that says *how much of the kick the 808 follows*, so here it described a pairing that does not exist: `generators::drums::bass808` returns on `block.is_none()` before the value is ever read, which makes it provably dead in this file. Where it was not dead was in the artists and producers who extend this kit and author an 808 of their OWN: they inherited the zero and `kicks.iter().filter(|_| rng.random_bool(0.0))` kept nothing, so their sub lane was silent at every seed and `bass808::every_shipped_model_with_an_808_produces_a_playable_line` reported \"no 808 at all\". Removing it restores the engine's documented default of 1.0 for exactly those children and changes nothing here. ⚠ No researched claim moved: the entry's own statement about this kit is the `bass808: null` beside it, and that is untouched.",
   "session": {
     "bpm": {
       "min": 105,
@@ -106,8 +106,7 @@
       "syncopation": 0.45,
       "tresilloBias": 0.3,
       "offbeat8thShare": 0.28,
-      "fourOnFloorInChorus": true,
-      "lockTo808": 0
+      "fourOnFloorInChorus": true
     },
     "snare": {
       "placement": "halftime_3",

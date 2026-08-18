@@ -1,0 +1,349 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "aaliyah",
+  "type": "artist",
+  "name": "Aaliyah",
+  "aliases": [
+    "aaliyah",
+    "aaliyah haughton",
+    "baby girl",
+    "blackground"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "rnb-2000s"
+  ],
+  "era": "1994-2001",
+  "genres": [
+    "rnb-2000s",
+    "rnb",
+    "hip hop soul"
+  ],
+  "relatedGenres": [
+    "rnb-2000s",
+    "trap-soul",
+    "uk-garage",
+    "boom-bap"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 rnb-2000s — Aaliyah",
+    "songdata — Aaliyah (https://songdata.io/search?query=Aaliyah)",
+    "Wikipedia — Static Major (https://en.wikipedia.org/wiki/Static_Major)"
+  ],
+  "notes": "The lane's most influential rhythm-first singer, on Timbaland and Static Major from 1996 with an R. Kelly-era 1994–95 tail. The research states \"93 is the house tempo (straight, backbeat 2&4)\", so the mode is 93 and `halfTime` is false. The entry declares \"BPM 78–120\" and puts the \"110–120 cuts\" on half-time, so the straight band it leaves is 78–109 exactly, and that is the band encoded; the 110–120 half-time cuts are a different backbeat class and are deliberately not folded into this grid. Three drum deltas are quoted: \"syncopated 16th kick pairs\" (syncopation 0.78 and a tresillo lean far past the parent's, secondary anchor on `2a`), \"snare pushed a 16th late\" (an 8–16 ms off-grid push), and \"hats swapped for tuned clicks/baby-coo samples\" with \"hard silence used as an accent\" — a non-continuous hat at 0.14 and a five-lane percussion bed at −3 dB, the most forward percussion in this batch, plus a real `beatSkipProb`. Harmony is \"single-chord or two-chord modal beds (Dorian/Aeolian), so the melody carries all the interest\" — the single-chord family leads, scales are weighted onto Dorian, and `chordDurationBeats` runs to 32. \"Breathy, close-mic'd, low note-density, phrases starting off the downbeat\" is the 2–6 density, the empty-bar bias and the small motif; \"harmony stacks are unison-plus-octave rather than triadic\" is why the counter is `octave_echo` alone. The low end is \"sub-808 with portamento slides between root and 5th… bass and kick alternate rather than stack\" — a real bass part with a 0.5 glide and root-fifth cells, so no `drums.bass808` block, which would have silenced it. ⚠ The era start is the entry's \"R. Kelly-era 1994–95\". Its end year is INFERRED: the entry reads \"Timbaland/Static Major from 1996\" and states no closing year, so the 2001 here is this author's reading of where the catalogue stops and is not in the text. ⚠ The other INFERRED parameters are all velocity, density and jitter numbers and `swing.amount` 0.55. ⚠ **`chords.harmonicRhythm` re-weighted (2026-08-17, harmony variety floor).** The entry gives the one-chord and the two-chord bed equal billing — \"single-chord or two-chord modal beds (Dorian/Aeolian), so the melody carries all the interest\" — and the engine's `vamp` value is *one* chord held for the whole clip (`generators::chords`: \"One chord for the whole pattern\"), so a `vamp` weight of 6-of-8 made the two-chord half of that sentence almost unreachable. `vamp` keeps the top weight; the two-chord reading is now reachable at both rates. ⚠ The split between those two rates is **INFERRED** — the entry names the device, not its rate.",
+  "session": {
+    "bpm": {
+      "min": 78,
+      "max": 109,
+      "mode": 93
+    },
+    "halfTime": false,
+    "keys": {
+      "values": [
+        "F",
+        "F#m",
+        "Am",
+        "Dbm"
+      ],
+      "weights": [
+        4,
+        4,
+        2,
+        1
+      ]
+    },
+    "scales": {
+      "values": [
+        "dorian",
+        "natural_minor",
+        "major"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.55
+    },
+    "humanize": {
+      "quantizeStrength": 0.82,
+      "velocityVar": 0.18,
+      "timingJitterMs": {
+        "kick": 3,
+        "snare": 9,
+        "perc": 8,
+        "closedHat": 5
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2a",
+      "syncopation": 0.78,
+      "tresilloBias": 0.34,
+      "offbeat8thShare": 0.08,
+      "beatSkipProb": 0.24
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "ghost": {
+        "prob": 0.1,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.1,
+          0.2
+        ]
+      },
+      "offGridMs": [
+        8,
+        16
+      ]
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": 0.14,
+      "velocities": {
+        "main": [
+          0.26,
+          0.44
+        ],
+        "ghost": [
+          0.1,
+          0.2
+        ]
+      },
+      "openHat": {
+        "prob": 0.05,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.04
+      }
+    },
+    "percs": {
+      "lanes": [
+        "perc",
+        "perc2",
+        "woodblock",
+        "rim",
+        "snap"
+      ],
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "placement": "any",
+      "gainOffsetDb": -3
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.34,
+      "seventh": 0.46,
+      "ninth": 0.2
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        51,
+        79
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        3,
+        3,
+        4
+      ]
+    },
+    "chordDurationBeats": [
+      8,
+      32
+    ]
+  },
+  "melody": {
+    "register": [
+      64,
+      82
+    ],
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "intervals": {
+      "step": 0.76,
+      "third": 0.2,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.34,
+      "descend": 0.36,
+      "arch": 0.3
+    },
+    "chordToneBias": 0.72,
+    "octaveJumpProb": 0.04,
+    "emptyBarBias": 0.2,
+    "motifPitchCount": [
+      3,
+      5
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        2,
+        3
+      ]
+    },
+    "timbreHint": "soft_keys"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.26,
+    "styles": {
+      "values": [
+        "octave_echo"
+      ],
+      "weights": [
+        1
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.8,
+    "rhythm": "independent_riff",
+    "register": [
+      24,
+      42
+    ],
+    "glideProb": 0.5,
+    "passingTones": [
+      "P5",
+      "P8"
+    ],
+    "anticipationProb": 0.3,
+    "cellShapes": [
+      [
+        "1",
+        "5"
+      ],
+      [
+        "1",
+        "1",
+        "5"
+      ],
+      [
+        "1"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 2,
+      "verse": 8,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": 4
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.9,
+        "beats": 4
+      },
+      "switchUpProb": 0.35
+    }
+  }
+}

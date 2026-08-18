@@ -1,0 +1,338 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "mya",
+  "type": "artist",
+  "name": "Mýa",
+  "aliases": [
+    "mya",
+    "mya harrison",
+    "case of the ex"
+  ],
+  "tier": "standard",
+  "extends": [
+    "rnb-2000s"
+  ],
+  "era": "1998-2003",
+  "genres": [
+    "rnb-2000s",
+    "rnb",
+    "pop"
+  ],
+  "relatedGenres": [
+    "rnb-2000s",
+    "pop-2000s",
+    "uk-garage"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 rnb-2000s — Mýa",
+    "songdata — Mya (https://songdata.io/search?query=Mya)",
+    "Wikipedia — Tricky Stewart (https://en.wikipedia.org/wiki/Tricky_Stewart)"
+  ],
+  "notes": "Interscope/University pop-R&B: Tricky Stewart's breakout canvas plus Dru Hill and Swizz-orbit features, 1998–2003. The research gives \"78–139: half-time ballads at 78–98, straight/uptempo 100–139\", and the half-time band is encoded because the entry's only drum description belongs to it — the sourced 98 record with \"a gapped, stop-start 16th kick pattern with the snare on 3 and stabbed hat bursts\". So `halfTime` is true, the snare is `halftime_3` and the mode is 98. Three drum deltas follow: a kick at three to five hits a bar with syncopation 0.68 and a 0.3 `beatSkipProb` (that is what \"gapped, stop-start\" is), a snare on beat 3 sitting almost on the grid, and a non-continuous hat at 0.4 fill density with a high roll frequency — the \"stabbed bursts\". Harmony is \"two-chord minor-9th vamps with a plucked or bell lead\", so `maxChords` is 2 and ninth is the largest extension share. \"Light, breathy soprano-alto kept in a narrow range with rhythmic rather than melismatic phrasing; harmony stacked thin\" is a sixteen-semitone melody register with a 0.8 step share, a 3–5 pitch motif and a counter density of 0.34. The low end is \"articulated 808 sub in 16ths tuned to the vamp root, cutting out entirely on the pre-chorus\" — articulated rather than sustained, so it is the `bassline` block on `mirror_kick` with no `drums.bass808`. ⚠ The research marks that 808 description `[LOW-CONF]` and it is repeated here. ⚠ Every velocity and density number is INFERRED. ⚠ **`chords.harmonicRhythm` re-weighted (2026-08-17, harmony variety floor).** The entry's harmony line is \"two-chord minor-9th vamps with a plucked or bell lead\", and the engine's `vamp` value is *one* chord held for the whole clip (`generators::chords`: \"One chord for the whole pattern\") — so weighting `vamp` at the top rendered a **one**-chord bed the research nowhere describes. The chord motion the entry states is now carried by `1_per_bar` (the pair over a 2-bar cell) and `2_bars_per_chord` (the pair over a 4-bar cell), with `vamp` kept as the minority for the held reading. ⚠ The split between those two rates is **INFERRED** — the entry names the device, not its rate.",
+  "session": {
+    "bpm": {
+      "min": 78,
+      "max": 98,
+      "mode": 98
+    },
+    "halfTime": true,
+    "keys": {
+      "values": [
+        "Dbm",
+        "Am",
+        "Ab",
+        "E",
+        "Db"
+      ],
+      "weights": [
+        4,
+        2,
+        2,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "major"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.54
+    },
+    "humanize": {
+      "quantizeStrength": 0.86,
+      "velocityVar": 0.16,
+      "timingJitterMs": {
+        "kick": 3,
+        "snare": 4,
+        "closedHat": 5,
+        "perc": 6
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2a",
+      "syncopation": 0.68,
+      "tresilloBias": 0.2,
+      "beatSkipProb": 0.3
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "ghost": {
+        "prob": 0.1,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.12,
+          0.24
+        ]
+      },
+      "offGridMs": [
+        0,
+        3
+      ]
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": 0.4,
+      "velocities": {
+        "main": [
+          0.46,
+          0.74
+        ],
+        "ghost": [
+          0.18,
+          0.36
+        ]
+      },
+      "openHat": {
+        "prob": 0.16,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32",
+            "16"
+          ],
+          "weights": [
+            2,
+            2
+          ]
+        },
+        "positions": [
+          "bar_2",
+          "phrase_end"
+        ],
+        "freqPerBar": 0.26
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "perc",
+        "snap"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "placement": "any",
+      "gainOffsetDb": -7
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "iv",
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.16,
+      "seventh": 0.44,
+      "ninth": 0.4
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        50,
+        78
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      8,
+      16
+    ]
+  },
+  "melody": {
+    "register": [
+      64,
+      80
+    ],
+    "densityPerBar": [
+      3,
+      8
+    ],
+    "intervals": {
+      "step": 0.8,
+      "third": 0.18,
+      "leap": 0.02
+    },
+    "contour": {
+      "riff": 0.38,
+      "descend": 0.34,
+      "arch": 0.28
+    },
+    "chordToneBias": 0.8,
+    "octaveJumpProb": 0.03,
+    "motifPitchCount": [
+      3,
+      5
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "bright_bell"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.34,
+    "styles": {
+      "values": [
+        "arp",
+        "bell_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.92,
+    "rhythm": "mirror_kick",
+    "register": [
+      24,
+      42
+    ],
+    "glideProb": 0.08,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.22
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 2,
+      "verse": 8,
+      "prechorus": 4,
+      "chorus": 8,
+      "bridge": 16,
+      "outro": 4
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "verse",
+          "prechorus",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.8,
+        "beats": 4
+      },
+      "switchUpProb": 0.22
+    }
+  }
+}

@@ -1,0 +1,316 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "rob-cavallo",
+  "type": "producer",
+  "name": "Rob Cavallo",
+  "aliases": [
+    "rob cavallo",
+    "robcavallo"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "1994-2009",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "producer"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "pop-2020s"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — Rob Cavallo",
+    "Wikipedia — Rob Cavallo (https://en.wikipedia.org/wiki/Rob_Cavallo)",
+    "Wikipedia — \"American Idiot\" (https://en.wikipedia.org/wiki/American_Idiot_(song))",
+    "Wikipedia — \"Welcome to the Black Parade\" (https://en.wikipedia.org/wiki/Welcome_to_the_Black_Parade)"
+  ],
+  "notes": "The major-label punk-to-arena producer who turned pop-punk into orchestrated rock theatre. 75–190 straight throughout — ballads at 74–105, punk at 143–190 — and because the research gives one backbeat class for the whole span, a single session window carries it with the mode on the punk end. Harmony is mixolydian ♭VII on the punk records, documented as I–IV–♭VII–IV verses with a IV–I–V–I chorus, so both are authored and mixolydian leads the scales. Three drum deltas are quoted: \"straight 8th kick with snare on 2&4 at punk tempo\" (a 4–8 density on all four anchors), \"**marching 16th snare figures for intros and interludes**\" (the snare roll pinned to 16ths, even grouping, almost no gaps), and \"timpani and orchestral bass drum for theatrical fills\", which is the tomLow/tom/crash perc block. His signature structural device is the **documented tempo architecture** — a track that starts at 75 BPM and moves to 194 felt in half-time — and since a session block carries one tempo, that is expressed as the very wide window plus the highest `switchUpProb` in this section and the multi-section structures. The palette expansion *is* the production: horns, Hammond organ, piano and synth added to punk records, plus gang-choir vocals as a chorus instrument, which is the sustained-pad counter. ⚠ The **INFERRED** parameters are every drum probability; the progressions, tempi, guitars, palette and arrangement architecture are sourced per record, the values are not.",
+  "session": {
+    "bpm": {
+      "min": 74,
+      "max": 190,
+      "mode": 165
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "mixolydian",
+        "major",
+        "natural_minor"
+      ],
+      "weights": [
+        4,
+        4,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.85,
+      "velocityVar": 0.17
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        114,
+        127
+      ],
+      "main": [
+        90,
+        106
+      ],
+      "ghost": [
+        32,
+        46
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        4,
+        8
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "secondaryAnchor": "4&",
+      "syncopation": 0.12
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.07,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.24,
+          0.4
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.42,
+      "openHat": {
+        "prob": 0.34,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "bar_2"
+        ],
+        "freqPerBar": 0.2
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tomLow",
+        "tom",
+        "crash"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8,
+      "snareRollLadder": true
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        74,
+        124
+      ],
+      "rampJitter": 4,
+      "gapProb": 0.04,
+      "descendProb": 0.1
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "IV",
+          "bVII",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "IV",
+          "I",
+          "V",
+          "I"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 3
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.74,
+      "seventh": 0.2,
+      "ninth": 0.06
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        82
+      ],
+      "topVoiceStepwise": true
+    }
+  },
+  "melody": {
+    "register": [
+      62,
+      84
+    ],
+    "densityPerBar": [
+      3,
+      9
+    ],
+    "structure": "long_arc",
+    "intervals": {
+      "step": 0.74,
+      "third": 0.2,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.36,
+      "descend": 0.26,
+      "arch": 0.38
+    },
+    "chordToneBias": 0.8,
+    "octaveJumpProb": 0.14,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.52,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.93,
+    "rhythm": "mirror_kick",
+    "register": [
+      28,
+      46
+    ],
+    "glideProb": 0.01,
+    "passingTones": [
+      "P5",
+      "M2"
+    ],
+    "anticipationProb": 0.2
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        4,
+        16
+      ],
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 16,
+      "bridge": 16,
+      "outro": 16
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "verse",
+          "prechorus",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 4
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.8,
+        "beats": 4
+      },
+      "switchUpProb": 0.5
+    }
+  }
+}

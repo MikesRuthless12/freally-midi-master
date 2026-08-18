@@ -1,0 +1,371 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "lloyd",
+  "type": "artist",
+  "name": "Lloyd",
+  "aliases": [
+    "lloyd polite",
+    "lloyd singer",
+    "young goldie"
+  ],
+  "tier": "standard",
+  "extends": [
+    "rnb-2000s"
+  ],
+  "era": "2004-2010",
+  "genres": [
+    "rnb-2000s",
+    "rnb",
+    "808 rnb"
+  ],
+  "relatedGenres": [
+    "rnb-2000s",
+    "trap-soul",
+    "crunk",
+    "atl-swag-rap"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 rnb-2000s — Lloyd",
+    "songdata — Lloyd (https://songdata.io/search?query=Lloyd)",
+    "Attack Magazine — Beat Dissected: 808 R&B (https://www.attackmagazine.com/technique/beat-dissected/808-r-b/)"
+  ],
+  "notes": "The Inc. / Young Goldie Atlanta soloist: half-time 808 R&B with a Southern chant edge, 2004–2010. The research gives \"**63–75 half-time** (reads 126–150)\" as the whole band, so `halfTime` is true and there is no second tempo class. F minor is named as his house key. This entry carries the section's only hard swing figure — \"swing 60–70%\" — so `swing.amount` is 0.65, taken from the research rather than inferred. Three drum deltas from the \"canonical 808-R&B grammar\": \"busy 808 kick pattern with the space at beat 3\" (four to six hits a bar, syncopation 0.62, tresillo lean 0.3), \"a pitched snare struck slightly ahead of the clap on beat 3\" (a clap stack offset 3–8 ms behind the snare, with ghost activity on the two 16ths before the backbeat), and \"an 808 maraca on every offbeat, pitched-down conga/rimshot with ghost notes and triplet figures\" — an offbeat shaker/conga/rim bed at four to seven hits a bar and −4 dB against a hat lane cut to an 8th base at 0.06. This is a true 808 model: \"808 sub as the only bass, rich rounded low end with high-frequency hiss for snap, tape-saturated; one or two notes per bar with slides\" — hence `drums.bass808` with role `bassline`, `distortion` `saturated`, and **no** `bassline` block. Harmony is \"two-chord minor vamps, harp/bell/plucked-synth lead\"; \"thin, high, boyish tenor in a narrow range with rhythmic phrasing; heavy doubling instead of triadic harmony\" is the seventeen-semitone register and the low counter density. ⚠ The research says the drum grammar is \"sourced at tutorial level for exactly this sub-lane and applied here\", so the placement is documented but the velocity and density numbers are INFERRED. ⚠ **`chords.harmonicRhythm` re-weighted (2026-08-17, harmony variety floor).** The entry's harmony line is \"two-chord minor vamps, harp/bell/plucked-synth lead\", and the engine's `vamp` value is *one* chord held for the whole clip (`generators::chords`: \"One chord for the whole pattern\") — so weighting `vamp` at the top rendered a **one**-chord bed the research nowhere describes. The chord motion the entry states is now carried by `1_per_bar` (the pair over a 2-bar cell) and `2_bars_per_chord` (the pair over a 4-bar cell), with `vamp` kept as the minority for the held reading. ⚠ The split between those two rates is **INFERRED** — the entry names the device, not its rate.",
+  "session": {
+    "bpm": {
+      "min": 63,
+      "max": 75,
+      "mode": 65
+    },
+    "halfTime": true,
+    "keys": {
+      "values": [
+        "Fm",
+        "Bbm",
+        "Am",
+        "F"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.65
+    },
+    "humanize": {
+      "quantizeStrength": 0.8,
+      "velocityVar": 0.18,
+      "timingJitterMs": {
+        "kick": 3,
+        "snare": 4,
+        "clap": 5,
+        "shaker": 6,
+        "conga": 7,
+        "bass808": 3
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        4,
+        6
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2a",
+      "syncopation": 0.62,
+      "tresilloBias": 0.3,
+      "lockTo808": 0.7
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "stack": [
+        "clap"
+      ],
+      "layerClapOffsetMs": [
+        3,
+        8
+      ],
+      "ghost": {
+        "prob": 0.3,
+        "pos": [
+          "2a",
+          "3e",
+          "3a"
+        ],
+        "vel": [
+          0.12,
+          0.26
+        ]
+      },
+      "offGridMs": [
+        0,
+        3
+      ]
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.06,
+      "velocities": {
+        "main": [
+          0.2,
+          0.34
+        ],
+        "ghost": [
+          0.08,
+          0.16
+        ]
+      },
+      "openHat": {
+        "prob": 0.02,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16T"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.02
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "conga",
+        "rim"
+      ],
+      "densityPerBar": [
+        4,
+        7
+      ],
+      "placement": "offbeat",
+      "gainOffsetDb": -4
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "legato",
+      "monoCutSelf": true,
+      "portamentoMs": [
+        60,
+        110
+      ],
+      "slideProb": 0.55,
+      "slidesPer4Bars": [
+        2,
+        3
+      ],
+      "slideIntervals": {
+        "values": [
+          "P5",
+          "m3",
+          "P4",
+          "M2"
+        ],
+        "weights": [
+          3,
+          2,
+          2,
+          2
+        ]
+      },
+      "slidePositions": [
+        "bar_2",
+        "phrase_end"
+      ],
+      "register": [
+        24,
+        39
+      ],
+      "distortion": "saturated",
+      "distortionWet": [
+        0.2,
+        0.4
+      ]
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "iv",
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.32,
+      "seventh": 0.46,
+      "ninth": 0.22
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        52,
+        80
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      8,
+      16
+    ]
+  },
+  "melody": {
+    "register": [
+      64,
+      81
+    ],
+    "densityPerBar": [
+      3,
+      8
+    ],
+    "intervals": {
+      "step": 0.84,
+      "third": 0.14,
+      "leap": 0.02
+    },
+    "contour": {
+      "riff": 0.46,
+      "descend": 0.32,
+      "arch": 0.22
+    },
+    "chordToneBias": 0.78,
+    "octaveJumpProb": 0.02,
+    "motifPitchCount": [
+      3,
+      5
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "bright_bell"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.34,
+    "styles": {
+      "values": [
+        "bell_echo",
+        "arp"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 2,
+      "verse": 8,
+      "chorus": 8,
+      "bridge": 16,
+      "outro": 4
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.8,
+        "beats": 4
+      },
+      "switchUpProb": 0.2
+    }
+  }
+}

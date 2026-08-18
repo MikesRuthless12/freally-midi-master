@@ -1,0 +1,333 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "kate-malone-and-devin-malone",
+  "type": "producer",
+  "name": "Kate Malone & Devin Malone",
+  "aliases": [
+    "kate malone and devin malone",
+    "kate malone",
+    "devin malone",
+    "the malones"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "country-pop"
+  ],
+  "era": "2018-2025",
+  "genres": [
+    "country-pop",
+    "country",
+    "producer"
+  ],
+  "relatedGenres": [
+    "country-pop",
+    "pop-2020s",
+    "trap",
+    "dance-pop"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 country-pop — Kate Malone & Devin Malone",
+    "Splice — Breaking down Nashville country music with Kate Malone and Devin Malone (https://splice.com/blog/kate-malone-devin-malone-nashville-country-music-interview/)"
+  ],
+  "notes": "The working current Nashville producer/player pair, included by the research as \"the clearest available statement of what the 2020s Nashville board actually does\" — so this model is the modern board's doctrine rather than one artist's sound. The central rule is stated as a general Nashville principle and it is the session block: \"live session drummers preferred, with programming used as the foundation when needed — the programmed grid is a scaffold, the human performance is the payload,\" and \"the most unifying thread for all Nashville releases is still incredibly polished live musicianship.\" So the quantize strength is high but not gridded and the jitter is real: polished, played, not programmed. Their documented harmonic-colour habit is the specific parameter and it changes the melody rather than the chords: \"analog string pads carrying dissonant passing notes, i.e. non-chord tones sustained through changes, which is how modern country gets tension without changing the chord vocabulary\" — hence a raised `halfStepDissonance` and `colorTones` against an ordinary family set. The bass carries an unusual, documented capture choice with a real consequence: \"live bass recorded with a Shure SM7B when bass detail is wanted, so model bass as a mic'd, mid-detailed instrument rather than a pure DI sub,\" which is why the bass register reaches higher than any other producer's here and no `bass808` block is authored. One of them explicitly acts as \"the 'anchor' that brings synthesizer-heavy productions 'back down to earth'\" — the resonator and rubber-bridge guitars are that anchor and they are the counter's timbre. The pipeline is the arrangement fact: \"no single formula — programmed skeleton → distributed live overdubs → live-instrument sweetening,\" which is the highest `switchUpProb` in this section. ⚠ The INFERRED parameters are the velocity tiers, the perc density, the counter ratio and the specific jitter values.",
+  "session": {
+    "bpm": {
+      "min": 70,
+      "max": 140,
+      "mode": 96
+    },
+    "scales": {
+      "values": [
+        "major",
+        "major_pentatonic",
+        "mixolydian",
+        "natural_minor"
+      ],
+      "weights": [
+        5,
+        2,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.88,
+      "velocityVar": 0.19,
+      "timingJitterMs": {
+        "kick": 3,
+        "snare": 4,
+        "closedHat": 4,
+        "shaker": 5,
+        "perc": 5
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        112,
+        127
+      ],
+      "main": [
+        72,
+        96
+      ],
+      "ghost": [
+        24,
+        42
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.29,
+      "offbeat8thShare": 0.45
+    },
+    "snare": {
+      "crossStickVerses": true,
+      "layered": true,
+      "layerClapOffsetMs": [
+        2,
+        5
+      ],
+      "ghost": {
+        "prob": 0.15,
+        "pos": [
+          "1a",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.16,
+          0.32
+        ]
+      }
+    },
+    "hihat": {
+      "base": {
+        "values": [
+          "16th",
+          "8th"
+        ],
+        "weights": [
+          4,
+          3
+        ]
+      },
+      "fillDensity": 0.26,
+      "openHat": {
+        "prob": 0.23,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "perc",
+        "tambourine",
+        "ride",
+        "rim"
+      ],
+      "densityPerBar": [
+        3,
+        7
+      ],
+      "gainOffsetDb": -4,
+      "tambourine": true
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8,
+      "fillBeforeSection": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.54,
+      "seventh": 0.34,
+      "ninth": 0.12
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        50,
+        80
+      ],
+      "topVoiceStepwise": true,
+      "adjacentSecondProb": 0.34
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        4,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      56,
+      84
+    ],
+    "densityPerBar": [
+      3,
+      8
+    ],
+    "contour": {
+      "riff": 0.24,
+      "descend": 0.3,
+      "arch": 0.46
+    },
+    "chordToneBias": 0.66,
+    "colorTones": true,
+    "halfStepDissonance": 0.18,
+    "octaveJumpProb": 0.07,
+    "timbreHint": "rubber_bridge_guitar"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.58,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "arp",
+        "answer_lick"
+      ],
+      "weights": [
+        4,
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.7,
+    "register": [
+      30,
+      48
+    ],
+    "passingTones": [
+      "P5",
+      "M2",
+      "M3",
+      "m7"
+    ],
+    "anticipationProb": 0.32
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        8
+      ],
+      "verse": [
+        8,
+        16
+      ],
+      "prechorus": 4,
+      "chorus": 8,
+      "bridge": [
+        4,
+        8
+      ],
+      "outro": [
+        2,
+        8
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "prechorus",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 4
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.36,
+        "beats": 4
+      },
+      "switchUpProb": 0.55
+    }
+  }
+}

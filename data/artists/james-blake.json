@@ -1,0 +1,389 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "james-blake",
+  "type": "artist",
+  "name": "James Blake",
+  "aliases": [
+    "james blake",
+    "james blake litherland",
+    "overgrown",
+    "assume form"
+  ],
+  "tier": "standard",
+  "extends": [
+    "trap-soul"
+  ],
+  "era": "2013-present",
+  "genres": [
+    "trap-soul",
+    "rnb",
+    "electronic"
+  ],
+  "relatedGenres": [
+    "trap-soul",
+    "uk-garage",
+    "lofi-hiphop",
+    "neo-soul"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 trap-soul — James Blake",
+    "Wikipedia — James Blake (musician) (https://en.wikipedia.org/wiki/James_Blake_(musician))",
+    "Wikipedia — Blonde (Frank Ocean album) (https://en.wikipedia.org/wiki/Blonde_(Frank_Ocean_album))",
+    "Wikipedia — Alternative R&B (https://en.wikipedia.org/wiki/Alternative_R%26B)"
+  ],
+  "notes": "\"The harmony is the entry's strongest parameter\" — the research says so directly — so this model's centre of gravity is the chords block: \"piano-voiced extended chords (m9, maj7#11, add-tension clusters), gospel plagal cadences, chromatic inner-voice motion, and progressions built to be reharmonised on each repeat. Long pedal tones and unresolved suspensions; both major and minor tonics, often ambiguous.\" That is a plagal family, a pedal single-chord family, the section's highest `adjacentSecondProb`, a very low triad share and both a major and a minor cycle so the tonic stays ambiguous. The modelled kit's floor is the middle of his three states (see the kick note at the end for the third): \"a very sparse electronic kit, one deep sub-kick per bar and a single reverbed snare on 3 (half-time), **with silence between hits used as a rhythmic event**\" — one kick per bar at the bottom of the density band, `halftime_3`, and a hat carpet at the section floor. The low end stays an 808 because the entry says this is where the lane's 808 practice comes from — \"a very deep, clean sine sub with a slow attack and long release, functioning as a harmonic pedal rather than a percussive hit\" — so it is legato, low-passed, in the lowest register in the section, and barely slides. \"Space as structure\" is a long intro, a low fill rate and a high `switchUpProb` for \"sections that arrive with no transition\". ⚠ The **INFERRED** parameters are the swing amount, every drum number and the 808 figures; the entry is `[LOW-CONF]` on tempo and marks drum values as idiom inference. ⚠ `confidence` is medium — the research rates it medium-high. ⚠ `session.bpm.mode` is **INFERRED**: the number is not stated in the entry, and it is an authored centre of gravity inside the band the entry does state. ⚠ **`session.keys` is INFERRED.** The entry's Keys line describes the harmonic grammar but names no key centre, so these values and their weights are an authored choice — no key in this set is stated in the research. ⚠ **The countermelody reached 949/1000 distinct answers against a floor of 980 (2026-08-17, counter variety floor).** `melody.emptyBarBias` came down from 0.4 to 0.1. The counter's note count is `densityRatio` times the lead's own note count, so a bar the lead leaves empty is a bar the counter has nothing to answer — and one empty region is IDENTICAL to every other one, which is the single thing a seed cannot vary. Measured across this roster the models failing this gate average 0.150 here against 0.030 for the models that pass. Second, `melody.densityPerBar` went from [1, 4] to [2, 5]. A lead allowed to thin to a single note a bar leaves the counter almost nothing to answer, and no amount of counter density recovers what the lead never played. This is the lead becoming reliably present rather than busier — the floor is what moved and the ceiling carries the density claim. ⚠ Every value that moved here is INFERRED rather than a researched claim — the entry's Melody/chords line reads \"acoustic and electric piano, choral vocal stacks, and heavily pitch-shifted and formant-shifted vocal samples used as instruments — his central technique. Melody is a soft, high, controlled tenor into falsetto at very low note-density, with long rests and gospel ornament; the vocal is stacked into wide choir textures and also chopped into rhythmic fragments.\", and every claim in it still holds after the change. ⛔⛔ **The kick now reaches the third of the entry's three drum states, because the second one alone made this model's variety its parent's property rather than its own (2026-08-17, `base_swap.rs` swap-collapse gate).** Measured: **46 distinct beats in 200 seeds over `lofi-hiphop` against 169 over `trap-soul`** — and the whole of that difference was two coin-flips the model does not author and `trap-soul` happens to supply (`kick.andOf4EveryOtherBar` 0.5 and `snare.fullTimeVariantProb` 0.1). Restoring them by hand lifted it only to 91; what actually closes it is the research's own third state, which this model had never encoded: *\"three states — (a) no drums for whole songs; (b) a very sparse electronic kit, one deep sub-kick per bar and a single reverbed snare on 3 (half-time), with silence between hits used as a rhythmic event; (c) a **UK-garage/2-step** shuffle at 130–140 with a **syncopated kick**, a skipping hat and a snapping snare.\"* The entry's own tempo line names that subset — *\"plus a genuine 130–140 UK-garage/2-step subset `[LOW-CONF]`\"* — and this model's band is 120–150 with the mode at 132, so state (c) sits inside the tempo it already generates at. `kick.densityPerBar` therefore runs [1, 3] rather than [1, 1]: the floor is still state (b)'s one deep sub-kick a bar and only the ceiling is new, so roughly a third of bars take the extra hit. ⚠ **INFERRED:** `syncopation` 0.2 is not sourced — it is a quarter of `uk-garage`'s own 0.8, that genre being the lane the entry names and one this model already lists in `relatedGenres`, and the entry marks every drum value as idiom inference. ⚠ **`andOf4EveryOtherBar` was deliberately NOT authored here**: it is a trap idiom this entry never describes, and copying a parent's parameter onto the child to buy a number back is the thing the gate is looking for.",
+  "session": {
+    "bpm": {
+      "min": 120,
+      "max": 150,
+      "mode": 132
+    },
+    "halfTime": true,
+    "keys": {
+      "values": [
+        "Ebm",
+        "Eb",
+        "Bbm",
+        "Ab",
+        "Cm"
+      ],
+      "weights": [
+        3,
+        2,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "major",
+        "dorian"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.52
+    },
+    "humanize": {
+      "quantizeStrength": 0.93,
+      "velocityVar": 0.1,
+      "timingJitterMs": {
+        "kick": 1,
+        "snare": 3,
+        "closedHat": 2,
+        "bass808": 1
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        118,
+        127
+      ],
+      "main": [
+        60,
+        74
+      ],
+      "ghost": [
+        20,
+        30
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "syncopation": 0.2,
+      "tresilloBias": 0.02,
+      "lockTo808": 1
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "ghost": {
+        "prob": 0.02,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.1,
+          0.18
+        ]
+      },
+      "offGridMs": [
+        0,
+        2
+      ],
+      "reverb": 0.92
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": 0.03,
+      "velocities": {
+        "main": [
+          0.2,
+          0.34
+        ],
+        "ghost": [
+          0.08,
+          0.16
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0,
+        "positions": [
+          "phrase_end"
+        ],
+        "vocab": {
+          "values": [
+            "32"
+          ],
+          "weights": [
+            1
+          ]
+        }
+      },
+      "openHat": {
+        "prob": 0.02,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "impact",
+        "reverse"
+      ],
+      "densityPerBar": [
+        0,
+        1
+      ],
+      "placement": "downbeat",
+      "gainOffsetDb": -8
+    },
+    "bass808": {
+      "sustain": "legato",
+      "slideProb": 0.08,
+      "portamentoMs": [
+        150,
+        250
+      ],
+      "slidesPer4Bars": [
+        0,
+        1
+      ],
+      "slideIntervals": {
+        "values": [
+          "M2",
+          "P4"
+        ],
+        "weights": [
+          2,
+          1
+        ]
+      },
+      "slidePositions": [
+        "phrase_end"
+      ],
+      "register": [
+        19,
+        32
+      ],
+      "distortion": "none",
+      "lowPassed": true
+    },
+    "fills": {
+      "smallEveryBars": 32,
+      "bigEveryBars": 32
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "IV",
+          "I"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "vi",
+          "V"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII",
+          "III"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 6,
+    "extensions": {
+      "triad": 0.03,
+      "seventh": 0.4,
+      "ninth": 0.57
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        44,
+        90
+      ],
+      "topVoiceStepwise": true,
+      "adjacentSecondProb": 0.7
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "vamp",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      8,
+      32
+    ],
+    "susSubstitutionProb": 0.4
+  },
+  "melody": {
+    "register": [
+      64,
+      88
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        2,
+        4
+      ]
+    },
+    "densityPerBar": [
+      2,
+      5
+    ],
+    "structure": "long_arc",
+    "intervals": {
+      "step": 0.82,
+      "third": 0.15,
+      "leap": 0.03
+    },
+    "contour": {
+      "riff": 0.08,
+      "descend": 0.44,
+      "arch": 0.48
+    },
+    "chordToneBias": 0.84,
+    "halfStepDissonance": 0.07,
+    "emptyBarBias": 0.1,
+    "endVariation": true,
+    "octaveJumpProb": 0.05,
+    "articulation": "legato",
+    "timbreHint": "acoustic_piano"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.5,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "octave_echo"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    }
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        8,
+        16
+      ],
+      "verse": 16,
+      "hook": [
+        8,
+        16
+      ],
+      "bridge": [
+        8,
+        16
+      ],
+      "outro": [
+        8,
+        16
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "hook",
+          "bridge",
+          "hook",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.65,
+        "beats": 4
+      },
+      "switchUpProb": 0.55
+    }
+  }
+}

@@ -1,0 +1,296 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "del-mccoury-band",
+  "type": "artist",
+  "name": "Del McCoury Band",
+  "aliases": [
+    "del mccoury band",
+    "del mccoury",
+    "mccoury"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "country-train"
+  ],
+  "era": "1990-present",
+  "genres": [
+    "country-train",
+    "bluegrass",
+    "traditional bluegrass"
+  ],
+  "relatedGenres": [
+    "country-train",
+    "country-pop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-train — Del McCoury Band",
+    "Wikipedia — Del McCoury (https://en.wikipedia.org/wiki/Del_McCoury)",
+    "Wikipedia — Bluegrass music (https://en.wikipedia.org/wiki/Bluegrass_music)"
+  ],
+  "notes": "High-lonesome traditional bluegrass at full tempo, played by a family band around a single microphone, and the entry calls it \"the section's strictest realisation of the drummerless archetype\". Flagship because the research rates it high-medium with lineup, instrument roles, era, awards and the single-mic technique all sourced. The section states the rule this whole wing turns on: \"the train beat is an ensemble function, not a drum part\" — the banjo roll carries the continuous subdivision, the mandolin chop supplies the backbeat, and the upright bass supplies the two-beat kick. This entry names each player against each job — banjo roll = subdivision, mandolin chop = backbeat \"placed driven (close to the preceding bass note) for maximum drive\", upright = the two-beat, fiddle floats — and states \"none, ever, in the core band\" for drums. So `snare.offGridMs` is −8, the earliest backbeat anywhere in this section and the direct encoding of \"driven\"; `kick` is a flat 2 on anchors 1 and 3 for the upright's two-beat; the hat is on quarters, not continuous, at a 0.02 fill density; and `percs` is rim and woodblock at −13 dB, the quietest percussion here. Keys are the stated B♭/A/G/D, chosen high \"to sit the lead vocal at the top of its range (the high lonesome placement is a key decision, not just a timbre)\", and the melody register runs 64–88 for the same reason. Harmony is \"I–IV–V almost exclusively, with V7 and occasional II7 (secondary dominant)\" — the II7 is authored as the degree II, with the seventh carried in `extensions`. The bass is the sourced upright idiom: root–five alternation with walking excursions, slap accents on the fast numbers, anticipated timing, so `anticipationProb` is 0.3, the highest in the wing. ⚠ The single-microphone technique has a stated generator consequence — \"dynamics are created by players stepping toward and away from the mic, so model arrangement-level dynamics as instrument-level gain automation, with only one or two instruments at full level at a time\" — which this schema cannot express; it is recorded here rather than encoded, and the rotating-break arrangement is the closest reachable expression of it. ⚠ INFERRED: velocity tiers, the −8 ms value itself, `percs` contents and every melody, countermelody and bassline number. ⚠ The entry states \"tempo band inferred from the breakdown convention [LOW-CONF]\", so `bpm.mode` 180 inside the stated 120–210 carries that flag.",
+  "session": {
+    "bpm": {
+      "min": 120,
+      "max": 210,
+      "mode": 180
+    },
+    "keys": {
+      "values": [
+        "Bb",
+        "A",
+        "G",
+        "D"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "major_pentatonic"
+      ],
+      "weights": [
+        6,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "8th",
+      "amount": 0.5
+    },
+    "humanize": {
+      "quantizeStrength": 0.86,
+      "velocityVar": 0.16,
+      "timingJitterMs": {
+        "kick": 4,
+        "snare": 4,
+        "perc": 5
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        80,
+        96
+      ],
+      "main": [
+        58,
+        72
+      ],
+      "ghost": [
+        38,
+        54
+      ]
+    },
+    "kick": {
+      "densityPerBar": 2,
+      "anchors": [
+        "1",
+        "3"
+      ]
+    },
+    "snare": {
+      "offGridMs": -8
+    },
+    "hihat": {
+      "base": "4th",
+      "continuous": false,
+      "fillDensity": 0.02,
+      "openHat": {
+        "prob": 0.02,
+        "pos": [
+          "4"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0.01
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "woodblock"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "gainOffsetDb": -13
+    },
+    "fills": {
+      "smallEveryBars": 16,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 6
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "II",
+          "V"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "IV"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V",
+          "IV"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.82,
+      "seventh": 0.17,
+      "ninth": 0.01
+    }
+  },
+  "melody": {
+    "register": [
+      64,
+      88
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "intervals": {
+      "step": 0.86,
+      "third": 0.12,
+      "leap": 0.02
+    },
+    "contour": {
+      "riff": 0.3,
+      "descend": 0.38,
+      "arch": 0.32
+    },
+    "chordToneBias": 0.82,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "banjo_and_fiddle"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.6,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.9,
+    "register": [
+      28,
+      43
+    ],
+    "passingTones": [
+      "P5",
+      "M2",
+      "M6"
+    ],
+    "anticipationProb": 0.3
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "bridge",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "bridge",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "sectionBars": {
+      "intro": [
+        8,
+        16
+      ],
+      "verse": 16,
+      "chorus": 8,
+      "bridge": [
+        8,
+        16
+      ],
+      "outro": 8
+    },
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.08,
+        "beats": 1
+      },
+      "switchUpProb": 0.02
+    }
+  }
+}

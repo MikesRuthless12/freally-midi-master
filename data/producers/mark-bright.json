@@ -1,0 +1,267 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "mark-bright",
+  "type": "producer",
+  "name": "Mark Bright",
+  "aliases": [
+    "mark bright",
+    "markbright",
+    "marc bright"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-pop"
+  ],
+  "era": "1993-2015",
+  "genres": [
+    "country-pop",
+    "country",
+    "producer"
+  ],
+  "relatedGenres": [
+    "country-pop",
+    "pop-2000s",
+    "country-train"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-pop — Mark Bright",
+    "Wikipedia — Mark Bright (https://en.wikipedia.org/wiki/Mark_Bright_(record_producer))",
+    "Wikipedia — Some Hearts (https://en.wikipedia.org/wiki/Some_Hearts)",
+    "bpmdatabase — Carrie Underwood (https://www.bpmdatabase.com/music/search/?artist=Carrie+Underwood)"
+  ],
+  "notes": "\"One of the architects of the modern contemporary country sound.\" The key set is documented and unusual for the format: \"the album he is best known for carries F♯ minor, A minor and C minor singles alongside major-key ballads, which is unusually minor-heavy for country radio,\" with a documented harmonic example — \"i–VII–VI–V with a major-quality V (harmonic minor)\" — which is the top family and the harmonic_minor scale weight. Drums are \"live Nashville tracking, 2&4, rock-scaled with 'drivetime drums'; cross-stick verses, big backbeat from the chorus, tom doubling on the final chorus.\" The most transferable parameter is a mix balance stated as a style decision, and it changes the counter rather than the drums: \"mandolin and fiddle sounds … often drowned out by surging guitars — i.e. the country instruments are present but subordinate,\" so the counter runs at a low density and the perc gain sits under the kit. His stated direction style is hands-off with the singer — \"he'll say 'try something different there' but he doesn't tell me to sing\" — so vocal phrasing is left to the artist, which is why the melody here is authored as a register-and-contour envelope rather than as a phrasing rule. ⚠ The bass is \"live bass, kick-locked 8ths under choruses, sustained roots under verses,\" so no `drums.bass808` block. ⚠ Confidence is medium (research: high-medium). ⚠ The INFERRED parameters are the velocity tiers, the perc gain and the counter ratio.",
+  "session": {
+    "bpm": {
+      "min": 68,
+      "max": 160,
+      "mode": 104
+    },
+    "keys": {
+      "values": [
+        "F#m",
+        "Am",
+        "Cm",
+        "G",
+        "D",
+        "A"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor",
+        "harmonic_minor",
+        "major_pentatonic"
+      ],
+      "weights": [
+        4,
+        4,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.86,
+      "velocityVar": 0.2,
+      "timingJitterMs": {
+        "kick": 3,
+        "snare": 4,
+        "closedHat": 4,
+        "tom": 6
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        116,
+        127
+      ],
+      "main": [
+        80,
+        102
+      ],
+      "ghost": [
+        26,
+        42
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.23,
+      "offbeat8thShare": 0.35
+    },
+    "snare": {
+      "crossStickVerses": true,
+      "ghost": {
+        "prob": 0.12,
+        "pos": [
+          "1a",
+          "3a"
+        ],
+        "vel": [
+          0.2,
+          0.34
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.27,
+      "openHat": {
+        "prob": 0.33,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tomHigh",
+        "tomLow",
+        "crash",
+        "shaker"
+      ],
+      "densityPerBar": [
+        1,
+        5
+      ],
+      "gainOffsetDb": -8,
+      "tambourine": false
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8,
+      "fillBeforeSection": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI",
+          "V"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.75,
+      "seventh": 0.21,
+      "ninth": 0.04
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      55,
+      86
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "intervals": {
+      "step": 0.66,
+      "third": 0.24,
+      "leap": 0.1
+    },
+    "contour": {
+      "riff": 0.18,
+      "descend": 0.28,
+      "arch": 0.54
+    },
+    "chordToneBias": 0.79,
+    "octaveJumpProb": [
+      0.08,
+      0.18
+    ],
+    "timbreHint": "surging_guitars"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.32,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.88,
+    "rhythm": "mirror_kick",
+    "register": [
+      28,
+      44
+    ],
+    "passingTones": [
+      "P5",
+      "M2"
+    ],
+    "anticipationProb": 0.19
+  }
+}

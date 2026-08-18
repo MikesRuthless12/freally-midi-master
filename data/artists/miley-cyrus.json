@@ -1,0 +1,359 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "miley-cyrus",
+  "type": "artist",
+  "name": "Miley Cyrus",
+  "aliases": [
+    "miley cyrus",
+    "destiny hope cyrus",
+    "mileycyrus",
+    "miley"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2020s"
+  ],
+  "era": "2010-present",
+  "genres": [
+    "pop",
+    "pop-2020s",
+    "disco-funk",
+    "pop-rock"
+  ],
+  "relatedGenres": [
+    "pop-2020s",
+    "funk",
+    "pop-2000s",
+    "dance-pop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2020s — Miley Cyrus",
+    "Wikipedia — Miley Cyrus (https://en.wikipedia.org/wiki/Miley_Cyrus)",
+    "Wikipedia — Flowers (https://en.wikipedia.org/wiki/Flowers_(Miley_Cyrus_song))",
+    "Wikipedia — Kid Harpoon (https://en.wikipedia.org/wiki/Kid_Harpoon)"
+  ],
+  "notes": "Raspy rock-and-disco pop, modelled on the defining 2020— mode. The drums are the entry's stated negative space: \"understated played kit with fizzy cymbals and a soft backbeat; the groove is carried by bass and guitar rather than by drum density\", so `fillDensity` and the perc density stay low, the snare transient is soft and the humanize block is a played one; the `ride` and `crash` lanes are the fizzy cymbals. The bass is the hook and the research says so outright — \"a funk bassline as the primary hook instrument (documented on Flowers), moving in syncopated 8ths and 16ths against a plain kick\" — so the kick sits square on 1 and 3 at a low syncopation while the bassline is `independent_riff` at `followRootsProb` 0.3 with the widest passing-tone set and the highest `anticipationProb` in this batch. No `bass808` block: the entry says \"no 808\". Harmony is \"major-mode with 7th and 9th colour in the yacht-rock/disco mode\" over Rhodes and Wurlitzer, which is the extension spread. Melody \"sits low and conversational in verses and opens into a rasped sustained chorus; melodic cells repeat with lyric variation\" — a low register, `twoBarCellRepeat` and `endVariation`. The counter is the documented \"swooning string line (arranged for violin and viola)\", which is `sustain_pad` first. ⚠ `confidence` is medium against a high-medium rating because \"tempo/key bands inferred\"; every drum probability, the humanize numbers, the key/scale weighting and `bpm.mode` 110 (the midpoint of the first-named 95—125 disco-funk band) are INFERRED, and the entry's [LOW-CONF] mark on the contralto placement claim is repeated here.",
+  "session": {
+    "bpm": {
+      "min": 95,
+      "max": 150,
+      "mode": 110
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "major_blues"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.76,
+      "velocityVar": 0.21,
+      "timingJitterMs": {
+        "kick": 7,
+        "snare": 8,
+        "ride": 10,
+        "closedHat": 9
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "secondaryAnchor": "4&",
+      "syncopation": 0.12,
+      "tresilloBias": 0.02,
+      "offbeat8thShare": 0.08
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "transient": "soft",
+      "reverb": "short",
+      "ghost": {
+        "prob": 0.32,
+        "pos": [
+          "1a",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.14,
+          0.3
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.18,
+      "velocities": {
+        "main": [
+          0.44,
+          0.72
+        ],
+        "ghost": [
+          0.16,
+          0.34
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0
+      },
+      "openHat": {
+        "prob": 0.28,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "ride",
+        "crash",
+        "tambourine"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "placement": "any",
+      "gainOffsetDb": -6
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16,
+      "snareRollLadder": false
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "vi",
+          "IV",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.36,
+      "seventh": 0.44,
+      "ninth": 0.2
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        52,
+        79
+      ]
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "vamp",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        4,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      52,
+      74
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "structure": "riff_loop",
+    "intervals": {
+      "step": 0.74,
+      "third": 0.2,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.44,
+      "descend": 0.36,
+      "arch": 0.2
+    },
+    "chordToneBias": 0.74,
+    "colorTones": [
+      2,
+      6
+    ],
+    "octaveJumpProb": [
+      0.04,
+      0.12
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "twoBarCellRepeat": true,
+    "endVariation": true,
+    "timbreHint": "rhodes"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.35,
+      0.58
+    ],
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "answer_lick"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.3,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      49
+    ],
+    "glideProb": 0.04,
+    "passingTones": [
+      "M2",
+      "m3",
+      "M3",
+      "P4",
+      "P5",
+      "M6",
+      "m7"
+    ],
+    "anticipationProb": 0.62,
+    "cellShapes": [
+      [
+        "1",
+        "5",
+        "b7",
+        "5"
+      ],
+      [
+        "1",
+        "3",
+        "5",
+        "6"
+      ],
+      [
+        "1",
+        "1",
+        "4",
+        "5"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": [
+        8,
+        16
+      ],
+      "chorus": 8,
+      "bridge": 4,
+      "outro": [
+        2,
+        4
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.55,
+        "beats": 4
+      },
+      "switchUpProb": 0.05
+    }
+  }
+}

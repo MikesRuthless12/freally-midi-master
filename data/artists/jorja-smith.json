@@ -1,0 +1,295 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "jorja-smith",
+  "type": "artist",
+  "name": "Jorja Smith",
+  "aliases": [
+    "jorja smith",
+    "walsall soul",
+    "uk soul"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "2018-present",
+  "genres": [
+    "rnb",
+    "soul",
+    "neo-soul"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "uk-garage",
+    "dancehall",
+    "trap-soul"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Jorja Smith",
+    "Wikipedia — Jorja Smith (https://en.wikipedia.org/wiki/Jorja_Smith)",
+    "Wikipedia — Neo soul (https://en.wikipedia.org/wiki/Neo_soul)"
+  ],
+  "notes": "The lane's UK-soul flagship, moving between neo-soul, lovers rock and UK-garage tempos. The entry gives three drum variants and says \"the switch between these is her defining arrangement habit\" — a single model states one placement, so **variant (1) is what is encoded**: \"a soft programmed soul kit, kick on 1 and 3½, clap on 2&4, sparse hats\", which is `secondaryAnchor` 3&, a layered clap-snare and a non-continuous 16th hat at a fill density of 0.28. The one-drop and the 130–140 two-step are recorded here and deliberately not authored: the one-drop needs a beat-3 placement the Lane line does not carry, and the garage shuffle needs its own swing. The band is therefore the entry's stated \"72–108 straight, backbeat on 2&4 for the soul material\" and stops there: the separate \"130–140 two-step/garage\" subset is a different kit and a shuffled backbeat, so carrying it in the band would have emitted 109–129 — a range the entry gives to nothing — and would have paired 130–140 with the straight soul kit the research assigns to neither. She is one of the seven models in this section with an 808 — \"sub-808 with long decay on the R&B material, played electric bass with lovers-rock root-and-fifth motion on the reggae-facing cuts, and a filtered sine-sub on the garage tracks\" — so `drums.bass808` is authored with role **counter_riff** and a low slide probability, keeping the played bass alive alongside it. Harmony is \"m9 colour and 2-to-4-bar cycles; jazz-derived voicings on the ballads and modal one-chord vamps on the up-tempos\", so no families and a vamp-weighted harmonic rhythm. Melody is \"smooth mid-alto with a distinctive straight-tone, slightly flat-leaning delivery, low-to-moderate note-density, and short repeated hook phrases; backgrounds are close and narrow\" — the riff-loop structure and the least dense counter of the modern models here. ⚠ The INFERRED parameters are every drum and 808 number, `bpm.mode` 92 (the entry gives no per-track readings, so the centre is a reading of the band, not a quote), and all melody figures; the research marks the tempo bands and drum patterns as idiom inference and [LOW-CONF].",
+  "session": {
+    "bpm": {
+      "min": 72,
+      "max": 108,
+      "mode": 92
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "minor_pentatonic",
+        "major"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.78,
+      "velocityVar": 0.18,
+      "timingJitterMs": {
+        "kick": 3,
+        "snare": 6,
+        "clap": 5,
+        "shaker": 8,
+        "bass808": 4
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.36,
+      "tresilloBias": 0.1
+    },
+    "snare": {
+      "layered": true,
+      "offGridMs": [
+        1,
+        6
+      ],
+      "ghost": {
+        "prob": 0.22,
+        "pos": [
+          "2a",
+          "4a"
+        ],
+        "vel": [
+          0.12,
+          0.3
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": 0.28,
+      "velocities": {
+        "main": [
+          0.3,
+          0.52
+        ],
+        "ghost": [
+          0.1,
+          0.24
+        ]
+      },
+      "openHat": {
+        "prob": 0.1,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "shaker",
+        "snap"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "gainOffsetDb": -6
+    },
+    "bass808": {
+      "role": "counter_riff",
+      "sustain": "legato",
+      "slideProb": 0.05,
+      "register": [
+        24,
+        40
+      ],
+      "distortion": "none",
+      "monoCutSelf": true,
+      "portamentoMs": 75
+    }
+  },
+  "chords": {
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.1,
+      "seventh": 0.48,
+      "ninth": 0.42
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        46,
+        79
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      55,
+      77
+    ],
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "structure": "riff_loop",
+    "intervals": {
+      "step": 0.84,
+      "third": 0.14,
+      "leap": 0.02
+    },
+    "contour": {
+      "riff": 0.36,
+      "descend": 0.4,
+      "arch": 0.24
+    },
+    "chordToneBias": 0.6,
+    "emptyBarBias": 0.16,
+    "octaveJumpProb": 0.04,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "soft_keys"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.35,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "sustain_pad"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.82,
+    "rhythm": "mirror_kick",
+    "register": [
+      28,
+      43
+    ],
+    "glideProb": 0.06,
+    "passingTones": [
+      "P5",
+      "P8"
+    ],
+    "cellShapes": [
+      [
+        "1",
+        "5"
+      ],
+      [
+        "1",
+        "5",
+        "1"
+      ]
+    ],
+    "anticipationProb": 0.3
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": 8,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": 2
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "chorus"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "bridge",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.6,
+        "beats": 4
+      },
+      "switchUpProb": 0.34
+    }
+  }
+}

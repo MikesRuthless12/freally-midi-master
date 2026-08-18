@@ -1,0 +1,345 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "truth-hurts",
+  "type": "artist",
+  "name": "Truth Hurts",
+  "aliases": [
+    "truth hurts",
+    "shari watson",
+    "addictive"
+  ],
+  "tier": "standard",
+  "extends": [
+    "rnb-2000s"
+  ],
+  "era": "2002-2002",
+  "genres": [
+    "rnb-2000s",
+    "rnb",
+    "sample rnb"
+  ],
+  "relatedGenres": [
+    "rnb-2000s",
+    "g-funk",
+    "west-coast-club",
+    "boom-bap"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 rnb-2000s — Truth Hurts",
+    "bpmdatabase — Truth Hurts (https://www.bpmdatabase.com/music/search/?artist=Truth+Hurts)",
+    "Wikipedia — Addictive (https://en.wikipedia.org/wiki/Addictive_(song))"
+  ],
+  "notes": "Aftermath's R&B signing on DJ Quik and Dr. Dre's Bollywood-sample hybrid; the research gives the era as 2002 alone and it is not widened here. Tempo is \"76–99 straight (backbeat 2&4)\" with the sourced record at 99 and its slower sibling at 76. Three drum deltas from \"Aftermath-era kit with a hard 2&4 snare, kick on 1 and the 8th before 3, tabla-adjacent percussion from the sample, and a dry, close mix\": a velocity-tier spread with the accent at 114–127 against a 86–100 main (that is what \"hard\" and \"dry\" mean when the only control is dynamics), a snare pinned within 2 ms of the grid, and a four-lane bongo/conga/timbale/perc bed at five to six hits a bar and −5 dB, which is the tabla-adjacent layer. Harmony is stated as a consequence of the sample: \"the whole harmonic identity is the sampled vocal/instrumental line… looped against a static bass — one chord, ornamented melodically\". So a single-chord family carries a weight of 8 and `chordDurationBeats` runs 16–32. \"Modal minor inherited from the Hindi source — the sample's raga colour, not a Western functional progression\" is why `scales` leads with phrygian and `halfStepDissonance` is 0.3, the highest in this section, with `chordToneBias` dropped to 0.6: the line ornaments a mode rather than spelling a chord. \"The lead sings inside the sample's mode with long held notes\" is the legato articulation and the 2–6 density. ⚠ Every velocity, density and register number is INFERRED; the research gives sample lineage, producers and tempo, not a kit. ⚠ `session.keys` is INFERRED: the entry's Keys line gives \"modal minor inherited from the Hindi source — the sample's raga colour, not a Western functional progression\" and enumerates no tonic, so the values here and their weights are this author's reading of that line. ⚠ **`chords.impliedByRiff` declared (2026-08-17, harmony variety floor).** The entry says \"the whole harmonic identity is the sampled vocal/instrumental line from Lata Mangeshkar's 'Thoda Resham Lagta Hai' (1981) looped against a static bass - **one chord, ornamented melodically**\", and \"the lead sings inside the sample's mode\". A looped melodic line stating the harmony over one chord is precisely what this flag describes, so the chord lane is narrow by research; the alternative would have been a progression the entry explicitly denies (\"the sample's raga colour, not a Western functional progression\"). ⚠ Consequence: `generators::melody` raises `chordToneBias` from 0.6 to the 0.85 floor; `halfStepDissonance: 0.3` is a separate knob and still carries the raga colour. ⚠ **The countermelody reached 969/1000 distinct answers against a floor of 980 (2026-08-17, counter variety floor), and every other lever this gate has was already clean here** — no empty-bar bias, no one-bar phrase length, and no lead allowed to thin below two notes a bar. What was left was the style pool: `generators::counter` can play five answer shapes and this block asked for 2. `octave_echo` is added at weight 2 because the entry already names it — \"the whole harmonic identity is the sampled vocal/instrumental line from Lata Mangeshkar’s \"Thoda Resham Lagta Hai\" (1981) looped against a static bass — one chord, ornamented melodically — and a hook that doubles the sample melody\" — and a hook that doubles the sample melody is a transposed copy of the lead, which is `octave_echo`. ⚠ The weight is INFERRED; the layer it weights is not.",
+  "session": {
+    "bpm": {
+      "min": 76,
+      "max": 99,
+      "mode": 99
+    },
+    "halfTime": false,
+    "keys": {
+      "values": [
+        "Am",
+        "Dm",
+        "Em",
+        "Bm"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "phrygian",
+        "natural_minor",
+        "dorian",
+        "harmonic_minor"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.52
+    },
+    "humanize": {
+      "quantizeStrength": 0.84,
+      "velocityVar": 0.16,
+      "timingJitterMs": {
+        "kick": 3,
+        "snare": 3,
+        "conga": 7,
+        "bongo": 7
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        114,
+        127
+      ],
+      "main": [
+        86,
+        100
+      ],
+      "ghost": [
+        30,
+        44
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.24,
+      "tresilloBias": 0.08,
+      "andOf4EveryOtherBar": 0.1
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "ghost": {
+        "prob": 0.12,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.16,
+          0.3
+        ]
+      },
+      "offGridMs": [
+        0,
+        2
+      ]
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.3,
+      "velocities": {
+        "main": [
+          0.46,
+          0.66
+        ],
+        "ghost": [
+          0.2,
+          0.36
+        ]
+      },
+      "openHat": {
+        "prob": 0.1,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.08
+      }
+    },
+    "percs": {
+      "lanes": [
+        "bongo",
+        "conga",
+        "timbale",
+        "perc"
+      ],
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "placement": "any",
+      "gainOffsetDb": -5
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i"
+        ],
+        "weight": 8
+      },
+      {
+        "roman": [
+          "i",
+          "bII"
+        ],
+        "weight": 1
+      }
+    ],
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.56,
+      "seventh": 0.36,
+      "ninth": 0.08
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        52,
+        84
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        7,
+        1
+      ]
+    },
+    "chordDurationBeats": [
+      16,
+      32
+    ],
+    "impliedByRiff": true
+  },
+  "melody": {
+    "register": [
+      64,
+      86
+    ],
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "intervals": {
+      "step": 0.84,
+      "third": 0.14,
+      "leap": 0.02
+    },
+    "contour": {
+      "riff": 0.3,
+      "descend": 0.38,
+      "arch": 0.32
+    },
+    "chordToneBias": 0.6,
+    "halfStepDissonance": 0.3,
+    "octaveJumpProb": 0.03,
+    "articulation": "legato",
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        2,
+        3
+      ]
+    },
+    "timbreHint": "bright_bell"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.4,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.97,
+    "rhythm": "independent_riff",
+    "register": [
+      26,
+      42
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.06,
+    "cellShapes": [
+      [
+        "1"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 8,
+      "chorus": 8,
+      "bridge": 16,
+      "outro": 8
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.4,
+        "beats": 2
+      },
+      "switchUpProb": 0.06
+    }
+  }
+}

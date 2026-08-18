@@ -1,0 +1,361 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "pronti-and-kalmani",
+  "type": "producer",
+  "name": "Pronti & Kalmani",
+  "aliases": [
+    "pronti and kalmani",
+    "pronti",
+    "kalmani",
+    "sebastiaan molijn",
+    "eelke kalberg"
+  ],
+  "tier": "standard",
+  "extends": [
+    "dance-pop"
+  ],
+  "era": "1997-2002",
+  "genres": [
+    "dance-pop",
+    "trance-pop",
+    "eurodance",
+    "producer"
+  ],
+  "relatedGenres": [
+    "dance-pop",
+    "techno",
+    "house",
+    "pop-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 dance-pop — Pronti & Kalmani (with Danski & Delmundo)",
+    "Wikipedia — Alice Deejay (https://en.wikipedia.org/wiki/Alice_Deejay)",
+    "Wikipedia — Vengaboys (https://en.wikipedia.org/wiki/Vengaboys)",
+    "Eurodance (https://en.wikipedia.org/wiki/Eurodance)",
+    "Trance music (https://en.wikipedia.org/wiki/Trance_music)"
+  ],
+  "notes": "The Dutch trance-pop / bubblegum-Eurodance board — Sebastiaan Molijn and Eelke Kalberg working with Dennis van den Driesschen and Wessel van Diepen — the four names behind both the section's biggest trance-pop act and its biggest chant-hook party act. Alice Deejay and Vengaboys are in ARTISTS; this model is the room. What the board contributes that neither act states alone is the fill vocabulary: the party-side records substitute \"crowd/airhorn/whistle FX for drum fills\" while the trance-side records use \"long snare rolls instead\", so both live here — an impact/triangle lane alongside the tambourine and shaker, with the roll ladder on and a moderate ramp. The rest is the canonical Eurodance grammar the entry cites: kick on 1/5/9/13, clap layered on 2&4, open hats on the offbeat eighths, 16th tambourine or shaker. The identifying melodic parameter is theirs rather than either act's: \"a single sustained supersaw lead line that is the record's hook, stated before the vocal and restated as the drop — trance timbre applied to pop song-form\", which is a low-density legato lead over 8-bar loops with the hook stated in the intro. The bass is \"root-and-octave or offbeat-8th saw locked tight to the kick; simple by design so the saw lead has the whole midrange\" — a kick mirror at 0.96 with an octave as the only passing tone. Their production model is a studio project with a separated recorded voice and performing face. ⚠ The research marks the harmonic range `[LOW-CONF]` and says the tempo and all placements come from the Eurodance and trance conventions; both marks are repeated here, and every number above is INFERRED.",
+  "session": {
+    "bpm": {
+      "min": 132,
+      "max": 140,
+      "mode": 136
+    },
+    "keys": {
+      "values": [
+        "Am",
+        "Em",
+        "C",
+        "Dm",
+        "G"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "major",
+        "harmonic_minor"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.99,
+      "velocityVar": 0.09,
+      "timingJitterMs": {
+        "kick": 0,
+        "clap": 2,
+        "closedHat": 1,
+        "openHat": 1,
+        "tambourine": 2
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        112,
+        126
+      ],
+      "main": [
+        86,
+        100
+      ],
+      "ghost": [
+        30,
+        44
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        4,
+        4
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "syncopation": 0.02,
+      "offbeat8thShare": 0.03
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "layered": true,
+      "layerClapOffsetMs": [
+        1,
+        5
+      ],
+      "ghost": {
+        "prob": 0.07,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.2,
+          0.34
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.32,
+      "openHat": {
+        "prob": 0.96,
+        "pos": [
+          "1&",
+          "2&",
+          "3&",
+          "4&"
+        ],
+        "perBar": [
+          3,
+          4
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "32"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.14
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "shaker",
+        "impact",
+        "triangle"
+      ],
+      "densityPerBar": [
+        3,
+        7
+      ],
+      "placement": "any",
+      "gainOffsetDb": -4
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 16,
+      "snareRollLadder": true,
+      "fillBeforeSection": true
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th",
+        "32nd"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        42,
+        120
+      ],
+      "rampJitter": 10,
+      "gapProb": 0.15,
+      "descendProb": 0.07,
+      "pitchWalk": 2
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.86,
+      "seventh": 0.12,
+      "ninth": 0.02
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        4
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      72,
+      94
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "structure": "long_arc",
+    "intervals": {
+      "step": 0.72,
+      "third": 0.22,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.28,
+      "descend": 0.24,
+      "arch": 0.48
+    },
+    "chordToneBias": 0.88,
+    "octaveJumpProb": 0.04,
+    "articulation": "legato",
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        4
+      ]
+    },
+    "timbreHint": "supersaw_lead"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.76,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "sustain_pad"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.96,
+    "rhythm": "mirror_kick",
+    "register": [
+      31,
+      50
+    ],
+    "glideProb": 0.01,
+    "passingTones": [
+      "P8"
+    ],
+    "anticipationProb": 0.12
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 8,
+      "verse": 8,
+      "prechorus": 8,
+      "hook": 16,
+      "bridge": 16,
+      "outro": 16
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "prechorus",
+          "hook",
+          "bridge",
+          "hook",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "hook",
+          "bridge",
+          "prechorus",
+          "hook",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.6,
+        "beats": 4
+      },
+      "switchUpProb": 0.1
+    }
+  }
+}

@@ -1,0 +1,238 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "montgomery-gentry",
+  "type": "artist",
+  "name": "Montgomery Gentry",
+  "aliases": [
+    "montgomery gentry",
+    "montgomerygentry",
+    "montgomery and gentry"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-pop"
+  ],
+  "era": "1999-2008",
+  "genres": [
+    "country-pop",
+    "country",
+    "southern rock"
+  ],
+  "relatedGenres": [
+    "country-pop",
+    "country-train",
+    "pop-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-pop — Montgomery Gentry",
+    "bpmdatabase (https://www.bpmdatabase.com/music/search/?artist=Montgomery+Gentry)",
+    "Wikipedia — Blake Chancey (https://en.wikipedia.org/wiki/Blake_Chancey)",
+    "Wikipedia — Michael Knox (https://en.wikipedia.org/wiki/Michael_Knox_(record_producer))"
+  ],
+  "notes": "Southern-rock country duo — one gravelly voice, one clean, over Skynyrd-derived guitars. The harmonic identity is named outright: \"I–♭VII–IV (the southern-rock cell)\" is the top family and the mixolydian weight exists to make it singable; \"major with mixolydian ♭VII throughout\" is the entry's own key line. Drums are \"a big rock backbeat; quarter kick under choruses, 8th hats, crash on chorus downbeats, tom fills at 8-bar boundaries. Larger, wetter snare than the neotraditional lane,\" so the kick sits on all four beats, the crash and tom lanes are authored and the fill grid is pinned to 8. The bass is the distinctive part: \"8ths with overdrive, doubling the guitar riff in octaves on the intro figures,\" which is `independent_riff` rather than the genre's boom-chick, with root-following dropped so the line can track the riff. Melody is \"two contrasting timbres traded by verse; gang-shout chorus. Narrow range, rhythmic hooks.\" ⚠ Confidence is medium, matching the research; the per-track readings are [LOW-CONF]. ⚠ The INFERRED parameters are the velocity tiers, the perc density and the counter ratio — \"larger, wetter snare\" and \"twin distorted electrics playing harmonised thirds\" are directions, and 114–127 and 0.58 are this author's reading of them.",
+  "session": {
+    "bpm": {
+      "min": 66,
+      "max": 124,
+      "mode": 94
+    },
+    "scales": {
+      "values": [
+        "mixolydian",
+        "major",
+        "major_blues"
+      ],
+      "weights": [
+        4,
+        4,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.85,
+      "velocityVar": 0.18
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        114,
+        127
+      ],
+      "main": [
+        88,
+        106
+      ],
+      "ghost": [
+        30,
+        46
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "syncopation": 0.13,
+      "offbeat8thShare": 0.11
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.1,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.22,
+          0.38
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.25,
+      "openHat": {
+        "prob": 0.38,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "crash",
+        "tomHigh",
+        "tomLow",
+        "ride"
+      ],
+      "densityPerBar": [
+        1,
+        4
+      ],
+      "gainOffsetDb": -2,
+      "tambourine": false
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8,
+      "fillBeforeSection": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "bVII",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "bVII",
+          "IV",
+          "I"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.84,
+      "seventh": 0.14,
+      "ninth": 0.02
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        6,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      50,
+      72
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "intervals": {
+      "step": 0.76,
+      "third": 0.2,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.4,
+      "descend": 0.3,
+      "arch": 0.3
+    },
+    "chordToneBias": 0.8,
+    "octaveJumpProb": 0.03,
+    "timbreHint": "twin_harmonised_electrics"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.58,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        4,
+        4
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.62,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      45
+    ],
+    "passingTones": [
+      "P5",
+      "m7",
+      "M3",
+      "M2"
+    ],
+    "anticipationProb": 0.22
+  }
+}

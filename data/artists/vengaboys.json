@@ -1,0 +1,342 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "vengaboys",
+  "type": "artist",
+  "name": "Vengaboys",
+  "aliases": [
+    "vengaboys",
+    "venga boys",
+    "danski",
+    "delmundo"
+  ],
+  "tier": "standard",
+  "extends": [
+    "dance-pop"
+  ],
+  "era": "1997-2000",
+  "genres": [
+    "dance-pop",
+    "bubblegum-dance",
+    "eurodance",
+    "pop"
+  ],
+  "relatedGenres": [
+    "dance-pop",
+    "pop-2000s",
+    "house"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 dance-pop — Vengaboys",
+    "Wikipedia — Vengaboys (https://en.wikipedia.org/wiki/Vengaboys)",
+    "Eurodance (https://en.wikipedia.org/wiki/Eurodance)"
+  ],
+  "notes": "Rotterdam bubblegum Eurodance built on chant hooks, produced by Wessel van Diepen and Dennis van den Driesschen (whose board is entried separately as Pronti & Kalmani — this model is the act, not the board). The defining parameter is \"the group chant hook — short, repeated, often just the title, sung in unison by the whole group with call-and-response answers\", so the melody is a 1- to 2-bar call-and-response cell with a high riff contour, and the harmony behind it is minimal by design: \"the record is a chant plus a riff\", two-chord bright majors at `vamp`-weighted harmonic rhythm. Two kit facts move the drums off the parent: \"an extra-hard clap layer and party FX (airhorn, crowd, whistle) in place of fills\", which is a snap/cowbell/triangle/impact perc bed with the roll ladder off and fills pushed out to every 8 and 16 bars, and \"the kick is tuned high and short so the chant sits on top\". The bass is \"very simple root-and-octave synth bass locked to the kick\" — a kick mirror at 0.98 roots with an octave as the only passing tone, the most root-locked bass in this section. ⚠ The research calls the parametric detail genre-derived and marks the harmony `[LOW-CONF]`; that mark is repeated here, and all velocities and densities are INFERRED. ⚠ **`anticipationProb` 0.05 → 0.12 is the only bassline change.** The research is *\"very simple root-and-octave synth bass locked to the kick\"*, so the pitch grammar is right as it stands — the root-and-octave alternation is what `bass.rs` writes from a two-octave register — and `followRootsProb` 0.98 stays. What it lacked was placement: a four-on-the-floor kick with `syncopation` 0.02 is the same sixteen onsets at every seed, and the model measured **932 of 1,000 distinct basslines** against the 0.95 share. ▶ `robyn` is the measured comparison on this roster — the same [31, 50] register and the same fixed four-on-the-floor kick, at `anticipationProb` 0.12, and it reaches 0.999. ⚠ **INFERRED:** the value is that comparison, not a sourced one.",
+  "session": {
+    "bpm": {
+      "min": 130,
+      "max": 140,
+      "mode": 135
+    },
+    "keys": {
+      "values": [
+        "C",
+        "G",
+        "D",
+        "F",
+        "Bb"
+      ],
+      "weights": [
+        4,
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian"
+      ],
+      "weights": [
+        7,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.98,
+      "velocityVar": 0.1,
+      "timingJitterMs": {
+        "kick": 1,
+        "clap": 1,
+        "closedHat": 2,
+        "openHat": 2,
+        "cowbell": 3
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        114,
+        127
+      ],
+      "main": [
+        86,
+        100
+      ],
+      "ghost": [
+        28,
+        42
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        4,
+        4
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "syncopation": 0.02,
+      "offbeat8thShare": 0.02
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "layered": true,
+      "layerClapOffsetMs": [
+        0,
+        2
+      ],
+      "ghost": {
+        "prob": 0.05,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.2,
+          0.3
+        ]
+      }
+    },
+    "hihat": {
+      "base": {
+        "values": [
+          "16th",
+          "8th"
+        ],
+        "weights": [
+          3,
+          3
+        ]
+      },
+      "fillDensity": 0.3,
+      "openHat": {
+        "prob": 0.96,
+        "pos": [
+          "1&",
+          "2&",
+          "3&",
+          "4&"
+        ],
+        "perBar": [
+          3,
+          4
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.06
+      }
+    },
+    "percs": {
+      "lanes": [
+        "snap",
+        "cowbell",
+        "triangle",
+        "impact"
+      ],
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "placement": "any",
+      "gainOffsetDb": -3
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16,
+      "snareRollLadder": false,
+      "fillBeforeSection": false
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "IV",
+          "V",
+          "I"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.9,
+      "seventh": 0.09,
+      "ninth": 0.01
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        4
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      69,
+      88
+    ],
+    "densityPerBar": [
+      4,
+      8
+    ],
+    "structure": "call_response",
+    "intervals": {
+      "step": 0.72,
+      "third": 0.24,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.6,
+      "descend": 0.22,
+      "arch": 0.18
+    },
+    "chordToneBias": 0.9,
+    "octaveJumpProb": 0.03,
+    "articulation": "staccato",
+    "phraseBars": {
+      "values": [
+        1,
+        2
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    },
+    "timbreHint": "synth_brass"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.44,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.98,
+    "rhythm": "mirror_kick",
+    "register": [
+      31,
+      50
+    ],
+    "glideProb": 0.01,
+    "passingTones": [
+      "P8"
+    ],
+    "anticipationProb": 0.12
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 8,
+      "hook": 8,
+      "bridge": 4,
+      "outro": 8
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "hook",
+          "bridge",
+          "hook",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.55,
+        "beats": 2
+      },
+      "switchUpProb": 0.05
+    }
+  }
+}

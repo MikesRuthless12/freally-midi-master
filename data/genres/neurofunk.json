@@ -33,7 +33,7 @@
     "style-research ch.1 §10 Drum & Bass (liquid / jump-up / neuro / 2-step pop)",
     "style-research ch.2 §7 Drum & Bass"
   ],
-  "notes": "Neuro is where the drum & bass kick moves: 1, then 2a — the last 16th before beat 3 — against snares that never leave 2 and 4. Jump-up puts that second kick on the 3 and liquid on the and-of-3, and the one 16th between them is most of the difference. Everything else is sound design: six percussion lanes of clicks, rims, metal and reverses under a continuous 16th hat, harmony that barely moves (a static i with the occasional bII stab), and a Reese bass that is edited rather than held — the detune is in the sound, the movement is in the cell shapes, and the line reshuffles under a harmony that will not.",
+  "notes": "Neuro is where the drum & bass kick moves: 1, then 2a — the last 16th before beat 3 — against snares that never leave 2 and 4. Jump-up puts that second kick on the 3 and liquid on the and-of-3, and the one 16th between them is most of the difference. Everything else is sound design: six percussion lanes of clicks, rims, metal and reverses under a continuous 16th hat, harmony that barely moves (a static i with the occasional bII stab), and a Reese bass that is edited rather than held — the detune is in the sound, the movement is in the cell shapes, and the line reshuffles under a harmony that will not. ⚠ **`drums.kick.lockTo808` removed (2026-08-17, 808 gate).** This kit has no 808 — `bass808` is `null` here or in the parent it inherits — and `lockTo808` is the one parameter that says *how much of the kick the 808 follows*, so in this file it described a pairing that does not exist: `generators::drums::bass808` returns on `block.is_none()` before the value is ever read, which makes it provably dead here. Where it was NOT dead was in the artists and producers who extend this kit and author an 808 of their own: they inherited the zero, `kicks.iter().filter(|_| rng.random_bool(0.0))` kept nothing, and their sub lane was silent at every seed — `bass808::every_shipped_model_with_an_808_produces_a_playable_line` reported \"no 808 at all\" for 35 of them. Removing it restores the engine's documented default of 1.0 for exactly those children and changes nothing here. ⚠ No researched claim moved: this kit's own statement about the 808 is the `bass808: null` beside it, and that is untouched.",
   "session": {
     "bpm": {
       "min": 170,
@@ -102,8 +102,7 @@
       ],
       "secondaryAnchor": "2a",
       "syncopation": 0.6,
-      "tresilloBias": 0.05,
-      "lockTo808": 0
+      "tresilloBias": 0.05
     },
     "snare": {
       "placement": "backbeat_24",

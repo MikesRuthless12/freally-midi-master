@@ -1,0 +1,280 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "westlife",
+  "type": "artist",
+  "name": "Westlife",
+  "aliases": [
+    "westlife",
+    "west life"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "1999-2005",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "ballad"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "country-pop",
+    "dance-pop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — Westlife",
+    "songdata.io — Westlife catalogue (https://songdata.io/search?query=Westlife)",
+    "Wikipedia — Per Magnusson (https://en.wikipedia.org/wiki/Per_Magnusson)"
+  ],
+  "notes": "The purest key-change ballad grammar in the lane. The research pairs 73–96 with a half-time feel and the backbeat on 3, so `halfTime` is true and the snare is `halftime_3`; the 105–144 uptempo band is the straight-time wing and is named here rather than encoded. Four flat-side major tonics are given outright (A-flat, B-flat, C, F) so `keys` is authored, and the progressions are the stated I–V–vi–IV and vi–IV–I–V. The drum sentence is the model: \"programmed kit kept low in the mix — kick 1 and 3, snare/clap on 3 in the ballads, 8th shaker; a whole-bar tom-and-crash fill announces the key change\". That is the soft velocity tier, the 8th hat with almost no fill density, a shaker/tom/crash perc block, and a fill schedule pushed to every 16 bars so the tom-and-crash reads as an event. The melody is written from \"note density very low — long notes, lots of space for the string answer\": density 2–5, legato, and a counter at a low ratio doing the string answering. ⚠ `confidence` is medium because the research rates it high-medium and says the tempo values are catalogue-derived; `bpm.mode` 82 is this author's centre of the stated ballad band. ⚠ The **INFERRED** parameters are every drum probability and the bass numbers. ⚠ **`bassline.rhythm` is `boom_chick`, not `reese_sustain`** — the research names the figure outright: *“synth bass or played bass on roots, half notes in verses, 8ths from chorus 2”*. A held `reese_sustain` writes one note per chord and says the opposite of what the entry describes.",
+  "session": {
+    "bpm": {
+      "min": 73,
+      "max": 96,
+      "mode": 82
+    },
+    "halfTime": true,
+    "keys": {
+      "values": [
+        "Ab",
+        "Bb",
+        "C",
+        "F"
+      ],
+      "weights": [
+        3,
+        3,
+        3,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor"
+      ],
+      "weights": [
+        7,
+        1
+      ]
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        86,
+        102
+      ],
+      "main": [
+        60,
+        76
+      ],
+      "ghost": [
+        26,
+        38
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.1
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "ghost": {
+        "prob": 0.06,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.14,
+          0.26
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.22,
+      "openHat": {
+        "prob": 0.08,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.04
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "tom",
+        "crash"
+      ],
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "gainOffsetDb": -5
+    },
+    "fills": {
+      "smallEveryBars": 16,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.54,
+      "seventh": 0.34,
+      "ninth": 0.12
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        50,
+        80
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        4
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      58,
+      84
+    ],
+    "densityPerBar": [
+      2,
+      5
+    ],
+    "intervals": {
+      "step": 0.8,
+      "third": 0.16,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.16,
+      "descend": 0.28,
+      "arch": 0.56
+    },
+    "chordToneBias": 0.86,
+    "octaveJumpProb": 0.06,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "articulation": "legato"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.35,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "answer_lick"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.97,
+    "rhythm": "boom_chick",
+    "register": [
+      31,
+      48
+    ],
+    "glideProb": 0.04,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.1
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 8,
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 16,
+      "bridge": 8,
+      "outro": 8
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.75,
+        "beats": 4
+      },
+      "switchUpProb": 0.04
+    }
+  }
+}

@@ -1,0 +1,355 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "sophie",
+  "type": "producer",
+  "name": "SOPHIE",
+  "aliases": [
+    "sophie",
+    "sophie xeon",
+    "sophie producer",
+    "msmsmsm"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "pop-2020s"
+  ],
+  "era": "2013-2021",
+  "genres": [
+    "pop",
+    "pop-2020s",
+    "producer",
+    "hyperpop"
+  ],
+  "relatedGenres": [
+    "pop-2020s",
+    "dance-pop",
+    "techno",
+    "future-bass"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2020s — SOPHIE",
+    "Wikipedia — Sophie (https://en.wikipedia.org/wiki/Sophie_(musician))",
+    "Wikipedia — A. G. Cook (https://en.wikipedia.org/wiki/A._G._Cook)",
+    "Wikipedia — Charli XCX (https://en.wikipedia.org/wiki/Charli_XCX)"
+  ],
+  "notes": "Synthesis-first hyperpop architect, and one of the fully documented entries in this section — gear, anti-sampling method, timbral palette and dated credits are all sourced. The drum block is authored from a method rather than a pattern: \"no sampling — she worked on an Elektron Monomachine into Ableton Live and refused sample libraries, synthesising kicks and snares from elementary waveforms. Percussion sounds like struck plastic, metal and latex; the backbeat is a hard synthetic slap with an extreme transient.\" So the snare is `hard` transient under a `short` tail with a zero clap offset and the highest accent tier in this section (an extreme transient is a velocity ceiling), the kick is a hard four-square, and the perc lanes are `woodblock`, `impact`, `cowbell` and `rim` — the struck-object set — at a forward gain. `hihat.base` is 16th with no roll vocabulary because a roll is a sample-library gesture. The quantize is the hardest authored here, because everything is a synthesised event on a grid; \"sections that abandon metre entirely\" is the very high `switchUpProb` and the deep `dropOutBeats` instead. The bass is the second signature and it is emphatically not an 808: \"no 808. Bass is a synthesised object with heavy pitch-bend and portamento — sub sines that glide between notes, and bubble/balloon timbres used as bass hits\", so `bassline.glideProb` is 0.6, by far the highest in this section, and no `bass808` block is authored. Harmony is deliberately trivial: \"often a single sustained chord or a two-chord oscillation, because the timbre is the harmonic event\", which is `maxChords` 2, a vamp-dominant rhythm and major-mode bubblegum families. \"Leads are portamento-heavy, pitch-bent single-oscillator lines\" is the small `motifPitchCount` and the `monophonicBias`; loops are 2 or 4 bars. ⚠ The INFERRED parameters are every drum probability, the velocity tiers, the humanize pair, `bpm.mode` 125 (the research gives 100—150 with no centre, so the mode is that band's midpoint) and the `lydian` weight in `session.scales` — the entry says only \"major-mode bubblegum harmony\" and names no mode, so lydian is an inferred bright colour at weight 2. ⚠ **`bassline.rhythm` is `independent_riff`, not `reese_sustain`** — the research describes a bass that moves and articulates rather than one that holds: *“Bass is a synthesised object with heavy pitch-bend and portamento — sub sines that glide between notes, and 'bubble'/'balloon' timbres used as bass hits”*. Notes that glide *between* notes and timbres used as *hits* are a figure of their own, which is what `independent_riff` places; a held `reese_sustain` writes one note per chord and has nothing to glide between. ⚠ **`chords.harmonicRhythm` re-weighted (2026-08-17, harmony variety floor).** The entry's harmony line is \"harmony is often a single sustained chord or a two-chord oscillation, because the **timbre is the harmonic event**\", with \"Loops are 2 or 4 bars\", and the engine's `vamp` value is *one* chord held for the whole clip (`generators::chords`: \"One chord for the whole pattern\") — so weighting `vamp` at the top rendered a **one**-chord bed the research nowhere describes. The chord motion the entry states is now carried by `1_per_bar` (the pair over a 2-bar cell) and `2_bars_per_chord` (the pair over a 4-bar cell), with `vamp` kept as the minority for the held reading. Sustained chord, 2-bar loop and 4-bar loop are all in the entry, and the three rates are exactly those three readings. ⚠ The split between those two rates is **INFERRED** — the entry names the device, not its rate.",
+  "session": {
+    "bpm": {
+      "min": 100,
+      "max": 150,
+      "mode": 125
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "major",
+        "lydian",
+        "natural_minor"
+      ],
+      "weights": [
+        6,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 1,
+      "velocityVar": 0.06
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        122,
+        127
+      ],
+      "main": [
+        92,
+        110
+      ],
+      "ghost": [
+        30,
+        46
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        4,
+        4
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "secondaryAnchor": "4&",
+      "syncopation": 0.02,
+      "tresilloBias": 0.01,
+      "offbeat8thShare": 0.02
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "stack": [
+        "clap"
+      ],
+      "transient": "hard",
+      "reverb": "short",
+      "layerClapOffsetMs": [
+        0,
+        1
+      ],
+      "ghost": {
+        "prob": 0.1,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.24,
+          0.44
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.46,
+      "velocities": {
+        "main": [
+          0.74,
+          0.98
+        ],
+        "ghost": [
+          0.34,
+          0.56
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0
+      },
+      "openHat": {
+        "prob": 0.28,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "woodblock",
+        "impact",
+        "cowbell",
+        "rim"
+      ],
+      "densityPerBar": [
+        3,
+        7
+      ],
+      "placement": "any",
+      "gainOffsetDb": 0
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8,
+      "snareRollLadder": false
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "vi",
+          "IV"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.78,
+      "seventh": 0.18,
+      "ninth": 0.04
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        54,
+        84
+      ]
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        3,
+        3,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      8,
+      32
+    ]
+  },
+  "melody": {
+    "register": [
+      62,
+      92
+    ],
+    "densityPerBar": [
+      3,
+      9
+    ],
+    "structure": "riff_loop",
+    "motifPitchCount": [
+      2,
+      4
+    ],
+    "intervals": {
+      "step": 0.7,
+      "third": 0.2,
+      "leap": 0.1
+    },
+    "contour": {
+      "riff": 0.64,
+      "descend": 0.22,
+      "arch": 0.14
+    },
+    "chordToneBias": 0.72,
+    "halfStepDissonance": 0.14,
+    "octaveJumpProb": [
+      0.08,
+      0.2
+    ],
+    "phraseBars": {
+      "values": [
+        1,
+        2
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "monophonicBias": 1,
+    "articulation": "staccato",
+    "timbreHint": "plastic_synth"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.35,
+      0.6
+    ],
+    "styles": {
+      "values": [
+        "bell_echo",
+        "arp"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.94,
+    "rhythm": "independent_riff",
+    "register": [
+      26,
+      50
+    ],
+    "glideProb": 0.6,
+    "passingTones": [
+      "P5",
+      "P8",
+      "M2"
+    ],
+    "anticipationProb": 0.2,
+    "cellShapes": [
+      [
+        "1"
+      ],
+      [
+        "1",
+        "8"
+      ],
+      [
+        "1",
+        "5"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": 8,
+      "chorus": 8,
+      "bridge": 4,
+      "outro": 2
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.9,
+        "beats": 4
+      },
+      "switchUpProb": 0.4
+    }
+  }
+}

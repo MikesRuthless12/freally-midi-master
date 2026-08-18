@@ -1,0 +1,394 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "sigala",
+  "type": "producer",
+  "name": "Sigala",
+  "aliases": [
+    "sigala",
+    "bruce fielder",
+    "sigala uk"
+  ],
+  "tier": "standard",
+  "extends": [
+    "dance-pop"
+  ],
+  "era": "2015-present",
+  "genres": [
+    "dance-pop",
+    "tropical-house",
+    "deep-house",
+    "producer"
+  ],
+  "relatedGenres": [
+    "dance-pop",
+    "house",
+    "funk",
+    "pop-2020s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 dance-pop — Sigala",
+    "Wikipedia — Sigala (https://en.wikipedia.org/wiki/Sigala)",
+    "Wikipedia — Easy Love (https://en.wikipedia.org/wiki/Easy_Love_(Sigala_song))",
+    "Tropical house (https://en.wikipedia.org/wiki/Tropical_house)",
+    "BPM Database — Sigala (https://www.bpmdatabase.com/music/search/?artist=Sigala)"
+  ],
+  "notes": "British interpolation-first dance-pop — tropical/deep-house arrangements built around a re-recorded classic hook. The tempo is catalogue-sampled: readings of 124 / 124 / 125 / 125 / 125 / 125 / 120 / 120, \"120-125, sitting on 124-125\", so the mode is 124. The harmonic profile is the most functional in the tropical block and the research says why: \"because the source material is usually 60s-90s soul or pop, the harmony carries real functional motion and 7th/9th extensions rather than the static minor loop of the EDM field. Trained pianist (from age 8, to grade 8) with a commercial-music degree, which is the reason the chords move.\" That is five families with ii-V motion, a 0.30/0.44/0.26 extension spread and a `1_per_bar` harmonic rhythm. The groove is written to sit under a soul vocal: \"kick is round rather than clipped; the groove is meant to swing\", hence a 0.54 swing and a live-feel percussion bed of shaker, tambourine and congas/bongos on 16ths at 5-8 hits a bar. The bass \"walks between chord tones in the soul manner rather than sitting on the root\" — a 0.45 root probability on offbeat 8ths. The identifying method, an interpolation re-recorded by session players and singers rather than sampled, then treated as the instrumental hook, is why the arrangement puts an instrumental break after the chorus. ⚠ The drum detail is convention-derived by the entry's own statement; the velocities, densities and registers are INFERRED.",
+  "session": {
+    "bpm": {
+      "min": 120,
+      "max": 125,
+      "mode": 124
+    },
+    "keys": {
+      "values": [
+        "C",
+        "F",
+        "G",
+        "Bb",
+        "Am",
+        "Dm"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "dorian",
+        "natural_minor"
+      ],
+      "weights": [
+        5,
+        3,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.54
+    },
+    "humanize": {
+      "quantizeStrength": 0.86,
+      "velocityVar": 0.2,
+      "timingJitterMs": {
+        "kick": 3,
+        "clap": 4,
+        "closedHat": 5,
+        "openHat": 4,
+        "shaker": 7,
+        "conga": 8,
+        "tambourine": 6
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        100,
+        114
+      ],
+      "main": [
+        76,
+        92
+      ],
+      "ghost": [
+        32,
+        50
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        4,
+        4
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "syncopation": 0.05,
+      "offbeat8thShare": 0.08
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "layered": true,
+      "layerClapOffsetMs": [
+        3,
+        9
+      ],
+      "ghost": {
+        "prob": 0.3,
+        "pos": [
+          "2a",
+          "3e",
+          "4a"
+        ],
+        "vel": [
+          0.26,
+          0.46
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.3,
+      "velocities": {
+        "main": [
+          0.58,
+          0.82
+        ],
+        "ghost": [
+          0.26,
+          0.46
+        ]
+      },
+      "openHat": {
+        "prob": 0.86,
+        "pos": [
+          "1&",
+          "2&",
+          "3&",
+          "4&"
+        ],
+        "perBar": [
+          2,
+          4
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "16T"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.14
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "tambourine",
+        "conga",
+        "bongo",
+        "woodblock"
+      ],
+      "densityPerBar": [
+        5,
+        8
+      ],
+      "placement": "offbeat",
+      "gainOffsetDb": -3
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8,
+      "snareRollLadder": false,
+      "fillBeforeSection": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "vi",
+          "ii",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "IV",
+          "V",
+          "iii",
+          "vi"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "ii",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.3,
+      "seventh": 0.44,
+      "ninth": 0.26
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        53,
+        84
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        6,
+        3
+      ]
+    },
+    "susSubstitutionProb": 0.14
+  },
+  "melody": {
+    "register": [
+      67,
+      90
+    ],
+    "densityPerBar": [
+      5,
+      10
+    ],
+    "structure": "call_response",
+    "intervals": {
+      "step": 0.6,
+      "third": 0.28,
+      "leap": 0.12
+    },
+    "contour": {
+      "riff": 0.36,
+      "descend": 0.28,
+      "arch": 0.36
+    },
+    "chordToneBias": 0.72,
+    "halfStepDissonance": 0.04,
+    "octaveJumpProb": [
+      0.06,
+      0.16
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "timbreHint": "brass_stab"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.6,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "bell_echo"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.45,
+    "rhythm": "offbeat_8ths",
+    "register": [
+      28,
+      50
+    ],
+    "glideProb": 0.03,
+    "passingTones": [
+      "P5",
+      "M2",
+      "M3",
+      "M6",
+      "m7"
+    ],
+    "anticipationProb": 0.42
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 8,
+      "verse": 16,
+      "prechorus": 8,
+      "hook": 16,
+      "bridge": 16,
+      "outro": 8
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "hook",
+          "bridge",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "hook",
+          "bridge",
+          "prechorus",
+          "hook",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.45,
+        "beats": 4
+      },
+      "switchUpProb": 0.1
+    }
+  }
+}

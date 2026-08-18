@@ -1,0 +1,362 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "kylie-minogue",
+  "type": "artist",
+  "name": "Kylie Minogue",
+  "aliases": [
+    "kylie minogue",
+    "kylie ann minogue",
+    "minogue"
+  ],
+  "tier": "standard",
+  "extends": [
+    "dance-pop"
+  ],
+  "era": "1990-present",
+  "genres": [
+    "dance-pop",
+    "nu-disco",
+    "pop"
+  ],
+  "relatedGenres": [
+    "dance-pop",
+    "pop-2000s",
+    "pop-2020s",
+    "house"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 dance-pop — Kylie Minogue",
+    "Wikipedia — Kylie Minogue (https://en.wikipedia.org/wiki/Kylie_Minogue)",
+    "Wikipedia — Stuart Price (https://en.wikipedia.org/wiki/Stuart_Price)"
+  ],
+  "notes": "Career-long dance-pop vocalist turning nu-disco from 2000 onward; the 1987-1989 Stock Aitken Waterman period fails Gate 2 and is excluded, which is why the window opens in 1990. The harmony follows the documented preference for \"comfortable composition\" — functional, two- to four-chord, \"never obstructs the hook\" — so the families are major disco cadences with a minor alternative for the electro records, and the 7ths the entry names put `seventh` level with `triad`. The kit is the documented one: \"four-square kick with claps on 2&4, disco offbeat hats opening to 16ths, cowbell and tambourine as period markers\", which is the cowbell/tambourine perc lane and a weighted 8th/16th hat base rather than the parent's. The bass is authored hardest because the entry calls it \"the second hook\" — syncopated, independent of the kick at 0.7 roots. ⚠ The INFERRED parameters are the melody register and density, the perc densities and the open-hat share: \"short-celled, repeated, and pitched low enough to be spoken-sung\" is a direction, and 62-84 at 4-8 notes a bar is this author's reading. ⚠ The \"angelic light-soprano writing in a narrow, breathy band\" claim carries a [LOW-CONF] mark in the research and is only partly encoded, in the narrow interval spread rather than in a high register.",
+  "session": {
+    "bpm": {
+      "min": 110,
+      "max": 128,
+      "mode": 122
+    },
+    "keys": {
+      "values": [
+        "C",
+        "F",
+        "G",
+        "Bb",
+        "Am",
+        "Dm"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "natural_minor"
+      ],
+      "weights": [
+        5,
+        2,
+        3
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.96,
+      "velocityVar": 0.14,
+      "timingJitterMs": {
+        "kick": 1,
+        "clap": 2,
+        "closedHat": 2,
+        "openHat": 2,
+        "cowbell": 3,
+        "tambourine": 3
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        106,
+        120
+      ],
+      "main": [
+        82,
+        96
+      ],
+      "ghost": [
+        32,
+        46
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        4,
+        4
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "syncopation": 0.03,
+      "offbeat8thShare": 0.05
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "layered": true,
+      "layerClapOffsetMs": [
+        1,
+        4
+      ],
+      "ghost": {
+        "prob": 0.12,
+        "pos": [
+          "2a",
+          "4a"
+        ],
+        "vel": [
+          0.22,
+          0.38
+        ]
+      }
+    },
+    "hihat": {
+      "base": {
+        "values": [
+          "8th",
+          "16th"
+        ],
+        "weights": [
+          3,
+          4
+        ]
+      },
+      "fillDensity": 0.5,
+      "openHat": {
+        "prob": 0.94,
+        "pos": [
+          "1&",
+          "2&",
+          "3&",
+          "4&"
+        ],
+        "perBar": [
+          3,
+          4
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "32"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.18
+      }
+    },
+    "percs": {
+      "lanes": [
+        "cowbell",
+        "tambourine",
+        "shaker"
+      ],
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "placement": "offbeat",
+      "gainOffsetDb": -4
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 16,
+      "fillBeforeSection": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "vi",
+          "ii",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.42,
+      "seventh": 0.42,
+      "ninth": 0.16
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      62,
+      84
+    ],
+    "densityPerBar": [
+      4,
+      8
+    ],
+    "structure": "riff_loop",
+    "intervals": {
+      "step": 0.72,
+      "third": 0.22,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.5,
+      "descend": 0.24,
+      "arch": 0.26
+    },
+    "chordToneBias": 0.8,
+    "octaveJumpProb": [
+      0.03,
+      0.1
+    ],
+    "phraseBars": {
+      "values": [
+        1,
+        2,
+        4
+      ],
+      "weights": [
+        2,
+        4,
+        3
+      ]
+    },
+    "timbreHint": "filtered_arp"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.5,
+    "styles": {
+      "values": [
+        "arp",
+        "sustain_pad"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.7,
+    "rhythm": "independent_riff",
+    "register": [
+      31,
+      50
+    ],
+    "glideProb": 0.04,
+    "passingTones": [
+      "P5",
+      "M6",
+      "m7",
+      "M2"
+    ],
+    "anticipationProb": 0.42
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 8,
+      "verse": 16,
+      "prechorus": 4,
+      "hook": 8,
+      "bridge": 8,
+      "outro": 8
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "hook",
+          "verse",
+          "hook",
+          "bridge",
+          "hook",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "hook",
+          "hook",
+          "bridge",
+          "hook",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.4,
+        "beats": 4
+      },
+      "switchUpProb": 0.12
+    }
+  }
+}

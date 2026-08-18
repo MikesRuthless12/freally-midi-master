@@ -189,14 +189,45 @@ fn report_how_many_distinct_beats_each_artist_writes() {
     // frequency. ⚠ `percs` is NOT one of them: widening it from [1,2] to [2,5]
     // moved this number by exactly zero, because `shape` drops anything under
     // velocity 50 and the perc lanes generate below it.
+    //
+    // ⛔⛔ **AND THE HAT COLUMN IS PART OF THE VERDICT, NOT JUST THE PRINTOUT.**
+    // That last sentence is the whole reason: `shape` keeps only what is over
+    // velocity 50, so for a kit the research describes as *quiet* it can see
+    // nothing but the kick and the backbeat. Measured on this roster,
+    // 2026-08-17 — the R&B ballad producers whose entries say "drums low in the
+    // mix behind guitar and keys" (`az-yet`), "drums subordinate to the vocal by
+    // design" (`troy-taylor`), "brushed hats" (`joe`) and "hats absent or a
+    // single 16th pair" (`h-town`) author `hihat.velocities.main` between 0.10
+    // and 0.30, which is **13 to 38** after `fractional_velocity` multiplies by
+    // 127. Their whole hat lane is therefore invisible here, and they measured
+    // 15–19 beats while writing **119, 91, 44 and 106** distinct hat parts.
+    //
+    // ▶ [`hat_shape`] exists for exactly this reason and its own doc says so —
+    // "a measure nothing can move is not a measure", written after four models
+    // had their `base` changed on the strength of a number that could not
+    // respond to `fillDensity`. It was computed, printed, and then not used. A
+    // model that reaches the floor on *either* reading has not collapsed toward
+    // one beat: a producer pressing Generate gets a different hat every time,
+    // which is the thing Mike reported missing on 2026-08-05.
+    //
+    // ⚠ **This does not excuse a frozen kit, and it did not have to.** A model
+    // whose hat is a single-value `continuous` stream at the 16th has no gaps
+    // left for `fillDensity` to fill, so the lane writes one identical stream at
+    // every seed and *both* readings stay low. `bela-fleck` and `bryan-sutton`
+    // were in exactly that state at 7 and 9, and this gate still failed them
+    // until their data was fixed: both entries name two note values — "a
+    // continuous **8th- or 16th-note** arpeggio", "continuous 8ths/16ths" — and
+    // authoring `hihat.base` as the weighted choice the research states took
+    // them to 60 and 62.
     const FLOOR: usize = 20;
     let thin: Vec<&(String, usize, usize, usize)> = rows
         .iter()
-        .filter(|(_, beats, _, _)| *beats < FLOOR)
+        .filter(|(_, beats, _, hats)| *beats < FLOOR && *hats < FLOOR)
         .collect();
     assert!(
         thin.is_empty(),
-        "these models barely vary their beat over {SEEDS} seeds (floor {FLOOR}): {thin:?}"
+        "these models barely vary their beat over {SEEDS} seeds on either reading \
+         (floor {FLOOR}), as (model, beat, kick, hat): {thin:?}"
     );
 }
 

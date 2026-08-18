@@ -1,0 +1,313 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "alison-krauss-and-union-station",
+  "type": "artist",
+  "name": "Alison Krauss & Union Station",
+  "aliases": [
+    "alison krauss and union station",
+    "alison krauss",
+    "union station",
+    "akus"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "country-train"
+  ],
+  "era": "1990-2011",
+  "genres": [
+    "country-train",
+    "bluegrass",
+    "country"
+  ],
+  "relatedGenres": [
+    "country-train",
+    "country-pop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-train — Alison Krauss & Union Station",
+    "Wikipedia — Alison Krauss (https://en.wikipedia.org/wiki/Alison_Krauss)",
+    "https://www.bpmdatabase.com/music/search/?artist=Alison+Krauss",
+    "Wikipedia — Bluegrass music (https://en.wikipedia.org/wiki/Bluegrass_music)",
+    "Mix — Miking Up Merlefest (https://www.mixonline.com/live-sound/venues/miking-up-merlefest-2026)"
+  ],
+  "notes": "The commercial centre of bluegrass crossover, and flagship here because it is the highest-confidence entry in the section — the research rates it high-medium with \"era, lineup, instrument roles, tempo distribution and the album-construction habit all sourced\". The catalogue is stated as ballad-dominant, \"65–115 for most singles, with the fast train-beat/breakdown material at 150–190\", so `bpm` spans 65–190 with `mode` at 104 inside the ballad mass rather than at the \"Gone, Gone, Gone\" 190 pole. The drum block is the entry's most specific instruction and it is the opposite of the radio wing: \"brushes and low-velocity sticks, a drummer used as texture ... the fast cuts run a brushed straight 8th/16th stream with the kick on 1 only or absent ... Model the drums at low absolute velocity with a compressed accent-to-ghost ratio — brush grammar, not stick grammar.\" So `velocityTiers` are the quietest in this section (accent 78–94 against ghost 38–54, a ratio near the top of the grammar block's 25–45% band because brushes compress the range), `kick.anchors` is [\"1\"] alone at [1,2] density, the hat is on quarters and not continuous, and fills are pushed out to 16/16. The section states the rule this whole wing turns on: \"the train beat is an ensemble function, not a drum part\" — the banjo roll carries the continuous subdivision, the mandolin chop supplies the backbeat, and the upright bass supplies the two-beat kick. On the breakdown material that distribution is what plays, so `percs` carries rim and shaker rather than a ride. Harmony follows the stated I–IV–V \"with a IV–I plagal cadence habit and modal ♭VII colour from the dobro and mandolin\", and the harmonic rhythm leans to two bars per chord for the ballad mass. The melody is the identity: \"pure-toned soprano, very low ornamentation, extremely accurate pitch centre, narrow range with long sustained notes; the absence of vibrato and melisma is the identity\" — hence `chordToneBias` 0.9, `octaveJumpProb` 0.01, a 3–6 density and legato articulation. The dobro is \"the primary answering voice and the reason this band's records read as bluegrass rather than folk\", which is the countermelody at −12 weighted to answer_lick. ⚠ INFERRED: the exact velocity numbers, `percs` contents, the −4 ms anticipated offset and every melody, countermelody and bassline number — the entry gives roles and adjectives, not figures. ⚠ The tempo readings carry [LOW-CONF] as a class. ⚠ The documented album-construction habit — \"start from one foundational track and build the others to match its mood\" — is a project-level constraint this schema has no field for, and is recorded here rather than encoded.",
+  "session": {
+    "bpm": {
+      "min": 65,
+      "max": 190,
+      "mode": 104
+    },
+    "keys": {
+      "values": [
+        "G",
+        "A",
+        "Bb",
+        "D"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "major_pentatonic"
+      ],
+      "weights": [
+        6,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.5
+    },
+    "humanize": {
+      "quantizeStrength": 0.9,
+      "velocityVar": 0.1,
+      "timingJitterMs": {
+        "kick": 3,
+        "snare": 3,
+        "closedHat": 3,
+        "perc": 4
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        78,
+        94
+      ],
+      "main": [
+        58,
+        70
+      ],
+      "ghost": [
+        38,
+        54
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        1,
+        2
+      ],
+      "anchors": [
+        "1"
+      ]
+    },
+    "snare": {
+      "offGridMs": -4
+    },
+    "hihat": {
+      "base": "4th",
+      "continuous": false,
+      "fillDensity": 0.04,
+      "openHat": {
+        "prob": 0.04,
+        "pos": [
+          "4"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0.02
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "rim",
+        "perc"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "gainOffsetDb": -9
+    },
+    "fills": {
+      "smallEveryBars": 16,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "I"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "bVII",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "IV",
+          "I"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 3
+      }
+    ],
+    "extensions": {
+      "triad": 0.8,
+      "seventh": 0.18,
+      "ninth": 0.02
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        3,
+        4
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      64,
+      86
+    ],
+    "densityPerBar": [
+      3,
+      6
+    ],
+    "intervals": {
+      "step": 0.84,
+      "third": 0.14,
+      "leap": 0.02
+    },
+    "contour": {
+      "riff": 0.14,
+      "descend": 0.4,
+      "arch": 0.46
+    },
+    "chordToneBias": 0.9,
+    "octaveJumpProb": 0.01,
+    "articulation": "legato",
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        2,
+        3
+      ]
+    },
+    "timbreHint": "dobro_and_fiddle"
+  },
+  "countermelody": {
+    "registerOffset": -12,
+    "densityRatio": 0.5,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.88,
+    "register": [
+      28,
+      43
+    ],
+    "passingTones": [
+      "P5",
+      "M2",
+      "M6"
+    ],
+    "anticipationProb": 0.22
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": 16,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": 8
+    },
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.1,
+        "beats": 1
+      },
+      "switchUpProb": 0.03
+    }
+  }
+}

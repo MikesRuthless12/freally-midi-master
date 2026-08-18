@@ -1,0 +1,352 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "salt-n-pepa",
+  "type": "artist",
+  "name": "Salt-N-Pepa",
+  "aliases": [
+    "salt n pepa",
+    "salt and pepa",
+    "spinderella"
+  ],
+  "tier": "standard",
+  "extends": [
+    "rnb-2000s"
+  ],
+  "era": "1993-1997",
+  "genres": [
+    "rnb-2000s",
+    "rnb",
+    "rap"
+  ],
+  "relatedGenres": [
+    "rnb-2000s",
+    "boom-bap",
+    "funk",
+    "pop-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 rnb-2000s — Salt-N-Pepa",
+    "bpmdatabase — Salt-N-Pepa (https://www.bpmdatabase.com/music/search/?artist=Salt-N-Pepa)",
+    "songdata — En Vogue (https://songdata.io/search?query=En+Vogue)"
+  ],
+  "notes": "Rap group turned R&B-pop crossover; the research windows this entry 1993–1997 only (Very Necessary through Brand New) for Gate 2, and that window is used verbatim. Tempo is \"87–103 straight (backbeat 2&4)\" with the sourced reading of the En Vogue collaboration at 87, so the mode sits there. The drum deltas are the entry's: \"a sampled funk break as the spine\" is a lightly-swung kit with a low quantize strength and wide jitter rather than a programmed grid, \"the backbeat doubled with a clap on 2&4\" is a clap stack with a real offset, and \"16th hats with an open hat on the last 8th of the bar\" is why `openHat.pos` is pinned to `4&` at a probability well above the parent's. Harmony is \"single-chord or two-chord funk vamps over the loop; the sung hook (often guested) supplies all harmonic motion\", so the families are one- and two-chord, the major mode leads (the sourced key is F major) and `chordDurationBeats` runs long. \"Note density low — the rap carries the rhythm, the hook carries the pitch\" is the low melody density, the high `emptyBarBias` and the small motif pitch count. ⚠ The INFERRED parameters are the velocity and density numbers, `swing.amount` 0.56 and the bass block; the research marks the percussion garnish (tambourine, cowbell on offbeats) `[LOW-CONF]`, and that mark is why those lanes are authored at low gain rather than as a signature. ⚠ `session.keys` is part-sourced: the entry names `F`, and the remaining values `C`, `Gm`, `Bb`, together with all 4 weights, are INFERRED rather than read from the entry. ⚠ **The countermelody reached 977/1000 distinct answers against a floor of 980 (2026-08-17, counter variety floor).** `melody.emptyBarBias` came down from 0.16 to 0.1. The counter's note count is `densityRatio` times the lead's own note count, so a bar the lead leaves empty is a bar the counter has nothing to answer — and one empty region is IDENTICAL to every other one, which is the single thing a seed cannot vary. Measured across this roster the models failing this gate average 0.150 here against 0.030 for the models that pass. ⚠ The value that moved here is INFERRED rather than a researched claim — the entry's Melody/chords line reads \"single-chord or two-chord funk vamps over the loop; the sung hook (often guested) supplies all harmonic motion. Note density low — the rap carries the rhythm, the hook carries the pitch.\", and every claim in it still holds after the change.",
+  "session": {
+    "bpm": {
+      "min": 87,
+      "max": 103,
+      "mode": 90
+    },
+    "halfTime": false,
+    "keys": {
+      "values": [
+        "F",
+        "C",
+        "Gm",
+        "Bb"
+      ],
+      "weights": [
+        4,
+        2,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.56
+    },
+    "humanize": {
+      "quantizeStrength": 0.62,
+      "velocityVar": 0.24,
+      "timingJitterMs": {
+        "kick": 8,
+        "snare": 8,
+        "clap": 7,
+        "closedHat": 8,
+        "tambourine": 10
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.34,
+      "tresilloBias": 0.1,
+      "andOf4EveryOtherBar": 0.2
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "stack": [
+        "clap"
+      ],
+      "layerClapOffsetMs": [
+        2,
+        6
+      ],
+      "ghost": {
+        "prob": 0.18,
+        "pos": [
+          "2a",
+          "4a"
+        ],
+        "vel": [
+          0.18,
+          0.32
+        ]
+      },
+      "offGridMs": [
+        2,
+        6
+      ]
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.44,
+      "velocities": {
+        "main": [
+          0.62,
+          0.82
+        ],
+        "ghost": [
+          0.28,
+          0.46
+        ]
+      },
+      "openHat": {
+        "prob": 0.62,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.14
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "cowbell",
+        "shaker"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "placement": "offbeat",
+      "gainOffsetDb": -10
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "I",
+          "bVII"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.5,
+      "seventh": 0.42,
+      "ninth": 0.08
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        52,
+        82
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        5,
+        3,
+        1
+      ]
+    },
+    "chordDurationBeats": [
+      8,
+      24
+    ]
+  },
+  "melody": {
+    "register": [
+      61,
+      81
+    ],
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "intervals": {
+      "step": 0.7,
+      "third": 0.22,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.42,
+      "descend": 0.34,
+      "arch": 0.24
+    },
+    "chordToneBias": 0.78,
+    "octaveJumpProb": 0.05,
+    "motifPitchCount": [
+      3,
+      5
+    ],
+    "emptyBarBias": 0.1,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "clean_guitar"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.3,
+    "styles": {
+      "values": [
+        "answer_lick"
+      ],
+      "weights": [
+        1
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.72,
+    "rhythm": "independent_riff",
+    "register": [
+      30,
+      46
+    ],
+    "glideProb": 0.05,
+    "passingTones": [
+      "P5",
+      "m7",
+      "P4",
+      "M2"
+    ],
+    "anticipationProb": 0.35
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 8,
+      "verse": [
+        8,
+        16
+      ],
+      "chorus": 8,
+      "bridge": 8,
+      "outro": 8
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.65,
+        "beats": 4
+      },
+      "switchUpProb": 0.18
+    }
+  }
+}

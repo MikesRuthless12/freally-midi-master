@@ -1,0 +1,254 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "toby-keith",
+  "type": "artist",
+  "name": "Toby Keith",
+  "aliases": [
+    "toby keith",
+    "tobykeith",
+    "tobey keith"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-pop"
+  ],
+  "era": "1993-2011",
+  "genres": [
+    "country-pop",
+    "country",
+    "country rock"
+  ],
+  "relatedGenres": [
+    "country-pop",
+    "country-train",
+    "pop-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-pop — Toby Keith",
+    "bpmdatabase (https://www.bpmdatabase.com/music/search/?artist=Toby+Keith)",
+    "songdata.io (https://songdata.io/search?query=Toby+Keith)",
+    "Wikipedia — James Stroud (https://en.wikipedia.org/wiki/James_Stroud)"
+  ],
+  "notes": "Barroom-anthem country — loud, chant-hook, rock-guitar-forward. The kit is authored from the entry's own claim that \"his producer was himself a career session drummer, and the records show it — the groove is the arrangement's spine and fills are placed only at 4- and 8-bar boundaries\": quarter-note kick under choruses (four-on-the-floor-adjacent), 8th hats, crash accents on chorus downbeats, and a fill grid pinned to 4/8. Harmony is the stated \"I–IV–V and I–♭VII–IV–I for the rock cuts,\" plus the anthem device the entry names outright — \"the anthems park on a I–V two-chord vamp for whole verses,\" which is why a two-chord family and a `vamp`-weighted harmonic rhythm are authored. The melody is chant-shaped as described: \"repeated-note verses in a narrow fourth or fifth, chorus built on a single rhythmic cell repeated,\" so the register is narrow, the interval mix is step-heavy and `twoBarCellRepeat` is high. ⚠ Confidence is medium (research: high-medium) and the per-track key/tempo readings are marked [LOW-CONF] there. ⚠ The INFERRED parameters are the velocity tiers, the cell-repeat value and the countermelody ratio — \"rock-sized backbeat,\" \"note density low\" and \"steel used as colour rather than lead\" are directions, and 108–127, 0.55 and 0.36 are this author's reading of them. ⚠ **The countermelody reached 978/1000 distinct answers against a floor of 980 (2026-08-17, counter variety floor), and every other lever this gate has was already clean here** — no empty-bar bias, no one-bar phrase length, and no lead allowed to thin below two notes a bar. What was left was the style pool: `generators::counter` can play five answer shapes and this block asked for 2. `octave_echo` is added at weight 2 because the entry already names it — \"melodies are chant-shaped: repeated-note verses in a narrow fourth or fifth, chorus built on a single rhythmic cell — with a group-vocal (gang-shout) layer added on the final chorus\" — and a gang-shout layer is the crowd singing the lead back, i.e. a transposed copy of it, which is `octave_echo`. ⚠ The weight is INFERRED; the layer it weights is not.",
+  "session": {
+    "bpm": {
+      "min": 68,
+      "max": 141,
+      "mode": 112
+    },
+    "keys": {
+      "values": [
+        "A",
+        "D",
+        "G",
+        "C",
+        "F"
+      ],
+      "weights": [
+        3,
+        3,
+        3,
+        3,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "major_pentatonic"
+      ],
+      "weights": [
+        6,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.9,
+      "velocityVar": 0.13
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        108,
+        127
+      ],
+      "main": [
+        88,
+        102
+      ],
+      "ghost": [
+        30,
+        44
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "syncopation": 0.08,
+      "offbeat8thShare": 0.06
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.07,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.18,
+          0.28
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.22,
+      "openHat": {
+        "prob": 0.36,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "crash",
+        "tambourine",
+        "tomLow"
+      ],
+      "densityPerBar": [
+        1,
+        2
+      ],
+      "gainOffsetDb": -4
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8,
+      "fillBeforeSection": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "bVII",
+          "IV",
+          "I"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.84,
+      "seventh": 0.14,
+      "ninth": 0.02
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        4,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      55,
+      72
+    ],
+    "densityPerBar": [
+      2,
+      5
+    ],
+    "intervals": {
+      "step": 0.78,
+      "third": 0.18,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.34,
+      "descend": 0.28,
+      "arch": 0.38
+    },
+    "chordToneBias": 0.88,
+    "octaveJumpProb": 0.02,
+    "twoBarCellRepeat": 0.55,
+    "timbreHint": "crunch_electric"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.36,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.92,
+    "rhythm": "mirror_kick",
+    "register": [
+      28,
+      42
+    ],
+    "passingTones": [
+      "P5",
+      "M2"
+    ],
+    "anticipationProb": 0.06
+  }
+}

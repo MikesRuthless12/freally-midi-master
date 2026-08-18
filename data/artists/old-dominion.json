@@ -1,0 +1,221 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "old-dominion",
+  "type": "artist",
+  "name": "Old Dominion",
+  "aliases": [
+    "old dominion",
+    "olddominion",
+    "old dominon"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-pop"
+  ],
+  "era": "2015-2021",
+  "genres": [
+    "country-pop",
+    "country",
+    "pop rock"
+  ],
+  "relatedGenres": [
+    "country-pop",
+    "pop-2020s",
+    "pop-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-pop — Old Dominion",
+    "bpmdatabase (https://www.bpmdatabase.com/music/search/?artist=Old+Dominion)",
+    "Wikipedia — Shane McAnally (https://en.wikipedia.org/wiki/Shane_McAnally)"
+  ],
+  "notes": "Band-written, conversational, pop-craft country — \"BPM 56–102 straight on 2&4 — the slowest-clustered band in the section,\" so this model's ceiling sits below the genre's own mode. The drums carry a stated negative as their identity: \"a very low fill count. Model minimal variation — these records are groove-static by design,\" over \"a live kit with a programmed clap or snap doubling the snare, 16th shaker, cross-stick verses.\" That is the longest fill spacing here with `fillBeforeSection` off and a hat fill near the floor. Harmony is intentionally flat and the entry says why: \"I–V–vi–IV and I–IV–I–V as short loops, with ii–V turnarounds; the harmony is intentionally plain so the lyric lands.\" The bass is the one busy part: \"syncopated and melodic (pop-rock rather than country root-fifth), mixed forward,\" so root-following drops well below the boom-chick default. Melody is \"mid-tenor, talk-sung verses at conversational density opening to a repeated short chorus cell; group harmony on the hook,\" and the entry adds that \"the guitar riff is the record's identity as often as the vocal hook,\" which is the counter's answer-and-arp weighting. ⚠ The light synth sub on the later singles is reinforcement under a live bass, so no `drums.bass808` block is authored. ⚠ Confidence is medium, matching the research; the per-track readings are [LOW-CONF]. ⚠ The INFERRED parameters are the snap offsets, the perc density and the counter ratio.",
+  "session": {
+    "bpm": {
+      "min": 56,
+      "max": 102,
+      "mode": 80
+    },
+    "scales": {
+      "values": [
+        "major",
+        "major_pentatonic"
+      ],
+      "weights": [
+        8,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.91,
+      "velocityVar": 0.1,
+      "timingJitterMs": {
+        "kick": 2,
+        "snare": 2,
+        "snap": 2,
+        "shaker": 3
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "syncopation": 0.13,
+      "offbeat8thShare": 0.15
+    },
+    "snare": {
+      "crossStickVerses": true,
+      "layered": true,
+      "layerClapOffsetMs": [
+        1,
+        3
+      ],
+      "ghost": {
+        "prob": 0.06,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.16,
+          0.28
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.07,
+      "openHat": {
+        "prob": 0.09,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "snap",
+        "rim"
+      ],
+      "densityPerBar": [
+        4,
+        7
+      ],
+      "gainOffsetDb": -5,
+      "tambourine": false
+    },
+    "fills": {
+      "smallEveryBars": 16,
+      "bigEveryBars": 16,
+      "fillBeforeSection": false
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 3
+      }
+    ],
+    "extensions": {
+      "triad": 0.74,
+      "seventh": 0.22,
+      "ninth": 0.04
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        5,
+        4
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      57,
+      79
+    ],
+    "densityPerBar": [
+      3,
+      8
+    ],
+    "intervals": {
+      "step": 0.82,
+      "third": 0.16,
+      "leap": 0.02
+    },
+    "contour": {
+      "riff": 0.3,
+      "descend": 0.32,
+      "arch": 0.38
+    },
+    "chordToneBias": 0.8,
+    "octaveJumpProb": 0.03,
+    "twoBarCellRepeat": 0.62
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.64,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        4,
+        4
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.48,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      47
+    ],
+    "passingTones": [
+      "P5",
+      "M2",
+      "M3",
+      "M6"
+    ],
+    "anticipationProb": 0.4
+  }
+}

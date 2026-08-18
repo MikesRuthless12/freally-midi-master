@@ -1,0 +1,328 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "sam-smith",
+  "type": "artist",
+  "name": "Sam Smith",
+  "aliases": [
+    "sam smith",
+    "samuel frederick smith",
+    "samsmith",
+    "smith"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2020s"
+  ],
+  "era": "2012-present",
+  "genres": [
+    "pop",
+    "pop-2020s",
+    "soul",
+    "gospel"
+  ],
+  "relatedGenres": [
+    "pop-2020s",
+    "rnb-2000s",
+    "house",
+    "neo-soul"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2020s — Sam Smith",
+    "Wikipedia — Sam Smith (https://en.wikipedia.org/wiki/Sam_Smith)",
+    "Wikipedia — Fraser T Smith (https://en.wikipedia.org/wiki/Fraser_T_Smith)",
+    "Wikipedia — Omer Fedi (https://en.wikipedia.org/wiki/Omer_Fedi)"
+  ],
+  "notes": "Gospel-inflected torch balladry that later turns to four-on-the-floor pop, encoded on the ballad spine because that is what the entry describes in parameters: \"ballads run on a kick, a reverbed snare on 3 and a tambourine, entering at the second verse\", so `halfTime` is true at `halftime_3` and the tempo band is the stated 60—90. Because the placement matches the parent genre, the separation is carried elsewhere: a kick density of 1—2, a large-reverb soft-transient snare, `hihat.continuous` false at `fillDensity` 0.08 with the roll vocabulary off, a `tambourine`-led perc list, and fills pushed to 16 bars. No `bass808` block — \"no 808 in the ballad mode — organ pedal and upright/electric bass on roots\" — so the bassline is a root pedal at 0.90 with a low `anticipationProb`. Harmony encodes the entry's two named devices: \"a strong plagal (IV—I) cadence habit\" is the top-weighted IV—I family and \"gospel-derived passing chords\" is the raised `ninth` share with a real `chordDurationBeats` window. Melody follows \"long-phrased, legato, and ascending to a sustained peak, with melisma at cadences\" — `long_arc`, 4- and 8-bar phrases, an arch contour and `endVariation` — and the \"massed choir stacks\" that the entry calls the signature countermelody are `sustain_pad` at a high density. ⚠ `confidence` is medium and the research says the parameters are \"lane-conventional\": every drum probability, the humanize numbers, the harmonic weights and `bpm.mode` 75 (the midpoint of the stated 60—90 ballad band) are INFERRED. ⚠ The entry's [LOW-CONF] mark on the falsetto-ceiling claim is repeated here as the reason the melody register top is a reading. ⛔ **The bass is `mirror_kick` rather than `reese_sustain`, and that is an engine limit rather than a reading of the record.** `reese_sustain` is the only rhythm `bass.rs` reads that holds a note, and it emits one note per chord — TASK-162, still open — so this model measured **344 distinct basslines in 1,000 seeds** on it against `bass.rs`'s floor of 500. `mirror_kick` with a high root lock is the roster-wide substitution for a sustained sub (`dmx`, `coolio`, `krs-one`, `mobb-deep` all record the same one), and over a kick that plays a ballad kick on 1 with a `3` it reads as held at this tempo. The research is *\"no 808 in the ballad mode — organ pedal and upright/electric bass on roots\"*, and the `P4` already beside `P5` in `passingTones` is the sourced half: *\"a strong plagal (IV–I) cadence habit and gospel-derived passing chords\"*. ⚠ **INFERRED:** `followRootsProb` 0.90 and `anticipationProb` 0.16 are lane-conventional rates for an upright bass under gospel passing chords, not sourced ones. ⛔ **`cellShapes` came out (2026-08-17, bassline variety floor).** It was `[[\"1\"], [\"1\", \"5\"]]`, and the first of those is the root and nothing else — a one-degree cell of the root says exactly what `followRootsProb` already says. `bass.rs` prefers a cell over `passingTones`, so half the seeds played every note on the root with `followRootsProb` unreadable, and on the other half the model's authored `P5`/`P4` were never read either. Measured: **925 distinct basslines in 1,000 seeds**, a 0.925 share against `bass.rs`'s 0.95. Nothing sourced was lost: the entry gives the bass *\"no 808 in the ballad mode — organ pedal and upright/electric bass on roots\"* and names no figure, and the fifth the cell reached for plus the plagal fourth are both already in `passingTones`, which is what the engine reads with no cell present. Rhythm, register, root lock and anticipation are untouched.",
+  "session": {
+    "bpm": {
+      "min": 60,
+      "max": 90,
+      "mode": 75
+    },
+    "halfTime": true,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "major",
+        "dorian"
+      ],
+      "weights": [
+        4,
+        4,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.78,
+      "velocityVar": 0.2,
+      "timingJitterMs": {
+        "kick": 8,
+        "snare": 9,
+        "tambourine": 10
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        1,
+        2
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3",
+      "syncopation": 0.14,
+      "tresilloBias": 0.02,
+      "offbeat8thShare": 0.06
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "reverb": "large",
+      "transient": "soft",
+      "stack": [
+        "snare"
+      ],
+      "ghost": {
+        "prob": 0.14,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.14,
+          0.28
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.08,
+      "velocities": {
+        "main": [
+          0.38,
+          0.6
+        ],
+        "ghost": [
+          0.14,
+          0.3
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0
+      },
+      "openHat": {
+        "prob": 0.08,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tambourine",
+        "shaker"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "placement": "offbeat",
+      "gainOffsetDb": -7
+    },
+    "fills": {
+      "smallEveryBars": 16,
+      "bigEveryBars": 16,
+      "snareRollLadder": false
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "IV",
+          "I"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "iv",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "vi",
+          "IV",
+          "I"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "iv",
+          "i"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.38,
+      "seventh": 0.4,
+      "ninth": 0.22
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        76
+      ]
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        4,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      6,
+      16
+    ]
+  },
+  "melody": {
+    "register": [
+      58,
+      86
+    ],
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "structure": "long_arc",
+    "intervals": {
+      "step": 0.66,
+      "third": 0.26,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.12,
+      "descend": 0.3,
+      "arch": 0.58
+    },
+    "chordToneBias": 0.82,
+    "octaveJumpProb": [
+      0.1,
+      0.22
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "articulation": "legato",
+    "endVariation": true,
+    "timbreHint": "church_organ"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.5,
+      0.75
+    ],
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "octave_echo"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.9,
+    "rhythm": "mirror_kick",
+    "register": [
+      26,
+      46
+    ],
+    "glideProb": 0.01,
+    "passingTones": [
+      "P5",
+      "P4"
+    ],
+    "anticipationProb": 0.16,
+    "cellShapes": null
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": 16,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": [
+        4,
+        8
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.75,
+        "beats": 4
+      },
+      "switchUpProb": 0.04
+    }
+  }
+}

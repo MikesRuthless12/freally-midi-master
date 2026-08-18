@@ -1,0 +1,290 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "bloodshy-and-avant",
+  "type": "producer",
+  "name": "Bloodshy & Avant",
+  "aliases": [
+    "bloodshy and avant",
+    "bloodshy avant",
+    "bloodshy"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "2001-2008",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "producer"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "dance-pop",
+    "uk-garage"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — Bloodshy & Avant",
+    "Wikipedia — Bloodshy & Avant (https://en.wikipedia.org/wiki/Bloodshy_%26_Avant)",
+    "Wikipedia — \"Toxic\" (https://en.wikipedia.org/wiki/Toxic_(song))"
+  ],
+  "notes": "The weird, sample-collage wing of Swedish pop: 100–143 straight, and the research is precise that the groove is \"club-tempo **stepping breakbeats** rather than 4-on-the-floor\" — which is why the kick sits on 1 with the \"&\" of 3 rather than on the floor, at a real syncopation, while the snare/clap holds 2&4. The kit is \"deliberately small and dry, contrasted against wide effects\", so the velocity tier is modest and the percussion carries a −6 dB offset; \"tape-echo'd percussion (Roland Space Echo) and vintage-mic'd hand percussion\" is the conga/bongo/shaker block, which is unusual company for a Stockholm pop board and is the third delta. The harmonic signature is documented: minor tonic with **modal borrowing in the pre-chorus**, the example being the fourth mode of G harmonic minor — a raised-4th minor colour — so `harmonic_minor` carries real weight; there is no legal scale name for Ukrainian Dorian and the parent collection is the honest substitute. The bass is analogue and \"short, filtered, gapped around the kick\", which is `independent_riff` at 0.75 with a low anticipation, and the hooks are \"often *sampled or re-recorded strings* rather than synth leads\", which is the string counter and the `timbreHint`. ⚠ The **INFERRED** parameters are every drum probability and `bpm.mode` 120; the gear, studio, mode and sample-handling are all sourced, the numbers are not.",
+  "session": {
+    "bpm": {
+      "min": 100,
+      "max": 143,
+      "mode": 120
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "harmonic_minor",
+        "phrygian"
+      ],
+      "weights": [
+        5,
+        3,
+        1
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.88,
+      "velocityVar": 0.16,
+      "timingJitterMs": {
+        "conga": 6,
+        "perc": 7,
+        "shaker": 6
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        98,
+        114
+      ],
+      "main": [
+        72,
+        88
+      ],
+      "ghost": [
+        28,
+        40
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.46,
+      "tresilloBias": 0.22
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.2,
+        "pos": [
+          "2a",
+          "4e"
+        ],
+        "vel": [
+          0.18,
+          0.32
+        ]
+      },
+      "layerClapOffsetMs": [
+        2,
+        6
+      ]
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.64,
+      "velocities": {
+        "main": [
+          0.58,
+          0.8
+        ],
+        "ghost": [
+          0.22,
+          0.44
+        ]
+      },
+      "openHat": {
+        "prob": 0.2,
+        "pos": [
+          "2&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "32"
+          ],
+          "weights": [
+            3,
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.22
+      }
+    },
+    "percs": {
+      "lanes": [
+        "conga",
+        "bongo",
+        "shaker",
+        "perc"
+      ],
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "gainOffsetDb": -6
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 3
+      }
+    ],
+    "extensions": {
+      "triad": 0.48,
+      "seventh": 0.36,
+      "ninth": 0.16
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      60,
+      84
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "structure": "riff_loop",
+    "intervals": {
+      "step": 0.64,
+      "third": 0.26,
+      "leap": 0.1
+    },
+    "contour": {
+      "riff": 0.48,
+      "descend": 0.3,
+      "arch": 0.22
+    },
+    "chordToneBias": 0.68,
+    "octaveJumpProb": 0.12,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "halfStepDissonance": 0.12,
+    "timbreHint": "string_section"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.6,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.75,
+    "rhythm": "independent_riff",
+    "register": [
+      26,
+      44
+    ],
+    "glideProb": 0.05,
+    "passingTones": [
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.2
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 2,
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 16,
+      "bridge": 8,
+      "outro": 8
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.9,
+        "beats": 4
+      },
+      "switchUpProb": 0.16
+    }
+  }
+}

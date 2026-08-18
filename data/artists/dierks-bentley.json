@@ -1,0 +1,242 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "dierks-bentley",
+  "type": "artist",
+  "name": "Dierks Bentley",
+  "aliases": [
+    "dierks bentley",
+    "dierksbentley",
+    "dirks bentley"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-pop"
+  ],
+  "era": "2003-2018",
+  "genres": [
+    "country-pop",
+    "country",
+    "bluegrass crossover"
+  ],
+  "relatedGenres": [
+    "country-pop",
+    "country-train",
+    "pop-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-pop — Dierks Bentley",
+    "bpmdatabase (https://www.bpmdatabase.com/music/search/?artist=Dierks+Bentley)",
+    "Wikipedia — Ross Copperman (https://en.wikipedia.org/wiki/Ross_Copperman)"
+  ],
+  "notes": "Bluegrass-literate radio country — a rock/pop board with real acoustic-string playing underneath. Drums are the stated three-way split, and the radio setting is what this model encodes: \"the radio cuts use a modern layered kit (programmed clap on the backbeat, 16th shaker, sampled kick under the acoustic kick), the acoustic cuts drop to brushes and a two-beat, and the fastest cuts sit on a train beat.\" So the snare carries a clap layer, the shaker runs 16ths and the hat sits between the two subdivisions. Harmony follows the entry: \"I–IV–V and I–V–vi–IV, with I–♭VII–IV on the rockers and mixolydian vamps on the acoustic cuts.\" The most useful melodic claim is a compositional order rather than a shape: \"his co-producer's piano-first background shows up as chord-forward writing (choruses harmonised before they are melodised),\" which is why `chordToneBias` sits high while the line itself is \"mid-tenor, rhythmically busy, with a wide chorus leap.\" ⚠ The programmed sub on the radio cuts is described as reinforcement under a live bass, not as the low end, so no `drums.bass808` block is authored and the model keeps the genre's inherited live bass; the entry's upright on the bluegrass material is the low register floor instead. ⚠ Boundary flag: the fastest cuts (a 182 reading folding to ~91) are train-beat material and belong to `country-train`. ⚠ Confidence is medium (research: medium-high); the per-track readings are [LOW-CONF]. ⚠ The INFERRED parameters are the perc density, the clap offset and the counter ratio.",
+  "session": {
+    "bpm": {
+      "min": 71,
+      "max": 120,
+      "mode": 100
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "major_pentatonic"
+      ],
+      "weights": [
+        5,
+        4,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.9,
+      "velocityVar": 0.14,
+      "timingJitterMs": {
+        "kick": 2,
+        "snare": 3,
+        "clap": 3,
+        "shaker": 3
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "syncopation": 0.23,
+      "offbeat8thShare": 0.32
+    },
+    "snare": {
+      "crossStickVerses": true,
+      "layered": true,
+      "layerClapOffsetMs": [
+        2,
+        4
+      ],
+      "ghost": {
+        "prob": 0.14,
+        "pos": [
+          "1a",
+          "3a"
+        ],
+        "vel": [
+          0.18,
+          0.32
+        ]
+      }
+    },
+    "hihat": {
+      "base": {
+        "values": [
+          "16th",
+          "8th"
+        ],
+        "weights": [
+          4,
+          3
+        ]
+      },
+      "fillDensity": 0.32,
+      "openHat": {
+        "prob": 0.23,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "tambourine",
+        "rim"
+      ],
+      "densityPerBar": [
+        3,
+        7
+      ],
+      "gainOffsetDb": -4,
+      "tambourine": true
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8,
+      "fillBeforeSection": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "bVII",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.76,
+      "seventh": 0.21,
+      "ninth": 0.03
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      57,
+      81
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "intervals": {
+      "step": 0.68,
+      "third": 0.22,
+      "leap": 0.1
+    },
+    "contour": {
+      "riff": 0.22,
+      "descend": 0.28,
+      "arch": 0.5
+    },
+    "chordToneBias": 0.88,
+    "octaveJumpProb": 0.07,
+    "timbreHint": "dobro_and_banjo"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.6,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp",
+        "sustain_pad"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.8,
+    "register": [
+      26,
+      45
+    ],
+    "passingTones": [
+      "P5",
+      "M2",
+      "M3",
+      "M6"
+    ],
+    "anticipationProb": 0.24
+  }
+}

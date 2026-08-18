@@ -1,0 +1,359 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "twenty-one-pilots",
+  "type": "artist",
+  "name": "Twenty One Pilots",
+  "aliases": [
+    "twenty one pilots",
+    "twentyonepilots",
+    "top band",
+    "21 pilots"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2020s"
+  ],
+  "era": "2013-present",
+  "genres": [
+    "pop",
+    "pop-2020s",
+    "alt-pop",
+    "rap rock"
+  ],
+  "relatedGenres": [
+    "pop-2020s",
+    "emo-rap",
+    "pop-2000s",
+    "trap"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2020s — Twenty One Pilots",
+    "Wikipedia — Twenty One Pilots (https://en.wikipedia.org/wiki/Twenty_One_Pilots)",
+    "Wikipedia — Ricky Reed (https://en.wikipedia.org/wiki/Ricky_Reed)"
+  ],
+  "notes": "Piano-and-drums duo pop with rapped verses and genre switches. This model keeps the parent's half-time class because the research folds the flagship reading back onto it: \"the flagship mode reads ~170 and is best modelled as ~85 with a half-time backbeat on 3\", so `halfTime` is true at `halftime_3` and the encoded band is 85—140 with the mode at the folded 85. Because the placement matches the parent, the separation is carried entirely by the kit, and the entry gives it in full: \"a real, very busy live kit is the identity — ghost-noted snare, ride-driven verses, and rapid fills used as transitions rather than markers; the programmed tracks use trap hats over a live backbeat.\" So the ghost map is the densest in this section (five positions at 0.56), the `ride` lane leads the percs, `fills.smallEveryBars` is 2 — fills as transitions, not markers — and the humanize block is the loosest here at `quantizeStrength` 0.62, while the trap-hat half keeps 16th and 32nd rolls alive. The low end is neither a bass guitar nor an 808: \"no bass guitar in the core duo format — the low end is a detuned synth or bass-pedal keyboard plus the kick, which gives the records their hollow midrange\", which is `mirror_kick` at 0.96 with almost no passing motion and no `bass808` block. Harmony is \"4-bar minor loops with modal borrowing and abrupt relative-major switches\", so a major family sits beside the minor ones. Melody encodes \"fast syllabic rapped verses with sung, wide-interval choruses\" as a `densityPerBar` running 3—14, the widest in this section, with a raised `octaveJumpProb`; the counter is the ukulele or synth riff. Arrangement authors a high `switchUpProb` for the documented mid-song beat switch. ⚠ `confidence` is medium and the research says the tempo reading is \"folded from catalogue data\" and carries a [LOW-CONF] mark, repeated here; every drum probability and the humanize numbers are INFERRED, as is the entry's [LOW-CONF] falsetto/scream vocal claim. ⚠ **The bass is `mirror_kick` rather than the held `reese_sustain` the research describes** — *“no bass guitar in the core duo format — the low end is a detuned synth or bass-pedal keyboard plus the kick, which gives the records their hollow midrange.”* — and that is a limit of the engine rather than a reading of the record. `generators::phrase_spans` re-articulates a held span only when it runs longer than two bars, so over the four-bar clip `reese_sustain` writes at most four notes and cannot reach the 500-bassline floor `engine/tests/bass.rs` holds every model to. `mobb-deep`, `dmx` and `capone-n-noreaga` carry the same substitution for the same reason; `followRootsProb` stays where it was so the line still reads as roots under the chord. ⚠ **The countermelody reached 956/1000 distinct answers against a floor of 980 (2026-08-17, counter variety floor).** The 1-bar value came out of `melody.phraseBars`, which is now [2,4] weighted [4,2]. `generators::melody` writes a phrase's rhythm **once** and reuses it for every repeat, so a 1-bar phrase gives the whole clip one bar of rhythmic entropy — and the counter, whose onsets are read off the lead's, inherits that ceiling. Distinctness is combinatorial in the shape LENGTH, not in the option count. ⚠ The value that moved here is INFERRED rather than a researched claim — the entry's Melody/chords line reads \"piano, ukulele and synth over 4-bar minor loops; toplines alternate fast syllabic rapped verses with sung, wide-interval choruses. Countermelody is a synth or ukulele riff; harmony is close self-doubling.\", and every claim in it still holds after the change.",
+  "session": {
+    "bpm": {
+      "min": 85,
+      "max": 140,
+      "mode": 85
+    },
+    "halfTime": true,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "major"
+      ],
+      "weights": [
+        5,
+        3,
+        3
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.62,
+      "velocityVar": 0.26,
+      "timingJitterMs": {
+        "kick": 10,
+        "snare": 11,
+        "ride": 12,
+        "closedHat": 10,
+        "tom": 12
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        6
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.42,
+      "tresilloBias": 0.12,
+      "offbeat8thShare": 0.3
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "transient": "hard",
+      "reverb": "short",
+      "stack": [
+        "snare"
+      ],
+      "ghost": {
+        "prob": 0.56,
+        "pos": [
+          "1a",
+          "2e",
+          "2a",
+          "3a",
+          "4e"
+        ],
+        "vel": [
+          0.14,
+          0.36
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.6,
+      "velocities": {
+        "main": [
+          0.44,
+          0.94
+        ],
+        "ghost": [
+          0.16,
+          0.42
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "32"
+          ],
+          "weights": [
+            2,
+            2
+          ]
+        },
+        "positions": [
+          "pre_snare",
+          "phrase_end"
+        ],
+        "freqPerBar": 0.26
+      },
+      "openHat": {
+        "prob": 0.28,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "ride",
+        "tom",
+        "tomLow",
+        "crash"
+      ],
+      "densityPerBar": [
+        3,
+        7
+      ],
+      "placement": "any",
+      "gainOffsetDb": -2
+    },
+    "fills": {
+      "smallEveryBars": 2,
+      "bigEveryBars": 8
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "iv",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.66,
+      "seventh": 0.28,
+      "ninth": 0.06
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        51,
+        77
+      ]
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      55,
+      83
+    ],
+    "densityPerBar": [
+      3,
+      14
+    ],
+    "structure": "question_answer",
+    "intervals": {
+      "step": 0.68,
+      "third": 0.22,
+      "leap": 0.1
+    },
+    "contour": {
+      "riff": 0.42,
+      "descend": 0.3,
+      "arch": 0.28
+    },
+    "chordToneBias": 0.7,
+    "octaveJumpProb": [
+      0.12,
+      0.26
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    },
+    "endVariation": true,
+    "timbreHint": "ukulele"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.45,
+      0.7
+    ],
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.96,
+    "rhythm": "mirror_kick",
+    "register": [
+      26,
+      44
+    ],
+    "glideProb": 0.03,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.18,
+    "cellShapes": [
+      [
+        "1"
+      ],
+      [
+        "1",
+        "5"
+      ],
+      [
+        "1",
+        "1"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": [
+        8,
+        16
+      ],
+      "chorus": 8,
+      "bridge": 4,
+      "outro": 2
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "verse",
+          "chorus",
+          "bridge",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.6,
+        "beats": 2
+      },
+      "switchUpProb": 0.3
+    }
+  }
+}

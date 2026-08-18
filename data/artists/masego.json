@@ -1,0 +1,325 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "masego",
+  "type": "artist",
+  "name": "Masego",
+  "aliases": [
+    "masego",
+    "micah davis",
+    "traphousejazz"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "2018-present",
+  "genres": [
+    "rnb",
+    "soul",
+    "neo-soul",
+    "jazz"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "trap-soul",
+    "house",
+    "funk"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Masego",
+    "Wikipedia — Masego (https://en.wikipedia.org/wiki/Masego)",
+    "songdata.io — Musiq Soulchild (https://songdata.io/search?query=Musiq+Soulchild)",
+    "Wikipedia — Neo soul (https://en.wikipedia.org/wiki/Neo_soul)"
+  ],
+  "notes": "Virginia's self-described \"TrapHouseJazz\" — a saxophone-playing, self-producing singer who put a live horn over hip-hop drums. The drum block is the entry's sentence: \"hip-hop kit with a swung, finger-drummed feel — kick on 1 and the 16th before 3, clap/snare on 2&4, dense swung 16th hats with 32nd rolls, plus rimshots and fingersnaps. He performs live over the programmed track, so the kit is quantised but the overlay is not.\" That gives the densest hat in this batch (fill density 0.74 with 32nd and 32nd-triplet rolls at 0.34 a bar), a layered clap-snare on the grid, and a percussion overlay of rims and snaps. He is one of the seven models here with a genuine 808 — \"sub-808 with a long decay and occasional slides on the trap-facing cuts; upright-style synth bass walking in quarters on the jazz-facing ones. Both variants required\" — so `drums.bass808` is role **counter_riff** with a 0.16 slide probability, which keeps the sub *and* leaves the walking bass generating; role `bassline` would have deleted the jazz half of his catalogue. Harmony is \"jazz-derived and major-leaning — ii–V turnarounds, maj7/6-9 tonics, blues sevenths, and short 2-to-4-bar loops\". The identifying instrument is stated: \"alto/tenor saxophone as the lead melodic instrument — he plays it live over his own beats\", with vocals \"light mid-tenor, half-sung/half-spoken, low note-density, heavily doubled; the sax carries the actual melody and the ad-lib solos\" — so the melody is the horn line and the counter is the sax ad-lib at a high density. ⚠ The INFERRED parameters are all drum, 808 and melody numbers, and the second progression family — the entry writes the ii–V turnaround, and the I–IV loop is this author's reading of \"short 2-to-4-bar loops\" rather than a numeral it gave.",
+  "session": {
+    "bpm": {
+      "min": 84,
+      "max": 120,
+      "mode": 100
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "dorian",
+        "blues"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.74,
+      "velocityVar": 0.2,
+      "timingJitterMs": {
+        "kick": 3,
+        "snare": 4,
+        "snap": 9,
+        "rim": 9,
+        "bass808": 4
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "syncopation": 0.52,
+      "tresilloBias": 0.16
+    },
+    "snare": {
+      "layered": true,
+      "offGridMs": [
+        0,
+        4
+      ],
+      "ghost": {
+        "prob": 0.32,
+        "pos": [
+          "1a",
+          "2a",
+          "3a",
+          "4a"
+        ],
+        "vel": [
+          0.14,
+          0.34
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.74,
+      "velocities": {
+        "main": [
+          0.42,
+          0.7
+        ],
+        "ghost": [
+          0.14,
+          0.34
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32",
+            "16T",
+            "32T"
+          ],
+          "weights": [
+            3,
+            2,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "bar_4",
+          "pre_snare"
+        ],
+        "freqPerBar": 0.34,
+        "velocityRamp": true
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "snap",
+        "shaker"
+      ],
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "gainOffsetDb": -5
+    },
+    "bass808": {
+      "role": "counter_riff",
+      "sustain": "legato",
+      "slideProb": 0.16,
+      "slideIntervals": [
+        "P5",
+        "P8",
+        "M2"
+      ],
+      "register": [
+        24,
+        41
+      ],
+      "distortion": "light",
+      "monoCutSelf": true,
+      "portamentoMs": 60
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 3
+      }
+    ],
+    "extensions": {
+      "triad": 0.18,
+      "seventh": 0.54,
+      "ninth": 0.28
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        80
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "vamp",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      58,
+      84
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "structure": "question_answer",
+    "intervals": {
+      "step": 0.68,
+      "third": 0.24,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.3,
+      "descend": 0.34,
+      "arch": 0.36
+    },
+    "chordToneBias": 0.58,
+    "endVariation": true,
+    "octaveJumpProb": 0.12,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        2,
+        3
+      ]
+    },
+    "timbreHint": "alto_sax"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.6,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.5,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      46
+    ],
+    "glideProb": 0.06,
+    "passingTones": [
+      "P5",
+      "M2",
+      "m3",
+      "M3",
+      "M6"
+    ],
+    "anticipationProb": 0.4
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        8
+      ],
+      "verse": 8,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": [
+        4,
+        8
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "bridge",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.6,
+        "beats": 2
+      },
+      "switchUpProb": 0.3
+    }
+  }
+}

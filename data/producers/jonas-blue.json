@@ -1,0 +1,363 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "jonas-blue",
+  "type": "producer",
+  "name": "Jonas Blue",
+  "aliases": [
+    "jonas blue",
+    "guy james robin",
+    "jonasblue"
+  ],
+  "tier": "standard",
+  "extends": [
+    "dance-pop"
+  ],
+  "era": "2015-present",
+  "genres": [
+    "dance-pop",
+    "tropical-house",
+    "deep-house",
+    "producer"
+  ],
+  "relatedGenres": [
+    "dance-pop",
+    "house",
+    "pop-2020s",
+    "country-pop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 dance-pop — Jonas Blue",
+    "Wikipedia — Jonas Blue (https://en.wikipedia.org/wiki/Jonas_Blue)",
+    "Wikipedia — Fast Car (https://en.wikipedia.org/wiki/Fast_Car_(Jonas_Blue_song))",
+    "Tropical house (https://en.wikipedia.org/wiki/Tropical_house)",
+    "Splice — tips for producing tropical house (https://splice.com/blog/tips-to-for-producing-tropical-house/)"
+  ],
+  "notes": "A British tropical-house producer whose model is \"the downtempo four-on-the-floor remake of a known song\", and the entry gives more hard numbers than any other tropical entry here. The tempo is 110-120 \"with a documented 114 on the breakthrough\", so the mode is 114 — the slow end of the lane. The key is documented too: \"bright majors — the breakthrough sits in A major — with a diatonic four-chord loop (I-V-vi-IV family) and no modal borrowing… the most consonant harmonic profile in the section\", which is why the scale set is major and major-pentatonic only, with no minor and no borrowed degree anywhere in the families. And the vocal casting is documented as a range: \"toplines are cast for a mid-range, unforced voice (the breakthrough's lead sits inside roughly E3-F♯4)\", encoded literally as a melody register of 52-72 — the lowest lead register in this section, and the one number here that came from the research rather than from a reading. The kit is \"a soft four-square kick, clap or finger-snap on 2&4, offbeat open hat, and a steel-pan/shaker/bongo 16th bed; fills are percussion crescendos rather than snare rolls, and there is no white-noise riser — the lift is done by adding layers\", so the ladder is off, there is no riser lane at all, and the perc bed runs 5-8 hits a bar. His stated aim is \"a very kind of Swedish-y kind of sound… that's the influence behind that kind of lead synth line\" — a clean, mid-register plucked lead. ⚠ The percussion detail is tropical-house convention by the entry's own statement; the velocities and densities are INFERRED.",
+  "session": {
+    "bpm": {
+      "min": 110,
+      "max": 120,
+      "mode": 114
+    },
+    "keys": {
+      "values": [
+        "A",
+        "C",
+        "G",
+        "D",
+        "F"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "major_pentatonic"
+      ],
+      "weights": [
+        6,
+        3
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.9,
+      "velocityVar": 0.16,
+      "timingJitterMs": {
+        "kick": 2,
+        "clap": 3,
+        "snap": 4,
+        "closedHat": 4,
+        "openHat": 4,
+        "shaker": 6,
+        "conga": 6
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        92,
+        106
+      ],
+      "main": [
+        70,
+        84
+      ],
+      "ghost": [
+        28,
+        42
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        4,
+        4
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "syncopation": 0.02,
+      "offbeat8thShare": 0.04
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "layered": true,
+      "layerClapOffsetMs": [
+        2,
+        6
+      ],
+      "ghost": {
+        "prob": 0.12,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.2,
+          0.34
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.18,
+      "velocities": {
+        "main": [
+          0.5,
+          0.72
+        ],
+        "ghost": [
+          0.2,
+          0.38
+        ]
+      },
+      "openHat": {
+        "prob": 0.78,
+        "pos": [
+          "1&",
+          "2&",
+          "3&",
+          "4&"
+        ],
+        "perBar": [
+          2,
+          4
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "bar_4"
+        ],
+        "freqPerBar": 0.07
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "conga",
+        "woodblock",
+        "snap"
+      ],
+      "densityPerBar": [
+        5,
+        8
+      ],
+      "placement": "offbeat",
+      "gainOffsetDb": -3
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 16,
+      "snareRollLadder": false,
+      "fillBeforeSection": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 6
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.58,
+      "seventh": 0.32,
+      "ninth": 0.1
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        55,
+        84
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        6,
+        3
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      52,
+      72
+    ],
+    "densityPerBar": [
+      4,
+      8
+    ],
+    "structure": "question_answer",
+    "intervals": {
+      "step": 0.78,
+      "third": 0.2,
+      "leap": 0.02
+    },
+    "contour": {
+      "riff": 0.32,
+      "descend": 0.28,
+      "arch": 0.4
+    },
+    "chordToneBias": 0.9,
+    "halfStepDissonance": 0,
+    "octaveJumpProb": 0.02,
+    "articulation": "legato",
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        4
+      ]
+    },
+    "timbreHint": "marimba_pluck"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.55,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.88,
+    "rhythm": "offbeat_8ths",
+    "register": [
+      28,
+      50
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5",
+      "M2",
+      "M3"
+    ],
+    "anticipationProb": 0.24
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 8,
+      "verse": 16,
+      "prechorus": 8,
+      "hook": 16,
+      "bridge": 16,
+      "outro": 8
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "hook",
+          "bridge",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "hook",
+          "bridge",
+          "hook",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.35,
+        "beats": 2
+      },
+      "switchUpProb": 0.08
+    }
+  }
+}

@@ -1,0 +1,292 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "alanis-morissette",
+  "type": "artist",
+  "name": "Alanis Morissette",
+  "aliases": [
+    "alanis morissette",
+    "alanismorissette",
+    "alanis morrisette"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "1995-2002",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "alt pop"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "pop-2020s",
+    "lofi-hiphop"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — Alanis Morissette",
+    "bpmdatabase — Alanis Morissette (https://www.bpmdatabase.com/music/search/?artist=Alanis+Morissette&title=)",
+    "Wikipedia — Glen Ballard (https://en.wikipedia.org/wiki/Glen_Ballard)"
+  ],
+  "notes": "Confessional alt-pop on a programmed/played hybrid bed: 73–105 straight with the backbeat on 2&4 and uptempos reaching 118–130, so the session spans 73–130. The harmony is modal rather than functional — \"riff-based two- and three-chord vamps (I–IV–V or i–VII–IV) with a droning tonic\" and \"open-string guitar tunings keep a pedal note under changes\" — which is `maxChords` 3, a vamp-weighted harmonic rhythm and mixolydian in the scales. Three drum deltas are quoted: \"kick on 1 and the '&' of 2\", \"snare 2&4 played hard with a dry room\" (a high accent tier with a tight ghost), and the closing constraint — \"the fill vocabulary is minimal — a crash, not a roll\" — which puts the hat rolls at 0.03, the fills at every 16 bars and a crash in the percs. The melody is the entry's strongest claim and is encoded as written: it is \"a *rhythmic* instrument — long syllable-dense phrases that push against the barline, small pitch range, spoken-to-sung contour\", so the density runs 6–12 in a 20-semitone band with long phrases. The stated irregular 10- and 12-bar verses are authored in `sectionBars`. ⚠ `confidence` is medium because the research rates it high-medium. ⚠ The **INFERRED** parameters are all drum probabilities and `bpm.mode` 92.",
+  "session": {
+    "bpm": {
+      "min": 73,
+      "max": 130,
+      "mode": 92
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "natural_minor",
+        "dorian"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        1
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.8,
+      "velocityVar": 0.2,
+      "timingJitterMs": {
+        "kick": 6,
+        "snare": 6,
+        "closedHat": 7
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        108,
+        126
+      ],
+      "main": [
+        78,
+        94
+      ],
+      "ghost": [
+        28,
+        40
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.3
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.12,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.16,
+          0.28
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.3,
+      "openHat": {
+        "prob": 0.2,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.03
+      }
+    },
+    "percs": {
+      "lanes": [
+        "crash",
+        "perc"
+      ],
+      "densityPerBar": [
+        0,
+        2
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 16,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "IV"
+        ],
+        "weight": 3
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.7,
+      "seventh": 0.22,
+      "ninth": 0.08
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      58,
+      78
+    ],
+    "densityPerBar": [
+      6,
+      12
+    ],
+    "intervals": {
+      "step": 0.82,
+      "third": 0.14,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.44,
+      "descend": 0.34,
+      "arch": 0.22
+    },
+    "chordToneBias": 0.6,
+    "octaveJumpProb": 0.05,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    },
+    "straightEighthsProb": 0.45
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.4,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "sustain_pad"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.96,
+    "rhythm": "mirror_kick",
+    "register": [
+      28,
+      44
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.18
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": [
+        10,
+        12
+      ],
+      "prechorus": 8,
+      "chorus": 16,
+      "bridge": [
+        8,
+        12
+      ],
+      "outro": 8
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 3
+      }
+    ]
+  }
+}

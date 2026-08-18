@@ -42,6 +42,49 @@ fn melody_for(model: &engine::StyleModel, seed: u64) -> engine::pattern::LaneTra
     melody::generate(model, &ctx, seed, &harmony, &kit)
 }
 
+/// Everything a mode can move, shaped for comparison.
+///
+/// ⛔⛔ **The gate is named "do not generate the same THING", and it was
+/// comparing the melody alone** (2026-08-17, Mike's call). `justin-niebank` is
+/// the model that found it: his two moods are `three-mic ribbon kit` and `full
+/// booth kit`, and his research entry distinguishes them **only** by the drum
+/// mic list — `Keys: n/a`, and the melody/chords line is a signal chain with no
+/// note content in it. His modes therefore override `session.humanize` and
+/// `drums.*` and nothing else, and `melody::generate` reads neither: the kit is
+/// inert input unless `melody.mirrorSnareDisplacement` is authored, which four
+/// models in the roster do and the country-pop lineage is not among them.
+///
+/// ▶ So the two moods really do differ — tom lanes present against absent,
+/// `smallEveryBars` 4 against 16, their own velocity tiers and perc sets — and
+/// the assertion could not see any of it. Widening the measurement to what the
+/// test already claims to measure is the honest fix; the alternatives were to
+/// invent a melodic difference his entry does not support, or to delete a mode
+/// and throw away the researched per-song kit decision.
+///
+/// ⚠ **`melody_for` is deliberately left alone.** Its other two callers ask
+/// melody-specific questions — that a melody stays in its key and register, and
+/// that a mood reaches enough distinct melodies — and folding the kit into those
+/// would let a busy drum track answer a question about the tune.
+///
+/// ⚠ **This does not lower the bar.** A mode pair that moves nothing any
+/// generator reads still fails, which is the decoration this gate exists to
+/// catch; `justin-niebank` is the only model in the roster whose modes never
+/// touch `melody` or `chords`, so nothing else changes verdict here.
+fn everything_for(model: &engine::StyleModel, seed: u64) -> Vec<Vec<(u32, u32, u8, u8)>> {
+    let ctx = SessionContext::from_model(model, &SessionOverrides::default(), seed);
+    let harmony = chords::generate(model, &ctx, seed);
+    let kit = drums::generate(model, &ctx, seed);
+    let tune = melody::generate(model, &ctx, seed, &harmony, &kit);
+
+    // ⚠ `Chords` is a plan plus its notes; the notes are the part a producer
+    // hears, and `ChordEvent` differences that never reach a note are the
+    // harmony generator's own business rather than this gate's.
+    let mut shaped: Vec<Vec<(u32, u32, u8, u8)>> = kit.iter().map(shape).collect();
+    shaped.push(shape(&harmony.track));
+    shaped.push(shape(&tune));
+    shaped
+}
+
 #[test]
 fn the_roster_actually_authors_modes() {
     // Guard against this whole file passing vacuously. If nothing offers a mode,
@@ -329,8 +372,10 @@ fn two_moods_of_one_artist_do_not_generate_the_same_thing() {
             let first = modes::apply(&model, &pair[0].name).unwrap();
             let second = modes::apply(&model, &pair[1].name).unwrap();
 
-            let differs = (1..40u64)
-                .any(|seed| shape(&melody_for(&first, seed)) != shape(&melody_for(&second, seed)));
+            // ⚠ Every lane a mode can move, not the melody alone — see
+            // [`everything_for`] for the model that found the gap.
+            let differs =
+                (1..40u64).any(|seed| everything_for(&first, seed) != everything_for(&second, seed));
             assert!(
                 differs,
                 "{id}: `{}` and `{}` generate identically for every seed in 1..40",

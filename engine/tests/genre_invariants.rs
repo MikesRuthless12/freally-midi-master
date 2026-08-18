@@ -10,7 +10,7 @@
 //! The three Phase 0 genres (trap, uk-drill, rage) are covered in
 //! `drums_core.rs`, `drums_hats.rs`, `rolls.rs` and `bass808.rs`.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
@@ -44,6 +44,40 @@ fn shipped() -> &'static BTreeMap<String, StyleModel> {
         let (models, errors) = engine::dataset::registry_from(scan.files).resolve_all();
         assert!(errors.is_empty(), "the dataset must resolve: {errors:#?}");
         models
+    })
+}
+
+/// The ids whose own file authors a `drums` block.
+///
+/// ⛔ **Read from the file rather than from the resolved model, because
+/// inheritance is the thing being asked about.** A resolved model always
+/// carries its parent's kit, so the resolved view cannot tell "authored the
+/// same drums" — a real defect — from "authored no drums", which is a
+/// different claim entirely. Two shipped entries make the second one on
+/// purpose: `brent-mason` and `paul-franklin` are the research's
+/// *instrumental-grammar* entries for the Nashville lead guitar and the pedal
+/// steel — "the Nashville lead-guitar, pedal-steel and drum vocabularies that
+/// the engine needs as style parameters" — and Brent Mason's entry states the
+/// omission as the technique: "staccato 'chicken-pickin'' attacks land on the
+/// backbeat and the 16ths around it, and **he leaves the downbeat to the
+/// band**". A part that leaves the kit to the band has no kit to be different
+/// with, and demanding one would be authoring a drummer over a guitarist.
+///
+/// ⚠ **They still have to earn their place** — every other gate in this suite
+/// applies to them unchanged, and they carry their own melody, countermelody,
+/// bassline and arrangement.
+fn authors_own_drums() -> &'static BTreeSet<String> {
+    static AUTHORED: OnceLock<BTreeSet<String>> = OnceLock::new();
+    AUTHORED.get_or_init(|| {
+        let scan = engine::dataset::files::scan(&data_dir()).expect("data/ must be readable");
+        scan.files
+            .iter()
+            .filter_map(|(_, text)| {
+                let value: Value = serde_json::from_str(text).ok()?;
+                let id = value.get("id")?.as_str()?.to_owned();
+                value.get("drums").is_some().then_some(id)
+            })
+            .collect()
     })
 }
 
@@ -3019,7 +3053,13 @@ fn no_two_genres_produce_the_same_drums() {
     // same seed, one of them is not earning its place.
     let context = ctx(4);
     let models = shipped();
-    let ids: Vec<&String> = models.keys().filter(|id| !id.starts_with('_')).collect();
+    // ⚠ An entry that authors no kit is deliberately its parent's kit — see
+    // [`authors_own_drums`]. Comparing it here would ask a pedal-steel grammar
+    // to invent a drummer.
+    let ids: Vec<&String> = models
+        .keys()
+        .filter(|id| !id.starts_with('_') && authors_own_drums().contains(*id))
+        .collect();
 
     for (i, left) in ids.iter().enumerate() {
         for right in ids.iter().skip(i + 1) {
@@ -3148,6 +3188,13 @@ fn every_flagship_artist_sounds_unlike_the_genre_it_extends() {
         // Metro Boomin" is *about* a producer — so this asks whether the model
         // is a style rather than whether it is specifically an artist.
         if !model.model_type.is_style() {
+            continue;
+        }
+        // ⚠ Same exemption as the set test above, for the same reason: an entry
+        // that authors no `drums` block cannot generate drums unlike its
+        // parent's, because it *is* its parent's kit by authorship. See
+        // [`authors_own_drums`].
+        if !authors_own_drums().contains(id.as_str()) {
             continue;
         }
         let parent = model

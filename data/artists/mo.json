@@ -1,0 +1,373 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "mo",
+  "type": "artist",
+  "name": "MØ",
+  "aliases": [
+    "mo",
+    "karen marie orsted",
+    "moe danish"
+  ],
+  "tier": "standard",
+  "extends": [
+    "dance-pop"
+  ],
+  "era": "2014-2019",
+  "genres": [
+    "dance-pop",
+    "electropop",
+    "moombahton",
+    "pop"
+  ],
+  "relatedGenres": [
+    "dance-pop",
+    "reggaeton",
+    "house",
+    "pop-2020s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 dance-pop — MØ",
+    "Wikipedia — MØ (https://en.wikipedia.org/wiki/M%C3%98)",
+    "Wikipedia — Diplo (https://en.wikipedia.org/wiki/Diplo)",
+    "Electro house (https://en.wikipedia.org/wiki/Electro_house)"
+  ],
+  "notes": "Danish electropop vocalist and the defining topline voice of the moombahton-pop crossover. The band spans the whole 98-128 the entry gives, but the mode is set at the documented 108 because that is the number the research states outright — \"the moombahton records sit at around 108 BPM (documented for the idiom)\" — and it is the grammar her drums line describes: \"a slowed electro-house kick with a dembow/tresillo snare accent rather than a plain backbeat, plus 16th shaker\". So the kick leaves the four-square grid for an anchor on 1 with a 0.38 tresillo bias, the snare keeps a 2&4 placement but carries the dembow \"and-a\" figure as a high-probability ghost set, and the perc bed is shaker and conga. The low end is \"808-adjacent sub with short glides on the moombahton records; filtered pumping saw bass on the house records\", so `bass808` is `counter_riff` and the saw bass survives as the bassline. The structural device is the entry's: \"the vocal chorus is often replaced by an instrumental one built from her chopped voice\", which is why the melody carries a chopped-vocal timbre and the counter is a bell echo. Her delivery is \"mid-register, nasal, slightly strained… written in a narrow band\". ⚠ The research marks the key and delivery reading `[LOW-CONF]` and calls the other parameters lane-derived; both marks are repeated here, and every velocity and density is INFERRED.",
+  "session": {
+    "bpm": {
+      "min": 98,
+      "max": 128,
+      "mode": 108
+    },
+    "keys": {
+      "values": [
+        "Am",
+        "Em",
+        "Dm",
+        "Bm",
+        "Gm"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "phrygian"
+      ],
+      "weights": [
+        5,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.93,
+      "velocityVar": 0.16,
+      "timingJitterMs": {
+        "kick": 2,
+        "clap": 3,
+        "closedHat": 3,
+        "openHat": 3,
+        "shaker": 5,
+        "conga": 5
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        108,
+        122
+      ],
+      "main": [
+        82,
+        96
+      ],
+      "ghost": [
+        34,
+        50
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3",
+      "syncopation": 0.32,
+      "tresilloBias": 0.38,
+      "offbeat8thShare": 0.3
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "layered": true,
+      "layerClapOffsetMs": [
+        2,
+        7
+      ],
+      "ghost": {
+        "prob": 0.8,
+        "pos": [
+          "1a",
+          "2&",
+          "3a",
+          "4&"
+        ],
+        "vel": [
+          0.42,
+          0.62
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.5,
+      "openHat": {
+        "prob": 0.4,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          0,
+          2
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "32"
+          ],
+          "weights": [
+            3,
+            2
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.24
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "conga",
+        "perc"
+      ],
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "placement": "offbeat",
+      "gainOffsetDb": -4
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8,
+      "snareRollLadder": false,
+      "fillBeforeSection": true
+    },
+    "bass808": {
+      "role": "counter_riff",
+      "sustain": "staccato",
+      "distortion": "none",
+      "slideProb": 0.35,
+      "slideIntervals": {
+        "values": [
+          "P5",
+          "P4",
+          "P8"
+        ],
+        "weights": [
+          3,
+          2,
+          2
+        ]
+      },
+      "slidePositions": [
+        "bar_2",
+        "phrase_end"
+      ],
+      "register": [
+        24,
+        40
+      ],
+      "monoCutSelf": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.66,
+      "seventh": 0.26,
+      "ninth": 0.08
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      64,
+      81
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "structure": "call_response",
+    "intervals": {
+      "step": 0.72,
+      "third": 0.22,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.46,
+      "descend": 0.32,
+      "arch": 0.22
+    },
+    "chordToneBias": 0.7,
+    "octaveJumpProb": 0.04,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "timbreHint": "chopped_vocal"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.6,
+    "styles": {
+      "values": [
+        "bell_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.82,
+    "rhythm": "independent_riff",
+    "register": [
+      31,
+      50
+    ],
+    "glideProb": 0.1,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2"
+    ],
+    "anticipationProb": 0.42
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "prechorus": 8,
+      "hook": 8,
+      "bridge": 8,
+      "outro": 8
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "prechorus",
+          "hook",
+          "verse",
+          "hook",
+          "bridge",
+          "hook",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "hook",
+          "verse",
+          "hook",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.6,
+        "beats": 2
+      },
+      "switchUpProb": 0.12
+    }
+  }
+}

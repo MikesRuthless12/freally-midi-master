@@ -1,0 +1,282 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "questlove",
+  "type": "producer",
+  "name": "Questlove",
+  "aliases": [
+    "questlove",
+    "ahmir thompson",
+    "quest love"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "1994-present",
+  "genres": [
+    "producer",
+    "soul",
+    "neo-soul",
+    "rap"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "boom-bap",
+    "funk",
+    "rnb-2000s"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Questlove",
+    "Wikipedia — Questlove (https://en.wikipedia.org/wiki/Questlove)",
+    "Wikipedia — Voodoo (https://en.wikipedia.org/wiki/Voodoo_(D%27Angelo_album))",
+    "Wikipedia — Soulquarians (https://en.wikipedia.org/wiki/Soulquarians)"
+  ],
+  "notes": "The lane's defining drummer-producer, and the entry calls his kit \"the section's central drum parameter\" — so this model is the one place in the section where a drum number is quoted rather than inferred: **\"snare pushed 10–30 ms late\"** is authored literally as `snare.offGridMs` [10, 30], the widest displacement window in the roster. The rest of the block follows the same sentence: \"kick on 1 and the 16th before 3, double rimshots behind the beat, ghost strokes filling the 16ths around the backbeat, hats closed and quiet in swung 16ths, and J Dilla's programmed timing consciously imitated on an acoustic kit\". So the ghost probability is 0.68 across all eight 16th positions, the hat velocities are the quietest of the producer models here, and `rimshotLayer` is on. \"No click track\" is `quantizeStrength` 0.4 with the highest `velocityVar` in this batch, and \"human timing, complete with imperfections\" is the jitter map. The stated kick position is the parent's own, so the delta is density and syncopation rather than a restated anchor. He is explicitly **not** the harmonist — \"James Poyser or the artist supplies the chords. His harmonic contribution is arrangement-level: which chord the band lands on after a break, and how long a vamp is held\" — which is why the chords block authors only harmonic rhythm, duration and `maxChords`, and why the melody is a riff loop: \"a looped 4-bar band figure treated as a sample, with the band replaying variations rather than the loop repeating\", hence `endVariation`. He \"never programs a sub; he pairs with a played bass and locks his kick to it rather than to a grid\" — no `bass808` block, and the bass is an independent riff. ⚠ The INFERRED parameters are the ghost probability and positions, every hat and perc value, and all melody/chords numbers. ⚠ The *Hamilton* full-band orchestral variant the entry mentions is not encoded as a mode.",
+  "session": {
+    "bpm": {
+      "min": 64,
+      "max": 100,
+      "mode": 82
+    },
+    "scales": {
+      "values": [
+        "dorian",
+        "natural_minor",
+        "major",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        4,
+        4,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.4,
+      "velocityVar": 0.32,
+      "timingJitterMs": {
+        "kick": 8,
+        "snare": 20,
+        "rim": 18,
+        "closedHat": 9,
+        "tambourine": 11
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "syncopation": 0.46,
+      "tresilloBias": 0.08
+    },
+    "snare": {
+      "rimshotLayer": true,
+      "offGridMs": [
+        10,
+        30
+      ],
+      "ghost": {
+        "prob": 0.68,
+        "pos": [
+          "1e",
+          "1a",
+          "2e",
+          "2a",
+          "3e",
+          "3a",
+          "4e",
+          "4a"
+        ],
+        "vel": [
+          0.14,
+          0.38
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.44,
+      "velocities": {
+        "main": [
+          0.32,
+          0.56
+        ],
+        "ghost": [
+          0.1,
+          0.28
+        ]
+      },
+      "openHat": {
+        "prob": 0.14,
+        "pos": [
+          "3a"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "tambourine",
+        "shaker",
+        "conga"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "gainOffsetDb": -6
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.08,
+      "seventh": 0.5,
+      "ninth": 0.42
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        47,
+        80
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "vamp",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      8,
+      16
+    ]
+  },
+  "melody": {
+    "register": [
+      55,
+      78
+    ],
+    "densityPerBar": [
+      3,
+      6
+    ],
+    "structure": "riff_loop",
+    "intervals": {
+      "step": 0.74,
+      "third": 0.22,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.42,
+      "descend": 0.34,
+      "arch": 0.24
+    },
+    "chordToneBias": 0.55,
+    "endVariation": true,
+    "octaveJumpProb": 0.06,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "clavinet"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.45,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.4,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      46
+    ],
+    "glideProb": 0.04,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2",
+      "M6"
+    ],
+    "anticipationProb": 0.5
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        8,
+        16
+      ],
+      "verse": [
+        8,
+        16
+      ],
+      "chorus": 8,
+      "outro": [
+        8,
+        32
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "verse",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "switchUpProb": 0.34
+    }
+  }
+}

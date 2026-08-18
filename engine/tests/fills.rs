@@ -336,16 +336,45 @@ fn every_shipped_genre_fills_at_the_cycle_it_authors() {
         let Some(fills) = model.blocks.get("drums").and_then(|d| d.get("fills")) else {
             continue;
         };
-        let small = fills
+        // `.max(1)` for the same reason `generators::drums::fills` clamps it: a
+        // cycle of zero is a modulo by zero here and a fill in every bar there.
+        let small = (fills
             .get("smallEveryBars")
             .and_then(Value::as_u64)
-            .unwrap_or(2) as usize;
+            .unwrap_or(2) as usize)
+            .max(1);
+        // ⛔ **The big cycle is half of "the cycle it authors" and was missing.**
+        // Six shipped models — `dan-shay`, `byron-gallimore`, `eddie-bayers`,
+        // `frank-rogers`, `mikey-reaves`, `peter-collins` — author a *bigger*
+        // fill more often than a small one (16 and 8), and `generators::drums::
+        // fills` writes a bar when **either** cycle lands. Reading only `small`
+        // left those bars covered by the `position == 8` clause below rather
+        // than by the model's own number, which is the same lie in the other
+        // direction.
+        let big = (fills
+            .get("bigEveryBars")
+            .and_then(Value::as_u64)
+            .unwrap_or(8) as usize)
+            .max(1);
+        // ⛔ **Read, not assumed.** This used to say "the last bar always fills
+        // — `fillBeforeSection` defaults on", and the default is only what a
+        // model gets when it says nothing: ten shipped kits author it **off**
+        // (`aaron-dessner`, `deana-carter`, `little-big-town`, `shane-mcanally`,
+        // `deadmau5` and five more, every one of them at `smallEveryBars: 16`),
+        // and for those `every_shipped_genre_fills_at_the_cycle_it_authors` was
+        // demanding a fill the cycle they authored does not have. The unit test
+        // `a_small_fill_lands_every_second_bar_and_nowhere_else` states the same
+        // rule on a fixture and has always passed `fillBeforeSection: false`.
+        let before_section = fills
+            .get("fillBeforeSection")
+            .and_then(Value::as_bool)
+            .unwrap_or(true);
 
         let counts = histogram(&model, 8);
         for (bar, count) in counts.iter().enumerate() {
             let position = bar + 1;
-            // The last bar always fills — `fillBeforeSection` defaults on.
-            if position % small == 0 || position == 8 {
+            let last_bar = position == 8;
+            if position % small == 0 || position % big == 0 || (last_bar && before_section) {
                 assert!(*count > 0, "{id}: bar {position} should fill: {counts:?}");
             } else {
                 // The negative half, without which the authored cycle is not
@@ -353,7 +382,7 @@ fn every_shipped_genre_fills_at_the_cycle_it_authors() {
                 // least on the cycle".
                 assert_eq!(
                     *count, 0,
-                    "{id}: bar {position} is off the {small}-bar cycle and should be plain: {counts:?}"
+                    "{id}: bar {position} is off the {small}/{big}-bar cycle and should be plain: {counts:?}"
                 );
             }
         }

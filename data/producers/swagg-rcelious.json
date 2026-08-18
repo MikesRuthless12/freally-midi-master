@@ -1,0 +1,315 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "swagg-rcelious",
+  "type": "producer",
+  "name": "Swagg R'Celious",
+  "aliases": [
+    "swagg rcelious",
+    "swagg r celious",
+    "her producer",
+    "guitar and sub rnb"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "2016-present",
+  "genres": [
+    "producer",
+    "rnb",
+    "neo-soul"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "trap-soul",
+    "rnb-2000s"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Swagg R'Celious",
+    "Wikipedia — H.E.R. (https://en.wikipedia.org/wiki/H.E.R.)",
+    "Wikipedia — Swagg R'Celious (https://en.wikipedia.org/wiki/Swagg_R%27Celious)",
+    "Wikipedia — Neo soul (https://en.wikipedia.org/wiki/Neo_soul)"
+  ],
+  "notes": "The producer who built H.E.R.'s early sound. `confidence` is **low** — the producer relationship is sourced, the parametric detail is inference from the records. The drum instruction is a mix instruction and it is what the numbers hold: \"**soft programmed kit with a live-percussion overlay** — filtered kick on 1 and the 16th before 3, a low short clap or rim on 2&4, quiet 16th hats, fingersnaps, and long drop-outs under the bridge. **The drums are quieter than the guitar, which is the mix parameter.**\" So the velocity tiers are soft, the hat velocities top out at 0.44, the snare is a layered low clap, and the percussion is snaps and rims at −7 dB. He is one of the seven models in this section with an 808, and the entry places him at the boundary deliberately: \"sustained sub-808 with a long decay and few slides — **this is the point where this section touches `trap-soul` practice** — alternated with played electric bass on the band-tracked material\". Both halves are authored: `drums.bass808` with role **counter_riff** and a 0.04 slide probability keeps the sub while the bassline block keeps the played bass; role `bassline` would have deleted the band-tracked half. Harmony is the two families the entry names, \"played, not looped from a sample\", with real blues harmony where the guitar leads. The identifying instrument is \"clean, chorused, arpeggiated electric guitar as the harmonic bed\", which is the `arp` counter and the guitar-solo break in the arrangement. ⚠ Every drum number, the 808 values and every melody figure here are INFERRED. ⚠ The large half-time subset (snare/clap on beat 3) is marked [LOW-CONF] in the research and is not encoded.",
+  "session": {
+    "bpm": {
+      "min": 68,
+      "max": 100,
+      "mode": 84
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "blues",
+        "minor_pentatonic"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.8,
+      "velocityVar": 0.16,
+      "timingJitterMs": {
+        "kick": 3,
+        "snare": 5,
+        "snap": 8,
+        "bass808": 5
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        80,
+        96
+      ],
+      "main": [
+        52,
+        68
+      ],
+      "ghost": [
+        22,
+        34
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        3,
+        5
+      ],
+      "syncopation": 0.44,
+      "tresilloBias": 0.15
+    },
+    "snare": {
+      "layered": true,
+      "offGridMs": [
+        0,
+        5
+      ],
+      "ghost": {
+        "prob": 0.2,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.1,
+          0.26
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.38,
+      "velocities": {
+        "main": [
+          0.24,
+          0.44
+        ],
+        "ghost": [
+          0.08,
+          0.2
+        ]
+      },
+      "openHat": {
+        "prob": 0.06,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "snap",
+        "rim",
+        "shaker"
+      ],
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "gainOffsetDb": -7
+    },
+    "bass808": {
+      "role": "counter_riff",
+      "sustain": "legato",
+      "slideProb": 0.04,
+      "register": [
+        24,
+        40
+      ],
+      "distortion": "none",
+      "monoCutSelf": true,
+      "portamentoMs": 85
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "iv"
+        ],
+        "weight": 3
+      }
+    ],
+    "extensions": {
+      "triad": 0.14,
+      "seventh": 0.5,
+      "ninth": 0.36
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        46,
+        80
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      56,
+      80
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "structure": "question_answer",
+    "intervals": {
+      "step": 0.8,
+      "third": 0.17,
+      "leap": 0.03
+    },
+    "contour": {
+      "riff": 0.24,
+      "descend": 0.42,
+      "arch": 0.34
+    },
+    "chordToneBias": 0.58,
+    "emptyBarBias": 0.16,
+    "octaveJumpProb": 0.06,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "chorused_guitar"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.5,
+    "styles": {
+      "values": [
+        "arp",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.72,
+    "rhythm": "mirror_kick",
+    "register": [
+      28,
+      44
+    ],
+    "glideProb": 0.03,
+    "passingTones": [
+      "P5",
+      "m7"
+    ],
+    "anticipationProb": 0.28
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": 8,
+      "prechorus": 4,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": [
+        4,
+        8
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "bridge",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.7,
+        "beats": 4
+      },
+      "switchUpProb": 0.2
+    }
+  }
+}

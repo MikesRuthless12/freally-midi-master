@@ -1,0 +1,313 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "flaco-jimenez",
+  "type": "producer",
+  "name": "Flaco Jiménez",
+  "aliases": [
+    "flaco jimenez",
+    "jimenez"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-shuffle"
+  ],
+  "era": "1990-2015",
+  "genres": [
+    "country",
+    "country-shuffle",
+    "tex-mex",
+    "producer"
+  ],
+  "relatedGenres": [
+    "country-shuffle",
+    "country-pop",
+    "country-train"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-shuffle — Flaco Jiménez",
+    "Wikipedia — Flaco Jiménez (https://en.wikipedia.org/wiki/Flaco_Jim%C3%A9nez)",
+    "Mix — Classic Tracks: \"Streets of Bakersfield\" (https://www.mixonline.com/recording/classic-tracks-dwight-yoakam-and-buck-owens-streets-bakersfield-366215)",
+    "Wikipedia — The Mavericks (https://en.wikipedia.org/wiki/The_Mavericks)"
+  ],
+  "notes": "The conjunto/Tex-Mex accordion voice that crossed into this archetype — the research's stated reason \"a country shuffle can turn into a polka or a ranchera and stay in-genre\". This is the one model in the section that is deliberately NOT a shuffle, and the entry is explicit about it: \"the documented rhythmic forms are polka, ranchera and corrido, which are the archetype's non-shuffle alternates: polka = straight quarters with an oom-pah bass and no triplet lope\". So session.swing.amount is 0.50 — dead straight, the lowest legal setting and the single most load-bearing number in the file — the kick is pinned to four quarters on all four anchors with syncopation and offbeat share both zero, and the snare's triplet ghost work drops to 0.08 because there are no omitted triplet positions to fill. The rim/shaker pair replaces the inherited ride, since the lope the ride carries does not exist here. The bass is the polka analogue of the shuffled two-beat, documented as \"a bajo sexto-plus-bass pairing playing alternating root–five on the oom-pah\": followRootsProb 0.94 with almost no anticipation and no glide. Keys are constrained by the instrument, not by taste — \"F, B♭, E♭, C and G, because a diatonic button accordion is key-constrained by its row layout\" — and the harmony is I–IV–V and I–V vamps with V7 plus the ranchera I–IV–I–V cycle. The melody block is the accordion itself: \"three-row diatonic button accordion, played in continuous 8th- or 16th-note runs with parallel-third right-hand figures and a bellows-shake ornament — model high note density, parallel thirds, and a short percussive attack\", which is 7–12 notes a bar, a 0.42 third weighting and staccato articulation. The documented intro convention is authored too: \"the accordion typically states the melody instrumentally before the voice enters\". The ranchera's 3/4 and the corrido's 3/4 or 6/8 are NOT authored, because this schema's grid parses a four-beat bar and a faked 3/4 would be an invented parameter. ⚠ INFERRED: bpm.mode 130 (the entry gives a 100–180 band with no centre), all velocity tiers, the ghost probability and vel, and the hat/percs densities. The research marks the instrument-mechanics parameters as conventional knowledge formalised in the entry [LOW-CONF] and rates it medium-high on Gate 1, era, awards and credits. ⚠ \"Streets of Bakersfield\" is cited by the research for technique only — it is a 1988 record, outside the window — and the modelled era is the 1990–2015 run the entry states.",
+  "session": {
+    "bpm": {
+      "min": 100,
+      "max": 180,
+      "mode": 130
+    },
+    "keys": {
+      "values": [
+        "F",
+        "Bb",
+        "Eb",
+        "C",
+        "G"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        3,
+        3
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian"
+      ],
+      "weights": [
+        6,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "8th",
+      "amount": 0.5
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        102,
+        122
+      ],
+      "main": [
+        76,
+        94
+      ],
+      "ghost": [
+        26,
+        40
+      ]
+    },
+    "kick": {
+      "densityPerBar": 4,
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "syncopation": 0,
+      "offbeat8thShare": 0
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.08,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "vel": [
+          0.12,
+          0.24
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": true,
+      "fillDensity": 0.2,
+      "velocities": {
+        "main": [
+          0.5,
+          0.68
+        ],
+        "ghost": [
+          0.18,
+          0.32
+        ]
+      },
+      "openHat": {
+        "prob": 0.05,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "rim",
+        "shaker"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "gainOffsetDb": -7
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "I"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.72,
+      "seventh": 0.26,
+      "ninth": 0.02
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "vamp",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      60,
+      88
+    ],
+    "densityPerBar": [
+      7,
+      12
+    ],
+    "intervals": {
+      "step": 0.5,
+      "third": 0.42,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.45,
+      "descend": 0.3,
+      "arch": 0.25
+    },
+    "chordToneBias": 0.8,
+    "octaveJumpProb": 0.04,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "articulation": "staccato",
+    "timbreHint": "button_accordion"
+  },
+  "countermelody": {
+    "densityRatio": [
+      0.5,
+      0.75
+    ],
+    "styles": {
+      "values": [
+        "arp",
+        "answer_lick"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.94,
+    "register": [
+      28,
+      46
+    ],
+    "glideProb": 0,
+    "passingTones": [
+      "P5",
+      "M3",
+      "M2"
+    ],
+    "anticipationProb": 0.02
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "bridge",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "sectionBars": {
+      "intro": [
+        4,
+        8
+      ],
+      "verse": 8,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": [
+        2,
+        4
+      ]
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "switchUpProb": 0.12
+    }
+  }
+}

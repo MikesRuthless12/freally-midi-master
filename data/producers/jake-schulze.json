@@ -1,0 +1,264 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "jake-schulze",
+  "type": "producer",
+  "name": "Jake Schulze",
+  "aliases": [
+    "jake schulze",
+    "jakeschulze",
+    "jake shulze"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "1999-2003",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "producer"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "dance-pop",
+    "house"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — Jake Schulze",
+    "Wikipedia — \"Bye Bye Bye\" (https://en.wikipedia.org/wiki/Bye_Bye_Bye)",
+    "Wikipedia — Cheiron Studios (https://en.wikipedia.org/wiki/Cheiron_Studios)"
+  ],
+  "notes": "The technical hand on the late-Cheiron boy-band records: 86–105 straight, backbeat on 2&4, minor tonic with short i–VI–VII loops and no modulation until the final chorus. He and Lundin co-produced the same records and the roster overlaps by design, so the deltas here are the ones **his** entry names rather than Lundin's: \"**layered claps**\" (a zero-to-two-millisecond clap offset with a snap lane), \"16th electronic ticks\" (a `rim` plus `perc` block at a higher density), and \"reversed-crash/string-swell transitions **instead of acoustic fills**\", which is the `reverse` lane leading the percs with the fills pushed to every 8 and 16 bars. Where Lundin's entry gives the doubled kick on the 8th before the backbeat, this one gives only \"snare and kick chosen for transient impact\", so the kick sits on 1 and 3 with a \"3&\" pickup and the accent tier carries the impact. The bass is \"gated synth bass on roots, sidechained-feeling against the kick\" — `mirror_kick` at 0.95 — and the arrangement habit is \"instrumental answers placed in the two-bar gaps at the end of each vocal phrase\", which is the answer-lick counter. ⚠ `confidence` is medium because the research says so outright: the co-production credit and studio lineage are verified but \"his individual technical signature is not separately documented, so the fields describe the productions he is credited on\", and the entry carries a **[LOW-CONF]** mark on personal-signature claims. ⚠ Every drum probability here is **INFERRED**.",
+  "session": {
+    "bpm": {
+      "min": 86,
+      "max": 105,
+      "mode": 90
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "major",
+        "dorian"
+      ],
+      "weights": [
+        5,
+        3,
+        1
+      ]
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        108,
+        124
+      ],
+      "main": [
+        80,
+        96
+      ],
+      "ghost": [
+        30,
+        44
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.32
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.11,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.22,
+          0.36
+        ]
+      },
+      "layerClapOffsetMs": [
+        0,
+        2
+      ]
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.58,
+      "openHat": {
+        "prob": 0.26,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "32"
+          ],
+          "weights": [
+            3,
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.1
+      }
+    },
+    "percs": {
+      "lanes": [
+        "reverse",
+        "rim",
+        "snap"
+      ],
+      "densityPerBar": [
+        3,
+        6
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 3
+      }
+    ],
+    "extensions": {
+      "triad": 0.66,
+      "seventh": 0.26,
+      "ninth": 0.08
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar",
+        "vamp"
+      ],
+      "weights": [
+        4,
+        3,
+        1
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      64,
+      88
+    ],
+    "densityPerBar": [
+      4,
+      9
+    ],
+    "intervals": {
+      "step": 0.68,
+      "third": 0.24,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.44,
+      "descend": 0.28,
+      "arch": 0.28
+    },
+    "chordToneBias": 0.74,
+    "octaveJumpProb": 0.12,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.62,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.95,
+    "rhythm": "mirror_kick",
+    "register": [
+      29,
+      45
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.22
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 16,
+      "bridge": 8,
+      "outro": 8
+    },
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.82,
+        "beats": 4
+      },
+      "switchUpProb": 0.1
+    }
+  }
+}

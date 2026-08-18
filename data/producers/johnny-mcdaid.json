@@ -1,0 +1,352 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "johnny-mcdaid",
+  "type": "producer",
+  "name": "Johnny McDaid",
+  "aliases": [
+    "johnny mcdaid",
+    "johnnymcdaid",
+    "mcdaid",
+    "john mcdaid"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2020s"
+  ],
+  "era": "2013-present",
+  "genres": [
+    "pop",
+    "pop-2020s",
+    "producer",
+    "singer-songwriter"
+  ],
+  "relatedGenres": [
+    "pop-2020s",
+    "pop-2000s",
+    "country-pop",
+    "dancehall"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2020s — Johnny McDaid",
+    "Wikipedia — Johnny McDaid (https://en.wikipedia.org/wiki/Johnny_McDaid)",
+    "Wikipedia — Shape of You (https://en.wikipedia.org/wiki/Shape_of_You)"
+  ],
+  "notes": "Band-member co-writer/producer supplying the piano-and-guitar architecture for stadium singer-songwriter pop. The drum claim is that there barely is one: \"minimal — a kick and clap or a brushed kit that enters at the second verse; on the up-tempo records a programmed kick/clap with a shaker. Percussion is a dynamic tool, not a groove.\" So the kick density is 1—2, the snare is a `soft`-transient clap, `hihat.continuous` is false at `fillDensity` 0.08 with the roll vocabulary off, and the fills are pushed to 16 bars — a dynamic tool does not repeat every four. The tresillo the Lane line names (\"frequent tresillo accenting\") is `kick.tresilloBias` 0.44, which is what keeps this model apart from the other quiet piano producers in this section. No `bass808` block: \"no 808. Electric bass or low piano octaves on roots\", which is a kick mirror at 0.90. Harmony is \"guitar and piano keys with suspended and add9 voicings and a borrowed minor iv\", so `susSubstitutionProb` is 0.48, `ninth` is raised and the `borrowed` map carries the iv; \"as a Snow Patrol guitarist/pianist his instinct is the slow-build alt-rock progression rather than a pop vamp\" is why `harmonicRhythm` has no `vamp` value and the phrases run 4 and 8 bars. The documented method is co-location rather than a sound — \"moving to Nashville and then Los Angeles to write an album, then spending a whole year on the next one … the songs are written jointly at instruments rather than to tracks\" — which is the long additive arrangement with a real bridge and endings that reduce to one instrument. ⚠ `confidence` is medium and the research says why: \"parametric detail inferred\", with its own [LOW-CONF] mark on the alt-rock progression claim repeated here. Every drum probability, the humanize numbers and `bpm.mode` 88 (the midpoint of the first-named 76—100 ballad band) are INFERRED. ⚠ **The bassline reached 892 of 1,000 distinct against `bass.rs`'s 0.95 share, and the tempo line is the citation.** The research is *\"backbeat on 2&4 straight with **frequent tresillo accenting**\"* — an accent ahead of the beat is what `anticipationProb` writes — over *\"electric bass or low piano octaves on roots\"*, which is why `followRootsProb` stays high at 0.90 and the `1 5 8` cells are untouched. ⚠ **INFERRED:** the exact 0.90 and 0.20 are lane-conventional; the entry marks its parametric detail inferred already.",
+  "session": {
+    "bpm": {
+      "min": 76,
+      "max": 120,
+      "mode": 88
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor",
+        "mixolydian"
+      ],
+      "weights": [
+        5,
+        4,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.82,
+      "velocityVar": 0.19,
+      "timingJitterMs": {
+        "kick": 6,
+        "clap": 8,
+        "snare": 7,
+        "shaker": 9
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        1,
+        2
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2a",
+      "syncopation": 0.32,
+      "tresilloBias": 0.44,
+      "offbeat8thShare": 0.1
+    },
+    "snare": {
+      "placement": "backbeat_24",
+      "stack": [
+        "clap"
+      ],
+      "transient": "soft",
+      "reverb": "large",
+      "layerClapOffsetMs": [
+        4,
+        11
+      ],
+      "ghost": {
+        "prob": 0.12,
+        "pos": [
+          "3a"
+        ],
+        "vel": [
+          0.14,
+          0.28
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.08,
+      "velocities": {
+        "main": [
+          0.4,
+          0.66
+        ],
+        "ghost": [
+          0.14,
+          0.3
+        ]
+      },
+      "rolls": {
+        "freqPerBar": 0
+      },
+      "openHat": {
+        "prob": 0.08,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "rim"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "placement": "any",
+      "gainOffsetDb": -8
+    },
+    "fills": {
+      "smallEveryBars": 16,
+      "bigEveryBars": 16,
+      "snareRollLadder": false
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "iii",
+          "IV"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.56,
+      "seventh": 0.26,
+      "ninth": 0.18
+    },
+    "voicing": {
+      "style": "close",
+      "register": [
+        52,
+        78
+      ]
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        4
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      12
+    ],
+    "susSubstitutionProb": 0.48,
+    "borrowed": {
+      "iv": 0.28
+    }
+  },
+  "melody": {
+    "register": [
+      56,
+      80
+    ],
+    "densityPerBar": [
+      3,
+      8
+    ],
+    "structure": "long_arc",
+    "intervals": {
+      "step": 0.76,
+      "third": 0.18,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.22,
+      "descend": 0.32,
+      "arch": 0.46
+    },
+    "chordToneBias": 0.78,
+    "octaveJumpProb": [
+      0.06,
+      0.16
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "articulation": "legato",
+    "endVariation": true,
+    "timbreHint": "warm_grand_piano"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.3,
+      0.52
+    ],
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "answer_lick"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.9,
+    "rhythm": "mirror_kick",
+    "register": [
+      28,
+      47
+    ],
+    "glideProb": 0.01,
+    "passingTones": [
+      "P5",
+      "M2"
+    ],
+    "anticipationProb": 0.2,
+    "cellShapes": [
+      [
+        "1"
+      ],
+      [
+        "1",
+        "5"
+      ],
+      [
+        "1",
+        "8"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 8,
+      "bridge": 8,
+      "outro": [
+        4,
+        8
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "chorus",
+          "verse",
+          "prechorus",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.85,
+        "beats": 4
+      },
+      "switchUpProb": 0.05
+    }
+  }
+}

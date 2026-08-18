@@ -1,0 +1,373 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "cashmere-cat",
+  "type": "producer",
+  "name": "Cashmere Cat",
+  "aliases": [
+    "cashmere cat",
+    "magnus august hoiberg",
+    "cashmerecat",
+    "dj final"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2020s"
+  ],
+  "era": "2012-present",
+  "genres": [
+    "pop",
+    "pop-2020s",
+    "producer",
+    "future bass"
+  ],
+  "relatedGenres": [
+    "pop-2020s",
+    "future-bass",
+    "trap-soul",
+    "trap"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2020s — Cashmere Cat",
+    "Wikipedia — Cashmere Cat (https://en.wikipedia.org/wiki/Cashmere_Cat)",
+    "Wikipedia — Future bass (https://en.wikipedia.org/wiki/Future_bass)",
+    "Wikipedia — Sophie (https://en.wikipedia.org/wiki/Sophie_(musician))"
+  ],
+  "notes": "Championship-turntablist-turned-producer making sparse, pitched, high-gloss R&B-pop and future bass. Both modes the entry names are half-time — \"the trap-R&B mode is half-time and the future-bass mode sits at 140—150 with the backbeat on 3\" — so `halfTime` is true at `halftime_3` with the mode at the stated future-bass centre. The kit is the turntablist one: \"turntablist precision — tiny, dry, transient-forward kicks and snaps, half-time backbeat, and scratch/edit artefacts used as fills; hat patterns are sparse 16ths or absent.\" So the velocity tiers are quiet and tight, the snare is `hard` transient under a `short` tail with a `snap`-only stack, `hihat.continuous` is false at `fillDensity` 0.08, and the fills are `reverse` and `perc2` lanes rather than a roll ladder, over the hardest quantize in this batch — DMC-level editing precision is a grid, not a feel. The low end is the entry's most unusual claim and it is authored as written: \"the bass is usually a pitched chord stack rather than a single note; where an 808 is present it is short and dry. Low-end movement follows the chord, not the kick.\" So `bass808` is `counter_riff` with a `staccato` sustain, a near-zero slide and no distortion, while the bassline is `independent_riff` at a high `followRootsProb` (it follows the chord) with the highest `glideProb` in this section, because the future-bass idiom means \"detuned chord stacks played as a bass instrument, with pitch-bend and vibrato automation on the chord itself\". Harmony is \"minor and modal with maj7/add9 colour\" over 2- or 4-bar loops, which is the low `triad` share and the short `chordDurationBeats`. \"Pitched, granular vocal chops as the lead instrument, plus bells, marimba and plucked synths\" is the melody timbre and the `bell_echo` counter. ⚠ `confidence` is medium against a medium-high rating because the research says the harmonic detail is \"future-bass-conventional\": every drum probability, the velocity tiers and the humanize pair are INFERRED.",
+  "session": {
+    "bpm": {
+      "min": 70,
+      "max": 150,
+      "mode": 145
+    },
+    "halfTime": true,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "lydian",
+        "major"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.99,
+      "velocityVar": 0.09
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        84,
+        98
+      ],
+      "main": [
+        58,
+        70
+      ],
+      "ghost": [
+        24,
+        34
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.3,
+      "tresilloBias": 0.12,
+      "offbeat8thShare": 0.12
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "stack": [
+        "snap"
+      ],
+      "transient": "hard",
+      "reverb": "short",
+      "ghost": {
+        "prob": 0.12,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.14,
+          0.28
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": 0.08,
+      "velocities": {
+        "main": [
+          0.4,
+          0.62
+        ],
+        "ghost": [
+          0.14,
+          0.3
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "pre_snare"
+        ],
+        "freqPerBar": 0.1
+      },
+      "openHat": {
+        "prob": 0.06,
+        "pos": [
+          "3&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "reverse",
+        "perc2",
+        "snap",
+        "triangle"
+      ],
+      "densityPerBar": [
+        1,
+        4
+      ],
+      "placement": "any",
+      "gainOffsetDb": -6
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 16,
+      "snareRollLadder": false
+    },
+    "bass808": {
+      "role": "counter_riff",
+      "sustain": "staccato",
+      "slideProb": 0.02,
+      "register": [
+        26,
+        40
+      ],
+      "distortion": "none"
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "IV",
+          "I"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.2,
+      "seventh": 0.44,
+      "ninth": 0.36
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        50,
+        82
+      ]
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "vamp"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      2,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      62,
+      90
+    ],
+    "densityPerBar": [
+      4,
+      10
+    ],
+    "structure": "riff_loop",
+    "motifPitchCount": [
+      3,
+      5
+    ],
+    "intervals": {
+      "step": 0.66,
+      "third": 0.26,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.54,
+      "descend": 0.3,
+      "arch": 0.16
+    },
+    "chordToneBias": 0.7,
+    "halfStepDissonance": 0.1,
+    "octaveJumpProb": [
+      0.06,
+      0.16
+    ],
+    "phraseBars": {
+      "values": [
+        1,
+        2
+      ],
+      "weights": [
+        3,
+        4
+      ]
+    },
+    "articulation": "staccato",
+    "endVariation": true,
+    "timbreHint": "pitched_vocal_chop"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.5,
+      0.75
+    ],
+    "styles": {
+      "values": [
+        "bell_echo",
+        "arp"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.9,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      48
+    ],
+    "glideProb": 0.32,
+    "passingTones": [
+      "P5",
+      "M2",
+      "M3",
+      "M7"
+    ],
+    "anticipationProb": 0.24,
+    "cellShapes": [
+      [
+        "1"
+      ],
+      [
+        "1",
+        "5"
+      ],
+      [
+        "1",
+        "3",
+        "5"
+      ]
+    ]
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": 8,
+      "chorus": 8,
+      "bridge": 4,
+      "outro": 2
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.55,
+        "beats": 2
+      },
+      "switchUpProb": 0.28
+    }
+  }
+}

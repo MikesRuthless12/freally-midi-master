@@ -92,6 +92,37 @@ impl ChordEvent {
     pub fn has_tone(&self, pitch: u8) -> bool {
         self.tones.contains(&(pitch % 12))
     }
+
+    /// The chord's tones, root first, less any the session's scale cannot play.
+    ///
+    /// ⛔ **A chord is stacked through [`theory::harmonic_degrees`] — the
+    /// seven-note key its numeral is read in — and a five- or six-note scale
+    /// sounds *over* that key rather than beside it.** Major pentatonic has no
+    /// fourth, so the root of a `IV` is a pitch the session's own scale does not
+    /// contain: a part that states the harmony by playing a raw chord tone
+    /// leaves the key there, which is what
+    /// `coherence::every_arrangement_stays_in_one_key` fails on and what
+    /// `kygo` — major-pentatonic, `halfStepDissonance: 0` — proved.
+    ///
+    /// ⚠ **Only the notes the reduced scale *removed*.** A chord's own
+    /// alterations — drill's middle drop, a borrowed `V`'s major third, a `bII`'s
+    /// root — sit outside the scale too, and those are the chord saying
+    /// something rather than the scale being short of notes. Dropping them would
+    /// silence a modelled device, so a tone the seven-note key does not have
+    /// either is kept. That also makes this a no-op for every seven-note scale,
+    /// where the two tables are the same row.
+    pub fn tones_in_scale(&self, ctx: &SessionContext) -> Vec<u8> {
+        let scale = theory::scale_semitones(ctx.scale);
+        let key = theory::harmonic_degrees(ctx.scale);
+        self.tones
+            .iter()
+            .copied()
+            .filter(|class| {
+                let relative = (i32::from(*class) - i32::from(ctx.key_root)).rem_euclid(12) as u8;
+                scale.contains(&relative) || !key.contains(&relative)
+            })
+            .collect()
+    }
 }
 
 /// What the generator produced: the notes, and what they mean.
@@ -772,9 +803,19 @@ fn voice(
 ///
 /// A *step*, not a semitone: the note has to be in the key or it stops being a
 /// colour and becomes a wrong note.
+///
+/// ⛔ **The key is [`theory::harmonic_degrees`], not [`theory::scale_semitones`],
+/// because that is the table [`realize`] stacked the chord out of.** The two are
+/// the same row for every seven-note scale and disagree on the reduced ones: the
+/// blues scale's flat fifth is not a degree of the natural minor the harmony is
+/// built in, so stepping through the *scale* put a colour note on it that was
+/// neither a chord tone nor in the key —
+/// `chords::every_generated_pitch_is_in_the_key_or_is_a_modeled_alteration`
+/// caught it on `bj-the-chicago-kid`. Seven degrees also means the step above is
+/// always a second; through a five-note scale it was a third or a fourth.
 fn adjacent_colour(voiced: &[u8], ctx: &SessionContext, high: u8) -> Option<u8> {
     let top = *voiced.last()?;
-    let degrees = theory::scale_semitones(ctx.scale);
+    let degrees = theory::harmonic_degrees(ctx.scale);
     let relative = (i32::from(top) - i32::from(ctx.key_root)).rem_euclid(12);
     let index = degrees.iter().position(|d| i32::from(*d) == relative)?;
     let step = theory::degree_semitone(degrees, index as i32 + 2) - i32::from(degrees[index]);

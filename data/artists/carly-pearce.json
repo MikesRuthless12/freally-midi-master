@@ -1,0 +1,240 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "carly-pearce",
+  "type": "artist",
+  "name": "Carly Pearce",
+  "aliases": [
+    "carly pearce",
+    "carlypearce",
+    "carly pierce"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-pop"
+  ],
+  "era": "2017-2022",
+  "genres": [
+    "country-pop",
+    "country",
+    "neotraditional country"
+  ],
+  "relatedGenres": [
+    "country-pop",
+    "country-shuffle",
+    "country-train"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-pop — Carly Pearce",
+    "bpmdatabase (https://www.bpmdatabase.com/music/search/?artist=Carly+Pearce)",
+    "songdata.io (https://songdata.io/search?query=Riley+Green)",
+    "Wikipedia — busbee (https://en.wikipedia.org/wiki/Busbee)"
+  ],
+  "notes": "90s-revivalist female country — steel, fiddle and cry-in-the-voice phrasing rebuilt with modern clarity. The drums are a deliberate reduction and the entry frames them that way: \"cross-stick verses with brushes or light shaker, snare entering at the chorus, kick on 1 and 3, low fill density; the uptempo cuts move toward a two-beat. Deliberately smaller and drier than her 2010s peers\" — so the velocity tiers, the perc gain and the fill count all sit under the modern cohort's while the hat opens on beat 4 for the two-beat. Harmony carries a period habit the entry names explicitly: \"the 90s-revival habit of a V7 before the chorus,\" which is the raised seventh share against otherwise plain I–IV–V and I–V–vi–IV, plus the i–VI–III–VII of the documented minor-tonic duet. The counter is the entry's headline claim — \"pedal steel and fiddle restored to lead-voice status\" — and \"no synth pads,\" so the counter is an answer lick rather than a pad. Melody is \"mid-alto with a deliberate country break/cry at phrase ends, narrow verse range, chorus a sixth up, minimal melisma.\" ⚠ Confidence is medium and the research says why: \"palette and lane clear; tempo evidence thin (two catalogue points) [LOW-CONF].\" ⚠ The INFERRED parameters are the velocity tiers, the perc density and the counter ratio.",
+  "session": {
+    "bpm": {
+      "min": 70,
+      "max": 114,
+      "mode": 90
+    },
+    "scales": {
+      "values": [
+        "major",
+        "major_pentatonic",
+        "natural_minor"
+      ],
+      "weights": [
+        6,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.87,
+      "velocityVar": 0.15,
+      "timingJitterMs": {
+        "kick": 3,
+        "snare": 3,
+        "shaker": 4
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        98,
+        114
+      ],
+      "main": [
+        66,
+        84
+      ],
+      "ghost": [
+        24,
+        38
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "syncopation": 0.09,
+      "offbeat8thShare": 0.08
+    },
+    "snare": {
+      "crossStickVerses": true,
+      "ghost": {
+        "prob": 0.17,
+        "pos": [
+          "1a",
+          "3a"
+        ],
+        "vel": [
+          0.14,
+          0.28
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.1,
+      "openHat": {
+        "prob": 0.36,
+        "pos": [
+          "4"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "rim",
+        "ride"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "gainOffsetDb": -7,
+      "tambourine": false
+    },
+    "fills": {
+      "smallEveryBars": 16,
+      "bigEveryBars": 16,
+      "fillBeforeSection": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "V",
+          "I"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.66,
+      "seventh": 0.3,
+      "ninth": 0.04
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        4
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      57,
+      79
+    ],
+    "densityPerBar": [
+      3,
+      6
+    ],
+    "intervals": {
+      "step": 0.72,
+      "third": 0.2,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.14,
+      "descend": 0.34,
+      "arch": 0.52
+    },
+    "chordToneBias": 0.86,
+    "octaveJumpProb": 0.02,
+    "endVariation": true,
+    "timbreHint": "pedal_steel_and_fiddle"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.72,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "arp"
+      ],
+      "weights": [
+        6,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.9,
+    "register": [
+      28,
+      43
+    ],
+    "passingTones": [
+      "P5",
+      "M2",
+      "M3",
+      "M6"
+    ],
+    "anticipationProb": 0.09
+  }
+}

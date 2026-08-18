@@ -1,0 +1,403 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "marshmello",
+  "type": "producer",
+  "name": "Marshmello",
+  "aliases": [
+    "marshmello",
+    "christopher comstock",
+    "mello"
+  ],
+  "tier": "standard",
+  "extends": [
+    "dance-pop"
+  ],
+  "era": "2015-present",
+  "genres": [
+    "dance-pop",
+    "future-bass",
+    "festival-trap",
+    "producer"
+  ],
+  "relatedGenres": [
+    "dance-pop",
+    "future-bass",
+    "trap",
+    "pop-2020s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 dance-pop — Marshmello",
+    "Wikipedia — Marshmello (https://en.wikipedia.org/wiki/Marshmello)",
+    "Future bass (https://en.wikipedia.org/wiki/Future_bass)",
+    "Big room house (https://en.wikipedia.org/wiki/Big_room_house)"
+  ],
+  "notes": "Festival-trap and future-bass with a pop-feature catalogue. The modelled grammar is the one his entry documents in detail — \"140-150 for the future-bass/festival-trap mode, half-time, backbeat on 3\" — so `halfTime` is true and the snare sits on `halftime_3`, not on the lane's 2&4. His 126-130 progressive-house mode is documented but is not the grammar the drums line describes, and the compendium's rule against blending rhythmic families is why it is named here rather than averaged into the numbers. That mode is also why the model still extends `dance-pop` while overriding the lane's spine for the half-time one: the entry documents him running \"126-130 for the progressive-house mode, four-on-the-floor with a clap on 2&4\", where Flume — the other half-time model in this section, and the one re-parented onto `future-bass` — is the case the research singles out as having no such mode at all: \"this is the one entry in the section whose kick is not on all four\". `future-bass` is a related genre here, not the parent. The kit is his: \"sparse kick, snare/clap on 3, 16th and 32nd hat rolls under the drop; festival-trap draws on hardstyle and big-room, so the kick is clipped and tuned\", plus \"snare rolls and white-noise risers with a silence immediately before the drop\" — which is the riser/impact/reverse perc lane, an authored roll ramp and the highest drop-out probability here. The 808 IS the bassline, because the entry gives him no second low part: \"808 sub with short glides in the trap mode; in the future-bass mode the 'bass' is a **detuned supersaw chord stack** rather than a note\", and the keys line calls those stacks \"the harmonic-and-bass element at once\". So the trap mode's low end is the 808 — `role: \"bassline\"`, with `slideProb` 0.4 over P5/P4/P8 as the \"short glides\" — and the future-bass mode's is the chord part, which is why the ninth weight is the highest in this section: \"the chord itself carries pitch-bend and LFO vibrato rather than being a static pad\". ⛔ **It shipped as `counter_riff` and that was one line played twice.** `kick.lockTo808` arrives as 1 from `_defaults`, so the engine's 808 takes every kick tick, and `bassline.rhythm` `mirror_kick` takes the same ticks off the same lane — `coherence::the_low_end_is_played_by_one_part_or_the_other` measured a share of 1.00 at seed 6. A counter-riff is a different *part*, and the entry never describes one under the sub, so the bass lane defers to the 808 (FR-007) as it does for the 129 other models that author both. The `bassline` block is kept for a re-parented base (TASK-158C) rather than read here. ⚠ The research calls the tempo and drum grammar future-bass/big-room convention; that mark is repeated here, and the velocities, densities and slide probabilities are INFERRED.",
+  "session": {
+    "bpm": {
+      "min": 140,
+      "max": 150,
+      "mode": 145
+    },
+    "halfTime": true,
+    "keys": {
+      "values": [
+        "C",
+        "G",
+        "F",
+        "Am",
+        "D"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "mixolydian",
+        "lydian",
+        "natural_minor"
+      ],
+      "weights": [
+        4,
+        3,
+        2,
+        2
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.98,
+      "velocityVar": 0.11,
+      "timingJitterMs": {
+        "kick": 1,
+        "clap": 2,
+        "closedHat": 2,
+        "bass808": 2
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        116,
+        127
+      ],
+      "main": [
+        86,
+        102
+      ],
+      "ghost": [
+        30,
+        48
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.4,
+      "tresilloBias": 0.1,
+      "offbeat8thShare": 0.45
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "layered": true,
+      "layerClapOffsetMs": [
+        2,
+        7
+      ],
+      "ghost": {
+        "prob": 0.2,
+        "pos": [
+          "4e",
+          "4a"
+        ],
+        "vel": [
+          0.26,
+          0.46
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": 0.6,
+      "openHat": {
+        "prob": 0.4,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          0,
+          2
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16",
+            "32"
+          ],
+          "weights": [
+            2,
+            4
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "pre_snare"
+        ],
+        "freqPerBar": 0.45
+      }
+    },
+    "percs": {
+      "lanes": [
+        "riser",
+        "impact",
+        "reverse",
+        "snap"
+      ],
+      "densityPerBar": [
+        0,
+        2
+      ],
+      "placement": "downbeat",
+      "gainOffsetDb": -3
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 16,
+      "snareRollLadder": true,
+      "fillBeforeSection": true
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "16th",
+        "32nd"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        40,
+        127
+      ],
+      "rampJitter": 8,
+      "gapProb": 0.18,
+      "descendProb": 0.05,
+      "pitchWalk": 2
+    },
+    "bass808": {
+      "role": "bassline",
+      "sustain": "staccato",
+      "distortion": "light",
+      "slideProb": 0.4,
+      "slideIntervals": {
+        "values": [
+          "P5",
+          "P4",
+          "P8"
+        ],
+        "weights": [
+          3,
+          2,
+          2
+        ]
+      },
+      "slidePositions": [
+        "bar_2",
+        "phrase_end"
+      ],
+      "register": [
+        24,
+        40
+      ],
+      "monoCutSelf": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "iii",
+          "vi",
+          "IV"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.24,
+      "seventh": 0.42,
+      "ninth": 0.34
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        52,
+        92
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "2_bars_per_chord",
+        "1_per_bar"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    },
+    "susSubstitutionProb": 0.2
+  },
+  "melody": {
+    "register": [
+      72,
+      96
+    ],
+    "densityPerBar": [
+      3,
+      8
+    ],
+    "structure": "riff_loop",
+    "intervals": {
+      "step": 0.66,
+      "third": 0.26,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.5,
+      "descend": 0.24,
+      "arch": 0.26
+    },
+    "chordToneBias": 0.86,
+    "octaveJumpProb": [
+      0.05,
+      0.14
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        4
+      ]
+    },
+    "timbreHint": "chopped_vocal"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.55,
+    "styles": {
+      "values": [
+        "bell_echo",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.94,
+    "rhythm": "mirror_kick",
+    "register": [
+      26,
+      46
+    ],
+    "glideProb": 0.12,
+    "passingTones": [
+      "P5",
+      "P8"
+    ],
+    "anticipationProb": 0.2
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "prechorus": 8,
+      "hook": 16,
+      "bridge": 8,
+      "outro": 8
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "hook",
+          "verse",
+          "prechorus",
+          "hook",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "hook",
+          "verse",
+          "prechorus",
+          "hook",
+          "bridge",
+          "hook",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.85,
+        "beats": 2
+      },
+      "switchUpProb": 0.14
+    }
+  }
+}

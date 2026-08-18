@@ -1,0 +1,282 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "rick-parashar",
+  "type": "producer",
+  "name": "Rick Parashar",
+  "aliases": [
+    "rick parashar",
+    "rickparashar"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "1991-2002",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "producer"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "country-pop",
+    "pop-2020s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — Rick Parashar",
+    "Wikipedia — \"How You Remind Me\" (https://en.wikipedia.org/wiki/How_You_Remind_Me)",
+    "songdata.io — Nickelback catalogue (https://songdata.io/search?query=Nickelback)"
+  ],
+  "notes": "The Pacific-Northwest post-grunge producer whose room sound became 2000s radio rock, Gate-2 clear at 1991. 77–164 with the flagship singles at 90–133 straight; the down-tuned riff songs \"feel **half-time** at ~90\", which is the other backbeat class and is named here rather than encoded. The research restricts this entry to the 2001–2002 Vancouver-era productions because the producer-side lineage otherwise overlaps the vol. 1 Joey Moi entry, and that boundary is respected here. The defining fact is a room: \"live kit in a real room, tracked big and compressed\", with a documented regional chain — tracked in Burnaby, mixed in Vancouver, mastered at Sterling. A note generator hears a real room as a played kit, so this is where `humanize` opens: a real velocity spread and per-lane jitter, which is exactly what separates this model from the Nickelback artist entry that shares the record and is gridded hard. Three deltas are quoted: \"kick on 1 and the '&' of 2 (8th double-kick under choruses)\", \"gated snare on 2&4\", and \"crash on every chorus downbeat\" with \"fills are 16th tom runs into a crash\". Harmony is flat-side minors and drop-tuned major riffs \"in power-chord voicings with no thirds, so the vocal decides major/minor\" — the high triad share and the open voicing. ⚠ `confidence` is medium because the research rates it high-medium and says the drum specifics are partly convention-derived. ⚠ Every drum probability here is **INFERRED**, as is `bpm.mode` 110.",
+  "session": {
+    "bpm": {
+      "min": 77,
+      "max": 164,
+      "mode": 110
+    },
+    "halfTime": false,
+    "keys": {
+      "values": [
+        "Bbm",
+        "Cm",
+        "Gm",
+        "Eb"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "major",
+        "mixolydian"
+      ],
+      "weights": [
+        5,
+        3,
+        1
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.78,
+      "velocityVar": 0.21,
+      "timingJitterMs": {
+        "kick": 7,
+        "snare": 8,
+        "closedHat": 8,
+        "openHat": 9,
+        "perc": 9
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        112,
+        127
+      ],
+      "main": [
+        86,
+        104
+      ],
+      "ghost": [
+        28,
+        44
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        3,
+        6
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2&",
+      "syncopation": 0.2
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.14,
+        "pos": [
+          "3a",
+          "4a"
+        ],
+        "vel": [
+          0.18,
+          0.34
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.46,
+      "openHat": {
+        "prob": 0.4,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.13
+      }
+    },
+    "percs": {
+      "lanes": [
+        "crash",
+        "tom",
+        "tomLow",
+        "ride"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "extensions": {
+      "triad": 0.78,
+      "seventh": 0.18,
+      "ninth": 0.04
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        46,
+        76
+      ],
+      "topVoiceStepwise": false
+    }
+  },
+  "melody": {
+    "register": [
+      52,
+      78
+    ],
+    "densityPerBar": [
+      3,
+      8
+    ],
+    "intervals": {
+      "step": 0.72,
+      "third": 0.2,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.44,
+      "descend": 0.28,
+      "arch": 0.28
+    },
+    "chordToneBias": 0.72,
+    "octaveJumpProb": 0.26,
+    "phraseBars": {
+      "values": [
+        4,
+        2
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.44,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.96,
+    "rhythm": "mirror_kick",
+    "register": [
+      26,
+      43
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.18
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 16,
+      "bridge": 8,
+      "outro": 8
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.8,
+        "beats": 4
+      },
+      "switchUpProb": 0.1
+    }
+  }
+}

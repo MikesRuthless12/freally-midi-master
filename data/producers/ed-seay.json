@@ -1,0 +1,271 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "ed-seay",
+  "type": "producer",
+  "name": "Ed Seay",
+  "aliases": [
+    "ed seay",
+    "edseay",
+    "edward seay"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "country-pop"
+  ],
+  "era": "1990-2005",
+  "genres": [
+    "country-pop",
+    "country",
+    "producer"
+  ],
+  "relatedGenres": [
+    "country-pop",
+    "pop-2000s",
+    "country-train"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 country-pop — Ed Seay",
+    "Mix — Classic Tracks: \"Independence Day\" (https://www.mixonline.com/recording/classic-tracks/classic-tracks-martina-mcbrides-independence-day)"
+  ],
+  "notes": "The producer/engineer half of the benchmark 90s female-narrative-ballad sound. The entry calls his drum capture \"the single most complete in this file,\" and the part of it that reaches a note generator is the dynamic shape rather than the chain: the grammar is \"cross-stick verse into a hard 2&4 chorus\" with the \"Sky Hook\" compressed room mic fourteen feet above the kit producing the explosive chorus character — authored as a very wide accent-to-main velocity spread and room-driven fills into the final chorus. The stated signal-chain principle is a humanize fact, not a mix one: \"high-quality discrete preamps and compressors in front of tape, **minimal correction after**,\" so the timing stays played rather than gridded, and the bass is \"warm and analogue-tape-saturated\" root motion rather than a tight modern line. The session-culture note is authored as low fill variance and a maximal final chorus: \"the players approached the date with 'intention,' not as one of several dates that day — model deliberate, non-routine performances.\" ⚠ **No `progressionFamilies` are authored.** The entry names one tempo reading and no numerals at all, so the genre's families are inherited and only the extension spread, the voicing and the harmonic rhythm are authored — which is what \"two acoustics, a lead electric, pedal steel, keys, and sampled orchestra bells\" actually determines. ⚠ The signature production's ~117 reading is marked [LOW-CONF] in the research. ⚠ The INFERRED parameters are the velocity tiers, the humanize values, the perc density and the counter ratio.",
+  "session": {
+    "bpm": {
+      "min": 59,
+      "max": 141,
+      "mode": 96
+    },
+    "scales": {
+      "values": [
+        "major",
+        "major_pentatonic",
+        "mixolydian"
+      ],
+      "weights": [
+        7,
+        2,
+        1
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.73,
+      "velocityVar": 0.25,
+      "timingJitterMs": {
+        "kick": 6,
+        "snare": 8,
+        "closedHat": 7,
+        "tom": 9,
+        "crash": 8
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        124,
+        127
+      ],
+      "main": [
+        58,
+        90
+      ],
+      "ghost": [
+        20,
+        36
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        3
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "syncopation": 0.11,
+      "offbeat8thShare": 0.12
+    },
+    "snare": {
+      "crossStickVerses": true,
+      "ghost": {
+        "prob": 0.2,
+        "pos": [
+          "1a",
+          "3a"
+        ],
+        "vel": [
+          0.12,
+          0.28
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.2,
+      "openHat": {
+        "prob": 0.14,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "tomHigh",
+        "tomLow",
+        "crash",
+        "rim"
+      ],
+      "densityPerBar": [
+        1,
+        4
+      ],
+      "gainOffsetDb": -3,
+      "tambourine": false
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 8,
+      "fillBeforeSection": true
+    }
+  },
+  "chords": {
+    "extensions": {
+      "triad": 0.63,
+      "seventh": 0.3,
+      "ninth": 0.07
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        49,
+        78
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        4,
+        5
+      ]
+    },
+    "susSubstitutionProb": 0.3
+  },
+  "melody": {
+    "register": [
+      54,
+      87
+    ],
+    "densityPerBar": [
+      2,
+      6
+    ],
+    "intervals": {
+      "step": 0.66,
+      "third": 0.23,
+      "leap": 0.11
+    },
+    "contour": {
+      "riff": 0.08,
+      "descend": 0.26,
+      "arch": 0.66
+    },
+    "chordToneBias": 0.84,
+    "octaveJumpProb": [
+      0.08,
+      0.2
+    ],
+    "articulation": "legato",
+    "timbreHint": "bright_bell"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.46,
+    "styles": {
+      "values": [
+        "bell_echo",
+        "sustain_pad"
+      ],
+      "weights": [
+        4,
+        4
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.9,
+    "register": [
+      28,
+      43
+    ],
+    "passingTones": [
+      "P5",
+      "M2",
+      "M3"
+    ],
+    "anticipationProb": 0.12
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        2,
+        4
+      ],
+      "verse": [
+        8,
+        16
+      ],
+      "chorus": 8,
+      "bridge": [
+        4,
+        8
+      ],
+      "outro": [
+        2,
+        4
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus"
+        ],
+        "weight": 6
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "chorus"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.26,
+        "beats": 2
+      },
+      "switchUpProb": 0.12
+    }
+  }
+}

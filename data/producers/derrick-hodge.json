@@ -1,0 +1,276 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "derrick-hodge",
+  "type": "producer",
+  "name": "Derrick Hodge",
+  "aliases": [
+    "derrick hodge",
+    "hodge",
+    "glasper experiment bass"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "2009-present",
+  "genres": [
+    "producer",
+    "soul",
+    "neo-soul",
+    "jazz"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "funk",
+    "rnb-2000s"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Derrick Hodge",
+    "Wikipedia — Derrick Hodge (https://en.wikipedia.org/wiki/Derrick_Hodge)",
+    "Wikipedia — Robert Glasper (https://en.wikipedia.org/wiki/Robert_Glasper)",
+    "Wikipedia — Chris Dave (https://en.wikipedia.org/wiki/Chris_Dave)"
+  ],
+  "notes": "The lane's other defining bassist. `confidence` is **low** — the band role and the instruments are sourced, the parametric detail is inference. Two claims drive the whole model. The first is harmonic: \"he moves *with* the reharmonisation rather than under it — when the pianist re-voices a repeated melody, the bass changes root, so the same 4-bar melody sits over three different bass paths. Chord-tone-driven, rarely root-only\", which is a `followRootsProb` of 0.2 and a chord voicing pushed up to 54 to clear a bass that reaches 52 — \"played electric bass (5- and 6-string), sometimes distorted or octave-doubled, with a wide register and a soloistic role; also upright on the acoustic material. Long sustained notes alternate with dense 16th passages; no 808.\" The second is the interlock: \"he pairs with Chris Dave; the bass fills the gaps the displaced snare leaves, so the bass and drums together imply the backbeat that neither states.\" So the drums carry a 13–27 ms displacement and a 0.64 ghost probability with the hat mostly withheld, and the bass carries the highest anticipation in this batch — it is answering the snare rather than following the kick. \"As a composer he writes for strings and gospel choir alongside the band, so model a bass-plus-orchestra variant with no drums at all\", which is why the countermelody is a sustain pad and the arrangement runs long open sections. ⚠ Every drum number and every melody figure here is INFERRED. ⚠ His drum grammar is Chris Dave's by the research's own statement; this model states it at its own numbers rather than copying that one, and the difference between them is authored in the bass, not invented in the kit.",
+  "session": {
+    "bpm": {
+      "min": 60,
+      "max": 115,
+      "mode": 86
+    },
+    "scales": {
+      "values": [
+        "dorian",
+        "natural_minor",
+        "major",
+        "melodic_minor"
+      ],
+      "weights": [
+        4,
+        3,
+        3,
+        1
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.36,
+      "velocityVar": 0.3,
+      "timingJitterMs": {
+        "kick": 8,
+        "snare": 21,
+        "rim": 14,
+        "closedHat": 11
+      }
+    }
+  },
+  "drums": {
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "syncopation": 0.5,
+      "tresilloBias": 0.08
+    },
+    "snare": {
+      "offGridMs": [
+        13,
+        27
+      ],
+      "ghost": {
+        "prob": 0.64,
+        "pos": [
+          "1e",
+          "1a",
+          "2e",
+          "3e",
+          "3a",
+          "4a"
+        ],
+        "vel": [
+          0.08,
+          0.28
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "continuous": false,
+      "fillDensity": 0.16,
+      "velocities": {
+        "main": [
+          0.2,
+          0.42
+        ],
+        "ghost": [
+          0.06,
+          0.18
+        ]
+      },
+      "openHat": {
+        "prob": 0.05,
+        "pos": [
+          "3a"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "ride",
+        "rim",
+        "perc"
+      ],
+      "densityPerBar": [
+        2,
+        5
+      ],
+      "gainOffsetDb": -6
+    }
+  },
+  "chords": {
+    "extensions": {
+      "triad": 0.03,
+      "seventh": 0.4,
+      "ninth": 0.57
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        54,
+        86
+      ],
+      "topVoiceStepwise": false
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "syncopated_cell"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    },
+    "susSubstitutionProb": 0.34,
+    "chordDurationBeats": [
+      2,
+      6
+    ]
+  },
+  "melody": {
+    "register": [
+      56,
+      82
+    ],
+    "densityPerBar": [
+      3,
+      7
+    ],
+    "structure": "long_arc",
+    "intervals": {
+      "step": 0.72,
+      "third": 0.22,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.16,
+      "descend": 0.42,
+      "arch": 0.42
+    },
+    "chordToneBias": 0.5,
+    "endVariation": true,
+    "octaveJumpProb": 0.12,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        2,
+        3
+      ]
+    },
+    "timbreHint": "cello_and_choir"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.5,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "answer_lick"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.2,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      52
+    ],
+    "glideProb": 0.08,
+    "passingTones": [
+      "P5",
+      "m7",
+      "M2",
+      "M3",
+      "M6",
+      "P4"
+    ],
+    "anticipationProb": 0.58
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": [
+        4,
+        12
+      ],
+      "verse": [
+        8,
+        24
+      ],
+      "chorus": [
+        8,
+        16
+      ],
+      "outro": [
+        4,
+        16
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "outro"
+        ],
+        "weight": 4
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "verse",
+          "outro"
+        ],
+        "weight": 3
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "switchUpProb": 0.44
+    }
+  }
+}

@@ -40,7 +40,7 @@
     "style-research ch.1 Cross-genre engine constants (MPC swing scale)",
     "Public genre reference for the tamborzão loop — the atabaque/timbal percussion pattern funk carioca has been built on since the late 1990s. Parameters are extrapolated from the documented rhythm, not measured from any recording."
   ],
-  "notes": "The tamborzão: a percussion loop, not a kick-and-snare grid. Six hand-drum lanes — conga, timbale, woodblock, shaker, rim and a generic perc — run at the densest rate anywhere in this dataset and land anywhere on the 16th grid, so the subdivision is carried by drums rather than by hats, which are close to absent here. Under them the bass drum refuses the quarters: it anchors the 1 and then goes to the a of 2 and the and of 3, and everything else it plays leans offbeat. The backbeat is an answer rather than the engine, ghosted heavily on the e and a slots. Harmony is almost nothing — a one- or two-chord minor vamp so the chant and the drums have the record to themselves — and the bass is deep, simple and locked to the kick. ⚠ confidence is medium: the compendium has no funk carioca section, so the tempo, register and harmony numbers are extrapolated from ch.2 §10's club-influenced grammar and from the publicly documented shape of the tamborzão.",
+  "notes": "The tamborzão: a percussion loop, not a kick-and-snare grid. Six hand-drum lanes — conga, timbale, woodblock, shaker, rim and a generic perc — run at the densest rate anywhere in this dataset and land anywhere on the 16th grid, so the subdivision is carried by drums rather than by hats, which are close to absent here. Under them the bass drum refuses the quarters: it anchors the 1 and then goes to the a of 2 and the and of 3, and everything else it plays leans offbeat. The backbeat is an answer rather than the engine, ghosted heavily on the e and a slots. Harmony is almost nothing — a one- or two-chord minor vamp so the chant and the drums have the record to themselves — and the bass is deep, simple and locked to the kick. ⚠ confidence is medium: the compendium has no funk carioca section, so the tempo, register and harmony numbers are extrapolated from ch.2 §10's club-influenced grammar and from the publicly documented shape of the tamborzão. ⚠ **`drums.kick.lockTo808` removed (2026-08-17, 808 gate).** This kit has no 808 — `bass808` is `null` here or in the parent it inherits — and `lockTo808` is the one parameter that says *how much of the kick the 808 follows*, so in this file it described a pairing that does not exist: `generators::drums::bass808` returns on `block.is_none()` before the value is ever read, which makes it provably dead here. Where it was NOT dead was in the artists and producers who extend this kit and author an 808 of their own: they inherited the zero, `kicks.iter().filter(|_| rng.random_bool(0.0))` kept nothing, and their sub lane was silent at every seed — `bass808::every_shipped_model_with_an_808_produces_a_playable_line` reported \"no 808 at all\" for 35 of them. Removing it restores the engine's documented default of 1.0 for exactly those children and changes nothing here. ⚠ No researched claim moved: this kit's own statement about the 808 is the `bass808: null` beside it, and that is untouched.",
   "session": {
     "bpm": {
       "min": 125,
@@ -129,8 +129,7 @@
       "secondaryAnchor": "3&",
       "syncopation": 0.9,
       "tresilloBias": 0.2,
-      "offbeat8thShare": 0.7,
-      "lockTo808": 0
+      "offbeat8thShare": 0.7
     },
     "snare": {
       "placement": "backbeat_24",

@@ -1,0 +1,421 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "pop-and-oak",
+  "type": "producer",
+  "name": "Pop & Oak (Pop Wansel & Oak Felder)",
+  "aliases": [
+    "pop and oak",
+    "pop wansel",
+    "oak felder",
+    "warren felder"
+  ],
+  "tier": "standard",
+  "extends": [
+    "trap-soul"
+  ],
+  "era": "2013-present",
+  "genres": [
+    "trap-soul",
+    "rnb",
+    "pop",
+    "producer"
+  ],
+  "relatedGenres": [
+    "trap-soul",
+    "pop-2020s",
+    "rnb-2000s",
+    "dance-pop"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended-2 vol.2 trap-soul — Pop & Oak (Pop Wansel & Oak Felder)",
+    "Wikipedia — Oak Felder (https://en.wikipedia.org/wiki/Oak_Felder)",
+    "Wikipedia — Pop Wansel (https://en.wikipedia.org/wiki/Pop_Wansel)",
+    "Songwriter Universe interview (2017) (https://www.songwriteruniverse.com)"
+  ],
+  "notes": "The lane's biggest radio-facing production duo. Two claims decide the model. The kit is \"a **hybrid pop/trap kit** — a hard programmed kick on 1 and the 16th before 3, a layered clap-plus-snare on 2&4 or on 3, swung 16th hats with 32nd rolls, and finger-snaps and tambourine as a constant top layer. The kit is loud and compressed, **mixed for radio rather than for atmosphere**\" — so `velocityTiers` are the hottest of the twenty producers, the snare is layered and stacked, `fullTimeVariantProb` is high because the backbeat genuinely moves between 3 and 2&4, and the top-layer perc runs constantly. The second is a songwriting workflow: \"their function is **top-line-first songwriting** — the hook is engineered before the beat is finished — so model a strong, short, high-note-density chorus over a simple bed\", which is a short `phraseBars`, a small `motifPitchCount`, a high melody density and a modest chord vocabulary. Their harmony is stated as pop structure: \"4-chord cycles that cadence… a pre-chorus lift built on a borrowed major chord and a real bridge are standard\", so a borrowed-major family is authored and the arrangement carries a genuine prechorus in a \"tight 3:00 radio form\". ⚠ `confidence` is **low**, mirroring the entry's medium-low: \"the partnership, credit list and pop-structure remit are sourced; specific technique is not documented on the reachable surface\". ⚠ Every drum number, the swing amount and the 808 figures are **INFERRED**. ⚠ `session.bpm.mode` is **INFERRED**: the number is not stated in the entry, and it is an authored centre of gravity inside the band the entry does state. ⚠ **`session.keys` is INFERRED.** The entry's Keys line describes the harmonic grammar but names no key centre, so these values and their weights are an authored choice — no key in this set is stated in the research.",
+  "session": {
+    "bpm": {
+      "min": 120,
+      "max": 160,
+      "mode": 138
+    },
+    "halfTime": true,
+    "keys": {
+      "values": [
+        "Gm",
+        "Cm",
+        "Fm",
+        "Am",
+        "Ebm"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "major"
+      ],
+      "weights": [
+        5,
+        2,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "16th",
+      "amount": 0.56
+    },
+    "humanize": {
+      "quantizeStrength": 0.93,
+      "velocityVar": 0.12,
+      "timingJitterMs": {
+        "kick": 1,
+        "snare": 3,
+        "clap": 3,
+        "closedHat": 3,
+        "tambourine": 4,
+        "snap": 4
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        120,
+        127
+      ],
+      "main": [
+        92,
+        106
+      ],
+      "ghost": [
+        42,
+        54
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        3,
+        4
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "2a",
+      "syncopation": 0.34,
+      "tresilloBias": 0.29,
+      "lockTo808": 0.72
+    },
+    "snare": {
+      "placement": "halftime_3",
+      "ghost": {
+        "prob": 0.2,
+        "pos": [
+          "2e",
+          "4e"
+        ],
+        "vel": [
+          0.28,
+          0.44
+        ]
+      },
+      "offGridMs": [
+        0,
+        2
+      ],
+      "layered": true,
+      "stack": [
+        "clap",
+        "snare"
+      ],
+      "layerClapOffsetMs": [
+        4,
+        9
+      ],
+      "fullTimeVariantProb": 0.55
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": true,
+      "fillDensity": 0.57,
+      "velocities": {
+        "main": [
+          0.66,
+          0.9
+        ],
+        "ghost": [
+          0.32,
+          0.48
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "32"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "bar_4",
+          "pre_downbeat"
+        ],
+        "freqPerBar": 0.5,
+        "velocityRamp": true
+      },
+      "openHat": {
+        "prob": 0.31,
+        "pos": [
+          "3&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "snap",
+        "tambourine",
+        "shaker",
+        "rim"
+      ],
+      "densityPerBar": [
+        5,
+        8
+      ],
+      "placement": "any",
+      "gainOffsetDb": -3,
+      "tambourineMirrorsClap": true
+    },
+    "bass808": {
+      "sustain": "legato",
+      "slideProb": 0.45,
+      "slidesPer4Bars": [
+        1,
+        3
+      ],
+      "slideIntervals": {
+        "values": [
+          "P4",
+          "P5",
+          "m3",
+          "M2"
+        ],
+        "weights": [
+          3,
+          3,
+          2,
+          2
+        ]
+      },
+      "slidePositions": [
+        "phrase_end",
+        "bar_2"
+      ],
+      "register": [
+        27,
+        43
+      ],
+      "distortion": "light"
+    },
+    "snareRoll": {
+      "subdivisions": [
+        "32",
+        "16th"
+      ],
+      "grouping": [
+        "even"
+      ],
+      "velocityRampRange": [
+        56,
+        124
+      ],
+      "rampJitter": 6,
+      "gapProb": 0.16,
+      "descendProb": 0.08,
+      "buildAndStopProb": 0.65
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII",
+          "III"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "VII",
+          "III"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 4,
+    "extensions": {
+      "triad": 0.28,
+      "seventh": 0.48,
+      "ninth": 0.24
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        51,
+        82
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    },
+    "chordDurationBeats": [
+      4,
+      8
+    ]
+  },
+  "melody": {
+    "register": [
+      63,
+      87
+    ],
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        5,
+        2
+      ]
+    },
+    "densityPerBar": [
+      8,
+      13
+    ],
+    "structure": "riff_loop",
+    "motifPitchCount": [
+      4,
+      6
+    ],
+    "intervals": {
+      "step": 0.76,
+      "third": 0.2,
+      "leap": 0.04
+    },
+    "contour": {
+      "riff": 0.34,
+      "descend": 0.36,
+      "arch": 0.3
+    },
+    "chordToneBias": 0.84,
+    "twoBarCellRepeat": true,
+    "endVariation": true,
+    "octaveJumpProb": 0.07,
+    "timbreHint": "bright_bell"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.62,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "answer_lick"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    }
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "prechorus": 8,
+      "hook": 8,
+      "bridge": 8,
+      "outro": 4
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "hook",
+          "verse",
+          "prechorus",
+          "hook",
+          "bridge",
+          "hook",
+          "outro"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "prechorus",
+          "hook",
+          "bridge",
+          "hook",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": true,
+      "dropOutBeats": {
+        "prob": 0.52,
+        "beats": 2
+      },
+      "switchUpProb": 0.05
+    }
+  }
+}

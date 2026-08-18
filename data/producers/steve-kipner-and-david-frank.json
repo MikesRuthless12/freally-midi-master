@@ -1,0 +1,261 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "steve-kipner-and-david-frank",
+  "type": "producer",
+  "name": "Steve Kipner & David Frank",
+  "aliases": [
+    "steve kipner and david frank",
+    "steve kipner",
+    "david frank"
+  ],
+  "tier": "flagship",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "1998-2003",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "producer"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "rnb-2000s",
+    "dance-pop"
+  ],
+  "confidence": "high",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — Steve Kipner & David Frank",
+    "Wikipedia — \"Genie in a Bottle\" (https://en.wikipedia.org/wiki/Genie_in_a_Bottle)"
+  ],
+  "notes": "The LA keyboard duo behind the teen-pop-meets-R&B template: 84–110 straight, backbeat on 2&4, and a documented harmonic cell — **Fm–E♭–D♭ (i–VII–VI)** in F minor at 84 BPM, \"a descending three-chord loop used in every section\" — so that family dominates and `maxChords` is 3. The drum signature is the entry's headline and the model's reason to exist: \"a **32nd-note bass-drum flutter** under the groove (a machine-gun sub-kick figure)… the kit is small and dry; **the flutter is the identity**\". There is no kick-subdivision field, so the flutter is authored as the only thing that reaches the generator — a kick `densityPerBar` of 4–9, the busiest in this section, at `syncopation` 0.46. The other two deltas are quoted: \"a 16th hat with an open hat on the last 8th\" (pinned 16ths, open hat on \"4&\" every bar) and \"claps stacked from the chorus\". The bass is deliberately negative space: \"synth bass on roots, short and staccato, **deliberately gapped so the kick flutter is audible**; no slides\", which is `independent_riff` at 0.9 with a low anticipation and no glide. The topline is \"melisma-heavy and sits in the lower third of the range in the verse before jumping to a sustained chorus apex\", with the range kept to about a 9th (F3–B♭4). ⚠ The **INFERRED** parameters are every drum probability; the key, cell, tempo, range, instrument roles and the drum signature are all sourced, the values are not.",
+  "session": {
+    "bpm": {
+      "min": 84,
+      "max": 110,
+      "mode": 92
+    },
+    "halfTime": false,
+    "scales": {
+      "values": [
+        "natural_minor",
+        "dorian",
+        "major"
+      ],
+      "weights": [
+        6,
+        2,
+        1
+      ]
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        102,
+        118
+      ],
+      "main": [
+        74,
+        90
+      ],
+      "ghost": [
+        28,
+        42
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        4,
+        9
+      ],
+      "anchors": [
+        "1"
+      ],
+      "secondaryAnchor": "3&",
+      "syncopation": 0.46,
+      "tresilloBias": 0.14
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.14,
+        "pos": [
+          "4e"
+        ],
+        "vel": [
+          0.2,
+          0.34
+        ]
+      },
+      "layerClapOffsetMs": [
+        1,
+        4
+      ]
+    },
+    "hihat": {
+      "base": "16th",
+      "fillDensity": 0.56,
+      "openHat": {
+        "prob": 0.46,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end"
+        ],
+        "freqPerBar": 0.1
+      }
+    },
+    "percs": {
+      "lanes": [
+        "snap",
+        "perc"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "gainOffsetDb": -3
+    },
+    "fills": {
+      "smallEveryBars": 8,
+      "bigEveryBars": 16
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "i",
+          "VII",
+          "VI"
+        ],
+        "weight": 7
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "VII"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "VII"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 3,
+    "extensions": {
+      "triad": 0.5,
+      "seventh": 0.36,
+      "ninth": 0.14
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      53,
+      70
+    ],
+    "densityPerBar": [
+      5,
+      11
+    ],
+    "intervals": {
+      "step": 0.66,
+      "third": 0.26,
+      "leap": 0.08
+    },
+    "contour": {
+      "riff": 0.28,
+      "descend": 0.26,
+      "arch": 0.46
+    },
+    "chordToneBias": 0.66,
+    "octaveJumpProb": 0.16,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    },
+    "endVariation": true,
+    "timbreHint": "soft_keys"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.54,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.9,
+    "rhythm": "independent_riff",
+    "register": [
+      28,
+      44
+    ],
+    "glideProb": 0,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.14
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 2,
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 16,
+      "bridge": 8,
+      "outro": 16
+    },
+    "transitions": {
+      "fillBeforeSection": false,
+      "dropOutBeats": {
+        "prob": 0.8,
+        "beats": 4
+      },
+      "switchUpProb": 0.08
+    }
+  }
+}

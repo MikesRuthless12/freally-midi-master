@@ -1,0 +1,265 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "good-charlotte",
+  "type": "artist",
+  "name": "Good Charlotte",
+  "aliases": [
+    "good charlotte",
+    "goodcharlotte"
+  ],
+  "tier": "standard",
+  "extends": [
+    "pop-2000s"
+  ],
+  "era": "2002-2007",
+  "genres": [
+    "pop",
+    "pop-2000s",
+    "pop-punk"
+  ],
+  "relatedGenres": [
+    "pop-2000s",
+    "pop-2020s",
+    "rnb-2000s"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 pop-2000s — Good Charlotte",
+    "songdata.io — Good Charlotte catalogue (https://songdata.io/search?query=Good%20Charlotte)",
+    "Wikipedia — John Feldmann (https://en.wikipedia.org/wiki/John_Feldmann)"
+  ],
+  "notes": "Pop-punk with hip-hop swagger and synth colour: 135–178 straight, backbeat on 2&4 at speed, with the later singles slowing to 135–150. Three drum deltas are quoted: \"8th kick, snare 2&4, hat 8ths\" with \"handclaps layered on the backbeat in the chorus\" (the clap offset tightened plus a snap lane), \"a 16th snare-roll lift into **every** chorus\" — which is why `fills.smallEveryBars` is 4 with the ladder on and the hat rolls run at 0.4, the busiest lift schedule in this batch — and \"occasional drum-machine intro before the band enters\", which is why the humanize keeps a tight grid for a live kit. The bass is \"root 8ths\" with \"a slap/octave figure on the funk-leaning verses\", so the octave and fifth are its passing tones. Harmony is D-flat/C/B majors over I–V–vi–IV and vi–IV–I–V \"with a minor-key verse into a major chorus on the darker singles\", which is why the minor cycle is authored alongside them and both modes carry weight in the scales. The topline is \"nasal, syllable-dense in the verse (near-rapped) and anthemic in the chorus\", i.e. the 4–11 density. ⚠ `confidence` is medium because the research rates it medium-high and says the drum detail is partly convention-based. ⚠ The **INFERRED** parameters are every drum probability and `bpm.mode` 150.",
+  "session": {
+    "bpm": {
+      "min": 135,
+      "max": 178,
+      "mode": 150
+    },
+    "halfTime": false,
+    "keys": {
+      "values": [
+        "Db",
+        "C",
+        "B",
+        "Bm"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        2
+      ]
+    },
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor"
+      ],
+      "weights": [
+        5,
+        3
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.9,
+      "velocityVar": 0.15
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        110,
+        126
+      ],
+      "main": [
+        88,
+        104
+      ],
+      "ghost": [
+        32,
+        46
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        4,
+        7
+      ],
+      "anchors": [
+        "1",
+        "2",
+        "3",
+        "4"
+      ],
+      "secondaryAnchor": "4&",
+      "syncopation": 0.14
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.07,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.24,
+          0.4
+        ]
+      },
+      "layerClapOffsetMs": [
+        0,
+        2
+      ]
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.38,
+      "openHat": {
+        "prob": 0.36,
+        "pos": [
+          "2&",
+          "4&"
+        ],
+        "perBar": [
+          1,
+          1
+        ]
+      },
+      "rolls": {
+        "vocab": {
+          "values": [
+            "16"
+          ],
+          "weights": [
+            1
+          ]
+        },
+        "positions": [
+          "phrase_end",
+          "bar_4"
+        ],
+        "freqPerBar": 0.4
+      }
+    },
+    "percs": {
+      "lanes": [
+        "snap",
+        "crash"
+      ],
+      "densityPerBar": [
+        2,
+        4
+      ]
+    },
+    "fills": {
+      "smallEveryBars": 4,
+      "bigEveryBars": 8,
+      "snareRollLadder": true
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "I",
+          "V",
+          "vi",
+          "IV"
+        ],
+        "weight": 5
+      },
+      {
+        "roman": [
+          "vi",
+          "IV",
+          "I",
+          "V"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "i",
+          "VI",
+          "III",
+          "VII"
+        ],
+        "weight": 3
+      }
+    ],
+    "extensions": {
+      "triad": 0.76,
+      "seventh": 0.18,
+      "ninth": 0.06
+    }
+  },
+  "melody": {
+    "register": [
+      60,
+      82
+    ],
+    "densityPerBar": [
+      4,
+      11
+    ],
+    "intervals": {
+      "step": 0.74,
+      "third": 0.2,
+      "leap": 0.06
+    },
+    "contour": {
+      "riff": 0.44,
+      "descend": 0.28,
+      "arch": 0.28
+    },
+    "chordToneBias": 0.74,
+    "octaveJumpProb": 0.1,
+    "phraseBars": {
+      "values": [
+        2,
+        4
+      ],
+      "weights": [
+        4,
+        2
+      ]
+    }
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.55,
+    "styles": {
+      "values": [
+        "octave_echo",
+        "arp"
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.9,
+    "rhythm": "mirror_kick",
+    "register": [
+      28,
+      45
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P8",
+      "P5"
+    ],
+    "anticipationProb": 0.2
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 4,
+      "verse": 16,
+      "prechorus": 8,
+      "chorus": 16,
+      "bridge": 8,
+      "outro": 8
+    }
+  }
+}

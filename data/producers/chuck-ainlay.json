@@ -1,0 +1,105 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "chuck-ainlay",
+  "type": "producer",
+  "name": "Chuck Ainlay",
+  "aliases": [
+    "chuck ainlay",
+    "chuckainlay",
+    "chuck ainley"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-pop"
+  ],
+  "era": "1990-2025",
+  "genres": [
+    "country-pop",
+    "country",
+    "producer"
+  ],
+  "relatedGenres": [
+    "country-pop"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended-2 vol.2 country-pop — Chuck Ainlay",
+    "Mix — No Console Is No Problem for Chuck Ainlay (https://www.mixonline.com/recording/music-production/no-console-is-no-problem-for-chuck-ainlay)",
+    "Wikipedia — Chuck Ainlay (https://en.wikipedia.org/wiki/Chuck_Ainlay)",
+    "Mix — METAlliance at Blackbird Studio (https://www.mixonline.com/recording/music-production/metalliance-perches-at-blackbird-studio)"
+  ],
+  "notes": "Nashville's canonical tracking-and-mixing engineer. ⛔ **This file exists because the research says outright that it should**: \"**Chuck Ainlay and Justin Niebank are placed in PRODUCERS** although they are primarily engineers/mixers, because their documented method (mic sets, chains, rough-mix-as-master, per-channel discipline) is exactly the kind of parameter set the app needs and **neither has an entry elsewhere**\" (Assignment notes). It also carries a lane nothing else in the section does: his entry says he \"is the constant behind the 90s George Strait and Reba McEntire records that this section otherwise cannot window … so his parameter set stands in for that sonic lane,\" and both of those artists were dropped from the roster on the stated grounds that they \"are represented indirectly inside the Tony Brown and Chuck Ainlay entries\" — so without this file that lane has no carrier at all. What reaches a generator is small and honest, and it is all humanize and low end. \"Drums given real room and **minimal correction**\" is the loosest quantize authored in this section, with the widest velocity spread and real jitter. \"Uniform per-channel EQ/compression discipline across the whole session rather than selective processing\" is the narrow velocity-tier band and the near-flat perc gain offset: nothing is pushed down to make room for something else. The bass is the one instrument the entry describes in pitch terms — \"live bass with a **wide, deep low end** — he is the reference point for the 'big warm Nashville bottom' as against the tight modern one\" — so the register runs a fourth lower than the genre's and the line is long and root-locked rather than anticipating. ⚠ **No `session.bpm`, no `session.keys`, no `chords` block and no `melody` block.** The entry states \"Keys: n/a as an engineer,\" names no tempo, no numeral and no melodic content, and \"Arrangement: n/a\" — so all four are inherited rather than invented, and this model is deliberately thin. ⚠ INFERRED, and the largest jump in the file: the entry's spatial doctrine — \"deep, believable stereo (and later immersive) placement of the Nashville stack, with steel and fiddle placed wide and the vocal centred and forward … build parts that can be separated\" — is a *pan* instruction, and this engine has no pan, so it is carried as register separation: the counter an octave off the lead rather than the genre's seventh. That is a translation, not a researched fact. ⚠ Also INFERRED: every velocity number, the jitter values and the bass register bounds; only their direction (looser, narrower, lower) is sourced. ⚠ Confidence is **low** where the research says medium-high, and the research's own caveat is why: \"current workflow and career role documented; **per-session country technique less so [LOW-CONF]**.\" Almost nothing here is a note-level fact, and that is the honest reading of an engineer's entry.",
+  "session": {
+    "humanize": {
+      "quantizeStrength": 0.72,
+      "velocityVar": 0.24,
+      "timingJitterMs": {
+        "kick": 5,
+        "snare": 6,
+        "closedHat": 6,
+        "ride": 7,
+        "perc": 7
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        104,
+        118
+      ],
+      "main": [
+        76,
+        92
+      ],
+      "ghost": [
+        34,
+        46
+      ]
+    },
+    "percs": {
+      "lanes": [
+        "shaker",
+        "ride",
+        "tomHigh",
+        "tomLow"
+      ],
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "gainOffsetDb": -2,
+      "tambourine": true
+    }
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.45,
+    "fillGapsOnly": true,
+    "styles": {
+      "values": [
+        "answer_lick",
+        "sustain_pad"
+      ],
+      "weights": [
+        4,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.86,
+    "rhythm": "boom_chick",
+    "register": [
+      24,
+      43
+    ],
+    "glideProb": 0.02,
+    "passingTones": [
+      "P5",
+      "M3",
+      "M6"
+    ],
+    "anticipationProb": 0.14
+  }
+}

@@ -1,0 +1,406 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "mavericks",
+  "type": "artist",
+  "name": "The Mavericks",
+  "aliases": [
+    "the mavericks",
+    "mavericks",
+    "what a crying shame"
+  ],
+  "tier": "standard",
+  "extends": [
+    "country-shuffle"
+  ],
+  "era": "1994-2020",
+  "genres": [
+    "country",
+    "country-shuffle",
+    "rockabilly",
+    "latin"
+  ],
+  "relatedGenres": [
+    "country-shuffle",
+    "country-pop",
+    "country-train"
+  ],
+  "confidence": "medium",
+  "sources": [
+    "style-research-extended-2 vol.2 country-shuffle — The Mavericks",
+    "Wikipedia — The Mavericks (https://en.wikipedia.org/wiki/The_Mavericks)",
+    "bpmdatabase — The Mavericks (https://www.bpmdatabase.com/music/search/?artist=The+Mavericks)",
+    "Mix — Q&A With Raul Malo (https://www.mixonline.com/technology/qa-raul-malo-377959)"
+  ],
+  "notes": "The archetype's widest stylistic reach — honky-tonk shuffle fused with 1950s pop, rockabilly, Tejano and Cuban rhythm, and the only entry in this section with a horn section. The single most useful line in the entry is the stated arrangement philosophy: rather than cutting country standards \"as straight-ahead country songs, we started doing them as if a big band singer was doing them\", which is why the harmony is the deepest in the batch (ii–V–I cycles, secondary dominants, 6th and 9th voicings) and why extensions run 0.42/0.42/0.16 rather than the genre's triad-heavy 0.74. Drums follow the entry directly: the fast dancehall cuts take the documented 4/4 quarter-note kick and the honky-tonk cuts a shuffled two-beat, so densityPerBar spans 2–4 with the two-beat anchors kept; the Latin material \"substitutes conga/timbale patterns and a clave-referenced kick for the shuffle entirely — model that as a distinct percussion preset available inside the same band\", so it is authored as exactly that and nothing else: the `latin percussion` mode. The default kit therefore has no congas in it at all — the preset replaces the ride lope with the conga and timbale lanes, flattens the swing to 0.50 because the entry says the substitution is total, takes the entry's \"Latin-derived i–V and I–IV–V vamps\" as its only two progression families, leans the scale pool minor for the \"minor-mode boleros [that] appear on the Spanish-language material\", and pushes the bass to the \"Cuban tumbao-derived anticipated figure\". Bass is walking on the swing cuts and the tumbao on the Latin material, hence independent_riff at 0.8 with anticipationProb 0.28 in the band's default and 0.45 inside the mode where the tumbao is the whole idiom, and the upright on the rockabilly cuts takes the register down to 26. The vocal is the entry's \"wide-range baritone with heavy vibrato, long sustained notes, real melisma and operatic top notes — the most ornamented vocal in this section\": register 52–84, legato, arch-heavy contour and the highest octave-jump probability of the batch. Their documented tracking method is live ensemble with minimal overdubs and the singer playing and singing at once, which is the reading behind humanize 0.68/0.24. ⚠ The INFERRED parameters are swing.amount 0.62 (their catalogue leans to the fast band, where the section's own grammar says the ratio narrows toward 3:2 — a relationship the research marks [LOW-CONF] on its percentages), all velocity tiers, ghost probability, hat densities and the percs density. ⚠ BPM 50–188 and mode 120 come from the entry's readings, which are bpmdatabase values and [LOW-CONF] as a class. ⚠ era is written 1994-2020 because the entry documents two disjoint windows — 1994–1998 (*What a Crying Shame*, *Music for All Occasions*, *Trampoline*) and 2013–2020 (*In Time*, *En Español*) — and this model covers both; the 1999–2012 gap between them is not a claim. ⚠ No keys are named in the entry, so session.keys is inherited rather than authored. ⚠ Authoring `modes` replaces the three moods this model would otherwise inherit from country-shuffle — arrays replace rather than append, which the schema states as the rule that \"keeps an artist's moods to the ones that artist actually does\" — so the trade is the genre's three generic moods for the two this entry documents. The section's other two alternate lanes stay unencoded for a reason that does not apply here: dwight-yoakam's Tex-Mex polka and pam-tillis's \"Mi Vida Loca\" are documented as percussion and feel only, so a mode built from them would change no pitch, while this one is the only alternate lane in the section the research gives a harmony of its own — which is what makes it a parameter set rather than a kit swap. `big-band shuffle` carries no overrides at all: it is the model as authored above, named for the entry's own arrangement instruction (\"treat the shuffle as a big-band chart\"), so nothing in it is invented. ⚠ INFERRED inside `latin percussion`: the 5:2 weight against the default, the shape of the clave-referenced kick (anchor on 1, secondary on the \"&\" of 2, tresilloBias 0.45 — the vocabulary `pitbull`'s shipped `miami dembow` mode uses for the same clave reference, since the research names the reference and not the positions), the conga/timbale density and gain, and the scale weights.",
+  "session": {
+    "bpm": {
+      "min": 50,
+      "max": 188,
+      "mode": 120
+    },
+    "scales": {
+      "values": [
+        "major",
+        "natural_minor",
+        "mixolydian"
+      ],
+      "weights": [
+        5,
+        3,
+        2
+      ]
+    },
+    "swing": {
+      "grid": "8th",
+      "amount": 0.62
+    },
+    "humanize": {
+      "quantizeStrength": 0.68,
+      "velocityVar": 0.24
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        106,
+        127
+      ],
+      "main": [
+        80,
+        98
+      ],
+      "ghost": [
+        32,
+        50
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        2,
+        4
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "syncopation": 0.18,
+      "offbeat8thShare": 0.1
+    },
+    "snare": {
+      "ghost": {
+        "prob": 0.34,
+        "pos": [
+          "2&",
+          "3&",
+          "4&"
+        ],
+        "vel": [
+          0.22,
+          0.4
+        ]
+      }
+    },
+    "hihat": {
+      "base": "8th",
+      "fillDensity": 0.42,
+      "velocities": {
+        "main": [
+          0.55,
+          0.78
+        ],
+        "ghost": [
+          0.24,
+          0.42
+        ]
+      },
+      "openHat": {
+        "prob": 0.24,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          1,
+          2
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "ride"
+      ],
+      "densityPerBar": [
+        4,
+        8
+      ],
+      "gainOffsetDb": -5
+    }
+  },
+  "chords": {
+    "progressionFamilies": [
+      {
+        "roman": [
+          "ii",
+          "V",
+          "I"
+        ],
+        "weight": 4
+      },
+      {
+        "roman": [
+          "I",
+          "IV",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "i",
+          "V"
+        ],
+        "weight": 3
+      },
+      {
+        "roman": [
+          "I",
+          "vi",
+          "ii",
+          "V"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "I",
+          "II",
+          "V"
+        ],
+        "weight": 2
+      },
+      {
+        "roman": [
+          "i",
+          "iv",
+          "V"
+        ],
+        "weight": 2
+      }
+    ],
+    "maxChords": 5,
+    "extensions": {
+      "triad": 0.42,
+      "seventh": 0.42,
+      "ninth": 0.16
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        50,
+        79
+      ]
+    },
+    "harmonicRhythm": {
+      "values": [
+        "1_per_bar",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        5,
+        2,
+        3
+      ]
+    }
+  },
+  "melody": {
+    "register": [
+      52,
+      84
+    ],
+    "densityPerBar": [
+      3,
+      8
+    ],
+    "intervals": {
+      "step": 0.6,
+      "third": 0.28,
+      "leap": 0.12
+    },
+    "contour": {
+      "riff": 0.2,
+      "descend": 0.3,
+      "arch": 0.5
+    },
+    "chordToneBias": 0.7,
+    "octaveJumpProb": [
+      0.06,
+      0.16
+    ],
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "articulation": "legato"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": [
+      0.45,
+      0.7
+    ],
+    "styles": {
+      "values": [
+        "answer_lick",
+        "bell_echo",
+        "sustain_pad"
+      ],
+      "weights": [
+        4,
+        2,
+        2
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.8,
+    "rhythm": "independent_riff",
+    "register": [
+      26,
+      45
+    ],
+    "glideProb": 0.03,
+    "passingTones": [
+      "P5",
+      "M3",
+      "M2",
+      "M6",
+      "m7"
+    ],
+    "anticipationProb": 0.28
+  },
+  "arrangement": {
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "outro"
+        ],
+        "weight": 3
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "chorus"
+        ],
+        "weight": 2
+      }
+    ],
+    "sectionBars": {
+      "intro": 4,
+      "verse": 8,
+      "chorus": 8,
+      "bridge": [
+        4,
+        8
+      ],
+      "outro": [
+        2,
+        4
+      ]
+    },
+    "transitions": {
+      "fillBeforeSection": true,
+      "switchUpProb": 0.22
+    }
+  },
+  "modes": [
+    {
+      "name": "big-band shuffle",
+      "weight": 5
+    },
+    {
+      "name": "latin percussion",
+      "weight": 2,
+      "session": {
+        "swing": {
+          "grid": "8th",
+          "amount": 0.5
+        },
+        "scales": {
+          "values": [
+            "natural_minor",
+            "major"
+          ],
+          "weights": [
+            4,
+            3
+          ]
+        }
+      },
+      "drums": {
+        "kick": {
+          "densityPerBar": [
+            3,
+            4
+          ],
+          "anchors": [
+            "1"
+          ],
+          "secondaryAnchor": "2&",
+          "syncopation": 0.32,
+          "tresilloBias": 0.45,
+          "offbeat8thShare": 0.24
+        },
+        "percs": {
+          "lanes": [
+            "conga",
+            "timbale"
+          ],
+          "densityPerBar": [
+            5,
+            9
+          ],
+          "gainOffsetDb": -3
+        }
+      },
+      "chords": {
+        "progressionFamilies": [
+          {
+            "roman": [
+              "i",
+              "V"
+            ],
+            "weight": 4
+          },
+          {
+            "roman": [
+              "I",
+              "IV",
+              "V"
+            ],
+            "weight": 3
+          }
+        ]
+      },
+      "bassline": {
+        "anticipationProb": 0.45
+      }
+    }
+  ]
+}

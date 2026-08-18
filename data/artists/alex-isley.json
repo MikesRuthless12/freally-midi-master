@@ -1,0 +1,285 @@
+{
+  "$schema": "../schema/artist-style.schema.json",
+  "id": "alex-isley",
+  "type": "artist",
+  "name": "Alex Isley",
+  "aliases": [
+    "alex isley",
+    "dreamlike alt soul",
+    "quiet chord writer"
+  ],
+  "tier": "standard",
+  "extends": [
+    "neo-soul"
+  ],
+  "era": "2018-present",
+  "genres": [
+    "rnb",
+    "soul",
+    "neo-soul"
+  ],
+  "relatedGenres": [
+    "neo-soul",
+    "trap-soul",
+    "lofi-hiphop"
+  ],
+  "confidence": "low",
+  "sources": [
+    "style-research-extended-2 vol.2 neo-soul — Alex Isley",
+    "Wikipedia — Alex Isley (https://en.wikipedia.org/wiki/Alex_Isley)",
+    "Wikipedia — Robert Glasper (https://en.wikipedia.org/wiki/Robert_Glasper)",
+    "Wikipedia — Neo soul (https://en.wikipedia.org/wiki/Neo_soul)"
+  ],
+  "notes": "The lane's quietest chord-writer, carried with the entry's explicit **Gate 1 caveat** — independent-label, \"included because it is a genre-defining name for this sub-idiom\". `confidence` is **low** because the research rates the entry medium-low and says the parametric detail is inference. The one stated instruction is a mix instruction and it drives everything: \"minimal programmed kit at low volume — filtered kick on 1 and 3, a soft rim or fingersnap on 2&4, almost no hats, and long drumless sections; **the drums are quieter than the keyboards, which is the mix parameter to model**\". So the velocity tiers are the softest of any model in this section, the hat fill density is 0.06, the percussion gain is cut 9 dB, and the snare takes the cross-stick option with a ghost probability of 0.08. Harmony is \"extension-heavy and static — maj9, m11 and add-tension voicings held for 2-to-4-bar loops, with movement by one inner voice; the chord bed rarely cadences, so the harmony reads as colour rather than function\": `maxChords` 2, a triad weight of 0.02, a vamp harmonic rhythm and 8-to-16-beat durations. Melody is \"breathy high soprano at very low volume, small intervals, low note-density, and habitually delivered as **stacked close harmony rather than a single line** — model 3-to-5 layers a third and fifth apart moving in parallel\", which is `motifPitchCount` 3–5, density 1–4 and a stacked counter at +12. The low end is \"soft synth-sub or played bass on the root with long decay and very little motion; no slides\" — `mirror_kick` at a root probability of 0.94, deliberately not a `bass808` block, since a synth sub is not an 808 and authoring one would silence the bass part. ⚠ Every drum, melody and bass number here is INFERRED. ⚠ **The bass is `mirror_kick` rather than the held `reese_sustain` the research describes** — *“soft synth-sub or played bass on the root with long decay and very little motion; no slides.”* — and that is a limit of the engine rather than a reading of the record. `generators::phrase_spans` re-articulates a held span only when it runs longer than two bars, so over the four-bar clip `reese_sustain` writes at most four notes and cannot reach the 500-bassline floor `engine/tests/bass.rs` holds every model to. `mobb-deep`, `dmx` and `capone-n-noreaga` carry the same substitution for the same reason; `followRootsProb` stays where it was so the line still reads as roots under the chord. ⚠ **`chords.harmonicRhythm` gained `syncopated_cell` (2026-08-17, harmony variety floor).** The entry says \"extension-heavy and static - maj9, m11 and add-tension voicings held for 2-to-4-bar loops, with movement by one inner voice; the chord bed rarely cadences\". `chordDurationBeats` is the only parameter carrying a loop length, and it was **dead here**: `generators::chords::layout` reads it under `syncopated_cell` alone, which this model did not author — so every generation was one 4-bar hold instead of the documented loop. The sonority itself does not move: over a single-chord family every cell is the same chord re-voiced. The authored `chordDurationBeats` of [8, 16] is 2-to-4 bars in beats - the entry's own figure - and \"movement by one inner voice\" is what a re-voiced cell is. ⚠ **The countermelody reached 954/1000 distinct answers against a floor of 980 (2026-08-17, counter variety floor).** `melody.emptyBarBias` came down from 0.26 to 0.1. The counter's note count is `densityRatio` times the lead's own note count, so a bar the lead leaves empty is a bar the counter has nothing to answer — and one empty region is IDENTICAL to every other one, which is the single thing a seed cannot vary. Measured across this roster the models failing this gate average 0.150 here against 0.030 for the models that pass. Second, `melody.densityPerBar` went from [1, 4] to [2, 5]. A lead allowed to thin to a single note a bar leaves the counter almost nothing to answer, and no amount of counter density recovers what the lead never played. This is the lead becoming reliably present rather than busier — the floor is what moved and the ceiling carries the density claim. ⚠ Every value that moved here is INFERRED rather than a researched claim — the entry's Melody/chords line reads \"Rhodes/electric piano and clean guitar with heavy reverb and tape-style saturation. Melody is breathy high soprano at very low volume, small intervals, low note-density, and habitually delivered as stacked close harmony rather than a single line — model 3-to-5 layers a third and fifth apart moving in parallel.\", and every claim in it still holds after the change.",
+  "session": {
+    "bpm": {
+      "min": 68,
+      "max": 96,
+      "mode": 80
+    },
+    "scales": {
+      "values": [
+        "major",
+        "dorian",
+        "lydian",
+        "natural_minor"
+      ],
+      "weights": [
+        3,
+        3,
+        2,
+        3
+      ]
+    },
+    "humanize": {
+      "quantizeStrength": 0.84,
+      "velocityVar": 0.14,
+      "timingJitterMs": {
+        "kick": 2,
+        "snare": 4,
+        "snap": 7,
+        "rim": 8
+      }
+    }
+  },
+  "drums": {
+    "velocityTiers": {
+      "accent": [
+        68,
+        84
+      ],
+      "main": [
+        40,
+        56
+      ],
+      "ghost": [
+        16,
+        26
+      ]
+    },
+    "kick": {
+      "densityPerBar": [
+        1,
+        3
+      ],
+      "anchors": [
+        "1",
+        "3"
+      ],
+      "syncopation": 0.14,
+      "tresilloBias": 0.02
+    },
+    "snare": {
+      "crossStickVerses": true,
+      "offGridMs": [
+        1,
+        5
+      ],
+      "ghost": {
+        "prob": 0.08,
+        "pos": [
+          "4a"
+        ],
+        "vel": [
+          0.06,
+          0.18
+        ]
+      }
+    },
+    "hihat": {
+      "base": "16th",
+      "continuous": false,
+      "fillDensity": 0.06,
+      "velocities": {
+        "main": [
+          0.18,
+          0.34
+        ],
+        "ghost": [
+          0.05,
+          0.14
+        ]
+      },
+      "openHat": {
+        "prob": 0.02,
+        "pos": [
+          "4&"
+        ],
+        "perBar": [
+          0,
+          1
+        ]
+      }
+    },
+    "percs": {
+      "lanes": [
+        "snap",
+        "rim",
+        "shaker"
+      ],
+      "densityPerBar": [
+        1,
+        4
+      ],
+      "gainOffsetDb": -9
+    }
+  },
+  "chords": {
+    "maxChords": 2,
+    "extensions": {
+      "triad": 0.02,
+      "seventh": 0.4,
+      "ninth": 0.58
+    },
+    "voicing": {
+      "style": "open",
+      "register": [
+        48,
+        84
+      ],
+      "topVoiceStepwise": true
+    },
+    "harmonicRhythm": {
+      "values": [
+        "syncopated_cell",
+        "2_bars_per_chord",
+        "vamp"
+      ],
+      "weights": [
+        3,
+        3,
+        3
+      ]
+    },
+    "chordDurationBeats": [
+      8,
+      16
+    ]
+  },
+  "melody": {
+    "register": [
+      64,
+      86
+    ],
+    "densityPerBar": [
+      2,
+      5
+    ],
+    "structure": "long_arc",
+    "motifPitchCount": [
+      3,
+      5
+    ],
+    "intervals": {
+      "step": 0.9,
+      "third": 0.09,
+      "leap": 0.01
+    },
+    "contour": {
+      "riff": 0.16,
+      "descend": 0.42,
+      "arch": 0.42
+    },
+    "chordToneBias": 0.7,
+    "emptyBarBias": 0.1,
+    "octaveJumpProb": 0.02,
+    "phraseBars": {
+      "values": [
+        4,
+        8
+      ],
+      "weights": [
+        3,
+        2
+      ]
+    },
+    "timbreHint": "tape_rhodes"
+  },
+  "countermelody": {
+    "registerOffset": 12,
+    "densityRatio": 0.55,
+    "styles": {
+      "values": [
+        "sustain_pad",
+        "octave_echo"
+      ],
+      "weights": [
+        3,
+        3
+      ]
+    }
+  },
+  "bassline": {
+    "followRootsProb": 0.94,
+    "rhythm": "mirror_kick",
+    "register": [
+      26,
+      42
+    ],
+    "glideProb": 0.01,
+    "passingTones": [
+      "P5"
+    ],
+    "anticipationProb": 0.12
+  },
+  "arrangement": {
+    "sectionBars": {
+      "intro": 2,
+      "verse": 8,
+      "chorus": 8,
+      "bridge": 4,
+      "outro": [
+        2,
+        8
+      ]
+    },
+    "structures": [
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "verse",
+          "chorus",
+          "bridge",
+          "chorus",
+          "chorus"
+        ],
+        "weight": 5
+      },
+      {
+        "sections": [
+          "intro",
+          "verse",
+          "chorus",
+          "outro"
+        ],
+        "weight": 2
+      }
+    ],
+    "transitions": {
+      "fillBeforeSection": false,
+      "switchUpProb": 0.1
+    }
+  }
+}
