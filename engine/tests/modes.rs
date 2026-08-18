@@ -23,6 +23,7 @@ use engine::theory;
 
 mod common;
 use common::{shape, shipped_models, variety_seeds, MIN_DISTINCT};
+use rayon::prelude::*;
 
 /// Every shipped model that offers at least one mode, with its modes.
 fn models_with_modes() -> Vec<(String, engine::StyleModel, Vec<modes::Mode>)> {
@@ -321,35 +322,58 @@ fn every_mood_of_every_genre_reaches_the_variety_floor() {
     // Failure names the model *and* the mood, because "variety is low" is not
     // something anyone can act on.
     let seeds = variety_seeds();
-    let mut failures = Vec::new();
-    let mut report = Vec::new();
 
-    for (id, model, offered) in models_with_modes() {
-        for mode in &offered {
-            let applied = modes::apply(&model, &mode.name).expect("a listed mode must apply");
+    // ⛔⛔ **Parallel because this one test was 89 minutes of a four-and-a-half
+    // hour suite** (measured 2026-08-17, over 1,304 models). Every iteration is
+    // independent — a mood is applied to a clone, generated at its own seeds, and
+    // its counts never touch another mood's — so the only thing the serial shape
+    // bought was ordering, and that is restored by sorting below.
+    //
+    // ⚠ **Collected, not pushed.** Two shared `Vec`s would need a lock per model
+    // and would serialise most of what this buys; `flat_map` hands each rayon
+    // thread its own rows and joins them at the end.
+    let rows: Vec<(String, Option<String>)> = models_with_modes()
+        .par_iter()
+        .flat_map(|(id, model, offered)| {
+            offered
+                .par_iter()
+                .map(|mode| {
+                    let applied =
+                        modes::apply(model, &mode.name).expect("a listed mode must apply");
 
-            let mut seen = BTreeSet::new();
-            for seed in 1..=seeds {
-                seen.insert(shape(&melody_for(&applied, seed)));
-            }
+                    let mut seen = BTreeSet::new();
+                    for seed in 1..=seeds {
+                        seen.insert(shape(&melody_for(&applied, seed)));
+                    }
 
-            let share = seen.len() as f64 / seeds as f64;
-            report.push(format!(
-                "{id}/{}: {}/{seeds} distinct ({share:.3})",
-                mode.name,
-                seen.len()
-            ));
+                    let share = seen.len() as f64 / seeds as f64;
+                    let line = format!(
+                        "{id}/{}: {}/{seeds} distinct ({share:.3})",
+                        mode.name,
+                        seen.len()
+                    );
+                    let failure = (seen.len() < MIN_DISTINCT).then(|| {
+                        format!(
+                            "{id}/{}: only {} distinct melodies in {seeds} seeds, and every mood must reach {MIN_DISTINCT}",
+                            mode.name,
+                            seen.len()
+                        )
+                    });
+                    (line, failure)
+                })
+                .collect::<Vec<_>>()
+        })
+        .collect();
 
-            if seen.len() < MIN_DISTINCT {
-                failures.push(format!(
-                    "{id}/{}: only {} distinct melodies in {seeds} seeds, and every \
-                     mood must reach {MIN_DISTINCT}",
-                    mode.name,
-                    seen.len()
-                ));
-            }
-        }
-    }
+    // ⚠ Sorted, because rayon finishes in whatever order the threads land and a
+    // report that reshuffles between runs cannot be diffed.
+    let mut report: Vec<&str> = rows.iter().map(|(line, _)| line.as_str()).collect();
+    report.sort_unstable();
+    let mut failures: Vec<&str> = rows
+        .iter()
+        .filter_map(|(_, failure)| failure.as_deref())
+        .collect();
+    failures.sort_unstable();
 
     println!(
         "melody variety per mood over {seeds} seeds:\n  {}",

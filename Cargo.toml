@@ -24,3 +24,30 @@ edition = "2021"
 authors = ["Mike Weaver"]
 license = "LicenseRef-AllRightsReserved"
 repository = "https://github.com/MikesRuthless12/freally-midi-master"
+
+# ⛔⛔ **The test suite was running completely unoptimized, and it is the reason
+# one `cargo test -p engine` takes four and a half hours.** Measured 2026-08-17:
+# `modes` 89 min, `counter` 33, `melody` 29, `genre_invariants` 22,
+# `melodic_variety` 21, `bass` 17 — and every one of them is the same shape,
+# a sweep that generates hundreds of patterns per model across 1,304 models.
+# That is pure CPU work in `rand`, `Vec` and arithmetic, which is exactly what
+# `opt-level` exists for.
+#
+# ⚠ **This changes speed and NOTHING ELSE, which is a claim `golden.rs` checks
+# rather than one to take on trust.** `[profile.test]` inherits `dev`, so
+# `debug-assertions` and `overflow-checks` stay ON — every `debug_assert!` and
+# every panic-on-overflow still fires. Rust floats are IEEE-deterministic at any
+# `opt-level` (there is no fast-math), and every draw here is seeded, so the
+# generated notes are byte-identical. `golden.rs`'s snapshots are the proof:
+# they encode "byte-identical to before the switch existed", so if this moved a
+# single note they fail.
+#
+# ⚠ **The dependency line matters as much as the first.** `cargo test` builds
+# third-party crates with the `dev` profile, so without it `rand`'s generators —
+# the hottest code in the sweep — would stay unoptimized while our own crates
+# were not.
+[profile.test]
+opt-level = 3
+
+[profile.dev.package."*"]
+opt-level = 3

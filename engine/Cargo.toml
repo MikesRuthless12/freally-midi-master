@@ -21,3 +21,7 @@ ts-rs = "11"
 
 [dev-dependencies]
 serde_json = "1"
+# ⛔ Test-only, and it is here to make the roster sweeps parallel rather than
+# serial — see `modes.rs`. Not reachable from the shipped engine: `dev-dependencies`
+# are not linked into the library, so the AI/network denylist is unaffected.
+rayon = "1"
