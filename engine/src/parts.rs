@@ -246,13 +246,6 @@ impl Seeds {
     }
 }
 
-/// The notes, before feel is applied.
-///
-/// Split out from [`render`] because the humanizer must run exactly once over a
-/// lane. Private: Song Mode needs the *dependencies* shared across a section
-/// rather than one part at a time, so it has its own renderer
-/// (`arrange::render_section`) and this has exactly one caller.
-
 /// What a take is written *against*, built **once** for a whole novelty screen.
 ///
 /// ⛔⛔ **TASK-168: this was rebuilt on every retry, and none of it varies.**
