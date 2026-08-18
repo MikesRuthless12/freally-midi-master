@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Locator } from '@playwright/test';
 import { pickArtist, rosterBox } from './app';
 
 /**
@@ -18,6 +18,24 @@ test.beforeEach(async ({ page }) => {
   await page.goto('/');
   await expect(page.getByRole('tablist', { name: 'Generator' })).toBeVisible();
 });
+
+/**
+ * Give the draft something of its own, so it is a style rather than its base.
+ *
+ * ⛔ **Mike, 2026-08-16:** *"if you tick just a scale without generating
+ * anything, then it shouldn't save anything"* — so a draft that only carries a
+ * name and a ticked scale is now refused, and the tests below are about what
+ * happens *after* a save rather than about that rule. This is the one line that
+ * makes each of them a real save: it moves a control, which is what a producer
+ * does. The rule itself has its own test.
+ *
+ * ⚠ Hat density, deliberately: `modelFrom` writes `drums.hihat.fillDensity` for
+ * every draft anyway, so moving it changes the value and nothing about the shape
+ * of what is saved.
+ */
+async function makeItAStyle(dialog: Locator) {
+  await dialog.getByLabel('Hat density').fill('0.8');
+}
 
 test('the way in is pinned above everything, whatever is selected', async ({ page }) => {
   // ⛔ Mike's rule: it pins to the top above every artist and producer, always.
@@ -63,6 +81,7 @@ test('a saved style joins the roster marked as yours, and reopens as itself', as
 
   await dialog.getByLabel('Name').fill('My Dark Trap');
   await scales.first().check();
+  await makeItAStyle(dialog);
   await dialog.getByRole('button', { name: 'Save style' }).click();
 
   // Saved, and said so with the name rather than a bare tick.
@@ -190,6 +209,7 @@ test('saving copies no samples unless the producer says so', async ({ page }) =>
   await expect(box).not.toBeChecked();
 
   await dialog.getByLabel('Name').fill('No Copies');
+  await makeItAStyle(dialog);
   await dialog.getByRole('button', { name: 'Save style' }).click();
   await expect(dialog.locator('.styleeditor__saved')).toContainText('No Copies');
 
@@ -202,6 +222,7 @@ test('ticking the box is what lets the samples be copied', async ({ page }) => {
 
   await dialog.getByLabel('Name').fill('With Copies');
   await dialog.locator('.styleeditor__samples').getByRole('checkbox').check();
+  await makeItAStyle(dialog);
   await dialog.getByRole('button', { name: 'Save style' }).click();
 
   await expect(dialog.locator('.styleeditor__saved')).toContainText('Copied 1 samples');
@@ -221,6 +242,36 @@ test('an unnamed style is refused with a reason rather than saved as nothing', a
   await expect(dialog.locator('.styleeditor__error')).toBeVisible();
   // Nothing reached the roster.
   await expect(page.locator('.roster__item .badge--mine')).toHaveCount(0);
+});
+
+test('a scale ticked over nothing is refused rather than saved as a style', async ({
+  page,
+}) => {
+  // ⛔⛔ **Mike, 2026-08-16:** *"the ticking a scale and pressing the save button
+  // (if you tick just a scale without generating anything, then it shouldn't
+  // save anything)"*.
+  //
+  // ⚠ **Ticking a scale is deliberately not content**, and that is the whole
+  // rule rather than an omission: the list this dialog offers is narrowed to the
+  // base's own scales, so every one a producer can tick is one their base
+  // already uses. Ticking one restates the base; it does not add to it.
+  await page.getByRole('button', { name: /Original Workflow/ }).click();
+  const dialog = page.getByRole('dialog', { name: 'Style editor' });
+
+  await dialog.getByLabel('Name').fill('Nothing But A Scale');
+  await dialog.locator('.styleeditor__scales input[type="checkbox"]').first().check();
+  await dialog.getByRole('button', { name: 'Save style' }).click();
+
+  // ⚠ **Refused with a reason on screen**, not by grinding to a halt: an
+  // unedited song is deliberately not saved either, and a control that quietly
+  // does nothing is a rule the producer has to guess at.
+  await expect(dialog.locator('.styleeditor__error')).toBeVisible();
+  await expect(dialog.locator('.styleeditor__saved')).toHaveCount(0);
+
+  // And then it saves, once there is something to save.
+  await makeItAStyle(dialog);
+  await dialog.getByRole('button', { name: 'Save style' }).click();
+  await expect(dialog.locator('.styleeditor__saved')).toContainText('Nothing But A Scale');
 });
 
 /**
