@@ -92,3 +92,44 @@ test('a pad pointed at a drum the clip already has leaves the beat alone', async
   await expect(page.getByRole('combobox', { name: 'Pad 1 lane' })).toHaveValue('Snare');
   expect(await laneNames(page)).toEqual(before);
 });
+
+/**
+ * An expanded row keeps its pitch lane when the lane is renamed.
+ *
+ * ⛔⛔ **The roll's open-lane windows are keyed by lane, and the rename was
+ * dropping them.** Found by `/simplify`'s altitude pass, not by a test: the
+ * lane-keyed migration in the session store listed the mute, the solo and the
+ * lock, and `editing.ts`'s `openLanes` was simply not on that list. The row
+ * collapsed, and the orphan under the old name survived — `refreezeOpenLanes` is
+ * gated on `pattern.id`, and `reassignLane` keeps the id, so nothing collected
+ * it until the next generation. Reassign another row onto the freed name and it
+ * opened on a root frozen against the previous clip: seven empty rows over a
+ * lane full of hits.
+ *
+ * ⚠ **A browser test rather than a store one**, because what broke is what a
+ * producer sees — a row that was open closing itself. The store's own rules are
+ * `session.test.ts::reassigning a lane everywhere it is named`.
+ */
+test('an expanded row stays expanded when its lane is renamed', async ({ page }) => {
+  const row = page
+    .locator('.grid__row')
+    .filter({ has: page.locator('.grid__lanename', { hasText: /^Kick$/ }) });
+
+  // Open the pitch lane: the chevron is the first control in the header.
+  await row.locator('.grid__expand').click();
+  await expect(row.locator('.grid__expand')).toHaveAttribute('aria-expanded', 'true');
+
+  // Rename it from the row's own picker.
+  const picker = row.locator('.grid__slot input');
+  await picker.click();
+  await picker.fill('Mid tom');
+  await picker.press('Enter');
+
+  // ⛔ The row is now Mid tom AND still open. Before the fix it came back
+  // collapsed, having lost the window under the name it used to have.
+  const renamed = page
+    .locator('.grid__row')
+    .filter({ has: page.locator('.grid__lanename', { hasText: /^Mid tom$/ }) });
+  await expect(renamed).toHaveCount(1);
+  await expect(renamed.locator('.grid__expand')).toHaveAttribute('aria-expanded', 'true');
+});

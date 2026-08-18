@@ -22,6 +22,29 @@ use crate::humanize::humanize;
 use crate::novelty;
 use crate::pattern::{LaneTrack, Part};
 
+/// The parts a take is written **against**, and therefore what a press on it
+/// should leave on screen.
+///
+/// ⛔⛔ **This graph used to live in TypeScript** — `session.ts`'s `UPSTREAM`, a
+/// hand-maintained copy of what `upstream` below actually does, with no type or
+/// test tying the two together (TASK-166).
+///
+/// ⛔ **Drums are deliberately not here, and this is the line a future reader
+/// will want to "fix".** A melody is phrased around a *reference* kit at the
+/// song seed, not the drum take on screen; filling the Drums tab from a melody
+/// press would put a kit there that is neither the one the melody was written
+/// against nor the one Generate on Drums would produce.
+fn dependents(part: Part) -> &'static [Part] {
+    match part {
+        Part::Drums | Part::Chords => &[],
+        Part::Melody | Part::Bass => &[Part::Chords],
+        // In this order, because it is the order a producer watches the tabs
+        // fill: a countermelody landing before the melody it answers reads as a
+        // bug even when the notes are right.
+        Part::Counter => &[Part::Chords, Part::Melody],
+    }
+}
+
 /// Whether the novelty screen should hold this part to the guard.
 ///
 /// ⛔⛔ **TASK-169: the parameter is the DECISION, not the input to it.**
@@ -89,6 +112,22 @@ pub fn render(
     seeds: Seeds,
     part: Part,
 ) -> Vec<LaneTrack> {
+    render_against(model, ctx, seeds, part).0
+}
+
+/// As [`render`], plus **the parts the take was written against**.
+///
+/// ⛔ **A sibling rather than a wider `render`** (TASK-166). Twelve callers —
+/// every one of them a test, plus `arrange.rs` which shares its upstream through
+/// `Carry` instead — want the notes and nothing else, and making them all
+/// destructure a tuple to ignore its second half would be churn that hides which
+/// call site actually cares. The bridge is the one caller that does.
+pub fn render_against(
+    model: &StyleModel,
+    ctx: &SessionContext,
+    seeds: Seeds,
+    part: Part,
+) -> (Vec<LaneTrack>, Vec<(Part, Vec<LaneTrack>)>) {
     // ⛔ **The bass is screened unless it is locked to the kick** — see
     // `novelty::screens`. Asked here because this is where the model is.
     //
@@ -109,7 +148,32 @@ pub fn render(
     novelty::log(part, &report);
     // The *take's* feel, so two takes of one part breathe differently.
     humanize(&mut lanes, ctx, take);
-    lanes
+    // ⛔⛔ **And the parts it was written against, rendered the way a request for
+    // them would be** (TASK-166). Handing back `Upstream`'s own copies was
+    // wrong twice, and a review caught both: that lead is a bare
+    // `melody::generate`, so it has been through **neither** `novelty::screen`
+    // — a melody matching a bundled known hook would have landed in the
+    // producer's tab and been exported — **nor** `humanize`, so a filled clip
+    // came back dead flat while pressing Generate on the same tab gave jittered
+    // timing and scaled velocities.
+    //
+    // ▶ **The saving that matters is still taken.** The point was never the
+    // arithmetic: it was three *synchronous* round trips, each served on the
+    // webview thread by `with_custom_protocol`, each blocking the hosted DAW's
+    // window. Those are gone. Generating a part properly here costs the engine
+    // one pass and the producer nothing.
+    //
+    // ⚠ At the **record**, which is what `songSeed` means — a fill at the
+    // caller's own take would be a different melody from the one it answers.
+    let record = Seeds {
+        part: seeds.song,
+        ..seeds
+    };
+    let handed = dependents(part)
+        .iter()
+        .map(|dep| (*dep, render(model, ctx, record, *dep)))
+        .collect();
+    (lanes, handed)
 }
 
 /// The two seeds a part is generated from (TASK-141).
@@ -327,8 +391,14 @@ impl Upstream {
                 vec![bass::generate(model, ctx, take, harmony, kit)]
             }
             // ⚠ Unreachable by construction: `upstream` builds exactly one
-            // variant per part. Spelled rather than `unreachable!` so a part
-            // added to `Part` without a variant is a compile error here.
+            // variant per part.
+            //
+            // ⚠ **The compile error for a new `Part` comes from `upstream` and
+            // `dependents`, not from here** — every arm above matches `part`
+            // with `_`, so this one would happily absorb a new variant at
+            // runtime. An earlier comment claimed otherwise; a review checked
+            // it. Those two exhaustive matches are what actually force the
+            // decision, and this is the shout if one of them is ever loosened.
             (Upstream::None, other) => panic!("{other:?} has no upstream variant"),
         }
     }

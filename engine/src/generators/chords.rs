@@ -22,7 +22,7 @@ use serde_json::Value;
 use crate::context::SessionContext;
 use crate::dataset::StyleModel;
 use crate::generators::grid;
-use crate::generators::read::{block, flag, number, pair, string_spec_leaning, text};
+use crate::generators::read::{self, block, flag, number, pair, string_spec_leaning, text};
 use crate::pattern::{Lane, LaneTrack, Note};
 use crate::rng;
 use crate::theory;
@@ -495,10 +495,17 @@ fn layout(
     // times a bar and stops lining up with it. Only values the model authored are
     // reachable — see `read::string_spec_leaning`.
     const BUSYNESS: &[&str] = &["vamp", "2_bars_per_chord", "1_per_bar", "syncopated_cell"];
-    let rhythm = string_spec_leaning(chords, "harmonicRhythm", ctx.complexity, BUSYNESS, rng)
-        .as_deref()
-        .and_then(HarmonicRhythm::parse)
-        .unwrap_or(HarmonicRhythm::OnePerBar);
+    let rhythm = string_spec_leaning(
+        "chords",
+        chords,
+        "harmonicRhythm",
+        ctx.complexity,
+        BUSYNESS,
+        rng,
+    )
+    .as_deref()
+    .and_then(HarmonicRhythm::parse)
+    .unwrap_or(HarmonicRhythm::OnePerBar);
 
     let bar = ctx.ticks_per_bar();
     let beat = grid::ticks_per_beat(ctx);
@@ -519,7 +526,10 @@ fn layout(
             // precisely so this stays a whole-number draw off the same stream the
             // line it replaced used; see its doc for why that matters more than
             // it looks.
-            let busy = ctx.complexity.inverted();
+            // ⚠ The inversion is declared in `read::LEANING`, not asserted here
+            // (TASK-170) — that table is the one place the switch's reach is
+            // reviewable.
+            let busy = read::leaning(ctx.complexity, "chords", "chordDurationBeats");
             fill(&mut slots, total, |_| beat * busy.draw(min, max, rng));
         }
     }

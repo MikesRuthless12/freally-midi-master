@@ -13,7 +13,7 @@ use engine::context::{SessionDefaults, SessionOverrides};
 use engine::dataset::modes;
 use engine::generators::bass;
 use engine::parts;
-use engine::pattern::{Part, Pattern, PPQ};
+use engine::pattern::{Generated, Part, Pattern, PPQ};
 use serde::Deserialize;
 use serde_json::{json, Value};
 
@@ -663,7 +663,7 @@ pub fn dispatch(
 /// The same three calls in the same order as the desktop app's `render` and
 /// `engine/tests/golden.rs`: generate on the grid, humanize, then hand back.
 /// A change here that is not a change there is a change nobody meant.
-fn generate(args: &GenerateArgs, host: &HostSession, auto_sync: bool) -> Result<Pattern, String> {
+fn generate(args: &GenerateArgs, host: &HostSession, auto_sync: bool) -> Result<Generated, String> {
     let part = args.part.unwrap_or(Part::Drums);
 
     let seed = match &args.seed {
@@ -785,7 +785,7 @@ fn generate(args: &GenerateArgs, host: &HostSession, auto_sync: bool) -> Result<
         part: seed,
         drums: drums_seed,
     };
-    let lanes = parts::render(&model, &ctx, seeds, part);
+    let (lanes, against) = parts::render_against(&model, &ctx, seeds, part);
 
     if parts::is_silent(&lanes) {
         // A style whose 808 *is* the bassline authors no separate bass lane on
@@ -806,7 +806,11 @@ fn generate(args: &GenerateArgs, host: &HostSession, auto_sync: bool) -> Result<
         ));
     }
 
-    Ok(Pattern {
+    // ⛔ One `Pattern` per upstream part, built from the SAME lanes the take was
+    // written against (TASK-166). The page used to re-request these, and a
+    // novelty redraw meant what it got back was not byte-identical to what the
+    // counter actually answered.
+    let take = Pattern {
         loop_region: None,
         clip_region: None,
         id: format!("{}-{seed}", model.id),
@@ -825,6 +829,42 @@ fn generate(args: &GenerateArgs, host: &HostSession, auto_sync: bool) -> Result<
         lanes,
         ppq: PPQ,
         mood,
+    };
+
+    // ⛔ **The scalars are copied, not the take.** `..take.clone()` looked
+    // tidy and deep-cloned every lane and every note of the take once per
+    // upstream part, only to throw the cloned `lanes` away — struct-update
+    // syntax evaluates its base expression in full. On an 8-bar Counter press
+    // that is the whole note vector twice, on the synchronous webview thread
+    // this task exists to unblock. Caught by review.
+    let upstream = against
+        .into_iter()
+        .map(|(part, lanes)| Pattern {
+            id: format!("{}-{}-{part:?}", model.id, seeds.song),
+            part,
+            lanes,
+            // ⚠ The upstream parts belong to the RECORD, so they carry the song
+            // seed in both fields — that is what `songSeed` means, and it is how
+            // a filled tab reports the take it actually is.
+            seed: seeds.song,
+            song_seed: seeds.song,
+            artist_id: take.artist_id.clone(),
+            loop_region: None,
+            clip_region: None,
+            bars: take.bars,
+            bpm: take.bpm,
+            time_sig_num: take.time_sig_num,
+            time_sig_den: take.time_sig_den,
+            key_root: take.key_root,
+            scale: take.scale,
+            ppq: take.ppq,
+            mood: take.mood.clone(),
+        })
+        .collect();
+
+    Ok(Generated {
+        pattern: take,
+        upstream,
     })
 }
 
@@ -1339,7 +1379,7 @@ mod tests {
             }
             let reply =
                 dispatch(&request("generate_pattern", args), &host()).expect("trap generates");
-            serde_json::from_value::<Pattern>(reply).expect("a pattern")
+            serde_json::from_value::<Pattern>(reply["pattern"].clone()).expect("a pattern")
         };
 
         // One record, four different takes: the key and the scale must not move.
@@ -1392,7 +1432,7 @@ mod tests {
             }
             let reply =
                 dispatch(&request("generate_pattern", args), &host()).expect("boom-bap generates");
-            serde_json::from_value::<Pattern>(reply).expect("a pattern")
+            serde_json::from_value::<Pattern>(reply["pattern"].clone()).expect("a pattern")
         };
 
         // The take the producer is looking at, and a bass generated after it at
@@ -1465,6 +1505,11 @@ mod tests {
     }
 
     /// Generate one part of one style, or say why it refused.
+    ///
+    /// ⚠ **The clip out of the reply.** `generate_pattern` answers
+    /// `{pattern, upstream}` since TASK-166; every caller here wants the take
+    /// itself, and handing the wrapper to `arm_patterns` fails with
+    /// "missing field `id`" — which is how six of these tests found it.
     fn generate_part(style: &str, part: &str) -> Result<Value, String> {
         dispatch(
             &request(
@@ -1475,6 +1520,7 @@ mod tests {
             ),
             &host(),
         )
+        .map(|reply| reply["pattern"].clone())
     }
 
     fn note_count(pattern: &Value) -> usize {
@@ -1618,6 +1664,8 @@ mod tests {
         let drums = arm_song(&song, json!({ "parts": ["drums"] })).unwrap();
 
         let count = |value: &Value| {
+            // ⚠ `arm_song` answers a Pattern directly; only `generate_pattern`
+            // wraps its reply (TASK-166).
             serde_json::from_value::<Pattern>(value.clone())
                 .expect("a pattern")
                 .note_count()
@@ -1978,7 +2026,10 @@ mod tests {
             &host(),
             false,
         )
-        .expect("trap must generate");
+        .expect("trap must generate")
+        // ⚠ The take itself; this helper builds a clip to validate, and the
+        // parts it was written against are not part of that question.
+        .pattern;
         pattern.bars = bars;
         pattern.time_sig_num = num;
         pattern.time_sig_den = den;
@@ -2053,7 +2104,8 @@ mod tests {
                 &request("generate_pattern", json!({ "request": args })),
                 &host(),
             )
-            .unwrap()["lanes"]
+            .unwrap()["pattern"]
+                .clone()["lanes"]
                 .clone()
         };
 
@@ -2075,7 +2127,8 @@ mod tests {
                 &request("generate_pattern", json!({ "request": args })),
                 &host(),
             )
-            .unwrap()["lanes"]
+            .unwrap()["pattern"]
+                .clone()["lanes"]
                 .clone()
         };
 
@@ -2116,7 +2169,8 @@ mod tests {
                 ),
                 &host(),
             )
-            .unwrap()
+            .unwrap()["pattern"]
+                .clone()
         };
         assert_eq!(once(()), once(()));
     }
@@ -2134,7 +2188,8 @@ mod tests {
             ),
             &host(),
         )
-        .unwrap();
+        .unwrap()["pattern"]
+            .clone();
         assert_eq!(value["artistId"], json!(artist));
     }
 
@@ -2189,7 +2244,8 @@ mod tests {
             ),
             &host(),
         )
-        .unwrap();
+        .unwrap()["pattern"]
+            .clone();
 
         assert_eq!(value["mood"], "melodic");
     }
@@ -2208,7 +2264,8 @@ mod tests {
                 ),
                 &host(),
             )
-            .unwrap()["mood"]
+            .unwrap()["pattern"]
+                .clone()["mood"]
                 .clone()
         };
 
@@ -2246,7 +2303,7 @@ mod tests {
             )
             .unwrap_or_else(|error| panic!("{} failed to generate: {error}", entry.id));
 
-            let mood = value
+            let mood = value["pattern"]
                 .get("mood")
                 .and_then(Value::as_str)
                 .unwrap_or_else(|| panic!("{} generated without naming a mood", entry.id));
@@ -2296,7 +2353,8 @@ mod tests {
             ),
             &host(),
         )
-        .unwrap();
+        .unwrap()["pattern"]
+            .clone();
 
         assert_eq!(value["bpm"], 92.0);
         assert_eq!(value["artistId"], "trap");
@@ -2337,7 +2395,8 @@ mod tests {
             ),
             &host(),
         )
-        .unwrap();
+        .unwrap()["pattern"]
+            .clone();
         assert_eq!(value["bpm"], 150.0, "the user's pin must beat the host");
     }
 
@@ -2351,7 +2410,8 @@ mod tests {
                 ),
                 &host(),
             )
-            .unwrap()
+            .unwrap()["pattern"]
+                .clone()
         };
         assert_eq!(call(), call());
     }
@@ -2366,7 +2426,8 @@ mod tests {
                 ),
                 &host(),
             )
-            .unwrap()["seed"]
+            .unwrap()["pattern"]
+                .clone()["seed"]
                 .clone()
         };
         assert_ne!(call(), call(), "a fresh generation should be fresh");
@@ -2619,7 +2680,7 @@ mod tests {
         };
 
         assert_eq!(regenerate(), regenerate());
-        assert_eq!(regenerate()["seed"], "2024");
+        assert_eq!(regenerate()["pattern"]["seed"], "2024");
     }
 
     #[test]

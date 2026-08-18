@@ -18,7 +18,7 @@
 
 use engine::context::{Complexity, SessionContext};
 use engine::dataset::StrSpec;
-use engine::generators::{chords, counter, melody};
+use engine::generators::{chords, counter, melody, read};
 use engine::pattern::Part;
 use engine::{parts, StyleModel};
 
@@ -226,5 +226,62 @@ fn the_counter_leans_only_where_a_range_was_authored() {
          densityRatio is an authored range",
         leaned[1],
         leaned[0]
+    );
+}
+
+/// The lean table names real parameters, and nothing leans without a row.
+///
+/// ⛔⛔ **TASK-170's whole point is that this list is reviewable, so it has to be
+/// kept honest.** `read::LEANING` is now the only place that says which authored
+/// parameters the Simple/Complex switch reaches and in which direction — the
+/// lean used to be opt-in at each call site in four different spellings. A table
+/// nothing checks would rot into a comment: a row could name a key no model
+/// authors, or a generator could stop reading one, and the switch would quietly
+/// reach less than the table claims.
+#[test]
+fn every_leaning_parameter_is_one_the_dataset_actually_authors() {
+    let models = shipped_models();
+    assert!(
+        !models.is_empty(),
+        "no models, so this would pass vacuously"
+    );
+
+    for (block, key, _) in read::LEANING {
+        let authored = models
+            .values()
+            .any(|model| model.blocks.get(*block).and_then(|b| b.get(*key)).is_some());
+        assert!(
+            authored,
+            "`read::LEANING` leans {block}.{key}, which no shipped model authors — \
+             either the row is stale or the parameter was renamed"
+        );
+    }
+}
+
+/// A parameter with no row does not lean, and that is by construction.
+///
+/// ⚠ This is the safety the table buys: `read::leaning` answers `Authored` for
+/// anything it does not find, so a call site cannot lean a parameter the table
+/// does not declare. Deleting a row therefore shows up as generation changing —
+/// which `golden.rs` catches — rather than as a switch that silently does less.
+#[test]
+fn a_parameter_absent_from_the_table_does_not_lean() {
+    for complexity in [Complexity::Simple, Complexity::Complex] {
+        assert_eq!(
+            read::leaning(complexity, "melody", "registerOffset"),
+            Complexity::Authored,
+            "an unlisted parameter must not lean"
+        );
+    }
+
+    // ...and a listed one does, in the direction the row states.
+    assert_eq!(
+        read::leaning(Complexity::Complex, "melody", "densityPerBar"),
+        Complexity::Complex
+    );
+    assert_eq!(
+        read::leaning(Complexity::Complex, "chords", "chordDurationBeats"),
+        Complexity::Complex.inverted(),
+        "a shorter chord cell is the busier one, so that row is inverted"
     );
 }

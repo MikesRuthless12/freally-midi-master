@@ -22,7 +22,7 @@ use crate::context::SessionContext;
 use crate::dataset::StyleModel;
 use crate::generators::chords::Chords;
 use crate::generators::grid;
-use crate::generators::read::{block, flag, number, optional_number, pair, text};
+use crate::generators::read::{self, block, flag, number, optional_number, pair, text};
 use crate::pattern::{Articulation, Lane, LaneTrack, Note};
 use crate::rng;
 use crate::theory;
@@ -457,8 +457,8 @@ fn rhythm(
         // sparse bar is as much this artist as a busy one — so Complex moves the
         // *average* toward six while leaving two reachable. A model that authors
         // one number is unmoved at every setting, which is the rule.
-        let wanted = ctx
-            .complexity
+        // ⚠ Direction from `read::LEANING` rather than assumed here (TASK-170).
+        let wanted = read::leaning(ctx.complexity, "melody", "densityPerBar")
             .draw(density.0, density.1, rng)
             .round()
             .clamp(0.0, slots.len() as f64) as usize;

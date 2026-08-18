@@ -6,6 +6,7 @@ import { loadRoster } from '../lib/roster';
 import type {
   Complexity,
   DatasetProblem,
+  Generated,
   Lane,
   Part,
   Pattern,
@@ -24,6 +25,7 @@ import { reassignLane } from '../components/DrumGrid/cells';
 import { PAD_LANES } from './lanes';
 import { useHistory, type Snapshot } from './history';
 import { entryFor, useVariations, type Variation } from './variations';
+import { readStored, writeStored } from './storage';
 import { useUi, type GeneratorTab } from './ui';
 import { useEditing } from './editing';
 
@@ -129,6 +131,35 @@ export const SAVED_FIELDS = [
 ] as const;
 
 /**
+ * Where the Simple/Complex knob was left, across reloads.
+ *
+ * ⛔⛔ **NOT in `SAVED_FIELDS`, and that is the whole reason this is written by
+ * hand.** That list is read by three things — the project save, the undo
+ * snapshot, and `send()`, which builds the **IPC payload** from it. A field
+ * added there reaches the Rust bridge, and `lean` is a UI memory the engine has
+ * no field for: it would be an unknown key on every generate request.
+ *
+ * ⚠ It is also not part of the record. `complexity` is what a project was made
+ * at and is saved with it; this is only which side the disabled knob shows while
+ * As Written holds it, so it belongs beside the pad layout in `localStorage`
+ * rather than in the file.
+ *
+ * ⚠ Without it, reopening on As Written forgot the side and handed back Simple —
+ * the one gap left when the switch shipped.
+ */
+const LEAN_KEY = 'freally.lean';
+
+function storedLean(): Exclude<Complexity, 'authored'> {
+  // ⚠ Anything that is not 'complex' reads back as 'simple' — the same rule
+  // `cleanPads` follows for a stored value it does not recognise.
+  return readStored(
+    LEAN_KEY,
+    (value): value is 'complex' => value === 'complex',
+    'simple' as const,
+  );
+}
+
+/**
  * The session values a user may pin, in the shape the engine's
  * `SessionOverrides` reads (FR-002).
  *
@@ -205,35 +236,6 @@ export const GENERATED_PARTS: readonly Part[] = [
   'counter',
   'bass',
 ];
-
-/**
- * The parts a generation is written *against*, filled in behind it (TASK-129).
- *
- * ⛔ **The engine already generated these — this only puts them where the
- * producer can see them.** `engine/src/parts.rs` renders the harmony for every
- * melodic part and, for the counter, the lead it answers; generating a
- * countermelody on a fresh session therefore produced a line that answers a
- * melody nobody could hear, and the next Generate on the Melody tab wrote a
- * *different* melody — leaving the counter answering one that no longer exists.
- *
- * ⛔⛔ **DRUMS ARE DELIBERATELY NOT AN UPSTREAM PART, and this is the line a
- * future reader will want to "fix".** `parts.rs` phrases a melody around
- * `drums::generate` at the **song** seed — a canonical reference kit, not the
- * drum take on screen, which has its own part seed. Filling the Drums tab from a
- * melody request would put a kit there that is not the one the melody was
- * written against and not the one the producer would get by pressing Generate on
- * Drums. The bass is the one part that reads the kick literally, and it already
- * has an answer: `drumsSeed` sends it the take that is on screen.
- *
- * ⚠ **The order within each list is `parts.rs`' order**, because it is the order
- * a producer watches the tabs fill in — a countermelody landing before the
- * melody it answers reads as a bug even when the notes are right.
- */
-const UPSTREAM: Partial<Record<Part, readonly Part[]>> = {
-  melody: ['chords'],
-  counter: ['chords', 'melody'],
-  bass: ['chords'],
-};
 
 /**
  * Which part a generator tab edits, or `null` for a tab that is not a part.
@@ -1833,7 +1835,7 @@ export const useSession = create<SessionState>((set, get) => ({
   hostTempo: null,
   autoSync: true,
   complexity: 'authored',
-  lean: 'simple',
+  lean: storedLean(),
   mood: null,
   base: null,
   audioEnabled: true,
@@ -2113,14 +2115,27 @@ export const useSession = create<SessionState>((set, get) => ({
     // ⚠ Reading `state.complexity` rather than the argument: it is the side being
     // left, and it is only a side worth remembering when it is not itself
     // `authored`.
-    set((state) =>
-      complexity === 'authored'
-        ? {
-            complexity,
-            lean: state.complexity === 'authored' ? state.lean : state.complexity,
-          }
-        : { complexity, lean: complexity },
-    );
+    // ⚠ Written through on every side the producer picks, so a reload opens on
+    // the knob they left rather than on Simple — see [`LEAN_KEY`].
+    //
+    // ⛔ **Including the side CAPTURED on the way to `authored`**, which the
+    // first cut missed: it only wrote on the non-authored branch, so opening a
+    // project saved at Complex (which bypasses this setter) and clicking As
+    // Written captured 'complex' into state and stored nothing — a reload then
+    // read 'simple' back and generated Simple for a session left on Complex.
+    // That is the exact gap `LEAN_KEY` was added to close.
+    set((state) => {
+      const held =
+        complexity === 'authored'
+          ? state.complexity === 'authored'
+            ? state.lean
+            : state.complexity
+          : complexity;
+      writeStored(LEAN_KEY, held);
+      return complexity === 'authored'
+        ? { complexity, lean: held }
+        : { complexity, lean: complexity };
+    });
     persist();
   },
 
@@ -2336,7 +2351,7 @@ export const useSession = create<SessionState>((set, get) => ({
 
     set({ generating: true, error: null });
     try {
-      const pattern = await invoke<Pattern>('generate_pattern', {
+      const generated = await invoke<Generated>('generate_pattern', {
         request: {
           styleId: selectedId,
           // ⛔ **The genre to generate IN** (TASK-158C). `null` is the artist
@@ -2429,63 +2444,42 @@ export const useSession = create<SessionState>((set, get) => ({
       // ⚠ **Not during a recall**, for `withLocks`' reason below — a recall
       // reproduces a take, and adding parts that take never had returns a
       // session that never existed under the label of one that did.
-      const record = pattern.songSeed;
-      // The parts to fill, resolved once. A recall has none, which is what the
-      // note above means — and stating it here rather than as an `if` around the
-      // loop is why the two loops in the updater below need no recall check of
-      // their own.
-      const deps = recalling ? [] : (UPSTREAM[part] ?? []);
+      // ⛔⛔ **The engine hands these back now** (TASK-166). This used to be a
+      // loop of extra `generate_pattern` calls driven by `UPSTREAM`, a
+      // hand-maintained TypeScript copy of `parts.rs`' dependency graph with no
+      // type or test tying the two together. `parts::render` already built the
+      // harmony and the song's lead to write this take against, so one Counter
+      // press cost 3 chord generations and 3 synchronous round trips where 1 of
+      // each was needed — and `editor.rs` serves them on the webview thread, so
+      // each one blocked the hosted DAW's window.
+      //
+      // ▶ It also closes the divergence the old loop admitted to in its own
+      // comment: a novelty redraw meant the melody it re-requested was not
+      // byte-identical to the lead the counter actually answered. What is filled
+      // now IS what was used.
+      //
+      // ⚠ **A recall fills nothing**, for the reason the note above gives — a
+      // recall reproduces a take, and adding parts that take never had returns a
+      // session that never existed under the label of one that did. The engine
+      // still sends them; the page declines them.
+      // ⚠ **One `get()`, because nothing awaits between these now.** The loop
+      // this replaced re-read the store each iteration because each one awaited
+      // a request; there are no requests left to await.
       const fills: PatternsByPart = {};
-      // ⛔⛔ **A fill that fails must not take the generation with it.** These
-      // requests are the page's own idea, not the producer's: they pressed
-      // Generate on *this* part, it came back, and losing it because a tab they
-      // never asked about could not be filled would be the worst possible trade.
-      // Without this the whole call fell into the outer `catch`, which sets
-      // `error` and lands nothing — the counter was generated and thrown away.
-      // ⚠ Silent by design. The part that was asked for is on screen and correct;
-      // an error toast about a tab the producer did not press would describe a
-      // failure they cannot act on.
-      try {
-        for (const dep of deps) {
-          const held = get();
-          if (held.patterns[dep] !== undefined || held.partsOff.includes(dep)) continue;
-          fills[dep] = await invoke<Pattern>('generate_pattern', {
-            request: {
-              styleId: selectedId,
-              base,
-              part: dep,
-              bars,
-              seed: record,
-              songSeed: record,
-              // Only `Part::Bass` reads it and no upstream part is the bass —
-              // sent anyway, for the reason the single-Generate path above sends
-              // it on every part: a conditional here is one more thing to keep in
-              // agreement with the engine.
-              drumsSeed: mirrorableDrumsSeed(held.patterns.drums, {
-                bars,
-                songSeed: record,
-                pins,
-                mood,
-              }),
-              session: pins,
-              mood,
-              // ⛔⛔ **The switch, or the fill argues with the part it fills.**
-              // Omitting this was a real defect: at Busy, `parts.rs` builds the
-              // counter against a melody generated at the producer's setting,
-              // and a fill sent without it comes back at `authored` — a
-              // different note count, off a different draw. The two clips on
-              // screen then disagree about the switch, which is the
-              // readout-that-lies failure this whole block exists to close,
-              // dressed as the fix for it. Every field here has to stay in
-              // agreement with the request above; this is the one that got away.
-              complexity,
-            },
-          });
+      if (!recalling) {
+        const held = get();
+        for (const built of generated.upstream) {
+          if (held.patterns[built.part] !== undefined || held.partsOff.includes(built.part)) {
+            continue;
+          }
+          fills[built.part] = built;
         }
-      } catch {
-        // Kept as they are: whatever landed before the failure is still a part
-        // this generation was written against.
       }
+      // ⚠ Derived from what was actually kept rather than from the whole reply:
+      // insertion order IS `parts.rs`' order, which is the order a producer
+      // watches the tabs fill.
+      const deps = Object.keys(fills) as Part[];
+      const pattern = generated.pattern;
 
       // ⛔ **The artist may have changed while those were in flight**, the same
       // way `generateAll` guards its loop: `select` clears the slots and swaps
@@ -2675,7 +2669,10 @@ export const useSession = create<SessionState>((set, get) => ({
 
     for (const part of GENERATED_PARTS) {
       try {
-        const pattern = await invoke<Pattern>('generate_pattern', {
+        // ⚠ Generate-all walks every part itself, so it takes the clip and
+        // ignores the upstream the reply carries — those parts are already in
+        // this loop, and filling them here would write each one twice.
+        const { pattern } = await invoke<Generated>('generate_pattern', {
           request: {
             styleId: selectedId,
             // The same pin as the single-Generate path — see there.

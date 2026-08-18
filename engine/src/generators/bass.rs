@@ -208,10 +208,17 @@ pub fn generate(
         "offbeat_8ths",
         "independent_riff",
     ];
-    let rhythm = string_spec_leaning(bass, "rhythm", ctx.complexity, BUSYNESS, &mut param_rng)
-        .as_deref()
-        .and_then(Rhythm::parse)
-        .unwrap_or(Rhythm::MirrorKick);
+    let rhythm = string_spec_leaning(
+        "bassline",
+        bass,
+        "rhythm",
+        ctx.complexity,
+        BUSYNESS,
+        &mut param_rng,
+    )
+    .as_deref()
+    .and_then(Rhythm::parse)
+    .unwrap_or(Rhythm::MirrorKick);
     let follow_roots = number(bass, "followRootsProb", 0.85, &mut param_rng).clamp(0.0, 1.0);
     let glide = number(bass, "glideProb", 0.0, &mut param_rng).clamp(0.0, 1.0);
     let anticipation = number(bass, "anticipationProb", 0.0, &mut param_rng).clamp(0.0, 1.0);

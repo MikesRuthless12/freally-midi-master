@@ -9,6 +9,7 @@ import { useSession } from '../../state/session';
 import { keptKey, patternsIn, useVariations } from '../../state/variations';
 import type {
   Bass808Role,
+  Generated,
   Pattern,
   RosterEntry,
   Scale,
@@ -147,9 +148,23 @@ const BASS_ROLES: Record<Bass808Role, string> = {
  *
  * ⚠ Membership is asked of the label maps rather than a second list, so the
  * check cannot drift from the unions the radios are built from.
+ *
+ * ⚠ **What this costs, stated because a review raised it and the answer is a
+ * judgement rather than a fix:** a style authored by a *newer* build has its
+ * unrecognised placement or role read back as inherit, and saving then drops it
+ * — and because the write side refuses `slideProb` without a role, an 808 slide
+ * would go with it. Dropping is still the better half of the trade: the
+ * alternative is carrying a value into the draft that both `parse`s refuse, and
+ * saving *that* authors a style the engine cannot read at all. A build that
+ * needs to round-trip forward-authored styles wants the write side to refuse or
+ * warn, which is a feature rather than a validation rule.
  */
 function storedChoice<K extends string>(labels: Record<K, string>, value: unknown): K | '' {
-  return typeof value === 'string' && Object.hasOwn(labels, value) ? (value as K) : '';
+  // ⚠ `in`, not `Object.hasOwn`: this repo sets no `build.target`, so Vite's
+  // default baseline still includes Safari 14 and does not polyfill built-ins —
+  // `Object.hasOwn` needs 15.4 and would throw on open. Same semantics here,
+  // because `labels` is a literal with no prototype chain to inherit from.
+  return typeof value === 'string' && value in labels ? (value as K) : '';
 }
 
 /** The roll subdivisions `grid::note_value_ticks` resolves, as producers write them. */
@@ -405,18 +420,24 @@ export function StyleEditor({
       // call gets its own deadline, and a generation is milliseconds.
       const kept: Pattern[] = [];
       for (const take of keptTakes) {
-        kept.push(
-          await invoke<Pattern>('generate_pattern', {
-            request: {
-              styleId: take.artistId,
-              part: take.part,
-              seed: take.seed,
-              songSeed: take.songSeed,
-              bars: take.bars,
-              mood: take.mood ?? undefined,
-            },
-          }),
-        );
+        // ⛔ **The clip, not the reply.** `generate_pattern` hands back the take
+        // AND the parts it was written against (TASK-166), and `invoke<Pattern>`
+        // is an explicit generic — so pushing the reply straight in typechecked
+        // clean while sending `{pattern, upstream}` objects to
+        // `user_model_train`, whose Rust side reads `Vec<Pattern>` and would
+        // have failed on a missing `lanes` for every model trained from kept
+        // takes. Caught by review, not by the compiler.
+        const { pattern: clip } = await invoke<Generated>('generate_pattern', {
+          request: {
+            styleId: take.artistId,
+            part: take.part,
+            seed: take.seed,
+            songSeed: take.songSeed,
+            bars: take.bars,
+            mood: take.mood ?? undefined,
+          },
+        });
+        kept.push(clip);
       }
 
       // ⛔ **The kept files go in beside them** (TASK-040T). They are already

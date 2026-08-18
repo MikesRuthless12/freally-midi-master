@@ -1337,7 +1337,7 @@ pub enum Bass808Role {
 
 impl Bass808Role {
     /// Parsed through serde so the names exist once — see
-    /// [] for what that closes.
+    /// [`SnarePlacement::parse`] for what that closes.
     pub fn parse(text: &str) -> Option<Self> {
         serde_json::from_value(Value::String(text.to_owned())).ok()
     }

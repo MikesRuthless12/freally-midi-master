@@ -1,5 +1,11 @@
 import { Link2, Unlink, Volume2, VolumeX, X } from 'lucide-react';
-import { useCallback, useRef, type MouseEvent, type PointerEvent } from 'react';
+import {
+  useCallback,
+  useRef,
+  type KeyboardEvent,
+  type MouseEvent,
+  type PointerEvent,
+} from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { Combo } from '../Combo/Combo';
@@ -19,6 +25,61 @@ import {
   prettyKey,
 } from './values';
 import './SessionChips.css';
+
+/**
+ * The character index a click at `clientX` lands on inside a number field.
+ *
+ * ⛔⛔ **Because suppressing the press to stop drag-selection also removed
+ * click-to-place-caret.** A review raised it and it shipped as a documented
+ * "accepted cost": you could no longer click between the 4 and the 0 of a pinned
+ * `140` and type. Measuring the text is what pays that back — the box is a drag
+ * box first, but it is still a text field.
+ *
+ * ⚠ **Measured with the field's own font**, read off `getComputedStyle`, because
+ * these chips are `--font-mono` at `--text-small` and a default-font measurement
+ * lands the caret a character or two out on a four-character value.
+ *
+ * ⚠ **Honours `text-align`.** The swing box is right-aligned, so its text starts
+ * at the *end* of the content box rather than the start; measuring from the left
+ * would put every caret in the wrong place on that one field.
+ */
+let ruler: CanvasRenderingContext2D | null = null;
+
+function caretFromX(box: HTMLInputElement, clientX: number): number | null {
+  const text = box.value;
+  if (!text) return 0;
+
+  ruler ??= document.createElement('canvas').getContext('2d');
+  const style = getComputedStyle(box);
+  // ⚠ **`null`, not a guess.** No canvas — jsdom, a webview with it disabled,
+  // a fingerprinting blocker — means no measurement to make, and the caller
+  // leaves the caret entirely alone. Returning `text.length` here forced it to
+  // the end of the field on every click, which is the regression this exists to
+  // pay back rather than reintroduce.
+  if (!ruler) return null;
+  ruler.font = style.font || `${style.fontSize} ${style.fontFamily}`;
+
+  const box_ = box.getBoundingClientRect();
+  const padLeft = parseFloat(style.paddingLeft) || 0;
+  const padRight = parseFloat(style.paddingRight) || 0;
+  const inner = box_.width - padLeft - padRight;
+  const width = ruler.measureText(text).width;
+  // Where the text itself begins, which is not the content box's left edge when
+  // the field is right-aligned.
+  const from = style.textAlign === 'right' ? padLeft + Math.max(0, inner - width) : padLeft;
+  const x = clientX - box_.left - from;
+
+  let best = 0;
+  let closest = Infinity;
+  for (let at = 0; at <= text.length; at += 1) {
+    const distance = Math.abs(ruler.measureText(text.slice(0, at)).width - x);
+    if (distance < closest) {
+      closest = distance;
+      best = at;
+    }
+  }
+  return best;
+}
 
 /**
  * Turn a number field into a drag box (2026-08-16).
@@ -47,14 +108,12 @@ import './SessionChips.css';
  * the box, which is how it stays typeable. `onClick` below is what tells the two
  * apart, and it must only fire for a drag that actually moved.
  *
- * ⚠ **The cost, stated because it is a real one and was raised in review:**
- * suppressing the compatibility mouse events also removes *click-to-place-caret*.
- * Clicking between the 4 and the 0 of a pinned `140` no longer drops the caret
- * there; the label focuses the field and the caret lands where the browser puts
- * it, so editing one digit means arrow keys or retyping. Accepted deliberately —
- * these two boxes are drag boxes first, they hold three or four characters, and
- * the alternative is collapsing the selection on every pointer move, which
- * flickers. Revisit if a longer field ever gets this behaviour.
+ * ⚠ **It costs click-to-place-caret, and that is paid back rather than
+ * accepted.** Suppressing the compatibility mouse events also removes the
+ * browser's own caret positioning, which a review raised. `caretFromX` measures
+ * the text and `pointerup` places the caret itself, so clicking between the 4
+ * and the 0 of a pinned `140` still works — but only for a press that never
+ * scrubbed, because after a real drag the click is swallowed anyway.
  *
  * ⚠ **Measured from where the drag STARTED** rather than by accumulating
  * per-move deltas, for the reason `RailResizer` gives — a dropped frame would
@@ -137,7 +196,18 @@ function useDragBox(
 
   // ⚠ `pointercancel` as well as `pointerup`: a drag the host interrupts must
   // not leave the box scrubbing against a pointer that has gone.
-  const onPointerUp = useCallback(() => {
+  const onPointerUp = useCallback((event: PointerEvent<HTMLInputElement>) => {
+    // ⛔ **Put the caret where the click landed** — see [caretFromX]. Only for a
+    // press that never scrubbed: a finished drag has its click swallowed, and
+    // moving the caret there would fight the gesture that just ended.
+    if (!scrubbed.current) {
+      const box = event.currentTarget;
+      const at = caretFromX(box, event.clientX);
+      // ⚠ After focus, not before: focusing an input moves the caret itself, so
+      // setting the range first would be undone a moment later.
+      box.focus();
+      if (at !== null) box.setSelectionRange(at, at);
+    }
     scrub.current = null;
   }, []);
 
@@ -158,11 +228,63 @@ function useDragBox(
     event.preventDefault();
   }, []);
 
+  // ⛔ **A drag-only control cannot be reached from a keyboard**, which is the
+  // rule `RailResizer` states for the rail handle — and it is also a slider for
+  // exactly that reason. Typing is a keyboard path here, but it *replaces* the
+  // value: there was no way to ask for one more BPM without retyping all three
+  // digits. Up/Down move one step, Page moves ten, and both clamp where the drag
+  // clamps.
+  const onKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLInputElement>) => {
+      const by =
+        event.key === 'ArrowUp'
+          ? 1
+          : event.key === 'ArrowDown'
+            ? -1
+            : event.key === 'PageUp'
+              ? 10
+              : event.key === 'PageDown'
+                ? -10
+                : 0;
+      if (by === 0 || shown === null) return;
+      // ⚠ The browser would otherwise scroll the rail on Page, and move the
+      // caret on Arrow — both fight the nudge.
+      event.preventDefault();
+      const value = Number((shown + by * step).toFixed(step < 1 ? 2 : 0));
+      setPin(field, Math.min(max, Math.max(min, value)));
+    },
+    [field, max, min, setPin, shown, step],
+  );
+
   return {
     /** For the chip, so a finished drag does not also read as a click. */
     chip: { onClick },
-    /** For the input itself. */
-    field: { onPointerDown, onPointerMove, onPointerUp, onPointerCancel },
+    /**
+     * For the input itself.
+     *
+     * ⛔ **`role="spinbutton"`, because `aria-value*` is not allowed on a
+     * textbox and was being ignored.** The first cut put the three attributes on
+     * an `<input type="text">` and claimed the range was announced; ARIA
+     * forbids them on the implicit `textbox` role, so every screen reader
+     * dropped them and an axe pass would flag `aria-allowed-attr`. Caught by
+     * review. `spinbutton` is what the control actually is now — a value with
+     * bounds that Up/Down and Page move — and it is the same treatment
+     * `RailResizer` gives the rail handle.
+     *
+     * ⚠ `aria-valuetext` as well as `aria-valuenow`, so an unpinned box
+     * announces the artist's number rather than a bare figure with no context.
+     */
+    field: {
+      onPointerDown,
+      onPointerMove,
+      onPointerUp,
+      onPointerCancel,
+      onKeyDown,
+      role: 'spinbutton',
+      'aria-valuenow': shown ?? undefined,
+      'aria-valuemin': min,
+      'aria-valuemax': max,
+    },
   };
 }
 

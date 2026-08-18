@@ -190,7 +190,13 @@ function loadPads(): Record<string, string[]> {
     if (!raw) return {};
     const parsed: unknown = JSON.parse(raw);
     if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) return {};
-    const out: Record<string, string[]> = {};
+    // ⛔ **A null-prototype object, because the keys come from localStorage.**
+    // `out[id] = …` with `id` of `__proto__` reassigns this object's prototype
+    // rather than adding a member — a stored file could hand back a map whose
+    // prototype is a lane array. It never reached `Object.prototype` and
+    // `cleanPads` sanitises every value regardless, so this is defence in depth
+    // rather than a live hole; a security review noticed it and put it on record.
+    const out: Record<string, string[]> = Object.create(null) as Record<string, string[]>;
     for (const [id, lanes] of Object.entries(parsed as Record<string, unknown>)) {
       out[id] = cleanPads(lanes);
     }

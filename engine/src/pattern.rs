@@ -653,6 +653,33 @@ pub fn ticks_per_bar_of(num: u8, den: u8) -> u32 {
     let (num, den) = normalise_meter(num, den);
     (PPQ * 4 / u32::from(den)).max(1) * u32::from(num)
 }
+/// A generated part, and the parts it was written **against**.
+///
+/// ⛔⛔ **TASK-166.** `parts::render` builds a Counter's harmony and the song's
+/// lead at exactly the seeds the page then re-requested over IPC — so one
+/// Counter press cost 3 chord generations where 1 was needed and 3 round trips
+/// where 1 was. `editor.rs` registers `with_custom_protocol`, the *synchronous*
+/// variant, so every one of those round trips was served on the webview thread
+/// and blocked the hosted DAW's window for a whole generation.
+///
+/// ⚠ **A wrapper rather than a field on [`Pattern`].** `Pattern` is saved into
+/// projects and handed to the audio thread; giving it a recursive `upstream`
+/// would put nested clips into every save for the benefit of one command's
+/// reply. This type exists only on the wire.
+///
+/// ⚠ **`upstream` is empty for Drums and Chords**, which answer to nothing —
+/// see [`engine::parts`]. The page fills only what it is given, so the list
+/// being empty is the whole instruction.
+#[derive(Debug, Clone, Serialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export, export_to = "../../src/lib/ipc-types.ts")]
+pub struct Generated {
+    /// The part the producer actually pressed Generate on.
+    pub pattern: Pattern,
+    /// The parts it was written against, already generated. In `parts.rs`'
+    /// order, which is the order a producer watches the tabs fill.
+    pub upstream: Vec<Pattern>,
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
 #[serde(rename_all = "camelCase")]

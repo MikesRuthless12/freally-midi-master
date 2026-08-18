@@ -13,6 +13,7 @@ import type { PadTweaks } from '../state/kit';
 import type { ExplorerEntry, Favourite } from '../state/explorer';
 import type { InvokeArgs } from './ipc';
 import type {
+  Generated,
   Note,
   Part,
   Pattern,
@@ -223,7 +224,7 @@ let audioJob: { path: string; polls: number } | null = null;
  * kind of certainty.
  */
 function splitPart(part: Part, reason: SplitReason) {
-  const pattern = handlers.generate_pattern({ request: { part } }) as Pattern;
+  const pattern = handlers.build_pattern({ request: { part } }) as Pattern;
   return {
     part,
     pattern,
@@ -571,7 +572,12 @@ const handlers: Record<string, Handler> = {
   // grid is the thing under test: kick on every beat, a backbeat snare, and
   // straight 16th hats is enough for a spec to count cells and know the
   // rendering is wired, without this file becoming a second drum engine.
-  generate_pattern: (args): Pattern => {
+  /**
+   * The clip itself. Split out from `generate_pattern` for TASK-166, which made
+   * the command's reply a {@link Generated} wrapper — this is what the wrapper
+   * carries, and what the mock's own internal callers still want.
+   */
+  build_pattern: (args): Pattern => {
     const request = (
       args as {
         request?: {
@@ -681,6 +687,44 @@ const handlers: Record<string, Handler> = {
     };
   },
 
+  /**
+   * A generated part **and the parts it was written against** (TASK-166).
+   *
+   * ⛔ The engine builds a Counter's harmony and the song's lead to write the
+   * take against and now returns them, so the page no longer buys them back over
+   * three synchronous round trips. This mock mirrors that shape, and the map
+   * below mirrors `engine/src/parts.rs`' dependency graph — the same one the
+   * store used to keep its own copy of.
+   *
+   * ⚠ **Drums are deliberately not an upstream part**: a melody is phrased
+   * around a *reference* kit at the song seed, not the drum take on screen.
+   */
+  generate_pattern: (args): Generated => {
+    const pattern = handlers.build_pattern(args) as Pattern;
+    const against: Partial<Record<Part, readonly Part[]>> = {
+      melody: ['chords'],
+      counter: ['chords', 'melody'],
+      bass: ['chords'],
+    };
+    const request = (args as { request?: Record<string, unknown> }).request ?? {};
+    const upstream = (against[pattern.part] ?? []).map((part) => ({
+      ...(handlers.build_pattern({
+        request: { ...request, part, seed: pattern.songSeed },
+      }) as Pattern),
+      // ⚠ **Its own id**, mirroring `bridge.rs`'s `{model}-{song}-{Part}`. The
+      // first cut let every upstream clip inherit the take's id, so a Counter
+      // press produced three patterns all called `mock-mock` — and anything
+      // keyed on `pattern.id` (`refreezeOpenLanes`) could not tell the filled
+      // tabs apart, hiding exactly the id-collision bugs an e2e is for.
+      id: `${pattern.id}-${part}`,
+      // The upstream parts belong to the record, so they carry the song seed —
+      // the same rule `bridge.rs` follows when it builds them.
+      seed: pattern.songSeed,
+      songSeed: pattern.songSeed,
+    }));
+    return { pattern, upstream };
+  },
+
   // Song Mode (TASK-065). Built out of the same `generate_pattern` above rather
   // than a second note fixture, so a spec that counts notes in the arrangement
   // view and one that counts them in the roll cannot disagree.
@@ -714,7 +758,7 @@ const handlers: Record<string, Handler> = {
         const patternId = `${artistId}-${entry.kind}-${part}`;
         if (!patterns[patternId]) {
           patterns[patternId] = {
-            ...(handlers.generate_pattern({
+            ...(handlers.build_pattern({
               request: { styleId: artistId, bars: 4, seed, part },
             }) as Pattern),
             id: patternId,
