@@ -224,36 +224,50 @@ fn the_host_tempo_changes_when_notes_land_and_never_how_many() {
                 .collect()
         };
 
-        // ⛔⛔ **One authored key is allowed to break this, and it is NAMED here
-        // rather than tolerated by loosening the assertion.**
-        // `snare.fullTimeAtHighTempoProb` means exactly "play full time when the
-        // session is fast" — a rule about *how many*, asked for by the producer,
-        // and `rage` authors it at 0.15. The claim for a model that carries it is
-        // the same claim minus the one lane it bought: **the snare may change and
-        // nothing else may.** That is stronger than exempting the model, and it
-        // caught nothing else changing when the switch fired.
-        let tempo_decides = model
+        // ⛔⛔ **Two authored keys are allowed to break this, and both are NAMED
+        // here rather than tolerated by loosening the assertion.** Each buys
+        // exactly one lane, and the claim for a model carrying one is the same
+        // claim minus the lane it bought: **that lane may change and nothing
+        // else may.** That is stronger than exempting the model, and both times
+        // it has confirmed nothing else moved when the key fired.
+        //
+        // - `snare.fullTimeAtHighTempoProb` means "play full time when the
+        //   session is fast" — a rule about *how many*, asked for by the
+        //   producer, and `rage` authors it at 0.15. It buys the **snare**.
+        // - `snare.rimshotBelowBpm` means "lay a rimshot under the backbeat when
+        //   the record is slow", and `rnb-2000s` authors it at 80 — so `112` and
+        //   everything else inheriting it plays a rim at 70 and none at 140. It
+        //   buys the **rim**.
+        //
+        // ⚠ **An empty list is the exact comparison this test has always made**,
+        // so a model authoring neither key is held to the original claim with no
+        // filter at all.
+        let snare = model
             .blocks
             .get("drums")
-            .and_then(|drums| drums.get("snare"))
-            .and_then(|snare| snare.get("fullTimeAtHighTempoProb"))
-            .is_some();
-
-        if tempo_decides {
-            let without_snare = |tempo: f64| -> Vec<(engine::pattern::Lane, usize)> {
-                counts(tempo)
-                    .into_iter()
-                    .filter(|(lane, _)| *lane != engine::pattern::Lane::Snare)
-                    .collect()
-            };
-            assert_eq!(
-                without_snare(70.0),
-                without_snare(140.0),
-                "{id} changed a lane other than its snare at 70"
-            );
-        } else {
-            assert_eq!(counts(70.0), counts(140.0), "{id} plays differently at 70");
+            .and_then(|drums| drums.get("snare"));
+        let mut bought: Vec<engine::pattern::Lane> = Vec::new();
+        if snare
+            .and_then(|s| s.get("fullTimeAtHighTempoProb"))
+            .is_some()
+        {
+            bought.push(engine::pattern::Lane::Snare);
         }
+        if snare.and_then(|s| s.get("rimshotBelowBpm")).is_some() {
+            bought.push(engine::pattern::Lane::Rim);
+        }
+
+        let without_bought = |tempo: f64| -> Vec<(engine::pattern::Lane, usize)> {
+            counts(tempo)
+                .into_iter()
+                .filter(|(lane, _)| !bought.contains(lane))
+                .collect()
+        };
+        assert_eq!(
+            without_bought(70.0),
+            without_bought(140.0),
+            "{id} changed a lane no tempo key bought, at 70 (bought: {bought:?})"
+        );
 
         // ⚠ 140 and 174 are both above `FULL_TIME_BPM`, so this half of the
         // claim is untouched by the switch and stays exact for every model.

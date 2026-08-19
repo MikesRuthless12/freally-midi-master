@@ -116,6 +116,15 @@ reachable by any existing gate, and each has a test at the seam now.
   `kick_rng` — the same stream `kick_bar` reads for every later bar. The key's
   whole claim is that the model's own kicks are kept, and it held for bar 1 only.
   They draw from `drums/kick/fourOnFloor` now, outside the bar loop.
+- ⛔ **A tempo-conditional key broke the host-timeline invariant, and the
+  invariant was right.** `plugin/tests/host_timeline.rs` holds that the host’s
+  tempo changes *when* notes land and never *how many* — and
+  `snare.rimshotBelowBpm` is a rule about how many: `rnb-2000s` authors it at
+  80, so `112` played 15 rims at 70 BPM and 8 at 140. ⚠ **Narrowed, not
+  loosened**, the same way `fullTimeAtHighTempoProb` already was — each
+  tempo-conditional key is named in the test and buys exactly one lane, so a
+  model carrying one is held to "that lane may change and nothing else may",
+  and a model carrying neither is still held to the exact original comparison.
 - ⛔ **A re-roll resampled the record's loop lengths.** `loop_bars` samples
   `synthLoopBars`, which `rage` authors as a range, and `reroll_section` drew it
   from the fresh per-press seed rather than the song's. The re-rolled section
