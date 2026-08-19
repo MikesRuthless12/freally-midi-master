@@ -303,6 +303,38 @@ pub fn hold_for(lane: engine::pattern::Lane, len_frames: u32, sliding: bool) -> 
     }
 }
 
+/// How long a slide holds its origin pitch, and how long it then travels.
+///
+/// ⛔ **One definition, for the reason `hold_for` right above it exists and
+/// `Kit::semitones_for` exists.** The live preview and the offline renderer each
+/// spelled `delay: frames / 2, frames: frames - frames / 2` out separately, and
+/// this file's own note says a rendered stem must sound like what was
+/// auditioned. Reading `portamentoMs` in two places is how the two start
+/// disagreeing about the same 808.
+///
+/// ⛔ **The hold comes from `engine::midi::slide_crossover`**, which is where the
+/// exporter puts the destination note-on: the `.mid` and the `.wav` beside it in
+/// the same folder have to start moving at the same instant, and the file has no
+/// way to say anything about the travel. `portamentoMs` is the travel.
+///
+/// ⚠ **A travel of zero frames is a *jump*, not a flat note.** `trigger_with`
+/// drops a `Glide` of no length, so an authored `portamentoMs: 0` — the low end
+/// of the `[0, 10]` eleven models write — would have played the origin pitch for
+/// the whole note and never arrived. One frame is the floor.
+pub fn glide_window(len_frames: u32, slide_ms: Option<u16>, sample_rate: f64) -> (u32, u32) {
+    // ⛔ The exporter's own crossover, not a copy of the fraction. See
+    // `engine::midi::slide_crossover`.
+    let delay = engine::midi::slide_crossover(len_frames);
+    let rest = len_frames - delay;
+    match slide_ms {
+        Some(ms) => {
+            let want = (f64::from(ms) / 1000.0 * sample_rate).round() as u32;
+            (delay, want.clamp(1, rest.max(1)))
+        }
+        None => (delay, rest),
+    }
+}
+
 impl Sampler {
     /// Start a pad. `velocity` is 0–1; `semis` is added to the pad's own offset.
     pub fn trigger(&mut self, kit: &Kit, pad_index: usize, velocity: f32, semis: f32, rate: f64) {
@@ -732,6 +764,34 @@ pub fn limit(out: &mut [f32]) {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn a_note_with_no_authored_glide_time_travels_for_the_rest_of_itself() {
+        // What every take did before `portamentoMs` could be read, and what
+        // `None` still means. The hold is where `midi.rs` puts the destination
+        // note-on, so the file and the audio start moving together.
+        assert_eq!(glide_window(1_000, None, 48_000.0), (500, 500));
+        assert_eq!(glide_window(1_001, None, 48_000.0), (500, 501));
+    }
+
+    #[test]
+    fn an_authored_glide_time_is_the_travel_and_nothing_else() {
+        // 90 ms at 48 kHz is 4,320 frames, and the hold is untouched: the pitch
+        // starts moving where the `.mid` says it does and arrives sooner.
+        assert_eq!(glide_window(48_000, Some(90), 48_000.0), (24_000, 4_320));
+        // ⚠ Never past the end of the note. A 2-second portamento on a 16th
+        // would otherwise ask the voice to keep climbing after it has stopped.
+        assert_eq!(glide_window(1_000, Some(2_000), 48_000.0), (500, 500));
+    }
+
+    #[test]
+    fn a_zero_millisecond_glide_is_a_jump_rather_than_a_flat_note() {
+        // ⛔ `trigger_with` drops a glide of no frames, so a literal zero would
+        // have played the origin pitch for the whole note and never arrived.
+        // Eleven models author `portamentoMs: [0, 10]` and the low end of that
+        // range is reachable.
+        assert_eq!(glide_window(1_000, Some(0), 48_000.0), (500, 1));
+    }
     use crate::audio::kit::Pad;
     use crate::pad_tweaks::{Adsr, PadShape};
     use engine::pattern::Lane;

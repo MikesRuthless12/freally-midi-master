@@ -1001,6 +1001,7 @@
           "vel": 106,
           "modelVel": 100,
           "slideToPitch": 34,
+          "slideMs": 22,
           "articulation": "legato"
         },
         {

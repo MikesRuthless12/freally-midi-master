@@ -267,6 +267,9 @@ fn echo_notes(
                 pitch,
                 vel: note.vel.saturating_sub(drop).max(1),
                 slide_to_pitch: None,
+                slide_ms: None,
+                slide_overlap_ticks: None,
+                timing_locked: false,
                 articulation: None,
                 reversed: false,
             })
@@ -320,6 +323,9 @@ fn arp_notes(
                 pitch,
                 vel: COUNTER_VELOCITY,
                 slide_to_pitch: None,
+                slide_ms: None,
+                slide_overlap_ticks: None,
+                timing_locked: false,
                 articulation: None,
                 reversed: false,
             });
@@ -386,6 +392,9 @@ fn lick_notes(
                     pitch,
                     vel: COUNTER_VELOCITY,
                     slide_to_pitch: None,
+                    slide_ms: None,
+                    slide_overlap_ticks: None,
+                    timing_locked: false,
                     articulation: None,
                     reversed: false,
                 });
@@ -484,6 +493,9 @@ fn pad_notes(
                     // as one sound rather than two parts.
                     vel: COUNTER_VELOCITY.saturating_sub(8 + voice as u8 * 6).max(1),
                     slide_to_pitch: None,
+                    slide_ms: None,
+                    slide_overlap_ticks: None,
+                    timing_locked: false,
                     articulation: None,
                     reversed: false,
                 });

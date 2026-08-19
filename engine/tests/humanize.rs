@@ -55,6 +55,9 @@ fn note(start: u32, len: u32, vel: u8) -> Note {
         pitch: 36,
         vel,
         slide_to_pitch: None,
+        slide_ms: None,
+        slide_overlap_ticks: None,
+        timing_locked: false,
         articulation: None,
         reversed: false,
     }
@@ -467,4 +470,84 @@ fn the_defaults_file_is_the_source_of_the_engines_tier_constants() {
     assert_eq!(band("accent"), expected.accent, "accent tier drifted");
     assert_eq!(band("main"), expected.main, "main tier drifted");
     assert_eq!(band("ghost"), expected.ghost, "ghost tier drifted");
+}
+
+/// A snare hit that either moves with the session's jitter or does not.
+fn locked_note(tick: u32, locked: bool) -> Note {
+    Note {
+        timing_locked: locked,
+        ..note(tick, 120, 100)
+    }
+}
+
+#[test]
+fn a_locked_backbeat_does_not_move_and_everything_around_it_does() {
+    // `drums.snare.lockedBackbeat` — the drum-and-bass rule, authored by five
+    // models and read by nothing. ⛔ It cannot be tested through the grammar:
+    // all five authors also write `offGridMs: 0`, so what has to be proved is
+    // that the *session's* jitter leaves the backbeat alone.
+    let ctx = SessionContext {
+        humanize: Humanize {
+            timing_jitter_ms: [(Lane::Snare, 40.0)].into_iter().collect(),
+            quantize_strength: 0.0,
+            velocity_var: 0.0,
+        },
+        ..Default::default()
+    };
+
+    let mut lanes = vec![LaneTrack {
+        lane: Lane::Snare,
+        notes: vec![
+            locked_note(960, true),
+            locked_note(1200, false),
+            locked_note(2880, true),
+            locked_note(3120, false),
+        ],
+    }];
+    humanize(&mut lanes, &ctx, 11);
+
+    let starts: Vec<u32> = lanes[0].notes.iter().map(|n| n.start_tick).collect();
+    assert!(
+        starts.contains(&960) && starts.contains(&2880),
+        "the locked backbeats moved: {starts:?}"
+    );
+    assert!(
+        !starts.contains(&1200) || !starts.contains(&3120),
+        "nothing moved at all, so the jitter is not reaching this lane: {starts:?}"
+    );
+}
+
+#[test]
+fn locking_a_note_does_not_move_the_notes_after_it() {
+    // ⛔ The jitter is drawn for a locked note and thrown away. Skipping the draw
+    // would walk the lane's seeded stream forward differently, so one key about
+    // the backbeat would quietly rewrite the ghosts.
+    let ctx = SessionContext {
+        humanize: Humanize {
+            timing_jitter_ms: [(Lane::Snare, 40.0)].into_iter().collect(),
+            quantize_strength: 0.0,
+            velocity_var: 0.0,
+        },
+        ..Default::default()
+    };
+    let run = |locked: bool| {
+        let mut lanes = vec![LaneTrack {
+            lane: Lane::Snare,
+            notes: vec![
+                locked_note(960, locked),
+                locked_note(1440, false),
+                locked_note(1920, false),
+            ],
+        }];
+        humanize(&mut lanes, &ctx, 5);
+        lanes[0]
+            .notes
+            .iter()
+            .map(|n| n.start_tick)
+            .collect::<Vec<u32>>()
+    };
+
+    let free = run(false);
+    let held = run(true);
+    assert_eq!(free[1..], held[1..], "the notes after the locked one moved");
 }

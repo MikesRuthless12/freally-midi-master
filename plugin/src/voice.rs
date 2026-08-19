@@ -45,7 +45,26 @@ struct Placed {
     /// different lanes, so dropping this would make the sampler play the wrong
     /// drum (or nothing) while the host track stayed correct.
     lane: Lane,
+    /// The note number that goes to the **host**, which for a drum lane is
+    /// its GM voice.
     note: u8,
+    /// The pitch this note actually **sounds** at, which for a drum lane is
+    /// the walked or detuned number the generator wrote.
+    ///
+    /// ⛔⛔ **Two fields because MIDI and the sampler want opposite things,
+    /// and one field meant the preview lied.** In a `.mid` a drum's note
+    /// number *is* which drum it is, so `note` has to stay GM 38 or a rage
+    /// snare roll fires Hand Clap and two toms in the producer's rack
+    /// (TASK-131D). But the *sampler* reads the same field to decide how far
+    /// to repitch the pad — so pinning it to GM handed
+    /// `Kit::semitones_for` a difference of zero and every drum played flat
+    /// **in the live preview only**. The offline renderer reads
+    /// `note.pitch` and repitches correctly, so the two disagreed: a walked
+    /// roll and a detuned snare came out of the plugin flat and out of the
+    /// exported stem moving. That breaks this file's own rule that a
+    /// rendered stem must sound like what was auditioned, and it is the
+    /// exact "readout that lies" TASK-131D set out to fix.
+    sounding: u8,
     velocity: f32,
     /// The matching note-off, so a pattern can never leave a note hanging.
     off_at: u32,
@@ -57,6 +76,9 @@ struct Placed {
     /// `render_preview` does, and it is the same call `audio::render` makes, so
     /// the preview and a rendered stem cannot disagree about the interval.
     slide_to: Option<u8>,
+    /// How long that slide takes, in milliseconds — the model's own
+    /// `portamentoMs`, or `None` for the rest of the note.
+    slide_ms: Option<u16>,
     /// Play this note's pad back to front — see `engine::pattern::Note::reversed`.
     reversed: bool,
 }
@@ -68,10 +90,15 @@ pub struct Fired {
     /// note event carries, so what is heard and what lands on the track agree.
     pub timing: u32,
     pub lane: Lane,
+    /// The number sent to the host — see `Placed::note`.
     pub note: u8,
+    /// The pitch the pad is played at — see `Placed::sounding`.
+    pub sounding: u8,
     pub velocity: f32,
     /// Where an 808 slide is heading, as a raw pitch — see `Placed::slide_to`.
     pub slide_to: Option<u8>,
+    /// How long that slide takes, in milliseconds — see `Placed::slide_ms`.
+    pub slide_ms: Option<u16>,
     /// How long the note lasts in frames, which is the slide's whole window.
     pub frames: u32,
     /// Play this note's pad back to front — see `engine::pattern::Note::reversed`.
@@ -103,8 +130,10 @@ impl Default for FiredNotes {
                 timing: 0,
                 lane: Lane::Kick,
                 note: 0,
+                sounding: 0,
                 velocity: 0.0,
                 slide_to: None,
+                slide_ms: None,
                 frames: 0,
                 reversed: false,
             }; Self::CAPACITY],
@@ -219,11 +248,15 @@ impl Schedule {
                     } else {
                         crate::midi_note_for(track.lane)
                     },
+                    // What the pad plays at, always the generator's own
+                    // number — see `Placed::sounding` for why the two differ.
+                    sounding: note.pitch,
                     velocity: f32::from(note.vel) / 127.0,
                     // A zero-length note is inaudible and, in some hosts,
                     // invisible. One sample is the floor.
                     off_at: off.max(at.saturating_add(1)),
                     slide_to: note.slide_to_pitch,
+                    slide_ms: note.slide_ms,
                     reversed: note.reversed,
                 });
             }
@@ -527,8 +560,10 @@ impl Schedule {
                 timing: timing + offset,
                 lane: event.lane,
                 note: event.note,
+                sounding: event.sounding,
                 velocity: event.velocity,
                 slide_to: event.slide_to,
+                slide_ms: event.slide_ms,
                 // The note's own length, which is the slide's whole window.
                 // ⚠ From the schedule's own samples, so it follows the host's
                 // tempo for free — the same reason the placement does.
@@ -604,6 +639,37 @@ mod tests {
         }
     }
 
+    #[test]
+    fn a_drum_goes_to_the_host_as_its_gm_voice_and_to_the_pad_at_its_own_pitch() {
+        // ⛔⛔ **The seam a security pass found, and no test could see.** One
+        // field carried both answers: the host needs GM 36 or a walked kick
+        // fires four different drums in the producer's rack (TASK-131D), and the
+        // *sampler* reads the same number to decide how far to repitch the pad —
+        // so pinning it to GM meant `Kit::semitones_for` was handed a difference
+        // of zero and every drum played flat **in the live preview only**. The
+        // offline renderer reads `Note::pitch` and repitched correctly, so a
+        // walked roll and a detuned snare came out of the plugin flat and out of
+        // the exported stem moving.
+        //
+        // ⚠ Asserted on the schedule rather than through `emit`, which needs a
+        // live host — the two fields are decided in `arm`, and that is what this
+        // pins.
+        let mut schedule = Schedule::default();
+        let walked = pattern(120.0, vec![note(0, PPQ, 41)]);
+        schedule.arm(&walked, 48_000.0);
+
+        let placed = schedule.events.first().expect("one note was armed");
+        assert_eq!(
+            placed.note,
+            crate::midi_note_for(Lane::Kick),
+            "the host must be told which drum, not which pitch"
+        );
+        assert_eq!(
+            placed.sounding, 41,
+            "and the pad must be told the pitch the generator wrote"
+        );
+    }
+
     fn note(start: u32, len: u32, pitch: u8) -> Note {
         Note {
             model_vel: None,
@@ -612,6 +678,9 @@ mod tests {
             pitch,
             vel: 100,
             slide_to_pitch: None,
+            slide_ms: None,
+            slide_overlap_ticks: None,
+            timing_locked: false,
             articulation: None,
             reversed: false,
         }
@@ -744,6 +813,9 @@ mod transport_tests {
                 pitch: 36,
                 vel: 100,
                 slide_to_pitch: None,
+                slide_ms: None,
+                slide_overlap_ticks: None,
+                timing_locked: false,
                 articulation: None,
                 reversed: false,
             })

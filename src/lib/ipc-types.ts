@@ -132,7 +132,60 @@ modelVel?: number | null,
  * 808 slide target. The note glides to this pitch; the writer emits the
  * overlap convention the sampler reads as portamento.
  */
-slideToPitch?: number | null, articulation?: Articulation | null, 
+slideToPitch?: number | null, 
+/**
+ * How long the glide to [`Self::slide_to_pitch`] takes, in milliseconds —
+ * `drums.bass808.portamentoMs`, which **105 models authored and nothing
+ * read** — 107 authorings counting the two inside `modes`, and the largest
+ * single entry the authored-key register ever held.
+ *
+ * ⛔ **A per-note field because there was nowhere else to put it.** The
+ * sampler held the travel at "the rest of the note" in three separate
+ * places, so drill's 60 ms snap and afroswing's 220 ms swoop came out of
+ * the speakers as the same gesture. A `Note` is the only thing that reaches
+ * all three — `midi.rs`, the live preview and the offline stem renderer —
+ * and the dataset's own word for the parameter is a *time*, not a fraction
+ * of whatever note it lands on.
+ *
+ * ⚠ **`None` is "the rest of the note", which is what every take did before
+ * this existed** — not zero, which is a real authored value meaning a hard
+ * jump at the crossover. Eleven models write `portamentoMs: 0` and mean it.
+ *
+ * ⚠ **It does not change the exported `.mid`.** MIDI has no portamento time
+ * short of CC5, and this codebase's convention is the overlapping pair; what
+ * the file *can* say — where the pitch starts moving — is the crossover, and
+ * that is unchanged. See [`Self::slide_overlap_ticks`] for the half of the
+ * gesture the file does carry.
+ */
+slideMs?: number | null, 
+/**
+ * How far the slide's two exported notes overlap —
+ * `drums.bass808.slideOverlap`, authored as a note value (`"1/16"`).
+ *
+ * ⛔ **The notation half of the same gesture, and independent of it.**
+ * `trap` authors this and no `portamentoMs`; 105 models author
+ * `portamentoMs` and no overlap. `midi.rs::SLIDE_OVERLAP_TICKS` is the
+ * default the writer has always used — a 32nd — and it is a constant for
+ * exactly the reason this field exists.
+ */
+slideOverlapTicks?: number | null, 
+/**
+ * This note does not move when the session's timing jitter is applied —
+ * `drums.snare.lockedBackbeat`, which five models author.
+ *
+ * ⛔ **It looks like a job for the grammar and it is not.** All five authors
+ * also write `offGridMs: 0`, so exempting the backbeat from the grammar's
+ * own displacement exempts it from nothing at all. What actually moves it
+ * is [`crate::humanize`], which reads `timingJitterMs` **per lane** — and a
+ * lane-wide escape would pin the ghosts and the fill's roll with it, which
+ * is a quantized snare part rather than a locked backbeat.
+ *
+ * ⚠ **The jitter is still drawn for a locked note and then discarded.** The
+ * lane's stream is a seeded sequence, so skipping the draw would move every
+ * note *after* the locked one — the same rule the drum grammar states about
+ * a switch whose effect is gated by the tempo.
+ */
+timingLocked?: boolean, articulation?: Articulation | null, 
 /**
  * Play this one note's sample **backwards** (2026-08-11).
  *

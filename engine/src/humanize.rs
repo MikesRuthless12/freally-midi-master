@@ -304,8 +304,19 @@ pub fn humanize(lanes: &mut [LaneTrack], ctx: &SessionContext, seed: u64) {
             let end = swing_tick(note.start_tick + note.len_ticks, ctx.swing);
 
             // The note moves as a whole: a late hit is late, not stretched.
+            //
+            // ⛔ **Drawn even for a note that will not move.** `timing_locked`
+            // is `drums.snare.lockedBackbeat` — 2 and 4 stay put while the rest
+            // of the kit breathes — and skipping the draw for a locked note
+            // would shift every note after it in the lane, so a model would gain
+            // a locked backbeat *and* a different ghost pattern from one key.
             let offset = if jitter_ticks > 0.0 {
-                stream.random_range(-jitter_ticks..=jitter_ticks)
+                let drawn = stream.random_range(-jitter_ticks..=jitter_ticks);
+                if note.timing_locked {
+                    0.0
+                } else {
+                    drawn
+                }
             } else {
                 0.0
             };
@@ -351,6 +362,9 @@ mod tests {
             pitch: 36,
             vel: 100,
             slide_to_pitch: None,
+            slide_ms: None,
+            slide_overlap_ticks: None,
+            timing_locked: false,
             articulation: None,
             reversed: false,
         }

@@ -221,7 +221,23 @@ pub fn generate_with(
     let mut patterns: BTreeMap<String, Pattern> = BTreeMap::new();
     let mut start_bar = 0u32;
 
+    let loops = loop_bars(block, ctx, seed);
     let transitions = block.get("transitions");
+    // `arrangement.dropByBar` — the bar of the song the beat is in by. `trap`
+    // authors 5 and `dj-toomp` 9, which is one past a four- and an eight-bar
+    // intro: "the beat drops on bar 5" is how a producer says it.
+    //
+    // ⛔ **Not `transitions.dropOutBeats`, which is authored beside it and is
+    // the opposite gesture** — a drop-*out* is silence before a hook, and this
+    // is when the record starts properly. Both are in trap's arrangement block
+    // and reading either as the other would have made one of them dead.
+    //
+    // ⚠ It is a cap and not a length. `sectionBars.intro` is `[4, 8]` on trap,
+    // so half of its intros sampled past its own promise and nothing noticed.
+    let drop_by_bar = block
+        .get("dropByBar")
+        .and_then(Value::as_u64)
+        .filter(|bar| *bar > 1);
     // The back half a switch-up applies to. Computed from the whole structure
     // before any section is built, because "the back half" is a fact about the
     // song rather than about the section being looked at.
@@ -234,6 +250,16 @@ pub fn generate_with(
         })?;
 
         let bars = section_bars(block, name, seed, index);
+        // The intro is the section the drop is waiting on, so it is the one the
+        // cap applies to. `.max(1)` because a section of no bars is a hole in
+        // the song rather than a short section — see `section_bars`.
+        let bars = match drop_by_bar {
+            Some(drop) if kind == SectionKind::Intro => {
+                let room = (drop - 1).saturating_sub(u64::from(start_bar)).max(1);
+                bars.min(u16::try_from(room).unwrap_or(u16::MAX))
+            }
+            _ => bars,
+        };
         let rule = section_rule(block, name);
 
         // ⛔ A switch-up gives the back half its *own* patterns, and it does it
@@ -267,7 +293,15 @@ pub fn generate_with(
         let section_model = scaled.as_ref().unwrap_or(model);
 
         let wanted = parts_for(&rule, model);
-        let rendered = render_section(section_model, ctx, section_seed, &wanted, Carry::default());
+        let rendered = render_section(
+            section_model,
+            ctx,
+            section_seed,
+            &wanted,
+            Carry::default(),
+            loops,
+            kind,
+        );
         // A switch-up varies only the *melodic* parts, so the back half needs a
         // second render on its own seed. Skipped entirely when there is no
         // switch-up, which is roughly six songs in seven.
@@ -288,6 +322,8 @@ pub fn generate_with(
                     kit: Some(&rendered.kit),
                     harmony: None,
                 },
+                loops,
+                kind,
             )
         });
 
@@ -320,7 +356,15 @@ pub fn generate_with(
                 };
                 patterns.insert(
                     id.clone(),
-                    pattern_for(model, ctx, pattern_seed, part, &id, lanes.clone()),
+                    pattern_for(
+                        model,
+                        ctx,
+                        pattern_seed,
+                        part,
+                        &id,
+                        lanes.clone(),
+                        loops.of(part),
+                    ),
                 );
             }
             refs.insert(
@@ -421,7 +465,22 @@ pub fn reroll_section(
         .filter(|value| !value.is_null())
         .ok_or_else(|| ArrangeError::NoArrangement(model.id.clone()))?;
 
-    let kind_name = section_name(section.kind);
+    let kind = section.kind;
+    let kind_name = section_name(kind);
+    // ⛔⛔ **The SONG's seed, never the re-roll's.** `synthLoopBars` is a range
+    // on `rage` and `loop_bars` samples it, so drawing from the fresh per-press
+    // seed gave the re-rolled section a *different clip length* from every
+    // other section of the same record. Two things then went wrong at once:
+    // `refs` deliberately keeps the producer's own `PatternRef::bars` across a
+    // re-roll, so `SectionTiling` went on tiling at the old length over a
+    // shorter clip and the tail of every repeat fell silent; and `held_kit` is
+    // re-derived at the resampled length, so a *locked* row was handed to the
+    // re-rolling parts as a kit of a different length than the one on screen —
+    // the exact incoherence the comment below claims to prevent.
+    //
+    // ⚠ How long a part's loop is, is a fact about the record. `modes::pick` is
+    // keyed off `song.seed` one screen up for the same reason.
+    let loops = loop_bars(block, ctx, song.seed);
     let rule = section_rule(block, kind_name);
 
     // ⛔ **Which rows exist comes from the section, and the lane *narrowing*
@@ -474,16 +533,27 @@ pub fn reroll_section(
             .and_then(|reference| song.pattern(reference))
             .map(|pattern| pattern.seed)
     };
+    // ⛔ **Rebuilt at the part's own loop length, not the session's.** A locked
+    // drums row is re-derived here to hand to the parts that are re-rolling, and
+    // at `ctx.bars` it would be a *different kit* from the one on screen the
+    // moment a model authors `drumLoopBars` — the melody would then be written
+    // around a beat the section does not play, which is the incoherence
+    // `render_section`'s own doc records fixing.
     let held_kit = locked
         .contains(&Part::Drums)
         .then(|| locked_seed(Part::Drums))
         .flatten()
-        .map(|seed| crate::generators::drums::generate(section_model, ctx, seed));
+        .map(|seed| {
+            let ctx = loops.ctx(Part::Drums, ctx);
+            crate::generators::drums::generate_in(section_model, &ctx, seed, Some(kind))
+        });
     let held_harmony = locked
         .contains(&Part::Chords)
         .then(|| locked_seed(Part::Chords))
         .flatten()
-        .map(|seed| crate::generators::chords::generate(section_model, ctx, seed));
+        .map(|seed| {
+            crate::generators::chords::generate(section_model, &loops.ctx(Part::Chords, ctx), seed)
+        });
 
     let rendered = render_section(
         section_model,
@@ -494,6 +564,8 @@ pub fn reroll_section(
             kit: held_kit.as_deref(),
             harmony: held_harmony.as_ref(),
         },
+        loops,
+        kind,
     );
 
     // Taken before the move, because `section` borrows the song.
@@ -523,7 +595,15 @@ pub fn reroll_section(
         let id = pattern_id(model, &format!("{kind_name}@{index}:{seed}"), *part);
         next.patterns.insert(
             id.clone(),
-            pattern_for(model, ctx, section_seed, *part, &id, lanes.clone()),
+            pattern_for(
+                model,
+                ctx,
+                section_seed,
+                *part,
+                &id,
+                lanes.clone(),
+                loops.of(*part),
+            ),
         );
         // ⛔ **The producer's clip resize survives a re-roll** (TASK-142).
         // `refs` starts as a clone of what the section already had, so the
@@ -689,6 +769,67 @@ fn section_bars(block: &Value, name: &str, seed: u64, index: usize) -> u16 {
     // A section of zero bars occupies no time and draws as nothing, so it is a
     // hole in the song rather than a short section.
     (bars.round().max(1.0) as u32).min(u32::from(u16::MAX)) as u16
+}
+
+/// How long one repeat of each part is — `arrangement.drumLoopBars` and
+/// `arrangement.synthLoopBars`.
+///
+/// ⛔ **This module's header has been describing these two in prose since it was
+/// written** — *"a trap verse is a four-bar loop played four times, and that is
+/// what `rage`'s own `drumLoopBars: 4` says out loud"* — and the number itself
+/// went unread, so every part of every section was the session's clip length
+/// whatever the model said. `rage` is the one author: its drums loop over four
+/// bars and its synths over one to four, which is the 1-bar ostinato its research
+/// entry describes.
+#[derive(Debug, Clone, Copy)]
+struct Loops {
+    drums: u16,
+    synth: u16,
+}
+
+impl Loops {
+    fn of(self, part: Part) -> u16 {
+        match part {
+            Part::Drums => self.drums,
+            _ => self.synth,
+        }
+    }
+
+    /// The session as one part sees it: everything shared, its own clip
+    /// length.
+    ///
+    /// ⛔ **One spelling, because there were four and they have to agree.**
+    /// A generator handed the plain `ctx` writes a clip of the wrong length
+    /// and nothing says so — the pattern claims the bars the section stores
+    /// and its notes stop early. Building the context is the rule, so the
+    /// type that knows the length owns it.
+    fn ctx(self, part: Part, base: &SessionContext) -> SessionContext {
+        SessionContext {
+            bars: self.of(part),
+            ..base.clone()
+        }
+    }
+}
+
+/// The loop lengths a model authors, or the session's clip length for both.
+///
+/// ⚠ **Drawn once for the song, not per section.** How long a part's loop is, is
+/// a fact about the record: a verse whose synth repeats every bar and a hook
+/// whose synth repeats every four would be two different instruments.
+fn loop_bars(block: &Value, ctx: &SessionContext, seed: u64) -> Loops {
+    let mut stream = rng::stream(seed, "arrange/loopBars");
+    let mut read_one = |key: &str| -> u16 {
+        // A loop of no bars is not a shorter loop, it is silence; and one longer
+        // than the session's clip is a clip nobody asked for.
+        read::optional_number(Some(block), key, &mut stream).map_or(ctx.bars, |bars| {
+            (bars.round().max(1.0) as u32).min(u32::from(ctx.bars.max(1))) as u16
+        })
+    };
+    // ⚠ Read in a fixed order so the two draws cannot swap: `read::number` takes
+    // a sample for a range, and `rage` authors a range for the synths only.
+    let drums = read_one("drumLoopBars");
+    let synth = read_one("synthLoopBars");
+    Loops { drums, synth }
 }
 
 /// What a section rule says, with the fields this module reads.
@@ -895,11 +1036,32 @@ fn render_section(
     seed: u64,
     wanted: &[PartRequest],
     carry: Carry<'_>,
+    // How long one repeat of each part is — see [`Loops`].
+    loops: Loops,
+    // ⛔ **Which section this is, because two drum keys are about the form.**
+    // `kick.fourOnFloorInChorus` and `snare.crossStickVerses` name a section
+    // outright; without it here they are unreadable anywhere in the app, since
+    // Song Mode is the only place a section exists.
+    section: SectionKind,
 ) -> SectionRender {
     use crate::generators::{bass, chords, counter, drums, melody};
     use crate::humanize::humanize;
 
     let asked = |want: &[Part]| wanted.iter().any(|r| want.contains(&r.part));
+
+    // ⛔ **One session, two clip lengths.** `drumLoopBars` and `synthLoopBars`
+    // are how long *one repeat* of each part is, and the section says how long
+    // it plays — so a rage verse is a four-bar beat under a synth figure that
+    // comes round every bar. Everything else about the session is shared, which
+    // is what keeps the two halves the same record.
+    //
+    // ⚠ **A synth loop shorter than the progression repeats against later
+    // chords, and that is the style asking for it**: `rage` is the only author
+    // and its research entry describes exactly that — a 1-bar ostinato over a
+    // held tonic. A model that authors a short loop *and* a moving progression
+    // is asking for a clash it can hear.
+    let drum_ctx = loops.ctx(Part::Drums, ctx);
+    let synth_ctx = loops.ctx(Part::Chords, ctx);
 
     // The dependency order from `engine::parts`, run once. Only what this
     // section actually needs is built: a bridge of chords and 808 does not pay
@@ -910,14 +1072,14 @@ fn render_section(
 
     let harmony = match carry.harmony {
         Some(harmony) => Some(harmony.clone()),
-        None => needs_harmony.then(|| chords::generate(model, ctx, seed)),
+        None => needs_harmony.then(|| chords::generate(model, &synth_ctx, seed)),
     };
     // `carry.kit` is the section's already-generated drums, handed in so a
     // switch-up's melody is written around the beat the section actually plays
     // rather than around a second kit nobody hears.
     let kit = match carry.kit {
         Some(kit) => kit.to_vec(),
-        None if needs_kit => drums::generate(model, ctx, seed),
+        None if needs_kit => drums::generate_in(model, &drum_ctx, seed, Some(section)),
         None => Vec::new(),
     };
     // ⛔⛔ **Screened, because Song Mode was the one path that was not.**
@@ -940,7 +1102,7 @@ fn render_section(
                 Part::Melody,
                 parts::screenable(model, Part::Melody),
                 seed,
-                |take| vec![melody::generate(model, ctx, take, harmony, &kit)],
+                |take| vec![melody::generate(model, &synth_ctx, take, harmony, &kit)],
             );
             novelty::log(Part::Melody, &report);
             lanes.into_iter().next()
@@ -965,7 +1127,7 @@ fn render_section(
                         Part::Counter,
                         parts::screenable(model, Part::Counter),
                         seed,
-                        |take| vec![counter::generate(model, ctx, take, harmony, lead)],
+                        |take| vec![counter::generate(model, &synth_ctx, take, harmony, lead)],
                     );
                     novelty::log(Part::Counter, &report);
                     lanes
@@ -985,7 +1147,7 @@ fn render_section(
                         Part::Bass,
                         parts::screenable(model, Part::Bass),
                         seed,
-                        |take| vec![bass::generate(model, ctx, take, harmony, &kit)],
+                        |take| vec![bass::generate(model, &synth_ctx, take, harmony, &kit)],
                     );
                     novelty::log(Part::Bass, &report);
                     lanes
@@ -1001,6 +1163,8 @@ fn render_section(
         // ⛔ Humanized here, once per part, rather than inside the shared renders
         // above: feel is applied to a lane exactly once, and `kit` is handed to
         // three generators before it becomes the drum clip.
+        // ⚠ The session's own context, not the part's: `humanize` reads the
+        // swing, the jitter and the tempo, and never the bar count.
         humanize(&mut lanes, ctx, seed);
         if !parts::is_silent(&lanes) {
             out.insert(request.part, lanes);
@@ -1045,6 +1209,11 @@ fn pattern_for(
     part: Part,
     id: &str,
     lanes: Vec<LaneTrack>,
+    // ⛔ **The part's own loop length, not the session's.** A clip that says it
+    // is four bars long while its notes stop after one is a clip every reader
+    // gets wrong — `SectionTiling` repeats it, the piano roll draws it and the
+    // exporter walks it, all from this number.
+    bars: u16,
 ) -> Pattern {
     Pattern {
         loop_region: None,
@@ -1054,7 +1223,7 @@ fn pattern_for(
         artist_id: model.id.clone(),
         seed,
         song_seed: seed,
-        bars: ctx.bars,
+        bars,
         bpm: ctx.bpm,
         time_sig_num: ctx.time_sig_num,
         time_sig_den: ctx.time_sig_den,

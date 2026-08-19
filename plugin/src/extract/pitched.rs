@@ -221,6 +221,9 @@ pub fn notes(frames: &[Frame], grid: &Grid) -> Vec<Note> {
             vel: (60.0 + clarity.clamp(0.0, 1.0) * 60.0).round() as u8,
             model_vel: None,
             slide_to_pitch: None,
+            slide_ms: None,
+            slide_overlap_ticks: None,
+            timing_locked: false,
             articulation: None,
             reversed: false,
         });
