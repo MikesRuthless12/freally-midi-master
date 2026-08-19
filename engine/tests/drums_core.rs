@@ -771,3 +771,141 @@ fn every_shipped_model_generates_a_playable_pattern() {
     }
     assert!(generated > 0, "no models were generated");
 }
+
+/// The rim ticks a model produces, and the snare backbeats they must cover.
+///
+/// ⚠ **Both models below also name `rim` in `drums.percs.lanes`**, so the lane
+/// exists either way and "is there a rim lane" proves nothing. What the layer
+/// adds is a rim on *every* backbeat, which is what these compare.
+fn rim_and_backbeats(lanes: &[LaneTrack]) -> (Vec<u32>, Vec<u32>) {
+    let rims = lane(lanes, Lane::Rim)
+        .map(|l| l.notes.iter().map(|n| n.start_tick).collect())
+        .unwrap_or_default();
+    let backbeats = lane(lanes, Lane::Snare)
+        .map(|l| {
+            l.notes
+                .iter()
+                .filter(|n| n.articulation.is_none())
+                .map(|n| n.start_tick)
+                .collect()
+        })
+        .unwrap_or_default();
+    (rims, backbeats)
+}
+
+#[test]
+fn boom_bap_lays_a_rimshot_under_every_backbeat() {
+    // `drums.snare.rimshotLayer` — authored by 231 models and read by nothing
+    // until now. The claim is narrow and is the whole feature: wherever the
+    // snare plays a main hit, the rim plays with it.
+    let boom_bap = model("boom-bap");
+    let context = ctx(&boom_bap, 4);
+
+    for seed in 0..12u64 {
+        let (rims, backbeats) = rim_and_backbeats(&generate(&boom_bap, &context, seed));
+        assert!(
+            !backbeats.is_empty(),
+            "seed {seed}: boom bap has a backbeat"
+        );
+        for beat in &backbeats {
+            assert!(
+                rims.contains(beat),
+                "seed {seed}: no rim under the backbeat at {beat}"
+            );
+        }
+    }
+}
+
+#[test]
+fn rnb_2000s_takes_its_rimshot_from_the_tempo_rather_than_from_a_flag() {
+    // ⛔ `rnb-2000s` authors `rimshotBelowBpm: 80` and does **not** author
+    // `rimshotLayer`, which is why the tempo key cannot be read as a gate on
+    // the flag: read that way it would still be dead. Its own session runs
+    // 72–95, so both sides of the boundary are inside the style.
+    let rnb = model("rnb-2000s");
+    let slow = SessionContext {
+        bpm: 74.0,
+        ..ctx(&rnb, 4)
+    };
+    let quick = SessionContext {
+        bpm: 85.0,
+        ..slow.clone()
+    };
+
+    let (rims, backbeats) = rim_and_backbeats(&generate(&rnb, &slow, 7));
+    for beat in &backbeats {
+        assert!(rims.contains(beat), "a slow R&B record gets the rim");
+    }
+
+    // ⚠ The percussion lane may still put a rim somewhere of its own at 85; what
+    // must not survive the tempo is the rim *under the backbeat*.
+    let (quick_rims, quick_backbeats) = rim_and_backbeats(&generate(&rnb, &quick, 7));
+    assert!(
+        quick_backbeats.iter().any(|b| !quick_rims.contains(b)),
+        "the same style at 85 does not layer them"
+    );
+}
+
+#[test]
+fn the_rimshot_layer_moves_no_other_lane() {
+    // ⛔ The rule this module's header states and that a sub-kick velocity broke
+    // once: a new key draws from its own stream, so a model that authors it
+    // generates every *other* lane exactly as it did before. Proved by turning
+    // the key off on a model that authors it and comparing everything else.
+    let mut boom_bap = model("boom-bap");
+    let context = ctx(&boom_bap, 4);
+    let with_rim = generate(&boom_bap, &context, 11);
+
+    boom_bap
+        .blocks
+        .get_mut("drums")
+        .and_then(|d| d.get_mut("snare"))
+        .and_then(Value::as_object_mut)
+        .expect("boom bap has a snare block")
+        .remove("rimshotLayer");
+    let without = generate(&boom_bap, &context, 11);
+
+    let others: Vec<&LaneTrack> = with_rim.iter().filter(|l| l.lane != Lane::Rim).collect();
+    let baseline: Vec<&LaneTrack> = without.iter().filter(|l| l.lane != Lane::Rim).collect();
+    assert_eq!(others, baseline, "the rim is the only lane that differs");
+
+    let (bare, backbeats) = rim_and_backbeats(&without);
+    assert!(!backbeats.is_empty(), "boom bap has a backbeat");
+    assert!(
+        backbeats.iter().any(|b| !bare.contains(b)),
+        "and without the key the backbeats are not doubled"
+    );
+}
+
+#[test]
+fn the_drum_and_bass_backbeat_is_marked_locked_and_jungles_is_not() {
+    // `drums.snare.lockedBackbeat`. ⛔ **`jungle` authors it `false`**, which is
+    // the genre saying the opposite out loud — its snare is chopped out of a
+    // break and moves — so it is the case that proves the flag is read rather
+    // than assumed.
+    for id in ["liquid-dnb", "neurofunk", "jump-up-dnb", "pop-dnb"] {
+        let model = model(id);
+        let context = ctx(&model, 4);
+        let lanes = generate(&model, &context, 3);
+        let snare = lane(&lanes, Lane::Snare).unwrap_or_else(|| panic!("{id} has a snare"));
+        let mains: Vec<&engine::pattern::Note> = snare
+            .notes
+            .iter()
+            .filter(|n| n.articulation.is_none())
+            .collect();
+        assert!(!mains.is_empty(), "{id}: no backbeat at all");
+        assert!(
+            mains.iter().all(|n| n.timing_locked),
+            "{id}: a backbeat that the session's jitter may still move"
+        );
+    }
+
+    let jungle = model("jungle");
+    let context = ctx(&jungle, 4);
+    let lanes = generate(&jungle, &context, 3);
+    let snare = lane(&lanes, Lane::Snare).expect("jungle has a snare");
+    assert!(
+        snare.notes.iter().all(|n| !n.timing_locked),
+        "jungle asked for the opposite and got the lock anyway"
+    );
+}

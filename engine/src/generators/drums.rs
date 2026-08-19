@@ -26,7 +26,7 @@ use crate::generators::read::{
 use crate::generators::{grid, rolls};
 use crate::humanize::VelocityTiers;
 use crate::midi::gm_drum_note;
-use crate::pattern::{Articulation, Lane, LaneTrack, Note};
+use crate::pattern::{Articulation, Lane, LaneTrack, Note, SectionKind};
 use crate::rng;
 use crate::theory;
 
@@ -310,6 +310,17 @@ impl DrumKit {
         self.notes.get(&lane).map(Vec::as_slice).unwrap_or_default()
     }
 
+    /// One lane's notes, to be rewritten in place.
+    ///
+    /// ⛔ **For the keys that are facts about the finished lane rather than
+    /// about a hit.** `lockedBackbeat` marks whichever notes survived the fills
+    /// and `detuneSemis` retunes every snare in the part, including the ones
+    /// `fills` and `percs` wrote — neither can be spelled at [`Self::hit`],
+    /// which sees one note and does not know which pass will take it away.
+    pub fn notes_mut(&mut self, lane: Lane) -> &mut Vec<Note> {
+        self.notes.entry(lane).or_default()
+    }
+
     /// The finished lanes, ordered, sorted and without the empty ones.
     pub fn into_lanes(mut self) -> Vec<LaneTrack> {
         LANE_ORDER
@@ -336,6 +347,9 @@ fn note_at(lane: Lane, tick: u32, vel: u8, articulation: Option<Articulation>) -
         pitch: gm_drum_note(lane),
         vel: vel.max(1),
         slide_to_pitch: None,
+        slide_ms: None,
+        slide_overlap_ticks: None,
+        timing_locked: false,
         articulation,
         reversed: false,
     }
@@ -641,6 +655,27 @@ const HAT_REDRAW_DOMAINS: [&str; MAX_HAT_REDRAWS] = [
 ];
 
 pub fn generate(model: &StyleModel, ctx: &SessionContext, seed: u64) -> Vec<LaneTrack> {
+    generate_in(model, ctx, seed, None)
+}
+
+/// The same kit, told which section of a song it is playing.
+///
+/// ⛔ **Two keys are about the *form* rather than about the beat**, and neither
+/// could be read while the drums only ever saw `(model, ctx, seed)`:
+/// `kick.fourOnFloorInChorus` (29 models) and `snare.crossStickVerses` (74).
+/// Both name a section, and a four-bar loop on the Drums tab is not in one — so
+/// `None` is a real answer rather than a missing argument, and it means what the
+/// tab has always done.
+///
+/// ⚠ **Not on [`SessionContext`].** That struct is the session's own settings,
+/// serialized from the page and stored in a project; the section is a fact about
+/// where in an arrangement this call sits, and belongs to the call.
+pub fn generate_in(
+    model: &StyleModel,
+    ctx: &SessionContext,
+    seed: u64,
+    section: Option<SectionKind>,
+) -> Vec<LaneTrack> {
     let drums = model.blocks.get("drums");
     let tiers = VelocityTiers::from_json(drums);
     let mut kit = DrumKit::new();
@@ -675,6 +710,9 @@ pub fn generate(model: &StyleModel, ctx: &SessionContext, seed: u64) -> Vec<Lane
     let mut sub_rng = rng::stream(seed, "drums/kick/sub");
     let mut sloppy_rng = rng::stream(seed, "drums/kick/sloppy");
     let mut hat_extra_rng = rng::stream(seed, "drums/hats/extras");
+    let mut rimshot_rng = rng::stream(seed, "drums/snare/rimshot");
+    let mut sub_tone_rng = rng::stream(seed, "drums/bass808/tone");
+    let mut snare_tone_rng = rng::stream(seed, "drums/snare/tone");
 
     // ⛔ Drawn once, before the bar loop, for the reason `kick_grammar` gives:
     // a form chosen per bar cuts between two two-bar shapes mid-phrase.
@@ -729,6 +767,54 @@ pub fn generate(model: &StyleModel, ctx: &SessionContext, seed: u64) -> Vec<Lane
     let ghost = snare_block.and_then(|s| s.get("ghost"));
     let ghost_positions = strings(ghost, "pos");
     let clap_offset_ms = optional_number(snare_block, "layerClapOffsetMs", &mut snare_rng);
+
+    // Boom-bap's rimshot under the snare — 231 models author it and nothing
+    // played a note of it. It doubles the backbeat on `Lane::Rim`, which every
+    // kit already has a pad for and GM already spells (37, Side Stick).
+    //
+    // ⛔ **`rimshotBelowBpm` is a second way to ask, not a gate on the first.**
+    // `rnb-2000s` is the only model that authors it and it authors it *without*
+    // `rimshotLayer` — a slow R&B record gets the rim and the same style at 100
+    // does not — so reading it as a condition on a flag that model never wrote
+    // would leave it as dead as it was.
+    //
+    // ⚠ **Read without touching the rng.** `flag` never does, and the tempo is
+    // read as a plain number rather than through `optional_number`, so a model
+    // that authors either key generates every other lane exactly as before.
+    let rimshot = flag(snare_block, "rimshotLayer", false)
+        || snare_block
+            .and_then(|s| s.get("rimshotBelowBpm"))
+            .and_then(Value::as_f64)
+            .is_some_and(|below| f64::from(ctx.bpm) < below);
+
+    // Country's cross-stick verse: in a verse the backbeat is played on the rim
+    // instead of the drum, and the record opens up when the snare arrives for
+    // the chorus. 74 models author it. Applied by [`finish`], at the end.
+    let cross_stick =
+        section == Some(SectionKind::Verse) && flag(snare_block, "crossStickVerses", false);
+
+    // Pop and dance put the kick on all four in the hook and nowhere else — the
+    // lift into the chorus that the section rule cannot express, because it is
+    // about *which* beats rather than about how many.
+    //
+    // ⚠ **The model's own kicks are kept.** The four beats are added to the bar
+    // rather than replacing it: a chorus that threw the grammar away would be
+    // four-on-the-floor by every artist alike, and what makes a hook still sound
+    // like the artist is the syncopation they play over the pulse.
+    let four_on_floor = section == Some(SectionKind::Hook)
+        && kick_block
+            .and_then(|k| k.get("fourOnFloorInChorus"))
+            .is_some_and(|value| match value {
+                // ⚠ Two authoring forms in the corpus: 27 write `true`, two write
+                // a probability. A probability here is a statement about how
+                // often the style does it, and reading it as a per-song coin
+                // toss would make the hook of a saved song depend on a draw the
+                // kick's stream has never had to make. Anything above zero is
+                // the style saying it does this.
+                Value::Bool(on) => *on,
+                Value::Number(n) => n.as_f64().is_some_and(|p| p > 0.0),
+                _ => false,
+            });
 
     // Jerk's headline marker, and it was authored by 19 models before anything
     // read it. Drawn per hit inside the bar loop, so a cluster is something that
@@ -895,6 +981,46 @@ pub fn generate(model: &StyleModel, ctx: &SessionContext, seed: u64) -> Vec<Lane
         }
     }
 
+    // Pop and dance put the kick on all four in the hook — the lift into the
+    // chorus that a section rule cannot express, because it is about *which*
+    // beats rather than about how many.
+    //
+    // ⛔⛔ **On its own stream, and outside the bar loop, because inside it the
+    // key rewrote the model.** A pulse pushed into the bar's tick list drew its
+    // velocity from `kick_rng` like any other hit — and `kick_rng` is what
+    // `kick_bar` reads for every *later* bar, so a hook gained four kicks in
+    // bar 1 and a different grammar from bar 2 onward. The claim this key makes
+    // is that the model's own kicks are kept; that is only true if the pulses
+    // cost the kick nothing.
+    //
+    // ⚠ **Checked against `kick_grid`, which holds the grid positions before
+    // `sloppyOffsetMs` moved anything.** A dragged kick sits a few ticks off its
+    // own beat, so comparing against where the notes *landed* would put a
+    // second kick beside every dragged one.
+    //
+    // ⚠ **A kick on every beat of the bar, whatever the meter.** That is what
+    // four-on-the-floor generalises to — the pulse is the beat — so a 7/4
+    // session gets seven and a 6/8 session six. Every model that authors the key
+    // is a 4/4 style; the meter is the producer's, and this is what it does.
+    if four_on_floor {
+        let mut floor_rng = rng::stream(seed, "drums/kick/fourOnFloor");
+        let beat = grid::ticks_per_beat(ctx);
+        let mut pulses: Vec<u32> = Vec::new();
+        for bar in 0..u32::from(ctx.bars) {
+            for pulse in 0..u32::from(ctx.time_sig_num) {
+                let on = bar * bar_ticks + pulse * beat;
+                if !kick_grid.contains(&on) {
+                    pulses.push(on);
+                }
+            }
+        }
+        for on in pulses {
+            kit.hit(Lane::Kick, on, tiers.pick(None, &mut floor_rng), None);
+            kick_grid.push(on);
+        }
+        kick_grid.sort_unstable();
+    }
+
     // Hats are built across the whole pattern rather than bar by bar: the
     // subdivision, the pitch-bent layer and the swell are all decisions about
     // the part, not about a bar.
@@ -1050,7 +1176,22 @@ pub fn generate(model: &StyleModel, ctx: &SessionContext, seed: u64) -> Vec<Lane
     let mut bass_rng = rng::stream(seed, "drums/bass808");
     kit.extend(
         Lane::Sub,
-        bass808(drums, ctx, &kicks, &snares, &ringing_snares, &mut bass_rng),
+        bass808(
+            drums,
+            ctx,
+            Around {
+                kicks: &kicks,
+                snares: &snares,
+                ringing: &ringing_snares,
+            },
+            &mut bass_rng,
+            &mut sub_tone_rng,
+            flag(
+                model.blocks.get("arrangement"),
+                "melodic808SlideAtLoopEnd",
+                false,
+            ),
+        ),
     );
     kit.extend(Lane::ClosedHat, closed);
     kit.extend(Lane::OpenHat, open);
@@ -1078,9 +1219,151 @@ pub fn generate(model: &StyleModel, ctx: &SessionContext, seed: u64) -> Vec<Lane
     // deleting authored ghost and percussion positions out of four models to
     // work around one missing clamp — fixing the data to suit a defect in the
     // code.
+    finish(
+        &mut kit,
+        Finish {
+            rimshot,
+            cross_stick,
+            locked_backbeat: flag(snare_block, "lockedBackbeat", false),
+            detune: optional_number(snare_block, "detuneSemis", &mut snare_tone_rng)
+                .map(|semis| semis.clamp(-24.0, 24.0).round() as i16)
+                .filter(|semis| *semis != 0),
+        },
+        &tiers,
+        &mut rimshot_rng,
+    );
+
     let mut lanes = kit.into_lanes();
     super::fit_to_clip(&mut lanes, ctx);
     lanes
+}
+
+/// What the four keys about the *finished* snare lane ask for.
+struct Finish {
+    rimshot: bool,
+    cross_stick: bool,
+    locked_backbeat: bool,
+    /// Semitones, already known to be non-zero.
+    detune: Option<i16>,
+}
+
+/// The passes that rewrite a lane once nothing else will write to it.
+///
+/// ⛔ **Every one of these is a fact about the finished lane, and none can be
+/// spelled at [`DrumKit::hit`]** — `fills::clear_for_fill` takes hits away after
+/// they are placed, so a rim written under a backbeat during the bar loop would
+/// be doubling a hit the drummer has stopped playing.
+///
+/// ⛔⛔ **And they run after `percs` and after the 808, because the 808 reads the
+/// snare lane.** The cross-stick moves the backbeat off [`Lane::Snare`]; done any
+/// earlier, `bass808`'s `snares` and `ringing_snares` come back without it and
+/// the 808 rings straight through a backbeat it is supposed to stop for. A pass
+/// placed too early is a defect in a lane that never mentions it, which is
+/// exactly the class of bug this file keeps a register for.
+fn finish(kit: &mut DrumKit, ask: Finish, tiers: &VelocityTiers, rimshot_rng: &mut impl Rng) {
+    // The rimshot layer doubles the backbeat on its own voice, on the beat
+    // rather than beside it: a rimshot under a snare is one drum struck two
+    // ways, and the millisecond offset the clap gets exists to stop two
+    // *different* samples phasing.
+    //
+    // ⛔ **Its own stream, and every draw is inside the `if`.** A velocity taken
+    // from the snare's stream would advance its sequence, and this module has
+    // already paid for that once: a sub-kick velocity on the kick's stream moved
+    // every later bar's grammar and failed a bassline gate two lanes away.
+    //
+    // ⚠ The main hits only. A ghost is the snare answering itself and a roll is
+    // the fill's own vocabulary; doubling either would be a rim part, and what
+    // 231 models asked for is a rim *under the backbeat*.
+    if ask.rimshot {
+        let backbeats: Vec<u32> = main_hits(kit.notes(Lane::Snare))
+            .map(|note| note.start_tick)
+            .collect();
+        for tick in backbeats {
+            kit.hit(Lane::Rim, tick, tiers.pick(None, rimshot_rng), None);
+        }
+    }
+
+    // `lockedBackbeat` — the drum-and-bass rule that 2 and 4 do not move while
+    // everything around them does. Five models author it; `jungle` authors it
+    // `false`, which is the genre saying the opposite out loud.
+    //
+    // ⛔ **A mark for `humanize`, not a displacement of its own.** All five
+    // authors also write `offGridMs: 0`, so there is nothing in the grammar left
+    // to exempt the backbeat from — what moves it is the session's timing
+    // jitter, read per lane with no way for one note to opt out.
+    // `Note::timing_locked` is that way out, and its doc records why the lane
+    // cannot be the unit.
+    if ask.locked_backbeat {
+        for note in kit.notes_mut(Lane::Snare) {
+            note.timing_locked = note.articulation.is_none();
+        }
+    }
+
+    // `detuneSemis` — the snare tuned off the pitch its sample was recorded at.
+    // Seven models, `trap` among them at `[-2, -1]`: the deep, detuned trap
+    // snare is a sound, and it was authored long before anything read it.
+    //
+    // ⛔ **The register files this under the 808 and it is a `drums.snare` key.**
+    // Written into the 808's tone the value would have detuned a *bassline*,
+    // which is a wrong note rather than a timbre — resolve a key's real path out
+    // of `data/` before writing a line of code for it.
+    //
+    // ⚠ **An audio-domain effect, exactly like `pitchWalk`** (TASK-131D). The
+    // sampler and the rendered stems repitch the pad from the lane's own GM note,
+    // so a number below 38 reads as "the snare, tuned down"; MIDI — live and
+    // exported — still carries GM 38, because in a `.mid` a drum's note number
+    // *is* which drum it is. Added to each note's own pitch, so a roll that walks
+    // keeps its walk and the whole figure moves with the tuning.
+    if let Some(semis) = ask.detune {
+        for note in kit.notes_mut(Lane::Snare) {
+            note.pitch = (i16::from(note.pitch) + semis).clamp(0, 127) as u8;
+        }
+    }
+
+    // The cross-stick verse, last of all: the backbeat *moves* to the rim rather
+    // than being doubled by it. That is what a cross-stick is — the same stroke
+    // played differently — and it is what makes the verse quieter than the
+    // chorus it builds into.
+    //
+    // ⚠ The placement's own hits only. A ghost is a snare stroke and a fill is
+    // the fill's vocabulary; a drummer holding the stick sideways still plays
+    // both on the head.
+    //
+    // ⚠ **The note travels rather than being re-struck**, so a locked backbeat
+    // stays locked and its velocity is the one the tiers drew. A tick the rim is
+    // already playing — the layer above, on a model that authors both — keeps the
+    // rim it has, because one voice cannot sound twice at one instant.
+    if ask.cross_stick {
+        let taken: Vec<u32> = kit
+            .notes(Lane::Rim)
+            .iter()
+            .map(|note| note.start_tick)
+            .collect();
+        let mut moved: Vec<Note> = Vec::new();
+        kit.notes_mut(Lane::Snare).retain(|note| {
+            if note.articulation.is_some() {
+                return true;
+            }
+            // ⚠ `moved` is checked as well as `taken`: `extend` is the one
+            // door into a lane that does *not* refuse a second note on one
+            // tick, and `no_lane_ever_carries_two_notes_on_the_same_tick`
+            // holds over every model and seed.
+            if !taken.contains(&note.start_tick)
+                && !moved.iter().any(|m: &Note| m.start_tick == note.start_tick)
+            {
+                let mut moving = note.clone();
+                moving.pitch = gm_drum_note(Lane::Rim);
+                moved.push(moving);
+            }
+            false
+        });
+        kit.extend(Lane::Rim, moved);
+    }
+}
+
+/// The hits a placement wrote — not a ghost, not a roll, not a cluster ornament.
+fn main_hits(notes: &[Note]) -> impl Iterator<Item = &Note> {
+    notes.iter().filter(|note| note.articulation.is_none())
 }
 
 /// A velocity authored as a fraction of full scale, e.g. `[0.8, 1.0]`.
@@ -1258,6 +1541,22 @@ fn fills(kit: &mut DrumKit, drums: Option<&Value>, ctx: &SessionContext, rng: &m
     }
 }
 
+/// What the rest of the kit already plays, which is what the 808 fits around.
+///
+/// ⚠ **Three lists rather than one**, because the 808 asks three different
+/// questions of the beat and the answers genuinely differ. Grouped into a struct
+/// because the alternative was an eighth positional argument to `bass808`, and
+/// the register still has 808 keys queued behind this one.
+struct Around<'a> {
+    /// The rhythm the 808 rides.
+    kicks: &'a [u32],
+    /// The backbeat: where the 808 does not play at all.
+    snares: &'a [u32],
+    /// Every snare including a fill's, which the 808 may start on but must not
+    /// ring past. See the call site for why these are two lists.
+    ringing: &'a [u32],
+}
+
 /// The 808 line (research ch. 1 §1 trap, §2 drill).
 ///
 /// The 808 is not a bass part that happens to be low — in these genres it *is*
@@ -1276,14 +1575,21 @@ fn fills(kit: &mut DrumKit, drums: Option<&Value>, ctx: &SessionContext, rng: &m
 fn bass808(
     drums: Option<&Value>,
     ctx: &SessionContext,
-    kicks: &[u32],
-    // The backbeat: where the 808 does not play at all.
-    snares: &[u32],
-    // Every snare including a fill's, which the 808 may start on but must not
-    // ring past. See the call site for why these are two lists.
-    ringing_snares: &[u32],
+    around: Around<'_>,
     rng: &mut impl Rng,
+    // The 808's *tone* parameters, which are settings on the instrument rather
+    // than choices the player makes — so they draw from their own stream and
+    // the line itself comes out note for note as it did before.
+    tone: &mut impl Rng,
+    // `arrangement.melodic808SlideAtLoopEnd` — an arrangement key about this
+    // lane, so it arrives as a decision rather than as a block to read.
+    slide_at_loop_end: bool,
 ) -> Vec<Note> {
+    let Around {
+        kicks,
+        snares,
+        ringing: ringing_snares,
+    } = around;
     // `read::block` treats an explicit `null` as absent, which is how a
     // country kit or a boom-bap break says it has no 808 at all.
     let block = block(drums, "bass808");
@@ -1483,6 +1789,9 @@ fn bass808(
             pitch,
             vel: 100,
             slide_to_pitch: slide_to,
+            slide_ms: None,
+            slide_overlap_ticks: None,
+            timing_locked: false,
             articulation: Some(Articulation::Legato),
             reversed: false,
         });
@@ -1492,6 +1801,35 @@ fn bass808(
             Some(target) if counter_riff => target,
             _ => root,
         };
+    }
+
+    // The turnaround — `arrangement.melodic808SlideAtLoopEnd`. The loop's last
+    // note glides back into the pitch it opens on, so four bars lead into
+    // themselves instead of stopping dead. `uk-drill` is the one author.
+    //
+    // ⛔ **It moves a slide; it never adds one.** The same model authors
+    // `slidesPer4Bars: [2, 3]`, and `drill_slides_two_to_three_times_every_four_bars`
+    // calls that ceiling absolute — "a fourth would be a different genre". This
+    // key is a statement about *where* the gesture lands, so when the last note
+    // is not already sliding it takes the last slide in the pattern with it.
+    //
+    // ⚠ **Before the two passes below**, so the whoop can still turn it: an
+    // octave up out of the loop's last note is drill's own signature and the
+    // turnaround must not be the thing that silences it.
+    if slide_at_loop_end && notes.len() > 1 {
+        let opening = notes[0].pitch;
+        let last = notes.len() - 1;
+        // A slide onto the pitch the note is already on is not a slide, and
+        // moving one there would delete a gesture rather than place it.
+        if notes[last].pitch != opening {
+            if notes[last].slide_to_pitch.is_some() {
+                notes[last].slide_to_pitch = Some(opening);
+            } else if let Some(from) = (0..last).rev().find(|i| notes[*i].slide_to_pitch.is_some())
+            {
+                notes[from].slide_to_pitch = None;
+                notes[last].slide_to_pitch = Some(opening);
+            }
+        }
     }
 
     // Rage's chromatic approach: the note *before* a target drops a semitone
@@ -1515,6 +1853,16 @@ fn bass808(
         // 0.25, and with eight notes in four bars an adjacent pair came up on
         // roughly a third of patterns.
         for i in (1..notes.len()).rev() {
+            // ⚠ **Never the first note when the loop turns around on it.** The
+            // turnaround above read `notes[0].pitch` to aim the last note at the
+            // pitch the loop opens on; an approach here would drop that same
+            // note a semitone and leave the glide pointing at a pitch nothing
+            // plays. No model authors both keys today — `uk-drill` has the
+            // turnaround and `rage` the approach — so this costs nothing and
+            // closes it before the two ever meet.
+            if slide_at_loop_end && i == 1 {
+                continue;
+            }
             let target = notes[i].pitch;
             if notes[i - 1].slide_to_pitch.is_some() || !rng.random_bool(chance) {
                 continue;
@@ -1571,6 +1919,35 @@ fn bass808(
                     // the model placed rather than deleting it: the whoop failed
                     // to be a gesture, and a note that was sliding still is.
                     .or(note.slide_to_pitch);
+        }
+    }
+
+    // ── The glide's shape ────────────────────────────────────────────────
+    //
+    // ⛔ **`portamentoMs` is the largest thing the authored-key register ever
+    // held: 105 models asking for a glide time, against a sampler that held one
+    // rate per voice.** Drill snaps in 60 ms and afroswing swoops over 220, and
+    // until now both came out of the speakers as "the rest of the note".
+    //
+    // ⚠ **Drawn once for the take, not once per note.** Portamento is a setting
+    // on the instrument — a producer sets the glide and plays the line, they do
+    // not re-dial it between notes — and a per-note draw would put 105 models'
+    // rng position somewhere new for every slide, moving pitches that have
+    // nothing to do with the key.
+    //
+    // ⚠ Stamped in one pass at the end, because two later passes *create*
+    // slides: `chromaticApproachProb` gives one to the note before its target
+    // and `upwardWhoopProb` turns one that already existed. Stamping at push
+    // time would have left both of those with the sampler's own constant.
+    let portamento = optional_number(block, "portamentoMs", tone)
+        .map(|ms| ms.clamp(0.0, f64::from(u16::MAX)) as u16);
+    let overlap = text(block, "slideOverlap")
+        .and_then(grid::note_value_ticks)
+        .map(|ticks| ticks.min(u32::from(u16::MAX)) as u16);
+    for note in &mut notes {
+        if note.slide_to_pitch.is_some() {
+            note.slide_ms = portamento;
+            note.slide_overlap_ticks = overlap;
         }
     }
 

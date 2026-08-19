@@ -12,6 +12,145 @@ and this project uses [Semantic Versioning](https://semver.org/spec/v2.0.0.html)
 
 ## [Unreleased]
 
+### Added — thirteen more parameters the dataset authored and no code read, 2026-08-18
+
+The second pass over `engine/tests/authored_keys.rs`'s debt register. Thirteen
+keys came off it, across roughly **1,600 authored settings** that had been doing
+nothing. The two biggest by model count are the rimshot layer (231) and the 808's
+glide time (105).
+
+- **The rimshot under the snare** (`snare.rimshotLayer` — 231 models;
+  `rimshotBelowBpm` — 1). `Lane::Rim` has had a pad in every kit and a GM note
+  (37, Side Stick) the whole time. It doubles the backbeat on the beat rather
+  than beside it: a rimshot under a snare is one drum struck two ways, and the
+  millisecond offset the clap layer gets exists to stop two *different* samples
+  phasing. ⛔ **Placed after the fills**, so a fill that takes the backbeat takes
+  the rim under it too — written during the bar loop it would have gone on
+  playing a backbeat the drummer had stopped playing. ⚠ **`rimshotBelowBpm` is a
+  second way to ask, not a gate on the flag**: `rnb-2000s` authors it *without*
+  `rimshotLayer`, so read as a condition it would still be dead.
+- **The 808's glide time** (`bass808.portamentoMs` — 105 models) and **the
+  overlap it exports with** (`slideOverlap` — 3). The register's largest entry.
+  Drill snaps in 20–35 ms and afroswing swoops over 130–220, and all of it came
+  out of the speakers as "the rest of the note" because the travel was hardcoded
+  in three separate places. `Note` carries `slide_ms` now, and one
+  `sampler::glide_window` serves both the live preview and the offline stem
+  renderer — the same one-definition rule `Kit::semitones_for` and `hold_for`
+  already follow. ⚠ **Drawn once for the take, not per note**: portamento is a
+  knob on the instrument, and a per-note draw would have moved 105 models' rng
+  position on every slide — a key about *tone* rewriting their *pitches*.
+  ⚠ **A travel of zero frames is a jump, not a flat note**; eleven models author
+  `[0, 10]` and `trigger_with` drops a glide of no length.
+  ⚠ **`portamentoMs` does not change the `.mid`.** MIDI has no portamento time
+  short of CC5; what the file *can* say is where the pitch starts moving, and
+  that is unchanged. `slideOverlap` is the half it does carry, and `trap`'s
+  `"1/16"` is twice the 32nd the writer's constant assumed.
+- **The turnaround** (`arrangement.melodic808SlideAtLoopEnd` — `uk-drill`). The
+  loop's last note glides back into the pitch it opens on. ⛔ **It moves a slide
+  and never adds one** — the same model authors `slidesPer4Bars: [2, 3]` and that
+  ceiling's own test calls a fourth "a different genre". Applied before the whoop
+  and the chromatic approach, so drill's octave-up signature can still turn it.
+- **The locked backbeat** (`snare.lockedBackbeat` — 5 models). Looks like a job
+  for the grammar and is not: all five authors also write `offGridMs: 0`, so
+  there was nothing left in the grammar to exempt. What moves a backbeat is the
+  session's timing jitter, which `humanize` reads **per lane** — so `Note` gained
+  `timing_locked` and 2 and 4 stay put while the ghosts around them breathe.
+  ⚠ **The jitter is still drawn for a locked note and thrown away**, or the key
+  would have rewritten every note after it in the lane. ⚠ `jungle` authors it
+  `false` and is the case that proves the flag is read.
+- **Four-on-the-floor in the hook** (`kick.fourOnFloorInChorus` — 29 models) and
+  **the cross-stick verse** (`snare.crossStickVerses` — 74). Both name a section,
+  and the drums had never seen one: `drums::generate_in` takes the
+  `SectionKind` now, with `None` — a four-bar loop on the Drums tab — a real
+  answer rather than a missing argument. ⚠ **The hook's four beats are added, not
+  substituted**: a chorus that threw the grammar away would be four-on-the-floor
+  by every artist alike. ⛔ **The cross-stick *moves* the backbeat to the rim
+  rather than doubling it** — that is what a cross-stick is, and it is what makes
+  the verse quieter than the chorus it builds into.
+- **The snare's tuning** (`snare.detuneSemis` — 7 models, `trap` at `[-2, -1]`).
+  ⛔ **The register filed this under the 808**, where writing it would have
+  detuned a *bassline* — a wrong note rather than a timbre. Same class of mistake
+  as the six wrong block paths the previous pass found. ⚠ An audio-domain effect
+  exactly like `pitchWalk` (TASK-131D): the sampler and the stems repitch the pad,
+  and the `.mid` still carries GM 38, because in a file a drum's note number *is*
+  which drum it is.
+- **When the beat drops** (`arrangement.dropByBar` — `trap` 5, `dj-toomp` 9).
+  Trap authors `sectionBars.intro: [4, 8]`, so half its intros ran past the bar
+  its own arrangement promised the beat by, and nothing noticed. ⛔ **Not
+  `transitions.dropOutBeats`, which is authored beside it and is the opposite
+  gesture** — that is silence before a hook; this is when the record starts.
+- **How long one repeat of a part is** (`arrangement.drumLoopBars`,
+  `synthLoopBars` — `rage`). `arrange.rs`'s own header has described these in
+  prose since it was written — *"a trap verse is a four-bar loop played four
+  times, and that is what `rage`'s own `drumLoopBars: 4` says out loud"* — and the
+  numbers went unread, so every part was the session's clip length. A rage verse
+  is now a four-bar beat under a synth figure that comes round every one to four
+  bars, which is the 1-bar ostinato its research entry describes.
+
+### Fixed — what the review pass found, 2026-08-18
+
+Four defects, three of them in the work above and one older than it. None was
+reachable by any existing gate, and each has a test at the seam now.
+
+- ⛔⛔ **A drum played flat in the plugin and moved in the exported stem.**
+  `voice::Placed` carried one note number for two readers: the host, which needs
+  a drum's **GM voice** or a walked kick fires four different drums in the
+  producer's rack (TASK-131D), and the preview **sampler**, which reads the same
+  number to decide how far to repitch the pad. Pinned to GM, `Kit::semitones_for`
+  was handed a difference of zero, so every drum played flat *in the live preview
+  only* — while `audio::render` reads `Note::pitch` and repitched correctly. A
+  walked roll and a detuned snare therefore came out of the plugin flat and out
+  of the `.wav` beside it moving, which is exactly the "a rendered stem must
+  sound like what was auditioned" rule this codebase states in three places.
+  `Placed`/`Fired` carry both numbers now. ⚠ **This makes `pitchWalk` audible in
+  the preview for the first time** — the behaviour TASK-131D described and never
+  delivered on that path.
+- ⛔⛔ **A cross-stick verse silenced the 808's own stopping rule.** The first cut
+  wrote the backbeat straight onto `Lane::Rim` at placement time, and `bass808`
+  reads the hits it must not ring through out of `kit.notes(Lane::Snare)` — so in
+  a verse that list came back without a backbeat in it and the 808 sustained
+  across the hit drill and trap-soul are defined by stopping for. It is a
+  finishing pass now, run after the 808 is placed.
+- ⛔ **The hook's four-on-the-floor rewrote the kick's own grammar from bar 2.**
+  The pulses were pushed into the bar's tick list, so each drew a velocity from
+  `kick_rng` — the same stream `kick_bar` reads for every later bar. The key's
+  whole claim is that the model's own kicks are kept, and it held for bar 1 only.
+  They draw from `drums/kick/fourOnFloor` now, outside the bar loop.
+- ⛔ **A tempo-conditional key broke the host-timeline invariant, and the
+  invariant was right.** `plugin/tests/host_timeline.rs` holds that the host’s
+  tempo changes *when* notes land and never *how many* — and
+  `snare.rimshotBelowBpm` is a rule about how many: `rnb-2000s` authors it at
+  80, so `112` played 15 rims at 70 BPM and 8 at 140. ⚠ **Narrowed, not
+  loosened**, the same way `fullTimeAtHighTempoProb` already was — each
+  tempo-conditional key is named in the test and buys exactly one lane, so a
+  model carrying one is held to "that lane may change and nothing else may",
+  and a model carrying neither is still held to the exact original comparison.
+- ⛔ **A re-roll resampled the record's loop lengths.** `loop_bars` samples
+  `synthLoopBars`, which `rage` authors as a range, and `reroll_section` drew it
+  from the fresh per-press seed rather than the song's. The re-rolled section
+  came back at a different clip length from the rest of the record while
+  `PatternRef::bars` kept tiling at the old one, so the tail of every repeat fell
+  silent.
+
+### Changed — the debt register says what is actually owed, 2026-08-18
+
+Four entries were stale or wrong, in the same way the six block paths were:
+
+- `timbreHint` claimed **21 models**; it is **1,234 authorings**, and the largest
+  authored-but-unread key in the dataset now. The blocker is not effort — every
+  kit ships exactly one melodic pad per lane, so "rhodes" and "bright_bell" have
+  the same voice to land on.
+- `monoCutSelf` claimed the sampler "has no per-lane choke beyond the hats".
+  Every kit gives its 808 pad `chokeGroup: 2`, so the `true` half already works;
+  what is unread is the **four models that author `false`**.
+- `minimalism` was filed as arrangement-level and is `drums.minimalism`;
+  `chordFrequency` was filed as one model and is authored in `_defaults.json`,
+  so all 590 inherit it — and it is not "how often chords change", which is
+  `harmonicRhythm` and is read.
+- `dissonanceBudget`, `minimalism` and `chordFrequency` are now marked **a
+  question for Mike** rather than a to-do, with the readings written out: each
+  one either overrules a key the same model authors or is inert.
+
 ### Added — sixteen parameters the dataset authored and no code read, 2026-08-18
 
 `engine/tests/authored_keys.rs` keeps a debt register of keys real models carry

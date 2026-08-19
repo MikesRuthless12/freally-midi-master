@@ -72,30 +72,15 @@ const DEFERRED: &[(&str, &str)] = &[
         "distortionWet",
         "808 tone: the wet/dry for the drive that does not exist",
     ),
+    // ⚠ **152 models, and the `true` half of it already works.** Every shipped
+    // kit gives its 808 pad `chokeGroup: 2`, so the sampler does cut the lane
+    // against itself — the register said it had "no per-lane choke beyond the
+    // hats" and that was read off the wrong file. What is genuinely unread is
+    // the **four models that author `false`**, and honouring those means the
+    // flag reaching the sampler, which today knows a `Pattern` and not a model.
     (
         "monoCutSelf",
-        "808 voicing: 24 models. The sampler has no per-lane choke beyond the hats",
-    ),
-    // ⛔ **The largest single entry in this register: 107 models.** The slide is
-    // implemented and its duration is not, because a slide is exported as two
-    // overlapping notes and `midi.rs` puts the crossover at half the note's
-    // length — a constant, with no way for a `Note` to say otherwise. Reading
-    // this key means a new per-note field, which crosses ts-rs into
-    // `ipc-types.ts` and the sampler. Worth doing; not a patch.
-    (
-        "portamentoMs",
-        "808 glide time, 107 models. Needs a per-note slide time on `Note`",
-    ),
-    (
-        "melodic808SlideAtLoopEnd",
-        "a slide on the turnaround specifically",
-    ),
-    // `midi.rs::SLIDE_OVERLAP_TICKS`, which is a constant for the same reason
-    // `portamentoMs` is. Do the two together.
-    ("slideOverlap", "how far a slide overlaps the next note"),
-    (
-        "detuneSemis",
-        "808 detune, in semitones. No tuning stage on the preview sampler",
+        "808 choke. The kit already chokes it; the four models asking NOT to are unread",
     ),
     // ── The snare's tone and layering ────────────────────────────────────
     ("lowPassedClap", "a dulled clap layer"),
@@ -107,24 +92,7 @@ const DEFERRED: &[(&str, &str)] = &[
         "reverb",
         "snare room. There is no effects chain to put it through",
     ),
-    ("rimshotLayer", "boom-bap's rimshot under the snare"),
-    ("rimshotBelowBpm", "when to use it"),
-    ("crossStickVerses", "country's cross-stick in the verse"),
-    // ⚠ **Not implementable in `drums.rs` alone, and it looks as though it is.**
-    // All five models that author it also author `offGridMs: 0`, so exempting
-    // the backbeat from the grammar's own displacement is exempting it from
-    // nothing. What actually moves it is the session's timing jitter, and
-    // `humanize` reads that per *lane* with no per-note escape — so this needs
-    // the same new `Note` field `portamentoMs` does.
-    (
-        "lockedBackbeat",
-        "a backbeat that never moves. Needs a per-note humanize escape",
-    ),
     // ── The kick ─────────────────────────────────────────────────────────
-    ("fourOnFloorInChorus", "four-on-the-floor in the hook only"),
-    // `.arrangement`, not `.drums.kick` — it names the bar a section drops out
-    // on, which needs sections to drop out of.
-    ("dropByBar", "a per-bar drop-out. Arrangement-level"),
     (
         "sidechainToKick",
         "ducking. Needs a mixer the plugin does not have",
@@ -141,30 +109,65 @@ const DEFERRED: &[(&str, &str)] = &[
         "how much of a bar is re-rolled. Conflicts with `freqPerBar`",
     ),
     // ── Melody and harmony ───────────────────────────────────────────────
+    // ⚠ **1,234 authorings across `melody.timbreHint` and `modes[].melody`, not
+    // the 21 this entry used to claim** — the largest authored-but-unread key in
+    // the dataset now that `portamentoMs` is read.
+    //
+    // ⛔ **There is nothing to choose from, and that is the blocker.** Every kit
+    // ships exactly one melodic pad per lane — `lead`, `bell`, `bass`, `keys` —
+    // so "rhodes" and "bright_bell" have the same voice to land on. Reading it
+    // means either a melodic sample library the app does not have, or a General
+    // MIDI program change in the exported `.mid`, which is a decision about what
+    // a producer's DAW does with a dragged clip rather than a patch.
     (
         "timbreHint",
-        "21 models describe the sound they want. Nothing chooses a voice from it",
+        "1,234 authorings name a sound. Every kit has one melodic pad per lane to play it on",
     ),
     // ⚠ **A `drums.bass808` key, not a countermelody one.** It asks for an 808
-    // that tracks the lead's root — and `drums::generate` takes `(model, ctx,
-    // seed)` and has never seen a melody. Reading it means the drums join the
-    // upstream graph `parts.rs` owns, which is a change to how a part is built
-    // rather than to what one generator reads.
+    // that tracks the lead's root, and the drums have no upstream to read it
+    // from. `drums::generate_in` now takes the *section*, so the signature is no
+    // longer the obstacle — the harmony is: `parts::upstream` answers
+    // `Upstream::None` for `Part::Drums`, and giving it one makes generating a
+    // beat also build and hand back the chords, which changes what the Drums tab
+    // returns over IPC. Three models, and a change to how a part is built.
     (
         "followsLeadRoot",
         "an 808 that tracks the lead's root. The drums have no upstream",
     ),
-    ("dissonanceBudget", "how much dissonance a model tolerates"),
-    ("chordFrequency", "how often chords change"),
+    // ⚠ **`uk-drill` alone, and the numbers are proportions of the harmony.**
+    // Read at the source it caps `susOrDimProb: 0.2` and vetoes part of the
+    // `["i", "bII", "i"]` family — one key overruling two the same model
+    // authors. Read as a post-pass over the voiced chords it needs a definition
+    // of "this chord carries a tritone" that nothing in `chords.rs` has, and a
+    // rule for what to do with the ones over budget. **A question for Mike.**
+    (
+        "dissonanceBudget",
+        "how much dissonance drill tolerates. Both readings overrule another authored key",
+    ),
+    // ⚠ **A weight map of scale degrees, and it is authored in `_defaults.json`**
+    // — so this is not "one model", it is all 590. It is not "how often chords
+    // change" either; that is `harmonicRhythm`, which is read. Weighting family
+    // sampling by it double-counts every model's own `progressionFamilies`
+    // weights, and using it only where a family is emptied by `avoid` is inert,
+    // because no shipped family contains the one numeral `_defaults` avoids.
+    // **A question for Mike**, and the widest blast radius of anything here.
+    (
+        "chordFrequency",
+        "the corpus prior over degrees, inherited by all 590. Every reading double-counts",
+    ),
     // ── Arrangement and structure ────────────────────────────────────────
-    // ⚠ One model, and its own wording — "a section" — puts it in the
-    // arrangement rather than in the kit. Do it with Song Mode's sections, not
-    // as a density multiplier guessed at from one number.
+    // ⚠ **`drums.minimalism`, not an arrangement key** — `rage`, one model, one
+    // number, 0.75. Both readings are wrong rather than merely hard: scaled
+    // through the density keys it fights `percs.densityPerBar: [0, 1]` and
+    // `fills`, which the same model authors explicitly, and rage at a quarter of
+    // its density is not rage; applied per section it duplicates
+    // `sectionRules.density`, which `_defaults` already gives every model.
+    // **A question for Mike, not a patch**: what does a kit at 0.75 minimal
+    // leave out that its own density parameters do not already say?
     (
         "minimalism",
-        "how sparse a section gets. Arrangement-level, one model",
+        "how sparse rage's kit is. Every reading fights a key the same model authors",
     ),
-    ("synthLoopBars", "the loop length of a synth part"),
     // ── Newly visible once the scanner stopped reading its own comments ──
     //
     // ⚠ These sat in a second list that nothing asserted on, on the theory that
@@ -181,10 +184,6 @@ const DEFERRED: &[(&str, &str)] = &[
     (
         "transient",
         "snare attack shaping. There is no envelope stage",
-    ),
-    (
-        "drumLoopBars",
-        "the loop length of the drum part, authored by rage",
     ),
 ];
 

@@ -149,3 +149,116 @@ fn how_far_a_roll_travels_is_the_artists_own_decision() {
         "rage authors a wider walk than drake, got {wide} vs {narrow}"
     );
 }
+
+#[test]
+fn traps_snare_plays_below_the_pitch_its_sample_was_recorded_at() {
+    // `drums.snare.detuneSemis: [-2, -1]` — seven models author a tuning and
+    // nothing read it. ⛔ **The register files this key under the 808**, where
+    // writing it would have detuned a bassline: a wrong note rather than a
+    // timbre.
+    //
+    // ⚠ Compared against the same model with the key taken out, because a trap
+    // snare roll already walks in pitch: the claim is that every note moves by
+    // one authored amount, not that the lane sits on one number.
+    let trap = shipped().remove("trap").expect("trap ships");
+    let mut flat = trap.clone();
+    flat.blocks
+        .get_mut("drums")
+        .and_then(|d| d.get_mut("snare"))
+        .and_then(serde_json::Value::as_object_mut)
+        .expect("trap has a snare block")
+        .remove("detuneSemis");
+
+    let ctx = SessionContext {
+        bars: 4,
+        ..Default::default()
+    };
+    let snare_pitches = |model: &StyleModel, seed: u64| -> Vec<u8> {
+        generate(model, &ctx, seed)
+            .into_iter()
+            .filter(|track| track.lane == Lane::Snare)
+            .flat_map(|track| track.notes.into_iter().map(|n| n.pitch))
+            .collect()
+    };
+
+    let mut offsets = std::collections::BTreeSet::new();
+    for seed in 0..40u64 {
+        let tuned = snare_pitches(&trap, seed);
+        let plain = snare_pitches(&flat, seed);
+        assert_eq!(
+            tuned.len(),
+            plain.len(),
+            "seed {seed}: the tuning moved a hit"
+        );
+        let mut moved: std::collections::BTreeSet<i16> = std::collections::BTreeSet::new();
+        for (a, b) in tuned.iter().zip(plain.iter()) {
+            moved.insert(i16::from(*a) - i16::from(*b));
+        }
+        assert_eq!(
+            moved.len(),
+            1,
+            "seed {seed}: two tunings in one take: {moved:?}"
+        );
+        offsets.extend(moved);
+    }
+
+    assert!(
+        offsets.iter().all(|semis| (-2..=-1).contains(semis)),
+        "trap's snare left its authored [-2, -1]: {offsets:?}"
+    );
+}
+
+#[test]
+fn a_detuned_snare_still_exports_as_the_general_midi_snare() {
+    // ⛔ TASK-131D's rule, which this key has to obey: in a `.mid` a drum's note
+    // number *is* which drum it is, so a tuning is an audio-domain effect. A
+    // trap snare at 36 in the file would be a **kick** in the producer's rack.
+    use engine::midi::pattern_to_smf;
+
+    let trap = shipped().remove("trap").expect("trap ships");
+    let ctx = SessionContext {
+        bars: 4,
+        ..Default::default()
+    };
+    let lanes = generate(&trap, &ctx, 9);
+    let pattern = engine::pattern::Pattern {
+        id: "detune".into(),
+        part: engine::pattern::Part::Drums,
+        artist_id: "trap".into(),
+        seed: 9,
+        song_seed: 9,
+        bars: ctx.bars,
+        bpm: ctx.bpm,
+        time_sig_num: ctx.time_sig_num,
+        time_sig_den: ctx.time_sig_den,
+        key_root: ctx.key_root,
+        scale: engine::pattern::Scale::NaturalMinor,
+        lanes,
+        ppq: engine::pattern::PPQ,
+        clip_region: None,
+        loop_region: None,
+        mood: None,
+    };
+
+    let bytes = pattern_to_smf(&pattern);
+    let parsed = midly::Smf::parse(&bytes).expect("our own output must parse");
+    let gm_snare = engine::midi::gm_drum_note(Lane::Snare);
+    let mut snares = 0;
+    for track in &parsed.tracks {
+        for event in track {
+            if let midly::TrackEventKind::Midi {
+                message: midly::MidiMessage::NoteOn { key, vel },
+                ..
+            } = event.kind
+            {
+                if vel.as_int() > 0 && key.as_int() == gm_snare {
+                    snares += 1;
+                }
+            }
+        }
+    }
+    assert!(
+        snares > 0,
+        "the detuned snare did not reach the file as GM 38"
+    );
+}

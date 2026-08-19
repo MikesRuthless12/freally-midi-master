@@ -217,6 +217,18 @@ struct Event {
     origin: u32,
 }
 
+/// Where in a sliding note the destination takes over: halfway.
+///
+/// ⛔ **Shared with the sampler, because the two have to agree.** This is what
+/// puts the destination's note-on in the exported file, and
+/// `plugin::audio::sampler::glide_window` holds the origin pitch for exactly as
+/// long — so the `.mid` and the `.wav` beside it in the same folder start
+/// moving at the same instant. Spelled in two places it was one edit away from
+/// silently desyncing, with no test that could see it.
+pub fn slide_crossover(len_ticks: u32) -> u32 {
+    len_ticks / 2
+}
+
 /// How far a slide's two notes overlap: a 32nd note.
 ///
 /// Long enough that no sampler reads a gap and retriggers the envelope, short
@@ -318,8 +330,16 @@ fn events_for(pattern: &Pattern, layout: Layout) -> Vec<Event> {
                 // path — `song_smf` takes a whole `Song` from the webview — and
                 // `voice.rs` already writes down why that matters here.
                 Some(destination) => {
-                    let slide_at = note.start_tick.saturating_add(len / 2);
-                    let overlap = SLIDE_OVERLAP_TICKS.clamp(1, len / 4);
+                    let slide_at = note.start_tick.saturating_add(slide_crossover(len));
+                    // ⛔ **`slideOverlap`, which three models author and this
+                    // constant used to answer for.** Still clamped to a quarter
+                    // of the note by the same rule: the overlap has to leave the
+                    // destination sounding on its own, and `turbo`'s `"1/8"` on
+                    // a 16th-note 808 would otherwise cover the whole gesture.
+                    let overlap = note
+                        .slide_overlap_ticks
+                        .map_or(SLIDE_OVERLAP_TICKS, u32::from)
+                        .clamp(1, len / 4);
                     push_note(
                         &mut events,
                         channel,
@@ -730,6 +750,9 @@ pub fn drag_spike_pattern() -> Pattern {
                 pitch: 36,
                 vel: 112,
                 slide_to_pitch: None,
+                slide_ms: None,
+                slide_overlap_ticks: None,
+                timing_locked: false,
                 articulation: None,
                 reversed: false,
             });
@@ -742,6 +765,9 @@ pub fn drag_spike_pattern() -> Pattern {
             pitch: 38,
             vel: 118,
             slide_to_pitch: None,
+            slide_ms: None,
+            slide_overlap_ticks: None,
+            timing_locked: false,
             articulation: None,
             reversed: false,
         });
@@ -754,6 +780,9 @@ pub fn drag_spike_pattern() -> Pattern {
                 pitch: 42,
                 vel: if i % 4 == 0 { 100 } else { 72 },
                 slide_to_pitch: None,
+                slide_ms: None,
+                slide_overlap_ticks: None,
+                timing_locked: false,
                 articulation: None,
                 reversed: false,
             });
@@ -827,6 +856,9 @@ mod tests {
             pitch,
             vel: 100,
             slide_to_pitch: None,
+            slide_ms: None,
+            slide_overlap_ticks: None,
+            timing_locked: false,
             articulation: None,
             reversed: false,
         }
@@ -1137,6 +1169,9 @@ mod tests {
             pitch: 33,
             vel: 100,
             slide_to_pitch: Some(40),
+            slide_ms: None,
+            slide_overlap_ticks: None,
+            timing_locked: false,
             articulation: None,
             reversed: false,
         };
@@ -1173,6 +1208,49 @@ mod tests {
     }
 
     #[test]
+    fn an_authored_overlap_widens_the_pair_the_writer_emits() {
+        // `drums.bass808.slideOverlap` — three models author a note value and
+        // `SLIDE_OVERLAP_TICKS` answered for all of them. The default is a 32nd;
+        // trap's `"1/16"` is twice that, and the origin has to hold that much
+        // longer past the destination's note-on.
+        let sliding = |overlap: Option<u16>| {
+            let note = Note {
+                model_vel: None,
+                start_tick: 0,
+                len_ticks: 1920,
+                pitch: 33,
+                vel: 100,
+                slide_to_pitch: Some(40),
+                slide_ms: None,
+                slide_overlap_ticks: overlap,
+                timing_locked: false,
+                articulation: None,
+                reversed: false,
+            };
+            let events = events_for(&tiny(Lane::Sub, vec![note]), Layout::Single);
+            let at = |key: u8, on: bool| {
+                events
+                    .iter()
+                    .find(|e| e.key == key && e.is_on == on)
+                    .expect("both ends of both notes")
+                    .tick
+            };
+            at(33, false) - at(40, true)
+        };
+
+        assert_eq!(
+            sliding(None),
+            SLIDE_OVERLAP_TICKS,
+            "the writer's own default"
+        );
+        assert_eq!(sliding(Some(240)), 240, "a 16th, as trap authors it");
+        // ⚠ Still a quarter of the note at most. `turbo` authors `"1/8"`, and on
+        // a short 808 that would leave the destination covered for the whole of
+        // its own sounding.
+        assert_eq!(sliding(Some(9_000)), 1920 / 4, "clamped to the note");
+    }
+
+    #[test]
     fn a_slide_onto_the_same_pitch_stays_a_single_note() {
         // Otherwise it emits two notes on one key, which is the collision the
         // note-off pairing cannot survive.
@@ -1183,6 +1261,9 @@ mod tests {
             pitch: 33,
             vel: 100,
             slide_to_pitch: Some(33),
+            slide_ms: None,
+            slide_overlap_ticks: None,
+            timing_locked: false,
             articulation: None,
             reversed: false,
         };
@@ -1203,6 +1284,9 @@ mod tests {
             pitch: 36,
             vel: 100,
             slide_to_pitch: Some(60),
+            slide_ms: None,
+            slide_overlap_ticks: None,
+            timing_locked: false,
             articulation: None,
             reversed: false,
         };

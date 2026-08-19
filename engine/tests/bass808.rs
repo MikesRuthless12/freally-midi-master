@@ -9,10 +9,12 @@ use std::path::{Path, PathBuf};
 use std::sync::OnceLock;
 
 use engine::context::SessionContext;
-use engine::generators::drums::generate;
+use engine::generators::drums::{generate, generate_in};
 use engine::generators::grid;
 use engine::midi::pattern_to_smf;
-use engine::pattern::{Articulation, Lane, LaneTrack, Note, Part, Pattern, Scale, PPQ};
+use engine::pattern::{
+    Articulation, Lane, LaneTrack, Note, Part, Pattern, Scale, SectionKind, PPQ,
+};
 use engine::StyleModel;
 use serde_json::{json, Value};
 
@@ -510,4 +512,228 @@ fn every_slide_interval_in_the_dataset_is_one_the_engine_knows() {
         }
     }
     assert!(checked > 0, "no slide intervals were checked");
+}
+
+// ---------------------------------------------------------------------------
+// The glide's shape: `portamentoMs` (105 models) and `slideOverlap` (3), both
+// authored long before anything could read them.
+// ---------------------------------------------------------------------------
+
+#[test]
+fn an_authored_glide_time_reaches_every_sliding_note_and_only_those() {
+    // `drums.bass808.portamentoMs` — the largest entry the authored-key register
+    // ever held. A slide with no time on it is one the sampler plays at its own
+    // constant rate, which is the defect.
+    let model = model(json!({
+        "kick": { "anchors": ["1"], "densityPerBar": 4, "lockTo808": 1.0 },
+        "snare": { "placement": "backbeat_24" },
+        "bass808": { "role": "bassline", "register": [17, 31], "slideProb": 1.0,
+                     "slidePositions": ["phrase_end", "bar_2", "bar_4"],
+                     "portamentoMs": 90, "slideIntervals": ["P5"] },
+    }));
+    let context = ctx(4);
+
+    let mut slid = 0;
+    for seed in 0..20u64 {
+        for note in notes(&generate(&model, &context, seed), Lane::Sub) {
+            match note.slide_to_pitch {
+                Some(_) => {
+                    slid += 1;
+                    assert_eq!(note.slide_ms, Some(90), "a slide with no glide time");
+                }
+                // ⚠ Stamped on the sliding notes only. A flat note carrying a
+                // portamento would serialize into every saved project and every
+                // golden for 105 models to say nothing at all.
+                None => assert_eq!(note.slide_ms, None, "a flat note carries a glide"),
+            }
+        }
+    }
+    assert!(slid > 0, "no slide was ever written");
+}
+
+#[test]
+fn the_glide_time_is_one_setting_for_the_take_rather_than_a_draw_per_note() {
+    // ⚠ Portamento is a knob on the instrument: a producer sets it and plays the
+    // line. A per-note draw would also move 105 models' rng position on every
+    // slide, which is a change to their *pitches* made by a key about tone.
+    let model = model(json!({
+        "kick": { "anchors": ["1"], "densityPerBar": 4, "lockTo808": 1.0 },
+        "snare": { "placement": "backbeat_24" },
+        "bass808": { "role": "bassline", "register": [17, 31], "slideProb": 1.0,
+                     "slidePositions": ["phrase_end", "bar_2", "bar_4"],
+                     "portamentoMs": [40, 200], "slideIntervals": ["P5", "m7"] },
+    }));
+    let context = ctx(8);
+
+    for seed in 0..20u64 {
+        let times: Vec<Option<u16>> = notes(&generate(&model, &context, seed), Lane::Sub)
+            .iter()
+            .filter(|n| n.slide_to_pitch.is_some())
+            .map(|n| n.slide_ms)
+            .collect();
+        if times.len() < 2 {
+            continue;
+        }
+        assert!(
+            times.windows(2).all(|pair| pair[0] == pair[1]),
+            "seed {seed}: the glide time changed mid-take: {times:?}"
+        );
+    }
+}
+
+#[test]
+fn the_glide_time_moves_no_note_of_the_line() {
+    // ⛔ The rule a sub-kick velocity broke once, applied to the tone keys: they
+    // draw from `drums/bass808/tone`, so adding one to a model rewrites nothing
+    // it plays.
+    let with_glide = model(json!({
+        "kick": { "anchors": ["1"], "densityPerBar": 4, "lockTo808": 1.0 },
+        "snare": { "placement": "backbeat_24" },
+        "bass808": { "role": "bassline", "register": [17, 31], "slideProb": 0.6,
+                     "slidePositions": ["phrase_end", "bar_2", "bar_4"],
+                     "portamentoMs": [40, 200], "slideIntervals": ["P5", "m7"] },
+    }));
+    let bare = model(json!({
+        "kick": { "anchors": ["1"], "densityPerBar": 4, "lockTo808": 1.0 },
+        "snare": { "placement": "backbeat_24" },
+        "bass808": { "role": "bassline", "register": [17, 31], "slideProb": 0.6,
+                     "slidePositions": ["phrase_end", "bar_2", "bar_4"],
+                     "slideIntervals": ["P5", "m7"] },
+    }));
+    let context = ctx(4);
+
+    for seed in 0..20u64 {
+        let glided = notes(&generate(&with_glide, &context, seed), Lane::Sub);
+        let plain = notes(&generate(&bare, &context, seed), Lane::Sub);
+        let strip = |notes: Vec<Note>| -> Vec<Note> {
+            notes
+                .into_iter()
+                .map(|mut n| {
+                    n.slide_ms = None;
+                    n
+                })
+                .collect()
+        };
+        assert_eq!(strip(glided), plain, "seed {seed}: the line itself moved");
+    }
+}
+
+#[test]
+fn trap_exports_the_wider_overlap_it_authors() {
+    // `drums.bass808.slideOverlap: "1/16"` — trap authors it, authors no
+    // `portamentoMs`, and the writer answered for it with a constant 32nd. The
+    // two keys are independent and this is the half the `.mid` can carry.
+    let trap = shipped_model("trap");
+    let context = ctx(4);
+
+    let mut checked = 0;
+    for seed in 0..40u64 {
+        for note in notes(&generate(&trap, &context, seed), Lane::Sub) {
+            if note.slide_to_pitch.is_some() {
+                assert_eq!(
+                    note.slide_overlap_ticks,
+                    grid::note_value_ticks("1/16").map(|t| t as u16),
+                    "trap's authored overlap did not reach the note"
+                );
+                checked += 1;
+            }
+        }
+    }
+    assert!(checked > 0, "trap never slid");
+}
+
+#[test]
+fn drills_loop_leads_back_into_itself() {
+    // `arrangement.melodic808SlideAtLoopEnd` — `uk-drill` is the one author, and
+    // the whole point of the key is that the four bars do not stop dead.
+    let drill = shipped_model("uk-drill");
+    let context = ctx(4);
+
+    let mut landed = 0;
+    let mut slid = 0;
+    for seed in 0..SEEDS {
+        let line = notes(&generate(&drill, &context, seed), Lane::Sub);
+        if line.len() < 2 || !line.iter().any(|n| n.slide_to_pitch.is_some()) {
+            continue;
+        }
+        slid += 1;
+        let last = line.last().expect("checked");
+        if last.slide_to_pitch.is_some() {
+            landed += 1;
+        }
+    }
+
+    assert!(slid > 0, "drill never slid at all");
+    // ⚠ Not every one: the last note may already be on the pitch the loop opens
+    // on, and a slide onto a note's own pitch is not a slide. What must not
+    // happen is the gesture landing anywhere *but* the loop's end.
+    assert!(
+        landed * 4 >= slid * 3,
+        "only {landed} of {slid} sliding patterns slid at the loop end"
+    );
+}
+
+#[test]
+fn the_turnaround_never_buys_a_fourth_slide() {
+    // ⛔ `slidesPer4Bars: [2, 3]`, and the ceiling test right above calls it
+    // absolute. This key names *where* the gesture goes, so a pattern that was
+    // already at three has to still be at three.
+    let drill = shipped_model("uk-drill");
+    let context = ctx(4);
+
+    for seed in 0..SEEDS {
+        let count = notes(&generate(&drill, &context, seed), Lane::Sub)
+            .iter()
+            .filter(|n| n.slide_to_pitch.is_some())
+            .count();
+        assert!(count <= 3, "seed {seed}: the turnaround made it {count}");
+    }
+}
+
+#[test]
+fn a_cross_stick_verse_still_stops_the_808_for_the_backbeat() {
+    // ⛔⛔ **The defect a review caught before it shipped.** `crossStickVerses`
+    // was first written at the placement site, so in a verse the backbeat went
+    // straight onto `Lane::Rim` — and `bass808` reads the hits it must not ring
+    // through out of `kit.notes(Lane::Snare)`. The list came back without a
+    // backbeat in it and the 808 sustained over the one hit drill and trap-soul
+    // are defined by stopping for, in a lane that never mentions the key.
+    //
+    // It is a finishing pass now, run after the 808 is placed. This is what says
+    // so if it ever moves back.
+    let m = model(json!({
+        "kick": { "anchors": ["1"], "densityPerBar": 4, "lockTo808": 1.0 },
+        "snare": { "placement": "backbeat_24", "crossStickVerses": true },
+        "bass808": { "role": "bassline", "sustain": "legato", "register": [24, 36],
+                     "muteUnderSnare": true },
+    }));
+
+    let mut verses = 0;
+    for seed in 0..SEEDS {
+        let lanes = generate_in(&m, &ctx(4), seed, Some(SectionKind::Verse));
+        let rims = notes(&lanes, Lane::Rim);
+        let subs = notes(&lanes, Lane::Sub);
+        if rims.is_empty() || subs.is_empty() {
+            continue;
+        }
+        verses += 1;
+        // The backbeat did move to the rim — otherwise this proves nothing.
+        assert!(
+            notes(&lanes, Lane::Snare)
+                .iter()
+                .all(|n| n.articulation.is_some()),
+            "seed {seed}: the backbeat is still on the drum"
+        );
+        for sub in &subs {
+            let end = sub.start_tick + sub.len_ticks;
+            for rim in &rims {
+                assert!(
+                    !(sub.start_tick < rim.start_tick && end > rim.start_tick),
+                    "seed {seed}: an 808 rang through the cross-stick at {}",
+                    rim.start_tick
+                );
+            }
+        }
+    }
+    assert!(verses > 0, "no verse had both an 808 and a cross-stick");
 }

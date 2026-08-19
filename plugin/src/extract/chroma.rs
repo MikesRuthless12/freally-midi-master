@@ -285,6 +285,9 @@ pub fn part(samples: &[f32], rate: u32, grid: &Grid) -> Option<LaneTrack> {
                 vel: 88,
                 model_vel: None,
                 slide_to_pitch: None,
+                slide_ms: None,
+                slide_overlap_ticks: None,
+                timing_locked: false,
                 articulation: None,
                 reversed: false,
             })

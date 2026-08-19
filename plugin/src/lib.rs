@@ -812,23 +812,38 @@ impl FreallyMidiMaster {
                     // exported file, and heard a flat roll. Mike, 2026-08-05:
                     // "hihat rolls can go up and down so can kicks, 808s,
                     // snares, etc. in actual song arrangements."
-                    let semis =
-                        audio::kit::Kit::semitones_for(&kit.pads[pad_index], note.lane, note.note);
+                    // ⚠ `sounding`, not `note`: the host gets the drum's GM
+                    // number and the pad gets the pitch the generator wrote.
+                    // One field for both played every drum flat here while the
+                    // offline renderer repitched it — see `voice::Placed`.
+                    let semis = audio::kit::Kit::semitones_for(
+                        &kit.pads[pad_index],
+                        note.lane,
+                        note.sounding,
+                    );
                     // ⛔ **The 808 slide, heard live (2026-08-06).** Mike asked
                     // for it *"for my generator playback"* as well as for the
                     // export and the drag. The same `semitones_for` the offline
                     // renderer uses, so a preview and a rendered stem cannot
-                    // disagree about the interval; and the same half-and-half
-                    // window, so both match where `midi.rs` puts the
-                    // destination note-on.
-                    let glide = note.slide_to.map(|target| audio::sampler::Glide {
-                        semis: audio::kit::Kit::semitones_for(
-                            &kit.pads[pad_index],
-                            note.lane,
-                            target,
-                        ) - semis,
-                        delay: note.frames / 2,
-                        frames: note.frames - note.frames / 2,
+                    // disagree about the interval; and the same
+                    // `sampler::glide_window`, so both hold the origin where
+                    // `midi.rs` puts the destination note-on and both travel for
+                    // the model's own `portamentoMs`.
+                    let glide = note.slide_to.map(|target| {
+                        let (delay, frames) = audio::sampler::glide_window(
+                            note.frames,
+                            note.slide_ms,
+                            f64::from(self.shared.sample_rate()),
+                        );
+                        audio::sampler::Glide {
+                            semis: audio::kit::Kit::semitones_for(
+                                &kit.pads[pad_index],
+                                note.lane,
+                                target,
+                            ) - semis,
+                            delay,
+                            frames,
+                        }
                     });
                     self.sampler.trigger_with(
                         kit,

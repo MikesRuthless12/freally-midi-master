@@ -232,6 +232,9 @@ impl Roll {
                     pitch: self.pitch_at(i, last),
                     vel,
                     slide_to_pitch: None,
+                    slide_ms: None,
+                    slide_overlap_ticks: None,
+                    timing_locked: false,
                     articulation: Some(Articulation::Roll),
                     reversed: false,
                 }
@@ -1196,6 +1199,9 @@ mod tests {
                 pitch: 42,
                 vel: 100,
                 slide_to_pitch: None,
+                slide_ms: None,
+                slide_overlap_ticks: None,
+                timing_locked: false,
                 articulation: None,
                 reversed: false,
             })
@@ -1235,6 +1241,9 @@ mod tests {
             pitch: 42,
             vel: 100,
             slide_to_pitch: None,
+            slide_ms: None,
+            slide_overlap_ticks: None,
+            timing_locked: false,
             articulation: None,
             reversed: false,
         }];

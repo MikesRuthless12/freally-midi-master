@@ -1221,3 +1221,290 @@ fn a_sections_melody_is_written_against_the_chords_playing_beside_it() {
         "the melody is not what the section's own seed generates against its chords"
     );
 }
+
+// ---------------------------------------------------------------------------
+// Two drum keys that name a section, and could not be read until the section
+// reached the generator (`drums::generate_in`).
+// ---------------------------------------------------------------------------
+
+/// The note starts of one lane of one section's drums, as ticks within the bar.
+fn section_lane(
+    song: &engine::pattern::Song,
+    kind: SectionKind,
+    lane: engine::pattern::Lane,
+) -> Option<Vec<u32>> {
+    let section = song.sections.iter().find(|s| s.kind == kind)?;
+    let pattern = song.pattern(section.patterns.get(&Part::Drums)?)?;
+    let bar = pattern.ticks_per_bar();
+    Some(
+        pattern
+            .lanes
+            .iter()
+            .find(|l| l.lane == lane)
+            .map(|l| l.notes.iter().map(|n| n.start_tick % bar).collect())
+            .unwrap_or_default(),
+    )
+}
+
+#[test]
+fn a_pop_hook_puts_the_kick_on_all_four_when_the_model_asks_for_it() {
+    // `drums.kick.fourOnFloorInChorus` — 29 models, and unreadable before the
+    // section reached the generator. The claim is the one the key makes: in the
+    // hook there is a kick on every beat, and the verse is left alone.
+    let model = model("bebe-rexha");
+    let context = ctx();
+    let beat = grid::ticks_per_beat(&context);
+
+    let mut hooks = 0;
+    for seed in 0..24u64 {
+        let song = arrange::generate(&model, &context, seed).expect("builds");
+        let Some(kicks) = section_lane(&song, SectionKind::Hook, engine::pattern::Lane::Kick)
+        else {
+            continue;
+        };
+        hooks += 1;
+        for pulse in 0..4 {
+            assert!(
+                kicks.contains(&(pulse * beat)),
+                "seed {seed}: the hook has no kick on beat {}: {kicks:?}",
+                pulse + 1
+            );
+        }
+    }
+    assert!(hooks > 0, "no hook with drums was ever built");
+}
+
+#[test]
+fn the_four_on_the_floor_hook_keeps_the_style_it_belongs_to() {
+    // ⚠ The other half of the same claim, and the reason the beats are *added*
+    // rather than substituted: a hook that threw the grammar away would be the
+    // same hook for every artist that authors the key. Something the model's
+    // own kick grammar wrote has to survive into the chorus, which is only
+    // visible as a kick that is not on a beat.
+    let model = model("bebe-rexha");
+    let context = ctx();
+    let beat = grid::ticks_per_beat(&context);
+
+    let syncopated = find_song(&model, 24, |song| {
+        section_lane(song, SectionKind::Hook, engine::pattern::Lane::Kick)
+            .is_some_and(|kicks| kicks.iter().any(|tick| tick % beat != 0))
+    });
+    assert!(
+        syncopated.is_some(),
+        "every hook was a bare four-on-the-floor, so the model's own kick is gone"
+    );
+}
+
+#[test]
+fn a_country_verse_plays_its_backbeat_on_the_rim() {
+    // `drums.snare.crossStickVerses` — 74 models. The backbeat *moves* to the
+    // rim rather than being doubled by it: that is what a cross-stick is, and
+    // it is what makes the verse quieter than the chorus it builds into.
+    let model = model("alan-jackson");
+    let context = ctx();
+
+    let mut verses = 0;
+    for seed in 0..24u64 {
+        let song = arrange::generate(&model, &context, seed).expect("builds");
+        let (Some(rims), Some(snares)) = (
+            section_lane(&song, SectionKind::Verse, engine::pattern::Lane::Rim),
+            section_lane(&song, SectionKind::Verse, engine::pattern::Lane::Snare),
+        ) else {
+            continue;
+        };
+        verses += 1;
+        let backbeat = grid::ticks_per_beat(&context);
+        for beat in [1u32, 3] {
+            assert!(
+                rims.contains(&(beat * backbeat)),
+                "seed {seed}: beat {} is not on the rim: {rims:?}",
+                beat + 1
+            );
+        }
+        // ⚠ **The snare lane is not empty and must not be asserted empty.** The
+        // ghosts stay on the drum — a drummer holding the stick sideways still
+        // plays those on the head — and a fill is the fill's own vocabulary, so
+        // one of those lands on a backbeat in the bar it takes. What moved is
+        // the *placement's* hits, which is what the count below counts: a bar
+        // that still played 2 and 4 on the drum would put four of them there.
+        let played = snares.iter().filter(|t| **t % backbeat == 0).count();
+        assert!(
+            played < 4,
+            "seed {seed}: the verse is still backbeating on the snare: {snares:?}"
+        );
+    }
+    assert!(verses > 0, "no verse with drums was ever built");
+}
+
+#[test]
+fn the_chorus_gets_its_snare_back() {
+    // ⛔ The half that makes the key worth anything. A cross-stick everywhere is
+    // not a cross-stick verse, it is a style with no snare — the whole gesture
+    // is the drum arriving for the chorus.
+    let model = model("alan-jackson");
+    let context = ctx();
+
+    let beat = grid::ticks_per_beat(&context);
+    let arrived = find_song(&model, 24, |song| {
+        section_lane(song, SectionKind::Hook, engine::pattern::Lane::Snare)
+            .is_some_and(|snares| snares.contains(&beat) || snares.contains(&(3 * beat)))
+    });
+    assert!(
+        arrived.is_some(),
+        "the hook never played a backbeat on the drum"
+    );
+}
+
+#[test]
+fn traps_beat_is_in_by_the_bar_it_says_it_is() {
+    // `arrangement.dropByBar: 5` — and `sectionBars.intro: [4, 8]`, so before
+    // this key was read half of trap's intros ran to bar 8 and the model's own
+    // promise was silently broken.
+    let trap = model("trap");
+    let mut intros = 0;
+    for seed in 0..60u64 {
+        let song = arrange::generate(&trap, &ctx(), seed).expect("builds");
+        let Some(intro) = song
+            .sections
+            .first()
+            .filter(|s| s.kind == SectionKind::Intro)
+        else {
+            continue;
+        };
+        intros += 1;
+        assert!(
+            u64::from(intro.start_bar + u32::from(intro.bars)) < 5,
+            "seed {seed}: the beat does not arrive until bar {}",
+            intro.start_bar + u32::from(intro.bars) + 1
+        );
+    }
+    assert!(intros > 0, "trap never opened with an intro");
+}
+
+#[test]
+fn a_model_that_names_no_drop_bar_keeps_its_long_intro() {
+    // ⛔ The half that proves the key is read rather than a cap on everything.
+    // `uk-drill` authors `intro: [4, 8]` and no `dropByBar`, so eight bars is a
+    // form it is allowed to write.
+    let drill = model("uk-drill");
+    let long = find_song(&drill, 60, |song| {
+        song.sections
+            .first()
+            .is_some_and(|intro| intro.kind == SectionKind::Intro && intro.bars > 4)
+    });
+    assert!(
+        long.is_some(),
+        "drill never wrote an intro longer than four bars"
+    );
+}
+
+#[test]
+fn rages_synths_come_round_sooner_than_its_drums() {
+    // `arrangement.synthLoopBars: [1, 4]` against `drumLoopBars: 4` — this
+    // module's header has described the idea in prose since it was written and
+    // the numbers went unread, so every part was the session's clip length.
+    let rage = model("rage");
+    let context = ctx();
+
+    let mut shorter = 0;
+    let mut songs = 0;
+    for seed in 0..40u64 {
+        let song = arrange::generate(&rage, &context, seed).expect("builds");
+        songs += 1;
+        for section in &song.sections {
+            for (part, reference) in &section.patterns {
+                let pattern = song.pattern(reference).expect("resolves");
+                // ⛔ The clip's own claim has to match its notes, because every
+                // reader — the tiling, the piano roll, the exporter — repeats it
+                // from this number.
+                let last = pattern
+                    .lanes
+                    .iter()
+                    .flat_map(|l| l.notes.iter())
+                    .map(|n| n.start_tick)
+                    .max()
+                    .unwrap_or(0);
+                assert!(
+                    last < pattern.ticks_per_bar() * u32::from(pattern.bars),
+                    "seed {seed}: a {part:?} note sounds past the {} bars the clip claims",
+                    pattern.bars
+                );
+
+                match part {
+                    Part::Drums => assert_eq!(pattern.bars, 4, "rage's drums loop over four"),
+                    _ => {
+                        assert!((1..=4).contains(&pattern.bars), "outside [1, 4]");
+                        if pattern.bars < 4 {
+                            shorter += 1;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    assert!(songs > 0, "no song was built");
+    assert!(
+        shorter > 0,
+        "every synth clip was four bars, so the range is not being sampled"
+    );
+}
+
+#[test]
+fn a_model_that_names_no_loop_length_uses_the_session_clip() {
+    // ⛔ The half that proves these are read rather than a new default. `trap`
+    // authors neither key, so every part of every section stays at the clip
+    // length the producer set.
+    let trap = model("trap");
+    let context = SessionContext { bars: 8, ..ctx() };
+    let song = arrange::generate(&trap, &context, 3).expect("builds");
+    for section in &song.sections {
+        for reference in section.patterns.values() {
+            let pattern = song.pattern(reference).expect("resolves");
+            assert_eq!(pattern.bars, 8, "the session's own clip length moved");
+        }
+    }
+}
+
+#[test]
+fn the_hooks_four_on_the_floor_costs_the_kicks_own_grammar_nothing() {
+    // ⛔⛔ **The defect a review found before it shipped.** The pulses were first
+    // pushed into the bar's own tick list, so each one drew a velocity from
+    // `kick_rng` — and `kick_rng` is what `kick_bar` reads for every *later*
+    // bar. A hook gained four kicks in bar 1 and a **different grammar** from
+    // bar 2 onward, which is the opposite of what the key claims: that the
+    // model's own kicks are kept.
+    //
+    // ⚠ Compared against the same section with the key removed. What must hold
+    // is that every kick the model wrote is still there — the pulses may only
+    // *add*.
+    let mut plain = model("bebe-rexha");
+    plain
+        .blocks
+        .get_mut("drums")
+        .and_then(|d| d.get_mut("kick"))
+        .and_then(serde_json::Value::as_object_mut)
+        .expect("bebe-rexha has a kick block")
+        .remove("fourOnFloorInChorus");
+    let pop = model("bebe-rexha");
+    let context = ctx();
+
+    let mut hooks = 0;
+    for seed in 0..24u64 {
+        let with = arrange::generate(&pop, &context, seed).expect("builds");
+        let without = arrange::generate(&plain, &context, seed).expect("builds");
+        let (Some(pulsed), Some(bare)) = (
+            section_lane(&with, SectionKind::Hook, engine::pattern::Lane::Kick),
+            section_lane(&without, SectionKind::Hook, engine::pattern::Lane::Kick),
+        ) else {
+            continue;
+        };
+        hooks += 1;
+        for tick in &bare {
+            assert!(
+                pulsed.contains(tick),
+                "seed {seed}: the pulses moved the model's own kick at {tick}"
+            );
+        }
+    }
+    assert!(hooks > 0, "no hook with drums was ever built");
+}

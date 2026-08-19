@@ -150,14 +150,20 @@ pub fn to_stereo(pattern: &Pattern, kit: &Kit) -> Option<Vec<f32>> {
             // of it would be two ideas of where the note ends.
             let len_frames =
                 (f64::from(note.len_ticks) * seconds_per_tick * f64::from(RATE)) as u32;
-            let glide = note.slide_to_pitch.map(|target| Glide {
-                // Travel measured the same way the pitch was, so a pad with its
-                // own root or offset cannot make the two disagree.
-                semis: Kit::semitones_for(pad, track.lane, target) - semis,
-                // ⚠ Half the note each, matching where `midi.rs` puts the
-                // destination note-on — the origin is held, then it moves.
-                delay: len_frames / 2,
-                frames: len_frames - len_frames / 2,
+            let glide = note.slide_to_pitch.map(|target| {
+                // ⚠ The hold matches where `midi.rs` puts the destination
+                // note-on; the travel is the model's own `portamentoMs`. Both
+                // come from `sampler::glide_window`, which the live preview
+                // calls too — see its doc for why there is only one of it.
+                let (delay, frames) =
+                    sampler::glide_window(len_frames, note.slide_ms, f64::from(RATE));
+                Glide {
+                    // Travel measured the same way the pitch was, so a pad with
+                    // its own root or offset cannot make the two disagree.
+                    semis: Kit::semitones_for(pad, track.lane, target) - semis,
+                    delay,
+                    frames,
+                }
             });
             hits.push((
                 at,
@@ -467,6 +473,9 @@ mod tests {
                     vel: 110,
                     model_vel: None,
                     slide_to_pitch: None,
+                    slide_ms: None,
+                    slide_overlap_ticks: None,
+                    timing_locked: false,
                     articulation: None,
                     reversed: false,
                 }],

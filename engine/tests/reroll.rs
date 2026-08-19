@@ -397,3 +397,59 @@ fn rerolling_a_section_does_not_rewrite_a_clip_another_section_shares() {
         target + 1
     );
 }
+
+#[test]
+fn a_reroll_keeps_the_records_own_loop_lengths() {
+    // ⛔⛔ **The defect a review found before it shipped.** `loop_bars` samples
+    // `arrangement.synthLoopBars`, which `rage` authors as a *range* — and the
+    // re-roll drew it from its own fresh seed instead of the song's. The
+    // re-rolled section came back at a different clip length from every other
+    // section of the same record, while `refs` deliberately keeps the
+    // producer's own `PatternRef::bars`, so the tiling went on repeating at the
+    // old length over a shorter clip and the tail of each repeat fell silent.
+    //
+    // ⚠ `rage` is the one model that authors either key, which is what makes
+    // this reachable at all.
+    let rage = model("rage");
+
+    for seed in 0..12u64 {
+        let song = arrange::generate(&rage, &ctx(), seed).expect("builds a song");
+        let before: Vec<u16> = song
+            .sections
+            .iter()
+            .flat_map(|section| section.patterns.values())
+            .filter_map(|reference| song.pattern(reference))
+            .map(|pattern| pattern.bars)
+            .collect();
+        if before.is_empty() {
+            continue;
+        }
+
+        // Every press of R draws a fresh seed, so several of them is the case
+        // that matters: not one of them may change how long a clip is.
+        let mut rolling = song.clone();
+        for (press, target) in (0..rolling.sections.len().min(3)).enumerate() {
+            rolling = arrange::reroll_section(
+                &rage,
+                &ctx(),
+                rolling.clone(),
+                target,
+                9_000 + press as u64,
+                &[],
+            )
+            .expect("re-rolls");
+        }
+
+        let after: Vec<u16> = rolling
+            .sections
+            .iter()
+            .flat_map(|section| section.patterns.values())
+            .filter_map(|reference| rolling.pattern(reference))
+            .map(|pattern| pattern.bars)
+            .collect();
+        assert_eq!(
+            before, after,
+            "seed {seed}: a re-roll resampled the record's loop lengths"
+        );
+    }
+}
