@@ -237,7 +237,16 @@ export function PatternBrowser() {
         />
         <button
           type="button"
-          className="btn-secondary patterns__savebtn"
+          // ⛔⛔ **`btn-ghost`, because `btn-secondary` was never defined.** Mike,
+          // 2026-08-19: *"the save button over here needs to be an actual
+          // button, not just a label."* It always **was** a `<button>` — it just
+          // had no style: `btn-secondary` appeared exactly once in `src/` and
+          // matched nothing in any stylesheet, so it rendered as bare text
+          // beside the name box. ⚠ This is the same defect
+          // `.btn-generate--secondary` records one file over — "applied since
+          // TASK-120 and defined nowhere until 2026-08-15" — which is why the
+          // fix comes with `classes.defined.test.ts` rather than alone.
+          className="btn-ghost patterns__savebtn"
           // ⛔ Disabled with nothing on screen to save, rather than saving an
           // empty library row the producer would click and hear nothing from.
           disabled={
